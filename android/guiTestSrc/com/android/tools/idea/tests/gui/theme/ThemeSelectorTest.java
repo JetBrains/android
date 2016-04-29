@@ -85,7 +85,7 @@ public class ThemeSelectorTest {
     ideFrame.invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
     EditorFixture editor = ideFrame.getEditor();
     assertThat(editor.getCurrentFileContents()).doesNotContain("name=\"AppTheme");
-    editor.moveTo(editor.findOffset(null, "name=\"NewAppTheme", true));
+    editor.moveBetween("", "name=\"NewAppTheme");
     assertEquals("<style ^name=\"NewAppTheme\" parent=\"android:Theme.Holo.Light.DarkActionBar\">",
                  editor.getCurrentLineContents(true, true, 0));
 
@@ -98,7 +98,7 @@ public class ThemeSelectorTest {
     themeEditor.focus(); // required to ensure that the Select Previous Tab action is available
     ideFrame.invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
     assertThat(editor.getCurrentFileContents()).doesNotContain("name=\"NewAppTheme");
-    editor.moveTo(editor.findOffset(null, "name=\"AppTheme", true));
+    editor.moveBetween("", "name=\"AppTheme");
     assertEquals("<style ^name=\"AppTheme\" parent=\"android:Theme.Holo.Light.DarkActionBar\">",
                  editor.getCurrentLineContents(true, true, 0));
   }
@@ -209,7 +209,7 @@ public class ThemeSelectorTest {
     guiTest.ideFrame().invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
     EditorFixture editor = guiTest.ideFrame().getEditor();
     assertThat(editor.getCurrentFileContents()).contains("name=\"AppTheme");
-    editor.moveTo(editor.findOffset(null, "name=\"NewTheme", true));
+    editor.moveBetween("", "name=\"NewTheme");
     assertEquals("<style ^name=\"NewTheme\" parent=\"android:Theme.Holo\" />",
                  editor.getCurrentLineContents(true, true, 0));
 
@@ -239,7 +239,7 @@ public class ThemeSelectorTest {
 
     editor.open("app/build.gradle");
 
-    editor.moveTo(editor.findOffset("compile 'com.android.support:app", null, true));
+    editor.moveBetween("compile 'com.android.support:app", "");
     editor.invokeAction(EditorFixture.EditorAction.DELETE_LINE);
     editor.invokeAction(EditorFixture.EditorAction.SAVE);
 

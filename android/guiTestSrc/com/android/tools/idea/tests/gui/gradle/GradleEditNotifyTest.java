@@ -48,7 +48,7 @@ public class GradleEditNotifyTest {
     guiTest.ideFrame().requireNoEditorNotification();
 
     // Insert:
-    editor.moveTo(editor.findOffset("versionCode ", null, true))
+    editor.moveBetween("versionCode ", "")
           .enterText("1");
 
     // Sync:

@@ -53,9 +53,9 @@ public class AttributeResolveTest {
     guiTest.ideFrame().waitForGradleProjectSyncToFinish();
 
     editor.open("app/src/main/res/layout/layout2.xml", EditorFixture.Tab.EDITOR);
-    editor.moveTo(editor.findOffset("^<TextView"));
+    editor.moveBetween("", "<TextView");
     editor.enterText("<android.support.v7.widget.CardView android:onClick=\"onCreate\" /\n");
-    editor.moveTo(editor.findOffset("on^Create"));
+    editor.moveBetween("on", "Create");
 
     guiTest.waitForBackgroundTasks();
 

@@ -46,7 +46,7 @@ public class GradleIncreaseLanguageLevelTest {
     guiTest.importProjectAndWaitForProjectSyncToFinish("MultiModule");
     EditorFixture editor = guiTest.ideFrame().getEditor();
     editor.open("library2/src/main/java/com/example/MyClass.java");
-    editor.moveTo(editor.findOffset("MyClass {^"));
+    editor.moveBetween("MyClass {", "");
 
     useJava7FeatureAndIncreaseLanguageLevel(editor);
   }
@@ -56,14 +56,14 @@ public class GradleIncreaseLanguageLevelTest {
     guiTest.importProjectAndWaitForProjectSyncToFinish("MultiModule");
     EditorFixture editor = guiTest.ideFrame().getEditor();
     editor.open("library/src/androidTest/java/com/android/library/ApplicationTest.java");
-    editor.moveTo(editor.findOffset("super(Application.class);^"));
+    editor.moveBetween("super(Application.class);", "");
 
     useJava7FeatureAndIncreaseLanguageLevel(editor);
   }
 
   private void useJava7FeatureAndIncreaseLanguageLevel(@NotNull EditorFixture editor) {
     editor.enterText("\nfloat x = 1_000;");
-    editor.moveTo(editor.findOffset("1_0^00;"));
+    editor.moveBetween("1_0", "00;");
     editor.waitForCodeAnalysisHighlightCount(ERROR, 1);
     editor.invokeQuickfixAction("Set language level to 7");
     editor.waitForCodeAnalysisHighlightCount(ERROR, 0);
