@@ -66,6 +66,11 @@ public class UIUtils {
    */
   private static final Color OFFSITE_LINK_COLOR = new JBColor(0x78909C, 0xB0BEC5);
 
+  /**
+   * "Normal" background color.
+   */
+  private static final Color AS_STANDARD_BACKGROUND_COLOR = new JPanel().getBackground();
+
   // TODO: Find or create a better background reference, we're not a tree but
   // this does currently match our desired color treatment. This is pulled
   // from the Maven Projects side panel.
@@ -93,6 +98,10 @@ public class UIUtils {
 
   public static Color getSecondaryColor() {
     return SECONDARY_COLOR;
+  }
+
+  public static Color getAsStandardBackgroundColor() {
+    return AS_STANDARD_BACKGROUND_COLOR;
   }
 
   /**
