@@ -55,8 +55,8 @@ public class NlFlagPropertyItemValue extends PTableItem implements NlProperty {
   }
 
   @Override
-  @Nullable
-  public String resolveValue(@Nullable String value) {
+  @NotNull
+  public String resolveValue(@NotNull String value) {
     return value;
   }
 
@@ -72,6 +72,12 @@ public class NlFlagPropertyItemValue extends PTableItem implements NlProperty {
   @Override
   public NlProperty getChildProperty(@NotNull String itemName) {
     throw new UnsupportedOperationException(itemName);
+  }
+
+  @NotNull
+  @Override
+  public NlProperty getDesignTimeProperty() {
+    throw new UnsupportedOperationException();
   }
 
   @Nullable

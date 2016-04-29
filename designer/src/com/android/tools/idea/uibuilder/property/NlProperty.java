@@ -45,8 +45,8 @@ public interface NlProperty {
   /**
    * Resolves the specified value.
    */
-  @Nullable
-  String resolveValue(@Nullable String value);
+  @NotNull
+  String resolveValue(@NotNull String value);
 
   /**
    * Set the property value.
@@ -82,4 +82,10 @@ public interface NlProperty {
    */
   @NotNull
   NlProperty getChildProperty(@NotNull String name);
+
+  /**
+   * Return the same property as a design time property.
+   */
+  @NotNull
+  NlProperty getDesignTimeProperty();
 }

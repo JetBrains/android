@@ -179,9 +179,6 @@ public class NlPropertiesManager implements DesignSurfaceListener, ModelListener
       return;
     }
 
-    // first reset the property sheet right away, then load and set the properties
-    setEmptySelection();
-
     // TODO: handle multiple selections
     final NlComponent firstComponent = ContainerUtil.getFirstItem(newSelection, null);
     if (firstComponent == null) {
