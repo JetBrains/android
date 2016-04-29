@@ -35,6 +35,7 @@ import org.junit.runner.RunWith;
 import javax.swing.*;
 import java.io.IOException;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.*;
 
 @RunIn(TestGroup.EDITING)
@@ -108,11 +109,6 @@ public class CreateNewClassDialogGuiTest {
     myEditor.moveTo(myEditor.findOffset(expectedImport + "|"));
     String actualImport = myEditor.getCurrentLineContents(true, false, 0);
     assertEquals(expectedImport, actualImport);
-  }
-
-  private void assertThereAreNoImports(@NotNull String filePath) {
-    myEditor.open(filePath);
-    assertEquals(-1, myEditor.findOffset("import|"));
   }
 
   private void createPackagePrivate(Kind kind) throws IOException {
@@ -189,7 +185,7 @@ public class CreateNewClassDialogGuiTest {
 
     assertPackageName(THING_FILE_PATH_0, PACKAGE_NAME_0);
     assertDeclaration(THING_FILE_PATH_0, PUBLIC_DECLARATION, Kind.CLASS);
-    assertThereAreNoImports(THING_FILE_PATH_0);
+    assertThat(myEditor.getCurrentFileContents()).doesNotContain("import ");
   }
 
   @Test

@@ -35,6 +35,7 @@ import java.awt.*;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickButton;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickButtonWhenEnabled;
+import static com.google.common.truth.Truth.assertThat;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.junit.Assert.*;
 
@@ -75,7 +76,7 @@ public class NewModuleTest {
 
     // Sync worked, so that's good. Just make sure we didn't generate "testCompile" in build.gradle
     editor.open("mylibrary/build.gradle");
-    assertEquals(-1, editor.findOffset("test", "Compile", true));
+    assertThat(editor.getCurrentFileContents()).doesNotContain("testCompile");
 
     VirtualFile projectDir = guiTest.ideFrame().getProject().getBaseDir();
     assertNotNull(projectDir.findFileByRelativePath("mylibrary/src/main"));

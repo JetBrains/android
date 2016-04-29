@@ -84,7 +84,7 @@ public class ThemeSelectorTest {
 
     ideFrame.invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
     EditorFixture editor = ideFrame.getEditor();
-    assertEquals(-1, editor.findOffset(null, "name=\"AppTheme", true));
+    assertThat(editor.getCurrentFileContents()).doesNotContain("name=\"AppTheme");
     editor.moveTo(editor.findOffset(null, "name=\"NewAppTheme", true));
     assertEquals("<style ^name=\"NewAppTheme\" parent=\"android:Theme.Holo.Light.DarkActionBar\">",
                  editor.getCurrentLineContents(true, true, 0));
@@ -97,7 +97,7 @@ public class ThemeSelectorTest {
     themeEditor.waitForThemeSelection("AppTheme");
     themeEditor.focus(); // required to ensure that the Select Previous Tab action is available
     ideFrame.invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
-    assertEquals(-1, editor.findOffset(null, "name=\"NewAppTheme", true));
+    assertThat(editor.getCurrentFileContents()).doesNotContain("name=\"NewAppTheme");
     editor.moveTo(editor.findOffset(null, "name=\"AppTheme", true));
     assertEquals("<style ^name=\"AppTheme\" parent=\"android:Theme.Holo.Light.DarkActionBar\">",
                  editor.getCurrentLineContents(true, true, 0));
@@ -208,7 +208,7 @@ public class ThemeSelectorTest {
     themeEditor.focus(); // required to ensure that the Select Previous Tab action is available
     guiTest.ideFrame().invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
     EditorFixture editor = guiTest.ideFrame().getEditor();
-    assertNotEquals(-1, editor.findOffset(null, "name=\"AppTheme", true));
+    assertThat(editor.getCurrentFileContents()).contains("name=\"AppTheme");
     editor.moveTo(editor.findOffset(null, "name=\"NewTheme", true));
     assertEquals("<style ^name=\"NewTheme\" parent=\"android:Theme.Holo\" />",
                  editor.getCurrentLineContents(true, true, 0));
@@ -218,9 +218,8 @@ public class ThemeSelectorTest {
     guiTest.ideFrame().invokeMenuPathRegex("Edit", "Undo.*");
     themeEditor.waitForThemeSelection("AppTheme");
     guiTest.ideFrame().invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
-    assertEquals(-1, editor.findOffset(null, "name=\"NewTheme", true));
+    assertThat(editor.getCurrentFileContents()).doesNotContain("name=\"NewTheme");
   }
-
 
   /**
    * Tests that we can remove AppCompat and the themes update correctly.
