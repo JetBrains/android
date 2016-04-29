@@ -64,7 +64,7 @@ public class UnitTestingSupportTest {
     myEditor.open(path + "/" + testClass + ".java");
 
     // Run the test case that is supposed to pass:
-    myEditor.moveTo(myEditor.findOffset("passing", "Test", true));
+    myEditor.moveBetween("passing", "Test");
 
     runTestUnderCursor();
 
@@ -74,7 +74,7 @@ public class UnitTestingSupportTest {
 
     // Run the test that is supposed to fail:
     myEditor.requestFocus();
-    myEditor.moveTo(myEditor.findOffset("failing", "Test", true));
+    myEditor.moveBetween("failing", "Test");
 
     runTestUnderCursor();
 
@@ -84,7 +84,7 @@ public class UnitTestingSupportTest {
 
     // Fix the failing test and re-run the tests.
     myEditor.requestFocus();
-    myEditor.moveTo(myEditor.findOffset("(7", ",", true));
+    myEditor.moveBetween("(7", ",");
     myEditor.invokeAction(EditorFixture.EditorAction.BACK_SPACE);
     myEditor.enterText("6");
 
@@ -95,7 +95,7 @@ public class UnitTestingSupportTest {
     assertEquals(1, unitTestTree.getAllTestsCount());
 
     // Run the whole class, it should pass now.
-    myEditor.moveTo(myEditor.findOffset("class ", testClass, true));
+    myEditor.moveBetween("class ", testClass);
 
     runTestUnderCursor();
 
@@ -105,7 +105,7 @@ public class UnitTestingSupportTest {
 
     // Break the test again to check the re-run buttons.
     myEditor.requestFocus();
-    myEditor.moveTo(myEditor.findOffset("(6", ",", true));
+    myEditor.moveBetween("(6", ",");
     myEditor.invokeAction(EditorFixture.EditorAction.BACK_SPACE);
     myEditor.enterText("8");
 
@@ -118,7 +118,7 @@ public class UnitTestingSupportTest {
 
     // Fix it again.
     myEditor.requestFocus();
-    myEditor.moveTo(myEditor.findOffset("(8", ",", true));
+    myEditor.moveBetween("(8", ",");
     myEditor.invokeAction(EditorFixture.EditorAction.BACK_SPACE);
     myEditor.enterText("6");
 
@@ -134,7 +134,7 @@ public class UnitTestingSupportTest {
     guiTest.waitForBackgroundTasks();
 
     myEditor.requestFocus();
-    myEditor.moveTo(myEditor.findOffset("class ", testClass, true));
+    myEditor.moveBetween("class ", testClass);
     runTestUnderCursor();
     unitTestTree = getTestTree(testClass);
     assertTrue(unitTestTree.isAllTestsPassed());

@@ -190,7 +190,7 @@ public class AddGradleDependencyTest {
     EditorFixture editor = guiTest.ideFrame().getEditor().open("app/src/test/java/google/simpleapplication/UnitTest.java");
 
     editor.waitForCodeAnalysisHighlightCount(ERROR, 6);
-    editor.moveTo(editor.findOffset("@^Test"));
+    editor.moveBetween("@", "Test");
     editor.invokeQuickfixAction("Add 'JUnit4' to classpath");
 
     guiTest.ideFrame().waitForGradleProjectSyncToFinish();
@@ -208,12 +208,12 @@ public class AddGradleDependencyTest {
     guiTest.importSimpleApplication();
 
     EditorFixture editor = guiTest.ideFrame().getEditor().open("app/src/main/java/google/simpleapplication/MyActivity.java");
-    editor.moveTo(editor.findOffset("onCreate(^Bundle savedInstanceState) {"));
+    editor.moveBetween("onCreate(", "Bundle savedInstanceState) {");
     editor.enterText("\n@NotNull ");
 
     editor.waitForCodeAnalysisHighlightCount(ERROR, 1);
 
-    editor.moveTo(editor.findOffset("@Not^Null "));
+    editor.moveBetween("@Not", "Null ");
     editor.invokeQuickfixAction("Add 'annotations-java5' to classpath");
 
     guiTest.ideFrame().waitForGradleProjectSyncToFinish();
@@ -240,8 +240,7 @@ public class AddGradleDependencyTest {
     String importStatement = createImportStatement(classFqn);
     int statementLength = importStatement.length();
     int position = statementLength - 4;
-    String line = importStatement.substring(0, position) + '^' + importStatement.substring(position, statementLength);
-    editor.moveTo(editor.findOffset(line));
+    editor.moveBetween(importStatement.substring(0, position), importStatement.substring(position, statementLength));
   }
 
   @NotNull

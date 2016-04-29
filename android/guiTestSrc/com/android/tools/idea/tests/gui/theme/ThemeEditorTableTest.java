@@ -107,7 +107,7 @@ public class ThemeEditorTableTest {
 
     guiTest.ideFrame().invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
     EditorFixture editor = guiTest.ideFrame().getEditor();
-    editor.moveTo(editor.findOffset(null, "AppTheme", true));
+    editor.moveBetween("", "AppTheme");
     assertEquals("<style name=\"^AppTheme\" parent=\"Theme.AppCompat.NoActionBar\">",
                         editor.getCurrentLineContents(true, true, 0));
   }
@@ -159,7 +159,7 @@ public class ThemeEditorTableTest {
 
     EditorFixture editor = guiTest.ideFrame().getEditor();
     editor.open("app/src/main/res/values/colors.xml");
-    editor.moveTo(editor.findOffset(null, "holo", true));
+    editor.moveBetween("", "holo");
     assertEquals("<color name=\"^holo_light_primary\">" + ResourceHelper.colorToString(color) + "</color>",
                  editor.getCurrentLineContents(true, true, 0));
   }

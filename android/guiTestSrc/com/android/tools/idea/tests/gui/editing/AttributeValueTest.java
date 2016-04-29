@@ -39,7 +39,7 @@ public class AttributeValueTest {
     final EditorFixture editor = guiTest.ideFrame().getEditor();
 
     editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR);
-    editor.moveTo(editor.findOffset("<TextView|"));
+    editor.moveBetween("<TextView", "");
     editor.enterText("\nandroid:fontFamily=\"monospace\"");
 
     // No double quotes have been added because of automatic first quote insertion

@@ -115,7 +115,7 @@ public class LayoutEditorTest {
     property.requireValue("a < b > c & d ' e \" f");
     // make sure XML source was escaped properly
     editor.selectEditorTab(EditorFixture.Tab.EDITOR);
-    editor.moveTo(editor.findOffset("android:text=\"", null, true));
+    editor.moveBetween("android:text=\"", "");
     assertEquals("android:text=\"a &lt; b > c &amp; d &apos; e &quot; f\"", editor.getCurrentLineContents(true, false, 0));
 
     // Check the resource reference symbols escaping

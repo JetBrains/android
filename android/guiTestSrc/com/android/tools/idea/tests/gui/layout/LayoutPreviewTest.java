@@ -187,7 +187,7 @@ public class LayoutPreviewTest {
     preview.waitForRenderToFinish();
 
     // Move caret to right after the end of the <TextView> element declaration
-    editor.moveTo(editor.findOffset("android:layout_height=\"wrap_content\" />", null, true));
+    editor.moveBetween("android:layout_height=\"wrap_content\" />", "");
     assertEquals("    <TextView\n" +
                  "        android:text=\"@string/hello_world\"\n" +
                  "        android:layout_width=\"wrap_content\"\n" +
@@ -378,7 +378,7 @@ public class LayoutPreviewTest {
 
     // Next let's edit the custom view source file
     editor.open("app/src/main/java/com/android/tools/tests/layout/MyButton.java", EditorFixture.Tab.EDITOR);
-    editor.moveTo(editor.findOffset("extends Button {", null, true));
+    editor.moveBetween("extends Button {", "");
     editor.enterText(" // test");
 
     // Switch back; should trigger render:
@@ -394,7 +394,7 @@ public class LayoutPreviewTest {
     // *not* rebuild if the file contents have not changed (it uses checksums rather than file timestamps).
     // Make sure that we don't get render errors in this scenario! (Regression test for http://b.android.com/76676)
     editor.open("app/src/main/java/com/android/tools/tests/layout/MyButton.java", EditorFixture.Tab.EDITOR);
-    editor.moveTo(editor.findOffset("extends Button {", null, true));
+    editor.moveBetween("extends Button {", "");
     editor.enterText(" ");
     editor.invokeAction(EditorFixture.EditorAction.SAVE);
     editor.invokeAction(EditorFixture.EditorAction.BACK_SPACE);
@@ -459,7 +459,7 @@ public class LayoutPreviewTest {
 
     String buildGradlePath = "app/build.gradle";
     editor.open(buildGradlePath, EditorFixture.Tab.EDITOR);
-    editor.moveTo(editor.findOffset("String 1 defined only by |defaultConfig"));
+    editor.moveBetween("String 1 defined only by ", "defaultConfig");
     editor.enterText("edited ");
     guiTest.ideFrame().requireEditorNotification("Gradle files have changed since last project sync").performAction("Sync Now");
     guiTest.ideFrame().waitForGradleProjectSyncToFinish();

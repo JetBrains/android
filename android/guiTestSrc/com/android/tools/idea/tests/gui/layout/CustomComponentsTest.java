@@ -66,7 +66,7 @@ public class CustomComponentsTest {
     preview.waitForRenderToFinish();
     preview.requireRenderSuccessful();
 
-    editor.moveTo(editor.findOffset("failure=\"", null, true));
+    editor.moveBetween("failure=\"", "");
 
     RenderErrorPanelFixture renderErrors = preview.getRenderErrors();
     for (String failureMode : new String[]{"onDraw", "onLayout", "onMeasure"}) {
