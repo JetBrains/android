@@ -1011,6 +1011,7 @@
     <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.UnsupportedModelVersionErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.FailedToParseSdkErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.UnsupportedGradleVersionErrorHandler"/>
+    <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.UnsupportedClassVersionErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.MissingAndroidSdkErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.MissingAndroidSupportRepoErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.SdkBuildToolsTooLowErrorHandler"/>
