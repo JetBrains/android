@@ -51,10 +51,12 @@ public class BlueprintColorSet extends ColorSet {
 
         // Light colors
 
-        mHighlightedBackground = ColorTheme.updateBrightness(mBackground, 1.1f);
+        mHighlightedBackground = ColorTheme.updateBrightness(mBackground, 1.3f);
         mHighlightedFrames = ColorTheme.updateBrightness(mFrames, 1.2f);
         mHighlightedSnapGuides = new Color(220, 220, 220, 128);
-        mHighlightedConstraints = ColorTheme.updateBrightness(mConstraints, 1.2f);
+        mHighlightedConstraints = ColorTheme.fadeToColor(
+                ColorTheme.updateBrightness(mConstraints, 1.4f),
+                Color.white, 0.3f);
 
         // Selected colors
 

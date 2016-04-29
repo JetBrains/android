@@ -20,6 +20,7 @@ import com.android.tools.sherpa.animation.AnimatedDestroyCircle;
 import com.android.tools.sherpa.animation.AnimatedDestroyLine;
 import com.android.tools.sherpa.drawing.SceneDraw;
 import com.android.tools.sherpa.drawing.ViewTransform;
+import com.android.tools.sherpa.drawing.decorator.ColorTheme;
 import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
 import com.android.tools.sherpa.structure.Selection;
 import com.android.tools.sherpa.structure.WidgetCompanion;
@@ -68,6 +69,7 @@ public class MouseInteraction {
     private boolean mUseDefinedMargin = true;
     private boolean mAutoConnect = true;
     private int mMouseCursor = Cursor.DEFAULT_CURSOR;
+    private ConstraintWidget mPreviousHoverWidget = null;
 
     public static void setMargin(int margin) {
         sMargin = margin;
@@ -938,6 +940,21 @@ public class MouseInteraction {
         ConstraintAnchor anchor = mHoverListener.getConstraintAnchor();
         ResizeHandle handle = mHoverListener.mHitResizeHandle;
         mMouseCursor = updateMouseCursor(handle);
+        if (mPreviousHoverWidget != null) {
+            WidgetCompanion companion = (WidgetCompanion) mPreviousHoverWidget.getCompanionWidget();
+            WidgetDecorator decorator = companion.getWidgetDecorator(mSceneDraw.getCurrentStyle());
+            if (!mSelection.contains(mPreviousHoverWidget)) {
+                decorator.setLook(ColorTheme.Look.NORMAL);
+            }
+        }
+        if (widget != null) {
+            WidgetCompanion companion = (WidgetCompanion) widget.getCompanionWidget();
+            WidgetDecorator decorator = companion.getWidgetDecorator(mSceneDraw.getCurrentStyle());
+            if (!mSelection.contains(widget)) {
+                decorator.setLook(ColorTheme.Look.HIGHLIGHTED);
+            }
+            mPreviousHoverWidget = widget;
+        }
         if (widget != null && mSelection.contains(widget)) {
             mBaselineTimer.restart();
         } else {
