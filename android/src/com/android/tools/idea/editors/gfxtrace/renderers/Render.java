@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.gfxtrace.renderers;
 
 import com.android.tools.idea.editors.gfxtrace.controllers.AtomController;
 import com.android.tools.idea.editors.gfxtrace.controllers.StateController;
+import com.android.tools.idea.editors.gfxtrace.service.atom.Atom;
 import com.android.tools.idea.editors.gfxtrace.service.atom.DynamicAtom;
 import com.android.tools.idea.editors.gfxtrace.service.memory.MemoryPointer;
 import com.android.tools.idea.editors.gfxtrace.service.memory.MemoryProtos.PoolNames;
@@ -135,12 +136,7 @@ public final class Render {
     render(node.index, component, attributes, NO_TAG);
     if (node.atom != null) {
       component.append(": ", attributes);
-      if (node.atom instanceof DynamicAtom) {
-        render((DynamicAtom)node.atom, component, SimpleTextAttributes.SYNTHETIC_ATTRIBUTES, node.hoveredParameter);
-      }
-      else {
-        render(node.atom, component, SimpleTextAttributes.SYNTHETIC_ATTRIBUTES, NO_TAG);
-      }
+      render(node.atom, component, node.hoveredParameter);
     }
   }
 
@@ -157,6 +153,17 @@ public final class Render {
     component.append(group.group.getName(), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
     String range = "  (" + group.group.getRange().getStart() + " - " + group.group.getRange().getLast() + ")";
     component.append(range, SimpleTextAttributes.GRAYED_ATTRIBUTES);
+  }
+
+  public static void render(@NotNull Atom atom,
+                            @NotNull SimpleColoredComponent component,
+                            int hoveredParameter) {
+    if (atom instanceof DynamicAtom) {
+      render((DynamicAtom)atom, component, SimpleTextAttributes.SYNTHETIC_ATTRIBUTES, hoveredParameter);
+    }
+    else {
+      render(atom, component, SimpleTextAttributes.SYNTHETIC_ATTRIBUTES, NO_TAG);
+    }
   }
 
   public static void render(@NotNull DynamicAtom atom,
