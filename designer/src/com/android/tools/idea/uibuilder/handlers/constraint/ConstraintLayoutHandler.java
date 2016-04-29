@@ -18,17 +18,11 @@ package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.api.actions.*;
-import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.SelectionModel;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.Interaction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.android.tools.sherpa.drawing.ViewTransform;
-import com.android.tools.sherpa.interaction.ResizeHandle;
 import com.android.tools.sherpa.scout.Scout;
 import com.android.tools.sherpa.structure.WidgetsScene;
-import com.google.tnt.solver.widgets.ConstraintAnchor;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 
@@ -103,100 +97,23 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
   /**
    * Update the mouse cursor if the (x, y) coordinates hit a resize handle or constraint handle
    *
-   * @param designSurface the surface we are working on
-   * @param x             the current x mouse coordinate
-   * @param y             the current y mouse coordinate
+   * @param screenView the ScreenView we are working on
+   * @param x          the current x mouse coordinate
+   * @param y          the current y mouse coordinate
    * @return true if we modified the cursor
    */
   @Override
-  public boolean updateCursor(@NotNull DesignSurface designSurface,
+  public boolean updateCursor(@NotNull ScreenView screenView,
                               @AndroidCoordinate int x, @AndroidCoordinate int y) {
-    ConstraintModel model = ConstraintModel.getModel();
-    ViewTransform transform = model.getViewTransform();
-    Cursor newCursor = null;
+    DrawConstraintModel drawConstraintModel = ConstraintModel.getDrawConstraintModel(screenView);
 
-    int ax = model.pxToDp(x);
-    int ay = model.pxToDp(y);
-
-    if (UPDATE_CURSOR) {
-      // First check for anchors
-      ConstraintAnchor constraintAnchor = model.getScene().findAnchor(ax, ay, false, false, transform);
-      if (constraintAnchor != null) {
-        if (constraintAnchor.isConnected()) {
-          newCursor = myUnlinkAnchorCursor;
-        }
-        else {
-          switch (constraintAnchor.getType()) {
-            case LEFT: {
-              newCursor = myLeftAnchorCursor;
-            }
-            break;
-            case TOP: {
-              newCursor = myTopAnchorCursor;
-            }
-            break;
-            case RIGHT: {
-              newCursor = myRightAnchorCursor;
-            }
-            break;
-            case BOTTOM: {
-              newCursor = myBottomAnchorCursor;
-            }
-            break;
-          }
-        }
-      }
-    } else {
-      if (model.mouseMoved(x, y)) {
-        designSurface.repaint();
-      }
-    }
-
-    // Then for resize handles
-    if (newCursor == null) {
-      ResizeHandle resizeHandle = model.getScene().findResizeHandle(ax, ay, transform);
-      if (resizeHandle != null) {
-        switch (resizeHandle.getType()) {
-          case LEFT_TOP: {
-            newCursor = Cursor.getPredefinedCursor(Cursor.NW_RESIZE_CURSOR);
-          }
-          break;
-          case LEFT_SIDE: {
-            newCursor = Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR);
-          }
-          break;
-          case LEFT_BOTTOM: {
-            newCursor = Cursor.getPredefinedCursor(Cursor.SW_RESIZE_CURSOR);
-          }
-          break;
-          case RIGHT_TOP: {
-            newCursor = Cursor.getPredefinedCursor(Cursor.NE_RESIZE_CURSOR);
-          }
-          break;
-          case RIGHT_SIDE: {
-            newCursor = Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR);
-          }
-          break;
-          case RIGHT_BOTTOM: {
-            newCursor = Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR);
-          }
-          break;
-          case TOP_SIDE: {
-            newCursor = Cursor.getPredefinedCursor(Cursor.N_RESIZE_CURSOR);
-          }
-          break;
-          case BOTTOM_SIDE: {
-            newCursor = Cursor.getPredefinedCursor(Cursor.S_RESIZE_CURSOR);
-          }
-          break;
-        }
-      }
-    }
+    drawConstraintModel.mouseMoved(x, y);
+    int cursor = drawConstraintModel.getMouseInteraction().getMouseCursor();
 
     // Set the mouse cursor
     // TODO: we should only update if we are above a component we manage, not simply all component that
     // is a child of this viewgroup
-    designSurface.setCursor(newCursor);
+    screenView.getSurface().setCursor(Cursor.getPredefinedCursor(cursor));
     return true;
   }
 
@@ -229,13 +146,12 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
   /**
    * Paint the component and its children on the given context
    *
-   * @param gc graphics context
-   * @param screenView the current screenview
-   * @param width width of the surface
-   * @param height height of the surface
-   * @param component the component to draw
+   * @param gc          graphics context
+   * @param screenView  the current screenview
+   * @param width       width of the surface
+   * @param height      height of the surface
+   * @param component   the component to draw
    * @param transparent if true, it will only draw the widget decorations
-   *
    * @return true to indicate that we will need to be repainted
    */
   @Override
@@ -243,19 +159,12 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                            int width, int height, @NotNull NlComponent component,
                            boolean transparent) {
     boolean needsRepaint = false;
-    int dpi = screenView.getConfiguration().getDensity().getDpiValue();
-    int baseDpi = ConstraintModel.DEFAULT_DENSITY;
-    float dpiFactor = dpi / (float)baseDpi;
 
     if (screenView.getModel() == null) {
       needsRepaint = true;
     }
-    ConstraintModel.useNewModel(screenView.getModel());
-    ConstraintModel constraintModel = ConstraintModel.getModel();
-
-    ViewTransform transform = constraintModel.getViewTransform();
-    transform.setScale((float)(screenView.getScale() * dpiFactor));
-    transform.setTranslate(screenView.getX(), screenView.getY());
+    ConstraintModel constraintModel = ConstraintModel.getConstraintModel(screenView.getModel());
+    DrawConstraintModel drawConstraintModel = ConstraintModel.getDrawConstraintModel(screenView);
 
     if (false) {
       // TODO: fix the selection coming from the model
@@ -265,7 +174,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       }
     }
 
-    needsRepaint |= constraintModel.paint(gc, screenView, width, height, myShowAllConstraints, transparent);
+    needsRepaint |= drawConstraintModel.paint(gc, width, height, myShowAllConstraints);
     return needsRepaint;
   }
 
@@ -279,7 +188,11 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                               @NotNull ViewHandler handler,
                               @NotNull NlComponent parent,
                               @NotNull List<NlComponent> selectedChildren) {
-      return ConstraintModel.getModel().isAutoConnect();
+      ConstraintModel model = ConstraintModel.getConstraintModel(editor.getModel());
+      if (model != null) {
+        return model.isAutoConnect();
+      }
+      return false;
     }
 
     @Override
@@ -288,7 +201,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                             @NotNull NlComponent parent,
                             @NotNull List<NlComponent> selectedChildren,
                             boolean selected) {
-      ConstraintModel.getModel().setAutoConnect(selected);
+      ConstraintModel model = ConstraintModel.getConstraintModel(editor.getModel());
+      if (model != null) {
+        model.setAutoConnect(selected);
+      }
     }
 
     @Override
@@ -303,7 +219,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                         @NotNull ViewHandler handler,
                         @NotNull NlComponent component,
                         @NotNull List<NlComponent> selectedChildren) {
-      ConstraintModel model = ConstraintModel.getModel();
+      ConstraintModel model = ConstraintModel.getConstraintModel(editor.getModel());
+      if (model == null) {
+        return;
+      }
       WidgetsScene scene = model.getScene();
       scene.clearAllConstraints();
       ConstraintUtilities.saveModelToXML(component.getModel());
@@ -326,7 +245,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                         @NotNull ViewHandler handler,
                         @NotNull NlComponent component,
                         @NotNull List<NlComponent> selectedChildren) {
-      ConstraintModel model = ConstraintModel.getModel();
+      ConstraintModel model = ConstraintModel.getConstraintModel(editor.getModel());
+      if (model == null) {
+        return;
+      }
       WidgetsScene scene = model.getScene();
       Scout.inferConstraints(scene);
       ConstraintUtilities.saveModelToXML(component.getModel());
@@ -345,7 +267,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
 
   private class ToggleConstraintModeAction extends ToggleViewAction {
     public ToggleConstraintModeAction() {
-      super(AndroidIcons.SherpaIcons.ShowConstraints, AndroidIcons.SherpaIcons.ShowNoConstraints, "Show constraints", "Show No constraints");
+      super(AndroidIcons.SherpaIcons.ShowConstraints, AndroidIcons.SherpaIcons.ShowNoConstraints, "Show constraints",
+            "Show No constraints");
     }
 
     @Override

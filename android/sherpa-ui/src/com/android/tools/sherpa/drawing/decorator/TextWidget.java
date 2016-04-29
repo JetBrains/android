@@ -29,6 +29,7 @@ import java.awt.Graphics2D;
  * Decorator for text widgets
  */
 public class TextWidget extends WidgetDecorator {
+    static final boolean DO_WRAP = false;
     protected int mHorizontalPadding = 0;
     protected int mVerticalPadding = 0;
     protected int mVerticalMargin = 0;
@@ -74,7 +75,6 @@ public class TextWidget extends WidgetDecorator {
         // regression derived approximation of Android to Java font size
         int size = androidToSwingFontSize(mFontSize);
         mFont = new Font("Helvetica", Font.PLAIN, size);
-
         wrapContent();
     }
 
@@ -113,6 +113,9 @@ public class TextWidget extends WidgetDecorator {
      * to wrap_content, using the default font
      */
     protected void wrapContent() {
+        if (!TextWidget.DO_WRAP) {
+            return;
+        }
         if (mText == null) {
             return;
         }

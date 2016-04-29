@@ -253,7 +253,7 @@ public class InteractionManager {
       for (NlComponent component : selectionModel.getSelection()) {
         ViewGroupHandler viewGroupHandler = component.getViewGroupHandler();
         if (viewGroupHandler != null) {
-          if (viewGroupHandler.updateCursor(mySurface, mx, my)) {
+          if (viewGroupHandler.updateCursor(screenView, mx, my)) {
             return;
           }
         }

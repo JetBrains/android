@@ -16,10 +16,7 @@
 package com.android.tools.idea.uibuilder.api;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
-import com.android.tools.idea.uibuilder.model.FillPolicy;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.SegmentType;
+import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.Interaction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
@@ -153,9 +150,12 @@ public class ViewGroupHandler extends ViewHandler {
   /**
    * Allows a ViewGroupHandler to update the mouse cursor
    *
-   * @return true if the cursor has been changed
+   * @param screenView the ScreenView we are working on
+   * @param x          the current x mouse coordinate
+   * @param y          the current y mouse coordinate
+   * @return true if we modified the cursor
    */
-  public boolean updateCursor(@NotNull DesignSurface designSurface,
+  public boolean updateCursor(@NotNull ScreenView screenView,
                               @AndroidCoordinate int x,
                               @AndroidCoordinate int y) {
     return false;
@@ -192,4 +192,5 @@ public class ViewGroupHandler extends ViewHandler {
     // do nothing here, subclasses need to override this and handlesPainting() to be called
     return false;
   }
+
 }

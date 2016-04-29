@@ -41,6 +41,9 @@ public class CheckboxWidget extends TextWidget {
         if (mWidget == null) {
             return;
         }
+        if (!TextWidget.DO_WRAP) {
+            return;
+        }
         super.wrapContent();
         int extra = mWidget.getMinHeight() + 2 * mHorizontalPadding;
         mWidget.setMinWidth(mWidget.getMinWidth() + extra);

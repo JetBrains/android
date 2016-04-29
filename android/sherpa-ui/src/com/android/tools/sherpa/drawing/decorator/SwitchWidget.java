@@ -50,6 +50,9 @@ public class SwitchWidget extends TextWidget {
         if (mWidget == null) {
             return;
         }
+        if (!TextWidget.DO_WRAP) {
+            return;
+        }
         super.wrapContent();
         int extra = sSwitchWidth + 2 * mHorizontalPadding;
         mWidget.setMinWidth(mWidget.getMinWidth() + extra);
