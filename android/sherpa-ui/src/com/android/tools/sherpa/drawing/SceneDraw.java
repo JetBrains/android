@@ -41,7 +41,15 @@ import com.google.tnt.solver.widgets.*;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.TexturePaint;
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferInt;
+import java.util.Arrays;
 
 /**
  * Implements the drawing of WidgetsScene
@@ -81,6 +89,11 @@ public class SceneDraw {
     private boolean mApplyConstraints = true;
 
     private Repaintable mRepaintableSurface;
+
+    private int mBackgroundFactorX;
+    private int mBackgroundFactorY;
+    private int mBackgroundFactorColor;
+    private int mBackgroundFactorSize;
 
     public interface Repaintable {
         void repaint();
@@ -271,47 +284,73 @@ public class SceneDraw {
     }
 
     /**
-     * Draw a background for the view.
+     *  Draw a background for the view by creating an caching a texture scaled
+     *  according to the transform
      *
-     * @param g              Graphics context
+     * @param transform used to scale the textrue
+     * @param g the graphics context to draw with
+     * @param rootMargin edges
+     * @param w width of screen
+     * @param h height of screen
      * @param selectedAnchor
+     * @return
      */
     public boolean drawBackground(ViewTransform transform, Graphics2D g, int rootMargin, int w,
             int h,
             ConstraintAnchor selectedAnchor) {
-        // We want to draw a grid (on GRID_SPACING) in blueprint mode.
-        // TODO: use a tile bitmap instead
-        Color backgroundColor = mColorSet.getBackground();
         boolean needsRepaint = false;
+        Color backgroundColor = mColorSet.getBackground();
+        TexturePaint backgroundPaint = mColorSet.getBackgroundPaint();
+        // We want to draw a grid (on GRID_SPACING) in blueprint mode.
         if (mCurrentAnimation != null) {
             if (mCurrentAnimation.step()) {
                 needsRepaint = true;
             }
             backgroundColor = mCurrentAnimation.getColor();
         }
-        g.setColor(backgroundColor);
-
-        g.fillRect((int) transform.getTranslateX(), (int) transform.getTranslateY(), w, h);
-
+        int backgroundFactorColor = backgroundColor.getRGB();
         WidgetContainer root = mWidgetsScene.getRoot();
         if (root == null) {
             return needsRepaint;
         }
-
-        float step = SceneDraw.GRID_SPACING * transform.getScale();
-        Color backgroundLines = ColorTheme.updateBrightness(backgroundColor, 1.06f);
-        g.setColor(backgroundLines);
-
         int xr = transform.getSwingX(root.getDrawX());
         int yr = transform.getSwingY(root.getDrawY());
+        int tileSize = transform.getSwingDimension(8);
+
+        if (mBackgroundFactorColor != backgroundFactorColor
+                || mBackgroundFactorX != xr
+                || mBackgroundFactorY != yr
+                ||mBackgroundFactorSize != tileSize ) { // if background inputs changed
+            mBackgroundFactorColor = backgroundFactorColor;
+            mBackgroundFactorX =  xr;
+            mBackgroundFactorY = yr;
+            mBackgroundFactorSize = tileSize;
+            Color backgroundLines = ColorTheme.updateBrightness(backgroundColor, 1.06f);
+            GraphicsEnvironment environment = GraphicsEnvironment.getLocalGraphicsEnvironment();
+            GraphicsDevice device = environment.getDefaultScreenDevice();
+            GraphicsConfiguration config = device.getDefaultConfiguration();
+            BufferedImage image = config.createCompatibleImage(tileSize, tileSize);
+            Graphics2D graphics = image.createGraphics();
+            graphics.setColor(backgroundColor);
+            graphics.fillRect(0,0,tileSize,tileSize);
+            graphics.setColor(backgroundLines);
+            graphics.drawLine(0,tileSize-1,tileSize,tileSize-1);
+            graphics.drawLine(tileSize-1,0,tileSize-1,tileSize);
+            graphics.dispose();
+            backgroundPaint = new TexturePaint(image, new Rectangle(xr+1, yr+1, tileSize, tileSize));
+            mColorSet.setBackgroundPaint(backgroundPaint);
+        }
+
+        g.fillRect((int) transform.getTranslateX(), (int) transform.getTranslateY(), w, h);
+
+        g.setColor(backgroundColor);
+        g.fillRect((int) 0, 0, w, h);
+
         int wr = transform.getSwingDimension(root.getDrawWidth());
         int hr = transform.getSwingDimension(root.getDrawHeight());
-        for (float i = xr; i < xr + wr; i += step) {
-            g.drawLine((int) i, (int) yr, (int) i, (int) (yr + hr));
-        }
-        for (float i = yr; i < yr + hr; i += step) {
-            g.drawLine((int) xr, (int) i, (int) (xr + wr), (int) i);
-        }
+
+        g.setPaint(backgroundPaint);
+        g.fillRect((int) transform.getTranslateX(), (int) transform.getTranslateY(), wr, hr);
 
         return needsRepaint;
     }
