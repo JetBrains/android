@@ -75,6 +75,7 @@ import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidS
 import static com.intellij.ide.impl.NewProjectUtil.applyJdkToProject;
 import static com.intellij.openapi.externalSystem.service.notification.NotificationSource.PROJECT_SYNC;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
 import static java.util.Collections.sort;
 
 /**
@@ -135,7 +136,7 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
     RunResult result = new WriteCommandAction.Simple(project) {
       @Override
       protected void run() throws Throwable {
-        LanguageLevel javaLangVersion = null;
+        LanguageLevel javaLangVersion = JDK_1_8;
 
         ProjectSyncMessages messages = ProjectSyncMessages.getInstance(project);
         boolean hasExtraGeneratedFolders = false;
@@ -182,11 +183,6 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
               nonMatchingModelEncodingFound = modelEncoding.displayName();
             }
 
-            // Get the Java language version from the model.
-            if (javaLangVersion == null) {
-              javaLangVersion = androidModel.getJavaLanguageLevel();
-            }
-
             // Warn users that there are generated source folders at the wrong location.
             File[] sourceFolders = androidModel.getExtraGeneratedSourceFolders();
             if (sourceFolders.length > 0) {
@@ -223,8 +219,7 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
         }
         if (jdk == null) {
           String title = String.format("Problems importing/refreshing Gradle project '%1$s':\n", project.getName());
-          LanguageLevel level = javaLangVersion != null ? javaLangVersion : LanguageLevel.JDK_1_6;
-          String msg = String.format("Unable to find a JDK %1$s installed.\n", level.getPresentableText());
+          String msg = String.format("Unable to find a JDK %1$s installed.\n", javaLangVersion.getPresentableText());
           msg += "After configuring a suitable JDK in the \"Project Structure\" dialog, sync the Gradle project again.";
           NotificationData notification = new NotificationData(title, msg, NotificationCategory.ERROR, PROJECT_SYNC);
           ExternalSystemNotificationManager.getInstance(project).showNotification(GRADLE_SYSTEM_ID, notification);
