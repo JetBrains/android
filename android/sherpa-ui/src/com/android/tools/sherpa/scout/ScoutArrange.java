@@ -288,22 +288,73 @@ public class ScoutArrange {
             case AlignBaseline: {
                 int count = 0;
                 float avg = 0;
+                int number_of_constrained = 0;
+                ConstraintWidget fixedWidget = null;
                 for (ConstraintWidget widget : widgets) {
+                    if (isVerticallyConstrained(widget)) {
+                        number_of_constrained++;
+                        fixedWidget = widget;
+                    }
                     avg += widget.getY() + widget.getBaselineDistance();
                     count++;
                 }
                 avg /= count;
+                // if one is already constrained move the rest to it
+                if (number_of_constrained == 1) {
+                    avg = fixedWidget.getY() + fixedWidget.getBaselineDistance();
+                }
                 ConstraintWidget previousWidget = null;
-                for (ConstraintWidget widget : widgets) {
-                    float baseline = widget.getBaselineDistance();
-                    widget.setY((int) (avg - baseline));
-                    if (applyConstraints) {
-                        if (previousWidget != null) {
-                            widget.connect(ConstraintAnchor.Type.BASELINE, previousWidget,
-                                    ConstraintAnchor.Type.BASELINE, 0);
+                if (!applyConstraints || number_of_constrained == 0) {
+                    for (ConstraintWidget widget : widgets) {
+                        float baseline = widget.getBaselineDistance();
+                        widget.setY((int) (avg - baseline));
+                        if (applyConstraints) {
+                            if (previousWidget != null) {
+                                widget.connect(ConstraintAnchor.Type.BASELINE, previousWidget,
+                                        ConstraintAnchor.Type.BASELINE, 0);
+                            }
+                        }
+                        previousWidget = widget;
+                    }
+                } else { // if you are creating constraints and some are already constrained
+                    // Build a list of constrained and unconstrained widgets
+                    ArrayList<ConstraintWidget> unconstrained = new ArrayList<ConstraintWidget>();
+                    ArrayList<ConstraintWidget> constrained = new ArrayList<ConstraintWidget>();
+                    for (ConstraintWidget widget : widgets) {
+                        if (isVerticallyConstrained(widget)) {
+                            constrained.add(widget);
+                        } else {
+                            unconstrained.add(widget);
                         }
                     }
-                    previousWidget = widget;
+                    // one by one constrain widgets by finding the closest between the two list
+                    while (!unconstrained.isEmpty()) {
+                        ConstraintWidget to = null;
+                        ConstraintWidget from = null;
+                        int min = Integer.MAX_VALUE;
+
+                        for (ConstraintWidget fromCandidate : unconstrained) {
+                            for (ConstraintWidget toCandidate : constrained) {
+                                int fromLeft = fromCandidate.getX();
+                                int fromRight = fromLeft + fromCandidate.getWidth();
+                                int toLeft = toCandidate.getX();
+                                int toRight = toLeft + toCandidate.getWidth();
+                                int dist = Math.abs(toLeft - fromLeft);
+                                dist = Math.min(dist, Math.abs(toLeft - fromRight));
+                                dist = Math.min(dist, Math.abs(toRight - fromRight));
+                                dist = Math.min(dist, Math.abs(toRight - fromLeft));
+                                if (dist < min) {
+                                    min = dist;
+                                    to = toCandidate;
+                                    from = fromCandidate;
+                                }
+                            }
+                        }
+                        from.connect(ConstraintAnchor.Type.BASELINE, to,
+                                ConstraintAnchor.Type.BASELINE, 0);
+                        constrained.add(from);
+                        unconstrained.remove(from);
+                    }
                 }
             }
             break;
@@ -874,4 +925,54 @@ public class ScoutArrange {
         return Math.min(minx, miny);
     }
 
+    /**
+     * true if top bottom or baseline are connected
+     *
+     * @param widget widget to test
+     * @return true if it is constrained
+     */
+    private static boolean isVerticallyConstrained(ConstraintWidget widget) {
+        if (widget.getAnchor(ConstraintAnchor.Type.BOTTOM).isConnected()) {
+            return true;
+        }
+        if (widget.getAnchor(ConstraintAnchor.Type.TOP).isConnected()) {
+            return true;
+        }
+        if (widget.getAnchor(ConstraintAnchor.Type.BASELINE).isConnected()) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * find the nearest widget in a list of widgets only considering the horizontal location
+     *
+     * @param nextTo find nearest to this widget
+     * @param list   list to search
+     * @return the nearest in the list
+     */
+    private static ConstraintWidget nearestHorizontal(ConstraintWidget nextTo,
+            ArrayList<ConstraintWidget> list) {
+        int min = Integer.MAX_VALUE;
+        ConstraintWidget ret = null;
+        int nextToLeft = nextTo.getX();
+        int nextToRight = nextToLeft + nextTo.getWidth();
+        for (ConstraintWidget widget : list) {
+            if (widget == nextTo) {
+                continue;
+            }
+
+            int left = widget.getX();
+            int right = left + widget.getWidth();
+            int dist = Math.abs(left - nextToLeft);
+            dist = Math.min(dist, Math.abs(left - nextToRight));
+            dist = Math.min(dist, Math.abs(right - nextToRight));
+            dist = Math.min(dist, Math.abs(right - nextToLeft));
+            if (dist < min) {
+                min = dist;
+                ret = widget;
+            }
+        }
+        return ret;
+    }
 }
