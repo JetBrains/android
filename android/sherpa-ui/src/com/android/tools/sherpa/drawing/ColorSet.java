@@ -19,6 +19,7 @@ package com.android.tools.sherpa.drawing;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Stroke;
+import java.awt.TexturePaint;
 
 /**
  * Holds a set of colors for drawing a scene
@@ -71,6 +72,16 @@ public class ColorSet {
     protected Color mTooltipBackground = new Color(0, 0, 0, 110);
 
     protected int mStyle;
+
+    private TexturePaint mBackgroundPaint;
+
+    public TexturePaint getBackgroundPaint() {
+        return mBackgroundPaint;
+    }
+
+    public void setBackgroundPaint(TexturePaint backgroundPaint) {
+        mBackgroundPaint = backgroundPaint;
+    }
 
     public Color getAnchorCircle() { return mAnchorCircle; }
 

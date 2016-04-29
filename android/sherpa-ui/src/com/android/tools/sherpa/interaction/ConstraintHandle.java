@@ -54,6 +54,7 @@ public class ConstraintHandle {
 
     static final Color sShadowColor = new Color(0, 0, 0, 50);
     static final Stroke sShadowStroke = new BasicStroke(3);
+    static final Stroke sLineShadowStroke = new BasicStroke(7);
 
     /**
      * Default constructor
@@ -528,8 +529,8 @@ public class ConstraintHandle {
         if (drawShadow) {
             Color pre = g.getColor();
             Stroke s = g.getStroke();
-            g.setColor(sShadowColor);
-            g.setStroke(sShadowStroke);
+            g.setPaint(colorSet.getBackgroundPaint());
+            g.setStroke(sLineShadowStroke);
             g.draw(path);
             g.setColor(pre);
             g.setStroke(s);
