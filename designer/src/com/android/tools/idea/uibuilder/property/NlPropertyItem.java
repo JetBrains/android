@@ -84,6 +84,13 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
     myDefinition = attributeDefinition;
   }
 
+  protected NlPropertyItem(@NotNull NlPropertyItem property, @NotNull String namespace) {
+    myComponent = property.myComponent;
+    myName = property.myName;
+    myNamespace = namespace;
+    myDefinition = property.myDefinition;
+  }
+
   @Override
   @NotNull
   public NlComponent getComponent() {
@@ -94,6 +101,11 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
   @NotNull
   public String getName() {
     return myName;
+  }
+
+  @NotNull
+  protected String getNamespace() {
+    return myNamespace;
   }
 
   public void setDefaultValue(@Nullable PropertiesMap.Property defaultValue) {
@@ -121,12 +133,9 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
   }
 
   @Override
-  @Nullable
-  public String resolveValue(@Nullable String value) {
-    if (value == null) {
-      return null;
-    }
-    if (myDefaultValue != null && isDefaultValue(value)) {
+  @NotNull
+  public String resolveValue(@NotNull String value) {
+    if (myDefaultValue != null && myDefaultValue.value != null && isDefaultValue(value)) {
       return myDefaultValue.value;
     }
     if (value.startsWith("?") || value.startsWith("@") && !isId(value)) {
@@ -175,6 +184,15 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
   @Override
   public NlProperty getChildProperty(@NotNull String itemName) {
     throw new UnsupportedOperationException(itemName);
+  }
+
+  @NotNull
+  @Override
+  public NlProperty getDesignTimeProperty() {
+    if (myNamespace.equals(SdkConstants.TOOLS_URI)) {
+      return this;
+    }
+    return new NlPropertyItem(this, SdkConstants.TOOLS_URI);
   }
 
   @Override

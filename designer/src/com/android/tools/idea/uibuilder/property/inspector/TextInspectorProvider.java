@@ -15,25 +15,26 @@
  */
 package com.android.tools.idea.uibuilder.property.inspector;
 
+import com.android.annotations.NonNull;
+import com.android.annotations.Nullable;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
-public class IdInspectorProvider implements InspectorProvider {
+public class TextInspectorProvider implements InspectorProvider {
   @Override
-  public boolean isApplicable(@NotNull NlComponent component, @NotNull Map<String, NlProperty> properties) {
-    return true;
+  public boolean isApplicable(@NonNull NlComponent component, @NonNull Map<String, NlProperty> properties) {
+    return properties.keySet().containsAll(TextInspectorComponent.TEXT_PROPERTIES);
   }
 
-  @NotNull
+  @NonNull
   @Override
   public InspectorComponent createCustomInspector(@Nullable NlComponent component,
-                                                  @NotNull Map<String, NlProperty> properties,
+                                                  @NonNull Map<String, NlProperty> properties,
                                                   @NotNull NlPropertiesManager propertiesManager) {
-    return new IdInspectorComponent(component, properties, propertiesManager);
+    return new TextInspectorComponent(properties, propertiesManager);
   }
 }

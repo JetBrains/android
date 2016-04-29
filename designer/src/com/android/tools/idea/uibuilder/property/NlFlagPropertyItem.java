@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
 import com.google.common.base.Joiner;
@@ -48,6 +49,10 @@ public class NlFlagPropertyItem extends NlPropertyItem implements NlProperty {
     assert attributeDefinition != null;
   }
 
+  protected NlFlagPropertyItem(@NotNull NlFlagPropertyItem property, @NotNull String namespace) {
+    super(property, namespace);
+  }
+
   @Override
   public boolean hasChildren() {
     return true;
@@ -75,6 +80,15 @@ public class NlFlagPropertyItem extends NlPropertyItem implements NlProperty {
       }
     }
     throw new IllegalArgumentException(itemName);
+  }
+
+  @NotNull
+  @Override
+  public NlProperty getDesignTimeProperty() {
+    if (getNamespace().equals(SdkConstants.TOOLS_URI)) {
+      return this;
+    }
+    return new NlFlagPropertyItem(this, SdkConstants.TOOLS_URI);
   }
 
   @Override
@@ -130,23 +144,40 @@ public class NlFlagPropertyItem extends NlPropertyItem implements NlProperty {
   }
 
   public boolean isItemSet(@NotNull NlFlagPropertyItemValue item) {
-    return getValues().contains(item.getName());
+    return isItemSet(item.getName());
+  }
+
+  public boolean isItemSet(@NotNull String itemName) {
+    return getValues().contains(itemName);
+  }
+
+  public boolean isAnyItemSet(@NotNull String... itemNames) {
+    for (String itemName : itemNames) {
+      if (getValues().contains(itemName)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   public void setItem(@NotNull NlFlagPropertyItemValue changedItem, boolean on) {
-    String removed = on ? null : changedItem.getName();
-    String added = on ? changedItem.getName() : null;
+    Set<String> removed = on ? Collections.emptySet() : Collections.singleton(changedItem.getName());
+    Set<String> added = on ? Collections.singleton(changedItem.getName()) : Collections.emptySet();
+    updateItems(added, removed);
+  }
+
+  public void updateItems(@NotNull Set<String> added, @NotNull Set<String> removed) {
     Set<String> values = getValues();
     StringBuilder builder = new StringBuilder();
-    for (PTableItem item : getChildren()) {
-      // Enumerate over myItems in order to generate a string with the elements in a predictable order:
-      if (values.contains(item.getName()) && !item.getName().equals(removed) || item.getName().equals(added)) {
+    // Enumerate over myItems in order to generate a string with the elements in a predictable order:
+    getChildren().stream()
+      .filter(item -> values.contains(item.getName()) && !removed.contains(item.getName()) || added.contains(item.getName()))
+      .forEach(item -> {
         if (builder.length() > 0) {
           builder.append("|");
         }
         builder.append(item.getName());
-      }
-    }
+      });
     String newValue = builder.length() == 0 ? null : builder.toString();
     setValue(newValue);
   }
