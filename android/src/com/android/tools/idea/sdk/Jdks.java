@@ -36,6 +36,7 @@ import java.util.List;
 
 import static com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil.createAndAddSDK;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static java.util.Collections.emptyList;
 
@@ -44,7 +45,7 @@ import static java.util.Collections.emptyList;
  */
 public class Jdks {
   @NonNls
-  public static final String DOWNLOAD_JDK_7_URL = "http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html";
+  public static final String DOWNLOAD_JDK_8_URL = "http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html";
 
   private static final LanguageLevel DEFAULT_LANG_LEVEL = LanguageLevel.JDK_1_6;
 
@@ -91,13 +92,13 @@ public class Jdks {
 
   @Nullable
   public static String getJdkHomePath(@NotNull LanguageLevel langLevel) {
-    Collection<String> jdkHomePaths = new ArrayList<String>(JavaSdk.getInstance().suggestHomePaths());
+    Collection<String> jdkHomePaths = new ArrayList<>(JavaSdk.getInstance().suggestHomePaths());
     if (jdkHomePaths.isEmpty()) {
       return null;
     }
     // prefer jdk path of getJavaHome(), since we have to allow access to it in tests
     // see AndroidProjectDataServiceTest#testImportData()
-    final List<String> list = new ArrayList<String>();
+    final List<String> list = new ArrayList<>();
     String javaHome = SystemProperties.getJavaHome();
 
     if (javaHome != null && !javaHome.isEmpty()) {
@@ -181,6 +182,15 @@ public class Jdks {
   static boolean hasMatchingLangLevel(@NotNull JavaSdkVersion jdkVersion, @NotNull LanguageLevel langLevel) {
     LanguageLevel max = jdkVersion.getMaxLanguageLevel();
     return max.isAtLeast(langLevel);
+  }
+
+  @Nullable
+  public static JavaSdkVersion findVersion(@NotNull File jdkRoot) {
+    String version = JavaSdk.getInstance().getVersionString(jdkRoot.getPath());
+    if (isEmpty(version)) {
+      return null;
+    }
+    return JavaSdk.getInstance().getVersion(version);
   }
 
   @NotNull
