@@ -44,7 +44,7 @@ public class TestManifestTest {
 
     editor.open("app/src/main/AndroidManifest.xml", EditorFixture.Tab.EDITOR);
     editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 0);
-    editor.select(editor.findOffset("^.MainActivity"), editor.findOffset(".MainActivity^"));
+    editor.select("(\\.MainActivity)");
     // TestActivity shouldn't be accessible from the main AndroidManifest.xml
     editor.enterText(".TestActivity");
     // Close the auto-completion window
@@ -54,7 +54,7 @@ public class TestManifestTest {
     // but it should be from the test manifest
     editor.open("app/src/test/AndroidManifest.xml");
     editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 0);
-    editor.select(editor.findOffset("^.TestActivity"), editor.findOffset(".TestActivity^"));
+    editor.select("(\\.TestActivity)");
     editor.enterText(".MainActivity2");
     // Make sure we trigger the highlighting error
     editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 1);

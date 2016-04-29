@@ -73,8 +73,11 @@ import java.awt.font.TextHitInfo;
 import java.text.AttributedCharacterIterator;
 import java.text.AttributedString;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.truth.Truth.assertThat;
 import static org.fest.reflect.core.Reflection.method;
@@ -476,6 +479,19 @@ public class EditorFixture {
   }
 
   /**
+   * Given a {@code regex} with one capturing group, selects the subsequence captured in the first match found in the selected text editor.
+   *
+   * @throws IllegalStateException if there is no currently selected text editor or no match is found
+   * @throws IllegalArgumentException if {@code regex} does not have exactly one capturing group
+   */
+  public EditorFixture select(String regex) {
+    Matcher matcher = Pattern.compile(regex).matcher(getCurrentFileContents());
+    checkArgument(matcher.groupCount() == 1, "must have exactly one capturing group: %s", regex);
+    matcher.find();
+    return select(matcher.start(1), matcher.end(1));
+  }
+
+  /**
    * Selects the given range. If the first and second offsets are the same, it simply
    * moves the caret to the given position. The caret is always placed at the second offset,
    * <b>which is allowed to be smaller than the first offset</b>. Calling {@code select(10, 7)}
@@ -485,18 +501,17 @@ public class EditorFixture {
    * @param firstOffset  the character offset where we start the selection, or -1 to remove the selection
    * @param secondOffset the character offset where we end the selection, which can be an earlier
    *                     offset than the firstOffset
+   * @throws IllegalStateException if there is no currently selected text editor
    */
-  public EditorFixture select(final int firstOffset, final int secondOffset) {
+  private EditorFixture select(final int firstOffset, final int secondOffset) {
     execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
         // TODO: Do this via mouse drags!
-        FileEditorManager manager = FileEditorManager.getInstance(myFrame.getProject());
-        Editor editor = manager.getSelectedTextEditor();
-        if (editor != null) {
-          editor.getCaretModel().getPrimaryCaret().setSelection(firstOffset, secondOffset);
-          editor.getScrollingModel().scrollToCaret(ScrollType.MAKE_VISIBLE);
-        }
+        Editor editor = FileEditorManager.getInstance(myFrame.getProject()).getSelectedTextEditor();
+        checkState(editor != null, "no currently selected text editor");
+        editor.getCaretModel().getPrimaryCaret().setSelection(firstOffset, secondOffset);
+        editor.getScrollingModel().scrollToCaret(ScrollType.MAKE_VISIBLE);
       }
     });
 
