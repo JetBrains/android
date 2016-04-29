@@ -32,6 +32,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.impl.FileEditorManagerImpl;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -562,44 +563,20 @@ public class ConfigurationMatcher {
     // already taken over so getSelectedTextEditor() returns self. Perhaps we
     // need to fish in the open editors instead.
 
-    //Editor activeEditor = ApplicationManager.getApplication().runReadAction(new Computable<Editor>() {
-    //  @Override
-    //  public Editor compute() {
-    //    FileEditorManager editorManager = FileEditorManager.getInstance(myManager.getProject());
-    //    return editorManager.getSelectedTextEditor();
-    //  }
-    //});
-
-    // TODO: How do I redispatch without risking lock?
-    //Editor activeEditor = AndroidUtils.getSelectedEditor(myManager.getProject());
-    if (ApplicationManager.getApplication().isDispatchThread()) {
-      FileEditorManager editorManager = FileEditorManager.getInstance(myManager.getProject());
-      Editor activeEditor;
-      try {
-        activeEditor = editorManager.getSelectedTextEditor();
-      } catch (Throwable t) {
-        // There are cases where this code is invoked *during* startup, where the
-        // editor manager is recreating its open files, and if one of those open
-        // files is a layout editor, it constructs it (which in turns asks for
-        // a configuration, which ends up calling into this function.
-        //
-        // The purpose of asking for the current editor here is to base new configurations
-        // on the currently showing layout editor. That isn't an issue during startup,
-        // so we silently skip this here. (There isn't a way for us to query whether
-        // we're being invoked during EditorManager construction.)
-        activeEditor = null;
-      }
-      if (activeEditor != null) {
-        FileDocumentManager documentManager = FileDocumentManager.getInstance();
-        VirtualFile file = documentManager.getFile(activeEditor.getDocument());
-        if (file != null && !file.equals(myFile) && file.getFileType() == StdFileTypes.XML
-            && ResourceHelper.getFolderType(myFile) == ResourceHelper.getFolderType(file)) {
-          Configuration configuration = myManager.getConfiguration(file);
-          FolderConfiguration fullConfig = configuration.getFullConfig();
-          for (ConfigMatch match : matches) {
-            if (fullConfig.equals(match.testConfig)) {
-              return match;
-            }
+    // We use FileEditorManagerImpl instead of FileEditorManager to get access to the lock-free version
+    // (also used by DebuggerContextUtil) since the normal method only works from the dispatch thread
+    // (grabbing a read lock is not enough).
+    Editor activeEditor = ((FileEditorManagerImpl)FileEditorManager.getInstance(myManager.getProject())).getSelectedTextEditor(true);
+    if (activeEditor != null) {
+      FileDocumentManager documentManager = FileDocumentManager.getInstance();
+      VirtualFile file = documentManager.getFile(activeEditor.getDocument());
+      if (file != null && !file.equals(myFile) && file.getFileType() == StdFileTypes.XML
+          && ResourceHelper.getFolderType(myFile) == ResourceHelper.getFolderType(file)) {
+        Configuration configuration = myManager.getConfiguration(file);
+        FolderConfiguration fullConfig = configuration.getFullConfig();
+        for (ConfigMatch match : matches) {
+          if (fullConfig.equals(match.testConfig)) {
+            return match;
           }
         }
       }
