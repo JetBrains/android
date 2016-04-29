@@ -28,6 +28,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.regex.Pattern;
+
 import static junit.framework.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -80,8 +82,8 @@ public class CustomComponentsTest {
       renderErrors.requireHaveRenderError("NullPointerException");
 
       // Remove the existing mode
-      int offset = editor.findOffset(failureMode, null, true);
-      editor.select(offset, offset - failureMode.length());
+      editor.select(String.format("(%s)", Pattern.quote(failureMode)));
+      editor.enterText("");
     }
 
     editor.invokeAction(EditorFixture.EditorAction.BACK_SPACE);
