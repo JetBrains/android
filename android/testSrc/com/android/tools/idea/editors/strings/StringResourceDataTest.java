@@ -16,7 +16,9 @@
 package com.android.tools.idea.editors.strings;
 
 import com.android.SdkConstants;
+import com.android.builder.model.ClassField;
 import com.android.ide.common.res2.ResourceItem;
+import com.android.tools.idea.rendering.DynamicResourceValueRepository;
 import com.android.tools.idea.rendering.LocalResourceRepository;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.rendering.ModuleResourceRepository;
@@ -29,11 +31,9 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
+import org.mockito.Mockito;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class StringResourceDataTest extends AndroidTestCase {
   private VirtualFile resourceDirectory;
@@ -42,10 +42,31 @@ public class StringResourceDataTest extends AndroidTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
+    myFacet.getProperties().ALLOW_USER_CONFIGURATION = false;
 
     resourceDirectory = myFixture.copyDirectoryToProject("stringsEditor/base/res", "res");
-    LocalResourceRepository repository = ModuleResourceRepository.createForTest(myFacet, Collections.singletonList(resourceDirectory));
-    data = StringResourceParser.parse(myFacet, repository);
+    setUpData();
+  }
+
+  private void setUpData() {
+    Collection<VirtualFile> resourceDirectories = Collections.singletonList(resourceDirectory);
+
+    Map<String, ClassField> values = Collections.singletonMap("dynamic_key1", mockClassField("dynamic_key1", "L\\'Étranger"));
+    LocalResourceRepository otherDelegate = DynamicResourceValueRepository.createForTest(myFacet, values);
+    Collection<LocalResourceRepository> otherDelegates = Collections.singletonList(otherDelegate);
+
+    data = StringResourceParser.parse(myFacet, ModuleResourceRepository.createForTest(myFacet, resourceDirectories, otherDelegates));
+  }
+
+  @NotNull
+  private static ClassField mockClassField(@NotNull String name, @NotNull String value) {
+    ClassField field = Mockito.mock(ClassField.class);
+
+    Mockito.when(field.getType()).thenReturn("string");
+    Mockito.when(field.getName()).thenReturn(name);
+    Mockito.when(field.getValue()).thenReturn(value);
+
+    return field;
   }
 
   public void testSummarizeLocales() {
@@ -74,7 +95,7 @@ public class StringResourceDataTest extends AndroidTestCase {
     }));
     assertSameElements(locales, ImmutableSet.of("en", "en-GB", "en-IN", "fr", "hi"));
 
-    assertEquals(ImmutableSet.of("key1", "key2", "key3", "key5", "key6", "key7"), data.getDefaultValues().keySet());
+    assertEquals(ImmutableSet.of("dynamic_key1", "key1", "key2", "key3", "key5", "key6", "key7"), data.getDefaultValues().keySet());
 
     Set<String> untranslatableKeys = data.getUntranslatableKeys();
     assertSameElements(untranslatableKeys, Lists.newArrayList("key5", "key6"));
@@ -84,13 +105,17 @@ public class StringResourceDataTest extends AndroidTestCase {
     assertEquals("Key 2 hi", StringResourceData.resourceToString(translations.get("key2", Locale.create("hi"))));
   }
 
-  public void testUnescaping() {
+  public void testResourceToStringPsi() {
     Table<String, Locale, ResourceItem> translations = data.getTranslations();
     Locale locale = Locale.create("fr");
 
     assertEquals("L'Étranger", StringResourceData.resourceToString(translations.get("key8", locale)));
     assertEquals("<![CDATA[L'Étranger]]>", StringResourceData.resourceToString(translations.get("key9", locale)));
     assertEquals("<xliff:g>L'Étranger</xliff:g>", StringResourceData.resourceToString(translations.get("key10", locale)));
+  }
+
+  public void testResourceToStringDynamic() {
+    assertEquals("L\\'Étranger", StringResourceData.resourceToString(data.getDefaultValues().get("dynamic_key1")));
   }
 
   public void testValidation() {
@@ -139,25 +164,25 @@ public class StringResourceDataTest extends AndroidTestCase {
     assertNotNull(stringsFile);
 
     assertFalse(data.getUntranslatableKeys().contains("key1"));
-    XmlTag tag = getNthXmlTag(stringsFile, "string", 0);
+    XmlTag tag = getNthXmlTag(stringsFile, 0);
     assertEquals("key1", tag.getAttributeValue(SdkConstants.ATTR_NAME));
     assertNull(tag.getAttributeValue(SdkConstants.ATTR_TRANSLATABLE));
 
     data.setDoNotTranslate("key1", true);
 
     assertTrue(data.getUntranslatableKeys().contains("key1"));
-    tag = getNthXmlTag(stringsFile, "string", 0);
+    tag = getNthXmlTag(stringsFile, 0);
     assertEquals(SdkConstants.VALUE_FALSE, tag.getAttributeValue(SdkConstants.ATTR_TRANSLATABLE));
 
     assertTrue(data.getUntranslatableKeys().contains("key5"));
-    tag = getNthXmlTag(stringsFile, "string", 3);
+    tag = getNthXmlTag(stringsFile, 3);
     assertEquals("key5", tag.getAttributeValue(SdkConstants.ATTR_NAME));
     assertEquals(SdkConstants.VALUE_FALSE, tag.getAttributeValue(SdkConstants.ATTR_TRANSLATABLE));
 
     data.setDoNotTranslate("key5", false);
 
     assertFalse(data.getUntranslatableKeys().contains("key5"));
-    tag = getNthXmlTag(stringsFile, "string", 3);
+    tag = getNthXmlTag(stringsFile, 3);
     assertNull(tag.getAttributeValue(SdkConstants.ATTR_TRANSLATABLE));
   }
 
@@ -183,7 +208,7 @@ public class StringResourceDataTest extends AndroidTestCase {
     VirtualFile file = resourceDirectory.findFileByRelativePath("values-en-rIN/strings.xml");
     assert file != null;
 
-    XmlTag tag = getNthXmlTag(file, "string", 0);
+    XmlTag tag = getNthXmlTag(file, 0);
     assertEquals("key1", tag.getAttributeValue(SdkConstants.ATTR_NAME));
     assertEquals(expected, tag.getValue().getText());
   }
@@ -196,16 +221,13 @@ public class StringResourceDataTest extends AndroidTestCase {
     assertEquals("start <xliff:g>middle1</xliff:g>%s<xliff:g>middle3</xliff:g> end", currentData);
     assertTrue(data.setTranslation(key, locale, currentData.replace("%s", "%1$s")));
 
-    String expected = "start<xliff:g>middle1</xliff:g>%1$s\n" +
-                      "      <xliff:g>middle3</xliff:g>\n" +
-                      "      end";
-
+    String expected = "start <xliff:g>middle1</xliff:g>%1$s<xliff:g>middle3</xliff:g> end";
     assertEquals(expected, StringResourceData.resourceToString(data.getTranslations().get(key, locale)));
 
     VirtualFile file = resourceDirectory.findFileByRelativePath("values-en-rIN/strings.xml");
     assert file != null;
 
-    XmlTag tag = getNthXmlTag(file, "string", 2);
+    XmlTag tag = getNthXmlTag(file, 2);
     assertEquals("key3", tag.getAttributeValue(SdkConstants.ATTR_NAME));
     assertEquals(expected, tag.getValue().getText().trim());
   }
@@ -220,20 +242,20 @@ public class StringResourceDataTest extends AndroidTestCase {
     VirtualFile file = resourceDirectory.findFileByRelativePath("values-en/strings.xml");
     assert file != null;
 
-    XmlTag tag = getNthXmlTag(file, "string", 4);
+    XmlTag tag = getNthXmlTag(file, 4);
     assertEquals("key4", tag.getAttributeValue(SdkConstants.ATTR_NAME));
     assertEquals("Hello", tag.getValue().getText());
 
     assertEquals("Hello", StringResourceData.resourceToString(data.getTranslations().get(key, locale)));
   }
 
-  private XmlTag getNthXmlTag(@NotNull VirtualFile file, @NotNull String tag, int index) {
+  private XmlTag getNthXmlTag(@NotNull VirtualFile file, int index) {
     PsiFile psiFile = PsiManager.getInstance(myFacet.getModule().getProject()).findFile(file);
     assert psiFile != null;
 
     XmlTag rootTag = ((XmlFile)psiFile).getRootTag();
     assert rootTag != null;
 
-    return rootTag.findSubTags(tag)[index];
+    return rootTag.findSubTags("string")[index];
   }
 }

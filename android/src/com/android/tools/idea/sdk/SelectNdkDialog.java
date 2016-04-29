@@ -16,15 +16,15 @@
 
 package com.android.tools.idea.sdk;
 
-import com.android.sdklib.repository.FullRevision;
+import com.android.SdkConstants;
+import com.android.repository.Revision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
-import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
-import com.google.common.base.Objects;
+import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
+import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.ui.*;
 import com.intellij.openapi.util.SystemInfo;
@@ -201,10 +201,9 @@ public class SelectNdkDialog extends DialogWrapper {
   @Override
   protected void doOKAction() {
     if (myDownloadNdkRadioButton.isSelected()) {
-      List<IPkgDesc> requested = ImmutableList.of(PkgDesc.Builder.newNdk(FullRevision.NOT_SPECIFIED).create());
-      SdkQuickfixWizard wizard = new SdkQuickfixWizard(null, null, requested);
-      wizard.init();
-      if (wizard.showAndGet()) {
+      List<String> requested = ImmutableList.of(SdkConstants.FD_NDK);
+      ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(myPanel, requested);
+      if (dialog != null && dialog.showAndGet()) {
         File ndk = IdeSdks.getAndroidNdkPath();
         if (ndk != null) {
           myNdkPath = ndk.getPath();

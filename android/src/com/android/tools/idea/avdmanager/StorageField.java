@@ -16,41 +16,43 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.devices.Storage;
-import com.android.tools.idea.wizard.dynamic.ScopedDataBinder;
+import com.android.tools.idea.ui.properties.InvalidationListener;
+import com.android.tools.idea.ui.properties.ObservableValue;
+import com.android.tools.idea.ui.properties.core.ObjectProperty;
+import com.android.tools.idea.ui.properties.core.ObjectValueProperty;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.EnumComboBoxModel;
-import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.border.LineBorder;
-import javax.swing.text.Document;
 import java.awt.*;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
+import java.awt.event.*;
+import java.text.DecimalFormat;
 
 import static com.android.sdklib.devices.Storage.Unit;
 
 /**
- * Storage field for displaying and editing a {@link com.android.sdklib.devices.Storage} value
+ * Storage field for displaying and editing a {@link Storage} value
  */
 public class StorageField extends JPanel {
-  public static final Unit DEFAULT_UNIT = Unit.MiB;
 
+  private final Unit DEFAULT_UNIT = Unit.MiB;
   private final ComboBoxModel unitModel = new EnumComboBoxModel<Unit>(Unit.class);
+
   private final ComboBox myUnitsCombo = new ComboBox(unitModel);
   private final JTextField myValueField = new JTextField();
 
-  private static final LineBorder ERROR_BORDER = new LineBorder(JBColor.RED);
-  private final Border myBorder;
-
-  private long myBytes = 0L;
-
   private Unit myCurrentUnit = DEFAULT_UNIT;
-  private boolean myIgnoreUpdates;
+
+  private ObjectProperty<Storage> myStorage = new ObjectValueProperty<Storage>(new Storage(0, DEFAULT_UNIT));
+  public ObjectProperty<Storage> storage() {
+    return myStorage;
+  }
+
+  public final Dimension getPreferredSizeOfUnitsDropdown() {
+    return myUnitsCombo.getPreferredSize();
+  }
 
   public StorageField() {
     super();
@@ -59,6 +61,8 @@ public class StorageField extends JPanel {
     add(myValueField, BorderLayout.CENTER);
     add(myUnitsCombo, BorderLayout.EAST);
 
+    myUnitsCombo.setSelectedItem(DEFAULT_UNIT);
+
     myUnitsCombo.setRenderer(new ColoredListCellRenderer<Unit>() {
       @Override
       protected void customizeCellRenderer(JList list, Unit value, int index, boolean selected, boolean hasFocus) {
@@ -66,91 +70,46 @@ public class StorageField extends JPanel {
       }
     });
 
-    myUnitsCombo.setSelectedItem(DEFAULT_UNIT);
-    ItemListener unitChangeListener = new ItemListener() {
+    myUnitsCombo.addActionListener(new ActionListener() {
       @Override
-      public void itemStateChanged(ItemEvent e) {
+      public void actionPerformed(ActionEvent e) {
         myCurrentUnit = (Unit)myUnitsCombo.getSelectedItem();
-        Storage value = new Storage(myBytes);
-        myIgnoreUpdates = true;
-        myValueField.setText(Long.toString(value.getSizeAsUnit(myCurrentUnit)));
-        myIgnoreUpdates = false;
-
+        String value = new DecimalFormat("0.####").format(myStorage.get().getPreciseSizeAsUnit(myCurrentUnit));
+        myValueField.setText(value);
       }
-    };
-    myUnitsCombo.addItemListener(unitChangeListener);
-    myBorder = myValueField.getBorder();
+    });
+
+    myValueField.addFocusListener(new FocusAdapter() {
+      @Override
+      public void focusLost(FocusEvent e) {
+        updateStorage();
+      }
+    });
+
+    storage().addListener(new InvalidationListener() {
+      @Override
+      public void onInvalidated(@NotNull ObservableValue<?> sender) {
+        String value = new DecimalFormat("0.####").format(myStorage.get().getPreciseSizeAsUnit(myCurrentUnit));
+        myValueField.setText(value);
+      }
+    });
   }
 
-  private void updateBytes() {
-    if (myIgnoreUpdates) {
-      return;
-    }
+  private void updateStorage() {
     String text = myValueField.getText();
-    myBytes = 0;
+    Storage storage;
+
     if (text != null) {
       try {
-        Long valueAsUnits = Long.parseLong(text);
-        Storage value = new Storage(valueAsUnits, myCurrentUnit);
-        myBytes = value.getSize();
-      } catch (NumberFormatException e) {
-        // Pass
+        Double valueAsUnits = Double.parseDouble(text);
+        storage = new Storage(valueAsUnits.longValue(), myCurrentUnit);
       }
-    }
-  }
-
-  @Nullable
-  private Storage getCurrentValue() {
-    if (myBytes <= 0) {
-      return null;
-    }
-    return new Storage(myBytes);
-  }
-
-  public ScopedDataBinder.ComponentBinding<Storage, StorageField> getBinding() {
-    return myBinding;
-  }
-
-  private final ScopedDataBinder.ComponentBinding<Storage, StorageField> myBinding =
-      new ScopedDataBinder.ComponentBinding<Storage, StorageField>() {
-    @Override
-    public void setValue(@Nullable Storage newValue, @NotNull StorageField component) {
-      if (newValue != null) {
-        Unit unit = newValue.getAppropriateUnits();
-        String newText = Long.toString(newValue.getSizeAsUnit(unit));
-        if (!component.myValueField.getText().equals(newText)) {
-          component.myValueField.setText(newText);
-        }
-        component.myUnitsCombo.setSelectedItem(unit);
-        myBytes = newValue.getSize();
-        myCurrentUnit = unit;
+      catch (NumberFormatException ex) {
+        storage = new Storage(0, DEFAULT_UNIT);
+        myValueField.setText("0");
+        myUnitsCombo.setSelectedItem(DEFAULT_UNIT);
       }
-    }
-
-    @Nullable
-    @Override
-    public Storage getValue(@NotNull StorageField component) {
-      updateBytes();
-      return getCurrentValue();
-    }
-
-    @Override
-    public void addItemListener(@NotNull ItemListener listener, @NotNull StorageField component) {
-      component.myUnitsCombo.addItemListener(listener);
-    }
-
-    @Nullable
-    @Override
-    public Document getDocument(@NotNull StorageField component) {
-      return component.myValueField.getDocument();
-    }
-  };
-
-  public void setError(boolean hasError) {
-    if (hasError) {
-      myValueField.setBorder(ERROR_BORDER);
-    } else {
-      myValueField.setBorder(myBorder);
+      myStorage.set(storage);
     }
   }
 

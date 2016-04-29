@@ -5,5 +5,8 @@
       <val name="value" val="&quot;android.permission.WRITE_SECURE_SETTINGS&quot;" />
     </annotation>
   </item>
+  <item name="android.view.inputmethod.InputMethodSubtype java.lang.String getLocale()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
 </root>
 

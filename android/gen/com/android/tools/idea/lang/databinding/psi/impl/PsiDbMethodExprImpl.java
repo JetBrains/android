@@ -33,4 +33,10 @@ public class PsiDbMethodExprImpl extends PsiDbExprImpl implements PsiDbMethodExp
     return findChildByClass(PsiDbExpressionList.class);
   }
 
+  @Override
+  @NotNull
+  public PsiDbMethodName getMethodName() {
+    return findNotNullChildByClass(PsiDbMethodName.class);
+  }
+
 }

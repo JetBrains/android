@@ -62,8 +62,8 @@ public class CompilerOutputModuleCustomizer extends AbstractCompileOutputModuleC
     if (mainClassesFolder != null) {
       // This folder is null for modules that are just folders containing other modules. This type of modules are later on removed by
       // PostProjectSyncTaskExecutor.
-      final ModifiableRootModel ideaModuleModel = modelsProvider.getModifiableRootModel(module);
-      setOutputPaths(ideaModuleModel, mainClassesFolder, testClassesFolder);
+      final ModifiableRootModel moduleModel = modelsProvider.getModifiableRootModel(module);
+      setOutputPaths(moduleModel, mainClassesFolder, testClassesFolder);
     }
   }
 }

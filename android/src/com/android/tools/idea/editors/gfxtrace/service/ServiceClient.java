@@ -21,6 +21,8 @@ import com.android.tools.idea.editors.gfxtrace.service.atom.AtomGroup;
 import com.android.tools.idea.editors.gfxtrace.service.atom.AtomList;
 import com.android.tools.idea.editors.gfxtrace.service.image.ImageInfo;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
+import com.android.tools.idea.editors.gfxtrace.service.stringtable.Info;
+import com.android.tools.idea.editors.gfxtrace.service.stringtable.StringTable;
 import com.android.tools.rpclib.schema.Message;
 import com.google.common.base.Function;
 import com.google.common.util.concurrent.Futures;
@@ -30,11 +32,14 @@ public abstract class ServiceClient {
   //<<<Start:Java.ClientBody:1>>>
   public abstract ListenableFuture<Path> follow(Path p);
   public abstract ListenableFuture<Object> get(Path p);
+  public abstract ListenableFuture<Info[]> getAvailableStringTables();
   public abstract ListenableFuture<CapturePath[]> getCaptures();
   public abstract ListenableFuture<DevicePath[]> getDevices();
+  public abstract ListenableFuture<String[]> getFeatures();
   public abstract ListenableFuture<ImageInfoPath> getFramebufferColor(DevicePath device, AtomPath after, RenderSettings settings);
   public abstract ListenableFuture<ImageInfoPath> getFramebufferDepth(DevicePath device, AtomPath after);
   public abstract ListenableFuture<Message> getSchema();
+  public abstract ListenableFuture<StringTable> getStringTable(Info info);
   public abstract ListenableFuture<TimingInfoPath> getTimingInfo(DevicePath device, CapturePath capture, TimingFlags flags);
   public abstract ListenableFuture<CapturePath> importCapture(String name, byte[] Data);
   public abstract ListenableFuture<CapturePath> loadCapture(String path);

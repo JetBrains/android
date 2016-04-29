@@ -22,10 +22,18 @@ import com.intellij.openapi.components.ServiceManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Map;
+
 /**
  * Android Studio Usage Tracker.
  */
 public abstract class UsageTracker {
+  /**
+   * Maximum length of the URL constructed when uploading data to tools.google.com. This is simply the max allowed HTTP URL length,
+   * which depending on the source seems to be from 2k to 4k. We use a conservative value here.
+   */
+  public static final int MAX_URL_LENGTH = 2000;
+
   /**
    * GA only allows sending a single <category,action,value> tuple per event
    * However, we'd like to track different components of the avd such as its version, arch, etc
@@ -45,12 +53,16 @@ public abstract class UsageTracker {
   public static final String DEVICE_INFO_BUILD_API_LEVEL = IDevice.PROP_BUILD_API_LEVEL; // "22"
   public static final String DEVICE_INFO_MANUFACTURER = IDevice.PROP_DEVICE_MANUFACTURER;
   public static final String DEVICE_INFO_MODEL = IDevice.PROP_DEVICE_MODEL;
+  public static final String DEVICE_INFO_MANUFACTURER_MODEL = "deviceModel";
   public static final String DEVICE_INFO_SERIAL_HASH = "ro.serialno.hashed";
   public static final String DEVICE_INFO_CPU_ABI = IDevice.PROP_DEVICE_CPU_ABI;
 
   public static final String CATEGORY_DEPLOYMENT = "deployment";
   public static final String ACTION_DEPLOYMENT_APK = "apkDeployed";
   public static final String ACTION_DEPLOYMENT_EMULATOR = "emulatorLaunch";
+
+  public static final String CATEGORY_INSTANTRUN = "instantrun";
+  public static final String ACTION_INSTANTRUN_FULLBUILD = "buildCause";
 
   public static final String CATEGORY_DEVELOPER_SERVICES = "devServices";
   public static final String ACTION_DEVELOPER_SERVICES_INSTALLED = "installed";
@@ -112,6 +124,23 @@ public abstract class UsageTracker {
   public static final String ACTION_APP_INDEXING_API_CODE_CREATED = "apiCodeCreated";
   public static final String ACTION_APP_INDEXING_DEEP_LINK_LAUNCHED = "deepLinkLaunched";
   public static final String ACTION_APP_INDEXING_TRIGGER_QUICKFIX = "triggerQuickfix";
+  public static final String ACTION_APP_INDEXING_SHOW_FEAG_DIALOG = "showFeagDialog";
+  public static final String ACTION_APP_INDEXING_START_FEAG_TASK = "startFeagTask";
+
+  /**
+   * Tracking category for LLDB native debugger
+   */
+  public static final String CATEGORY_LLDB = "lldb";
+  public static final String ACTION_LLDB_DEVICE_MODEL = IDevice.PROP_DEVICE_MODEL;
+  public static final String ACTION_LLDB_DEVICE_API_LEVEL = IDevice.PROP_BUILD_API_LEVEL;
+  public static final String ACTION_LLDB_SESSION_STARTED = "sessionStarted";
+  public static final String ACTION_LLDB_SESSION_FAILED = "sessionFailed";
+  public static final String ACTION_LLDB_INSTALL_STARTED = "installStarted";
+  public static final String ACTION_LLDB_INSTALL_FAILED = "installFailed";
+  public static final String ACTION_LLDB_SESSION_USED_WATCHPOINTS = "sessionUsedWatchpoints";
+
+  @SuppressWarnings("unused") // literal value used in AnalyticsUploader.trackException (under tools/idea)
+  public static final String CATEGORY_THROWABLE_DETAIL_MESSAGE = "Throwable.detailMessage";
 
   /**
    * When using the usage tracker, do NOT include any information that can identify the user
@@ -138,7 +167,18 @@ public abstract class UsageTracker {
    */
   public abstract void trackLibraryCount(@NotNull String applicationId, int jarDependencyCount, int aarDependencyCount);
 
+  public abstract void trackModuleCount(@NotNull String applicationId, int total, int appModuleCount, int libModuleCount);
+
+  public abstract void trackAndroidModule(@NotNull String applicationId, @NotNull String moduleName, boolean isLibrary,
+                                          int signingConfigCount, int buildTypeCount, int flavorCount, int flavorDimension);
+
   public abstract void trackGradleArtifactVersions(@NotNull String applicationId,
                                                    @NotNull String androidPluginVersion,
-                                                   @NotNull String gradleVersion);
+                                                   @NotNull String gradleVersion,
+                                                   @NotNull Map<String, String> instantRunSettings);
+
+  public abstract void trackLegacyIdeaAndroidProject(@NotNull String applicationId);
+
+  public abstract void trackInstantRunStats(@NotNull Map<String,String> kv);
+  public abstract void trackInstantRunTimings(@NotNull Map<String, String> kv);
 }

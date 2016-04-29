@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.resources.Density;
-import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.SdkVersionInfo;
+import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.sdklib.repositoryv2.targets.SystemImage;
 import com.android.tools.idea.npw.WizardUtils;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -41,13 +44,13 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.Border;
-import javax.swing.event.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.awt.event.*;
-import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.*;
 import java.util.List;
@@ -64,6 +67,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
   private final Project myProject;
   private final JButton myRefreshButton = new JButton(AllIcons.Actions.Refresh);
   private final JPanel myCenterCardPanel;
+  private final JPanel myNotificationPanel;
   private final AvdListDialog myDialog;
 
   private TableView<AvdInfo> myTable;
@@ -89,9 +93,12 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     myTable.setDefaultRenderer(Object.class, new MyRenderer(myTable.getDefaultRenderer(Object.class)));
     setLayout(new BorderLayout());
     myCenterCardPanel = new JPanel(new CardLayout());
+    myNotificationPanel = new JPanel();
+    myNotificationPanel.setLayout(new BoxLayout(myNotificationPanel, 1));
     JPanel nonemptyPanel = new JPanel(new BorderLayout());
     myCenterCardPanel.add(nonemptyPanel, NONEMPTY);
     nonemptyPanel.add(ScrollPaneFactory.createScrollPane(myTable), BorderLayout.CENTER);
+    nonemptyPanel.add(myNotificationPanel, BorderLayout.NORTH);
     myCenterCardPanel.add(new EmptyAvdListPanel(this), EMPTY);
     add(myCenterCardPanel, BorderLayout.CENTER);
     JPanel southPanel = new JPanel(new BorderLayout());
@@ -171,6 +178,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     } else {
       ((CardLayout)myCenterCardPanel.getLayout()).show(myCenterCardPanel, NONEMPTY);
     }
+    refreshErrorCheck();
   }
 
   @Nullable
@@ -239,13 +247,33 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
   }
 
   /**
-   * Return the resolution of a given AVD as a string of the format [width]x[height] - [density]
+   * @return the device screen size of this AVD
+   */
+  @VisibleForTesting
+  static Dimension getScreenSize(@NotNull AvdInfo info) {
+    DeviceManagerConnection deviceManager = DeviceManagerConnection.getDefaultDeviceManagerConnection();
+    Device device = deviceManager.getDevice(info.getDeviceName(), info.getDeviceManufacturer());
+    if (device == null) {
+      return null;
+    }
+    return device.getScreenSize(device.getDefaultState().getOrientation());
+  }
+
+  /**
+   * @return the resolution of a given AVD as a string of the format [width]x[height] - [density]
    * (e.g. 1200x1920 - xhdpi) or "Unknown Resolution" if the AVD does not define a resolution.
    */
-  protected static String getResolution(AvdInfo info) {
+  @VisibleForTesting
+  static String getResolution(@NotNull AvdInfo info) {
+    DeviceManagerConnection deviceManager = DeviceManagerConnection.getDefaultDeviceManagerConnection();
+    Device device = deviceManager.getDevice(info.getDeviceName(), info.getDeviceManufacturer());
+    Dimension res = null;
+    Density density = null;
+    if (device != null) {
+      res = device.getScreenSize(device.getDefaultState().getOrientation());
+      density = device.getDefaultHardware().getScreen().getPixelDensity();
+    }
     String resolution;
-    Dimension res = AvdManagerConnection.getDefaultAvdManagerConnection().getAvdResolution(info);
-    Density density = AvdManagerConnection.getAvdDensity(info);
     String densityString = density == null ? "Unknown Density" : density.getResourceValue();
     if (res != null) {
       resolution = String.format(Locale.getDefault(), "%1$d \u00D7 %2$d: %3$s", res.width, res.height, densityString);
@@ -305,9 +333,8 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
         return new Comparator<AvdInfo>() {
           @Override
           public int compare(AvdInfo o1, AvdInfo o2) {
-            AvdManagerConnection connection = AvdManagerConnection.getDefaultAvdManagerConnection();
-            Dimension d1 = connection.getAvdResolution(o1);
-            Dimension d2 = connection.getAvdResolution(o2);
+            Dimension d1 = getScreenSize(o1);
+            Dimension d2 = getScreenSize(o2);
             if (d1 == d2) {
               return 0;
             } else if (d1 == null) {
@@ -325,11 +352,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
       @NotNull
       @Override
       public String valueOf(AvdInfo avdInfo) {
-        IAndroidTarget target = avdInfo.getTarget();
-        if (target == null) {
-          return "N/A";
-        }
-        return target.getVersion().getApiString();
+        return avdInfo.getAndroidVersion().getApiString();
       }
 
       /**
@@ -352,11 +375,11 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
       @Nullable
       @Override
       public String valueOf(AvdInfo info) {
-        IAndroidTarget target = info.getTarget();
-        if (target == null) {
-          return "N/A";
+        String result = "Android " + SdkVersionInfo.getVersionString(info.getAndroidVersion().getFeatureLevel());
+        if (!info.getTag().equals(SystemImage.DEFAULT_TAG)) {
+          result += " (" + info.getTag().getDisplay() + ")";
         }
-        return target.getName();
+        return result;
       }
     },
     new AvdColumnInfo("CPU/ABI", JBUI.scale(60)) {
@@ -369,6 +392,25 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     new AvdSizeColumnInfo("Size on Disk"),
     myActionsColumnRenderer,
   };
+
+  private void refreshErrorCheck() {
+    boolean refreshUI = myNotificationPanel.getComponentCount() > 0;
+    myNotificationPanel.removeAll();
+    AccelerationErrorCode error = AvdManagerConnection.getDefaultAvdManagerConnection().checkAcceration();
+    if (error != AccelerationErrorCode.ALREADY_INSTALLED) {
+      refreshUI = true;
+      myNotificationPanel.add(new AccelerationErrorNotificationPanel(error, myProject, new Runnable() {
+        @Override
+        public void run() {
+          refreshErrorCheck();
+        }
+      }));
+    }
+    if (refreshUI) {
+      myNotificationPanel.revalidate();
+      myNotificationPanel.repaint();
+    }
+  }
 
   /**
    * This class extends {@link ColumnInfo} in order to pull an {@link Icon} value from a given {@link AvdInfo}.

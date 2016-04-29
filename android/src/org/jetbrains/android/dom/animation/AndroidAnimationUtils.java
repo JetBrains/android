@@ -16,58 +16,21 @@
 
 package org.jetbrains.android.dom.animation;
 
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.ClassMapConstructor;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.util.ArrayUtil;
-import com.intellij.psi.PsiClass;
+import com.google.common.collect.ImmutableList;
+import org.jetbrains.android.dom.animation.fileDescriptions.InterpolatorDomFileDescription;
 
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Collections;
-
-/**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Jun 19, 2009
- * Time: 5:50:35 PM
- * To change this template use File | Settings | File Templates.
- */
 public class AndroidAnimationUtils {
-  @NonNls public static final String ANIMATION_PACKAGE = "android.view.animation";
-  @NonNls private static final String INTERPOLATOR_CLASS_NAME = "android.view.animation.Interpolator";
-
   private AndroidAnimationUtils() {
   }
 
-  private static final String[] TAG_NAMES = {"set", "alpha", "scale", "translate",
-    "rotate", "layoutAnimation","gridLayoutAnimation", "animation-list"};
+  private static final ImmutableList<String> ROOT_TAGS =
+    ImmutableList.<String>builder()
+      .add("set", "alpha", "scale", "translate", "rotate") // tween animation
+      .add("layoutAnimation", "gridLayoutAnimation") // LayoutAnimationController inflation
+      .addAll(InterpolatorDomFileDescription.STYLEABLE_BY_TAG.keySet())
+      .build();
 
-  public static String getStyleableNameByTagName(@NotNull String tagName) {
-    if (tagName.equals("set")) {
-      return "AnimationSet";
-    }
-    String capitalizedTagName = StringUtil.capitalize(tagName);
-    String suffix = "Animation";
-    if (ArrayUtil.find(TAG_NAMES, tagName) >= 0 && !tagName.endsWith(suffix)) {
-      return capitalizedTagName + suffix;
-    }
-    return capitalizedTagName;
-  }
-
-  public static List<String> getPossibleChildren(@NotNull AndroidFacet facet) {
-    List<String> children = new ArrayList<String>();
-    Collections.addAll(children, TAG_NAMES);
-    children.addAll(facet.getClassMap(INTERPOLATOR_CLASS_NAME, new ClassMapConstructor() {
-      @Override
-      @NotNull
-      public String[] getTagNamesByClass(@NotNull PsiClass c, int apiLevel) {
-        String name = c.getName();
-        return name != null ? new String[] {StringUtil.decapitalize(name)} : ArrayUtil.EMPTY_STRING_ARRAY;
-      }
-    }).keySet());
-    return children;
+  public static ImmutableList<String> getPossibleRoots() {
+    return ROOT_TAGS;
   }
 }

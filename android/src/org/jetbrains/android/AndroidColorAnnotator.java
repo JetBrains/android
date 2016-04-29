@@ -16,7 +16,6 @@
 
 package org.jetbrains.android;
 
-import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
@@ -31,6 +30,9 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.LocalResourceRepository;
 import com.android.tools.idea.rendering.ResourceHelper;
+import com.android.utils.XmlUtils;
+import com.google.common.base.Charsets;
+import com.google.common.io.Files;
 import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
@@ -38,11 +40,13 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -62,6 +66,10 @@ import org.jetbrains.android.uipreview.ColorPicker;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import javax.swing.*;
 import java.awt.*;
@@ -100,7 +108,7 @@ public class AndroidColorAnnotator implements Annotator {
           String value = tag.getValue().getText().trim();
           annotateXml(element, holder, value);
         }
-      } else if (SdkConstants.TAG_ITEM.equals(tagName)) {
+      } else if (TAG_ITEM.equals(tagName)) {
         XmlTagValue value = tag.getValue();
         String text = value.getText();
         annotateXml(element, holder, text);
@@ -255,8 +263,9 @@ public class AndroidColorAnnotator implements Annotator {
                                             @NotNull PsiElement element,
                                             @NotNull ResourceValue value,
                                             @NotNull ResourceResolver resourceResolver) {
+    Project project = element.getProject();
     if (type == ResourceType.COLOR) {
-      Color color = ResourceHelper.resolveColor(resourceResolver, value, element.getProject());
+      Color color = ResourceHelper.resolveColor(resourceResolver, value, project);
       if (color != null) {
         Annotation annotation = holder.createInfoAnnotation(element, null);
         annotation.setGutterIconRenderer(new MyRenderer(element, color));
@@ -264,12 +273,74 @@ public class AndroidColorAnnotator implements Annotator {
     } else {
       assert type == ResourceType.DRAWABLE || type == ResourceType.MIPMAP;
 
-      File iconFile = pickBestBitmap(ResourceHelper.resolveDrawable(resourceResolver, value, element.getProject()));
+      File file = ResourceHelper.resolveDrawable(resourceResolver, value, project);
+      if (file != null && file.getPath().endsWith(DOT_XML)) {
+        file = pickBitmapFromXml(file, resourceResolver, project);
+      }
+      File iconFile = pickBestBitmap(file);
       if (iconFile != null) {
         Annotation annotation = holder.createInfoAnnotation(element, null);
         annotation.setGutterIconRenderer(new com.android.tools.idea.rendering.GutterIconRenderer(element, iconFile));
       }
     }
+  }
+
+  @Nullable
+  private static File pickBitmapFromXml(@NotNull File file, @NotNull ResourceResolver resourceResolver, @NotNull Project project) {
+    try {
+      String xml = Files.toString(file, Charsets.UTF_8);
+      Document document = XmlUtils.parseDocumentSilently(xml, true);
+      if (document != null && document.getDocumentElement() != null) {
+        Element root = document.getDocumentElement();
+        String tag = root.getTagName();
+        Element target = null;
+        String attribute = null;
+        if ("vector".equals(tag)) {
+          // Vectors are handled in the icon cache
+          return file;
+        }
+        else if ("bitmap".equals(tag) || "nine-patch".equals(tag)) {
+          target = root;
+          attribute = ATTR_SRC;
+        }
+        else if ("selector".equals(tag) ||
+                 "level-list".equals(tag) ||
+                 "layer-list".equals(tag) ||
+                 "transition".equals(tag)) {
+          NodeList children = root.getChildNodes();
+          for (int i = children.getLength() - 1; i >= 0; i--) {
+            Node item = children.item(i);
+            if (item.getNodeType() == Node.ELEMENT_NODE && TAG_ITEM.equals(item.getNodeName())) {
+              target = (Element)item;
+              if (target.hasAttributeNS(ANDROID_URI, ATTR_DRAWABLE)) {
+                attribute = ATTR_DRAWABLE;
+                break;
+              }
+            }
+          }
+        }
+        else if ("clip".equals(tag) || "inset".equals(tag) || "scale".equals(tag)) {
+          target = root;
+          attribute = ATTR_DRAWABLE;
+        } else {
+          // <shape> etc - no bitmap to be found
+          return null;
+        }
+        if (attribute != null && target.hasAttributeNS(ANDROID_URI, attribute)) {
+          String src = target.getAttributeNS(ANDROID_URI, attribute);
+          ResourceValue value = resourceResolver.findResValue(src, false);
+          if (value != null) {
+            return ResourceHelper.resolveDrawable(resourceResolver, value, project);
+
+          }
+        }
+      }
+    } catch (Throwable ignore) {
+      // Not logging for now; afraid to risk unexpected crashes in upcoming preview. TODO: Re-enable.
+      //Logger.getInstance(AndroidColorAnnotator.class).warn(String.format("Could not read/render icon image %1$s", file), e);
+    }
+
+    return null;
   }
 
   @Nullable

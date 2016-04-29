@@ -16,6 +16,7 @@
 package com.android.tools.idea.wizard.template;
 
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep;
 import com.android.tools.idea.wizard.dynamic.AndroidStudioWizardStep;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.ide.wizard.AbstractWizard;
@@ -33,6 +34,8 @@ import java.io.File;
 
 /**
  * TemplateWizard is a base class for Freemarker template-based wizards.
+ *
+ * @deprecated Replaced by {@link ConfigureTemplateParametersStep}
  */
 public class TemplateWizard extends AbstractWizard<ModuleWizardStep> {
   public static final String MAIN_FLAVOR_SOURCE_PATH = "src" + File.separator + "main";

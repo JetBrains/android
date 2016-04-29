@@ -15,136 +15,74 @@
  */
 package com.android.tools.idea.welcome.install;
 
-import com.android.sdklib.SdkManager;
-import com.android.sdklib.repository.descriptors.IPkgDesc;
-import com.android.sdklib.repository.descriptors.PkgType;
-import com.android.sdklib.repository.local.LocalPkgInfo;
-import com.android.sdklib.repository.local.LocalSdk;
-import com.android.tools.idea.sdk.remote.RemotePkgInfo;
-import com.android.tools.idea.sdk.remote.UpdatablePkgInfo;
-import com.android.tools.idea.sdk.SdkPackages;
-import com.android.tools.idea.sdk.remote.internal.updater.SdkUpdaterNoWindow;
-import com.android.utils.ILogger;
-import com.android.utils.NullLogger;
-import com.google.common.base.Function;
-import com.google.common.collect.*;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.util.ArrayUtil;
+import com.android.repository.api.ProgressIndicator;
+import com.android.repository.api.RemotePackage;
+import com.android.repository.api.RepoManager;
+import com.android.repository.api.UpdatablePackage;
+import com.android.repository.impl.meta.RepositoryPackages;
+import com.android.repository.io.FileOpUtils;
+import com.android.sdklib.repositoryv2.AndroidSdkHandler;
+import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
+import com.android.tools.idea.sdkv2.StudioDownloader;
+import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
+import com.android.tools.idea.sdkv2.StudioSettingsController;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Installs SDK components.
  */
 public final class ComponentInstaller {
-  @Nullable private final Multimap<PkgType, RemotePkgInfo> myRemotePackages;
+  @Nullable private final Map<String, RemotePackage> myRemotePackages;
   private final boolean myInstallUpdates;
+  private final AndroidSdkHandler mySdkHandler;
 
-  public ComponentInstaller(@Nullable Multimap<PkgType, RemotePkgInfo> remotePackages, boolean installUpdates) {
+  public ComponentInstaller(@Nullable Map<String, RemotePackage> remotePackages,
+                            boolean installUpdates,
+                            @NotNull AndroidSdkHandler sdkHandler) {
     myRemotePackages = remotePackages;
     myInstallUpdates = installUpdates;
+    mySdkHandler = sdkHandler;
   }
 
-  private static Set<String> getPackageIds(Iterable<LocalPkgInfo> localPackages) {
-    Set<String> toUpdate = Sets.newHashSet();
-    for (LocalPkgInfo localPkgInfo : localPackages) {
-      toUpdate.add(localPkgInfo.getDesc().getBaseInstallId());
-    }
-    return toUpdate;
-  }
-
-  private static List<LocalPkgInfo> getInstalledPackages(@NotNull SdkManager manager, @NotNull Set<String> toInstall) {
-    LocalSdk localSdk = manager.getLocalSdk();
-    LocalPkgInfo[] installed = localSdk.getPkgsInfos(EnumSet.allOf(PkgType.class));
-    List<LocalPkgInfo> toCheckForUpdate = Lists.newArrayListWithCapacity(installed.length);
-    for (LocalPkgInfo info : installed) {
-      if (toInstall.contains(info.getDesc().getBaseInstallId())) {
-        toCheckForUpdate.add(info);
-      }
-    }
-    return toCheckForUpdate;
-  }
-
-  private Iterable<LocalPkgInfo> getOldPackages(Collection<LocalPkgInfo> installed) {
-    if (myRemotePackages != null) {
-      LocalPkgInfo[] packagesArray = ArrayUtil.toObjectArray(installed, LocalPkgInfo.class);
-      SdkPackages packages = new SdkPackages(packagesArray, myRemotePackages);
-      List<LocalPkgInfo> result = Lists.newArrayList();
-      for (UpdatablePkgInfo update : packages.getUpdatedPkgs()) {
-        if (update.hasRemote(false)) {
-          result.add(update.getLocalInfo());
-        }
-      }
-      return result;
-    }
-    else {
-      return installed; // We should try reinstalling all...
-    }
-  }
-
-  private Set<String> getRequiredPackages(@NotNull Iterable<? extends InstallableComponent> components) {
+  public List<RemotePackage> getPackagesToInstall(@NotNull Iterable<? extends InstallableComponent> components) {
     // TODO: Prompt about connection in handoff case?
-    Set<String> packages = Sets.newHashSet();
+    Set<UpdatablePackage> requests = Sets.newHashSet();
+    StudioLoggerProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
+    RepoManager sdkManager = mySdkHandler.getSdkManager(progress);
+    // Reload if needed (probably won't be).
+    sdkManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, progress, new StudioDownloader(),
+                                 StudioSettingsController.getInstance());
+    RepositoryPackages allPackages = sdkManager.getPackages();
     for (InstallableComponent component : components) {
-      for (IPkgDesc pkg : component.getRequiredSdkPackages(myRemotePackages)) {
-        if (pkg != null) {
-          packages.add(pkg.getInstallId());
+      for (String s : component.getRequiredSdkPackages(myRemotePackages)) {
+        UpdatablePackage p = allPackages.getConsolidatedPkgs().get(s);
+        if (p != null && (myInstallUpdates || !p.hasLocal())) {
+          requests.add(p);
         }
       }
     }
-    return packages;
+    List<UpdatablePackage> resolved = Lists.newArrayList();
+    List<String> problems = Lists.newArrayList();
+    SdkQuickfixUtils.resolve(null, requests, sdkManager, resolved, problems);
+    List<RemotePackage> result = Lists.newArrayList();
+    for (UpdatablePackage p : resolved) {
+      result.add(p.getRemote());
+    }
+    return result;
   }
 
-  /**
-   * Returns a list of package install IDs for packages that are missing or outdated.
-   *
-   * @param manager SDK manager instance or <code>null</code> if this is a new install.
-   * @param defaultUpdateAvailable If true, and if remote package information is not available, assume each package may have an update and
-   *                               try to reinstall. If false and remote package information not available, assume no updates are available.
-   */
-  public ArrayList<String> getPackagesToInstall(@Nullable SdkManager manager, @NotNull Iterable<? extends InstallableComponent> components,
-                                                boolean defaultUpdateAvailable) {
-    Set<String> toInstall = getRequiredPackages(components);
-    if (manager == null) {
-      return Lists.newArrayList(toInstall);
+  public void installPackages(@NotNull List<RemotePackage> packages, ProgressIndicator progress) throws WizardException {
+    for (RemotePackage request : packages) {
+      AndroidSdkHandler.findBestInstaller(request)
+        .install(request, new StudioDownloader(), StudioSettingsController.getInstance(), progress,
+                 mySdkHandler.getSdkManager(new StudioLoggerProgressIndicator(getClass())), FileOpUtils.create());
     }
-    else {
-      List<LocalPkgInfo> installed = getInstalledPackages(manager, toInstall);
-      if (!installed.isEmpty()) {
-        toInstall.removeAll(getPackageIds(installed));
-        if (myInstallUpdates && (myRemotePackages != null || defaultUpdateAvailable)) {
-          toInstall.addAll(getPackageIds(getOldPackages(installed)));
-        }
-      }
-      return Lists.newArrayList(toInstall);
-    }
-  }
-
-  /**
-   * Returns a collection of package info objects for packages that will be installed.
-   */
-  public Collection<RemotePkgInfo> getPackagesToInstallInfos(@Nullable String sdkPath,
-                                                             @NotNull Iterable<? extends InstallableComponent> components) {
-    if (!StringUtil.isEmptyOrSpaces(sdkPath) && myRemotePackages != null) {
-      SdkManager sdkManager = SdkManager.createManager(sdkPath, new NullLogger());
-      if (sdkManager != null) {
-        Set<String> packagesToInstall = ImmutableSet.copyOf(getPackagesToInstall(sdkManager, components, true));
-        Set<RemotePkgInfo> remotePackages = Sets.newHashSetWithExpectedSize(packagesToInstall.size());
-        for (RemotePkgInfo remotePkgInfo : myRemotePackages.values()) {
-          if (packagesToInstall.contains(remotePkgInfo.getPkgDesc().getInstallId())) {
-            remotePackages.add(remotePkgInfo);
-          }
-        }
-        return remotePackages;
-      }
-    }
-    return ImmutableSet.of();
-  }
-
-  public void installPackages(@NotNull SdkManager manager, @NotNull ArrayList<String> packages, ILogger logger) throws WizardException {
-    SdkUpdaterNoWindow updater = new SdkUpdaterNoWindow(manager.getLocation(), manager, logger, false, null, null);
-    updater.updateAll(packages, true, false, null, false);
   }
 }

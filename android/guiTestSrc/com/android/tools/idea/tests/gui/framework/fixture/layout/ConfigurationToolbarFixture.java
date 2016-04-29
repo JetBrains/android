@@ -23,12 +23,15 @@ import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.idea.tests.gui.framework.fixture.ResourceChooserDialogFixture;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
+import org.hamcrest.BaseMatcher;
+import org.hamcrest.Description;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.clickPopupMenuItem;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.clickPopupMenuItemMatching;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -92,7 +95,13 @@ public class ConfigurationToolbarFixture {
    * Toggles orientation between landscape and portrait
    */
   public void toggleOrientation() {
-    JButton button = findToolbarButton("Go to next state");
+    State currentState = getNonNullConfiguration().getDeviceState();
+    assertNotNull(currentState);
+
+    State flipState = getNonNullConfiguration().getNextDeviceState(currentState);
+    assertNotNull(flipState);
+
+    JButton button = findToolbarButton("Switch to " + flipState.getName());
     myRobot.click(button);
   }
 
@@ -123,11 +132,11 @@ public class ConfigurationToolbarFixture {
   /**
    * Selects a device matching the given label prefix in the configuration toolbar's device menu
    */
-  public void chooseDevice(String labelPrefix) {
+  public void chooseDevice(String label) {
     JButton menuButton = findToolbarButton("The virtual device to render the layout with");
     myRobot.click(menuButton);
 
-    doClickPopupMenuItem(labelPrefix);
+    clickPopupMenuItemMatching(new DeviceNameMatcher(label), myToolbarWidget, myRobot);
   }
 
   public void createOtherVariation(@NotNull String variation) {
@@ -164,5 +173,33 @@ public class ConfigurationToolbarFixture {
 
   private void doClickPopupMenuItem(@NotNull String label) {
     clickPopupMenuItem(label, myToolbarWidget, myRobot);
+  }
+
+
+  private static class DeviceNameMatcher extends BaseMatcher<String> {
+    private static final String FILE_ARROW = "\u2192"; // Same as com.android.tools.idea.configurations.ConfigurationAction#FILE_ARROW
+    private final String deviceName;
+
+    DeviceNameMatcher(@NotNull String deviceName) {
+      this.deviceName = deviceName;
+    }
+
+    @Override
+    public boolean matches(Object other) {
+      if (other instanceof String) {
+        String item = (String) other;
+        if (item.contains(FILE_ARROW)) {
+          return deviceName.equals(item.substring(0, item.lastIndexOf(FILE_ARROW)).trim());
+        } else if (item.contains("(")) {
+          return deviceName.equals(item.substring(0, item.lastIndexOf('(')).trim());
+        }
+      }
+      return false;
+    }
+
+    @Override
+    public void describeTo(Description description) {
+      description.appendText("matching device name " + deviceName);
+    }
   }
 }

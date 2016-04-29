@@ -1,11 +1,12 @@
 package org.jetbrains.android.compiler;
 
+import com.android.jarutils.SignedJarBuilder;
+import com.google.common.collect.ImmutableList;
 import com.google.gson.Gson;
 import com.intellij.compiler.server.BuildProcessParametersProvider;
 import com.intellij.openapi.application.PathManager;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -15,6 +16,6 @@ public class AndroidBuildProcessParametersProvider extends BuildProcessParameter
   @NotNull
   @Override
   public List<String> getClassPath() {
-    return Collections.singletonList(PathManager.getJarPathForClass(Gson.class));
+    return ImmutableList.of(PathManager.getJarPathForClass(Gson.class), PathManager.getJarPathForClass(SignedJarBuilder.class));
   }
 }

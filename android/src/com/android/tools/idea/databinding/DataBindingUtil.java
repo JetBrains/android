@@ -20,6 +20,10 @@ import com.android.SdkConstants;
 import com.android.ide.common.res2.DataBindingResourceType;
 import com.android.ide.common.resources.ResourceUrl;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.lang.databinding.DbFile;
+import com.android.tools.idea.lang.databinding.psi.DbTokenTypes;
+import com.android.tools.idea.lang.databinding.psi.PsiDbConstantValue;
+import com.android.tools.idea.lang.databinding.psi.PsiDbDefaults;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.rendering.DataBindingInfo;
@@ -34,12 +38,15 @@ import com.intellij.lexer.Lexer;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ModificationTracker;
+import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.light.LightField;
 import com.intellij.psi.impl.light.LightIdentifier;
 import com.intellij.psi.impl.light.LightMethod;
+import com.intellij.psi.impl.source.PsiClassReferenceType;
+import com.intellij.psi.impl.source.tree.injected.InjectedLanguageUtil;
 import com.intellij.psi.scope.ElementClassHint;
 import com.intellij.psi.scope.NameHint;
 import com.intellij.psi.scope.PsiScopeProcessor;
@@ -47,9 +54,13 @@ import com.intellij.psi.search.searches.AnnotatedElementsSearch;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValuesManager;
+import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.util.PsiUtil;
+import com.intellij.psi.xml.XmlAttribute;
+import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.augment.AndroidLightClassBase;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -59,6 +70,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Utility class that handles the interaction between Data Binding and the IDE.
@@ -96,7 +109,19 @@ public class DataBindingUtil {
   }
 
   private static PsiType parsePsiType(String text, AndroidFacet facet, PsiElement context) {
-    return PsiElementFactory.SERVICE.getInstance(facet.getModule().getProject()).createTypeFromText(text, context);
+    PsiElementFactory instance = PsiElementFactory.SERVICE.getInstance(facet.getModule().getProject());
+    try {
+      PsiType type = instance.createTypeFromText(text, context);
+      if ((type instanceof PsiClassReferenceType) && ((PsiClassReferenceType)type).getClassName() == null) {
+        // Ensure that if the type is a reference, it's a reference to a valid type.
+        return null;
+      }
+      return type;
+    }
+    catch (IncorrectOperationException e) {
+      // Class named "text" not found.
+      return null;
+    }
   }
 
   public static PsiType resolveViewPsiType(DataBindingInfo.ViewWithId viewWithId, AndroidFacet facet) {
@@ -106,6 +131,7 @@ public class DataBindingUtil {
     }
     return null;
   }
+
   /**
    * Receives an {@linkplain XmlTag} and returns the View class that is represented by the tag.
    * May return null if it cannot find anything reasonable (e.g. it is a merge but does not have data binding)
@@ -168,7 +194,7 @@ public class DataBindingUtil {
     return viewName;
   }
 
-  static PsiClass getOrCreatePsiClass(DataBindingInfo info) {
+  public static PsiClass getOrCreatePsiClass(DataBindingInfo info) {
     PsiClass psiClass = info.getPsiClass();
     if (psiClass == null) {
       //noinspection SynchronizationOnLocalVariableOrMethodParameter
@@ -267,6 +293,57 @@ public class DataBindingUtil {
     }
   }
 
+  @Nullable
+  public static String getBindingExprDefault(@NotNull XmlAttribute psiAttribute) {
+    XmlAttributeValue attrValue = psiAttribute.getValueElement();
+    if (attrValue instanceof PsiLanguageInjectionHost) {
+      final Ref<PsiElement> injections = Ref.create();
+      InjectedLanguageUtil.enumerate(attrValue, new PsiLanguageInjectionHost.InjectedPsiVisitor() {
+        @Override
+        public void visit(@NotNull PsiFile injectedPsi, @NotNull List<PsiLanguageInjectionHost.Shred> places) {
+          if (injectedPsi instanceof DbFile) {
+            injections.set(injectedPsi);
+          }
+        }
+      });
+      if (injections.get() != null) {
+        PsiDbDefaults defaults = PsiTreeUtil.getChildOfType(injections.get(), PsiDbDefaults.class);
+        if (defaults != null) {
+          // TODO: extract value from literals and resolve variable values if needed.
+          PsiDbConstantValue constantValue = defaults.getConstantValue();
+          if (constantValue.getNode().getElementType() == DbTokenTypes.STRING_LITERAL) {
+            String text = constantValue.getText();
+            return text.substring(1, text.length() -1);  // return unquoted string literal.
+          }
+          return constantValue.getText();
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
+   * @param exprn Data binding expression enclosed in @{}
+   */
+  @Nullable
+  public static String getBindingExprDefault(@NotNull String exprn) {
+    if (!exprn.contains(DbTokenTypes.DEFAULT_KEYWORD.toString())) {
+      // A fast check since many expressions would likely not have a default.
+      return null;
+    }
+    Pattern defaultCheck = Pattern.compile(",\\s*default\\s*=\\s*");
+    int index = 0;
+    Matcher matcher = defaultCheck.matcher(exprn);
+    while (matcher.find()) {
+      index = matcher.end();
+    }
+    String def = exprn.substring(index, exprn.length() - 1).trim();  // remove the trailing "}"
+    if (def.startsWith("\"") && def.endsWith("\"")) {
+      def = def.substring(1, def.length() - 1);       // Unquote the string.
+    }
+    return def;
+  }
+
   /**
    * The light class that represents the generated data binding code for a layout file.
    */
@@ -291,14 +368,11 @@ public class DataBindingUtil {
         cachedValuesManager.createCachedValue(new ResourceCacheValueProvider<Map<String, String>>(facet) {
           @Override
           Map<String, String> doCompute() {
-            List<PsiDataBindingResourceItem> imports = myInfo.getItems(DataBindingResourceType.IMPORT);
             Map<String, String> result = new HashMap<String, String>();
-            if (imports != null) {
-              for (PsiDataBindingResourceItem imp : imports) {
-                String alias = imp.getExtra(SdkConstants.ATTR_ALIAS);
-                if (alias != null) {
-                  result.put(alias, imp.getExtra(SdkConstants.ATTR_TYPE));
-                }
+            for (PsiDataBindingResourceItem imp : myInfo.getItems(DataBindingResourceType.IMPORT)) {
+              String alias = imp.getExtra(SdkConstants.ATTR_ALIAS);
+              if (alias != null) {
+                result.put(alias, imp.getExtra(SdkConstants.ATTR_TYPE));
               }
             }
             return result;
@@ -315,18 +389,17 @@ public class DataBindingUtil {
           @Override
           PsiMethod[] doCompute() {
             List<PsiDataBindingResourceItem> variables = myInfo.getItems(DataBindingResourceType.VARIABLE);
-            if (variables == null) {
+            if (variables.isEmpty()) {
               return PsiMethod.EMPTY_ARRAY;
             }
-            PsiMethod[] methods = new PsiMethod[variables.size() * 2 + STATIC_METHOD_COUNT];
+            List<PsiMethod> methods = Lists.newArrayListWithCapacity(variables.size() * 2 + STATIC_METHOD_COUNT);
             PsiElementFactory factory = PsiElementFactory.SERVICE.getInstance(myInfo.getProject());
-            for (int i = 0; i < variables.size(); i++) {
-              createVariableMethods(factory, variables.get(i), methods, i * 2);
+            for (PsiDataBindingResourceItem variable : variables) {
+              createVariableMethods(factory, variable, methods);
             }
-            createStaticMethods(factory, methods, variables.size() * 2);
-            return methods;
+            createStaticMethods(factory, methods);
+            return methods.toArray(new PsiMethod[methods.size()]);
           }
-
 
           @Override
           PsiMethod[] defaultValue() {
@@ -466,7 +539,7 @@ public class DataBindingUtil {
         return false;
       }
       List<PsiDataBindingResourceItem> imports = myInfo.getItems(DataBindingResourceType.IMPORT);
-      if (imports == null || imports.isEmpty()) {
+      if (imports.isEmpty()) {
         return true;
       }
       final ElementClassHint classHint = processor.getHint(ElementClassHint.KEY);
@@ -547,25 +620,28 @@ public class DataBindingUtil {
       return out.toString();
     }
 
-    private void createVariableMethods(PsiElementFactory factory, PsiDataBindingResourceItem item, PsiMethod[] outPsiMethods, int index) {
+    private void createVariableMethods(PsiElementFactory factory, PsiDataBindingResourceItem item, List<PsiMethod> outPsiMethods) {
       PsiManager psiManager = PsiManager.getInstance(myInfo.getProject());
       PsiMethod setter = factory.createMethod("set" + StringUtil.capitalize(item.getName()), PsiType.VOID);
 
       String variableType = replaceImportAliases(item.getExtra(SdkConstants.ATTR_TYPE));
 
       PsiType type = parsePsiType(variableType, myFacet, this);
+      if (type == null) {
+        return;
+      }
       PsiParameter param = factory.createParameter(item.getName(), type);
       setter.getParameterList().add(param);
       PsiUtil.setModifierProperty(setter, PsiModifier.PUBLIC, true);
 
-      outPsiMethods[index] = new LightDataBindingMethod(item.getXmlTag(), psiManager, setter, this, JavaLanguage.INSTANCE);
+      outPsiMethods.add(new LightDataBindingMethod(item.getXmlTag(), psiManager, setter, this, JavaLanguage.INSTANCE));
 
       PsiMethod getter = factory.createMethod("get" + StringUtil.capitalize(item.getName()), type);
       PsiUtil.setModifierProperty(getter, PsiModifier.PUBLIC, true);
-      outPsiMethods[index + 1] = new LightDataBindingMethod(item.getXmlTag(), psiManager, getter, this, JavaLanguage.INSTANCE);
+      outPsiMethods.add(new LightDataBindingMethod(item.getXmlTag(), psiManager, getter, this, JavaLanguage.INSTANCE));
     }
 
-    private void createStaticMethods(PsiElementFactory factory, PsiMethod[] outPsiMethods, int index) {
+    private void createStaticMethods(PsiElementFactory factory, List<PsiMethod> outPsiMethods) {
       PsiClassType myType = factory.createType(this);
       PsiClassType viewGroupType = PsiType
         .getTypeByName(SdkConstants.CLASS_VIEWGROUP, myInfo.getProject(),
@@ -613,16 +689,16 @@ public class DataBindingUtil {
       for (PsiMethod method : methods) {
         PsiUtil.setModifierProperty(method, PsiModifier.PUBLIC, true);
         PsiUtil.setModifierProperty(method, PsiModifier.STATIC, true);
-        //noinspection ConstantConditions
-        outPsiMethods[index++] =
-          new LightDataBindingMethod(myInfo.getPsiFile(), psiManager, method, this, JavaLanguage.INSTANCE);
+        outPsiMethods.add(new LightDataBindingMethod(myInfo.getPsiFile(), psiManager, method, this, JavaLanguage.INSTANCE));
       }
     }
 
     @Nullable
     private PsiField createPsiField(PsiElementFactory factory, DataBindingInfo.ViewWithId viewWithId) {
       PsiType type = resolveViewPsiType(viewWithId, myFacet);
-      assert type != null;
+      if (type == null) {
+        return null;
+      }
       PsiField field = factory.createField(viewWithId.name, type);
       PsiUtil.setModifierProperty(field, PsiModifier.PUBLIC, true);
       PsiUtil.setModifierProperty(field, PsiModifier.FINAL, true);
@@ -733,11 +809,8 @@ public class DataBindingUtil {
               }
               Set<String> variableNames = new HashSet<String>();
               for (DataBindingInfo info : dataBindingResourceFiles.values()) {
-                List<PsiDataBindingResourceItem> variables = info.getItems(DataBindingResourceType.VARIABLE);
-                if (variables != null) {
-                  for (PsiDataBindingResourceItem item : variables) {
-                    variableNames.add(item.getName());
-                  }
+                for (PsiDataBindingResourceItem item : info.getItems(DataBindingResourceType.VARIABLE)) {
+                  variableNames.add(item.getName());
                 }
               }
               Set<String> bindables = collectVariableNamesFromBindables();

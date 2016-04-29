@@ -89,6 +89,64 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
       "android:layout_alignBottom", "android:layout_alignEnd", "android:layout_alignLeft");
   }
 
+  // Deprecated attributes should be crossed out in the completion
+  // This test specifically checks for "android:editable" attribute on TextView
+  public void testDeprecatedAttributeNamesCompletion() throws Throwable {
+    myFixture.configureFromExistingVirtualFile(copyFileToProject("text_view_editable.xml"));
+    myFixture.complete(CompletionType.BASIC);
+    LookupElement[] elements = myFixture.getLookupElements();
+    assertNotNull(elements);
+
+    // LookupElement that corresponds to "android:editable" attribute
+    LookupElement editableElement = null;
+    for (LookupElement element : elements) {
+      if ("android:editable".equals(element.getLookupString())) {
+        editableElement = element;
+      }
+    }
+    assertNotNull(editableElement);
+
+    assertEquals("android:editable", editableElement.getLookupString());
+    LookupElementPresentation presentation = new LookupElementPresentation();
+    editableElement.renderElement(presentation);
+    assertTrue(presentation.isStrikeout());
+  }
+
+  // "contex" is completed to "tools:context", "xmlns:tools" with right value is inserted
+  public void testToolsContextAttributeCompletion() throws Throwable {
+    toTestCompletion("tools_context.xml", "tools_context_after.xml");
+  }
+
+  // "tools:" inside tag should autocomplete to available tools attributes, only "tools:targetApi" in this case
+  public void testToolsPrefixedAttributeCompletion() throws Throwable {
+    toTestCompletion("tools_namespace_attrs.xml", "tools_namespace_attrs_after.xml");
+  }
+
+  // ListView has some specific autocompletion attributes, like "listfooter", they should be autocompleted as well
+  public void testToolsListViewAttributes() throws Throwable {
+    doTestCompletionVariants("tools_listview_attrs.xml", "tools:targetApi", "tools:listfooter", "tools:listheader", "tools:listitem");
+  }
+
+  // tools:targetApi values are autocompleted
+  public void testTargetApiValueCompletion() throws Throwable {
+    doTestCompletionVariants("tools_targetapi.xml", "HONEYCOMB", "HONEYCOMB_MR1", "HONEYCOMB_MR2");
+  }
+
+  // "-1" is not a valid tools:targetApi value
+  public void testTargetApiErrorMessage1() throws Throwable {
+    doTestHighlighting("tools_targetapi_error1.xml");
+  }
+
+  // "apple_pie" is not a valid tools:targetApi value as well
+  public void testTargetApiErrorMessage2() throws Throwable {
+    doTestHighlighting("tools_targetapi_error2.xml");
+  }
+
+  // fontFamily attribute values are autocompleted
+  public void testFontFamilyCompletion() throws Throwable {
+    doTestCompletionVariants("text_view_font_family.xml", "monospace", "serif-monospace");
+  }
+
   public void testCommonPrefixIdea63531() throws Throwable {
     VirtualFile file = copyFileToProject("commonPrefixIdea63531.xml");
     myFixture.configureFromExistingVirtualFile(file);
@@ -103,6 +161,10 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
   public void testHighlighting2() throws Throwable {
     copyFileToProject("integers.xml", "res/values/integers.xml");
     doTestHighlighting("hl2.xml");
+  }
+
+  public void testWrongEnumValuesHighlighting() throws Throwable {
+    doTestHighlighting("wrong_enum_value.xml");
   }
 
   public void testTableRowRootTag() throws Throwable {
@@ -134,6 +196,7 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
   }
 
   public void testDataBindingHighlighting() throws Throwable {
+    copyFileToProject("User.java", "src/com/android/example/bindingdemo/vo/User.java");
     doTestHighlighting("binding1.xml");
   }
 
@@ -262,7 +325,7 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
 
   public void testCustomAttributeNameCompletion1() throws Throwable {
     copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java");
-    doTestCompletionVariants("can1.xml", "text", "textAlignment", "textColor", "textDirection", "textSize");
+    doTestCompletionVariants("can1.xml", "context", "text", "textAlignment", "textColor", "textDirection", "textSize");
   }
 
   public void testCustomAttributeNameCompletion2() throws Throwable {
@@ -374,7 +437,7 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
   }
 
   public void testSystemResourceCompletion() throws Throwable {
-    doTestCompletionVariants("av6.xml", "@android:color/", "@android:drawable/");
+    doTestCompletionVariants("av6.xml", "@android:color/", "@android:drawable/", "@android:mipmap/");
   }
 
   public void testCompletionSpecialCases() throws Throwable {
@@ -454,17 +517,33 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     toTestCompletion("tn11.xml", "tn11_after.xml");
   }
 
+  public void testDeprecatedTagsAreLastInCompletion() throws Throwable {
+    VirtualFile file = copyFileToProject("tagName_letter_G.xml");
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.complete(CompletionType.BASIC);
+
+    // Gallery is deprecated and thus should be the last in completion list
+    myFixture.assertPreferredCompletionItems(0, "GridLayout", "GridView", "android.gesture.GestureOverlayView", "android.opengl.GLSurfaceView", "Gallery");
+  }
+
   // Completion by simple class name in layouts should work, inserting fully-qualified names
   // http://b.android.com/179380
   public void testTagNameCompletionBySimpleName() throws Throwable {
     toTestCompletion("tn13.xml", "tn13_after.xml");
   }
 
-  // Regression test for http://b.android.com/193339
-  // Completion by simple class name in layouts should succeed when tag name is typed lowercase,
-  // the bug made it fail because two identical completion elements have been shown.
-  public void testTagNameCompletionBySimpleNameLowercase() throws Throwable {
-    toTestCompletion("tag_name_lowercase.xml", "tag_name_lowercase_after.xml");
+  // Test that support library component alternatives are pushed higher in completion
+  public void testSupportLibraryCompletion() throws Throwable {
+    myFixture.copyFileToProject(testFolder + "/GridLayout.java", "src/android/support/v7/widget/GridLayout.java");
+    VirtualFile file = copyFileToProject("tn14.xml");
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.complete(CompletionType.BASIC);
+    List<String> completionResult = myFixture.getLookupElementStrings();
+
+    assertNotNull(completionResult);
+    // Check the elements are in the right order
+    assertEquals("android.support.v7.widget.GridLayout", completionResult.get(0));
+    assertEquals("GridLayout", completionResult.get(1));
   }
 
   public void testTagNameIcons1() throws Throwable {
@@ -643,7 +722,7 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
       public void run() throws Throwable {
         myFixture.doHighlighting();
       }
-    }).attempts(2).cpuBound().usesAllCPUCores().useLegacyScaling().assertTiming();
+    }).attempts(2).cpuBound().usesAllCPUCores().assertTiming();
   }
 
   /*public void testResourceHighlightingPerformance() throws Throwable {
@@ -1157,6 +1236,12 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
   public void testAar() throws Throwable {
     PsiTestUtil.addLibrary(myModule, "maven_aar_dependency", getTestDataPath() + "/" + testFolder + "/myaar", "classes.jar", "res");
     doTestCompletion();
+  }
+
+  public void testUnknownDataBindingAttribute() throws Throwable {
+    // Regression test for issue http://b.android.com/195485
+    // Don't highlight data binding attributes as unknown
+    doTestHighlighting();
   }
 
   private void doTestAttrReferenceCompletion(String textToType) throws IOException {

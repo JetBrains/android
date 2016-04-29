@@ -22,7 +22,7 @@ import com.android.tools.idea.ui.properties.core.ObservableBool;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * A base class for expressions that do numerical comparisons.
+ * A base class for expressions that do numerical comparisons with ints.
  */
 public abstract class ComparisonExpression extends BooleanExpression {
   private final ObservableValue<Integer> myValueLhs;

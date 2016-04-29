@@ -15,37 +15,68 @@
  */
 package com.android.tools.idea.updater.configure;
 
-import com.android.tools.idea.sdk.SdkState;
-import com.android.tools.idea.sdk.remote.internal.sources.SdkSources;
-import com.android.tools.idea.sdk.remote.internal.updater.SettingsController;
+import com.android.repository.api.RepositorySource;
+import com.android.repository.api.SettingsController;
+import com.android.tools.idea.sdkv2.StudioSettingsController;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.ui.AnActionButton;
 import com.intellij.ui.AnActionButtonRunnable;
 import com.intellij.ui.AnActionButtonUpdater;
 import com.intellij.ui.ToolbarDecorator;
 import com.intellij.ui.table.TableView;
 import com.intellij.util.ui.AsyncProcessIcon;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
 /**
- * Panel that shows the current {@link SdkSources}.
+ * Panel that shows the current {@link RepositorySource}s.
  */
 public class UpdateSitesPanel {
   private JPanel myRootPanel;
   private TableView myUpdateSitesTable;
-  private JPanel mySourcesPanel;
+  @SuppressWarnings("unused") private JPanel mySourcesPanel;
   private JPanel mySourcesLoadingPanel;
-  private AsyncProcessIcon mySourcesLoadingIcon;
+  @SuppressWarnings("unused") private AsyncProcessIcon mySourcesLoadingIcon;
   private JCheckBox myForceHttp;
   private SourcesTableModel mySourcesTableModel;
-  private static SettingsController ourSettingsController = SettingsController.getInstance();
+  private static SettingsController ourSettingsController = StudioSettingsController.getInstance();
+
+  public UpdateSitesPanel(@NotNull Runnable refreshCallback) {
+    init(refreshCallback);
+  }
+
+  // IJ tries to be smart and generates weird code if this isn't a separate method and is instead in the constructor...
+  private void init(@NotNull Runnable refreshCallback) {
+    mySourcesTableModel.setRefreshCallback(refreshCallback);
+  }
 
   private void createUIComponents() {
     mySourcesLoadingIcon = new AsyncProcessIcon("Loading...");
-    mySourcesTableModel = new SourcesTableModel();
+    mySourcesTableModel = new SourcesTableModel(new Runnable() {
+      @Override
+      public void run() {
+        UIUtil.invokeAndWaitIfNeeded(new Runnable() {
+          @Override
+          public void run() {
+            mySourcesLoadingPanel.setVisible(true);
+          }
+        });
+      }
+    }, new Runnable() {
+      @Override
+      public void run() {
+        UIUtil.invokeAndWaitIfNeeded(new Runnable() {
+          @Override
+          public void run() {
+            mySourcesLoadingPanel.setVisible(false);
+          }
+        });
+      }
+    });
     myUpdateSitesTable = new TableView<SourcesTableModel.Row>(mySourcesTableModel);
     ToolbarDecorator userDefinedDecorator = ToolbarDecorator.createDecorator(myUpdateSitesTable);
     mySourcesPanel = addExtraActions(userDefinedDecorator).createPanel();
@@ -63,29 +94,30 @@ public class UpdateSitesPanel {
       public boolean isEnabled(AnActionEvent e) {
         return myUpdateSitesTable.getSelectedRowCount() == 1 && mySourcesTableModel.isEditable(myUpdateSitesTable.getSelectedRow());
       }
+    }).setAddActionUpdater(new AnActionButtonUpdater() {
+      @Override
+      public boolean isEnabled(AnActionEvent e) {
+        return mySourcesTableModel.isEditable();
+      }
     }).addExtraAction(new AnActionButton("Select All", AllIcons.Actions.Selectall) {
       @Override
       public void actionPerformed(@NotNull AnActionEvent e) {
-        for (int i = 0; i < myUpdateSitesTable.getRowCount(); i++) {
-          mySourcesTableModel.setSourceEnabled(i, true);
-        }
+        mySourcesTableModel.setAllEnabled(true);
       }
 
       @Override
       public boolean isEnabled() {
-        return myUpdateSitesTable.getRowCount() > 0;
+        return mySourcesTableModel.isEditable() && myUpdateSitesTable.getRowCount() > 0;
       }
     }).addExtraAction(new AnActionButton("Deselect All", AllIcons.Actions.Unselectall) {
       @Override
       public void actionPerformed(@NotNull AnActionEvent e) {
-        for (int i = 0; i < myUpdateSitesTable.getRowCount(); i++) {
-          mySourcesTableModel.setSourceEnabled(i, false);
-        }
+        mySourcesTableModel.setAllEnabled(false);
       }
 
       @Override
       public boolean isEnabled() {
-        return myUpdateSitesTable.getRowCount() > 0;
+        return mySourcesTableModel.isEditable() && myUpdateSitesTable.getRowCount() > 0;
       }
     }).setMoveDownAction(null).setMoveUpAction(null).setRemoveActionUpdater(new AnActionButtonUpdater() {
       @Override
@@ -112,21 +144,17 @@ public class UpdateSitesPanel {
     myForceHttp.setSelected(ourSettingsController.getForceHttp());
   }
 
-  public void setSdkState(SdkState state) {
-    mySourcesTableModel.setSdkState(state);
+  public void setConfigurable(@NotNull SdkUpdaterConfigurable configurable) {
+    mySourcesTableModel.setConfigurable(configurable);
   }
 
   public void save() {
-    mySourcesTableModel.save();
-    ourSettingsController.setForceHttp(myForceHttp.isSelected());
-  }
-
-  public void startLoading() {
-    mySourcesLoadingPanel.setVisible(true);
-  }
-
-  public void finishLoading() {
-    mySourcesTableModel.refreshSources();
-    mySourcesLoadingPanel.setVisible(false);
+    ProgressManager.getInstance().runProcessWithProgressSynchronously(new Runnable() {
+      @Override
+      public void run() {
+        mySourcesTableModel.save(ProgressManager.getInstance().getProgressIndicator());
+        ourSettingsController.setForceHttp(myForceHttp.isSelected());
+      }
+    }, "Saving Sources", false, null, myRootPanel);
   }
 }

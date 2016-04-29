@@ -15,8 +15,13 @@
  */
 package com.android.tools.idea.welcome.wizard;
 
+import com.android.repository.io.FileOpUtils;
 import com.android.tools.idea.npw.WizardUtils;
+import com.android.tools.idea.npw.WizardUtils.ValidationResult;
+import com.android.tools.idea.npw.WizardUtils.ValidationResult.Status;
+import com.android.tools.idea.npw.WizardUtils.WritableCheckMode;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.ui.Colors;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.install.ComponentTreeNode;
 import com.android.tools.idea.welcome.install.InstallableComponent;
@@ -24,20 +29,18 @@ import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.ui.JBColor;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.table.JBTable;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.accessibility.AccessibleContextUtil;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -69,17 +72,20 @@ public class SdkComponentsStep extends FirstRunWizardStep {
   @NotNull private final ComponentTreeNode myRootNode;
   @NotNull private final FirstRunWizardMode myMode;
   @NotNull private final ScopedStateStore.Key<Boolean> myKeyCustomInstall;
+  private final ScopedStateStore.Key<String> mySdkDownloadPathKey;
   private final ComponentsTableModel myTableModel;
+
   private JPanel myContents;
   private JBTable myComponentsTable;
   private JTextPane myComponentDescription;
   private JLabel myNeededSpace;
   private JLabel myAvailableSpace;
   private JLabel myErrorMessage;
-  private ScopedStateStore.Key<String> mySdkDownloadPathKey;
   private TextFieldWithBrowseButton myPath;
-  private JPanel myBody;
+  @SuppressWarnings("unused") private JPanel myBody;
+
   private boolean myUserEditedPath = false;
+  private ValidationResult mySdkDirectoryValidationResult;
   private boolean myWasVisible = false;
 
   public SdkComponentsStep(@NotNull ComponentTreeNode rootNode,
@@ -87,9 +93,14 @@ public class SdkComponentsStep extends FirstRunWizardStep {
                            @NotNull ScopedStateStore.Key<String> sdkDownloadPathKey,
                            @NotNull FirstRunWizardMode mode) {
     super("SDK Components Setup");
+    // Since we create and initialize a new AndroidSdkHandler/RepoManager for every (partial)
+    // path that's entered, disallow direct editing of the path.
+    myPath.setEditable(false);
     myRootNode = rootNode;
     myMode = mode;
     myKeyCustomInstall = keyCustomInstall;
+
+    // noinspection DialogTitleCapitalization
     myPath.addBrowseFolderListener("Android SDK", "Select Android SDK install directory", null,
                                    FileChooserDescriptorFactory.createSingleFolderDescriptor());
 
@@ -98,7 +109,6 @@ public class SdkComponentsStep extends FirstRunWizardStep {
     myNeededSpace.setFont(smallLabelFont);
     myAvailableSpace.setFont(smallLabelFont);
     myErrorMessage.setText(null);
-    myErrorMessage.setForeground(JBColor.red);
 
     myTableModel = new ComponentsTableModel(rootNode);
     myComponentsTable.setModel(myTableModel);
@@ -172,7 +182,8 @@ public class SdkComponentsStep extends FirstRunWizardStep {
       return false;
     }
     File file = new File(path);
-    if (file.exists() && WizardUtils.listFiles(file).length > 0) {
+
+    if (file.exists() && FileOpUtils.create().listFiles(file).length != 0) {
       return AndroidSdkData.getSdkData(file) == null;
     }
     return false;
@@ -184,26 +195,44 @@ public class SdkComponentsStep extends FirstRunWizardStep {
     if (!StringUtil.isEmpty(path)) {
       myUserEditedPath = true;
     }
-    WizardUtils.ValidationResult error = WizardUtils.validateLocation(path, FIELD_SDK_LOCATION, false);
-    String message = error.isOk() ? null : error.getFormattedMessage();
-    boolean isOk = !error.isError();
-    if (isOk) {
+
+    mySdkDirectoryValidationResult =
+      WizardUtils.validateLocation(path, FIELD_SDK_LOCATION, false, WritableCheckMode.NOT_WRITABLE_IS_WARNING);
+
+    boolean ok = mySdkDirectoryValidationResult.isOk();
+    Status status = mySdkDirectoryValidationResult.getStatus();
+    String message = ok ? null : mySdkDirectoryValidationResult.getFormattedMessage();
+
+    if (ok) {
       File filesystem = getTargetFilesystem(path);
+
       if (!(filesystem == null || filesystem.getFreeSpace() > getComponentsSize())) {
-        isOk = false;
-        message = "Target drive does not have enough free space";
+        status = Status.ERROR;
+        message = "Target drive does not have enough free space.";
       }
       else if (isNonEmptyNonSdk(path)) {
-        isOk = true;
+        status = Status.WARN;
         message = "Target folder is neither empty nor does it point to an existing SDK installation.";
       }
       else if (isExistingSdk(path)) {
-        isOk = true;
+        status = Status.WARN;
         message = "An existing Android SDK was detected. The setup wizard will only download missing or outdated SDK components.";
       }
     }
+
+    switch (status) {
+      case WARN:
+        myErrorMessage.setForeground(Colors.WARNING);
+        break;
+      case ERROR:
+        myErrorMessage.setForeground(Colors.ERROR);
+        break;
+      default:
+        break;
+    }
+
     setErrorHtml(myUserEditedPath ? message : null);
-    return isOk;
+    return !mySdkDirectoryValidationResult.isError();
   }
 
   @Override
@@ -214,7 +243,6 @@ public class SdkComponentsStep extends FirstRunWizardStep {
       myAvailableSpace.setText(getDiskSpace(path));
       long selected = getComponentsSize();
       myNeededSpace.setText(String.format("Total disk space required: %s", WelcomeUIUtils.getSizeLabel(selected)));
-      myTableModel.valuesUpdated();
     }
   }
 
@@ -252,7 +280,18 @@ public class SdkComponentsStep extends FirstRunWizardStep {
       // fix the path and then go backward and forward). Otherwise the experience is confusing.
       return true;
     }
-    myWasVisible = !myMode.hasValidSdkLocation() && (myState.getNotNull(myKeyCustomInstall, true) || !validate());
+    else if (myMode.hasValidSdkLocation()) {
+      return false;
+    }
+
+    if (myState.getNotNull(myKeyCustomInstall, true)) {
+      myWasVisible = true;
+      return true;
+    }
+
+    validate();
+
+    myWasVisible = !mySdkDirectoryValidationResult.isOk();
     return myWasVisible;
   }
 
@@ -274,10 +313,6 @@ public class SdkComponentsStep extends FirstRunWizardStep {
                                                                      WizardConstants.STUDIO_WIZARD_INSET_SIZE));
   }
 
-  public boolean isOptional(@NotNull ComponentTreeNode component) {
-    return component.isOptional();
-  }
-
   private final class SdkComponentRenderer extends AbstractCellEditor implements TableCellRenderer, TableCellEditor {
     private final JPanel myPanel;
     private final JCheckBox myCheckBox;
@@ -297,11 +332,11 @@ public class SdkComponentsStep extends FirstRunWizardStep {
 
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-      setupControl(table, value, isSelected, hasFocus);
+      setupControl(table, value, row, isSelected, hasFocus);
       return myPanel;
     }
 
-    private void setupControl(JTable table, Object value, boolean isSelected, boolean hasFocus) {
+    private void setupControl(JTable table, Object value, int row, boolean isSelected, boolean hasFocus) {
       myPanel.setBorder(getCellBorder(table, isSelected && hasFocus));
       Color foreground;
       Color background;
@@ -321,7 +356,7 @@ public class SdkComponentsStep extends FirstRunWizardStep {
       int indent = 0;
       if (pair != null) {
         ComponentTreeNode node = pair.getFirst();
-        myCheckBox.setEnabled(isOptional(node));
+        myCheckBox.setEnabled(node.isOptional());
         myCheckBox.setText(node.getLabel());
         myCheckBox.setSelected(node.isChecked());
         indent = pair.getSecond();
@@ -329,6 +364,7 @@ public class SdkComponentsStep extends FirstRunWizardStep {
       myPanel.add(myCheckBox,
                   new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
                                       GridConstraints.SIZEPOLICY_FIXED, null, null, null, indent * 2));
+      AccessibleContextUtil.setName(myPanel, myCheckBox);
     }
 
     private Border getCellBorder(JTable table, boolean isSelectedFocus) {
@@ -348,7 +384,7 @@ public class SdkComponentsStep extends FirstRunWizardStep {
 
     @Override
     public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-      setupControl(table, value, true, true);
+      setupControl(table, value, row, true, true);
       return myPanel;
     }
 
@@ -358,7 +394,7 @@ public class SdkComponentsStep extends FirstRunWizardStep {
     }
   }
 
-  private class ComponentsTableModel extends AbstractTableModel {
+  private static final class ComponentsTableModel extends AbstractTableModel {
     private final List<Pair<ComponentTreeNode, Integer>> myComponents;
 
     public ComponentsTableModel(final ComponentTreeNode component) {
@@ -368,9 +404,9 @@ public class SdkComponentsStep extends FirstRunWizardStep {
       myComponents = components.build();
     }
 
-    private void traverse(Collection<ComponentTreeNode> children,
-                          int indent,
-                          ImmutableList.Builder<Pair<ComponentTreeNode, Integer>> components) {
+    private static void traverse(Collection<ComponentTreeNode> children,
+                                 int indent,
+                                 ImmutableList.Builder<Pair<ComponentTreeNode, Integer>> components) {
       for (ComponentTreeNode child : children) {
         components.add(Pair.create(child, indent));
         traverse(child.getImmediateChildren(), indent + 1, components);
@@ -379,7 +415,7 @@ public class SdkComponentsStep extends FirstRunWizardStep {
 
     @Override
     public boolean isCellEditable(int rowIndex, int columnIndex) {
-      return columnIndex == 0 && isOptional(getInstallableComponent(rowIndex));
+      return columnIndex == 0 && getInstallableComponent(rowIndex).isOptional();
     }
 
     @Override
@@ -406,10 +442,6 @@ public class SdkComponentsStep extends FirstRunWizardStep {
     public void setValueAt(Object aValue, int row, int column) {
       ComponentTreeNode node = getInstallableComponent(row);
       node.toggle(((Boolean)aValue));
-    }
-
-    public void valuesUpdated() {
-      fireTableRowsUpdated(0, myComponents.size() - 1);
     }
 
     public String getComponentDescription(int index) {

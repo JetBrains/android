@@ -21,7 +21,7 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.editors.theme.attributes.editors.AttributeReferenceRendererEditor;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
-import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
+import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
@@ -40,7 +40,7 @@ class ResourcesCompletionProvider implements AttributeReferenceRendererEditor.Co
   @NotNull
   @Override
   public List<String> getCompletions(@NotNull EditedStyleItem value) {
-    ThemeEditorStyle selectedStyle = value.getSourceStyle();
+    ConfiguredThemeEditorStyle selectedStyle = value.getSourceStyle();
 
     AttributeDefinition attrDefinition =
       ResolutionUtils.getAttributeDefinition(selectedStyle.getConfiguration(), value.getSelectedValue());

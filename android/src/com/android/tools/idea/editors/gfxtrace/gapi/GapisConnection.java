@@ -26,6 +26,7 @@ import java.net.Socket;
 public class GapisConnection implements Closeable {
   private final GapisProcess myParent;
   private final Socket myServerSocket;
+  private final GapisFeatures myFeatures = new GapisFeatures();
 
   public GapisConnection(GapisProcess parent, Socket serverSocket) {
     myParent = parent;
@@ -36,11 +37,19 @@ public class GapisConnection implements Closeable {
     return myServerSocket != null && myServerSocket.isConnected();
   }
 
+  public GapisFeatures getFeatures() {
+    return myFeatures;
+  }
+
   public ServiceClient createServiceClient(ListeningExecutorService executor) throws IOException {
     if (!isConnected()) {
       throw new IOException("Not connected");
     }
-    return new ServiceClientRPC(executor, myServerSocket.getInputStream(), myServerSocket.getOutputStream(), 1024);
+    return new ServiceClientRPC(executor,
+                                myServerSocket.getInputStream(),
+                                myServerSocket.getOutputStream(),
+                                1024,
+                                myParent.getVersion());
   }
 
   @Override

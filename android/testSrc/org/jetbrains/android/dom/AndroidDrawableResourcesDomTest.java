@@ -22,9 +22,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import java.io.IOException;
 import java.util.List;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidDrawableResourcesDomTest extends AndroidDomTest {
   public AndroidDrawableResourcesDomTest() {
     super(true, "dom/drawable");
@@ -46,7 +43,7 @@ public class AndroidDrawableResourcesDomTest extends AndroidDomTest {
     doTestHighlighting();
   }
 
- public void testStateListHighlighting1() throws Throwable {
+  public void testStateListHighlighting1() throws Throwable {
     doTestHighlighting();
   }
 
@@ -296,10 +293,6 @@ public class AndroidDrawableResourcesDomTest extends AndroidDomTest {
   }
 
   public void testIncorrectRootTag() throws Throwable {
-    doTestHighlighting();
-  }
-
-  public void testSelectorAnimationHighlighting() throws Throwable {
     doTestHighlighting();
   }
 

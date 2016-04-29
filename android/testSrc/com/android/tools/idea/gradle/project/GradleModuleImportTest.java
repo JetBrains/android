@@ -17,14 +17,10 @@ package com.android.tools.idea.gradle.project;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.base.Joiner;
-import com.google.common.base.Strings;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
-import com.google.common.io.Files;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
@@ -32,17 +28,12 @@ import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.project.impl.ProjectManagerImpl;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.ThrowableComputable;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
-import com.intellij.util.PathUtil;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.annotations.NotNull;
 
@@ -51,11 +42,16 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.*;
 
+import static com.android.tools.idea.gradle.util.GradleUtil.getDefaultPhysicalPathFromGradlePath;
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.google.common.collect.Iterables.*;
+import static com.google.common.io.Files.createTempDir;
+import static com.google.common.io.Files.write;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static com.intellij.util.PathUtil.toSystemIndependentName;
+
 /**
- * <p>Test case for GradleProjectImport#importModules method. It requires substantially different setup then {@link }</p>
- * <p/>
- * To run this test case, configure:
- * <ul><li>$ADT_TEST_SDK_PATH</li></ul>
+ * Tests for {@link GradleModuleImporter#importModules(Object, Map, Project, GradleSyncListener)}.
  */
 @SuppressWarnings("JUnitTestCaseWithNoTests") // Named differently, didn't want to do too much unnecessary setups
 public final class GradleModuleImportTest extends AndroidTestBase {
@@ -95,15 +91,15 @@ public final class GradleModuleImportTest extends AndroidTestBase {
     if (!moduleDir.mkdirs()) {
       throw new IllegalStateException("Unable to create module");
     }
-    Iterable<String> projectDependencies = Iterables.transform(Arrays.asList(requiredProjects), new Function<String, String>() {
+    Iterable<String> projectDependencies = transform(Arrays.asList(requiredProjects), new Function<String, String>() {
       @Override
       public String apply(String input) {
         return String.format("\tcompile project('%s')", pathToGradleName(input));
       }
     });
     String buildGradle = String.format(BUILD_GRADLE_TEMPLATE, Joiner.on("\n").join(projectDependencies));
-    Files.write(buildGradle, new File(moduleDir, SdkConstants.FN_BUILD_GRADLE), Charset.defaultCharset());
-    VirtualFile moduleFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(moduleDir.getAbsolutePath());
+    write(buildGradle, new File(moduleDir, SdkConstants.FN_BUILD_GRADLE), Charset.defaultCharset());
+    VirtualFile moduleFile = findFileByIoFile(moduleDir, true);
     if (moduleFile == null) {
       throw new IllegalStateException("Cannot get virtual file for module we just created");
     }
@@ -116,7 +112,7 @@ public final class GradleModuleImportTest extends AndroidTestBase {
     GradleSettingsFile settingsFile = GradleSettingsFile.get(project);
     assertNotNull("Missing " + SdkConstants.FN_SETTINGS_GRADLE, settingsFile);
     Iterable<String> modules = settingsFile.getModules();
-    if (!Iterables.contains(modules, name)) {
+    if (!contains(modules, name)) {
       fail(String.format("Subproject %s is not in %s. Found subprojects: %s", name, SdkConstants.FN_SETTINGS_GRADLE,
                          Joiner.on(", ").join(modules)));
     }
@@ -134,7 +130,7 @@ public final class GradleModuleImportTest extends AndroidTestBase {
   private static void assertNoFilesAdded(VirtualFile[] moduleChildren) {
     if (moduleChildren.length != 1) {
       StringBuilder failure = new StringBuilder("Files were altered in the source directory:");
-      Joiner.on(", ").appendTo(failure, Iterables.transform(Arrays.asList(moduleChildren), new Function<VirtualFile, String>() {
+      Joiner.on(", ").appendTo(failure, transform(Arrays.asList(moduleChildren), new Function<VirtualFile, String>() {
         @Override
         public String apply(VirtualFile input) {
           return input.getName();
@@ -149,7 +145,7 @@ public final class GradleModuleImportTest extends AndroidTestBase {
   }
 
   private static Map<String, String> projectsWithDefaultLocations(final String... paths) {
-    Iterable<String> names = Iterables.transform(Arrays.asList(paths), pathToModuleName);
+    Iterable<String> names = transform(Arrays.asList(paths), pathToModuleName);
     return Maps.toMap(names, Functions.constant(""));
   }
 
@@ -170,8 +166,8 @@ public final class GradleModuleImportTest extends AndroidTestBase {
     Joiner.on("', '").appendTo(settingsGradle, allModules).append("'\n");
     Joiner.on("\n").appendTo(settingsGradle, customLocationStatements).append("\n");
 
-    Files.write(settingsGradle.toString(), new File(projectRoot, SdkConstants.FN_SETTINGS_GRADLE), Charset.defaultCharset());
-    VirtualFile vDir = VfsUtil.findFileByIoFile(projectRoot, true);
+    write(settingsGradle.toString(), new File(projectRoot, SdkConstants.FN_SETTINGS_GRADLE), Charset.defaultCharset());
+    VirtualFile vDir = findFileByIoFile(projectRoot, true);
     assert vDir != null;
     System.out.printf("Multi-project root: %s\n", vDir.getPath());
     return vDir;
@@ -183,16 +179,15 @@ public final class GradleModuleImportTest extends AndroidTestBase {
 
     for (Map.Entry<String, String> module : modules.entrySet()) {
       String path = module.getValue();
-      if (Strings.isNullOrEmpty(path)) {
-        path = PathUtil.toSystemIndependentName(GradleUtil.getDefaultPhysicalPathFromGradlePath(module.getKey()));
+      if (isNullOrEmpty(path)) {
+        path = toSystemIndependentName(getDefaultPhysicalPathFromGradlePath(module.getKey()));
       }
       else {
         customLocationStatements.add(String.format("project('%s').projectDir = new File('%s')", module.getKey(), path));
       }
       createGradleProjectToImport(dir, path);
     }
-    Iterable<String> allModules =
-      Iterables.concat(modules.keySet(), Iterables.transform(Arrays.asList(nonExistingReferencedModules), pathToModuleName));
+    Iterable<String> allModules = concat(modules.keySet(), transform(Arrays.asList(nonExistingReferencedModules), pathToModuleName));
     return configureTopLevelProject(dir, allModules, customLocationStatements);
   }
 
@@ -200,15 +195,12 @@ public final class GradleModuleImportTest extends AndroidTestBase {
   public void setUp() throws Exception {
     super.setUp();
 
-    final TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder =
-      IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(getName());
+    TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder = IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(getName());
     myFixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.getFixture());
     myFixture.setUp();
     myFixture.setTestDataPath(getTestDataPath());
 
-    dir = new File(Files.createTempDir(), "project");
-
-    System.out.printf("Project location: %s\n", getProject().getBaseDir());
+    dir = new File(createTempDir(), "project");
   }
 
   /**
@@ -365,43 +357,47 @@ public final class GradleModuleImportTest extends AndroidTestBase {
    */
   @Override
   protected void tearDown() throws Exception {
-    if (myFixture != null) {
-      myFixture.tearDown();
-      myFixture = null;
-    }
-    ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
-    Project[] openProjects = projectManager.getOpenProjects();
-    if (openProjects.length > 0) {
-      final Project project = openProjects[0];
-      ApplicationManager.getApplication().runWriteAction(new Runnable() {
-        @Override
-        public void run() {
-          Disposer.dispose(project);
-          ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
-          if (projectManager instanceof ProjectManagerImpl) {
-            Collection<Project> projectsStillOpen = projectManager.closeTestProject(project);
-            if (!projectsStillOpen.isEmpty()) {
-              Project project = projectsStillOpen.iterator().next();
-              projectsStillOpen.clear();
-              throw new AssertionError("Test project is not disposed: " + project + ";\n created in: " +
-                                       PlatformTestCase.getCreationPlace(project));
+    try {
+      if (myFixture != null) {
+        myFixture.tearDown();
+        myFixture = null;
+      }
+      ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
+      Project[] openProjects = projectManager.getOpenProjects();
+      if (openProjects.length > 0) {
+        final Project project = openProjects[0];
+        ApplicationManager.getApplication().runWriteAction(new Runnable() {
+          @Override
+          public void run() {
+            Disposer.dispose(project);
+            ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
+            if (projectManager instanceof ProjectManagerImpl) {
+              Collection<Project> projectsStillOpen = projectManager.closeTestProject(project);
+              if (!projectsStillOpen.isEmpty()) {
+                Project project = projectsStillOpen.iterator().next();
+                projectsStillOpen.clear();
+                throw new AssertionError("Test project is not disposed: " + project + ";\n created in: " +
+                                         PlatformTestCase.getCreationPlace(project));
+              }
             }
           }
-        }
-      });
-    }
-    if (dir != null && dir.isDirectory()) {
-      ApplicationManager.getApplication().runWriteAction(new ThrowableComputable<Boolean, IOException>() {
-        @Override
-        public Boolean compute() throws IOException {
-          VirtualFile vfile = VfsUtil.findFileByIoFile(dir, true);
-          if (vfile != null) {
-            vfile.delete(GradleModuleImportTest.this);
+        });
+      }
+      if (dir != null && dir.isDirectory()) {
+        ApplicationManager.getApplication().runWriteAction(new ThrowableComputable<Boolean, IOException>() {
+          @Override
+          public Boolean compute() throws IOException {
+            VirtualFile vfile = findFileByIoFile(dir, true);
+            if (vfile != null) {
+              vfile.delete(GradleModuleImportTest.this);
+            }
+            return true;
           }
-          return true;
-        }
-      });
+        });
+      }
     }
-    super.tearDown();
+    finally {
+      super.tearDown();
+    }
   }
 }

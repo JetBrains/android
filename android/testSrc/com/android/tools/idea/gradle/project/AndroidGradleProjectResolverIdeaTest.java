@@ -16,10 +16,13 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.builder.model.AndroidProject;
+import com.android.builder.model.NativeAndroidProject;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.GradleModel;
+import com.android.tools.idea.gradle.NativeAndroidGradleModel;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
+import com.android.tools.idea.gradle.stubs.android.NativeAndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.gradle.IdeaModuleStub;
 import com.android.tools.idea.gradle.stubs.gradle.IdeaProjectStub;
 import com.intellij.openapi.externalSystem.model.DataNode;
@@ -40,8 +43,7 @@ import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext;
 
 import java.util.Collection;
 
-import static com.android.tools.idea.gradle.AndroidProjectKeys.ANDROID_MODEL;
-import static com.android.tools.idea.gradle.AndroidProjectKeys.GRADLE_MODEL;
+import static com.android.tools.idea.gradle.AndroidProjectKeys.*;
 import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.RESOLVE_PROJECT;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getChildren;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
@@ -55,25 +57,30 @@ import static org.jetbrains.plugins.gradle.util.GradleConstants.SYSTEM_ID;
 public class AndroidGradleProjectResolverIdeaTest extends IdeaTestCase {
   private IdeaProjectStub myIdeaProject;
   private AndroidProjectStub myAndroidProject;
+  private NativeAndroidProjectStub myNativeAndroidProject;
 
   private ProjectResolverContext myResolverCtx;
   private AndroidGradleProjectResolver myProjectResolver;
 
   private IdeaModuleStub myAndroidModule;
-  private IdeaModuleStub myUtilModule;
+  private IdeaModuleStub myNativeAndroidModule;
+  private IdeaModuleStub myJavaUtilModule;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     myIdeaProject = new IdeaProjectStub("multiProject");
     myAndroidProject = TestProjects.createBasicProject(myIdeaProject.getRootDir());
+    myNativeAndroidProject = TestProjects.createNativeProject(myIdeaProject.getRootDir());
 
     myAndroidModule = myIdeaProject.addModule(myAndroidProject.getName(), "androidTask");
-    myUtilModule = myIdeaProject.addModule("util", "compileJava", "jar", "classes");
+    myNativeAndroidModule = myIdeaProject.addModule(myNativeAndroidProject.getName(), "nativeAndroidTask");
+    myJavaUtilModule = myIdeaProject.addModule("util", "compileJava", "jar", "classes");
     myIdeaProject.addModule("notReallyAGradleProject");
 
     ProjectImportAction.AllModels allModels = new ProjectImportAction.AllModels(myIdeaProject);
     allModels.addExtraProject(myAndroidProject, AndroidProject.class, myAndroidModule);
+    allModels.addExtraProject(myNativeAndroidProject, NativeAndroidProject.class, myNativeAndroidModule);
 
     ExternalSystemTaskId id = ExternalSystemTaskId.create(SYSTEM_ID, RESOLVE_PROJECT, myIdeaProject.getName());
     String projectPath = FileUtil.toSystemDependentName(myIdeaProject.getBuildFile().getParent());
@@ -92,10 +99,14 @@ public class AndroidGradleProjectResolverIdeaTest extends IdeaTestCase {
 
   @Override
   protected void tearDown() throws Exception {
-    if (myIdeaProject != null) {
-      myIdeaProject.dispose();
+    try {
+      if (myIdeaProject != null) {
+        myIdeaProject.dispose();
+      }
     }
-    super.tearDown();
+    finally {
+      super.tearDown();
+    }
   }
 
   public void testCreateModuleWithOldModelVersion() {
@@ -141,12 +152,38 @@ public class AndroidGradleProjectResolverIdeaTest extends IdeaTestCase {
     assertEquals(myAndroidModule.getGradleProject().getPath(), gradleProjectNode.getData().getGradlePath());
   }
 
+  public void testPopulateModuleContentRootsWithNativeAndroidProject() {
+    ProjectData project = myProjectResolver.createProject();
+    DataNode<ProjectData> projectNode = new DataNode<ProjectData>(ProjectKeys.PROJECT, project, null);
+    DataNode<ModuleData> moduleDataNode = myProjectResolver.createModule(myNativeAndroidModule, projectNode);
+
+    myProjectResolver.populateModuleContentRoots(myNativeAndroidModule, moduleDataNode);
+
+    // Verify module does not have AndroidGradleModel.
+    Collection<DataNode<AndroidGradleModel>> androidProjectNodes = getChildren(moduleDataNode, ANDROID_MODEL);
+    assertEquals(0, androidProjectNodes.size());
+
+    // Verify module has NativeAndroidGradleModel.
+    Collection<DataNode<NativeAndroidGradleModel>> nativeAndroidProjectNodes = getChildren(moduleDataNode, NATIVE_ANDROID_MODEL);
+    assertEquals(1, nativeAndroidProjectNodes.size());
+    DataNode<NativeAndroidGradleModel> nativeAndroidProjectNode = getFirstItem(nativeAndroidProjectNodes);
+    assertNotNull(nativeAndroidProjectNode);
+    assertSame(myNativeAndroidProject, nativeAndroidProjectNode.getData().getNativeAndroidProject());
+
+    // Verify module has IdeaGradleProject.
+    Collection<DataNode<GradleModel>> gradleProjects = getChildren(moduleDataNode, GRADLE_MODEL);
+    assertEquals(1, gradleProjects.size());
+    DataNode<GradleModel> gradleProjectNode = getFirstItem(gradleProjects);
+    assertNotNull(gradleProjectNode);
+    assertEquals(myNativeAndroidModule.getGradleProject().getPath(), gradleProjectNode.getData().getGradlePath());
+  }
+
   public void testPopulateModuleContentRootsWithJavaProject() {
     ProjectData project = myProjectResolver.createProject();
     DataNode<ProjectData> projectNode = new DataNode<ProjectData>(ProjectKeys.PROJECT, project, null);
-    DataNode<ModuleData> moduleDataNode = myProjectResolver.createModule(myUtilModule, projectNode);
+    DataNode<ModuleData> moduleDataNode = myProjectResolver.createModule(myJavaUtilModule, projectNode);
 
-    myProjectResolver.populateModuleContentRoots(myUtilModule, moduleDataNode);
+    myProjectResolver.populateModuleContentRoots(myJavaUtilModule, moduleDataNode);
 
     // Verify module does not have AndroidGradleModel.
     Collection<DataNode<AndroidGradleModel>> androidProjectNodes = getChildren(moduleDataNode, ANDROID_MODEL);
@@ -157,6 +194,6 @@ public class AndroidGradleProjectResolverIdeaTest extends IdeaTestCase {
     assertEquals(1, gradleProjects.size());
     DataNode<GradleModel> gradleProjectNode = getFirstItem(gradleProjects);
     assertNotNull(gradleProjectNode);
-    assertEquals(myUtilModule.getGradleProject().getPath(), gradleProjectNode.getData().getGradlePath());
+    assertEquals(myJavaUtilModule.getGradleProject().getPath(), gradleProjectNode.getData().getGradlePath());
   }
 }

@@ -37,6 +37,7 @@ import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.containers.Convertor;
 import com.intellij.util.containers.HashSet;
+import gnu.trove.TObjectProcedure;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -586,13 +587,17 @@ public final class ClassesTreeView implements DataProvider, Disposable {
         myClasses.clear();
 
         // Find the union of the classObjs this heap has instances of, plus the classObjs themselves that are allocated on this heap.
-        HashSet<ClassObj> entriesSet = new HashSet<ClassObj>(heap.getClasses().size() + heap.getInstancesCount());
+        final HashSet<ClassObj> entriesSet = new HashSet<ClassObj>(heap.getClasses().size() + heap.getInstancesCount());
         for (ClassObj classObj : heap.getClasses()) {
           entriesSet.add(classObj);
         }
-        for (Instance instance : heap.getInstances()) {
-          entriesSet.add(instance.getClassObj());
-        }
+        heap.forEachInstance(new TObjectProcedure<Instance>() {
+          @Override
+          public boolean execute(Instance instance) {
+            entriesSet.add(instance.getClassObj());
+            return true;
+          }
+        });
 
         for (ClassObj classObj : entriesSet) {
           myClasses.add(new HeapClassObjNode(classObj, myHeapId));

@@ -16,7 +16,7 @@
 
 package com.android.tools.idea.sdk.remote.internal.packages;
 
-import com.android.sdklib.repository.FullRevision;
+import com.android.repository.Revision;
 import com.android.sdklib.repository.PkgProps;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkRepoConstants;
 import org.w3c.dom.Node;
@@ -32,7 +32,7 @@ class MinToolsMixin implements IMinToolsDependency {
    * The minimal revision of the tools package required by this extra package, if > 0,
    * or {@link #MIN_TOOLS_REV_NOT_SPECIFIED} if there is no such requirement.
    */
-  private final FullRevision mMinToolsRevision;
+  private final Revision mMinToolsRevision;
 
   /**
    * Creates a new mixin from the attributes and elements of the given XML node.
@@ -44,7 +44,7 @@ class MinToolsMixin implements IMinToolsDependency {
 
     mMinToolsRevision =
       RemotePackageParserUtils
-        .parsePreciseRevisionElement(RemotePackageParserUtils.findChildElement(packageNode, SdkRepoConstants.NODE_MIN_TOOLS_REV));
+        .parseRevisionElement(RemotePackageParserUtils.findChildElement(packageNode, SdkRepoConstants.NODE_MIN_TOOLS_REV));
   }
 
   /**
@@ -52,7 +52,7 @@ class MinToolsMixin implements IMinToolsDependency {
    * or {@link #MIN_TOOLS_REV_NOT_SPECIFIED} if there is no such requirement.
    */
   @Override
-  public FullRevision getMinToolsRevision() {
+  public Revision getMinToolsRevision() {
     return mMinToolsRevision;
   }
 

@@ -16,6 +16,8 @@
 package org.jetbrains.android.facet;
 
 import com.android.builder.model.*;
+import com.android.tools.idea.gradle.NativeAndroidGradleModel;
+import com.android.tools.idea.gradle.facet.NativeAndroidGradleFacet;
 import com.android.tools.idea.model.AndroidModel;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
@@ -61,6 +63,11 @@ public abstract class IdeaSourceProvider {
       ideaProviders.add(create(provider));
     }
     return ideaProviders;
+  }
+
+  @NotNull
+  public static IdeaSourceProvider create(@NotNull final NativeAndroidGradleFacet facet) {
+    return new IdeaSourceProvider.Native(facet);
   }
 
   @NotNull
@@ -128,7 +135,7 @@ public abstract class IdeaSourceProvider {
 
     /** Convert a set of IO files into a set of equivalent virtual files */
     private static Collection<VirtualFile> convertFileSet(@NotNull Collection<File> fileSet) {
-      Collection<VirtualFile> result = Sets.newHashSetWithExpectedSize(fileSet.size());
+      Collection<VirtualFile> result = Lists.newArrayListWithCapacity(fileSet.size());
       LocalFileSystem fileSystem = LocalFileSystem.getInstance();
       for (File file : fileSet) {
         VirtualFile virtualFile = fileSystem.findFileByIoFile(file);
@@ -216,6 +223,105 @@ public abstract class IdeaSourceProvider {
     @Override
     public int hashCode() {
       return myProvider.getManifestFile().getPath().hashCode();
+    }
+  }
+
+  /** {@linkplain IdeaSourceProvider} for a Native Android Gradle project */
+  private static class Native extends IdeaSourceProvider {
+    @NotNull private final NativeAndroidGradleFacet myFacet;
+
+    private Native(@NotNull NativeAndroidGradleFacet facet) {
+      myFacet = facet;
+    }
+
+    @NotNull
+    @Override
+    public String getName() {
+      return "";
+    }
+
+    @Nullable
+    @Override
+    public VirtualFile getManifestFile() {
+      return null;
+    }
+
+    @NotNull
+    @Override
+    public Collection<VirtualFile> getJavaDirectories() {
+      return Collections.emptySet();
+    }
+
+    @NotNull
+    @Override
+    public Collection<VirtualFile> getResourcesDirectories() {
+      return Collections.emptySet();
+    }
+
+    @NotNull
+    @Override
+    public Collection<VirtualFile> getAidlDirectories() {
+      return Collections.emptySet();
+    }
+
+    @NotNull
+    @Override
+    public Collection<VirtualFile> getRenderscriptDirectories() {
+      return Collections.emptySet();
+    }
+
+    @NotNull
+    @Override
+    public Collection<VirtualFile> getJniDirectories() {
+      NativeAndroidGradleModel nativeAndroidGradleModel = myFacet.getNativeAndroidGradleModel();
+      if (nativeAndroidGradleModel == null) {
+        return Collections.emptyList();
+      }
+
+      Collection<File> sourceFolders = nativeAndroidGradleModel.getSelectedVariant().getSourceFolders();
+
+      Collection<VirtualFile> result = Sets.newLinkedHashSetWithExpectedSize(sourceFolders.size());
+      LocalFileSystem fileSystem = LocalFileSystem.getInstance();
+      for (File file : sourceFolders) {
+        VirtualFile virtualFile = fileSystem.findFileByIoFile(file);
+        if (virtualFile != null) {
+          result.add(virtualFile);
+        }
+      }
+
+      return result;
+    }
+
+    @NotNull
+    @Override
+    public Collection<VirtualFile> getJniLibsDirectories() {
+      return Collections.emptySet();
+    }
+
+    @NotNull
+    @Override
+    public Collection<VirtualFile> getResDirectories() {
+      return Collections.emptySet();
+    }
+
+    @NotNull
+    @Override
+    public Collection<VirtualFile> getAssetsDirectories() {
+      return Collections.emptySet();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+
+      Native that = (Native)o;
+      return myFacet.equals(that.myFacet);
+    }
+
+    @Override
+    public int hashCode() {
+      return myFacet.hashCode();
     }
   }
 
@@ -365,6 +471,7 @@ public abstract class IdeaSourceProvider {
     return Collections.emptyList();
   }
 
+  @NotNull
   private Collection<VirtualFile> getAllSourceFolders() {
     List<VirtualFile> srcDirectories = Lists.newArrayList();
     srcDirectories.addAll(getJavaDirectories());
@@ -377,7 +484,8 @@ public abstract class IdeaSourceProvider {
     return srcDirectories;
   }
 
-  private static Collection<File> getAllSourceFolders(SourceProvider provider) {
+  @NotNull
+  public static Collection<File> getAllSourceFolders(@NotNull  SourceProvider provider) {
     List<File> srcDirectories = Lists.newArrayList();
     srcDirectories.addAll(provider.getJavaDirectories());
     srcDirectories.addAll(provider.getResDirectories());
@@ -520,7 +628,6 @@ public abstract class IdeaSourceProvider {
     if (!facet.requiresAndroidModel() || facet.getAndroidModel() == null) {
       return Collections.singletonList(facet.getMainIdeaSourceProvider());
     }
-
     return createAll(getAllSourceProviders(facet));
   }
 
@@ -584,8 +691,6 @@ public abstract class IdeaSourceProvider {
   public static List<SourceProvider> getSourceProvidersForFile(@NotNull AndroidFacet facet, @Nullable VirtualFile targetFolder,
                                                                @Nullable SourceProvider defaultSourceProvider) {
     List<SourceProvider> sourceProviderList = Lists.newArrayList();
-
-
     if (targetFolder != null) {
       File targetIoFolder = VfsUtilCore.virtualToIoFile(targetFolder);
       // Add source providers that contain the file (if any) and any that have files under the given folder

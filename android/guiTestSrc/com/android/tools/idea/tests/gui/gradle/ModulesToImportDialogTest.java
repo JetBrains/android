@@ -23,6 +23,7 @@ import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.FileChooserDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeaDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeaDialogFixture.DialogAndWrapper;
+import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
@@ -50,9 +51,9 @@ import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPO
 import static com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture.findByText;
 import static com.intellij.openapi.externalSystem.model.ProjectKeys.MODULE;
 import static com.intellij.openapi.util.io.FileUtil.createTempFile;
-import static com.intellij.openapi.util.io.FileUtil.delete;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static java.util.UUID.randomUUID;
+import static javax.swing.SwingUtilities.windowForComponent;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.data.TableCell.row;
 import static org.fest.swing.edt.GuiActionRunner.execute;
@@ -131,9 +132,11 @@ public class ModulesToImportDialogTest extends GuiTestCase {
         return dialog.isShowing() && "Save Module Selection".equals(dialog.getTitle());
       }
     });
-    fileChooser.select(targetFile);
-    delete(tempFile); // delete the file before saving, to avoid the "Confirm save" dialog.
-    fileChooser.clickOk();
+    fileChooser.select(targetFile).clickOk();
+
+    // "Confirm save" dialog will pop up because the file already exists, we click on Yes to continue.
+    MessagesFixture messages = MessagesFixture.findByTitle(myRobot, windowForComponent(dialog), "Confirm Save as");
+    messages.click("Yes");
 
     // Load selection from disk
     findByText("Select All", myRobot, dialog).click();

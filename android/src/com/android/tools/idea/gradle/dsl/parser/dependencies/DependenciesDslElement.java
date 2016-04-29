@@ -1,0 +1,59 @@
+/*
+ * Copyright (C) 2015 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.idea.gradle.dsl.parser.dependencies;
+
+import com.android.tools.idea.gradle.dsl.parser.elements.*;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+public class DependenciesDslElement extends GradlePropertiesDslElement {
+  @NonNls public static final String DEPENDENCIES_BLOCK_NAME = "dependencies";
+
+  public DependenciesDslElement(@Nullable GradleDslElement parent) {
+    super(parent, null, DEPENDENCIES_BLOCK_NAME);
+  }
+
+  @Override
+  public void addParsedElement(@NotNull String configurationName, @NotNull GradleDslElement dependency) {
+    // Treat all expressions and expression maps as dependencies
+    if (dependency instanceof GradleDslExpression || dependency instanceof GradleDslExpressionMap) {
+      GradleDslElementList elementList = getOrCreateParsedElement(configurationName);
+      elementList.addParsedElement(dependency);
+    }
+    else if (dependency instanceof GradleDslExpressionList) {
+      GradleDslElementList elementList = getOrCreateParsedElement(configurationName);
+      for (GradleDslExpression expression : ((GradleDslExpressionList)dependency).getExpressions()) {
+        elementList.addParsedElement(expression);
+      }
+    }
+  }
+
+  @NotNull
+  private GradleDslElementList getOrCreateParsedElement(@NotNull String configurationName) {
+    GradleDslElementList elementList = getProperty(configurationName, GradleDslElementList.class);
+    if (elementList == null) {
+      elementList = new GradleDslElementList(this, configurationName);
+      super.addParsedElement(configurationName, elementList);
+    }
+    return elementList;
+  }
+
+  @Override
+  public boolean isBlockElement() {
+    return true;
+  }
+}

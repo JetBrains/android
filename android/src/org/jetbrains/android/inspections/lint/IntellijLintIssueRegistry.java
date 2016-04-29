@@ -70,8 +70,6 @@ public class IntellijLintIssueRegistry extends BuiltinIssueRegistry {
         Class<? extends Detector> detectorClass = implementation.getDetectorClass();
         if (detectorClass == ApiDetector.class) {
           issue.setImplementation(IntellijApiDetector.IMPLEMENTATION);
-        } else if (detectorClass == RegistrationDetector.class) {
-          issue.setImplementation(IntellijRegistrationDetector.IMPLEMENTATION);
         } else if (detectorClass == GradleDetector.class) {
           issue.setImplementation(IntellijGradleDetector.IMPLEMENTATION);
         } else if (detectorClass == ViewTypeDetector.class) {

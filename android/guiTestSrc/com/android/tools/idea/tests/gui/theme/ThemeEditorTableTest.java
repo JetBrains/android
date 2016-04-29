@@ -28,6 +28,7 @@ import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.fixture.*;
 import org.fest.swing.timing.Condition;
+import org.jetbrains.android.uipreview.ChooseResourceDialog;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
@@ -50,7 +51,7 @@ public class ThemeEditorTableTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testParentValueCell() throws IOException {
     myProjectFrame = importSimpleApplication();
-    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(myProjectFrame);
+    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(myProjectFrame);
     ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
 
     // Cell (0,0) should be the parent editor
@@ -140,7 +141,7 @@ public class ThemeEditorTableTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testResourcePickerNameError() throws IOException {
     myProjectFrame = importSimpleApplication();
-    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(myProjectFrame);
+    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(myProjectFrame);
 
     ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
 
@@ -179,7 +180,7 @@ public class ThemeEditorTableTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testSettingColorAttribute() throws IOException {
     myProjectFrame = importSimpleApplication();
-    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(myProjectFrame);
+    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(myProjectFrame);
     ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
 
     TableCell cell = row(1).column(0);
@@ -217,7 +218,7 @@ public class ThemeEditorTableTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testColorPickerAlpha() throws IOException {
     myProjectFrame = importSimpleApplication();
-    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(myProjectFrame);
+    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(myProjectFrame);
     ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
 
     TableCell cell = row(1).column(0);
@@ -253,7 +254,7 @@ public class ThemeEditorTableTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testStateListPicker() throws IOException {
     myProjectFrame = importSimpleApplication();
-    ThemeEditorFixture themeEditor = ThemeEditorTestUtils.openThemeEditor(myProjectFrame);
+    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(myProjectFrame);
     ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
 
     TableCell parentCell = row(0).column(0);
@@ -320,7 +321,7 @@ public class ThemeEditorTableTest extends GuiTestCase {
         return (component.isShowing() && !component.equals(dialog.target()));
       }
     });
-    secondDialog.getResourceTree().clickPath("Dimension/abc_disabled_alpha_material_dark");
+    secondDialog.getList(ChooseResourceDialog.APP_NAMESPACE_LABEL).clickItem("abc_disabled_alpha_material_dark");
     secondDialog.focus();
     secondDialog.clickOK();
     pause(new Condition("Waiting for component update") {
@@ -355,5 +356,61 @@ public class ThemeEditorTableTest extends GuiTestCase {
     cellFont.requireBold();
     assertEquals("android:textColorPrimary", themeEditorTable.attributeNameAt(cell));
     assertEquals("@color/primary_text_material_dark", themeEditorTable.valueAt(cell));
+  }
+
+  /**
+   * Test the text completion for attribute values
+   */
+  @Test @IdeGuiTest
+  public void testResourceCompletion() throws IOException {
+    myProjectFrame = importSimpleApplication();
+    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(myProjectFrame);
+    final ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
+
+    final TableCell cell = row(3).column(0);
+
+    FontFixture cellFont = themeEditorTable.fontAt(cell);
+    cellFont.requireNotBold();
+    assertEquals("android:colorBackground", themeEditorTable.attributeNameAt(cell));
+    assertEquals("@android:color/background_holo_light", themeEditorTable.valueAt(cell));
+
+    JTableCellFixture tableCell = themeEditorTable.cell(cell);
+    ResourceComponentFixture resourceComponent = new ResourceComponentFixture(myRobot, (ResourceComponent)tableCell.editor());
+    tableCell.startEditing();
+    EditorTextFieldFixture textComponent = resourceComponent.getTextField();
+    textComponent.requireText("@android:color/background_holo_light");
+    textComponent.enterText("invalid");
+    tableCell.stopEditing();
+    pause(new Condition("Waiting for warning icon to be loaded") {
+      @Override
+      public boolean test() {
+        return themeEditorTable.hasWarningIconAt(cell);
+      }
+    }, GuiTests.SHORT_TIMEOUT);
+
+    tableCell.startEditing();
+    textComponent = resourceComponent.getTextField();
+    String prefix = "@android:color/back";
+    textComponent.replaceText(prefix);
+
+    JListFixture completionPopup = ThemeEditorGuiTestUtils.getCompletionPopup(myRobot);
+    String[] suggestions = completionPopup.contents();
+    assertTrue(suggestions.length > 0);
+    for (String suggestion : suggestions) {
+      assertTrue(suggestion.startsWith(prefix));
+    }
+
+    prefix = "@color/back";
+    textComponent.replaceText(prefix);
+    completionPopup = ThemeEditorGuiTestUtils.getCompletionPopup(myRobot);
+    suggestions = completionPopup.contents();
+    assertTrue(suggestions.length > 0);
+    for (String suggestion : suggestions) {
+      assertTrue(suggestion.startsWith(prefix));
+    }
+
+    completionPopup.item(0).doubleClick();
+    tableCell.stopEditing();
+    assertEquals(suggestions[0], themeEditorTable.valueAt(cell));
   }
 }

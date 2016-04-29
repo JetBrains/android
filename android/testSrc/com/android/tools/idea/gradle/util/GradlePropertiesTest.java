@@ -27,17 +27,23 @@ import java.util.List;
  */
 public class GradlePropertiesTest extends IdeaTestCase {
   private GradleProperties myProperties;
+  private HttpConfigurable myOriginalIdeSettings;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
     File propertiesFilePath = createTempFile("gradle.properties", "");
     myProperties = new GradleProperties(propertiesFilePath);
+    myOriginalIdeSettings = HttpConfigurable.getInstance().getState();
   }
 
   @Override
-  protected void checkForSettingsDamage(@NotNull List<Throwable> exceptions) {
-    // for this test we don't care for this check
+  protected void tearDown() throws Exception {
+    try {
+      HttpConfigurable.getInstance().loadState(myOriginalIdeSettings);
+    } finally {
+      super.tearDown();
+    }
   }
 
   public void testCopyProxySettingsFromIde() {

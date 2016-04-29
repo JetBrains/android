@@ -17,12 +17,13 @@ package com.android.tools.idea.welcome.config;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.prefs.AndroidLocation;
-import com.android.tools.idea.welcome.wizard.SdkComponentsStep;
 import com.android.tools.idea.npw.WizardUtils;
+import com.android.tools.idea.welcome.wizard.SdkComponentsStep;
 import com.google.common.base.Charsets;
 import com.google.common.base.Objects;
 import com.google.common.collect.Maps;
 import com.google.common.io.Files;
+import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
@@ -38,7 +39,7 @@ import java.util.Map;
  * Wrapper around data passed from the installer.
  */
 public class InstallerData {
-  public static final InstallerData EMPTY = new InstallerData(null, null, null, true, null);
+  public static final InstallerData EMPTY = new InstallerData(null, null, null, true, null, null);
 
   private static final String PATH_FIRST_RUN_PROPERTIES = FileUtil.join("studio", "installer", "firstrun.data");
   private static final String PROPERTY_SDK = "androidsdk.dir";
@@ -46,6 +47,7 @@ public class InstallerData {
   private static final String PROPERTY_SDK_REPO = "androidsdk.repo";
   private static final String PROPERTY_TIMESTAMP = "install.timestamp";
   private static final String PROPERTY_AVD = "create.avd";
+  private static final String PROPERTY_VERSION = "studio.version";
   private static final Logger LOG = Logger.getInstance(InstallerData.class);
 
   @Nullable private final File myJavaDir;
@@ -53,15 +55,17 @@ public class InstallerData {
   @Nullable private final File myAndroidDest;
   private final boolean myCreateAvd;
   @Nullable private final String myTimestamp;
+  @Nullable private final String myVersion;
 
   public InstallerData(@Nullable File javaDir, @Nullable File androidSrc,
                        @Nullable File androidDest, boolean createAvd,
-                       @Nullable String timestamp) {
+                       @Nullable String timestamp, @Nullable String version) {
     myJavaDir = javaDir;
     myAndroidSrc = androidSrc;
     myAndroidDest = androidDest;
     myCreateAvd = createAvd;
     myTimestamp = timestamp;
+    myVersion = version;
   }
 
   @Nullable
@@ -74,7 +78,7 @@ public class InstallerData {
     File androidDest = StringUtil.isEmptyOrSpaces(androidSdkPath) ? null : new File(androidSdkPath);
     return new InstallerData(getIfPathExists(properties, PROPERTY_JDK), getIfPathExists(properties, PROPERTY_SDK_REPO), androidDest,
                              Boolean.valueOf(properties.containsKey(PROPERTY_AVD) ? properties.get(PROPERTY_AVD) : "true"),
-                             properties.get(PROPERTY_TIMESTAMP));
+                             properties.get(PROPERTY_TIMESTAMP), properties.get(PROPERTY_VERSION));
   }
 
   @Nullable
@@ -180,6 +184,11 @@ public class InstallerData {
   @Nullable
   public String getTimestamp() {
     return myTimestamp;
+  }
+
+  public boolean isCurrentVersion() {
+    String buildStr = Integer.toString(ApplicationInfo.getInstance().getBuild().getBuildNumber());
+    return buildStr.equals(myVersion);
   }
 
   private static class Holder {

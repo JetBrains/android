@@ -222,6 +222,9 @@
       <val name="value" val="" />
     </annotation>
   </item>
+  <item name="android.provider.DocumentsContract boolean isDocumentUri(android.content.Context, android.net.Uri) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.provider.DocumentsProvider android.net.Uri canonicalize(android.net.Uri)">
     <annotation name="android.support.annotation.CallSuper" />
   </item>

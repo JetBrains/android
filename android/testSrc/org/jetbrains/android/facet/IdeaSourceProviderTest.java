@@ -20,6 +20,7 @@ import com.android.builder.model.ProductFlavorContainer;
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.AndroidGradleModelTest;
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.module.Module;
@@ -43,6 +44,8 @@ import static org.junit.Assume.assumeTrue;
  * This test uses the Gradle model as source data to test the implementation.
  */
 public class IdeaSourceProviderTest extends AndroidGradleTestCase {
+  private boolean myOriginalLoadAllTestArtifactsValue;
+
   private Module myAppModule;
   private Module myLibModule;
   private AndroidFacet myAppFacet;
@@ -51,6 +54,9 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
+
+    myOriginalLoadAllTestArtifactsValue = GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS;
+
     assumeTrue(CAN_SYNC_PROJECTS);
 
     loadProject("projects/projectWithAppandLib");
@@ -80,6 +86,16 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
 
     assertNotNull(AndroidPlatform.getInstance(myAppModule));
     assertNotNull(AndroidPlatform.getInstance(myLibModule));
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS = myOriginalLoadAllTestArtifactsValue;
+    }
+    finally {
+      super.tearDown();
+    }
   }
 
   /** TODO: Move this test to {@link AndroidGradleModelTest}. */
@@ -146,6 +162,8 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
 
   /** TODO: Move this test to {@link AndroidGradleModelTest} */
   public void testGetCurrentTestSourceProviders() throws Exception {
+    GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS = false;
+
     StringBuilder sb = new StringBuilder();
     VirtualFile baseDir = getProject().getBaseDir();
     for (IdeaSourceProvider provider : IdeaSourceProvider.getCurrentTestSourceProviders(myAppFacet)) {

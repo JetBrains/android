@@ -15,29 +15,24 @@
  */
 package com.android.tools.idea.updater;
 
-import com.android.sdklib.repository.descriptors.IPkgDesc;
-import com.android.sdklib.repository.descriptors.PkgDesc;
-import com.android.tools.idea.sdk.SdkState;
-import com.android.tools.idea.sdk.remote.UpdatablePkgInfo;
-import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
+import com.android.repository.api.RemotePackage;
+import com.android.repository.impl.meta.Archive;
+import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.welcome.wizard.WelcomeUIUtils;
-import com.android.tools.idea.wizard.dynamic.DialogWrapperHost;
+import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.android.utils.HtmlBuilder;
+import com.google.common.collect.Lists;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.IdeBundle;
-import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.updateSettings.impl.AbstractUpdateDialog;
 import com.intellij.openapi.updateSettings.impl.UpdateSettings;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.containers.ContainerUtil;
-import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Confirmation dialog for installing updates. Allows ignore/remind later/install/show release notes,
@@ -46,18 +41,20 @@ import java.util.Map;
 public class UpdateInfoDialog extends AbstractUpdateDialog {
   private static final String RELEASE_NOTES_URL = "http://developer.android.com/tools/revisions/index.html";
 
-  private final List<IPkgDesc> myPackages;
+  private final List<RemotePackage> myPackages;
+  private final JComponent myComponent;
 
-  protected UpdateInfoDialog(boolean enableLink, List<IPkgDesc> packages) {
+  protected UpdateInfoDialog(boolean enableLink, List<RemotePackage> packages) {
     super(enableLink);
     myPackages = packages;
     getCancelAction().putValue(DEFAULT_ACTION, Boolean.TRUE);
+    myComponent = new UpdateInfoPanel(myPackages).getRootPanel();
     init();
   }
 
   @Override
   protected JComponent createCenterPanel() {
-    return new UpdateInfoPanel(myPackages).getRootPanel();
+    return myComponent;
   }
 
   @NotNull
@@ -68,12 +65,16 @@ public class UpdateInfoDialog extends AbstractUpdateDialog {
     actions.add(new AbstractAction("Update Now") {
       @Override
       public void actionPerformed(ActionEvent e) {
-        SdkQuickfixWizard sdkQuickfixWizard =
-          new SdkQuickfixWizard(null, null, myPackages, new DialogWrapperHost(null, DialogWrapper.IdeModalityType.PROJECT));
-        sdkQuickfixWizard.init();
-        if (sdkQuickfixWizard.showAndGet()) {
-          close(0);
+        List<String> paths = Lists.newArrayList();
+        for (RemotePackage p : myPackages) {
+          paths.add(p.getPath());
         }
+        ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(myComponent, paths);
+        // Can be null if there was an error, in theory. In that case createDialogForPaths shows the error itself.
+        if (dialog != null) {
+          dialog.show();
+        }
+        close(0);
       }
     });
 
@@ -88,8 +89,8 @@ public class UpdateInfoDialog extends AbstractUpdateDialog {
       @Override
       public void actionPerformed(ActionEvent e) {
         List<String> ignores = UpdateSettings.getInstance().getIgnoredBuildNumbers();
-        for (IPkgDesc desc : myPackages) {
-          ignores.add(desc.getInstallId());
+        for (RemotePackage p : myPackages) {
+          ignores.add(SdkComponentSource.getPackageRevisionId(p));
         }
         doCancelAction();
       }
@@ -112,14 +113,14 @@ public class UpdateInfoDialog extends AbstractUpdateDialog {
     private JBLabel myDownloadSize;
     private JEditorPane mySettingsLink;
 
-    public UpdateInfoPanel(List<IPkgDesc> packages) {
+    public UpdateInfoPanel(List<RemotePackage> packages) {
       configureMessageArea(mySettingsLink);
       myDownloadSize.setText(WelcomeUIUtils.getSizeLabel(computeDownloadSize(packages)));
       HtmlBuilder packageHtmlBuilder = new HtmlBuilder();
       packageHtmlBuilder.openHtmlBody();
       packageHtmlBuilder.beginList();
-      for (IPkgDesc desc : packages) {
-        packageHtmlBuilder.listItem().add(desc.getListDescription() + " revision " + desc.getPreciseRevision());
+      for (RemotePackage p : packages) {
+        packageHtmlBuilder.listItem().add(p.getDisplayName() + " revision " + p.getVersion());
       }
       packageHtmlBuilder.closeHtmlBody();
       myPackages.setText(packageHtmlBuilder.getHtml());
@@ -129,23 +130,13 @@ public class UpdateInfoDialog extends AbstractUpdateDialog {
       return myRootPanel;
     }
 
-    private long computeDownloadSize(List<IPkgDesc> packages) {
-      AndroidSdkData data = AndroidSdkUtils.tryToChooseAndroidSdk();
-      SdkState state = SdkState.getInstance(data);
-      // Should already be loaded at this point--just reload to be sure.
-      state.loadSynchronously(SdkState.DEFAULT_EXPIRATION_PERIOD_MS, false, null, null, null, false);
-      Map<String, UpdatablePkgInfo> sdkPackages = state.getPackages().getConsolidatedPkgs();
+    private long computeDownloadSize(List<RemotePackage> packages) {
       long size = 0;
-      boolean preview =
-        SdkComponentSource.PREVIEW_CHANNEL.equals(UpdateSettings.getInstance().getExternalUpdateChannels().get(SdkComponentSource.NAME));
-      for (IPkgDesc pkg : packages) {
-        String iid = pkg.getInstallId();
-        UpdatablePkgInfo updatablePkgInfo = sdkPackages.get(iid);
-        if (updatablePkgInfo == null && iid.endsWith(PkgDesc.PREVIEW_SUFFIX)) {
-          iid = iid.substring(0, iid.indexOf(PkgDesc.PREVIEW_SUFFIX));
-          updatablePkgInfo = sdkPackages.get(iid);
+      for (RemotePackage pkg : packages) {
+        Archive arch = pkg.getArchive();
+        if (arch != null) {
+          size += arch.getComplete().getSize();
         }
-        size += updatablePkgInfo.getRemote(preview).getDownloadSize();
       }
       return size;
     }

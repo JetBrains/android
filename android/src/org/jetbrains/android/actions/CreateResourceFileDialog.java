@@ -55,13 +55,6 @@ import java.awt.event.ActionListener;
 import java.util.*;
 import java.util.List;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Aug 22, 2009
- * Time: 7:47:01 PM
- * To change this template use File | Settings | File Templates.
- */
 public class CreateResourceFileDialog extends DialogWrapper {
   private JTextField myFileNameField;
   private TemplateKindCombo myResourceTypeCombo;

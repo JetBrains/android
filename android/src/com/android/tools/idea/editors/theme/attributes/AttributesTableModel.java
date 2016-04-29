@@ -23,7 +23,8 @@ import com.android.tools.idea.editors.theme.ThemeEditorComponent;
 import com.android.tools.idea.editors.theme.ThemeEditorContext;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
-import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
+import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
+import com.android.tools.idea.editors.theme.ThemeAttributeResolver;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
@@ -35,10 +36,8 @@ import spantable.CellSpanModel;
 
 import javax.swing.table.AbstractTableModel;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.*;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Table model for Theme Editor
@@ -52,7 +51,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
   protected final List<EditedStyleItem> myAttributes;
   private List<TableLabel> myLabels;
 
-  protected final ThemeEditorStyle mySelectedStyle;
+  protected final ConfiguredThemeEditorStyle mySelectedStyle;
 
   private final AttributesGrouper.GroupBy myGroupBy;
   private final ThemeEditorContext myContext;
@@ -78,7 +77,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
     return builder.build();
   }
 
-  public AttributesTableModel(@NotNull ThemeEditorStyle selectedStyle,
+  public AttributesTableModel(@NotNull ConfiguredThemeEditorStyle selectedStyle,
                               @NotNull AttributesGrouper.GroupBy groupBy,
                               @NotNull ThemeEditorContext context) {
     myContext = context;
@@ -90,8 +89,8 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
   }
 
   private void reloadContent() {
-    final List<EditedStyleItem> rawAttributes =
-      new ArrayList<EditedStyleItem>(ThemeEditorUtils.resolveAllAttributes(mySelectedStyle, myContext.getThemeResolver()));
+    final List<EditedStyleItem> rawAttributes = ThemeAttributeResolver.resolveAll(mySelectedStyle, myContext.getConfiguration().getConfigurationManager());
+
     //noinspection unchecked (SIMPLE_MODE_COMPARATOR can compare EditedStyleItem)
     Collections.sort(rawAttributes, ThemeEditorComponent.SIMPLE_MODE_COMPARATOR);
     myAttributes.clear();
@@ -176,7 +175,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
   }
 
   @NotNull
-  public ThemeEditorStyle getSelectedStyle() {
+  public ConfiguredThemeEditorStyle getSelectedStyle() {
     return mySelectedStyle;
   }
 
@@ -211,7 +210,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
 
     @Override
     public void setValueAt(int column, String newName) {
-      ThemeEditorStyle parent = mySelectedStyle.getParent();
+      ConfiguredThemeEditorStyle parent = mySelectedStyle.getParent();
       if (parent == null || !parent.getQualifiedName().equals(newName)) {
         // Changes the value of parent in XML
         mySelectedStyle.setParent(newName);
@@ -289,8 +288,6 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
 
     @Override
     public Class<?> getCellClass(int column) {
-      EditedStyleItem item = myAttributes.get(myRowIndex);
-
       ResourceResolver resolver = myContext.getResourceResolver();
       if (resolver == null) {
         // The resolver might be null if the configuration doesn't have a theme selected
@@ -298,6 +295,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
         return null;
       }
 
+      EditedStyleItem item = myAttributes.get(myRowIndex);
       ResourceValue resourceValue = resolver.resolveResValue(item.getSelectedValue());
       if (resourceValue == null) {
         LOG.error("Unable to resolve " + item.getValue());
@@ -305,7 +303,6 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
       }
 
       ResourceType urlType = resourceValue.getResourceType();
-      String value = resourceValue.getValue();
 
       if (urlType == ResourceType.DRAWABLE) {
         return DrawableDomElement.class;
@@ -314,11 +311,13 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
       AttributeDefinition attrDefinition =
         ResolutionUtils.getAttributeDefinition(myContext.getConfiguration(), item.getSelectedValue());
 
-      if (urlType == ResourceType.COLOR || ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Color)) {
+      String attributeName = item.getName().toLowerCase(Locale.US);
+
+      if (urlType == ResourceType.COLOR ||
+          ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Color) ||
+          attributeName.contains("color")) {
         return Color.class;
       }
-
-      String attributeName = item.getName().toLowerCase();
 
       if (ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Reference) &&
           attributeName.contains("background") &&
@@ -327,7 +326,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
       }
 
       if (urlType == ResourceType.STYLE) {
-        return ThemeEditorStyle.class;
+        return ConfiguredThemeEditorStyle.class;
       }
 
       if (ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Flag)) {
@@ -342,6 +341,7 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
         return Integer.class;
       }
 
+      String value = resourceValue.getValue();
       if (urlType == ResourceType.BOOL
           || (("true".equals(value) || "false".equals(value))
               && ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Boolean))) {

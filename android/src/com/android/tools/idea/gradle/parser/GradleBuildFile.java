@@ -62,6 +62,10 @@ public class GradleBuildFile extends GradleGroovyFile {
     super(buildFile, project);
   }
 
+  /**
+   * @deprecated Use {@link com.android.tools.idea.gradle.dsl.model.GradleBuildModel#dependencies(boolean)}
+   */
+  @Deprecated
   @NotNull
   public List<BuildFileStatement> getDependencies() {
     Object dependencies = getValue(BuildFileKey.DEPENDENCIES);

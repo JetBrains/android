@@ -19,18 +19,15 @@ import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.SourceProvider;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.templates.Parameter;
-import com.android.tools.idea.templates.Template;
-import com.android.tools.idea.templates.TemplateMetadata;
-import com.android.tools.idea.ui.ComboBoxItemWithApiTag;
+import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep;
+import com.android.tools.idea.templates.*;
+import com.android.tools.idea.ui.ApiComboBoxItem;
 import com.android.tools.idea.ui.LabelWithEditLink;
-import com.android.tools.idea.ui.TextFieldWithLaunchBrowserButton;
-import com.android.tools.idea.templates.StringEvaluator;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.base.*;
-import com.google.common.base.Objects;
 import com.google.common.base.Optional;
+import com.google.common.base.Objects;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -42,7 +39,6 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.event.DocumentAdapter;
 import com.intellij.openapi.editor.event.DocumentEvent;
-import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -86,6 +82,8 @@ import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
 /**
  * Wizard step for specifying template-specific parameters.
  * This class is used for configuring Android Activities AND non-Android lib modules.
+ *
+ * @deprecated Replaced by {@link ConfigureTemplateParametersStep}
  */
 public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
   public static final Logger LOG = Logger.getInstance(TemplateParameterStep2.class);
@@ -115,7 +113,6 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
   private boolean myUpdatingDefaults = false;
   private Map<Parameter, List<JComponent>> myParameterComponents = new WeakHashMap<Parameter, List<JComponent>>();
   private final StringEvaluator myEvaluator = new StringEvaluator();
-  private Map<String, WizardParameterFactory> myExternalWizardParameterFactoryMap = null;
   private Map<JComponent, Parameter> myDataComponentParameters = new WeakHashMap<JComponent, Parameter>();
   private final String myStepTitle;
 
@@ -140,15 +137,6 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
     myStepTitle = stepTitle;
   }
 
-  private static JComponent createTextFieldWithBrowse(Parameter parameter) {
-    String sourceUrl = parameter.sourceUrl;
-    if (sourceUrl == null) {
-      LOG.warn(String.format("Source URL is missing for parameter %1$s", parameter.name));
-      sourceUrl = "";
-    }
-    return new TextFieldWithLaunchBrowserButton(sourceUrl);
-  }
-
   public void setPresetValue(@NotNull String key, @Nullable Object value) {
     myPresetParameters.put(key, value);
     invokeUpdate(null);
@@ -156,7 +144,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
 
   private static JComponent createEnumCombo(Parameter parameter) {
     List<Element> options = parameter.getOptions();
-    ComboBoxItemWithApiTag[] items = new ComboBoxItemWithApiTag[options.size()];
+    ApiComboBoxItem[] items = new ApiComboBoxItem[options.size()];
     int initialSelection = -1;
     int i = 0;
     assert !options.isEmpty();
@@ -174,7 +162,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
     return comboBox;
   }
 
-  public static ComboBoxItemWithApiTag createItemForOption(Parameter parameter, Element option) {
+  public static ApiComboBoxItem createItemForOption(Parameter parameter, Element option) {
     String optionId = option.getAttribute(SdkConstants.ATTR_ID);
     assert optionId != null && !optionId.isEmpty() : SdkConstants.ATTR_ID;
     NodeList childNodes = option.getChildNodes();
@@ -182,7 +170,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
     String optionLabel = childNodes.item(0).getNodeValue().trim();
     int minSdk = getIntegerOptionValue(option, TemplateMetadata.ATTR_MIN_API, parameter.name, 1);
     int minBuildApi = getIntegerOptionValue(option, TemplateMetadata.ATTR_MIN_BUILD_API, parameter.name, 1);
-    return new ComboBoxItemWithApiTag(optionId, optionLabel, minSdk, minBuildApi);
+    return new ApiComboBoxItem(optionId, optionLabel, minSdk, minBuildApi);
   }
 
   private static int getIntegerOptionValue(Element option, String attribute, @Nullable String parameterName, int defaultValue) {
@@ -228,17 +216,16 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
                                                        Map<Parameter, Object> parametersWithDefaultValues,
                                                        Map<Parameter, Object> parametersWithNonDefaultValues)
     throws CircularParameterDependencyException {
-    ParameterDefaultValueComputer computer =
-      new ParameterDefaultValueComputer(parameters, parametersWithNonDefaultValues, getImplicitParameters(),
-                                        new DeduplicateValuesFunction());
-    Map<Parameter, Object> computedDefaultValues = computer.getParameterValues();
-    Map<Parameter, Object> parameterValues = Maps.newHashMap(parametersWithDefaultValues);
-    for (Map.Entry<Parameter, Object> entry : computedDefaultValues.entrySet()) {
+    Map<Parameter, Object> computedParameterValues =
+      ParameterValueResolver.resolve(parameters, parametersWithNonDefaultValues, getImplicitParameters(), new DeduplicateValuesFunction());
+
+    Map<Parameter, Object> allParameterValues = Maps.newHashMap(parametersWithDefaultValues);
+    for (Map.Entry<Parameter, Object> entry : computedParameterValues.entrySet()) {
       if (!parametersWithNonDefaultValues.keySet().contains(entry.getKey()) && entry.getValue() != null) {
-        parameterValues.put(entry.getKey(), entry.getValue());
+        allParameterValues.put(entry.getKey(), entry.getValue());
       }
     }
-    return parameterValues;
+    return allParameterValues;
   }
 
   private Map<String, Object> getImplicitParameters() {
@@ -290,33 +277,11 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
         case ENUM:
           dataComponent = createEnumCombo(parameter);
           break;
-        case EXTERNAL:
-          dataComponent = createTextFieldWithBrowse(parameter);
-          break;
         case STRING:
           dataComponent = new JTextField();
           break;
         case SEPARATOR:
           return Collections.<JComponent>singletonList(new JSeparator(SwingConstants.HORIZONTAL));
-        case CUSTOM:
-          JComponent createdComponent = null;
-          try {
-            WizardParameterFactory factory = getExternalFactory(parameter.externalTypeName);
-            if (factory != null) {
-              createdComponent = factory.createComponent(parameter.externalTypeName, parameter);
-            }
-            if (createdComponent == null) {
-              LOG.error(String.format("Bad registration for custom wizard type %1$s.  See ExternalWizardParameterFactory extension point.",
-                                      Strings.isNullOrEmpty(parameter.externalTypeName) ? "(null)" : parameter.externalTypeName));
-              createdComponent = new JTextField();
-            }
-          }
-          catch(Exception e) {
-            LOG.error(String.format("Exception creating class %1$s", parameter.externalTypeName), e);
-            createdComponent = new JTextField();
-          }
-          dataComponent = createdComponent;
-          break;
         default:
           throw new IllegalStateException(parameter.type.toString());
       }
@@ -329,33 +294,6 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
       label.setLabelFor(dataComponent);
     }
     return label != null ? Arrays.asList(label, dataComponent) : Arrays.asList(dataComponent);
-  }
-
-  @Nullable
-  private WizardParameterFactory getExternalFactory(String uiTypeName) {
-    if (Strings.isNullOrEmpty(uiTypeName)) {
-      return null;
-    }
-
-    if (myExternalWizardParameterFactoryMap == null) {
-      Map<String,WizardParameterFactory> externalWizardParameterFactoryHashMap = new HashMap<String,WizardParameterFactory>();
-      WizardParameterFactory[] factories = Extensions.getExtensions(WizardParameterFactory.EP_NAME);
-      for(WizardParameterFactory factory : factories) {
-        String[] types = factory.getSupportedTypes();
-        if (types != null) {
-          for(String type : types) {
-            if (externalWizardParameterFactoryHashMap.containsKey(type)) {
-              LOG.error("Duplicate ExternalWizardParameterFactory registration on Type:" + type);
-              continue;
-            }
-            externalWizardParameterFactoryHashMap.put(type, factory);
-          }
-        }
-      }
-      myExternalWizardParameterFactoryMap = externalWizardParameterFactoryHashMap;
-    }
-
-    return myExternalWizardParameterFactoryMap.get(uiTypeName);
   }
 
   private JComponent createClassEntry(@NotNull Parameter parameter, @NotNull Module module) {
@@ -474,13 +412,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
       });
     }
     else {
-      WizardParameterFactory factory = getExternalFactory(parameter.externalTypeName);
-      if (factory != null) {
-        register((Key<String>)key, dataComponent, factory.createBinding(dataComponent, parameter));
-      }
-      else {
-        throw new IllegalArgumentException(dataComponent.getClass().getName());
-      }
+      throw new IllegalArgumentException(dataComponent.getClass().getName());
     }
   }
 
@@ -573,17 +505,16 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
         }
 
         // Check to see that the selection's constraints are met if this is a combo box
-        if (value instanceof ComboBoxItemWithApiTag) {
-          ComboBoxItemWithApiTag selectedItem = (ComboBoxItemWithApiTag)value;
+        if (value instanceof ApiComboBoxItem) {
+          ApiComboBoxItem selectedItem = (ApiComboBoxItem)value;
 
-          if (minApi != null && selectedItem.minApi > minApi.getFeatureLevel()) {
-            setErrorHtml(String.format("The \"%s\" option for %s requires a minimum API level of %d",
-                                       selectedItem.label, param.name, selectedItem.minApi));
+          if (minApi == null || buildApi == null) {
             return false;
           }
-          if (buildApi != null && selectedItem.minBuildApi > buildApi) {
-            setErrorHtml(String.format("The \"%s\" option for %s requires a minimum API level of %d",
-                                       selectedItem.label, param.name, selectedItem.minBuildApi));
+
+          String message = selectedItem.validate(minApi.getFeatureLevel(), buildApi);
+          if (message != null) {
+            setErrorHtml(message);
             return false;
           }
         }
@@ -745,7 +676,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
       mySourceSet.removeAllItems();
       for (SourceProvider sourceProvider : mySourceProviders) {
         //noinspection unchecked
-        mySourceSet.addItem(new ComboBoxItemWithApiTag(sourceProvider, sourceProvider.getName(), 0, 0));
+        mySourceSet.addItem(new ApiComboBoxItem(sourceProvider, sourceProvider.getName(), 0, 0));
       }
       addComponent(myTemplateParameters, mySourceSetLabel, row, 0, false);
       addComponent(myTemplateParameters, mySourceSet, row, 1, true);
@@ -781,9 +712,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
         }
       }
       catch (CircularParameterDependencyException exception) {
-        LOG.error("Circular dependency between parameters in template %1$s, participating parameters: %2$s", exception,
-                  myCurrentTemplate.getTitle(),
-                  Joiner.on(", ").join(exception.getParameterIds()));
+        LOG.error("Circular dependency between parameters in template %1$s", exception, myCurrentTemplate.getTitle());
       }
     }
     finally {
@@ -922,10 +851,8 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
           clazz = Boolean.class;
           break;
         case ENUM:
-        case EXTERNAL:
         case STRING:
         case SEPARATOR:
-        case CUSTOM:
           clazz = String.class;
           break;
         default:
@@ -1037,7 +964,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
     }
   }
 
-  private class DeduplicateValuesFunction implements ParameterDefaultValueComputer.Deduplicator {
+  private class DeduplicateValuesFunction implements ParameterValueResolver.Deduplicator {
     private final Project project;
     private final Module module;
     private final SourceProvider provider;

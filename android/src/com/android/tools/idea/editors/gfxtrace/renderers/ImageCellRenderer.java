@@ -132,7 +132,7 @@ public class ImageCellRenderer<T extends ImageCellList.Data> extends CellRendere
       if (getHeight() < MIN_HEIGHT) {
         graphics.setColor(UIUtil.getListBackground());
         graphics.fillRect(0, 0, getWidth(), getHeight());
-        if (myCell.label != null) {
+        if (myCell.getLabel() != null) {
           paintLabel(graphics, BORDER_SIZE);
         }
         return;
@@ -173,7 +173,7 @@ public class ImageCellRenderer<T extends ImageCellList.Data> extends CellRendere
         DEFAULT_BORDER.paintBorder(this, graphics, d, d, getWidth() - 2 * d, getHeight() - 2 * d);
       }
 
-      if (myCell.label != null) {
+      if (myCell.getLabel() != null) {
         paintLabel(graphics, myImageSize.width + 2 * BORDER_SIZE);
       }
     }
@@ -182,18 +182,19 @@ public class ImageCellRenderer<T extends ImageCellList.Data> extends CellRendere
       final int OFFSET = 7;
       final int PADDING = 2;
 
+      String label = myCell.getLabel();
       FontMetrics metrics = g.getFontMetrics();
       int fontHeight = metrics.getHeight();
-      int frameStringWidth = metrics.stringWidth(myCell.label);
+      int frameStringWidth = metrics.stringWidth(label);
 
       if (myLayout == Layout.CENTERED_WITH_OVERLAY) {
         g.setColor(UIUtil.getDecoratedRowColor());
         g.fillRoundRect(OFFSET, OFFSET, frameStringWidth + 2 * PADDING + 1, fontHeight + 2 * PADDING + 1, CORNER_RADIUS, CORNER_RADIUS);
         g.setColor(getForeground());
-        g.drawString(myCell.label, OFFSET + PADDING + 1, OFFSET + PADDING + fontHeight - metrics.getDescent());
+        g.drawString(label, OFFSET + PADDING + 1, OFFSET + PADDING + fontHeight - metrics.getDescent());
       } else {
         g.setColor(getForeground());
-        g.drawString(myCell.label, PADDING + offset, (getHeight() + fontHeight) / 2 - metrics.getDescent());
+        g.drawString(label, PADDING + offset, (getHeight() + fontHeight) / 2 - metrics.getDescent());
       }
     }
   }

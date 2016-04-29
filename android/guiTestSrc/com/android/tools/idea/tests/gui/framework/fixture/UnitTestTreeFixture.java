@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
-import com.intellij.execution.junit2.TestProxy;
-import com.intellij.execution.junit2.ui.model.JUnitRunningModel;
+import com.intellij.execution.testframework.AbstractTestProxy;
+import com.intellij.execution.testframework.TestFrameworkRunningModel;
 import com.intellij.execution.testframework.TestTreeView;
 import org.fest.swing.timing.Condition;
 import org.fest.swing.timing.Pause;
@@ -37,7 +37,7 @@ public class UnitTestTreeFixture {
   }
 
   @Nullable
-  public JUnitRunningModel getModel() {
+  public TestFrameworkRunningModel getModel() {
     Pause.pause(new Condition("Wait for the test results model.") {
       @Override
       public boolean test() {
@@ -45,26 +45,33 @@ public class UnitTestTreeFixture {
       }
     });
 
-    return (JUnitRunningModel)myTreeView.getData(TestTreeView.MODEL_DATA_KEY.getName());
+    return (TestFrameworkRunningModel)myTreeView.getData(TestTreeView.MODEL_DATA_KEY.getName());
   }
 
   public boolean isAllTestsPassed() {
-    return !getModel().getProgress().hasDefects();
+    return getFailingTestsCount() == 0;
   }
 
   public int getFailingTestsCount() {
-    return getModel().getProgress().countDefects();
+    int count = 0;
+    AbstractTestProxy root = getModel().getRoot();
+    for (AbstractTestProxy test : root.getAllTests()) {
+      if (test.isLeaf() && test.isDefect()) {
+        count++;
+      }
+    }
+    return count;
   }
 
   public int getAllTestsCount() {
-    TestProxy root = getModel().getRoot();
-    if (root.getChildCount() == 0) {
-      // When root has no children, it means we're only running one method, which is the root.
-      return 1;
-    } else {
-      // Otherwise the class is the root and there's one child per method.
-      return root.getChildCount();
+    int count = 0;
+    AbstractTestProxy root = getModel().getRoot();
+    for (AbstractTestProxy test : root.getAllTests()) {
+      if (test.isLeaf()) {
+        count++;
+      }
     }
+    return count;
   }
 
   @NotNull

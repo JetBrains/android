@@ -16,13 +16,12 @@
 package com.android.tools.idea.structure.services;
 
 import com.android.tools.idea.ui.properties.InvalidationListener;
-import com.android.tools.idea.ui.properties.Observable;
 import com.android.tools.idea.ui.properties.ObservableProperty;
+import com.android.tools.idea.ui.properties.ObservableValue;
 import com.android.tools.idea.ui.properties.core.BoolValueProperty;
 import com.android.tools.idea.ui.properties.core.ObservableBool;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Maps;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.EmptyRunnable;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,7 +31,7 @@ import java.util.WeakHashMap;
 import java.util.concurrent.Callable;
 
 /**
- * A generic mapping of strings to {@link Observable} values and {@link Runnable} actions. Adding
+ * A generic mapping of strings to {@link ObservableValue}s and {@link Runnable} actions. Adding
  * entries here allows them to be referenced within service.xml.
  * <p/>
  * Some of the values added to a context are marked as "watched", using
@@ -44,14 +43,14 @@ import java.util.concurrent.Callable;
  * As a convention, you should organize your keys into namespaces, using periods to delimit them.
  * For example, instead of "countOfAnalyticsProjects" and "countOfAdsProjects", prefer instead
  * "analytics.projects.count" and "ads.projects.count"
- *
+ * <p/>
  * TODO: Revisit this class so that the whole concept of snapshot and restore is unecessary. Every
  * time we show the UI of a service, we should instead create and initialize a ServiceContext from
  * scratch?
  */
 public final class ServiceContext {
 
-  private final Map<String, Observable> myValues = Maps.newHashMap();
+  private final Map<String, ObservableValue> myValues = Maps.newHashMap();
   private final Map<String, Runnable> myActions = Maps.newHashMap();
   private final Map<ObservableProperty, Object> myWatched = new WeakHashMap<ObservableProperty, Object>();
   private final BoolValueProperty myInstalled = new BoolValueProperty();
@@ -59,7 +58,7 @@ public final class ServiceContext {
 
   private final InvalidationListener myWatchedListener = new InvalidationListener() {
     @Override
-    protected void onInvalidated(@NotNull Observable sender) {
+    public void onInvalidated(@NotNull ObservableValue<?> sender) {
       myModified.set(true);
     }
   };
@@ -171,8 +170,8 @@ public final class ServiceContext {
   /**
    * Put a named value into the context.
    */
-  public void putValue(@NotNull String key, @NotNull Observable observable) {
-    myValues.put(key, observable);
+  public void putValue(@NotNull String key, @NotNull ObservableValue value) {
+    myValues.put(key, value);
   }
 
   /**
@@ -193,8 +192,8 @@ public final class ServiceContext {
   }
 
   @NotNull
-  public Observable getValue(@NotNull String key) {
-    Observable value = myValues.get(key);
+  public ObservableValue getValue(@NotNull String key) {
+    ObservableValue value = myValues.get(key);
     if (value == null) {
       throw new IllegalArgumentException(String.format("Service context: Value \"%1$s\" not found.", key));
     }
@@ -227,7 +226,7 @@ public final class ServiceContext {
     Map<String, Object> valueMap = Maps.newHashMap();
     Splitter splitter = Splitter.on('.');
     for (String key : myValues.keySet()) {
-      Observable value = getValue(key);
+      ObservableValue value = getValue(key);
 
       Map<String, Object> currLevel = valueMap;
 

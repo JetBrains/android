@@ -90,7 +90,7 @@ public class AdbService implements Disposable {
     return myFuture;
   }
 
-  synchronized void terminateDdmlib() {
+  public synchronized void terminateDdmlib() {
     if (myFuture != null) {
       myFuture.cancel(true);
       myFuture = null;

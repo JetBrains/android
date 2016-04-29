@@ -13,4 +13,7 @@ public interface PsiDbMethodExpr extends PsiDbExpr {
   @Nullable
   PsiDbExpressionList getExpressionList();
 
+  @NotNull
+  PsiDbMethodName getMethodName();
+
 }

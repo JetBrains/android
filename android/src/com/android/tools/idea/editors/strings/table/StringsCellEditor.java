@@ -47,20 +47,25 @@ public class StringsCellEditor extends AbstractTableCellEditor {
     });
   }
 
+  /**
+   * @param event expected to be an ActionEvent from the Swing key bindings system or a left double click MouseEvent
+   */
   @Override
-  public boolean isCellEditable(EventObject e) {
-    boolean doubleClick =
-      e instanceof MouseEvent && ((MouseEvent)e).getClickCount() == 2 && ((MouseEvent)e).getButton() == MouseEvent.BUTTON1;
-    boolean returnKeyPressed = e instanceof KeyEvent && ((KeyEvent)e).getKeyCode() == KeyEvent.VK_ENTER;
-    if (!doubleClick && !returnKeyPressed) {
+  public boolean isCellEditable(EventObject event) {
+    if (event instanceof MouseEvent) {
+      MouseEvent mouseEvent = (MouseEvent)event;
+
+      if (mouseEvent.getClickCount() != 2 || mouseEvent.getButton() != MouseEvent.BUTTON1) {
+        return false;
+      }
+    }
+
+    if (!(event.getSource() instanceof JTable)) {
       return false;
     }
 
-    if (!(e.getSource() instanceof JTable)) {
-      return false;
-    }
+    JTable source = (JTable)event.getSource();
 
-    JTable source = ((JTable)e.getSource());
     if (source.getSelectedRowCount() != 1 || source.getSelectedColumnCount() != 1) {
       return false;
     }

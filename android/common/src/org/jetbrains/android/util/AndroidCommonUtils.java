@@ -34,7 +34,6 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.execution.ParametersListUtil;
@@ -163,10 +162,9 @@ public class AndroidCommonUtils {
   }
 
   public static void handleDexCompilationResult(@NotNull Process process,
-                                                @NotNull String commandLine,
                                                 @NotNull String outputFilePath,
                                                 @NotNull final Map<AndroidCompilerMessageKind, List<String>> messages, boolean multiDex) {
-    final BaseOSProcessHandler handler = new BaseOSProcessHandler(process, commandLine, null);
+    final BaseOSProcessHandler handler = new BaseOSProcessHandler(process, null, null);
     handler.addProcessListener(new ProcessAdapter() {
       private AndroidCompilerMessageKind myCategory = null;
 
@@ -628,12 +626,12 @@ public class AndroidCommonUtils {
 
   @Nullable
   public static String executeZipAlign(@NotNull String zipAlignPath, @NotNull File source, @NotNull File destination) {
-    List<String> commandLine = Arrays.asList(zipAlignPath, "-f", "4", source.getAbsolutePath(), destination.getAbsolutePath());
-    final ProcessBuilder processBuilder = new ProcessBuilder(commandLine);
+    final ProcessBuilder processBuilder = new ProcessBuilder(
+      zipAlignPath, "-f", "4", source.getAbsolutePath(), destination.getAbsolutePath());
 
     BaseOSProcessHandler handler;
     try {
-      handler = new BaseOSProcessHandler(processBuilder.start(), StringUtil.join(commandLine, " "), null);
+      handler = new BaseOSProcessHandler(processBuilder.start(), "", null);
     }
     catch (IOException e) {
       return e.getMessage();

@@ -34,7 +34,7 @@ final public class FmtATCRGBAEXPLICITALPHAAMD extends Format {
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("image","fmtATC_RGBA_EXPLICIT_ALPHA_AMD","","");
+  private static final Entity ENTITY = new Entity("image", "fmtATC_RGBA_EXPLICIT_ALPHA_AMD", "", "");
 
   static {
     ENTITY.setFields(new Field[]{
@@ -55,12 +55,10 @@ final public class FmtATCRGBAEXPLICITALPHAAMD extends Format {
 
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
-      FmtATCRGBAEXPLICITALPHAAMD o = (FmtATCRGBAEXPLICITALPHAAMD)obj;
     }
 
     @Override
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
-      FmtATCRGBAEXPLICITALPHAAMD o = (FmtATCRGBAEXPLICITALPHAAMD)obj;
     }
     //<<<End:Java.KlassBody:2>>>
   }

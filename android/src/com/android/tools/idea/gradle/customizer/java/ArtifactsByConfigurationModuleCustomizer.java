@@ -42,11 +42,10 @@ public class ArtifactsByConfigurationModuleCustomizer implements ModuleCustomize
   public void customizeModule(@NotNull Project project,
                               @NotNull Module module,
                               @NotNull IdeModifiableModelsProvider modelsProvider,
-                              @Nullable JavaProject model) {
-    if (model != null) {
+                              @Nullable JavaProject javaProject) {
+    if (javaProject != null) {
       final ModifiableRootModel moduleModel = modelsProvider.getModifiableRootModel(module);
-
-      Map<String, Set<File>> artifactsByConfiguration = model.getArtifactsByConfiguration();
+      Map<String, Set<File>> artifactsByConfiguration = javaProject.getArtifactsByConfiguration();
       if (artifactsByConfiguration != null) {
         for (Map.Entry<String, Set<File>> entry : artifactsByConfiguration.entrySet()) {
           Set<File> artifacts = entry.getValue();
@@ -61,7 +60,7 @@ public class ArtifactsByConfigurationModuleCustomizer implements ModuleCustomize
               if (library == null) {
                 // Create library.
                 library = modelsProvider.createLibrary(libraryName);
-                Library.ModifiableModel libraryModel = library.getModifiableModel();
+                Library.ModifiableModel libraryModel = modelsProvider.getModifiableLibraryModel(library);
                 String url = pathToUrl(artifact.getPath());
                 libraryModel.addRoot(url, CLASSES);
                 LibraryOrderEntry orderEntry = moduleModel.addLibraryEntry(library);

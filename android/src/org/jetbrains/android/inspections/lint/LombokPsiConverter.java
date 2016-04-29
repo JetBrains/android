@@ -29,8 +29,6 @@ import com.intellij.psi.impl.source.tree.JavaElementType;
 import com.intellij.psi.tree.IElementType;
 import lombok.ast.*;
 
-import java.util.Iterator;
-
 /**
  * Converter which takes a PSI hierarchy for a Java file, and creates a corresponding
  * Lombok AST tree.
@@ -367,7 +365,10 @@ public class LombokPsiConverter {
         StrictListAccessor<TypeVariable, InterfaceDeclaration> typeVariables = declaration.astTypeVariables();
         for (PsiTypeParameter parameter : typeParameterList.getTypeParameters()) {
           TypeVariable v = new TypeVariable();
-          v.astName(toIdentifier(parameter.getName()));
+          String name = parameter.getName();
+          if (name != null) {
+            v.astName(toIdentifier(name));
+          }
           bind(v, null);
           typeVariables.addToEnd(v);
         }
@@ -391,7 +392,10 @@ public class LombokPsiConverter {
         StrictListAccessor<TypeVariable, ClassDeclaration> typeVariables = declaration.astTypeVariables();
         for (PsiTypeParameter parameter : typeParameterList.getTypeParameters()) {
           TypeVariable v = new TypeVariable();
-          v.astName(toIdentifier(parameter.getName()));
+          String name = parameter.getName();
+          if (name != null) {
+            v.astName(toIdentifier(name));
+          }
           bind(v, null);
           typeVariables.addToEnd(v);
         }
@@ -674,11 +678,13 @@ public class LombokPsiConverter {
 
   @NonNull
   private static TypeReference toTypeReference(@NonNull PsiJavaCodeReferenceElement reference) {
+    //noinspection ConstantConditions
     return toTypeReference(EXPAND_TYPES ? reference.getQualifiedName() : reference.getText(), reference);
   }
 
   @NonNull
   private static TypeReference toTypeReference(@NonNull PsiTypeElement type) {
+    //noinspection ConstantConditions
     return toTypeReference(EXPAND_TYPES ? type.getType().getCanonicalText() : type.getText(), type);
   }
 
@@ -782,14 +788,16 @@ public class LombokPsiConverter {
         }
         index = end;
       }
-      int arrayDimensions = 0;
-      for (int i = index; i < n; i++) {
-        if (type.charAt(i) == '[') {
-          arrayDimensions++;
+      if (index != -1) {
+        int arrayDimensions = 0;
+        for (int i = index; i < n; i++) {
+          if (type.charAt(i) == '[') {
+            arrayDimensions++;
+          }
         }
-      }
-      if (arrayDimensions > 0) {
-        reference.astArrayDimensions(arrayDimensions);
+        if (arrayDimensions > 0) {
+          reference.astArrayDimensions(arrayDimensions);
+        }
       }
     }
 
@@ -805,11 +813,18 @@ public class LombokPsiConverter {
       PsiBinaryExpression p = (PsiBinaryExpression)expression;
       BinaryExpression binary = new BinaryExpression();
       bind(binary, expression);
-      binary.astLeft(toExpression(p.getLOperand()));
       PsiExpression rExpression = p.getROperand();
-      if (rExpression != null) {
-        binary.astRight(toExpression(rExpression));
+      if (rExpression == null) {
+        return null;
       }
+      Expression left = toExpression(p.getLOperand());
+      Expression right = toExpression(rExpression);
+      if (left == null || right == null) {
+        // Errors in source code
+        return null;
+      }
+      binary.astRight(right);
+      binary.astLeft(left);
 
       IElementType operation = p.getOperationTokenType();
       BinaryOperator operator = convertOperation(operation);
@@ -861,16 +876,18 @@ public class LombokPsiConverter {
         operator = BinaryOperator.BITWISE_SHIFT_RIGHT_ASSIGN;
       }
       binary.astOperator(operator);
-      binary.astLeft(toExpression(p.getLExpression()));
       PsiExpression rExpression = p.getRExpression();
-      if (rExpression != null) {
-        Expression right = toExpression(rExpression);
-        if (right != null) {
-          binary.astRight(right);
-        } else {
-          assert false : rExpression;
-        }
+      if (rExpression == null) {
+        return null;
       }
+      Expression left = toExpression(p.getLExpression());
+      Expression right = toExpression(rExpression);
+      if (left == null || right == null) {
+        // Error in source code
+        return null;
+      }
+      binary.astLeft(left);
+      binary.astRight(right);
       return binary;
     } else if (expression instanceof PsiQualifiedExpression) {
       PsiQualifiedExpression p = (PsiQualifiedExpression)expression;
@@ -920,9 +937,16 @@ public class LombokPsiConverter {
 
       PsiExpression indexExpression = p.getIndexExpression();
       if (indexExpression != null) {
-        arrayAccess.astIndexExpression(toExpression(indexExpression));
+        Expression e = toExpression(indexExpression);
+        if (e != null) {
+          arrayAccess.astIndexExpression(e);
+        }
       }
-      arrayAccess.astOperand(toExpression(p.getArrayExpression()));
+      Expression e = toExpression(p.getArrayExpression());
+      if (e == null) {
+        return null;
+      }
+      arrayAccess.astOperand(e);
       bind(arrayAccess, expression);
       return arrayAccess;
     } else if (expression instanceof PsiArrayInitializerExpression) {
@@ -935,22 +959,31 @@ public class LombokPsiConverter {
       if (checkType != null) {
         instanceOf.astTypeReference(toTypeReference(checkType));
       }
-      instanceOf.astObjectReference(toExpression(p.getOperand()));
+      Expression e = toExpression(p.getOperand());
+      if (e == null) {
+        return null;
+      }
+      instanceOf.astObjectReference(e);
       return instanceOf;
     } else if (expression instanceof PsiConditionalExpression) {
       PsiConditionalExpression p = (PsiConditionalExpression)expression;
       InlineIfExpression inlineIf = new InlineIfExpression();
       bind(inlineIf, expression);
 
-      inlineIf.astCondition(toExpression(p.getCondition()));
+      Expression condition = toExpression(p.getCondition());
       PsiExpression thenExpression = p.getThenExpression();
-      if (thenExpression != null) {
-        inlineIf.astIfTrue(toExpression(thenExpression));
-      }
       PsiExpression elseExpression = p.getElseExpression();
-      if (elseExpression != null) {
-        inlineIf.astIfFalse(toExpression(elseExpression));
+      if (condition == null || thenExpression == null || elseExpression == null) {
+        return null;
       }
+      Expression ifTrue = toExpression(thenExpression);
+      Expression ifFalse = toExpression(elseExpression);
+      if (ifTrue == null || ifFalse == null) {
+        return null;
+      }
+      inlineIf.astCondition(condition);
+      inlineIf.astIfTrue(ifTrue);
+      inlineIf.astIfFalse(ifFalse);
       return inlineIf;
     } else if (expression instanceof PsiClassObjectAccessExpression) {
       PsiClassObjectAccessExpression p = (PsiClassObjectAccessExpression)expression;
@@ -975,7 +1008,11 @@ public class LombokPsiConverter {
       }
       PsiExpression operand = p.getOperand();
       if (operand != null) {
-        cast.astOperand(toExpression(operand));
+        Expression e = toExpression(operand);
+        if (e == null) {
+          return null;
+        }
+        cast.astOperand(e);
       }
       return cast;
     } else if (expression instanceof PsiPostfixExpression) {
@@ -994,7 +1031,11 @@ public class LombokPsiConverter {
       } else {
         assert false : operation;
       }
-      unary.astOperand(toExpression(p.getOperand()));
+      Expression operand = toExpression(p.getOperand());
+      if (operand == null) {
+        return null;
+      }
+      unary.astOperand(operand);
       return unary;
     } else if (expression instanceof PsiPrefixExpression) {
       PsiPrefixExpression p = (PsiPrefixExpression)expression;
@@ -1023,7 +1064,11 @@ public class LombokPsiConverter {
       }
       PsiExpression operand = p.getOperand();
       if (operand != null) {
-        unary.astOperand(toExpression(operand));
+        Expression e = toExpression(operand);
+        if (e == null) {
+          return null;
+        }
+        unary.astOperand(e);
       }
       return unary;
     } else if (expression instanceof PsiPolyadicExpression) {
@@ -1039,8 +1084,15 @@ public class LombokPsiConverter {
       PsiExpression[] operands = p.getOperands();
       assert operands.length >= 1;
       Expression left = toExpression(operands[0]);
+      if (left == null) {
+        return null;
+      }
       for (int i = 1, n = operands.length; i < n; i++) {
         Expression right = toExpression(operands[i]);
+        if (right == null) {
+          // Error in source code
+          break;
+        }
         BinaryExpression binary = new BinaryExpression();
         bind(binary, expression);
         binary.astOperator(operator);
@@ -1052,7 +1104,8 @@ public class LombokPsiConverter {
       }
 
       return left;
-    } else if (expression instanceof PsiLambdaExpression) {
+    } else //noinspection IfStatementWithIdenticalBranches
+      if (expression instanceof PsiLambdaExpression) {
       // Is this used in Java?
       // TODO: Implement. Not yet used by lint.
       return null;
@@ -1242,7 +1295,12 @@ public class LombokPsiConverter {
       PsiExpressionStatement p = (PsiExpressionStatement)statement;
       ExpressionStatement s = new ExpressionStatement();
       bind(s, statement);
-      s.astExpression(toExpression(p.getExpression()));
+      Expression expression = toExpression(p.getExpression());
+      if (expression == null) {
+        // Error node in source
+        return null;
+      }
+      s.astExpression(expression);
       return s;
     } else if (statement instanceof PsiDeclarationStatement) {
       PsiDeclarationStatement pds = (PsiDeclarationStatement)statement;
@@ -1262,11 +1320,19 @@ public class LombokPsiConverter {
       }
       PsiStatement thenBranch = p.getThenBranch();
       if (thenBranch != null) {
-        ifStatement.astStatement(toStatement(thenBranch));
+        Statement thenStatement = toStatement(thenBranch);
+        if (thenStatement == null) {
+          // Error node in source
+          return null;
+        }
+        ifStatement.astStatement(thenStatement);
       }
       PsiStatement elseBranch = p.getElseBranch();
       if (elseBranch != null) {
-        ifStatement.astElseStatement(toStatement(elseBranch));
+        Statement elseStatement = toStatement(elseBranch);
+        if (elseStatement != null) {
+          ifStatement.astElseStatement(elseStatement);
+        }
       }
       return ifStatement;
     } else if (statement instanceof PsiReturnStatement) {
@@ -1319,7 +1385,8 @@ public class LombokPsiConverter {
                 f.astExpressionInits().addToEnd(toExpression(expression));
               }
             }
-          } else if (initialization instanceof PsiEmptyStatement) {
+          } else //noinspection StatementWithEmptyBody
+            if (initialization instanceof PsiEmptyStatement) {
             // Do nothing; we don't need an explicit lombok.ast.EmptyStatement here
           } else {
             // Unexpected type of initializer
@@ -1328,7 +1395,10 @@ public class LombokPsiConverter {
         }
         PsiStatement body = p.getBody();
         if (body != null) {
-          f.astStatement(toStatement(body));
+          Statement s = toStatement(body);
+          if (s != null) {
+            f.astStatement(s);
+          }
         }
         return f;
       } else if (statement instanceof PsiForeachStatement) {
@@ -1337,12 +1407,18 @@ public class LombokPsiConverter {
         bind(f, statement);
         PsiExpression iteratedValue = p.getIteratedValue();
         if (iteratedValue != null) {
-          f.astIterable(toExpression(iteratedValue));
+          Expression e = toExpression(iteratedValue);
+          if (e != null) {
+            f.astIterable(e);
+          }
         }
         f.astVariable(toVariableDefinition(p.getIterationParameter()));
         PsiStatement body = p.getBody();
         if (body != null) {
-          f.astStatement(toStatement(body));
+          Statement s = toStatement(body);
+          if (s != null) {
+            f.astStatement(s);
+          }
         }
         return f;
       } else if (statement instanceof PsiDoWhileStatement) {
@@ -1351,11 +1427,17 @@ public class LombokPsiConverter {
         bind(w, statement);
         PsiExpression condition = p.getCondition();
         if (condition != null) {
-          w.astCondition(toExpression(condition));
+          Expression e = toExpression(condition);
+          if (e != null) {
+            w.astCondition(e);
+          }
         }
         PsiStatement body = p.getBody();
         if (body != null) {
-          w.astStatement(toStatement(body));
+          Statement s = toStatement(body);
+          if (s != null) {
+            w.astStatement(s);
+          }
         }
         return w;
       } else if (statement instanceof PsiWhileStatement) {
@@ -1364,11 +1446,17 @@ public class LombokPsiConverter {
         bind(w, statement);
         PsiExpression condition = p.getCondition();
         if (condition != null) {
-          w.astCondition(toExpression(condition));
+          Expression e = toExpression(condition);
+          if (e != null) {
+            w.astCondition(e);
+          }
         }
         PsiStatement body = p.getBody();
         if (body != null) {
-          w.astStatement(toStatement(body));
+          Statement s = toStatement(body);
+          if (s != null) {
+            w.astStatement(s);
+          }
         }
         return w;
       } else {
@@ -1381,7 +1469,10 @@ public class LombokPsiConverter {
       bind(s, statement);
       PsiExpression expression = p.getExpression();
       if (expression != null) {
-        s.astCondition(toExpression(expression));
+        Expression e = toExpression(expression);
+        if (e != null) {
+          s.astCondition(e);
+        }
       }
       PsiCodeBlock body = p.getBody();
       if (body != null) {
@@ -1403,7 +1494,10 @@ public class LombokPsiConverter {
       bind(c, statement);
       PsiExpression caseValue = p.getCaseValue();
       if (caseValue != null) {
-        c.astCondition(toExpression(caseValue));
+        Expression e = toExpression(caseValue);
+        if (e != null) {
+          c.astCondition(e);
+        }
       }
       return c;
     } else if (statement instanceof PsiLabeledStatement) {
@@ -1413,7 +1507,10 @@ public class LombokPsiConverter {
       l.astLabel(toIdentifier(p.getLabelIdentifier()));
       PsiStatement s = p.getStatement();
       if (s != null) {
-        l.astStatement(toStatement(s));
+        Statement st = toStatement(s);
+        if (st != null) {
+          l.astStatement(st);
+        }
       }
       return l;
     } else if (statement instanceof PsiSynchronizedStatement) {
@@ -1422,7 +1519,10 @@ public class LombokPsiConverter {
       bind(s, statement);
       PsiExpression lockExpression = p.getLockExpression();
       if (lockExpression != null) {
-        s.astLock(toExpression(lockExpression));
+        Expression e = toExpression(lockExpression);
+        if (e != null) {
+          s.astLock(e);
+        }
       }
       PsiCodeBlock body = p.getBody();
       if (body != null) {
@@ -1482,7 +1582,10 @@ public class LombokPsiConverter {
         bind(a, statement);
         PsiExpression assertCondition = p.getAssertCondition();
         if (assertCondition != null) {
-          a.astAssertion(toExpression(assertCondition));
+          Expression assertion = toExpression(assertCondition);
+          if (assertion != null) {
+            a.astAssertion(assertion);
+          }
         }
         PsiExpression assertDescription = p.getAssertDescription();
         if (assertDescription != null) {
@@ -1496,16 +1599,19 @@ public class LombokPsiConverter {
         bind(t, statement);
         PsiExpression exception = p.getException();
         if (exception != null) {
-          t.astThrowable(toExpression(exception));
+          Expression throwable = toExpression(exception);
+          if (throwable != null) {
+            t.astThrowable(throwable);
+          }
         }
         return t;
       }
-      else if (statement instanceof PsiExpressionListStatement) {
+      else //noinspection IfStatementWithIdenticalBranches
+        if (statement instanceof PsiExpressionListStatement) {
         // This shouldn't happen; we should never call this method, since
         // PsiExpressionListStatement is only allowed as part of a for statement,
         // and we deliberately handle this above as part of the for label conversion
         // (since Lombok does not have a separate AST class for this)
-        assert false;
         return null;
       } else if (statement instanceof PsiClassLevelDeclarationStatement) {
         //PsiClassLevelDeclarationStatement p = (PsiClassLevelDeclarationStatement)statement;
@@ -1677,11 +1783,20 @@ public class LombokPsiConverter {
       bind(operand, qualifier);
       select.astOperand(operand);
     } else if (qualifier instanceof PsiReferenceExpression) {
-      select.astOperand(toSelect((PsiReferenceExpression) qualifier));
+      Expression operand = toSelect((PsiReferenceExpression)qualifier);
+      if (operand != null) {
+        select.astOperand(operand);
+      }
     } else if (qualifier instanceof PsiCallExpression) {
-      select.astOperand(toMethodInvocation((PsiCallExpression)qualifier));
+      Expression operand = toMethodInvocation((PsiCallExpression)qualifier);
+      if (operand != null) {
+        select.astOperand(operand);
+      }
     } else if (qualifier instanceof PsiExpression) {
-      select.astOperand(toExpression((PsiExpression)qualifier));
+      Expression operand = toExpression((PsiExpression)qualifier);
+      if (operand != null) {
+        select.astOperand(operand);
+      }
     } else {
       throw new UnsupportedOperationException("Unknown select qualifier type: " + qualifier);
     }
@@ -1721,39 +1836,10 @@ public class LombokPsiConverter {
     } else if (qualifier != null) {
       return toExpression(qualifier);
     } else if (referenceName != null) {
-      return toVariableReference(referenceName, qualifier);
+      return toVariableReference(referenceName, reference);
     }
 
     return null;
-  }
-
-  @NonNull
-  private static Expression toSelect(@NonNull String fqcn, @Nullable PsiElement element) {
-    Select select = null;
-
-    Iterator<String> iterator = DOT_SPLITTER.split(fqcn).iterator();
-    String first = iterator.next();
-    Expression operand = toVariableReference(first, null);
-    while (iterator.hasNext()) {
-      String name = iterator.next();
-      select = new Select();
-      bind(select, null);
-      Identifier identifier = Identifier.of(name);
-      bind(identifier, null);
-      select.astIdentifier(identifier);
-      select.astOperand(operand);
-      select.astIdentifier(identifier);
-      operand = select;
-    }
-
-    if (select != null) {
-      bind(select, element);
-      assert select.toString().equals(fqcn) : fqcn;
-    } else {
-      return operand;
-    }
-
-    return select;
   }
 
   @NonNull

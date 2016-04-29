@@ -51,47 +51,46 @@ public class DrawableRendererEditor extends GraphicalResourceRendererEditor {
    */
   private static final int MIN_DRAWABLE_PREVIEW_SIZE = JBUI.scale(25);
 
-  @Nullable
-  private final RenderTask myRenderTask;
+  private @Nullable RenderTask myRenderTask;
 
   public DrawableRendererEditor(@NotNull ThemeEditorContext context, @NotNull AndroidThemePreviewPanel previewPanel, boolean isEditor) {
     super(context, previewPanel, isEditor);
-
-    myRenderTask = configureRenderTask(context.getCurrentContextModule(), context.getConfiguration());
   }
 
-  @Nullable
+  @NotNull
   public static RenderTask configureRenderTask(@NotNull final Module module, @NotNull final Configuration configuration) {
-    RenderTask result = null;
     AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet != null) {
-      final RenderService service = RenderService.get(facet);
-      result = service.createTask(null, configuration, DRAWABLE_RENDER_LOGGER, null);
-    }
-
-    return result;
+    assert facet != null;
+    final RenderService service = RenderService.get(facet);
+    RenderTask task = service.createTask(null, configuration, DRAWABLE_RENDER_LOGGER, null);
+    assert task != null;
+    return task;
   }
 
   @Override
   protected void updateComponent(@NotNull ThemeEditorContext context, @NotNull ResourceComponent component, @NotNull EditedStyleItem item) {
     assert context.getResourceResolver() != null;
 
-    if (myRenderTask != null) {
-      // Set a maximum size to avoid rendering big previews that then we will scale down to the size of the swatch icon.
-      Dimension iconSize = component.getSwatchIconSize();
-      // When the component it's been created but hasn't been added to the table yet, it might report a 0 size, so we set a minimum size.
-      int iconWidth = Math.max(iconSize.width, MIN_DRAWABLE_PREVIEW_SIZE);
-      int iconHeight = Math.max(iconSize.height, MIN_DRAWABLE_PREVIEW_SIZE);
-      myRenderTask.setMaxRenderSize(iconWidth, iconHeight);
-      List<BufferedImage> images = myRenderTask.renderDrawableAllStates(item.getSelectedValue());
-      if (images.isEmpty()) {
-        component.setSwatchIcon(SwatchComponent.WARNING_ICON);
-      }
-      else {
-        component.setSwatchIcon(new SwatchComponent.SquareImageIcon(Iterables.getLast(images)));
-      }
-      component.showStack(images.size() > 1);
+    // Set a maximum size to avoid rendering big previews that then we will scale down to the size of the swatch icon.
+    Dimension iconSize = component.getSwatchIconSize();
+    // When the component it's been created but hasn't been added to the table yet, it might report a 0 size, so we set a minimum size.
+    int iconWidth = Math.max(iconSize.width, MIN_DRAWABLE_PREVIEW_SIZE);
+    int iconHeight = Math.max(iconSize.height, MIN_DRAWABLE_PREVIEW_SIZE);
+
+    if (myRenderTask == null || myRenderTask.getModule() != context.getCurrentContextModule()) {
+      myRenderTask = configureRenderTask(context.getCurrentContextModule(), context.getConfiguration());
     }
+
+    myRenderTask.setMaxRenderSize(iconWidth, iconHeight);
+    List<BufferedImage> images = myRenderTask.renderDrawableAllStates(item.getSelectedValue());
+    if (images.isEmpty()) {
+      component.setSwatchIcon(SwatchComponent.WARNING_ICON);
+    }
+    else {
+      component.setSwatchIcon(new SwatchComponent.SquareImageIcon(Iterables.getLast(images)));
+    }
+    component.showStack(images.size() > 1);
+
     String nameText = String
       .format(ThemeEditorConstants.ATTRIBUTE_LABEL_TEMPLATE, ColorUtil.toHex(ThemeEditorConstants.RESOURCE_ITEM_COLOR),
               ThemeEditorUtils.getDisplayHtml(item));

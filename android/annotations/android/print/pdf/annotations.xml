@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.print.pdf.PrintedPdfDocument PrintedPdfDocument(android.content.Context, android.print.PrintAttributes) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.pdf.PrintedPdfDocument PrintedPdfDocument(android.content.Context, android.print.PrintAttributes) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.pdf.PrintedPdfDocument android.graphics.Rect getPageContentRect()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.pdf.PrintedPdfDocument android.graphics.pdf.PdfDocument.Page startPage(int)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.print.pdf.PrintedPdfDocument android.graphics.pdf.PdfDocument.Page startPage(int) 0">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="0" />
+    </annotation>
+  </item>
+  <item name="android.print.pdf.PrintedPdfDocument int getPageHeight()">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="0" />
+    </annotation>
+  </item>
+  <item name="android.print.pdf.PrintedPdfDocument int getPageWidth()">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="0" />
+    </annotation>
+  </item>
+</root>
+

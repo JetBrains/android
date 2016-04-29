@@ -16,7 +16,7 @@
 package com.android.tools.idea.npw;
 
 import com.android.SdkConstants;
-import com.android.sdklib.repository.FullRevision;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.templates.TemplateManager;
@@ -96,12 +96,12 @@ public class NewModuleWizardDynamic extends DynamicWizard {
   @NotNull
   private static String determineGradlePluginVersion(@Nullable Project project) {
     if (project != null) {
-      FullRevision versionInUse = GradleUtil.getAndroidGradleModelVersionInUse(project);
+      GradleVersion versionInUse = GradleUtil.getAndroidGradleModelVersionInUse(project);
       if (versionInUse != null) {
         return versionInUse.toString();
       }
 
-      FullRevision versionFromBuildFile = GradleUtil.getAndroidGradleModelVersionFromBuildFile(project);
+      GradleVersion versionFromBuildFile = GradleUtil.getAndroidGradleModelVersionFromBuildFile(project);
       if (versionFromBuildFile != null) {
         return versionFromBuildFile.toString();
       }

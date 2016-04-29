@@ -19,12 +19,23 @@ import com.intellij.util.xml.Convert;
 import com.intellij.util.xml.Required;
 import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.AndroidResourceType;
+import org.jetbrains.android.dom.Styleable;
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
 import org.jetbrains.android.dom.resources.ResourceValue;
 
 /**
- * @author Eugene.Kudelevsky
+ * Framework code: ColorStateList#inflate
+ * <p/>
+ * Framework uses styleable ColorStateListItem for providing "color" and "alpha" attributes,
+ * but it's not mentioned here in @Styleable annotation, because "color" attribute is marked
+ * as required and thus will be inserted automatically on tag completion. Right now there is
+ * no way to provide the same information for attributes coming from @Styleable annotation,
+ * and using this styleable when having {@link #getColor()} method leads to two autocompletion
+ * results with "android:color".
+ * <p/>
+ * TODO: implement a way to mark some attributes as required and use it here for "color" attribute
  */
+@Styleable({"DrawableStates"})
 public interface ColorStateListItem extends ColorDomElement {
   @Convert(ResourceReferenceConverter.class)
   @AndroidResourceType("color")

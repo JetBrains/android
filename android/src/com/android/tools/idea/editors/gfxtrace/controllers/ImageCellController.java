@@ -17,28 +17,22 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
-import com.android.tools.idea.editors.gfxtrace.LoadingCallback;
+import com.android.tools.idea.editors.gfxtrace.UiCallback;
 import com.android.tools.idea.editors.gfxtrace.renderers.CellRenderer;
 import com.android.tools.idea.editors.gfxtrace.renderers.ImageCellRenderer;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
 import com.android.tools.idea.editors.gfxtrace.service.image.FetchedImage;
 import com.android.tools.idea.editors.gfxtrace.service.path.Path;
 import com.android.tools.idea.editors.gfxtrace.widgets.*;
-import com.google.common.util.concurrent.Futures;
+import com.android.tools.rpclib.rpccore.Rpc;
+import com.android.tools.rpclib.rpccore.RpcException;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.ui.components.JBList;
-import com.intellij.ui.components.JBScrollPane;
-import com.intellij.util.ui.StatusText;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseWheelEvent;
-import java.util.List;
+import java.awt.image.BufferedImage;
+import java.util.concurrent.ExecutionException;
 
 public abstract class ImageCellController<T extends ImageCellList.Data> extends Controller
     implements CellList.SelectionListener<T>, CellRenderer.CellLoader<T> {
@@ -87,22 +81,18 @@ public abstract class ImageCellController<T extends ImageCellList.Data> extends 
     return this;
   }
 
-
   protected void loadCellImage(final T cell, final ServiceClient client, final Path imagePath, final Runnable onLoad) {
-    cell.startLoading();
-    Futures.addCallback(FetchedImage.load(client, imagePath), new LoadingCallback<FetchedImage>(LOG, cell) {
+    Rpc.listen(FetchedImage.load(client, imagePath), LOG, cell.controller, new UiCallback<FetchedImage, BufferedImage>() {
       @Override
-      public void onSuccess(final FetchedImage fetchedImage) {
-        EdtExecutor.INSTANCE.execute(new Runnable() {
-          @Override
-          public void run() {
-            // Back in the UI thread here
-            cell.icon = fetchedImage.icon;
-            cell.stopLoading();
-            onLoad.run();
-            myList.repaint();
-          }
-        });
+      protected BufferedImage onRpcThread(Rpc.Result<FetchedImage> result) throws RpcException, ExecutionException {
+        return result.get().image;
+      }
+
+      @Override
+      protected void onUiThread(BufferedImage image) {
+        cell.icon = new ImageIcon(image);
+        onLoad.run();
+        myList.repaint();
       }
     });
   }

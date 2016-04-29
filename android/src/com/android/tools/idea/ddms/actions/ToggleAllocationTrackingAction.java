@@ -88,7 +88,7 @@ public class ToggleAllocationTrackingAction extends AbstractClientToggleAction {
       .message("android.ddms.actions.allocationtracker.stop") : AndroidBundle.message("android.ddms.actions.allocationtracker.start");
   }
 
-  private void installListener(@NotNull final Client listeningClient, @NotNull Project project) {
+  private void installListener(@NotNull final Client listeningClient, @NotNull final Project project) {
     AndroidDebugBridge.addClientChangeListener(new IClientChangeListener() {
       @Override
       public void clientChanged(Client client, int changeMask) {
@@ -104,7 +104,8 @@ public class ToggleAllocationTrackingAction extends AbstractClientToggleAction {
                 }
 
                 final CaptureService service = CaptureService.getInstance(myProject);
-                CaptureHandle handle = service.startCaptureFile(AllocationCaptureType.class);
+                String name = service.getSuggestedName(listeningClient);
+                CaptureHandle handle = service.startCaptureFile(AllocationCaptureType.class, name);
                 service.appendDataCopy(handle, data);
                 service.finalizeCaptureFileAsynchronous(handle, new FutureCallback<Capture>() {
                   @Override

@@ -40,7 +40,7 @@ final class FmtETC2RGB8 extends Format {
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("image","fmtETC2_RGB8","","");
+  private static final Entity ENTITY = new Entity("image", "fmtETC2_RGB8", "", "");
 
   static {
     ENTITY.setFields(new Field[]{
@@ -61,12 +61,10 @@ final class FmtETC2RGB8 extends Format {
 
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
-      FmtETC2RGB8 o = (FmtETC2RGB8)obj;
     }
 
     @Override
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
-      FmtETC2RGB8 o = (FmtETC2RGB8)obj;
     }
     //<<<End:Java.KlassBody:2>>>
   }

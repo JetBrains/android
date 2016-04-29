@@ -15,18 +15,18 @@
  */
 package com.android.tools.idea.ui.properties.expressions.string;
 
-import com.android.tools.idea.ui.properties.Observable;
+import com.android.tools.idea.ui.properties.ObservableValue;
+import com.android.tools.idea.ui.properties.core.ObservableBool;
 import com.android.tools.idea.ui.properties.core.ObservableString;
 import com.android.tools.idea.ui.properties.expressions.Expression;
-import com.android.tools.idea.ui.properties.core.ObservableBool;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Base class for String expressions, providing a default implementation for the {@link ObservableString} interface.
  */
-public abstract class StringExpression extends Expression implements ObservableString {
+public abstract class StringExpression extends Expression<String> implements ObservableString {
 
-  protected StringExpression(Observable... values) {
+  protected StringExpression(ObservableValue... values) {
     super(values);
   }
 

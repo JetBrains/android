@@ -15,19 +15,18 @@
  */
 package com.android.tools.idea.templates.recipe;
 
-import com.android.SdkConstants;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.templates.*;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateUserVisibleException;
-import com.google.common.base.Joiner;
+import com.android.tools.idea.templates.GradleFileMerger;
+import com.android.tools.idea.templates.RecipeMergeUtils;
+import com.android.tools.idea.templates.TemplateMetadata;
 import com.intellij.diff.comparison.ComparisonManager;
 import com.intellij.diff.comparison.ComparisonPolicy;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.*;
 import freemarker.template.Configuration;
 import freemarker.template.TemplateException;
@@ -195,7 +194,7 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
         sourceText = processFreemarkerTemplate(myContext, from, null);
       }
       else {
-        sourceText = TemplateUtils.readTextFromDisk(sourceFile);
+        sourceText = readTextFromDisk(sourceFile);
         if (sourceText == null) {
           return;
         }
@@ -206,7 +205,7 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
         contents = RecipeMergeUtils.mergeGradleSettingsFile(sourceText, targetText);
         myNeedsGradleSync = true;
       }
-      else if (targetFile.getName().equals(SdkConstants.FN_BUILD_GRADLE)) {
+      else if (targetFile.getName().equals(FN_BUILD_GRADLE)) {
         String compileSdkVersion = (String)getParamMap().get(TemplateMetadata.ATTR_BUILD_API_STRING);
         contents = GradleFileMerger.mergeGradleFiles(sourceText, targetText, myContext.getProject(), compileSdkVersion);
         myNeedsGradleSync = true;
@@ -307,8 +306,9 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
     if (destinationContents == null) {
       destinationContents = "";
     }
-    String compileSdkVersion = (String)getParamMap().get(TemplateMetadata.ATTR_BUILD_API_STRING);
-    String result = GradleFileMerger.mergeGradleFiles(formatDependencies(), destinationContents, myContext.getProject(), compileSdkVersion);
+    Object buildApi = getParamMap().get(TemplateMetadata.ATTR_BUILD_API);
+    String supportLibVersionFilter = buildApi != null ? buildApi.toString() : "";
+    String result = myIO.mergeGradleFiles(formatDependencies(), destinationContents, myContext.getProject(), supportLibVersionFilter);
     myIO.writeFile(this, result, gradleBuildFile);
     myNeedsGradleSync = true;
   }
@@ -398,20 +398,20 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
   private String readTextFile(@NotNull File file) {
     // TODO: Rename ATTR_IS_NEW_PROJECT to ATTR_IS_NEW_MODULE since that is what it means...
     if (Boolean.TRUE.equals(myContext.getParamMap().get(TemplateMetadata.ATTR_IS_NEW_PROJECT))) {
-      return TemplateUtils.readTextFromDisk(file);
+      return readTextFromDisk(file);
     }
     else {
-      return TemplateUtils.readTextFromDocument(myContext.getProject(), file);
+      return readTextFromDocument(myContext.getProject(), file);
     }
   }
 
   private String readTextFile(@NotNull VirtualFile file) {
     // TODO: Rename ATTR_IS_NEW_PROJECT to ATTR_IS_NEW_MODULE since that is what it means...
     if (Boolean.TRUE.equals(myContext.getParamMap().get(TemplateMetadata.ATTR_IS_NEW_PROJECT))) {
-      return TemplateUtils.readTextFromDisk(VfsUtilCore.virtualToIoFile(file));
+      return readTextFromDisk(VfsUtilCore.virtualToIoFile(file));
     }
     else {
-      return TemplateUtils.readTextFromDocument(myContext.getProject(), file);
+      return readTextFromDocument(myContext.getProject(), file);
     }
   }
 
@@ -472,6 +472,13 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
       checkedCreateDirectoryIfMissing(directory);
     }
 
+    public String mergeGradleFiles(@NotNull String dependencies,
+                                   @NotNull String destinationContents,
+                                   Project project,
+                                   @Nullable String supportLibVersionFilter) {
+      return GradleFileMerger.mergeGradleFiles(dependencies, destinationContents, project, supportLibVersionFilter);
+    }
+
     public void requestGradleSync(@NotNull Project project) {
       GradleProjectImporter.getInstance().requestProjectSync(project, null);
     }
@@ -498,6 +505,15 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
     public void mkDir(@NotNull File directory) throws IOException {
       checkDirectoryIsWriteable(directory);
     }
+
+    @Override
+    public String mergeGradleFiles(@NotNull String dependencies,
+                                   @NotNull String destinationContents,
+                                   Project project,
+                                   String compileSdkVersion) {
+      return destinationContents;
+    }
+
 
     @Override
     public void requestGradleSync(@NotNull Project project) {

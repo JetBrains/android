@@ -7,7 +7,7 @@ import com.android.ide.common.repository.ResourceVisibilityLookup;
 import com.android.ide.common.res2.AbstractResourceRepository;
 import com.android.ide.common.res2.ResourceFile;
 import com.android.ide.common.res2.ResourceItem;
-import com.android.sdklib.repository.local.LocalSdk;
+import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.LocalResourceRepository;
@@ -15,6 +15,9 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.lint.checks.ApiLookup;
 import com.android.tools.lint.client.api.*;
 import com.android.tools.lint.detector.api.*;
+import com.google.common.base.Charsets;
+import com.google.common.collect.Lists;
+import com.google.common.io.Files;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -41,6 +44,7 @@ import com.intellij.psi.xml.XmlElement;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.PathUtil;
 import com.intellij.util.containers.HashMap;
+import com.intellij.util.lang.UrlClassLoader;
 import com.intellij.util.net.HttpConfigurable;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
@@ -53,10 +57,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.android.tools.lint.detector.api.TextFormat.RAW;
 import static org.jetbrains.android.inspections.lint.IntellijLintIssueRegistry.CUSTOM_ERROR;
@@ -73,6 +74,7 @@ public class IntellijLintClient extends LintClient implements Disposable {
   @Nullable protected Map<com.android.tools.lint.detector.api.Project, Module> myModuleMap;
 
   public IntellijLintClient(@NonNull Project project) {
+    super(CLIENT_STUDIO);
     myProject = project;
   }
 
@@ -331,10 +333,10 @@ public class IntellijLintClient extends LintClient implements Disposable {
 
   @Nullable
   @Override
-  public LocalSdk getSdk() {
+  public AndroidSdkHandler getSdk() {
     if (mSdk == null) {
       Module module = getModule();
-      LocalSdk sdk = getLocalSdk(module);
+      AndroidSdkHandler sdk = getLocalSdk(module);
       if (sdk != null) {
         mSdk = sdk;
       } else {
@@ -356,13 +358,13 @@ public class IntellijLintClient extends LintClient implements Disposable {
   }
 
   @Nullable
-  private static LocalSdk getLocalSdk(@Nullable Module module) {
+  private static AndroidSdkHandler getLocalSdk(@Nullable Module module) {
     if (module != null) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null) {
         AndroidSdkData sdkData = facet.getSdkData();
         if (sdkData != null) {
-          return sdkData.getLocalSdk();
+          return sdkData.getSdkHandler();
         }
       }
     }
@@ -414,6 +416,37 @@ public class IntellijLintClient extends LintClient implements Disposable {
     return new File(dir, Project.DIRECTORY_STORE_FOLDER).exists();
   }
 
+  private static List<Issue> ourReportedCustomIssues;
+
+  private static void recordCustomIssue(@NonNull Issue issue) {
+    if (ourReportedCustomIssues == null) {
+      ourReportedCustomIssues = Lists.newArrayList();
+    } else if (ourReportedCustomIssues.contains(issue)) {
+      return;
+    }
+    ourReportedCustomIssues.add(issue);
+  }
+
+  @Nullable
+  public static Issue findCustomIssue(@NonNull String errorMessage) {
+    if (ourReportedCustomIssues != null) {
+      // We stash the original id into the error message such that we can
+      // find it later
+      int begin = errorMessage.lastIndexOf('[');
+      int end = errorMessage.lastIndexOf(']');
+      if (begin < end && begin != -1) {
+        String id = errorMessage.substring(begin + 1, end);
+        for (Issue issue : ourReportedCustomIssues) {
+          if (id.equals(issue.getId())) {
+            return issue;
+          }
+        }
+      }
+    }
+
+    return null;
+  }
+
   /**
    * A lint client used for in-editor single file lint analysis (e.g. background checking while user is editing.)
    * <p>
@@ -452,6 +485,10 @@ public class IntellijLintClient extends LintClient implements Disposable {
         final VirtualFile vFile = LocalFileSystem.getInstance().findFileByIoFile(file);
 
         if (context.getDriver().isCustomIssue(issue)) {
+          // Record original issue id in the message (such that we can find
+          // it later, in #findCustomIssue)
+          message += " [" + issue.getId() + "]";
+          recordCustomIssue(issue);
           issue = Severity.WARNING.compareTo(severity) <= 0 ? CUSTOM_WARNING : CUSTOM_ERROR;
         }
 
@@ -481,8 +518,12 @@ public class IntellijLintClient extends LintClient implements Disposable {
       final VirtualFile vFile = LocalFileSystem.getInstance().findFileByIoFile(file);
 
       if (vFile == null) {
-        LOG.debug("Cannot find file " + file.getPath() + " in the VFS");
-        return "";
+        try {
+          return Files.toString(file, Charsets.UTF_8);
+        } catch (IOException ioe) {
+          LOG.debug("Cannot find file " + file.getPath() + " in the VFS");
+          return "";
+        }
       }
       final String content = getFileContent(vFile);
 
@@ -628,6 +669,10 @@ public class IntellijLintClient extends LintClient implements Disposable {
 
       if (inScope) {
         if (context.getDriver().isCustomIssue(issue)) {
+          // Record original issue id in the message (such that we can find
+          // it later, in #findCustomIssue)
+          message += " [" + issue.getId() + "]";
+          recordCustomIssue(issue);
           issue = Severity.WARNING.compareTo(severity) <= 0 ? CUSTOM_WARNING : CUSTOM_ERROR;
         }
 
@@ -723,6 +768,11 @@ public class IntellijLintClient extends LintClient implements Disposable {
   @Override
   public URLConnection openConnection(@NonNull URL url) throws IOException {
     return HttpConfigurable.getInstance().openConnection(url.toExternalForm());
+  }
+
+  @Override
+  public ClassLoader createUrlClassLoader(@NonNull URL[] urls, @NonNull ClassLoader parent) {
+    return UrlClassLoader.build().parent(parent).urls(urls).get();
   }
 
   @NonNull

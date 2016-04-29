@@ -1,0 +1,6 @@
+<resources>
+    <declare-styleable name="Example">
+        <attr name="android:text" />
+    </declare-styleable>
+</resources>
+

@@ -15,47 +15,33 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.ddmlib.IDevice;
-import com.google.common.collect.ImmutableList;
-import com.intellij.debugger.engine.RemoteDebugProcessHandler;
 import com.intellij.execution.DefaultExecutionResult;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.ExecutionResult;
 import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.RemoteConnection;
 import com.intellij.execution.configurations.RemoteState;
+import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ProgramRunner;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
+public class AndroidDebugState implements RemoteState {
+  @NotNull private final Project myProject;
+  @NotNull private final ProcessHandler myDebugProcessHandler;
+  @NotNull private final RemoteConnection myConnection;
+  @NotNull private final ConsoleProvider myConsoleProvider;
 
-public class AndroidDebugState implements RemoteState, AndroidExecutionState {
-  private final Project myProject;
-  private final RemoteConnection myConnection;
-  private final AndroidRunningState myState;
-  private final IDevice myDevice;
-
-  private volatile ConsoleView myConsoleView;
-
-  public AndroidDebugState(Project project,
-                           RemoteConnection connection,
-                           AndroidRunningState state,
-                           IDevice device) {
+  public AndroidDebugState(@NotNull Project project,
+                           @NotNull ProcessHandler processHandler,
+                           @NotNull RemoteConnection connection,
+                           @NotNull ConsoleProvider consoleProvider) {
     myProject = project;
+    myDebugProcessHandler = processHandler;
     myConnection = connection;
-    myState = state;
-    myDevice = device;
-  }
-
-  @Override
-  public ExecutionResult execute(final Executor executor, @NotNull final ProgramRunner runner) throws ExecutionException {
-    RemoteDebugProcessHandler process = new RemoteDebugProcessHandler(myProject);
-    myState.setProcessHandler(process);
-    myConsoleView = myState.getConfiguration().attachConsole(myState, executor);
-    return new DefaultExecutionResult(myConsoleView, process);
+    myConsoleProvider = consoleProvider;
   }
 
   @Override
@@ -63,21 +49,10 @@ public class AndroidDebugState implements RemoteState, AndroidExecutionState {
     return myConnection;
   }
 
-  @NotNull
-  @Override
-  public Collection<IDevice> getDevices() {
-    return ImmutableList.of(myDevice);
-  }
-
   @Nullable
   @Override
-  public ConsoleView getConsoleView() {
-    return myConsoleView;
-  }
-
-  @NotNull
-  @Override
-  public AndroidRunConfigurationBase getConfiguration() {
-    return myState.getConfiguration();
+  public ExecutionResult execute(Executor executor, @NotNull ProgramRunner runner) throws ExecutionException {
+    ConsoleView console = myConsoleProvider.createAndAttach(myProject, myDebugProcessHandler, executor);
+    return new DefaultExecutionResult(console, myDebugProcessHandler);
   }
 }

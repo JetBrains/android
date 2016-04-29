@@ -27,9 +27,9 @@ import java.beans.PropertyChangeListener;
  * {@link ObservableProperty} that wraps a Swing component and exposes its editable state.
  */
 public final class EditableProperty extends BoolProperty implements PropertyChangeListener {
-  private final JTextComponent myTextComponent;
+  @NotNull private final JTextComponent myTextComponent;
 
-  public EditableProperty(JTextComponent textComponent) {
+  public EditableProperty(@NotNull JTextComponent textComponent) {
     myTextComponent = textComponent;
     myTextComponent.addPropertyChangeListener("editable", this);
   }

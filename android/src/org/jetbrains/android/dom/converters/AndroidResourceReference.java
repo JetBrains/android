@@ -92,7 +92,7 @@ public class AndroidResourceReference extends AndroidResourceReferenceBase {
       }
 
       // Note: We're using value.getResourceType(), not resType.getName() here, because we want the "+" in the new name
-      myValue.setValue(ResourceValue.referenceTo(value.getPrefix(), value.getPackage(), value.getResourceType(), newResName));
+      myValue.setValue(ResourceValue.referenceTo(value.getPrefix(), value.getNamespace(), value.getResourceType(), newResName));
     }
     return myValue.getXmlTag();
   }

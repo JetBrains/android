@@ -44,10 +44,4 @@ public class ToolsAttributeDefinitionsImpl implements AttributeDefinitions {
   public String getAttrGroupByName(@NotNull String name) {
     return "Tools";
   }
-
-  @NotNull
-  @Override
-  public StyleableDefinition[] getStateStyleables() {
-    throw new UnsupportedOperationException();
-  }
 }

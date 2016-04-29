@@ -27,8 +27,8 @@ import com.android.utils.StdLogger;
 import com.google.common.base.Strings;
 import com.google.common.io.BaseEncoding;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -136,12 +136,8 @@ public class KeystoreUtils {
       if (debugKey == null) {
         continue;
       }
-      VirtualFile moduleFile = facet.getModule().getModuleFile();
-      if (moduleFile == null) {
-        continue;
-      }
       // NOTE: debugKey.getParent() is the current working directory.
-      return new File(moduleFile.getParent().getPath(), debugKey.getPath());
+      return new File(ModuleUtilCore.getModuleDirPath(facet.getModule()), debugKey.getPath());
     }
     return null;
   }

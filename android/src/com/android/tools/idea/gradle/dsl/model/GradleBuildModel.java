@@ -15,17 +15,24 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
+import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
+import com.android.tools.idea.gradle.dsl.model.build.BuildScriptModel;
+import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.model.ext.ExtModel;
 import com.android.tools.idea.gradle.dsl.model.java.JavaModel;
-import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
-import com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement;
-import com.android.tools.idea.gradle.dsl.parser.java.JavaProjectElementParser;
-import com.android.tools.idea.gradle.dsl.dependencies.Dependencies;
-import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
-import com.android.tools.idea.gradle.dsl.parser.GradleDslElementParser;
+import com.android.tools.idea.gradle.dsl.model.repositories.RepositoriesModel;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslFile;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser;
 import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement;
+import com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement;
+import com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslReference;
+import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
+import com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement;
+import com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -39,6 +46,17 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrApplic
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrAssignmentExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 
+import java.util.Map;
+
+import static com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement.ANDROID_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement.BUILDSCRIPT_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement.SUBPROJECTS_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement.DEPENDENCIES_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement.SOURCE_COMPATIBILITY_ATTRIBUTE_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement.TARGET_COMPATIBILITY_ATTRIBUTE_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement.JAVA_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement.REPOSITORIES_BLOCK_NAME;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 
 public class GradleBuildModel extends GradleFileModel {
@@ -49,112 +67,126 @@ public class GradleBuildModel extends GradleFileModel {
   }
 
   @NotNull
+  public static GradleBuildModel parseBuildFile(@NotNull VirtualFile file, @NotNull Project project) {
+    return parseBuildFile(file, project, "<Unknown>");
+  }
+
+  @NotNull
   public static GradleBuildModel parseBuildFile(@NotNull VirtualFile file, @NotNull Project project, @NotNull String moduleName) {
     GradleBuildDslFile buildDslFile = new GradleBuildDslFile(file, project, moduleName);
+    populateWithParentModuleSubProjectsProperties(buildDslFile);
     buildDslFile.parse();
     return new GradleBuildModel(buildDslFile);
+  }
+
+  private static void populateWithParentModuleSubProjectsProperties(@NotNull GradleBuildDslFile buildDslFile) {
+    GradleSettingsModel gradleSettingsModel = GradleSettingsModel.get(buildDslFile.getProject());
+    if (gradleSettingsModel == null) {
+      return;
+    }
+
+    String modulePath = gradleSettingsModel.moduleWithDirectory(buildDslFile.getDirectoryPath());
+    if (modulePath == null) {
+      return;
+    }
+
+    GradleBuildModel parentModuleModel = gradleSettingsModel.getParentModuleModel(modulePath);
+    if (parentModuleModel == null) {
+      return;
+    }
+
+    GradleDslFile parentModuleDslFile = parentModuleModel.myGradleDslFile;
+    buildDslFile.setParentModuleDslFile(parentModuleDslFile);
+
+    SubProjectsDslElement subProjectsDslElement = parentModuleDslFile.getProperty(SUBPROJECTS_BLOCK_NAME, SubProjectsDslElement.class);
+    if (subProjectsDslElement == null) {
+      return;
+    }
+
+    buildDslFile.setParsedElement(SUBPROJECTS_BLOCK_NAME, subProjectsDslElement);
+    for (Map.Entry<String, GradleDslElement> entry : subProjectsDslElement.getPropertyElements().entrySet()) {
+      buildDslFile.setParsedElement(entry.getKey(), entry.getValue());
+    }
   }
 
   private GradleBuildModel(@NotNull GradleBuildDslFile buildDslFile) {
     super(buildDslFile);
   }
 
-  @Nullable
+  @NotNull
   public AndroidModel android() {
-    AndroidDslElement androidDslElement = myGradleDslFile.getProperty(AndroidDslElement.NAME, AndroidDslElement.class);
-    return androidDslElement != null ? new AndroidModel(androidDslElement) : null;
-  }
-
-  @NotNull
-  public GradleBuildModel addAndroidModel() {
-    if (android() != null) {
-      return this;
+    AndroidDslElement androidDslElement = myGradleDslFile.getProperty(ANDROID_BLOCK_NAME, AndroidDslElement.class);
+    if (androidDslElement == null) {
+      androidDslElement = new AndroidDslElement(myGradleDslFile);
+      myGradleDslFile.setNewElement(ANDROID_BLOCK_NAME, androidDslElement);
     }
-    AndroidDslElement androidDslElement = new AndroidDslElement(myGradleDslFile);
-    myGradleDslFile.setNewElement(AndroidDslElement.NAME, androidDslElement);
-    return this;
+    return new AndroidModel(androidDslElement);
   }
 
   @NotNull
-  public GradleBuildModel removeAndroidModel() {
-    myGradleDslFile.removeProperty(AndroidDslElement.NAME);
-    return this;
+  public BuildScriptModel buildscript() {
+    BuildScriptDslElement buildScriptDslElement = myGradleDslFile.getProperty(BUILDSCRIPT_BLOCK_NAME, BuildScriptDslElement.class);
+    if (buildScriptDslElement == null) {
+      buildScriptDslElement = new BuildScriptDslElement(myGradleDslFile);
+      myGradleDslFile.setNewElement(BUILDSCRIPT_BLOCK_NAME, buildScriptDslElement);
+    }
+    return new BuildScriptModel(buildScriptDslElement);
+  }
+
+  public DependenciesModel dependencies() {
+    DependenciesDslElement dependenciesDslElement = myGradleDslFile.getProperty(DEPENDENCIES_BLOCK_NAME, DependenciesDslElement.class);
+    if (dependenciesDslElement == null) {
+      dependenciesDslElement = new DependenciesDslElement(myGradleDslFile);
+      myGradleDslFile.setNewElement(DEPENDENCIES_BLOCK_NAME, dependenciesDslElement);
+    }
+    return new DependenciesModel(dependenciesDslElement);
   }
 
   @NotNull
-  public Dependencies dependencies() {
-    return ((GradleBuildDslFile)myGradleDslFile).myDependencies;
-  }
-
-  @Nullable
   public ExtModel ext() {
-    ExtDslElement extDslElement = myGradleDslFile.getProperty(ExtDslElement.NAME, ExtDslElement.class);
-    return extDslElement != null ? new ExtModel(extDslElement) : null;
-  }
-
-  @NotNull
-  public GradleBuildModel addExtModel() {
-    if (ext() != null) {
-      return this;
+    ExtDslElement extDslElement = myGradleDslFile.getProperty(EXT_BLOCK_NAME, ExtDslElement.class);
+    if (extDslElement == null) {
+      extDslElement = new ExtDslElement(myGradleDslFile);
+      myGradleDslFile.setNewElement(EXT_BLOCK_NAME, extDslElement);
     }
-    ExtDslElement extDslElement = new ExtDslElement(myGradleDslFile);
-    myGradleDslFile.setNewElement(ExtDslElement.NAME, extDslElement);
-    return this;
+    return new ExtModel(extDslElement);
   }
 
   @NotNull
-  public GradleBuildModel removeExtModel() {
-    myGradleDslFile.removeProperty(ExtDslElement.NAME);
-    return this;
-  }
-
-  @Nullable
   public JavaModel java() {
-    JavaDslElement javaDslElement = myGradleDslFile.getProperty(JavaDslElement.NAME, JavaDslElement.class);
-    return javaDslElement != null ? new JavaModel(javaDslElement) : null;
-  }
-
-  @NotNull
-  public GradleBuildModel addJavaModel() {
-    if (java() != null) {
-      return this;
+    JavaDslElement javaDslElement = myGradleDslFile.getProperty(JAVA_BLOCK_NAME, JavaDslElement.class);
+    if (javaDslElement == null) {
+      javaDslElement = new JavaDslElement(myGradleDslFile);
+      myGradleDslFile.setNewElement(JAVA_BLOCK_NAME, javaDslElement);
     }
-    JavaDslElement javaDslElement = new JavaDslElement(myGradleDslFile);
-    myGradleDslFile.setNewElement(JavaDslElement.NAME, javaDslElement);
-    return this;
+    return new JavaModel(javaDslElement);
   }
 
   @NotNull
-  public GradleBuildModel removeJavaModel() {
-    myGradleDslFile.removeProperty(JavaDslElement.NAME);
-    return this;
+  public RepositoriesModel repositories() {
+    RepositoriesDslElement repositoriesDslElement = myGradleDslFile.getProperty(REPOSITORIES_BLOCK_NAME, RepositoriesDslElement.class);
+    if (repositoriesDslElement == null) {
+      repositoriesDslElement = new RepositoriesDslElement(myGradleDslFile);
+      myGradleDslFile.setNewElement(REPOSITORIES_BLOCK_NAME, repositoriesDslElement);
+    }
+    return new RepositoriesModel(repositoriesDslElement);
   }
 
   private static class GradleBuildDslFile extends GradleDslFile {
-    @NotNull private Dependencies myDependencies = new Dependencies(this);
-
-    private final GradleDslElementParser[] myParsers = {new JavaProjectElementParser()};
-
-
     private GradleBuildDslFile(@NotNull VirtualFile file, @NotNull Project project, @NotNull String moduleName) {
       super(file, project, moduleName);
     }
 
     @Override
     public void reparse() {
-      myDependencies = new Dependencies(this);
       super.reparse();
     }
 
     @Override
     protected void parse(@NotNull GroovyFile psiFile) {
-      myDependencies.setPsiFile(psiFile);
       psiFile.acceptChildren(new GroovyPsiElementVisitor(new GroovyElementVisitor() {
         @Override
         public void visitMethodCallExpression(GrMethodCallExpression e) {
-          if (myDependencies.parse(e)) {
-            return;
-          }
           process(e);
         }
 
@@ -169,31 +201,34 @@ public class GradleBuildModel extends GradleFileModel {
         }
 
         void process(GroovyPsiElement e) {
-          boolean parsed = false;
-          for (GradleDslElementParser parser : myParsers) {
-            // If a parser was able to parse the given PSI element, stop. Otherwise give another parser the chance to parse the PSI element.
-            if (parser.parse(e, GradleBuildDslFile.this)) {
-              parsed = true;
-              break;
-            }
-          }
-          if (!parsed) {
-            GradleDslParser.parse(e, GradleBuildDslFile.this);
-          }
+          GradleDslParser.parse(e, GradleBuildDslFile.this);
         }
       }));
     }
 
     @Override
+    public void setParsedElement(@NotNull String property, @NotNull GradleDslElement element) {
+      if ((SOURCE_COMPATIBILITY_ATTRIBUTE_NAME.equals(property) || TARGET_COMPATIBILITY_ATTRIBUTE_NAME.equals(property)) &&
+          (element instanceof GradleDslLiteral || element instanceof GradleDslReference)) {
+        JavaDslElement javaDslElement = getProperty(JAVA_BLOCK_NAME, JavaDslElement.class);
+        if (javaDslElement == null) {
+          javaDslElement = new JavaDslElement(this);
+          super.setParsedElement(JAVA_BLOCK_NAME, javaDslElement);
+        }
+        javaDslElement.setParsedElement(property, element);
+        return;
+      }
+      super.setParsedElement(property, element);
+    }
+
+    @Override
     protected void reset() {
       super.reset();
-      myDependencies.resetState();
     }
 
     @Override
     protected void apply() {
       super.apply();
-      myDependencies.applyChanges();
     }
   }
 }

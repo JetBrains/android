@@ -16,14 +16,9 @@
 package com.android.tools.idea.gradle.variant.view;
 
 import com.android.builder.model.AndroidProject;
-import com.android.sdklib.repository.FullRevision;
-import com.android.sdklib.repository.PreciseRevision;
+import com.android.ide.common.repository.GradleVersion;
 import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Collections;
-import java.util.List;
 
 import static org.easymock.classextension.EasyMock.*;
 
@@ -34,7 +29,6 @@ public class BuildVariantViewTest extends AndroidTestCase {
   private Listener myListener;
   private BuildVariantUpdater myUpdater;
   private BuildVariantView myView;
-  private List<AndroidFacet> myAndroidFacets;
   private String myBuildVariantName;
 
   @Override
@@ -45,12 +39,11 @@ public class BuildVariantViewTest extends AndroidTestCase {
     myView.setUpdater(myUpdater);
     myListener = new Listener();
     myView.addListener(myListener);
-    myAndroidFacets = Collections.singletonList(myFacet);
     myBuildVariantName = "debug";
   }
 
   public void testSelectVariantWithSuccessfulUpdate() {
-    expect(myUpdater.updateSelectedVariant(getProject(), myModule.getName(), myBuildVariantName)).andStubReturn(myAndroidFacets);
+    expect(myUpdater.updateSelectedVariant(getProject(), myModule.getName(), myBuildVariantName)).andStubReturn(true);
     replay(myUpdater);
 
     myView.buildVariantSelected(myModule.getName(), myBuildVariantName);
@@ -60,8 +53,7 @@ public class BuildVariantViewTest extends AndroidTestCase {
   }
 
   public void testSelectVariantWithFailedUpdate() {
-    List<AndroidFacet> facets = Collections.emptyList();
-    expect(myUpdater.updateSelectedVariant(getProject(), myModule.getName(), myBuildVariantName)).andStubReturn(facets);
+    expect(myUpdater.updateSelectedVariant(getProject(), myModule.getName(), myBuildVariantName)).andStubReturn(false);
     replay(myUpdater);
 
     myView.buildVariantSelected(myModule.getName(), myBuildVariantName);
@@ -101,8 +93,8 @@ public class BuildVariantViewTest extends AndroidTestCase {
   }
 
   @NotNull
-  private static FullRevision getModelVersionSupportingUnitTests() {
-    return new PreciseRevision(1, 1, 0);
+  private static GradleVersion getModelVersionSupportingUnitTests() {
+    return new GradleVersion(1, 1, 0);
   }
 
   private static class Listener implements BuildVariantView.BuildVariantSelectionChangeListener {

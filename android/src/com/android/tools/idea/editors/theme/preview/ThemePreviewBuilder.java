@@ -296,7 +296,11 @@ public class ThemePreviewBuilder {
     }
   }
 
-  // List containing all the pre-defined components that are displayed in the preview.
+  /**
+   * List containing all the pre-defined components that are displayed in the preview, except for the navigation bar.
+   * The navigation bar is dealt with separately because it depends on the available version of layoutlib:
+   * {@see #addNavigationBar(boolean)}
+   */
   public static final List<ComponentDefinition> AVAILABLE_BASE_COMPONENTS = ImmutableList.of(
     // Toolbar
     new ToolbarComponentDefinition(false/*isAppCompat*/),
@@ -341,9 +345,6 @@ public class ThemePreviewBuilder {
 
     // Bars
     new ComponentDefinition("Status bar", ComponentGroup.STATUS_BAR, "com.android.layoutlib.bridge.bars.StatusBar")
-      .set(ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT),
-    new ComponentDefinition("Navigation bar", ComponentGroup.NAVIGATION_BAR, "com.android.layoutlib.bridge.bars.NavigationBar")
-      .set(ATTR_LAYOUT_HEIGHT, "@android:dimen/navigation_bar_height")
       .set(ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT),
 
     // Misc
@@ -536,6 +537,22 @@ public class ThemePreviewBuilder {
     addAllComponents(ImmutableList.of(definition));
 
     return this;
+  }
+
+  /**
+   * Adds the navigation bar to the Theme Editor preview.
+   * The layout for that navigation bar depends on the version of layoutlib.
+   * @param supportsThemePreviewNavigationBar true if the user version of layoutlib supports the navigation bar layout
+   *                                          specific to the Theme Editor preview.
+   */
+  @NotNull
+  public ThemePreviewBuilder addNavigationBar(boolean supportsThemePreviewNavigationBar) {
+    String navigationBarClass = supportsThemePreviewNavigationBar
+                                ? "com.android.layoutlib.bridge.bars.ThemePreviewNavigationBar"
+                                : "com.android.layoutlib.bridge.bars.NavigationBar";
+    ComponentDefinition navigationBar = new ComponentDefinition("Navigation bar", ComponentGroup.NAVIGATION_BAR, navigationBarClass)
+      .set(ATTR_LAYOUT_HEIGHT, "@android:dimen/navigation_bar_height").set(ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT);
+    return addComponent(navigationBar);
   }
 
   @NotNull

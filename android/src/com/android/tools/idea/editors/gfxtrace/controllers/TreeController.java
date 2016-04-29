@@ -20,13 +20,14 @@ import com.android.tools.idea.editors.gfxtrace.renderers.TreeRenderer;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.ui.treeStructure.SimpleTree;
+import com.intellij.ui.treeStructure.Tree;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeCellRenderer;
+import javax.swing.tree.TreeModel;
 import java.awt.*;
 
 public abstract class TreeController extends Controller {
@@ -35,7 +36,7 @@ public abstract class TreeController extends Controller {
   @NotNull protected final JBLoadingPanel myLoadingPanel;
   @NotNull protected final JPanel myPanel = new JPanel(new BorderLayout());
   @NotNull protected final JBScrollPane myScrollPane = new JBScrollPane();
-  @NotNull protected final SimpleTree myTree = new SimpleTree();
+  @NotNull protected final Tree myTree = new Tree(new DefaultTreeModel(new DefaultMutableTreeNode()));
 
   public TreeController(@NotNull GfxTraceEditor editor, @NotNull String emptyText) {
     super(editor);
@@ -63,9 +64,17 @@ public abstract class TreeController extends Controller {
   }
 
   public void setRoot(DefaultMutableTreeNode root) {
+    setModel(new DefaultTreeModel(root));
+  }
+
+  public void setModel(TreeModel model) {
     assert (ApplicationManager.getApplication().isDispatchThread());
-    myTree.setModel(new DefaultTreeModel(root));
+    myTree.setModel(model);
     myLoadingPanel.stopLoading();
     myLoadingPanel.revalidate();
+  }
+
+  public TreeModel getModel() {
+    return myTree.getModel();
   }
 }

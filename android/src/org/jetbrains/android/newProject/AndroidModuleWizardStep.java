@@ -25,12 +25,6 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Jun 26, 2009
- * Time: 7:43:13 PM
- */
 public class AndroidModuleWizardStep extends ModuleWizardStep {
   private final AndroidAppPropertiesEditor myAppPropertiesEditor;
 

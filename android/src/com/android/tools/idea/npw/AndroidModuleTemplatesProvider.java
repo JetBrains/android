@@ -16,10 +16,6 @@
 package com.android.tools.idea.npw;
 
 import com.android.tools.idea.configurations.DeviceMenuAction;
-import com.android.tools.idea.npw.CreateModuleTemplate;
-import com.android.tools.idea.npw.FormFactorUtils;
-import com.android.tools.idea.npw.ModuleTemplate;
-import com.android.tools.idea.npw.ModuleTemplateProvider;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
@@ -89,7 +85,7 @@ public final class AndroidModuleTemplatesProvider implements ModuleTemplateProvi
     List<File> applicationTemplates = manager.getTemplatesInCategory(Template.CATEGORY_APPLICATION);
     List<ModuleTemplate> moduleTemplates = Lists.newArrayList();
     for (File templateFile : applicationTemplates) {
-      TemplateMetadata metadata = manager.getTemplate(templateFile);
+      TemplateMetadata metadata = manager.getTemplateMetadata(templateFile);
       if (metadata == null) {
         continue;
       }

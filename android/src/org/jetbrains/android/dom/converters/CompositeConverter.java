@@ -51,7 +51,17 @@ public class CompositeConverter extends ResolvingConverter<String> {
 
   @Override
   public String fromString(@Nullable String s, ConvertContext context) {
-    return s;
+    // Returning non-null value from this method means that the value is valid.
+    // To ensure that, we check all the containing converters to make sure at least
+    // one of those recognized passed value.
+    for (ResolvingConverter<String> converter : myConverters) {
+      String result = converter.fromString(s, context);
+      if (result != null) {
+        return result;
+      }
+    }
+
+    return null;
   }
 
   @Override

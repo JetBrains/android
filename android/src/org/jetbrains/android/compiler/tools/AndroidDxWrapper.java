@@ -115,7 +115,6 @@ public class AndroidDxWrapper {
       GeneralCommandLine commandLine = CommandLineBuilder.createFromJavaParameters(parameters, true);
       LOG.info(commandLine.getCommandLineString());
       process = commandLine.createProcess();
-      AndroidCommonUtils.handleDexCompilationResult(process, commandLine.getCommandLineString(), outFile, messages, false);
     }
     catch (ExecutionException e) {
       messages.get(AndroidCompilerMessageKind.ERROR).add("ExecutionException: " + e.getMessage());
@@ -123,6 +122,7 @@ public class AndroidDxWrapper {
       return messages;
     }
 
+    AndroidCommonUtils.handleDexCompilationResult(process, outFile, messages, false);
 
     return messages;
   }

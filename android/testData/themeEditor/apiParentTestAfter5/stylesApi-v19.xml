@@ -2,6 +2,7 @@
     <style name="Theme.MyOtherTheme">
         <item name="android:windowIsFloating">false</item>
     </style>
+
     <style name="Theme.MyTheme" parent="android:Theme.Holo.NoActionBar.TranslucentDecor">
         <item name="android:windowIsFloating">true</item>
         <item name="android:actionModeStyle">@null</item>

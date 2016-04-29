@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.stats;
 
-import com.android.sdklib.repository.FullRevision;
+import com.android.repository.Revision;
 
-import java.awt.*;
-import java.util.*;
 import java.util.List;
 
 /**
@@ -27,7 +25,7 @@ import java.util.List;
 
 public class Distribution implements Comparable<Distribution> {
   private int apiLevel;
-  private FullRevision version;
+  private Revision version;
   private String description;
   private String url;
   private java.util.List<TextBlock> descriptionBlocks;
@@ -40,7 +38,7 @@ public class Distribution implements Comparable<Distribution> {
   }
 
 
-  public FullRevision getVersion() {
+  public Revision getVersion() {
     return version;
   }
 

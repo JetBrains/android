@@ -126,7 +126,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     return runConfiguration instanceof AndroidRunConfigurationBase || isUnitTestConfiguration(runConfiguration);
   }
 
-  public static boolean isUnitTestConfiguration(@NotNull RunConfiguration runConfiguration) {
+  private static boolean isUnitTestConfiguration(@NotNull RunConfiguration runConfiguration) {
     return runConfiguration instanceof JUnitConfiguration ||
            // Avoid direct dependency on the TestNG plugin:
            runConfiguration.getClass().getSimpleName().equals("TestNGConfiguration");
@@ -227,6 +227,12 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       };
 
       final GradleInvokerOptions options = GradleInvokerOptions.create(myProject, context, configuration, env, task.getGoal());
+      if (options.tasks.isEmpty()) {
+        // should not happen, but if it does happen, then GradleInvoker with an empty list of tasks seems to hang forever
+        // So we error out earlier.
+        LOG.error("Unable to determine gradle tasks to execute for run configuration: " + configuration.getName());
+        return false;
+      }
 
       // To ensure that the "Run Configuration" waits for the Gradle tasks to be executed, we use SwingUtilities.invokeAndWait. I tried
       // using Application.invokeAndWait but it never worked. IDEA also uses SwingUtilities in this scenario (see CompileStepBeforeRun.)
@@ -237,12 +243,14 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
           gradleInvoker.executeTasks(options.tasks, options.buildMode, options.commandLineArguments);
         }
       });
+
       done.waitFor();
     }
     catch (Throwable t) {
       LOG.info("Unable to launch '" + TASK_NAME + "' task", t);
       return false;
     }
+    LOG.info("Gradle invocation complete, success = " + success.get());
     return success.get();
   }
 }

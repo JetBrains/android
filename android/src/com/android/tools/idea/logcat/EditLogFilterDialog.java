@@ -143,11 +143,11 @@ final class EditLogFilterDialog extends DialogWrapper {
   private void createEditorFields() {
     myNameFieldLabel.setLabelFor(myFilterNameField);
 
-    myLogMessageField = new RegexFilterComponent(LOG_FILTER_MESSAGE_HISTORY, FILTER_HISTORY_SIZE, false);
+    myLogMessageField = new RegexFilterComponent(LOG_FILTER_MESSAGE_HISTORY, FILTER_HISTORY_SIZE);
     myLogMessageFieldWrapper.add(myLogMessageField);
     myLogMessageLabel.setLabelFor(myLogMessageField);
 
-    myTagField = new RegexFilterComponent(LOG_FILTER_TAG_HISTORY, FILTER_HISTORY_SIZE, false);
+    myTagField = new RegexFilterComponent(LOG_FILTER_TAG_HISTORY, FILTER_HISTORY_SIZE);
     myTagFieldWrapper.add(myTagField);
     myLogTagLabel.setLabelFor(myTagField);
 
@@ -170,7 +170,7 @@ final class EditLogFilterDialog extends DialogWrapper {
     myPidFieldWrapper.add(myPidField);
     myPidLabel.setLabelFor(myPidField);
 
-    myPackageNameField = new RegexFilterComponent(LOG_FILTER_PACKAGE_NAME_HISTORY, FILTER_HISTORY_SIZE, false);
+    myPackageNameField = new RegexFilterComponent(LOG_FILTER_PACKAGE_NAME_HISTORY, FILTER_HISTORY_SIZE);
     myPackageNameFieldWrapper.add(myPackageNameField);
     myPackageNameLabel.setLabelFor(myPackageNameField);
 

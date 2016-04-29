@@ -15,24 +15,23 @@
  */
 package com.android.tools.idea.welcome.install;
 
-import com.android.sdklib.SdkManager;
-import com.android.sdklib.repository.descriptors.IPkgDesc;
-import com.android.sdklib.repository.descriptors.PkgType;
-import com.android.sdklib.repository.local.LocalPkgInfo;
-import com.android.sdklib.repository.local.LocalSdk;
-import com.android.tools.idea.sdk.remote.RemotePkgInfo;
+import com.android.repository.api.LocalPackage;
+import com.android.repository.api.ProgressIndicator;
+import com.android.repository.api.RemotePackage;
+import com.android.repository.impl.meta.RepositoryPackages;
+import com.android.repository.io.FileOp;
+import com.android.sdklib.repositoryv2.AndroidSdkHandler;
+import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
+import com.android.tools.idea.welcome.SdkLocationUtils;
 import com.android.tools.idea.welcome.wizard.WelcomeUIUtils;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStep;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.EnumSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -46,13 +45,19 @@ public abstract class InstallableComponent extends ComponentTreeNode {
   private Boolean myUserSelection; // null means default component enablement is used
   private boolean myIsOptional = true;
   private boolean myIsInstalled = false;
+  protected final FileOp myFileOp;
 
-  public InstallableComponent(@NotNull ScopedStateStore stateStore, @NotNull String name, long size, @NotNull String description) {
+  public InstallableComponent(@NotNull ScopedStateStore stateStore,
+                              @NotNull String name,
+                              long size,
+                              @NotNull String description,
+                              @NotNull FileOp fop) {
     super(description);
     myStateStore = stateStore;
     myName = name;
     mySize = size;
     myKey = stateStore.createKey("component.enabled." + System.identityHashCode(this), Boolean.class);
+    myFileOp = fop;
   }
 
   @Override
@@ -69,20 +74,21 @@ public abstract class InstallableComponent extends ComponentTreeNode {
    * @param remotePackages an up-to-date list of the packages in the Android SDK repositories, if one can be obtained.
    */
   @NotNull
-  public abstract Collection<IPkgDesc> getRequiredSdkPackages(@Nullable Multimap<PkgType, RemotePkgInfo> remotePackages);
+  public abstract Collection<String> getRequiredSdkPackages(@Nullable Map<String, RemotePackage> remotePackages);
 
-  public abstract void configure(@NotNull InstallContext installContext, @NotNull File sdk);
+  public abstract void configure(@NotNull InstallContext installContext, @NotNull AndroidSdkHandler sdkHandler);
 
-  protected boolean isSelectedByDefault(@Nullable SdkManager sdkManager) {
+  protected boolean isSelectedByDefault(@Nullable @SuppressWarnings("UnusedParameters") AndroidSdkHandler sdkHandler) {
     return true;
   }
 
+  // TODO Rename this to isEnabled
   @Override
   public boolean isOptional() {
     return myIsOptional;
   }
 
-  protected boolean isOptionalForSdkLocation(@Nullable SdkManager manager) {
+  protected boolean isOptionalForSdkLocation(@Nullable @SuppressWarnings("UnusedParameters") AndroidSdkHandler sdkHandler) {
     return true;
   }
 
@@ -101,11 +107,12 @@ public abstract class InstallableComponent extends ComponentTreeNode {
   }
 
   @Override
-  public void updateState(@Nullable SdkManager manager) {
-    boolean isSelected;
+  public void updateState(@NotNull AndroidSdkHandler sdkHandler) {
     // If we don't have anything to install, show as unchecked and not editable.
-    boolean nothingToInstall = getRequiredSdkPackages(null).isEmpty();
-    myIsOptional = !nothingToInstall && isOptionalForSdkLocation(manager);
+    boolean nothingToInstall = !SdkLocationUtils.isWritable(myFileOp, sdkHandler.getLocation()) || getRequiredSdkPackages(null).isEmpty();
+    myIsOptional = !nothingToInstall && isOptionalForSdkLocation(sdkHandler);
+
+    boolean isSelected;
 
     if (!myIsOptional) {
       isSelected = !nothingToInstall;
@@ -114,31 +121,19 @@ public abstract class InstallableComponent extends ComponentTreeNode {
       isSelected = myUserSelection;
     }
     else {
-      isSelected = isSelectedByDefault(manager);
+      isSelected = isSelectedByDefault(sdkHandler);
     }
     myStateStore.put(myKey, isSelected);
-    myIsInstalled = checkInstalledPackages(manager);
+    myIsInstalled = checkInstalledPackages(sdkHandler);
   }
 
-  private boolean checkInstalledPackages(@Nullable SdkManager manager) {
-    if (manager != null) {
-      LocalSdk localSdk = manager.getLocalSdk();
-      LocalPkgInfo[] pkgsInfos = localSdk.getPkgsInfos(EnumSet.allOf(PkgType.class));
-      Set<String> descs = Sets.newHashSetWithExpectedSize(pkgsInfos.length);
-      for (LocalPkgInfo pkgsInfo : pkgsInfos) {
-        IPkgDesc desc = pkgsInfo.getDesc();
-        descs.add(desc.getPath());
-      }
-      Collection<IPkgDesc> requiredSdkPackages = getRequiredSdkPackages(null);
-      if (requiredSdkPackages.isEmpty()) {
-        return false;
-      }
-      for (IPkgDesc desc : requiredSdkPackages) {
-        if (!descs.contains(desc.getPath())) {
-          return false;
-        }
-      }
-      return true;
+  private boolean checkInstalledPackages(@Nullable AndroidSdkHandler sdkHandler) {
+    if (sdkHandler != null) {
+      ProgressIndicator progress = new StudioLoggerProgressIndicator(InstallableComponent.class);
+      RepositoryPackages packages = sdkHandler.getSdkManager(progress).getPackages();
+      Map<String, ? extends LocalPackage> localPackages = packages.getLocalPackages();
+      Collection<String> requiredSdkPackages = getRequiredSdkPackages(null);
+      return localPackages.keySet().containsAll(requiredSdkPackages);
     }
     else {
       return false;

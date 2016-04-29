@@ -16,17 +16,16 @@
 
 package com.android.tools.idea.run.testing;
 
-import com.android.builder.model.BaseArtifact;
+import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.Variant;
-import com.android.ddmlib.AdbCommandRejectedException;
 import com.android.ddmlib.IDevice;
-import com.android.ddmlib.ShellCommandUnresponsiveException;
-import com.android.ddmlib.TimeoutException;
 import com.android.ddmlib.testrunner.RemoteAndroidTestRunner;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.run.*;
 import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor;
 import com.android.tools.idea.run.editor.TestRunParameters;
+import com.android.tools.idea.run.tasks.LaunchTask;
+import com.android.tools.idea.run.util.LaunchStatus;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -34,9 +33,11 @@ import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.execution.*;
 import com.intellij.execution.configurations.*;
 import com.intellij.execution.junit.JUnitUtil;
-import com.intellij.execution.process.ProcessOutputTypes;
+import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.testframework.sm.SMTestRunnerConnectionUtil;
 import com.intellij.execution.ui.ConsoleView;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.SettingsEditor;
@@ -44,6 +45,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Comparing;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
@@ -58,7 +60,6 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
 import java.util.List;
 
 /**
@@ -102,7 +103,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     // Gradle only supports testing against a single build type (which could be anything, but is "debug" build type by default)
     // Currently, the only information the model exports that we can use to detect whether the current build type
     // is testable is by looking at the test task name and checking whether it is null.
-    BaseArtifact testArtifact = androidModel.findSelectedTestArtifactInSelectedVariant();
+    AndroidArtifact testArtifact = androidModel.getAndroidTestArtifactInSelectedVariant();
     String testTask = testArtifact != null ? testArtifact.getAssembleTaskName() : null;
     return new Pair<Boolean, String>(testTask != null, AndroidBundle.message("android.cannot.run.library.project.in.this.buildtype"));
   }
@@ -207,7 +208,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     }
     return new NonGradleApkProvider(facet, null);
   }
-  
+
   private static int getTestSourceRootCount(@NotNull Module module) {
     final ModuleRootManager manager = ModuleRootManager.getInstance(module);
     return manager.getSourceRoots(true).length - manager.getSourceRoots(false).length;
@@ -272,11 +273,20 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
 
   @NotNull
   @Override
-  protected ConsoleView attachConsole(AndroidRunningState state, Executor executor) throws ExecutionException {
-    AndroidTestConsoleProperties properties = new AndroidTestConsoleProperties(this, executor);
-    ConsoleView consoleView = SMTestRunnerConnectionUtil.createAndAttachConsole("Android", state.getProcessHandler(), properties);
-    Disposer.register(state.getFacet().getModule().getProject(), consoleView);
-    return consoleView;
+  protected ConsoleProvider getConsoleProvider() {
+    return new ConsoleProvider() {
+
+      @NotNull
+      @Override
+      public ConsoleView createAndAttach(@NotNull Disposable parent,
+                                         @NotNull ProcessHandler handler,
+                                         @NotNull Executor executor) throws ExecutionException {
+        AndroidTestConsoleProperties properties = new AndroidTestConsoleProperties(AndroidTestRunConfiguration.this, executor);
+        ConsoleView consoleView = SMTestRunnerConnectionUtil.createAndAttachConsole("Android", handler, properties);
+        Disposer.register(parent, consoleView);
+        return consoleView;
+      }
+    };
   }
 
   @Override
@@ -284,11 +294,27 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     return false;
   }
 
-  @NotNull
+  @Nullable
   @Override
-  protected AndroidApplicationLauncher getApplicationLauncher(AndroidFacet facet) {
+  protected LaunchTask getApplicationLaunchTask(@NotNull ApkProvider apkProvider,
+                                                @NotNull AndroidFacet facet,
+                                                boolean waitForDebugger,
+                                                @NotNull LaunchStatus launchStatus) {
     String runner = StringUtil.isEmpty(INSTRUMENTATION_RUNNER_CLASS) ? findInstrumentationRunner(facet) : INSTRUMENTATION_RUNNER_CLASS;
-    return new MyApplicationLauncher(runner);
+    String testPackage;
+    try {
+      testPackage = apkProvider.getTestPackageName();
+      if (testPackage == null) {
+        launchStatus.terminateLaunch("Unable to determine test package name");
+        return null;
+      }
+    }
+    catch (ApkProvisionException e) {
+      launchStatus.terminateLaunch("Unable to determine test package name");
+      return null;
+    }
+
+    return new MyApplicationLaunchTask(runner, testPackage, waitForDebugger);
   }
 
   @Nullable
@@ -309,7 +335,16 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   }
 
   @Nullable
-  private static String getRunnerFromManifest(@NotNull AndroidFacet facet) {
+  private static String getRunnerFromManifest(@NotNull final AndroidFacet facet) {
+    if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
+      return ApplicationManager.getApplication().runReadAction(new Computable<String>() {
+        @Override
+        public String compute() {
+          return getRunnerFromManifest(facet);
+        }
+      });
+    }
+
     Manifest manifest = facet.getManifest();
     if (manifest != null) {
       for (Instrumentation instrumentation : manifest.getInstrumentations()) {
@@ -420,18 +455,33 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     return null;
   }
 
-  private class MyApplicationLauncher extends AndroidApplicationLauncher {
-    private final String myInstrumentationTestRunner;
+  private class MyApplicationLaunchTask implements LaunchTask {
+    @Nullable private final String myInstrumentationTestRunner;
+    @NotNull private final String myTestApplicationId;
+    private final boolean myWaitForDebugger;
 
-    private MyApplicationLauncher(@Nullable String instrumentationTestRunner) {
-      myInstrumentationTestRunner = instrumentationTestRunner;
+    public MyApplicationLaunchTask(@Nullable String runner, @NotNull String testPackage, boolean waitForDebugger) {
+      myInstrumentationTestRunner = runner;
+      myWaitForDebugger = waitForDebugger;
+      myTestApplicationId = testPackage;
+    }
+
+    @NotNull
+    @Override
+    public String getDescription() {
+      return "Launching instrumentation runner";
     }
 
     @Override
-    public LaunchResult launch(@NotNull AndroidRunningState state, @NotNull IDevice device)
-      throws IOException, AdbCommandRejectedException, TimeoutException {
-      state.getProcessHandler().notifyTextAvailable("Running tests\n", ProcessOutputTypes.STDOUT);
-      RemoteAndroidTestRunner runner = new RemoteAndroidTestRunner(state.getTestPackageName(), myInstrumentationTestRunner, device);
+    public int getDuration() {
+      return 2;
+    }
+
+    @Override
+    public boolean perform(@NotNull IDevice device, @NotNull final LaunchStatus launchStatus, @NotNull final ConsolePrinter printer) {
+      printer.stdout("Running tests\n");
+
+      final RemoteAndroidTestRunner runner = new RemoteAndroidTestRunner(myTestApplicationId, myInstrumentationTestRunner, device);
       switch (TESTING_TYPE) {
         case TEST_ALL_IN_PACKAGE:
           runner.setTestPackageName(PACKAGE_NAME);
@@ -443,17 +493,26 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
           runner.setMethodName(CLASS_NAME, METHOD_NAME);
           break;
       }
-      runner.setDebug(state.isDebugMode());
+      runner.setDebug(myWaitForDebugger);
       runner.setRunOptions(EXTRA_OPTIONS);
 
-      try {
-        runner.run(new AndroidTestListener(state));
-      }
-      catch (ShellCommandUnresponsiveException e) {
-        LOG.info(e);
-        state.getProcessHandler().notifyTextAvailable("Error: time out", ProcessOutputTypes.STDERR);
-      }
-      return LaunchResult.SUCCESS;
+      printer.stdout("$ adb shell " + runner.getAmInstrumentCommand());
+
+      // run in a separate thread as this will block until the tests complete
+      ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
+        @Override
+        public void run() {
+          try {
+            runner.run(new AndroidTestListener(launchStatus, printer));
+          }
+          catch (Exception e) {
+            LOG.info(e);
+            printer.stderr("Error: Unexpected exception while running tests: " + e);
+          }
+        }
+      });
+
+      return true;
     }
   }
 }

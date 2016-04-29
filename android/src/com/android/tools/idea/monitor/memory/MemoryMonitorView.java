@@ -16,6 +16,7 @@
 package com.android.tools.idea.monitor.memory;
 
 import com.android.tools.chartlib.TimelineComponent;
+import com.android.tools.idea.actions.BrowserHelpAction;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.ddms.actions.GcAction;
 import com.android.tools.idea.ddms.actions.ToggleAllocationTrackingAction;
@@ -34,6 +35,7 @@ import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.HierarchyListener;
 
@@ -82,6 +84,8 @@ public class MemoryMonitorView extends BaseMonitorView<MemorySampler> implements
     group.add(new GcAction(myDeviceContext));
     group.add(new DumpHprofAction(myProject, myDeviceContext, myEvents));
     group.add(new ToggleAllocationTrackingAction(myProject, myDeviceContext, myEvents));
+    group.add(new Separator());
+    group.add(new BrowserHelpAction("Memory monitor", "http://developer.android.com/r/studio-ui/am-memory.html"));
 
     if (Boolean.getBoolean("studio.profiling.debug")) {
       group.addSeparator();
@@ -89,6 +93,23 @@ public class MemoryMonitorView extends BaseMonitorView<MemorySampler> implements
     }
 
     return group;
+  }
+
+  @NotNull
+  @Override
+  public String getTitleName() {
+    return "Memory";
+  }
+
+  @NotNull
+  @Override
+  public Icon getTitleIcon() {
+    return AndroidIcons.MemoryMonitor;
+  }
+
+  @Override
+  protected int getDefaultPosition() {
+    return 0;
   }
 
   @NotNull

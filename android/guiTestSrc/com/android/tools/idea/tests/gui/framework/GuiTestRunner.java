@@ -34,7 +34,12 @@ import org.junit.runners.model.Statement;
 import org.junit.runners.model.TestClass;
 
 import java.awt.*;
+import java.lang.management.GarbageCollectorMXBean;
+import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryMXBean;
 import java.lang.reflect.Method;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 import static org.junit.Assert.assertNotNull;
@@ -42,6 +47,9 @@ import static org.junit.Assert.assertNotNull;
 public class GuiTestRunner extends BlockJUnit4ClassRunner {
 
   private TestClass myTestClass;
+
+  private final List<GarbageCollectorMXBean> myGarbageCollectorMXBeans = ManagementFactory.getGarbageCollectorMXBeans();
+  private final MemoryMXBean myMemoryMXBean = ManagementFactory.getMemoryMXBean();
 
   @Nullable private final ScreenshotTaker myScreenshotTaker;
 
@@ -76,8 +84,29 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
       System.out.println(String.format("Skipping test '%1$s': a fatal error has occurred in the IDE", method.getName()));
       notifier.pleaseStop();
     } else {
+      printPerfStats();
+      printTimestamp();
       super.runChild(method, notifier);
+      printTimestamp();
+      printPerfStats();
     }
+  }
+
+  private void printTimestamp() {
+    final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
+    System.out.println(dateFormat.format(new Date()));
+  }
+
+  private void printPerfStats() {
+    long gcCount = 0, gcTime = 0;
+    for (GarbageCollectorMXBean garbageCollectorMXBean : myGarbageCollectorMXBeans) {
+      gcCount += garbageCollectorMXBean.getCollectionCount();
+      gcTime += garbageCollectorMXBean.getCollectionTime();
+    }
+    System.out.printf("%d garbage collections; cumulative %d ms%n", gcCount, gcTime);
+    myMemoryMXBean.gc();
+    System.out.printf("heap: %s%n", myMemoryMXBean.getHeapMemoryUsage());
+    System.out.printf("non-heap: %s%n", myMemoryMXBean.getNonHeapMemoryUsage());
   }
 
   @Override

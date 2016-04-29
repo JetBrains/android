@@ -18,7 +18,7 @@ package com.android.tools.idea.rendering.multi;
 import com.android.annotations.NonNull;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.*;
-import com.android.sdklib.repository.descriptors.IdDisplay;
+import com.android.sdklib.repositoryv2.IdDisplay;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -211,34 +211,8 @@ public class CompatibilityRenderTarget implements IAndroidTarget {
   }
 
   @Override
-  public Integer getProperty(String name, Integer defaultValue) {
-    return myDelegate.getProperty(name, defaultValue);
-  }
-
-  @Override
-  public Boolean getProperty(String name, Boolean defaultValue) {
-    return myDelegate.getProperty(name, defaultValue);
-  }
-
-  @Override
   public Map<String, String> getProperties() {
     return myDelegate.getProperties();
-  }
-
-  @Override
-  public int getUsbVendorId() {
-    return myDelegate.getUsbVendorId();
-  }
-
-  @Override
-  public ISystemImage[] getSystemImages() {
-    return myDelegate.getSystemImages();
-  }
-
-  @Nullable
-  @Override
-  public ISystemImage getSystemImage(@NonNull IdDisplay tag, @NonNull String abiType) {
-    return myDelegate.getSystemImage(tag, abiType);
   }
 
   @Override

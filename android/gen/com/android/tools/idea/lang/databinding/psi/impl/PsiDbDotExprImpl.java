@@ -27,4 +27,10 @@ public class PsiDbDotExprImpl extends PsiDbExprImpl implements PsiDbDotExpr {
     return findNotNullChildByClass(PsiDbExpr.class);
   }
 
+  @Override
+  @NotNull
+  public PsiDbFieldName getFieldName() {
+    return findNotNullChildByClass(PsiDbFieldName.class);
+  }
+
 }

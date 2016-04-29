@@ -24,6 +24,7 @@ import com.android.tools.perflib.analyzer.AnalyzerTask;
 import com.android.tools.perflib.analyzer.CaptureGroup;
 import com.android.tools.perflib.captures.MemoryMappedFileBuffer;
 import com.android.tools.perflib.heap.Snapshot;
+import com.android.tools.perflib.heap.analysis.ComputationProgress;
 import com.android.tools.perflib.heap.memoryanalyzer.DuplicatedStringsAnalyzerTask;
 import com.android.tools.perflib.heap.memoryanalyzer.LeakedActivityAnalyzerTask;
 import com.android.tools.perflib.heap.memoryanalyzer.MemoryAnalyzer;
@@ -41,10 +42,13 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.status.InlineProgressIndicator;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.Set;
@@ -64,15 +68,25 @@ public class HprofEditor extends CaptureEditor {
       @Override
       public void run() {
         final File hprofFile = VfsUtilCore.virtualToIoFile(file);
-        InlineProgressIndicator indicator = myPanel.getProgressIndicator();
+        final InlineProgressIndicator indicator = myPanel.getProgressIndicator();
         assert indicator != null;
+        Timer timer = null;
+
         try {
-          indicator.setFraction(0.0);
-          indicator.setText("Parsing hprof file...");
+          updateIndicator(indicator, 0.01, "Parsing hprof file...");
           mySnapshot = Snapshot.createSnapshot(new MemoryMappedFileBuffer(hprofFile));
 
-          indicator.setFraction(0.5);
-          indicator.setText("Computing dominators...");
+          // Refresh the timer at 30fps (33ms/frame).
+          timer = new Timer(1000 / 30, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+              Snapshot.DominatorComputationStage stage = mySnapshot.getDominatorComputationStage();
+              ComputationProgress progress = mySnapshot.getComputationProgress();
+              updateIndicator(indicator, Snapshot.DominatorComputationStage.toAbsoluteProgressPercentage(stage, progress),
+                              progress.getMessage());
+            }
+          });
+          timer.start();
           mySnapshot.computeDominators();
         }
         catch (Throwable throwable) {
@@ -88,6 +102,9 @@ public class HprofEditor extends CaptureEditor {
           });
         }
         finally {
+          if (timer != null) {
+            timer.stop();
+          }
           if (mySnapshot != null) {
             myView = new HprofView(project, HprofEditor.this, mySnapshot);
             HprofAnalysisContentsDelegate delegate = new HprofAnalysisContentsDelegate(HprofEditor.this);
@@ -203,5 +220,15 @@ public class HprofEditor extends CaptureEditor {
 
     // TODO change this back to PooledThreadExecutor.INSTANCE once multi-reader problem has been solved in Snapshot
     return memoryAnalyzer.analyze(captureGroup, listeners, tasks, EdtExecutor.INSTANCE, Executors.newSingleThreadExecutor());
+  }
+
+  private static void updateIndicator(@NotNull final InlineProgressIndicator indicator, final double fraction, @NotNull final String text) {
+    UIUtil.invokeLaterIfNeeded(new Runnable() {
+      @Override
+      public void run() {
+        indicator.setFraction(fraction);
+        indicator.setText(text);
+      }
+    });
   }
 }

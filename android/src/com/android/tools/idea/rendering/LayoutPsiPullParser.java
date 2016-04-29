@@ -543,8 +543,13 @@ public class LayoutPsiPullParser extends LayoutPullParser {
     // <include> tags can't be at the root level; handle <fragment> rewriting here such that we don't
     // need to handle it as a tag name rewrite (where it's harder to change the structure)
     // https://code.google.com/p/android/issues/detail?id=67910
+    tag = getRootTag(tag);
+    if (tag == null) {
+      // Rely on code inspection to log errors in the layout.
+      return null;
+    }
+
     String rootTag = tag.getName();
-    assert rootTag != null;
     if (rootTag.equals(VIEW_FRAGMENT)) {
       XmlAttribute[] psiAttributes = tag.getAttributes();
       List<AttributeSnapshot> attributes = Lists.newArrayListWithExpectedSize(psiAttributes.length);
@@ -558,7 +563,6 @@ public class LayoutPsiPullParser extends LayoutPullParser {
       List<AttributeSnapshot> includeAttributes = Lists.newArrayListWithExpectedSize(psiAttributes.length);
       for (XmlAttribute psiAttribute : psiAttributes) {
         String name = psiAttribute.getName();
-        assert name != null;
         if (name.startsWith(XMLNS_PREFIX)) {
           continue;
         }
@@ -619,16 +623,6 @@ public class LayoutPsiPullParser extends LayoutPullParser {
       }
 
       return root;
-    } else if (rootTag.equals(TAG_LAYOUT)) {
-      for (XmlTag subTag : tag.getSubTags()) {
-        String subTagName = subTag.getName();
-        assert subTagName != null;
-        if (!subTagName.equals(TAG_DATA)) {
-          return createSnapshot(subTag);
-        }
-      }
-      // Rely on code inspection to log errors in the layout.
-      return null;
     } else {
       TagSnapshot root = TagSnapshot.createTagSnapshot(tag);
 
@@ -646,6 +640,20 @@ public class LayoutPsiPullParser extends LayoutPullParser {
 
       return root;
     }
+  }
+
+  @Nullable
+  public static XmlTag getRootTag(@NotNull XmlTag tag) {
+    if (tag.getName().equals(TAG_LAYOUT)) {
+      for (XmlTag subTag : tag.getSubTags()) {
+        String subTagName = subTag.getName();
+        if (!subTagName.equals(TAG_DATA)) {
+          return subTag;
+        }
+      }
+      return null;
+    }
+    return tag;
   }
 
   static class AttributeFilteredLayoutParser extends LayoutPsiPullParser {

@@ -16,13 +16,12 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.SdkConstants;
-import com.android.sdklib.repository.FullRevision;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenProjectStructureHyperlink;
 import com.android.tools.idea.gradle.util.GradleProperties;
 import com.android.tools.idea.gradle.util.ProxySettings;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -39,6 +38,7 @@ import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import java.io.File;
 import java.io.IOException;
 
+import static com.android.tools.idea.gradle.project.SdkSync.syncIdeAndProjectAndroidSdks;
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
@@ -71,6 +71,15 @@ final class PreSyncChecks {
     }
 
     if (isAndroidStudio()) {
+      try {
+        syncIdeAndProjectAndroidSdks(project);
+      }
+      catch (IOException e) {
+        String msg = "Failed to sync SDKs";
+        LOG.info(msg, e);
+        return PreSyncCheckResult.failure(msg + ": " + e.getMessage());
+      }
+
       // We only check jdk for Studio, because only Studio uses the same JDK for all modules and all Gradle invocations.
       // See https://code.google.com/p/android/issues/detail?id=172714
       Sdk jdk = IdeSdks.getJdk();
@@ -151,7 +160,7 @@ final class PreSyncChecks {
               errMsg += String.format("\nCause: %1$s", cause);
             }
             AndroidGradleNotification notification = AndroidGradleNotification.getInstance(project);
-            notification.showBalloon("Proxy Settings", errMsg, NotificationType.ERROR);
+            notification.showBalloon("Proxy Settings", errMsg, ERROR);
 
             LOG.info("Failed to save changes to gradle.properties file", e);
           }
@@ -188,7 +197,7 @@ final class PreSyncChecks {
           msg = createUseWrapperQuestion(reason);
         }
         else {
-          FullRevision gradleVersion = getGradleVersion(gradleHomePath);
+          GradleVersion gradleVersion = getGradleVersion(gradleHomePath);
           if (gradleVersion == null) {
             String reason = String.format("The path\n'%1$s'\n, does not belong to a Gradle distribution.", gradleHomePath.getPath());
             msg = createUseWrapperQuestion(reason);

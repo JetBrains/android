@@ -15,15 +15,13 @@
  */
 package com.android.tools.idea.editors.theme.ui;
 
-import com.android.tools.idea.editors.theme.ThemeEditorConstants;
+import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.openapi.ui.JBPopupMenu;
-import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.PopupMenuListenerAdapter;
 import com.intellij.util.ArrayUtil;
-import com.intellij.util.PlatformIcons;
 import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
 import icons.AndroidIcons;
@@ -90,8 +88,7 @@ public class VariantsComboBox extends JButton implements ItemSelectable {
 
     setBorder(BorderFactory.createEmptyBorder());
     setIcon(AndroidIcons.GreyArrowDown);
-    Font font = getFont();
-    setFont(font.deriveFont(font.getSize() * ThemeEditorConstants.ATTRIBUTES_FONT_SCALE));
+    setFont(ThemeEditorUtils.scaleFontForAttribute(getFont()));
     setHorizontalTextPosition(SwingConstants.LEFT);
     setHorizontalAlignment(SwingConstants.RIGHT);
     addActionListener(new ActionListener() {
@@ -174,8 +171,7 @@ public class VariantsComboBox extends JButton implements ItemSelectable {
     for (int i = 0; i < nElements; i++) {
       final Object element = myModel.getElementAt(i);
       JMenuItem item = new JBMenuItem(element.toString());
-      Font font = item.getFont();
-      item.setFont(font.deriveFont(font.getSize() * ThemeEditorConstants.ATTRIBUTES_FONT_SCALE));
+      item.setFont(ThemeEditorUtils.scaleFontForAttribute(item.getFont()));
       item.setBorder(VARIANT_ITEM_BORDER);
       if (i == 0) {
         // Pre-select the first element
@@ -208,8 +204,7 @@ public class VariantsComboBox extends JButton implements ItemSelectable {
       }
       for (Action action : myActions) {
         JMenuItem newMenuItem = new JBMenuItem(action);
-        Font font = newMenuItem.getFont();
-        newMenuItem.setFont(font.deriveFont(font.getSize() * ThemeEditorConstants.ATTRIBUTES_FONT_SCALE));
+        newMenuItem.setFont(ThemeEditorUtils.scaleFontForAttribute(newMenuItem.getFont()));
         newMenuItem.setBackground(VARIANT_MENU_BACKGROUND_COLOR);
         newMenuItem.setBorder(VARIANT_ITEM_BORDER);
         menu.add(newMenuItem);

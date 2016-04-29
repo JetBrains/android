@@ -50,7 +50,9 @@ public class LibraryPropertiesAction extends AnAction {
       Project project = e.getProject();
       assert project != null;
       LibraryPropertiesDialog dialog = new LibraryPropertiesDialog(project, library);
-      dialog.showAndGet();
+      if (dialog.showAndGet()) {
+        dialog.applyChanges();
+      }
     }
   }
 

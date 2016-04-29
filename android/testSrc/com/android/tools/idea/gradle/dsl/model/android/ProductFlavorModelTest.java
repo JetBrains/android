@@ -15,15 +15,13 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
-import com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModel.ResValue;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
+import com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModel.ResValue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
 import java.util.Map;
-
-import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 
 /**
  * Tests for {@link ProductFlavorModel}.
@@ -61,12 +59,7 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
 
-    AndroidModel android = getGradleBuildModel().android();
-    assertNotNull(android);
-
-    ProductFlavorModel defaultConfig = android.defaultConfig();
-    assertNotNull(defaultConfig);
-
+    ProductFlavorModel defaultConfig = getGradleBuildModel().android().defaultConfig();
     assertEquals("applicationId", "com.example.myapplication", defaultConfig.applicationId());
     assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"),
                  defaultConfig.consumerProguardFiles());
@@ -112,12 +105,7 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
 
-    AndroidModel android = getGradleBuildModel().android();
-    assertNotNull(android);
-
-    ProductFlavorModel defaultConfig = android.defaultConfig();
-    assertNotNull(defaultConfig);
-
+    ProductFlavorModel defaultConfig = getGradleBuildModel().android().defaultConfig();
     assertEquals("applicationId", "com.example.myapplication", defaultConfig.applicationId());
     assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"),
                  defaultConfig.consumerProguardFiles());
@@ -161,12 +149,7 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
 
-    AndroidModel android = getGradleBuildModel().android();
-    assertNotNull(android);
-
-    ProductFlavorModel defaultConfig = android.defaultConfig();
-    assertNotNull(defaultConfig);
-
+    ProductFlavorModel defaultConfig = getGradleBuildModel().android().defaultConfig();
     assertEquals("applicationId", "com.example.myapplication", defaultConfig.applicationId());
     assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"),
                  defaultConfig.consumerProguardFiles());
@@ -210,12 +193,7 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
 
-    AndroidModel android = getGradleBuildModel().android();
-    assertNotNull(android);
-
-    ProductFlavorModel defaultConfig = android.defaultConfig();
-    assertNotNull(defaultConfig);
-
+    ProductFlavorModel defaultConfig = getGradleBuildModel().android().defaultConfig();
     assertEquals("applicationId", "com.example.myapplication", defaultConfig.applicationId());
     assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"),
                  defaultConfig.consumerProguardFiles());
@@ -281,12 +259,7 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
 
-    AndroidModel android = getGradleBuildModel().android();
-    assertNotNull(android);
-
-    ProductFlavorModel defaultConfig = android.defaultConfig();
-    assertNotNull(defaultConfig);
-
+    ProductFlavorModel defaultConfig = getGradleBuildModel().android().defaultConfig();
     assertEquals("applicationId", "com.example.myapplication1", defaultConfig.applicationId());
     assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android-1.txt", "proguard-rules-1.pro"),
                  defaultConfig.consumerProguardFiles());
@@ -334,12 +307,7 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
 
-    AndroidModel android = getGradleBuildModel().android();
-    assertNotNull(android);
-
-    ProductFlavorModel defaultConfig = android.defaultConfig();
-    assertNotNull(defaultConfig);
-
+    ProductFlavorModel defaultConfig = getGradleBuildModel().android().defaultConfig();
     assertEquals("manifestPlaceholders", ImmutableMap
       .of("activityLabel1", "defaultName1", "activityLabel2", "defaultName2", "activityLabel3", "defaultName3", "activityLabel4",
           "defaultName4"), defaultConfig.manifestPlaceholders());
@@ -362,12 +330,7 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
 
-    AndroidModel android = getGradleBuildModel().android();
-    assertNotNull(android);
-
-    ProductFlavorModel defaultConfig = android.defaultConfig();
-    assertNotNull(defaultConfig);
-
+    ProductFlavorModel defaultConfig = getGradleBuildModel().android().defaultConfig();
     assertEquals("manifestPlaceholders", ImmutableMap.of("activityLabel1", "defaultName1", "activityLabel2", "defaultName2"),
                  defaultConfig.manifestPlaceholders());
     assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("key1", "value1", "key2", "value2"),
@@ -402,12 +365,7 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
-    assertNotNull(android);
-
-    ProductFlavorModel defaultConfig = android.defaultConfig();
-    assertNotNull(defaultConfig);
-
+    ProductFlavorModel defaultConfig = buildModel.android().defaultConfig();
     assertEquals("applicationId", "com.example.myapplication", defaultConfig.applicationId());
     assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"),
                  defaultConfig.consumerProguardFiles());
@@ -519,12 +477,7 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
-    assertNotNull(android);
-
-    ProductFlavorModel defaultConfig = android.defaultConfig();
-    assertNotNull(defaultConfig);
-
+    ProductFlavorModel defaultConfig = buildModel.android().defaultConfig();
     assertEquals("applicationId", "com.example.myapplication", defaultConfig.applicationId());
     assertEquals("dimension", "abcd", defaultConfig.dimension());
     assertEquals("maxSdkVersion", Integer.valueOf(23), defaultConfig.maxSdkVersion());
@@ -609,12 +562,7 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
-    assertNotNull(android);
-
-    ProductFlavorModel defaultConfig = android.defaultConfig();
-    assertNotNull(defaultConfig);
-
+    ProductFlavorModel defaultConfig = buildModel.android().defaultConfig();
     assertNull("applicationId", defaultConfig.applicationId());
     assertNull("dimension", defaultConfig.dimension());
     assertNull("maxSdkVersion", defaultConfig.maxSdkVersion());
@@ -703,11 +651,7 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
-    assertNotNull(android);
-
-    ProductFlavorModel defaultConfig = android.defaultConfig();
-    assertNotNull(defaultConfig);
+    ProductFlavorModel defaultConfig = buildModel.android().defaultConfig();
 
     assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"),
                  defaultConfig.consumerProguardFiles());
@@ -745,12 +689,7 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
-    assertNotNull(android);
-
-    ProductFlavorModel defaultConfig = android.defaultConfig();
-    assertNotNull(defaultConfig);
-
+    ProductFlavorModel defaultConfig = buildModel.android().defaultConfig();
     assertNull("consumerProguardFiles", defaultConfig.consumerProguardFiles());
     assertNull("proguardFiles", defaultConfig.proguardFiles());
     assertNull("resConfigs", defaultConfig.resConfigs());
@@ -788,11 +727,7 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
-    assertNotNull(android);
-
-    ProductFlavorModel defaultConfig = android.defaultConfig();
-    assertNotNull(defaultConfig);
+    ProductFlavorModel defaultConfig = buildModel.android().defaultConfig();
 
     assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"),
                  defaultConfig.consumerProguardFiles());
@@ -837,11 +772,7 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
-    assertNotNull(android);
-
-    ProductFlavorModel defaultConfig = android.defaultConfig();
-    assertNotNull(defaultConfig);
+    ProductFlavorModel defaultConfig = buildModel.android().defaultConfig();
 
     assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"),
                  defaultConfig.consumerProguardFiles());
@@ -882,11 +813,7 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
-    assertNotNull(android);
-
-    ProductFlavorModel defaultConfig = android.defaultConfig();
-    assertNotNull(defaultConfig);
+    ProductFlavorModel defaultConfig = buildModel.android().defaultConfig();
 
     assertEquals("manifestPlaceholders", ImmutableMap.of("key1", "value1", "key2", "value2"), defaultConfig.manifestPlaceholders());
     assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("size", "medium", "foo", "bar"),
@@ -918,11 +845,7 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
-    assertNotNull(android);
-
-    ProductFlavorModel defaultConfig = android.defaultConfig();
-    assertNotNull(defaultConfig);
+    ProductFlavorModel defaultConfig = buildModel.android().defaultConfig();
 
     assertNull("manifestPlaceholders", defaultConfig.manifestPlaceholders());
     assertNull("testInstrumentationRunnerArguments", defaultConfig.testInstrumentationRunnerArguments());
@@ -954,11 +877,7 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
-    assertNotNull(android);
-
-    ProductFlavorModel defaultConfig = android.defaultConfig();
-    assertNotNull(defaultConfig);
+    ProductFlavorModel defaultConfig = buildModel.android().defaultConfig();
 
     assertEquals("manifestPlaceholders", ImmutableMap.of("activityLabel1", "defaultName1", "activityLabel2", "defaultName2"),
                  defaultConfig.manifestPlaceholders());
@@ -1008,12 +927,12 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
 
-    final GradleBuildModel buildModel = getGradleBuildModel();
+    GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
-    assertNotNull(android);
+    assertTrue(android.hasValidPsiElement());
 
     ProductFlavorModel defaultConfig = android.defaultConfig();
-    assertNotNull(defaultConfig);
+    assertTrue(defaultConfig.hasValidPsiElement());
 
     assertEquals("applicationId", "com.example.myapplication", defaultConfig.applicationId());
     assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"),
@@ -1058,6 +977,8 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
     defaultConfig.removeVersionCode();
     defaultConfig.removeVersionName();
 
+    assertTrue(android.hasValidPsiElement());
+    assertTrue(defaultConfig.hasValidPsiElement());
     assertNull("applicationId", defaultConfig.applicationId());
     assertNull("consumerProguardFiles", defaultConfig.consumerProguardFiles());
     assertNull("dimension", defaultConfig.dimension());
@@ -1078,12 +999,9 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
     assertNull("versionCode", defaultConfig.versionCode());
     assertNull("versionName", defaultConfig.versionName());
 
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
+    applyChanges(buildModel);
+    assertFalse(android.hasValidPsiElement());
+    assertFalse(android.defaultConfig().hasValidPsiElement());
     assertNull("applicationId", defaultConfig.applicationId());
     assertNull("consumerProguardFiles", defaultConfig.consumerProguardFiles());
     assertNull("dimension", defaultConfig.dimension());
@@ -1106,11 +1024,8 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
 
     buildModel.reparse();
     android = buildModel.android();
-    assertNotNull(android);
-
-    defaultConfig = android.defaultConfig();
-    assertNotNull(defaultConfig);
-
+    assertFalse(android.hasValidPsiElement());
+    assertFalse(android.defaultConfig().hasValidPsiElement());
     assertNull("applicationId", defaultConfig.applicationId());
     assertNull("consumerProguardFiles", defaultConfig.consumerProguardFiles());
     assertNull("dimension", defaultConfig.dimension());
@@ -1153,13 +1068,8 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
 
-    final GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
-    assertNotNull(android);
-
-    ProductFlavorModel defaultConfig = android.defaultConfig();
-    assertNotNull(defaultConfig);
-
+    GradleBuildModel buildModel = getGradleBuildModel();
+    ProductFlavorModel defaultConfig = buildModel.android().defaultConfig();
     assertEquals("applicationId", "com.example.myapplication", defaultConfig.applicationId());
     assertEquals("dimension", "abcd", defaultConfig.dimension());
     assertEquals("maxSdkVersion", Integer.valueOf(23), defaultConfig.maxSdkVersion());
@@ -1203,12 +1113,7 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
     assertEquals("versionCode", "2", defaultConfig.versionCode());
     assertEquals("versionName", "2.0", defaultConfig.versionName());
 
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
+    applyChanges(buildModel);
     assertEquals("applicationId", "com.example.myapplication-1", defaultConfig.applicationId());
     assertEquals("dimension", "efgh", defaultConfig.dimension());
     assertEquals("maxSdkVersion", Integer.valueOf(24), defaultConfig.maxSdkVersion());
@@ -1224,12 +1129,7 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
     assertEquals("versionName", "2.0", defaultConfig.versionName());
 
     buildModel.reparse();
-    android = buildModel.android();
-    assertNotNull(android);
-
-    defaultConfig = android.defaultConfig();
-    assertNotNull(defaultConfig);
-
+    defaultConfig = buildModel.android().defaultConfig();
     assertEquals("applicationId", "com.example.myapplication-1", defaultConfig.applicationId());
     assertEquals("dimension", "efgh", defaultConfig.dimension());
     assertEquals("maxSdkVersion", Integer.valueOf(24), defaultConfig.maxSdkVersion());
@@ -1256,13 +1156,8 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
 
-    final GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
-    assertNotNull(android);
-
-    ProductFlavorModel defaultConfig = android.defaultConfig();
-    assertNotNull(defaultConfig);
-
+    GradleBuildModel buildModel = getGradleBuildModel();
+    ProductFlavorModel defaultConfig = buildModel.android().defaultConfig();
     assertEquals("minSdkVersion", "15", defaultConfig.minSdkVersion());
     assertEquals("targetSdkVersion", "22", defaultConfig.targetSdkVersion());
     assertEquals("versionCode", "1", defaultConfig.versionCode());
@@ -1275,23 +1170,13 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
     assertEquals("targetSdkVersion", "23", defaultConfig.targetSdkVersion());
     assertEquals("versionCode", "2", defaultConfig.versionCode());
 
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
+    applyChanges(buildModel);
     assertEquals("minSdkVersion", "16", defaultConfig.minSdkVersion());
     assertEquals("targetSdkVersion", "23", defaultConfig.targetSdkVersion());
     assertEquals("versionCode", "2", defaultConfig.versionCode());
 
     buildModel.reparse();
-    android = buildModel.android();
-    assertNotNull(android);
-
-    defaultConfig = android.defaultConfig();
-    assertNotNull(defaultConfig);
-
+    defaultConfig = buildModel.android().defaultConfig();
     assertEquals("minSdkVersion", "16", defaultConfig.minSdkVersion());
     assertEquals("targetSdkVersion", "23", defaultConfig.targetSdkVersion());
     assertEquals("versionCode", "2", defaultConfig.versionCode());
@@ -1305,13 +1190,8 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
 
-    final GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
-    assertNotNull(android);
-
-    ProductFlavorModel defaultConfig = android.defaultConfig();
-    assertNotNull(defaultConfig);
-
+    GradleBuildModel buildModel = getGradleBuildModel();
+    ProductFlavorModel defaultConfig = buildModel.android().defaultConfig();
     assertNull("applicationId", defaultConfig.applicationId());
     assertNull("dimension", defaultConfig.dimension());
     assertNull("maxSdkVersion", defaultConfig.maxSdkVersion());
@@ -1355,12 +1235,7 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
     assertEquals("versionCode", "2", defaultConfig.versionCode());
     assertEquals("versionName", "2.0", defaultConfig.versionName());
 
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
+    applyChanges(buildModel);
     assertEquals("applicationId", "com.example.myapplication-1", defaultConfig.applicationId());
     assertEquals("dimension", "efgh", defaultConfig.dimension());
     assertEquals("maxSdkVersion", Integer.valueOf(24), defaultConfig.maxSdkVersion());
@@ -1376,12 +1251,7 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
     assertEquals("versionName", "2.0", defaultConfig.versionName());
 
     buildModel.reparse();
-    android = buildModel.android();
-    assertNotNull(android);
-
-    defaultConfig = android.defaultConfig();
-    assertNotNull(defaultConfig);
-
+    defaultConfig = buildModel.android().defaultConfig();
     assertEquals("applicationId", "com.example.myapplication-1", defaultConfig.applicationId());
     assertEquals("dimension", "efgh", defaultConfig.dimension());
     assertEquals("maxSdkVersion", Integer.valueOf(24), defaultConfig.maxSdkVersion());
@@ -1405,13 +1275,8 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
 
-    final GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
-    assertNotNull(android);
-
-    ProductFlavorModel defaultConfig = android.defaultConfig();
-    assertNotNull(defaultConfig);
-
+    GradleBuildModel buildModel = getGradleBuildModel();
+    ProductFlavorModel defaultConfig = buildModel.android().defaultConfig();
     assertNull("applicationId", defaultConfig.applicationId());
     assertNull("targetSdkVersion", defaultConfig.targetSdkVersion());
     assertNull("versionCode", defaultConfig.versionCode());
@@ -1424,23 +1289,13 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
     assertEquals("targetSdkVersion", "23", defaultConfig.targetSdkVersion());
     assertEquals("versionCode", "2", defaultConfig.versionCode());
 
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
+    applyChanges(buildModel);
     assertEquals("minSdkVersion", "16", defaultConfig.minSdkVersion());
     assertEquals("targetSdkVersion", "23", defaultConfig.targetSdkVersion());
     assertEquals("versionCode", "2", defaultConfig.versionCode());
 
     buildModel.reparse();
-    android = buildModel.android();
-    assertNotNull(android);
-
-    defaultConfig = android.defaultConfig();
-    assertNotNull(defaultConfig);
-
+    defaultConfig = buildModel.android().defaultConfig();
     assertEquals("minSdkVersion", "16", defaultConfig.minSdkVersion());
     assertEquals("targetSdkVersion", "23", defaultConfig.targetSdkVersion());
     assertEquals("versionCode", "2", defaultConfig.versionCode());
@@ -1458,12 +1313,8 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
 
-    final GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
-    assertNotNull(android);
-
-    ProductFlavorModel defaultConfig = android.defaultConfig();
-    assertNotNull(defaultConfig);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    ProductFlavorModel defaultConfig = buildModel.android().defaultConfig();
 
     assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"),
                  defaultConfig.consumerProguardFiles());
@@ -1483,12 +1334,7 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
     assertEquals("resConfigs", ImmutableList.of("xyz", "efgh"), defaultConfig.resConfigs());
     assertEquals("resValues", ImmutableList.of(new ResValue("abcd", "mnop", "qrst")), defaultConfig.resValues());
 
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
+    applyChanges(buildModel);
     assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android-1.txt", "proguard-rules.pro"),
                  defaultConfig.consumerProguardFiles());
     assertEquals("proguardFiles", ImmutableList.of("proguard-android-1.txt", "proguard-rules.pro"), defaultConfig.proguardFiles());
@@ -1496,12 +1342,7 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
     assertEquals("resValues", ImmutableList.of(new ResValue("abcd", "mnop", "qrst")), defaultConfig.resValues());
 
     buildModel.reparse();
-    android = buildModel.android();
-    assertNotNull(android);
-
-    defaultConfig = android.defaultConfig();
-    assertNotNull(defaultConfig);
-
+    defaultConfig = buildModel.android().defaultConfig();
     assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android-1.txt", "proguard-rules.pro"),
                  defaultConfig.consumerProguardFiles());
     assertEquals("proguardFiles", ImmutableList.of("proguard-android-1.txt", "proguard-rules.pro"), defaultConfig.proguardFiles());
@@ -1517,13 +1358,8 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
 
-    final GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
-    assertNotNull(android);
-
-    ProductFlavorModel defaultConfig = android.defaultConfig();
-    assertNotNull(defaultConfig);
-
+    GradleBuildModel buildModel = getGradleBuildModel();
+    ProductFlavorModel defaultConfig = buildModel.android().defaultConfig();
     assertNull("consumerProguardFiles", defaultConfig.consumerProguardFiles());
     assertNull("proguardFiles", defaultConfig.proguardFiles());
     assertNull("resConfigs", defaultConfig.resConfigs());
@@ -1541,24 +1377,14 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
     assertEquals("resConfigs", ImmutableList.of("abcd"), defaultConfig.resConfigs());
     assertEquals("resValues", ImmutableList.of(new ResValue("mnop", "qrst", "uvwx")), defaultConfig.resValues());
 
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
+    applyChanges(buildModel);
     assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt"), defaultConfig.consumerProguardFiles());
     assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"), defaultConfig.proguardFiles());
     assertEquals("resConfigs", ImmutableList.of("abcd"), defaultConfig.resConfigs());
     assertEquals("resValues", ImmutableList.of(new ResValue("mnop", "qrst", "uvwx")), defaultConfig.resValues());
 
     buildModel.reparse();
-    android = buildModel.android();
-    assertNotNull(android);
-
-    defaultConfig = android.defaultConfig();
-    assertNotNull(defaultConfig);
-
+    defaultConfig = buildModel.android().defaultConfig();
     assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt"), defaultConfig.consumerProguardFiles());
     assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"), defaultConfig.proguardFiles());
     assertEquals("resConfigs", ImmutableList.of("abcd"), defaultConfig.resConfigs());
@@ -1577,12 +1403,8 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
 
-    final GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
-    assertNotNull(android);
-
-    ProductFlavorModel defaultConfig = android.defaultConfig();
-    assertNotNull(defaultConfig);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    ProductFlavorModel defaultConfig = buildModel.android().defaultConfig();
 
     assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"),
                  defaultConfig.consumerProguardFiles());
@@ -1604,12 +1426,7 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
     assertEquals("resValues", ImmutableList.of(new ResValue("abcd", "efgh", "ijkl"), new ResValue("mnop", "qrst", "uvwx")),
                  defaultConfig.resValues());
 
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
+    applyChanges(buildModel);
     assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro", "proguard-android-1.txt"),
                  defaultConfig.consumerProguardFiles());
     assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro", "proguard-android-1.txt"),
@@ -1619,12 +1436,7 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
                  defaultConfig.resValues());
 
     buildModel.reparse();
-    android = buildModel.android();
-    assertNotNull(android);
-
-    defaultConfig = android.defaultConfig();
-    assertNotNull(defaultConfig);
-
+    defaultConfig = buildModel.android().defaultConfig();
     assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro", "proguard-android-1.txt"),
                  defaultConfig.consumerProguardFiles());
     assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro", "proguard-android-1.txt"),
@@ -1647,12 +1459,8 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
 
-    final GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
-    assertNotNull(android);
-
-    ProductFlavorModel defaultConfig = android.defaultConfig();
-    assertNotNull(defaultConfig);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    ProductFlavorModel defaultConfig = buildModel.android().defaultConfig();
 
     assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"),
                  defaultConfig.consumerProguardFiles());
@@ -1672,24 +1480,14 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
     assertEquals("resConfigs", ImmutableList.of("abcd"), defaultConfig.resConfigs());
     assertEquals("resValues", ImmutableList.of(new ResValue("abcd", "efgh", "ijkl")), defaultConfig.resValues());
 
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
+    applyChanges(buildModel);
     assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt"), defaultConfig.consumerProguardFiles());
     assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt"), defaultConfig.proguardFiles());
     assertEquals("resConfigs", ImmutableList.of("abcd"), defaultConfig.resConfigs());
     assertEquals("resValues", ImmutableList.of(new ResValue("abcd", "efgh", "ijkl")), defaultConfig.resValues());
 
     buildModel.reparse();
-    android = buildModel.android();
-    assertNotNull(android);
-
-    defaultConfig = android.defaultConfig();
-    assertNotNull(defaultConfig);
-
+    defaultConfig = buildModel.android().defaultConfig();
     assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt"), defaultConfig.consumerProguardFiles());
     assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt"), defaultConfig.proguardFiles());
     assertEquals("resConfigs", ImmutableList.of("abcd"), defaultConfig.resConfigs());
@@ -1706,12 +1504,8 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
 
-    final GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
-    assertNotNull(android);
-
-    ProductFlavorModel defaultConfig = android.defaultConfig();
-    assertNotNull(defaultConfig);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    ProductFlavorModel defaultConfig = buildModel.android().defaultConfig();
 
     assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt"), defaultConfig.consumerProguardFiles());
     assertEquals("proguardFiles", ImmutableList.of("proguard-rules.pro"), defaultConfig.proguardFiles());
@@ -1723,24 +1517,16 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
     assertEquals("consumerProguardFiles", ImmutableList.of(), defaultConfig.consumerProguardFiles());
     assertEquals("proguardFiles", ImmutableList.of(), defaultConfig.proguardFiles());
 
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
+    applyChanges(buildModel);
     assertEquals("consumerProguardFiles", ImmutableList.of(), defaultConfig.consumerProguardFiles());
     assertEquals("proguardFiles", ImmutableList.of(), defaultConfig.proguardFiles());
 
     buildModel.reparse();
-    android = buildModel.android();
-    assertNotNull(android);
-
-    defaultConfig = android.defaultConfig();
-    assertNotNull(defaultConfig);
-
-    assertEquals("consumerProguardFiles", null, defaultConfig.consumerProguardFiles());
-    assertEquals("proguardFiles", null, defaultConfig.proguardFiles());
+    AndroidModel android = buildModel.android();
+    assertFalse(android.hasValidPsiElement());
+    assertFalse(android.defaultConfig().hasValidPsiElement());
+    assertNull(android.defaultConfig().consumerProguardFiles());
+    assertNull(android.defaultConfig().proguardFiles());
   }
 
   public void testSetAndApplyMapElements() throws Exception {
@@ -1753,13 +1539,8 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
 
-    final GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
-    assertNotNull(android);
-
-    ProductFlavorModel defaultConfig = android.defaultConfig();
-    assertNotNull(defaultConfig);
-
+    GradleBuildModel buildModel = getGradleBuildModel();
+    ProductFlavorModel defaultConfig = buildModel.android().defaultConfig();
     assertEquals("manifestPlaceholders", ImmutableMap.of("key1", "value1", "key2", "value2"), defaultConfig.manifestPlaceholders());
     assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("size", "medium", "foo", "bar"),
                  defaultConfig.testInstrumentationRunnerArguments());
@@ -1774,24 +1555,14 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
     assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("size", "small", "foo", "bar", "key", "value"),
                  defaultConfig.testInstrumentationRunnerArguments());
 
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
+    applyChanges(buildModel);
     assertEquals("manifestPlaceholders", ImmutableMap.of("key1", 12345, "key2", "value2", "key3", true),
                  defaultConfig.manifestPlaceholders());
     assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("size", "small", "foo", "bar", "key", "value"),
                  defaultConfig.testInstrumentationRunnerArguments());
 
     buildModel.reparse();
-    android = buildModel.android();
-    assertNotNull(android);
-
-    defaultConfig = android.defaultConfig();
-    assertNotNull(defaultConfig);
-
+    defaultConfig = buildModel.android().defaultConfig();
     assertEquals("manifestPlaceholders", ImmutableMap.of("key1", 12345, "key2", "value2", "key3", true),
                  defaultConfig.manifestPlaceholders());
     assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("size", "small", "foo", "bar", "key", "value"),
@@ -1806,13 +1577,8 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
 
-    final GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
-    assertNotNull(android);
-
-    ProductFlavorModel defaultConfig = android.defaultConfig();
-    assertNotNull(defaultConfig);
-
+    GradleBuildModel buildModel = getGradleBuildModel();
+    ProductFlavorModel defaultConfig = buildModel.android().defaultConfig();
     assertNull("manifestPlaceholders", defaultConfig.manifestPlaceholders());
     assertNull("testInstrumentationRunnerArguments", defaultConfig.testInstrumentationRunnerArguments());
 
@@ -1826,24 +1592,14 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
     assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("size", "small", "key", "value"),
                  defaultConfig.testInstrumentationRunnerArguments());
 
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
+    applyChanges(buildModel);
     assertEquals("manifestPlaceholders", ImmutableMap.of("activityLabel1", "newName1", "activityLabel2", "newName2"),
                  defaultConfig.manifestPlaceholders());
     assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("size", "small", "key", "value"),
                  defaultConfig.testInstrumentationRunnerArguments());
 
     buildModel.reparse();
-    android = buildModel.android();
-    assertNotNull(android);
-
-    defaultConfig = android.defaultConfig();
-    assertNotNull(defaultConfig);
-
+    defaultConfig = buildModel.android().defaultConfig();
     assertEquals("manifestPlaceholders", ImmutableMap.of("activityLabel1", "newName1", "activityLabel2", "newName2"),
                  defaultConfig.manifestPlaceholders());
     assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("size", "small", "key", "value"),
@@ -1861,11 +1617,7 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     final GradleBuildModel buildModel = getGradleBuildModel();
-    AndroidModel android = buildModel.android();
-    assertNotNull(android);
-
-    ProductFlavorModel defaultConfig = android.defaultConfig();
-    assertNotNull(defaultConfig);
+    ProductFlavorModel defaultConfig = buildModel.android().defaultConfig();
 
     assertEquals("manifestPlaceholders", ImmutableMap.of("activityLabel1", "defaultName1", "activityLabel2", "defaultName2"),
                  defaultConfig.manifestPlaceholders());
@@ -1880,24 +1632,14 @@ public class ProductFlavorModelTest extends GradleFileModelTestCase {
     assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("foo", "bar"),
                  defaultConfig.testInstrumentationRunnerArguments());
 
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
+    applyChanges(buildModel);
     assertEquals("manifestPlaceholders", ImmutableMap.of("activityLabel2", "defaultName2"),
                  defaultConfig.manifestPlaceholders());
     assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("foo", "bar"),
                  defaultConfig.testInstrumentationRunnerArguments());
 
     buildModel.reparse();
-    android = buildModel.android();
-    assertNotNull(android);
-
-    defaultConfig = android.defaultConfig();
-    assertNotNull(defaultConfig);
-
+    defaultConfig = buildModel.android().defaultConfig();
     assertEquals("manifestPlaceholders", ImmutableMap.of("activityLabel2", "defaultName2"),
                  defaultConfig.manifestPlaceholders());
     assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("foo", "bar"),

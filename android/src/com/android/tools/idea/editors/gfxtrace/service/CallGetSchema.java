@@ -34,7 +34,7 @@ final class CallGetSchema implements BinaryObject {
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("service","callGetSchema","","");
+  private static final Entity ENTITY = new Entity("service", "callGetSchema", "", "");
 
   static {
     ENTITY.setFields(new Field[]{
@@ -55,12 +55,10 @@ final class CallGetSchema implements BinaryObject {
 
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
-      CallGetSchema o = (CallGetSchema)obj;
     }
 
     @Override
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
-      CallGetSchema o = (CallGetSchema)obj;
     }
     //<<<End:Java.KlassBody:2>>>
   }

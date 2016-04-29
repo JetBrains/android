@@ -17,19 +17,21 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.memory;
 
-import com.android.tools.rpclib.schema.*;
+import com.android.tools.rpclib.binary.*;
+import com.android.tools.rpclib.schema.Entity;
+import com.android.tools.rpclib.schema.Field;
+import com.android.tools.rpclib.schema.Method;
+import com.android.tools.rpclib.schema.Primitive;
 import org.jetbrains.annotations.NotNull;
-
-import com.android.tools.rpclib.binary.BinaryClass;
-import com.android.tools.rpclib.binary.BinaryID;
-import com.android.tools.rpclib.binary.BinaryObject;
-import com.android.tools.rpclib.binary.Decoder;
-import com.android.tools.rpclib.binary.Encoder;
-import com.android.tools.rpclib.binary.Namespace;
 
 import java.io.IOException;
 
 public final class MemoryPointer implements BinaryObject {
+  @Override
+  public String toString() {
+    return "0x" + Long.toHexString(myAddress) + "@" + myPool;
+  }
+
   //<<<Start:Java.ClassBody:1>>>
   private long myAddress;
   private PoolID myPool;
@@ -60,7 +62,7 @@ public final class MemoryPointer implements BinaryObject {
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("memory","Pointer","","");
+  private static final Entity ENTITY = new Entity("memory", "Pointer", "", "");
 
   static {
     ENTITY.setFields(new Field[]{

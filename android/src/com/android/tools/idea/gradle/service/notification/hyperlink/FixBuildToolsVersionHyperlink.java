@@ -15,14 +15,15 @@
  */
 package com.android.tools.idea.gradle.service.notification.hyperlink;
 
-import com.android.tools.idea.gradle.parser.GradleBuildFile;
+import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
-import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 
-import static com.android.tools.idea.gradle.parser.BuildFileKey.BUILD_TOOLS_VERSION;
+import static com.android.tools.idea.gradle.dsl.model.GradleBuildModel.parseBuildFile;
+import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 
 public class FixBuildToolsVersionHyperlink extends NotificationHyperlink {
   @NotNull private final VirtualFile myBuildFile;
@@ -36,20 +37,25 @@ public class FixBuildToolsVersionHyperlink extends NotificationHyperlink {
 
   @Override
   protected void execute(@NotNull Project project) {
-    fixBuildToolsVersionAndSync(project, myBuildFile, myVersion);
+    setBuildToolsVersion(project, myBuildFile, myVersion, true);
   }
 
-  static void fixBuildToolsVersionAndSync(@NotNull Project project, @NotNull VirtualFile buildFile, @NotNull final String version) {
-    final GradleBuildFile gradleBuildFile = new GradleBuildFile(buildFile, project);
-    Object pluginVersion = gradleBuildFile.getValue(BUILD_TOOLS_VERSION);
-    if (pluginVersion != null) {
-      WriteCommandAction.runWriteCommandAction(project, new Runnable() {
+  static void setBuildToolsVersion(@NotNull Project project, @NotNull VirtualFile buildFile, @NotNull String version, boolean requestSync) {
+    // TODO check that the build file has the 'android' plugin applied.
+    final GradleBuildModel buildModel = parseBuildFile(buildFile, project);
+    AndroidModel android = buildModel.android();
+
+    if (!version.equals(android.buildToolsVersion())) {
+      android.setBuildToolsVersion(version);
+      runWriteCommandAction(project, new Runnable() {
         @Override
         public void run() {
-          gradleBuildFile.setValue(BUILD_TOOLS_VERSION, version);
+          buildModel.applyChanges();
         }
       });
-      GradleProjectImporter.getInstance().requestProjectSync(project, null);
+      if (requestSync) {
+        GradleProjectImporter.getInstance().requestProjectSync(project, null);
+      }
     }
   }
 }

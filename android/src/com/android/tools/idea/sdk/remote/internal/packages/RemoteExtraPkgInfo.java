@@ -17,18 +17,18 @@
 package com.android.tools.idea.sdk.remote.internal.packages;
 
 import com.android.SdkConstants;
-import com.android.annotations.Nullable;
-import com.android.sdklib.SdkManager;
-import com.android.sdklib.repository.FullRevision;
-import com.android.sdklib.repository.NoPreviewRevision;
+import com.android.repository.Revision;
 import com.android.sdklib.repository.PkgProps;
-import com.android.sdklib.repository.descriptors.*;
+import com.android.sdklib.repository.descriptors.IPkgDescExtra;
+import com.android.sdklib.repository.descriptors.PkgDesc;
+import com.android.sdklib.repository.descriptors.PkgDescExtra;
 import com.android.sdklib.repository.local.LocalExtraPkgInfo;
 import com.android.sdklib.repository.local.LocalPkgInfo;
-import com.android.sdklib.repository.local.LocalSdk;
+import com.android.sdklib.repositoryv2.IdDisplay;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.sources.RepoConstants;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Node;
 
 import java.io.File;
@@ -115,7 +115,7 @@ public class RemoteExtraPkgInfo extends RemotePkgInfo implements IMinApiLevelDep
       // The vendor-display name can be empty, in which case we use the vendor-id.
       vname = vid;
     }
-    IdDisplay vendor = new IdDisplay(vid.trim(), vname.trim());
+    IdDisplay vendor = IdDisplay.create(vid.trim(), vname.trim());
 
     if (name.length() == 0) {
       // If name is missing, use the <path> attribute as done in an addon-3 schema.
@@ -129,10 +129,8 @@ public class RemoteExtraPkgInfo extends RemotePkgInfo implements IMinApiLevelDep
 
     mOldPaths = RemotePackageParserUtils.getXmlString(packageNode, RepoConstants.NODE_OLD_PATHS);
 
-    FullRevision revision = getRevision();
-    PkgDesc.Builder pkgDescBuilder = PkgDesc.Builder.newExtra(vendor, mPath, mDisplayName, getOldPaths(),
-                                                              new NoPreviewRevision(revision.getMajor(), revision.getMinor(),
-                                                                                    revision.getMicro()));
+    Revision revision = getRevision();
+    PkgDesc.Builder pkgDescBuilder = PkgDesc.Builder.newExtra(vendor, mPath, mDisplayName, getOldPaths(), revision);
     pkgDescBuilder.setDescriptionShort(createShortDescription(mListDisplay, getRevision(), mDisplayName, isObsolete()));
     pkgDescBuilder.setDescriptionUrl(getDescUrl());
     pkgDescBuilder.setListDisplay(createListDescription(mListDisplay, mDisplayName, isObsolete()));
@@ -204,7 +202,7 @@ public class RemoteExtraPkgInfo extends RemotePkgInfo implements IMinApiLevelDep
    * or {@link #MIN_TOOLS_REV_NOT_SPECIFIED} if there is no such requirement.
    */
   @Override
-  public FullRevision getMinToolsRevision() {
+  public Revision getMinToolsRevision() {
     return mMinToolsMixin.getMinToolsRevision();
   }
 
@@ -327,7 +325,7 @@ public class RemoteExtraPkgInfo extends RemotePkgInfo implements IMinApiLevelDep
   /**
    * Returns a short description for an {@link IDescription}.
    */
-  private static String createShortDescription(String listDisplay, FullRevision revision, String displayName, boolean obsolete) {
+  private static String createShortDescription(String listDisplay, Revision revision, String displayName, boolean obsolete) {
     if (!listDisplay.isEmpty()) {
       return String.format("%1$s, revision %2$s%3$s", listDisplay, revision.toShortString(), obsolete ? " (Obsolete)" : "");
     }
@@ -336,30 +334,6 @@ public class RemoteExtraPkgInfo extends RemotePkgInfo implements IMinApiLevelDep
       String.format("%1$s, revision %2$s%3$s", displayName, revision.toShortString(), obsolete ? " (Obsolete)" : "");  //$NON-NLS-2$
 
     return s;
-  }
-
-  /**
-   * Computes a potential installation folder if an archive of this package were
-   * to be installed right away in the given SDK root.
-   * <p/>
-   * A "tool" package should always be located in SDK/tools.
-   *
-   * @param osSdkRoot  The OS path of the SDK root folder. Must NOT be null.
-   * @param sdkManager An existing SDK manager to list current platforms and addons.
-   *                   Not used in this implementation.
-   * @return A new {@link File} corresponding to the directory to use to install this package.
-   */
-  @Override
-  public File getInstallFolder(String osSdkRoot, SdkManager sdkManager) {
-    // First find if this extra is already installed. If so, reuse the same directory.
-    LocalSdk sdk = sdkManager.getLocalSdk();
-    for (LocalPkgInfo info : sdk.getPkgsInfos(PkgType.PKG_EXTRA)) {
-      if (PkgDescExtra.compatibleVendorAndPath((IPkgDescExtra)mPkgDesc, (IPkgDescExtra)info.getDesc())) {
-        return info.getLocalDir();
-      }
-    }
-
-    return getInstallSubFolder(osSdkRoot);
   }
 
   /**
@@ -429,7 +403,7 @@ public class RemoteExtraPkgInfo extends RemotePkgInfo implements IMinApiLevelDep
   }
 
   @Override
-  public boolean sameItemAs(LocalPkgInfo pkg, FullRevision.PreviewComparison previewComparison) {
+  public boolean sameItemAs(LocalPkgInfo pkg, Revision.PreviewComparison previewComparison) {
     // Extra packages are similar if they have the same path and vendor
     if (pkg instanceof LocalExtraPkgInfo) {
       LocalExtraPkgInfo ep = (LocalExtraPkgInfo)pkg;

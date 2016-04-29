@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.updater.configure;
 
+import com.android.repository.api.RepoPackage;
+import com.android.repository.api.UpdatablePackage;
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.repository.PkgProps;
-import com.android.sdklib.repository.descriptors.PkgType;
-import com.android.tools.idea.sdk.remote.RemotePkgInfo;
-import com.android.tools.idea.sdk.remote.UpdatablePkgInfo;
-import com.android.tools.idea.sdk.remote.internal.packages.RemotePlatformPkgInfo;
+import com.android.sdklib.repositoryv2.meta.DetailsTypes;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
@@ -33,12 +31,14 @@ import com.intellij.ui.treeStructure.treetable.TreeColumnInfo;
 import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.ColumnInfo;
 import com.intellij.util.ui.tree.TreeUtil;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Set;
@@ -53,10 +53,9 @@ public class PlatformComponentsPanel {
   private JCheckBox myPlatformDetailsCheckbox;
   private JPanel myPlatformLoadingPanel;
   private JBLabel myPlatformLoadingLabel;
-  private AsyncProcessIcon myPlatformLoadingIcon;
-  private JPanel myRootPanel;
+  @SuppressWarnings("unused") private AsyncProcessIcon myPlatformLoadingIcon;
+  @SuppressWarnings("unused") private JPanel myRootPanel;
   private boolean myModified;
-  private boolean myIncludePreview;
 
   private UpdaterTreeNode myPlatformDetailsRootNode;
   private UpdaterTreeNode myPlatformSummaryRootNode;
@@ -64,7 +63,7 @@ public class PlatformComponentsPanel {
   Set<NodeStateHolder> myStates = Sets.newHashSet();
 
   // map of versions to current subpackages
-  Multimap<AndroidVersion, UpdatablePkgInfo> myCurrentPackages = TreeMultimap.create();
+  private final Multimap<AndroidVersion, UpdatablePackage> myCurrentPackages = TreeMultimap.create();
 
   private final ChangeListener myModificationListener = new ChangeListener() {
     @Override
@@ -96,38 +95,23 @@ public class PlatformComponentsPanel {
     List<AndroidVersion> versions = Lists.newArrayList(myCurrentPackages.keySet());
     versions = Lists.reverse(versions);
     for (AndroidVersion version : versions) {
-      String androidVersion = null;
-      for (UpdatablePkgInfo info : myCurrentPackages.get(version)) {
-        String maybeVersion = null;
-        if (info.hasLocal()) {
-          maybeVersion = info.getLocalInfo().getSourceProperties().getProperty(PkgProps.PLATFORM_VERSION);
-        }
-        else {
-          RemotePkgInfo remote = info.getRemote(true);
-          if (remote instanceof RemotePlatformPkgInfo) {
-            maybeVersion = ((RemotePlatformPkgInfo)remote).getVersionName();
-          }
-        }
-        if (maybeVersion != null) {
-          androidVersion = maybeVersion;
-        }
-      }
       Set<UpdaterTreeNode> versionNodes = Sets.newHashSet();
-      UpdaterTreeNode marker = new ParentTreeNode(version, androidVersion);
+      UpdaterTreeNode marker = new ParentTreeNode(version);
       myPlatformDetailsRootNode.add(marker);
       boolean obsolete = false;
-      for (UpdatablePkgInfo info : myCurrentPackages.get(version)) {
+      for (UpdatablePackage info : myCurrentPackages.get(version)) {
+        RepoPackage pkg = info.getRepresentative();
         NodeStateHolder holder = new NodeStateHolder(info);
         myStates.add(holder);
-        UpdaterTreeNode node = new PlatformDetailsTreeNode(holder, myIncludePreview, myModificationListener);
+        UpdaterTreeNode node = new PlatformDetailsTreeNode(holder, myModificationListener);
         marker.add(node);
         versionNodes.add(node);
-        if (info.getPkgDesc(myIncludePreview).isObsolete() && info.getPkgDesc(myIncludePreview).getType() == PkgType.PKG_PLATFORM) {
+        if (pkg.obsolete() && pkg.getTypeDetails() instanceof DetailsTypes.PlatformDetailsType) {
           obsolete = true;
         }
       }
       if (!obsolete) {
-        SummaryTreeNode node = SummaryTreeNode.createNode(version, versionNodes, androidVersion);
+        SummaryTreeNode node = SummaryTreeNode.createNode(version, versionNodes);
         if (node != null) {
           myPlatformSummaryRootNode.add(node);
         }
@@ -171,8 +155,9 @@ public class PlatformComponentsPanel {
     SdkUpdaterConfigPanel.setTreeTableProperties(myPlatformDetailTable, renderer, myModificationListener);
   }
 
-  public void setPackages(Multimap<AndroidVersion, UpdatablePkgInfo> packages) {
-    myCurrentPackages = packages;
+  public void setPackages(@NotNull Multimap<AndroidVersion, UpdatablePackage> packages) {
+    myCurrentPackages.clear();
+    myCurrentPackages.putAll(packages);
     updatePlatformItems();
   }
 
@@ -202,13 +187,6 @@ public class PlatformComponentsPanel {
 
   public void clearState() {
     myStates.clear();
-  }
-
-  /**
-   * After changing whether previews are included, setPackages() must be called again with appropriately filtered packages.
-   */
-  public void setIncludePreview(boolean includePreview) {
-    myIncludePreview = includePreview;
   }
 
   public void setEnabled(boolean enabled) {

@@ -66,7 +66,9 @@ public class IdeSdksTest extends IdeaTestCase {
   }
 
   @Override
-  protected void checkForSettingsDamage(@NotNull List<Throwable> exceptions) { }
+  protected void checkForSettingsDamage(@NotNull List<Throwable> exceptions) {
+    // for this test we don't care for this check
+  }
 
   public void testCreateAndroidSdkPerAndroidTarget() {
     List<Sdk> sdks = IdeSdks.createAndroidSdkPerAndroidTarget(myAndroidSdkPath);
@@ -90,7 +92,7 @@ public class IdeSdksTest extends IdeaTestCase {
     assertEquals(sdks.size(), eligibleSdks.size());
   }
 
-  public void testSetAndroiSdkPathUpdatingLocalPropertiesFile() throws IOException {
+  public void testSetAndroidSdkPathUpdatingLocalPropertiesFile() throws IOException {
     LocalProperties localProperties = new LocalProperties(myProject);
     localProperties.setAndroidSdkPath("");
     localProperties.save();

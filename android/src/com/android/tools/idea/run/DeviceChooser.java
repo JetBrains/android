@@ -22,6 +22,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.ddms.DeviceRenderer;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.run.util.LaunchUtils;
 import com.google.common.base.Predicate;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ide.CopyPasteManager;
@@ -473,8 +474,8 @@ public class DeviceChooser implements Disposable, AndroidDebugBridge.IDebugBridg
           return getDeviceState(device);
         case COMPATIBILITY_COLUMN_INDEX:
           // This value is also used in the method isRowCompatible(). Update that if there's a change here.
-          return LaunchCompatibility
-            .canRunOnDevice(myMinSdkVersion, myProjectTarget, myRequiredHardwareFeatures, new ConnectedAndroidDevice(device, null), null);
+          AndroidDevice connectedDevice = new ConnectedAndroidDevice(device, null);
+          return connectedDevice.canRun(myMinSdkVersion, myProjectTarget, myRequiredHardwareFeatures);
       }
       return null;
     }

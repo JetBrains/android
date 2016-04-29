@@ -20,6 +20,7 @@ import com.intellij.ide.actions.ShowStructureSettingsAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
+import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
 import static com.android.tools.idea.gradle.util.Projects.requiresAndroidModel;
@@ -43,15 +44,19 @@ public class AndroidShowStructureSettingsAction extends ShowStructureSettingsAct
     Project project = e.getProject();
     if (project == null && isAndroidStudio()) {
       project = ProjectManager.getInstance().getDefaultProject();
-      AndroidProjectStructureConfigurable.getInstance(project).showDialog();
+      showAndroidProjectStructure(project);
       return;
     }
 
     if (project != null && isBuildWithGradle(project)) {
-      AndroidProjectStructureConfigurable.getInstance(project).showDialog();
+      showAndroidProjectStructure(project);
       return;
     }
 
     super.actionPerformed(e);
+  }
+
+  private static void showAndroidProjectStructure(@NotNull Project project) {
+    AndroidProjectStructureConfigurable.getInstance(project).showDialog();
   }
 }

@@ -20,6 +20,8 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.ManifestInfo;
+import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep;
+import com.android.tools.idea.npw.template.RenderTemplateModel;
 import com.android.tools.idea.templates.*;
 import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardPath;
@@ -67,6 +69,8 @@ import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
 
 /**
  * Wizard path for adding a new activity.
+ *
+ * @deprecated Replaced by {@link RenderTemplateModel} and {@link ConfigureTemplateParametersStep}.
  */
 public final class AddAndroidActivityPath extends DynamicWizardPath {
   public static final Key<Boolean> KEY_IS_LAUNCHER = createKey("is.launcher.activity", PATH, Boolean.class);
@@ -334,7 +338,7 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
       addStep(galleryStep);
     }
     else {
-      TemplateMetadata templateMetadata = TemplateManager.getInstance().getTemplate(myTemplate);
+      TemplateMetadata templateMetadata = TemplateManager.getInstance().getTemplateMetadata(myTemplate);
       assert templateMetadata != null;
       myState.put(KEY_SELECTED_TEMPLATE, new TemplateEntry(myTemplate, templateMetadata));
     }

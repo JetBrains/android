@@ -108,7 +108,7 @@ public class SetupJdkPath extends DynamicWizardPath {
     return true;
   }
 
-  public boolean showsStep() {
+  boolean shouldDownloadingComponentsStepBeShown() {
     return isPathVisible() && myJdkLocationStep.isStepVisible();
   }
 }

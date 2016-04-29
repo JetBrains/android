@@ -18,8 +18,9 @@ package com.android.tools.idea.gradle;
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.*;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.repository.FullRevision;
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.lint.detector.api.LintUtils;
@@ -53,6 +54,7 @@ import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.fin
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
+import static com.intellij.util.ArrayUtil.contains;
 
 /**
  * Contains Android-Gradle related state necessary for configuring an IDEA project based on a user-selected build variant.
@@ -65,11 +67,14 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
   private static final long serialVersionUID = 1L;
   private static final Logger LOG = Logger.getInstance(AndroidGradleModel.class);
 
+  private static final String[] TEST_ARTIFACT_NAMES = {ARTIFACT_UNIT_TEST, ARTIFACT_ANDROID_TEST};
+
   @NotNull private ProjectSystemId myProjectSystemId;
   @NotNull private String myModuleName;
   @NotNull private File myRootDirPath;
   @NotNull private AndroidProject myAndroidProject;
 
+  @Nullable private transient GradleVersion myModelVersion;
   @Nullable private transient CountDownLatch myProxyAndroidProjectLatch;
   @Nullable private AndroidProject myProxyAndroidProject;
 
@@ -110,6 +115,8 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
     myRootDirPath = rootDirPath;
     myAndroidProject = androidProject;
 
+    parseAndSetModelVersion();
+
     // Compute the proxy object to avoid re-proxying the model during every serialization operation and also schedule it to run
     // asynchronously to avoid blocking the project sync operation for reproxying to complete.
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
@@ -149,19 +156,24 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
     }
   }
 
+  @Nullable
+  public GradleVersion getModelVersion() {
+    return myModelVersion;
+  }
+
   @NotNull
   public AndroidArtifact getMainArtifact() {
     return getSelectedVariant().getMainArtifact();
   }
 
-  @NotNull
   @Override
+  @NotNull
   public SourceProvider getDefaultSourceProvider() {
     return getAndroidProject().getDefaultConfig().getSourceProvider();
   }
 
-  @NotNull
   @Override
+  @NotNull
   public List<SourceProvider> getActiveSourceProviders() {
     return getMainSourceProviders(mySelectedVariantName);
   }
@@ -205,53 +217,123 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
   }
 
   @NotNull
+  public Collection<SourceProvider> getTestSourceProviders(@NotNull Iterable<SourceProviderContainer> containers) {
+    if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
+      return getSourceProvidersForArtifacts(containers, TEST_ARTIFACT_NAMES);
+    }
+    return getSourceProvidersForArtifacts(containers, mySelectedTestArtifactName);
+  }
+
   @Override
+  @NotNull
   public List<SourceProvider> getTestSourceProviders() {
-    return getTestSourceProviders(mySelectedVariantName, mySelectedTestArtifactName);
+    if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
+      return getTestSourceProviders(mySelectedVariantName, TEST_ARTIFACT_NAMES);
+    }
+    return getTestSourceProviders(mySelectedTestArtifactName);
   }
 
   @NotNull
-  public List<SourceProvider> getTestSourceProviders(@NotNull String variantName, @NotNull String testArtifactName) {
-    if (!testArtifactName.equals(ARTIFACT_ANDROID_TEST) && !testArtifactName.equals(ARTIFACT_UNIT_TEST)) {
-      LOG.error("Unknown artifact name '" + testArtifactName + "' found in the module '" + myModuleName + "'");
-      return ImmutableList.of();
-    }
+  public List<SourceProvider> getTestSourceProviders(@NotNull String artifactName) {
+    return getTestSourceProviders(mySelectedVariantName, artifactName);
+  }
 
-    Variant variant = myVariantsByName.get(variantName);
-    if (variant == null) {
-      LOG.error("Unknown variant name '" + variantName + "' found in the module '" + myModuleName + "'");
-      return ImmutableList.of();
-    }
+  @NotNull
+  public List<SourceProvider> getTestSourceProviders(@NotNull String variantName, @NotNull String...testArtifactNames) {
+    validateTestArtifactNames(testArtifactNames);
 
     List<SourceProvider> providers = Lists.newArrayList();
     // Collect the default config test source providers.
-    Collection<SourceProviderContainer> extraSourceProviders =
-      getAndroidProject().getDefaultConfig().getExtraSourceProviders();
-    providers.addAll(getSourceProvidersForTestArtifact(extraSourceProviders, testArtifactName));
+    Collection<SourceProviderContainer> extraSourceProviders = getAndroidProject().getDefaultConfig().getExtraSourceProviders();
+    providers.addAll(getSourceProvidersForArtifacts(extraSourceProviders, testArtifactNames));
+
+    Variant variant = myVariantsByName.get(variantName);
+    assert variant != null;
 
     // Collect the product flavor test source providers.
     for (String flavor : variant.getProductFlavors()) {
       ProductFlavorContainer productFlavor = findProductFlavor(flavor);
       assert productFlavor != null;
-      providers.addAll(
-        getSourceProvidersForTestArtifact(productFlavor.getExtraSourceProviders(), testArtifactName));
+      providers.addAll(getSourceProvidersForArtifacts(productFlavor.getExtraSourceProviders(), testArtifactNames));
     }
-
-    // TODO: Does it make sense to add multi-flavor test source providers?
 
     // Collect the build type test source providers.
     BuildTypeContainer buildType = findBuildType(variant.getBuildType());
     assert buildType != null;
-    providers.addAll(
-      getSourceProvidersForTestArtifact(buildType.getExtraSourceProviders(), testArtifactName));
+    providers.addAll(getSourceProvidersForArtifacts(buildType.getExtraSourceProviders(), testArtifactNames));
 
+    // TODO: Does it make sense to add multi-flavor test source providers?
     // TODO: Does it make sense to add variant test source providers?
-
     return providers;
   }
 
+  private static void validateTestArtifactNames(@NotNull String[] testArtifactNames) {
+    for (String name : testArtifactNames) {
+      if (!isTestArtifact(name)) {
+        String msg = String.format("'%1$s' is not a test artifact", name);
+        throw new IllegalArgumentException(msg);
+      }
+    }
+  }
+
   @NotNull
+  public Collection<BaseArtifact> getTestArtifactsInSelectedVariant() {
+    Set<BaseArtifact> testArtifacts = Sets.newHashSet();
+    Variant selectedVariant = getSelectedVariant();
+    for (BaseArtifact artifact : selectedVariant.getExtraAndroidArtifacts()) {
+      if (isTestArtifact(artifact)) {
+        testArtifacts.add(artifact);
+      }
+    }
+    for (BaseArtifact artifact : selectedVariant.getExtraJavaArtifacts()) {
+      if (isTestArtifact(artifact)) {
+        testArtifacts.add(artifact);
+      }
+    }
+    return testArtifacts;
+  }
+
+  @Nullable
+  public AndroidArtifact getAndroidTestArtifactInSelectedVariant() {
+    if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
+      for (AndroidArtifact artifact : getSelectedVariant().getExtraAndroidArtifacts()) {
+        if (isTestArtifact(artifact)) {
+          return artifact;
+        }
+      }
+    }
+    else if (ARTIFACT_ANDROID_TEST.equals(getSelectedTestArtifactName())) {
+      return (AndroidArtifact)findSelectedTestArtifactInSelectedVariant();
+    }
+    return null;
+  }
+
+  @Nullable
+  public JavaArtifact getUnitTestArtifactInSelectedVariant() {
+    if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
+      for (JavaArtifact artifact : getSelectedVariant().getExtraJavaArtifacts()) {
+        if (isTestArtifact(artifact)) {
+          return artifact;
+        }
+      }
+    }
+    else if (ARTIFACT_UNIT_TEST.equals(getSelectedTestArtifactName())) {
+      return (JavaArtifact)findSelectedTestArtifactInSelectedVariant();
+    }
+    return null;
+  }
+
+  public static boolean isTestArtifact(@NotNull BaseArtifact artifact) {
+    String artifactName = artifact.getName();
+    return isTestArtifact(artifactName);
+  }
+
+  private static boolean isTestArtifact(@Nullable String artifactName) {
+    return contains(artifactName, TEST_ARTIFACT_NAMES);
+  }
+
   @Override
+  @NotNull
   public List<SourceProvider> getAllSourceProviders() {
     Collection<Variant> variants = myAndroidProject.getVariants();
     List<SourceProvider> providers = Lists.newArrayList();
@@ -499,10 +581,28 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
    * @return the proxy object of the imported Android-Gradle project.
    */
   @NotNull
-  AndroidProject getProxyAndroidProject() {
-    waitForAndroidProjectProxy();
+  public AndroidProject waitForAndGetProxyAndroidProject() {
+    waitForProxyAndroidProject();
     assert myProxyAndroidProject != null;
     return myProxyAndroidProject;
+  }
+
+  /**
+   * A proxy object of the Android-Gradle project is created and maintained for persisting the Android model data. The same proxy object is
+   * also used to visualize the model information in {@link InternalAndroidModelView}.
+   *
+   * <p>This method will return immediately if the proxy operation is already completed, or will be blocked until that is completed.
+   */
+  public void waitForProxyAndroidProject() {
+    if (myProxyAndroidProjectLatch != null) {
+      try {
+        myProxyAndroidProjectLatch.await();
+      }
+      catch (InterruptedException e) {
+        LOG.error(e);
+        Thread.currentThread().interrupt();
+      }
+    }
   }
 
   /**
@@ -551,21 +651,17 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
   }
 
   @NotNull
-  public Collection<SourceProvider> getSourceProvidersForSelectedTestArtifact(@NotNull Iterable<SourceProviderContainer> containers) {
-    return getSourceProvidersForTestArtifact(containers, mySelectedTestArtifactName);
-  }
-
-  @NotNull
-  public Collection<SourceProvider> getSourceProvidersForTestArtifact(@NotNull Iterable<SourceProviderContainer> containers,
-                                                                      @NotNull String testArtifactName) {
+  private static Collection<SourceProvider> getSourceProvidersForArtifacts(@NotNull Iterable<SourceProviderContainer> containers,
+                                                                           @NotNull String...artifactNames) {
     Set<SourceProvider> providers = Sets.newHashSet();
-
     for (SourceProviderContainer container : containers) {
-      if (testArtifactName.equals(container.getArtifactName())) {
-        providers.add(container.getSourceProvider());
+      for (String artifactName : artifactNames) {
+        if (artifactName.equals(container.getArtifactName())) {
+          providers.add(container.getSourceProvider());
+          break;
+        }
       }
     }
-
     return providers;
   }
 
@@ -685,15 +781,7 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
   }
 
   private boolean supportsIssueReporting() {
-    String original = myAndroidProject.getModelVersion();
-    FullRevision modelVersion;
-    try {
-      modelVersion = FullRevision.parseRevision(original);
-    } catch (NumberFormatException e) {
-      Logger.getInstance(AndroidGradleModel.class).warn("Failed to parse '" + original + "'", e);
-      return false;
-    }
-    return modelVersion.compareTo(FullRevision.parseRevision("1.1.0")) >= 0;
+    return myModelVersion != null && myModelVersion.compareTo("1.1.0") >= 0;
   }
 
   @Nullable
@@ -811,21 +899,11 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
     }
   }
 
-  private void waitForAndroidProjectProxy() {
-    if (myProxyAndroidProjectLatch != null) {
-      try {
-        // If required, wait for the proxy operation to complete.
-        myProxyAndroidProjectLatch.await();
-      }
-      catch (InterruptedException e) {
-        LOG.error(e);
-        Thread.currentThread().interrupt();
-      }
-    }
-  }
-
   private void writeObject(ObjectOutputStream out) throws IOException {
-    waitForAndroidProjectProxy();
+    // Avoid persisting the model when the proxy object is not ready.
+    if(myProxyAndroidProject == null) {
+      return;
+    }
 
     out.writeObject(myProjectSystemId);
     out.writeObject(myModuleName);
@@ -840,6 +918,9 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
     myModuleName = (String)in.readObject();
     myRootDirPath = (File)in.readObject();
     myAndroidProject = (AndroidProject)in.readObject();
+
+    parseAndSetModelVersion();
+
     myProxyAndroidProject = myAndroidProject;
 
     myBuildTypesByName = Maps.newHashMap();
@@ -853,6 +934,11 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
 
     setSelectedVariantName((String)in.readObject());
     setSelectedTestArtifactName((String)in.readObject());
+  }
+
+  private void parseAndSetModelVersion() {
+    // Old plugin versions do not return model version.
+    myModelVersion = GradleVersion.tryParse(myAndroidProject.getModelVersion());
   }
 
   @Nullable
@@ -913,8 +999,13 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
     state.SELECTED_TEST_ARTIFACT = getSelectedTestArtifactName();
 
     AndroidArtifact mainArtifact = variant.getMainArtifact();
-    BaseArtifact testArtifact = findSelectedTestArtifactInSelectedVariant();
-    updateGradleTaskNames(state, mainArtifact, testArtifact);
+
+    if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
+      // When multi test artifacts are enabled, test tasks are computed dynamically.
+      updateGradleTaskNames(state, mainArtifact, null);
+    } else {
+      updateGradleTaskNames(state, mainArtifact, findSelectedTestArtifactInSelectedVariant());
+    }
   }
 
   @VisibleForTesting
@@ -936,7 +1027,8 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
     }
   }
 
-  private static @NotNull Set<String> getIdeSetupTasks(@NotNull BaseArtifact artifact) {
+  @NotNull
+  public static Set<String> getIdeSetupTasks(@NotNull BaseArtifact artifact) {
     try {
       // This method was added in 1.1 - we have to handle the case when it's missing on the Gradle side.
       return artifact.getIdeSetupTaskNames();

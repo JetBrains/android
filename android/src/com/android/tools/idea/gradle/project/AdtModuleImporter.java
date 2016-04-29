@@ -16,10 +16,9 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.eclipse.GradleImport;
 import com.android.tools.idea.gradle.eclipse.AdtImportBuilder;
 import com.android.tools.idea.gradle.eclipse.AdtImportProvider;
-import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.gradle.eclipse.GradleImport;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -29,41 +28,49 @@ import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
-import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static com.android.tools.idea.gradle.eclipse.GradleImport.isAdtProjectDir;
+import static com.android.tools.idea.gradle.util.GradleUtil.getDefaultPhysicalPathFromGradlePath;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 /**
  * Creates new project modules from existing Android Eclipse projects.
  */
 public final class AdtModuleImporter extends ModuleImporter {
-  private final WizardContext myContext;
-  private List<ModuleWizardStep> myWizardSteps;
-  private final AdtImportProvider myProvider;
+  @NotNull private final WizardContext myContext;
+  @NotNull private final AdtImportProvider myProvider;
 
-  public AdtModuleImporter(WizardContext context) {
+  private List<ModuleWizardStep> myWizardSteps;
+
+  public AdtModuleImporter(@NotNull WizardContext context) {
     super();
     myContext = context;
     myProvider = new AdtImportProvider(false);
     myContext.setProjectBuilder(myProvider.getBuilder());
   }
 
-  public static boolean isAdtProjectLocation(VirtualFile importSource) {
+  public static boolean isAdtProjectLocation(@NotNull VirtualFile importSource) {
     VirtualFile target = ProjectImportUtil.findImportTarget(importSource);
     if (target == null) {
       return false;
     }
     VirtualFile targetDir = target.isDirectory() ? target : target.getParent();
-    File targetDirFile = VfsUtilCore.virtualToIoFile(targetDir);
-    return GradleImport.isAdtProjectDir(targetDirFile) && targetDir.findChild(SdkConstants.FN_BUILD_GRADLE) == null;
+    File targetDirFile = virtualToIoFile(targetDir);
+    return isAdtProjectDir(targetDirFile) && targetDir.findChild(SdkConstants.FN_BUILD_GRADLE) == null;
   }
 
   @Override
+  @NotNull
   public List<? extends ModuleWizardStep> createWizardSteps() {
     ModuleWizardStep[] adtImportSteps = myProvider.createSteps(myContext);
     myWizardSteps = Lists.newArrayList(adtImportSteps);
@@ -79,8 +86,7 @@ public final class AdtModuleImporter extends ModuleImporter {
     GradleImport importer = getGradleImport();
     ImmutableMap.Builder<File, String> modules = ImmutableMap.builder();
     for (Map.Entry<String, VirtualFile> entry : projects.entrySet()) {
-      modules.put(VfsUtilCore.virtualToIoFile(entry.getValue()),
-                  GradleUtil.getDefaultPhysicalPathFromGradlePath(entry.getKey()));
+      modules.put(virtualToIoFile(entry.getValue()), getDefaultPhysicalPathFromGradlePath(entry.getKey()));
     }
 
     importer.setImportModuleNames(modules.build());
@@ -108,21 +114,22 @@ public final class AdtModuleImporter extends ModuleImporter {
   }
 
   @Override
-  public boolean canImport(VirtualFile importSource) {
+  public boolean canImport(@NotNull VirtualFile importSource) {
     return isAdtProjectLocation(importSource);
   }
 
   @Override
-  public Set<ModuleToImport> findModules(VirtualFile importSource) throws IOException {
+  @NotNull
+  public Set<ModuleToImport> findModules(@NotNull VirtualFile importSource) throws IOException {
     final AdtImportBuilder builder = (AdtImportBuilder)myContext.getProjectBuilder();
     assert builder != null;
-    builder.setSelectedProject(VfsUtilCore.virtualToIoFile(importSource));
+    builder.setSelectedProject(virtualToIoFile(importSource));
     final GradleImport gradleImport = getGradleImport();
-    gradleImport.importProjects(Collections.singletonList(VfsUtilCore.virtualToIoFile(importSource)));
+    gradleImport.importProjects(Collections.singletonList(virtualToIoFile(importSource)));
     Map<String, File> adtProjects = gradleImport.getDetectedModuleLocations();
     Set<ModuleToImport> modules = Sets.newHashSet();
     for (final Map.Entry<String, File> entry : adtProjects.entrySet()) {
-      VirtualFile location = VfsUtil.findFileByIoFile(entry.getValue(), false);
+      VirtualFile location = findFileByIoFile(entry.getValue(), false);
       modules.add(new ModuleToImport(entry.getKey(), location, new Supplier<Iterable<String>>() {
         @Override
         public Iterable<String> get() {
@@ -134,7 +141,7 @@ public final class AdtModuleImporter extends ModuleImporter {
   }
 
   @Override
-  public boolean isStepVisible(ModuleWizardStep step) {
+  public boolean isStepVisible(@NotNull ModuleWizardStep step) {
     return myWizardSteps.contains(step);
   }
 

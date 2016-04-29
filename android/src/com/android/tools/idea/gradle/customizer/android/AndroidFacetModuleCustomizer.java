@@ -32,6 +32,7 @@ import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 import java.io.File;
 import java.util.Collection;
 
+import static com.android.tools.idea.gradle.util.Facets.findFacet;
 import static com.android.tools.idea.gradle.util.Facets.removeAllFacetsOfType;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.intellij.openapi.util.io.FileUtilRt.getRelativePath;
@@ -50,22 +51,22 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer<AndroidGra
   public void customizeModule(@NotNull Project project,
                               @NotNull Module module,
                               @NotNull IdeModifiableModelsProvider modelsProvider,
-                              @Nullable AndroidGradleModel androidProject) {
-    if (androidProject == null) {
+                              @Nullable AndroidGradleModel androidModel) {
+    if (androidModel == null) {
       removeAllFacetsOfType(AndroidFacet.ID, modelsProvider.getModifiableFacetModel(module));
     }
     else {
-      AndroidFacet facet = AndroidFacet.getInstance(module);
+      AndroidFacet facet = findFacet(module, modelsProvider, AndroidFacet.ID);
       if (facet != null) {
-        configureFacet(facet, androidProject);
+        configureFacet(facet, androidModel);
       }
       else {
         // Module does not have Android facet. Create one and add it.
         ModifiableFacetModel model = modelsProvider.getModifiableFacetModel(module);
-        final AndroidFacetType facetType = AndroidFacet.getFacetType();
+        AndroidFacetType facetType = AndroidFacet.getFacetType();
         facet = facetType.createFacet(module, AndroidFacet.NAME, facetType.createDefaultConfiguration(), null);
         model.addFacet(facet);
-        configureFacet(facet, androidProject);
+        configureFacet(facet, androidModel);
       }
     }
   }

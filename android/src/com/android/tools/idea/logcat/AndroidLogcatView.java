@@ -17,6 +17,7 @@ package com.android.tools.idea.logcat;
 
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.actions.BrowserHelpAction;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.intellij.diagnostic.logging.LogConsoleBase;
 import com.intellij.diagnostic.logging.LogFormatter;
@@ -189,7 +190,7 @@ public abstract class AndroidLogcatView implements Disposable {
             boolean reselect = myFilterComboBoxModel.getSelectedItem() == mySelectedAppFilter;
             AndroidConfiguredLogFilters.FilterEntry f;
             if (c != null) {
-              f = AndroidConfiguredLogFilters.getInstance(myProject).createFilterForProcess(c.getClientData().getPid());
+              f = AndroidConfiguredLogFilters.getInstance(myProject).createFilterForClient(c.getClientData());
             }
             else {
               f = new AndroidConfiguredLogFilters.FilterEntry();
@@ -415,7 +416,7 @@ public abstract class AndroidLogcatView implements Disposable {
   }
 
   final class AndroidLogConsole extends LogConsoleBase implements AndroidConsoleWriter {
-      private final RegexFilterComponent myRegexFilterComponent = new RegexFilterComponent("LOG_FILTER_HISTORY", 5, true);
+      private final RegexFilterComponent myRegexFilterComponent = new RegexFilterComponent("LOG_FILTER_HISTORY", 5);
       private final AndroidLogcatPreferences myPreferences;
 
     public AndroidLogConsole(Project project, AndroidLogFilterModel logFilterModel, LogFormatter logFormatter) {
@@ -426,6 +427,8 @@ public abstract class AndroidLogcatView implements Disposable {
         c.addCustomConsoleAction(new Separator());
         c.addCustomConsoleAction(new MyRestartAction());
         c.addCustomConsoleAction(new MyConfigureLogcatHeaderAction());
+        c.addCustomConsoleAction(new Separator());
+        c.addCustomConsoleAction(new BrowserHelpAction("logcat", "http://developer.android.com/r/studio-ui/am-logcat.html"));
       }
       myPreferences = AndroidLogcatPreferences.getInstance(project);
       myRegexFilterComponent.setFilter(myPreferences.TOOL_WINDOW_CUSTOM_FILTER);

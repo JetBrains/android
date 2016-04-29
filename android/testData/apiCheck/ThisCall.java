@@ -1,4 +1,4 @@
-<error descr="The SDK platform-tools version ((16.0.2)) is too old  to check APIs compiled with API 17; please update">package p1.p2;</error>
+package p1.p2;
 
 import android.app.Activity;
 import android.app.Service;

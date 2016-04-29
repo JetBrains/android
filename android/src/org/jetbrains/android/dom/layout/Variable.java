@@ -17,16 +17,17 @@ package org.jetbrains.android.dom.layout;
 
 import com.intellij.psi.PsiClass;
 import com.intellij.util.xml.*;
+import org.jetbrains.android.dom.converters.DataBindingConverter;
 import org.jetbrains.android.dom.converters.PackageClassConverter;
 
 @DefinesXml
-public interface Variable extends LayoutElement {
+public interface Variable extends LayoutElement, DataBindingElement {
   @Attribute("name")
   @Required
   GenericAttributeValue<String> getName();
 
   @Attribute("type")
   @Required
-  @Convert(value=PackageClassConverter.class, soft=true)
+  @Convert(value=DataBindingConverter.class, soft=false)
   GenericAttributeValue<PsiClass> getType();
 }

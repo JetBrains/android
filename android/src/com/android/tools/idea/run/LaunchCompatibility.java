@@ -19,8 +19,9 @@ import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.ddms.DevicePropertyUtil;
+import com.android.sdklib.ISystemImage;
 import com.google.common.base.Objects;
+import com.intellij.ide.util.treeView.TreeState;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ThreeState;
 import org.jetbrains.annotations.NonNls;
@@ -36,10 +37,24 @@ public class LaunchCompatibility {
   private final ThreeState myCompatible;
   private final String myReason;
 
-  @VisibleForTesting
+  public static final LaunchCompatibility YES = new LaunchCompatibility(ThreeState.YES, null);
+
   public LaunchCompatibility(ThreeState compatible, @Nullable String reason) {
     myCompatible = compatible;
     myReason = reason;
+  }
+
+  public LaunchCompatibility combine(@NotNull LaunchCompatibility other) {
+    if (myCompatible == ThreeState.NO) {
+      return this;
+    }
+    if (other.myCompatible == ThreeState.NO) {
+      return other;
+    }
+    if (myCompatible == ThreeState.UNSURE) {
+      return this;
+    }
+    return other;
   }
 
   public ThreeState isCompatible() {
@@ -68,8 +83,6 @@ public class LaunchCompatibility {
     return Objects.hashCode(myCompatible, myReason);
   }
 
-  private static final LaunchCompatibility YES = new LaunchCompatibility(ThreeState.YES, null);
-
   /**
    * Returns whether an application with the given requirements can be run on the given device.
    *
@@ -77,7 +90,6 @@ public class LaunchCompatibility {
    * @param projectTarget    android target corresponding to the targetSdkVersion
    * @param requiredFeatures required list of hardware features
    * @param device           the device to check compatibility against
-   * @param avdTarget        the target platform corresponding to the AVD, if the device happens to be an emulator
    * @return a {@link ThreeState} indicating whether the application can be run on the device, and a reason if it isn't
    * compatible.
    */
@@ -85,13 +97,12 @@ public class LaunchCompatibility {
   public static LaunchCompatibility canRunOnDevice(@NotNull AndroidVersion minSdkVersion,
                                                    @NotNull IAndroidTarget projectTarget,
                                                    @NotNull EnumSet<IDevice.HardwareFeature> requiredFeatures,
-                                                   @NotNull AndroidDevice device,
-                                                   @Nullable IAndroidTarget avdTarget) {
+                                                   @NotNull AndroidDevice device) {
     // check if the device has the required minApi
     // note that in cases where targetSdk is a preview platform, gradle sets minsdk to be the same as targetsdk,
     // so as to only allow running on those systems
     AndroidVersion deviceVersion = device.getVersion();
-    if (!deviceVersion.canRun(minSdkVersion)) {
+    if (!deviceVersion.equals(AndroidVersion.DEFAULT) && !deviceVersion.canRun(minSdkVersion)) {
       String reason = String.format("minSdk(%1$s) %3$s deviceSdk(%2$s)",
                                     minSdkVersion,
                                     deviceVersion,
@@ -122,38 +133,32 @@ public class LaunchCompatibility {
 
     // Add-ons specify a list of libraries. We need to check that the required libraries are available on the device.
     // See AddOnTarget#canRunOn
-    List<IAndroidTarget.OptionalLibrary> additionaLibs = projectTarget.getAdditionalLibraries();
-    if (additionaLibs.isEmpty()) {
+    List<IAndroidTarget.OptionalLibrary> additionalLibs = projectTarget.getAdditionalLibraries();
+    if (additionalLibs.isEmpty()) {
       return YES;
     }
 
-    if (avdTarget == null) {
-      String targetName = projectTarget.getName();
-      if (GOOGLE_APIS_TARGET_NAME.equals(targetName)) {
-        // We'll assume that Google APIs are available on all devices.
-        return YES;
-      } else {
-        // Unsure because we don't have an easy way of determining whether those libraries are on a device
-        return new LaunchCompatibility(ThreeState.UNSURE, "unsure if device supports addon: " + targetName);
-      }
+    String targetName = projectTarget.getName();
+    if (GOOGLE_APIS_TARGET_NAME.equals(targetName)) {
+      // We'll assume that Google APIs are available on all devices.
+      return YES;
     } else {
-      // Note: A better way to do this is to actually look at the manifest for all of its requirements, and then look at the
-      // device for all of its features, very much like the hardware feature check above. Just checking the AVD to see if it was
-      // created with the same addon target is somewhat of a legacy method that we use for now..
-      return isCompatibleAddonAvd(projectTarget, avdTarget);
+      // Unsure because we don't have an easy way of determining whether those libraries are on a device
+      return new LaunchCompatibility(ThreeState.UNSURE, "unsure if device supports addon: " + targetName);
     }
   }
 
-  private static LaunchCompatibility isCompatibleAddonAvd(IAndroidTarget projectTarget, IAndroidTarget avdTarget) {
+  private static LaunchCompatibility isCompatibleAddonAvd(IAndroidTarget projectTarget, ISystemImage image) {
     // validate that the vendor is the same for both the project and the avd
-    if (!StringUtil.equals(projectTarget.getVendor(), avdTarget.getVendor())) {
-      String reason = String.format("AVD vendor (%1$s) != AVD target (%2$s)", avdTarget.getVendor(), projectTarget.getVendor());
+    if (!StringUtil.equals(projectTarget.getVendor(), image.getAddonVendor().getDisplay())) {
+      String reason =
+        String.format("AVD vendor (%1$s) != AVD target (%2$s)", image.getAddonVendor().getDisplay(), projectTarget.getVendor());
       return new LaunchCompatibility(ThreeState.NO, reason);
     }
 
-    if (!StringUtil.equals(projectTarget.getName(), avdTarget.getName())) {
+    if (!StringUtil.equals(projectTarget.getName(), image.getTag().getDisplay())) {
       String reason =
-        String.format("AVD target name (%1$s) != Project target name (%2$s)", avdTarget.getName(), projectTarget.getName());
+        String.format("AVD target name (%1$s) != Project target name (%2$s)", image.getTag().getDisplay(), projectTarget.getName());
       return new LaunchCompatibility(ThreeState.NO, reason);
     }
 
@@ -164,8 +169,8 @@ public class LaunchCompatibility {
   @NotNull
   public static LaunchCompatibility canRunOnAvd(@NotNull AndroidVersion minSdkVersion,
                                                 @NotNull IAndroidTarget projectTarget,
-                                                @NotNull IAndroidTarget avdTarget) {
-    AndroidVersion avdVersion = avdTarget.getVersion();
+                                                @NotNull ISystemImage image) {
+    AndroidVersion avdVersion = image.getAndroidVersion();
     if (!avdVersion.canRun(minSdkVersion)) {
       String reason = String.format("minSdk(%1$s) %3$s deviceSdk(%2$s)",
                                     minSdkVersion,
@@ -174,6 +179,6 @@ public class LaunchCompatibility {
       return new LaunchCompatibility(ThreeState.NO, reason);
     }
 
-    return projectTarget.isPlatform() ? YES : isCompatibleAddonAvd(projectTarget, avdTarget);
+    return projectTarget.isPlatform() ? YES : isCompatibleAddonAvd(projectTarget, image);
   }
 }

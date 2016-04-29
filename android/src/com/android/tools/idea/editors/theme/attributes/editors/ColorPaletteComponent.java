@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.theme.attributes.editors;
 
-import com.android.tools.swing.ui.SwatchComponent;
 import com.android.tools.swing.util.GraphicsUtil;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;

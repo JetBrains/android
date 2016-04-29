@@ -33,6 +33,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
+import static com.android.utils.SdkUtils.escapePropertyValue;
+
 /** Ensures that all relevant lint checks are available and registered */
 public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
   private static final boolean LIST_ISSUES_WITH_QUICK_FIXES = false;
@@ -41,6 +43,7 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
   }
 
   private static boolean sDone;
+  @SuppressWarnings("deprecation")
   public static boolean checkAllLintChecksRegistered(Project project) throws Exception {
     if (sDone) {
       return true;
@@ -151,18 +154,25 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
 
     // Spit out registration information for the missing elements
     if (!missing.isEmpty()) {
-      Collections.sort(missing);
+      Collections.sort(missing, new Comparator<Issue>() {
+        @Override
+        public int compare(Issue issue1, Issue issue2) {
+          return String.CASE_INSENSITIVE_ORDER.compare(issue1.getId(), issue2.getId());
+        }
+      });
 
       StringBuilder sb = new StringBuilder(1000);
-      sb.append("Missing registration for " + missing.size() + " issues (out of a total issue count of " + allIssues.size() + ")");
-      sb.append("\nAdd to plugin.xml (and please try to preserve the case sensitive alphabetical order, where for example B < a):\n");
+      sb.append("Missing registration for ").append(missing.size()).append(" issues (out of a total issue count of ")
+        .append(allIssues.size()).append(")");
+      sb.append("\nAdd to plugin.xml (and please try to preserve the case insensitive alphabetical order):\n");
       for (Issue issue : missing) {
         sb.append("    <globalInspection hasStaticDescription=\"true\" shortName=\"AndroidLint");
         String id = issue.getId();
         sb.append(id);
         sb.append("\" displayName=\"");
         sb.append(XmlUtils.toXmlAttributeValue(issue.getBriefDescription(TextFormat.TEXT)));
-        sb.append("\" groupKey=\"android.lint.inspections.group.name\" bundle=\"messages.AndroidBundle\" enabledByDefault=\"");
+        sb.append("\" groupKey=\"").append(getCategoryBundleKey(issue.getCategory()))
+          .append("\" bundle=\"messages.AndroidBundle\" enabledByDefault=\"");
         sb.append(issue.isEnabledByDefault());
         sb.append("\" level=\"");
         sb.append(issue.getDefaultSeverity() == Severity.ERROR || issue.getDefaultSeverity() == Severity.FATAL ?
@@ -178,6 +188,7 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
         String detectorName = getDetectorClass(issue).getName();
         String issueName = getIssueFieldName(issue);
         String messageKey = getMessageKey(issue);
+        //noinspection StringConcatenationInsideStringBufferAppend
         sb.append("" +
                   "  public static class AndroidLint" + id + "Inspection extends AndroidLintInspectionBase {\n" +
                   "    public AndroidLint" + id + "Inspection() {\n" +
@@ -189,10 +200,24 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
       sb.append("\nAdd to AndroidBundle.properties:\n");
       for (Issue issue : missing) {
         String messageKey = getMessageKey(issue);
-        sb.append("android.lint.inspections." + messageKey + "=" + getBriefDescription(issue).replace(":", "\\:").replace("=", "\\=") + "\n");
+        sb.append("android.lint.inspections.").append(messageKey).append("=")
+          .append(escapePropertyValue(getBriefDescription(issue))).append("\n");
       }
 
-      sb.append("\nAdded registrations for " + missing.size() + " issues (out of a total issue count of " + allIssues.size() + ")");
+      sb.append("\nAdded registrations for ").append(missing.size()).append(" issues (out of a total issue count of ")
+        .append(allIssues.size()).append(")\n");
+
+      System.out.println("If necessary, add these category descriptors to AndroidBundle.properties:\n");
+      Set<Category> categories = Sets.newHashSet();
+      for (Issue issue : missing) {
+        categories.add(issue.getCategory());
+      }
+      List<Category> sorted = Lists.newArrayList(categories);
+      Collections.sort(sorted);
+      for (Category category : sorted) {
+        sb.append(getCategoryBundleKey(category)).append('=').append(
+          escapePropertyValue(("Android > Lint > " + category.getFullName()).replace(":", " > "))).append("\n");
+      }
 
       System.out.println(sb.toString());
       return false;
@@ -200,6 +225,14 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
       System.out.println("The following inspections have quickfixes (used for Reporter.java):\n");
       List<String> fields = Lists.newArrayListWithExpectedSize(quickfixes.size());
       Set<String> imports = Sets.newHashSetWithExpectedSize(quickfixes.size());
+
+      // These two are handled by the ResourceTypeInspection's quickfixes; they're
+      // not handled by lint per se, but on the command line (in HTML reports) they're
+      // flagged by lint, so include them in the list
+      quickfixes.add(SupportAnnotationDetector.CHECK_PERMISSION);
+      quickfixes.add(SupportAnnotationDetector.MISSING_PERMISSION);
+      quickfixes.add(SupportAnnotationDetector.CHECK_RESULT);
+
       for (Issue issue : quickfixes) {
         String detectorName = getDetectorClass(issue).getName();
         imports.add(detectorName);
@@ -217,10 +250,25 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
         System.out.println("import " + cls + ";");
       }
       System.out.println();
-      System.out.println("sStudioFixes = Sets.newHashSet(\n" + Joiner.on(",\n").join(fields) + "\n);\n");
+      System.out.println("sStudioFixes = Sets.newHashSet(\n    " + Joiner.on(",\n    ").join(fields) + "\n);\n");
     }
 
     return true;
+  }
+
+  private static String getCategoryBundleKey(Category category) {
+    StringBuilder sb = new StringBuilder(100);
+    sb.append("android.lint.inspections.group.name.");
+    String name = category.getFullName().toLowerCase(Locale.US);
+    for (int i = 0, n = name.length(); i < n; i++) {
+      char c = name.charAt(i);
+      if (Character.isLetter(c)) {
+        sb.append(c);
+      } else {
+        sb.append('.');
+      }
+    }
+    return sb.toString();
   }
 
   private static String getIssueFieldName(Issue issue) {
@@ -254,8 +302,6 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
       detectorClass = ApiDetector.class;
     } else if (detectorClass == IntellijGradleDetector.class) {
       detectorClass = GradleDetector.class;
-    } else if (detectorClass == IntellijRegistrationDetector.class) {
-      detectorClass = RegistrationDetector.class;
     } else if (detectorClass == IntellijViewTypeDetector.class) {
       detectorClass = ViewTypeDetector.class;
     }
@@ -295,12 +341,11 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
   private static boolean isRelevant(Issue issue) {
     // Supported more directly by other IntelliJ checks(?)
     if (issue == NamespaceDetector.TYPO ||                  // IDEA has its own spelling check
-        issue == SupportAnnotationDetector.RESOURCE_TYPE || // We have a separate inspection for this
-        issue == SupportAnnotationDetector.TYPE_DEF ||      // We have a separate inspection for this
         issue == NamespaceDetector.UNUSED ||                // IDEA already does full validation
         issue == ManifestTypoDetector.ISSUE ||              // IDEA already does full validation
-        issue == ManifestDetector.WRONG_PARENT ||           // IDEA already does full validation
-        issue == LocaleDetector.STRING_LOCALE) {            // IDEA checks for this in Java code
+        issue == ManifestDetector.WRONG_PARENT ||           // IDEA checks for this in Java code
+        // Reimplemented by ResourceTypeInspection
+        issue.getImplementation().getDetectorClass() == SupportAnnotationDetector.class) {
       return false;
     }
 

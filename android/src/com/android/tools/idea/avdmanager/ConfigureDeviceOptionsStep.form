@@ -5,10 +5,12 @@
     <constraints>
       <xy x="68" y="151" width="1184" height="619"/>
     </constraints>
-    <properties/>
+    <properties>
+      <maximumSize width="1280" height="768"/>
+    </properties>
     <border type="none"/>
     <children>
-      <component id="cf6f5" class="com.android.tools.idea.avdmanager.DeviceDefinitionPreview" binding="myDeviceDefinitionPreview">
+      <component id="cf6f5" class="com.android.tools.idea.avdmanager.DeviceDefinitionPreview" binding="myDeviceDefinitionPreview" custom-create="true">
         <constraints>
           <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false">
             <preferred-size width="360" height="-1"/>
@@ -16,14 +18,14 @@
         </constraints>
         <properties/>
       </component>
-      <scrollpane id="f1015" class="com.intellij.ui.components.JBScrollPane">
+      <scrollpane id="f1015" class="com.intellij.ui.components.JBScrollPane" binding="myScrollPane">
         <constraints>
           <grid row="0" column="0" row-span="2" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties/>
         <border type="none"/>
         <children>
-          <grid id="f61d8" layout-manager="GridLayoutManager" row-count="27" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="5">
+          <grid id="f61d8" layout-manager="GridLayoutManager" row-count="28" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="5">
             <margin top="5" left="5" bottom="5" right="5"/>
             <constraints/>
             <properties/>
@@ -41,7 +43,7 @@
               </component>
               <component id="ec7a7" class="com.intellij.ui.components.JBLabel">
                 <constraints>
-                  <grid row="7" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                  <grid row="8" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties>
                   <text value="Memory"/>
@@ -49,7 +51,7 @@
               </component>
               <component id="d6c4d" class="com.intellij.ui.components.JBLabel">
                 <constraints>
-                  <grid row="16" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                  <grid row="17" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties>
                   <text value="Cameras"/>
@@ -57,7 +59,7 @@
               </component>
               <component id="25ae8" class="com.intellij.ui.components.JBLabel">
                 <constraints>
-                  <grid row="19" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                  <grid row="20" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties>
                   <text value="Sensors"/>
@@ -65,79 +67,87 @@
               </component>
               <component id="baa1e" class="javax.swing.JCheckBox" binding="myHasBackFacingCamera">
                 <constraints>
-                  <grid row="16" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-                </constraints>
-                <properties>
-                  <selected value="true"/>
-                  <text value="Back-facing camera"/>
-                </properties>
-              </component>
-              <component id="3e88b" class="javax.swing.JCheckBox" binding="myHasFrontFacingCamera">
-                <constraints>
                   <grid row="17" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties>
                   <selected value="true"/>
-                  <text value="Front-facing camera"/>
+                  <text value="Back-facing camera"/>
+                  <toolTipText value="&lt;html&gt;Enables back-facing camera support in emulator&lt;/html&gt;"/>
                 </properties>
               </component>
-              <component id="69c1f" class="javax.swing.JCheckBox" binding="myHasAccelerometer">
+              <component id="3e88b" class="javax.swing.JCheckBox" binding="myHasFrontFacingCamera">
                 <constraints>
-                  <grid row="19" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                  <grid row="18" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties>
                   <selected value="true"/>
-                  <text value="Accelerometer"/>
+                  <text value="Front-facing camera"/>
+                  <toolTipText value="&lt;html&gt;Enables front-facing camera support in emulator&lt;/html&gt;"/>
                 </properties>
               </component>
-              <component id="d70d6" class="javax.swing.JCheckBox" binding="myHasGyroscope">
+              <component id="69c1f" class="javax.swing.JCheckBox" binding="myHasAccelerometer">
                 <constraints>
                   <grid row="20" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties>
                   <selected value="true"/>
-                  <text value="Gyroscope"/>
+                  <text value="Accelerometer"/>
+                  <toolTipText value="&lt;html&gt;Enables accelerometer support in emulator.&lt;/html&gt;"/>
                 </properties>
               </component>
-              <component id="c28f5" class="javax.swing.JCheckBox" binding="myHasGps">
+              <component id="d70d6" class="javax.swing.JCheckBox" binding="myHasGyroscope">
                 <constraints>
                   <grid row="21" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties>
                   <selected value="true"/>
-                  <text value="GPS"/>
+                  <text value="Gyroscope"/>
+                  <toolTipText value="&lt;html&gt;Enables gyroscope support in emulator.&lt;/html&gt;"/>
                 </properties>
               </component>
-              <component id="48c06" class="javax.swing.JCheckBox" binding="myHasProximitySensor">
+              <component id="c28f5" class="javax.swing.JCheckBox" binding="myHasGps">
                 <constraints>
                   <grid row="22" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties>
                   <selected value="true"/>
+                  <text value="GPS"/>
+                  <toolTipText value="&lt;html&gt;Enables GPS (global positioning support) support in emulator.&lt;/html&gt;"/>
+                </properties>
+              </component>
+              <component id="48c06" class="javax.swing.JCheckBox" binding="myHasProximitySensor">
+                <constraints>
+                  <grid row="23" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <selected value="true"/>
                   <text value="Proximity Sensor"/>
+                  <toolTipText value="&lt;html&gt;Enables proximity sensor support in emulator&lt;/html&gt;"/>
                 </properties>
               </component>
               <component id="badbe" class="javax.swing.JCheckBox" binding="mySupportsLandscape">
+                <constraints>
+                  <grid row="15" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <selected value="true"/>
+                  <text value="Landscape"/>
+                  <toolTipText value="&lt;html&gt;Enables the landscape device screen state in emulator&lt;/html&gt;"/>
+                </properties>
+              </component>
+              <component id="23fb3" class="javax.swing.JCheckBox" binding="mySupportsPortrait">
                 <constraints>
                   <grid row="14" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties>
                   <selected value="true"/>
-                  <text value="Landscape"/>
-                </properties>
-              </component>
-              <component id="23fb3" class="javax.swing.JCheckBox" binding="mySupportsPortrait">
-                <constraints>
-                  <grid row="13" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-                </constraints>
-                <properties>
-                  <selected value="true"/>
                   <text value="Portrait"/>
+                  <toolTipText value="&lt;html&gt;Enables the portrait device screen state in emulator.&lt;/html&gt;"/>
                 </properties>
               </component>
               <component id="dccac" class="com.intellij.ui.components.JBLabel">
                 <constraints>
-                  <grid row="13" column="0" row-span="2" col-span="1" vsize-policy="0" hsize-policy="0" anchor="9" fill="0" indent="0" use-parent-layout="false"/>
+                  <grid row="14" column="0" row-span="2" col-span="1" vsize-policy="0" hsize-policy="0" anchor="9" fill="0" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties>
                   <text value="&lt;html&gt;Supported&lt;br&gt;device states&lt;/html&gt;"/>
@@ -145,25 +155,27 @@
               </component>
               <component id="8e290" class="javax.swing.JCheckBox" binding="myHasHardwareKeyboard">
                 <constraints>
-                  <grid row="10" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                  <grid row="11" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties>
                   <selected value="true"/>
                   <text value="Has Hardware Keyboard"/>
+                  <toolTipText value="&lt;html&gt;Enables hardware keyboard  support in Android Virtual Device.&lt;/html&gt;"/>
                 </properties>
               </component>
               <component id="bb5a2" class="javax.swing.JCheckBox" binding="myHasHardwareButtons">
                 <constraints>
-                  <grid row="9" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                  <grid row="10" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties>
                   <selected value="true"/>
                   <text value="Has Hardware Buttons (Back/Home/Menu)"/>
+                  <toolTipText value="&lt;html&gt;Enables hardware navigation button support in Android Virtual Device&lt;/html&gt;"/>
                 </properties>
               </component>
               <component id="f27d8" class="com.intellij.ui.components.JBLabel">
                 <constraints>
-                  <grid row="9" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                  <grid row="10" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties>
                   <text value="Input"/>
@@ -173,7 +185,9 @@
                 <constraints>
                   <grid row="0" column="1" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
                 </constraints>
-                <properties/>
+                <properties>
+                  <toolTipText value="&lt;html&gt;Name of the Device Profile&lt;/html&gt;"/>
+                </properties>
               </component>
               <component id="ca84a" class="com.intellij.ui.components.JBLabel">
                 <constraints>
@@ -209,6 +223,7 @@
                     </constraints>
                     <properties>
                       <columns value="5"/>
+                      <toolTipText value="&lt;html&gt;The total number of physical pixels on a screen. When adding support for multiple screens, applications do not work directly with resolution; applications should be concerned only with screen size and density, as specified by the generalized size and density groups.  Width in pixels &lt;/html&gt;"/>
                     </properties>
                   </component>
                   <component id="77a1a" class="com.intellij.ui.components.JBLabel">
@@ -226,6 +241,7 @@
                     </constraints>
                     <properties>
                       <columns value="5"/>
+                      <toolTipText value="&lt;html&gt;The total number of physical pixels on a screen. When adding support for multiple screens, applications do not work directly with resolution; applications should be concerned only with screen size and density, as specified by the generalized size and density groups.  Height in pixels &lt;/html&gt;"/>
                     </properties>
                   </component>
                   <component id="78d16" class="com.intellij.ui.components.JBLabel">
@@ -240,7 +256,7 @@
               </grid>
               <vspacer id="e8adc">
                 <constraints>
-                  <grid row="23" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false">
+                  <grid row="24" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false">
                     <minimum-size width="-1" height="15"/>
                     <preferred-size width="-1" height="15"/>
                   </grid>
@@ -248,7 +264,7 @@
               </vspacer>
               <component id="c641f" class="com.intellij.ui.components.JBLabel">
                 <constraints>
-                  <grid row="25" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                  <grid row="26" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties>
                   <text value="Default Skin"/>
@@ -256,13 +272,15 @@
               </component>
               <component id="8d157" class="com.android.tools.idea.avdmanager.SkinChooser" binding="myCustomSkinPath" custom-create="true">
                 <constraints>
-                  <grid row="25" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                  <grid row="26" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
                 </constraints>
-                <properties/>
+                <properties>
+                  <toolTipText value="&lt;html&gt;Path to a directory containing a custom skin&lt;/html&gt;"/>
+                </properties>
               </component>
               <component id="405c7" class="com.intellij.ui.HyperlinkLabel" binding="myHardwareSkinHelpLabel" custom-create="true">
                 <constraints>
-                  <grid row="26" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                  <grid row="27" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties/>
               </component>
@@ -302,6 +320,7 @@
                     </constraints>
                     <properties>
                       <columns value="10"/>
+                      <toolTipText value="&lt;html&gt;Actual Android Virtual Device size of the screen, measured as the screen's diagonal&lt;/html&gt;"/>
                     </properties>
                   </component>
                   <component id="590b2" class="com.intellij.ui.components.JBLabel">
@@ -318,7 +337,7 @@
               <grid id="8184b" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                 <margin top="0" left="0" bottom="0" right="0"/>
                 <constraints>
-                  <grid row="7" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                  <grid row="8" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties/>
                 <border type="none"/>
@@ -335,14 +354,16 @@
                     <constraints>
                       <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="1" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
                     </constraints>
-                    <properties/>
+                    <properties>
+                      <toolTipText value="&lt;html&gt;The amount of physical RAM on the device.&lt;/html&gt;"/>
+                    </properties>
                   </component>
                 </children>
               </grid>
               <grid id="69473" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                 <margin top="0" left="0" bottom="0" right="0"/>
                 <constraints>
-                  <grid row="11" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                  <grid row="12" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties/>
                 <border type="none"/>
@@ -360,7 +381,9 @@
                     <constraints>
                       <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                     </constraints>
-                    <properties/>
+                    <properties>
+                      <toolTipText value="&lt;html&gt;No Navigation - No navigational controls  &lt;br&gt;Directional Pad - Enables direction pad support in emulator &lt;br&gt;Trackball - Enables trackball support in emulator&lt;/html&gt;"/>
+                    </properties>
                   </component>
                 </children>
               </grid>
@@ -383,52 +406,64 @@
               </component>
               <component id="7cdd3" class="javax.swing.JSeparator">
                 <constraints>
-                  <grid row="6" column="0" row-span="1" col-span="3" vsize-policy="7" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                  <grid row="7" column="0" row-span="1" col-span="3" vsize-policy="7" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties/>
               </component>
               <component id="bad19" class="javax.swing.JSeparator">
                 <constraints>
-                  <grid row="8" column="0" row-span="1" col-span="3" vsize-policy="7" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                  <grid row="9" column="0" row-span="1" col-span="3" vsize-policy="7" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties/>
               </component>
               <component id="e0dfe" class="javax.swing.JSeparator">
                 <constraints>
-                  <grid row="12" column="0" row-span="1" col-span="3" vsize-policy="7" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                  <grid row="13" column="0" row-span="1" col-span="3" vsize-policy="7" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties/>
               </component>
               <component id="11905" class="javax.swing.JSeparator">
                 <constraints>
-                  <grid row="15" column="0" row-span="1" col-span="3" vsize-policy="7" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                  <grid row="16" column="0" row-span="1" col-span="3" vsize-policy="7" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties/>
               </component>
               <component id="5a655" class="javax.swing.JSeparator">
                 <constraints>
-                  <grid row="18" column="0" row-span="1" col-span="3" vsize-policy="7" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                  <grid row="19" column="0" row-span="1" col-span="3" vsize-policy="7" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties/>
               </component>
               <component id="c3bac" class="javax.swing.JSeparator">
                 <constraints>
-                  <grid row="24" column="0" row-span="1" col-span="3" vsize-policy="7" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                  <grid row="25" column="0" row-span="1" col-span="3" vsize-policy="7" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties/>
+              </component>
+              <component id="79a" class="javax.swing.JCheckBox" binding="myIsScreenRound">
+                <constraints>
+                  <grid row="6" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <enabled value="false"/>
+                  <selected value="true"/>
+                  <text value="Round"/>
+                  <toolTipText value="&lt;html&gt;Useful for wear devices with screens that can be round&lt;/html&gt;"/>
+                </properties>
               </component>
             </children>
           </grid>
         </children>
       </scrollpane>
-      <component id="9ee72" class="com.intellij.ui.components.JBLabel" binding="myHelpAndErrorLabel" custom-create="true">
+      <component id="c8ab0" class="com.android.tools.idea.ui.TooltipLabel" binding="myHelpAndErrorLabel">
         <constraints>
-          <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false">
-            <minimum-size width="-1" height="150"/>
-            <preferred-size width="360" height="150"/>
+          <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false">
+            <minimum-size width="-1" height="100"/>
+            <preferred-size width="360" height="100"/>
           </grid>
         </constraints>
         <properties>
+          <opaque value="true"/>
           <verticalTextPosition value="1"/>
         </properties>
       </component>

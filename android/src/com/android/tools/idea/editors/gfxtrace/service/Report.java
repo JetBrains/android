@@ -44,7 +44,7 @@ public final class Report implements BinaryObject {
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("service","Report","","");
+  private static final Entity ENTITY = new Entity("service", "Report", "", "");
 
   static {
     ENTITY.setFields(new Field[]{

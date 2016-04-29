@@ -32,7 +32,7 @@ public final class ListExpressionsTest {
     strings.add("seconD");
     strings.add("thIrd");
 
-    AbstractMapExpression<String, String> toUpper = new AbstractMapExpression<String, String>(strings) {
+    MapExpression<String, String> toUpper = new MapExpression<String, String>(strings) {
       @NotNull
       @Override
       protected String transform(@NotNull String srcElement) {

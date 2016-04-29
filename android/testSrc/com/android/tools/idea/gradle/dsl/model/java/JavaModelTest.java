@@ -15,66 +15,117 @@
  */
 package com.android.tools.idea.gradle.dsl.model.java;
 
-import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.android.tools.idea.gradle.dsl.parser.java.JavaVersionDslElement;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.PsiElement;
 
 import java.io.IOException;
 
-import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
+import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement.SOURCE_COMPATIBILITY_ATTRIBUTE_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement.TARGET_COMPATIBILITY_ATTRIBUTE_NAME;
 
 /**
  * Tests for {@link JavaModel}
  */
 public class JavaModelTest extends GradleFileModelTestCase {
+  public void testReadJavaVersionsAsNumbers() throws IOException {
+    String text = "sourceCompatibility = 1.5\n" +
+                  "targetCompatibility = 1.6";
+    writeToBuildFile(text);
+    JavaModel java = getGradleBuildModel().java();
+    assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility());
+    assertEquals(LanguageLevel.JDK_1_6, java.targetCompatibility());
+  }
+
+  public void testReadJavaVersionsAsSingleQuoteStrings() throws IOException {
+    String text = "sourceCompatibility = \"1.5\"\n" +
+                  "targetCompatibility = \"1.6\"";
+    writeToBuildFile(text);
+    JavaModel java = getGradleBuildModel().java();
+    assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility());
+    assertEquals(LanguageLevel.JDK_1_6, java.targetCompatibility());
+  }
+
+  public void testReadJavaVersionsAsDoubleQuoteStrings() throws IOException {
+    String text = "sourceCompatibility = '1.5'\n" +
+                  "targetCompatibility = '1.6'";
+    writeToBuildFile(text);
+    JavaModel java = getGradleBuildModel().java();
+    assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility());
+    assertEquals(LanguageLevel.JDK_1_6, java.targetCompatibility());
+  }
+
+  public void testReadJavaVersionsAsReferenceString() throws IOException {
+    String text = "sourceCompatibility = VERSION_1_5\n" +
+                  "targetCompatibility = VERSION_1_6";
+    writeToBuildFile(text);
+    JavaModel java = getGradleBuildModel().java();
+    assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility());
+    assertEquals(LanguageLevel.JDK_1_6, java.targetCompatibility());
+  }
+
+  public void testReadJavaVersionsAsQualifiedReferenceString() throws IOException {
+    String text = "sourceCompatibility = JavaVersion.VERSION_1_5\n" +
+                  "targetCompatibility = JavaVersion.VERSION_1_6";
+    writeToBuildFile(text);
+    JavaModel java = getGradleBuildModel().java();
+    assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility());
+    assertEquals(LanguageLevel.JDK_1_6, java.targetCompatibility());
+  }
+
+  public void testReadJavaVersionLiteralFromExtProperty() throws IOException {
+    String text = "ext.JAVA_VERSION = 1.5\n" +
+                  "sourceCompatibility = JAVA_VERSION\n" +
+                  "targetCompatibility = JAVA_VERSION";
+
+    writeToBuildFile(text);
+    JavaModel java = getGradleBuildModel().java();
+    assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility());
+    assertEquals(LanguageLevel.JDK_1_5, java.targetCompatibility());
+  }
+
+  public void testReadJavaVersionReferenceFromExtProperty() throws IOException {
+    String text = "ext.JAVA_VERSION = JavaVersion.VERSION_1_5\n" +
+                  "sourceCompatibility = JAVA_VERSION\n" +
+                  "targetCompatibility = JAVA_VERSION";
+
+    writeToBuildFile(text);
+    JavaModel java = getGradleBuildModel().java();
+    assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility());
+    assertEquals(LanguageLevel.JDK_1_5, java.targetCompatibility());
+  }
+
   public void testSetSourceCompatibility() throws IOException {
     String text = "sourceCompatibility = 1.5\n" +
                   "targetCompatibility = 1.5";
     writeToBuildFile(text);
-    final GradleBuildModel buildModel = getGradleBuildModel();
+    GradleBuildModel buildModel = getGradleBuildModel();
     JavaModel java = buildModel.java();
-    assertNotNull(java);
-
     assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility());
     java.setSourceCompatibility(LanguageLevel.JDK_1_7);
 
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
-    buildModel.reparse();
+    applyChangesAndReparse(buildModel);
 
-    JavaModel newJavaProject = buildModel.java();
-    assertNotNull(newJavaProject);
-
-    assertEquals(LanguageLevel.JDK_1_7, newJavaProject.sourceCompatibility());
+    java = buildModel.java();
+    assertEquals(LanguageLevel.JDK_1_7, java.sourceCompatibility());
   }
 
   public void testResetTargetCompatibility() throws IOException {
     String text = "sourceCompatibility = 1.5\n" +
                   "targetCompatibility = 1.5";
     writeToBuildFile(text);
-    final GradleBuildModel buildModel = getGradleBuildModel();
+    GradleBuildModel buildModel = getGradleBuildModel();
     JavaModel java = buildModel.java();
-    assertNotNull(java);
-
     assertEquals(LanguageLevel.JDK_1_5, java.targetCompatibility());
 
     java.setTargetCompatibility(LanguageLevel.JDK_1_7);
     buildModel.resetState();
 
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
-    buildModel.reparse();
+    applyChangesAndReparse(buildModel);
 
+    java = buildModel.java();
     // Because of the reset, it should remain unchanged
     assertEquals(LanguageLevel.JDK_1_5, java.targetCompatibility());
   }
@@ -87,30 +138,22 @@ public class JavaModelTest extends GradleFileModelTestCase {
     String text = "sourceCompatibility = 1.5\n" +
                   "dependencies {}\n";
     writeToBuildFile(text);
-    final GradleBuildModel buildModel = getGradleBuildModel();
+    GradleBuildModel buildModel = getGradleBuildModel();
     JavaModel java = buildModel.java();
-    assertNotNull(java);
-
     assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility());
 
     assertNull(java.targetCompatibility());
 
     java.setTargetCompatibility(LanguageLevel.JDK_1_5);
 
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
-    buildModel.reparse();
+    applyChangesAndReparse(buildModel);
 
     assertEquals(LanguageLevel.JDK_1_5, java.targetCompatibility());
 
     JavaVersionDslElement targetVersionElement =
-      java.getGradleDslElement().getProperty(JavaModel.TARGET_COMPATIBILITY_FIELD, JavaVersionDslElement.class);
+      java.getGradleDslElement().getProperty(TARGET_COMPATIBILITY_ATTRIBUTE_NAME, JavaVersionDslElement.class);
     JavaVersionDslElement sourceVersionElement =
-      java.getGradleDslElement().getProperty(JavaModel.SOURCE_COMPATIBILITY_FIELD, JavaVersionDslElement.class);
+      java.getGradleDslElement().getProperty(SOURCE_COMPATIBILITY_ATTRIBUTE_NAME, JavaVersionDslElement.class);
     assertNotNull(targetVersionElement);
     assertNotNull(sourceVersionElement);
 
@@ -120,55 +163,34 @@ public class JavaModelTest extends GradleFileModelTestCase {
     assertNotNull(targetPsi);
     assertNotNull(sourcePsi);
 
-    // targetCompatibility should be next to sourceCompatibility
-    assertEquals(targetPsi.getParent(), sourcePsi.getParent().getNextSibling().getNextSibling());
+    // targetCompatibility should be previous to sourceCompatibility
+    assertEquals(targetPsi, sourcePsi.getPrevSibling().getPrevSibling());
   }
 
   public void testAddNonExistedLanguageLevel() throws Exception {
     String text = "";
     writeToBuildFile(text);
 
-    final GradleBuildModel buildModel = getGradleBuildModel();
-    JavaModel java = buildModel.java();
-    assertNull(java);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    buildModel.java().setSourceCompatibility(LanguageLevel.JDK_1_5);
 
-    buildModel.addJavaModel();
-    java = buildModel.java();
-    assertNotNull(java);
-    java.setSourceCompatibility(LanguageLevel.JDK_1_5);
+    applyChangesAndReparse(buildModel);
 
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
-    buildModel.reparse();
-
-    java = buildModel.java();
-    assertNotNull(java);
-
-    assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility());
+    assertEquals(LanguageLevel.JDK_1_5, buildModel.java().sourceCompatibility());
   }
 
   public void testDeleteLanguageLevel() throws Exception {
     String text = "sourceCompatibility = 1.5\n" +
                   "targetCompatibility = 1.5";
     writeToBuildFile(text);
-    final GradleBuildModel buildModel = getGradleBuildModel();
+    GradleBuildModel buildModel = getGradleBuildModel();
     JavaModel java = buildModel.java();
-    assertNotNull(java);
     java.removeSourceCompatibility();
     java.removeTargetCompatibility();
 
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
-    buildModel.reparse();
+    applyChangesAndReparse(buildModel);
 
+    java = buildModel.java();
     assertNull(java.sourceCompatibility());
     assertNull(java.targetCompatibility());
   }

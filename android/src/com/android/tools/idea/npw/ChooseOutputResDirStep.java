@@ -17,7 +17,8 @@ package com.android.tools.idea.npw;
 
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.model.AndroidModel;
-import com.android.tools.idea.ui.ComboBoxItemWithApiTag;
+import com.android.tools.idea.npw.assetstudio.wizard.ConfirmGenerateIconsStep;
+import com.android.tools.idea.ui.ApiComboBoxItem;
 import com.android.tools.idea.ui.FileTreeCellRenderer;
 import com.android.tools.idea.ui.FileTreeModel;
 import com.android.tools.idea.wizard.template.TemplateWizardState;
@@ -49,6 +50,8 @@ import java.util.Map;
 /**
  * This step allows the user to select a build variant and provides a preview
  * of the assets that are about to be created.
+ *
+ * @deprecated Replaced by {@link ConfirmGenerateIconsStep}
  */
 public class ChooseOutputResDirStep extends TemplateWizardStep {
 
@@ -217,7 +220,7 @@ public class ChooseOutputResDirStep extends TemplateWizardStep {
           for (File f : sourceProvider.getResDirectories()) {
             String resPath = FileUtil.getRelativePath(moduleRoot,
                                                       FileUtil.toSystemIndependentName(f.getPath()), '/');
-            comboBoxModel.addElement(new ComboBoxItemWithApiTag(f, resPath, 1, 1));
+            comboBoxModel.addElement(new ApiComboBoxItem(f, resPath, 1, 1));
             if (resDir != null && resDir.equals(f)) {
               selectedIndex = index;
             }
@@ -246,8 +249,8 @@ public class ChooseOutputResDirStep extends TemplateWizardStep {
       File resDir = (File)myTemplateState.get(ATTR_TARGET_VARIANT);
       if (resDir == null) {
         Object selectedVariant = myVariantComboBox.getSelectedItem();
-        if (selectedVariant instanceof ComboBoxItemWithApiTag) {
-          resDir = (File)((ComboBoxItemWithApiTag)selectedVariant).id;
+        if (selectedVariant instanceof ApiComboBoxItem) {
+          resDir = (File)((ApiComboBoxItem)selectedVariant).getData();
         }
       }
       if (resDir != null) {

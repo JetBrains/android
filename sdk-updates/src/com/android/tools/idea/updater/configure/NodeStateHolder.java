@@ -16,7 +16,9 @@
 package com.android.tools.idea.updater.configure;
 
 
-import com.android.tools.idea.sdk.remote.UpdatablePkgInfo;
+import com.android.annotations.Nullable;
+import com.android.repository.api.UpdatablePackage;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * State of a row in {@link SdkUpdaterConfigurable}.
@@ -28,22 +30,24 @@ class NodeStateHolder {
     INSTALLED
   }
 
-  private final UpdatablePkgInfo myPkg;
+  private final UpdatablePackage myPkg;
   private SelectedState myState;
 
-  public NodeStateHolder(UpdatablePkgInfo pkg) {
+  public NodeStateHolder(@NotNull UpdatablePackage pkg) {
     myPkg = pkg;
   }
 
-  public UpdatablePkgInfo getPkg() {
+  @NotNull
+  public UpdatablePackage getPkg() {
     return myPkg;
   }
 
+  @Nullable  // Should only be null if it hasn't been initialized yet.
   public SelectedState getState() {
     return myState;
   }
 
-  public void setState(SelectedState state) {
+  public void setState(@NotNull SelectedState state) {
     myState = state;
   }
 }

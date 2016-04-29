@@ -23,8 +23,9 @@ import com.android.annotations.VisibleForTesting;
 import com.android.annotations.VisibleForTesting.Visibility;
 import com.android.prefs.AndroidLocation;
 import com.android.prefs.AndroidLocation.AndroidLocationException;
-import com.android.sdklib.io.FileOp;
-import com.android.sdklib.io.IFileOp;
+import com.android.repository.io.FileOp;
+import com.android.repository.io.FileOp;
+import com.android.repository.io.FileOpUtils;
 import com.android.utils.Pair;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.util.net.HttpConfigurable;
@@ -33,6 +34,7 @@ import org.apache.http.message.BasicHeader;
 
 import java.io.*;
 import java.net.HttpURLConnection;
+import java.net.URLConnection;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -121,7 +123,7 @@ public class DownloadCache {
         HttpHeaders.DATE
     };
 
-    private final IFileOp mFileOp;
+    private final FileOp mFileOp;
     private final File mCacheRoot;
     private final Strategy mStrategy;
 
@@ -154,11 +156,11 @@ public class DownloadCache {
 
     /** Creates a default instance of the URL cache */
     public DownloadCache(@NonNull Strategy strategy) {
-        this(new FileOp(), strategy);
+        this(FileOpUtils.create(), strategy);
     }
 
     /** Creates a default instance of the URL cache */
-    public DownloadCache(@NonNull IFileOp fileOp, @NonNull Strategy strategy) {
+    public DownloadCache(@NonNull FileOp fileOp, @NonNull Strategy strategy) {
         mFileOp = fileOp;
         mCacheRoot = initCacheRoot();
 
@@ -224,12 +226,12 @@ public class DownloadCache {
      */
     @VisibleForTesting(visibility=Visibility.PRIVATE)
     @NonNull
-    protected Pair<InputStream, HttpURLConnection> openUrl(
+    protected Pair<InputStream, URLConnection> openUrl(
             @NonNull String url,
             boolean needsMarkResetSupport,
             @NonNull ITaskMonitor monitor,
             @Nullable Header[] headers) throws IOException, ProcessCanceledException {
-        HttpURLConnection connection = HttpConfigurable.getInstance().openHttpConnection(url);
+        URLConnection connection = HttpConfigurable.getInstance().openConnection(url);
         if (headers != null) {
             for (Header header : headers) {
                 connection.setRequestProperty(header.getName(), header.getValue());
@@ -319,7 +321,7 @@ public class DownloadCache {
      *              authentication dialog.
      */
     @NonNull
-    public Pair<InputStream, HttpURLConnection> openDirectUrl(
+    public Pair<InputStream, URLConnection> openDirectUrl(
             @NonNull  String urlString,
             @Nullable Header[] headers,
             @NonNull  ITaskMonitor monitor)
@@ -370,12 +372,17 @@ public class DownloadCache {
         if (DEBUG) {
             System.out.println(String.format("%s : Direct download", urlString)); //$NON-NLS-1$
         }
-        Pair<InputStream, HttpURLConnection> result = openUrl(
+        Pair<InputStream, URLConnection> result = openUrl(
                 urlString,
                 false /*needsMarkResetSupport*/,
                 monitor,
                 null /*headers*/);
-        return Pair.of(result.getFirst(), result.getSecond().getResponseCode());
+        Integer response = null;
+        URLConnection connection = result.getSecond();
+        if (connection instanceof HttpURLConnection) {
+            response = ((HttpURLConnection)connection).getResponseCode();
+        }
+        return Pair.of(result.getFirst(), response);
     }
 
     /**
@@ -405,7 +412,7 @@ public class DownloadCache {
             throws IOException, ProcessCanceledException {
         // Don't cache in direct mode.
         if (mStrategy == Strategy.DIRECT) {
-            Pair<InputStream, HttpURLConnection> result = openUrl(
+            Pair<InputStream, URLConnection> result = openUrl(
                     urlString,
                     true /*needsMarkResetSupport*/,
                     monitor,
@@ -670,19 +677,23 @@ public class DownloadCache {
         byte[] result = new byte[inc];
 
         try {
-            Pair<InputStream, HttpURLConnection> r =
+            Pair<InputStream, URLConnection> r =
                 openUrl(urlString, true /*needsMarkResetSupport*/, monitor, headers);
 
             is = r.getFirst();
-            HttpURLConnection connection = r.getSecond();
+            URLConnection connection = r.getSecond();
 
             if (DEBUG) {
+                String message = null;
+                if (connection instanceof HttpURLConnection) {
+                    message = ((HttpURLConnection)connection).getResponseMessage();
+                }
                 System.out.println(String.format("%s : fetch: %s => %s",  //$NON-NLS-1$
                                                  urlString, headers == null ? "" : Arrays.toString(headers),    //$NON-NLS-1$
-                                                 connection.getResponseMessage()));
+                                                 message));
             }
 
-            int code = connection.getResponseCode();
+            int code = connection instanceof HttpURLConnection ? ((HttpURLConnection)connection).getResponseCode() : 200;
 
             if (outStatusCode != null) {
                 outStatusCode.set(code);
@@ -730,8 +741,9 @@ public class DownloadCache {
                 try {
                     os.close();
                     os = null;
-
-                    saveInfo(urlString, connection, info);
+                    if (connection instanceof HttpURLConnection) {
+                        saveInfo(urlString, (HttpURLConnection)connection, info);
+                    }
                 } catch (IOException ignore) {}
             }
 

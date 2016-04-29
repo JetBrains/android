@@ -17,13 +17,10 @@
 package com.android.tools.idea.sdk.remote.internal.packages;
 
 import com.android.SdkConstants;
-import com.android.annotations.NonNull;
+import com.android.repository.Revision;
+import com.android.repository.io.FileOp;
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.SdkManager;
-import com.android.sdklib.io.IFileOp;
-import com.android.sdklib.repository.FullRevision;
-import com.android.sdklib.repository.MajorRevision;
+import com.android.sdklib.AndroidVersionHelper;
 import com.android.sdklib.repository.PkgProps;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.tools.idea.sdk.remote.internal.ITaskMonitor;
@@ -31,6 +28,7 @@ import com.android.tools.idea.sdk.remote.internal.archives.Archive;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkRepoConstants;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Node;
 
 import java.io.*;
@@ -42,7 +40,7 @@ import java.util.Properties;
 /**
  * Represents a sample XML node in an SDK repository.
  */
-public class RemoteSamplePkgInfo extends RemoteMinToolsPkgInfo implements IAndroidVersionProvider, IMinApiLevelDependency {
+public class RemoteSamplePkgInfo extends RemoteMinToolsPkgInfo implements IMinApiLevelDependency {
 
   /**
    * The minimal API level required by this extra package, if > 0,
@@ -72,7 +70,7 @@ public class RemoteSamplePkgInfo extends RemoteMinToolsPkgInfo implements IAndro
 
     mMinApiLevel = RemotePackageParserUtils.getXmlInt(packageNode, SdkRepoConstants.NODE_MIN_API_LEVEL, MIN_API_LEVEL_NOT_SPECIFIED);
 
-    PkgDesc.Builder pkgDescBuilder = PkgDesc.Builder.newSample(version, new MajorRevision(getRevision()), getMinToolsRevision());
+    PkgDesc.Builder pkgDescBuilder = PkgDesc.Builder.newSample(version, getRevision(), getMinToolsRevision());
     pkgDescBuilder.setDescriptionShort(createShortDescription(mListDisplay, getRevision(), version, isObsolete()));
     pkgDescBuilder.setDescriptionUrl(getDescUrl());
     pkgDescBuilder.setListDisplay(createListDescription(mListDisplay, version, isObsolete()));
@@ -89,7 +87,7 @@ public class RemoteSamplePkgInfo extends RemoteMinToolsPkgInfo implements IAndro
   public void saveProperties(Properties props) {
     super.saveProperties(props);
 
-    getAndroidVersion().saveProperties(props);
+    AndroidVersionHelper.saveProperties(getAndroidVersion(), props);
 
     if (getMinApiLevel() != MIN_API_LEVEL_NOT_SPECIFIED) {
       props.setProperty(PkgProps.SAMPLE_MIN_API_LEVEL, Integer.toString(getMinApiLevel()));
@@ -108,8 +106,7 @@ public class RemoteSamplePkgInfo extends RemoteMinToolsPkgInfo implements IAndro
   /**
    * Returns the matching platform version.
    */
-  @Override
-  @NonNull
+  @NotNull
   public AndroidVersion getAndroidVersion() {
     return getPkgDesc().getAndroidVersion();
   }
@@ -143,7 +140,7 @@ public class RemoteSamplePkgInfo extends RemoteMinToolsPkgInfo implements IAndro
   /**
    * Returns a short description for an {@link IDescription}.
    */
-  private static String createShortDescription(String listDisplay, FullRevision revision, AndroidVersion version, boolean obsolete) {
+  private static String createShortDescription(String listDisplay, Revision revision, AndroidVersion version, boolean obsolete) {
     if (!listDisplay.isEmpty()) {
       return String.format("%1$s, revision %2$s%3$s", listDisplay, revision.toShortString(), obsolete ? " (Obsolete)" : "");
     }
@@ -152,97 +149,6 @@ public class RemoteSamplePkgInfo extends RemoteMinToolsPkgInfo implements IAndro
       .format("Samples for SDK API %1$s%2$s, revision %3$s%4$s", version.getApiString(), version.isPreview() ? " Preview" : "",
               revision.toShortString(), obsolete ? " (Obsolete)" : "");
     return s;
-  }
-
-  /**
-   * Computes a potential installation folder if an archive of this package were
-   * to be installed right away in the given SDK root.
-   * <p/>
-   * A sample package is typically installed in SDK/samples/android-"version".
-   * However if we can find a different directory that already has this sample
-   * version installed, we'll use that one.
-   *
-   * @param osSdkRoot  The OS path of the SDK root folder.
-   * @param sdkManager An existing SDK manager to list current platforms and addons.
-   * @return A new {@link File} corresponding to the directory to use to install this package.
-   */
-  @Override
-  public File getInstallFolder(String osSdkRoot, SdkManager sdkManager) {
-
-    // The /samples dir at the root of the SDK
-    File samplesRoot = new File(osSdkRoot, SdkConstants.FD_SAMPLES);
-
-    // First find if this sample is already installed. If so, reuse the same directory.
-    for (IAndroidTarget target : sdkManager.getTargets()) {
-      if (target.isPlatform() && target.getVersion().equals(getAndroidVersion())) {
-        String p = target.getPath(IAndroidTarget.SAMPLES);
-        File f = new File(p);
-        if (f.isDirectory()) {
-          // We *only* use this directory if it's using the "new" location
-          // under SDK/samples. We explicitly do not reuse the "old" location
-          // under SDK/platform/android-N/samples.
-          if (f.getParentFile().equals(samplesRoot)) {
-            return f;
-          }
-        }
-      }
-    }
-
-    // Otherwise, get a suitable default
-    File folder = new File(samplesRoot, String.format("android-%s", getAndroidVersion().getApiString())); //$NON-NLS-1$
-
-    for (int n = 1; folder.exists(); n++) {
-      // Keep trying till we find an unused directory.
-      folder = new File(samplesRoot, String.format("android-%s_%d", getAndroidVersion().getApiString(), n)); //$NON-NLS-1$
-    }
-
-    return folder;
-  }
-
-  /**
-   * Makes sure the base /samples folder exists before installing.
-   * <p/>
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean preInstallHook(Archive archive, ITaskMonitor monitor, String osSdkRoot, File installFolder) {
-
-    if (installFolder != null && installFolder.isDirectory()) {
-      // Get the hash computed during the last installation
-      String storedHash = readContentHash(installFolder);
-      if (storedHash != null && storedHash.length() > 0) {
-
-        // Get the hash of the folder now
-        String currentHash = computeContentHash(installFolder);
-
-        if (!storedHash.equals(currentHash)) {
-          // The hashes differ. The content was modified.
-          // Ask the user if we should still wipe the old samples.
-
-          String pkgName = archive.getParentPackage().getShortDescription();
-
-          String msg = String.format("-= Warning ! =-\n" +
-                                     "You are about to replace the content of the folder:\n " +
-                                     "  %1$s\n" +
-                                     "by the new package:\n" +
-                                     "  %2$s.\n" +
-                                     "\n" +
-                                     "However it seems that the content of the existing samples " +
-                                     "has been modified since it was last installed. Are you sure " +
-                                     "you want to DELETE the existing samples? This cannot be undone.\n" +
-                                     "Please select YES to delete the existing sample and replace them " +
-                                     "by the new ones.\n" +
-                                     "Please select NO to skip this package. You can always install it later.",
-                                     installFolder.getAbsolutePath(), pkgName);
-
-          // Returns true if we can wipe & replace.
-          return monitor.displayPrompt("SDK Manager: overwrite samples?", msg);
-        }
-      }
-    }
-
-    // The default is to allow installation
-    return super.preInstallHook(archive, monitor, osSdkRoot, installFolder);
   }
 
   /**
@@ -266,7 +172,7 @@ public class RemoteSamplePkgInfo extends RemoteMinToolsPkgInfo implements IAndro
    * (samples are copied if using the NPW > Create from sample.)
    */
   @Override
-  public void postUnzipFileHook(Archive archive, ITaskMonitor monitor, IFileOp fileOp, File unzippedFile, ZipArchiveEntry zipEntry) {
+  public void postUnzipFileHook(Archive archive, ITaskMonitor monitor, FileOp fileOp, File unzippedFile, ZipArchiveEntry zipEntry) {
     super.postUnzipFileHook(archive, monitor, fileOp, unzippedFile, zipEntry);
 
     if (fileOp.isFile(unzippedFile) && !SdkConstants.FN_SOURCE_PROP.equals(unzippedFile.getName())) {

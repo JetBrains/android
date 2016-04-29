@@ -28,9 +28,9 @@ import java.awt.event.ItemListener;
  * checkboxes).
  */
 public final class SelectedProperty extends BoolProperty implements ItemListener {
-  private final AbstractButton myButton;
+  @NotNull private final AbstractButton myButton;
 
-  public SelectedProperty(AbstractButton button) {
+  public SelectedProperty(@NotNull AbstractButton button) {
     myButton = button;
     myButton.addItemListener(this);
   }

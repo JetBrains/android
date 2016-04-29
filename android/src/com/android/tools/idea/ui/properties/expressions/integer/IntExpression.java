@@ -15,19 +15,18 @@
  */
 package com.android.tools.idea.ui.properties.expressions.integer;
 
-import com.android.tools.idea.ui.properties.Observable;
 import com.android.tools.idea.ui.properties.ObservableValue;
+import com.android.tools.idea.ui.properties.core.ObservableBool;
 import com.android.tools.idea.ui.properties.core.ObservableInt;
 import com.android.tools.idea.ui.properties.expressions.Expression;
-import com.android.tools.idea.ui.properties.core.ObservableBool;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Base class for Integer expressions, providing a default implementation for the {@link ObservableInt} interface.
  */
-public abstract class IntExpression extends Expression implements ObservableInt {
+public abstract class IntExpression extends Expression<Integer> implements ObservableInt {
 
-  protected IntExpression(Observable... values) {
+  protected IntExpression(ObservableValue... values) {
     super(values);
   }
 

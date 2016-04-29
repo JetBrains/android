@@ -56,15 +56,18 @@ public class AndroidSdkModuleCustomizer implements ModuleCustomizer<AndroidGradl
    * <li>the given module was created by importing an {@code AndroidProject}</li>
    * <li>there is a matching Android SDK already defined in IDEA</li>
    * </ol>
-   * @param project         project that owns the module to customize.
-   * @param androidProject  the imported Android-Gradle project.
+   *
+   * @param project        project that owns the module to customize.
+   * @param modelsProvider modifiable IDE models provider to customize. The caller is responsible to commit the changes to models
+   *                       and the customizer should not call commit on the models.
+   * @param androidModel   the imported Android model.
    */
   @Override
   public void customizeModule(@NotNull Project project,
                               @NotNull Module module,
                               @NotNull IdeModifiableModelsProvider modelsProvider,
-                              @Nullable AndroidGradleModel androidProject) {
-    if (androidProject == null) {
+                              @Nullable AndroidGradleModel androidModel) {
+    if (androidModel == null) {
       return;
     }
     File androidSdkHomePath = IdeSdks.getAndroidSdkPath();
@@ -80,13 +83,14 @@ public class AndroidSdkModuleCustomizer implements ModuleCustomizer<AndroidGradl
       return;
     }
 
-    final ModifiableRootModel ideaModuleModel = modelsProvider.getModifiableRootModel(module);
-    LanguageLevel languageLevel = androidProject.getJavaLanguageLevel();
+    final ModifiableRootModel moduleModel = modelsProvider.getModifiableRootModel(module);
+    LanguageLevel languageLevel = androidModel.getJavaLanguageLevel();
     if (languageLevel != null) {
-      ideaModuleModel.getModuleExtension(LanguageLevelModuleExtensionImpl.class).setLanguageLevel(languageLevel);
+      moduleModel.getModuleExtension(LanguageLevelModuleExtensionImpl.class).setLanguageLevel(languageLevel);
     }
 
-    String compileTarget = androidProject.getAndroidProject().getCompileTarget();
+    AndroidProject androidProject = androidModel.getAndroidProject();
+    String compileTarget = androidProject.getCompileTarget();
 
     Sdk sdk = findSuitableAndroidSdk(compileTarget);
     if (sdk == null) {
@@ -94,12 +98,12 @@ public class AndroidSdkModuleCustomizer implements ModuleCustomizer<AndroidGradl
 
       if (sdk == null) {
         // If SDK was not created, this might be an add-on.
-        sdk = findMatchingSdkForAddon(androidProject.getAndroidProject());
+        sdk = findMatchingSdkForAddon(androidProject);
       }
     }
 
     if (sdk != null) {
-      ideaModuleModel.setSdk(sdk);
+      moduleModel.setSdk(sdk);
       String sdkPath = sdk.getHomePath();
       if (sdkPath == null) {
         sdkPath = "<path not set>";

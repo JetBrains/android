@@ -123,9 +123,9 @@ public class TemplateWizardState implements Function<String, Object> {
   public final Set<String> myModified = new HashSet<String>();
 
   public TemplateWizardState() {
-    put(TemplateMetadata.ATTR_IS_NEW_PROJECT, false);
-    put(TemplateMetadata.ATTR_IS_GRADLE, true);
-    put(TemplateMetadata.ATTR_IS_LIBRARY_MODULE, false);
+    put(ATTR_IS_NEW_PROJECT, false);
+    put(ATTR_IS_GRADLE, true);
+    put(ATTR_IS_LIBRARY_MODULE, false);
 
     put(ATTR_SRC_DIR, "src/main/java");
     put(ATTR_RES_DIR, "src/main/res");
@@ -318,10 +318,10 @@ public class TemplateWizardState implements Function<String, Object> {
             put(param.id, Boolean.valueOf(param.initial));
             break;
           case ENUM:
-          case SEPARATOR:
           case STRING:
             put(param.id, param.initial);
             break;
+          case SEPARATOR:
           default:
             break;
         }

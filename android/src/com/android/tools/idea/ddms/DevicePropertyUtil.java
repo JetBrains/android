@@ -38,7 +38,8 @@ public class DevicePropertyUtil {
            allCaps : StringUtil.capitalizeWords(manufacturer, true);
   }
 
-  public static String getManufacturer(IDevice d, String unknown) {
+  @NotNull
+  public static String getManufacturer(@NotNull IDevice d, @NotNull String unknown) {
     String m = d.getProperty(IDevice.PROP_DEVICE_MANUFACTURER);
     if (d.isEmulator() && "unknown".equals(m)) {
       // use argument provided to method rather than the "unknown" hardcoded into the emulator system image
@@ -48,12 +49,14 @@ public class DevicePropertyUtil {
     return m != null ? fixManufacturerName(m) : unknown;
   }
 
-  public static String getModel(IDevice d, String unknown) {
+  @NotNull
+  public static String getModel(@NotNull IDevice d, @NotNull String unknown) {
     String m = d.getProperty(IDevice.PROP_DEVICE_MODEL);
     return m != null ? StringUtil.capitalizeWords(m, true) : unknown;
   }
 
-  public static String getBuild(IDevice d) {
+  @NotNull
+  public static String getBuild(@NotNull IDevice d) {
     StringBuilder sb = new StringBuilder(20);
     String v = d.getProperty(IDevice.PROP_BUILD_VERSION);
     if (v != null) {
@@ -67,24 +70,5 @@ public class DevicePropertyUtil {
     }
 
     return sb.toString();
-  }
-
-  /**
-   * Retrieves the version of Android running on the device by reading its system properties.
-   * Returns {@link com.android.sdklib.AndroidVersion#DEFAULT} if there are any issues while reading the properties.
-   */
-  @NotNull
-  public static AndroidVersion getDeviceVersion(@NotNull IDevice device) {
-    try {
-      String apiLevel = device.getProperty(IDevice.PROP_BUILD_API_LEVEL);
-      if (apiLevel == null) {
-        return AndroidVersion.DEFAULT;
-      }
-
-      return new AndroidVersion(Integer.parseInt(apiLevel), device.getProperty(IDevice.PROP_BUILD_CODENAME));
-    }
-    catch (Exception e) {
-      return AndroidVersion.DEFAULT;
-    }
   }
 }

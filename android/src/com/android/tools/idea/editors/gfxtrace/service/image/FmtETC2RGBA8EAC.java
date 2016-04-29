@@ -22,7 +22,6 @@ import com.android.tools.rpclib.schema.Field;
 import org.jetbrains.annotations.NotNull;
 
 import com.android.tools.rpclib.binary.BinaryClass;
-import com.android.tools.rpclib.binary.BinaryID;
 import com.android.tools.rpclib.binary.BinaryObject;
 import com.android.tools.rpclib.binary.Decoder;
 import com.android.tools.rpclib.binary.Encoder;
@@ -41,7 +40,7 @@ final class FmtETC2RGBA8EAC extends Format {
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("image","fmtETC2_RGBA8_EAC","","");
+  private static final Entity ENTITY = new Entity("image", "fmtETC2_RGBA8_EAC", "", "");
 
   static {
     ENTITY.setFields(new Field[]{
@@ -62,12 +61,10 @@ final class FmtETC2RGBA8EAC extends Format {
 
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
-      FmtETC2RGBA8EAC o = (FmtETC2RGBA8EAC)obj;
     }
 
     @Override
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
-      FmtETC2RGBA8EAC o = (FmtETC2RGBA8EAC)obj;
     }
     //<<<End:Java.KlassBody:2>>>
   }
