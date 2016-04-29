@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.assistant.view;
 
+import icons.AndroidIcons;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
@@ -35,6 +37,7 @@ public class TutorialButton extends NavigationButton {
     // Render the button as a link to conform with the document-style presentation. We're using a button rather than a link with a
     // click handler to retain built-in accessibility benefits of a button.
     super("<html><body><a href=\"#\">" + label + "</a></body></html>", key, listener);
+    setIcon(AndroidIcons.Assistant.TutorialIndicator);
     setHorizontalAlignment(SwingConstants.LEFT);
     setMargin(new Insets(50, 10, 10, 10));
     setContentAreaFilled(false);
