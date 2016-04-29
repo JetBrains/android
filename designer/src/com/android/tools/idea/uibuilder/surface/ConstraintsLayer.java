@@ -73,6 +73,9 @@ public class ConstraintsLayer extends Layer {
     myWidth = width;
     myHeight = height;
 
+    if (myModel.getComponents().size() == 0) {
+      return;
+    }
     NlComponent component = myModel.getComponents().get(0);
     component = component.getRoot();
 

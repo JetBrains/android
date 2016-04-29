@@ -243,9 +243,6 @@ public class SingleWidgetView extends JPanel {
      * @param height
      */
     public void build(int width, int height) {
-      boolean previousAnimationValue = Animator.isAnimationEnabled();
-      Animator.setAnimationEnabled(false);
-
       mRoot = new ConstraintWidgetContainer();
       mRoot.setCompanionWidget(WidgetCompanion.create(mRoot));
       mRoot.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.ANY);
@@ -254,7 +251,7 @@ public class SingleWidgetView extends JPanel {
       mRoot.setDebugName("       ");
       mRoot.setWidth(width + 1);
       mRoot.setHeight(height + 1);
-      mRoot.updateDrawPosition();
+      mRoot.forceUpdateDrawPosition();
 
       mWidgetsScene = new WidgetsScene();
       mWidgetsScene.setRoot(mRoot);
@@ -286,7 +283,6 @@ public class SingleWidgetView extends JPanel {
                                                mWidgetMotion, mWidgetResize,
                                                mSceneDraw, mMouseInteraction);
       connect();
-      Animator.setAnimationEnabled(previousAnimationValue);
     }
 
     /**
@@ -306,7 +302,7 @@ public class SingleWidgetView extends JPanel {
       widget.setOrigin(x, y);
       widget.setWidth(w);
       widget.setHeight(h);
-      widget.updateDrawPosition();
+      widget.forceUpdateDrawPosition();
       TextWidget decorator = new TextWidget(widget, str);
       WidgetCompanion companion = new WidgetCompanion();
       companion.addDecorator(decorator);

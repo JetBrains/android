@@ -16,25 +16,18 @@
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.sherpa.drawing.*;
 import com.android.tools.sherpa.drawing.decorator.*;
 import com.android.tools.sherpa.interaction.WidgetInteractionTargets;
 import com.android.tools.sherpa.structure.WidgetCompanion;
+import com.intellij.util.containers.WeakHashMap;
 import org.jetbrains.annotations.NotNull;
-import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
-import com.android.tools.idea.uibuilder.model.ModelListener;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.sherpa.interaction.MouseInteraction;
-import com.android.tools.sherpa.interaction.WidgetMotion;
-import com.android.tools.sherpa.interaction.WidgetResize;
 import com.android.tools.sherpa.structure.Selection;
 import com.android.tools.sherpa.structure.WidgetsScene;
 import com.google.tnt.solver.widgets.*;
 
-import java.awt.*;
-import java.awt.event.InputEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
@@ -44,111 +37,141 @@ import java.util.concurrent.locks.ReentrantLock;
  * Maintains a constraint model shadowing the current NlModel
  * and handles the user interactions on it
  */
-public class ConstraintModel {
+public class ConstraintModel implements ModelListener {
 
   public static final int DEFAULT_DENSITY = 160;
 
-  private int myDpi = DEFAULT_DENSITY;
-  private float myDpiFactor;
-
-  static ConstraintModel ourConstraintModel = new ConstraintModel();
-  static ModelListener ourModelListener = null;
-  static NlModel ourCurrentModel = null;
-
-  private ViewTransform myViewTransform = new ViewTransform();
   private WidgetsScene myWidgetsScene = new WidgetsScene();
   private Selection mySelection = new Selection(null);
-  private WidgetMotion myWidgetMotion;
-  private WidgetResize myWidgetResize = new WidgetResize();
+  private boolean mAutoConnect = true;
+  private float myDpiFactor;
 
-  private SceneDraw mySceneDraw;
-  private MouseInteraction myMouseInteraction;
+  public void setAutoConnect(boolean autoConnect) {
+    if (autoConnect != mAutoConnect) {
+      mAutoConnect = autoConnect;
+    }
+  }
+
+  public void toggleAutoConnect() {
+    setAutoConnect(!mAutoConnect);
+  }
+
+  public boolean isAutoConnect() {
+    return mAutoConnect;
+  }
 
   private static Lock ourLock = new ReentrantLock();
-  private boolean mShowFakeUI = true;
-  private ColorSet mBlueprintColorSet = new BlueprintColorSet();
-  private ColorSet mAndroidColorSet = new AndroidColorSet();
 
-  private RepaintSurface myRepaintSurface = new RepaintSurface();
-  private boolean mAutoConnect = true;
+  private long myModificationCount = -1;
+
+  public void setModificationCount(long count) {
+    myModificationCount = count;
+  }
+
+  public long getModificationCount() {
+    return myModificationCount;
+  }
+
+  private static final WeakHashMap<ScreenView, DrawConstraintModel> ourDrawModelCache = new WeakHashMap<ScreenView, DrawConstraintModel>();
+  private static final WeakHashMap<NlModel, ConstraintModel> ourModelCache = new WeakHashMap<NlModel, ConstraintModel>();
+
+  //////////////////////////////////////////////////////////////////////////////
+  // Utilities
+  //////////////////////////////////////////////////////////////////////////////
+
+  /**
+   * Transform android pixels into Dp
+   *
+   * @param px android pixels
+   * @return Dp values
+   */
+  public int pxToDp(@AndroidCoordinate int px) {
+    return (int)(px / myDpiFactor);
+  }
+
+  /**
+   * Use the dpi value to set the dpi and dpi factor
+   *
+   * @param dpiValue the current dpi
+   */
+  public void setDpiValue(int dpiValue) {
+    myDpiFactor = dpiValue / (float)DEFAULT_DENSITY;
+  }
 
   //////////////////////////////////////////////////////////////////////////////
   // Static functions
   //////////////////////////////////////////////////////////////////////////////
 
   /**
-   * Update the current model with a new one
+   * Get the associated DrawConstraintModel for this ScreenView
    *
-   * @param model new model
+   * @param screenView
    */
-  public static void useNewModel(@NotNull NlModel model) {
-    useNewModel(model, false);
+  public static DrawConstraintModel getDrawConstraintModel(ScreenView screenView) {
+    ConstraintModel constraintModel = getConstraintModel(screenView.getModel());
+    ourLock.lock();
+    DrawConstraintModel drawConstraintModel = ourDrawModelCache.get(screenView);
+    if (drawConstraintModel == null) {
+      if (constraintModel != null) {
+        drawConstraintModel = new DrawConstraintModel(screenView, constraintModel);
+        ourDrawModelCache.put(screenView, drawConstraintModel);
+      }
+    }
+    if (drawConstraintModel != null) {
+      int dpi = screenView.getConfiguration().getDensity().getDpiValue();
+      drawConstraintModel.getConstraintModel().setDpiValue(dpi);
+      float dpiFactor = dpi / (float)DEFAULT_DENSITY;
+      ViewTransform transform = drawConstraintModel.getViewTransform();
+      transform.setScale((float)(screenView.getScale() * dpiFactor));
+      int swingX = screenView.getX();
+      int swingY = screenView.getY();
+      transform.setTranslate(swingX, swingY);
+    }
+    ourLock.unlock();
+    return drawConstraintModel;
   }
 
   /**
-   * Update the current model with a new one
+   * Get the associated ConstraintModel instance for this model
    *
-   * @param model     new model
-   * @param didChange true if the new model comes from the modelChanged callback
+   * @param model
+   * @return
    */
-  private static void useNewModel(@NotNull NlModel model, boolean didChange) {
+  public static ConstraintModel getConstraintModel(NlModel model) {
     ourLock.lock();
-
-    // First, let's make sure we have a listener
-    if (ourModelListener == null) {
-      ourModelListener = new ModelListener() {
-        @Override
-        public void modelChanged(@NotNull NlModel model) {
-          // TODO: it seems that NlComponentTree / NlModel aren't calling this?..
-          useNewModel(model, true);
-        }
-
-        @Override
-        public void modelRendered(@NotNull NlModel model) {
-        }
-      };
+    ConstraintModel constraintModel = ourModelCache.get(model);
+    if (constraintModel == null) {
+      constraintModel = new ConstraintModel();
+      model.addListener(constraintModel);
+      ourModelCache.put(model, constraintModel);
     }
-
-    // if the current instance of NlModel we have doesn't correspond, update it
-    if (ourCurrentModel != model) {
-      didChange = true;
-      if (ourCurrentModel != null) {
-        ourCurrentModel.removeListener(ourModelListener);
-      }
-      ourCurrentModel = model;
-      if (ourCurrentModel != null) {
-        ourCurrentModel.addListener(ourModelListener);
-      }
-      ourConstraintModel = null;
+    if (constraintModel != null) {
+      constraintModel.modelChanged(model);
     }
-
-    if (ourConstraintModel == null) {
-      ourConstraintModel = new ConstraintModel();
-    }
-
-    // If we have a new model or a changed model, let's rebuild our scene
-    if (ourCurrentModel != null && didChange) {
-      ourConstraintModel.setDpiValue(ourCurrentModel.getConfiguration().getDensity().getDpiValue());
-      boolean previousAnimationState = Animator.isAnimationEnabled();
-      Animator.setAnimationEnabled(false);
-      ourConstraintModel.updateNlModel(model.getComponents());
-      Animator.setAnimationEnabled(previousAnimationState);
-    }
-
     ourLock.unlock();
+    return constraintModel;
   }
 
   /**
-   * Static accessor for the singleton holding the ConstraintModel
+   * If the model changed, let's update...
    *
-   * @return the current ConstraintModel
+   * @param model
    */
-  @NotNull
-  public static ConstraintModel getModel() {
+  @Override
+  public void modelChanged(@NotNull NlModel model) {
     ourLock.lock();
-    ConstraintModel model = ourConstraintModel;
+    if (model.getModificationCount() > getModificationCount()) {
+      int dpi = model.getConfiguration().getDensity().getDpiValue();
+      setDpiValue(dpi);
+      updateNlModel(model.getComponents());
+      setModificationCount(model.getModificationCount());
+    }
     ourLock.unlock();
-    return model;
+  }
+
+  @Override
+  public void modelRendered(@NotNull NlModel model) {
+    // Do nothing here
   }
 
   //////////////////////////////////////////////////////////////////////////////
@@ -161,14 +184,6 @@ public class ConstraintModel {
   public ConstraintModel() {
     mySelection.setSelectedAnchor(null);
     myWidgetsScene.setSelection(mySelection);
-    myWidgetMotion = new WidgetMotion(myWidgetsScene, mySelection);
-    mySceneDraw = new SceneDraw(new BlueprintColorSet(), myWidgetsScene, mySelection,
-                                myWidgetMotion, myWidgetResize);
-    mySceneDraw.setRepaintableSurface(myRepaintSurface);
-    myMouseInteraction = new MouseInteraction(myViewTransform,
-                                              myWidgetsScene, mySelection,
-                                              myWidgetMotion, myWidgetResize,
-                                              mySceneDraw, myMouseInteraction);
   }
 
   /**
@@ -179,16 +194,6 @@ public class ConstraintModel {
   @NotNull
   public WidgetsScene getScene() {
     return myWidgetsScene;
-  }
-
-  /**
-   * Accessor for the view transform
-   *
-   * @return the current view transform
-   */
-  @NotNull
-  public ViewTransform getViewTransform() {
-    return myViewTransform;
   }
 
   /**
@@ -221,8 +226,10 @@ public class ConstraintModel {
 
       // After the above loop, the widgets array will only contains widget that
       // are not in the list of components, so we should remove them
-      for (ConstraintWidget widget : widgets) {
-        myWidgetsScene.removeWidget(widget);
+      if (widgets.size() > 0) {
+        for (ConstraintWidget widget : widgets) {
+          myWidgetsScene.removeWidget(widget);
+        }
       }
     }
 
@@ -274,7 +281,8 @@ public class ConstraintModel {
     ConstraintWidget widget = null;
     if (component.getTag() != null) {
       widget = myWidgetsScene.getWidget(component.getTag());
-    } else {
+    }
+    else {
       for (ConstraintWidget w : myWidgetsScene.getWidgets()) {
         WidgetCompanion companion = (WidgetCompanion)w.getCompanionWidget();
         NlComponent c = (NlComponent)companion.getWidgetModel();
@@ -295,7 +303,8 @@ public class ConstraintModel {
       else {
         if (component.children != null && component.children.size() > 0) {
           widget = new WidgetContainer();
-        } else {
+        }
+        else {
           widget = new ConstraintWidget();
         }
       }
@@ -321,8 +330,9 @@ public class ConstraintModel {
 
   /**
    * Return a new instance of WidgetDecorator given a component and its ConstraintWidget
+   *
    * @param component the component we want to decorate
-   * @param widget the ConstraintWidget associated
+   * @param widget    the ConstraintWidget associated
    * @return a new WidgetDecorator instance
    */
   private WidgetDecorator createDecorator(NlComponent component, ConstraintWidget widget) {
@@ -330,16 +340,20 @@ public class ConstraintModel {
     if (component.getTagName().equalsIgnoreCase(SdkConstants.TEXT_VIEW)) {
       String text = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT);
       decorator = new TextWidget(widget, text);
-    } else if (component.getTagName().equalsIgnoreCase(SdkConstants.BUTTON)) {
+    }
+    else if (component.getTagName().equalsIgnoreCase(SdkConstants.BUTTON)) {
       String text = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT);
       decorator = new ButtonWidget(widget, text);
-    } else if (component.getTagName().equalsIgnoreCase(SdkConstants.RADIO_BUTTON)) {
+    }
+    else if (component.getTagName().equalsIgnoreCase(SdkConstants.RADIO_BUTTON)) {
       String text = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT);
       decorator = new RadiobuttonWidget(widget, text);
-    } else if (component.getTagName().equalsIgnoreCase(SdkConstants.CHECK_BOX)) {
+    }
+    else if (component.getTagName().equalsIgnoreCase(SdkConstants.CHECK_BOX)) {
       String text = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT);
       decorator = new CheckboxWidget(widget, text);
-    } else if (component.getTagName().equalsIgnoreCase(SdkConstants.SWITCH)) {
+    }
+    else if (component.getTagName().equalsIgnoreCase(SdkConstants.SWITCH)) {
       String text = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT);
       decorator = new SwitchWidget(widget, text);
     }
@@ -360,159 +374,6 @@ public class ConstraintModel {
     for (NlComponent child : component.getChildren()) {
       updateSolverWidgetFromComponent(child);
     }
-  }
-
-  //////////////////////////////////////////////////////////////////////////////
-  // Interaction
-  //////////////////////////////////////////////////////////////////////////////
-
-  /**
-   * Handles mouse press in the user interaction with our model
-   *
-   * @param x x mouse coordinate
-   * @param y y mouse coordinate
-   */
-  public void mousePressed(@AndroidCoordinate int x, @AndroidCoordinate int y) {
-    if (myMouseInteraction != null) {
-      myMouseInteraction.mousePressed(pxToDp(x), pxToDp(y), false);
-    }
-    Animator.setAnimationEnabled(true);
-  }
-
-  /**
-   * Handles mouse drag in the user interaction with our model
-   *
-   * @param x x mouse coordinate
-   * @param y y mouse coordinate
-   */
-  public void mouseDragged(@AndroidCoordinate int x, @AndroidCoordinate int y) {
-    if (myMouseInteraction != null) {
-      myMouseInteraction.mouseDragged(pxToDp(x), pxToDp(y));
-    }
-  }
-
-  /**
-   * Handles mouse release in the user interaction with our model
-   *
-   * @param x x mouse coordinate
-   * @param y y mouse coordinate
-   */
-  public void mouseReleased(@AndroidCoordinate int x, @AndroidCoordinate int y) {
-    if (myMouseInteraction != null) {
-      myMouseInteraction.mouseReleased(pxToDp(x), pxToDp(y));
-    }
-    Animator.setAnimationEnabled(true);
-  }
-
-  /**
-   * Handles mouse move interactions
-   *
-   * @param x x mouse coordinate
-   * @param y y mouse coordinate
-   * @return true if we need to repaint
-   */
-  public boolean mouseMoved(@AndroidCoordinate int x, @AndroidCoordinate int y) {
-    if (myMouseInteraction != null) {
-      myMouseInteraction.mouseMoved(pxToDp(x), pxToDp(y));
-    }
-    if (mySceneDraw.getCurrentUnderneathAnchor() != null) {
-      return true;
-    }
-    return false;
-  }
-
-  /**
-   * Update the key modifiers mask
-   *
-   * @param modifiers new mask
-   */
-  public void updateModifiers(int modifiers) {
-    myMouseInteraction.setIsControlDown((modifiers & InputEvent.CTRL_DOWN_MASK) != 0);
-    myMouseInteraction.setIsShiftDown((modifiers & InputEvent.SHIFT_DOWN_MASK) != 0);
-    myMouseInteraction.setIsAltDown((modifiers & InputEvent.ALT_DOWN_MASK) != 0);
-  }
-
-  public void setAutoConnect(boolean autoConnect) {
-    if (autoConnect != mAutoConnect) {
-      mAutoConnect = autoConnect;
-      myMouseInteraction.setAutoConnect(autoConnect);
-    }
-  }
-
-  public void toggleAutoConnect() {
-    setAutoConnect(!mAutoConnect);
-  }
-
-  public boolean isAutoConnect() { return mAutoConnect; }
-
-  //////////////////////////////////////////////////////////////////////////////
-  // Painting
-  //////////////////////////////////////////////////////////////////////////////
-
-  /**
-   * Simple helper class to avoid reallocation
-   */
-  class RepaintSurface implements SceneDraw.Repaintable {
-    ScreenView myScreenView;
-    @Override
-    public void repaint() {
-      if (myScreenView != null) {
-        myScreenView.getSurface().repaint();
-      }
-    }
-  }
-
-  /**
-   * Paint ourselves and our children
-   *
-   * @param gc                  the graphic context
-   * @param screenView
-   *@param width              width of the canvas
-   * @param height             height of the canvas
-   * @param showAllConstraints flag to show or not all the existing constraints
-   * @param isAndroidSurface   android surface (layoutlib)     @return true if we need to repaint
-   */
-  public boolean paint(@NotNull Graphics2D gc,
-                       ScreenView screenView,
-                       int width,
-                       int height,
-                       boolean showAllConstraints,
-                       boolean isAndroidSurface) {
-    Graphics2D g = (Graphics2D) gc.create();
-    WidgetDecorator.setShowFakeUI(mShowFakeUI);
-    if (isAndroidSurface) {
-      mySceneDraw.setColorSet(mAndroidColorSet);
-    } else {
-      mySceneDraw.setColorSet(mBlueprintColorSet);
-    }
-    myRepaintSurface.myScreenView = screenView;
-    boolean ret = mySceneDraw.paintWidgets(width, height, myViewTransform, g, showAllConstraints, myMouseInteraction);
-    g.dispose();
-    return ret;
-  }
-
-  //////////////////////////////////////////////////////////////////////////////
-  // Utilities
-  //////////////////////////////////////////////////////////////////////////////
-
-  /**
-   * Transform android pixels into Dp
-   *
-   * @param px android pixels
-   * @return Dp values
-   */
-  public int pxToDp(@AndroidCoordinate int px) {
-    return (int)(px / myDpiFactor);
-  }
-
-  /**
-   * Use the dpi value to set the dpi and dpi factor
-   *
-   * @param dpiValue the current dpi
-   */
-  public void setDpiValue(int dpiValue) {
-    myDpi = dpiValue;
-    myDpiFactor = dpiValue / (float)DEFAULT_DENSITY;
   }
 
   /**

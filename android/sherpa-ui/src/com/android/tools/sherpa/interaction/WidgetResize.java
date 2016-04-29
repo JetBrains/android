@@ -46,8 +46,8 @@ public class WidgetResize {
         if (widget == null) {
             return;
         }
-        mSnapCandidates.clear();
         Animator.setAnimationEnabled(false);
+        mSnapCandidates.clear();
         int x = widget.getDrawX();
         int y = widget.getDrawY();
         int w = widget.getDrawWidth();
@@ -330,6 +330,7 @@ public class WidgetResize {
         }
         widget.setDrawOrigin(newX, newY);
         widget.setDimension(newWidth, newHeight);
+        widget.forceUpdateDrawPosition();
         if (widget.getWidth() <= widget.getMinWidth()) {
             widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.WRAP_CONTENT);
         } else {

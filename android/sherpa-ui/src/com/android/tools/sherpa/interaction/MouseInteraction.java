@@ -24,10 +24,7 @@ import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
 import com.android.tools.sherpa.structure.Selection;
 import com.android.tools.sherpa.structure.WidgetCompanion;
 import com.android.tools.sherpa.structure.WidgetsScene;
-import com.google.tnt.solver.widgets.ConstraintAnchor;
-import com.google.tnt.solver.widgets.ConstraintWidget;
-import com.google.tnt.solver.widgets.Guideline;
-import com.google.tnt.solver.widgets.Snapshot;
+import com.google.tnt.solver.widgets.*;
 
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
@@ -519,6 +516,7 @@ public class MouseInteraction {
             mMouseMode = MouseMode.INACTIVE;
             return;
         }
+        Animator.setAnimationEnabled(true);
         mMouseDown = true;
         mStartPoint.setLocation(x, y);
         mLastMousePosition.setLocation(x, y);
@@ -776,6 +774,7 @@ public class MouseInteraction {
         mSnapshot = null;
         mMouseDown = false;
         mLockTimer.stop();
+        Animator.setAnimationEnabled(true);
     }
 
     /**

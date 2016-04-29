@@ -357,10 +357,12 @@ public class ConstraintUtilities {
     switch (widget.getHorizontalDimensionBehaviour()) {
       case ANY: {
         width = "0dp";
-      } break;
+      }
+      break;
       case WRAP_CONTENT: {
         width = SdkConstants.VALUE_WRAP_CONTENT;
-      } break;
+      }
+      break;
       default:
         width = String.format(SdkConstants.VALUE_N_DP, widget.getWidth());
     }
@@ -371,10 +373,12 @@ public class ConstraintUtilities {
     switch (widget.getVerticalDimensionBehaviour()) {
       case ANY: {
         height = "0dp";
-      } break;
+      }
+      break;
       case WRAP_CONTENT: {
         height = SdkConstants.VALUE_WRAP_CONTENT;
-      } break;
+      }
+      break;
       default:
         height = String.format(SdkConstants.VALUE_N_DP, widget.getHeight());
     }
@@ -383,22 +387,32 @@ public class ConstraintUtilities {
                            height);
   }
 
+  /**
+   * Update the component horizontal bias
+   *
+   * @param component the component we work on
+   * @param widget    the widget we use as a model
+   */
   static void setHorizontalBias(@NotNull NlComponent component, @NotNull ConstraintWidget widget) {
-    String biasString = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS);
-    float bias = 0.5f;
-    if (biasString != null && biasString.length() > 0) {
-      bias = Float.parseFloat(biasString);
+    float bias = widget.getHorizontalBiasPercent();
+    if (bias != 0.5f) {
+      component.setAttribute(SdkConstants.SHERPA_URI,
+                             SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, "" + bias);
     }
-    widget.setHorizontalBiasPercent(bias);
   }
 
+  /**
+   * Update the component horizontal bias
+   *
+   * @param component the component we work on
+   * @param widget    the widget we use as a model
+   */
   static void setVerticalBias(@NotNull NlComponent component, @NotNull ConstraintWidget widget) {
-    String biasString = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS);
-    float bias = 0.5f;
-    if (biasString != null && biasString.length() > 0) {
-      bias = Float.parseFloat(biasString);
+    float bias = widget.getVerticalBiasPercent();
+    if (bias != 0.5f) {
+      component.setAttribute(SdkConstants.SHERPA_URI,
+                             SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, "" + bias);
     }
-    widget.setVerticalBiasPercent(bias);
   }
 
   /**
@@ -417,6 +431,27 @@ public class ConstraintUtilities {
       else if (strength.equalsIgnoreCase("strong")) {
         widget.getAnchor(type).setStrength(ConstraintAnchor.Strength.STRONG);
       }
+    }
+  }
+
+  /**
+   * Set the horizontal or vertical bias of the widget
+   *
+   * @param attribute horizontal or vertical bias attribute string
+   * @param component the component we are looking at
+   * @param widget    the constraint widget we set the bias on
+   */
+  static void setBias(@NotNull String attribute, @NotNull NlComponent component, @NotNull ConstraintWidget widget) {
+    String biasString = component.getAttribute(SdkConstants.SHERPA_URI, attribute);
+    float bias = 0.5f;
+    if (biasString != null && biasString.length() > 0) {
+      bias = Float.parseFloat(biasString);
+    }
+    if (attribute.equalsIgnoreCase(SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS)) {
+      widget.setHorizontalBiasPercent(bias);
+    }
+    else {
+      widget.setVerticalBiasPercent(bias);
     }
   }
 
@@ -498,8 +533,12 @@ public class ConstraintUtilities {
    * @param constraintA  the source anchor type
    * @param constraintB  the target anchor type
    */
-  static void setTarget(@NotNull NlModel model, @NotNull WidgetsScene widgetsScene, @Nullable String targetID, @Nullable ConstraintWidget widgetSrc,
-                        @NotNull ConstraintAnchor.Type constraintA, @NotNull ConstraintAnchor.Type constraintB) {
+  static void setTarget(@NotNull NlModel model,
+                        @NotNull WidgetsScene widgetsScene,
+                        @Nullable String targetID,
+                        @Nullable ConstraintWidget widgetSrc,
+                        @NotNull ConstraintAnchor.Type constraintA,
+                        @NotNull ConstraintAnchor.Type constraintB) {
     if (targetID == null) {
       return;
     }
@@ -535,7 +574,7 @@ public class ConstraintUtilities {
    * Utility method looking up a component from its ID
    *
    * @param component component to look in
-   * @param id the id to find
+   * @param id        the id to find
    * @return the component if found, null otherwise
    */
   @Nullable
@@ -583,7 +622,8 @@ public class ConstraintUtilities {
     if (widget instanceof ConstraintWidgetContainer) {
       widget.setDimension(constraintModel.pxToDp(component.w - padding.width()),
                           constraintModel.pxToDp(component.h - padding.height()));
-    } else {
+    }
+    else {
       widget.setDimension(constraintModel.pxToDp(component.w),
                           constraintModel.pxToDp(component.h));
     }
@@ -633,7 +673,12 @@ public class ConstraintUtilities {
       x -= parentContainer.getDrawX();
       y -= parentContainer.getDrawY();
     }
-    widget.setOrigin(x, y);
+
+    if (widget.getX() != x || widget.getY() != y) {
+      widget.setOrigin(x, y);
+      widget.forceUpdateDrawPosition();
+    }
+
     widget.setBaselineDistance(constraintModel.pxToDp(component.getBaseline()));
     widget.resetAnchors();
 
@@ -679,39 +724,16 @@ public class ConstraintUtilities {
     setStrength(SdkConstants.ATTR_LAYOUT_RIGHT_STRENGTH, ConstraintAnchor.Type.RIGHT, component, widget);
     setStrength(SdkConstants.ATTR_LAYOUT_TOP_STRENGTH, ConstraintAnchor.Type.TOP, component, widget);
     setStrength(SdkConstants.ATTR_LAYOUT_BOTTOM_STRENGTH, ConstraintAnchor.Type.BOTTOM, component, widget);
-    setHorizontalBias(component, widget);
-    setVerticalBias(component, widget);
-  }
-
-  static void saveModelToXMLOnRelease(NlModel nlModel, int modifiers, int ax, int ay) {
-    Project project = nlModel.getProject();
-    XmlFile file = nlModel.getFile();
-
-    String label = "Constraint";
-    WriteCommandAction action = new WriteCommandAction(project, label, file) {
-      @Override
-      protected void run(@NotNull Result result) throws Throwable {
-        ConstraintModel model = ConstraintModel.getModel();
-        model.updateModifiers(modifiers);
-        model.mouseReleased(ax, ay);
-        Selection selection = model.getSelection();
-        if (selection != null) {
-          for (ConstraintWidget widget : selection.getModifiedWidgets()) {
-            commitElement(widget, nlModel);
-          }
-        }
-        selection.clearModifiedWidgets();
-      }
-    };
-    action.execute();
-    nlModel.notifyModified();
+    setBias(SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, component, widget);
+    setBias(SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, component, widget);
   }
 
   /**
-   *  Utility function to commit an attribute to the NlModel
+   * Utility function to commit an attribute to the NlModel
+   *
    * @param component
    * @param attribute
-   * @param value String or null to clear attribute
+   * @param value     String or null to clear attribute
    */
   static void saveNlAttribute(NlComponent component, String attribute, final String value) {
     NlModel nlModel = component.getModel();
@@ -731,6 +753,7 @@ public class ConstraintUtilities {
 
   /**
    * Utility function to commit to the NlModel the current state of all widgets
+   *
    * @param nlModel
    */
   static void saveModelToXML(NlModel nlModel) {
@@ -741,7 +764,7 @@ public class ConstraintUtilities {
     WriteCommandAction action = new WriteCommandAction(project, label, file) {
       @Override
       protected void run(@NotNull Result result) throws Throwable {
-        ConstraintModel model = ConstraintModel.getModel();
+        ConstraintModel model = ConstraintModel.getConstraintModel(nlModel);
         Collection<ConstraintWidget> widgets = model.getScene().getWidgets();
         for (ConstraintWidget widget : widgets) {
           commitElement(widget, nlModel);
@@ -756,7 +779,7 @@ public class ConstraintUtilities {
    * Utility function to commit to the NlModel the current state of the given widget
    *
    * @param widget the widget we want to save to the model
-   * @param model the model to save to
+   * @param model  the model to save to
    */
   static void commitElement(@NotNull ConstraintWidget widget, @NotNull NlModel model) {
     WidgetCompanion companion = (WidgetCompanion)widget.getCompanionWidget();
@@ -768,9 +791,13 @@ public class ConstraintUtilities {
       }
     }
     setEditorPosition(component, widget.getX(), widget.getY());
-    setDimension(component, widget);
+    if (!widget.isRoot()) {
+      setDimension(component, widget);
+    }
     for (ConstraintAnchor anchor : widget.getAnchors()) {
       setConnection(component, anchor);
     }
+    setHorizontalBias(component, widget);
+    setVerticalBias(component, widget);
   }
 }
