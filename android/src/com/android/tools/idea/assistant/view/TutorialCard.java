@@ -95,6 +95,8 @@ public class TutorialCard extends CardViewPanel {
     contents.add(Box.createVerticalGlue(), glueConstraints);
     c.gridy++;
 
+    // remove insets for footer.
+    c.insets = new Insets(0,0,0,0);
     contents.add(new FooterNav(), c);
 
     // HACK ALERT: For an unknown reason (possibly race condition calculating inner contents)
