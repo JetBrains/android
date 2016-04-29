@@ -75,6 +75,7 @@ import java.text.AttributedString;
 import java.util.List;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
+import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.truth.Truth.assertThat;
 import static org.fest.reflect.core.Reflection.method;
 import static org.fest.swing.edt.GuiActionRunner.execute;
@@ -262,73 +263,20 @@ public class EditorFixture {
   }
 
   /**
-   * Returns the contents of the current file, or null if there is no
-   * file open. The caret position is indicated by {@code ^}, and
-   * the selection text range, if on the current line, is indicated by
-   * the text inside {@code |> <|}.
+   * Returns the text of the document in the currently selected text editor.
    *
-   * @param showPositions if true, show the editor positions (carets, selection)
-   * @return the text contents at the current caret position
+   * @throws IllegalStateException if there is no currently selected text editor
    */
-  @Nullable
-  public String getCurrentFileContents(boolean showPositions) {
-    if (showPositions) {
-      return getCurrentFileContents(CARET, SELECT_BEGIN, SELECT_END);
-    }
-    else {
-      return getCurrentFileContents(null, null, null);
-    }
-  }
-
-  /**
-   * Returns the contents of the current file, or null if there is no
-   * file open.
-   *
-   * @param caretString typically "^" which will insert "^" to indicate the
-   *                    caret position. If null, the caret position is not shown.
-   * @param selectBegin the text string to insert at the beginning of the selection boundary
-   * @param selectEnd   the text string to insert at the end of the selection boundary
-   * @return the text contents at the current caret position
-   */
-  @Nullable
-  public String getCurrentFileContents(@Nullable final String caret, @Nullable final String selectBegin, @Nullable final String selectEnd) {
+  @NotNull
+  public String getCurrentFileContents() {
+    // noinspection ConstantConditions
     return execute(new GuiQuery<String>() {
       @Override
       @Nullable
       protected String executeInEDT() throws Throwable {
-        FileEditorManager manager = FileEditorManager.getInstance(myFrame.getProject());
-        Editor editor = manager.getSelectedTextEditor();
-        if (editor != null) {
-          CaretModel caretModel = editor.getCaretModel();
-          Caret primaryCaret = caretModel.getPrimaryCaret();
-          int offset = primaryCaret.getOffset();
-          int start = primaryCaret.getSelectionStart();
-          int end = primaryCaret.getSelectionEnd();
-          if (start == end) {
-            start = -1;
-            end = -1;
-          }
-          Document document = editor.getDocument();
-          int lineStart = 0;
-          int lineEnd = document.getTextLength();
-          String text = document.getText(new TextRange(lineStart, lineEnd));
-          StringBuilder sb = new StringBuilder(text.length() + 10);
-          for (int i = 0, n = text.length(); i < n; i++) {
-            if (selectBegin != null && start == i) {
-              sb.append(selectBegin);
-            }
-            if (caret != null && offset == i) {
-              sb.append(caret);
-            }
-            sb.append(text.charAt(i));
-            if (selectEnd != null && end == i + 1) {
-              sb.append(selectEnd);
-            }
-          }
-          return sb.toString();
-        }
-
-        return null;
+        Editor editor = FileEditorManager.getInstance(myFrame.getProject()).getSelectedTextEditor();
+        checkState(editor != null, "no currently selected text editor");
+        return editor.getDocument().getText();
       }
     });
   }
