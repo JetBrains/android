@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.run.editor;
 
-import com.android.tools.idea.run.AndroidApplicationLauncher;
 import com.android.tools.idea.run.ValidationError;
+import com.android.tools.idea.run.tasks.LaunchTask;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
@@ -26,7 +27,11 @@ import java.util.List;
 // Each Launch Option should extend this class and add a set of public fields such that they can be saved/restored using
 // DefaultJDOMExternalizer
 public abstract class LaunchOptionState {
-  public abstract AndroidApplicationLauncher getLauncher(@NotNull AndroidFacet facet, @NotNull String extraAmOptions);
+  @Nullable
+  public abstract LaunchTask getLaunchTask(@NotNull String applicationId,
+                                           @NotNull AndroidFacet facet,
+                                           boolean waitForDebugger,
+                                           @NotNull String extraAmOptions);
 
   @NotNull
   public List<ValidationError> checkConfiguration(@NotNull AndroidFacet facet) {

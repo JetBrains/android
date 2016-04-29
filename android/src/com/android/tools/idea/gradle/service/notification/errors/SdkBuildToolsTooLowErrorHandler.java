@@ -15,14 +15,18 @@
  */
 package com.android.tools.idea.gradle.service.notification.errors;
 
-import com.android.sdklib.BuildToolInfo;
-import com.android.sdklib.repository.FullRevision;
-import com.android.sdklib.repository.local.LocalSdk;
+import com.android.repository.Revision;
+import com.android.repository.api.LocalPackage;
+import com.android.repository.api.ProgressIndicator;
+import com.android.repository.impl.meta.RepositoryPackages;
+import com.android.sdklib.repositoryv2.AndroidSdkHandler;
+import com.android.sdklib.repositoryv2.meta.DetailsTypes;
 import com.android.tools.idea.gradle.service.notification.hyperlink.FixBuildToolsVersionHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.InstallBuildToolsHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
@@ -54,13 +58,15 @@ public class SdkBuildToolsTooLowErrorHandler extends AbstractSyncErrorHandler {
 
       String minimumVersion = matcher.group(3);
 
-      LocalSdk localAndroidSdk = null;
+      AndroidSdkHandler sdkHandler = null;
       AndroidSdkData androidSdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
       if (androidSdkData != null) {
-        localAndroidSdk = androidSdkData.getLocalSdk();
+        sdkHandler = androidSdkData.getSdkHandler();
       }
-      if (localAndroidSdk != null) {
-        BuildToolInfo buildTool = localAndroidSdk.getBuildTool(FullRevision.parseRevision(minimumVersion));
+      if (sdkHandler != null) {
+        ProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
+        RepositoryPackages packages = sdkHandler.getSdkManager(progress).getPackages();
+        LocalPackage buildTool = packages.getLocalPackages().get(DetailsTypes.getBuildToolsPath(Revision.parseRevision(minimumVersion)));
         buildToolInstalled = buildTool != null;
       }
 

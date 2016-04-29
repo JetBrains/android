@@ -15,13 +15,8 @@
  */
 package org.jetbrains.android.dom.drawable;
 
-import org.jetbrains.android.dom.animator.AnimatorElement;
+import org.jetbrains.android.dom.Styleable;
 
-import java.util.List;
-
-/**
- * @author Eugene.Kudelevsky
- */
+@Styleable({"StateListDrawableItem", "DrawableStates"})
 public interface DrawableStateListItem extends ListItemBase {
-  List<AnimatorElement> getSets();
 }

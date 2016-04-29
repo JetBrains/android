@@ -155,7 +155,7 @@ public class NetworkSampler extends DeviceSampler {
       myTimelineData.add(System.currentTimeMillis(), myDataType, 0.0f, 0.0f);
     }
     else {
-      myTimelineData.addFromArea(System.currentTimeMillis(), myDataType, rxBytesIncreased / 1024.f, -txBytesIncreased / 1024.f);
+      myTimelineData.addFromArea(System.currentTimeMillis(), myDataType, rxBytesIncreased / 1024.f, txBytesIncreased / 1024.f);
     }
   }
 

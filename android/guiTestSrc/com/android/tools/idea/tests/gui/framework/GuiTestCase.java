@@ -22,7 +22,6 @@ import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
-import com.android.tools.idea.tests.gui.framework.fixture.FileChooserDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
@@ -30,6 +29,7 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -65,7 +65,6 @@ import static com.intellij.ide.impl.ProjectUtil.closeAndDispose;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.io.FileUtilRt.delete;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static junit.framework.Assert.assertNotNull;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.edt.GuiActionRunner.execute;
@@ -73,6 +72,7 @@ import static org.fest.swing.timing.Pause.pause;
 import static org.fest.util.Strings.quote;
 import static org.jetbrains.android.AndroidPlugin.getGuiTestSuiteState;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 @RunWith(GuiTestRunner.class)
 public abstract class GuiTestCase {
@@ -108,6 +108,11 @@ public abstract class GuiTestCase {
     setIdeSettings();
     setUpSdks();
 
+    // There is a race condition between reloading the configuration file after file deletion detected and the serialization of IDEA model
+    // we just customized so that modules can't be loaded correctly.
+    // This is a hack to prevent StoreAwareProjectManager from doing any reloading during test.
+    ProjectManagerEx.getInstanceEx().blockReloadingProjectOnExternalChanges();
+
     refreshFiles();
   }
 
@@ -123,6 +128,8 @@ public abstract class GuiTestCase {
     GuiTestSuiteState state = getGuiTestSuiteState();
     state.setSkipSdkMerge(false);
     state.setUseCachedGradleModelOnly(false);
+
+    // TODO: setUpDefaultGeneralSettings();
   }
 
   @After
@@ -132,7 +139,17 @@ public abstract class GuiTestCase {
     }
     if (myRobot != null) {
       myRobot.cleanUpWithoutDisposingWindows();
+      // We close all modal dialogs left over, because they block the AWT thread and could trigger a deadlock in the next test.
+      for (Window window : Window.getWindows()) {
+        if (window.isShowing() && window instanceof Dialog) {
+          if (((Dialog) window).getModalityType() == Dialog.ModalityType.APPLICATION_MODAL) {
+            fail("Modal dialog still active: " + window);
+            myRobot.close(window);
+          }
+        }
+      }
     }
+    ProjectManagerEx.getInstanceEx().unblockReloadingProjectOnExternalChanges();
   }
 
   @NotNull
@@ -190,7 +207,7 @@ public abstract class GuiTestCase {
         @Override
         public boolean test() {
           for (Frame frame : Frame.getFrames()) {
-            if (frame instanceof WelcomeFrame && frame.isShowing()) {
+            if (frame == WelcomeFrame.getInstance() && frame.isShowing()) {
               return true;
             }
           }
@@ -212,19 +229,15 @@ public abstract class GuiTestCase {
 
   @NotNull
   protected IdeFrameFixture importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName) throws IOException {
-    File projectPath = setUpProject(projectDirName, false, true, null);
-    VirtualFile toSelect = findFileByIoFile(projectPath, true);
+    return importProjectAndWaitForProjectSyncToFinish(projectDirName, null);
+  }
+
+  @NotNull
+  protected IdeFrameFixture importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName, @Nullable String gradleVersion)
+    throws IOException {
+    File projectPath = setUpProject(projectDirName, false, true, gradleVersion);
+    VirtualFile toSelect = findFileByIoFile(projectPath, false);
     assertNotNull(toSelect);
-
-    GuiTestSuiteState testSuiteState = getGuiTestSuiteState();
-    if (!testSuiteState.isImportProjectWizardAlreadyTested()) {
-      testSuiteState.setImportProjectWizardAlreadyTested(true);
-
-      findWelcomeFrame().clickImportProjectButton();
-
-      FileChooserDialogFixture importProjectDialog = FileChooserDialogFixture.findImportProjectDialog(myRobot);
-      return openProjectAndWaitUntilOpened(toSelect, importProjectDialog);
-    }
 
     doImportProject(toSelect);
 
@@ -237,7 +250,7 @@ public abstract class GuiTestCase {
   @NotNull
   protected File importProject(@NotNull String projectDirName) throws IOException {
     File projectPath = setUpProject(projectDirName, false, true, null);
-    VirtualFile toSelect = findFileByIoFile(projectPath, true);
+    VirtualFile toSelect = findFileByIoFile(projectPath, false);
     assertNotNull(toSelect);
     doImportProject(toSelect);
     return projectPath;
@@ -266,12 +279,12 @@ public abstract class GuiTestCase {
    * <p/>
    * </ul>
    *
-   * @param projectDirName the name of the project's root directory. Tests are located in testData/guiTests.
-   * @param forOpen indicates whether the project will be opened by the IDE, or imported.
+   * @param projectDirName             the name of the project's root directory. Tests are located in testData/guiTests.
+   * @param forOpen                    indicates whether the project will be opened by the IDE, or imported.
    * @param updateAndroidPluginVersion indicates if the latest supported version of the Android Gradle plug-in should be set in the
    *                                   project.
-   * @param gradleVersion the Gradle version to use in the wrapper. If {@code null} is passed, this method will use the latest supported
-   *                      version of Gradle.
+   * @param gradleVersion              the Gradle version to use in the wrapper. If {@code null} is passed, this method will use the latest supported
+   *                                   version of Gradle.
    * @return the path of project's root directory (the copy of the project, not the original one.)
    * @throws IOException if an unexpected I/O error occurs.
    */
@@ -403,17 +416,6 @@ public abstract class GuiTestCase {
       }
       delete(dotIdeaFolderPath);
     }
-  }
-
-  @NotNull
-  protected IdeFrameFixture openProjectAndWaitUntilOpened(@NotNull VirtualFile projectDir,
-                                                          @NotNull FileChooserDialogFixture fileChooserDialog) {
-    fileChooserDialog.select(projectDir).clickOk();
-
-    File projectPath = virtualToIoFile(projectDir);
-    IdeFrameFixture projectFrame = findIdeFrame(projectPath);
-    projectFrame.waitForGradleProjectSyncToFinish();
-    return projectFrame;
   }
 
   @NotNull

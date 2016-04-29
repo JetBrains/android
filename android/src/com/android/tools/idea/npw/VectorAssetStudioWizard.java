@@ -21,12 +21,19 @@ import com.android.tools.idea.wizard.template.TemplateWizardStep;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.DialogBuilder;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.JButton;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import static com.android.tools.idea.wizard.template.TemplateWizardStep.NONE;
 import static com.android.tools.idea.npw.AssetStudioAssetGenerator.*;
@@ -40,6 +47,8 @@ public class VectorAssetStudioWizard extends TemplateWizard implements TemplateW
   protected TemplateWizardState myWizardState = new TemplateWizardState();
   protected ChooseOutputResDirStep myOutputStep;
   protected VectorAssetSetStep myIconStep;
+
+  private final static String helpPage = "http://developer.android.com/tools/help/vector-asset-studio.html";
 
   public VectorAssetStudioWizard(@Nullable Project project, @Nullable Module module, @Nullable VirtualFile targetFile) {
     super("Vector Asset Studio", project);
@@ -57,7 +66,27 @@ public class VectorAssetStudioWizard extends TemplateWizard implements TemplateW
     addStep(myIconStep);
     addStep(myOutputStep);
     myWizardState.put(ATTR_SOURCE_TYPE, AssetStudioAssetGenerator.SourceType.VECTORDRAWABLE);
-    getHelpButton().hide();
+    JButton helpButton = getHelpButton();
+    if (Desktop.isDesktopSupported()) {
+      helpButton.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(final ActionEvent e) {
+          try {
+            URI link = new URI(helpPage);
+            Desktop.getDesktop().browse(link);
+          }
+          catch (Exception e1) {
+            DialogBuilder builder = new DialogBuilder(myProject);
+            builder.setTitle("Error");
+            builder.setErrorText("Can't show " + helpPage);
+            builder.show();
+          }
+        }
+      });
+    } else {
+      helpButton.hide();
+    }
+
     getNextButton().disable();
     super.init();
   }

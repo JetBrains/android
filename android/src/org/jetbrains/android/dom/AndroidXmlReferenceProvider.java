@@ -99,8 +99,7 @@ public class AndroidXmlReferenceProvider extends PsiReferenceProvider {
         final String baseClassQName = computeBaseClass(tag);
 
         if (baseClassQName != null) {
-          final String text = nameElement.getText();
-          return text.contains(".");
+          return nameElement.getText().contains(".");
         }
       }
     }

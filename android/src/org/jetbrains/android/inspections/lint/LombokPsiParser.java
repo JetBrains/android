@@ -29,15 +29,18 @@ import com.intellij.codeInsight.ExternalAnnotationsManager;
 import com.intellij.openapi.application.AccessToken;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.JavaConstantExpressionEvaluator;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.InheritanceUtil;
+import com.intellij.psi.util.PsiTypesUtil;
 import com.intellij.psi.util.PsiUtil;
 import com.intellij.psi.util.TypeConversionUtil;
 import com.intellij.util.ArrayUtil;
+import lombok.ast.Catch;
 import lombok.ast.Node;
 import lombok.ast.Position;
 import org.jetbrains.annotations.Contract;
@@ -68,20 +71,28 @@ public class LombokPsiParser extends JavaParser {
   public Node parseJava(@NonNull final JavaContext context) {
     assert myLock == null;
     myLock = ApplicationManager.getApplication().acquireReadActionLock();
-    Node compilationUnit = parse(context);
-    if (compilationUnit == null) {
-      myLock.finish();
-      myLock = null;
+    try {
+      Node node = parse(context);
+      if (node != null) {
+        return node;
+      }
     }
-    return compilationUnit;
+    catch (Throwable ignore) {
+    }
+    myLock.finish();
+    myLock = null;
+    return null;
   }
 
   @Override
   public void dispose(@NonNull JavaContext context, @NonNull Node compilationUnit) {
     if (context.getCompilationUnit() != null) {
+      context.setCompilationUnit(null);
+    }
+
+    if (myLock != null) {
       myLock.finish();
       myLock = null;
-      context.setCompilationUnit(null);
     }
   }
 
@@ -97,7 +108,10 @@ public class LombokPsiParser extends JavaParser {
     PsiJavaFile javaFile = (PsiJavaFile)psiFile;
 
     try {
-        return LombokPsiConverter.convert(javaFile);
+      return LombokPsiConverter.convert(javaFile);
+    } catch (ProcessCanceledException ignore) {
+      context.getDriver().cancel();
+      return null;
     } catch (Throwable t) {
       myClient.log(t, "Failed converting PSI parse tree to Lombok for file %1$s",
                     context.file.getPath());
@@ -114,6 +128,23 @@ public class LombokPsiParser extends JavaParser {
       return Location.create(context.file);
     }
     return Location.create(context.file, null, position.getStart(), position.getEnd());
+  }
+
+  @NonNull
+  @Override
+  public Location getRangeLocation(@NonNull JavaContext context, @NonNull Node from, int fromDelta, @NonNull Node to, int toDelta) {
+    Position position1 = from.getPosition();
+    Position position2 = to.getPosition();
+    if (position1 == null) {
+      return getLocation(context, to);
+    }
+    else if (position2 == null) {
+      return getLocation(context, from);
+    }
+
+    int start = Math.max(0, from.getPosition().getStart() + fromDelta);
+    int end = to.getPosition().getEnd() + toDelta;
+    return Location.create(context.file, null, start, end);
   }
 
   @NonNull
@@ -176,6 +207,29 @@ public class LombokPsiParser extends JavaParser {
         return null;
       }
     });
+  }
+
+  @Override
+  public List<TypeDescriptor> getCatchTypes(@NonNull JavaContext context, @NonNull Catch catchBlock) {
+    Object nativeNode = catchBlock.getNativeNode();
+    if (nativeNode instanceof PsiCatchSection) {
+      PsiCatchSection node = (PsiCatchSection)nativeNode;
+      PsiType type = node.getCatchType();
+      if (type != null) {
+        if (type instanceof PsiDisjunctionType) {
+          List<PsiType> disjunctions = ((PsiDisjunctionType)type).getDisjunctions();
+          List<TypeDescriptor> list = Lists.newArrayListWithCapacity(disjunctions.size());
+          for (PsiType t : disjunctions) {
+            list.add(new LombokPsiParser.PsiTypeDescriptor(t));
+          }
+          return list;
+        } else {
+          return Collections.<TypeDescriptor>singletonList(new LombokPsiParser.PsiTypeDescriptor(type));
+        }
+      }
+    }
+
+    return super.getCatchTypes(context, catchBlock);
   }
 
   @Nullable
@@ -597,6 +651,13 @@ public class LombokPsiParser extends JavaParser {
       return LombokPsiParser.isInPackage(myMethod.getContainingClass(), pkg, includeSubPackages);
     }
 
+
+    @Nullable
+    @Override
+    public Node findAstNode() {
+      return LombokPsiConverter.toNode(myMethod);
+    }
+
     @Override
     public int hashCode() {
       return myMethod.hashCode();
@@ -641,6 +702,13 @@ public class LombokPsiParser extends JavaParser {
     @Override
     public String getSignature() {
       return myVariable.toString();
+    }
+
+
+    @Nullable
+    @Override
+    public Node findAstNode() {
+      return LombokPsiConverter.toNode(myVariable);
     }
 
     @Override
@@ -718,6 +786,12 @@ public class LombokPsiParser extends JavaParser {
       return LombokPsiParser.isInPackage(myField.getContainingClass(), pkg, includeSubPackages);
     }
 
+
+    @Nullable
+    @Override
+    public Node findAstNode() {
+      return LombokPsiConverter.toNode(myField);
+    }
     @Override
     public boolean equals(Object o) {
       if (this == o) return true;
@@ -919,6 +993,37 @@ public class LombokPsiParser extends JavaParser {
       return null;
     }
 
+    @NonNull
+    @Override
+    public Iterable<ResolvedClass> getInterfaces() {
+      if (myClass != null) {
+        PsiClass[] interfaces = myClass.getInterfaces();
+        if (interfaces.length > 0) {
+          List<ResolvedClass> list = Lists.newArrayListWithExpectedSize(interfaces.length);
+          for (PsiClass cls : interfaces) {
+            list.add(new ResolvedPsiClass(cls));
+          }
+          return list;
+        }
+      }
+      return Collections.emptyList();
+    }
+
+    @Override
+    public TypeDescriptor getType() {
+      if (myClass != null) {
+        return new PsiTypeDescriptor(PsiTypesUtil.getClassType(myClass)) {
+          @Nullable
+          @Override
+          public ResolvedClass getTypeClass() {
+            return ResolvedPsiClass.this;
+          }
+        };
+      }
+
+      return super.getType();
+    }
+
     @Nullable
     @Override
     public ResolvedClass getContainingClass() {
@@ -1056,6 +1161,12 @@ public class LombokPsiParser extends JavaParser {
       return LombokPsiParser.isInPackage(myClass, pkg, includeSubPackages);
     }
 
+    @Nullable
+    @Override
+    public Node findAstNode() {
+      return myClass != null ? LombokPsiConverter.toNode(myClass) : null;
+    }
+
     @NonNull
     @Override
     public Iterable<ResolvedAnnotation> getAnnotations() {
@@ -1182,11 +1293,20 @@ public class LombokPsiParser extends JavaParser {
         PsiArrayInitializerMemberValue mv = (PsiArrayInitializerMemberValue)v;
         PsiAnnotationMemberValue[] values = mv.getInitializers();
         List<Object> list = Lists.newArrayListWithExpectedSize(values.length);
+        boolean fields = false;
         for (PsiAnnotationMemberValue mmv : values) {
           if (mmv instanceof PsiLiteral) {
             PsiLiteral literal = (PsiLiteral)mmv;
             list.add(literal.getValue());
           } else if (mmv instanceof PsiExpression) {
+            if (mmv instanceof PsiReferenceExpression) {
+              PsiElement resolved = ((PsiReferenceExpression)mmv).resolve();
+              if (resolved instanceof PsiField) {
+                list.add(new ResolvedPsiField((PsiField)resolved));
+                fields = true;
+                continue;
+              }
+            }
             Object o = JavaConstantExpressionEvaluator.computeConstantExpression((PsiExpression)mmv, false);
             if (o == null && mmv instanceof PsiReferenceExpression) {
               PsiElement resolved = ((PsiReferenceExpression)mmv).resolve();
@@ -1198,16 +1318,22 @@ public class LombokPsiParser extends JavaParser {
           }
         }
 
+        if (fields) {
+          return list.toArray();
+        }
+
         PsiReference reference = pair.getReference();
         if (reference != null) {
           PsiElement resolved = reference.resolve();
           if (resolved instanceof PsiAnnotationMethod) {
             PsiType returnType = ((PsiAnnotationMethod)resolved).getReturnType();
-            if (returnType != null && returnType.getDeepComponentType().getCanonicalText().equals(CommonClassNames.JAVA_LANG_STRING)) {
+            if (returnType != null) {
+              returnType = returnType.getDeepComponentType();
+            }
+            if (returnType != null && returnType.getCanonicalText().equals(CommonClassNames.JAVA_LANG_STRING)) {
               //noinspection SSBasedInspection,SuspiciousToArrayCall
               return list.toArray(new String[list.size()]);
-            } else if (returnType != null && returnType.getDeepComponentType().getCanonicalText().equals(
-              CommonClassNames.JAVA_LANG_ANNOTATION_ANNOTATION)) {
+            } else if (returnType != null && returnType.getCanonicalText().equals(CommonClassNames.JAVA_LANG_ANNOTATION_ANNOTATION)) {
               //noinspection SSBasedInspection,SuspiciousToArrayCall
               return list.toArray(new Annotation[list.size()]);
             } else if (PsiType.INT.equals(returnType)) {

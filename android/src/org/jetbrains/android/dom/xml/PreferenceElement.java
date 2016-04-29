@@ -18,13 +18,6 @@ package org.jetbrains.android.dom.xml;
 
 import java.util.List;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Jun 12, 2009
- * Time: 6:12:03 PM
- * To change this template use File | Settings | File Templates.
- */
 public interface PreferenceElement extends XmlResourceElement {
   List<Intent> getIntents();
 

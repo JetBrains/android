@@ -16,57 +16,81 @@
 package org.jetbrains.android.dom.attrs;
 
 import com.android.resources.ResourceType;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableMultimap;
 import com.intellij.util.xml.ResolvingConverter;
 import org.jetbrains.android.dom.AndroidDomUtil;
-import org.jetbrains.android.dom.converters.LightFlagConverter;
 import org.jetbrains.android.dom.converters.PackageClassConverter;
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
+import org.jetbrains.android.dom.converters.StaticEnumConverter;
+import org.jetbrains.android.dom.converters.TargetApiConverter;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 import static com.android.SdkConstants.*;
+import static java.util.Collections.singletonList;
 
 /**
  * Class containing utility methods to handle XML attributes in the "tools" namespace.
  * <p/>
- * See <a href="http://tools.android.com/tech-docs/tools-attributes">tools flags documentation</a>
+ * Tools attributes are described in several documents:
+ * <ul>
+ *   <li><a href="http://tools.android.com/tech-docs/tools-attributes">layout attributes</a></li>
+ *   <li><a href="http://tools.android.com/tech-docs/new-build-system/user-guide/manifest-merger#TOC-Markers">manifest attributes</a></li>
+ * </ul>
  */
 public class ToolsAttributeUtil {
   private static final ResolvingConverter LAYOUT_REFERENCE_CONVERTER =
     new ResourceReferenceConverter(Collections.singleton(ResourceType.LAYOUT.getName()));
   private static final ResolvingConverter ACTIVITY_CLASS_CONVERTER = new PackageClassConverter(true, AndroidUtils.ACTIVITY_BASE_CLASS_NAME);
-  private static final ResolvingConverter ACTION_BAR_MODE_FLAGS_CONVERTER = new LightFlagConverter("standard", "list", "tabs");
+
+  private static final List<AttributeFormat> NO_FORMATS = Collections.emptyList();
+
+  // Manifest merger attribute names
+  public static final String ATTR_NODE = "node";
+  public static final String ATTR_STRICT = "strict";
+  public static final String ATTR_REMOVE = "remove";
+  public static final String ATTR_REPLACE = "replace";
+  public static final String ATTR_OVERRIDE_LIBRARY = "overrideLibrary";
 
   /** List of all the tools namespace attributes and its attribute format */
-  private static final ImmutableMultimap<String, AttributeFormat> ATTRIBUTES = ImmutableMultimap.<String, AttributeFormat>builder()
-    .putAll("actionBarMode", AttributeFormat.Flag)
-    .putAll(ATTR_CONTEXT, AttributeFormat.Reference, AttributeFormat.String)
-    .putAll(ATTR_IGNORE, Collections.<AttributeFormat>emptyList())
-    .putAll("listfooter", AttributeFormat.Reference)
-    .putAll("listheader", AttributeFormat.Reference)
-    .putAll("listitem", AttributeFormat.Reference)
-    .putAll(ATTR_LAYOUT, AttributeFormat.Reference)
-    .putAll(ATTR_LOCALE, Collections.<AttributeFormat>emptyList())
-    .putAll("menu", Collections.<AttributeFormat>emptyList())
-    .putAll("showIn", AttributeFormat.Reference)
-    .putAll(ATTR_TARGET_API, Collections.<AttributeFormat>emptyList())
+  private static final ImmutableMap<String, List<AttributeFormat>> ATTRIBUTES = ImmutableMap.<String, List<AttributeFormat>>builder()
+    // Layout files attributes
+    .put(ATTR_ACTION_BAR_NAV_MODE, singletonList(AttributeFormat.Flag))
+    .put(ATTR_CONTEXT, ImmutableList.of(AttributeFormat.Reference, AttributeFormat.String))
+    .put(ATTR_IGNORE, NO_FORMATS)
+    .put(ATTR_LISTFOOTER,  singletonList(AttributeFormat.Reference))
+    .put(ATTR_LISTHEADER, singletonList(AttributeFormat.Reference))
+    .put(ATTR_LISTITEM, singletonList(AttributeFormat.Reference))
+    .put(ATTR_LAYOUT, singletonList(AttributeFormat.Reference))
+    .put(ATTR_LOCALE, NO_FORMATS)
+    .put(ATTR_MENU, NO_FORMATS)
+    .put(ATTR_SHOW_IN, singletonList(AttributeFormat.Reference))
+    .put(ATTR_TARGET_API, NO_FORMATS)
+    // Manifest merger attributes
+    .put(ATTR_NODE, singletonList(AttributeFormat.Enum))
+    .put(ATTR_STRICT, NO_FORMATS)
+    .put(ATTR_REMOVE, NO_FORMATS)
+    .put(ATTR_REPLACE, NO_FORMATS)
+    .put(ATTR_OVERRIDE_LIBRARY, NO_FORMATS)
     .build();
   /** List of converters to be applied to some of the attributes */
   private static final ImmutableMap<String, ResolvingConverter> CONVERTERS = ImmutableMap.<String, ResolvingConverter>builder()
-    .put("actionBarMode", ACTION_BAR_MODE_FLAGS_CONVERTER)
+    .put(ATTR_ACTION_BAR_NAV_MODE, new StaticEnumConverter("standard", "list", "tabs"))
     .put(ATTR_CONTEXT, ACTIVITY_CLASS_CONVERTER)
-    .put("listfooter", LAYOUT_REFERENCE_CONVERTER)
-    .put("listheader", LAYOUT_REFERENCE_CONVERTER)
-    .put("listitem", LAYOUT_REFERENCE_CONVERTER)
+    .put(ATTR_LISTFOOTER, LAYOUT_REFERENCE_CONVERTER)
+    .put(ATTR_LISTHEADER, LAYOUT_REFERENCE_CONVERTER)
+    .put(ATTR_LISTITEM, LAYOUT_REFERENCE_CONVERTER)
     .put(ATTR_LAYOUT, LAYOUT_REFERENCE_CONVERTER)
-    .put("showIn", LAYOUT_REFERENCE_CONVERTER)
+    .put(ATTR_SHOW_IN, LAYOUT_REFERENCE_CONVERTER)
+    .put(ATTR_NODE, new StaticEnumConverter("merge", "replace", "strict", "merge-only-attributes", "remove", "removeAll"))
+    .put(ATTR_TARGET_API, new TargetApiConverter())
     .build();
 
   /**
@@ -81,7 +105,7 @@ public class ToolsAttributeUtil {
   }
 
   /**
-   * Returns a set with the names of all the tools namespace atrtibutes.
+   * Returns a set with the names of all the tools namespace attributes.
    */
   @NotNull
   public static Set<String> getAttributeNames() {

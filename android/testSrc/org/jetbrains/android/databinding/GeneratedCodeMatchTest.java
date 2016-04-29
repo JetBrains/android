@@ -21,6 +21,7 @@ import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.*;
 import com.intellij.util.containers.ContainerUtil;
@@ -31,6 +32,7 @@ import org.jetbrains.org.objectweb.asm.ClassVisitor;
 import org.jetbrains.org.objectweb.asm.FieldVisitor;
 import org.jetbrains.org.objectweb.asm.MethodVisitor;
 import org.jetbrains.org.objectweb.asm.Opcodes;
+import org.junit.Before;
 
 import java.io.File;
 import java.io.IOException;
@@ -45,6 +47,7 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
  * This test requires DataBinding's rebuildRepo task to be run first otherwise it will fail because it won't find the snapshot versions.
  */
 public class GeneratedCodeMatchTest extends AndroidGradleTestCase {
+  private static final String DATA_BINDING_COMPONENT_CLASS_NAME = SdkConstants.CLASS_DATA_BINDING_COMPONENT.replace(".", "/");
   @NotNull
   private ClassReader findViewDataBindingClass() throws IOException {
     File explodedAars =
@@ -98,7 +101,7 @@ public class GeneratedCodeMatchTest extends AndroidGradleTestCase {
     boolean foundOne = false;
     for (File classFile : classes) {
       ClassReader classReader = new ClassReader(FileUtils.readFileToByteArray(classFile));
-      if (!viewDataBindingClass.getClassName().equals(classReader.getSuperName())) {
+      if (!shouldVerify(classReader, viewDataBindingClass)) {
         continue;
       }
       foundOne = true;
@@ -116,6 +119,11 @@ public class GeneratedCodeMatchTest extends AndroidGradleTestCase {
     }
     assertTrue("test sanity, should be able to find some data binding generated classes", foundOne);
     assertEquals("These classes are missing", "", StringUtil.join(missingClasses, "\n"));
+  }
+
+  private boolean shouldVerify(ClassReader classReader, ClassReader viewDataBindingClass) {
+    return viewDataBindingClass.getClassName().equals(classReader.getSuperName())
+           || DATA_BINDING_COMPONENT_CLASS_NAME.equals(classReader.getClassName());
   }
 
   private static void createGradlePropertiesFile(@NotNull File projectFolder) throws IOException {

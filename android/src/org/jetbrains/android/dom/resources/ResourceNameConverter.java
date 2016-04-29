@@ -1,26 +1,22 @@
 package org.jetbrains.android.dom.resources;
 
-import com.android.resources.ResourceFolderType;
+import com.android.SdkConstants;
+import com.android.ide.common.res2.ValueResourceNameValidator;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.rendering.ResourceNameValidator;
 import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.LocalQuickFixProvider;
-import com.intellij.lang.java.lexer.JavaLexer;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReference;
+import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.xml.*;
 import org.jetbrains.android.dom.converters.AndroidResourceReferenceBase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.inspections.CreateValueResourceQuickFix;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.jetbrains.android.resourceManagers.ValueResourceInfoImpl;
-import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,11 +32,10 @@ import java.util.List;
 public class ResourceNameConverter extends ResolvingConverter<String> implements CustomReferenceConverter<String> {
   @Override
   public String fromString(@Nullable @NonNls String s, ConvertContext context) {
-    if (s == null) {
+    if (getErrorMessage(s, context) != null) {
       return null;
     }
-    String fieldName = AndroidResourceUtil.getFieldNameByResourceName(s);
-    return StringUtil.isJavaIdentifier(fieldName) && !JavaLexer.isKeyword(fieldName, LanguageLevel.JDK_1_5) ? s : null;
+    return s;
   }
 
   @Override
@@ -50,19 +45,19 @@ public class ResourceNameConverter extends ResolvingConverter<String> implements
 
   @Override
   public String getErrorMessage(@Nullable String s, ConvertContext context) {
-    if (s != null) {
-      String message = ResourceNameValidator.create(false, ResourceFolderType.VALUES).getErrorText(s);
-      if (message != null) {
-        return message;
-      }
+    ResourceType type = null;
+    XmlTag tag = context.getTag();
+    if (tag != null && SdkConstants.TAG_ATTR.equals(tag.getName())) {
+      // The resource name validator needs to know if we're dealing with
+      // an <attr>
+      type = ResourceType.ATTR;
     }
-
-    return AndroidBundle.message("invalid.resource.name.error", s);
+    return s == null ? null : ValueResourceNameValidator.getErrorText(s, type);
   }
 
   @NotNull
   @Override
-  public Collection<? extends String> getVariants(ConvertContext context) {
+  public Collection<String> getVariants(ConvertContext context) {
     final DomElement element = context.getInvocationElement();
 
     if (!(element instanceof GenericAttributeValue)) {
@@ -74,7 +69,7 @@ public class ResourceNameConverter extends ResolvingConverter<String> implements
     return Collections.emptyList();
   }
 
-  private static Collection<? extends String> getStyleNameVariants(ConvertContext context, GenericAttributeValue element) {
+  private static Collection<String> getStyleNameVariants(ConvertContext context, GenericAttributeValue element) {
     final Module module = context.getModule();
 
     if (module == null) {

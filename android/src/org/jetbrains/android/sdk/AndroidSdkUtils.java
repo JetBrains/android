@@ -21,12 +21,13 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.IAndroidTarget.OptionalLibrary;
 import com.android.sdklib.SdkVersionInfo;
-import com.android.sdklib.repository.descriptors.PkgType;
+import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.tools.idea.ddms.adb.AdbService;
 import com.android.tools.idea.logcat.AdbErrors;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SelectSdkDialog;
 import com.android.tools.idea.sdk.VersionCheck;
+import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -215,7 +216,10 @@ public final class AndroidSdkUtils {
   @Nullable
   private static VirtualFile getPlatformDir(@NotNull IAndroidTarget target) {
     String platformPath = target.isPlatform() ? target.getLocation() : target.getParent().getLocation();
-    return LocalFileSystem.getInstance().refreshAndFindFileByPath(toSystemIndependentName((platformPath)));
+    if (platformPath == null) {
+      return null;
+    }
+    return LocalFileSystem.getInstance().refreshAndFindFileByPath(toSystemIndependentName(platformPath));
   }
 
   @Nullable
@@ -575,7 +579,8 @@ public final class AndroidSdkUtils {
     }
 
     if (data.getAndroidPlatform() != null) {
-      data.getAndroidPlatform().getSdkData().getLocalSdk().clearLocalPkg(PkgType.PKG_ALL);
+      data.getAndroidPlatform().getSdkData().getSdkHandler().getSdkManager(new StudioLoggerProgressIndicator(AndroidSdkUtils.class))
+        .markInvalid();
     }
     data.clearAndroidPlatform();
   }
@@ -584,8 +589,6 @@ public final class AndroidSdkUtils {
    * Reload SDK information and update the source root of the SDK.
    */
   public static void updateSdkSourceRoot(@NotNull Sdk sdk) {
-    clearLocalPkgInfo(sdk);
-
     AndroidPlatform platform = AndroidPlatform.getInstance(sdk);
     if (platform != null) {
       IAndroidTarget target = platform.getTarget();
@@ -611,7 +614,7 @@ public final class AndroidSdkUtils {
   public static Sdk tryToCreateAndroidSdk(@NotNull File sdkPath, @NotNull String targetHashString) {
     AndroidSdkData sdkData = getSdkData(sdkPath);
     if (sdkData != null) {
-      sdkData.getLocalSdk().clearLocalPkg(PkgType.PKG_ALL);
+      sdkData.getSdkHandler().getSdkManager(new StudioLoggerProgressIndicator(AndroidSdkUtils.class)).markInvalid();
       IAndroidTarget target = sdkData.findTargetByHashString(targetHashString);
       if (target != null) {
         return createNewAndroidPlatform(target, sdkData.getLocation().getPath(), true);
@@ -855,6 +858,15 @@ public final class AndroidSdkUtils {
       }
     }
     return ourSdkData;
+  }
+
+  @NotNull
+  public static AndroidSdkHandler tryToChooseSdkHandler() {
+    AndroidSdkData data = tryToChooseAndroidSdk();
+    if (data == null) {
+      return AndroidSdkHandler.getInstance(null);
+    }
+    return data.getSdkHandler();
   }
 
   public static void setSdkData(@Nullable AndroidSdkData data) {

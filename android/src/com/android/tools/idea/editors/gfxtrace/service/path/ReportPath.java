@@ -64,7 +64,7 @@ public final class ReportPath extends Path {
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("path","Report","","");
+  private static final Entity ENTITY = new Entity("path", "Report", "", "");
 
   static {
     ENTITY.setFields(new Field[]{

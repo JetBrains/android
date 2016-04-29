@@ -93,7 +93,7 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
 
     int row = 0;
     for (File templateFile : applicationTemplates) {
-      TemplateMetadata metadata = manager.getTemplate(templateFile);
+      TemplateMetadata metadata = manager.getTemplateMetadata(templateFile);
       if (metadata == null || metadata.getFormFactor() == null) {
         continue;
       }

@@ -50,7 +50,7 @@ public class NewProjectTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testCreateNewMobileProject() {
     newProject("Test Application").create();
-    FileFixture layoutFile = myProjectFrame.findExistingFileByRelativePath("app/src/main/res/layout/activity_main.xml");
+    FileFixture layoutFile = myProjectFrame.findExistingFileByRelativePath("app/src/main/res/layout/content_main.xml");
     layoutFile.requireOpenAndSelected();
 
     // Verify state of project
@@ -71,14 +71,14 @@ public class NewProjectTest extends GuiTestCase {
     int offset = editor.findOffset("\".^MainActivity\"");
     assertTrue(offset != -1);
 
-    // Creating a project with minSdkVersion 19 should leave the Java language level as Java 6
-    // For L and higher we use Java 7 language level; that is tested separately in testLanguageLevelForApi21
-    assertThat(appAndroidModel.getJavaLanguageLevel()).as("Gradle Java language level").isSameAs(LanguageLevel.JDK_1_6);
+    // The language level should be JDK_1_7 since the compile SDK version is assumed to be 21 or higher
+    assertThat(appAndroidModel.getJavaLanguageLevel()).as("Gradle Java language level").isSameAs(LanguageLevel.JDK_1_7);
     LanguageLevelProjectExtension projectExt = LanguageLevelProjectExtension.getInstance(myProjectFrame.getProject());
-    assertThat(projectExt.getLanguageLevel()).as("Project Java language level").isSameAs(LanguageLevel.JDK_1_6);
+    assertThat(projectExt.getLanguageLevel()).as("Project Java language level").isSameAs(LanguageLevel.JDK_1_7);
     for (Module module : ModuleManager.getInstance(myProjectFrame.getProject()).getModules()) {
       LanguageLevelModuleExtension moduleExt = LanguageLevelModuleExtensionImpl.getInstance(module);
-      assertThat(moduleExt.getLanguageLevel()).as("Gradle Java language level in module " + module.getName()).isNull();
+      assertThat(moduleExt.getLanguageLevel()).as("Gradle Java language level in module " + module.getName())
+        .isSameAs(LanguageLevel.JDK_1_7);
     }
   }
 
@@ -103,18 +103,21 @@ public class NewProjectTest extends GuiTestCase {
     InspectionsFixture inspections = myProjectFrame.inspectCode();
 
     assertEquals("Test Application\n" +
-                 // This warning is from the "foo" string we created in the Gradle resValue declaration above
                  "    Android Lint\n" +
+                 // This warning is unfortunate. We may want to get rid of it.
+                 "        Missing allowBackup attribute\n" +
+                 "            app\n" +
+                 "                On SDK version 23 and up, your app data will be automatically backed up and restored on app install. Consider adding the attribute 'android:fullBackupContent' to specify an '@xml' resource which configures which files to backup. More info: https://developer.android.com/preview/backup/index.html\n" +
+
+                 // This warning is wrong: http://b.android.com/192605
+                 "        Missing support for Google App Indexing\n" +
+                 "            app\n" +
+                 "                Application should have at least one Activity supporting ACTION_VIEW\n" +
+
+                 // This warning is from the "foo" string we created in the Gradle resValue declaration above
                  "        Unused resources\n" +
                  "            app\n" +
-                 "                The resource 'R.string.foo' appears to be unused\n" +
-                 // This warning is wrong: https://code.google.com/p/android/issues/detail?id=76719
-                 "    Assignment issues\n" +
-                 "        Incompatible type assignments\n" +
-                 "            app\n" +
-                 "                'dependencies' cannot be applied to '(groovy.lang.Closure)'\n" +
-                 "            build.gradle\n" +
-                 "                'dependencies' cannot be applied to '(groovy.lang.Closure)'\n",
+                 "                The resource 'R.string.foo' appears to be unused\n",
                  inspections.getResults());
   }
 
@@ -124,7 +127,7 @@ public class NewProjectTest extends GuiTestCase {
     newProject("Test Application").withBriefNames().withMinSdk("9").create();
 
     EditorFixture editor = myProjectFrame.getEditor();
-    editor.requireName("activity_a.xml");
+    editor.requireName("content_a.xml");
     LayoutEditorFixture layoutEditor = editor.getLayoutEditor(false);
     assertNotNull("Layout editor was not showing", layoutEditor);
     layoutEditor.waitForNextRenderToFinish();
@@ -136,10 +139,6 @@ public class NewProjectTest extends GuiTestCase {
 
   @Test @IdeGuiTest
   public void testLanguageLevelForApi21() {
-    // Verifies that creating a project with L will set the language level correctly
-    // both in the generated Gradle model as well as in the synced project and modules
-
-    // "20+" here should change to 21 as soon as L goes out of preview state
     newProject("Test Application").withBriefNames().withMinSdk("21").create();
 
     AndroidGradleModel appAndroidModel = myProjectFrame.getAndroidProjectForModule("app");
@@ -147,16 +146,14 @@ public class NewProjectTest extends GuiTestCase {
     ApiVersion minSdkVersion = model.getDefaultConfig().getProductFlavor().getMinSdkVersion();
     assertNotNull("minSdkVersion", minSdkVersion);
 
-    // If this test fails, verify that
-    //   (1) you have the L preview installed in the SDK on the test machine
-    //   (2) the associated JDK is JDK 7 or higher
-    assertThat(minSdkVersion.getApiString()).as("minSdkVersion API").isEqualTo("L");
+    assertThat(minSdkVersion.getApiString()).as("minSdkVersion API").isEqualTo("21");
     assertThat(appAndroidModel.getJavaLanguageLevel()).as("Gradle Java language level").isSameAs(LanguageLevel.JDK_1_7);
     LanguageLevelProjectExtension projectExt = LanguageLevelProjectExtension.getInstance(myProjectFrame.getProject());
     assertThat(projectExt.getLanguageLevel()).as("Project Java language level").isSameAs(LanguageLevel.JDK_1_7);
     for (Module module : ModuleManager.getInstance(myProjectFrame.getProject()).getModules()) {
       LanguageLevelModuleExtension moduleExt = LanguageLevelModuleExtensionImpl.getInstance(module);
-      assertThat(moduleExt.getLanguageLevel()).as("Gradle Java language level in module " + module.getName()).isNull();
+      assertThat(moduleExt.getLanguageLevel()).as("Gradle Java language level in module " + module.getName())
+        .isSameAs(LanguageLevel.JDK_1_7);
     }
   }
 
@@ -257,7 +254,7 @@ public class NewProjectTest extends GuiTestCase {
      * Creates a project fixture for this description
      */
     void create() {
-      findWelcomeFrame().clickNewProjectButton();
+      findWelcomeFrame().createNewProject();
 
       NewProjectWizardFixture newProjectWizard = findNewProjectWizard();
 

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.ddms;
 
-import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.util.ui.UIUtil;
 
 import java.util.concurrent.Executor;
 
@@ -27,6 +27,7 @@ public class EdtExecutor implements Executor {
 
   @Override
   public void execute(Runnable runnable) {
-    ApplicationManager.getApplication().invokeLater(runnable);
+    // Note: Application.invokeLater() takes the ModalityState into account, but we don't need that here.
+    UIUtil.invokeLaterIfNeeded(runnable);
   }
 }

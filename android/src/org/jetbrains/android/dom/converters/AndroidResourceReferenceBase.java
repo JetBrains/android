@@ -103,7 +103,7 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
     final List<ResolveResult> result = new ArrayList<ResolveResult>();
 
     if (elements.isEmpty() && myResourceValue.getResourceName() != null &&
-        !AndroidUtils.SYSTEM_RESOURCE_PACKAGE.equals(myResourceValue.getPackage())) {
+        !AndroidUtils.SYSTEM_RESOURCE_PACKAGE.equals(myResourceValue.getNamespace())) {
       // Dynamic items do not appear in the XML scanning file index; look for
       // these in the resource repositories.
       LocalResourceRepository resources = AppResourceRepository.getAppResources(myFacet.getModule(), true);
@@ -140,7 +140,7 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
     if (resType == null) {
       return;
     }
-    ResourceManager manager = facet.getResourceManager(resValue.getPackage(), myElement);
+    ResourceManager manager = facet.getResourceManager(resValue.getNamespace(), myElement);
     if (manager != null) {
       String resName = resValue.getResourceName();
       if (resName != null) {

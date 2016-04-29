@@ -21,13 +21,6 @@ import org.jetbrains.android.dom.AndroidDomElement;
 import org.jetbrains.android.dom.converters.StyleItemConverter;
 import org.jetbrains.android.dom.converters.StyleItemNameConverter;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Aug 11, 2009
- * Time: 6:01:35 PM
- * To change this template use File | Settings | File Templates.
- */
 @Convert(StyleItemConverter.class)
 public interface StyleItem extends AndroidDomElement, GenericDomValue {
   @Required

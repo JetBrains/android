@@ -184,6 +184,12 @@ public class AndroidLintTest extends AndroidTestCase {
                   "/res/layout/layout.xml", "xml");
   }
 
+  public void testUnusedAttribute() throws Exception {
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintUnusedAttributeInspection(),
+                  "Suppress With tools:targetApi Attribute",
+                  "/res/layout/layout.xml", "xml");
+  }
+
   public void testExportedService() throws Exception {
     deleteManifest();
     doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintExportedServiceInspection(),
@@ -237,6 +243,13 @@ public class AndroidLintTest extends AndroidTestCase {
   public void testAlwaysShowAction() throws Exception {
     doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintAlwaysShowActionInspection(),
                   "Replace with ifRoom", "/res/menu/menu.xml", "xml");
+  }
+
+  public void testPaddingStartQuickFix() throws Exception {
+    deleteManifest();
+    myFixture.copyFileToProject(getGlobalTestDir() + "/AndroidManifest.xml", "AndroidManifest.xml");
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintRtlCompatInspection(),
+                  "Set paddingLeft", "/res/layout/layout.xml", "xml");
   }
 
   public void testAppCompatMethod() throws Exception {
@@ -321,6 +334,11 @@ public class AndroidLintTest extends AndroidTestCase {
                   "Replace with com.android.library", "build.gradle", "gradle");
   }
 
+  public void testWrongQuote() throws Exception {
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintNotInterpolatedInspection(),
+                  "Replace single quotes with double quotes", "build.gradle", "gradle");
+  }
+
   public void testMissingAppIcon() throws Exception {
     deleteManifest();
     doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintMissingApplicationIconInspection(),
@@ -396,6 +414,30 @@ public class AndroidLintTest extends AndroidTestCase {
     myFixture.copyFileToProject(getGlobalTestDir() + "/AndroidManifest.xml", "AndroidManifest.xml");
     doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintCommitPrefEditsInspection(),
                   "Replace commit() with apply()", "/src/test/pkg/CommitToApply.java", "java");
+  }
+
+  public void testMissingIntDefSwitch() throws Exception {
+    myFixture.addFileToProject("/src/android/support/annotation/IntDef.java", "package android.support.annotation;\n" +
+                                                                              "\n" +
+                                                                              "import java.lang.annotation.Retention;\n" +
+                                                                              "import java.lang.annotation.RetentionPolicy;\n" +
+                                                                              "import java.lang.annotation.Target;\n" +
+                                                                              "\n" +
+                                                                              "import static java.lang.annotation.ElementType.ANNOTATION_TYPE;\n" +
+                                                                              "import static java.lang.annotation.ElementType.FIELD;\n" +
+                                                                              "import static java.lang.annotation.ElementType.METHOD;\n" +
+                                                                              "import static java.lang.annotation.ElementType.PARAMETER;\n" +
+                                                                              "import static java.lang.annotation.RetentionPolicy.CLASS;\n" +
+                                                                              "import static java.lang.annotation.RetentionPolicy.SOURCE;\n" +
+                                                                              "\n" +
+                                                                              "@Retention(CLASS)\n" +
+                                                                              "@Target({ANNOTATION_TYPE})\n" +
+                                                                              "public @interface IntDef {\n" +
+                                                                              "    long[] value() default {};\n" +
+                                                                              "    boolean flag() default false;\n" +
+                                                                              "}\n");
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintSwitchIntDefInspection(),
+                  "Add Missing @IntDef Constants", "/src/test/pkg/MissingIntDefSwitch.java", "java");
   }
 
   public void testIncludeParams() throws Exception {
@@ -529,6 +571,15 @@ public class AndroidLintTest extends AndroidTestCase {
     doGlobalInspectionTest(new AndroidLintInspectionToolProvider.AndroidLintWrongViewCastInspection());
   }
 
+  public void testViewTypeStub() throws Exception {
+    // Regression test for 183136: don't take id references to imply a
+    // view type of the referencing type
+    myFixture.copyFileToProject(getGlobalTestDir() + "/stub_inflated_layout.xml", "res/layout/stub_inflated_layout.xml");
+    myFixture.copyFileToProject(getGlobalTestDir() + "/main.xml", "res/layout/main.xml");
+    myFixture.copyFileToProject(getGlobalTestDir() + "/WrongCastActivity.java", "src/p1/p2/WrongCastActivity.java");
+    doGlobalInspectionTest(new AndroidLintInspectionToolProvider.AndroidLintWrongViewCastInspection());
+  }
+
   public void testDuplicateIcons() throws Exception {
     myFixture.copyFileToProject(getGlobalTestDir() + "/dup1.png", "res/drawable/dup1.png");
     myFixture.copyFileToProject(getGlobalTestDir() + "/dup2.png", "res/drawable/dup2.png");
@@ -641,6 +692,26 @@ public class AndroidLintTest extends AndroidTestCase {
     } else {
       // TODO: else try to find and set a target on the project such that the above returns true
     }
+  }
+
+  public void testParcelLoader() throws Exception {
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintParcelClassLoaderInspection(),
+                  "Use getClass().getClassLoader()",
+                  "/src/test/pkg/ParcelClassLoaderTest.java", "java");
+  }
+
+  public void testParcelLoader2() throws Exception {
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintParcelClassLoaderInspection(),
+                  "Use getClass().getClassLoader()",
+                  "/src/test/pkg/ParcelClassLoaderTest.java", "java");
+  }
+
+  public void testDeprecation() throws Exception {
+    // Need to use minSdkVersion >= 3 to get all the deprecation warnings to kick in
+    deleteManifest();
+    myFixture.copyFileToProject(getGlobalTestDir() + "/AndroidManifest.xml", "AndroidManifest.xml");
+    doTestNoFix(new AndroidLintInspectionToolProvider.AndroidLintDeprecatedInspection(),
+                "/res/layout/deprecation.xml", "xml");
   }
 
   public void testActivityRegistered() throws Exception {

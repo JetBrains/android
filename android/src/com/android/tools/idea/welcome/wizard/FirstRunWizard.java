@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.welcome.wizard;
 
-import com.android.sdklib.SdkManager;
-import com.android.sdklib.repository.descriptors.PkgType;
-import com.android.tools.idea.sdk.remote.RemotePkgInfo;
-import com.android.tools.idea.sdk.wizard.LicenseAgreementStep;
+import com.android.SdkConstants;
+import com.android.repository.api.ProgressIndicator;
+import com.android.repository.api.RemotePackage;
+import com.android.sdklib.repositoryv2.AndroidSdkHandler;
+import com.android.tools.idea.sdk.wizard.legacy.LicenseAgreementStep;
+import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
 import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.install.FirstRunWizardDefaults;
@@ -26,13 +28,11 @@ import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardHost;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.android.tools.idea.wizard.dynamic.SingleStepPath;
-import com.android.utils.NullLogger;
-import com.google.common.collect.Multimap;
 import com.intellij.openapi.util.SystemInfo;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -44,7 +44,7 @@ public class FirstRunWizard extends DynamicWizard {
     ScopedStateStore.createKey("custom.install", ScopedStateStore.Scope.WIZARD, Boolean.class);
 
   @NotNull private final FirstRunWizardMode myMode;
-  @Nullable private final Multimap<PkgType, RemotePkgInfo> myRemotePackages;
+  @NotNull private final Map<String, RemotePackage> myRemotePackages;
   /**
    * On the first user click on finish button, we show progress step & perform setup.
    * Second attempt will close the wizard.
@@ -53,8 +53,9 @@ public class FirstRunWizard extends DynamicWizard {
   private final SetupJdkPath myJdkPath;
   private InstallComponentsPath myComponentsPath;
 
-  public FirstRunWizard(@NotNull DynamicWizardHost host, @NotNull FirstRunWizardMode mode,
-                        @Nullable Multimap<PkgType, RemotePkgInfo> remotePackages) {
+  public FirstRunWizard(@NotNull DynamicWizardHost host,
+                        @NotNull FirstRunWizardMode mode,
+                        @NotNull Map<String, RemotePackage> remotePackages) {
     super(null, null, WIZARD_TITLE, host);
     myMode = mode;
     myJdkPath = new SetupJdkPath(mode);
@@ -66,10 +67,14 @@ public class FirstRunWizard extends DynamicWizard {
   public void init() {
     File initialSdkLocation = FirstRunWizardDefaults.getInitialSdkLocation(myMode);
     ConsolidatedProgressStep progressStep = new FirstRunProgressStep();
-    myComponentsPath = new InstallComponentsPath(progressStep, myMode, initialSdkLocation, myRemotePackages, true);
+    myComponentsPath = new InstallComponentsPath(myRemotePackages, myMode, initialSdkLocation, progressStep, true);
     if (myMode == FirstRunWizardMode.NEW_INSTALL) {
-      boolean sdkExists = initialSdkLocation.isDirectory() &&
-                          SdkManager.createManager(initialSdkLocation.getAbsolutePath(), new NullLogger()) != null;
+      boolean sdkExists = false;
+      if (initialSdkLocation.isDirectory()) {
+        AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance(initialSdkLocation);
+        ProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
+        sdkExists = ((AndroidSdkHandler)sdkHandler).getLocalPackage(SdkConstants.FD_TOOLS, progress) != null;
+      }
       addPath(new SingleStepPath(new FirstRunWelcomeStep(sdkExists)));
     }
     addPath(myJdkPath);
@@ -153,7 +158,8 @@ public class FirstRunWizard extends DynamicWizard {
      */
     @Override
     public boolean isStepVisible() {
-      return myFinishClicks.get() == 1 || (!(myJdkPath.showsStep() || myComponentsPath.showsStep()));
+      return myFinishClicks.get() == 1 &&
+             (myJdkPath.shouldDownloadingComponentsStepBeShown() || myComponentsPath.shouldDownloadingComponentsStepBeShown());
     }
   }
 }

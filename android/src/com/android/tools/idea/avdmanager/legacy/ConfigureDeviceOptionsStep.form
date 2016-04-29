@@ -1,0 +1,436 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="com.android.tools.idea.avdmanager.legacy.ConfigureDeviceOptionsStep">
+  <grid id="27dc6" binding="myRootPanel" layout-manager="GridLayoutManager" row-count="2" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="0">
+    <margin top="0" left="0" bottom="0" right="0"/>
+    <constraints>
+      <xy x="68" y="151" width="1184" height="619"/>
+    </constraints>
+    <properties/>
+    <border type="none"/>
+    <children>
+      <component id="f2623" class="com.android.tools.idea.avdmanager.legacy.DeviceDefinitionPreview" binding="myDeviceDefinitionPreview">
+        <constraints>
+          <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false">
+            <preferred-size width="360" height="-1"/>
+          </grid>
+        </constraints>
+      </component>
+      <scrollpane id="f1015" class="com.intellij.ui.components.JBScrollPane">
+        <constraints>
+          <grid row="0" column="0" row-span="2" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties/>
+        <border type="none"/>
+        <children>
+          <grid id="f61d8" layout-manager="GridLayoutManager" row-count="27" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="5">
+            <margin top="5" left="5" bottom="5" right="5"/>
+            <constraints/>
+            <properties/>
+            <border type="none"/>
+            <children>
+              <component id="15c57" class="com.intellij.ui.components.JBLabel">
+                <constraints>
+                  <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
+                    <preferred-size width="150" height="-1"/>
+                  </grid>
+                </constraints>
+                <properties>
+                  <text value="Screen"/>
+                </properties>
+              </component>
+              <component id="ec7a7" class="com.intellij.ui.components.JBLabel">
+                <constraints>
+                  <grid row="7" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <text value="Memory"/>
+                </properties>
+              </component>
+              <component id="d6c4d" class="com.intellij.ui.components.JBLabel">
+                <constraints>
+                  <grid row="16" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <text value="Cameras"/>
+                </properties>
+              </component>
+              <component id="25ae8" class="com.intellij.ui.components.JBLabel">
+                <constraints>
+                  <grid row="19" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <text value="Sensors"/>
+                </properties>
+              </component>
+              <component id="baa1e" class="javax.swing.JCheckBox" binding="myHasBackFacingCamera">
+                <constraints>
+                  <grid row="16" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <selected value="true"/>
+                  <text value="Back-facing camera"/>
+                </properties>
+              </component>
+              <component id="3e88b" class="javax.swing.JCheckBox" binding="myHasFrontFacingCamera">
+                <constraints>
+                  <grid row="17" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <selected value="true"/>
+                  <text value="Front-facing camera"/>
+                </properties>
+              </component>
+              <component id="69c1f" class="javax.swing.JCheckBox" binding="myHasAccelerometer">
+                <constraints>
+                  <grid row="19" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <selected value="true"/>
+                  <text value="Accelerometer"/>
+                </properties>
+              </component>
+              <component id="d70d6" class="javax.swing.JCheckBox" binding="myHasGyroscope">
+                <constraints>
+                  <grid row="20" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <selected value="true"/>
+                  <text value="Gyroscope"/>
+                </properties>
+              </component>
+              <component id="c28f5" class="javax.swing.JCheckBox" binding="myHasGps">
+                <constraints>
+                  <grid row="21" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <selected value="true"/>
+                  <text value="GPS"/>
+                </properties>
+              </component>
+              <component id="48c06" class="javax.swing.JCheckBox" binding="myHasProximitySensor">
+                <constraints>
+                  <grid row="22" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <selected value="true"/>
+                  <text value="Proximity Sensor"/>
+                </properties>
+              </component>
+              <component id="badbe" class="javax.swing.JCheckBox" binding="mySupportsLandscape">
+                <constraints>
+                  <grid row="14" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <selected value="true"/>
+                  <text value="Landscape"/>
+                </properties>
+              </component>
+              <component id="23fb3" class="javax.swing.JCheckBox" binding="mySupportsPortrait">
+                <constraints>
+                  <grid row="13" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <selected value="true"/>
+                  <text value="Portrait"/>
+                </properties>
+              </component>
+              <component id="dccac" class="com.intellij.ui.components.JBLabel">
+                <constraints>
+                  <grid row="13" column="0" row-span="2" col-span="1" vsize-policy="0" hsize-policy="0" anchor="9" fill="0" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <text value="&lt;html&gt;Supported&lt;br&gt;device states&lt;/html&gt;"/>
+                </properties>
+              </component>
+              <component id="8e290" class="javax.swing.JCheckBox" binding="myHasHardwareKeyboard">
+                <constraints>
+                  <grid row="10" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <selected value="true"/>
+                  <text value="Has Hardware Keyboard"/>
+                </properties>
+              </component>
+              <component id="bb5a2" class="javax.swing.JCheckBox" binding="myHasHardwareButtons">
+                <constraints>
+                  <grid row="9" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <selected value="true"/>
+                  <text value="Has Hardware Buttons (Back/Home/Menu)"/>
+                </properties>
+              </component>
+              <component id="f27d8" class="com.intellij.ui.components.JBLabel">
+                <constraints>
+                  <grid row="9" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <text value="Input"/>
+                </properties>
+              </component>
+              <component id="d9da" class="javax.swing.JTextField" binding="myDeviceName">
+                <constraints>
+                  <grid row="0" column="1" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties/>
+              </component>
+              <component id="ca84a" class="com.intellij.ui.components.JBLabel">
+                <constraints>
+                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
+                    <preferred-size width="150" height="-1"/>
+                  </grid>
+                </constraints>
+                <properties>
+                  <labelFor value="d9da"/>
+                  <text value="Device Name"/>
+                </properties>
+              </component>
+              <grid id="c4bcd" layout-manager="GridLayoutManager" row-count="1" column-count="5" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                <margin top="0" left="0" bottom="0" right="0"/>
+                <constraints>
+                  <grid row="5" column="1" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="8" fill="2" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties/>
+                <border type="none"/>
+                <children>
+                  <component id="cb8b8" class="com.intellij.ui.components.JBLabel">
+                    <constraints>
+                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <labelFor value="7994a"/>
+                      <text value="Resolution:"/>
+                    </properties>
+                  </component>
+                  <component id="7994a" class="javax.swing.JTextField" binding="myScreenResolutionWidth">
+                    <constraints>
+                      <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <columns value="5"/>
+                    </properties>
+                  </component>
+                  <component id="77a1a" class="com.intellij.ui.components.JBLabel">
+                    <constraints>
+                      <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <labelFor value="ccec5"/>
+                      <text value="x"/>
+                    </properties>
+                  </component>
+                  <component id="ccec5" class="javax.swing.JTextField" binding="myScreenResolutionHeight">
+                    <constraints>
+                      <grid row="0" column="3" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <columns value="5"/>
+                    </properties>
+                  </component>
+                  <component id="78d16" class="com.intellij.ui.components.JBLabel">
+                    <constraints>
+                      <grid row="0" column="4" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <text value="px"/>
+                    </properties>
+                  </component>
+                </children>
+              </grid>
+              <vspacer id="e8adc">
+                <constraints>
+                  <grid row="23" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false">
+                    <minimum-size width="-1" height="15"/>
+                    <preferred-size width="-1" height="15"/>
+                  </grid>
+                </constraints>
+              </vspacer>
+              <component id="c641f" class="com.intellij.ui.components.JBLabel">
+                <constraints>
+                  <grid row="25" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <text value="Default Skin"/>
+                </properties>
+              </component>
+              <component id="8d157" class="com.android.tools.idea.avdmanager.legacy.SkinChooser" binding="myCustomSkinPath" custom-create="true">
+                <constraints>
+                  <grid row="25" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties/>
+              </component>
+              <component id="405c7" class="com.intellij.ui.HyperlinkLabel" binding="myHardwareSkinHelpLabel" custom-create="true">
+                <constraints>
+                  <grid row="26" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties/>
+              </component>
+              <component id="2427" class="com.intellij.ui.components.JBLabel">
+                <constraints>
+                  <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <text value="Device Type"/>
+                </properties>
+              </component>
+              <component id="3b9b3" class="com.intellij.openapi.ui.ComboBox" binding="myDeviceTypeComboBox">
+                <constraints>
+                  <grid row="2" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties/>
+              </component>
+              <grid id="fee61" layout-manager="GridLayoutManager" row-count="1" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                <margin top="0" left="0" bottom="0" right="0"/>
+                <constraints>
+                  <grid row="4" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties/>
+                <border type="none"/>
+                <children>
+                  <component id="cdeb9" class="com.intellij.ui.components.JBLabel">
+                    <constraints>
+                      <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <text value="inch"/>
+                    </properties>
+                  </component>
+                  <component id="50a2c" class="javax.swing.JTextField" binding="myDiagonalScreenSize">
+                    <constraints>
+                      <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <columns value="10"/>
+                    </properties>
+                  </component>
+                  <component id="590b2" class="com.intellij.ui.components.JBLabel">
+                    <constraints>
+                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <labelFor value="50a2c"/>
+                      <text value="Screensize:"/>
+                    </properties>
+                  </component>
+                </children>
+              </grid>
+              <grid id="8184b" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                <margin top="0" left="0" bottom="0" right="0"/>
+                <constraints>
+                  <grid row="7" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties/>
+                <border type="none"/>
+                <children>
+                  <component id="6cd25" class="com.intellij.ui.components.JBLabel">
+                    <constraints>
+                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <text value="RAM:"/>
+                    </properties>
+                  </component>
+                  <component id="815e5" class="com.android.tools.idea.avdmanager.legacy.StorageField" binding="myRamField">
+                    <constraints>
+                      <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="1" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties/>
+                  </component>
+                </children>
+              </grid>
+              <grid id="69473" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                <margin top="0" left="0" bottom="0" right="0"/>
+                <constraints>
+                  <grid row="11" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties/>
+                <border type="none"/>
+                <children>
+                  <component id="f5052" class="com.intellij.ui.components.JBLabel">
+                    <constraints>
+                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <labelFor value="ae4e6"/>
+                      <text value="Navigation Style:"/>
+                    </properties>
+                  </component>
+                  <component id="ae4e6" class="javax.swing.JComboBox" binding="myNavigationControlsCombo" custom-create="true" default-binding="true">
+                    <constraints>
+                      <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties/>
+                  </component>
+                </children>
+              </grid>
+              <hspacer id="c28d5">
+                <constraints>
+                  <grid row="4" column="2" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                </constraints>
+              </hspacer>
+              <component id="b3bac" class="javax.swing.JSeparator">
+                <constraints>
+                  <grid row="1" column="0" row-span="1" col-span="3" vsize-policy="7" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties/>
+              </component>
+              <component id="4f1de" class="javax.swing.JSeparator">
+                <constraints>
+                  <grid row="3" column="0" row-span="1" col-span="3" vsize-policy="7" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties/>
+              </component>
+              <component id="7cdd3" class="javax.swing.JSeparator">
+                <constraints>
+                  <grid row="6" column="0" row-span="1" col-span="3" vsize-policy="7" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties/>
+              </component>
+              <component id="bad19" class="javax.swing.JSeparator">
+                <constraints>
+                  <grid row="8" column="0" row-span="1" col-span="3" vsize-policy="7" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties/>
+              </component>
+              <component id="e0dfe" class="javax.swing.JSeparator">
+                <constraints>
+                  <grid row="12" column="0" row-span="1" col-span="3" vsize-policy="7" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties/>
+              </component>
+              <component id="11905" class="javax.swing.JSeparator">
+                <constraints>
+                  <grid row="15" column="0" row-span="1" col-span="3" vsize-policy="7" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties/>
+              </component>
+              <component id="5a655" class="javax.swing.JSeparator">
+                <constraints>
+                  <grid row="18" column="0" row-span="1" col-span="3" vsize-policy="7" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties/>
+              </component>
+              <component id="c3bac" class="javax.swing.JSeparator">
+                <constraints>
+                  <grid row="24" column="0" row-span="1" col-span="3" vsize-policy="7" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties/>
+              </component>
+            </children>
+          </grid>
+        </children>
+      </scrollpane>
+      <component id="9ee72" class="com.intellij.ui.components.JBLabel" binding="myHelpAndErrorLabel" custom-create="true">
+        <constraints>
+          <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false">
+            <minimum-size width="-1" height="150"/>
+            <preferred-size width="360" height="150"/>
+          </grid>
+        </constraints>
+        <properties>
+          <verticalTextPosition value="1"/>
+        </properties>
+      </component>
+    </children>
+  </grid>
+</form>

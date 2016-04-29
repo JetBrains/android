@@ -16,6 +16,7 @@
 package com.android.tools.idea.actions;
 
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.intellij.icons.AllIcons;
 import com.intellij.ide.IdeBundle;
 import com.intellij.ide.actions.OpenProjectFileChooserDescriptor;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -26,6 +27,7 @@ import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.wm.impl.welcomeScreen.NewWelcomeScreen;
 import com.intellij.platform.PlatformProjectOpenProcessor;
 import com.intellij.projectImport.ProjectAttachProcessor;
 import com.intellij.util.Consumer;
@@ -34,7 +36,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-import static com.android.tools.idea.gradle.project.GradleModuleImporter.isGradleProject;
+import static com.android.tools.idea.gradle.util.Projects.canImportAsGradleProject;
 import static com.android.tools.idea.gradle.project.ProjectImportUtil.findImportTarget;
 import static com.intellij.ide.actions.OpenFileAction.openFile;
 import static com.intellij.ide.impl.ProjectUtil.openOrImport;
@@ -51,6 +53,13 @@ public class AndroidOpenFileAction extends DumbAwareAction {
 
   public AndroidOpenFileAction(@NotNull String text) {
     super(text);
+  }
+
+  @Override
+  public void update(@NotNull AnActionEvent e) {
+    if (NewWelcomeScreen.isNewWelcomeScreen(e)) {
+      e.getPresentation().setIcon(AllIcons.Welcome.OpenProject);
+    }
   }
 
   @Override
@@ -112,7 +121,7 @@ public class AndroidOpenFileAction extends DumbAwareAction {
   }
 
   private static boolean openOrImportProject(@NotNull VirtualFile file, @Nullable Project project) {
-    if (isGradleProject(file)) {
+    if (canImportAsGradleProject(file)) {
       VirtualFile target = findImportTarget(file);
       if (target != null) {
         GradleProjectImporter gradleImporter = GradleProjectImporter.getInstance();

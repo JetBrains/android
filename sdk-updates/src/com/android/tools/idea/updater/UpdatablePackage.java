@@ -15,23 +15,23 @@
  */
 package com.android.tools.idea.updater;
 
-import com.android.sdklib.repository.FullRevision;
+import com.android.repository.Revision;
+import com.android.repository.api.RepoPackage;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.intellij.ide.externalComponents.UpdatableExternalComponent;
 
 /**
- * An {@link UpdatableExternalComponent} that corresponds to an
- * {@link IPkgDesc} for a local or remote package.
+ * An {@link UpdatableExternalComponent} that corresponds to a local or remote {@link RepoPackage}.
  */
 public class UpdatablePackage implements UpdatableExternalComponent {
-  private final IPkgDesc myPackage;
+  private final RepoPackage myPackage;
 
-  public UpdatablePackage(IPkgDesc p) {
+  public UpdatablePackage(RepoPackage p) {
     myPackage = p;
   }
 
   @Override
-  public IPkgDesc getKey() {
+  public RepoPackage getKey() {
     return myPackage;
   }
 
@@ -41,16 +41,18 @@ public class UpdatablePackage implements UpdatableExternalComponent {
       return false;
     }
     Object otherKey = c.getKey();
-    if (!(otherKey instanceof IPkgDesc)) {
+    if (!(otherKey instanceof RepoPackage)) {
       return false;
     }
+    RepoPackage otherPackage = (RepoPackage)otherKey;
     // Ignore preview since we will only have created remote UpdatablePackages if previews were enabled
-    return myPackage.isUpdateFor((IPkgDesc)otherKey, FullRevision.PreviewComparison.IGNORE);
+    return myPackage.getPath().equals(otherPackage.getPath()) &&
+           myPackage.getVersion().compareTo(otherPackage.getVersion(),Revision.PreviewComparison.IGNORE) > 0;
   }
 
   @Override
   public String getName() {
-    return myPackage.getListDescription();
+    return myPackage.getDisplayName();
   }
 
   @Override

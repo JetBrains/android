@@ -93,6 +93,16 @@ public class IntellijApiDetectorTest extends AndroidTestCase {
     doTest(inspection, null);
   }
 
+  public void testCatchClause2() throws Exception {
+    // Ensure that in addition to checking the upper bound (enforced
+    // by testCatchClause above), we also check each individual class
+    // since they're listed in the exception jump table.
+    // Regression test for
+    // https://code.google.com/p/android/issues/detail?id=198854
+    AndroidLintNewApiInspection inspection = new AndroidLintNewApiInspection();
+    doTest(inspection, null);
+  }
+
   public void testRecursion() throws Exception {
     AndroidLintNewApiInspection inspection = new AndroidLintNewApiInspection();
     doTest(inspection, null);
@@ -179,6 +189,23 @@ public class IntellijApiDetectorTest extends AndroidTestCase {
       return;
     }
 
+    AndroidLintNewApiInspection inspection = new AndroidLintNewApiInspection();
+    doTest(inspection, null);
+  }
+
+  public void testCast() throws Exception {
+    AndroidLintNewApiInspection inspection = new AndroidLintNewApiInspection();
+    doTest(inspection, null);
+  }
+
+  public void testCast2() throws Exception {
+    AndroidLintNewApiInspection inspection = new AndroidLintNewApiInspection();
+    doTest(inspection, null);
+  }
+
+  public void testCast3() throws Exception {
+    // Regression test for
+    //   198877: Implicit cast inspection flags casts to Object
     AndroidLintNewApiInspection inspection = new AndroidLintNewApiInspection();
     doTest(inspection, null);
   }

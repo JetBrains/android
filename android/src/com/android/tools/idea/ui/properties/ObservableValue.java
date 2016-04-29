@@ -15,12 +15,39 @@
  */
 package com.android.tools.idea.ui.properties;
 
+import com.android.tools.idea.ui.properties.core.ObservableBool;
+import com.android.tools.idea.ui.properties.expressions.bool.IsEqualToExpression;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * A class that wraps a value which, when modified, notifies all listeners.
+ * A class that represents a value which, when modified, notifies all listeners.
  */
-public interface ObservableValue<T> extends Observable {
+public interface ObservableValue<T> {
   @NotNull
   T get();
+
+  /**
+   * Add a listener which will be notified any time this observable value is invalidated (either
+   * changed or depending on another value that has changed).
+   * <p/>
+   * This method adds a strong reference to the listener, keeping it alive. This is useful for
+   * one-off lambda methods that should be associated with this observable value for its whole
+   * lifetime. However, if you have a listener bound to a variable name, you should always prefer
+   * to use {@link #addWeakListener(InvalidationListener)}, instead.
+   */
+  void addListener(@NotNull InvalidationListener listener);
+
+  void removeListener(@NotNull InvalidationListener listener);
+
+  /**
+   * Add a listener which should remove itself automatically after going out of scope.
+   * <p/>
+   * This is useful if the lifetime of the listener is likely shorter than the observable itself,
+   * and using this may help prevent memory links. You may still call
+   * {@link #removeListener(InvalidationListener)} to remove weakly added listeners.
+   */
+  void addWeakListener(@NotNull InvalidationListener listener);
+
+  @NotNull
+  ObservableBool isEqualTo(@NotNull T value);
 }

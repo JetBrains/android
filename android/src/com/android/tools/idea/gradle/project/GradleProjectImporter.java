@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.GradleModel;
-import com.android.tools.idea.gradle.GradleSyncState;
-import com.android.tools.idea.gradle.JavaProject;
+import com.android.tools.idea.gradle.*;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
+import com.android.tools.idea.gradle.facet.NativeAndroidGradleFacet;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
+import com.android.tools.idea.gradle.invoker.GradleTasksExecutor;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -45,12 +44,19 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.options.ConfigurationException;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.TaskInfo;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.CompilerProjectExtension;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
+import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.wm.IdeFrame;
+import com.intellij.openapi.wm.WindowManager;
+import com.intellij.openapi.wm.ex.StatusBarEx;
+import com.intellij.openapi.wm.ex.WindowManagerEx;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.android.AndroidPlugin.GuiTestSuiteState;
@@ -78,7 +84,6 @@ import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidS
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.intellij.notification.NotificationType.ERROR;
 import static com.intellij.openapi.externalSystem.model.ProjectKeys.MODULE;
-import static com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.checkForJdk;
 import static com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode.IN_BACKGROUND_ASYNC;
 import static com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode.MODAL_SYNC;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.find;
@@ -159,7 +164,7 @@ public class GradleProjectImporter {
    * Creates IntelliJ project file in the root of the project directory.
    *
    * @param selectedFile build.gradle in the module folder.
-   * @param project existing parent project or {@code null} if a new one should be created.
+   * @param project      existing parent project or {@code null} if a new one should be created.
    */
   private void createProjectFileForGradleProject(@NotNull VirtualFile selectedFile, @Nullable Project project) {
     VirtualFile projectDir = selectedFile.isDirectory() ? selectedFile : selectedFile.getParent();
@@ -183,7 +188,7 @@ public class GradleProjectImporter {
 
   /**
    * Requests a project sync with Gradle. If the project import is successful,
-   * {@link GradleProjectBuilder#generateSourcesOnly()} will be invoked at the end.
+   * {@link GradleProjectBuilder#generateSourcesOnly(boolean)} will be invoked at the end.
    *
    * @param project  the given project. This method does nothing if the project is not an Android-Gradle project.
    * @param listener called after the project has been imported.
@@ -203,7 +208,7 @@ public class GradleProjectImporter {
   public void requestProjectSync(@NotNull Project project,
                                  boolean generateSourcesOnSuccess,
                                  @Nullable GradleSyncListener listener) {
-    requestProjectSync(project, false, generateSourcesOnSuccess, listener);
+    requestProjectSync(project, false, generateSourcesOnSuccess, false, listener);
   }
 
   /**
@@ -216,16 +221,20 @@ public class GradleProjectImporter {
    * @param generateSourcesOnSuccess indicates whether the IDE should invoke Gradle to generate Java sources after a successful project
    *                                 import. This applies only when the project data is obtained by Gradle invocation and sources are never
    *                                 generated when the cached project data is used.
+   * @param cleanProject             indicates whether the project should be cleaned before generating sources. This value is ignored if
+   *                                 {@code generateSourcesOnSuccess} is {@code false}.
    * @param listener                 called after the project has been imported.
    */
   public void requestProjectSync(@NotNull Project project,
                                  boolean useCachedProjectData,
                                  boolean generateSourcesOnSuccess,
+                                 boolean cleanProject,
                                  @Nullable GradleSyncListener listener) {
     if (GradleSyncState.getInstance(project).isSyncInProgress()) {
       return;
     }
-    Runnable syncRequest = createSyncRequest(project, IN_BACKGROUND_ASYNC, generateSourcesOnSuccess, useCachedProjectData, listener);
+    Runnable syncRequest =
+      createSyncRequest(project, IN_BACKGROUND_ASYNC, generateSourcesOnSuccess, cleanProject, useCachedProjectData, listener);
     invokeLaterIfProjectAlive(project, syncRequest);
   }
 
@@ -235,7 +244,7 @@ public class GradleProjectImporter {
     if (GradleSyncState.getInstance(project).isSyncInProgress()) {
       return;
     }
-    Runnable syncRequest = createSyncRequest(project, MODAL_SYNC, generateSourcesOnSuccess, false, listener);
+    Runnable syncRequest = createSyncRequest(project, MODAL_SYNC, generateSourcesOnSuccess, false, false, listener);
     invokeAndWaitIfNeeded(syncRequest);
   }
 
@@ -243,19 +252,43 @@ public class GradleProjectImporter {
   private Runnable createSyncRequest(@NotNull final Project project,
                                      @NotNull final ProgressExecutionMode executionMode,
                                      final boolean generateSourcesOnSuccess,
+                                     final boolean cleanProject,
                                      final boolean useCachedProjectData,
                                      @Nullable final GradleSyncListener listener) {
     return new Runnable() {
       @Override
       public void run() {
+        if (isBuildInProgress(project)) {
+          setSyncRequestedDuringBuild(project, true);
+          return;
+        }
         try {
-          doRequestSync(project, executionMode, new ImportOptions(generateSourcesOnSuccess, false, useCachedProjectData), listener);
+          ImportOptions options = new ImportOptions(generateSourcesOnSuccess, cleanProject, false, useCachedProjectData);
+          doRequestSync(project, executionMode, options, listener);
         }
         catch (ConfigurationException e) {
           showErrorDialog(project, e.getMessage(), e.getTitle());
         }
       }
     };
+  }
+
+  private static boolean isBuildInProgress(@NotNull Project project) {
+    IdeFrame frame = ((WindowManagerEx)WindowManager.getInstance()).findFrameFor(project);
+    StatusBarEx statusBar = frame == null ? null : (StatusBarEx)frame.getStatusBar();
+    if (statusBar == null) {
+      return false;
+    }
+    for (Pair<TaskInfo, ProgressIndicator> backgroundProcess : statusBar.getBackgroundProcesses()) {
+      TaskInfo task = backgroundProcess.getFirst();
+      if (task instanceof GradleTasksExecutor) {
+        ProgressIndicator second = backgroundProcess.getSecond();
+        if (second.isRunning()) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   private void doRequestSync(@NotNull final Project project,
@@ -336,7 +369,7 @@ public class GradleProjectImporter {
                                         @Nullable GradleSyncListener listener,
                                         @Nullable Project project,
                                         @Nullable LanguageLevel initialLanguageLevel) throws IOException, ConfigurationException {
-    doImport(projectName, projectRootDirPath, new ImportOptions(true, false, false), listener, project, initialLanguageLevel);
+    doImport(projectName, projectRootDirPath, new ImportOptions(true, false, false, false), listener, project, initialLanguageLevel);
   }
 
   /**
@@ -359,7 +392,7 @@ public class GradleProjectImporter {
                             @Nullable GradleSyncListener listener,
                             @Nullable Project project,
                             @Nullable LanguageLevel initialLanguageLevel) throws IOException, ConfigurationException {
-    ImportOptions options = new ImportOptions(generateSourcesOnSuccess, true, false);
+    ImportOptions options = new ImportOptions(generateSourcesOnSuccess, false, true, false);
     doImport(projectName, projectRootDirPath, options, listener, project, initialLanguageLevel);
   }
 
@@ -469,6 +502,14 @@ public class GradleProjectImporter {
   private static void setUpGradleProjectSettings(@NotNull Project project, @NotNull GradleProjectSettings settings) {
     settings.setUseAutoImport(false);
 
+    // Workaround to make integration (non-UI) tests pass.
+    if (ApplicationManager.getApplication().isUnitTestMode()) {
+      Sdk jdk = IdeSdks.getJdk();
+      if (jdk != null) {
+        settings.setGradleJvm(jdk.getName());
+      }
+    }
+
     String basePath = project.getBasePath();
     if (basePath != null) {
       settings.setExternalProjectPath(toCanonicalPath(basePath));
@@ -518,7 +559,7 @@ public class GradleProjectImporter {
         DataNode<ProjectData> cache = getCachedProjectData(project);
         if (cache != null && !isCacheMissingModels(cache, project)) {
           PostProjectSetupTasksExecutor executor = PostProjectSetupTasksExecutor.getInstance(project);
-          executor.setGenerateSourcesAfterSync(false);
+          executor.setGenerateSourcesAfterSync(false, false);
           executor.setUsingCachedProjectData(true);
           executor.setLastSyncTimestamp(syncData.getLastGradleSyncTimestamp());
 
@@ -536,7 +577,7 @@ public class GradleProjectImporter {
       return;
     }
 
-    PostProjectSetupTasksExecutor.getInstance(project).setGenerateSourcesAfterSync(options.generateSourcesOnSuccess);
+    PostProjectSetupTasksExecutor.getInstance(project).setGenerateSourcesAfterSync(options.generateSourcesOnSuccess, options.cleanProject);
     ProjectSetUpTask setUpTask = new ProjectSetUpTask(project, newProject, options.importingExistingProject, false, listener);
     myDelegate.importProject(project, setUpTask, progressExecutionMode);
   }
@@ -612,6 +653,13 @@ public class GradleProjectImporter {
         }
       }
     }
+    NativeAndroidGradleFacet nativeAndroidFacet = NativeAndroidGradleFacet.getInstance(module);
+    if (nativeAndroidFacet != null) {
+      DataNode<NativeAndroidGradleModel> nativeAndroidGradleDataNode = find(cache, NATIVE_ANDROID_MODEL);
+      if (nativeAndroidGradleDataNode == null) {
+        return true;
+      }
+    }
     return false;
   }
 
@@ -634,11 +682,16 @@ public class GradleProjectImporter {
 
   private static class ImportOptions {
     public final boolean generateSourcesOnSuccess;
+    public final boolean cleanProject;
     public final boolean importingExistingProject;
     public final boolean useCachedProjectData;
 
-    ImportOptions(boolean generateSourcesOnSuccess, boolean importingExistingProject, boolean useCachedProjectData) {
+    ImportOptions(boolean generateSourcesOnSuccess,
+                  boolean cleanProject,
+                  boolean importingExistingProject,
+                  boolean useCachedProjectData) {
       this.generateSourcesOnSuccess = generateSourcesOnSuccess;
+      this.cleanProject = cleanProject;
       this.importingExistingProject = importingExistingProject;
       this.useCachedProjectData = useCachedProjectData;
     }

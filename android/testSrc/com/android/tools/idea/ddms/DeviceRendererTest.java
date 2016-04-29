@@ -18,13 +18,13 @@ package com.android.tools.idea.ddms;
 import com.android.ddmlib.IDevice;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.SimpleColoredText;
-import junit.framework.TestCase;
 import org.easymock.EasyMock;
+import org.junit.Test;
 
 import static com.android.ddmlib.IDevice.*;
+import static org.junit.Assert.*;
 
-public class DeviceRendererTest extends TestCase {
-
+public final class DeviceRendererTest {
   private static IDevice createDevice(boolean isEmulator,
                                       String avdName,
                                       String manufacturer,
@@ -51,21 +51,24 @@ public class DeviceRendererTest extends TestCase {
     return d;
   }
 
-  public void testDeviceNameRendering1() throws Exception {
+  @Test
+  public void deviceNameRendering1() throws Exception {
     String serial = "123";
     IDevice d = createDevice(false, null, "google", "nexus 4", "4.2", "17", serial, IDevice.DeviceState.ONLINE);
     SimpleColoredText target = new SimpleColoredText();
     DeviceRenderer.renderDeviceName(d, target);
 
     String name = target.toString();
-    assertTrue(name, StringUtil.containsIgnoreCase(name, "Nexus 4 Android 4.2, API 17"));
+
+    assertEquals("Google Nexus 4 Android 4.2, API 17", name);
     // status should be shown only if !online
     assertFalse(StringUtil.containsIgnoreCase(name, IDevice.DeviceState.ONLINE.toString()));
     // serial should be shown only if !online
     assertFalse(StringUtil.containsIgnoreCase(name, serial));
   }
 
-  public void testDeviceNameRendering2() throws Exception {
+  @Test
+  public void deviceNameRendering2() throws Exception {
     String serial = "123";
     IDevice d = createDevice(true, "Avdname", "google", "nexus 4", "4.2", "17", serial, IDevice.DeviceState.BOOTLOADER);
     SimpleColoredText target = new SimpleColoredText();

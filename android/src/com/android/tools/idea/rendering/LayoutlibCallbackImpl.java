@@ -38,7 +38,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import org.jetbrains.android.dom.layout.AndroidLayoutUtil;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.RecyclerViewHelper;
@@ -55,6 +54,7 @@ import org.xmlpull.v1.XmlPullParserException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.StringReader;
 import java.net.MalformedURLException;
 import java.util.*;
 
@@ -252,6 +252,33 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
    */
   public boolean isUsed() {
     return myUsed;
+  }
+
+  @Nullable
+  @Override
+  public XmlPullParser getXmlFileParser(String fileName) {
+    boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
+    try {
+      VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByPath(fileName);
+      if (virtualFile != null) {
+        PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(myModule.getProject(), virtualFile);
+        if (psiFile != null) {
+          try {
+            XmlPullParser parser = getParserFactory().createParser(fileName);
+            parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
+            parser.setInput(new StringReader(psiFile.getText()));
+            return parser;
+          }
+          catch (XmlPullParserException e) {
+            LOG.warn("Could not create parser for " + fileName);
+          }
+        }
+      }
+      return null;
+    }
+    finally {
+      RenderSecurityManager.exitSafeRegion(token);
+    }
   }
 
   public void setLayoutParser(@Nullable String layoutName, @Nullable ILayoutPullParser layoutParser) {
@@ -678,7 +705,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   @Override
   public Class<?> findClass(@NotNull String name) throws ClassNotFoundException {
     try {
-      Class<?> aClass = myClassLoader.loadClass(name);
+      Class<?> aClass = myClassLoader.loadClass(name, false);
       if (aClass != null) {
         return aClass;
       }

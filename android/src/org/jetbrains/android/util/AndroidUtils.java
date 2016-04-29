@@ -22,6 +22,7 @@ import com.android.ddmlib.ShellCommandUnresponsiveException;
 import com.android.ddmlib.TimeoutException;
 import com.android.sdklib.internal.project.ProjectProperties;
 import com.android.tools.idea.run.*;
+import com.android.tools.idea.run.util.LaunchUtils;
 import com.intellij.CommonBundle;
 import com.intellij.codeInsight.hint.HintUtil;
 import com.intellij.codeInsight.navigation.NavigationUtil;
@@ -91,6 +92,8 @@ import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.PsiNavigateUtil;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.HashSet;
+import com.intellij.util.graph.Graph;
+import com.intellij.util.graph.GraphAlgorithms;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomFileElement;
@@ -154,6 +157,8 @@ public class AndroidUtils {
   @NonNls public static final String TAG_LINEAR_LAYOUT = SdkConstants.LINEAR_LAYOUT;
   private static final String[] ANDROID_COMPONENT_CLASSES = new String[]{ACTIVITY_BASE_CLASS_NAME,
     SERVICE_CLASS_NAME, RECEIVER_CLASS_NAME, PROVIDER_CLASS_NAME};
+
+  private static final Lexer JAVA_LEXER = JavaParserDefinition.createLexer(LanguageLevel.JDK_1_5);
 
   private AndroidUtils() {
   }
@@ -512,7 +517,7 @@ public class AndroidUtils {
       AndroidFacetConfiguration configuration = facet.getConfiguration();
       configuration.init(module, contentRoot);
       if (library) {
-        configuration.getState().LIBRARY_PROJECT = true;
+        facet.getProperties().LIBRARY_PROJECT = true;
       }
       model.addFacet(facet);
     }
@@ -758,7 +763,7 @@ public class AndroidUtils {
         return panel;
       }
     };
-    wrapper.setTitle("Stack trace");
+    wrapper.setTitle("Stack Trace");
     wrapper.show();
   }
 
@@ -818,30 +823,36 @@ public class AndroidUtils {
     // (the code wouldn't have compiled)
 
     ApplicationManager.getApplication().assertReadAccessAllowed();
-    Lexer lexer = JavaParserDefinition.createLexer(LanguageLevel.JDK_1_5);
     int index = 0;
     while (true) {
       int index1 = name.indexOf('.', index);
       if (index1 < 0) {
         index1 = name.length();
       }
-      String segment = name.substring(index, index1);
-      lexer.start(segment);
-      if (lexer.getTokenType() != JavaTokenType.IDENTIFIER) {
-        if (lexer.getTokenType() instanceof IKeywordElementType) {
-          return "Package names cannot contain Java keywords like '" + segment + "'";
-        }
-        if (segment.isEmpty()) {
-          return "Package segments must be of non-zero length";
-        }
-        return segment + " is not a valid identifier";
-      }
+      String error = isReservedKeyword(name.substring(index, index1));
+      if (error != null) return error;
       if (index1 == name.length()) {
         break;
       }
       index = index1 + 1;
     }
 
+    return null;
+  }
+
+  @Nullable
+  public static String isReservedKeyword(@NotNull String string) {
+    Lexer lexer = JAVA_LEXER;
+    lexer.start(string);
+    if (lexer.getTokenType() != JavaTokenType.IDENTIFIER) {
+      if (lexer.getTokenType() instanceof IKeywordElementType) {
+        return "Package names cannot contain Java keywords like '" + string + "'";
+      }
+      if (string.isEmpty()) {
+        return "Package segments must be of non-zero length";
+      }
+      return string + " is not a valid identifier";
+    }
     return null;
   }
 
@@ -900,23 +911,14 @@ public class AndroidUtils {
 
   @NotNull
   public static Set<Module> getSetWithBackwardDependencies(@NotNull Collection<Module> modules) {
+    if (modules.isEmpty()) return Collections.emptySet();
+    Module next = modules.iterator().next();
+    Graph<Module> graph = ModuleManager.getInstance(next.getProject()).moduleGraph();
     final Set<Module> set = new HashSet<Module>();
-
     for (Module module : modules) {
-      collectModules(module, set, ModuleManager.getInstance(module.getProject()).getModules());
+      GraphAlgorithms.getInstance().collectOutsRecursively(graph, module, set);
     }
     return set;
-  }
-
-  private static void collectModules(Module module, Set<Module> result, Module[] allModules) {
-    if (!result.add(module)) {
-      return;
-    }
-    for (Module otherModule : allModules) {
-      if (ModuleRootManager.getInstance(otherModule).isDependsOn(module)) {
-        collectModules(otherModule, result, allModules);
-      }
-    }
   }
 
   @NotNull

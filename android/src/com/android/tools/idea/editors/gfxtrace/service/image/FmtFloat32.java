@@ -24,6 +24,11 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 final public class FmtFloat32 extends Format {
+  @Override
+  public String getDisplayName() {
+    return "FLOAT";
+  }
+
   //<<<Start:Java.ClassBody:1>>>
 
   // Constructs a default-initialized {@link FmtFloat32}.
@@ -34,7 +39,7 @@ final public class FmtFloat32 extends Format {
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("image","fmtFloat32","","");
+  private static final Entity ENTITY = new Entity("image", "fmtFloat32", "", "");
 
   static {
     ENTITY.setFields(new Field[]{
@@ -55,12 +60,10 @@ final public class FmtFloat32 extends Format {
 
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
-      FmtFloat32 o = (FmtFloat32)obj;
     }
 
     @Override
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
-      FmtFloat32 o = (FmtFloat32)obj;
     }
     //<<<End:Java.KlassBody:2>>>
   }

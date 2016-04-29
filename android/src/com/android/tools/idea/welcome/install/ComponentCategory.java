@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.welcome.install;
 
-import com.android.sdklib.SdkManager;
+import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.tools.idea.welcome.wizard.ProgressStep;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStep;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -66,9 +65,9 @@ public class ComponentCategory extends ComponentTreeNode {
   }
 
   @Override
-  public void updateState(@Nullable SdkManager manager) {
+  public void updateState(@NotNull AndroidSdkHandler sdkHandler) {
     for (ComponentTreeNode component : myComponents) {
-      component.updateState(manager);
+      component.updateState(sdkHandler);
     }
   }
 

@@ -21,6 +21,6 @@ import org.jetbrains.annotations.NotNull;
  * Listener that is notified any time an observable value may have changed (either directly or
  * because a value it is bound to has become invalidated).
  */
-public abstract class InvalidationListener {
-  protected abstract void onInvalidated(@NotNull Observable sender);
+public interface InvalidationListener {
+  void onInvalidated(@NotNull ObservableValue<?> sender);
 }

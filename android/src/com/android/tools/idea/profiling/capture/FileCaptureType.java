@@ -18,6 +18,7 @@ package com.android.tools.idea.profiling.capture;
 import com.android.utils.SdkUtils;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.text.SimpleDateFormat;
@@ -26,13 +27,11 @@ import java.util.Date;
 public abstract class FileCaptureType extends CaptureType {
   @NotNull private String myName;
   @NotNull private Icon myIcon;
-  @NotNull private String myFileNamePrefix;
   @NotNull private String myFileNameExtension;
 
-  protected FileCaptureType(@NotNull String name, @NotNull Icon icon, @NotNull String fileNamePrefix, @NotNull String fileNameExtension) {
+  protected FileCaptureType(@NotNull String name, @NotNull Icon icon, @NotNull String fileNameExtension) {
     myName = name;
     myIcon = icon;
-    myFileNamePrefix = fileNamePrefix;
     myFileNameExtension = fileNameExtension;
   }
 
@@ -48,6 +47,12 @@ public abstract class FileCaptureType extends CaptureType {
     return myIcon;
   }
 
+  @NotNull
+  @Override
+  public String getCaptureExtension() {
+    return myFileNameExtension;
+  }
+
   @Override
   public boolean isValidCapture(@NotNull VirtualFile file) {
     return isValidCapture(file.getPath());
@@ -55,12 +60,6 @@ public abstract class FileCaptureType extends CaptureType {
 
   public boolean isValidCapture(@NotNull String filePath) {
     return SdkUtils.endsWithIgnoreCase(filePath, myFileNameExtension);
-  }
-
-  @NotNull
-  @Override
-  public String createCaptureFileName() {
-    return myFileNamePrefix + (new SimpleDateFormat("yyyy.MM.dd_HH.mm.ss").format(new Date())) + myFileNameExtension;
   }
 
   @NotNull

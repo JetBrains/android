@@ -16,15 +16,22 @@
 
 package com.android.tools.idea.gradle.structure;
 
-import com.android.sdklib.repository.FullRevision;
-import com.android.sdklib.repository.descriptors.IPkgDesc;
-import com.android.sdklib.repository.descriptors.PkgDesc;
-import com.android.sdklib.repository.descriptors.PkgType;
+import com.android.repository.api.ProgressIndicator;
+import com.android.repository.api.RepoManager;
+import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.npw.WizardUtils;
-import com.android.tools.idea.sdk.*;
+import com.android.tools.idea.npw.WizardUtils.WritableCheckMode;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
-import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
+import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
+import com.android.tools.idea.sdkv2.StudioDownloader;
+import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
+import com.android.tools.idea.sdkv2.StudioProgressRunner;
+import com.android.tools.idea.sdkv2.StudioSettingsController;
+import com.android.tools.idea.wizard.model.ModelWizardDialog;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
@@ -39,17 +46,21 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.ui.DetailsComponent;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.openapi.util.ActionCallback;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.HyperlinkLabel;
+import com.intellij.ui.navigation.History;
+import com.intellij.ui.navigation.Place;
 import com.intellij.util.Function;
 import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -57,12 +68,12 @@ import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.HyperlinkEvent;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import static com.android.SdkConstants.FD_NDK;
 import static com.android.SdkConstants.NDK_DIR_PROPERTY;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidNdk;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
@@ -76,15 +87,19 @@ import static org.jetbrains.android.sdk.AndroidSdkUtils.tryToChooseAndroidSdk;
 /**
  * Allows the user set global Android SDK and JDK locations that are used for Gradle-based Android projects.
  */
-public class DefaultSdksConfigurable extends BaseConfigurable {
+public class DefaultSdksConfigurable extends BaseConfigurable implements Place.Navigator {
+  @NonNls private static final String SDKS_PLACE = "sdksPlace";
+
   private static final String CHOOSE_VALID_JDK_DIRECTORY_ERR = "Please choose a valid JDK directory.";
   private static final String CHOOSE_VALID_SDK_DIRECTORY_ERR = "Please choose a valid Android SDK directory.";
   private static final String CHOOSE_VALID_NDK_DIRECTORY_ERR = "Please choose a valid Android NDK directory.";
 
   private static final Logger LOG = Logger.getInstance(DefaultSdksConfigurable.class);
 
-  @Nullable private final AndroidProjectStructureConfigurable myHost;
+  @Nullable private final BaseConfigurable myHost;
   @Nullable private final Project myProject;
+
+  @NotNull private final BiMap<String, Component> myComponentsById = HashBiMap.create();
 
   // These paths are system-dependent.
   private String myOriginalJdkHomePath;
@@ -98,11 +113,14 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
   private TextFieldWithBrowseButton myJdkLocationTextField;
   private JPanel myWholePanel;
   private JPanel myNdkDownloadPanel;
-  private AsyncProcessIcon myNdkCheckProcessIcon;
+  @SuppressWarnings("unused") private AsyncProcessIcon myNdkCheckProcessIcon;
 
   private DetailsComponent myDetailsComponent;
+  private History myHistory;
 
-  public DefaultSdksConfigurable(@Nullable AndroidProjectStructureConfigurable host, @Nullable Project project) {
+  private String mySelectedComponentId;
+
+  public DefaultSdksConfigurable(@Nullable BaseConfigurable host, @Nullable Project project) {
     myHost = host;
     myProject = project;
     myWholePanel.setPreferredSize(JBUI.size(700, 500));
@@ -115,25 +133,60 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
     if (myProject == null || myProject.isDefault()) {
       myNdkLocationTextField.setEnabled(false);
     }
+
+    adjustNdkQuickFixVisibility();
+
     final CardLayout layout = (CardLayout)myNdkDownloadPanel.getLayout();
     layout.show(myNdkDownloadPanel, "loading");
-    final SdkState sdkState = SdkState.getInstance(AndroidSdkUtils.tryToChooseAndroidSdk());
-    sdkState.loadAsync(SdkState.DEFAULT_EXPIRATION_PERIOD_MS, false, null, new SdkLoadedCallback(true) {
+
+    ProgressIndicator logger = new StudioLoggerProgressIndicator(getClass());
+    RepoManager repoManager = AndroidSdkUtils.tryToChooseSdkHandler().getSdkManager(logger);
+    StudioProgressRunner runner = new StudioProgressRunner(false, true, false, "Loading Remote SDK", true, project);
+    RepoManager.RepoLoadedCallback onComplete = new RepoManager.RepoLoadedCallback() {
       @Override
-      public void doRun(@NotNull SdkPackages packages) {
-        if (!sdkState.getPackages().getRemotePkgInfos().get(PkgType.PKG_NDK).isEmpty()) {
+      public void doRun(@NotNull RepositoryPackages packages) {
+        if (packages.getRemotePackages().get(FD_NDK) != null) {
           layout.show(myNdkDownloadPanel, "link");
         }
         else {
           myNdkDownloadPanel.setVisible(false);
         }
       }
-    }, new DispatchRunnable() {
+    };
+    Runnable onError = new Runnable() {
       @Override
-      public void doRun() {
+      public void run() {
         myNdkDownloadPanel.setVisible(false);
       }
-    }, false);
+    };
+    repoManager.load(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null, ImmutableList.of(onComplete), ImmutableList.of(onError), runner,
+                     new StudioDownloader(), StudioSettingsController.getInstance(), false);
+
+    FocusListener historyUpdater = new FocusAdapter() {
+      @Override
+      public void focusGained(FocusEvent e) {
+        if (myHistory != null) {
+          String id = myComponentsById.inverse().get(e.getComponent());
+          mySelectedComponentId = id;
+          if (id != null) {
+            myHistory.pushQueryPlace();
+          }
+        }
+      }
+    };
+
+    installValidationListener(mySdkLocationTextField.getTextField());
+    installValidationListener(myJdkLocationTextField.getTextField());
+    installValidationListener(myNdkLocationTextField.getTextField());
+
+    addHistoryUpdater("mySdkLocationTextField", mySdkLocationTextField.getTextField(), historyUpdater);
+    addHistoryUpdater("myJdkLocationTextField", myJdkLocationTextField.getTextField(), historyUpdater);
+    addHistoryUpdater("myNdkLocationTextField", myNdkLocationTextField.getTextField(), historyUpdater);
+  }
+
+  private void addHistoryUpdater(@NotNull String id, @NotNull Component c, @NotNull FocusListener historyUpdater) {
+    myComponentsById.put(id, c);
+    c.addFocusListener(historyUpdater);
   }
 
   @Override
@@ -156,9 +209,11 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
       public void run() {
+        // Setting the Sdk path will trigger the project sync. Set the Ndk path and Jdk path before the Sdk path to get the changes to them
+        // to take effect during the sync.
+        saveAndroidNdkPath();
         IdeSdks.setJdkPath(getJdkLocation());
         IdeSdks.setAndroidSdkPath(getSdkLocation(), myProject);
-        saveAndroidNdkPath();
 
         if (!ApplicationManager.getApplication().isUnitTestMode()) {
           RunAndroidSdkManagerAction.updateInWelcomePage(myDetailsComponent.getComponent());
@@ -168,7 +223,7 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
   }
 
   private void saveAndroidNdkPath() {
-    if(myProject == null || myProject.isDefault()) {
+    if (myProject == null || myProject.isDefault()) {
       return;
     }
 
@@ -187,8 +242,8 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
                                  "Cause: %2$s\n\n" +
                                  "Please manually update the file's '%3$s' property value to \n" +
                                  "'%4$s'\n" +
-                                 "and sync the project with Gradle files.", myProject.getName(), cause,
-                                 NDK_DIR_PROPERTY, getNdkLocation().getPath());
+                                 "and sync the project with Gradle files.", myProject.getName(), cause, NDK_DIR_PROPERTY,
+                                 getNdkLocation().getPath());
       Messages.showErrorDialog(myProject, msg, "Android Ndk Update");
     }
   }
@@ -223,8 +278,10 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
       });
   }
 
-  private TextFieldWithBrowseButton createTextFieldWithBrowseButton(String title, final String errorMessagae, final Function<File,
-    ValidationResult> validation) {
+  @NotNull
+  private TextFieldWithBrowseButton createTextFieldWithBrowseButton(@NotNull String title,
+                                                                    @NotNull final String errorMessage,
+                                                                    @NotNull final Function<File, ValidationResult> validation) {
     final FileChooserDescriptor descriptor = createSingleFolderDescriptor(title, new Function<File, Void>() {
       @Override
       public Void fun(File file) {
@@ -232,7 +289,7 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
         if (!validationResult.success) {
           String msg = validationResult.message;
           if (isEmpty(msg)) {
-            msg = errorMessagae;
+            msg = errorMessage;
           }
           throw new IllegalArgumentException(msg);
         }
@@ -241,7 +298,6 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
     });
 
     final JTextField textField = new JTextField(10);
-    installValidationListener(textField);
     return new TextFieldWithBrowseButton(textField, new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -266,8 +322,9 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
       @Override
       protected void hyperlinkActivated(HyperlinkEvent e) {
         // known non-null since otherwise we won't show the link
-        //noinspection ConstantConditions
-        myNdkLocationTextField.setText(IdeSdks.getAndroidNdkPath().getPath());
+        File androidNdkPath = IdeSdks.getAndroidNdkPath();
+        assert androidNdkPath != null;
+        myNdkLocationTextField.setText(androidNdkPath.getPath());
       }
     });
   }
@@ -282,10 +339,9 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
           Messages.showErrorDialog(getContentPanel(), "Please select a valid SDK before downloading the NDK.");
           return;
         }
-        List<IPkgDesc> requested = ImmutableList.of(PkgDesc.Builder.newNdk(FullRevision.NOT_SPECIFIED).create());
-        SdkQuickfixWizard wizard = new SdkQuickfixWizard(null, null, requested);
-        wizard.init();
-        if (wizard.showAndGet()) {
+        List<String> requested = ImmutableList.of(FD_NDK);
+        ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(myWholePanel, requested);
+        if (dialog != null && dialog.showAndGet()) {
           File ndk = IdeSdks.getAndroidNdkPath();
           if (ndk != null) {
             myNdkLocationTextField.setText(ndk.getPath());
@@ -304,7 +360,6 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
         chooseJdkLocation();
       }
     });
-    installValidationListener(textField);
   }
 
   public void chooseJdkLocation() {
@@ -331,11 +386,11 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
   }
 
   private void installValidationListener(@NotNull JTextField textField) {
-    if (myHost != null) {
+    if (myHost instanceof AndroidProjectStructureConfigurable) {
       textField.getDocument().addDocumentListener(new DocumentAdapter() {
         @Override
         protected void textChanged(DocumentEvent e) {
-          myHost.requestValidation();
+          ((AndroidProjectStructureConfigurable)myHost).requestValidation();
         }
       });
     }
@@ -382,9 +437,9 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
 
   @Override
   public boolean isModified() {
-    return !myOriginalSdkHomePath.equals(getSdkLocation().getPath())
-           || !myOriginalNdkHomePath.equals(getNdkLocation().getPath())
-           || !myOriginalJdkHomePath.equals(getJdkLocation().getPath());
+    return !myOriginalSdkHomePath.equals(getSdkLocation().getPath()) ||
+           !myOriginalNdkHomePath.equals(getNdkLocation().getPath()) ||
+           !myOriginalJdkHomePath.equals(getJdkLocation().getPath());
   }
 
   /**
@@ -446,7 +501,8 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
       catch (IOException e) {
         LOG.info(String.format("Unable to read local.properties file in project '%1$s'.", myProject.getName()), e);
       }
-    } else {
+    }
+    else {
       File path = IdeSdks.getAndroidNdkPath();
       if (path != null) {
         return path.getPath();
@@ -531,7 +587,7 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
   @Nullable
   private String validateAndroidSdkPath() {
     WizardUtils.ValidationResult wizardValidationResult =
-      WizardUtils.validateLocation(getSdkLocation().getAbsolutePath(), "Android SDK location", false, false);
+      WizardUtils.validateLocation(getSdkLocation().getAbsolutePath(), "Android SDK location", false, WritableCheckMode.DO_NOT_CHECK);
     if (!wizardValidationResult.isOk()) {
       return wizardValidationResult.getFormattedMessage();
     }
@@ -556,7 +612,7 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
     if (!myNdkLocationTextField.getText().isEmpty()) {
       ValidationResult validationResult = validateAndroidNdk(getNdkLocation(), false);
       if (!validationResult.success) {
-        showNdkQuickfixLink();
+        adjustNdkQuickFixVisibility();
         String msg = validationResult.message;
         if (isEmpty(msg)) {
           msg = CHOOSE_VALID_NDK_DIRECTORY_ERR;
@@ -565,18 +621,15 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
       }
     }
     else if (myNdkLocationTextField.isVisible()) {
-      showNdkQuickfixLink();
+      adjustNdkQuickFixVisibility();
     }
     return null;
   }
 
-  private void showNdkQuickfixLink() {
-    if (IdeSdks.getAndroidNdkPath() == null) {
-      myNdkDownloadPanel.setVisible(true);
-    }
-    else {
-      myNdkResetHyperlinkLabel.setVisible(true);
-    }
+  private void adjustNdkQuickFixVisibility() {
+    boolean hasNdk = IdeSdks.getAndroidNdkPath() != null;
+    myNdkDownloadPanel.setVisible(!hasNdk);
+    myNdkResetHyperlinkLabel.setVisible(hasNdk);
   }
 
   private void hideNdkQuickfixLink() {
@@ -613,5 +666,29 @@ public class DefaultSdksConfigurable extends BaseConfigurable {
     boolean validJdk = !jdkPath.isEmpty() && JavaSdk.checkForJdk(new File(jdkPath));
     boolean validSdk = !sdkPath.isEmpty() && IdeSdks.isValidAndroidSdkPath(new File(sdkPath));
     return !validJdk || !validSdk;
+  }
+
+  @Override
+  public void setHistory(History history) {
+    myHistory = history;
+  }
+
+  @Override
+  public ActionCallback navigateTo(@Nullable Place place, boolean requestFocus) {
+    if (place != null) {
+      Object path = place.getPath(SDKS_PLACE);
+      if (path instanceof String) {
+        Component c = myComponentsById.get(path);
+        if (c != null) {
+          c.requestFocusInWindow();
+        }
+      }
+    }
+    return ActionCallback.DONE;
+  }
+
+  @Override
+  public void queryPlace(@NotNull Place place) {
+    place.putPath(SDKS_PLACE, mySelectedComponentId);
   }
 }

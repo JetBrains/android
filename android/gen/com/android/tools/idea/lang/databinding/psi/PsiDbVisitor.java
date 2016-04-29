@@ -67,6 +67,10 @@ public class PsiDbVisitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
+  public void visitFieldName(@NotNull PsiDbFieldName o) {
+    visitPsiElement(o);
+  }
+
   public void visitIdExpr(@NotNull PsiDbIdExpr o) {
     visitExpr(o);
   }
@@ -93,6 +97,10 @@ public class PsiDbVisitor extends PsiElementVisitor {
 
   public void visitMethodExpr(@NotNull PsiDbMethodExpr o) {
     visitExpr(o);
+  }
+
+  public void visitMethodName(@NotNull PsiDbMethodName o) {
+    visitPsiElement(o);
   }
 
   public void visitMulExpr(@NotNull PsiDbMulExpr o) {

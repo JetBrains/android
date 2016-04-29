@@ -23,6 +23,7 @@ public interface DbTokenTypes {
   IElementType EQ_COMPARISON_EXPR = new DbElementType("EQ_COMPARISON_EXPR");
   IElementType EXPR = new DbElementType("EXPR");
   IElementType EXPRESSION_LIST = new DbElementType("EXPRESSION_LIST");
+  IElementType FIELD_NAME = new DbElementType("FIELD_NAME");
   IElementType ID_EXPR = new DbElementType("ID_EXPR");
   IElementType INEQ_COMPARISON_EXPR = new DbElementType("INEQ_COMPARISON_EXPR");
   IElementType INSTANCE_OF_EXPR = new DbElementType("INSTANCE_OF_EXPR");
@@ -30,6 +31,7 @@ public interface DbTokenTypes {
   IElementType LOGICAL_AND_EXPR = new DbElementType("LOGICAL_AND_EXPR");
   IElementType LOGICAL_OR_EXPR = new DbElementType("LOGICAL_OR_EXPR");
   IElementType METHOD_EXPR = new DbElementType("METHOD_EXPR");
+  IElementType METHOD_NAME = new DbElementType("METHOD_NAME");
   IElementType MUL_EXPR = new DbElementType("MUL_EXPR");
   IElementType NEGATION_EXPR = new DbElementType("NEGATION_EXPR");
   IElementType NULL_COALESCE_EXPR = new DbElementType("NULL_COALESCE_EXPR");
@@ -145,6 +147,9 @@ public interface DbTokenTypes {
       else if (type == EXPRESSION_LIST) {
         return new PsiDbExpressionListImpl(node);
       }
+      else if (type == FIELD_NAME) {
+        return new PsiDbFieldNameImpl(node);
+      }
       else if (type == ID_EXPR) {
         return new PsiDbIdExprImpl(node);
       }
@@ -165,6 +170,9 @@ public interface DbTokenTypes {
       }
       else if (type == METHOD_EXPR) {
         return new PsiDbMethodExprImpl(node);
+      }
+      else if (type == METHOD_NAME) {
+        return new PsiDbMethodNameImpl(node);
       }
       else if (type == MUL_EXPR) {
         return new PsiDbMulExprImpl(node);

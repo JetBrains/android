@@ -18,12 +18,5 @@ package org.jetbrains.android.dom;
 
 import com.intellij.util.xml.DomElement;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Jun 18, 2009
- * Time: 9:20:40 PM
- * To change this template use File | Settings | File Templates.
- */
 public interface AndroidDomElement extends DomElement {
 }

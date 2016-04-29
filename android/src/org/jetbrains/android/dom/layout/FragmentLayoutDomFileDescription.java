@@ -8,9 +8,6 @@ import org.jetbrains.annotations.Nullable;
 
 import static com.android.SdkConstants.VIEW_FRAGMENT;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class FragmentLayoutDomFileDescription extends LayoutDomFileDescription<Fragment> {
 
   public FragmentLayoutDomFileDescription() {

@@ -44,6 +44,7 @@ import com.intellij.util.graph.Graph;
 import org.jetbrains.android.compiler.AndroidDexCompiler;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
+import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.android.util.AndroidUtils;
@@ -314,6 +315,8 @@ class IntellijLintProject extends Project {
       AndroidModel androidModel = facet.getAndroidModel();
       if (androidModel instanceof AndroidGradleModel) {
         project = new LintGradleProject(client, dir, dir, facet, (AndroidGradleModel)androidModel);
+      } else {
+        project = new LintAndroidProject(client, dir, dir, facet);
       }
     }
     else {
@@ -549,7 +552,6 @@ class IntellijLintProject extends Project {
     @Override
     public List<File> getProguardFiles() {
       if (mProguardFiles == null) {
-        assert !myFacet.requiresAndroidModel(); // Should be overridden to read from gradle state
         final JpsAndroidModuleProperties properties = myFacet.getProperties();
 
         if (properties.RUN_PROGUARD) {
@@ -712,6 +714,24 @@ class IntellijLintProject extends Project {
       }
 
       return mManifestFiles;
+    }
+
+    @NonNull
+    @Override
+    public List<File> getAssetFolders() {
+      if (mAssetFolders == null) {
+        mAssetFolders = Lists.newArrayList();
+        for (SourceProvider provider : IdeaSourceProvider.getAllSourceProviders(myFacet)) {
+          Collection<File> dirs = provider.getAssetsDirectories();
+          for (File dir : dirs) {
+            if (dir.exists()) { // model returns path whether or not it exists
+              mAssetFolders.add(dir);
+            }
+          }
+        }
+      }
+
+      return mAssetFolders;
     }
 
     @NonNull
@@ -1002,6 +1022,21 @@ class IntellijLintProject extends Project {
       }
 
       return mResourceFolders;
+    }
+
+    @NonNull
+    @Override
+    public List<File> getAssetFolders() {
+      if (mAssetFolders == null) {
+        File folder = myLibrary.getAssetsFolder();
+        if (folder.exists()) {
+          mAssetFolders = Collections.singletonList(folder);
+        } else {
+          mAssetFolders = Collections.emptyList();
+        }
+      }
+
+      return mAssetFolders;
     }
 
     @NonNull

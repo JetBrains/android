@@ -26,6 +26,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.ui.MessageDialogBuilder;
 import com.intellij.openapi.ui.Messages;
@@ -53,12 +54,20 @@ public final class SdkSync {
   }
 
   public static void syncIdeAndProjectAndroidSdks(@NotNull LocalProperties localProperties) {
-    syncIdeAndProjectAndroidSdks(localProperties, new FindValidSdkPathTask());
+    syncIdeAndProjectAndroidSdk(localProperties, new FindValidSdkPathTask(), null);
+    syncIdeAndProjectAndroidNdk(localProperties);
+  }
+
+  public static void syncIdeAndProjectAndroidSdks(@NotNull Project project) throws IOException {
+    LocalProperties localProperties = new LocalProperties(project);
+    syncIdeAndProjectAndroidSdk(localProperties, new FindValidSdkPathTask(), project);
     syncIdeAndProjectAndroidNdk(localProperties);
   }
 
   @VisibleForTesting
-  static void syncIdeAndProjectAndroidSdks(@NotNull final LocalProperties localProperties, @NotNull FindValidSdkPathTask findSdkPathTask) {
+  static void syncIdeAndProjectAndroidSdk(@NotNull final LocalProperties localProperties,
+                                          @NotNull FindValidSdkPathTask findSdkPathTask,
+                                          @Nullable final Project project) {
     if (localProperties.hasAndroidDirProperty()) {
       // if android.dir is specified, we don't sync SDKs. User is working with SDK sources.
       return;
@@ -126,8 +135,13 @@ public final class SdkSync {
       invokeAndWaitIfNeeded(new Runnable() {
         @Override
         public void run() {
-          int result =
-            MessageDialogBuilder.yesNo("Android SDK Manager", msg).yesText("Use Android Studio's SDK").noText("Use Project's SDK").show();
+          // We need to pass the project, so on Mac, the "Mac sheet" showing this message shows inside the IDE during UI tests, otherwise
+          // it will show outside and the UI testing infrastructure cannot see it. It is overall a good practice to pass the project when
+          // showing a message, to ensure that the message shows in the IDE instance containing the project.
+          int result = MessageDialogBuilder.yesNo("Android SDK Manager", msg).yesText("Use Android Studio's SDK")
+                                                                             .noText("Use Project's SDK")
+                                                                             .project(project)
+                                                                             .show();
           if (result == Messages.YES) {
             // Use Android Studio's SDK
             setProjectSdk(localProperties, ideAndroidSdkPath);

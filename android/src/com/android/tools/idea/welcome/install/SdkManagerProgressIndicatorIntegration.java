@@ -15,76 +15,65 @@
  */
 package com.android.tools.idea.welcome.install;
 
-import com.android.tools.idea.sdk.SdkLoggerIntegration;
-import com.google.common.base.Objects;
+import com.android.annotations.NonNull;
+import com.android.repository.api.ProgressIndicatorAdapter;
+import com.android.tools.idea.sdk.wizard.InstallSelectedPackagesStep;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Integrates SDK manager progress reporting with the wizard UI.
+ *
+ * TODO: hopefully the welcome wizard rewrite will allow this to be removed in favor of
+ * {@link InstallSelectedPackagesStep}.
  */
-public class SdkManagerProgressIndicatorIntegration extends SdkLoggerIntegration {
+public class SdkManagerProgressIndicatorIntegration extends ProgressIndicatorAdapter {
   private final ProgressIndicator myIndicator;
   private final InstallContext myContext;
-  private final int myComponentCount;
-  private int myCompletedOperations = -1;
-  private String previousTitle;
   private StringBuffer myErrors = new StringBuffer();
 
   public SdkManagerProgressIndicatorIntegration(@NotNull ProgressIndicator indicator,
-                                                @NotNull InstallContext context,
-                                                int componentCount) {
-    assert componentCount > 0;
+                                                @NotNull InstallContext context) {
     myIndicator = indicator;
     myContext = context;
-    myComponentCount = componentCount;
   }
 
   @Override
-  protected void setProgress(int progress) {
-    double completedOperations = progress / 100.0 + myCompletedOperations;
-    double progressBar = completedOperations / (myComponentCount * 2); // Installing a component is 2 operations - download + unzip
-    myIndicator.setFraction(progressBar);
+  public void setFraction(double progress) {
+    myIndicator.setFraction(progress);
   }
 
   @Override
-  protected void setDescription(String description) {
-    // Nothing
+  public void setText(@Nullable String title) {
+    myIndicator.setText(title);
   }
 
   @Override
-  protected void setTitle(String title) {
-    if (!StringUtil.isEmptyOrSpaces(title) && !Objects.equal(title, previousTitle)) {
-      previousTitle = title;
-      myCompletedOperations++;
-      myIndicator.setText(previousTitle);
-      setProgress(0);
+  public void setSecondaryText(@Nullable String s) {
+    myIndicator.setText2(s);
+  }
+
+  @Override
+  public void logInfo(@NonNull String s) {
+    myContext.print(s, ConsoleViewContentType.SYSTEM_OUTPUT);
+  }
+
+  @Override
+  public void logError(@NonNull String s, @Nullable Throwable e) {
+    if (e != null) {
+      myErrors.append(String.format("%s: %s\n", e.getClass().getName(), e.getMessage()));
     }
+    myErrors.append(s);
   }
 
   @Override
-  protected void lineAdded(String string) {
-    myContext.print(string, ConsoleViewContentType.SYSTEM_OUTPUT);
-  }
-
-  @Override
-  public void error(@Nullable Throwable t, @Nullable String msgFormat, Object... args) {
-    if (t != null) {
-      myErrors.append(String.format("%s: %s\n", t.getClass().getName(), t.getMessage()));
+  public void logWarning(@NonNull String s, @Nullable Throwable e) {
+    if (e != null) {
+      myErrors.append(String.format("%s: %s\n", e.getClass().getName(), e.getMessage()));
     }
-    if (msgFormat != null) {
-      myErrors.append(String.format(msgFormat, args));
-    }
-    super.error(t, msgFormat, args);
-  }
-
-  @Override
-  public void warning(@NotNull String msgFormat, Object... args) {
-    myErrors.append(String.format("Warning: %s\n", String.format(msgFormat, args)));
-    super.warning(msgFormat, args);
+    myErrors.append(String.format("Warning: %s\n", s));
   }
 
   public String getErrors() {

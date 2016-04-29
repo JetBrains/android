@@ -42,6 +42,7 @@ public final class ProcessHandlerConsolePrinter implements ConsolePrinter {
   }
 
   @NotNull private final Object myLock = new Object();
+
   @GuardedBy("myLock")
   @NotNull private final List<Message> myStoredMessages = Lists.newArrayList();
   @GuardedBy("myLock")
@@ -86,6 +87,6 @@ public final class ProcessHandlerConsolePrinter implements ConsolePrinter {
     // We DO NOT call notifyTextAvailable under a lock, because it could execute arbitrary code
     // and opens up the (remote) possibility of deadlock.
     assert !Thread.holdsLock(myLock);
-    processHandler.notifyTextAvailable(text + "\n", outputType);
+    processHandler.notifyTextAvailable(text + '\n', outputType);
   }
 }

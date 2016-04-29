@@ -52,6 +52,7 @@ import java.util.Set;
 
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_ID;
+import static com.android.tools.lint.detector.api.LintUtils.stripIdPrefix;
 
 
 /**
@@ -357,11 +358,20 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
     if (item instanceof PsiResourceItem) {
       PsiResourceItem psiItem = (PsiResourceItem)item;
       XmlTag tag = psiItem.getTag();
-      if (tag != null && tag.isValid()) {
+
+      final String id = item.getName();
+
+      if (tag != null && tag.isValid()
+          // Make sure that the id attribute we're searching for is actually
+          // defined for this tag, not just referenced from this tag.
+          // For example, we could have
+          //    <Button a:alignLeft="@+id/target" a:id="@+id/something ...>
+          // and this should *not* return "Button" as the view tag for
+          // @+id/target!
+          && id.equals(stripIdPrefix(tag.getAttributeValue(ATTR_ID, ANDROID_URI)))) {
         return tag.getName();
       }
 
-      final String id = item.getName();
 
       PsiFile file = psiItem.getPsiFile();
       if (file.isValid() && file instanceof XmlFile) {
@@ -379,7 +389,7 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
   @Nullable
   private static String findViewTag(XmlTag tag, String target) {
     String id = tag.getAttributeValue(ATTR_ID, ANDROID_URI);
-    if (id != null && id.endsWith(target) && target.equals(LintUtils.stripIdPrefix(id))) {
+    if (id != null && id.endsWith(target) && target.equals(stripIdPrefix(id))) {
       return tag.getName();
     }
 

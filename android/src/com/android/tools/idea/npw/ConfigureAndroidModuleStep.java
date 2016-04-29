@@ -15,18 +15,22 @@
  */
 package com.android.tools.idea.npw;
 
+import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
+import com.android.repository.Revision;
+import com.android.repository.api.LocalPackage;
+import com.android.repository.api.ProgressIndicator;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
-import com.android.sdklib.repository.FullRevision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.local.LocalPkgInfo;
+import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
 import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.templates.TemplateUtils;
-import com.android.tools.idea.ui.ComboBoxItemWithApiTag;
+import com.android.tools.idea.ui.ApiComboBoxItem;
 import com.android.tools.idea.wizard.template.TemplateWizardState;
 import com.android.tools.idea.wizard.template.TemplateWizardStep;
 import com.google.common.base.CharMatcher;
@@ -83,8 +87,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
   private static final String INVALID_FILENAME_CHARS = "[/\\\\?%*:|\"<>]";
   private static final CharMatcher ILLEGAL_CHARACTER_MATCHER = CharMatcher.anyOf(INVALID_FILENAME_CHARS);
 
-  @VisibleForTesting
-  static final Set<String> INVALID_MSFT_FILENAMES = ImmutableSet
+  @VisibleForTesting static final Set<String> INVALID_MSFT_FILENAMES = ImmutableSet
     .of("con", "prn", "aux", "clock$", "nul", "com1", "com2", "com3", "com4", "com5", "com6", "com7", "com8", "com9", "lpt1", "lpt2",
         "lpt3", "lpt4", "lpt5", "lpt6", "lpt7", "lpt8", "lpt9", "$mft", "$mftmirr", "$logfile", "$volume", "$attrdef", "$bitmap", "$boot",
         "$badclus", "$secure", "$upcase", "$extend", "$quota", "$objid", "$reparse");
@@ -118,7 +121,9 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
   private String myPackagePrefix = SAMPLE_PACKAGE_PREFIX;
   @Nullable private WizardContext myWizardContext;
 
-  public ConfigureAndroidModuleStep(TemplateWizardState state, @Nullable Project project, @Nullable Icon sidePanelIcon,
+  public ConfigureAndroidModuleStep(TemplateWizardState state,
+                                    @Nullable Project project,
+                                    @Nullable Icon sidePanelIcon,
                                     UpdateListener updateListener) {
     super(state, project, null, sidePanelIcon, updateListener);
   }
@@ -172,9 +177,10 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
       mySourceCombo.addItem(new SourceLevelComboBoxItem(LanguageLevel.JDK_1_7));
       if (!myTemplateState.hasAttr(ATTR_JAVA_VERSION)) {
         LanguageLevel defaultLevel = LanguageLevel.JDK_1_6;
-        myTemplateState.put(ATTR_JAVA_VERSION, languageLevelToString( defaultLevel));
+        myTemplateState.put(ATTR_JAVA_VERSION, languageLevelToString(defaultLevel));
       }
-    } else {
+    }
+    else {
       hide(mySourceVersionLabel, mySourceCombo);
     }
 
@@ -354,35 +360,46 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
   public String getHelpText(@NotNull String param) {
     if (param.equals(FormFactorUtils.ATTR_MODULE_NAME)) {
       return "This module name is used only by the IDE. It can typically be the same as the application name.";
-    } else if (param.equals(ATTR_APP_TITLE)) {
+    }
+    else if (param.equals(ATTR_APP_TITLE)) {
       return "The application name is shown in the Play store, as well as in the Manage Applications list in Settings.";
-    } else if (param.equals(ATTR_PACKAGE_NAME)) {
+    }
+    else if (param.equals(ATTR_PACKAGE_NAME)) {
       return "The package name must be a unique identifier for your application.\n It is typically not shown to users, " +
              "but it <b>must</b> stay the same for the lifetime of your application; it is how multiple versions of the same application " +
              "are considered the \"same app\".\nThis is typically the reverse domain name of your organization plus one or more " +
              "application identifiers, and it must be a valid Java package name.";
-    } else if (param.equals(ATTR_MIN_API)) {
+    }
+    else if (param.equals(ATTR_MIN_API)) {
       return "Choose the lowest version of Android that your application will support. Lower API levels target more devices, " +
              "but means fewer features are available. By targeting API 8 and later, you reach approximately 95% of the market.";
-    } else if (param.equals(ATTR_TARGET_API)) {
+    }
+    else if (param.equals(ATTR_TARGET_API)) {
       return "Choose the highest API level that the application is known to work with. This attribute informs the system that you have " +
              "tested against the target version and the system should not enable any compatibility behaviors to maintain your app's " +
              "forward-compatibility with the target version. The application is still able to run on older versions (down to " +
              "minSdkVersion). Your application may look dated if you are not targeting the current version.";
-    } else if (param.equals(ATTR_BUILD_API)) {
+    }
+    else if (param.equals(ATTR_BUILD_API)) {
       return "Choose a target API to compile your code against, from your installed SDKs. This is typically the most recent version, " +
              "or the first version that supports all the APIs you want to directly access without reflection.";
-    } else if (param.equals(ATTR_BASE_THEME)) {
+    }
+    else if (param.equals(ATTR_BASE_THEME)) {
       return "Choose the base theme to use for the application";
-    } else if (param.equals(ATTR_FRAGMENTS_EXTRA)) {
+    }
+    else if (param.equals(ATTR_FRAGMENTS_EXTRA)) {
       return "Select this box if you plan to use Fragments and will need the Support Library.";
-    } else if (param.equals(ATTR_ACTION_BAR_EXTRA)) {
+    }
+    else if (param.equals(ATTR_ACTION_BAR_EXTRA)) {
       return "Select this box if you plan to use the Action Bar and will need the AppCompat Library.";
-    } else if (param.equals(ATTR_GRID_LAYOUT_EXTRA)) {
+    }
+    else if (param.equals(ATTR_GRID_LAYOUT_EXTRA)) {
       return "Select this box if you plan to use the new GridLayout and will need the GridLayout Support Library.";
-    } else if (param.equals(ATTR_NAVIGATION_DRAWER_EXTRA)) {
+    }
+    else if (param.equals(ATTR_NAVIGATION_DRAWER_EXTRA)) {
       return "Select this box if you plan to use the Navigation Drawer and will need the Support Library.";
-    } else {
+    }
+    else {
       return null;
     }
   }
@@ -418,7 +435,8 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
       myTemplateState.put(ATTR_MIN_API_LEVEL, item.apiLevel);
       if (item.target != null) {
         myTemplateState.put(ATTR_MIN_API, item.target.getVersion().getApiString());
-      } else {
+      }
+      else {
         myTemplateState.put(ATTR_MIN_API, Integer.toString(item.apiLevel));
       }
     }
@@ -428,7 +446,8 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
       myTemplateState.put(ATTR_TARGET_API, item.apiLevel);
       if (item.target != null) {
         myTemplateState.put(ATTR_TARGET_API_STRING, item.target.getVersion().getApiString());
-      } else {
+      }
+      else {
         myTemplateState.put(ATTR_TARGET_API_STRING, Integer.toString(item.apiLevel));
       }
     }
@@ -438,7 +457,8 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
       myTemplateState.put(ATTR_BUILD_API, item.apiLevel);
       if (item.target != null) {
         myTemplateState.put(ATTR_BUILD_API_STRING, item.target.getVersion().getApiString());
-      } else {
+      }
+      else {
         myTemplateState.put(ATTR_BUILD_API_STRING, Integer.toString(item.apiLevel));
       }
     }
@@ -514,15 +534,15 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     }
     String packageName = myTemplateState.getString(ATTR_PACKAGE_NAME);
     if (packageName.startsWith(SAMPLE_PACKAGE_PREFIX)) {
-      setErrorHtml(String.format("The prefix '%1$s' is meant as a placeholder and should " +
-                                 "not be used", SAMPLE_PACKAGE_PREFIX));
+      setErrorHtml(String.format("The prefix '%1$s' is meant as a placeholder and should not be used", SAMPLE_PACKAGE_PREFIX));
     }
 
     String moduleName = myTemplateState.getString(FormFactorUtils.ATTR_MODULE_NAME);
     if (moduleName.isEmpty()) {
       setErrorHtml("Please specify a module name.");
       return false;
-    } else if (!isValidModuleName(moduleName)) {
+    }
+    else if (!isValidModuleName(moduleName)) {
       setErrorHtml("Invalid module name.");
       return false;
     }
@@ -564,8 +584,8 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
           return false;
         }
         if (minLevel < 19) {
-          setErrorHtml("Note: With minSdkVersion less than 19, you cannot use try-with-resources, but other Java 7 language " +
-                       "features are fine");
+          setErrorHtml(
+            "Note: With minSdkVersion less than 19, you cannot use try-with-resources, but other Java 7 language features are fine");
         }
       }
     }
@@ -583,8 +603,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
       }
       // Check the individual components for not allowed characters.
       File testFile = new File(projectLocation);
-      if ((File.separatorChar == '/' && projectLocation.contains("\\")) ||
-          (File.separatorChar == '\\' && projectLocation.contains("/"))) {
+      if ((File.separatorChar == '/' && projectLocation.contains("\\")) || (File.separatorChar == '\\' && projectLocation.contains("/"))) {
         setErrorHtml("Your project location contains incorrect slashes ('\\' vs '/')");
         return false;
       }
@@ -604,7 +623,8 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
         // Check that we can write to that location: make sure we can write into the first extant directory in the path.
         if (!testFile.exists() && testFile.getParentFile() != null && testFile.getParentFile().exists()) {
           if (!testFile.getParentFile().canWrite()) {
-            setErrorHtml(String.format("The path '%s' is not writeable. Please choose a new location.", testFile.getParentFile().getPath()));
+            setErrorHtml(
+              String.format("The path '%s' is not writeable. Please choose a new location.", testFile.getParentFile().getPath()));
             return false;
           }
         }
@@ -615,8 +635,10 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
       if (file.isFile()) {
         setErrorHtml("There must not already be a file at the project location");
         return false;
-      } else if (file.isDirectory() && WizardUtils.listFiles(file).length > 0) {
-        setErrorHtml("A non-empty directory already exists at the specified project location. Existing files may be overwritten. Proceed with caution.");
+      }
+      else if (file.isDirectory() && WizardUtils.listFiles(file).length > 0) {
+        setErrorHtml("A non-empty directory already exists at the specified project location. Existing files may be overwritten. Proceed " +
+                     "with caution.");
       }
       if (file.getParent() == null) {
         setErrorHtml("The project location can not be at the filesystem root");
@@ -626,7 +648,8 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
         setErrorHtml("The project location's parent directory must be a directory, not a plain file");
         return false;
       }
-    } else if (!isUniqueModuleName(moduleName)) {
+    }
+    else if (!isUniqueModuleName(moduleName)) {
       // In this state, we've got a pre-existing project. Let's make sure we're not trying to overwrite an existing module
       setErrorHtml(String.format(Locale.getDefault(), "Module %1$s already exists", moduleName));
       return false;
@@ -637,9 +660,10 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
 
   /**
    * Shows or hides a checkbox based on a given API level and the max API level for which it should be shown
-   * @param component The component to hide
+   *
+   * @param component   The component to hide
    * @param maxApiLevel the maximum API level for which the given component should be visible
-   * @param apiLevel the selected API level
+   * @param apiLevel    the selected API level
    */
   private static void toggleVisibleOnApi(JCheckBox component, int maxApiLevel, int apiLevel) {
     component.setVisible(apiLevel <= maxApiLevel);
@@ -648,7 +672,8 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     }
   }
 
-  @VisibleForTesting static String nameToPackage(String moduleName) {
+  @VisibleForTesting
+  static String nameToPackage(String moduleName) {
     moduleName = moduleName.replace('-', '_');
     moduleName = moduleName.replaceAll("[^a-zA-Z0-9_]", "");
     moduleName = moduleName.toLowerCase();
@@ -667,11 +692,14 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     }
     if (moduleName.isEmpty() && projectName.isEmpty()) {
       return "";
-    } else if (moduleName.isEmpty()) {
+    }
+    else if (moduleName.isEmpty()) {
       return myPackagePrefix + projectName;
-    } else if (projectName.isEmpty()) {
+    }
+    else if (projectName.isEmpty()) {
       return myPackagePrefix + moduleName;
-    } else {
+    }
+    else {
       return myPackagePrefix + projectName + '.' + moduleName;
     }
   }
@@ -693,10 +721,12 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
       int nameIndex = packageName.lastIndexOf(moduleName);
       if (nameIndex != -1) {
         return packageName.substring(0, nameIndex);
-      } else {
+      }
+      else {
         return packageName;
       }
-    } else {
+    }
+    else {
       return packageName;
     }
   }
@@ -746,8 +776,8 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
   private String computeProjectLocation() {
     String name = myTemplateState.getString(ATTR_APP_TITLE);
     name = name.replaceAll("[^a-zA-Z0-9_\\-.]", "");
-    return new File(NewProjectWizardState.getProjectFileDirectory(), name)
-      .getAbsolutePath();
+
+    return new File(WizardUtils.getProjectLocationParent(), name).getAbsolutePath();
   }
 
   public void setWizardContext(@Nullable WizardContext wizardContext) {
@@ -756,12 +786,11 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
 
   public static boolean isJdk7Supported(@Nullable AndroidSdkData sdkData) {
     if (sdkData != null) {
-      LocalPkgInfo info = sdkData.getLocalSdk().getPkgInfo(PkgType.PKG_PLATFORM_TOOLS);
-      IPkgDesc d = info == null ? null : info.getDesc();
-      if (d != null && d.hasFullRevision()) {
-        FullRevision fullRevision = d.getFullRevision();
-        assert fullRevision != null;
-        if (fullRevision.getMajor() >= 19) {
+      ProgressIndicator progress = new StudioLoggerProgressIndicator(ConfigureAndroidModuleStep.class);
+      LocalPackage info = sdkData.getSdkHandler().getLocalPackage(SdkConstants.FD_PLATFORM_TOOLS, progress);
+      if (info != null) {
+        Revision revision = info.getVersion();
+        if (revision.getMajor() >= 19) {
           JavaSdk jdk = JavaSdk.getInstance();
           Sdk sdk = ProjectJdkTable.getInstance().findMostRecentSdkOfType(jdk);
           if (sdk != null) {
@@ -794,10 +823,14 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
 
   public static String languageLevelToString(LanguageLevel level) { // Performs the reverse of LanguageLevel.parse()
     switch (level) {
-      case JDK_1_5: return "1.5";
-      case JDK_1_6: return "1.6";
-      case JDK_1_7: return "1.7";
-      default: return level.name().substring(4).replace('_','.'); // JDK_1_2 => 1.2
+      case JDK_1_5:
+        return "1.5";
+      case JDK_1_6:
+        return "1.6";
+      case JDK_1_7:
+        return "1.7";
+      default:
+        return level.name().substring(4).replace('_', '.'); // JDK_1_2 => 1.2
     }
   }
 
@@ -806,8 +839,8 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
    */
   @VisibleForTesting
   void computeUniqueProjectLocation() {
-    String projectLocation = myTemplateState.hasAttr(ATTR_PROJECT_LOCATION) ? myTemplateState.getString(ATTR_PROJECT_LOCATION)
-                                                                            : computeProjectLocation();
+    String projectLocation =
+      myTemplateState.hasAttr(ATTR_PROJECT_LOCATION) ? myTemplateState.getString(ATTR_PROJECT_LOCATION) : computeProjectLocation();
     if (!projectLocation.isEmpty() && (myProject == null || !myProject.isInitialized())) {
       File file = new File(projectLocation);
       if (file.exists()) {
@@ -828,12 +861,13 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
       String codename = version.getCodename();
       assert codename != null; // because isPreview()
       return codename;
-    } else {
+    }
+    else {
       return version.getFeatureLevel();
     }
   }
 
-  public static class SourceLevelComboBoxItem extends ComboBoxItemWithApiTag {
+  public static class SourceLevelComboBoxItem extends ApiComboBoxItem {
     public final LanguageLevel level;
 
     public SourceLevelComboBoxItem(@NotNull LanguageLevel level) {
@@ -847,7 +881,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     }
   }
 
-  public static class AndroidTargetComboBoxItem extends ComboBoxItemWithApiTag {
+  public static class AndroidTargetComboBoxItem extends ApiComboBoxItem {
     public int apiLevel = -1;
     public IAndroidTarget target = null;
 
@@ -860,11 +894,6 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
       super(getId(target), AndroidSdkUtils.getTargetLabel(target), 1, 1);
       this.target = target;
       apiLevel = target.getVersion().getFeatureLevel();
-    }
-
-    @Override
-    public String toString() {
-      return label;
     }
 
     @NotNull

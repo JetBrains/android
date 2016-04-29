@@ -89,6 +89,10 @@ public class NlProperties {
 
     for (XmlAttributeDescriptor desc : descriptors) {
       String namespace = getNamespace(desc, tag);
+      if (SdkConstants.TOOLS_URI.equals(namespace)) {
+        // Skip tools namespace attributes
+        continue;
+      }
       AttributeDefinitions attrDefs = SdkConstants.NS_RESOURCES.equals(namespace) ? systemAttrDefs : localAttrDefs;
       AttributeDefinition attrDef = attrDefs == null ? null : attrDefs.getAttrDefByName(desc.getName());
       properties.add(new NlProperty(component, desc, attrDef));

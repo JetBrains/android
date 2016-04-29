@@ -22,10 +22,10 @@ import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 
 public class GfxTraceCaptureType extends FileCaptureType {
+  private static final String FILE_EXTENSION = "." + GfxTraceFileType.INSTANCE.getDefaultExtension();
+
   protected GfxTraceCaptureType() {
-    // TODO get an icon for GPU traces
-    super(GfxTraceFileType.INSTANCE.getName(), GfxTraceFileType.INSTANCE.getIcon(), "GfxTraces_",
-          "." + GfxTraceFileType.INSTANCE.getDefaultExtension());
+    super(GfxTraceFileType.INSTANCE.getName(), GfxTraceFileType.INSTANCE.getIcon(), FILE_EXTENSION);
   }
 
   @NotNull

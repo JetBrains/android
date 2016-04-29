@@ -21,24 +21,30 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.editors.theme.*;
-import com.android.tools.idea.rendering.AppResourceRepository;
-import com.android.tools.idea.rendering.ResourceHelper;
-import com.android.tools.idea.rendering.ResourceNameValidator;
+import com.android.tools.idea.editors.theme.MaterialColorUtils;
+import com.android.tools.idea.editors.theme.MaterialColors;
+import com.android.tools.idea.editors.theme.StateListPicker;
+import com.android.tools.idea.editors.theme.ThemeEditorUtils;
+import com.android.tools.idea.editors.theme.attributes.editors.DrawableRendererEditor;
+import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
+import com.android.tools.idea.rendering.*;
+import com.android.tools.idea.ui.SearchField;
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
-import com.intellij.ide.highlighter.XmlFileType;
-import com.intellij.ide.util.treeView.AbstractTreeBuilder;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
 import com.intellij.ide.util.treeView.NodeDescriptor;
-import com.intellij.ide.util.treeView.NodeRenderer;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ex.ApplicationManagerEx;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.ui.OnePixelDivider;
 import com.intellij.openapi.ui.ValidationInfo;
-import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiDocumentManager;
@@ -46,10 +52,11 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.*;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.ui.components.JBTabbedPane;
-import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ArrayUtil;
-import com.intellij.util.ui.tree.TreeUtil;
+import com.intellij.util.ui.ColorIcon;
+import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.UIUtil;
+import icons.AndroidIcons;
 import org.intellij.images.fileTypes.ImageFileTypeManager;
 import org.jetbrains.android.actions.CreateResourceFileAction;
 import org.jetbrains.android.actions.CreateXmlResourceDialog;
@@ -61,21 +68,20 @@ import org.jetbrains.android.refactoring.AndroidExtractStyleAction;
 import org.jetbrains.android.resourceManagers.FileResourceProcessor;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.util.AndroidResourceUtil;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import sun.swing.SwingUtilities2;
 
 import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.TreeSelectionListener;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreeSelectionModel;
+import javax.swing.border.CompoundBorder;
+import javax.swing.border.EmptyBorder;
+import javax.swing.event.*;
+import javax.swing.plaf.UIResource;
+import javax.swing.plaf.basic.BasicTabbedPaneUI;
+import javax.swing.text.View;
 import java.awt.*;
 import java.awt.event.*;
-import java.io.IOException;
+import java.awt.image.BufferedImage;
 import java.util.*;
 import java.util.List;
 
@@ -90,30 +96,35 @@ import java.util.List;
  *   <li> Offer to create more resource types</li>
  * </ul>
  */
-public class ChooseResourceDialog extends DialogWrapper implements TreeSelectionListener {
+public class ChooseResourceDialog extends DialogWrapper {
+
+  private static final Logger LOG = Logger.getInstance(ChooseResourceDialog.class);
+
   private static final String TYPE_KEY = "ResourceType";
 
-  private static final String TEXT = "Text";
-  private static final String COMBO = "Combo";
-  private static final String IMAGE = "Image";
-  private static final String NONE = "None";
-
   private static final Icon RESOURCE_ITEM_ICON = AllIcons.Css.Property;
+  public static final String APP_NAMESPACE_LABEL = "Project";
 
-  private final Module myModule;
+  @NotNull private final Module myModule;
   @Nullable private final XmlTag myTag;
 
-  private final JBTabbedPane myContentPanel;
-  private final ResourcePanel myProjectPanel;
-  private final ResourcePanel mySystemPanel;
+  private final JComponent myContentPanel;
+  private final JTabbedPane myTabbedPane;
+  private final ResourcePanel[] myPanels;
+  private final SearchTextField mySearchBox;
+  private final JComponent myViewOption;
+  private boolean isGridMode;
 
-  private ResourceDialogTabComponent myColorPickerPanel;
-  private ColorPicker myColorPicker;
+  // if we are picking a resource that can't be a color, then all these are null
+  private @Nullable EditResourcePanel myColorPickerPanel;
+  private @Nullable ColorPicker myColorPicker;
 
-  private ResourceDialogTabComponent myStateListPickerPanel;
-  private StateListPicker myStateListPicker;
+  // we can ONLY ever have the statelist picker in {@link ResourceType#COLOR} or {@link ResourceType#DRAWABLE} mode.
+  // We only ever need one stateList picker because Android can never allow picking both types for any attribute.
+  private @Nullable EditResourcePanel myStateListPickerPanel;
+  private @Nullable StateListPicker myStateListPicker;
 
-  private ResourcePickerListener myResourcePickerListener;
+  private @Nullable ResourcePickerListener myResourcePickerListener;
 
   private boolean myAllowCreateResource = true;
   private final Action myNewResourceAction = new AbstractAction("New Resource", AllIcons.General.ComboArrowDown) {
@@ -147,31 +158,29 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
 
   private String myResultResourceName;
 
-  private boolean myOverwriteResource = false;
-  private ResourceNameVisibility myResourceNameVisibility;
+  private boolean myUseGlobalUndo;
+  private RenderTask myRenderTask;
 
   public interface ResourcePickerListener {
-    void resourceChanged(String resource);
+    void resourceChanged(@Nullable String resource);
   }
 
   public ChooseResourceDialog(@NotNull Module module, @NotNull ResourceType[] types, @Nullable String value, @Nullable XmlTag tag) {
-    this(module, null, types, value, false, tag, ResourceNameVisibility.HIDE, null);
+    this(module, types, value, false, tag, ResourceNameVisibility.SHOW, null);
   }
 
   public ChooseResourceDialog(@NotNull Module module,
-                              @NotNull Configuration configuration,
                               @NotNull ResourceType[] types,
                               @NotNull String value,
                               boolean isFrameworkValue,
                               @NotNull ResourceNameVisibility resourceNameVisibility,
                               @Nullable String resourceNameSuggestion) {
-    this(module, configuration, types, value, isFrameworkValue, null, resourceNameVisibility, resourceNameSuggestion);
+    this(module, types, value, isFrameworkValue, null, resourceNameVisibility, resourceNameSuggestion);
   }
 
   private ChooseResourceDialog(@NotNull Module module,
-                               @Nullable Configuration configuration,
                                @NotNull ResourceType[] types,
-                               @Nullable String value,
+                               final @Nullable String value,
                                boolean isFrameworkValue,
                                @Nullable XmlTag tag,
                                @NotNull ResourceNameVisibility resourceNameVisibility,
@@ -179,74 +188,68 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
     super(module.getProject());
     myModule = module;
     myTag = tag;
-    myResourceNameVisibility = resourceNameVisibility;
-
+    if (resourceNameSuggestion != null && resourceNameSuggestion.startsWith("#")) {
+      throw new IllegalArgumentException("invalid name suggestion " + resourceNameSuggestion);
+    }
     setTitle("Resources");
 
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    myProjectPanel = new ResourcePanel(facet, types, false);
-    mySystemPanel = new ResourcePanel(facet, types, true);
+    if (ArrayUtil.contains(ResourceType.COLOR, types) || ArrayUtil.contains(ResourceType.DRAWABLE, types)) {
 
-    myContentPanel = new JBTabbedPane();
-    myContentPanel.addTab("Project", myProjectPanel.myComponent);
-    myContentPanel.addTab("System", mySystemPanel.myComponent);
-
-    myProjectPanel.myTreeBuilder.expandAll(null);
-    mySystemPanel.myTreeBuilder.expandAll(null);
-
-    if (value != null && value.startsWith("@")) {
-      value = StringUtil.replace(value, "+", "");
-      int index = value.indexOf('/');
-      if (index != -1) {
-        ResourcePanel panel;
-        String type;
-        String name = value.substring(index + 1);
-        if (value.startsWith(SdkConstants.ANDROID_PREFIX)) {
-          panel = mySystemPanel;
-          type = value.substring(SdkConstants.ANDROID_PREFIX.length(), index);
-        }
-        else {
-          panel = myProjectPanel;
-          type = value.substring(1, index);
-        }
-        myContentPanel.setSelectedComponent(panel.myComponent);
-        panel.select(type, name);
-      }
-    }
-
-    Color color = null;
-    if (configuration != null) {
-      assert value != null;
-
-      ResourceResolver resolver = configuration.getResourceResolver();
+      Configuration configuration = ThemeEditorUtils.getConfigurationForModule(myModule);
+      final ResourceResolver resolver = configuration.getResourceResolver();
       assert resolver != null;
-      ResourceValue resValue = resolver.findResValue(value, isFrameworkValue);
-      ResourceHelper.StateList stateList = resValue != null ? ResourceHelper.resolveStateList(resolver, resValue, module.getProject()) : null;
 
-      if (stateList != null) {
-        final ResourceFolderType resFolderType = stateList.getType();
-        final ResourceType resType = ResourceType.getEnum(resFolderType.getName());
-        assert resType != null;
+      ResourceValue resValue = null;
+      if (value != null) {
+        resValue = resolver.findResValue(value, isFrameworkValue);
+      }
 
-        myStateListPicker = new StateListPicker(stateList, module, configuration);
-        myStateListPickerPanel = new ResourceDialogTabComponent(new JPanel(new BorderLayout()), resType, resFolderType);
-        myStateListPickerPanel.setBorder(null);
-        myStateListPickerPanel.addCenter(myStateListPicker);
-        myStateListPickerPanel.setChangeFileNameVisible(false);
-
-        if (myResourceNameVisibility != ResourceNameVisibility.HIDE) {
-          myStateListPickerPanel.addResourceDialogSouthPanel(resourceNameSuggestion, true);
-        }
-
-        myStateListPickerPanel
-          .setValidator(ResourceNameValidator.create(true, AppResourceRepository.getAppResources(myModule, true), resType, true));
+      final ResourceType stateListType;
+      final ResourceFolderType stateListFolderType;
+      if (ArrayUtil.contains(ResourceType.DRAWABLE, types)) {
+        stateListType = ResourceType.DRAWABLE;
+        stateListFolderType = ResourceFolderType.DRAWABLE;
       }
       else {
-        color = ResourceHelper.resolveColor(resolver, resValue, module.getProject());
+        stateListType = ResourceType.COLOR;
+        stateListFolderType = ResourceFolderType.COLOR;
       }
-    }
 
-    if (ArrayUtil.contains(ResourceType.COLOR, types) || ArrayUtil.contains(ResourceType.DRAWABLE, types)) {
+      ResourceHelper.StateList stateList = null;
+      if (resValue != null) {
+        stateList = ResourceHelper.resolveStateList(resolver, resValue, myModule.getProject());
+        if (stateList != null && stateList.getType() != stateListType) {
+          // this is very strange, this means we have asked to open the resource picker to allow drawables but with a color statelist
+          // or to 'not allow drawables', but with a drawables statelist, must be a user error, this should not normally happen.
+          LOG.warn("StateList type mismatch " + stateList.getType() + " " + stateListType);
+          stateList = null;
+        }
+      }
+
+      myStateListPicker = new StateListPicker(stateList, myModule, configuration);
+      myStateListPickerPanel = new EditResourcePanel(myStateListPicker) {
+        @Override
+        @Nullable
+        public ValidationInfo doValidate() {
+          ValidationInfo error = super.doValidate();
+          if (error == null) {
+            error = myStateListPicker.getFrameworkResourceError();
+          }
+          if (error == null) {
+            assert myStateListPickerPanel != null;
+            int minDirectoriesApi = ThemeEditorUtils.getMinFolderApi(myStateListPickerPanel.getLocationSettings().getDirNames(), myModule);
+            error = myStateListPicker.getApiError(minDirectoriesApi);
+          }
+          return error;
+        }
+      };
+      myStateListPickerPanel.addResourceDialogSouthPanel(ResourceNameVisibility.FORCE, resourceNameSuggestion, true, stateListFolderType, false, stateListType);
+
+      Color color = null;
+      if (resValue != null) {
+        color = ResourceHelper.resolveColor(resolver, resValue, myModule.getProject());
+      }
+
       if (color == null) {
         color = ResourceHelper.parseColor(value);
       }
@@ -262,36 +265,136 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
       });
       myColorPicker.pickARGB();
 
-      myColorPickerPanel = new ResourceDialogTabComponent(new JPanel(new BorderLayout()), ResourceType.COLOR, ResourceFolderType.VALUES);
-      myColorPickerPanel.setBorder(null);
-      myColorPickerPanel.addCenter(myColorPicker);
-      myContentPanel.addTab("Color", myColorPickerPanel);
-      myContentPanel.setSelectedIndex(myContentPanel.getTabCount() - 1);
+      myColorPickerPanel = new EditResourcePanel(myColorPicker);
+      if (resourceNameVisibility != ResourceNameVisibility.HIDE) {
+        myColorPickerPanel.addResourceDialogSouthPanel(resourceNameVisibility, resourceNameSuggestion, false, ResourceFolderType.VALUES, true, ResourceType.COLOR);
+      }
+    }
 
-      if (myResourceNameVisibility != ResourceNameVisibility.HIDE) {
-        myColorPickerPanel.addResourceDialogSouthPanel(resourceNameSuggestion, false);
+    AndroidFacet facet = AndroidFacet.getInstance(myModule);
+    assert facet != null;
+
+    if (ArrayUtil.contains(ResourceType.DRAWABLE, types) && !ArrayUtil.contains(ResourceType.COLOR, types)) {
+      myPanels = new ResourcePanel[types.length + 1];
+      myPanels[types.length] = new ResourcePanel(facet, ResourceType.COLOR, false);
+    }
+    else {
+      myPanels = new ResourcePanel[types.length];
+    }
+
+    for (int i = 0; i < types.length; i++) {
+      myPanels[i] = new ResourcePanel(facet, types[i], true);
+    }
+
+    final ToggleAction listView = new ToggleAction(null, "list", AndroidIcons.Views.ListView) {
+      @Override
+      public boolean isSelected(AnActionEvent e) {
+        return !isGridMode;
       }
 
-      myColorPickerPanel.setValidator(
-        ResourceNameValidator.create(false, AppResourceRepository.getAppResources(myModule, true), ResourceType.COLOR, false));
-    }
-
-    if (myStateListPicker != null) {
-      myContentPanel.addTab("StateList", myStateListPickerPanel);
-      myContentPanel.setSelectedIndex(myContentPanel.getTabCount() - 1);
-    }
-
-    myContentPanel.addChangeListener(new ChangeListener() {
       @Override
-      public void stateChanged(ChangeEvent e) {
-        valueChanged(null);
+      public void setSelected(AnActionEvent e, boolean state) {
+        setGridMode(!state);
+      }
+    };
+
+    final ToggleAction gridView = new ToggleAction(null, "grid", AndroidIcons.Views.GridView) {
+      @Override
+      public boolean isSelected(AnActionEvent e) {
+        return isGridMode;
+      }
+
+      @Override
+      public void setSelected(AnActionEvent e, boolean state) {
+        setGridMode(state);
+      }
+    };
+
+    mySearchBox = new SearchField(true);
+    mySearchBox.setMaximumSize(new Dimension(JBUI.scale(300), mySearchBox.getMaximumSize().height));
+    mySearchBox.addDocumentListener(new DocumentAdapter() {
+      @Override
+      protected void textChanged(DocumentEvent e) {
+        Condition condition = new Condition() {
+          private String text = mySearchBox.getText();
+          @Override
+          public boolean value(Object o) {
+            return StringUtil.containsIgnoreCase(o.toString(), text);
+          }
+        };
+        for (ResourcePanel panel : myPanels) {
+          panel.myList.setFilter(condition);
+        }
       }
     });
 
-    valueChanged(null);
+    myViewOption = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, new DefaultActionGroup(listView, gridView), true).getComponent();
+    myViewOption.setBorder(null);
+    myViewOption.setMaximumSize(new Dimension(JBUI.scale(100), myViewOption.getMaximumSize().height));
+
+    //noinspection UndesirableClassUsage We install our own special UI, intellij stuff will break it
+    myTabbedPane = new JTabbedPane(SwingConstants.LEFT);
+    myTabbedPane.setUI(new SimpleTabUI());
+    for (ResourcePanel panel : myPanels) {
+      myTabbedPane.addTab(panel.getType().getDisplayName(), panel.myComponent);
+      panel.expandAll();
+    }
+
+    // "@color/black" or "@android:color/black"
+    if (value != null && value.startsWith("@")) {
+      org.jetbrains.android.dom.resources.ResourceValue resourceValue = org.jetbrains.android.dom.resources.ResourceValue.reference(value);
+      assert resourceValue != null;
+      String name = resourceValue.getResourceName();
+      assert name != null; // as we used ResourceValue.reference to create this object, name is never null
+      String namespace = resourceValue.getNamespace();
+      ResourceType type = resourceValue.getType();
+
+      ResourcePanel panel = null;
+      for (ResourcePanel aPanel : myPanels) {
+        if (aPanel.getType().equals(type)) {
+          panel = aPanel;
+          break;
+        }
+      }
+      // panel is null if the reference is incorrect, e.g. "@sdfgsdfgs" (user error).
+      if (panel != null) {
+        myTabbedPane.setSelectedComponent(panel.myComponent);
+        panel.select(namespace, name);
+      }
+    }
+
+    myTabbedPane.addChangeListener(new ChangeListener() {
+      @Override
+      public void stateChanged(ChangeEvent e) {
+        setupViewOptions();
+      }
+    });
+
+    JComponent toolbar = Box.createHorizontalBox();
+    toolbar.add(mySearchBox);
+    toolbar.add(Box.createHorizontalStrut(JBUI.scale(20)));
+    toolbar.add(myViewOption);
+    toolbar.setBorder(new CompoundBorder(JBUI.Borders.customLine(OnePixelDivider.BACKGROUND, 0, 0, 1, 0), JBUI.Borders.empty(8)));
+
+    myContentPanel = new JPanel(new BorderLayout());
+    myContentPanel.add(myTabbedPane);
+    myContentPanel.add(toolbar, BorderLayout.NORTH);
+
+    setupViewOptions();
     init();
     // we need to trigger this once before the window is made visible to update any extra labels
     doValidate();
+  }
+
+  private void setupViewOptions() {
+    myViewOption.setVisible(getSelectedPanel().supportsGridMode());
+  }
+
+  @NotNull
+  @Override
+  protected DialogStyle getStyle() {
+    // will draw the line between the main panel and the action buttons.
+    return DialogStyle.COMPACT;
   }
 
   public void setContrastParameters(@NotNull ImmutableMap<String, Color> contrastColorsWithDescription,
@@ -317,82 +420,40 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
     HIDE,
 
     /**
+     * Show field, but do not force name to be used.
+     */
+    SHOW,
+
+    /**
      * Force creation of named color.
      */
     FORCE
   }
 
-  private String getErrorString(@NotNull ResourceDialogTabComponent tabComponent) {
-    myOverwriteResource = false;
-    String result = null;
-    ResourceNameValidator validator = tabComponent.getValidator();
-    if (validator != null) {
-      String enteredName = tabComponent.getResourceNameField().getText();
-      if (validator.doesResourceExist(enteredName)) {
-        result = String.format("Saving this color will override existing resource %1$s.", enteredName);
-        myOverwriteResource = true;
-      } else {
-        result = validator.getErrorText(enteredName);
+
+
+  @NotNull
+  private ResourcePanel getSelectedPanel() {
+    Component selectedComponent = myTabbedPane.getSelectedComponent();
+    for (ResourcePanel panel : myPanels) {
+      if (panel.myComponent == selectedComponent) {
+        return panel;
       }
     }
-
-    return result;
+    throw new IllegalStateException();
   }
 
   @Nullable
   @Override
   protected ValidationInfo doValidate() {
-    Component selectedComponent = myContentPanel.getSelectedComponent();
-
-    final boolean okActionEnabled;
-    ValidationInfo error = null;
-
-    if (selectedComponent == mySystemPanel.myComponent || selectedComponent == myProjectPanel.myComponent) {
-      boolean isProjectPanel = selectedComponent == myProjectPanel.myComponent;
-      ResourcePanel panel = isProjectPanel ? myProjectPanel : mySystemPanel;
-      ResourceItem element = getSelectedElement(panel.myTreeBuilder, ResourceItem.class);
-      okActionEnabled = element != null;
-    }
-    else {
-      // if name is hidden, then we allow any value
-      if (myResourceNameVisibility != ResourceNameVisibility.HIDE) {
-        ResourceDialogTabComponent tabComponent = (ResourceDialogTabComponent)selectedComponent;
-        final String errorText = getErrorString(tabComponent);
-        if (errorText != null && !myOverwriteResource) {
-          tabComponent.getResourceNameMessage().setText("");
-          error = new ValidationInfo(errorText, tabComponent.getResourceNameField());
-        }
-        else {
-          tabComponent.getResourceNameMessage().setText(errorText != null ? errorText : "");
-          error = tabComponent.getLocationSettings().doValidate();
-        }
-      }
-
-      if (error == null && selectedComponent == myStateListPickerPanel) {
-        error = myStateListPicker.getFrameworkResourceError();
-      }
-
-      if (error == null && selectedComponent == myStateListPickerPanel) {
-        int minDirectoriesApi = ThemeEditorUtils.getMinFolderApi(myStateListPickerPanel.getLocationSettings().getDirNames(), myModule);
-        error = myStateListPicker.getApiError(minDirectoriesApi);
-      }
-
-      okActionEnabled = error == null;
-    }
-
-    // Need to always manually update the setOKActionEnabled as the DialogWrapper
-    // only updates it if we go from having a error string to not having one
-    // or the other way round, but not if the error string state has not changed.
-    setOKActionEnabled(okActionEnabled);
-
-    return error;
+    return getSelectedPanel().doValidate();
   }
 
-  public void setResourcePickerListener(ResourcePickerListener resourcePickerListener) {
+  public void setResourcePickerListener(@Nullable ResourcePickerListener resourcePickerListener) {
     myResourcePickerListener = resourcePickerListener;
   }
 
-  protected void notifyResourcePickerListeners(String resource) {
+  protected void notifyResourcePickerListeners(@Nullable String resource) {
     if (myResourcePickerListener != null) {
       myResourcePickerListener.resourceChanged(resource);
     }
@@ -410,6 +471,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
       suggestedColors = MaterialColorUtils.suggestAccentColors(primaryColor);
     }
     if (suggestedColors != null) {
+      assert myColorPicker != null;
       myColorPicker.setRecommendedColors(suggestedColors);
     }
   }
@@ -418,26 +480,24 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
     ActionManager actionManager = ActionManager.getInstance();
     DefaultActionGroup actionGroup = new DefaultActionGroup();
 
-    ResourceGroup resourceGroup = getSelectedElement(myProjectPanel.myTreeBuilder, ResourceGroup.class);
-    if (resourceGroup == null) {
-      resourceGroup = getSelectedElement(myProjectPanel.myTreeBuilder, ResourceItem.class).getGroup();
-    }
+    ResourcePanel panel = getSelectedPanel();
+    ResourceType resourceType = panel.getType();
 
-    if (AndroidResourceUtil.XML_FILE_RESOURCE_TYPES.contains(resourceGroup.getType())) {
-      myNewResourceFileAction.getTemplatePresentation().setText("New " + resourceGroup + " File...");
-      myNewResourceFileAction.getTemplatePresentation().putClientProperty(TYPE_KEY, resourceGroup.getType());
+    if (AndroidResourceUtil.XML_FILE_RESOURCE_TYPES.contains(resourceType)) {
+      myNewResourceFileAction.getTemplatePresentation().setText("New " + resourceType + " File...");
+      myNewResourceFileAction.getTemplatePresentation().putClientProperty(TYPE_KEY, resourceType);
       actionGroup.add(myNewResourceFileAction);
     }
-    if (AndroidResourceUtil.VALUE_RESOURCE_TYPES.contains(resourceGroup.getType())) {
-      String title = "New " + resourceGroup + " Value...";
-      if (resourceGroup.getType() == ResourceType.LAYOUT) {
+    if (AndroidResourceUtil.VALUE_RESOURCE_TYPES.contains(resourceType)) {
+      String title = "New " + resourceType + " Value...";
+      if (resourceType == ResourceType.LAYOUT) {
         title = "New Layout Alias";
       }
       myNewResourceValueAction.getTemplatePresentation().setText(title);
-      myNewResourceValueAction.getTemplatePresentation().putClientProperty(TYPE_KEY, resourceGroup.getType());
+      myNewResourceValueAction.getTemplatePresentation().putClientProperty(TYPE_KEY, resourceType);
       actionGroup.add(myNewResourceValueAction);
     }
-    if (myTag != null && ResourceType.STYLE.equals(resourceGroup.getType())) {
+    if (myTag != null && ResourceType.STYLE.equals(resourceType)) {
       final boolean enabled = AndroidBaseLayoutRefactoringAction.getLayoutViewElement(myTag) != null &&
                               AndroidExtractStyleAction.doIsEnabled(myTag);
       myExtractStyleAction.getTemplatePresentation().setEnabled(enabled);
@@ -448,6 +508,12 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
   }
 
   private void createNewResourceValue(ResourceType resourceType) {
+    if (resourceType == ResourceType.COLOR) {
+      ResourcePanel panel = getSelectedPanel();
+      panel.showNewResource(ResourcePanel.COLOR);
+      return;
+    }
+
     CreateXmlResourceDialog dialog = new CreateXmlResourceDialog(myModule, resourceType, null, null, true);
     dialog.setTitle("New " + StringUtil.capitalize(resourceType.getDisplayName()) + " Value Resource");
     if (!dialog.showAndGet()) {
@@ -474,7 +540,16 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
   }
 
   private void createNewResourceFile(ResourceType resourceType) {
+    // if we are not showing the stateList picker, and we do have a stateList in it, then we can open it to allow the user to edit it.
+    if (myStateListPickerPanel != null && resourceType == myStateListPickerPanel.getLocationSettings().getType() && !myStateListPickerPanel.isShowing() &&
+        myStateListPicker != null && myStateListPicker.getStateList() != null) {
+      ResourcePanel panel = getSelectedPanel();
+      panel.showNewResource(ResourcePanel.STATELIST);
+      return;
+    }
+
     AndroidFacet facet = AndroidFacet.getInstance(myModule);
+    assert facet != null;
     XmlFile newFile = CreateResourceFileAction.createFileResource(facet, resourceType, null, null, null, true, null);
 
     if (newFile != null) {
@@ -489,6 +564,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
   }
 
   private void extractStyle() {
+    assert myTag != null;
     final String resName = AndroidExtractStyleAction.doExtractStyle(myModule, myTag, false, null);
     if (resName == null) {
       return;
@@ -499,7 +575,8 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
 
   @Override
   public JComponent getPreferredFocusedComponent() {
-    return myProjectPanel.myTree;
+    // TODO.should select the first list?
+    return myPanels[0].myList;
   }
 
   @Override
@@ -526,15 +603,12 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
    * Expands the location settings panel
    */
   public void openLocationSettings() {
-    ResourceDialogTabComponent tabComponent = (ResourceDialogTabComponent)myContentPanel.getSelectedComponent();
-    tabComponent.openLocationSettings();
-  }
-
-  @Override
-  protected void dispose() {
-    super.dispose();
-    Disposer.dispose(myProjectPanel.myTreeBuilder);
-    Disposer.dispose(mySystemPanel.myTreeBuilder);
+    if (myColorPickerPanel != null) {
+      myColorPickerPanel.openLocationSettings();
+    }
+    if (myStateListPickerPanel != null) {
+      myStateListPickerPanel.openLocationSettings();
+    }
   }
 
   public String getResourceName() {
@@ -543,36 +617,49 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
 
   @Override
   protected void doOKAction() {
-    valueChanged(null);
-    if (myContentPanel.getSelectedComponent() == myColorPickerPanel && myResourceNameVisibility != ResourceNameVisibility.HIDE) {
-      String colorName = myColorPickerPanel.getResourceNameField().getText();
-      Module module = myColorPickerPanel.getLocationSettings().getModule();
-      String fileName = myColorPickerPanel.getLocationSettings().getFileName();
-      List<String> dirNames = myColorPickerPanel.getLocationSettings().getDirNames();
-      assert module != null;
-      AndroidFacet facet = AndroidFacet.getInstance(module);
-      assert facet != null;
+    myResultResourceName = getSelectedPanel().getValueForLivePreview();
 
-      if (!AndroidResourceUtil.changeColorResource(facet, colorName, myResultResourceName, fileName, dirNames)) {
-        // Changing color resource has failed, one possible reason is that color isn't defined in the project.
-        // Trying to create the color instead.
-        AndroidResourceUtil.createValueResource(module, colorName, ResourceType.COLOR, fileName, dirNames, myResultResourceName);
+    // we are about to close, and potentially create/edit resources, that may cause all sorts of refreshes, so lets clear any live preview values.
+    notifyResourcePickerListeners(null);
+
+    if (myColorPickerPanel != null && myColorPickerPanel.isShowing()) {
+      if (myColorPickerPanel.myResourceNameVisibility == ResourceNameVisibility.FORCE ||
+          (myColorPickerPanel.myResourceNameVisibility == ResourceNameVisibility.SHOW && !myColorPickerPanel.getResourceNameField().getText().isEmpty())) {
+        String colorName = myColorPickerPanel.getResourceNameField().getText();
+        Module module = myColorPickerPanel.getLocationSettings().getModule();
+        String fileName = myColorPickerPanel.getLocationSettings().getFileName();
+        List<String> dirNames = myColorPickerPanel.getLocationSettings().getDirNames();
+        assert module != null;
+        AndroidFacet facet = AndroidFacet.getInstance(module);
+        assert facet != null;
+
+        if (!AndroidResourceUtil.changeColorResource(facet, colorName, myResultResourceName, fileName, dirNames, myUseGlobalUndo)) {
+          // Changing color resource has failed, one possible reason is that color isn't defined in the project.
+          // Trying to create the color instead.
+          AndroidResourceUtil.createValueResource(module, colorName, ResourceType.COLOR, fileName, dirNames, myResultResourceName);
+        }
+
+        myResultResourceName = SdkConstants.COLOR_RESOURCE_PREFIX + colorName;
       }
-
-      myResultResourceName = SdkConstants.COLOR_RESOURCE_PREFIX + colorName;
+      // else we use the value we got at the start of the method
     }
-    else if (myContentPanel.getSelectedComponent() == myStateListPickerPanel && myResourceNameVisibility != ResourceNameVisibility.HIDE) {
+    else if (myStateListPickerPanel != null && myStateListPickerPanel.isShowing()) {
       String stateListName = myStateListPickerPanel.getResourceNameField().getText();
+      Module module = myStateListPickerPanel.getLocationSettings().getModule();
       List<String> dirNames = myStateListPickerPanel.getLocationSettings().getDirNames();
       ResourceFolderType resourceFolderType = ResourceFolderType.getFolderType(dirNames.get(0));
       ResourceType resourceType = ResourceType.getEnum(resourceFolderType.getName());
 
       List<VirtualFile> files = null;
       if (resourceType != null) {
-        files = AndroidResourceUtil.findOrCreateStateListFiles(myModule, resourceFolderType, resourceType, stateListName, dirNames);
+        assert module != null;
+        files = AndroidResourceUtil.findOrCreateStateListFiles(module, resourceFolderType, resourceType, stateListName, dirNames);
       }
       if (files != null) {
-        myStateListPicker.updateStateList(files);
+        assert myStateListPicker != null;
+        ResourceHelper.StateList stateList = myStateListPicker.getStateList();
+        assert stateList != null;
+        AndroidResourceUtil.updateStateList(module, stateList, files);
       }
 
       if (resourceFolderType == ResourceFolderType.COLOR) {
@@ -585,120 +672,152 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
     super.doOKAction();
   }
 
-  @Nullable
-  private static <T> T getSelectedElement(AbstractTreeBuilder treeBuilder, Class<T> elementClass) {
-    Set<T> elements = treeBuilder.getSelectedElements(elementClass);
-    return elements.isEmpty() ? null : elements.iterator().next();
+  void setGridMode(boolean gridMode) {
+    isGridMode = gridMode;
+    for (ResourcePanel panel : myPanels) {
+      if (panel.supportsGridMode()) {
+        panel.setGridMode(isGridMode);
+      }
+    }
   }
 
-  @Override
-  public void valueChanged(@Nullable TreeSelectionEvent e) {
-    Component selectedComponent = myContentPanel.getSelectedComponent();
+  public void setUseGlobalUndo(boolean useGlobalUndo) {
+    myUseGlobalUndo = useGlobalUndo;
+  }
 
-    if (selectedComponent == myColorPickerPanel) {
-      Color color = myColorPicker.getColor();
-      myNewResourceAction.setEnabled(false);
-      myResultResourceName = ResourceHelper.colorToString(color);
+  @NotNull
+  private Icon getIcon(@NotNull ResourceItem item, int size) {
+    Icon icon = item.getIcon();
+    if (icon != null && size == icon.getIconWidth()) {
+      return icon;
     }
-    else if (selectedComponent == myStateListPickerPanel) {
-      myNewResourceAction.setEnabled(false);
-      myResultResourceName = null;
+
+    VirtualFile file = item.getFile();
+    ResourceGroup group = item.getGroup();
+
+    if (file != null && ImageFileTypeManager.getInstance().isImage(file)) {
+      icon = new SizedIcon(size, new ImageIcon(file.getPath()));
     }
-    else {
-      boolean isProjectPanel = selectedComponent == myProjectPanel.myComponent;
-      ResourcePanel panel = isProjectPanel ? myProjectPanel : mySystemPanel;
-      ResourceItem element = getSelectedElement(panel.myTreeBuilder, ResourceItem.class);
-
-      myNewResourceAction.setEnabled(isProjectPanel && !panel.myTreeBuilder.getSelectedElements().isEmpty());
-
-      if (element == null) {
-        myResultResourceName = null;
-      }
-      else {
-        String prefix = panel == myProjectPanel ? "@" : SdkConstants.ANDROID_PREFIX;
-        myResultResourceName = prefix + element.getName();
+    else if (group.getType() == ResourceType.DRAWABLE || group.getType() == ResourceType.MIPMAP) {
+      if (myRenderTask == null) {
+        myRenderTask = DrawableRendererEditor.configureRenderTask(myModule, ThemeEditorUtils.getConfigurationForModule(myModule));
+        myRenderTask.setMaxRenderSize(150, 150); // dont make huge images here
       }
 
-      panel.showPreview(element);
+      // TODO can we just use ResourceUrl here instead?
+      BufferedImage image = myRenderTask.renderDrawable(item.getResourceValue());
+      if (image != null) {
+        icon = new SizedIcon(size, image);
+      }
+      // TODO maybe have a different icon for state list drawable
     }
-    notifyResourcePickerListeners(myResultResourceName);
+    else if (group.getType() == ResourceType.COLOR) {
+      Configuration config = ThemeEditorUtils.getConfigurationForModule(myModule);
+      ResourceResolver resolver = config.getResourceResolver();
+      assert resolver != null;
+      Color color = ResourceHelper.resolveColor(resolver, item.getResourceValue(), myModule.getProject());
+      if (color != null) { // maybe null for invalid color
+        icon = new ColorIcon(size, color);
+      }
+      // TODO maybe have a different icon when the resource points to more then 1 color
+    }
+
+    if (icon == null) {
+      // TODO, for resources with no icon, when we use RESOURCE_ITEM_ICON, we should not redo the lookup each time.
+      icon = file == null || file.getFileType().getIcon() == null ? RESOURCE_ITEM_ICON : file.getFileType().getIcon();
+    }
+    item.setIcon(icon);
+    return icon;
+  }
+
+  private static String getResourceElementValue(ResourceElement element) {
+    String text = element.getRawText();
+    if (StringUtil.isEmpty(text)) {
+      return element.getXmlTag().getText();
+    }
+    return text;
   }
 
   private class ResourcePanel {
-    public final Tree myTree;
-    public final AbstractTreeBuilder myTreeBuilder;
-    public final JBSplitter myComponent;
 
-    private final JPanel myPreviewPanel;
-    private final JTextArea myTextArea;
+    private static final String NONE = "None";
+    private static final String TEXT = "Text";
+    private static final String COMBO = "Combo";
+    private static final String COLOR = "Color";
+    private static final String STATELIST = "Statelist";
+
+    /**
+     * list of namespaces that we can get resources from, null means the application,
+     */
+    private final String[] NAMESPACES = {null, SdkConstants.ANDROID_NS_NAME};
+
+    public final @NotNull JBSplitter myComponent;
+    private final @NotNull TreeGrid myList;
+    private final @NotNull JPanel myPreviewPanel;
+    private final @NotNull JTextPane myHtmlTextArea;
     private final JTextArea myComboTextArea;
     private final JComboBox myComboBox;
-    private final JLabel myImageComponent;
-    private final JLabel myNoPreviewComponent;
+    private final @NotNull JLabel myNoPreviewComponent;
 
-    private final ResourceGroup[] myGroups;
-    private final ResourceManager myManager;
+    private final @NotNull ResourceGroup[] myGroups;
+    private final @NotNull ResourceType myType;
 
-    public ResourcePanel(AndroidFacet facet, ResourceType[] types, boolean system) {
-      myTree = new Tree();
-      myTree.setModel(new DefaultTreeModel(new DefaultMutableTreeNode()));
-      myTree.setScrollsOnExpand(true);
-      myTree.setRootVisible(false);
-      myTree.setShowsRootHandles(true);
+    public ResourcePanel(@NotNull AndroidFacet facet, @NotNull ResourceType type, boolean includeFileResources) {
+      myType = type;
+
+      myGroups = new ResourceGroup[NAMESPACES.length];
+      for (int c = 0; c < NAMESPACES.length; c++) {
+        ResourceManager manager = facet.getResourceManager(NAMESPACES[c]);
+        assert manager != null;
+        myGroups[c] = new ResourceGroup(NAMESPACES[c], type, manager, includeFileResources);
+      }
+
+      AbstractTreeStructure treeContentProvider = new TreeContentProvider(myGroups);
+
+      myComponent = new JBSplitter(false, 0.5f);
+      myComponent.setSplitterProportionKey("android.resource_dialog_splitter");
+
+      myList = new TreeGrid(treeContentProvider);
+
+      myList.addListSelectionListener(new ListSelectionListener() {
+        @Override
+        public void valueChanged(ListSelectionEvent e) {
+          showPreview(getSelectedElement(), true);
+          notifyResourcePickerListeners(getValueForLivePreview());
+        }
+      });
       new DoubleClickListener() {
         @Override
         protected boolean onDoubleClick(MouseEvent e) {
-          if (!myTreeBuilder.getSelectedElements(ResourceItem.class).isEmpty()) {
+          ResourceItem selected = getSelectedElement();
+          if (selected != null) {
+            myResultResourceName = selected.getResourceUrl();
             close(OK_EXIT_CODE);
             return true;
           }
           return false;
         }
-      }.installOn(myTree);
+      }.installOn(myList);
 
-      ToolTipManager.sharedInstance().registerComponent(myTree);
-      TreeUtil.installActions(myTree);
+      JScrollPane firstComponent = ScrollPaneFactory.createScrollPane(myList, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
+                                                            ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+      firstComponent.getVerticalScrollBar().setUnitIncrement(JBUI.scale(16));
+      firstComponent.setBorder(null);
+      firstComponent.setPreferredSize(JBUI.size(200,600));
 
-      myManager = facet.getResourceManager(system ? AndroidUtils.SYSTEM_RESOURCE_PACKAGE : null);
-
-      if (ArrayUtil.contains(ResourceType.DRAWABLE, types) && !ArrayUtil.contains(ResourceType.COLOR, types)) {
-        myGroups = new ResourceGroup[types.length + 1];
-        myGroups[types.length] = new ResourceGroup(ResourceType.COLOR, myManager, false);
-      }
-      else {
-        myGroups = new ResourceGroup[types.length];
-      }
-
-      for (int i = 0; i < types.length; i++) {
-        myGroups[i] = new ResourceGroup(types[i], myManager);
-      }
-
-      myTreeBuilder =
-        new AbstractTreeBuilder(myTree, (DefaultTreeModel)myTree.getModel(), new TreeContentProvider(myGroups), null);
-      myTreeBuilder.initRootNode();
-
-      TreeSelectionModel selectionModel = myTree.getSelectionModel();
-      selectionModel.setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
-      selectionModel.addTreeSelectionListener(ChooseResourceDialog.this);
-
-      myTree.setCellRenderer(new NodeRenderer());
-      new TreeSpeedSearch(myTree, TreeSpeedSearch.NODE_DESCRIPTOR_TOSTRING, true);
-
-      myComponent = new JBSplitter(true, 0.8f);
-      myComponent.setSplitterProportionKey("android.resource_dialog_splitter");
-
-      myComponent.setFirstComponent(ScrollPaneFactory.createScrollPane(myTree));
+      myComponent.setFirstComponent(firstComponent);
 
       myPreviewPanel = new JPanel(new CardLayout());
       myComponent.setSecondComponent(myPreviewPanel);
 
-      myTextArea = new JTextArea(5, 20);
-      myTextArea.setEditable(false);
-      myPreviewPanel.add(ScrollPaneFactory.createScrollPane(myTextArea), TEXT);
+      myHtmlTextArea = new JTextPane();
+      myHtmlTextArea.setEditable(false);
+      myHtmlTextArea.setContentType(UIUtil.HTML_MIME);
+      myPreviewPanel.add(ScrollPaneFactory.createScrollPane(myHtmlTextArea, true), TEXT);
+      myHtmlTextArea.setPreferredSize(JBUI.size(400, 400));
 
       myComboTextArea = new JTextArea(5, 20);
       myComboTextArea.setEditable(false);
-
       myComboBox = new JComboBox();
       myComboBox.setMaximumRowCount(15);
       myComboBox.addActionListener(new ActionListener() {
@@ -708,7 +827,6 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
           myComboTextArea.setText(getResourceElementValue(resources.get(myComboBox.getSelectedIndex())));
         }
       });
-
       JPanel comboPanel = new JPanel(new BorderLayout(0, 1) {
         @Override
         public void layoutContainer(Container target) {
@@ -723,141 +841,311 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
       comboPanel.add(myComboBox, BorderLayout.SOUTH);
       myPreviewPanel.add(comboPanel, COMBO);
 
-      myImageComponent = new JLabel();
-      myImageComponent.setHorizontalAlignment(SwingConstants.CENTER);
-      myImageComponent.setVerticalAlignment(SwingConstants.CENTER);
-      myPreviewPanel.add(myImageComponent, IMAGE);
-
       myNoPreviewComponent = new JLabel("No Preview");
       myNoPreviewComponent.setHorizontalAlignment(SwingConstants.CENTER);
       myNoPreviewComponent.setVerticalAlignment(SwingConstants.CENTER);
       myPreviewPanel.add(myNoPreviewComponent, NONE);
+
+      // setup default list look and feel
+      setGridMode(isGridMode);
+
+      if (myType == ResourceType.COLOR) {
+        assert myColorPickerPanel != null;
+        myPreviewPanel.add(myColorPickerPanel, COLOR);
+      }
+
+      if (myStateListPickerPanel != null && myType == myStateListPickerPanel.getLocationSettings().getType()) {
+        myPreviewPanel.add(myStateListPickerPanel, STATELIST);
+      }
+
+      showPreview(null, true);
     }
 
-    public void showPreview(@Nullable ResourceItem element) {
+    @NotNull
+    public ResourceType getType() {
+      return myType;
+    }
+
+    public void showPreview(@Nullable ResourceItem element, boolean allowEditor) {
       CardLayout layout = (CardLayout)myPreviewPanel.getLayout();
+
+      // TODO maybe have a element of "new Color" and "new StateList"
+
+      if (allowEditor) {
+        if ((myType == ResourceType.COLOR || myType == ResourceType.DRAWABLE) && element != null) {
+          ProjectResourceRepository repository = ProjectResourceRepository.getProjectResources(myModule, true);
+          assert repository != null;
+          boolean inProject = repository.hasResourceItem(element.getGroup().getType(), element.getName());
+          if (inProject) {
+            List<com.android.ide.common.res2.ResourceItem> items = repository.getResourceItem(element.getGroup().getType(), element.getName());
+            if (items != null && !items.isEmpty()) {
+              com.android.ide.common.res2.ResourceItem defaultValue = ThemeEditorUtils.getConfigurationForModule(myModule).getFullConfig().findMatchingConfigurable(items);
+              // we may not have ANY value that works in current config
+              editResourceItem(defaultValue == null ? items.get(0) : defaultValue);
+              return;
+            }
+          }
+        }
+
+        if (element == null && myStateListPickerPanel != null && myStateListPickerPanel.getLocationSettings().getType() == myType &&
+            myStateListPicker != null && myStateListPicker.getStateList() != null) {
+          layout.show(myPreviewPanel, STATELIST);
+          return;
+        }
+
+        if (element == null && myType == ResourceType.COLOR) {
+          layout.show(myPreviewPanel, COLOR);
+          return;
+        }
+      }
 
       if (element == null || element.getGroup().getType() == ResourceType.ID) {
         layout.show(myPreviewPanel, NONE);
         return;
       }
 
-      try {
-        VirtualFile file = element.getFile();
-        if (file == null) {
-          String value = element.getPreviewString();
-          if (value == null) {
-            List<ResourceElement> resources = element.getPreviewResources();
+      String doc =
+        AndroidJavaDocRenderer.render(myModule, element.getGroup().getType(), element.getName(), element.getGroup().isFramework());
+      myHtmlTextArea.setText(doc);
+      layout.show(myPreviewPanel, TEXT);
+    }
 
-            if (resources == null) {
-              long time = System.currentTimeMillis();
-              resources = myManager.findValueResources(element.getGroup().getType().getName(), element.toString());
-              if (ApplicationManagerEx.getApplicationEx().isInternal()) {
-                System.out.println("Time: " + (System.currentTimeMillis() - time)); // XXX
-              }
+    public void editResourceItem(@NotNull com.android.ide.common.res2.ResourceItem selected) {
+      String name = selected.getName();
+      ResourceValue resourceValue = selected.getResourceValue(false);
+      assert resourceValue != null;
 
-              int size = resources.size();
-              if (size == 1) {
-                value = getResourceElementValue(resources.get(0));
-                element.setPreviewString(value);
-              }
-              else if (size > 1) {
-                resources = new ArrayList<ResourceElement>(resources);
-                Collections.sort(resources, new Comparator<ResourceElement>() {
-                  @Override
-                  public int compare(ResourceElement element1, ResourceElement element2) {
-                    PsiDirectory directory1 = element1.getXmlTag().getContainingFile().getParent();
-                    PsiDirectory directory2 = element2.getXmlTag().getContainingFile().getParent();
+      Configuration configuration = ThemeEditorUtils.getConfigurationForModule(myModule);
+      final ResourceResolver resolver = configuration.getResourceResolver();
+      assert resolver != null;
 
-                    if (directory1 == null && directory2 == null) {
-                      return 0;
-                    }
-                    if (directory2 == null) {
-                      return 1;
-                    }
-                    if (directory1 == null) {
-                      return -1;
-                    }
+      @NotNull EditResourcePanel editResourcePanel;
+      String panelName;
+      ResourceHelper.StateList stateList = ResourceHelper.resolveStateList(resolver, resourceValue, myModule.getProject());
+      if (stateList != null) { // if this is not a statelist, it may be just a normal color
+        assert myStateListPickerPanel != null;
+        assert myStateListPicker != null;
 
-                    return directory1.getName().compareTo(directory2.getName());
-                  }
-                });
-
-                DefaultComboBoxModel model = new DefaultComboBoxModel();
-                String defaultSelection = null;
-                for (int i = 0; i < size; i++) {
-                  ResourceElement resource = resources.get(i);
-                  PsiDirectory directory = resource.getXmlTag().getContainingFile().getParent();
-                  String name = directory == null ? "unknown-" + i : directory.getName();
-                  model.addElement(name);
-                  if (defaultSelection == null && "values".equalsIgnoreCase(name)) {
-                    defaultSelection = name;
-                  }
-                }
-                element.setPreviewResources(resources, model, defaultSelection);
-
-                showComboPreview(element);
-                return;
-              }
-              else {
-                layout.show(myPreviewPanel, NONE);
-                return;
-              }
-            }
-            else {
-              showComboPreview(element);
-              return;
-            }
-          }
-          if (value == null) {
-            layout.show(myPreviewPanel, NONE);
-            return;
-          }
-
-          myTextArea.setText(value);
-          layout.show(myPreviewPanel, TEXT);
+        if (stateList.getType() != myStateListPickerPanel.getLocationSettings().getType()) {
+          LOG.warn("StateList type mismatch " + stateList.getType() + " " + myStateListPickerPanel.getLocationSettings().getType());
+          // TODO need to make sure when we select this item that we know to preview it in html and not using the editor
+          showPreview(getSelectedElement(), false);
+          return;
         }
-        else if (ImageFileTypeManager.getInstance().isImage(file)) {
-          Icon icon = element.getPreviewIcon();
-          if (icon == null) {
-            icon = new SizedIcon(100, 100, new ImageIcon(file.getPath()));
-            element.setPreviewIcon(icon);
-          }
-          myImageComponent.setIcon(icon);
-          layout.show(myPreviewPanel, IMAGE);
-        }
-        else if (file.getFileType() == XmlFileType.INSTANCE) {
-          String value = element.getPreviewString();
-          if (value == null) {
-            value = new String(file.contentsToByteArray());
-            element.setPreviewString(value);
-          }
-          myTextArea.setText(value);
-          myTextArea.setEditable(false);
-          layout.show(myPreviewPanel, TEXT);
+        myStateListPicker.setStateList(stateList);
+        panelName = STATELIST;
+        editResourcePanel = myStateListPickerPanel;
+      }
+      else {
+        Color color = ResourceHelper.parseColor(resourceValue.getValue());
+        if (color != null) { // if invalid color because of user error or a reference to another color
+          assert myColorPickerPanel != null;
+          assert myColorPicker != null;
+
+          myColorPicker.setColor(color);
+          panelName = COLOR;
+          editResourcePanel = myColorPickerPanel;
         }
         else {
-          layout.show(myPreviewPanel, NONE);
+          // TODO we are prob a reference to another color, need to show edit reference/text value UI
+          showPreview(getSelectedElement(), false);
+          return;
         }
       }
-      catch (IOException e) {
-        layout.show(myPreviewPanel, NONE);
+
+      // TODO, if we are in the color panel, but we select the name of a colorStateList, then we need to display that we can't display the value
+
+      editResourcePanel.getResourceNameField().setText(name); // this will update the dropdown, BUT ONLY after doValidate()
+      editResourcePanel.doValidate(); // calls setVariant AND resetFromFile TO DEFAULT
+      VirtualFile file = LocalFileSystem.getInstance().findFileByIoFile(selected.getFile());
+      assert file != null;
+
+      editResourcePanel.mySouthPanel.setSelectedVariant(selected);
+      editResourcePanel.myLocationSettings.resetFromFile(file, myModule.getProject());
+
+      CardLayout layout = (CardLayout)myPreviewPanel.getLayout();
+      layout.show(myPreviewPanel, panelName);
+    }
+
+    @Nullable
+    public ValidationInfo doValidate() {
+      final boolean okActionEnabled;
+      ValidationInfo error = null;
+
+      if (myColorPickerPanel != null && myColorPickerPanel.isShowing()) {
+        error = myColorPickerPanel.doValidate();
+        okActionEnabled = error == null;
+      }
+      else if (myStateListPickerPanel != null && myStateListPickerPanel.isShowing()) {
+        error = myStateListPickerPanel.doValidate();
+        okActionEnabled = error == null;
+      }
+      else {
+        okActionEnabled = getSelectedElement() != null;
+      }
+
+      // Need to always manually update the setOKActionEnabled as the DialogWrapper
+      // only updates it if we go from having a error string to not having one
+      // or the other way round, but not if the error string state has not changed.
+      setOKActionEnabled(okActionEnabled);
+
+      return error;
+    }
+
+    boolean supportsGridMode() {
+      return myType == ResourceType.COLOR || myType == ResourceType.DRAWABLE || myType == ResourceType.MIPMAP;
+    }
+
+    void setGridMode(boolean gridView) {
+      if (gridView) {
+        assert supportsGridMode();
+        final ListCellRenderer gridRenderer = new DefaultListCellRenderer() {
+          {
+            setHorizontalTextPosition(SwingConstants.CENTER);
+            setVerticalTextPosition(SwingConstants.BOTTOM);
+            setHorizontalAlignment(SwingConstants.CENTER);
+          }
+          @Override
+          public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+            Component component = super.getListCellRendererComponent(list, value, index, isSelected, false);
+            // TODO show deprecated resources with a strikeout
+            ResourceItem rItem = (ResourceItem) value;
+            setIcon(ChooseResourceDialog.this.getIcon(rItem, JBUI.scale(80)));
+            return component;
+          }
+        };
+        myList.setFixedCellWidth(JBUI.scale(90));
+        myList.setFixedCellHeight(JBUI.scale(100));
+        myList.setCellRenderer(gridRenderer);
+        myList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
+      }
+      else {
+        final ListCellRenderer listRenderer = new DefaultListCellRenderer() {
+          @Override
+          public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+            Component component = super.getListCellRendererComponent(list, value, index, isSelected, false);
+            // TODO show deprecated resources with a strikeout
+            ResourceItem rItem = (ResourceItem) value;
+            setIcon(ChooseResourceDialog.this.getIcon(rItem, JBUI.scale(28)));
+            return component;
+          }
+        };
+        myList.setFixedCellWidth(10); // we use ANY fixed value here, as the width will stretch anyway, but we don't want the list to have to calculate it.
+        myList.setFixedCellHeight(JBUI.scale(32));
+        myList.setCellRenderer(listRenderer);
+        myList.setLayoutOrientation(JList.VERTICAL);
       }
     }
 
-    private void showComboPreview(ResourceItem element) {
-      List<ResourceElement> resources = element.getPreviewResources();
-      String selection = (String)myComboBox.getSelectedItem();
-      if (selection == null) {
-        selection = element.getPreviewComboDefaultSelection();
+    /**
+     * @param type can be {@link #COLOR} or {@link #STATELIST}
+     */
+    void showNewResource(@NotNull String type) {
+      myList.setSelectedElement(null);
+      CardLayout layout = (CardLayout)myPreviewPanel.getLayout();
+      layout.show(myPreviewPanel, type);
+    }
+
+    private void select(@Nullable String namespace, @NotNull String name) {
+      for (ResourceGroup group : myGroups) {
+        if (Objects.equal(namespace, group.getNamespace())) {
+          for (ResourceItem item : group.getItems()) {
+            if (name.equals(item.getName())) {
+              myList.setSelectedElement(item);
+              return;
+            }
+          }
+        }
+      }
+    }
+
+    public void expandAll() {
+      myList.expandAll();
+    }
+
+    public ResourceItem getSelectedElement() {
+      return (ResourceItem) myList.getSelectedElement();
+    }
+
+    @Nullable
+    public String getValueForLivePreview() {
+      if (myColorPickerPanel != null && myColorPickerPanel.isShowing()) {
+        assert myColorPicker != null;
+        return ResourceHelper.colorToString(myColorPicker.getColor());
+      }
+      ResourceItem element = getSelectedElement();
+      return element != null ? element.getResourceUrl() : null;
+    }
+
+    // TODO this method can possibly be removed
+    private void showComboPreview(@NotNull ResourceItem item) {
+      // this assumes that item has more then 1 version
+      long time = System.currentTimeMillis();
+      AndroidFacet facet = AndroidFacet.getInstance(myModule);
+      assert facet != null;
+      ResourceManager manager = facet.getResourceManager(item.getGroup().getNamespace());
+      assert manager != null;
+      List<ResourceElement> resources = manager.findValueResources(item.getGroup().getType().getName(), item.getName());
+      if (ApplicationManagerEx.getApplicationEx().isInternal()) {
+        System.out.println("Time: " + (System.currentTimeMillis() - time)); // XXX
       }
 
-      int index = element.getPreviewComboModel().getIndexOf(selection);
+      assert resources.size() > 1;
+
+      resources = Lists.newArrayList(resources);
+      Collections.sort(resources, new Comparator<ResourceElement>() {
+        @Override
+        public int compare(ResourceElement element1, ResourceElement element2) {
+          PsiDirectory directory1 = element1.getXmlTag().getContainingFile().getParent();
+          PsiDirectory directory2 = element2.getXmlTag().getContainingFile().getParent();
+
+          if (directory1 == null && directory2 == null) {
+            return 0;
+          }
+          if (directory2 == null) {
+            return 1;
+          }
+          if (directory1 == null) {
+            return -1;
+          }
+
+          return directory1.getName().compareTo(directory2.getName());
+        }
+      });
+
+      DefaultComboBoxModel model = new DefaultComboBoxModel();
+      String defaultSelection = null;
+      for (int i = 0; i < resources.size(); i++) {
+        ResourceElement resource = resources.get(i);
+        PsiDirectory directory = resource.getXmlTag().getContainingFile().getParent();
+        String name = directory == null ? "unknown-" + i : directory.getName();
+        if (model.getIndexOf(name) >= 0) {
+          // DefaultComboBoxModel uses a object (not a index) to keep the selected item, so each item needs to be unique
+          Module module = resource.getModule();
+          if (module != null) {
+            name = name + " (" + module.getName() + ")";
+          }
+          if (model.getIndexOf(name) >= 0) {
+            name = name + " (" + i + ")";
+          }
+        }
+        model.addElement(name);
+        if (defaultSelection == null && "values".equalsIgnoreCase(name)) {
+          defaultSelection = name;
+        }
+      }
+
+      String selection = (String)myComboBox.getSelectedItem();
+      if (selection == null) {
+        selection = defaultSelection;
+      }
+
+      int index = model.getIndexOf(selection);
       if (index == -1) {
         index = 0;
       }
 
-      myComboBox.setModel(element.getPreviewComboModel());
+      myComboBox.setModel(model);
       myComboBox.putClientProperty(COMBO, resources);
       myComboBox.setSelectedIndex(index);
       myComboTextArea.setText(getResourceElementValue(resources.get(index)));
@@ -865,46 +1153,150 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
       CardLayout layout = (CardLayout)myPreviewPanel.getLayout();
       layout.show(myPreviewPanel, COMBO);
     }
-
-    private void select(String type, String name) {
-      for (ResourceGroup group : myGroups) {
-        if (type.equalsIgnoreCase(group.getName())) {
-          for (ResourceItem item : group.getItems()) {
-            if (name.equals(item.toString())) {
-              myTreeBuilder.select(item);
-              return;
-            }
-          }
-          return;
-        }
-      }
-    }
   }
 
-  private static String getResourceElementValue(ResourceElement element) {
-    String text = element.getRawText();
-    if (StringUtil.isEmpty(text)) {
-      return element.getXmlTag().getText();
+  private class EditResourcePanel extends JBScrollPane {
+
+    private ResourceDialogSouthPanel mySouthPanel;
+    private ResourceNameValidator myValidator;
+    private CreateXmlResourcePanel myLocationSettings;
+    private ResourceNameVisibility myResourceNameVisibility = ResourceNameVisibility.HIDE;
+
+    public EditResourcePanel(@NotNull JPanel centerPanel) {
+      super(new JPanel(new BorderLayout()));
+      getView().add(centerPanel);
+      setBorder(new EmptyBorder(UIUtil.PANEL_SMALL_INSETS));
     }
-    return text;
+
+    @NotNull
+    private JPanel getView() {
+      return (JPanel)getViewport().getView();
+    }
+
+    @Override
+    public Dimension getMinimumSize() {
+      Insets insets = getInsets();
+      return new Dimension(getView().getMinimumSize().width + insets.left + insets.right, super.getMinimumSize().height);
+    }
+
+    public void addResourceDialogSouthPanel(@NotNull ResourceNameVisibility resourceNameVisibility, @Nullable String resourceName,
+                                            final boolean allowXmlFile, @NotNull ResourceFolderType folderType,
+                                            boolean changeFileNameVisible, final @NotNull ResourceType resourceType) {
+      assert resourceNameVisibility != ResourceNameVisibility.HIDE;
+      myResourceNameVisibility = resourceNameVisibility;
+      mySouthPanel = new ResourceDialogSouthPanel();
+      myLocationSettings = new CreateXmlResourcePanel(myModule, resourceType, null, folderType);
+      if (resourceName != null) {
+        mySouthPanel.getResourceNameField().setText(resourceName);
+      }
+      // if the resource name IS the filename, we don't need to allow changing the filename
+      myLocationSettings.setChangeFileNameVisible(changeFileNameVisible);
+
+      getView().add(mySouthPanel.getFullPanel(), BorderLayout.SOUTH);
+
+      mySouthPanel.setExpertPanel(myLocationSettings.getPanel());
+      myLocationSettings.addModuleComboActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          Module module = myLocationSettings.getModule();
+          assert module != null;
+          myValidator = ResourceNameValidator
+            .create(allowXmlFile, AppResourceRepository.getAppResources(module, true), resourceType, allowXmlFile);
+        }
+      });
+
+      myValidator = ResourceNameValidator
+        .create(allowXmlFile, AppResourceRepository.getAppResources(myModule, true), resourceType, allowXmlFile);
+
+      mySouthPanel.addVariantActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          // user has selected a different variant for the current resource, so we need to display it
+          getSelectedPanel().editResourceItem(mySouthPanel.getSelectedVariant());
+        }
+      });
+    }
+
+    @NotNull
+    public JLabel getResourceNameMessage() {
+      return mySouthPanel.getResourceNameMessage();
+    }
+
+    @NotNull
+    public JTextField getResourceNameField() {
+      return mySouthPanel.getResourceNameField();
+    }
+
+    @NotNull
+    public CreateXmlResourcePanel getLocationSettings() {
+      return myLocationSettings;
+    }
+
+    public void openLocationSettings() {
+      mySouthPanel.setOn(true);
+    }
+
+    @Nullable
+    public ValidationInfo doValidate() {
+      ValidationInfo error = null;
+      String overwriteResource = "";
+
+      // if name is hidden, then we allow any value
+      if (myResourceNameVisibility == ResourceNameVisibility.FORCE ||
+          (myResourceNameVisibility == ResourceNameVisibility.SHOW && !getResourceNameField().getText().isEmpty())) {
+        if (myValidator != null) {
+          String enteredName = getResourceNameField().getText();
+          if (myValidator.doesResourceExist(enteredName)) {
+            overwriteResource = String.format("Saving this color will override existing resource %1$s.", enteredName);
+          }
+          else {
+            String errorText = myValidator.getErrorText(enteredName);
+            if (errorText != null) {
+              error = new ValidationInfo(errorText, getResourceNameField());
+            }
+          }
+
+          // the name of the resource must have changed, lets re-load the variants.
+          if (!overwriteResource.equals(getResourceNameMessage().getText())) {
+            AndroidFacet facet = AndroidFacet.getInstance(myModule);
+            assert facet != null;
+            List<com.android.ide.common.res2.ResourceItem> resources = facet.getAppResources(true).getResourceItem(myLocationSettings.getType(), enteredName);
+            com.android.ide.common.res2.ResourceItem defaultValue = ThemeEditorUtils.getConfigurationForModule(myModule).getFullConfig().findMatchingConfigurable(resources);
+            if (defaultValue != null) {
+              VirtualFile file = LocalFileSystem.getInstance().findFileByIoFile(defaultValue.getFile());
+              assert file != null;
+              myLocationSettings.resetFromFile(file, myModule.getProject());
+            }
+            mySouthPanel.setVariant(resources == null ? Collections.<com.android.ide.common.res2.ResourceItem>emptyList() : resources, defaultValue);
+          }
+        }
+
+        if (error == null) {
+          error = getLocationSettings().doValidate();
+        }
+      }
+
+      if (!overwriteResource.equals(getResourceNameMessage().getText())) {
+        getResourceNameMessage().setText(overwriteResource);
+      }
+      return error;
+    }
   }
 
   public static class ResourceGroup {
     private List<ResourceItem> myItems = new ArrayList<ResourceItem>();
+    private final String myNamespace;
     private final ResourceType myType;
 
-    public ResourceGroup(ResourceType type, ResourceManager manager) {
-      this(type, manager, true);
-    }
-
-    public ResourceGroup(ResourceType type, ResourceManager manager, boolean includeFileResources) {
+    public ResourceGroup(@Nullable String namespace, @NotNull ResourceType type, @NotNull ResourceManager manager, boolean includeFileResources) {
       myType = type;
+      myNamespace = namespace;
 
       final String resourceType = type.getName();
 
       Collection<String> resourceNames = manager.getValueResourceNames(resourceType);
       for (String resourceName : resourceNames) {
-        myItems.add(new ResourceItem(this, resourceName, null, RESOURCE_ITEM_ICON));
+        myItems.add(new ResourceItem(this, resourceName, null));
       }
       final Set<String> fileNames = new HashSet<String>();
 
@@ -913,7 +1305,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
           @Override
           public boolean process(@NotNull VirtualFile resFile, @NotNull String resName, @NotNull String resFolderType) {
             if (fileNames.add(resName)) {
-              myItems.add(new ResourceItem(ResourceGroup.this, resName, resFile, resFile.getFileType().getIcon()));
+              myItems.add(new ResourceItem(ResourceGroup.this, resName, resFile));
             }
             return true;
           }
@@ -923,7 +1315,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
       if (type == ResourceType.ID) {
         for (String id : manager.getIds(true)) {
           if (!resourceNames.contains(id)) {
-            myItems.add(new ResourceItem(this, id, null, RESOURCE_ITEM_ICON));
+            myItems.add(new ResourceItem(this, id, null));
           }
         }
       }
@@ -931,17 +1323,19 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
       Collections.sort(myItems, new Comparator<ResourceItem>() {
         @Override
         public int compare(ResourceItem resource1, ResourceItem resource2) {
-          return resource1.toString().compareTo(resource2.toString());
+          return resource1.getName().compareTo(resource2.getName());
         }
       });
     }
 
+    @NotNull
     public ResourceType getType() {
       return myType;
     }
 
-    public String getName() {
-      return myType.getName();
+    @Nullable("null for app namespace")
+    public String getNamespace() {
+      return myNamespace;
     }
 
     public List<ResourceItem> getItems() {
@@ -950,7 +1344,11 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
 
     @Override
     public String toString() {
-      return myType.getDisplayName();
+      return myNamespace == null ? APP_NAMESPACE_LABEL : myNamespace;
+    }
+
+    public boolean isFramework() {
+      return SdkConstants.ANDROID_NS_NAME.equals(getNamespace());
     }
   }
 
@@ -958,18 +1356,12 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
     private final ResourceGroup myGroup;
     private final String myName;
     private final VirtualFile myFile;
-    private final Icon myIcon;
-    private String myPreviewString;
-    private List<ResourceElement> myPreviewResources;
-    private DefaultComboBoxModel myPreviewComboModel;
-    private String myDefaultSelection;
-    private Icon myPreviewIcon;
+    private Icon myIcon;
 
-    public ResourceItem(@NotNull ResourceGroup group, @NotNull String name, @Nullable VirtualFile file, Icon icon) {
+    public ResourceItem(@NotNull ResourceGroup group, @NotNull String name, @Nullable VirtualFile file) {
       myGroup = group;
       myName = name;
       myFile = file;
-      myIcon = icon;
     }
 
     public ResourceGroup getGroup() {
@@ -977,56 +1369,38 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
     }
 
     public String getName() {
-      return myGroup.getName() + "/" + myName;
+      return myName;
     }
 
     public VirtualFile getFile() {
       return myFile;
     }
 
-    public Icon getIcon() {
-      return myIcon;
+    @NotNull
+    public String getResourceUrl() {
+      return String
+        .format("@%s%s/%s", getGroup().getNamespace() == null ? "" : getGroup().getNamespace() + ":", myGroup.getType().getName(), myName);
     }
 
-    public String getPreviewString() {
-      return myPreviewString;
-    }
-
-    public void setPreviewString(String previewString) {
-      myPreviewString = previewString;
-    }
-
-    public List<ResourceElement> getPreviewResources() {
-      return myPreviewResources;
-    }
-
-    public DefaultComboBoxModel getPreviewComboModel() {
-      return myPreviewComboModel;
-    }
-
-    public String getPreviewComboDefaultSelection() {
-      return myDefaultSelection;
-    }
-
-    public void setPreviewResources(List<ResourceElement> previewResources,
-                                    DefaultComboBoxModel previewComboModel,
-                                    String defaultSelection) {
-      myPreviewResources = previewResources;
-      myPreviewComboModel = previewComboModel;
-      myDefaultSelection = defaultSelection;
-    }
-
-    public Icon getPreviewIcon() {
-      return myPreviewIcon;
-    }
-
-    public void setPreviewIcon(Icon previewIcon) {
-      myPreviewIcon = previewIcon;
+    @NotNull
+    public ResourceValue getResourceValue() {
+      // No need to try and find the resource as we know exactly what it's going to be like
+      return new ResourceValue(myGroup.getType(), getName(), myFile == null ? getResourceUrl() : myFile.getPath(), myGroup.isFramework());
     }
 
     @Override
     public String toString() {
-      return myName;
+      // we need to return JUST the name so quicksearch in JList works
+      return getName();
+    }
+
+    @Nullable("if no icon has been set on this item")
+    public Icon getIcon() {
+      return myIcon;
+    }
+
+    public void setIcon(@Nullable Icon icon) {
+      myIcon = icon;
     }
   }
 
@@ -1067,14 +1441,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
     @NotNull
     @Override
     public NodeDescriptor createDescriptor(Object element, NodeDescriptor parentDescriptor) {
-      TreeNodeDescriptor descriptor = new TreeNodeDescriptor(parentDescriptor, element, element == null ? null : element.toString());
-      if (element instanceof ResourceGroup) {
-        descriptor.setIcon(AllIcons.Nodes.TreeClosed);
-      }
-      else if (element instanceof ResourceItem) {
-        descriptor.setIcon(((ResourceItem)element).getIcon());
-      }
-      return descriptor;
+      throw new UnsupportedOperationException();
     }
 
     @Override
@@ -1087,130 +1454,185 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
     }
   }
 
-  // Copied from com.intellij.designer.componentTree.TreeNodeDescriptor
-  public static final class TreeNodeDescriptor extends NodeDescriptor {
-    private final Object myElement;
-
-    public TreeNodeDescriptor(@Nullable NodeDescriptor parentDescriptor, Object element) {
-      super(null, parentDescriptor);
-      myElement = element;
-    }
-
-    public TreeNodeDescriptor(@Nullable NodeDescriptor parentDescriptor, Object element, String name) {
-      this(parentDescriptor, element);
-      myName = name;
-    }
-
-    @Override
-    public boolean update() {
-      return true;
-    }
-
-    @Override
-    public Object getElement() {
-      return myElement;
-    }
-  }
-
   public static class SizedIcon implements Icon {
-    private final int myWidth;
-    private final int myHeight;
+    private final int mySize;
     private final Image myImage;
 
-    public SizedIcon(int maxWidth, int maxHeight, Image image) {
-      myWidth = Math.min(maxWidth, image.getWidth(null));
-      myHeight = Math.min(maxHeight, image.getHeight(null));
+    public SizedIcon(int size, Image image) {
+      mySize = size;
       myImage = image;
     }
 
-    public SizedIcon(int maxWidth, int maxHeight, ImageIcon icon) {
-      this(maxWidth, maxHeight, icon.getImage());
+    public SizedIcon(int size, ImageIcon icon) {
+      this(size, icon.getImage());
     }
 
     @Override
-    public void paintIcon(Component c, Graphics g, int x, int y) {
-      g.drawImage(myImage, x, y, myWidth, myHeight, null);
+    public void paintIcon(Component c, Graphics g, int i, int j) {
+      double scale = Math.min(getIconHeight()/(double)myImage.getHeight(c),getIconWidth()/(double)myImage.getWidth(c));
+      int x = (int) (getIconWidth() - (myImage.getWidth(c) * scale)) / 2;
+      int y = (int) (getIconHeight() - (myImage.getHeight(c) * scale)) / 2;
+      ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+      g.drawImage(myImage, i + x, j + y, (int) (myImage.getWidth(c) * scale), (int) (myImage.getHeight(c) * scale), null);
     }
 
     @Override
     public int getIconWidth() {
-      return myWidth;
+      return mySize;
     }
 
     @Override
     public int getIconHeight() {
-      return myHeight;
+      return mySize;
     }
   }
 
-  private class ResourceDialogTabComponent extends JBScrollPane {
-    private final JPanel myCenterPanel;
-    private final ResourceType myResourceType;
-    private final ResourceDialogSouthPanel mySouthPanel = new ResourceDialogSouthPanel();
-    private ResourceNameValidator myValidator;
-    private final CreateXmlResourcePanel myLocationSettings;
+  private static class SimpleTabUI extends BasicTabbedPaneUI {
 
-    public ResourceDialogTabComponent(@NotNull JPanel centerPanel, @NotNull ResourceType resourceType,
-                                      @NotNull ResourceFolderType folderType) {
-      super(centerPanel);
-      myCenterPanel = centerPanel;
-      myResourceType = resourceType;
-      myLocationSettings = new CreateXmlResourcePanel(myModule, resourceType, null, folderType);
+    @Override
+    protected void installDefaults() {
+      super.installDefaults();
+      tabInsets = JBUI.insets(8);
+      selectedTabPadInsets = JBUI.emptyInsets();
+      contentBorderInsets = JBUI.emptyInsets();
     }
 
-    public void addResourceDialogSouthPanel(@Nullable String resourceName, final boolean allowXmlFile) {
-      if (resourceName != null) {
-        mySouthPanel.getResourceNameField().setText(resourceName);
+    @Override
+    protected void paintTabBorder(Graphics g, int tabPlacement, int tabIndex, int x, int y, int w, int h, boolean isSelected) {
+      // dont want tab border
+    }
+
+    @Override
+    protected void paintTabBackground(Graphics g, int tabPlacement, int tabIndex, int x, int y, int w, int h, boolean isSelected) {
+      // dont want a background
+    }
+
+    @Override
+    protected void paintContentBorder(Graphics g, int tabPlacement, int selectedIndex) {
+      int width = tabPane.getWidth();
+      int height = tabPane.getHeight();
+      Insets insets = tabPane.getInsets();
+
+      int x = insets.left;
+      int y = insets.top;
+      int w = width - insets.right - insets.left;
+      int h = height - insets.top - insets.bottom;
+
+      int thickness = JBUI.scale(1);
+      g.setColor(OnePixelDivider.BACKGROUND);
+
+      // use fillRect instead of drawLine with thickness as drawLine has bugs on OS X retina
+      switch(tabPlacement) {
+        case LEFT:
+          x += calculateTabAreaWidth(tabPlacement, runCount, maxTabWidth);
+          g.fillRect(x - thickness, y, thickness, h);
+          break;
+        case RIGHT:
+          w -= calculateTabAreaWidth(tabPlacement, runCount, maxTabWidth);
+          g.fillRect(x + w, y, thickness, h);
+          break;
+        case BOTTOM:
+          h -= calculateTabAreaHeight(tabPlacement, runCount, maxTabHeight);
+          g.fillRect(x, y + h, w, thickness);
+          break;
+        case TOP:
+        default:
+          y += calculateTabAreaHeight(tabPlacement, runCount, maxTabHeight);
+          g.fillRect(x, y - thickness, w, thickness);
+      }
+    }
+
+    @Override
+    protected int getTabLabelShiftX(int tabPlacement, int tabIndex, boolean isSelected) {
+      return super.getTabLabelShiftX(tabPlacement, tabIndex, false);
+    }
+
+    @Override
+    protected int getTabLabelShiftY(int tabPlacement, int tabIndex, boolean isSelected) {
+      return super.getTabLabelShiftY(tabPlacement, tabIndex, false);
+    }
+
+    @Override
+    protected void layoutLabel(int tabPlacement,
+                               FontMetrics metrics, int tabIndex,
+                               String title, Icon icon,
+                               Rectangle tabRect, Rectangle iconRect,
+                               Rectangle textRect, boolean isSelected ) {
+      textRect.x = textRect.y = iconRect.x = iconRect.y = 0;
+
+      View v = getTextViewForTab(tabIndex);
+      if (v != null) {
+        tabPane.putClientProperty("html", v);
       }
 
-      myCenterPanel.add(mySouthPanel.getFullPanel(), BorderLayout.SOUTH);
+      // CHANGE FROM DEFAULT: take tab insets into account
+      Insets insets = getTabInsets(tabPlacement, tabIndex);
+      tabRect = new Rectangle(tabRect);
+      tabRect.x += insets.left;
+      tabRect.y += insets.top;
+      tabRect.width = tabRect.width - insets.left - insets.right;
+      tabRect.height = tabRect.height - insets.top - insets.bottom;
 
-      mySouthPanel.setExpertPanel(myLocationSettings.getPanel());
-      myLocationSettings.addModuleComboActionListener(new ActionListener() {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-          Module module = myLocationSettings.getModule();
-          assert module != null;
-          myValidator = ResourceNameValidator
-            .create(allowXmlFile, AppResourceRepository.getAppResources(module, true), myResourceType, allowXmlFile);
+      SwingUtilities.layoutCompoundLabel(tabPane,
+                                         metrics, title, icon,
+                                         SwingConstants.CENTER,
+                                         SwingConstants.LEADING, // CHANGE FROM DEFAULT
+                                         SwingConstants.CENTER,
+                                         SwingConstants.TRAILING,
+                                         tabRect,
+                                         iconRect,
+                                         textRect,
+                                         textIconGap);
+
+      tabPane.putClientProperty("html", null);
+
+      int xNudge = getTabLabelShiftX(tabPlacement, tabIndex, isSelected);
+      int yNudge = getTabLabelShiftY(tabPlacement, tabIndex, isSelected);
+      iconRect.x += xNudge;
+      iconRect.y += yNudge;
+      textRect.x += xNudge;
+      textRect.y += yNudge;
+    }
+
+    @Override
+    protected void paintText(Graphics g, int tabPlacement,
+                             Font font, FontMetrics metrics, int tabIndex,
+                             String title, Rectangle textRect,
+                             boolean isSelected) {
+
+      g.setFont(font);
+
+      View v = getTextViewForTab(tabIndex);
+      if (v != null) {
+        // html
+        v.paint(g, textRect);
+      } else {
+        // plain text
+        int mnemIndex = tabPane.getDisplayedMnemonicIndexAt(tabIndex);
+
+        if (tabPane.isEnabled() && tabPane.isEnabledAt(tabIndex)) {
+          Color fg = tabPane.getForegroundAt(tabIndex);
+          if (isSelected && (fg instanceof UIResource)) {
+            Color selectedFG = JBColor.BLUE; // CHANGE FROM DEFAULT
+            if (selectedFG != null) {
+              fg = selectedFG;
+            }
+          }
+          g.setColor(fg);
+          SwingUtilities2.drawStringUnderlineCharAt(tabPane, g,
+                                                    title, mnemIndex,
+                                                    textRect.x, textRect.y + metrics.getAscent());
+        } else { // tab disabled
+          g.setColor(tabPane.getBackgroundAt(tabIndex).brighter());
+          SwingUtilities2.drawStringUnderlineCharAt(tabPane, g,
+                                                    title, mnemIndex,
+                                                    textRect.x, textRect.y + metrics.getAscent());
+          g.setColor(tabPane.getBackgroundAt(tabIndex).darker());
+          SwingUtilities2.drawStringUnderlineCharAt(tabPane, g,
+                                                    title, mnemIndex,
+                                                    textRect.x - 1, textRect.y + metrics.getAscent() - 1);
         }
-      });
-    }
-
-    public void addCenter(@NotNull Component component) {
-      myCenterPanel.add(component);
-    }
-
-    public void setValidator(@NotNull ResourceNameValidator validator) {
-      myValidator = validator;
-    }
-
-    @Nullable
-    public ResourceNameValidator getValidator() {
-      return myValidator;
-    }
-
-    @NotNull
-    public JLabel getResourceNameMessage() {
-      return mySouthPanel.getResourceNameMessage();
-    }
-
-    @NotNull
-    public JTextField getResourceNameField() {
-      return mySouthPanel.getResourceNameField();
-    }
-
-    @NotNull
-    public CreateXmlResourcePanel getLocationSettings() {
-      return myLocationSettings;
-    }
-
-    public void openLocationSettings() {
-      mySouthPanel.setOn(true);
-    }
-
-    public void setChangeFileNameVisible(boolean isVisible) {
-      myLocationSettings.setChangeFileNameVisible(isVisible);
+      }
     }
   }
 }

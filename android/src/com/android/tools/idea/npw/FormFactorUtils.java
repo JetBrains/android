@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.npw;
 
-import com.android.sdklib.repository.descriptors.IPkgDesc;
-import com.android.sdklib.repository.descriptors.IPkgDescAddon;
-import com.android.sdklib.repository.descriptors.PkgType;
-import com.android.sdklib.repository.local.LocalPkgInfo;
+import com.android.repository.api.RepoPackage;
+import com.android.repository.impl.meta.TypeDetails;
+import com.android.sdklib.repositoryv2.meta.DetailsTypes;
 import com.android.tools.idea.configurations.DeviceMenuAction;
-import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -224,36 +222,25 @@ public class FormFactorUtils {
     };
   }
 
-  public static Predicate<RemotePkgInfo> getMinSdkPackageFilter(
+  public static Predicate<RepoPackage> getMinSdkPackageFilter(
     @NotNull final FormFactor formFactor, final int minSdkLevel) {
-    return new Predicate<RemotePkgInfo>() {
+    return new Predicate<RepoPackage>() {
       @Override
-      public boolean apply(@Nullable RemotePkgInfo input) {
+      public boolean apply(@Nullable RepoPackage input) {
         if (input == null) {
           return false;
         }
-        return filterPkgDesc(input.getPkgDesc(), formFactor, minSdkLevel);
+        return filterPkgDesc(input, formFactor, minSdkLevel);
       }
     };
   }
 
-  public static Predicate<LocalPkgInfo> getMinSdkLocalPackageFilter(
-    @NotNull final FormFactor formFactor, final int minSdkLevel) {
-    return new Predicate<LocalPkgInfo>() {
-      @Override
-      public boolean apply(@Nullable LocalPkgInfo input) {
-        if (input == null) {
-          return false;
-        }
-        return filterPkgDesc(input.getDesc(), formFactor, minSdkLevel);
-      }
-    };
-  }
-
-  private static boolean filterPkgDesc(IPkgDesc pkgDesc, FormFactor formFactor, int minSdkLevel) {
-    if (pkgDesc.getType() == PkgType.PKG_ADDON) {
-      IPkgDescAddon addon = (IPkgDescAddon)pkgDesc;
-      return doFilter(formFactor, minSdkLevel, addon.getName().getId(), addon.getAndroidVersion().getFeatureLevel());
+  private static boolean filterPkgDesc(@NotNull RepoPackage p, @NotNull FormFactor formFactor, int minSdkLevel) {
+    TypeDetails details = p.getTypeDetails();
+    if (details instanceof DetailsTypes.AddonDetailsType) {
+      DetailsTypes.AddonDetailsType addonDetails = (DetailsTypes.AddonDetailsType)details;
+      return doFilter(formFactor, minSdkLevel, addonDetails.getTag().getId(),
+                      DetailsTypes.getAndroidVersion(addonDetails).getFeatureLevel());
     }
     // TODO: add other package types
     return false;

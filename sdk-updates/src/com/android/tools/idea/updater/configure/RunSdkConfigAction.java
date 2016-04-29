@@ -17,9 +17,12 @@ package com.android.tools.idea.updater.configure;
 
 import com.android.tools.idea.stats.UsageTracker;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ShowSettingsUtil;
+import com.intellij.openapi.options.ex.ConfigurableExtensionPointUtil;
 import com.intellij.openapi.project.DumbAwareAction;
 import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.Nullable;
 
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidSdkManagerEnabled;
 
@@ -37,8 +40,10 @@ public class RunSdkConfigAction extends DumbAwareAction {
   }
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
+  public void actionPerformed(@Nullable AnActionEvent e) {
     UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_SDK_MANAGER, UsageTracker.ACTION_SDK_MANAGER_TOOLBAR_CLICKED, null, null);
-    ShowSettingsUtil.getInstance().showSettingsDialog(null, SdkUpdaterConfigurable.class);
+    Configurable configurable =
+      ConfigurableExtensionPointUtil.createApplicationConfigurableForProvider(SdkUpdaterConfigurableProvider.class);
+    ShowSettingsUtil.getInstance().showSettingsDialog(null, configurable.getClass());
   }
 }

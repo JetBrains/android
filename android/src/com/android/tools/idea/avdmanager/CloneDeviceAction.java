@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
+import com.android.tools.idea.wizard.model.ModelWizard;
+import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.awt.event.ActionEvent;
 
@@ -39,12 +41,12 @@ public class CloneDeviceAction extends DeviceUiAction {
 
   @Override
   public void actionPerformed(ActionEvent e) {
-    DeviceEditWizard wizard = new DeviceEditWizard(myProvider.getDevice(), true);
-    wizard.init();
-    boolean success = wizard.showAndGet();
-    if (success) {
-      myProvider.refreshDevices();
-      myProvider.setDevice(wizard.getEditedDevice());
-    }
+    ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
+    wizardBuilder.addStep(new ConfigureDeviceOptionsStep(new ConfigureDeviceModel(myProvider, myProvider.getDevice(), true),
+                                                         myProvider.getProject()));
+    ModelWizard wizard = wizardBuilder.build();
+    ModelWizardDialog dialog =
+      new StudioWizardDialogBuilder(wizard, "Hardware Profile Configuration").setProject(myProvider.getProject()).build();
+    dialog.show();
   }
 }

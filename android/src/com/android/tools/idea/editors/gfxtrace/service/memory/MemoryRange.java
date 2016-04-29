@@ -21,7 +21,6 @@ import com.android.tools.rpclib.schema.*;
 import org.jetbrains.annotations.NotNull;
 
 import com.android.tools.rpclib.binary.BinaryClass;
-import com.android.tools.rpclib.binary.BinaryID;
 import com.android.tools.rpclib.binary.BinaryObject;
 import com.android.tools.rpclib.binary.Decoder;
 import com.android.tools.rpclib.binary.Encoder;
@@ -60,7 +59,7 @@ public final class MemoryRange implements BinaryObject {
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("memory","Range","","");
+  private static final Entity ENTITY = new Entity("memory", "Range", "", "");
 
   static {
     ENTITY.setFields(new Field[]{

@@ -17,42 +17,44 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
+import com.android.tools.idea.editors.gfxtrace.LoadingDecoratorWrapper;
+import com.android.tools.idea.editors.gfxtrace.UiCallback;
+import com.android.tools.idea.editors.gfxtrace.UiErrorCallback;
+import com.android.tools.idea.editors.gfxtrace.service.ErrDataUnavailable;
 import com.android.tools.idea.editors.gfxtrace.service.image.FetchedImage;
 import com.android.tools.idea.editors.gfxtrace.widgets.ImagePanel;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
+import com.android.tools.rpclib.futures.SingleInFlight;
+import com.android.tools.rpclib.rpccore.Rpc;
+import com.android.tools.rpclib.rpccore.RpcException;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionPlaces;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.LoadingDecorator;
 import com.intellij.ui.JBColor;
-import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.panels.NonOpaquePanel;
 import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.awt.image.BufferedImage;
+import java.util.concurrent.ExecutionException;
 
 public abstract class ImagePanelController extends Controller {
   @NotNull private static final Logger LOG = Logger.getInstance(ImagePanelController.class);
 
   @NotNull protected final JPanel myPanel = new JPanel(new BorderLayout());
-  @NotNull private final LoadingDecorator myLoading;
+  @NotNull private final SingleInFlight myImageRequestController;
   @NotNull private final ImagePanel myImagePanel = new ImagePanel();
-  @NotNull private final AtomicInteger imageLoadCount = new AtomicInteger();
-  @NotNull private ListenableFuture<?> request = Futures.immediateFuture(0);
 
   public ImagePanelController(@NotNull GfxTraceEditor editor, String emptyText) {
     super(editor);
     myImagePanel.getEmptyText().setText(emptyText);
-    myLoading =  new LoadingDecorator(myImagePanel, myEditor.getProject(), -1) {
+    LoadingDecorator loadingDecorator = new LoadingDecorator(myImagePanel, myEditor.getProject(), -1) {
       @Override
       protected NonOpaquePanel customizeLoadingLayer(JPanel parent, JLabel text, AsyncProcessIcon icon) {
         NonOpaquePanel result = super.customizeLoadingLayer(parent, text, icon);
@@ -63,7 +65,8 @@ public abstract class ImagePanelController extends Controller {
       }
     };
 
-    myPanel.add(myLoading.getComponent(), BorderLayout.CENTER);
+    myPanel.add(loadingDecorator.getComponent(), BorderLayout.CENTER);
+    myImageRequestController = new SingleInFlight(new LoadingDecoratorWrapper(loadingDecorator));
   }
 
   protected void initToolbar(DefaultActionGroup group, boolean enableVerticalFlip) {
@@ -72,6 +75,7 @@ public abstract class ImagePanelController extends Controller {
   }
 
   protected void setEmptyText(String text) {
+    myImagePanel.clearImage();
     myImagePanel.getEmptyText().setText(text);
   }
 
@@ -81,41 +85,26 @@ public abstract class ImagePanelController extends Controller {
       return;
     }
 
-    final int imageRequest = newImageRequest(imageFuture);
-    myLoading.startLoading(false);
-
-    Futures.addCallback(imageFuture, new FutureCallback<FetchedImage>() {
+    Rpc.listen(imageFuture, LOG, myImageRequestController, new UiErrorCallback<FetchedImage, BufferedImage, String>() {
       @Override
-      public void onSuccess(@Nullable FetchedImage result) {
-        updateImage(imageRequest, result);
+      protected ResultOrError<BufferedImage, String> onRpcThread(Rpc.Result<FetchedImage> result) throws RpcException, ExecutionException {
+        try {
+          return success(result.get().image);
+        }
+        catch (ErrDataUnavailable e) {
+          return error(e.getMessage());
+        }
+      }
+
+      @Override
+      protected void onUiThreadSuccess(BufferedImage result) {
+        myImagePanel.setImage(result);
       }
 
       @Override
-      public void onFailure(Throwable t) {
-        if (!(t instanceof CancellationException)) {
-          LOG.error(t);
-        }
-        if (isCurrentImageRequest(imageRequest)) {
-          myLoading.stopLoading();
-        }
+      protected void onUiThreadError(String error) {
+        setEmptyText(error);
       }
-    }, EdtExecutor.INSTANCE);
-  }
-
-  private void updateImage(final int imageRequest, FetchedImage fetchedImage) {
-    if (isCurrentImageRequest(imageRequest)) {
-      myLoading.stopLoading();
-      myImagePanel.setImage(fetchedImage.icon.getImage());
-    }
-  }
-
-  private synchronized int newImageRequest(ListenableFuture<?> request) {
-    this.request.cancel(true);
-    this.request = request;
-    return imageLoadCount.incrementAndGet();
-  }
-
-  private boolean isCurrentImageRequest(int request) {
-    return imageLoadCount.get() == request;
+    });
   }
 }

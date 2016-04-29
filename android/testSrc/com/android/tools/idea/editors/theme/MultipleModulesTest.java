@@ -16,7 +16,7 @@
 package com.android.tools.idea.editors.theme;
 
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
+import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -66,10 +66,10 @@ public class MultipleModulesTest extends AndroidTestCase {
     assertContainsElements(themeNames(resolver3.getLocalThemes()), "UnusedLibraryTheme");
   }
 
-  private static Collection<String> themeNames(Collection<ThemeEditorStyle> styles) {
-    return Collections2.transform(styles, new Function<ThemeEditorStyle, String>() {
+  private static Collection<String> themeNames(Collection<ConfiguredThemeEditorStyle> styles) {
+    return Collections2.transform(styles, new Function<ConfiguredThemeEditorStyle, String>() {
       @Override
-      public String apply(ThemeEditorStyle input) {
+      public String apply(ConfiguredThemeEditorStyle input) {
         return input.getName();
       }
     });

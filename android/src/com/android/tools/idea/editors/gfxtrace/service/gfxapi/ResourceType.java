@@ -17,59 +17,80 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.gfxapi;
 
-import org.jetbrains.annotations.NotNull;
 import com.android.tools.rpclib.binary.Decoder;
 import com.android.tools.rpclib.binary.Encoder;
+import com.google.common.collect.ImmutableMap;
+import org.jetbrains.annotations.NotNull;
+
 import java.io.IOException;
 
 public final class ResourceType {
-  public static final int TypeUnknown = 0;
-  public static ResourceType typeUnknown() { return new ResourceType(TypeUnknown); }
-  public static final int TypeTexture1D = 1;
-  public static ResourceType typeTexture1D() { return new ResourceType(TypeTexture1D); }
-  public static final int TypeTexture2D = 2;
-  public static ResourceType typeTexture2D() { return new ResourceType(TypeTexture2D); }
-  public static final int TypeTexture3D = 3;
-  public static ResourceType typeTexture3D() { return new ResourceType(TypeTexture3D); }
-  public static final int TypeCubemap = 4;
-  public static ResourceType typeCubemap() { return new ResourceType(TypeCubemap); }
+  public static final ResourceType TypeUnknown = new ResourceType(0, "TypeUnknown");
+  public static final int TypeUnknownValue = 0;
+  public static final ResourceType TypeTexture1D = new ResourceType(1, "TypeTexture1D");
+  public static final int TypeTexture1DValue = 1;
+  public static final ResourceType TypeTexture2D = new ResourceType(2, "TypeTexture2D");
+  public static final int TypeTexture2DValue = 2;
+  public static final ResourceType TypeTexture3D = new ResourceType(3, "TypeTexture3D");
+  public static final int TypeTexture3DValue = 3;
+  public static final ResourceType TypeCubemap = new ResourceType(4, "TypeCubemap");
+  public static final int TypeCubemapValue = 4;
 
-  public final int value;
+  private static final ImmutableMap<Integer, ResourceType> VALUES = ImmutableMap.<Integer, ResourceType>builder()
+    .put(0, TypeUnknown)
+    .put(1, TypeTexture1D)
+    .put(2, TypeTexture2D)
+    .put(3, TypeTexture3D)
+    .put(4, TypeCubemap)
+    .build();
 
-  public ResourceType(int value) {
-    this.value = value;
+  private final int myValue;
+  private final String myName;
+
+  private ResourceType(int v, String n) {
+    myValue = v;
+    myName = n;
+  }
+
+  public int getValue() {
+    return myValue;
+  }
+
+  public String getName() {
+    return myName;
   }
 
   public void encode(@NotNull Encoder e) throws IOException {
-    e.int32(value);
+    e.int32(myValue);
   }
 
   public static ResourceType decode(@NotNull Decoder d) throws IOException {
-    int value = d.int32();
-    return new ResourceType(value);
+    return findOrCreate(d.int32());
+  }
+
+  public static ResourceType find(int value) {
+    return VALUES.get(value);
+  }
+
+  public static ResourceType findOrCreate(int value) {
+    ResourceType result = VALUES.get(value);
+    return (result == null) ? new ResourceType(value, null) : result;
   }
 
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || !(o instanceof ResourceType)) return false;
-    return value == ((ResourceType)o).value;
+    return myValue == ((ResourceType)o).myValue;
   }
 
   @Override
   public int hashCode() {
-    return value;
+    return myValue;
   }
 
   @Override
   public String toString() {
-    switch(value) {
-      case TypeUnknown: return "TypeUnknown";
-      case TypeTexture1D: return "TypeTexture1D";
-      case TypeTexture2D: return "TypeTexture2D";
-      case TypeTexture3D: return "TypeTexture3D";
-      case TypeCubemap: return "TypeCubemap";
-      default: return "ResourceType(" + value + ")";
-    }
+    return (myName == null) ? "ResourceType(" + myValue + ")" : myName;
   }
 }

@@ -15,48 +15,53 @@
  */
 package com.android.tools.idea.editors.gfxtrace.gapi;
 
+import com.android.repository.api.LocalPackage;
 import com.android.sdklib.repository.local.LocalExtraPkgInfo;
-import com.intellij.openapi.application.PathManager;
+import com.android.sdklib.repositoryv2.AndroidSdkHandler;
+import com.android.sdklib.repositoryv2.meta.DetailsTypes;
+import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
+import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.SystemProperties;
-import com.intellij.util.containers.hash.HashMap;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.Map;
 
 import static com.intellij.idea.IdeaApplication.IDEA_IS_INTERNAL_PROPERTY;
 
 public final class GapiPaths {
-  private static final Map<String, String> ABI_REMAP = Collections.unmodifiableMap(new HashMap<String, String>() {{
-    put("32-bit (arm)", "armeabi-v7a"); // Not a valid abi, but returned anyway by ClientData.getAbi
-    put("64-bit (arm)", "arm64-v8a"); // Not a valid abi, but returned anyway by ClientData.getAbi
-    put("armeabi", "armeabi-v7a");// We currently (incorrectly) remap this abi because we don't have the correct .so
-  }});
+  private static final Map<String, String> ABI_REMAP = ImmutableMap.<String, String>builder()
+    .put("32-bit (arm)", "armeabi-v7a") // Not a valid abi, but returned anyway by ClientData.getAbi
+    .put("64-bit (arm)", "arm64-v8a")   // Not a valid abi, but returned anyway by ClientData.getAbi
+    .put("armeabi", "armeabi-v7a")      // We currently (incorrectly) remap this abi because we don't have the correct .so
+    .build();
 
-  private static final Map<String, String> ARCH_REMAP = Collections.unmodifiableMap(new HashMap<String, String>() {{
-    put("i386", "x86");
-    put("amd64", "x86_64");
-  }});
+  private static final Map<String, String> ARCH_REMAP = ImmutableMap.<String, String>builder()
+    .put("i386", "x86")
+    .put("amd64", "x86_64")
+    .build();
 
-  private static final Map<String, String> ABI_TARGET = Collections.unmodifiableMap(new HashMap<String, String>() {{
-    put("armeabi-v7a", "android-arm");
-    put("arm64-v8a", "android-arm64");
-  }});
+  private static final Map<String, String> ABI_TARGET = ImmutableMap.<String, String>builder()
+    .put("armeabi-v7a", "android-arm")
+    .put("arm64-v8a", "android-arm64")
+    .put("x86", "android-x86")
+    .build();
 
   @NotNull private static final String HOST_OS;
   @NotNull private static final String HOST_ARCH;
   @NotNull private static final String GAPIS_EXECUTABLE_NAME;
   @NotNull private static final String GAPIR_EXECUTABLE_NAME;
+  @NotNull private static final String STRINGS_DIR_NAME = "strings";
   @NotNull private static final String GAPII_LIBRARY_NAME;
   @NotNull private static final String PKG_INFO_NAME = "pkginfo.apk";
   @NotNull private static final String EXE_EXTENSION;
   @NotNull private static final String SDK_VENDOR = "android";
   @NotNull private static final String SDK_PATH = "gapid";
+  @NotNull private static final String SDK_PACKAGE_PATH = "extras;android;gapid";
   @NotNull private static final String OS_ANDROID = "android";
 
   static {
@@ -83,6 +88,7 @@ public final class GapiPaths {
   private static File myBaseDir;
   private static File myGapisPath;
   private static File myGapirPath;
+  private static File myStringsPath;
   private static File myPkgInfoPath;
 
   public static boolean isValid() {
@@ -106,6 +112,12 @@ public final class GapiPaths {
   public static File gapir() {
     findTools();
     return myGapirPath;
+  }
+
+  @NotNull
+  public static File strings() {
+    findTools();
+    return myStringsPath;
   }
 
   @NotNull
@@ -158,11 +170,10 @@ public final class GapiPaths {
   }
 
   public static File getSdkPath() {
-    final AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
-    if (sdkData == null) { return null; }
-    final LocalExtraPkgInfo info = sdkData.getLocalSdk().getExtra(SDK_VENDOR, SDK_PATH);
+    AndroidSdkHandler handler = AndroidSdkUtils.tryToChooseSdkHandler();
+    LocalPackage info = handler.getLocalPackage(SDK_PACKAGE_PATH, new StudioLoggerProgressIndicator(GapiPaths.class));
     if (info == null) { return null; }
-    return info.getLocalDir();
+    return info.getLocation();
   }
 
   private static boolean checkForTools(File dir) {
@@ -171,6 +182,7 @@ public final class GapiPaths {
     myGapisPath = findPath(HOST_OS, HOST_ARCH, GAPIS_EXECUTABLE_NAME);
     myGapirPath = findPath(HOST_OS, HOST_ARCH, GAPIR_EXECUTABLE_NAME);
     myPkgInfoPath = findPath(OS_ANDROID, null, PKG_INFO_NAME);
+    myStringsPath = new File(myBaseDir, STRINGS_DIR_NAME);
     return myGapisPath.exists();
   }
 

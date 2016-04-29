@@ -16,15 +16,15 @@
 package com.android.tools.idea.gradle.stubs.android;
 
 import com.android.annotations.NonNull;
-import com.android.builder.model.ApiVersion;
-import com.android.builder.model.ClassField;
-import com.android.builder.model.ProductFlavor;
-import com.android.builder.model.SigningConfig;
+import com.android.builder.model.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 public class ProductFlavorStub implements ProductFlavor {
   @NotNull private final String myName;
@@ -147,9 +147,9 @@ public class ProductFlavorStub implements ProductFlavor {
   }
 
   @Override
-  @Nullable
-  public Set<String> getGeneratedDensities() {
-    return null;
+  @NotNull
+  public VectorDrawablesOptions getVectorDrawables() {
+    throw new UnsupportedOperationException();
   }
 
   @Override

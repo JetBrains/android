@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.welcome.wizard;
 
+import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.config.InstallerData;
 import com.android.tools.idea.welcome.install.ComponentCategory;
-import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStep;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
@@ -96,8 +96,12 @@ public final class FirstRunWizardTest extends AndroidTestBase {
 
   @Override
   protected void tearDown() throws Exception {
-    myFixture.tearDown();
-    super.tearDown();
+    try {
+      myFixture.tearDown();
+    }
+    finally {
+      super.tearDown();
+    }
   }
 
   public void testStepsVisibility() {
@@ -107,19 +111,19 @@ public final class FirstRunWizardTest extends AndroidTestBase {
 
     assertPagesVisible(null, true, true, false, false);
 
-    InstallerData correctData = new InstallerData(java7Home, null, androidHome, true, "timestamp");
+    InstallerData correctData = new InstallerData(java7Home, null, androidHome, true, "timestamp", "1234");
     assertPagesVisible(correctData, false, false, true, true);
 
-    InstallerData noAndroidSdkData = new InstallerData(java7Home, null, null, true, "timestamp");
+    InstallerData noAndroidSdkData = new InstallerData(java7Home, null, null, true, "timestamp", "1234");
     assertPagesVisible(noAndroidSdkData, false, true, true, false);
 
-    InstallerData noJdkData = new InstallerData(null, null, androidHome, true, "timestamp");
+    InstallerData noJdkData = new InstallerData(null, null, androidHome, true, "timestamp", "1234");
     assertPagesVisible(noJdkData, true, false, false, true);
 
-    InstallerData noInstallAndroidData = new InstallerData(java7Home, androidHome, androidHome, true, "timestamp");
+    InstallerData noInstallAndroidData = new InstallerData(java7Home, androidHome, androidHome, true, "timestamp", "1234");
     assertPagesVisible(noInstallAndroidData, false, false, true, true);
 
-    InstallerData bogusPathsData = new InstallerData(wrongPath, wrongPath, wrongPath, true, "timestamp");
+    InstallerData bogusPathsData = new InstallerData(wrongPath, wrongPath, wrongPath, true, "timestamp", "1234");
     assertPagesVisible(bogusPathsData, true, true, false, false);
   }
 

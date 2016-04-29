@@ -44,7 +44,7 @@ public class EditedStyleItem implements Comparable<EditedStyleItem> {
   private final static Logger LOG = Logger.getInstance(EditedStyleItem.class);
   private final static String DEPRECATED = "deprecated";
 
-  private final ThemeEditorStyle mySourceTheme;
+  private final ConfiguredThemeEditorStyle mySourceTheme;
   private final ConfiguredElement<ItemResourceValue> mySelectedValue;
   /** List of possible values (excluding the currently selected one) indexed by the configuration */
   private final Collection<ConfiguredElement<ItemResourceValue>> myNonSelectedValues;
@@ -56,7 +56,7 @@ public class EditedStyleItem implements Comparable<EditedStyleItem> {
    */
   public EditedStyleItem(@NotNull ConfiguredElement<ItemResourceValue> selectedValue,
                          @NotNull Iterable<ConfiguredElement<ItemResourceValue>> nonSelectedValues,
-                         @NotNull ThemeEditorStyle sourceTheme) {
+                         @NotNull ConfiguredThemeEditorStyle sourceTheme) {
     mySourceTheme = sourceTheme;
     myNonSelectedValues = ImmutableList.copyOf(nonSelectedValues);
     mySelectedValue = selectedValue;
@@ -70,7 +70,7 @@ public class EditedStyleItem implements Comparable<EditedStyleItem> {
    * Constructs a new {@code EditedStyleItem} that only contains a default value.
    */
   public EditedStyleItem(@NotNull ConfiguredElement<ItemResourceValue> selectedValue,
-                         @NotNull ThemeEditorStyle sourceTheme) {
+                         @NotNull ConfiguredThemeEditorStyle sourceTheme) {
     this(selectedValue, Collections.<ConfiguredElement<ItemResourceValue>>emptyList(), sourceTheme);
   }
 
@@ -98,7 +98,7 @@ public class EditedStyleItem implements Comparable<EditedStyleItem> {
   }
 
   @NotNull
-  public ThemeEditorStyle getSourceStyle() {
+  public ConfiguredThemeEditorStyle getSourceStyle() {
     return mySourceTheme;
   }
 

@@ -25,10 +25,12 @@ import com.intellij.codeInspection.ex.GlobalInspectionToolWrapper;
 import com.intellij.codeInspection.ex.InspectionManagerEx;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import com.intellij.pom.java.LanguageLevel;
@@ -139,17 +141,32 @@ public abstract class AndroidTestCase extends AndroidTestBase {
       RenderSecurityManager.sEnabled = false;
     }
 
-    List<String> allowedRoots = new ArrayList<String>();
+    ArrayList<String> allowedRoots = new ArrayList<String>();
     collectAllowedRoots(allowedRoots);
-    if (!allowedRoots.isEmpty()) {
-      VfsRootAccess.allowRootAccess(getTestRootDisposable(), ArrayUtil.toStringArray(allowedRoots));
-    }
-
+    registerAllowedRoots(allowedRoots, myTestRootDisposable);
     myUseCustomSettings = getAndroidCodeStyleSettings().USE_CUSTOM_SETTINGS;
     getAndroidCodeStyleSettings().USE_CUSTOM_SETTINGS = true;
+
   }
 
   protected void collectAllowedRoots(List<String> roots) throws IOException {
+  }
+
+  public void registerAllowedRoots(List<String> roots, @NotNull Disposable disposable) {
+    final List<String> newRoots = new ArrayList<String>(roots);
+    newRoots.removeAll(myAllowedRoots);
+
+    final String[] newRootsArray = ArrayUtil.toStringArray(newRoots);
+    VfsRootAccess.allowRootAccess(newRootsArray);
+    myAllowedRoots.addAll(newRoots);
+
+    Disposer.register(disposable, new Disposable() {
+      @Override
+      public void dispose() {
+        VfsRootAccess.disallowRootAccess(newRootsArray);
+        myAllowedRoots.removeAll(newRoots);
+      }
+    });
   }
 
   protected boolean isToAddSdk() {
@@ -238,7 +255,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
   }
 
   @Override
-  public void tearDown() throws Exception {
+  protected void tearDown() throws Exception {
     try {
       myModule = null;
       myAdditionalModules = null;

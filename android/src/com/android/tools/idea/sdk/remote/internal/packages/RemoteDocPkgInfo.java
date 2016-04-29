@@ -16,27 +16,23 @@
 
 package com.android.tools.idea.sdk.remote.internal.packages;
 
-import com.android.SdkConstants;
-import com.android.annotations.NonNull;
+import com.android.repository.Revision;
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.SdkManager;
-import com.android.sdklib.repository.FullRevision;
-import com.android.sdklib.repository.IDescription;
-import com.android.sdklib.repository.MajorRevision;
+import com.android.sdklib.AndroidVersionHelper;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkRepoConstants;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Node;
 
-import java.io.File;
 import java.util.Map;
 import java.util.Properties;
 
 /**
  * Represents a doc XML node in an SDK repository.
  */
-public class RemoteDocPkgInfo extends RemotePkgInfo implements IAndroidVersionProvider {
+public class RemoteDocPkgInfo extends RemotePkgInfo {
 
   /**
    * Creates a new doc package from the attributes and elements of the given XML node.
@@ -58,7 +54,7 @@ public class RemoteDocPkgInfo extends RemotePkgInfo implements IAndroidVersionPr
     }
     AndroidVersion version = new AndroidVersion(apiLevel, codeName);
 
-    PkgDesc.Builder pkgDescBuilder = PkgDesc.Builder.newDoc(version, new MajorRevision(getRevision()));
+    PkgDesc.Builder pkgDescBuilder = PkgDesc.Builder.newDoc(version, getRevision());
     pkgDescBuilder.setDescriptionShort(createShortDescription(mListDisplay, getRevision(), version, isObsolete()));
     pkgDescBuilder.setDescriptionUrl(getDescUrl());
     pkgDescBuilder.setListDisplay(createListDescription(mListDisplay, version, isObsolete()));
@@ -75,15 +71,14 @@ public class RemoteDocPkgInfo extends RemotePkgInfo implements IAndroidVersionPr
   public void saveProperties(Properties props) {
     super.saveProperties(props);
 
-    getPkgDesc().getAndroidVersion().saveProperties(props);
+    AndroidVersionHelper.saveProperties(getPkgDesc().getAndroidVersion(), props);
   }
 
   /**
    * Returns the version, for platform, add-on and doc packages.
    * Can be 0 if this is a local package of unknown api-level.
    */
-  @Override
-  @NonNull
+  @NotNull
   public AndroidVersion getAndroidVersion() {
     return getPkgDesc().getAndroidVersion();
   }
@@ -113,7 +108,7 @@ public class RemoteDocPkgInfo extends RemotePkgInfo implements IAndroidVersionPr
   /**
    * Returns a short description for an {@link IDescription}.
    */
-  private static String createShortDescription(String listDisplay, FullRevision revision, AndroidVersion version, boolean obsolete) {
+  private static String createShortDescription(String listDisplay, Revision revision, AndroidVersion version, boolean obsolete) {
     if (!listDisplay.isEmpty()) {
       return String.format("%1$s, revision %2$s%3$s", listDisplay, revision.toShortString(), obsolete ? " (Obsolete)" : "");
     }
@@ -128,21 +123,6 @@ public class RemoteDocPkgInfo extends RemotePkgInfo implements IAndroidVersionPr
         .format("Documentation for Android SDK, API %1$d, revision %2$s%3$s", version.getApiLevel(), revision.toShortString(),
                 obsolete ? " (Obsolete)" : "");
     }
-  }
-
-  /**
-   * Computes a potential installation folder if an archive of this package were
-   * to be installed right away in the given SDK root.
-   * <p/>
-   * A "doc" package should always be located in SDK/docs.
-   *
-   * @param osSdkRoot  The OS path of the SDK root folder.
-   * @param sdkManager An existing SDK manager to list current platforms and addons.
-   * @return A new {@link File} corresponding to the directory to use to install this package.
-   */
-  @Override
-  public File getInstallFolder(String osSdkRoot, SdkManager sdkManager) {
-    return new File(osSdkRoot, SdkConstants.FD_DOCS);
   }
 
   @Override

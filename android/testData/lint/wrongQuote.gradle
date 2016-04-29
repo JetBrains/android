@@ -1,0 +1,7 @@
+ext {
+    supportLibVersion = "23.1.1"
+}
+dependencies {
+    <error descr="It looks like you are trying to substitute a version variable, but using single quotes ('). For Groovy string interpolation you must use double quotes (\").">compile <caret>'com.android.support:design:${supportLibVersion}'</error>
+    compile "com.android.support:appcompat-v7:${supportLibVersion}"
+}

@@ -18,7 +18,7 @@ package com.android.tools.idea.structure.services;
 import com.android.tools.idea.ui.ProportionalLayout;
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.InvalidationListener;
-import com.android.tools.idea.ui.properties.Observable;
+import com.android.tools.idea.ui.properties.ObservableValue;
 import com.android.tools.idea.ui.properties.collections.ObservableList;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.VerticalFlowLayout;
@@ -152,7 +152,7 @@ public final class ServicePanelBuilder {
 
     InvalidationListener onListModified = new InvalidationListener() {
       @Override
-      protected void onInvalidated(@NotNull Observable sender) {
+      public void onInvalidated(@NotNull ObservableValue<?> sender) {
         model.update();
         if (backingList.size() > 0 && comboBox.getSelectedIndex() < 0) {
           comboBox.setSelectedIndex(0);

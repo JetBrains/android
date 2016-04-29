@@ -17,29 +17,23 @@ package com.android.tools.idea.gradle.service;
 
 import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.ImportedModule;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.manage.AbstractProjectDataService;
-import com.intellij.openapi.module.ModifiableModuleModel;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.util.Collection;
-import java.util.List;
+import java.util.Collections;
 import java.util.Map;
 
+import static com.android.tools.idea.gradle.util.Projects.setModulesToDisposePostSync;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
-import static com.intellij.openapi.util.io.FileUtil.delete;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 
 /**
  * Removes modules from the project that where not created by the "Sync with Gradle" action.
@@ -63,8 +57,7 @@ public class ProjectCleanupDataService extends AbstractProjectDataService<Import
       return;
     }
 
-    final ModuleManager moduleManager = ModuleManager.getInstance(project);
-    Module[] modules = moduleManager.getModules();
+    Module[] modules = modelsProvider.getModules();
     if (modules.length != toImport.size()) {
       final Map<String, Module> modulesByName = Maps.newHashMap();
       for (Module module : modules) {
@@ -74,30 +67,11 @@ public class ProjectCleanupDataService extends AbstractProjectDataService<Import
         String importedModuleName = dataNode.getData().getName();
         modulesByName.remove(importedModuleName);
       }
+      Collection<Module> modulesToDispose = Collections.emptyList();
       if (!modulesByName.isEmpty()) {
-        ApplicationManager.getApplication().runWriteAction(new Runnable() {
-          @Override
-          public void run() {
-            List<File> imlFilesToRemove = Lists.newArrayList();
-            ModifiableModuleModel moduleModel = moduleManager.getModifiableModel();
-            try {
-              for (Module module : modulesByName.values()) {
-                File imlFile = new File(toSystemDependentName(module.getModuleFilePath()));
-                imlFilesToRemove.add(imlFile);
-                moduleModel.disposeModule(module);
-              }
-            }
-            finally {
-              moduleModel.commit();
-            }
-            for (File imlFile : imlFilesToRemove) {
-              if (imlFile.isFile()) {
-                delete(imlFile);
-              }
-            }
-          }
-        });
+        modulesToDispose = modulesByName.values();
       }
+      setModulesToDisposePostSync(project, modulesToDispose.isEmpty() ? null : modulesToDispose);
     }
   }
 }

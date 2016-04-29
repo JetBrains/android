@@ -18,6 +18,7 @@ package org.jetbrains.android.dom.manifest;
 import com.intellij.util.xml.Convert;
 import com.intellij.util.xml.DefinesXml;
 import com.intellij.util.xml.GenericAttributeValue;
+import com.intellij.util.xml.SubTagList;
 import org.jetbrains.android.dom.converters.AndroidPackageConverter;
 
 import java.util.List;
@@ -49,4 +50,7 @@ public interface Manifest extends ManifestElement {
   List<UsesSdk> getUsesSdks();
 
   List<UsesFeature> getUsesFeatures();
+
+  @SubTagList("supports-gl-texture")
+  List<SupportsGlTexture> getSupportsGlTextures();
 }

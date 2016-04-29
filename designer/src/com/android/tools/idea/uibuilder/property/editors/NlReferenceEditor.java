@@ -37,13 +37,11 @@ import com.intellij.ui.TextFieldWithAutoCompletionListProvider;
 import com.intellij.ui.UIBundle;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.util.ui.AbstractTableCellEditor;
 import icons.AndroidIcons;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.uipreview.ChooseResourceDialog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -206,24 +204,24 @@ public class NlReferenceEditor extends PTableCellEditor implements ActionListene
 
       for (ResourceType type : types) {
         List<ChooseResourceDialog.ResourceItem> resItems =
-          new ChooseResourceDialog.ResourceGroup(type, facet.getLocalResourceManager()).getItems();
-        items.addAll(getResNames(resItems, SdkConstants.PREFIX_RESOURCE_REF));
+          new ChooseResourceDialog.ResourceGroup(null, type, facet.getLocalResourceManager(), true).getItems();
+        items.addAll(getResNames(resItems));
       }
 
       for (ResourceType type : types) {
         List<ChooseResourceDialog.ResourceItem> resItems =
-          new ChooseResourceDialog.ResourceGroup(type, facet.getSystemResourceManager()).getItems();
-        items.addAll(getResNames(resItems, SdkConstants.ANDROID_PREFIX));
+          new ChooseResourceDialog.ResourceGroup(SdkConstants.ANDROID_NS_NAME, type, facet.getSystemResourceManager(), true).getItems();
+        items.addAll(getResNames(resItems));
       }
 
       setItems(items);
     }
 
     @NotNull
-    private static List<String> getResNames(List<ChooseResourceDialog.ResourceItem> resItems, String prefix) {
+    private static List<String> getResNames(List<ChooseResourceDialog.ResourceItem> resItems) {
       List<String> result = Lists.newArrayListWithExpectedSize(resItems.size());
       for (ChooseResourceDialog.ResourceItem item : resItems) {
-        result.add(prefix + item.getName());
+        result.add(item.getResourceUrl());
       }
       return result;
     }

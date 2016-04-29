@@ -21,6 +21,7 @@ import com.intellij.ui.JBColor;
 import com.intellij.util.ui.GraphicsUtil;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -32,6 +33,7 @@ import java.util.List;
 /**
  * Chart of distributions
  */
+@SuppressWarnings("UseJBColor")
 public class DistributionChartComponent extends JPanel {
   // Because this text overlays colored components, it must stay white/gray, and does not change for dark themes. 
   private static final Color TEXT_COLOR = new Color(0xFEFEFE);
@@ -73,8 +75,6 @@ public class DistributionChartComponent extends JPanel {
   };
 
 
-  private static List<Distribution> ourDistributions;
-
   private int[] myCurrentBottoms;
   private Distribution mySelectedDistribution;
   private DistributionSelectionChangedListener myListener;
@@ -83,20 +83,27 @@ public class DistributionChartComponent extends JPanel {
     addMouseListener(new MouseAdapter() {
       @Override
       public void mouseClicked(MouseEvent mouseEvent) {
+        List<Distribution> distributions = getDistributions();
+        assert distributions != null;
+        if (myCurrentBottoms == null || myCurrentBottoms.length != distributions.size()) {
+          return;
+        }
         int y = mouseEvent.getY();
         int i = 0;
         while (i < myCurrentBottoms.length && y > myCurrentBottoms[i]) {
           ++i;
         }
         if (i < myCurrentBottoms.length) {
-          selectDistribution(ourDistributions.get(i));
+          selectDistribution(distributions.get(i));
         }
       }
     });
-    if (ourDistributions == null) {
-      ourDistributions = DistributionService.getInstance().getDistributions();
-    }
     loadFonts();
+  }
+
+  @Nullable
+  private static List<Distribution> getDistributions() {
+    return DistributionService.getInstance().getDistributions();
   }
 
   public void selectDistribution(Distribution d) {
@@ -126,14 +133,29 @@ public class DistributionChartComponent extends JPanel {
     return JBUI.size(300, 300);
   }
 
+  @SuppressWarnings("StringToUpperCaseOrToLowerCaseWithoutLocale")
   @Override
   public void paintComponent(Graphics g) {
     GraphicsUtil.setupAntialiasing(g);
     GraphicsUtil.setupAAPainting(g);
     super.paintComponent(g);
 
+    List<Distribution> distributions = getDistributions();
+    if (distributions == null) {
+      Runnable update = new Runnable() {
+        @Override
+        public void run() {
+          repaint();
+        }
+      };
+      DistributionService.getInstance().refresh(update, update);
+      g.setFont(VERSION_NAME_FONT);
+      g.drawString("Loading distribution data ...", NAME_OFFSET, TOP_PADDING);
+      return;
+    }
+
     if (myCurrentBottoms == null) {
-      myCurrentBottoms = new int[ourDistributions.size()];
+      myCurrentBottoms = new int[distributions.size()];
     }
 
     // Draw the proportioned rectangles
@@ -164,13 +186,13 @@ public class DistributionChartComponent extends JPanel {
     g.drawString(distributionTitle, totalWidth - titleMetrics.stringWidth(distributionTitle), titleHeight * 2);
 
     // We want a padding in between every element
-    int heightToDistribute = getBounds().height - INTER_SECTION_SPACING * (ourDistributions.size() - 1) - TOP_PADDING;
+    int heightToDistribute = getBounds().height - INTER_SECTION_SPACING * (distributions.size() - 1) - TOP_PADDING;
 
     // Keep track of how much of the distribution we've covered so far
     double percentageSum = 0;
 
     int smallItemCount = 0;
-    for (Distribution d : ourDistributions) {
+    for (Distribution d : distributions) {
       if (d.getDistributionPercentage() < MIN_PERCENTAGE_HEIGHT) {
         smallItemCount++;
       }
@@ -178,7 +200,7 @@ public class DistributionChartComponent extends JPanel {
     heightToDistribute -= (int)Math.round(smallItemCount * MIN_PERCENTAGE_HEIGHT * heightToDistribute);
 
     int i = 0;
-    for (Distribution d : ourDistributions) {
+    for (Distribution d : distributions) {
       // Draw the colored rectangle
       g.setColor(RECT_COLORS[i % RECT_COLORS.length]);
       double effectivePercentage = Math.max(d.getDistributionPercentage(), MIN_PERCENTAGE_HEIGHT);
@@ -219,7 +241,7 @@ public class DistributionChartComponent extends JPanel {
       // Write the supported distribution
       percentageSum += d.getDistributionPercentage();
       // Write the percentage sum
-      if (i < ourDistributions.size() - 1) {
+      if (i < distributions.size() - 1) {
         g.setColor(JBColor.foreground());
         g.setFont(VERSION_NUMBER_FONT);
         String percentageString;

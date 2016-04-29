@@ -34,7 +34,7 @@ public class RecordingAction extends ToggleAction {
 
   @Override
   public boolean isSelected(AnActionEvent e) {
-    return myMonitorView.isPaused();
+    return myMonitorView.getIsPaused();
   }
 
   @Override
@@ -53,10 +53,10 @@ public class RecordingAction extends ToggleAction {
 
   @Override
   public void setSelected(AnActionEvent e, boolean state) {
-    if (myMonitorView.isPaused() != state) {
+    if (myMonitorView.getIsPaused() != state) {
       UsageTracker.getInstance()
         .trackEvent(UsageTracker.CATEGORY_PROFILING, UsageTracker.ACTION_MONITOR_RUNNING, myMonitorView.getDescription(), state ? 0 : 1);
     }
-    myMonitorView.setPaused(state);
+    myMonitorView.setIsPaused(state);
   }
 }

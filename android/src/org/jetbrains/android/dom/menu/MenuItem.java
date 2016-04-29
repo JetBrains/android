@@ -22,11 +22,13 @@ import com.intellij.util.xml.Convert;
 import com.intellij.util.xml.ExtendClass;
 import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.AndroidResourceType;
+import org.jetbrains.android.dom.Styleable;
 import org.jetbrains.android.dom.converters.CompleteNonModuleClass;
 import org.jetbrains.android.dom.converters.PackageClassConverter;
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
 import org.jetbrains.android.dom.resources.ResourceValue;
 
+@Styleable("MenuItem")
 public interface MenuItem extends MenuElement {
   Menu getMenu();
 
@@ -38,10 +40,12 @@ public interface MenuItem extends MenuElement {
   @AndroidResourceType("string")
   AndroidAttributeValue<ResourceValue> getTitle();
 
+  @Attribute("titleCondensed")
   @Convert(ResourceReferenceConverter.class)
   @AndroidResourceType("string")
   AndroidAttributeValue<ResourceValue> getTitleCondensed();
 
+  @Attribute("actionLayout")
   @Convert(ResourceReferenceConverter.class)
   @AndroidResourceType("layout")
   AndroidAttributeValue<ResourceValue> getActionLayout();

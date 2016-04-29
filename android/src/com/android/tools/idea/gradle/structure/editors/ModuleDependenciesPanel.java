@@ -17,12 +17,12 @@ package com.android.tools.idea.gradle.structure.editors;
 
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.SdkMavenRepository;
-import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.tools.idea.gradle.parser.*;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
+import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.structure.EditorPanel;
 import com.android.tools.idea.templates.RepositoryUrlManager;
+import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -303,7 +303,7 @@ public class ModuleDependenciesPanel extends EditorPanel {
   private String installRepositoryIfNeeded(String coordinateText) {
     GradleCoordinate gradleCoordinate = GradleCoordinate.parseCoordinateString(coordinateText);
     assert gradleCoordinate != null;  // Only allowed to click ok when the string is valid.
-    if (!REVISION_ANY.equals(gradleCoordinate.getFullRevision()) ||
+    if (!REVISION_ANY.equals(gradleCoordinate.getRevision()) ||
         !RepositoryUrlManager.EXTRAS_REPOSITORY.containsKey(gradleCoordinate.getArtifactId())) {
       // No installation needed, or it's not a local repository.
       return coordinateText;
@@ -313,7 +313,7 @@ public class ModuleDependenciesPanel extends EditorPanel {
       // User cancelled installation.
       return null;
     }
-    List<IPkgDesc> requested = Lists.newArrayList();
+    List<String> requested = Lists.newArrayList();
     SdkMavenRepository repository;
     if (coordinateText.startsWith("com.android.support")) {
       repository = SdkMavenRepository.ANDROID;
@@ -326,17 +326,17 @@ public class ModuleDependenciesPanel extends EditorPanel {
       assert false;  // EXTRAS_REPOSITORY.containsKey() should have returned false.
       return coordinateText + ':' + REVISION_ANY;
     }
-    requested.add(repository.getPackageDescription());
-    SdkQuickfixWizard wizard = new SdkQuickfixWizard(myProject, null, requested);
-    wizard.init();
-    wizard.setTitle("Install Missing Components");
-    if (wizard.showAndGet()) {
-      return RepositoryUrlManager.get().getLibraryCoordinate(gradleCoordinate.getArtifactId());
+    requested.add(repository.getPackageId());
+    ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(myProject, requested);
+    if (dialog != null) {
+      dialog.setTitle("Install Missing Components");
+      if (dialog.showAndGet()) {
+        return RepositoryUrlManager.get().getLibraryCoordinate(gradleCoordinate.getArtifactId());
+      }
     }
-    else {
-      // Installation wizard didn't complete - skip adding the dependency.
-      return null;
-    }
+
+    // Installation wizard didn't complete - skip adding the dependency.
+    return null;
   }
 
   private void addFileDependency() {

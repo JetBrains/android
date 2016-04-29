@@ -8,7 +8,7 @@ import com.android.manifmerger.ManifestMerger;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.repository.local.LocalSdk;
+import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.tools.idea.jps.AndroidTargetBuilder;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
@@ -109,7 +109,7 @@ public class AndroidManifestMergingBuilder
     if (platform == null) {
       return false;
     }
-    if (!doMergeManifests(context, platform.getLocalSdk(), manifestFile, libManifests, outputFile)) {
+    if (!doMergeManifests(context, platform.getSdkHandler(), manifestFile, libManifests, outputFile)) {
       context.processMessage(new CompilerMessage(BUILDER_NAME, BuildMessage.Kind.ERROR,
                                                  "[" + module.getName() + "] Cannot perform manifest merging"));
       return false;
@@ -131,7 +131,7 @@ public class AndroidManifestMergingBuilder
   }
 
   private static boolean doMergeManifests(final CompileContext context,
-                                          final LocalSdk localSdk,
+                                          final AndroidSdkHandler sdkHandler,
                                           File manifestFile,
                                           List<File> libManifests,
                                           File outputFile)
@@ -204,7 +204,8 @@ public class AndroidManifestMergingBuilder
         try {
           AndroidVersion version = new AndroidVersion(codename);
           String hashString = AndroidTargetHash.getPlatformHashString(version);
-          IAndroidTarget t = localSdk.getTargetFromHashString(hashString);
+          AndroidJpsUtil.RepoLogger log = new AndroidJpsUtil.RepoLogger();
+          IAndroidTarget t = sdkHandler.getAndroidTargetManager(log).getTargetFromHashString(hashString, log);
           if (t != null) {
             return t.getVersion().getApiLevel();
           }

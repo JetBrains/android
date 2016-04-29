@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.gradle.service.notification.errors;
 
-import com.android.sdklib.repository.FullRevision;
-import com.android.sdklib.repository.PreciseRevision;
-import com.android.tools.idea.gradle.service.notification.hyperlink.FixGradleModelVersionHyperlink;
+import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.gradle.service.notification.hyperlink.FixAndroidGradlePluginVersionHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenGradleSettingsHyperlink;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -61,7 +60,7 @@ public class GradleDslMethodNotFoundErrorHandler extends AbstractSyncErrorHandle
       if (virtualFile != null && FN_BUILD_GRADLE.equals(virtualFile.getName())) {
         NotificationHyperlink gradleSettingsHyperlink = getGradleSettingsHyperlink(project);
         NotificationHyperlink applyGradlePluginHyperlink = getApplyGradlePluginHyperlink(virtualFile, notification);
-        NotificationHyperlink upgradeAndroidPluginHyperlink = new FixGradleModelVersionHyperlink(false);
+        NotificationHyperlink upgradeAndroidPluginHyperlink = new FixAndroidGradlePluginVersionHyperlink(false);
 
         String newMsg = firstLine + "\nPossible causes:<ul>";
         if (!gradleModelIsRecent(project)) {
@@ -116,9 +115,9 @@ public class GradleDslMethodNotFoundErrorHandler extends AbstractSyncErrorHandle
 
   private static boolean gradleModelIsRecent(@NotNull Project project) {
     // Sync has failed, so we can only check the build file.
-    FullRevision fromBuildFile = getAndroidGradleModelVersionFromBuildFile(project);
+    GradleVersion fromBuildFile = getAndroidGradleModelVersionFromBuildFile(project);
     if (fromBuildFile != null) {
-      return fromBuildFile.compareTo(PreciseRevision.parseRevision(GRADLE_PLUGIN_RECOMMENDED_VERSION)) >= 0;
+      return fromBuildFile.compareTo(GRADLE_PLUGIN_RECOMMENDED_VERSION) >= 0;
     }
     return false;
   }

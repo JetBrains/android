@@ -248,7 +248,7 @@ public class AndroidValueResourcesTest extends AndroidDomTest {
   }
 
   public void testNameValidation() throws Throwable {
-    doTestHighlighting();
+    doTestHighlighting("nameValidation.xml");
   }
 
   public void testResourceReferenceAsValueCompletion1() throws Throwable {
@@ -265,6 +265,15 @@ public class AndroidValueResourcesTest extends AndroidDomTest {
 
   public void testResourceReferenceAsValueCompletion4() throws Throwable {
     doTestCompletionVariants(getTestName(true) + ".xml");
+  }
+
+  public void testDrawableResourceReference() throws Throwable {
+    myFixture.copyFileToProject(testFolder + "/" + getTestName(true) + ".xml", "res/layout/main.xml");
+    // mipmap won't be offered as an option since there are not mipmap resources
+    myFixture.testCompletionVariants("res/layout/main.xml", "@android:", "@color/", "@drawable/");
+
+    myFixture.copyFileToProject(testFolder + "/icon.png", "res/mipmap/icon.png");
+    myFixture.testCompletionVariants("res/layout/main.xml", "@android:", "@color/", "@drawable/", "@mipmap/");
   }
 
   public void testParentStyleReference() throws Throwable {
@@ -490,6 +499,12 @@ public class AndroidValueResourcesTest extends AndroidDomTest {
 
   public void testNamespaceCompletion() throws Exception {
     doTestNamespaceCompletion(false, false, true, true);
+  }
+
+  public void testAttrValidation() throws Throwable {
+    // Regression test for https://code.google.com/p/android/issues/detail?id=199247
+    // Allow colons in names for attributes
+    doTestHighlighting("attrValidation.xml");
   }
 
   private void doCreateValueResourceFromUsage(VirtualFile virtualFile) {

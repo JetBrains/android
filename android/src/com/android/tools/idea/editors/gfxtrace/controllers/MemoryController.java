@@ -17,11 +17,16 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
+import com.android.tools.idea.editors.gfxtrace.UiCallback;
 import com.android.tools.idea.editors.gfxtrace.service.MemoryInfo;
 import com.android.tools.idea.editors.gfxtrace.service.path.MemoryRangePath;
+import com.android.tools.rpclib.rpccore.Rpc;
+import com.android.tools.rpclib.rpccore.RpcException;
 import com.google.common.base.Function;
+import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.util.concurrent.AsyncFunction;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -57,6 +62,7 @@ import java.awt.event.*;
 import java.nio.charset.Charset;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 public class MemoryController extends Controller {
   @NotNull private static final Logger LOG = Logger.getInstance(MemoryController.class);
@@ -76,6 +82,7 @@ public class MemoryController extends Controller {
     super(editor);
     myLoading.add(myScrollPane, BorderLayout.CENTER);
     myPanel.add(new ComboBox(DataType.values()) {{
+      setSelectedIndex(1);
       addItemListener(new ItemListener() {
         @Override
         public void itemStateChanged(ItemEvent e) {
@@ -123,18 +130,19 @@ public class MemoryController extends Controller {
         update();
       }
       else {
-        Futures.addCallback(fetcher.get(memoryPath.getAddress(), memoryPath.getSize()), new FutureCallback<byte[]>() {
+        Rpc.listen(fetcher.get(memoryPath.getAddress(), memoryPath.getSize()), LOG, new UiCallback<byte[], MemoryDataModel>() {
           @Override
-          public void onSuccess(byte[] data) {
-            myMemoryData = new ImmediateMemoryDataModel(memoryPath.getAddress(), data);
-            update();
+          protected MemoryDataModel onRpcThread(Rpc.Result<byte[]> result) throws RpcException, ExecutionException {
+            byte[] data = result.get();
+            return (data == null) ? null : new ImmediateMemoryDataModel(memoryPath.getAddress(), data);
           }
 
           @Override
-          public void onFailure(Throwable t) {
-            LOG.error("Failed to load memory " + memoryPath, t);
+          protected void onUiThread(MemoryDataModel result) {
+            myMemoryData = result;
+            update();
           }
-        }, EdtExecutor.INSTANCE);
+        });
       }
     } else {
       myScrollPane.setViewportView(myEmptyPanel);
@@ -147,6 +155,12 @@ public class MemoryController extends Controller {
   }
 
   private enum DataType {
+    Text() {
+      @Override
+      public MemoryModel getMemoryModel(MemoryDataModel memory) {
+        return new TextMemoryModel(memory);
+      }
+    },
     Bytes() {
       @Override
       public MemoryModel getMemoryModel(MemoryDataModel memory) {
@@ -206,6 +220,7 @@ public class MemoryController extends Controller {
     private final Runnable myRepainter = new Runnable() {
       @Override
       public void run() {
+        revalidate();
         repaint();
       }
     };
@@ -749,23 +764,35 @@ public class MemoryController extends Controller {
     }
   }
 
-  private static abstract class MemoryModel {
-    protected static final int BYTES_PER_ROW = 16; // If this is changed, Formatter.increment needs to be fixed.
+  private interface MemoryModel {
+    int getLineCount();
+
+    int getLineLength();
+
+    Iterator<Segment> getLines(int start, int end, Runnable onChange);
+
+    Range<Integer> getSelectableRegion(int column);
+
+    ListenableFuture<Transferable> getTransferable(Range<Integer> selectionRange, Point start, Point end);
+  }
+
+  private static abstract class FixedMemoryModel implements MemoryModel {
+    protected static final int BYTES_PER_ROW = 16;
 
     protected final MemoryDataModel myData;
     protected final int myRows;
 
-    public MemoryModel(MemoryDataModel data) {
+    public FixedMemoryModel(MemoryDataModel data) {
       myData = data;
       myRows = (data.getByteCount() + BYTES_PER_ROW - 1) / BYTES_PER_ROW;
     }
 
+    @Override
     public int getLineCount() {
       return myRows;
     }
 
-    public abstract int getLineLength();
-
+    @Override
     public Iterator<Segment> getLines(int start, int end, Runnable onChange) {
       if (start < 0 || end < start || end > getLineCount()) {
         throw new IndexOutOfBoundsException("[" + start + ", " + end + ") outside of [0, " + getLineCount() + ")");
@@ -810,13 +837,9 @@ public class MemoryController extends Controller {
     }
 
     protected abstract void getLine(Segment segment, MemorySegment memory, int line);
-
-    public abstract Range<Integer> getSelectableRegion(int column);
-
-    public abstract ListenableFuture<Transferable> getTransferable(Range<Integer> selectionRange, Point start, Point end);
   }
 
-  private static abstract class CharBufferMemoryModel extends MemoryModel {
+  private static abstract class CharBufferMemoryModel extends FixedMemoryModel {
     protected static final int CHARS_PER_ADDRESS = 16; // 8 byte addresses
     protected static final int ADDRESS_SEPARATOR = 1;
     protected static final int ADDRESS_CHARS = CHARS_PER_ADDRESS + ADDRESS_SEPARATOR;
@@ -1071,6 +1094,197 @@ public class MemoryController extends Controller {
         int count = Math.min(CHARS_PER_DOUBLE, sb.length());
         sb.getChars(0, count, buffer, j + CHARS_PER_DOUBLE - count + 1);
       }
+    }
+  }
+
+  /**
+   * A {@link MemoryModel} that renders the memory data as ASCII text. Uses a place holder for
+   * non-ASCII bytes. Unlike the other models, this one will load all memory data when
+   * instantiated. This is because the number of lines and their lengths is very much dynamic,
+   * depending on the data and thus impossible to predict.
+   */
+  private static class TextMemoryModel implements MemoryModel {
+    private static final int SCAN_SIZE = 64 * 1024;
+    private static final char PLACE_HOLDER = '\u25AF'; // Unicode 'white vertical rectangle'
+
+    private final MemoryDataModel myMemory;
+    private final List<String> myLines = Lists.newArrayList();
+    private int myLineLength;
+    private Runnable myListener;
+
+    public TextMemoryModel(MemoryDataModel memory) {
+      myMemory = memory;
+      scan();
+    }
+
+    /**
+     * Scans the memory range for new line characters to break the memory regions into lines of
+     * text. While we are scanning, the model will be empty, but we'll notify the renderer once the
+     * scan is complete.
+     */
+    private void scan() {
+      ListenableFuture<List<String>> lines =
+        Futures.transform(myMemory.get(0, Math.min(myMemory.getByteCount(), SCAN_SIZE)), new AsyncFunction<MemorySegment, List<String>>() {
+          private List<String> result = Lists.newArrayList();
+          private int done = 0;
+          private boolean prevWasCarriageRet = false;
+          private StringBuilder current = new StringBuilder();
+
+          /**
+           * Note, we'll re-use this same function instance to process each chunk of memory.
+           */
+          @Override
+          public ListenableFuture<List<String>> apply(MemorySegment data) throws Exception {
+            // Process all the bytes in this memory chunk.
+            for (int i = 0, j = data.myOffset; i < data.myLength; i++, j++) {
+              // Skip any '\n' following an '\r', otherwise, '\r' is treated as a newline.
+              if (data.myData[j] == '\r') {
+                result.add(current.toString());
+                current.delete(0, current.length());
+                prevWasCarriageRet = true;
+              }
+              else {
+                if (data.myData[j] == '\n') {
+                  if (!prevWasCarriageRet) {
+                    result.add(current.toString());
+                    current.delete(0, current.length());
+                  }
+                }
+                else {
+                  int value = data.myData[j] & 0xFF;
+                  // Use a place holder for non-printable ASCII characters.
+                  current.append((value >= 0x7f || value < 0x20) ? PLACE_HOLDER : (char)value);
+                }
+                prevWasCarriageRet = false;
+              }
+            }
+
+            done += data.myLength;
+            if (done < myMemory.getByteCount()) {
+              // Fetch the next chunk of memory and process with this function.
+              return Futures.transform(myMemory.get(done, Math.min(myMemory.getByteCount() - done, SCAN_SIZE)), this);
+            }
+
+            // All memory has been scanned, add any remaining characeters as a line and finish up.
+            if (current.length() > 0) {
+              result.add(current.toString());
+            }
+            return Futures.immediateFuture(result);
+          }
+      });
+      Futures.addCallback(lines, new FutureCallback<List<String>>() {
+        @Override
+        public void onSuccess(List<String> result) {
+          int maxLength = 0;
+          for (String line : result) {
+            maxLength = Math.max(maxLength, line.length());
+          }
+
+          // Update our state and notify the renderer.
+          Runnable listener;
+          synchronized (this) {
+            myLines.addAll(result);
+            myLineLength = maxLength;
+            listener = myListener;
+            myListener = null;
+          }
+          if (listener != null) {
+            ApplicationManager.getApplication().invokeLater(listener);
+          }
+        }
+
+        @Override
+        public void onFailure(Throwable t) {
+          LOG.error("Failed to read memory", t);
+        }
+      });
+    }
+
+    @Override
+    public synchronized int getLineCount() {
+      return myLines.size();
+    }
+
+    @Override
+    public synchronized int getLineLength() {
+      return myLineLength;
+    }
+
+    @Override
+    public synchronized Iterator<Segment> getLines(int start, int end, Runnable onChange) {
+      if (start < 0 || end < start || end > getLineCount()) {
+        throw new IndexOutOfBoundsException("[" + start + ", " + end + ") outside of [0, " + getLineCount() + ")");
+      }
+
+      // If we've not yet finished scanning, keep track of who's interested. Note, we currently
+      // just keep the last listener, since there's only one, but this could eaisly be changed to
+      // chain multiple listeners.
+      if (myLines.isEmpty()) {
+        myListener = onChange;
+        return Iterators.emptyIterator();
+      }
+
+      return Iterators.transform(myLines.subList(start, end).iterator(), new Function<String, Segment>() {
+        private final Segment segment = new Segment(new char[getLineLength()], 0, getLineLength());
+
+        @Override
+        public Segment apply(String input) {
+          // To not complicate the selection/rendering logic, every line returned by this iterator
+          // will have the same length, which corresponds to the max length and .getLineLength().
+          // This is the same as for the other models.
+          input.getChars(0, input.length(), segment.array, 0);
+          Arrays.fill(segment.array, input.length(), segment.array.length, ' ');
+          return segment;
+        }
+      });
+    }
+
+    @Override
+    public Range<Integer> getSelectableRegion(int column) {
+      if (column >= 0 && column < getLineLength()) {
+        return new Range<Integer>(0, getLineLength());
+      }
+      return null;
+    }
+
+    @Override
+    public synchronized ListenableFuture<Transferable> getTransferable(Range<Integer> selectionRange, Point start, Point end) {
+      // Note, we need to handle selection of whitespace correctly. Because most lines have a lot
+      // of appended whitespace to make them the same length, the user selection may be out of
+      // range of the lines of text. We handles this here, rather than in the renderer's
+      // selection/rendering logic.
+      if (start.y >= myLines.size() || end.y >= myLines.size() || start.y > end.y ||
+          (start.y == end.y && (start.x >= end.x || start.x >= myLines.get(start.y).length()))) {
+        return Futures.immediateFuture((Transferable)new StringSelection(""));
+      }
+
+      StringBuilder result = new StringBuilder();
+      // Only process the first line, if the selection start is in range of it.
+      if (start.x < myLines.get(start.y).length()) {
+        String first = myLines.get(start.y);
+        if (start.y == end.y) {
+          result.append(first.substring(start.x, Math.min(first.length(), end.x)));
+        }
+        else {
+          result.append(first.substring(start.x)).append('\n');
+        }
+      }
+      // All intermediate lines are easy to process: simply append them.
+      for (int i = start.y + 1; i < end.y; i++) {
+        result.append(myLines.get(i)).append('\n');
+      }
+      // Only process the last line, if we haven't already done so.
+      if (end.y != start.y) {
+        String last = myLines.get(end.y);
+        if (end.x > last.length()) {
+          // If the selection was past the end, add an additional newline.
+          result.append(last).append('\n');
+        }
+        else {
+          result.append(last.substring(0, end.x));
+        }
+      }
+      return Futures.immediateFuture((Transferable)new StringSelection(result.toString()));
     }
   }
 }

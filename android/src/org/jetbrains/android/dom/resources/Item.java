@@ -26,13 +26,6 @@ import org.jetbrains.android.util.AndroidResourceUtil;
 
 import java.util.List;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Jun 5, 2009
- * Time: 5:40:29 PM
- * To change this template use File | Settings | File Templates.
- */
 @Convert(QuietResourceReferenceConverter.class)
 public interface Item extends ResourceElement {
   class TypeConverter extends StaticEnumConverter {

@@ -18,7 +18,7 @@ package com.android.tools.idea.run.editor;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
-import com.android.sdklib.repository.descriptors.IdDisplay;
+import com.android.sdklib.repositoryv2.IdDisplay;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.run.AvdComboBox;
 import com.android.tools.idea.run.LaunchCompatibility;
@@ -43,7 +43,7 @@ import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class EmulatorTargetConfigurable implements DeployTargetConfigurable<EmulatorTarget.State> {
+public class EmulatorTargetConfigurable implements DeployTargetConfigurable<EmulatorTargetProvider.State> {
   private final Project myProject;
   private final Disposable myParentDisposable;
   private final DeployTargetConfigurableContext myContext;
@@ -113,7 +113,7 @@ public class EmulatorTargetConfigurable implements DeployTargetConfigurable<Emul
   }
 
   @Override
-  public void resetFrom(@NotNull EmulatorTarget.State state, int uniqueID) {
+  public void resetFrom(@NotNull EmulatorTargetProvider.State state, int uniqueID) {
     final JComboBox combo = myAvdCombo.getComboBox();
     final String avd = state.PREFERRED_AVD;
     if (avd != null) {
@@ -131,7 +131,7 @@ public class EmulatorTargetConfigurable implements DeployTargetConfigurable<Emul
   }
 
   @Override
-  public void applyTo(@NotNull EmulatorTarget.State state, int uniqueID) {
+  public void applyTo(@NotNull EmulatorTargetProvider.State state, int uniqueID) {
     state.PREFERRED_AVD = "";
 
     JComboBox combo = myAvdCombo.getComboBox();
@@ -178,7 +178,7 @@ public class EmulatorTargetConfigurable implements DeployTargetConfigurable<Emul
       }
 
       final AvdInfo avd = avdManager.getAvd(selectedAvdName, false);
-      if (avd == null || avd.getTarget() == null) {
+      if (avd == null || avd.getSystemImage() == null) {
         return null;
       }
 
@@ -188,7 +188,7 @@ public class EmulatorTargetConfigurable implements DeployTargetConfigurable<Emul
       }
 
       AndroidVersion minSdk = AndroidModuleInfo.get(facet).getRuntimeMinSdkVersion();
-      LaunchCompatibility compatibility = LaunchCompatibility.canRunOnAvd(minSdk, platform.getTarget(), avd.getTarget());
+      LaunchCompatibility compatibility = LaunchCompatibility.canRunOnAvd(minSdk, platform.getTarget(), avd.getSystemImage());
       if (compatibility.isCompatible() == ThreeState.NO) {
         // todo: provide info about current module configuration
         return String.format("'%1$s' may be incompatible with your configuration (%2$s)", selectedAvdName,

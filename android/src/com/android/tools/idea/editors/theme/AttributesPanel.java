@@ -57,6 +57,7 @@ public class AttributesPanel {
   private JComboBox myModuleCombo;
   private JBLabel myThemeLabel;
   private JBLabel myModuleLabel;
+  private JLabel myThemeWarning;
 
   public AttributesPanel() {
     myThemeCombo.setMinimumSize(ThemeEditorConstants.ATTRIBUTES_PANEL_COMBO_MIN_SIZE);
@@ -114,14 +115,19 @@ public class AttributesPanel {
       }
     });
 
-    myAttributesScrollPane = new JBScrollPane(myRightPanel, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-                                              ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+    myAttributesScrollPane = new JBScrollPane(myRightPanel, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
     myAttributesTable.setBackground(null); // Get rid of default white background of the table.
     myAttributesScrollPane.setBackground(null); // needed for OS X, as by default is set to white
     myAttributesScrollPane.getViewport().setBackground(null); // needed for OS X, as by default is set to white
     myAttributesScrollPane.getVerticalScrollBar().setUnitIncrement(AndroidPreviewPanel.VERTICAL_SCROLLING_UNIT_INCREMENT);
     myAttributesScrollPane.getVerticalScrollBar().setBlockIncrement(AndroidPreviewPanel.VERTICAL_SCROLLING_BLOCK_INCREMENT);
+
+    myThemeWarning.setIcon(AllIcons.General.BalloonWarning);
+  }
+
+  public void setThemeNamePopupMenu(@Nullable JPopupMenu popup) {
+    myThemeCombo.setComponentPopupMenu(popup);
   }
 
   /**
@@ -145,7 +151,8 @@ public class AttributesPanel {
   public void setSubstyleName(final @Nullable String substyleName) {
     if (substyleName == null) {
       mySubStyleLabel.setVisible(false);
-    } else {
+    }
+    else {
       mySubStyleLabel.setVisible(true);
       mySubStyleLabel.setText("\u27A5 " + substyleName);
     }
@@ -160,6 +167,10 @@ public class AttributesPanel {
 
   public void addModuleChangedActionListener(@NotNull ActionListener listener) {
     myModuleCombo.addActionListener(listener);
+  }
+
+  public void setShowThemeNotUsedWarning(boolean show) {
+    myThemeWarning.setVisible(show);
   }
 
   // Raw getters ahead

@@ -16,7 +16,6 @@
 package com.android.tools.idea.editors.gfxtrace.controllers;
 
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
-import com.android.tools.idea.editors.gfxtrace.service.path.Path;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;

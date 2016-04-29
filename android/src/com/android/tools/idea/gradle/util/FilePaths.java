@@ -25,9 +25,12 @@ import java.io.File;
 import java.util.Collection;
 
 import static com.intellij.openapi.util.io.FileUtil.isAncestor;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
+import static com.intellij.openapi.vfs.StandardFileSystems.JAR_PROTOCOL_PREFIX;
 import static com.intellij.openapi.vfs.VfsUtilCore.pathToUrl;
 import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
+import static com.intellij.util.io.URLUtil.JAR_SEPARATOR;
 
 public final class FilePaths {
   private FilePaths() {
@@ -78,5 +81,19 @@ public final class FilePaths {
   @NotNull
   public static String pathToIdeaUrl(@NotNull File path) {
     return pathToUrl(toSystemIndependentName(path.getPath()));
+  }
+
+  @Nullable
+  public static File getJarFromJarUrl(@NotNull String url) {
+    // URLs for jar file start with "jar://" and end with "!/".
+    if (!url.startsWith(JAR_PROTOCOL_PREFIX)) {
+      return null;
+    }
+    String path = url.substring(JAR_PROTOCOL_PREFIX.length());
+    int index = path.lastIndexOf(JAR_SEPARATOR);
+    if (index != -1) {
+      path = path.substring(0, index);
+    }
+    return new File(toSystemDependentName(path));
   }
 }

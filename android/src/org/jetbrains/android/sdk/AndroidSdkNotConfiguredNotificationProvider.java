@@ -13,6 +13,7 @@ import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.EditorNotifications;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
+import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -48,7 +49,8 @@ public class AndroidSdkNotConfiguredNotificationProvider extends EditorNotificat
     if (facet == null) {
       return null;
     }
-    if (!facet.requiresAndroidModel() && (isResourceFile(file, facet) || file.equals(AndroidRootUtil.getPrimaryManifestFile(facet)))) {
+    if (!facet.requiresAndroidModel()
+        && (AndroidResourceUtil.isResourceFile(file, facet) || file.equals(AndroidRootUtil.getPrimaryManifestFile(facet)))) {
       final AndroidPlatform platform = AndroidPlatform.getInstance(module);
 
       if (platform == null) {
@@ -56,12 +58,6 @@ public class AndroidSdkNotConfiguredNotificationProvider extends EditorNotificat
       }
     }
     return null;
-  }
-
-  private static boolean isResourceFile(VirtualFile file, AndroidFacet facet) {
-    final VirtualFile parent = file.getParent();
-    final VirtualFile resDir = parent != null ? parent.getParent() : null;
-    return resDir != null && facet.getLocalResourceManager().isResourceDir(resDir);
   }
 
   private class MySdkNotConfiguredNotificationPanel extends EditorNotificationPanel {

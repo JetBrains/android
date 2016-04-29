@@ -17,69 +17,103 @@
 package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.run.editor.DeployTarget;
-import com.android.tools.idea.run.editor.DeployTargetState;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Ordering;
+import com.android.sdklib.AndroidVersion;
+import com.android.tools.fd.client.InstantRunBuildInfo;
+import com.android.tools.idea.fd.*;
+import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.invoker.GradleInvoker;
+import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.gradle.run.RunAsValidityService;
+import com.android.tools.idea.run.editor.*;
+import com.android.tools.idea.run.tasks.LaunchTask;
+import com.android.tools.idea.run.tasks.LaunchTasksProviderFactory;
+import com.android.tools.idea.run.util.LaunchStatus;
+import com.android.tools.idea.run.util.LaunchUtils;
+import com.android.tools.idea.stats.UsageTracker;
+import com.google.common.collect.*;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
+import com.intellij.execution.RunnerIconProvider;
 import com.intellij.execution.configurations.*;
 import com.intellij.execution.executors.DefaultDebugExecutor;
+import com.intellij.execution.executors.DefaultRunExecutor;
+import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
-import com.intellij.execution.ui.ConsoleView;
+import com.intellij.icons.AllIcons;
+import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.notification.NotificationType;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.*;
+import com.intellij.openapi.util.text.StringUtil;
+import icons.AndroidIcons;
+import org.intellij.lang.annotations.Language;
 import org.jdom.Element;
+import org.jetbrains.android.actions.AndroidEnableAdbServiceAction;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import javax.swing.*;
+import java.util.*;
 
 import static com.android.tools.idea.gradle.util.Projects.requiredAndroidModelMissing;
 
-public abstract class AndroidRunConfigurationBase extends ModuleBasedConfiguration<JavaRunConfigurationModule> {
+public abstract class AndroidRunConfigurationBase extends ModuleBasedConfiguration<JavaRunConfigurationModule> implements
+                                                                                                               RunnerIconProvider {
   private static final Logger LOG = Logger.getInstance(AndroidRunConfigurationBase.class);
 
   private static final String GRADLE_SYNC_FAILED_ERR_MSG = "Gradle project sync failed. Please fix your project and try again.";
 
+  /** Element name used to group the {@link ProfilerState} settings */
+  private static final String PROFILERS_ELEMENT_NAME = "Profilers";
+
   /** The key used to store the selected device target as copyable user data on each execution environment. */
-  public static final Key<DeviceTarget> DEVICE_TARGET_KEY = Key.create("android.device.target");
+  public static final Key<DeviceFutures> DEVICE_FUTURES_KEY = Key.create("android.device.futures");
+
+  private static final DialogWrapper.DoNotAskOption ourKillLaunchOption = new MyDoNotPromptOption();
 
   public String TARGET_SELECTION_MODE = TargetSelectionMode.SHOW_DIALOG.name();
   public String PREFERRED_AVD = "";
-
-  private final List<DeployTarget> myDeployTargets; // all available deploy targets
-  private final boolean myAndroidTests;
-
-  private final Map<String, DeployTargetState> myDeployTargetStates;
 
   public boolean CLEAR_LOGCAT = false;
   public boolean SHOW_LOGCAT_AUTOMATICALLY = true;
   public boolean SKIP_NOOP_APK_INSTALLATIONS = true; // skip installation if the APK hasn't hasn't changed
   public boolean FORCE_STOP_RUNNING_APP = true; // if no new apk is being installed, then stop the app before launching it again
 
+  private final ProfilerState myProfilerState;
+  private final List<DeployTargetProvider> myDeployTargetProviders; // all available deploy targets
+  private final Map<String, DeployTargetState> myDeployTargetStates;
+
+  private final boolean myAndroidTests;
+
+  public String DEBUGGER_TYPE;
+  private final Map<String, AndroidDebuggerState> myAndroidDebuggerStates = Maps.newHashMap();
+
   public AndroidRunConfigurationBase(final Project project, final ConfigurationFactory factory, boolean androidTests) {
     super(new JavaRunConfigurationModule(project, false), factory);
 
-    myDeployTargets = DeployTarget.getDeployTargets();
+    myProfilerState = new ProfilerState();
+    myDeployTargetProviders = DeployTargetProvider.getProviders();
     myAndroidTests = androidTests;
 
     ImmutableMap.Builder<String, DeployTargetState> builder = ImmutableMap.builder();
-    for (DeployTarget target : myDeployTargets) {
-      builder.put(target.getId(), target.createState());
+    for (DeployTargetProvider provider : myDeployTargetProviders) {
+      builder.put(provider.getId(), provider.createState());
     }
     myDeployTargetStates = builder.build();
+    DEBUGGER_TYPE = getDefaultAndroidDebuggerType();
+    for (AndroidDebugger androidDebugger: getAndroidDebuggers()) {
+      myAndroidDebuggerStates.put(androidDebugger.getId(), androidDebugger.createState());
+    }
   }
 
   @Override
@@ -142,6 +176,10 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     errors.addAll(getApkProvider(facet).validate());
 
     errors.addAll(checkConfiguration(facet));
+    AndroidDebuggerState androidDebuggerState = getAndroidDebuggerState(DEBUGGER_TYPE);
+    if (androidDebuggerState != null) {
+      errors.addAll(androidDebuggerState.validate(facet));
+    }
 
     return errors;
   }
@@ -152,7 +190,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   @NotNull
   protected abstract List<ValidationError> checkConfiguration(@NotNull AndroidFacet facet);
 
-  /** Subclasses should override to adjust the launch options passed to AndroidRunningState. */
+  /** Subclasses should override to adjust the launch options. */
   @NotNull
   protected LaunchOptions.Builder getLaunchOptions() {
     return LaunchOptions.builder()
@@ -185,10 +223,10 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   }
 
   @NotNull
-  public List<DeployTarget> getApplicableDeployTargets() {
-    List<DeployTarget> targets = Lists.newArrayList();
+  public List<DeployTargetProvider> getApplicableDeployTargetProviders() {
+    List<DeployTargetProvider> targets = Lists.newArrayList();
 
-    for (DeployTarget target : myDeployTargets) {
+    for (DeployTargetProvider target : myDeployTargetProviders) {
       if (target.isApplicable(myAndroidTests)) {
         targets.add(target);
       }
@@ -198,10 +236,10 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   }
 
   @NotNull
-  public DeployTarget getCurrentDeployTarget() {
-    DeployTarget target = getDeployTarget(TARGET_SELECTION_MODE);
+  public DeployTargetProvider getCurrentDeployTargetProvider() {
+    DeployTargetProvider target = getDeployTargetProvider(TARGET_SELECTION_MODE);
     if (target == null) {
-      target = getDeployTarget(TargetSelectionMode.SHOW_DIALOG.name());
+      target = getDeployTargetProvider(TargetSelectionMode.SHOW_DIALOG.name());
     }
 
     assert target != null;
@@ -209,8 +247,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   }
 
   @Nullable
-  private DeployTarget getDeployTarget(@NotNull String id) {
-    for (DeployTarget target : myDeployTargets) {
+  private DeployTargetProvider getDeployTargetProvider(@NotNull String id) {
+    for (DeployTargetProvider target : myDeployTargetProviders) {
       if (target.getId().equals(id)) {
         return target;
       }
@@ -220,13 +258,13 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   }
 
   @NotNull
-  private DeployTargetState getCurrentDeployTargetState() {
-    DeployTarget currentTarget = getCurrentDeployTarget();
+  protected DeployTargetState getCurrentDeployTargetState() {
+    DeployTargetProvider currentTarget = getCurrentDeployTargetProvider();
     return myDeployTargetStates.get(currentTarget.getId());
   }
 
   @NotNull
-  public DeployTargetState getDeployTargetState(@NotNull DeployTarget target) {
+  public DeployTargetState getDeployTargetState(@NotNull DeployTargetProvider target) {
     return myDeployTargetStates.get(target.getId());
   }
 
@@ -234,8 +272,39 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     TARGET_SELECTION_MODE = mode.name();
   }
 
-  public void setTargetSelectionMode(@NotNull DeployTarget target) {
+  public void setTargetSelectionMode(@NotNull DeployTargetProvider target) {
     TARGET_SELECTION_MODE = target.getId();
+  }
+
+  /**
+   * Returns the instant run variant of the run or debug icon if a subsequent launch will be an instant launch. This method is called from
+   * within an action timer (so called multiple times a second), so the sequence of checks are ordered to fail fast if possible.
+   */
+  @Nullable
+  @Override
+  public Icon getExecutorIcon(@NotNull RunConfiguration configuration, @NotNull Executor executor) {
+    if (!InstantRunSettings.isInstantRunEnabled() || !supportsInstantRun()) {
+      return null;
+    }
+
+    Module module = getConfigurationModule().getModule();
+    if (module == null) {
+      return null;
+    }
+
+    AndroidSessionInfo info = AndroidSessionInfo.findOldSession(getProject(), null, getUniqueID());
+    if (info == null || !info.isInstantRun() || !info.getExecutorId().equals(executor.getId())) {
+      return null;
+    }
+
+    // Make sure instant run is supported on the relevant device, if found.
+    AndroidVersion androidVersion = InstantRunManager.getMinDeviceApiLevel(info.getProcessHandler());
+    if (InstantRunManager.isInstantRunCapableDeviceVersion(androidVersion)
+        && InstantRunGradleUtils.getIrSupportStatus(module, androidVersion).success) {
+      return executor instanceof DefaultRunExecutor ? AndroidIcons.RunIcons.Replay : AndroidIcons.RunIcons.DebugReattach;
+    }
+
+    return null;
   }
 
   @Override
@@ -255,74 +324,403 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       debug = true;
     }
 
-    if (AndroidSdkUtils.getDebugBridge(getProject()) == null) {
-      throw new ExecutionException("Unable to obtain debug bridge");
+    DeviceFutures deviceFutures = null;
+    AndroidSessionInfo info = AndroidSessionInfo.findOldSession(project, null, getUniqueID()); // note: we look for this run config with any executor
+
+    IDevice rerunDevice = InstantRunUtils.getRestartDevice(env);
+    if (rerunDevice != null) { // first check if this is a session that has been restarted with some info pre-filled in the env
+      deviceFutures = DeviceFutures.forDevices(Collections.singletonList(rerunDevice));
     }
+    else if (info != null && supportsInstantRun()) { // if there is an existing previous session, then see if we can detect devices to fast deploy to
+      deviceFutures = getFastDeployDevices(executor, facet, info);
 
-    DeployTarget currentTarget = getCurrentDeployTarget();
-    DeployTargetState deployTargetState = getCurrentDeployTargetState();
-    ProcessHandlerConsolePrinter printer = new ProcessHandlerConsolePrinter(null);
-
-    if (currentTarget.requiresRuntimePrompt(deployTargetState)) {
-      if (!currentTarget
-        .showPrompt(executor, env, facet, getDeviceCount(debug), myAndroidTests, myDeployTargetStates, getUniqueID(), printer)) {
-        return null; // user cancelled
+      // HACK: We also need to support re-run
+      // In the case of re-run, we need to pick the devices from the previous run, but then terminate the app.
+      // This call to destroyProcess doesn't really belong here in the overall flow, but everything else in the flow just fits
+      // without any changes if we can recover the device first and then terminate the process. The alternative would be for
+      // the ReRun action itself to pass in the device just like it happens for the restart device, but that has the complication
+      // that the ReRun is now a global action and doesn't really know much details about each run (and doing that seems like a hack too.)
+      if (InstantRunUtils.isReRun(env)) {
+        info.getProcessHandler().destroyProcess();
+        info = null;
       }
     }
 
-    if (currentTarget.hasCustomRunProfileState(executor)) {
-      return currentTarget.getRunProfileState(executor, env, deployTargetState);
+    // If we should not be fast deploying, but there is an existing session, then terminate those sessions. Otherwise, we might end up with
+    // 2 active sessions of the same launch, especially if we first think we can do a fast deploy, then end up doing a full launch
+    if (info != null && deviceFutures == null) {
+      boolean continueLaunch = promptAndKillSession(executor, project, info);
+      if (!continueLaunch) {
+        return null;
+      }
     }
 
-    // If there is a session that we will embed to, we need to re-use the devices from that session.
-    // TODO: this means that if the deployment target is changed between sessions, we still use the one from the old session?
-    DeviceTarget deviceTarget = getOldSessionTarget(project, executor);
-    if (deviceTarget == null) {
-      deviceTarget = currentTarget.getTarget(deployTargetState, facet, getDeviceCount(debug), debug, getUniqueID(), printer);
-      if (deviceTarget == null) {
+    // If we are not fast deploying, then figure out (prompting user if needed) where to deploy
+    if (deviceFutures == null) {
+      DeployTarget deployTarget = getDeployTarget(executor, env, debug, facet);
+      if (deployTarget == null) {
+        return null;
+      }
+
+      DeployTargetState deployTargetState = getCurrentDeployTargetState();
+      if (deployTarget.hasCustomRunProfileState(executor)) {
+        return deployTarget.getRunProfileState(executor, env, deployTargetState);
+      }
+
+      deviceFutures = deployTarget.getDevices(deployTargetState, facet, getDeviceCount(debug), debug, getUniqueID());
+      if (deviceFutures == null) {
         // The user deliberately canceled, or some error was encountered and exposed by the chooser. Quietly exit.
         return null;
       }
     }
 
-    // Store the chosen target on the execution environment so before-run tasks can access it.
-    env.putCopyableUserData(DEVICE_TARGET_KEY, deviceTarget);
-
-    if (deviceTarget.getDeviceFutures().isEmpty()) {
+    if (deviceFutures.get().isEmpty()) {
       throw new ExecutionException(AndroidBundle.message("deployment.target.not.found"));
+    }
+
+    if (supportsInstantRun() && InstantRunSettings.isInstantRunEnabled()) {
+      List<AndroidDevice> devices = deviceFutures.getDevices();
+      if (devices.size() > 1) {
+        @Language("HTML") String message = "Instant Run is disabled:<br>" +
+                         "Instant Run does not support deploying to multiple targets.<br>" +
+                         "To enable Instant Run, deploy to a single target.";
+        new InstantRunUserFeedback(module).notifyDisabledForLaunch(message);
+        LOG.info(message);
+      }
+      else if (InstantRunGradleUtils.getIrSupportStatus(module, devices.get(0).getVersion()).success) {
+        InstantRunUtils.setInstantRunEnabled(env, true);
+        setInstantRunBuildOptions(env, info, module, deviceFutures);
+
+        if (!AndroidEnableAdbServiceAction.isAdbServiceEnabled()) {
+          throw new ExecutionException("Instant Run requires 'Tools | Android | Enable ADB integration' to be enabled.");
+        }
+      }
+    }
+
+    // Store the chosen target on the execution environment so before-run tasks can access it.
+    env.putCopyableUserData(DEVICE_FUTURES_KEY, deviceFutures);
+
+    if (debug) {
+      String error = canDebug(deviceFutures, facet, module.getName());
+      if (error != null) {
+        throw new ExecutionException(error);
+      }
     }
 
     LaunchOptions launchOptions = getLaunchOptions()
       .setDebug(debug)
       .build();
 
-    return new AndroidRunningState(env, facet, getApkProvider(facet), deviceTarget, printer, getApplicationLauncher(facet),
-                                   launchOptions, this);
+    ProcessHandler processHandler = null;
+    if (info != null && info.getExecutorId().equals(executor.getId())) {
+      processHandler = info.getProcessHandler();
+    }
+
+    ApkProvider apkProvider = getApkProvider(facet);
+    LaunchTasksProviderFactory providerFactory =
+      new AndroidLaunchTasksProviderFactory(this, env, facet, apkProvider, launchOptions, processHandler);
+
+    InstantRunStatsService.get(project).notifyBuildStarted();
+    return new AndroidRunState(env, getName(), module, apkProvider, getConsoleProvider(), deviceFutures.get(), providerFactory,
+                               processHandler);
   }
 
   @Nullable
-  private DeviceTarget getOldSessionTarget(@NotNull Project project, @NotNull Executor executor) {
-    AndroidSessionInfo sessionInfo = AndroidSessionManager.findOldSession(project, executor, this);
-    if (sessionInfo != null) {
-      if (sessionInfo.isEmbeddable()) {
-        Collection<IDevice> oldDevices = sessionInfo.getState().getDevices();
-        Collection<IDevice> online = DeviceSelectionUtils.getOnlineDevices(oldDevices);
-        if (!online.isEmpty()) {
-          return DeviceTarget.forDevices(online);
-        }
+  private static DeviceFutures getFastDeployDevices(@NotNull Executor executor,
+                                                    @NotNull AndroidFacet facet,
+                                                    @NotNull AndroidSessionInfo info) {
+    if (!InstantRunSettings.isInstantRunEnabled()) {
+      InstantRunManager.LOG.info("Instant run not enabled in settings");
+      return null;
+    }
+
+    if (!info.getExecutorId().equals(executor.getId())) {
+      String msg = String.format("Cannot Instant Run since old executor (%1$s) doesn't match current executor (%2$s)", info.getExecutorId(),
+                                 executor.getId());
+      InstantRunManager.LOG.info(msg);
+      return null;
+    }
+
+    List<IDevice> devices = info.getDevices();
+    if (devices == null || devices.isEmpty()) {
+      InstantRunManager.LOG.info("Cannot Instant Run since we could not locate the devices from the existing launch session");
+      return null;
+    }
+
+    if (devices.size() > 1) {
+      InstantRunManager.LOG.info("Last run was on > 1 device, not reusing devices and prompting again");
+      return null;
+    }
+
+    AndroidGradleModel model = AndroidGradleModel.get(facet);
+    AndroidVersion version = devices.get(0).getVersion();
+    BooleanStatus status = InstantRunGradleUtils.getIrSupportStatus(model, version);
+    if (!status.success) {
+      InstantRunManager.LOG.info("Cannot Instant Run: " + status.getCause());
+      new InstantRunUserFeedback(facet.getModule()).notifyDisabledForLaunch("Instant Run is disabled:<br>" + status.getCause());
+      return null;
+    }
+
+    return DeviceFutures.forDevices(devices);
+  }
+
+  private static void setInstantRunBuildOptions(@NotNull ExecutionEnvironment env,
+                                                @Nullable AndroidSessionInfo existingSession,
+                                                @NotNull Module module,
+                                                @NotNull DeviceFutures deviceFutures) {
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet == null) {
+      InstantRunManager.LOG.info("Module doesn't have Android Facet, not setting Instant Run options");
+      return;
+    }
+
+    AndroidGradleModel model = AndroidGradleModel.get(facet);
+    if (model == null) {
+      InstantRunManager.LOG.info("Module doesn't have Android Gradle Facet, not setting Instant Run options");
+      return;
+    }
+
+    List<IDevice> devices = deviceFutures.getIfReady();
+    IDevice device = devices == null ? null : devices.get(0);
+
+    boolean isRestartedSession = InstantRunUtils.getRestartDevice(env) != null;
+    boolean buildsMatch = device != null && InstantRunManager.buildTimestampsMatch(device, module);
+
+    // handles the scenario where app could still be running, but with the wrong executor (run vs debug)
+    boolean existingSessionOfSameExecutor = existingSession != null && existingSession.getExecutorId().equals(env.getExecutor().getId());
+    boolean appRunning = existingSessionOfSameExecutor && isAppRunning(module, devices);
+    InstantRunUtils.setAppRunning(env, appRunning);
+    if (!appRunning) {
+      InstantRunManager.LOG.info("Instant run: app is not running on the selected device.");
+    }
+
+    boolean needsCleanBuild = needsCleanBuild(isRestartedSession, InstantRunUtils.isCleanReRun(env), buildsMatch);
+    InstantRunUtils.setNeedsCleanBuild(env, needsCleanBuild);
+    if (needsCleanBuild) {
+      // implied that a clean build requires a full build
+      InstantRunUtils.setNeedsFullBuild(env, true);
+      return;
+    }
+
+    BooleanStatus canBuildIncrementally = canBuildIncrementally(env, facet, model, device);
+    InstantRunUtils.setNeedsFullBuild(env, !canBuildIncrementally.success);
+
+    if (!canBuildIncrementally.success) {
+      @Language("HTML") String message = canBuildIncrementally.getCause();
+      boolean show = true;
+      if (StringUtil.isEmpty(message)) {
+        message = "Installed APK cache not populated (first deployment)";
+        show = false;
+      }
+
+      LOG.info(message);
+      UsageTracker.getInstance().trackEvent(
+        UsageTracker.CATEGORY_INSTANTRUN, UsageTracker.ACTION_INSTANTRUN_FULLBUILD, message, null);
+
+      if (show) {
+        new InstantRunUserFeedback(module).postHtml(NotificationType.INFORMATION, message, null);
       }
     }
+  }
+
+  private static boolean needsCleanBuild(boolean isRestartedSession, boolean isCleanRerun, boolean buildsMatch) {
+    // restarted sessions don't need a clean build
+    if (isRestartedSession) {
+      return false;
+    }
+
+    if (isCleanRerun) {
+      return true;
+    }
+
+    // Otherwise, we only need a clean build if the build ids don't match
+    // Note: build id's not matching takes care of all device specific settings in the build (i.e. if any of api level, abi, etc,
+    // change, then the build id will also have changed)
+    return !buildsMatch;
+  }
+
+  private static BooleanStatus canBuildIncrementally(@NotNull ExecutionEnvironment env,
+                                                     @NotNull AndroidFacet facet,
+                                                     @NotNull AndroidGradleModel model,
+                                                     @Nullable IDevice device) {
+    @Language("HTML") String FULL_BUILD_PREFIX = "Performing full build &amp; install: <br>";
+    @Language("HTML") String DISABLED_PREFIX = "Instant Run is disabled: <br>";
+
+    if (device == null) {
+      return BooleanStatus.failure(FULL_BUILD_PREFIX + "Device API level unknown");
+    }
+
+    AndroidVersion deviceVersion = device.getVersion();
+    if (!InstantRunManager.isInstantRunCapableDeviceVersion(deviceVersion)) {
+      return BooleanStatus.failure(DISABLED_PREFIX +
+                                   "Instant Run does not support deployment to targets with API levels 14 or below.<br><br>" +
+                                   "To use Instant Run, deploy to a target with API level 15 or higher.");
+    }
+
+    boolean isRestartedSession = InstantRunUtils.getRestartDevice(env) != null;
+    if (isRestartedSession) {
+      // Also look up the verifier failure and include it here; without this; the verifier failure
+      // is displayed, but is quickly hidden as we realize we can't coldswap, and the below
+      // full build message is shown instead.
+      InstantRunBuildInfo buildInfo = InstantRunGradleUtils.getBuildInfo(model);
+      String verifierFailure = "";
+      if (buildInfo != null) {
+        verifierFailure = InstantRunManager.getVerifierMessage(buildInfo);
+        if (!StringUtil.isEmpty(verifierFailure)) {
+          verifierFailure += "<br>";
+        }
+        else {
+          verifierFailure = "";
+        }
+      }
+
+      if (!RunAsValidityService.getInstance().hasWorkingRunAs(device)) {
+        return BooleanStatus.failure(FULL_BUILD_PREFIX +
+                                     "Instant Run detected that the deployment target does not properly support the 'run-as' command." +
+                                     InstantRunUserFeedback.LEARN_MORE_LINK);
+      }
+
+      if (!InstantRunSettings.isColdSwapEnabled()) {
+        return BooleanStatus.failure(FULL_BUILD_PREFIX + "Instant Run's cold swap feature has been disabled.");
+      }
+
+      if (deviceVersion.getApiLevel() < 21) {
+        return BooleanStatus.failure(FULL_BUILD_PREFIX +
+                                     "Instant Run does not support cold swaps on deployment targets with API level 20 or below.<br><br>" +
+                                     "To enable cold swaps, deploy to a target with API level 21 or higher.");
+      }
+
+      String verifierStatus = buildInfo == null ? null : buildInfo.getVerifierStatus();
+      if (verifierStatus != null) {
+        if ("BINARY_MANIFEST_FILE_CHANGE".equals(verifierStatus)) {
+          return BooleanStatus.failure(FULL_BUILD_PREFIX + "Resource ids changed");
+        }
+      }
+
+      // If we get here, we don't know why the session was restarted, so show a generic message.
+      return BooleanStatus.failure(verifierFailure + FULL_BUILD_PREFIX + "Session restarted");
+    }
+
+    if (!InstantRunManager.hasLocalCacheOfDeviceData(device, facet.getModule())) {
+      return BooleanStatus.failure("");
+    }
+
+    String pkgName = AndroidModuleInfo.get(facet).getPackage();
+    if (StringUtil.isEmpty(pkgName)) {
+      return BooleanStatus.failure(FULL_BUILD_PREFIX + "Could not determine package name of application");
+    }
+
+    // Normally, all files are saved when Gradle runs (in GradleInvoker#executeTasks). However,
+    // we need to save the files a bit earlier than that here (turning the Gradle file save into
+    // a no-op) because we need to check whether the manifest file has been edited since an
+    // edited manifest changes what the incremental run build has to do.
+    GradleInvoker.saveAllFilesSafely();
+
+    if (InstantRunManager.manifestChanged(device, facet, pkgName)) {
+      return BooleanStatus.failure(FULL_BUILD_PREFIX + "Instant Run detected that one of the AndroidManifest.xml files have changed." +
+                                   InstantRunUserFeedback.LEARN_MORE_LINK);
+    }
+
+    if (InstantRunManager.manifestResourceChanged(device, facet, pkgName)) {
+      return BooleanStatus.failure(FULL_BUILD_PREFIX +
+                                   "Instant Run detected that a resource referenced from the AndroidManifest.xml file has changed");
+    }
+
+    return BooleanStatus.SUCCESS;
+  }
+
+  private static String canDebug(@NotNull DeviceFutures deviceFutures, @NotNull AndroidFacet facet, @NotNull String moduleName) {
+    // If we are debugging on a device, then the app needs to be debuggable
+    for (ListenableFuture<IDevice> future : deviceFutures.get()) {
+      if (!future.isDone()) {
+        // this is an emulator, and we assume that all emulators are debuggable
+        continue;
+      }
+
+      IDevice device = Futures.getUnchecked(future);
+      if (!LaunchUtils.canDebugAppOnDevice(facet, device)) {
+        return AndroidBundle.message("android.cannot.debug.noDebugPermissions", moduleName, device.getName());
+      }
+    }
+
     return null;
+  }
+
+  @Nullable
+  private DeployTarget getDeployTarget(@NotNull Executor executor,
+                                       @NotNull ExecutionEnvironment env,
+                                       boolean debug,
+                                       @NotNull AndroidFacet facet) throws ExecutionException {
+    DeployTargetProvider currentTargetProvider = getCurrentDeployTargetProvider();
+
+    DeployTarget deployTarget;
+    if (currentTargetProvider.requiresRuntimePrompt()) {
+      deployTarget =
+        currentTargetProvider.showPrompt(executor, env, facet, getDeviceCount(debug), myAndroidTests, myDeployTargetStates, getUniqueID());
+      if (deployTarget == null) {
+        return null;
+      }
+    }
+    else {
+      deployTarget = currentTargetProvider.getDeployTarget();
+    }
+
+    return deployTarget;
+  }
+
+  private boolean promptAndKillSession(@NotNull Executor executor, Project project, AndroidSessionInfo info) {
+    String previousExecutor = info.getExecutorId();
+    String currentExecutor = executor.getId();
+
+    if (ourKillLaunchOption.isToBeShown()) {
+      String msg, noText;
+      if (previousExecutor.equals(currentExecutor)) {
+        msg = String.format("Restart App?\nThe app is already running. Would you like to kill it and restart the session?");
+        noText = "Cancel";
+      }
+      else {
+        msg = String.format("To switch from %1$s to %2$s, the app has to restart. Continue?", previousExecutor, currentExecutor);
+        noText = "Cancel " + currentExecutor;
+      }
+
+      String title = "Launching " + getName();
+      String yesText = "Restart " + getName();
+      if (Messages.NO ==
+          Messages.showYesNoDialog(project, msg, title, yesText, noText, AllIcons.General.QuestionDialog, ourKillLaunchOption)) {
+        return false;
+      }
+    }
+
+    LOG.info("Disconnecting existing session of the same launch configuration");
+    info.getProcessHandler().detachProcess();
+    return true;
+  }
+
+  private static boolean isAppRunning(@NotNull Module module, @Nullable Collection<IDevice> usedDevices) {
+    if (usedDevices == null) {
+      return false;
+    }
+
+    for (IDevice device : usedDevices) {
+      if (!InstantRunManager.isAppInForeground(device, module)) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   @NotNull
   protected abstract ApkProvider getApkProvider(@NotNull AndroidFacet facet);
 
   @NotNull
-  protected abstract ConsoleView attachConsole(AndroidRunningState state, Executor executor) throws ExecutionException;
+  protected abstract ConsoleProvider getConsoleProvider();
 
-  @NotNull
-  protected abstract AndroidApplicationLauncher getApplicationLauncher(AndroidFacet facet);
+  @Nullable
+  protected abstract LaunchTask getApplicationLaunchTask(@NotNull ApkProvider apkProvider,
+                                                         @NotNull AndroidFacet facet,
+                                                         boolean waitForDebugger,
+                                                         @NotNull LaunchStatus launchStatus);
 
   @NotNull
   public final DeviceCount getDeviceCount(boolean debug) {
@@ -332,6 +730,11 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   /** @return true iff this run configuration supports deploying to multiple devices. */
   protected abstract boolean supportMultipleDevices();
 
+  /** @return true iff this run configuration supports instant run. */
+  public boolean supportsInstantRun() {
+    return false;
+  }
+
   @Override
   public void readExternal(Element element) throws InvalidDataException {
     super.readExternal(element);
@@ -340,6 +743,18 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
     for (DeployTargetState state : myDeployTargetStates.values()) {
       DefaultJDOMExternalizer.readExternal(state, element);
+    }
+
+    for (Map.Entry<String, AndroidDebuggerState> entry: myAndroidDebuggerStates.entrySet()) {
+      Element optionElement = element.getChild(entry.getKey());
+      if (optionElement != null) {
+        entry.getValue().readExternal(optionElement);
+      }
+    }
+
+    Element profilersElement = element.getChild(PROFILERS_ELEMENT_NAME);
+    if (profilersElement != null) {
+      myProfilerState.readExternal(profilersElement);
     }
   }
 
@@ -352,9 +767,93 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     for (DeployTargetState state : myDeployTargetStates.values()) {
       DefaultJDOMExternalizer.writeExternal(state, element);
     }
+
+    for (Map.Entry<String, AndroidDebuggerState> entry: myAndroidDebuggerStates.entrySet()) {
+      Element optionElement = new Element(entry.getKey());
+      element.addContent(optionElement);
+      entry.getValue().writeExternal(optionElement);
+    }
+
+    Element profilersElement = new Element(PROFILERS_ELEMENT_NAME);
+    element.addContent(profilersElement);
+    myProfilerState.writeExternal(profilersElement);
   }
 
-  public boolean usesSimpleLauncher() {
-    return true;
+  public boolean isNativeLaunch() {
+    AndroidDebugger<?> androidDebugger = getAndroidDebugger();
+    if (androidDebugger == null) {
+      return false;
+    }
+    return !androidDebugger.getId().equals(AndroidJavaDebugger.ID);
+  }
+
+  @NotNull
+  protected String getDefaultAndroidDebuggerType() {
+    return AndroidJavaDebugger.ID;
+  }
+
+  @NotNull
+  public List<AndroidDebugger> getAndroidDebuggers() {
+    return Arrays.asList(AndroidDebugger.EP_NAME.getExtensions());
+  }
+
+  @Nullable
+  public AndroidDebugger getAndroidDebugger() {
+    for (AndroidDebugger androidDebugger: getAndroidDebuggers()) {
+      if (androidDebugger.getId().equals(DEBUGGER_TYPE)) {
+        return androidDebugger;
+      }
+    }
+    return null;
+  }
+
+  @Nullable
+  public <T extends AndroidDebuggerState> T getAndroidDebuggerState(@NotNull String androidDebuggerId) {
+    AndroidDebuggerState state = myAndroidDebuggerStates.get(androidDebuggerId);
+    return (state != null) ? (T)state : null;
+  }
+
+  @Nullable
+  public <T extends AndroidDebuggerState> T getAndroidDebuggerState() {
+    return getAndroidDebuggerState(DEBUGGER_TYPE);
+  }
+
+  /**
+   * Returns the current {@link ProfilerState} for this configuration.
+   */
+  public ProfilerState getProfilerState() {
+    return myProfilerState;
+  }
+
+  private static class MyDoNotPromptOption implements DialogWrapper.DoNotAskOption {
+    public static final String PROMPT_KEY = "android.show.prompt.kill.session";
+    private boolean myShow = PropertiesComponent.getInstance().getBoolean(PROMPT_KEY, false);
+
+    @Override
+    public boolean isToBeShown() {
+      return !myShow;
+    }
+
+    @Override
+    public void setToBeShown(boolean toBeShown, int exitCode) {
+      myShow = !toBeShown;
+      PropertiesComponent.getInstance().setValue(PROMPT_KEY, myShow);
+    }
+
+    @Override
+    public boolean canBeHidden() {
+      return true;
+    }
+
+    @Override
+    public boolean shouldSaveOptionsOnCancel() {
+      return true;
+    }
+
+    @NotNull
+    @Override
+    public String getDoNotShowMessage() {
+      return "Do not ask again";
+    }
   }
 }

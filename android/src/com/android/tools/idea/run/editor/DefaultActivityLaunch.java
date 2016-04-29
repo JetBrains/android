@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.run.editor;
 
-import com.android.tools.idea.run.AndroidApplicationLauncher;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.ValidationError;
 import com.android.tools.idea.run.activity.ActivityLocator;
-import com.android.tools.idea.run.activity.AndroidActivityLauncher;
 import com.android.tools.idea.run.activity.DefaultActivityLocator;
 import com.android.tools.idea.run.activity.MavenDefaultActivityLocator;
+import com.android.tools.idea.run.tasks.DefaultActivityLaunchTask;
+import com.android.tools.idea.run.tasks.LaunchTask;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -35,9 +35,10 @@ public class DefaultActivityLaunch extends LaunchOption<DefaultActivityLaunch.St
   public static final DefaultActivityLaunch INSTANCE = new DefaultActivityLaunch();
 
   public static final class State extends LaunchOptionState {
+    @Nullable
     @Override
-    public AndroidApplicationLauncher getLauncher(@NotNull AndroidFacet facet, @NotNull String extraAmOptions) {
-      return new AndroidActivityLauncher(getActivityLocator(facet), extraAmOptions);
+    public LaunchTask getLaunchTask(@NotNull String applicationId, @NotNull AndroidFacet facet, boolean waitForDebugger, @NotNull String extraAmOptions) {
+      return new DefaultActivityLaunchTask(applicationId, getActivityLocator(facet), waitForDebugger, extraAmOptions);
     }
 
     @NotNull

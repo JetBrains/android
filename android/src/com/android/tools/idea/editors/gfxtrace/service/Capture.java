@@ -64,7 +64,7 @@ public final class Capture implements BinaryObject {
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("service","Capture","","");
+  private static final Entity ENTITY = new Entity("service", "Capture", "", "");
 
   static {
     ENTITY.setFields(new Field[]{

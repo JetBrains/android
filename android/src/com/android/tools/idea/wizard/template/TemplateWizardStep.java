@@ -18,7 +18,7 @@ package com.android.tools.idea.wizard.template;
 import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateMetadata;
-import com.android.tools.idea.ui.ComboBoxItemWithApiTag;
+import com.android.tools.idea.ui.ApiComboBoxItem;
 import com.android.tools.idea.wizard.dynamic.AndroidStudioWizardStep;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithHeaderAndDescription;
 import com.android.tools.idea.templates.StringEvaluator;
@@ -79,7 +79,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
   protected final BiMap<String, JComponent> myParamFields = HashBiMap.create();
   protected final Map<String, JLabel> myParamFieldLabels = Maps.newHashMap();
   protected final Map<JRadioButton, Pair<String, Object>> myRadioButtonValues = Maps.newHashMap();
-  protected final Map<Parameter, ComboBoxItemWithApiTag> myComboBoxValues = Maps.newHashMap();
+  protected final Map<Parameter, ApiComboBoxItem> myComboBoxValues = Maps.newHashMap();
   protected final Project myProject;
   protected final Module myModule;
   private final Icon mySidePanelIcon;
@@ -350,19 +350,18 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
 
         // Check to see that the selection's constraints are met if this is a combo box
         if (myComboBoxValues.containsKey(param)) {
-          ComboBoxItemWithApiTag selectedItem = myComboBoxValues.get(param);
+          ApiComboBoxItem selectedItem = myComboBoxValues.get(param);
 
           if (selectedItem == null) {
             return false;
           }
-          if (minApi != null && selectedItem.minApi > minApi) {
-            setErrorHtml(String.format("The \"%s\" option for %s requires a minimum API level of %d", selectedItem.label, param.name,
-                                       selectedItem.minApi));
+          if (minApi == null || buildApi == null) {
             return false;
           }
-          if (buildApi != null && selectedItem.minBuildApi > buildApi) {
-            setErrorHtml(String.format("The \"%s\" option for %s requires a minimum API level of %d", selectedItem.label, param.name,
-                                       selectedItem.minBuildApi));
+
+          String message = selectedItem.validate(minApi, buildApi);
+          if (message != null) {
+            setErrorHtml(message);
             return false;
           }
         }
@@ -401,7 +400,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
         }
         else if (component instanceof JComboBox) {
           for (int i = 0; i < ((JComboBox)component).getItemCount(); i++) {
-            if (((ComboBoxItemWithApiTag)((JComboBox)component).getItemAt(i)).id.equals(value)) {
+            if (((ApiComboBoxItem)((JComboBox)component).getItemAt(i)).getData().equals(value)) {
               ((JComboBox)component).setSelectedIndex(i);
               break;
             }
@@ -434,11 +433,11 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
       newValue = ((JCheckBox)component).isSelected();
     }
     else if (component instanceof JComboBox) {
-      ComboBoxItemWithApiTag selectedItem = (ComboBoxItemWithApiTag)((JComboBox)component).getSelectedItem();
+      ApiComboBoxItem selectedItem = (ApiComboBoxItem)((JComboBox)component).getSelectedItem();
       myComboBoxValues.put(param, selectedItem);
 
       if (selectedItem != null) {
-        newValue = selectedItem.id;
+        newValue = selectedItem.getData();
       }
     }
     else if (component instanceof JTextField) {
@@ -474,7 +473,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
       try { minSdk = Integer.parseInt(option.getAttribute(TemplateMetadata.ATTR_MIN_API)); } catch (Exception e) { }
       int minBuildApi = 1;
       try { minBuildApi = Integer.parseInt(option.getAttribute(TemplateMetadata.ATTR_MIN_BUILD_API)); } catch (Exception e) { }
-      comboBox.addItem(new ComboBoxItemWithApiTag(optionId, optionLabel, minSdk, minBuildApi));
+      comboBox.addItem(new ApiComboBoxItem(optionId, optionLabel, minSdk, minBuildApi));
       String isDefault = option.getAttribute(ATTR_DEFAULT);
       if (isDefault != null && !isDefault.isEmpty() && Boolean.valueOf(isDefault)) {
         comboBox.setSelectedIndex(comboBox.getItemCount() - 1);
@@ -488,18 +487,18 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
    */
   protected static <E extends Enum<E>> void populateComboBox(@NotNull JComboBox comboBox, @NotNull Class<E> enumClass) {
     for (Enum<E> e : enumClass.getEnumConstants()) {
-      comboBox.addItem(new ComboBoxItemWithApiTag(e.name(), e.toString(), 1, 1));
+      comboBox.addItem(new ApiComboBoxItem(e.name(), e.toString(), 1, 1));
     }
   }
 
   /**
    * Takes a {@link JComboBox} instance and an array and
    * populates the combo box with the values in the array.
-   * Similar to the {@link DefaultComboBoxModel}, but uses our ComboBoxItemWithApiTag.
+   * Similar to the {@link DefaultComboBoxModel}, but uses our ApiComboBoxItem.
    */
   protected static void populateComboBox(@NotNull JComboBox comboBox, @NotNull Object[] array) {
     for (int i = 0; i < array.length; ++i) {
-      comboBox.addItem(new ComboBoxItemWithApiTag(i, array[i].toString(), 1, 1));
+      comboBox.addItem(new ApiComboBoxItem(i, array[i].toString(), 1, 1));
     }
   }
 
@@ -537,10 +536,10 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
     if (value != null) {
       for (int i = 0; i < comboBox.getItemCount(); i++) {
         Object item = comboBox.getItemAt(i);
-        if (!(item instanceof ComboBoxItemWithApiTag)) {
+        if (!(item instanceof ApiComboBoxItem)) {
           continue;
         }
-        if (((ComboBoxItemWithApiTag)item).id.equals(value)) {
+        if (((ApiComboBoxItem)item).getData().equals(value)) {
           comboBox.setSelectedIndex(i);
           break;
         }

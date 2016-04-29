@@ -21,7 +21,6 @@ import com.intellij.lang.documentation.DocumentationProvider;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
-import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.Nullable;
 
@@ -145,6 +144,10 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
     myFixture.copyFileToProject(getTestDataPath() + "/javadoc/strings/strings-ta.xml", "res/values-ta/strings.xml");
     myFixture.copyFileToProject(getTestDataPath() + "/javadoc/strings/strings-zh-rTW.xml", "res/values-zh-rTW/strings.xml");
     checkJavadoc("/javadoc/strings/layout1.xml", "res/layout/layout1.xml", "<html><body>Application Name</body></html>");
+  }
+
+  public void testAttributeValueDoc() {
+    checkJavadoc("/javadoc/layout/layout.xml", "res/layout/layout.xml", "The view should be only big enough to enclose its content (plus padding).");
   }
 
   public void testXmlString2() {
@@ -272,15 +275,21 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
     myFixture.copyFileToProject(getTestDataPath() + "/javadoc/colors/third.xml", "res/color/third.xml");
     checkJavadoc("/javadoc/colors/values.xml", "res/values/values.xml",
                  "<html><body>" +
-                 "<table style=\"background-color:rgb(170,68,170);width:200px;text-align:center;" +
+                 "<table><tr><td><font color=\"#ff0000\"><B>@android:color/bright_foreground_dark_disabled</B></font></td><td>Not enabled</td></tr>" +
+                 "<tr><td><font color=\"#ff0000\"><B>@android:color/bright_foreground_dark</B></font></td><td>Not window_focused</td></tr>" +
+                 "<tr><td><font color=\"#ff0000\"><B>@android:color/bright_foreground_dark_inverse</B></font></td><td>Pressed</td></tr>" +
+                 "<tr><td><table style=\"background-color:rgb(255,255,255);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:black\">#ffffff</td></tr></table></td><td>Selected</td><td><BR/>@android:color/my_white => #ffffff<BR/></td></tr>" +
+                 "<tr><td><table style=\"background-color:rgb(0,0,0);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:white\">#000000</td></tr></table></td><td>Activated</td><td><BR/>@android:color/primary_text_dark => #000000<BR/></td></tr>" +
+                 "<tr><td><table style=\"background-color:rgb(170,68,170);width:66px;text-align:center;" +
                  "vertical-align:middle;\" border=\"0\">" +
-                 "<tr height=\"100\">" +
-                 "<td align=\"center\" valign=\"middle\" height=\"100\" style=\"color:white\">" +
+                 "<tr height=\"33\">" +
+                 "<td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:white\">" +
                  "#aa44aa" +
                  "</td>" +
                  "</tr>" +
-                 "</table><BR/>" +
-                 "@color/first => @color/second => @color/third => third.xml => @color/fourth => #aa44aa<BR/>" +
+                 "</table>" +
+                 "</td><td>Default</td><td><BR/>@color/fourth => #aa44aa<BR/></td></tr></table>" +
+                 "<BR/>@color/first => @color/second => @color/third => third.xml<BR/>" +
                  "</body></html>");
   }
 
@@ -292,14 +301,15 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
                  "?android:attr/textAppearanceMedium => @android:style/TextAppearance.Medium<BR/>" +
                  "<BR/>" +
                  "<hr><B>TextAppearance.Medium</B>:<BR/>" +
-                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textColor</B> = ?textColorPrimary<BR/>" +
-                 "<table style=\"background-color:rgb(0,0,0);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:white\">#000000</td></tr></table>&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textSize</B> = 18sp<BR/>" +
+                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textSize</B> = 18sp<BR/>" +
                  "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textStyle</B> = normal<BR/>" +
+                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textColor</B> = ?textColorPrimary<BR/>" +
+                 "<table style=\"background-color:rgb(0,0,0);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:white\">#000000</td></tr></table>" +
                  "<BR/>" +
                  "Inherits from: @android:style/TextAppearance:<BR/>" +
-                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textColorHint</B> = ?textColorHint => ?textColorHint<BR/>" +
                  "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textColorLink</B> = #5C5CFF<BR/>" +
                  "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textColorHighlight</B> = #FFFF9200<BR/>" +
+                 "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textColorHint</B> = ?textColorHint => ?textColorHint<BR/>" +
                  "</body></html>");
   }
 
@@ -312,7 +322,15 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
                  "<BR/>" + "" +
                  "<hr><B>Theme.FrameworkTheme</B>:<BR/>" +
                  "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textColorPrimary</B> = @color/state_list<BR/>" +
-                 "<table style=\"background-color:rgb(255,255,255);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:black\">#ffffff</td></tr></table></body></html>");
+                 "<table><tr><td>" +
+                 "<table style=\"background-color:rgb(255,255,255);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:black\">#ffffff</td></tr></table>" +
+                 "</td><td>Default</td></tr></table>" +
+                 "</body></html>");
+  }
+
+  public void testStyleName() {
+    checkJavadoc("/javadoc/styles/styles_attribute_documentation.xml", "res/values/styles.xml",
+                 "Default text typeface style.");
   }
 
   // TODO: Test flavor docs

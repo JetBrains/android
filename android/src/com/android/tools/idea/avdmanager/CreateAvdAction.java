@@ -36,7 +36,7 @@ public class CreateAvdAction extends AvdUiAction {
 
   @Override
   public void actionPerformed(ActionEvent e) {
-    AvdEditWizard wizard = new AvdEditWizard(myAvdInfoProvider.getComponent(), null, null, null, true);
+    AvdEditWizard wizard = new AvdEditWizard(myAvdInfoProvider.getComponent(), getProject(), null, null, true);
     wizard.init();
     wizard.showAndGet();
     refreshAvds();

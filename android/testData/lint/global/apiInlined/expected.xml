@@ -19,6 +19,6 @@
     <file>MyActivity.java</file>
     <line>26</line>
     <problem_class severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Using inlined constants on older versions</problem_class>
-    <description><html>Field requires API level 11 (current min is 1): android.view.View#MEASURED_HEIGHT_STATE_SHIFT</html></description>
+    <description>&lt;html&gt;Field requires API level 11 (current min is 1): android.view.View#MEASURED_HEIGHT_STATE_SHIFT&lt;/html&gt;</description>
   </problem>
 </problems>

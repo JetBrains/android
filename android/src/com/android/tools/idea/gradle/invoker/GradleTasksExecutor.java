@@ -123,7 +123,7 @@ import static org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelp
 /**
  * Invokes Gradle tasks as a IDEA task in the background.
  */
-class GradleTasksExecutor extends Task.Backgroundable {
+public class GradleTasksExecutor extends Task.Backgroundable {
   private static final ExternalSystemTaskNotificationListener GRADLE_LISTENER = new ExternalSystemTaskNotificationListenerAdapter() {
   };
 

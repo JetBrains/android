@@ -19,7 +19,7 @@ import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.SdkMavenRepository;
-import com.android.sdklib.repository.PreciseRevision;
+import com.android.repository.Revision;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.lint.checks.GradleDetector;
 import com.android.tools.lint.client.api.LintClient;
@@ -200,7 +200,7 @@ public class RepositoryUrlManager {
       return null;
     }
 
-    return max.getFullRevision();
+    return max.getRevision();
   }
 
   /**
@@ -258,7 +258,7 @@ public class RepositoryUrlManager {
     // Get the parameters to include in the path
     String sdkLocation = sdk.getLocation().getPath();
     String artifactId = gradleCoordinate.getArtifactId();
-    String revision = gradleCoordinate.getFullRevision();
+    String revision = gradleCoordinate.getRevision();
     RepositoryLibrary library = EXTRAS_REPOSITORY.get(artifactId);
 
     File path = new File(String.format(library.basePath, sdkLocation, library.id));
@@ -284,8 +284,9 @@ public class RepositoryUrlManager {
    * @return the string representing the highest version found in the file or "0.0.0" if no versions exist in the file
    */
   @Nullable
-  private String getLatestVersionFromMavenMetadata(final File metadataFile, @Nullable final String filterPrefix,
-                                                   final boolean includePreviews) {
+  public String getLatestVersionFromMavenMetadata(@NotNull final File metadataFile,
+                                                  @Nullable final String filterPrefix,
+                                                  final boolean includePreviews) {
     String xml = readTextFile(metadataFile);
     final List<GradleCoordinate> versions = Lists.newLinkedList();
     try {
@@ -323,10 +324,10 @@ public class RepositoryUrlManager {
     if (versions.isEmpty()) {
       return REVISION_ANY;
     } else if (includePreviews) {
-      return GRADLE_COORDINATE_ORDERING.max(versions).getFullRevision();
+      return GRADLE_COORDINATE_ORDERING.max(versions).getRevision();
     } else {
       try {
-        return GRADLE_COORDINATE_ORDERING.max(Iterables.filter(versions, IS_NOT_PREVIEW)).getFullRevision();
+        return GRADLE_COORDINATE_ORDERING.max(Iterables.filter(versions, IS_NOT_PREVIEW)).getRevision();
       } catch (NoSuchElementException e) {
         return null;
       }
@@ -387,7 +388,7 @@ public class RepositoryUrlManager {
    */
   @Nullable
   public String resolveDynamicCoordinateVersion(@NotNull GradleCoordinate coordinate, @Nullable Project project) {
-    String filter = coordinate.getFullRevision();
+    String filter = coordinate.getRevision();
     if (!filter.endsWith("+")) {
       // Already resolved. That was easy.
       return filter;
@@ -412,13 +413,13 @@ public class RepositoryUrlManager {
     // Regular Gradle dependency? Look in Gradle cache
     GradleCoordinate found = GradleUtil.findLatestVersionInGradleCache(coordinate, filter, project);
     if (found != null) {
-      return found.getFullRevision();
+      return found.getRevision();
     }
 
     // Perform network lookup to resolve current best version, if possible
     if (project != null) {
       LintClient client = new IntellijLintClient(project);
-      PreciseRevision latest = GradleDetector.getLatestVersionFromRemoteRepo(client, coordinate, coordinate.isPreview());
+      Revision latest = GradleDetector.getLatestVersionFromRemoteRepo(client, coordinate, coordinate.isPreview());
       if (latest != null) {
         String version = latest.toShortString();
         if (version.startsWith(filter)) {
@@ -431,7 +432,7 @@ public class RepositoryUrlManager {
   }
 
   /**
-   * Evaluates to true iff the given FullRevision is not a preview version
+   * Evaluates to true iff the given Revision is not a preview version
    */
   private static final Predicate<GradleCoordinate> IS_NOT_PREVIEW = new Predicate<GradleCoordinate>() {
     @Override
@@ -461,13 +462,11 @@ public class RepositoryUrlManager {
     return file.exists();
   }
 
-  @VisibleForTesting
-  static class RepositoryLibrary {
+  public static class RepositoryLibrary {
     public final String id;
     public final String basePath;
     public final String baseCoordinate;
     private final RangeMap<Integer, String> myArchiveExtensions;
-
 
     private RepositoryLibrary(String id, String basePath, String baseCoordinate, String archiveExtension) {
       this.id = id;

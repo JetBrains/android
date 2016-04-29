@@ -24,6 +24,7 @@ import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.timing.Condition;
+import org.fest.swing.timing.Timeout;
 import org.fest.swing.util.TextMatcher;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -31,6 +32,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.THIRTY_SEC_TIMEOUT;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.swing.timing.Pause.pause;
 
@@ -77,8 +79,42 @@ public abstract class ToolWindowFixture {
   }
 
   @Nullable
+  protected Content getContent(@NotNull final String displayName, @NotNull Timeout timeout) {
+    long now = System.currentTimeMillis();
+    long budget = timeout.duration();
+    activateAndWaitUntilIsVisible(Timeout.timeout(budget));
+    long revisedNow = System.currentTimeMillis();
+    budget -= (revisedNow - now);
+    final Ref<Content> contentRef = new Ref<Content>();
+    pause(new Condition("finding content with display name " + displayName) {
+      @Override
+      public boolean test() {
+        Content[] contents = getContents();
+        for (Content content : contents) {
+          if (displayName.equals(content.getDisplayName())) {
+            contentRef.set(content);
+            return true;
+          }
+        }
+        return false;
+      }
+    }, Timeout.timeout(budget));
+    return contentRef.get();
+  }
+
+  @Nullable
   protected Content getContent(@NotNull final TextMatcher displayNameMatcher) {
-    activateAndWaitUntilIsVisible();
+    return getContent(displayNameMatcher, SHORT_TIMEOUT);
+  }
+
+  @Nullable
+  protected Content getContent(@NotNull final TextMatcher displayNameMatcher, @NotNull Timeout timeout) {
+    long now = System.currentTimeMillis();
+    long budget = timeout.duration();
+    activateAndWaitUntilIsVisible(Timeout.timeout(budget));
+    long revisedNow = System.currentTimeMillis();
+    budget -= (revisedNow - now);
+    now = revisedNow;
     final Ref<Content> contentRef = new Ref<Content>();
     pause(new Condition("finding content matching " + displayNameMatcher.formattedValues()) {
       @Override
@@ -93,13 +129,20 @@ public abstract class ToolWindowFixture {
         }
         return false;
       }
-    }, SHORT_TIMEOUT);
+    }, Timeout.timeout(budget));
     return contentRef.get();
   }
 
   private void activateAndWaitUntilIsVisible() {
+    activateAndWaitUntilIsVisible(SHORT_TIMEOUT);
+  }
+
+  private void activateAndWaitUntilIsVisible(@NotNull Timeout timeout) {
+    long now = System.currentTimeMillis();
+    long budget = timeout.duration();
     activate();
-    waitUntilIsVisible();
+    budget -= System.currentTimeMillis() - now;
+    waitUntilIsVisible(Timeout.timeout(budget));
   }
 
   @NotNull
@@ -139,6 +182,10 @@ public abstract class ToolWindowFixture {
   }
 
   protected void waitUntilIsVisible() {
+    waitUntilIsVisible(THIRTY_SEC_TIMEOUT);
+  }
+
+  protected void waitUntilIsVisible(@NotNull Timeout timeout) {
     pause(new Condition("Wait for ToolWindow '" + myToolWindowId + "' to be visible") {
       @Override
       public boolean test() {
@@ -147,7 +194,7 @@ public abstract class ToolWindowFixture {
         }
         return isVisible();
       }
-    });
+    }, timeout);
   }
 
   private boolean isVisible() {

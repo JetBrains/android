@@ -22,8 +22,9 @@ import com.android.builder.model.SourceProvider;
 import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.npw.template.GenerateIconsStep;
 import com.android.tools.idea.templates.*;
-import com.android.tools.idea.ui.ComboBoxItemWithApiTag;
+import com.android.tools.idea.ui.ApiComboBoxItem;
 import com.android.tools.idea.ui.ImageComponent;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
@@ -68,6 +69,8 @@ import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
 
 /**
  * {@linkplain IconStep} is a wizard page that lets the user create a variety of density-scaled assets.
+ *
+ * @deprecated Replaced by {@link GenerateIconsStep}
  */
 public class IconStep extends DynamicWizardStepWithDescription implements Disposable {
   public static final Key<String> ATTR_ASSET_NAME = createKey(AssetStudioAssetGenerator.ATTR_ASSET_NAME, PATH, String.class);
@@ -162,7 +165,7 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
     myBackgroundColor.setSelectedColor(Color.WHITE);
 
     for (String font : GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames()) {
-      myFontFamily.addItem(new ComboBoxItemWithApiTag(font, font, 1, 1));
+      myFontFamily.addItem(new ApiComboBoxItem(font, font, 1, 1));
       if (font.equals(myState.get(ATTR_FONT))) {
         myFontFamily.setSelectedIndex(myFontFamily.getItemCount() - 1);
       }
@@ -341,9 +344,9 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
       showLabelAndCombo = folders.size() > 1;
       mySourceSetComboBox.removeAllItems();
       if (showLabelAndCombo) {
-        ComboBoxItemWithApiTag selected = null;
+        ApiComboBoxItem selected = null;
         for (File directory : folders) {
-          ComboBoxItemWithApiTag item = new ComboBoxItemWithApiTag(directory, getResourceDirLabel(getModule(), directory), 0, 0);
+          ApiComboBoxItem item = new ApiComboBoxItem(directory, getResourceDirLabel(getModule(), directory), 0, 0);
           if (Objects.equal(directory, res)) {
             selected = item;
           }
@@ -395,8 +398,8 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
 
     AssetType iconType = null;
     TemplateEntry templateEntry = myState.get(myTemplateKey);
-    if (templateEntry != null) {
-      iconType = templateEntry.getMetadata().getIconType();
+    if (templateEntry != null && templateEntry.getMetadata().getIconType() != null) {
+      iconType = AssetType.of(templateEntry.getMetadata().getIconType());
     }
     finalizeAssetType(iconType);
 

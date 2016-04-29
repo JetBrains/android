@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.builder.model.AndroidProject;
-import com.android.sdklib.repository.FullRevision;
+import com.android.ide.common.repository.GradleVersion;
 import junit.framework.TestCase;
 
 import static org.easymock.EasyMock.*;
@@ -25,7 +25,7 @@ import static org.easymock.EasyMock.*;
  * Tests for {@link GradleModelVersionCheck}.
  */
 public class GradleModelVersionCheckTest extends TestCase {
-  private static final FullRevision MINIMUM_SUPPORTED_VERSION = FullRevision.parseRevision("0.5.0");
+  private static final GradleVersion MINIMUM_SUPPORTED_VERSION = GradleVersion.parse("0.5.0");
 
   private AndroidProject myProject;
 

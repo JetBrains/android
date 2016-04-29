@@ -16,6 +16,7 @@
 
 package org.jetbrains.android.dom;
 
+import com.android.SdkConstants;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.Pair;
@@ -35,7 +36,6 @@ import com.intellij.xml.XmlElementDescriptor;
 import com.intellij.xml.impl.dom.DomElementXmlDescriptor;
 import icons.AndroidIcons;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
-import org.jetbrains.android.dom.xml.AndroidXmlResourcesUtil;
 import org.jetbrains.android.dom.xml.XmlResourceElement;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.SimpleClassMapConstructor;
@@ -46,13 +46,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.util.Map;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Sep 4, 2009
- * Time: 6:04:18 PM
- * To change this template use File | Settings | File Temptes.
- */
 public class AndroidDomElementDescriptorProvider implements XmlElementDescriptorProvider {
   private static final Map<String, Ref<Icon>> ourViewTagName2Icon = new SoftHashMap<String, Ref<Icon>>();
 
@@ -113,7 +106,7 @@ public class AndroidDomElementDescriptorProvider implements XmlElementDescriptor
       className = AndroidUtils.VIEW_CLASS_NAME;
     }
     else if (domElement instanceof XmlResourceElement) {
-      className = AndroidXmlResourcesUtil.PREFERENCE_CLASS_NAME;
+      className = SdkConstants.CLASS_PREFERENCE;
     }
     return Pair.create((AndroidDomElement)domElement, className);
   }

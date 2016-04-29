@@ -16,20 +16,26 @@
 package com.android.tools.idea.ui.properties.expressions.bool;
 
 import com.android.tools.idea.ui.properties.ObservableValue;
+import com.google.common.collect.Iterables;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.Collection;
 
 /**
  * An expression which returns true if any of a list of target values is true.
  */
 public final class AnyExpression extends BooleanExpression {
-  private final List<ObservableValue<Boolean>> myValues;
+
+  private final ObservableValue<Boolean>[] myValues;
 
   public AnyExpression(ObservableValue<Boolean>... values) {
     super(values);
-    myValues = Arrays.asList(values);
+    myValues = values;
+  }
+
+  public AnyExpression(Collection<? extends ObservableValue<Boolean>> values) {
+    //noinspection unchecked
+    this(Iterables.toArray(values, ObservableValue.class));
   }
 
   @NotNull

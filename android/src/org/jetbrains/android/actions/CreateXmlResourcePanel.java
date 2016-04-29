@@ -84,8 +84,8 @@ public class CreateXmlResourcePanel {
   private JComboBox mySourceSetCombo;
   private JBLabel myFileNameLabel;
 
-  private final Module myModule;
-  private final ResourceType myResourceType;
+  private final @Nullable Module myModule;
+  private final @NotNull ResourceType myResourceType;
 
   private Map<String, JCheckBox> myCheckBoxes = Collections.emptyMap();
   private String[] myDirNames = ArrayUtil.EMPTY_STRING_ARRAY;
@@ -220,7 +220,7 @@ public class CreateXmlResourcePanel {
     myModuleCombo.addActionListener(actionListener);
   }
 
-  private void resetFromFile(@NotNull VirtualFile file, @NotNull Project project) {
+  public void resetFromFile(@NotNull VirtualFile file, @NotNull Project project) {
     final Module moduleForFile = ModuleUtilCore.findModuleForFile(file, project);
     if (moduleForFile == null) {
       return;
@@ -254,6 +254,7 @@ public class CreateXmlResourcePanel {
     }
     checkBox.setSelected(true);
     myFileNameCombo.getEditor().setItem(file.getName());
+    myPanel.repaint();
   }
 
   private void doDeleteDirectory() {
@@ -461,6 +462,11 @@ public class CreateXmlResourcePanel {
   @NotNull
   public String getResourceName() {
     return myNameField.getText().trim();
+  }
+
+  @NotNull
+  public ResourceType getType() {
+    return myResourceType;
   }
 
   @NotNull

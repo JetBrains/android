@@ -17,22 +17,21 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.resources.Navigation;
 import com.android.resources.ScreenOrientation;
-import com.android.sdklib.SystemImage;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Hardware;
 import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdManager;
+import com.android.sdklib.internal.avd.GpuMode;
 import com.android.sdklib.internal.avd.HardwareProperties;
-import com.android.sdklib.repository.descriptors.IdDisplay;
-import com.google.common.collect.Lists;
+import com.android.sdklib.repositoryv2.IdDisplay;
+import com.android.sdklib.repositoryv2.targets.SystemImage;
+import com.google.common.collect.ImmutableList;
 import com.intellij.util.ui.JBFont;
-import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.io.File;
-import java.util.Collections;
 import java.util.List;
 
 import static com.android.sdklib.devices.Storage.Unit;
@@ -80,7 +79,7 @@ public class AvdWizardConstants {
   public static final String CHOOSE_SYSTEM_IMAGE_STEP = "Choose System Image Step";
 
   public static final Key<Boolean> USE_HOST_GPU_KEY = createKey(AvdManager.AVD_INI_GPU_EMULATION, WIZARD, Boolean.class);
-  public static final Key<Boolean> USE_SNAPSHOT_KEY = createKey(AvdManager.AVD_INI_SNAPSHOT_PRESENT, WIZARD, Boolean.class);
+  public static final Key<GpuMode> HOST_GPU_MODE_KEY = createKey(AvdManager.AVD_INI_GPU_MODE, WIZARD, GpuMode.class);
 
   public static final Key<Boolean> IS_IN_EDIT_MODE_KEY = createKey(WIZARD_ONLY + "isInEditMode", WIZARD, Boolean.class);
 
@@ -92,6 +91,9 @@ public class AvdWizardConstants {
   public static final Key<String> DISPLAY_NAME_KEY = createKey(AvdManagerConnection.AVD_INI_DISPLAY_NAME, WIZARD, String.class);
   public static final String AVD_INI_AVD_ID = "AvdId";
   public static final Key<String> AVD_ID_KEY = createKey(AVD_INI_AVD_ID, WIZARD, String.class);
+
+  public static final Key<Boolean> RANCHU_KEY = createKey(WIZARD_ONLY + "ranchu.emulator", WIZARD, Boolean.class);
+  public static final Key<Integer> CPU_CORES_KEY = createKey(AvdManager.AVD_INI_CPU_CORES, WIZARD, Integer.class);
 
   // Device definition keys
 
@@ -127,19 +129,20 @@ public class AvdWizardConstants {
   public static final String DEFAULT_NETWORK_SPEED = "full";
   public static final String DEFAULT_NETWORK_LATENCY = "none";
   public static final String DEFAULT_CAMERA = "none";
-  public static final Storage DEFAULT_INTERNAL_STORAGE = new Storage(200, Unit.MiB);
+  public static final Storage DEFAULT_INTERNAL_STORAGE = new Storage(800, Unit.MiB);
 
   // Fonts
-  static final Font STANDARD_FONT = JBFont.create(new Font("Sans", Font.PLAIN, 12));
-  static final Font FIGURE_FONT = JBFont.create(new Font("Sans", Font.PLAIN, 10));
-  static final Font TITLE_FONT = JBFont.create(new Font("Sans", Font.BOLD, 16));
+  public static final Font STANDARD_FONT = JBFont.create(new Font("Sans", Font.PLAIN, 12));
+  public static final Font FIGURE_FONT = JBFont.create(new Font("Sans", Font.PLAIN, 10));
+  public static final Font TITLE_FONT = JBFont.create(new Font("Sans", Font.BOLD, 16));
 
   // Tags
-  public static final IdDisplay WEAR_TAG = new IdDisplay("android-wear", "Android Wear");
-  public static final IdDisplay TV_TAG = new IdDisplay("android-tv", "Android TV");
+  public static final IdDisplay WEAR_TAG = IdDisplay.create("android-wear", "Android Wear");
+  public static final IdDisplay TV_TAG = IdDisplay.create("android-tv", "Android TV");
+  public static final IdDisplay GOOGLE_APIS_TAG = IdDisplay.create("google_apis", "Google APIs");
 
-  public static final List<IdDisplay> ALL_TAGS =
-    Collections.unmodifiableList(Lists.newArrayList(SystemImage.DEFAULT_TAG, WEAR_TAG, TV_TAG));
+  public static final List<IdDisplay> ALL_TAGS = ImmutableList.of(SystemImage.DEFAULT_TAG, WEAR_TAG, TV_TAG);
+  public static final List<IdDisplay> TAGS_WITH_GOOGLE_API = ImmutableList.of(GOOGLE_APIS_TAG, WEAR_TAG, TV_TAG);
 
   public static final String CREATE_SKIN_HELP_LINK = "http://developer.android.com/tools/devices/managing-avds.html#skins";
 
@@ -166,5 +169,12 @@ public class AvdWizardConstants {
     }
 
     return ram;
+  }
+
+  /**
+   * Return the max number of cores that an AVD can use on this development system.
+   */
+  public static int getMaxCpuCores() {
+    return Runtime.getRuntime().availableProcessors() / 2;
   }
 }

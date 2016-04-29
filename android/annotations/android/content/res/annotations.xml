@@ -33,6 +33,9 @@
   <item name="android.content.res.ColorStateList int getDefaultColor()">
     <annotation name="android.support.annotation.ColorInt" />
   </item>
+  <item name="android.content.res.Configuration void setLocale(java.util.Locale) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.content.res.Resources android.content.res.AssetFileDescriptor openRawResourceFd(int) 0">
     <annotation name="android.support.annotation.RawRes" />
   </item>
@@ -213,20 +216,89 @@
   <item name="android.content.res.TypedArray android.content.res.ColorStateList getColorStateList(int)">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.content.res.TypedArray android.content.res.ColorStateList getColorStateList(int) 0">
+    <annotation name="android.support.annotation.StyleableRes" />
+  </item>
   <item name="android.content.res.TypedArray android.graphics.drawable.Drawable getDrawable(int)">
     <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.res.TypedArray android.graphics.drawable.Drawable getDrawable(int) 0">
+    <annotation name="android.support.annotation.StyleableRes" />
+  </item>
+  <item name="android.content.res.TypedArray android.util.TypedValue peekValue(int) 0">
+    <annotation name="android.support.annotation.StyleableRes" />
+  </item>
+  <item name="android.content.res.TypedArray boolean getBoolean(int, boolean) 0">
+    <annotation name="android.support.annotation.StyleableRes" />
+  </item>
+  <item name="android.content.res.TypedArray boolean getValue(int, android.util.TypedValue) 0">
+    <annotation name="android.support.annotation.StyleableRes" />
+  </item>
+  <item name="android.content.res.TypedArray boolean hasValue(int) 0">
+    <annotation name="android.support.annotation.StyleableRes" />
+  </item>
+  <item name="android.content.res.TypedArray boolean hasValueOrEmpty(int) 0">
+    <annotation name="android.support.annotation.StyleableRes" />
+  </item>
+  <item name="android.content.res.TypedArray float getDimension(int, float) 0">
+    <annotation name="android.support.annotation.StyleableRes" />
+  </item>
+  <item name="android.content.res.TypedArray float getFloat(int, float) 0">
+    <annotation name="android.support.annotation.StyleableRes" />
+  </item>
+  <item name="android.content.res.TypedArray float getFraction(int, int, int, float) 0">
+    <annotation name="android.support.annotation.StyleableRes" />
   </item>
   <item name="android.content.res.TypedArray int getColor(int, int)">
     <annotation name="android.support.annotation.ColorInt" />
   </item>
+  <item name="android.content.res.TypedArray int getColor(int, int) 0">
+    <annotation name="android.support.annotation.StyleableRes" />
+  </item>
   <item name="android.content.res.TypedArray int getColor(int, int) 1">
     <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.content.res.TypedArray int getDimensionPixelOffset(int, int) 0">
+    <annotation name="android.support.annotation.StyleableRes" />
+  </item>
+  <item name="android.content.res.TypedArray int getDimensionPixelSize(int, int) 0">
+    <annotation name="android.support.annotation.StyleableRes" />
+  </item>
+  <item name="android.content.res.TypedArray int getInt(int, int) 0">
+    <annotation name="android.support.annotation.StyleableRes" />
+  </item>
+  <item name="android.content.res.TypedArray int getInteger(int, int) 0">
+    <annotation name="android.support.annotation.StyleableRes" />
+  </item>
+  <item name="android.content.res.TypedArray int getLayoutDimension(int, int) 0">
+    <annotation name="android.support.annotation.StyleableRes" />
+  </item>
+  <item name="android.content.res.TypedArray int getLayoutDimension(int, java.lang.String) 0">
+    <annotation name="android.support.annotation.StyleableRes" />
   </item>
   <item name="android.content.res.TypedArray int getResourceId(int, int)">
     <annotation name="android.support.annotation.AnyRes" />
   </item>
+  <item name="android.content.res.TypedArray int getResourceId(int, int) 0">
+    <annotation name="android.support.annotation.StyleableRes" />
+  </item>
+  <item name="android.content.res.TypedArray int getType(int) 0">
+    <annotation name="android.support.annotation.StyleableRes" />
+  </item>
+  <item name="android.content.res.TypedArray java.lang.CharSequence getText(int) 0">
+    <annotation name="android.support.annotation.StyleableRes" />
+  </item>
+  <item name="android.content.res.TypedArray java.lang.CharSequence[] getTextArray(int) 0">
+    <annotation name="android.support.annotation.StyleableRes" />
+  </item>
+  <item name="android.content.res.TypedArray java.lang.String getNonResourceString(int) 0">
+    <annotation name="android.support.annotation.StyleableRes" />
+  </item>
   <item name="android.content.res.TypedArray java.lang.String getString(int)">
     <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.res.TypedArray java.lang.String getString(int) 0">
+    <annotation name="android.support.annotation.StyleableRes" />
   </item>
 </root>
 

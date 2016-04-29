@@ -98,7 +98,7 @@ public class AndroidExtractStyleAction extends AndroidBaseLayoutRefactoringActio
         AndroidUtils.reportError(project, "Invalid parent style reference " + parentStyleValue.toString(), dialogTitle);
         return null;
       }
-      supportImplicitParent = parentStyleValue.getPackage() == null;
+      supportImplicitParent = parentStyleValue.getNamespace() == null;
     }
     else {
       parentStyle = null;
@@ -165,7 +165,7 @@ public class AndroidExtractStyleAction extends AndroidBaseLayoutRefactoringActio
               }
 
               if (parentStyleValue != null && (!finalSupportImplicitParent || !styleName.startsWith(parentStyle + "."))) {
-                final String aPackage = parentStyleValue.getPackage();
+                final String aPackage = parentStyleValue.getNamespace();
                 style.getParentStyle().setStringValue((aPackage != null ? aPackage + ":" : "") + parentStyle);
               }
               return true;

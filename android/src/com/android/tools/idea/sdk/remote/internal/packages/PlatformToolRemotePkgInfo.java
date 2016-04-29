@@ -16,22 +16,12 @@
 
 package com.android.tools.idea.sdk.remote.internal.packages;
 
-import com.android.SdkConstants;
-import com.android.annotations.NonNull;
-import com.android.sdklib.SdkManager;
-import com.android.sdklib.repository.FullRevision;
-import com.android.sdklib.repository.FullRevision.PreviewComparison;
-import com.android.sdklib.repository.IDescription;
-import com.android.sdklib.repository.descriptors.IPkgDesc;
+import com.android.repository.Revision;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.tools.idea.sdk.remote.RemotePkgInfo;
-import com.android.tools.idea.sdk.remote.internal.AdbWrapper;
-import com.android.tools.idea.sdk.remote.internal.ITaskMonitor;
-import com.android.tools.idea.sdk.remote.internal.archives.Archive;
 import com.android.tools.idea.sdk.remote.internal.sources.SdkSource;
 import org.w3c.dom.Node;
 
-import java.io.File;
 import java.util.Map;
 
 /**
@@ -103,48 +93,12 @@ public class PlatformToolRemotePkgInfo extends RemotePkgInfo {
   /**
    * Returns a short description for an {@link IDescription}.
    */
-  private static String createShortDescription(String listDisplay, FullRevision revision, boolean obsolete) {
+  private static String createShortDescription(String listDisplay, Revision revision, boolean obsolete) {
     if (!listDisplay.isEmpty()) {
       return String.format("%1$s, revision %2$s%3$s", listDisplay, revision.toShortString(), obsolete ? " (Obsolete)" : "");
     }
 
     return String.format("Android SDK Platform-tools, revision %1$s%2$s", revision.toShortString(), obsolete ? " (Obsolete)" : "");
-  }
-
-  /**
-   * Computes a potential installation folder if an archive of this package were
-   * to be installed right away in the given SDK root.
-   * <p/>
-   * A "platform-tool" package should always be located in SDK/platform-tools.
-   * There can be only one installed at once.
-   *
-   * @param osSdkRoot  The OS path of the SDK root folder.
-   * @param sdkManager An existing SDK manager to list current platforms and addons.
-   * @return A new {@link File} corresponding to the directory to use to install this package.
-   */
-  @Override
-  public File getInstallFolder(String osSdkRoot, SdkManager sdkManager) {
-    return new File(osSdkRoot, SdkConstants.FD_PLATFORM_TOOLS);
-  }
-
-  /**
-   * Hook called right before an archive is installed.
-   * This is used here to stop ADB before trying to replace the platform-tool package.
-   *
-   * @param archive       The archive that will be installed
-   * @param monitor       The {@link ITaskMonitor} to display errors.
-   * @param osSdkRoot     The OS path of the SDK root folder.
-   * @param installFolder The folder where the archive will be installed. Note that this
-   *                      is <em>not</em> the folder where the archive was temporary
-   *                      unzipped. The installFolder, if it exists, contains the old
-   *                      archive that will soon be replaced by the new one.
-   * @return True if installing this archive shall continue, false if it should be skipped.
-   */
-  @Override
-  public boolean preInstallHook(Archive archive, ITaskMonitor monitor, String osSdkRoot, File installFolder) {
-    AdbWrapper aw = new AdbWrapper(osSdkRoot, monitor);
-    aw.stopAdb();
-    return super.preInstallHook(archive, monitor, osSdkRoot, installFolder);
   }
 
 }

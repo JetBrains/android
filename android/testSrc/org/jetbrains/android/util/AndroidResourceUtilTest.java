@@ -16,12 +16,12 @@
 package org.jetbrains.android.util;
 
 import com.android.tools.idea.rendering.ResourceHelper;
-import com.google.common.base.Objects;
 import com.google.common.collect.*;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import org.jetbrains.android.AndroidTestCase;
@@ -40,8 +40,8 @@ public class AndroidResourceUtilTest extends AndroidTestCase {
   public void testCaseSensitivityInChangeColorResource() {
     myFixture.copyFileToProject("util/colors_before.xml", "res/values/colors.xml");
     List<String> dirNames = ImmutableList.of("values");
-    assertTrue(AndroidResourceUtil.changeColorResource(myFacet, "myColor", "#000000", "colors.xml", dirNames));
-    assertFalse(AndroidResourceUtil.changeColorResource(myFacet, "mycolor", "#FFFFFF", "colors.xml", dirNames));
+    assertTrue(AndroidResourceUtil.changeColorResource(myFacet, "myColor", "#000000", "colors.xml", dirNames, false));
+    assertFalse(AndroidResourceUtil.changeColorResource(myFacet, "mycolor", "#FFFFFF", "colors.xml", dirNames, false));
     myFixture.checkResultByFile("res/values/colors.xml", "util/colors_after.xml", true);
   }
 
@@ -170,5 +170,32 @@ public class AndroidResourceUtilTest extends AndroidTestCase {
     }
     assertEquals(ImmutableSet.of("p2", "lib"), dirNames);
     assertEquals(2, fields.length);
+  }
+
+  /** Tests that a module without an Android Manifest can still import a lib's R class */
+  public void testIsRJavaFileImportedNoManifest() throws Exception {
+    Module libModule = myAdditionalModules.get(0);
+    // Remove the current lib manifest (has wrong package name) and copy a manifest with proper package into the lib module.
+    deleteManifest(libModule);
+    myFixture.copyFileToProject("util/lib/AndroidManifest.xml", "additionalModules/lib/AndroidManifest.xml");
+    // Copy an empty R class with the proper package into the lib module.
+    VirtualFile libRFile = myFixture.copyFileToProject("util/lib/R.java", "additionalModules/lib/gen/p1/p2/lib/R.java");
+    // Add some lib string resources.
+    myFixture.copyFileToProject("util/lib/strings.xml", "additionalModules/lib/res/values/strings.xml");
+    // Remove the manifest from the main module.
+    deleteManifest(myModule);
+
+    // The main module doesn't get a generated R class and inherit fields (lack of manifest)
+    PsiField[] mainFields = AndroidResourceUtil.findResourceFields(
+      AndroidFacet.getInstance(myModule), "string", "lib_hello", false /* onlyInOwnPackages */);
+    assertEmpty(mainFields);
+
+    // However, if the main module happens to get a handle on the lib's R class
+    // (e.g., via "import p1.p2.lib.R;"), then that R class should be recognized
+    // (e.g., for goto navigation).
+    PsiManager psiManager = PsiManager.getInstance(getProject());
+    PsiFile libRClassFile = psiManager.findFile(libRFile);
+    assertNotNull(libRClassFile);
+    assertTrue(AndroidResourceUtil.isRJavaFile(myFacet, libRClassFile));
   }
 }

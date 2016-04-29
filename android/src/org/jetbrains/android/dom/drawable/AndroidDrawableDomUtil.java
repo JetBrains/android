@@ -15,68 +15,40 @@
  */
 package org.jetbrains.android.dom.drawable;
 
-import com.android.resources.ResourceType;
+import com.android.resources.ResourceFolderType;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.util.containers.HashMap;
 import org.jetbrains.android.dom.AndroidResourceDomFileDescription;
+import org.jetbrains.android.dom.drawable.fileDescriptions.AnimatedStateListDomFileDescription;
+import org.jetbrains.android.dom.drawable.fileDescriptions.AnimatedVectorDomFileDescription;
+import org.jetbrains.android.dom.drawable.fileDescriptions.RippleDomFileDescription;
+import org.jetbrains.android.dom.drawable.fileDescriptions.VectorDomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public class AndroidDrawableDomUtil {
-  public static final Map<String, String> SPECIAL_STYLEABLE_NAMES = new HashMap<String, String>();
   private static final String[] DRAWABLE_ROOTS_V1 =
     new String[]{"selector", "bitmap", "nine-patch", "layer-list", "level-list", "transition", "inset", "clip", "scale", "shape",
       "animation-list", "animated-rotate", "rotate", "color"};
   private static final String[] DRAWABLE_ROOTS_V21 =
     new String[]{
-      RippleDomFileDescription.TAG,
-      AnimatedStateListDomFileDescription.TAG,
+      RippleDomFileDescription.TAG_NAME,
+      AnimatedStateListDomFileDescription.TAG_NAME,
       VectorDomFileDescription.TAG,
-      AnimatedVectorDomFileDescription.TAG
+      AnimatedVectorDomFileDescription.TAG_NAME
     };
-
-  static {
-    SPECIAL_STYLEABLE_NAMES.put("selector", "StateListDrawable");
-    SPECIAL_STYLEABLE_NAMES.put("bitmap", "BitmapDrawable");
-    SPECIAL_STYLEABLE_NAMES.put("nine-patch", "NinePatchDrawable");
-    SPECIAL_STYLEABLE_NAMES.put("layer-list", "LayerDrawable");
-    SPECIAL_STYLEABLE_NAMES.put("inset", "InsetDrawable");
-    SPECIAL_STYLEABLE_NAMES.put("clip", "ClipDrawable");
-    SPECIAL_STYLEABLE_NAMES.put("scale", "ScaleDrawable");
-    SPECIAL_STYLEABLE_NAMES.put("animation-list", "AnimationDrawable");
-    SPECIAL_STYLEABLE_NAMES.put("rotate", "RotateDrawable");
-    SPECIAL_STYLEABLE_NAMES.put("animated-rotate", "AnimatedRotateDrawable");
-    SPECIAL_STYLEABLE_NAMES.put("shape", "GradientDrawable");
-    SPECIAL_STYLEABLE_NAMES.put("corners", "DrawableCorners");
-    SPECIAL_STYLEABLE_NAMES.put("gradient", "GradientDrawableGradient");
-    SPECIAL_STYLEABLE_NAMES.put("padding", "GradientDrawablePadding");
-    SPECIAL_STYLEABLE_NAMES.put("size", "GradientDrawableSize");
-    SPECIAL_STYLEABLE_NAMES.put("solid", "GradientDrawableSolid");
-    SPECIAL_STYLEABLE_NAMES.put("stroke", "GradientDrawableStroke");
-    SPECIAL_STYLEABLE_NAMES.put("transition", "LayerDrawable"); // Transition extends LayerDrawable, doesn't define its own styleable
-    SPECIAL_STYLEABLE_NAMES.put(ColorDrawableDomFileDescription.TAG, "ColorDrawable");
-    SPECIAL_STYLEABLE_NAMES.put(RippleDomFileDescription.TAG, "RippleDrawable");
-    SPECIAL_STYLEABLE_NAMES.put(AnimatedStateListDomFileDescription.TAG, "AnimatedStateListDrawable");
-    SPECIAL_STYLEABLE_NAMES.put(VectorDomFileDescription.TAG, "VectorDrawable");
-    SPECIAL_STYLEABLE_NAMES.put(AnimatedVectorDomFileDescription.TAG, "AnimatedVectorDrawable");
-  }
 
   private AndroidDrawableDomUtil() {
   }
 
   public static boolean isDrawableResourceFile(@NotNull XmlFile file) {
-    return AndroidResourceDomFileDescription.doIsMyFile(file, new String[]{ResourceType.DRAWABLE.getName()});
+    return AndroidResourceDomFileDescription.doIsMyFile(file, ResourceFolderType.DRAWABLE);
   }
 
   public static List<String> getPossibleRoots(AndroidFacet facet) {

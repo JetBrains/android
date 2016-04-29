@@ -15,14 +15,15 @@
  */
 package com.android.tools.idea.gradle.service.notification.errors;
 
+import com.android.repository.api.ProgressIndicator;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.repository.descriptors.PkgType;
-import com.android.sdklib.repository.local.LocalPkgInfo;
-import com.android.sdklib.repository.local.LocalSdk;
+import com.android.sdklib.repositoryv2.AndroidSdkHandler;
+import com.android.sdklib.repositoryv2.meta.DetailsTypes;
 import com.android.tools.idea.gradle.service.notification.hyperlink.InstallPlatformHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenAndroidSdkManagerHyperlink;
+import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
 import com.google.common.collect.Lists;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
@@ -39,6 +40,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class MissingPlatformErrorHandler extends AbstractSyncErrorHandler {
+  private static final Pattern MISSING_PLATFORM_PATTERN_0 = Pattern.compile("(Cause: )?failed to find target with hash string '(.*)' in: (.*)");
   private static final Pattern MISSING_PLATFORM_PATTERN_1 = Pattern.compile("(Cause: )?failed to find target (.*) : (.*)");
   // This second format is used in older versions of the Android Gradle plug-in (0.9.+)
   private static final Pattern MISSING_PLATFORM_PATTERN_2 = Pattern.compile("(Cause: )?failed to find target (.*)");
@@ -50,8 +52,12 @@ public class MissingPlatformErrorHandler extends AbstractSyncErrorHandler {
                              @NotNull Project project) {
     String firstLine = message.get(0);
 
-    Matcher matcher = MISSING_PLATFORM_PATTERN_1.matcher(firstLine);
+    Matcher matcher = MISSING_PLATFORM_PATTERN_0.matcher(firstLine);
     boolean missingPlatform = matcher.matches();
+    if (!missingPlatform) {
+      matcher = MISSING_PLATFORM_PATTERN_1.matcher(firstLine);
+      missingPlatform = matcher.matches();
+    }
     if (!missingPlatform) {
       matcher = MISSING_PLATFORM_PATTERN_2.matcher(firstLine);
       missingPlatform = matcher.matches();
@@ -62,19 +68,17 @@ public class MissingPlatformErrorHandler extends AbstractSyncErrorHandler {
       List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
       String platform = matcher.group(2);
 
-      LocalSdk localAndroidSdk = null;
+      AndroidSdkHandler sdkHandler = null;
       AndroidSdkData androidSdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
       if (androidSdkData != null) {
-        localAndroidSdk = androidSdkData.getLocalSdk();
+        sdkHandler = androidSdkData.getSdkHandler();
       }
-      if (localAndroidSdk != null) {
+      if (sdkHandler != null) {
         AndroidVersion version = AndroidTargetHash.getPlatformVersion(platform);
         if (version != null) {
           // Is the platform installed?
-          LocalPkgInfo pkgInfo = localAndroidSdk.getPkgInfo(PkgType.PKG_PLATFORM, version);
-          if (pkgInfo != null) {
-            loadError = pkgInfo.getLoadError();
-          }
+          ProgressIndicator logger = new StudioLoggerProgressIndicator(getClass());
+          loadError = sdkHandler.getAndroidTargetManager(logger).getErrorForPackage(DetailsTypes.getPlatformPath(version));
           hyperlinks.add(new InstallPlatformHyperlink(version));
         }
       }

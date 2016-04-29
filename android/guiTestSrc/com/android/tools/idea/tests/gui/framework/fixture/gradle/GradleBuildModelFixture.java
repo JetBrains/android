@@ -15,14 +15,18 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.gradle;
 
-import com.android.tools.idea.gradle.dsl.dependencies.ExternalDependencySpec;
-import com.android.tools.idea.gradle.dsl.dependencies.external.ExternalDependency;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.dependencies.ModuleDependency;
-import com.android.tools.idea.gradle.dsl.dependencies.ModuleDependencyTest.ExpectedModuleDependency;
+import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
+import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
+import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
+import com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyModel;
+import com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyTest.ExpectedModuleDependency;
 import com.intellij.openapi.command.WriteCommandAction;
+import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.jetbrains.annotations.NotNull;
+
+import javax.annotation.Nullable;
 
 import static junit.framework.Assert.fail;
 import static org.fest.swing.edt.GuiActionRunner.execute;
@@ -39,9 +43,11 @@ public class GradleBuildModelFixture {
     return myTarget;
   }
 
-  public void requireDependency(@NotNull String configurationName, @NotNull ExternalDependencySpec expected) {
-    for (ExternalDependency dependency : myTarget.dependencies().external()) {
-      if (configurationName.equals(dependency.configurationName()) && expected.equals(dependency.spec())) {
+  public void requireDependency(@NotNull String configurationName, @NotNull ArtifactDependencySpec expected) {
+    DependenciesModel dependenciesModel = myTarget.dependencies();
+    for (ArtifactDependencyModel dependency : dependenciesModel.artifacts()) {
+      ArtifactDependencySpec actual = dependency.getSpec();
+      if (configurationName.equals(dependency.configurationName()) && expected.equals(actual)) {
         return;
       }
     }
@@ -49,8 +55,16 @@ public class GradleBuildModelFixture {
   }
 
   public void requireDependency(@NotNull ExpectedModuleDependency expected) {
-    for (ModuleDependency dependency : myTarget.dependencies().toModules()) {
-      if (expected.path.equals(dependency.getPath()) && expected.configurationName.equals(dependency.configurationName())) {
+    DependenciesModel dependenciesModel = myTarget.dependencies();
+    for (final ModuleDependencyModel dependency : dependenciesModel.modules()) {
+      String path = execute(new GuiQuery<String>() {
+        @Nullable
+        @Override
+        protected String executeInEDT() throws Throwable {
+          return dependency.path();
+        }
+      });
+      if (expected.path.equals(path) && expected.configurationName.equals(dependency.configurationName())) {
         return;
       }
     }

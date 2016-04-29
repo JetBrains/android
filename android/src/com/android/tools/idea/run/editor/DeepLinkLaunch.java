@@ -15,14 +15,15 @@
  */
 package com.android.tools.idea.run.editor;
 
-import com.android.tools.idea.run.AndroidApplicationLauncher;
-import com.android.tools.idea.run.AndroidDeepLinkLauncher;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.ValidationError;
+import com.android.tools.idea.run.tasks.AndroidDeepLinkLaunchTask;
+import com.android.tools.idea.run.tasks.LaunchTask;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -32,16 +33,20 @@ public class DeepLinkLaunch extends LaunchOption<DeepLinkLaunch.State> {
   public static final class State extends LaunchOptionState {
     public String DEEP_LINK = "";
 
+    @Nullable
     @Override
-    public AndroidApplicationLauncher getLauncher(@NotNull AndroidFacet facet, @NotNull String extraAmOptions) {
-      return new AndroidDeepLinkLauncher(DEEP_LINK, extraAmOptions);
+    public LaunchTask getLaunchTask(@NotNull String applicationId,
+                                    @NotNull AndroidFacet facet,
+                                    boolean waitForDebugger,
+                                    @NotNull String extraAmOptions) {
+      return new AndroidDeepLinkLaunchTask(applicationId, DEEP_LINK, waitForDebugger, extraAmOptions);
     }
 
     @NotNull
     @Override
     public List<ValidationError> checkConfiguration(@NotNull AndroidFacet facet) {
       if  (DEEP_LINK == null || DEEP_LINK.isEmpty()) {
-        return ImmutableList.of(ValidationError.warning("Deep link not specified"));
+        return ImmutableList.of(ValidationError.warning("URL not specified"));
       } else {
         return ImmutableList.of();
       }
@@ -57,7 +62,7 @@ public class DeepLinkLaunch extends LaunchOption<DeepLinkLaunch.State> {
   @NotNull
   @Override
   public String getDisplayName() {
-    return "Deep link";
+    return "URL";
   }
 
   @NotNull

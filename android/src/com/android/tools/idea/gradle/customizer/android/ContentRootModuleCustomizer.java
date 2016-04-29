@@ -16,13 +16,13 @@
 package com.android.tools.idea.gradle.customizer.android;
 
 import com.android.builder.model.*;
-import com.android.sdklib.repository.FullRevision;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.customizer.AbstractContentRootModuleCustomizer;
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.util.FilePaths;
 import com.android.tools.idea.gradle.variant.view.BuildVariantModuleCustomizer;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
@@ -33,10 +33,10 @@ import java.io.File;
 import java.util.Collection;
 import java.util.List;
 
-import static com.android.builder.model.AndroidProject.*;
+import static com.android.builder.model.AndroidProject.FD_GENERATED;
 import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntry;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
-import static com.intellij.openapi.util.io.FileUtil.*;
+import static com.intellij.openapi.util.io.FileUtil.isAncestor;
 import static org.jetbrains.jps.model.java.JavaResourceRootType.RESOURCE;
 import static org.jetbrains.jps.model.java.JavaResourceRootType.TEST_RESOURCE;
 import static org.jetbrains.jps.model.java.JavaSourceRootType.SOURCE;
@@ -70,9 +70,15 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
     AndroidArtifact mainArtifact = selectedVariant.getMainArtifact();
     addSourceFolders(androidModel, contentEntries, mainArtifact, false, orphans);
 
-    BaseArtifact testArtifact = androidModel.findSelectedTestArtifact(androidModel.getSelectedVariant());
-    if (testArtifact != null) {
-      addSourceFolders(androidModel, contentEntries, testArtifact, true, orphans);
+    if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
+      for (BaseArtifact artifact : androidModel.getTestArtifactsInSelectedVariant()) {
+        addSourceFolders(androidModel, contentEntries, artifact, true, orphans);
+      }
+    } else {
+      BaseArtifact testArtifact = androidModel.findSelectedTestArtifact(androidModel.getSelectedVariant());
+      if (testArtifact != null) {
+        addSourceFolders(androidModel, contentEntries, testArtifact, true, orphans);
+      }
     }
 
     for (String flavorName : selectedVariant.getProductFlavors()) {
@@ -87,10 +93,7 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
     if (buildTypeContainer != null) {
       addSourceFolder(androidModel, contentEntries, buildTypeContainer.getSourceProvider(), false, orphans);
 
-      Collection<SourceProvider> testSourceProviders =
-        androidModel.getSourceProvidersForSelectedTestArtifact(buildTypeContainer.getExtraSourceProviders());
-
-
+      Collection<SourceProvider> testSourceProviders = androidModel.getTestSourceProviders(buildTypeContainer.getExtraSourceProviders());
       for (SourceProvider testSourceProvider : testSourceProviders) {
         addSourceFolder(androidModel, contentEntries, testSourceProvider, true, orphans);
       }
@@ -145,15 +148,8 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
   }
 
   private static boolean modelVersionIsAtLeast(@NotNull AndroidGradleModel androidModel, @NotNull String revision) {
-    String original = androidModel.getAndroidProject().getModelVersion();
-    FullRevision modelVersion;
-    try {
-      modelVersion = FullRevision.parseRevision(original);
-    } catch (NumberFormatException e) {
-      Logger.getInstance(AndroidGradleModel.class).warn("Failed to parse '" + original + "'", e);
-      return false;
-    }
-    return modelVersion.compareTo(FullRevision.parseRevision(revision), FullRevision.PreviewComparison.IGNORE) >= 0;
+    GradleVersion modelVersion = androidModel.getModelVersion();
+    return modelVersion != null && modelVersion.compareIgnoringQualifiers(revision) >= 0;
   }
 
   private void addSourceFolder(@NotNull AndroidGradleModel androidModel,
@@ -162,9 +158,7 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
                                @NotNull List<RootSourceFolder> orphans) {
     addSourceFolder(androidModel, contentEntries, flavor.getSourceProvider(), false, orphans);
 
-    Collection<SourceProvider> testSourceProviders =
-      androidModel.getSourceProvidersForSelectedTestArtifact(flavor.getExtraSourceProviders());
-
+    Collection<SourceProvider> testSourceProviders = androidModel.getTestSourceProviders(flavor.getExtraSourceProviders());
     for (SourceProvider sourceProvider : testSourceProviders) {
       addSourceFolder(androidModel, contentEntries, sourceProvider, true, orphans);
     }

@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
-import com.android.tools.idea.gradle.dsl.dependencies.external.ExternalDependency;
-import com.android.tools.idea.gradle.dsl.dependencies.external.ExternalDependencyTest.ExpectedExternalDependency;
+import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
+import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyTest.ExpectedArtifactDependency;
+import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
 import com.android.tools.idea.tests.gui.framework.BelongsToTestGroups;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.IdeGuiTest;
@@ -27,8 +28,9 @@ import org.junit.Test;
 import java.io.IOException;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.dsl.dependencies.CommonConfigurationNames.COMPILE;
+import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.COMPILE;
 import static com.android.tools.idea.tests.gui.framework.TestGroup.PROJECT_SUPPORT;
+import static junit.framework.Assert.assertNotNull;
 import static org.fest.assertions.Assertions.assertThat;
 
 @BelongsToTestGroups({PROJECT_SUPPORT})
@@ -40,13 +42,14 @@ public class GradleDslExternalDependenciesParsingTest extends GuiTestCase {
 
     GradleBuildModelFixture buildModel = myProjectFrame.parseBuildFileForModule("app", true);
 
-    List<ExternalDependency> dependencies = buildModel.getTarget().dependencies().external();
+    DependenciesModel dependenciesModel = buildModel.getTarget().dependencies();
+    List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
     assertThat(dependencies).hasSize(2);
 
-    ExpectedExternalDependency expected = new ExpectedExternalDependency(COMPILE, "appcompat-v7", "com.android.support", "22.1.1");
+    ExpectedArtifactDependency expected = new ExpectedArtifactDependency(COMPILE, "appcompat-v7", "com.android.support", "22.1.1");
     expected.assertMatches(dependencies.get(0));
 
-    expected = new ExpectedExternalDependency(COMPILE, "guava", "com.google.guava", "18.0");
+    expected = new ExpectedArtifactDependency(COMPILE, "guava", "com.google.guava", "18.0");
     expected.assertMatches(dependencies.get(1));
   }
 
@@ -55,18 +58,20 @@ public class GradleDslExternalDependenciesParsingTest extends GuiTestCase {
     myProjectFrame = importSimpleApplication();
     final GradleBuildModelFixture buildModel = myProjectFrame.parseBuildFileForModule("app", true);
 
-    List<ExternalDependency> dependencies = buildModel.getTarget().dependencies().external();
+    DependenciesModel dependenciesModel = buildModel.getTarget().dependencies();
+    assertNotNull(dependenciesModel);
+    List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
     assertThat(dependencies).hasSize(2);
 
-    final ExternalDependency appCompat = dependencies.get(0);
+    final ArtifactDependencyModel appCompat = dependencies.get(0);
 
-    ExpectedExternalDependency expected = new ExpectedExternalDependency(COMPILE, "appcompat-v7", "com.android.support", "22.1.1");
+    ExpectedArtifactDependency expected = new ExpectedArtifactDependency(COMPILE, "appcompat-v7", "com.android.support", "22.1.1");
     expected.assertMatches(appCompat);
 
-    appCompat.version("1.2.3");
+    appCompat.setVersion("1.2.3");
     buildModel.applyChanges();
 
-    dependencies = buildModel.getTarget().dependencies().external();
+    dependencies = dependenciesModel.artifacts();
     assertThat(dependencies).hasSize(2);
 
     expected.configurationName = "compile";

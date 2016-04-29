@@ -16,15 +16,17 @@
 package com.android.tools.idea.npw;
 
 import com.android.SdkConstants;
+import com.android.repository.Revision;
 import com.android.sdklib.BuildToolInfo;
-import com.android.sdklib.repository.FullRevision;
-import com.android.sdklib.repository.descriptors.PkgDesc;
+import com.android.sdklib.repositoryv2.AndroidSdkHandler;
+import com.android.sdklib.repositoryv2.meta.DetailsTypes;
 import com.android.tools.idea.sdk.VersionCheck;
-import com.android.tools.idea.sdk.wizard.LicenseAgreementStep;
-import com.android.tools.idea.sdk.wizard.SmwOldApiDirectInstall;
-import com.android.tools.idea.templates.recipe.RenderingContext;
+import com.android.tools.idea.sdk.wizard.legacy.LicenseAgreementStep;
+import com.android.tools.idea.sdk.wizard.legacy.SmwOldApiDirectInstall;
+import com.android.tools.idea.sdkv2.StudioLoggerProgressIndicator;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
+import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardPath;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithHeaderAndDescription.WizardStepHeaderSettings;
@@ -35,7 +37,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
-import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -94,21 +95,22 @@ public class ConfigureAndroidProjectPath extends DynamicWizardPath {
    * @param state the state store to populate with the values stored in the SDK
    */
   public static void putSdkDependentParams(@NotNull ScopedStateStore state) {
-    final AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
-    BuildToolInfo buildTool = sdkData != null ? sdkData.getLatestBuildTool() : null;
-    FullRevision minimumRequiredBuildToolVersion = FullRevision.parseRevision(SdkConstants.MIN_BUILD_TOOLS_VERSION);
+    final AndroidSdkHandler sdkHandler = AndroidSdkUtils.tryToChooseSdkHandler();
+    BuildToolInfo buildTool = sdkHandler.getLatestBuildTool(new StudioLoggerProgressIndicator(ConfigureAndroidProjectPath.class));
+    Revision minimumRequiredBuildToolVersion = Revision.parseRevision(SdkConstants.MIN_BUILD_TOOLS_VERSION);
     if (buildTool != null && buildTool.getRevision().compareTo(minimumRequiredBuildToolVersion) >= 0) {
       state.put(WizardConstants.BUILD_TOOLS_VERSION_KEY, buildTool.getRevision().toString());
     }
     else {
       // We need to install a new build tools version
-      state.listPush(WizardConstants.INSTALL_REQUESTS_KEY, PkgDesc.Builder.newBuildTool(minimumRequiredBuildToolVersion).create());
+      state.listPush(WizardConstants.INSTALL_REQUESTS_KEY, DetailsTypes.getBuildToolsPath(minimumRequiredBuildToolVersion));
       state.put(WizardConstants.BUILD_TOOLS_VERSION_KEY, minimumRequiredBuildToolVersion.toString());
     }
 
-    if (sdkData != null) {
+    File location = sdkHandler.getLocation();
+    if (location != null) {
       // Gradle expects a platform-neutral path
-      state.put(WizardConstants.SDK_HOME_KEY, FileUtil.toSystemIndependentName(sdkData.getLocation().getPath()));
+      state.put(WizardConstants.SDK_HOME_KEY, FileUtil.toSystemIndependentName(location.getPath()));
     }
   }
 

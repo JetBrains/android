@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.tools.idea.gradle.util.ProxySettings;
-import com.intellij.CommonBundle;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -63,7 +62,7 @@ public class ProxySettingsDialog extends DialogWrapper {
     super(false);
     myProject = project;
     setTitle("Proxy Settings");
-    setDoNotAskOption(new PropertyDoNotAskOption(project, SHOW_DO_NOT_ASK_TO_COPY_PROXY_SETTINGS_PROPERTY_NAME));
+    setDoNotAskOption(new PropertyBasedDoNotAskOption(project, SHOW_DO_NOT_ASK_TO_COPY_PROXY_SETTINGS_PROPERTY_NAME));
     init();
 
     enableHttpsProxy(false);
@@ -199,51 +198,4 @@ public class ProxySettingsDialog extends DialogWrapper {
     myHttpsProxyPasswordTextField.setEnabled(enabled);
   }
 
-  /**
-   * Implementation of "Do not show this dialog in the future" option. This option is displayed as a checkbox in a {@code Messages} dialog.
-   * The state of such checkbox is stored in the IDE's {@code PropertiesComponent} under the name passed in the constructor.
-   */
-  private static class PropertyDoNotAskOption implements DoNotAskOption {
-    /**
-     * The name of the property storing the value of the "Do not show this dialog in the future" option.
-     */
-    @NotNull private final String myProperty;
-    @NotNull private final Project myProject;
-
-    PropertyDoNotAskOption(@NotNull Project project, @NotNull String property) {
-      myProperty = property;
-      myProject = project;
-    }
-
-    @Override
-    public boolean isToBeShown() {
-      // Read the stored value. If none is found, return "true" to display the checkbox the first time.
-      return PropertiesComponent.getInstance(myProject).getBoolean(myProperty, true);
-    }
-
-    @Override
-    public void setToBeShown(boolean toBeShown, int exitCode) {
-      // Stores the state of the checkbox into the property.
-      PropertiesComponent.getInstance(myProject).setValue(myProperty, String.valueOf(toBeShown));
-    }
-
-    @Override
-    public boolean canBeHidden() {
-      // By returning "true", the Messages dialog can hide the checkbox if the user previously set the checkbox as "selected".
-      return true;
-    }
-
-    @Override
-    public boolean shouldSaveOptionsOnCancel() {
-      // We always want to save the value of the checkbox, regardless of the button pressed in the Messages dialog.
-      return true;
-    }
-
-    @NotNull
-    @Override
-    public String getDoNotShowMessage() {
-      // This is the text to set in the checkbox.
-      return CommonBundle.message("dialog.options.do.not.show");
-    }
-  }
 }

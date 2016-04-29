@@ -19,7 +19,7 @@ import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.npw.AssetStudioAssetGenerator;
+import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
@@ -97,7 +97,7 @@ public class TemplateMetadata {
   private final Document myDocument;
   private final Map<String, Parameter> myParameterMap;
 
-  private final AssetStudioAssetGenerator.AssetType myIconType;
+  private final AndroidIconType myIconType;
   private final String myIconName;
   private String myFormFactor = null;
   private String myCategory = null;
@@ -122,7 +122,7 @@ public class TemplateMetadata {
       Element element = (Element) icons.item(0);
       if (element.hasAttribute(Template.ATTR_TYPE)) {
         String iconTypeName = element.getAttribute(Template.ATTR_TYPE).toUpperCase(Locale.US);
-        myIconType = AssetStudioAssetGenerator.AssetType.valueOf(iconTypeName);
+        myIconType = AndroidIconType.valueOf(iconTypeName);
       } else {
         myIconType = null;
       }
@@ -202,7 +202,7 @@ public class TemplateMetadata {
   }
 
   @Nullable
-  public AssetStudioAssetGenerator.AssetType getIconType() {
+  public AndroidIconType getIconType() {
     return myIconType;
   }
 
@@ -211,13 +211,20 @@ public class TemplateMetadata {
     return myIconName;
   }
 
+  /**
+   * Get the default thumbnail path (the first choice, essentially).
+   */
   @Nullable
   public String getThumbnailPath() {
     return getThumbnailPath(null);
   }
 
+  /**
+   * Get the active thumbnail path, which requires a callback that takes a parameter ID and returns
+   * its value. Using that information, we can select the associated thumbnail path and return it.
+   */
   @Nullable
-  public String getThumbnailPath(Function<String, Object> currentState) {
+  public String getThumbnailPath(Function<String, Object> produceParameterValue) {
     // Apply selector logic. Pick the thumb first thumb that satisfies the largest number
     // of conditions.
     NodeList thumbs = myDocument.getElementsByTagName(TAG_THUMB);
@@ -244,7 +251,7 @@ public class TemplateMetadata {
           String variableName = attribute.getName();
           String thumbNailValue = attribute.getValue();
 
-          if (currentState == null || !thumbNailValue.equals(currentState.apply(variableName))) {
+          if (produceParameterValue == null || !thumbNailValue.equals(produceParameterValue.apply(variableName))) {
             match = false;
             break;
           }

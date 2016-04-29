@@ -16,6 +16,7 @@
 
 package org.jetbrains.android.dom.converters;
 
+import com.google.common.base.Splitter;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlElement;
 import com.intellij.util.xml.ConvertContext;
@@ -23,18 +24,8 @@ import com.intellij.util.xml.ResolvingConverter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Apr 1, 2009
- * Time: 7:45:03 PM
- * To change this template use File | Settings | File Templates.
- */
 public class LightFlagConverter extends ResolvingConverter<String> {
   private final Set<String> myValues = new HashSet<String>();
 
@@ -49,10 +40,10 @@ public class LightFlagConverter extends ResolvingConverter<String> {
     XmlElement element = context.getXmlElement();
     if (element == null) return result;
     String attrValue = ((XmlAttribute)element).getValue();
-    String[] flags = attrValue.split("\\|");
+    List<String> flags = attrValue == null ? Collections.<String>emptyList() : Splitter.on('|').splitToList(attrValue);
     StringBuilder prefix = new StringBuilder();
-    for (int i = 0; i < flags.length - 1; i++) {
-      String flag = flags[i];
+    for (int i = 0; i < flags.size() - 1; i++) {
+      String flag = flags.get(i);
       if (!myValues.contains(flag)) break;
       prefix.append(flag).append('|');
     }

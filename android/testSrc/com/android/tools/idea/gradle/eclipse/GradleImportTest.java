@@ -2,14 +2,14 @@ package com.android.tools.idea.gradle.eclipse;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
+import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.sdklib.BuildToolInfo;
-import com.android.sdklib.SdkManager;
+import com.android.sdklib.repositoryv2.AndroidSdkHandler;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.PropertiesUtil;
 import com.android.tools.idea.templates.TemplateManager;
-import com.android.utils.ILogger;
 import com.android.utils.Pair;
 import com.android.utils.SdkUtils;
-import com.android.utils.StdLogger;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -363,7 +363,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
   public void testImportWithoutMinSdkVersion() throws Exception {
     // Regression test for importing project which does not explicitly set minSdkVersion
     // and/or targetSdkVersion; this would earlier result in "-1" being written into
-    // build.gradle which fails the build with "> Cannot invoke method minus() on null object"
+    // build.gradle which fails the build with "> Cannot invoke method exclude() on null object"
     File projectDir = createProject("test1", "test.pkg");
 
     // Remove <uses-sdk ...>
@@ -751,7 +751,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                                   + "* res/ => app/src/main/res/\n"
                                   + "* src/ => app/src/main/java/\n"
                                   + MSG_FOOTER,
-                                 true /* checkBuild */);
+                                 false /* checkBuild */);
 
     // Imported project
     assertEquals(""
@@ -3202,17 +3202,6 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
     importer.setSdkLocation(sdkLocation);
     assertSame(sdkLocation, importer.getSdkLocation());
     assertSame(ndkLocation, importer.getNdkLocation());
-
-    String sdkPath = getTestSdkPathLocal();
-    if (sdkPath != null) {
-      ILogger logger = new StdLogger(StdLogger.Level.INFO);
-      SdkManager sdkManager = SdkManager.createManager(sdkPath, logger);
-      if (sdkManager != null) {
-        importer.setSdkManager(sdkManager);
-        assertSame(sdkManager, importer.getSdkManager());
-        assertEquals(new File(sdkPath), importer.getSdkLocation());
-      }
-    }
   }
 
   @SuppressWarnings("ResultOfMethodCallIgnored")
@@ -3652,8 +3641,11 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
       return;
     }
     File pwd = base.getAbsoluteFile();
-
-    GeneralCommandLine cmdLine = new GeneralCommandLine(new String[]{gradlew.getPath(), "assembleDebug"}).withWorkDirectory(pwd);
+    List<String> args = Lists.newArrayList();
+    args.add(gradlew.getPath());
+    args.add("assembleDebug");
+    GradleUtil.addLocalMavenRepoInitScriptCommandLineOption(args);
+    GeneralCommandLine cmdLine = new GeneralCommandLine(args).withWorkDirectory(pwd);
     CapturingProcessHandler process = new CapturingProcessHandler(cmdLine);
     // Building currently takes about 30s, so a 5min timeout should give a safe margin.
     int timeoutInMilliseconds = 5 * 60 * 1000;
@@ -4081,13 +4073,12 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
     String candidate = CURRENT_BUILD_TOOLS_VERSION;
     String sdkLocation = getTestSdkPathLocal();
     if (sdkLocation != null) {
-      ILogger logger = new StdLogger(StdLogger.Level.INFO);
-      SdkManager sdkManager = SdkManager.createManager(sdkLocation, logger);
-      if (sdkManager != null) {
-        final BuildToolInfo buildTool = sdkManager.getLatestBuildTool();
-        if (buildTool != null) {
-          candidate = buildTool.getRevision().toString();
-        }
+      FakeProgressIndicator progress = new FakeProgressIndicator();
+      AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance(new File(sdkLocation));
+      final BuildToolInfo buildTool = sdkHandler.getLatestBuildTool(progress);
+      progress.assertNoErrorsOrWarnings();
+      if (buildTool != null) {
+        candidate = buildTool.getRevision().toString();
       }
     }
 

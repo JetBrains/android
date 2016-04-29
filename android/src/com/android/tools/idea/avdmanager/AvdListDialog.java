@@ -33,16 +33,18 @@ import java.awt.*;
  * Display existing AVDs and offer actions for editing/creating.
  */
 public class AvdListDialog extends FrameWrapper implements AvdUiAction.AvdInfoProvider {
+  private static final String DIMENSION_KEY = "AVDManager";
   private final Project myProject;
   private AvdDisplayList myAvdDisplayList;
 
   public AvdListDialog(@Nullable Project project) {
-    super(project);
+    super(project, DIMENSION_KEY);
     myProject = project;
     myAvdDisplayList = new AvdDisplayList(this, project);
     myAvdDisplayList.setBorder(new EmptyBorder(UIUtil.PANEL_REGULAR_INSETS));
+    closeOnEsc();
     setTitle("Android Virtual Device Manager");
-    setDimensionKey(getClass().getName());
+    getFrame().setSize(1000, 600);
   }
 
   public void init() {
@@ -53,6 +55,7 @@ public class AvdListDialog extends FrameWrapper implements AvdUiAction.AvdInfoPr
               "Android Studio");
     root.add(northPanel, BorderLayout.NORTH);
     root.add(myAvdDisplayList, BorderLayout.CENTER);
+    getFrame().setSize(1000, 600);
   }
 
   @Nullable

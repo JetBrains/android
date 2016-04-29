@@ -15,13 +15,9 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import com.intellij.execution.CommandLineUtil;
+import com.intellij.execution.KillableProcess;
 import com.intellij.execution.TaskExecutor;
-import com.intellij.execution.configurations.GeneralCommandLine;
-import com.intellij.execution.process.ProcessAdapter;
-import com.intellij.execution.process.ProcessEvent;
-import com.intellij.execution.process.ProcessHandler;
-import com.intellij.execution.process.ProcessOutputTypes;
+import com.intellij.execution.process.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Key;
@@ -41,15 +37,13 @@ import java.util.concurrent.Future;
  * by waiting for the stdout and stderr streams to be closed (unlike the default handlers that wait for the process to terminate).
  * This works since the spawned emulator inherits stdout and stderr from the wrapper, and keeps them open for as long as it is alive.
  */
-public class EmulatorProcessHandler extends ProcessHandler implements TaskExecutor {
+public class EmulatorProcessHandler extends ProcessHandler implements TaskExecutor, KillableProcess {
   private static final Logger LOG = Logger.getInstance(EmulatorProcessHandler.class);
 
   @NotNull private final Process myProcess;
-  @NotNull private final GeneralCommandLine myCommandLine;
 
-  public EmulatorProcessHandler(@NotNull Process process, @NotNull GeneralCommandLine commandLine) {
+  public EmulatorProcessHandler(@NotNull Process process) {
     myProcess = process;
-    myCommandLine = commandLine;
   }
 
   @Override
@@ -59,11 +53,8 @@ public class EmulatorProcessHandler extends ProcessHandler implements TaskExecut
       @Override
       public void startNotified(final ProcessEvent event) {
         try {
-          String presentableName = CommandLineUtil.extractPresentableName(myCommandLine.getCommandLineString());
-          final BaseDataReader stdoutReader = new EmulatorOutputReader(myProcess.getInputStream(), ProcessOutputTypes.STDOUT,
-                                                                       presentableName);
-          final BaseDataReader stderrReader = new EmulatorOutputReader(myProcess.getErrorStream(), ProcessOutputTypes.STDERR,
-                                                                       presentableName);
+          final BaseDataReader stdoutReader = new EmulatorOutputReader(myProcess.getInputStream(), ProcessOutputTypes.STDOUT);
+          final BaseDataReader stderrReader = new EmulatorOutputReader(myProcess.getErrorStream(), ProcessOutputTypes.STDERR);
 
           executeTask(new Runnable() {
             @Override
@@ -141,29 +132,36 @@ public class EmulatorProcessHandler extends ProcessHandler implements TaskExecut
     }
   }
 
-  @NotNull
   @Override
-  public Future<?> executeTask(@NotNull Runnable task) {
+  public Future<?> executeTask(Runnable task) {
     return ApplicationManager.getApplication().executeOnPooledThread(task);
+  }
+
+  @Override
+  public boolean canKillProcess() {
+    return false;
+  }
+
+  @Override
+  public void killProcess() {
   }
 
   private class EmulatorOutputReader extends BaseDataReader {
     private final BufferedReader myBufferedReader;
     private final Key myProcessOutputType;
 
-    private EmulatorOutputReader(@NotNull InputStream stream, @NotNull Key processOutputType, @NotNull String presentableName) {
+    private EmulatorOutputReader(@NotNull InputStream stream, @NotNull Key processOutputType) {
       super(BaseDataReader.SleepingPolicy.SIMPLE);
 
       // TODO: charset for the input stream reader?
       myBufferedReader = new BufferedReader(new InputStreamReader(stream));
       myProcessOutputType = processOutputType;
 
-      start(presentableName);
+      start("emulator output");
     }
 
-    @NotNull
     @Override
-    protected Future<?> executeOnPooledThread(@NotNull Runnable runnable) {
+    protected Future<?> executeOnPooledThread(Runnable runnable) {
       return EmulatorProcessHandler.this.executeTask(runnable);
     }
 

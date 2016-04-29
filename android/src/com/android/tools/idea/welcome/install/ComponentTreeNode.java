@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.welcome.install;
 
-import com.android.sdklib.SdkManager;
+import com.android.sdklib.repositoryv2.AndroidSdkHandler;
 import com.android.tools.idea.welcome.wizard.ProgressStep;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStep;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Set;
@@ -52,7 +51,7 @@ public abstract class ComponentTreeNode {
 
   public abstract Collection<InstallableComponent> getChildrenToInstall();
 
-  public abstract void updateState(@Nullable SdkManager manager);
+  public abstract void updateState(@NotNull AndroidSdkHandler handler);
 
   @NotNull
   public abstract Collection<DynamicWizardStep> createSteps();

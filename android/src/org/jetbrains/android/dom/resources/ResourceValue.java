@@ -37,9 +37,11 @@ public class ResourceValue {
   /** The resource type portion in a resource URL ({@code @+id/}) but without the leading @ */
   private String myValue;
   private char myPrefix = 0;
-  private String myPackage;
+  private String myNamespace;
   private String myResourceType;
   private String myResourceName;
+
+  public static final ResourceValue INVALID = new ResourceValue();
 
   private ResourceValue() {
   }
@@ -56,7 +58,7 @@ public class ResourceValue {
     ResourceValue that = (ResourceValue)o;
 
     if (myPrefix != that.myPrefix) return false;
-    if (myPackage != null ? !myPackage.equals(that.myPackage) : that.myPackage != null) return false;
+    if (myNamespace != null ? !myNamespace.equals(that.myNamespace) : that.myNamespace != null) return false;
     if (myResourceName != null ? !myResourceName.equals(that.myResourceName) : that.myResourceName != null) return false;
     if (myResourceType != null ? !myResourceType.equals(that.myResourceType) : that.myResourceType != null) return false;
     if (myValue != null ? !myValue.equals(that.myValue) : that.myValue != null) return false;
@@ -68,7 +70,7 @@ public class ResourceValue {
   public int hashCode() {
     int result = myValue != null ? myValue.hashCode() : 0;
     result = 31 * result + (int)myPrefix;
-    result = 31 * result + (myPackage != null ? myPackage.hashCode() : 0);
+    result = 31 * result + (myNamespace != null ? myNamespace.hashCode() : 0);
     result = 31 * result + (myResourceType != null ? myResourceType.hashCode() : 0);
     result = 31 * result + (myResourceName != null ? myResourceName.hashCode() : 0);
     return result;
@@ -117,7 +119,7 @@ public class ResourceValue {
       String resType = value.substring(startIndex, pos);
       int colonIndex = resType.indexOf(':');
       if (colonIndex > 0) {
-        result.myPackage = resType.substring(0, colonIndex);
+        result.myNamespace = resType.substring(0, colonIndex);
         result.myResourceType = resType.substring(colonIndex + 1);
       }
       else {
@@ -134,8 +136,8 @@ public class ResourceValue {
       colonIndex = suffix.indexOf(':');
       if (colonIndex > 0) {
         String aPackage = suffix.substring(0, colonIndex);
-        if (result.myPackage == null || result.myPackage.length() == 0 || aPackage.equals(result.myPackage)) {
-          result.myPackage = aPackage;
+        if (result.myNamespace == null || result.myNamespace.length() == 0 || aPackage.equals(result.myNamespace)) {
+          result.myNamespace = aPackage;
           result.myResourceName = suffix.substring(colonIndex + 1);
         } else {
           result.myResourceName = suffix;
@@ -147,7 +149,7 @@ public class ResourceValue {
     else {
       int colonIndex = value.indexOf(':');
       if (colonIndex > startIndex) {
-        result.myPackage = value.substring(startIndex, colonIndex);
+        result.myNamespace = value.substring(startIndex, colonIndex);
         result.myResourceName = value.substring(colonIndex + 1);
       }
       else {
@@ -161,7 +163,7 @@ public class ResourceValue {
   public static ResourceValue referenceTo(char prefix, @Nullable String resPackage, @Nullable String resourceType, String resourceName) {
     ResourceValue result = new ResourceValue();
     result.myPrefix = prefix;
-    result.myPackage = resPackage;
+    result.myNamespace = resPackage;
     result.myResourceType = resourceType;
     result.myResourceName = resourceName;
     return result;
@@ -291,8 +293,8 @@ public class ResourceValue {
   }
 
   @Nullable
-  public String getPackage() {
-    return myPackage;
+  public String getNamespace() {
+    return myNamespace;
   }
 
   @NotNull
@@ -304,8 +306,8 @@ public class ResourceValue {
     if (myPrefix != 0) {
       builder.append(myPrefix);
     }
-    if (myPackage != null) {
-      builder.append(myPackage).append(":");
+    if (myNamespace != null) {
+      builder.append(myNamespace).append(":");
     }
     if (myResourceType != null) {
       builder.append(myResourceType).append("/");

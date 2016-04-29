@@ -15,44 +15,28 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import com.android.SdkConstants;
-import com.android.tools.idea.gradle.parser.Dependency;
-import com.android.tools.idea.gradle.parser.GradleBuildFile;
+import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
+import com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyModel;
 import com.google.common.base.Function;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
-import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.containers.HashSet;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 import java.util.Set;
+
+import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.tools.idea.gradle.dsl.model.GradleBuildModel.parseBuildFile;
 
 /**
  * Parses list of dependencies from the build.gradle
  */
 public class GradleProjectDependencyParser {
   @NotNull
-  private static Set<String> parse(VirtualFile moduleRoot, Project project) {
-    VirtualFile buildGradle = moduleRoot.findChild(SdkConstants.FN_BUILD_GRADLE);
-    if (buildGradle == null) {
-      return Collections.emptySet();
-    }
-    else {
-      Set<String> result = new HashSet<String>();
-      GradleBuildFile buildFile = new GradleBuildFile(buildGradle, project);
-      for (Dependency dependency : Iterables.filter(buildFile.getDependencies(), Dependency.class)) {
-        if (dependency.type == Dependency.Type.MODULE) {
-          String moduleName = dependency.getValueAsString();
-          result.add(moduleName);
-        }
-      }
-      return result;
-    }
-  }
-
   public static Function<VirtualFile, Iterable<String>> newInstance(@NotNull final Project project) {
     return CacheBuilder.newBuilder().build(new CacheLoader<VirtualFile, Iterable<String>>() {
       @Override
@@ -60,5 +44,25 @@ public class GradleProjectDependencyParser {
         return parse(key, project);
       }
     });
+  }
+
+  @NotNull
+  private static Set<String> parse(@NotNull VirtualFile moduleRoot, @NotNull Project project) {
+    VirtualFile buildFile = moduleRoot.findChild(FN_BUILD_GRADLE);
+    if (buildFile == null) {
+      return Collections.emptySet();
+    }
+    else {
+      Set<String> result = Sets.newHashSet();
+      GradleBuildModel buildModel = parseBuildFile(buildFile, project);
+      DependenciesModel dependenciesModel = buildModel.dependencies();
+      if (dependenciesModel != null) {
+        for (ModuleDependencyModel dependency : dependenciesModel.modules()) {
+          String modulePath = dependency.path();
+          result.add(modulePath);
+        }
+      }
+      return result;
+    }
   }
 }

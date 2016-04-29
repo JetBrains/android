@@ -16,15 +16,11 @@
 
 package org.jetbrains.android.dom.menu;
 
+import org.jetbrains.android.dom.Styleable;
+
 import java.util.List;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Mar 27, 2009
- * Time: 2:55:36 PM
- * To change this template use File | Settings | File Templates.
- */
+@Styleable("MenuGroup")
 public interface Group extends MenuElement {
   List<MenuItem> getItems();
 }

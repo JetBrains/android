@@ -44,11 +44,34 @@ public class AndroidXmlPolicy extends XmlPolicy {
 
   @Override
   public boolean insertLineBreakBeforeFirstAttribute(XmlAttribute attribute) {
-    if (!myCustomSettings.INSERT_LINE_BREAK_BEFORE_FIRST_ATTRIBUTE ||
-        attribute.isNamespaceDeclaration()) {
-      return false;
+    if (myCustomSettings.INSERT_LINE_BREAK_BEFORE_FIRST_ATTRIBUTE) {
+      // Even if setting for inserting line break before the first attribute, we want
+      // _not_ to insert it if the first attribute would be namespace declaration.
+
+      // However, we can't just check whether "attribute" is namespace declaration,
+      // because for Android XMLs by default attributes are rearranged first,
+      // and relying on the current first attribute leads to confusing results
+      // as reported on http://b.android.com/196833
+
+      // So, we just iterate through all the attribute and check whether there is
+      // a namespace declaration among them.
+      boolean hasNamespace = false;
+      for (XmlAttribute xmlAttribute : attribute.getParent().getAttributes()) {
+        if (xmlAttribute.isNamespaceDeclaration()) {
+          hasNamespace = true;
+          break;
+        }
+      }
+
+      if (hasNamespace) {
+        return false;
+      }
+
+      if (!attribute.isNamespaceDeclaration()) {
+        return attribute.getParent().getAttributes().length > 1;
+      }
     }
-    return attribute.getParent().getAttributes().length > 1;
+    return false;
   }
 
   @Override

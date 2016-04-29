@@ -18,12 +18,7 @@ package com.android.tools.idea.rendering;
 import com.google.common.collect.Lists;
 import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.org.objectweb.asm.ClassReader;
-import org.jetbrains.org.objectweb.asm.ClassVisitor;
-import org.jetbrains.org.objectweb.asm.ClassWriter;
-import org.jetbrains.org.objectweb.asm.FieldVisitor;
-import org.jetbrains.org.objectweb.asm.MethodVisitor;
-import org.jetbrains.org.objectweb.asm.Opcodes;
+import org.jetbrains.org.objectweb.asm.*;
 import org.jetbrains.org.objectweb.asm.tree.ClassNode;
 
 import java.net.URL;
@@ -32,9 +27,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static org.jetbrains.org.objectweb.asm.Opcodes.*;
-
 import static com.android.tools.idea.rendering.ClassConverter.*;
+import static org.jetbrains.org.objectweb.asm.Opcodes.*;
 
 public class ClassConverterTest extends TestCase {
   public void testClassVersionToJdk() {
@@ -68,11 +62,11 @@ public class ClassConverterTest extends TestCase {
   }
 
   public void testGetCurrentClassVersion() {
-    assertTrue(ClassConverter.getCurrentClassVersion() >= 50);
+    assertTrue(getCurrentClassVersion() >= 50);
   }
 
   public void testGetCurrentJdkVersion() {
-    assertTrue(ClassConverter.getCurrentJdkVersion().startsWith("1."));
+    assertTrue(getCurrentJdkVersion().startsWith("1."));
   }
 
   public void testMangling() throws Exception {
@@ -106,12 +100,12 @@ public class ClassConverterTest extends TestCase {
       (byte)0, (byte)0, (byte)0, (byte)2, (byte)0, (byte)11
     };
 
-    assertTrue(ClassConverter.isValidClassFile(data));
-    assertFalse(ClassConverter.isValidClassFile(new byte[100]));
+    assertTrue(isValidClassFile(data));
+    assertFalse(isValidClassFile(new byte[100]));
 
-    assertEquals(50, ClassConverter.getMajorVersion(data));
-    assertEquals(0, ClassConverter.getMinorVersion(data));
-    assertEquals(0xCAFEBABE, ClassConverter.getMagic(data));
+    assertEquals(50, getMajorVersion(data));
+    assertEquals(0, getMinorVersion(data));
+    assertEquals(0xCAFEBABE, getMagic(data));
 
     ClassLoader classLoader = new TestClassLoader(data);
     Class<?> clz = classLoader.loadClass("Test");
@@ -120,8 +114,8 @@ public class ClassConverterTest extends TestCase {
     assertEquals(Integer.valueOf(42), result);
     Class<?> oldClz = clz;
 
-    data = ClassConverter.rewriteClass(data, 48, Integer.MIN_VALUE);
-    assertEquals(48, ClassConverter.getMajorVersion(data));
+    data = rewriteClass(data, 48, Integer.MIN_VALUE);
+    assertEquals(48, getMajorVersion(data));
     classLoader = new TestClassLoader(data);
     clz = classLoader.loadClass("Test");
     assertNotNull(clz);
@@ -129,8 +123,8 @@ public class ClassConverterTest extends TestCase {
     result = clz.getMethod("test").invoke(null);
     assertEquals(Integer.valueOf(42), result);
 
-    data = ClassConverter.rewriteClass(data, Integer.MAX_VALUE, 52); // latest known
-    assertEquals(52, ClassConverter.getMajorVersion(data));
+    data = rewriteClass(data, Integer.MAX_VALUE, 52); // latest known
+    assertEquals(52, getMajorVersion(data));
     classLoader = new TestClassLoader(data);
     clz = classLoader.loadClass("Test");
     assertNotNull(clz);
@@ -148,7 +142,9 @@ public class ClassConverterTest extends TestCase {
         }
       };
       cl.loadClass("Test");
-      fail("Expected class loading error");
+      if (getCurrentClassVersion() < 52) {
+        fail("Expected class loading error");
+      }
     } catch (UnsupportedClassVersionError e) {
       // pass
     } catch (Throwable t) {
@@ -206,9 +202,9 @@ public class ClassConverterTest extends TestCase {
   public void testMethodWrapping() throws Exception {
     byte[] data = ClassConverterTest.dumpTestViewClass();
 
-    assertTrue(ClassConverter.isValidClassFile(data));
-    byte[] modified = ClassConverter.rewriteClass(data);
-    assertTrue(ClassConverter.isValidClassFile(data));
+    assertTrue(isValidClassFile(data));
+    byte[] modified = rewriteClass(data);
+    assertTrue(isValidClassFile(data));
 
     // Parse both classes and compare
     ClassNode classNode = new ClassNode();
@@ -217,7 +213,7 @@ public class ClassConverterTest extends TestCase {
 
     assertEquals(3, classNode.methods.size());
     final Set<String> methods = new HashSet<String>();
-    classNode.accept(new ClassVisitor(Opcodes.ASM5) {
+    classNode.accept(new ClassVisitor(ASM5) {
       @Override
       public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
         methods.add(name + desc);
@@ -231,8 +227,8 @@ public class ClassConverterTest extends TestCase {
   public void testMethodWrapping2() throws Exception {
     final byte[] firstData = getFirstOnMeasureClass();
     final byte[] secondData = getSecondOnMeasureClass();
-    assertTrue(ClassConverter.isValidClassFile(firstData));
-    assertTrue(ClassConverter.isValidClassFile(secondData));
+    assertTrue(isValidClassFile(firstData));
+    assertTrue(isValidClassFile(secondData));
 
     ClassLoader loader = new ClassLoader() {
       @Override
@@ -257,8 +253,8 @@ public class ClassConverterTest extends TestCase {
 
 
     // Modify the classes and repeat.
-    final byte[] modifiedFirstData = ClassConverter.rewriteClass(firstData, 50, 0);
-    final byte[] modifiedSecondData = ClassConverter.rewriteClass(secondData, 50, 0);
+    final byte[] modifiedFirstData = rewriteClass(firstData, 50, 0);
+    final byte[] modifiedSecondData = rewriteClass(secondData, 50, 0);
     loader = new ClassLoader() {
       @Override
       protected Class<?> findClass(String name) throws ClassNotFoundException {
