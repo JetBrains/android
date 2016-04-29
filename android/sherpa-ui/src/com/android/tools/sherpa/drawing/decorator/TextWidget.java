@@ -29,7 +29,7 @@ import java.awt.Graphics2D;
  * Decorator for text widgets
  */
 public class TextWidget extends WidgetDecorator {
-    static final boolean DO_WRAP = false;
+    static boolean DO_WRAP = false;
     protected int mHorizontalPadding = 0;
     protected int mVerticalPadding = 0;
     protected int mVerticalMargin = 0;
@@ -44,6 +44,16 @@ public class TextWidget extends WidgetDecorator {
     protected Font mFont = new Font("Helvetica", Font.PLAIN, 12);
     private float mFontSize = 18;
     private boolean mDisplayText = true;
+
+    /**
+     * Set the behavior to do a text wrap content or not
+     * In Android Studio, this should not be active
+     *
+     * @param doWrap
+     */
+    public static void setDoWrap(boolean doWrap) {
+        DO_WRAP = doWrap;
+    }
 
     /**
      * Base constructor
