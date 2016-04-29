@@ -566,17 +566,20 @@ public class ConfigurationMatcher {
     // We use FileEditorManagerImpl instead of FileEditorManager to get access to the lock-free version
     // (also used by DebuggerContextUtil) since the normal method only works from the dispatch thread
     // (grabbing a read lock is not enough).
-    Editor activeEditor = ((FileEditorManagerImpl)FileEditorManager.getInstance(myManager.getProject())).getSelectedTextEditor(true);
-    if (activeEditor != null) {
-      FileDocumentManager documentManager = FileDocumentManager.getInstance();
-      VirtualFile file = documentManager.getFile(activeEditor.getDocument());
-      if (file != null && !file.equals(myFile) && file.getFileType() == StdFileTypes.XML
-          && ResourceHelper.getFolderType(myFile) == ResourceHelper.getFolderType(file)) {
-        Configuration configuration = myManager.getConfiguration(file);
-        FolderConfiguration fullConfig = configuration.getFullConfig();
-        for (ConfigMatch match : matches) {
-          if (fullConfig.equals(match.testConfig)) {
-            return match;
+    FileEditorManager editorManager = FileEditorManager.getInstance(myManager.getProject());
+    if (editorManager instanceof FileEditorManagerImpl) { // not the case under test fixtures apparently
+      Editor activeEditor = ((FileEditorManagerImpl)editorManager).getSelectedTextEditor(true);
+      if (activeEditor != null) {
+        FileDocumentManager documentManager = FileDocumentManager.getInstance();
+        VirtualFile file = documentManager.getFile(activeEditor.getDocument());
+        if (file != null && !file.equals(myFile) && file.getFileType() == StdFileTypes.XML
+            && ResourceHelper.getFolderType(myFile) == ResourceHelper.getFolderType(file)) {
+          Configuration configuration = myManager.getConfiguration(file);
+          FolderConfiguration fullConfig = configuration.getFullConfig();
+          for (ConfigMatch match : matches) {
+            if (fullConfig.equals(match.testConfig)) {
+              return match;
+            }
           }
         }
       }
