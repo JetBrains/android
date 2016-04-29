@@ -625,13 +625,15 @@ public class ConstraintHandle {
         maxDistance = distance > maxDistance ? maxDistance : distance;
         int controlDistance = transform.getSwingDimension(maxDistance);
         if (isVertical) {
+            boolean isBaseline = mAnchor.getType() == ConstraintAnchor.Type.BASELINE;
             boolean isTopConnection = mAnchor.getType() == ConstraintAnchor.Type.TOP;
+            isTopConnection |= isBaseline;
             if (isTopConnection) {
                 controlDistance = -controlDistance;
             }
             if (mAnchor.getTarget() != null
                     && mAnchor.getType() == mAnchor.getTarget().getType()
-                    && mAnchor.getType() != ConstraintAnchor.Type.BASELINE
+                    && !isBaseline
                     && mAnchor.getMargin() == 0) {
                 int base = y0 - sradius - ConnectionDraw.ARROW_SIDE;
                 if (!isTopConnection) {
@@ -653,7 +655,7 @@ public class ConstraintHandle {
                     ConnectionDraw.drawArrow(g, ConnectionDraw.getTopArrow(), x1, y1);
                 }
             } else {
-                if (mAnchor.getType() == ConstraintAnchor.Type.BASELINE) {
+                if (isBaseline) {
                     // In case of baseline connections, we don't want to connect directly from the
                     // center of the widget (where the baseline anchor (mX, mY) is, so we offset a little
                     int offset1 =
@@ -661,11 +663,15 @@ public class ConstraintHandle {
                                     0.2f);
                     int offset2 = 0;
                     if (mAnchor.getTarget() != null) {
-                        offset2 = (int) (transform
-                                .getSwingDimension(mAnchor.getTarget().getOwner().getDrawWidth()) *
-                                0.2f);
+                        ConstraintWidget widget = mAnchor.getTarget().getOwner();
+                        offset2 = (int) (transform.getSwingDimension(widget.getDrawWidth()) * 0.2f);
+                        int tl = transform.getSwingX(widget.getDrawX());
+                        int tr = transform.getSwingX(widget.getDrawRight());
+                        int tt = transform.getSwingY(widget.getDrawY());
+                        int tb = transform.getSwingDimension(widget.getBaselineDistance());
+                        g.drawLine(tl, tt + tb, tr, tt + tb);
                     }
-                    if (x0 < y1) {
+                    if (x0 < x1) {
                         x0 += offset1;
                         x1 -= offset2;
                     } else {
