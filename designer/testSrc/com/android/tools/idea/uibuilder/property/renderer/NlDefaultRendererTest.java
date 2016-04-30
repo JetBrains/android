@@ -15,17 +15,16 @@
  */
 package com.android.tools.idea.uibuilder.property.renderer;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.property.MockNlComponent;
 import com.android.tools.idea.uibuilder.property.NlProperties;
-import com.android.tools.idea.uibuilder.property.NlPropertiesTest;
 import com.android.tools.idea.uibuilder.property.NlPropertyItem;
+import com.google.common.collect.Table;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
 
 public class NlDefaultRendererTest extends LayoutTestCase {
   public void testSimple() {
@@ -39,17 +38,17 @@ public class NlDefaultRendererTest extends LayoutTestCase {
     XmlTag[] subTags = xmlFile.getRootTag().getSubTags();
     assertEquals(1, subTags.length);
 
-    List<NlPropertyItem> properties = NlProperties.getInstance().getProperties(MockNlComponent.create(subTags[0]));
+    Table<String, String, NlPropertyItem> properties = NlProperties.getInstance().getProperties(MockNlComponent.create(subTags[0]));
 
     NlDefaultRenderer renderer = new NlDefaultRenderer();
 
-    NlPropertyItem property = NlPropertiesTest.getPropertyByName(properties, "id");
+    NlPropertyItem property = properties.get(SdkConstants.ANDROID_URI, "id");
     validateRendering(renderer, property, "id", "@+id/textView");
 
-    property = NlPropertiesTest.getPropertyByName(properties, "text");
+    property = properties.get(SdkConstants.ANDROID_URI, "text");
     validateRendering(renderer, property, "text", "");
 
-    property = NlPropertiesTest.getPropertyByName(properties, "focusable");
+    property = properties.get(SdkConstants.ANDROID_URI, "focusable");
     validateRendering(renderer, property, "focusable", "");
   }
 

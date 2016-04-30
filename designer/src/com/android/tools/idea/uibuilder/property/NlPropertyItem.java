@@ -70,7 +70,11 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
   protected NlPropertyItem(@NotNull NlComponent component,
                            @NotNull XmlAttributeDescriptor descriptor,
                            @Nullable AttributeDefinition attributeDefinition) {
-    if (attributeDefinition == null && !ATTRS_WITHOUT_DEFINITIONS.contains(descriptor.getName())) {
+    String namespace = descriptor instanceof NamespaceAwareXmlAttributeDescriptor ?
+                       ((NamespaceAwareXmlAttributeDescriptor)descriptor).getNamespace(component.getTag()) : null;
+    if (attributeDefinition == null &&
+        !ATTRS_WITHOUT_DEFINITIONS.contains(descriptor.getName()) &&
+        !SdkConstants.TOOLS_URI.equals(namespace)) {
       throw new IllegalArgumentException("Missing attribute definition for " + descriptor.getName());
     }
 
@@ -79,8 +83,7 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
     // that the component can provide that information by having a shadow copy that is consistent with the rendering
     myComponent = component;
     myName = descriptor.getName();
-    myNamespace = descriptor instanceof NamespaceAwareXmlAttributeDescriptor ?
-                  ((NamespaceAwareXmlAttributeDescriptor)descriptor).getNamespace(component.getTag()) : null;
+    myNamespace = namespace;
     myDefinition = attributeDefinition;
   }
 
@@ -103,8 +106,9 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
     return myName;
   }
 
-  @NotNull
-  protected String getNamespace() {
+  @Override
+  @Nullable
+  public String getNamespace() {
     return myNamespace;
   }
 

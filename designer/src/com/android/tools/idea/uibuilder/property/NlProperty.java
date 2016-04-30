@@ -29,6 +29,12 @@ public interface NlProperty {
   String getName();
 
   /**
+   * Get the namespace of the property.
+   */
+  @Nullable
+  String getNamespace();
+
+  /**
    * Get the value of the property as a string.
    * If the value exists in the XML tag return that value,
    * otherwise return the default value determined from the
