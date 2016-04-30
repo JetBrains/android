@@ -111,19 +111,19 @@ public class NlLayoutEditor extends JPanel {
 
   public void setSelectedComponent(@Nullable NlComponent component, @NotNull Map<String, NlProperty> properties) {
     myProperties = properties;
-    myGravityPanel.add(myLayoutPanel, BorderLayout.CENTER);
     myPaddingPanel.add(myGravityPanel, BorderLayout.CENTER);
+    myLayoutPanel.add(myPaddingPanel, BorderLayout.CENTER);
     NlComponent parent = null;
     if (component != null) {
       parent = component.getParent();
     }
     if (parent != null && parent.getTagName().equals(CONSTRAINT_LAYOUT)) {
-      myConstraintMarginPanel.add(myPaddingPanel, BorderLayout.CENTER);
+      myConstraintMarginPanel.add(myLayoutPanel, BorderLayout.CENTER);
       removeAll();
       add(myConstraintMarginPanel, BorderLayout.CENTER);
     }
     else {
-      myLayoutMarginPanel.add(myPaddingPanel, BorderLayout.CENTER);
+      myLayoutMarginPanel.add(myLayoutPanel, BorderLayout.CENTER);
       myLayoutGravityPanel.add(myLayoutMarginPanel, BorderLayout.CENTER);
       removeAll();
       add(myLayoutGravityPanel, BorderLayout.CENTER);
@@ -152,23 +152,23 @@ public class NlLayoutEditor extends JPanel {
         Object gravityTable = direction.getClientProperty(GRAVITY_DISPLAY_TABLE_KEY);
         if (dependency != null || gravityTable != null) {
           component.setBackground(backgroundColor);
-        }
-        Object directionLabel = direction.getClientProperty(DIRECTION_LABEL_KEY);
-        if (directionLabel instanceof Component) {
-          component = (Component)directionLabel;
-        }
-        if (component instanceof JLabel) {
-          JLabel label = (JLabel)component;
-          label.setFont(font);
-          label.setForeground(foregroundColor);
-          if (foregroundColor.equals(LINK_COLOR)) {
-            if (label.getText().equals(EMPTY_TEXT_VALUE)) {
-              label.setText(EDIT_TEXT_VALUE);
-            }
+          Object directionLabel = direction.getClientProperty(DIRECTION_LABEL_KEY);
+          if (directionLabel instanceof Component) {
+            component = (Component)directionLabel;
           }
-          else {
-            if (label.getText().equals(EDIT_TEXT_VALUE)) {
-              label.setText(EMPTY_TEXT_VALUE);
+          if (component instanceof JLabel) {
+            JLabel label = (JLabel)component;
+            label.setFont(font);
+            label.setForeground(foregroundColor);
+            if (foregroundColor.equals(LINK_COLOR)) {
+              if (label.getText().equals(EMPTY_TEXT_VALUE)) {
+                label.setText(EDIT_TEXT_VALUE);
+              }
+            }
+            else {
+              if (label.getText().equals(EDIT_TEXT_VALUE)) {
+                label.setText(EMPTY_TEXT_VALUE);
+              }
             }
           }
         }
@@ -823,6 +823,8 @@ public class NlLayoutEditor extends JPanel {
         case LAYOUT:
           mySouth.putClientProperty(ATTRIBUTE_DEPENDENCY_KEY, createLayoutWidthAttributeDependency(title));
           myEast.putClientProperty(ATTRIBUTE_DEPENDENCY_KEY, createLayoutHeightAttributeDependency(title));
+          myNorth.setText(" ");
+          myWest.setText(" ");
           break;
         default:
           break;
