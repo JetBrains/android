@@ -21,7 +21,6 @@ import com.android.tools.sherpa.animation.AnimatedColor;
 import com.android.tools.sherpa.animation.AnimatedConnection;
 import com.android.tools.sherpa.animation.AnimatedHoverAnchor;
 import com.android.tools.sherpa.animation.AnimatedLine;
-import com.android.tools.sherpa.animation.Animation;
 import com.android.tools.sherpa.animation.AnimationSet;
 import com.android.tools.sherpa.animation.Choreographer;
 import com.android.tools.sherpa.drawing.decorator.ColorTheme;
@@ -48,8 +47,6 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.TexturePaint;
 import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferInt;
-import java.util.Arrays;
 
 /**
  * Implements the drawing of WidgetsScene
@@ -57,6 +54,7 @@ import java.util.Arrays;
 public class SceneDraw {
 
     public static final int GRID_SPACING = 8; // Material Design 8dp grid
+    public static boolean DRAW_ONLY_ROOT_BACKGROUND = true;
 
     private ColorSet mColorSet;
 
@@ -296,8 +294,7 @@ public class SceneDraw {
      * @return
      */
     public boolean drawBackground(ViewTransform transform, Graphics2D g, int rootMargin, int w,
-            int h,
-            ConstraintAnchor selectedAnchor) {
+            int h) {
         boolean needsRepaint = false;
         Color backgroundColor = mColorSet.getBackground();
         TexturePaint backgroundPaint = mColorSet.getBackgroundPaint();
@@ -322,7 +319,7 @@ public class SceneDraw {
                 || mBackgroundFactorY != yr
                 ||mBackgroundFactorSize != tileSize ) { // if background inputs changed
             mBackgroundFactorColor = backgroundFactorColor;
-            mBackgroundFactorX =  xr;
+            mBackgroundFactorX = xr;
             mBackgroundFactorY = yr;
             mBackgroundFactorSize = tileSize;
             Color backgroundLines = ColorTheme.updateBrightness(backgroundColor, 1.06f);
@@ -341,17 +338,21 @@ public class SceneDraw {
             mColorSet.setBackgroundPaint(backgroundPaint);
         }
 
-        g.fillRect((int) transform.getTranslateX(), (int) transform.getTranslateY(), w, h);
+        if (DRAW_ONLY_ROOT_BACKGROUND) {
+            g.setPaint(backgroundPaint);
+            g.fillRect(xr, yr, w, h);
+        } else {
+            g.fillRect((int)transform.getTranslateX(), (int)transform.getTranslateY(), w, h);
 
-        g.setColor(backgroundColor);
-        g.fillRect((int) 0, 0, w, h);
+            g.setColor(backgroundColor);
+            g.fillRect((int)0, 0, w, h);
 
-        int wr = transform.getSwingDimension(root.getDrawWidth());
-        int hr = transform.getSwingDimension(root.getDrawHeight());
+            int wr = transform.getSwingDimension(root.getDrawWidth());
+            int hr = transform.getSwingDimension(root.getDrawHeight());
 
-        g.setPaint(backgroundPaint);
-        g.fillRect((int) transform.getTranslateX(), (int) transform.getTranslateY(), wr, hr);
-
+            g.setPaint(backgroundPaint);
+            g.fillRect((int)transform.getTranslateX(), (int)transform.getTranslateY(), wr, hr);
+        }
         return needsRepaint;
     }
 
@@ -447,6 +448,9 @@ public class SceneDraw {
                     needsRepaint |= widgetDecorator.onPaint(transform, g);
                 }
             }
+        }
+        if (needsRepaint) {
+            repaint();
         }
         return needsRepaint;
     }
@@ -653,6 +657,9 @@ public class SceneDraw {
             }
         }
 
+        if (needsRepaint) {
+            repaint();
+        }
         return needsRepaint;
     }
 

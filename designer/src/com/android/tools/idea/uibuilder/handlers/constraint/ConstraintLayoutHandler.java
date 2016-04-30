@@ -323,7 +323,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                             @NotNull List<NlComponent> selectedChildren,
                             boolean selected) {
       myShowAllConstraints = selected;
-      System.out.println("show " + myShowAllConstraints);
       setIcon(myShowAllConstraints ? getSelectedIcon() : getUnselectedIcon());
     }
 
