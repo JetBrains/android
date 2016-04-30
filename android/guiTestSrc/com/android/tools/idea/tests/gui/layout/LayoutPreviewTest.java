@@ -43,6 +43,7 @@ import java.util.List;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.getProjectCreationDirPath;
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 import static junit.framework.Assert.*;
 import static org.junit.Assert.assertTrue;
@@ -183,7 +184,7 @@ public class LayoutPreviewTest {
     editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR);
     LayoutPreviewFixture preview = editor.getLayoutPreview(true);
     assertNotNull(preview);
-    editor.requireName("activity_my.xml");
+    assertThat(editor.getCurrentFileName()).isEqualTo("activity_my.xml");
     preview.waitForRenderToFinish();
 
     // Move caret to right after the end of the <TextView> element declaration

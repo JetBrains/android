@@ -143,9 +143,9 @@ public class NewProjectTest {
     newProject("Test Application").withBriefNames().withMinSdk("9").create();
 
     EditorFixture editor = guiTest.ideFrame().getEditor();
-    editor.requireName("A.java");
+    assertThat(editor.getCurrentFileName()).isEqualTo("A.java");
     editor.close();
-    editor.requireName("activity_a.xml");
+    assertThat(editor.getCurrentFileName()).isEqualTo("activity_a.xml");
     LayoutEditorFixture layoutEditor = editor.getLayoutEditor(true);
     assertThat(layoutEditor).isNotNull();
     layoutEditor.waitForNextRenderToFinish();

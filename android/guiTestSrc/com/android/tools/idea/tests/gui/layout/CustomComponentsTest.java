@@ -30,6 +30,7 @@ import org.junit.runner.RunWith;
 
 import java.util.regex.Pattern;
 
+import static com.google.common.truth.Truth.assertThat;
 import static junit.framework.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -59,7 +60,7 @@ public class CustomComponentsTest {
     // Load layout, wait for render to be shown in the preview window
     EditorFixture editor = guiTest.ideFrame().getEditor();
     editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
-    editor.requireName("activity_my.xml");
+    assertThat(editor.getCurrentFileName()).isEqualTo("activity_my.xml");
 
     LayoutPreviewFixture preview = editor.getLayoutPreview(true);
     assertNotNull(preview);
