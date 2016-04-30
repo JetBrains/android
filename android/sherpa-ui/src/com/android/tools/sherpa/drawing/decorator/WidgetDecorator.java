@@ -637,13 +637,18 @@ public class WidgetDecorator {
                         g.setColor(currentColor);
                         g.setStroke(currentStroke);
                     }
-                    startHandle.drawConnection(transform, g, mColorSet, mIsSelected);
+                    boolean painted = false;
                     if (mLockTimer != null) {
                         float progress = mLockTimer.getProgress();
                         if (progress > 0) {
                             startHandle
-                                    .drawConnection(transform, g, mColorSet, mIsSelected, progress);
+                                    .drawConnection(transform, g, mColorSet, mIsSelected,
+                                            mLockTimer.getOriginalCreator(), progress);
+                            painted = true;
                         }
+                    }
+                    if (!painted) {
+                        startHandle.drawConnection(transform, g, mColorSet, mIsSelected);
                     }
                 }
             }
