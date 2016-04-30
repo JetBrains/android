@@ -34,6 +34,7 @@ public class ColorSet {
     protected Color mBackground;
     protected Color mFrames;
     protected Color mConstraints;
+    protected Color mWeakConstraintColor;
     protected Color mMargins;
     protected Color mText;
     protected Color mSnapGuides;
@@ -100,6 +101,8 @@ public class ColorSet {
     public Color getFrames() { return mFrames; }
 
     public Color getConstraints() { return mConstraints; }
+
+    public Color getWeakConstraintColor() { return mWeakConstraintColor; }
 
     public Color getMargins() { return mMargins; }
 

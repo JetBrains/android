@@ -615,6 +615,7 @@ public class WidgetDecorator {
             anchors.add(ConstraintAnchor.Type.RIGHT);
             anchors.add(ConstraintAnchor.Type.BOTTOM);
             Color currentColor = g.getColor();
+            Stroke currentStroke = g.getStroke();
             for (ConstraintAnchor.Type type : anchors) {
                 ConstraintAnchor anchor = mWidget.getAnchor(type);
                 if (anchor == null) {
@@ -630,10 +631,11 @@ public class WidgetDecorator {
                     if (startHandle.getAnchor().isConnected()
                             && startHandle.getAnchor().getConnectionCreator()
                             == ConstraintAnchor.AUTO_CONSTRAINT_CREATOR) {
-                        g.setColor(new Color(currentColor.getRed(), currentColor.getGreen(),
-                                currentColor.getBlue(), 60));
+                        g.setColor(mColorSet.getWeakConstraintColor());
+                        g.setStroke(ConnectionDraw.sDashedStroke);
                     } else {
                         g.setColor(currentColor);
+                        g.setStroke(currentStroke);
                     }
                     startHandle.drawConnection(transform, g, mColorSet, mIsSelected);
                     if (mLockTimer != null) {

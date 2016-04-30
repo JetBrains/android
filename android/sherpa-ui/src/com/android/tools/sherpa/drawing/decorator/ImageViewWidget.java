@@ -83,7 +83,6 @@ public class ImageViewWidget extends WidgetDecorator {
         sClosedPath2D.lineTo(cx,cy+=20);
         sClosedPath2D.lineTo(move[0],cy);
         sClosedPath2D.closePath();
-        System.out.println("bounds = "+sClosedPath2D.getBounds());
         AffineTransform transform = new AffineTransform();
         transform.translate(-bounds.x, -bounds.y);
         sPath2D.transform(transform);

@@ -219,6 +219,7 @@ public class ConnectionDraw {
      */
     public static void drawArrow(Graphics2D g, Polygon arrow, int x, int y) {
         arrow.translate(x, y);
+        g.draw(arrow);
         g.fill(arrow);
         arrow.translate(-x, -y);
     }
