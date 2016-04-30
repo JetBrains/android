@@ -607,32 +607,7 @@ public class EditorFixture {
    * @param tab the tab to switch to
    */
   public EditorFixture selectEditorTab(@NotNull final Tab tab) {
-    switch (tab) {
-      case EDITOR:
-        selectEditorTab("Text");
-        break;
-      case DESIGN:
-        selectEditorTab("Design");
-        break;
-      case DEFAULT:
-        selectEditorTab((String)null);
-        break;
-      case MERGED_MANIFEST:
-        selectEditorTab("Merged Manifest");
-        break;
-      default:
-        fail("Unknown tab " + tab);
-    }
-    return this;
-  }
-
-  /**
-   * Selects the given tab in the current editor. Used to switch between
-   * design mode and editor mode for example.
-   *
-   * @param tabName the label in the editor, or null for the default (first) tab
-   */
-  public EditorFixture selectEditorTab(@Nullable final String tabName) {
+    String tabName = tab.myTabName;
     execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
@@ -1204,5 +1179,18 @@ public class EditorFixture {
    * The different tabs of an editor; used by for example {@link #open(VirtualFile, EditorFixture.Tab)} to indicate which
    * tab should be opened
    */
-  public enum Tab { EDITOR, DESIGN, DEFAULT, MERGED_MANIFEST }
+  public enum Tab {
+    EDITOR("Text"),
+    DESIGN("Design"),
+    DEFAULT(null),
+    MERGED_MANIFEST("Merged Manifest"),
+    ;
+
+    /** The label in the editor, or {@code null} for the default (first) tab. */
+    private final String myTabName;
+
+    Tab(String tabName) {
+      myTabName = tabName;
+    }
+  }
 }
