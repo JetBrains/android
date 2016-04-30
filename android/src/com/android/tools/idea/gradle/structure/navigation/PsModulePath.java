@@ -33,7 +33,13 @@ public class PsModulePath extends PsNavigationPath {
 
   @Override
   @NotNull
-  public String toHtml() {
+  protected String getPlainText() {
+    return myModuleName;
+  }
+
+  @Override
+  @NotNull
+  public String getHtml() {
     return "";
   }
 
@@ -56,6 +62,6 @@ public class PsModulePath extends PsNavigationPath {
 
   @Override
   public String toString() {
-    return myModuleName;
+    return getPlainText();
   }
 }

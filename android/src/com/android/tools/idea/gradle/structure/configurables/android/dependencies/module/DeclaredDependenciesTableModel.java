@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsAndroidDependencyComparator;
-import com.android.tools.idea.gradle.structure.configurables.issues.IssuesByTypeComparator;
+import com.android.tools.idea.gradle.structure.configurables.issues.IssuesByTypeAndTextComparator;
 import com.android.tools.idea.gradle.structure.configurables.ui.AbstractPsModelTableCellRenderer;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsIssue;
@@ -142,7 +142,7 @@ class DeclaredDependenciesTableModel extends ListTableModel<PsAndroidDependency>
       setFocusBorderAroundIcon(true);
 
       PsIssueCollection issueCollection = myContext.getAnalyzerDaemon().getIssues();
-      List<PsIssue> issues = issueCollection.findIssues(myDependency, IssuesByTypeComparator.INSTANCE);
+      List<PsIssue> issues = issueCollection.findIssues(myDependency, IssuesByTypeAndTextComparator.INSTANCE);
 
       setToolTipText(getTooltipText(issues));
 

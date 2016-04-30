@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.messages;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
-import com.android.tools.idea.gradle.structure.configurables.issues.IssuesByTypeComparator;
+import com.android.tools.idea.gradle.structure.configurables.issues.IssuesByTypeAndTextComparator;
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesViewer;
 import com.android.tools.idea.gradle.structure.daemon.PsAnalyzerDaemon;
 import com.android.tools.idea.gradle.structure.daemon.PsDaemon;
@@ -54,7 +54,7 @@ class MessagesForm {
 
       for (PsIssue issue : issues) {
         buffer.append("<li>")
-              .append(issue.getPath().toHtml()).append(": ").append(issue.getText())
+              .append(issue.getPath().getHtml()).append(": ").append(issue.getText())
               .append("</li>");
       }
 
@@ -96,7 +96,7 @@ class MessagesForm {
     enableButtons();
     List<PsIssue> issues = myContext.getAnalyzerDaemon().getIssues().getValues(PsModulePath.class);
     if (issues.size() > 1) {
-      Collections.sort(issues, IssuesByTypeComparator.INSTANCE);
+      Collections.sort(issues, IssuesByTypeAndTextComparator.INSTANCE);
     }
     myMessageCount = issues.size();
     myIssuesViewer.display(issues);

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.structure.daemon;
 
-import com.android.SdkConstants;
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.daemon.AvailableLibraryUpdateStorage.AvailableLibraryUpdate;
 import com.android.tools.idea.gradle.structure.daemon.AvailableLibraryUpdateStorage.AvailableLibraryUpdates;
@@ -86,8 +85,7 @@ public class PsAnalyzerDaemon extends PsDaemon {
             if (spec != null) {
               AvailableLibraryUpdate update = results.findUpdateFor(spec);
               if (update != null) {
-                String library = spec.group + SdkConstants.GRADLE_PATH_SEPARATOR + spec.name;
-                String text = String.format("A newer version of %1$s is available: %2$s", library, update.version);
+                String text = String.format("Newer version available: %1$s (%2$s)", update.version, update.repository);
 
                 PsLibraryDependencyPath mainPath = new PsLibraryDependencyPath(context, libraryDependency);
                 PsIssue issue = new PsIssue(text, mainPath, LIBRARY_UPDATES_AVAILABLE, INFO);
