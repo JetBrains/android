@@ -70,8 +70,7 @@ public class NewProjectTest {
     // Make sure that the activity registration uses the relative syntax
     // (regression test for https://code.google.com/p/android/issues/detail?id=76716)
     editor.open("app/src/main/AndroidManifest.xml", EditorFixture.Tab.EDITOR);
-    int offset = editor.findOffset("\".^MainActivity\"");
-    assertThat(offset).isNotEqualTo(-1);
+    assertThat(editor.getCurrentFileContents()).contains("\".MainActivity\"");
 
     // The language level should be JDK_1_7 since the compile SDK version is assumed to be 21 or higher
     assertThat(appAndroidModel.getJavaLanguageLevel()).named("Gradle Java language level").isSameAs(LanguageLevel.JDK_1_7);

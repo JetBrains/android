@@ -62,10 +62,11 @@ public class LaunchAndroidApplicationTest {
   @Test
   public void testDebugOnEmulator() throws IOException, ClassNotFoundException, EvaluateException {
     guiTest.importSimpleApplication();
-    final EditorFixture editor = guiTest.ideFrame().getEditor();
-    final int offset = editor.open("app/src/main/java/google/simpleapplication/MyActivity.java", EditorFixture.Tab.EDITOR).findOffset(
-      "setContentView", "(R.layout.activity_my);", true);
-    assertThat(offset).isAtLeast(0);
+    String contents = guiTest.ideFrame()
+      .getEditor()
+      .open("app/src/main/java/google/simpleapplication/MyActivity.java", EditorFixture.Tab.EDITOR)
+      .getCurrentFileContents();
+    assertThat(contents).contains("setContentView(R.layout.activity_my);");
 
     guiTest.ideFrame().debugApp(APP_NAME);
     guiTest.ideFrame().findChooseDeviceDialog().selectEmulator("Nexus7")
