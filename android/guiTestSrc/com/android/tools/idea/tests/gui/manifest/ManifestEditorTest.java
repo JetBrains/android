@@ -121,12 +121,10 @@ public class ManifestEditorTest {
     IdeFrameFixture projectFrame = guiTest.ideFrame();
     EditorFixture editor = projectFrame.getEditor();
     editor.open("app/src/main/AndroidManifest.xml");
-    String text = editor.getCurrentFileContents(false);
-    assertNotNull(text);
     String addedText = "<activity\n" +
                        "            android:name=\"com.android.mylibrary.MainActivity\"\n" +
                        "            tools:node=\"remove\" />";
-    assertThat(text).doesNotContain(addedText);
+    assertThat(editor.getCurrentFileContents()).doesNotContain(addedText);
     editor.selectEditorTab(EditorFixture.Tab.MERGED_MANIFEST);
     MergedManifestFixture mergedManifestFixture = editor.getMergedManifestEditor();
     JTreeFixture tree = mergedManifestFixture.getTree();
@@ -139,8 +137,6 @@ public class ManifestEditorTest {
       }
     }).click();
     editor.selectEditorTab(EditorFixture.Tab.EDITOR);
-    text = editor.getCurrentFileContents(false);
-    assertNotNull(text);
-    assertThat(text).contains(addedText);
+    assertThat(editor.getCurrentFileContents()).contains(addedText);
   }
 }

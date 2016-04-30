@@ -32,9 +32,8 @@ import org.junit.runner.RunWith;
 
 import java.io.IOException;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertEquals;
 
 /*
   TODO: Missing Tests
@@ -90,8 +89,7 @@ public class NewActivityTest {
 
     myEditor.open(PROVIDED_MANIFEST);
 
-    String text =  myEditor.getCurrentFileContents(false);
-    assertNotNull(text);
+    String text = myEditor.getCurrentFileContents();
     assertEquals(StringUtil.getOccurrenceCount(text, "android:name=\".MainActivity\""), 1);
     assertEquals(StringUtil.getOccurrenceCount(text, "@string/title_activity_main"), 1);
     assertEquals(StringUtil.getOccurrenceCount(text, "android.intent.category.LAUNCHER"), 1);
@@ -106,8 +104,7 @@ public class NewActivityTest {
 
     myEditor.open(PROVIDED_MANIFEST);
 
-    String text =  myEditor.getCurrentFileContents(false);
-    assertNotNull(text);
+    String text = myEditor.getCurrentFileContents();
     assertEquals(StringUtil.getOccurrenceCount(text, "android.intent.category.LAUNCHER"), 2);
   }
 
