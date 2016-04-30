@@ -22,6 +22,8 @@ import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.util.PropertiesMap;
+import com.google.common.collect.ImmutableTable;
+import com.google.common.collect.Table;
 import com.intellij.designer.LightToolWindowContent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
@@ -129,7 +131,7 @@ public class NlPropertiesManager implements DesignSurfaceListener, ModelListener
     // Obtaining the properties, especially the first time around on a big project
     // can take close to a second, so we do it on a separate thread..
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
-      final List<NlPropertyItem> properties = NlProperties.getInstance().getProperties(component);
+      final Table<String, String, NlPropertyItem> properties = NlProperties.getInstance().getProperties(component);
 
       UIUtil.invokeLaterIfNeeded(() -> {
         if (myProject.isDisposed()) {
@@ -157,7 +159,7 @@ public class NlPropertiesManager implements DesignSurfaceListener, ModelListener
   }
 
   private void setEmptySelection() {
-    myPropertiesPanel.setItems(null, Collections.emptyList(), this);
+    myPropertiesPanel.setItems(null, ImmutableTable.of(), this);
   }
 
   public void setValue(@NotNull NlProperty property, @Nullable String value) {

@@ -44,6 +44,12 @@ public class NlFlagPropertyItemValue extends PTableItem implements NlProperty {
     return myName;
   }
 
+  @Nullable
+  @Override
+  public String getNamespace() {
+    return myFlags.getNamespace();
+  }
+
   @Override
   public String getValue() {
     return myFlags.isItemSet(this) ? SdkConstants.VALUE_TRUE : SdkConstants.VALUE_FALSE;

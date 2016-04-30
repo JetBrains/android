@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.inspector.InspectorPanel;
 import com.android.tools.idea.uibuilder.property.ptable.PTable;
 import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
 import com.android.tools.idea.uibuilder.property.ptable.PTableModel;
 import com.android.util.PropertiesMap;
+import com.google.common.collect.Table;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
@@ -34,7 +36,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.Collections;
+import java.util.*;
 import java.util.List;
 
 public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Model {
@@ -92,11 +94,11 @@ public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Mo
   }
 
   public void setItems(@Nullable NlComponent component,
-                       @NotNull List<NlPropertyItem> properties,
+                       @NotNull Table<String, String, NlPropertyItem> properties,
                        @NotNull NlPropertiesManager propertiesManager) {
     String componentName = component == null ? "" : component.getTagName();
     myComponent = component;
-    myProperties = properties;
+    myProperties = extractPropertiesForTable(properties);
     mySelectedComponentLabel.setText(componentName);
 
     List<PTableItem> sortedProperties;
@@ -104,7 +106,7 @@ public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Mo
       sortedProperties = Collections.emptyList();
     }
     else {
-      final List<PTableItem> groupedProperties = new NlPropertiesGrouper().group(properties, component);
+      List<PTableItem> groupedProperties = new NlPropertiesGrouper().group(myProperties, component);
       sortedProperties = new NlPropertiesSorter().sort(groupedProperties, component);
     }
     if (myTable.isEditing()) {
@@ -114,6 +116,23 @@ public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Mo
 
     updateDefaultProperties(propertiesManager);
     myInspectorPanel.setComponent(component, properties, propertiesManager);
+  }
+
+  @NotNull
+  private static List<NlPropertyItem> extractPropertiesForTable(@NotNull Table<String, String, NlPropertyItem> properties) {
+    Map<String, NlPropertyItem> androidProperties = properties.row(SdkConstants.ANDROID_URI);
+    Map<String, NlPropertyItem> autoProperties = properties.row(SdkConstants.AUTO_URI);
+
+    // Include all auto (app) properties and all android properties that are not also auto properties.
+    // TODO: Include design properties here.
+    List<NlPropertyItem> result = new ArrayList<>(properties.size());
+    result.addAll(autoProperties.values());
+    for (Map.Entry<String, NlPropertyItem> entry : androidProperties.entrySet()) {
+      if (!autoProperties.containsKey(entry.getKey())) {
+        result.add(entry.getValue());
+      }
+    }
+    return result;
   }
 
   public void modelRendered(@NotNull NlPropertiesManager propertiesManager) {

@@ -15,17 +15,17 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
+import com.google.common.collect.Table;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.intellij.lang.annotations.Language;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 public class NlPropertiesTest extends LayoutTestCase {
-  private static final String[] VIEW_ATTRS = {"id", "padding", "visibility", "textAlignment", "translationZ", "elevation", "style"};
+  private static final String CUSTOM_NAMESPACE = "http://schemas.android.com/apk/res/p1.p2";
+  private static final String[] NO_NAMESPACE_VIEW_ATTRS = {"style"};
+  private static final String[] ANDROID_VIEW_ATTRS = {"id", "padding", "visibility", "textAlignment", "translationZ", "elevation"};
   private static final String[] TEXT_VIEW_ATTRS = {"text", "hint", "textColor", "textSize"};
 
   private static final String[] FRAME_LAYOUT_ATTRS = {"layout_gravity"};
@@ -43,19 +43,20 @@ public class NlPropertiesTest extends LayoutTestCase {
     XmlTag rootTag = xmlFile.getRootTag();
     assert rootTag != null;
 
-    List<NlPropertyItem> properties = NlProperties.getInstance().getProperties(MockNlComponent.create(rootTag));
+    Table<String, String, NlPropertyItem> properties = NlProperties.getInstance().getProperties(MockNlComponent.create(rootTag));
     assertTrue(properties.size() > 120); // at least 124 attributes (view + layouts) are available as of API 22
 
     // check that some of the View's attributes are there..
-    assertPresent(tag, properties, VIEW_ATTRS);
+    assertPresent(tag, properties, SdkConstants.ANDROID_URI, ANDROID_VIEW_ATTRS);
+    assertPresent(tag, properties, "", NO_NAMESPACE_VIEW_ATTRS);
 
     // check that non-existent properties haven't been added
-    assertAbsent(tag, properties, TEXT_VIEW_ATTRS);
+    assertAbsent(tag, properties, SdkConstants.ANDROID_URI, TEXT_VIEW_ATTRS);
 
     // Views that don't have a parent layout have all the layout attributes available to them..
-    assertPresent(tag, properties, RELATIVE_LAYOUT_ATTRS);
-    assertPresent(tag, properties, GRID_LAYOUT_ATTRS);
-    assertPresent(tag, properties, FRAME_LAYOUT_ATTRS);
+    assertPresent(tag, properties, SdkConstants.ANDROID_URI, RELATIVE_LAYOUT_ATTRS);
+    assertPresent(tag, properties, SdkConstants.ANDROID_URI, GRID_LAYOUT_ATTRS);
+    assertPresent(tag, properties, SdkConstants.ANDROID_URI, FRAME_LAYOUT_ATTRS);
   }
 
   public void testViewInRelativeLayout() {
@@ -73,17 +74,18 @@ public class NlPropertiesTest extends LayoutTestCase {
     XmlTag[] subTags = rootTag.getSubTags();
     assertEquals(1, subTags.length);
 
-    List<NlPropertyItem> properties = NlProperties.getInstance().getProperties(MockNlComponent.create(subTags[0]));
+    Table<String, String, NlPropertyItem> properties = NlProperties.getInstance().getProperties(MockNlComponent.create(subTags[0]));
     assertTrue(properties.size() > 180); // at least 190 attributes are available as of API 22
 
     // A text view should have all of its attributes and the parent class's (View) attributes
-    assertPresent(tag, properties, TEXT_VIEW_ATTRS);
-    assertPresent(tag, properties, VIEW_ATTRS);
+    assertPresent(tag, properties, SdkConstants.ANDROID_URI, TEXT_VIEW_ATTRS);
+    assertPresent(tag, properties, SdkConstants.ANDROID_URI, ANDROID_VIEW_ATTRS);
+    assertPresent(tag, properties, "", NO_NAMESPACE_VIEW_ATTRS);
 
     // Since it is embedded inside a relative layout, it should only have relative layout's layout attributes
-    assertPresent(tag, properties, RELATIVE_LAYOUT_ATTRS);
-    assertAbsent(tag, properties, GRID_LAYOUT_ATTRS);
-    assertAbsent(tag, properties, FRAME_LAYOUT_ATTRS);
+    assertPresent(tag, properties, SdkConstants.ANDROID_URI, RELATIVE_LAYOUT_ATTRS);
+    assertAbsent(tag, properties, SdkConstants.ANDROID_URI, GRID_LAYOUT_ATTRS);
+    assertAbsent(tag, properties, SdkConstants.ANDROID_URI, FRAME_LAYOUT_ATTRS);
   }
 
   public void testCustomViewAttributes() {
@@ -97,12 +99,13 @@ public class NlPropertiesTest extends LayoutTestCase {
     XmlTag[] subTags = rootTag.getSubTags();
     assertEquals(1, subTags.length);
 
-    List<NlPropertyItem> properties = NlProperties.getInstance().getProperties(MockNlComponent.create(subTags[0]));
+    Table<String, String, NlPropertyItem> properties = NlProperties.getInstance().getProperties(MockNlComponent.create(subTags[0]));
     assertTrue("# of properties lesser than expected: " + properties.size(), properties.size() > 90);
 
-    assertPresent(tag, properties, VIEW_ATTRS);
-    assertPresent(tag, properties, LINEAR_LAYOUT_ATTRS);
-    assertAbsent(tag, properties, TEXT_VIEW_ATTRS);
+    assertPresent(tag, properties, SdkConstants.ANDROID_URI, ANDROID_VIEW_ATTRS);
+    assertPresent(tag, properties, "", NO_NAMESPACE_VIEW_ATTRS);
+    assertPresent(tag, properties, SdkConstants.ANDROID_URI, LINEAR_LAYOUT_ATTRS);
+    assertAbsent(tag, properties, SdkConstants.ANDROID_URI, TEXT_VIEW_ATTRS);
   }
 
   public void testPropertyNames() {
@@ -114,9 +117,9 @@ public class NlPropertiesTest extends LayoutTestCase {
     XmlTag[] subTags = rootTag.getSubTags();
     assertEquals(1, subTags.length);
 
-    List<NlPropertyItem> properties = NlProperties.getInstance().getProperties(MockNlComponent.create(subTags[0]));
+    Table<String, String, NlPropertyItem> properties = NlProperties.getInstance().getProperties(MockNlComponent.create(subTags[0]));
 
-    NlPropertyItem p = getPropertyByName(properties, "id");
+    NlPropertyItem p = properties.get(SdkConstants.ANDROID_URI, "id");
     assertNotNull(p);
 
     assertEquals("id", p.getName());
@@ -133,7 +136,7 @@ public class NlPropertiesTest extends LayoutTestCase {
 
     assertEquals(expected, p.getTooltipText());
 
-    p = getPropertyByName(properties, "legend");
+    p = properties.get(CUSTOM_NAMESPACE, "legend");
     assertNotNull(p);
 
     assertEquals("legend", p.getName());
@@ -203,35 +206,25 @@ public class NlPropertiesTest extends LayoutTestCase {
     XmlTag[] subTags = rootTag.getSubTags();
     assertEquals(1, subTags.length);
 
-    List<NlPropertyItem> properties = NlProperties.getInstance().getProperties(MockNlComponent.create(subTags[0]));
+    Table<String, String, NlPropertyItem> properties = NlProperties.getInstance().getProperties(MockNlComponent.create(subTags[0]));
     assertTrue(properties.size() > 180); // at least 190 attributes are available as of API 22
 
     // The attrs.xml in appcompat-22.0.0 includes android:focusable, theme and android:theme.
     // The android:focusable refers to the platform attribute, and hence should not be duplicated..
-    assertPresent("TextView", properties, "focusable", "theme", "custom");
-    assertAbsent("TextView", properties, "android:focusable", "android:theme");
+    assertPresent("TextView", properties, SdkConstants.ANDROID_URI, "focusable", "theme");
+    assertPresent("TextView", properties, CUSTOM_NAMESPACE, "custom");
+    assertAbsent("TextView", properties, SdkConstants.ANDROID_URI, "android:focusable", "android:theme");
   }
 
-  @Nullable
-  public static NlPropertyItem getPropertyByName(@NotNull List<NlPropertyItem> properties, @NotNull String name) {
-    for (NlPropertyItem property : properties) {
-      if (name.equals(property.getName())) {
-        return property;
-      }
-    }
-
-    return null;
-  }
-
-  private static void assertPresent(String tag, List<NlPropertyItem> properties, String... names) {
+  private static void assertPresent(String tag, Table<String, String, NlPropertyItem> properties, String namespace, String... names) {
     for (String n : names) {
-      assertNotNull("Missing attribute " + n + " for " + tag, getPropertyByName(properties, n));
+      assertNotNull("Missing attribute " + n + " for " + tag, properties.get(namespace, n));
     }
   }
 
-  private static void assertAbsent(String tag, List<NlPropertyItem> properties, String... names) {
+  private static void assertAbsent(String tag, Table<String, String, NlPropertyItem> properties, String namespace, String... names) {
     for (String n : names) {
-      assertNull("Attribute " + n + " not applicable for a " + tag, getPropertyByName(properties, n));
+      assertNull("Attribute " + n + " not applicable for a " + tag, properties.get(namespace, n));
     }
   }
 }

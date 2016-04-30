@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.inspector;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintInspectorProvider;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
@@ -22,6 +23,7 @@ import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Table;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.ui.components.JBLabel;
@@ -91,14 +93,17 @@ public class InspectorPanel extends JPanel {
   }
 
   public void setComponent(@Nullable NlComponent component,
-                           @NotNull List<? extends NlProperty> properties,
+                           @NotNull Table<String, String, ? extends NlProperty> properties,
                            @NotNull NlPropertiesManager propertiesManager) {
     mySplitComponents.clear();
     myInspector.removeAll();
     myInspector.repaint();
 
     Map<String, NlProperty> propertiesByName = Maps.newHashMapWithExpectedSize(properties.size());
-    for (NlProperty property : properties) {
+    for (NlProperty property : properties.row(SdkConstants.ANDROID_URI).values()) {
+      propertiesByName.put(property.getName(), property);
+    }
+    for (NlProperty property : properties.row(SdkConstants.AUTO_URI).values()) {
       propertiesByName.put(property.getName(), property);
     }
 
