@@ -1043,21 +1043,6 @@ public class EditorFixture {
   }
 
   /**
-   * Requires the source editor's current file name to be the given name (or if null, for there
-   * to be no current file)
-   */
-  public void requireName(@Nullable String name) {
-    VirtualFile currentFile = getCurrentFile();
-    if (name == null) {
-      assertNull("Expected editor to not have an open file, but is showing " + currentFile, currentFile);
-    } else if (currentFile == null) {
-      fail("Expected file " + name + " to be showing, but the editor is not showing anything");
-    } else {
-      assertEquals(name, currentFile.getName());
-    }
-  }
-
-  /**
    * Requires the source editor's current file to be in the given folder (or if null, for there
    * to be no current file)
    */
