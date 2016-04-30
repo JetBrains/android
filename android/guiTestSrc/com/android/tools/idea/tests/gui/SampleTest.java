@@ -47,7 +47,7 @@ public class SampleTest {
     int offset = editor.findOffset(null, "Simple Application", true);
     editor.moveTo(offset);
     assertEquals("<string name=\"app_name\">^Simple Application</string>", editor.getCurrentLineContents(true, true, 0));
-    editor.select(offset, offset + "Simple".length());
+    editor.select("(Simple) Application");
     assertEquals("<string name=\"app_name\">|>^Simple<| Application</string>", editor.getCurrentLineContents(true, true, 0));
     editor.enterText("Tester");
     editor.invokeAction(EditorFixture.EditorAction.BACK_SPACE);
