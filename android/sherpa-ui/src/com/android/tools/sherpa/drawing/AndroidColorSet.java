@@ -40,6 +40,7 @@ public class AndroidColorSet extends ColorSet {
         mBackground = Color.white;
         mFrames = Color.lightGray;
         mConstraints = Color.blue;
+        mWeakConstraintColor = Color.yellow;
         mMargins = Color.cyan;
         mText = Color.black;
         mSnapGuides = Color.red;

@@ -57,7 +57,6 @@ public class SeekBarWidget extends WidgetDecorator {
         mWidget.setMinHeight(30);
         int tw = mWidget.getMinWidth();
         int th = mWidget.getMinHeight();
-        System.out.println("w,h = " + tw + "," + th);
         if (mWidget.getHorizontalDimensionBehaviour()
                 == ConstraintWidget.DimensionBehaviour.WRAP_CONTENT) {
             mWidget.setWidth(tw);

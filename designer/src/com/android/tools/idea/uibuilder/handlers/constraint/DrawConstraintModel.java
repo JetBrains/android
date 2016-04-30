@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.constraint;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.sherpa.drawing.*;
+import com.android.tools.sherpa.drawing.decorator.ColorTheme;
 import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
 import com.android.tools.sherpa.interaction.MouseInteraction;
 import com.android.tools.sherpa.interaction.WidgetMotion;
@@ -181,6 +182,9 @@ class DrawConstraintModel {
                        boolean showAllConstraints) {
     Graphics2D g = (Graphics2D)gc.create();
     WidgetDecorator.setShowFakeUI(mShowFakeUI);
+    if (mySceneDraw.getCurrentStyle() == WidgetDecorator.BLUEPRINT_STYLE) {
+      mySceneDraw.drawBackground(myViewTransform, g, 0, width, height);
+    }
     boolean ret = mySceneDraw.paintWidgets(width, height, myViewTransform, g, showAllConstraints, myMouseInteraction);
     g.dispose();
     return ret;

@@ -29,6 +29,7 @@ import java.util.Random;
  * This demonstrates how DrawPicker is used and test the performance
  */
 public class CheckSelection extends JPanel {
+  private static final boolean DEBUG = false;
   DrawPicker selector = new DrawPicker();
   Random mRandom = new Random();
   int mMaxX = 512;
@@ -64,7 +65,9 @@ public class CheckSelection extends JPanel {
         mMaxY = getHeight();
         long time = System.nanoTime();
         buildMarks(mMaxX / 8);
-        System.out.println("add " + 13 * (mMaxX / 8) + " objects = " + (System.nanoTime() - time) * 1E-6f + "ms");
+        if (DEBUG) {
+          System.out.println("add " + 13 * (mMaxX / 8) + " objects = " + (System.nanoTime() - time) * 1E-6f + "ms");
+        }
         repaint();
       }
     });
@@ -107,7 +110,9 @@ public class CheckSelection extends JPanel {
     }
     count = 0;
     selector.find(x, y);
-    System.out.println("selection  " + ((System.nanoTime() - time) * 1E-6f) + "ms");
+    if (DEBUG) {
+      System.out.println("selection  " + ((System.nanoTime() - time) * 1E-6f) + "ms");
+    }
   }
 
   void buildMarks(int size) {
