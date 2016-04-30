@@ -85,7 +85,7 @@ public class LayoutPreviewTest {
 
     EditorFixture editor = guiTest.ideFrame().getEditor();
     editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR);
-    editor.requireFolderName("layout");
+    assertThat(editor.getCurrentFile().getParent().getName()).isEqualTo("layout");
     LayoutPreviewFixture preview = editor.getLayoutPreview(true);
     assertNotNull(preview);
     preview.waitForNextRenderToFinish();
@@ -104,7 +104,7 @@ public class LayoutPreviewTest {
     toolbar.createLandscapeVariation();
     preview.waitForNextRenderToFinish();
     preview.requireRenderSuccessful();
-    editor.requireFolderName("layout-land");
+    assertThat(editor.getCurrentFile().getParent().getName()).isEqualTo("layout-land");
     toolbar.requireOrientation("Landscape");
 
     toolbar.toggleOrientation();
@@ -112,12 +112,12 @@ public class LayoutPreviewTest {
     preview.waitForNextRenderToFinish();
     toolbar.requireOrientation("Portrait");
     // We should have switched back to the first file again since -land doesn't match portrait
-    editor.requireFolderName("layout");
+    assertThat(editor.getCurrentFile().getParent().getName()).isEqualTo("layout");
 
     toolbar.createOtherVariation("layout-v17");
     preview.waitForNextRenderToFinish();
     preview.requireRenderSuccessful();
-    editor.requireFolderName("layout-v17");
+    assertThat(editor.getCurrentFile().getParent().getName()).isEqualTo("layout-v17");
     toolbar.requireDevice("Nexus 5"); // The device shouldn't have changed.
 
     toolbar.toggleOrientation();
@@ -126,20 +126,20 @@ public class LayoutPreviewTest {
     toolbar.requireDevice("Nexus 5");  // We should still be using the same device.
     toolbar.requireOrientation("Landscape");
     // The file should have switched to layout-land.
-    editor.requireFolderName("layout-land");
+    assertThat(editor.getCurrentFile().getParent().getName()).isEqualTo("layout-land");
 
     toolbar.toggleOrientation();
     preview.waitForNextRenderToFinish();
     preview.requireRenderSuccessful();
     toolbar.requireDevice("Nexus 5");
     toolbar.requireOrientation("Portrait");
-    editor.requireFolderName("layout");
+    assertThat(editor.getCurrentFile().getParent().getName()).isEqualTo("layout");
 
     toolbar.chooseDevice("Nexus 4");
     preview.waitForNextRenderToFinish();
     preview.requireRenderSuccessful();
     // We should still be in the same file.
-    editor.requireFolderName("layout");
+    assertThat(editor.getCurrentFile().getParent().getName()).isEqualTo("layout");
   }
 
   @Test
@@ -149,7 +149,7 @@ public class LayoutPreviewTest {
 
     EditorFixture editor = guiTest.ideFrame().getEditor();
     editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR);
-    editor.requireFolderName("layout");
+    assertThat(editor.getCurrentFile().getParent().getName()).isEqualTo("layout");
     LayoutPreviewFixture preview = editor.getLayoutPreview(true);
     assertNotNull(preview);
     preview.waitForNextRenderToFinish();
@@ -236,18 +236,18 @@ public class LayoutPreviewTest {
     toolbar.chooseDevice("Nexus 5");
     preview.waitForNextRenderToFinish();
     toolbar.requireDevice("Nexus 5");
-    editor.requireFolderName("layout");
+    assertThat(editor.getCurrentFile().getParent().getName()).isEqualTo("layout");
     toolbar.requireOrientation("Portrait");
 
     toolbar.chooseDevice("Nexus 7");
     preview.waitForNextRenderToFinish();
     toolbar.requireDevice("Nexus 7 2013");
-    editor.requireFolderName("layout-sw600dp");
+    assertThat(editor.getCurrentFile().getParent().getName()).isEqualTo("layout-sw600dp");
 
     toolbar.chooseDevice("Nexus 10");
     preview.waitForNextRenderToFinish();
     toolbar.requireDevice("Nexus 10");
-    editor.requireFolderName("layout-sw600dp");
+    assertThat(editor.getCurrentFile().getParent().getName()).isEqualTo("layout-sw600dp");
     toolbar.requireOrientation("Landscape"); // Default orientation for Nexus 10
 
     editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR);
@@ -261,7 +261,7 @@ public class LayoutPreviewTest {
     preview.waitForNextRenderToFinish();
     editor.open("app/src/main/res/layout-sw600dp/layout2.xml", EditorFixture.Tab.EDITOR);
     preview.waitForNextRenderToFinish();
-    editor.requireFolderName("layout-sw600dp");
+    assertThat(editor.getCurrentFile().getParent().getName()).isEqualTo("layout-sw600dp");
     toolbar.requireDevice("Nexus 7 2013"); // because it's the most recently configured sw600-dp compatible device
     editor.open("app/src/main/res/layout/layout2.xml", EditorFixture.Tab.EDITOR);
     preview.waitForNextRenderToFinish();
