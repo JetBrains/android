@@ -44,8 +44,7 @@ public class CreateResourceTest {
     guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
     EditorFixture editor = guiTest.ideFrame().getEditor();
     editor.open("lib/src/main/java/com/android/tools/test/mylibrary/LibraryActivity.java");
-    editor.select(editor.findOffset("R.layout.^activity_library"),
-                  editor.findOffset("R.layout.activity_library^);"));
+    editor.select("R.layout.(activity_library)");
     editor.invokeAction(EditorFixture.EditorAction.BACK_SPACE);
     editor.enterText("x"); // text now says setContentView(R.layout.x), a missing layout
 
