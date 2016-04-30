@@ -62,6 +62,41 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     actions.add(new ViewActionSeparator());
     actions.add(new ClearConstraintsAction());
     actions.add((new InferAction()));
+    String str;
+    str = "Align group horizontally on the left";
+    actions.add((new AlignAction(Scout.Arrange.AlignHorizontallyLeft, AndroidIcons.SherpaIcons.LeftAligned, str)));
+    str = "Align group horizontally in the middle";
+    actions.add((new AlignAction(Scout.Arrange.AlignHorizontallyCenter, AndroidIcons.SherpaIcons.CenterAligned, str)));
+    str = "Align group horizontally on the right";
+    actions.add((new AlignAction(Scout.Arrange.AlignHorizontallyRight, AndroidIcons.SherpaIcons.RightAligned, str)));
+    str = "Align group vertically to the top";
+    actions.add((new AlignAction(Scout.Arrange.AlignVerticallyTop, AndroidIcons.SherpaIcons.TopAlign, str)));
+    str = "Align group vertically to the middle";
+    actions.add((new AlignAction(Scout.Arrange.AlignVerticallyMiddle, AndroidIcons.SherpaIcons.MiddleAlign, str)));
+    str = "Align group vertically to the bottom";
+    actions.add((new AlignAction(Scout.Arrange.AlignVerticallyBottom, AndroidIcons.SherpaIcons.BottomAlign, str)));
+    str = "Align group on the baseline";
+    actions.add((new AlignAction(Scout.Arrange.AlignBaseline, AndroidIcons.SherpaIcons.BaselineAlign, str)));
+    str = "Distribute group horizontally";
+    actions.add((new AlignAction(Scout.Arrange.DistributeHorizontally, AndroidIcons.SherpaIcons.HorizontalDistribute, str)));
+    str = "Distribute group vertically";
+    actions.add((new AlignAction(Scout.Arrange.DistributeVertically, AndroidIcons.SherpaIcons.verticallyDistribute, str)));
+    str = "Center the widget horizontally";
+    actions.add((new AlignAction(Scout.Arrange.CenterHorizontally, AndroidIcons.SherpaIcons.HorizontalCenter, str)));
+    str = "Center the widget vertically";
+    actions.add((new AlignAction(Scout.Arrange.CenterVertically, AndroidIcons.SherpaIcons.VerticalCenter, str)));
+    str = "Center the widget horizontally in parent";
+    actions.add((new AlignAction(Scout.Arrange.CenterHorizontallyInParent, AndroidIcons.SherpaIcons.HorizontalCenterParent, str)));
+    str = "Center the widget vertically in parent";
+    actions.add((new AlignAction(Scout.Arrange.CenterVerticallyInParent, AndroidIcons.SherpaIcons.VerticalCenterParent, str)));
+    str = "pack selection horizontally";
+    actions.add((new AlignAction(Scout.Arrange.HorizontalPack, AndroidIcons.SherpaIcons.PackSelectionHorizontally, str)));
+    str = "pack selection vertically";
+    actions.add((new AlignAction(Scout.Arrange.VerticalPack, AndroidIcons.SherpaIcons.PackSelectionVertically, str)));
+    str = "Expand horizontally";
+    actions.add((new AlignAction(Scout.Arrange.ExpandHorizontally, AndroidIcons.SherpaIcons.HorizontalExpand, str)));
+    str = "Expand vertically";
+    actions.add((new AlignAction(Scout.Arrange.ExpandVertically, AndroidIcons.SherpaIcons.VerticalExpand, str)));
   }
 
   /**
@@ -234,7 +269,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                                    @NotNull ViewHandler handler,
                                    @NotNull NlComponent component,
                                    @NotNull List<NlComponent> selectedChildren) {
-      presentation.setIcon(AndroidIcons.SherpaIcons.Delete);
+      presentation.setIcon(AndroidIcons.SherpaIcons.DeleteConstraint);
       presentation.setLabel("Clear all constraints");
     }
   }
@@ -260,15 +295,17 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                                    @NotNull ViewHandler handler,
                                    @NotNull NlComponent component,
                                    @NotNull List<NlComponent> selectedChildren) {
-      presentation.setIcon(AndroidIcons.SherpaIcons.ShowConstraints);
+      presentation.setIcon(AndroidIcons.SherpaIcons.Inference);
       presentation.setLabel("Infer constraints");
     }
   }
 
   private class ToggleConstraintModeAction extends ToggleViewAction {
     public ToggleConstraintModeAction() {
-      super(AndroidIcons.SherpaIcons.ShowConstraints, AndroidIcons.SherpaIcons.ShowNoConstraints, "Show constraints",
+      super(AndroidIcons.SherpaIcons.Unhide, AndroidIcons.SherpaIcons.Hide, "Show constraints",
             "Show No constraints");
+
+
     }
 
     @Override
@@ -286,6 +323,56 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                             @NotNull List<NlComponent> selectedChildren,
                             boolean selected) {
       myShowAllConstraints = selected;
+      System.out.println("show " + myShowAllConstraints);
+      setIcon(myShowAllConstraints ? getSelectedIcon() : getUnselectedIcon());
+    }
+
+    @Override
+    public void updatePresentation(@NotNull ViewActionPresentation presentation,
+                                   @NotNull ViewEditor editor,
+                                   @NotNull ViewHandler handler,
+                                   @NotNull NlComponent component,
+                                   @NotNull List<NlComponent> selectedChildren,
+                                   boolean selected) {
+      presentation.setIcon(myShowAllConstraints ? getSelectedIcon() : getUnselectedIcon());
+    }
+
+  }
+
+  private static class AlignAction extends DirectViewAction {
+    private final Scout.Arrange myActionType;
+    private final Icon myAlignIcon;
+    private final String myToolTip;
+
+    AlignAction(Scout.Arrange actionType, Icon alignIcon, String toolTip) {
+      myActionType = actionType;
+      myAlignIcon = alignIcon;
+      myToolTip = toolTip;
+    }
+
+    @Override
+    public void perform(@NotNull ViewEditor editor,
+                        @NotNull ViewHandler handler,
+                        @NotNull NlComponent component,
+                        @NotNull List<NlComponent> selectedChildren) {
+      ConstraintModel model = ConstraintModel.getConstraintModel(editor.getModel());
+      if (model == null) {
+        return;
+      }
+      WidgetsScene scene = model.getScene();
+      Scout.arrangeWidgets(myActionType, model.getSelection().getWidgets(), false);
+      ConstraintUtilities.saveModelToXML(component.getModel());
+    }
+
+    @Override
+    public void updatePresentation(@NotNull ViewActionPresentation presentation,
+                                   @NotNull ViewEditor editor,
+                                   @NotNull ViewHandler handler,
+                                   @NotNull NlComponent component,
+                                   @NotNull List<NlComponent> selectedChildren) {
+      presentation.setIcon(myAlignIcon);
+      presentation.setLabel(myToolTip);
     }
   }
+
 }
