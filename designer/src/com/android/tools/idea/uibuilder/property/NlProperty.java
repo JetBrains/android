@@ -44,6 +44,13 @@ public interface NlProperty {
   String getValue();
 
   /**
+   * Get the resolved value of the property as a string.
+   * This is a shortcut for resolveValue(getValue())
+   */
+  @Nullable
+  String getResolvedValue();
+
+  /**
    * Returns true if the specified value is the default value.
    */
   boolean isDefaultValue(@Nullable String value);

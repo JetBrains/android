@@ -56,6 +56,12 @@ public class NlFlagPropertyItemValue extends PTableItem implements NlProperty {
   }
 
   @Override
+  @Nullable
+  public String getResolvedValue() {
+    return getValue();
+  }
+
+  @Override
   public boolean isDefaultValue(@Nullable String value) {
     return false;
   }

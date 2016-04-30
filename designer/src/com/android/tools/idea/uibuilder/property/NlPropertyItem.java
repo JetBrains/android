@@ -126,6 +126,16 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
   }
 
   @Override
+  @Nullable
+  public String getResolvedValue() {
+    String value = getValue();
+    if (value != null) {
+      value = resolveValue(value);
+    }
+    return value;
+  }
+
+  @Override
   public boolean isDefaultValue(@Nullable String value) {
     if (value == null) {
       return true;

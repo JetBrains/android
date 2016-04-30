@@ -67,6 +67,12 @@ public abstract class PTableGroupItem extends PTableItem {
     throw new IllegalAccessError();
   }
 
+  @Nullable
+  @Override
+  public String getResolvedValue() {
+    throw new IllegalAccessError();
+  }
+
   @Override
   public void setValue(@Nullable Object value) {
     throw new IllegalAccessError();

@@ -65,6 +65,9 @@ public abstract class PTableItem {
   @Nullable
   public abstract String getValue();
 
+  @Nullable
+  public abstract String getResolvedValue();
+
   public abstract void setValue(@Nullable Object value);
 
   @Nullable
