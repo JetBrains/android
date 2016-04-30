@@ -549,17 +549,16 @@ public class NlLayoutEditor extends JPanel {
     public String getValue(@NotNull Map<String, NlProperty> properties) {
       for (String attribute : myDependentAttributes) {
         NlProperty property = properties.get(attribute);
-        // TODO: Add a NlProperty.getResolvedValue and simplify the following:
-        String value = property != null ? property.getValue() : null;
+        String value = property != null ? property.getResolvedValue() : null;
         if (!StringUtil.isEmpty(value)) {
-          return property.resolveValue(value);
+          return value;
         }
       }
       if (myDependentAttributes.isEmpty()) {
         NlProperty property = properties.get(myAttribute);
-        String value = property != null ? property.getValue() : null;
+        String value = property != null ? property.getResolvedValue() : null;
         if (!StringUtil.isEmpty(value)) {
-          return property.resolveValue(value);
+          return value;
         }
       }
       return " ";

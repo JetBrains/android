@@ -99,11 +99,10 @@ public class NlDefaultRenderer extends NlAttributeRenderer {
 
   @Nullable
   public static Icon getIcon(@NotNull NlProperty property) {
-    Object value = property.getValue();
-    if (value == null) {
+    String text = property.getResolvedValue();
+    if (text == null) {
       return null;
     }
-    String text = property.resolveValue(value.toString());
 
     if (isColorValue(text)) {
       return getColorIcon(text);
