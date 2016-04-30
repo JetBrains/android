@@ -136,8 +136,23 @@ public class FeatureEntryPoint extends JPanel {
   }
 
   private class SummaryHandler extends MouseAdapter {
+    private static final double FACTOR = .9;
 
-    private Color myBackground = new JPanel().getBackground();
+    private Color myBackground = getHoverColor();
+
+    /**
+     * Stolen from {@code Color#darker()} with a smaller factor.
+     * @return
+     */
+    private Color getHoverColor() {
+      Color background = getBackground();
+
+      return new Color(Math.max((int)(background.getRed()  *FACTOR), 0),
+                       Math.max((int)(background.getGreen()*FACTOR), 0),
+                       Math.max((int)(background.getBlue() *FACTOR), 0),
+                       background.getAlpha());
+    }
+
     @Override
     public void mouseClicked(MouseEvent e) {
       toggleTutorials();
