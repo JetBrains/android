@@ -87,6 +87,7 @@ public class AvailableLibraryUpdateStorage implements PersistentStateComponent<A
       update.groupId = artifact.getGroupId();
       update.name = artifact.getName();
       update.version = artifact.getVersions().get(0).toString();
+      update.repository = artifact.getRepositoryName();
       updates.add(update);
       index(update);
     }
@@ -125,5 +126,8 @@ public class AvailableLibraryUpdateStorage implements PersistentStateComponent<A
 
     @Tag("version")
     public String version;
+
+    @Tag("repository")
+    public String repository;
   }
 }

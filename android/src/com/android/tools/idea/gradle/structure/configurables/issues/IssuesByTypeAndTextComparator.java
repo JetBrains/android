@@ -20,11 +20,19 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Comparator;
 
-public class IssuesByTypeComparator implements Comparator<PsIssue> {
-  @NotNull public static final IssuesByTypeComparator INSTANCE = new IssuesByTypeComparator();
+public class IssuesByTypeAndTextComparator implements Comparator<PsIssue> {
+  @NotNull public static final IssuesByTypeAndTextComparator INSTANCE = new IssuesByTypeAndTextComparator();
 
   @Override
   public int compare(PsIssue i1, PsIssue i2) {
-    return i1.getSeverity().getPriority() - i2.getSeverity().getPriority();
+    int compare = i1.getSeverity().getPriority() - i2.getSeverity().getPriority();
+    if (compare != 0) {
+      return compare;
+    }
+    compare = i1.getPath().compareTo(i2.getPath());
+    if (compare != 0) {
+      return compare;
+    }
+    return i1.getText().compareTo(i2.getText());
   }
 }

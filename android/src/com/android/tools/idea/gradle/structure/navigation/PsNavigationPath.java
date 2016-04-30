@@ -18,14 +18,20 @@ package com.android.tools.idea.gradle.structure.navigation;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class PsNavigationPath {
+public abstract class PsNavigationPath implements Comparable<PsNavigationPath> {
   @NonNls public static final String GO_TO_PATH_TYPE = "psdGoTo://";
 
   @NotNull
   public static final PsNavigationPath EMPTY_PATH = new PsNavigationPath() {
     @Override
     @NotNull
-    public String toHtml() {
+    public String getHtml() {
+      return getPlainText();
+    }
+
+    @Override
+    @NotNull
+    protected String getPlainText() {
       return "";
     }
 
@@ -45,6 +51,14 @@ public abstract class PsNavigationPath {
     }
   };
 
+  @Override
+  public int compareTo(PsNavigationPath path) {
+    return getPlainText().compareTo(path.getPlainText());
+  }
+
   @NotNull
-  public abstract String toHtml();
+  protected abstract String getPlainText();
+
+  @NotNull
+  public abstract String getHtml();
 }

@@ -17,12 +17,14 @@ package com.android.tools.idea.gradle.structure.navigation;
 
 import com.android.tools.idea.gradle.structure.configurables.DependenciesPerspectiveConfigurable;
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
+import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsLibraryDependency;
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable;
 import com.google.common.base.Objects;
 import com.intellij.ui.navigation.Place;
 import org.jetbrains.annotations.NotNull;
 
+import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.android.tools.idea.gradle.structure.navigation.Places.serialize;
 import static com.android.tools.idea.structure.dialog.ProjectStructureConfigurable.putPath;
 
@@ -34,12 +36,22 @@ public class PsLibraryDependencyPath extends PsNavigationPath {
   public PsLibraryDependencyPath(@NotNull PsContext context, @NotNull PsLibraryDependency dependency) {
     myContext = context;
     myModuleName = dependency.getParent().getName();
-    myDependency = dependency.getValueAsText();
+    PsArtifactDependencySpec spec = dependency.getDeclaredSpec();
+    if (spec == null) {
+      spec = dependency.getResolvedSpec();
+    }
+    myDependency = spec.name + GRADLE_PATH_SEPARATOR + spec.version;
   }
 
   @Override
   @NotNull
-  public String toHtml() {
+  protected String getPlainText() {
+    return myModuleName + "/" + myDependency;
+  }
+
+  @Override
+  @NotNull
+  public String getHtml() {
     Place place = new Place();
 
     ProjectStructureConfigurable mainConfigurable = myContext.getMainConfigurable();
@@ -50,7 +62,7 @@ public class PsLibraryDependencyPath extends PsNavigationPath {
     target.putPath(place, myModuleName, myDependency);
 
     String href = GO_TO_PATH_TYPE + serialize(place);
-    return String.format("Library <a href='%1$s'>%2$s</a> (<b>module '%3$s'</b>)", href, myDependency, myModuleName);
+    return String.format("<a href='%1$s'>%2$s</a> (<b>'%3$s'</b>)", href, myDependency, myModuleName);
   }
 
   @Override
@@ -72,6 +84,6 @@ public class PsLibraryDependencyPath extends PsNavigationPath {
 
   @Override
   public String toString() {
-    return myModuleName + "/" + myDependency;
+    return getPlainText();
   }
 }
