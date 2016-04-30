@@ -240,6 +240,33 @@ public class AndroidIcons {
     public static final ImageIcon BottomConstraintCursor = loadImage("/icons/sherpa/bottom_constraint_cursor.png");
     public static final ImageIcon BaselineConstraintCursor = loadImage("/icons/sherpa/baseline_constraint_cursor.png");
     public static final ImageIcon UnlinkConstraintCursor = loadImage("/icons/sherpa/unlink_constraint_cursor.png");
+
+    public static final Icon BaselineAlign = load("/icons/sherpa/Baseline-align.png");
+    public static final Icon BottomAlign = load("/icons/sherpa/bottom-align.png");
+    public static final Icon CenterAligned = load("/icons/sherpa/center-aligned.png");
+    public static final Icon DeleteConstraint = load("/icons/sherpa/Delete-constraint.png");
+    public static final Icon ExpandToFit = load("/icons/sherpa/expand-to-fit.png");
+    public static final Icon Hide = load("/icons/sherpa/Hide.png");
+    public static final Icon HorizontalCenter = load("/icons/sherpa/horizontal-center.png");
+    public static final Icon HorizontalDistribute = load("/icons/sherpa/horizontal-distribute.png");
+    public static final Icon InferAntoTable = load("/icons/sherpa/Infer_into_table.png");
+    public static final Icon Inference = load("/icons/sherpa/inference.png");
+    public static final Icon LeftAligned = load("/icons/sherpa/left_aligned.png");
+    public static final Icon MiddleAlign = load("/icons/sherpa/middle-align.png");
+    public static final Icon PackSelectionHorizontally = load("/icons/sherpa/pack_selection_horizontally.png");
+    public static final Icon PackSelectionVertically = load("/icons/sherpa/pack_selection_vertically.png");
+    public static final Icon RightAligned = load("/icons/sherpa/right-aligned.png");
+    public static final Icon TopAlign = load("/icons/sherpa/Top-align.png");
+    public static final Icon Unhide = load("/icons/sherpa/unhide.png");
+    public static final Icon VerticalCenter = load("/icons/sherpa/vertical-center.png");
+    public static final Icon verticallyDistribute = load("/icons/sherpa/vertically-distribute.png");
+    public static final Icon zoomIn = load("/icons/sherpa/zoom-in.png");
+    public static final Icon ZoomOut = load("/icons/sherpa/Zoom-out.png");
+    public static final Icon VerticalCenterParent = load("/icons/sherpa/vertical-center-parent.png");
+    public static final Icon HorizontalCenterParent = load("/icons/sherpa/horizontal-center-parent.png");
+    public static final Icon VerticalExpand = load("/icons/sherpa/vertical-expand.png");
+    public static final Icon HorizontalExpand = load("/icons/sherpa/horizontal-expand.png");
+
   }
 
   public static class Views {
