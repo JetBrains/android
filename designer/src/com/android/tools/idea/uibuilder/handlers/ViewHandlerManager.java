@@ -251,6 +251,10 @@ public class ViewHandlerManager implements ProjectComponent {
         return new ListPreferenceHandler();
       case PreferenceTags.MULTI_SELECT_LIST_PREFERENCE:
         return new MultiSelectListPreferenceHandler();
+      case PreferenceTags.PREFERENCE_CATEGORY:
+        return new PreferenceCategoryHandler();
+      case PreferenceTags.PREFERENCE_SCREEN:
+        return new ViewGroupHandler();
       case PreferenceTags.RINGTONE_PREFERENCE:
         return new RingtonePreferenceHandler();
       case PreferenceTags.SWITCH_PREFERENCE:
