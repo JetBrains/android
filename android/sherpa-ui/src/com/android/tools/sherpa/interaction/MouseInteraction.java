@@ -292,6 +292,7 @@ public class MouseInteraction {
                 run();
             }
         });
+        int mOriginalCreator = -1;
         ConstraintWidget mWidget;
 
         public LockTimer() {
@@ -302,6 +303,7 @@ public class MouseInteraction {
             mWidget = widget;
             mTimer.start();
             mStart = System.currentTimeMillis() + mDelay;
+            mOriginalCreator = mWidgetsScene.getMainConstraintsCreator(mWidget);
         }
 
         public void stop() {
@@ -313,6 +315,7 @@ public class MouseInteraction {
                 decorator.setLockTimer(null);
                 mWidget = null;
             }
+            mOriginalCreator = -1;
         }
 
         private void run() {
@@ -338,6 +341,10 @@ public class MouseInteraction {
                 progress = 1;
             }
             return progress;
+        }
+
+        public int getOriginalCreator() {
+            return mOriginalCreator;
         }
     }
 
@@ -647,7 +654,7 @@ public class MouseInteraction {
         mSceneDraw.onMousePress(mSelection.getSelectedAnchor());
 
         mBaselineTimer.stop();
-        if (widget != null) {
+        if (widget != null && anchor == null && resizeHandle == null) {
             mLockTimer.start(widget);
             WidgetCompanion companion = (WidgetCompanion) widget.getCompanionWidget();
             WidgetDecorator decorator = companion.getWidgetDecorator(mSceneDraw.getCurrentStyle());
@@ -664,6 +671,7 @@ public class MouseInteraction {
      * @param y mouse y coordinate
      */
     public void mouseReleased(int x, int y) {
+        mLockTimer.stop();
         if (mMouseMode == MouseMode.INACTIVE) {
             return;
         }
@@ -775,7 +783,6 @@ public class MouseInteraction {
         mLastMousePosition.setLocation(0, 0);
         mSnapshot = null;
         mMouseDown = false;
-        mLockTimer.stop();
         Animator.setAnimationEnabled(true);
     }
 
