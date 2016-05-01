@@ -29,6 +29,7 @@ import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.google.common.base.Objects;
+import com.google.common.base.Objects.ToStringHelper;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.intellij.lang.LanguageNamesValidation;
@@ -114,6 +115,11 @@ public class NlComponent {
     myTagName = tag.getName();
   }
 
+  @Nullable
+  public TagSnapshot getSnapshot() {
+    return mySnapshot;
+  }
+
   public void setSnapshot(@Nullable TagSnapshot snapshot) {
     mySnapshot = snapshot;
   }
@@ -148,6 +154,15 @@ public class NlComponent {
       children.remove(component);
     }
     component.setParent(null);
+  }
+
+  public void setChildren(@Nullable List<NlComponent> components) {
+    children = components;
+    if (components != null) {
+      for (NlComponent component : components) {
+        component.setParent(this);
+      }
+    }
   }
 
   @NotNull
@@ -252,41 +267,6 @@ public class NlComponent {
       component = component.getParent();
     }
     return component;
-  }
-
-  public static String toTree(@NotNull List<NlComponent> roots) {
-    StringBuilder sb = new StringBuilder(200);
-    for (NlComponent root : roots) {
-      describe(sb, root, 0);
-    }
-    return sb.toString().trim();
-  }
-
-  private static void describe(@NotNull StringBuilder sb, @NotNull NlComponent component, int depth) {
-    for (int i = 0; i < depth; i++) {
-      sb.append("    ");
-    }
-    sb.append(describe(component));
-    sb.append('\n');
-    for (NlComponent child : component.getChildren()) {
-      describe(sb, child, depth + 1);
-    }
-  }
-
-  private static String describe(@NotNull NlComponent root) {
-    return Objects.toStringHelper(root).omitNullValues()
-      .add("tag", describe(root.myTag))
-      .add("bounds", "[" + root.x + "," + root.y + ":" + root.w + "x" + root.h)
-      .toString();
-  }
-
-  private static String describe(@Nullable XmlTag tag) {
-    if (tag == null) {
-      return "";
-    }
-    else {
-      return '<' + tag.getName() + '>';
-    }
   }
 
   /**
@@ -488,7 +468,10 @@ public class NlComponent {
 
   @Override
   public String toString() {
-    return describe(this);
+    ToStringHelper helper = Objects.toStringHelper(this).omitNullValues()
+      .add("tag", "<" + myTag.getName() + ">")
+      .add("bounds", "[" + x + "," + y + ":" + w + "x" + h);
+    return helper.toString();
   }
 
   public void setAndroidAttribute(@NotNull String name, @Nullable String value) {
@@ -521,6 +504,15 @@ public class NlComponent {
       return mySnapshot.getAttribute(attribute, namespace);
     }
     else if (myTag.isValid()) {
+      /* TODO: Grab readlock around isValid too (maybe move into getAttributeSafely)
+com.intellij.openapi.application.impl.ApplicationImpl$NoReadAccessException
+	at com.intellij.openapi.application.impl.ApplicationImpl.assertReadAccessAllowed(ApplicationImpl.java:1056)
+	at com.intellij.psi.impl.source.tree.SharedImplUtil.findFileElement(SharedImplUtil.java:88)
+	at com.intellij.psi.impl.source.tree.SharedImplUtil.getContainingFile(SharedImplUtil.java:69)
+	at com.intellij.psi.impl.source.tree.SharedImplUtil.isValid(SharedImplUtil.java:77)
+	at com.intellij.psi.impl.source.tree.CompositePsiElement.isValid(CompositePsiElement.java:130)
+	at com.android.tools.idea.uibuilder.model.NlComponent.getAttribute(NlComponent.java:582)
+       */
       return AndroidPsiUtils.getAttributeSafely(myTag, namespace, attribute);
     }
     else {

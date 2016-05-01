@@ -18,6 +18,7 @@ package com.android.tools.idea.rendering;
 import com.android.annotations.NonNull;
 import com.android.ide.common.rendering.LayoutLibrary;
 import com.android.ide.common.rendering.api.Features;
+import com.android.ide.common.rendering.api.MergeCookie;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
@@ -41,6 +42,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.xml.XmlTag;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.maven.AndroidMavenUtil;
@@ -414,6 +416,35 @@ public class RenderService {
       // Not extracted as a constant; we expect this scenario to be rare
       return new ViewInfo(null, null, 0, 0, 0, 0);
     }
+  }
+
+  /**
+   * Returns the {@link XmlTag} associated with a {@link ViewInfo}, if any
+   *
+   * @param view the view to check
+   * @return the corresponding tag, if any
+   */
+  @Nullable
+  public static XmlTag getXmlTag(@NonNull ViewInfo view) {
+    Object cookie = view.getCookie();
+    if (cookie != null) {
+      if (cookie instanceof TagSnapshot) {
+        TagSnapshot snapshot = (TagSnapshot)cookie;
+        return snapshot.tag;
+      }
+      if (cookie instanceof MergeCookie) {
+        cookie = ((MergeCookie) cookie).getCookie();
+        if (cookie instanceof TagSnapshot) {
+          TagSnapshot snapshot = (TagSnapshot)cookie;
+          return snapshot.tag;
+        }
+      }
+      if (cookie instanceof XmlTag) {
+        return (XmlTag)cookie;
+      }
+    }
+
+    return null;
   }
 
   /** This is the View.MeasureSpec mode shift */

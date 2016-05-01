@@ -15,15 +15,16 @@
  */
 package com.android.tools.idea.uibuilder.fixtures;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import com.android.resources.Density;
+import com.android.tools.idea.uibuilder.LayoutTestUtilities;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.model.SelectionModel;
 import com.android.tools.idea.uibuilder.model.SwingCoordinate;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Lists;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -122,13 +123,19 @@ public class ScreenFixture {
 
   private void ensureAtMostOneMatch(@NotNull String match, List<NlComponent> components) {
     if (components.size() != 1) {
-      fail("Found multiple components with matcher " + match + ": component hierarchy is " + NlComponent.toTree(myModel.getComponents()));
+      fail("Found multiple components with matcher " +
+           match +
+           ": component hierarchy is " +
+           LayoutTestUtilities.toTree(myModel.getComponents()));
     }
   }
 
   private void ensureAtLeastOneMatch(@NotNull String match, List<NlComponent> components) {
     if (components.isEmpty()) {
-      fail("Could not find component with matcher " + match + ": component hierarchy is " + NlComponent.toTree(myModel.getComponents()));
+      fail("Could not find component with matcher " +
+           match +
+           ": component hierarchy is " +
+           LayoutTestUtilities.toTree(myModel.getComponents()));
     }
   }
 

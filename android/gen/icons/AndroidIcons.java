@@ -233,13 +233,13 @@ public class AndroidIcons {
     public static final Icon ShowBlueprintBoth = load("/icons/sherpa/switch_blueprint_both.png");
     public static final Icon ShowInfoIdOn = load("/icons/sherpa/info_on.png");
     public static final Icon ShowInfoIdOff = load("/icons/sherpa/info_off.png");
-    public static final ImageIcon Delete = loadImage("/icons/sherpa/delete.png");
-    public static final ImageIcon LeftConstraintCursor = loadImage("/icons/sherpa/left_constraint_cursor.png");
-    public static final ImageIcon TopConstraintCursor = loadImage("/icons/sherpa/top_constraint_cursor.png");
-    public static final ImageIcon RightConstraintCursor = loadImage("/icons/sherpa/right_constraint_cursor.png");
-    public static final ImageIcon BottomConstraintCursor = loadImage("/icons/sherpa/bottom_constraint_cursor.png");
-    public static final ImageIcon BaselineConstraintCursor = loadImage("/icons/sherpa/baseline_constraint_cursor.png");
-    public static final ImageIcon UnlinkConstraintCursor = loadImage("/icons/sherpa/unlink_constraint_cursor.png");
+    public static final Icon Delete = loadImage("/icons/sherpa/delete.png");
+    public static final Icon LeftConstraintCursor = loadImage("/icons/sherpa/left_constraint_cursor.png");
+    public static final Icon TopConstraintCursor = loadImage("/icons/sherpa/top_constraint_cursor.png");
+    public static final Icon RightConstraintCursor = loadImage("/icons/sherpa/right_constraint_cursor.png");
+    public static final Icon BottomConstraintCursor = loadImage("/icons/sherpa/bottom_constraint_cursor.png");
+    public static final Icon BaselineConstraintCursor = loadImage("/icons/sherpa/baseline_constraint_cursor.png");
+    public static final Icon UnlinkConstraintCursor = loadImage("/icons/sherpa/unlink_constraint_cursor.png");
 
     public static final Icon BaselineAlign = load("/icons/sherpa/Baseline-align.png");
     public static final Icon BottomAlign = load("/icons/sherpa/bottom-align.png");
