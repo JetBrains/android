@@ -29,6 +29,9 @@ import java.util.Set;
 public class NlPropertiesSorter {
   private enum SortOrder {
     id,
+    layout_width,
+    layout_height,
+    constraints,
     layout,
     padding,
     margin,

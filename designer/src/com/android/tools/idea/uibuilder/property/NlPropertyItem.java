@@ -203,7 +203,7 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
   @NotNull
   @Override
   public NlProperty getDesignTimeProperty() {
-    if (myNamespace.equals(SdkConstants.TOOLS_URI)) {
+    if (SdkConstants.TOOLS_URI.equals(myNamespace)) {
       return this;
     }
     return new NlPropertyItem(this, SdkConstants.TOOLS_URI);

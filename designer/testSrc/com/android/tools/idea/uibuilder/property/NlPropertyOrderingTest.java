@@ -70,8 +70,10 @@ public class NlPropertyOrderingTest extends LayoutTestCase {
     items = new NlPropertiesSorter().sort(items, component);
 
     assertEquals("id attribute is not the first item", "id", items.get(0).getName());
-    assertEquals("Layout attributes group is not the second item", "Layout", items.get(1).getName());
-    assertEquals("Padding attributes group is not the third item", "Padding", items.get(2).getName());
+    assertEquals("Layout_width attribute is not the second item", "layout_width", items.get(1).getName());
+    assertEquals("Layout_height attribute is not the third item", "layout_height", items.get(2).getName());
+    assertEquals("Layout attributes group is not the fourth item", "Layout", items.get(3).getName());
+    assertEquals("Padding attributes group is not the fifth item", "Padding", items.get(4).getName());
     assertTrue("TextView group not within the top 10 items", findItemIndex(items, "TextView") < 10);
     assertTrue("Modified attribute text not in the top 10 items", findItemIndex(items, "text") < 10);
   }

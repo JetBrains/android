@@ -68,6 +68,8 @@ public abstract class PTableItem {
   @Nullable
   public abstract String getResolvedValue();
 
+  public abstract boolean isDefaultValue(@Nullable String value);
+
   public abstract void setValue(@Nullable Object value);
 
   @Nullable

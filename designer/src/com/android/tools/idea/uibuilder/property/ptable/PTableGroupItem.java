@@ -43,7 +43,17 @@ public abstract class PTableGroupItem extends PTableItem {
 
   @Override
   public List<PTableItem> getChildren() {
-    return myItems == null ? Collections.<PTableItem>emptyList() : myItems;
+    return myItems == null ? Collections.emptyList() : myItems;
+  }
+
+  @Nullable
+  public PTableItem getItemByName(@NotNull String propertyName) {
+    for (PTableItem item : myItems) {
+      if (item.getName().equals(propertyName)) {
+        return item;
+      }
+    }
+    return null;
   }
 
   @Override
@@ -64,17 +74,22 @@ public abstract class PTableGroupItem extends PTableItem {
   @Nullable
   @Override
   public String getValue() {
-    throw new IllegalAccessError();
+    throw new IllegalStateException();
   }
 
   @Nullable
   @Override
   public String getResolvedValue() {
-    throw new IllegalAccessError();
+    throw new IllegalStateException();
+  }
+
+  @Override
+  public boolean isDefaultValue(@Nullable String value) {
+    throw new IllegalStateException();
   }
 
   @Override
   public void setValue(@Nullable Object value) {
-    throw new IllegalAccessError();
+    throw new IllegalStateException();
   }
 }
