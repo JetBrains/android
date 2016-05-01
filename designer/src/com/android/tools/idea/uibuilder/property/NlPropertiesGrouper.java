@@ -16,15 +16,15 @@
 package com.android.tools.idea.uibuilder.property;
 
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.property.NlPropertyAccumulator.PropertyNamePrefixAccumulator;
 import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.Set;
+
+import static com.android.SdkConstants.*;
 
 public class NlPropertiesGrouper {
   public List<PTableItem> group(@NotNull List<NlPropertyItem> properties, @NotNull final NlComponent component) {
@@ -33,38 +33,24 @@ public class NlPropertiesGrouper {
     List<PTableItem> result = Lists.newArrayListWithExpectedSize(properties.size());
 
     // group theme attributes together
-    NlPropertyAccumulator themePropertiesAccumulator = new NlPropertyAccumulator("Theme", new Predicate<NlPropertyItem>() {
-      @Override
-      public boolean apply(@Nullable NlPropertyItem p) {
-        return p != null && (p.getParentStylables().contains("Theme") || p.getName().equalsIgnoreCase("theme"));
-      }
-    });
+    NlPropertyAccumulator themePropertiesAccumulator = new NlPropertyAccumulator(
+      "Theme", p -> p != null && (p.getParentStylables().contains("Theme") || p.getName().equalsIgnoreCase("theme")));
 
     // group attributes that correspond to this component together
-    NlPropertyAccumulator customViewPropertiesAccumulator = new NlPropertyAccumulator(className, new Predicate<NlPropertyItem>() {
-      @Override
-      public boolean apply(@Nullable NlPropertyItem p) {
-        return p != null && p.getParentStylables().contains(className);
-      }
-    });
+    NlPropertyAccumulator customViewPropertiesAccumulator = new NlPropertyAccumulator(
+      className, p -> p != null && p.getParentStylables().contains(className));
 
     // group margin, padding and layout attributes together
-    NlPropertyAccumulator marginPropertiesAccumulator = new NlPropertyAccumulator.PropertyNamePrefixAccumulator("Margin", "margin");
-    NlPropertyAccumulator paddingPropertiesAccumulator = new NlPropertyAccumulator.PropertyNamePrefixAccumulator("Padding", "padding");
-    NlPropertyAccumulator layoutViewPropertiesAccumulator = new NlPropertyAccumulator.PropertyNamePrefixAccumulator("Layout", "layout");
+    NlPropertyAccumulator marginPropertiesAccumulator = new NlMarginPropertyAccumulator("Margin", ATTR_LAYOUT_LEFT_MARGIN, ATTR_LAYOUT_RIGHT_MARGIN, ATTR_LAYOUT_TOP_MARGIN, ATTR_LAYOUT_BOTTOM_MARGIN);
+    NlPropertyAccumulator paddingPropertiesAccumulator = new NlMarginPropertyAccumulator("Padding", ATTR_PADDING, ATTR_PADDING_LEFT, ATTR_PADDING_RIGHT, ATTR_PADDING_START, ATTR_PADDING_END, ATTR_PADDING_TOP, ATTR_PADDING_BOTTOM);
+    NlPropertyAccumulator layoutViewPropertiesAccumulator = new NlMarginPropertyAccumulator("Layout", ATTR_LAYOUT_MARGIN, ATTR_LAYOUT_MARGIN_LEFT, ATTR_LAYOUT_MARGIN_RIGHT, ATTR_LAYOUT_MARGIN_START, ATTR_LAYOUT_MARGIN_END, ATTR_LAYOUT_MARGIN_TOP, ATTR_LAYOUT_MARGIN_BOTTOM);
+
+    PropertyNamePrefixAccumulator constraintPropertiesAccumulator = new PropertyNamePrefixAccumulator("Constraints", "layout_constraint");
 
     List<NlPropertyAccumulator> accumulators = ImmutableList.of(customViewPropertiesAccumulator, themePropertiesAccumulator,
                                                                 marginPropertiesAccumulator, paddingPropertiesAccumulator,
-                                                                layoutViewPropertiesAccumulator);
-
-    Set<String> modifiedAttrs = NlPropertiesSorter.getModifiedAttributes(component);
-
+                                                                layoutViewPropertiesAccumulator, constraintPropertiesAccumulator);
     for (NlPropertyItem p : properties) {
-      if (modifiedAttrs.contains(p.getName())) {
-        result.add(p);
-        continue;
-      }
-
       boolean added = false;
       for (NlPropertyAccumulator accumulator : accumulators) {
         added = accumulator.process(p);

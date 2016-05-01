@@ -85,7 +85,7 @@ public class NlFlagPropertyItem extends NlPropertyItem implements NlProperty {
   @NotNull
   @Override
   public NlProperty getDesignTimeProperty() {
-    if (getNamespace().equals(SdkConstants.TOOLS_URI)) {
+    if (SdkConstants.TOOLS_URI.equals(getNamespace())) {
       return this;
     }
     return new NlFlagPropertyItem(this, SdkConstants.TOOLS_URI);
