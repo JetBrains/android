@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
+import com.android.tools.idea.uibuilder.model.EmptyXmlTag;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.model.ResourceType;
-import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -58,8 +57,8 @@ final class HierarchyUpdater {
 
   HierarchyUpdater(@NotNull NlComponentTree tree) {
     myTree = tree;
-    myVisibleNodes = new HashSet<DefaultMutableTreeNode>();
-    myId2TempNode = new HashMap<String, DefaultMutableTreeNode>(tree.getIdToNode());
+    myVisibleNodes = new HashSet<>();
+    myId2TempNode = new HashMap<>(tree.getIdToNode());
   }
 
   public void execute() {
@@ -73,12 +72,11 @@ final class HierarchyUpdater {
     List<NlComponent> components = model != null ? model.getComponents() : null;
     replaceChildNodes(rootPath, components);
     if (components != null && !components.isEmpty()) {
-      NlComponent root = newRootComponent();
-      for (NlComponent component : components) {
-        root.addChild(component);
-      }
+      NlComponent deviceScreen = new FakeComponent(model, EmptyXmlTag.INSTANCE, new DeviceScreenViewHandler());
+      components.forEach(deviceScreen::addChild);
+
       DefaultMutableTreeNode rootNode = (DefaultMutableTreeNode)rootPath.getLastPathComponent();
-      rootNode.setUserObject(root);
+      rootNode.setUserObject(deviceScreen);
     }
     myTree.expandPath(rootPath);
   }
@@ -129,21 +127,5 @@ final class HierarchyUpdater {
     ((DefaultMutableTreeNode)path.getLastPathComponent()).add(node);
     replaceChildNodes(path.pathByAddingChild(node), component.children);
     return myVisibleNodes.contains(node);
-  }
-
-  @NotNull
-  private NlComponent newRootComponent() {
-    NlModel model = myTree.getDesignerModel();
-    assert model != null;
-
-    if (ResourceType.valueOf(model.getFile()).equals(ResourceType.PREFERENCE_SCREEN)) {
-      XmlTag tag = model.getFile().getRootTag();
-
-      // TODO Passing EmptyXmlTag.INSTANCE when the root tag is null (because the file is empty?) will cause problems down the road
-      return new FakeComponent(model, tag == null ? EmptyXmlTag.INSTANCE : tag, new PreferenceScreenViewHandler());
-    }
-    else {
-      return new FakeComponent(model, EmptyXmlTag.INSTANCE, new DeviceScreenViewHandler());
-    }
   }
 }

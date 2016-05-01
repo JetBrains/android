@@ -18,6 +18,8 @@ package com.android.tools.idea.uibuilder.api;
 import com.android.SdkConstants;
 import org.jetbrains.annotations.NotNull;
 
+import static com.android.SdkConstants.PreferenceTags.PREFERENCE_CATEGORY;
+
 /**
  * Builds XML strings. Arguments are not validated or escaped. This class is designed to replace hand writing XML snippets in string
  * literals.
@@ -92,22 +94,23 @@ public final class XmlBuilder {
 
   @NotNull
   public XmlBuilder endTag(@NotNull String name) {
-    boolean layout = name.endsWith("Layout");
+    boolean useEmptyElementTag = !name.endsWith("Layout") && !name.equals(PREFERENCE_CATEGORY);
 
     if (myLastAppendedConstruct.equals(Construct.START_TAG) || myLastAppendedConstruct.equals(Construct.ATTRIBUTE)) {
       int length = myStringBuilder.length();
 
-      if (layout) {
-        myStringBuilder.replace(length - 1, length, ">\n\n");
+      if (useEmptyElementTag) {
+        myStringBuilder.deleteCharAt(length - 1);
       }
       else {
-        myStringBuilder.deleteCharAt(length - 1);
+        myStringBuilder.replace(length - 1, length, ">\n\n");
       }
     }
 
     myIndentationLevel--;
 
-    if ((myLastAppendedConstruct.equals(Construct.START_TAG) || myLastAppendedConstruct.equals(Construct.ATTRIBUTE)) && !layout) {
+    if ((myLastAppendedConstruct.equals(Construct.START_TAG) || myLastAppendedConstruct.equals(Construct.ATTRIBUTE)) &&
+        useEmptyElementTag) {
       myStringBuilder.append(" />\n");
     }
     else {
