@@ -1004,9 +1004,9 @@ public class RenderTask implements IImageFactory {
           ViewInfo root = session.getRootViews().get(0);
           List<ViewInfo> children = root.getChildren();
           for (ViewInfo info : children) {
-            Object cookie = info.getCookie();
-            if (cookie instanceof XmlTag) {
-              map.put((XmlTag)cookie, info);
+            XmlTag tag = RenderService.getXmlTag(info);
+            if (tag != null) {
+              map.put(tag, info);
             }
           }
         }

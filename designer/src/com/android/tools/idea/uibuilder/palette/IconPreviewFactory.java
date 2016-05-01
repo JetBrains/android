@@ -392,8 +392,8 @@ public class IconPreviewFactory {
     private void run(@NotNull List<ViewInfo> views, int top, @Nullable String parentId) {
       for (ViewInfo info : views) {
         String id = null;
-        if (info.getCookie() instanceof XmlTag) {
-          XmlTag tag = (XmlTag)info.getCookie();
+        XmlTag tag = RenderService.getXmlTag(info);
+        if (tag != null) {
           id = getId(tag.getAttributeValue(ATTR_ID, ANDROID_URI));
           if (CONTAINER_ID.equals(parentId)) {
             if (info.getBottom() + top <= myHeight && info.getRight() <= myWidth && info.getBottom() > info.getTop()) {

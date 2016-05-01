@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import com.android.tools.idea.uibuilder.LayoutTestUtilities;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
-import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.psi.codeStyle.CodeStyleManager;
@@ -106,7 +106,7 @@ public class AbsoluteLayoutHandlerTest extends AbstractViewHandlerTest {
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x1000}\n" +
                  "    NlComponent{tag=<TextView>, bounds=[0,0:1000x150}\n" +
                  "    NlComponent{tag=<AbsoluteLayout>, bounds=[0,150:1000x850}",
-                 NlComponent.toTree(model.getComponents()));
+                 LayoutTestUtilities.toTree(model.getComponents()));
 
 
     surface().screen(createModel()).get("@id/myText")
@@ -159,7 +159,8 @@ public class AbsoluteLayoutHandlerTest extends AbstractViewHandlerTest {
     assertEquals(1, model.getComponents().size());
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x1000}\n" +
                  "    NlComponent{tag=<AbsoluteLayout>, bounds=[0,0:1000x850}\n" +
-                 "    NlComponent{tag=<TextView>, bounds=[0,850:1000x150}", NlComponent.toTree(model.getComponents()));
+                 "    NlComponent{tag=<TextView>, bounds=[0,850:1000x150}",
+                 LayoutTestUtilities.toTree(model.getComponents()));
 
     surface().screen(model)
       .get("@id/myText")
@@ -207,7 +208,7 @@ public class AbsoluteLayoutHandlerTest extends AbstractViewHandlerTest {
     assertEquals(1, model.getComponents().size());
     assertEquals("NlComponent{tag=<AbsoluteLayout>, bounds=[0,0:1000x1000}\n" +
                  "    NlComponent{tag=<TextView>, bounds=[100,100:100x100}",
-                 NlComponent.toTree(model.getComponents()));
+                 LayoutTestUtilities.toTree(model.getComponents()));
 
     WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
       @Override
