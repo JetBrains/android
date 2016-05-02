@@ -88,7 +88,6 @@ import java.io.File;
 import java.util.*;
 
 import static com.android.SdkConstants.*;
-import static com.android.builder.model.AndroidProject.GENERATION_ORIGINAL;
 import static com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer.pathToUrl;
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.FAILED_TO_SET_UP_SDK;
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.UNHANDLED_SYNC_ISSUE_TYPE;
@@ -243,12 +242,14 @@ public class PostProjectSetupTasksExecutor {
   }
 
   private boolean shouldForcePluginVersionUpgrade() {
-    AndroidProject androidProject = getAppAndroidProject(myProject);
-    if (androidProject != null) {
+    Module module = getAppAndroidModule(myProject);
+    if (module != null) {
+      AndroidProject androidProject = getAndroidProject(module);
+      assert androidProject != null;
       logProjectVersion(androidProject);
       GradleVersion current = GradleVersion.parse(androidProject.getModelVersion());
       String latest = GRADLE_PLUGIN_LATEST_VERSION;
-      if (isNonExperimentalPlugin(androidProject) && isForcedPluginVersionUpgradeNecessary(current, latest)) {
+      if (!isUsingExperimentalPlugin(module) && isForcedPluginVersionUpgradeNecessary(current, latest)) {
         updateGradleSyncState(); // Update the sync state before starting a new one.
 
         boolean update = new PluginVersionForcedUpdateDialog(myProject).showAndGet();
@@ -293,10 +294,12 @@ public class PostProjectSetupTasksExecutor {
     if (ApplicationManager.getApplication().isUnitTestMode() || AndroidPlugin.isGuiTestingMode()) {
       return null;
     }
-    AndroidProject androidProject = getAppAndroidProject(myProject);
-    if (androidProject != null) {
+    Module module = getAppAndroidModule(myProject);
+    if (module != null) {
+      AndroidProject androidProject = getAndroidProject(module);
+      assert androidProject != null;
       logProjectVersion(androidProject);
-      if (isNonExperimentalPlugin(androidProject)) {
+      if (!isUsingExperimentalPlugin(module)) {
         GradleVersion latestInstantRunImprovements = new GradleVersion(2, 1, 0);
         String current = androidProject.getModelVersion();
         if (latestInstantRunImprovements.compareTo(current) > 0) {
@@ -307,22 +310,12 @@ public class PostProjectSetupTasksExecutor {
     return null;
   }
 
-  private static boolean isNonExperimentalPlugin(@NotNull AndroidProject androidProject) {
-    try {
-      // only true for non experimental plugin 2.0.0-betaX (or whenever the getPluginGeneration() was added)
-      return androidProject.getPluginGeneration() == GENERATION_ORIGINAL;
-    } catch (Throwable t) {
-      // happens for 2.0.0-alphaX, 1.5.x or for experimental plugins on those versions
-      return true;
-    }
-  }
-
   @Nullable
-  private static AndroidProject getAppAndroidProject(@NotNull Project project) {
+  private static Module getAppAndroidModule(@NotNull Project project) {
     for (Module module : ModuleManager.getInstance(project).getModules()) {
       AndroidProject androidProject = getAndroidProject(module);
       if (androidProject != null && !androidProject.isLibrary()) {
-        return androidProject;
+        return module;
       }
     }
     return null;
