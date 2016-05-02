@@ -37,9 +37,12 @@ public class AnimatedConnection extends Animation {
         g.setColor(highlight);
         ConstraintHandle sourceHandle = WidgetInteractionTargets.constraintHandle(mAnchor);
         ConstraintHandle targetHandle = WidgetInteractionTargets.constraintHandle(mAnchor.getTarget());
-        if (sourceHandle != null && targetHandle != null && progress >= 0.1) {
-            sourceHandle.drawConnection(transform, g, mColorSet, true, mOriginalCreator,
-                    (float) (progress));
+        if (sourceHandle != null && targetHandle != null && progress >= 0.05) {
+            float p = (float) (progress * 2);
+            if (p > 1) {
+                p = 1;
+            }
+            sourceHandle.drawConnection(transform, g, mColorSet, true, mOriginalCreator, p);
         }
     }
 }
