@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.profiling.capture;
 
+import com.google.common.io.Files;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -71,5 +72,10 @@ public class CaptureHandle {
 
   boolean isWritable() {
     return myFileOutputStream != null;
+  }
+
+  public void move(File file) throws IOException {
+    Files.move(myFile, file);
+    myFile = file;
   }
 }
