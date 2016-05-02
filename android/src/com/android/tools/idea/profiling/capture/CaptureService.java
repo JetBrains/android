@@ -21,7 +21,6 @@ import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.stats.UsageTracker;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Multimap;
-import com.google.common.io.Files;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFutureTask;
@@ -312,7 +311,7 @@ public class CaptureService {
               String tempFilePath = captureHandle.getFile().getCanonicalPath();
               assert tempFilePath.endsWith(TEMP_FILE_EXTENSION);
               String originalFilePath = tempFilePath.substring(0, tempFilePath.length() - TEMP_FILE_EXTENSION.length());
-              Files.move(captureHandle.getFile(), new File(originalFilePath));
+              captureHandle.move(new File(originalFilePath));
 
               return null;
             }
