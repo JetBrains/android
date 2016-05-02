@@ -33,6 +33,7 @@ public class IssuesByTypeAndTextComparator implements Comparator<PsIssue> {
     if (compare != 0) {
       return compare;
     }
-    return i1.getText().compareTo(i2.getText());
+    compare = i1.getText().compareTo(i2.getText());
+    return compare;
   }
 }

@@ -30,6 +30,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import java.awt.*;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -63,7 +64,7 @@ public class IssuesViewer {
     myRenderer = renderer;
   }
 
-  public void display(@NotNull List<PsIssue> issues) {
+  public void display(@NotNull Collection<PsIssue> issues) {
     if (issues.isEmpty()) {
       myEmptyIssuesLabel.setVisible(true);
       myIssuesPanel1.setVisible(false);

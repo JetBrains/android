@@ -33,7 +33,7 @@ public class PsModulePath extends PsNavigationPath {
 
   @Override
   @NotNull
-  protected String getPlainText() {
+  public String getPlainText() {
     return myModuleName;
   }
 

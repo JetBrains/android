@@ -45,8 +45,8 @@ public class PsLibraryDependencyPath extends PsNavigationPath {
 
   @Override
   @NotNull
-  protected String getPlainText() {
-    return myModuleName + "/" + myDependency;
+  public String getPlainText() {
+    return myDependency;
   }
 
   @Override
