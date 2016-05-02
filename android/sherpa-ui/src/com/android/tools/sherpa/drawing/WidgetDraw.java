@@ -153,7 +153,8 @@ public class WidgetDraw {
         boolean showBaselineAnchor =
                 displayAllAnchors || showAnchors.contains(ANCHORS_DISPLAY.BASELINE);
 
-        if (true || showAnchors.contains(ANCHORS_DISPLAY.CONNECTED)) {
+        if (!showAnchors.contains(ANCHORS_DISPLAY.NONE)
+                && showAnchors.contains(ANCHORS_DISPLAY.CONNECTED)) {
             showLeftAnchor |= leftAnchorIsConnected;
             showRightAnchor |= rightAnchorIsConnected;
             showTopAnchor |= topAnchorIsConnected;
