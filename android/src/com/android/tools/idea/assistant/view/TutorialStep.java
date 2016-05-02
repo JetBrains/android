@@ -21,6 +21,7 @@ import com.android.tools.idea.structure.services.DeveloperService;
 import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.ui.EditorTextField;
 
 import javax.swing.*;
@@ -51,7 +52,7 @@ public class TutorialStep extends JPanel {
     myIndex = index;
     myStep = step;
     myProject = service.getModule().getProject();
-    myContents = new JPanel();
+    myContents = new JPanel(new VerticalFlowLayout(VerticalFlowLayout.TOP, 0, 0, true, true));
     setOpaque(false);
 
     // TODO: Consider the setup being in the ctors of customer inner classes.
@@ -65,10 +66,11 @@ public class TutorialStep extends JPanel {
       switch (element.getType()) {
         case SECTION:
           // TODO: Make a custom inner class to handle this.
-          JTextPane section = new JTextPane();
+          JEditorPane section = new JEditorPane();
           section.setOpaque(false);
           section.setBorder(BorderFactory.createEmptyBorder());
-          UIUtils.setHtml(section, element.getSection());
+          // HACK ALERT: Without a margin on the outer html container, the contents are set to a height of zero on theme change.
+          UIUtils.setHtml(section, element.getSection(), ".as-shim { margin-top: 1px; }");
           myContents.add(section);
           break;
         case ACTION:
