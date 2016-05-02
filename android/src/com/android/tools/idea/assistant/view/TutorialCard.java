@@ -178,6 +178,7 @@ public class TutorialCard extends CardViewPanel {
 
   }
 
+  // Determine why the border, contentfill, etc are reset to default on theme change. Note that this doesn't persist across restart.
   private class BackButton extends NavigationButton {
 
     public BackButton(String label) {
