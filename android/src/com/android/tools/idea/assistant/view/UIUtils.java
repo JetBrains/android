@@ -17,18 +17,21 @@ package com.android.tools.idea.assistant.view;
 
 import com.intellij.ui.BrowserHyperlinkListener;
 import com.intellij.ui.JBColor;
-import com.intellij.ui.UI;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.util.ui.UIUtil;
 
 import javax.swing.*;
 import java.awt.*;
+
+import static com.intellij.util.ui.UIUtil.CONTRAST_BORDER_COLOR;
 
 
 /**
  * Centralized values and common, granular, UI properties. Scope of class
  * should be constrained to matters of color, font, padding. More complex
  * UI related functionality should live in more specific code.
+ *
+ * NOTE: Do not use any plain Color instances as they do not work across
+ * theme change properly. This includes things like com.intellij.ui.UI.getColor("key").
  *
  * TODO: Add font defaults.
  */
@@ -67,25 +70,21 @@ public class UIUtils {
   private static final Color OFFSITE_LINK_COLOR = new JBColor(0x78909C, 0xB0BEC5);
 
   /**
-   * "Normal" background color.
+   * Panel background color. Patterned after tree text background.
    */
-  private static final Color AS_STANDARD_BACKGROUND_COLOR = new JPanel().getBackground();
+  private static final Color BACKGROUND_COLOR = new JBColor(0xFFFFFF, 0xFF3C3F41);
 
-  // TODO: Find or create a better background reference, we're not a tree but
-  // this does currently match our desired color treatment. This is pulled
-  // from the Maven Projects side panel.
+  /**
+   * "Normal" background color as is found on a new JPanel background.
+   */
+  private static final Color AS_STANDARD_BACKGROUND_COLOR = new JBColor(0xFFE8E8E8, 0xFF3D3F41);
+
   public static Color getBackgroundColor() {
-    return UIUtil.getTreeTextBackground();
+    return BACKGROUND_COLOR;
   }
 
   public static Color getSeparatorColor() {
-    return UI.getColor("panel.separator.color");
-  }
-
-  // TODO: This blue seems a bit washed out, confirm what color we should
-  // leverage.
-  public static Color getLinkColor() {
-    return UI.getColor("link.foreground");
+    return CONTRAST_BORDER_COLOR;
   }
 
   public static Color getSuccessColor() {
@@ -146,6 +145,9 @@ public class UIUtils {
 
   /**
    * Sets html content on a {@code JTextPane} with default properties and convenience support for css and headers.
+   *
+   * TODO: Determine how to respond to theme change such that colors are updated. Currently this involves link colors as well as code
+   * block colors.
    *
    * @param pane        The element to set the html content on.
    * @param content     The html body content, excluding the <body></body> tags.
