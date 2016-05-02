@@ -31,7 +31,7 @@ public abstract class PsNavigationPath implements Comparable<PsNavigationPath> {
 
     @Override
     @NotNull
-    protected String getPlainText() {
+    public String getPlainText() {
       return "";
     }
 
@@ -57,7 +57,7 @@ public abstract class PsNavigationPath implements Comparable<PsNavigationPath> {
   }
 
   @NotNull
-  protected abstract String getPlainText();
+  public abstract String getPlainText();
 
   @NotNull
   public abstract String getHtml();

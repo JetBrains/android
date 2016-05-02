@@ -82,12 +82,7 @@ public class PsAndroidModuleAnalyzer extends PsModelAnalyzer<PsAndroidModule> {
         String declaredVersion = declaredSpec.version;
         if (declaredVersion != null && declaredVersion.endsWith("+")) {
           String message = "Avoid using '+' in version numbers; can lead to unpredictable and unrepeatable builds.";
-          String description = "Using '+' in dependencies lets you automatically pick up the latest available " +
-                               "version rather than a specific, named version. However, this is not recommended; " +
-                               "your builds are not repeatable; you may have tested with a slightly different " +
-                               "version than what the build server used. (Using a dynamic version as the major " +
-                               "version number is more problematic than using it in the minor version position.)";
-          PsIssue issue = new PsIssue(message, description, path, PROJECT_ANALYSIS, WARNING);
+          PsIssue issue = new PsIssue(message, "", path, PROJECT_ANALYSIS, WARNING);
           issue.setExtraPath(modulePath);
           issueCollection.add(issue);
         }

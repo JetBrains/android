@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.model;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
+import com.android.tools.idea.gradle.structure.configurables.issues.IssuesByTypeAndTextComparator;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidLibraryDependency;
 import com.android.tools.idea.gradle.structure.navigation.PsLibraryDependencyPath;
 import com.android.tools.idea.gradle.structure.navigation.PsModulePath;
@@ -25,6 +26,7 @@ import com.google.common.collect.Sets;
 import com.intellij.util.containers.ConcurrentMultiMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -52,35 +54,40 @@ public class PsIssueCollection {
       PsModule module = (PsModule)model;
       path = new PsModulePath(module);
     }
+
     if (model instanceof PsAndroidLibraryDependency) {
       PsAndroidLibraryDependency dependency = (PsAndroidLibraryDependency)model;
       path = new PsLibraryDependencyPath(myContext, dependency);
     }
+
     if (path != null) {
       return findIssues(path, comparator);
     }
+
     return Collections.emptyList();
   }
 
   @NotNull
   public List<PsIssue> findIssues(@NotNull PsNavigationPath path, @Nullable Comparator<PsIssue> comparator) {
-    List<PsIssue> issues = Lists.newArrayList(myIssues.get(path));
-    if (comparator != null && issues.size() > 1) {
-      Collections.sort(issues, comparator);
+    Set<PsIssue> issues = Sets.newHashSet(myIssues.get(path));
+    List<PsIssue> issueList = issues.stream().collect(Collectors.toList());
+    if (comparator != null && issueList.size() > 1) {
+      Collections.sort(issueList, comparator);
     }
-    return issues;
+    return issueList;
   }
 
   @NotNull
   public List<PsIssue> getValues() {
-    return Lists.newArrayList(myIssues.values());
+    Set<PsIssue> issues = Sets.newHashSet(myIssues.values());
+    return issues.stream().collect(Collectors.toList());
   }
 
   @NotNull
   public List<PsIssue> getValues(@NotNull Class<? extends PsNavigationPath> pathType) {
-    List<PsIssue> issues = Lists.newArrayList();
+    Set<PsIssue> issues = Sets.newHashSet();
     myIssues.keySet().stream().filter(pathType::isInstance).forEachOrdered(path -> issues.addAll(myIssues.get(path)));
-    return issues;
+    return issues.stream().collect(Collectors.toList());
   }
 
   public boolean isEmpty() {
@@ -93,9 +100,19 @@ public class PsIssueCollection {
       return null;
     }
 
+    List<PsIssue> sorted = Lists.newArrayList(issues);
+    Collections.sort(sorted, IssuesByTypeAndTextComparator.INSTANCE);
+
     // Removed duplicated lines.
     Set<String> lines = Sets.newLinkedHashSet();
-    lines.addAll(issues.stream().map(PsIssue::getText).collect(Collectors.toList()));
+    for (PsIssue issue : sorted) {
+      String line = issue.getText();
+      String path = issue.getPath().getPlainText();
+      if (!path.isEmpty()) {
+        line = path + ": " + line;
+      }
+      lines.add(line);
+    }
 
     StringBuilder buffer = new StringBuilder();
     buffer.append("<html><body>");
@@ -127,5 +144,10 @@ public class PsIssueCollection {
         issues.removeAll(toRemove);
       }
     }
+  }
+
+  @TestOnly
+  void clear() {
+    myIssues.clear();
   }
 }

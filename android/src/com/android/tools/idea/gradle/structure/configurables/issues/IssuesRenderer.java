@@ -18,9 +18,9 @@ package com.android.tools.idea.gradle.structure.configurables.issues;
 import com.android.tools.idea.gradle.structure.model.PsIssue;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
+import java.util.Collection;
 
 public interface IssuesRenderer {
   @NotNull
-  String render(@NotNull List<PsIssue> issues);
+  String render(@NotNull Collection<PsIssue> issues);
 }
