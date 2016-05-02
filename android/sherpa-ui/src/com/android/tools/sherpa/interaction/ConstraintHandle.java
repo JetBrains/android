@@ -562,9 +562,6 @@ public class ConstraintHandle {
             }
         }
 
-        boolean drawShadow = progress == 1 && isSelected
-                && mAnchor.getConnectionCreator() != ConstraintAnchor.AUTO_CONSTRAINT_CREATOR;
-
         // If a lock timer is active, draw the path a second time
         if (progress <= 1 && progress >= 0.1) {
             Stroke s = g.getStroke();
@@ -1075,7 +1072,9 @@ public class ConstraintHandle {
             float x1 = mX - radius;
             float y1 = mY - radius;
             boolean isRightConnection = mAnchor.getType() == ConstraintAnchor.Type.RIGHT;
-            boolean isAboveConnection = targetWidget.getDrawBottom() < getOwner().getDrawY();
+            boolean isAboveConnection =
+                    (targetWidget.getDrawY() + targetWidget.getDrawHeight() / 2)
+                            < (getOwner().getDrawY() + getOwner().getDrawHeight() / 2);
 
             drawing.mPath.moveTo(transform.getSwingFX(x0), transform.getSwingFY(y0));
 
@@ -1167,7 +1166,8 @@ public class ConstraintHandle {
             float y1 = mY - radius;
             boolean isBottomConnection = mAnchor.getType() == ConstraintAnchor.Type.BOTTOM;
             boolean isLeftConnection =
-                    targetWidget.getDrawRight() < getOwner().getDrawX();
+                    (targetWidget.getDrawX() + targetWidget.getDrawWidth() / 2)
+                            < (getOwner().getDrawX() + getOwner().getDrawWidth() / 2);
 
             drawing.mPath.moveTo(transform.getSwingFX(x0), transform.getSwingFY(y0));
 
