@@ -40,7 +40,7 @@ import java.util.EventListener;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static com.android.tools.idea.gradle.structure.model.PsIssue.Severity.INFO;
+import static com.android.tools.idea.gradle.structure.model.PsIssue.Severity.UPDATE;
 import static com.android.tools.idea.gradle.structure.model.PsIssueType.LIBRARY_UPDATES_AVAILABLE;
 import static com.intellij.util.ui.update.MergingUpdateQueue.ANY_COMPONENT;
 
@@ -88,7 +88,7 @@ public class PsAnalyzerDaemon extends PsDaemon {
                 String text = String.format("Newer version available: %1$s (%2$s)", update.version, update.repository);
 
                 PsLibraryDependencyPath mainPath = new PsLibraryDependencyPath(context, libraryDependency);
-                PsIssue issue = new PsIssue(text, mainPath, LIBRARY_UPDATES_AVAILABLE, INFO);
+                PsIssue issue = new PsIssue(text, mainPath, LIBRARY_UPDATES_AVAILABLE, UPDATE);
                 issue.setExtraPath(new PsModulePath(module));
 
                 myIssues.add(issue);

@@ -23,12 +23,9 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 
-import static com.intellij.icons.AllIcons.General.BalloonError;
-import static com.intellij.icons.AllIcons.General.BalloonInformation;
-import static com.intellij.icons.AllIcons.General.BalloonWarning;
-import static com.intellij.ui.JBColor.GRAY;
-import static com.intellij.ui.JBColor.RED;
-import static com.intellij.ui.JBColor.YELLOW;
+import static com.intellij.icons.AllIcons.Actions.Download;
+import static com.intellij.icons.AllIcons.General.*;
+import static com.intellij.ui.JBColor.*;
 
 public class PsIssue {
   @NotNull private final String myText;
@@ -119,7 +116,8 @@ public class PsIssue {
   }
 
   public enum Severity {
-    ERROR("Error", BalloonError, RED, 0), WARNING("Warning", BalloonWarning, YELLOW, 1), INFO("Information", BalloonInformation, GRAY, 2);
+    ERROR("Error", BalloonError, RED, 0), WARNING("Warning", BalloonWarning, YELLOW, 1), INFO("Information", BalloonInformation, GRAY, 2),
+    UPDATE("Update", Download, GRAY, 3);
 
     @NotNull private final Icon myIcon;
     @NotNull private final String myText;
