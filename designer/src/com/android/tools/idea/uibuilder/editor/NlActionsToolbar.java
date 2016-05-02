@@ -99,7 +99,7 @@ public class NlActionsToolbar implements DesignSurfaceListener, ModelListener {
     // The default toolbar layout adds too much spacing between the buttons. Switch to mini mode,
     // but also set a minimum size which will add *some* padding for our 16x16 icons.
     layoutToolBar.setMiniMode(true);
-    layoutToolBar.setMinimumButtonSize(JBUI.size(22, 24));
+    layoutToolBar.setMinimumButtonSize(JBUI.size(26, 24));
 
     JPanel bottom = new JPanel(new BorderLayout());
     bottom.add(layoutToolBar.getComponent(), BorderLayout.WEST);
