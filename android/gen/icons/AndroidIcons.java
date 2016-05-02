@@ -262,6 +262,8 @@ public class AndroidIcons {
     public static final Icon verticallyDistribute = load("/icons/sherpa/vertically-distribute.png");
     public static final Icon zoomIn = load("/icons/sherpa/zoom-in.png");
     public static final Icon ZoomOut = load("/icons/sherpa/Zoom-out.png");
+    public static final Icon AutoConnect = load("/icons/sherpa/Auto_connect.png");
+    public static final Icon AutoConnectOff = load("/icons/sherpa/Auto_connect_off.png");
     public static final Icon VerticalCenterParent = load("/icons/sherpa/vertical-center-parent.png");
     public static final Icon HorizontalCenterParent = load("/icons/sherpa/horizontal-center-parent.png");
     public static final Icon VerticalExpand = load("/icons/sherpa/vertical-expand.png");
