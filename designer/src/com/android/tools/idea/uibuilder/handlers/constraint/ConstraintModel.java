@@ -46,6 +46,7 @@ public class ConstraintModel implements ModelListener {
   private boolean mAutoConnect = true;
   private float myDpiFactor;
   private int mNeedsAnimateConstraints = -1;
+  private final NlModel myNlModel;
 
   public void setAutoConnect(boolean autoConnect) {
     if (autoConnect != mAutoConnect) {
@@ -142,7 +143,7 @@ public class ConstraintModel implements ModelListener {
     ourLock.lock();
     ConstraintModel constraintModel = ourModelCache.get(model);
     if (constraintModel == null) {
-      constraintModel = new ConstraintModel();
+      constraintModel = new ConstraintModel(model);
       model.addListener(constraintModel);
       ourModelCache.put(model, constraintModel);
     }
@@ -180,7 +181,8 @@ public class ConstraintModel implements ModelListener {
   /**
    * Base constructor
    */
-  public ConstraintModel() {
+  public ConstraintModel(NlModel model) {
+    myNlModel = model;
     mySelection.setSelectedAnchor(null);
     myWidgetsScene.setSelection(mySelection);
   }
@@ -375,6 +377,14 @@ public class ConstraintModel implements ModelListener {
     }
   }
 
+  /**
+   * Save the model to xml
+   */
+  public void saveToXML() {
+    ConstraintUtilities.saveModelToXML(myNlModel);
+    myModificationCount++;
+  }
+
   public void setNeedsAnimateConstraints(int type) {
     mNeedsAnimateConstraints = type;
   }
@@ -382,4 +392,5 @@ public class ConstraintModel implements ModelListener {
   public int getNeedsAnimateConstraints() {
     return mNeedsAnimateConstraints;
   }
+
 }

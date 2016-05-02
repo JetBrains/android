@@ -753,7 +753,6 @@ public class ConstraintUtilities {
       }
     };
     action.execute();
-    nlModel.notifyModified();
   }
 
   /**
@@ -761,7 +760,7 @@ public class ConstraintUtilities {
    *
    * @param nlModel
    */
-  static void saveModelToXML(NlModel nlModel) {
+  static void saveModelToXML(@NotNull NlModel nlModel) {
     Project project = nlModel.getProject();
     XmlFile file = nlModel.getFile();
 
@@ -777,7 +776,6 @@ public class ConstraintUtilities {
       }
     };
     action.execute();
-    nlModel.notifyModified();
   }
 
   /**
