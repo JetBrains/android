@@ -348,7 +348,7 @@ public class MouseInteraction {
         }
     }
 
-    private Timer mBaselineTimer = new Timer(1000, new ActionListener() {
+    private Timer mBaselineTimer = new Timer(250, new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
             mClickListener.mEnableBaseline = true;
@@ -954,6 +954,7 @@ public class MouseInteraction {
                 decorator.setLook(ColorTheme.Look.NORMAL);
             }
         }
+
         if (widget != null) {
             WidgetCompanion companion = (WidgetCompanion) widget.getCompanionWidget();
             WidgetDecorator decorator = companion.getWidgetDecorator(mSceneDraw.getCurrentStyle());
@@ -961,20 +962,13 @@ public class MouseInteraction {
                 decorator.setLook(ColorTheme.Look.HIGHLIGHTED);
             }
             mPreviousHoverWidget = widget;
+            if (mSelection.contains(widget) && decorator.isShowBaseline()) {
+                mClickListener.mEnableBaseline = false;
+                mHoverListener.mEnableBaseline = false;
+                mBaselineTimer.restart();
+            }
         }
-        if (widget != null && mSelection.contains(widget)) {
-            mBaselineTimer.restart();
-        } else {
-            mClickListener.mEnableBaseline = false;
-            mHoverListener.mEnableBaseline = false;
-        }
-        if (mHoverListener.mEnableBaseline
-                && (anchor == null || (anchor != null && anchor.getType() !=
-                ConstraintAnchor.Type.BASELINE))) {
-            mClickListener.mEnableBaseline = false;
-            mHoverListener.mEnableBaseline = false;
-            mBaselineTimer.restart();
-        }
+
         mSceneDraw.setCurrentUnderneathAnchor(anchor);
         mSceneDraw.repaint();
     }

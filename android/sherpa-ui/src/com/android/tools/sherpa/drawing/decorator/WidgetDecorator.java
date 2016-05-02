@@ -167,6 +167,14 @@ public class WidgetDecorator {
     }
 
     /**
+     * Return true if the baseline will be shown
+     * @return
+     */
+    public boolean isShowBaseline() {
+        return mShowBaseline.isDone();
+    }
+
+    /**
      * Tell us that the horizontal or vertical bias value has been changed.
      * We'll use it to start showing the bias labels.
      */
