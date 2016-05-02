@@ -128,6 +128,10 @@ class DrawConstraintModel {
     if (myMouseInteraction != null) {
       myMouseInteraction.mouseReleased(pxToDp(x), pxToDp(y));
     }
+    Selection selection = myConstraintModel.getSelection();
+    if (!selection.getModifiedWidgets().isEmpty()) {
+      myConstraintModel.saveToXML();
+    }
   }
 
   /**
