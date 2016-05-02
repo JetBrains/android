@@ -58,7 +58,7 @@ public class UIUtils {
    * Secondary text color to be used with non-emphasized content such as subtitles.
    * Colors are Material Grey 600/400.
    */
-  private static final Color SECONDARY_COLOR =  new JBColor(0x757575, 0xBDBDBD);
+  private static final Color SECONDARY_COLOR = new JBColor(0x757575, 0xBDBDBD);
 
   /**
    * Default color for links. These are treated differently to make it clear that they are not the same as internal links.
@@ -176,9 +176,12 @@ public class UIUtils {
     // * Add bottom margins to list items for legibility.
     // * Colorizes <code>.
     String text = "<html><head><style>body { font-family: " + defaultFont.getFamily() + "; margin: 0px; } " +
-                  "ol {margin: 0 0 0 20px} ul {list-style-type: circle; margin: 0 0 0 20px} " +
-                  "li {margin: 0 0 10px 10px; } code { color: " + getCssColor(CODE_COLOR) + "}" +
-                  "a, a:visited, a:active { color: " + getCssColor(OFFSITE_LINK_COLOR) + "}";
+                  "ol {margin: 0 0 0 20px; } ul {list-style-type: circle; margin: 0 0 0 20px; } " +
+                  "li {margin: 0 0 10px 10px; } code { color: " + getCssColor(CODE_COLOR) + "; }" +
+                  "a, a:visited, a:active { color: " + getCssColor(OFFSITE_LINK_COLOR) + "; }" +
+                  // In some scenario, containers render contents at 0 height on theme change. Override this class to have 1px of top margin
+                  // in that event and accommodate the size change in your document.
+                  ".as-shim { margin: 0 0 0 0; }";
     if (css != null) {
       text += "\n" + css;
     }
@@ -186,7 +189,7 @@ public class UIUtils {
     if (headContent != null) {
       text += "\n" + headContent;
     }
-    text += "</head><body>" + content + "</body></html>";
+    text += "</head><body><div class=\"as-shim\">" + content + "</div></body></html>";
     pane.setText(text);
   }
 
