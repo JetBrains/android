@@ -185,6 +185,10 @@ class DrawConstraintModel {
     if (mySceneDraw.getCurrentStyle() == WidgetDecorator.BLUEPRINT_STYLE) {
       mySceneDraw.drawBackground(myViewTransform, g, 0, width, height);
     }
+    if (myConstraintModel.getNeedsAnimateConstraints() != -1) {
+      mySceneDraw.animateConstraints(myConstraintModel.getNeedsAnimateConstraints());
+      myConstraintModel.setNeedsAnimateConstraints(-1);
+    }
     boolean ret = mySceneDraw.paintWidgets(width, height, myViewTransform, g, showAllConstraints, myMouseInteraction);
     g.dispose();
     return ret;

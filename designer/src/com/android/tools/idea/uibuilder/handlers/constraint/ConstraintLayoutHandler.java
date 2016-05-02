@@ -23,6 +23,7 @@ import com.android.tools.idea.uibuilder.surface.Interaction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.sherpa.scout.Scout;
 import com.android.tools.sherpa.structure.WidgetsScene;
+import com.google.tnt.solver.widgets.ConstraintAnchor;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 
@@ -287,6 +288,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       WidgetsScene scene = model.getScene();
       Scout.inferConstraints(scene);
       ConstraintUtilities.saveModelToXML(component.getModel());
+      model.setNeedsAnimateConstraints(ConstraintAnchor.SCOUT_CREATOR);
     }
 
     @Override
