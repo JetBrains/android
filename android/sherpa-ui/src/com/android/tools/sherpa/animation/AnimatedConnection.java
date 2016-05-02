@@ -1,8 +1,6 @@
 package com.android.tools.sherpa.animation;
 
-import com.android.tools.sherpa.drawing.BlueprintColorSet;
 import com.android.tools.sherpa.drawing.ColorSet;
-import com.android.tools.sherpa.drawing.ConnectionDraw;
 import com.android.tools.sherpa.drawing.ViewTransform;
 import com.android.tools.sherpa.interaction.ConstraintHandle;
 import com.android.tools.sherpa.interaction.WidgetInteractionTargets;
@@ -18,6 +16,7 @@ public class AnimatedConnection extends Animation {
     final ConstraintAnchor mAnchor;
     private final ColorSet mColorSet;
     protected Color mColor;
+    private int mOriginalCreator;
 
     public AnimatedConnection(ColorSet colorSet, ConstraintAnchor anchor) {
         super();
@@ -27,6 +26,7 @@ public class AnimatedConnection extends Animation {
         if (mAnchor.getConnectionCreator() == ConstraintAnchor.SCOUT_CREATOR) {
             mColor = colorSet.getCreatedConstraints();
         }
+        mOriginalCreator = mAnchor.getConnectionCreator();
     }
 
     @Override
@@ -37,8 +37,9 @@ public class AnimatedConnection extends Animation {
         g.setColor(highlight);
         ConstraintHandle sourceHandle = WidgetInteractionTargets.constraintHandle(mAnchor);
         ConstraintHandle targetHandle = WidgetInteractionTargets.constraintHandle(mAnchor.getTarget());
-        if (sourceHandle != null && targetHandle != null) {
-            sourceHandle.drawConnection(transform, g, mColorSet, true);
+        if (sourceHandle != null && targetHandle != null && progress >= 0.1) {
+            sourceHandle.drawConnection(transform, g, mColorSet, true, mOriginalCreator,
+                    (float) (progress));
         }
     }
 }

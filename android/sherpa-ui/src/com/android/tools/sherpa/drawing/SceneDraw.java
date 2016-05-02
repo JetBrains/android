@@ -275,7 +275,9 @@ public class SceneDraw {
                 if (!a.isConnected()) {
                     continue;
                 }
-                mAnimationCreatedConstraints.add(new AnimatedConnection(mColorSet, a));
+                if (a.getConnectionCreator() == type) {
+                    mAnimationCreatedConstraints.add(new AnimatedConnection(mColorSet, a));
+                }
             }
         }
         mChoreographer.addAnimation(mAnimationCreatedConstraints);
@@ -290,7 +292,6 @@ public class SceneDraw {
      * @param rootMargin edges
      * @param w width of screen
      * @param h height of screen
-     * @param selectedAnchor
      * @return
      */
     public boolean drawBackground(ViewTransform transform, Graphics2D g, int rootMargin, int w,
