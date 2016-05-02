@@ -71,6 +71,9 @@ public class MouseInteraction {
     private int mMouseCursor = Cursor.DEFAULT_CURSOR;
     private ConstraintWidget mPreviousHoverWidget = null;
 
+    private final static int BASELINE_TIME_THRESHOLD = 250; // ms -- after that delay, allow baseline selection
+    private final static int LOCK_TIME_THRESHOLD = 500; // ms -- after that delay, prevent dragging
+
     public static void setMargin(int margin) {
         sMargin = margin;
     }
@@ -346,9 +349,21 @@ public class MouseInteraction {
         public int getOriginalCreator() {
             return mOriginalCreator;
         }
+
+        public long getElapsedTime() {
+            if (mStart == 0) {
+                return 0;
+            }
+            long elapsed = System.currentTimeMillis() - mStart;
+            if (elapsed < 0) {
+                return 0;
+            }
+            return elapsed;
+        }
+
     }
 
-    private Timer mBaselineTimer = new Timer(250, new ActionListener() {
+    private Timer mBaselineTimer = new Timer(BASELINE_TIME_THRESHOLD, new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
             mClickListener.mEnableBaseline = true;
@@ -794,9 +809,13 @@ public class MouseInteraction {
      * @return the type of direction (locked in x/y or not)
      */
     public int mouseDragged(int x, int y) {
+        int directionLockedStatus = Selection.DIRECTION_UNLOCKED;
+        if (mLockTimer.getElapsedTime() > LOCK_TIME_THRESHOLD) {
+            // If we long press without starting to drag, let's finish the lock timer
+            return directionLockedStatus;
+        }
         mLockTimer.stop();
         mLastMousePosition.setLocation(x, y);
-        int directionLockedStatus = Selection.DIRECTION_UNLOCKED;
         switch (mMouseMode) {
             case MOVE: {
                 if (!mSelection.isEmpty()) {
