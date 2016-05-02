@@ -174,7 +174,7 @@ public class ScoutProbabilities {
 
         ArrayList<ArrayList<ScoutWidget>> groups = new ArrayList<ArrayList<ScoutWidget>>();
         ArrayList<ScoutWidget> current = new ArrayList<ScoutWidget>();
-        for (int i = 1; i < w.length; i++) {
+        for (int i = 2; i < w.length; i++) {
             ScoutWidget scoutWidget = w[i];
             if (sameCol(w[i], w[i - 1])) {
                 if (current.isEmpty()) {
