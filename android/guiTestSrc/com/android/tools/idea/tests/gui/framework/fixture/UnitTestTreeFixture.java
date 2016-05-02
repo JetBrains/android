@@ -15,13 +15,16 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
-import com.intellij.execution.junit2.TestProxy;
-import com.intellij.execution.junit2.ui.model.JUnitRunningModel;
+import com.intellij.execution.testframework.AbstractTestProxy;
+import com.intellij.execution.testframework.Filter;
+import com.intellij.execution.testframework.TestFrameworkRunningModel;
 import com.intellij.execution.testframework.TestTreeView;
 import org.fest.swing.timing.Condition;
 import org.fest.swing.timing.Pause;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 /**
  * Fixture for the tree widget, on the left hand side of "Run" window (when running tests).
@@ -37,7 +40,7 @@ public class UnitTestTreeFixture {
   }
 
   @Nullable
-  public JUnitRunningModel getModel() {
+  public TestFrameworkRunningModel getModel() {
     Pause.pause(new Condition("Wait for the test results model.") {
       @Override
       public boolean test() {
@@ -45,25 +48,27 @@ public class UnitTestTreeFixture {
       }
     });
 
-    return (JUnitRunningModel)myTreeView.getData(TestTreeView.MODEL_DATA_KEY.getName());
+    return TestTreeView.MODEL_DATA_KEY.getData(myTreeView);
   }
 
   public boolean isAllTestsPassed() {
-    return !getModel().getProgress().hasDefects();
+    return !getModel().getRoot().isDefect();
   }
 
-  public int getFailingTestsCount() {
-    return getModel().getProgress().countDefects();
+  public long getFailingTestsCount() {
+    List<? extends AbstractTestProxy> children = getModel().getRoot().getChildren();
+    return children.stream().filter(Filter.DEFECTIVE_LEAF::shouldAccept).count();
   }
 
   public int getAllTestsCount() {
-    TestProxy root = getModel().getRoot();
-    if (root.getChildCount() == 0) {
+    AbstractTestProxy root = getModel().getRoot();
+    List<? extends AbstractTestProxy> children = root.getChildren();
+    if (children.isEmpty()) {
       // When root has no children, it means we're only running one method, which is the root.
       return 1;
     } else {
       // Otherwise the class is the root and there's one child per method.
-      return root.getChildCount();
+      return children.size();
     }
   }
 
