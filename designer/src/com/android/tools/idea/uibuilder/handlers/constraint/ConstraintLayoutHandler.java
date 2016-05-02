@@ -215,7 +215,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
 
   private static class ToggleAutoConnectAction extends ToggleViewAction {
     public ToggleAutoConnectAction() {
-      super(AndroidIcons.Configs.SmallestWidth, AndroidIcons.Configs.Dimension, "Turn on Autoconnect", "Turn off Autoconnect");
+      super(AndroidIcons.SherpaIcons.AutoConnectOff, AndroidIcons.SherpaIcons.AutoConnect, "Turn on Autoconnect", "Turn off Autoconnect");
     }
 
     @Override

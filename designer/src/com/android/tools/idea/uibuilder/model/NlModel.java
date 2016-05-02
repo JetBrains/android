@@ -455,7 +455,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       return;
     }
 
-    Iterable<ViewInfo> rootViews = Objects.firstNonNull(result.getRootViews(), Collections.emptyList());
+    Iterable<ViewInfo> rootViews = Objects.firstNonNull(result.getRootViews(), Collections.<ViewInfo>emptyList());
 
     if (ResourceType.valueOf(myFile).equals(ResourceType.PREFERENCE_SCREEN)) {
       updatePreferenceScreenHierarchy(rootViews);
