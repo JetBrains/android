@@ -22,6 +22,7 @@ import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.ddms.DevicePanel;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.datastore.SeriesDataStoreImpl;
+import com.android.tools.idea.monitor.profilerclient.DeviceProfilerService;
 import com.android.tools.idea.monitor.ui.BaseSegment;
 import com.android.tools.idea.monitor.ui.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.TimeAxisSegment;
@@ -29,6 +30,9 @@ import com.android.tools.idea.monitor.ui.cpu.view.CpuUsageSegment;
 import com.android.tools.idea.monitor.ui.cpu.view.ThreadsSegment;
 import com.android.tools.idea.monitor.ui.memory.view.MemorySegment;
 import com.android.tools.idea.monitor.ui.network.view.NetworkSegment;
+import com.android.ddmlib.Client;
+import com.android.ddmlib.IDevice;
+import com.android.tools.idea.monitor.profilerclient.ProfilerService;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
@@ -38,6 +42,7 @@ import com.intellij.ui.components.panels.HorizontalLayout;
 import com.intellij.util.EventDispatcher;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -60,6 +65,18 @@ public class AndroidMonitorToolWindow implements Disposable {
 
   @NotNull
   private final Project myProject;
+
+  @NotNull
+  private DeviceContext myDeviceContext;
+
+  @Nullable
+  private IDevice mySelectedDevice;
+
+  @Nullable
+  private Client mySelectedClient;
+
+  @Nullable
+  private DeviceProfilerService mySelectedDeviceProfilerService;
 
   @NotNull
   private final JPanel myComponent;
@@ -95,6 +112,9 @@ public class AndroidMonitorToolWindow implements Disposable {
     myChoreographer = new Choreographer(CHOREOGRAPHER_FPS, myComponent);
     myChoreographer.register(createComponentsList());
     myEventDispatcher = EventDispatcher.create(ProfilerEventListener.class);
+
+    myDeviceContext = new DeviceContext();
+    setupDevice();
     populateUi();
   }
 
@@ -123,11 +143,47 @@ public class AndroidMonitorToolWindow implements Disposable {
       mySegmentsLayout, animatedTimeRange, mySelection, myScrollbar, myTimeAxis, myXRange, xGlobalRange, xSelectionRange);
   }
 
+  private void setupDevice() {
+    mySelectedDevice = myDeviceContext.getSelectedDevice();
+    if (mySelectedDevice != null) {
+      connectToDevice();
+    }
+
+    myDeviceContext.addListener(new DeviceContext.DeviceSelectionListener() {
+      @Override
+      public void deviceSelected(@Nullable IDevice device) {
+        if (device == mySelectedDevice) {
+          return;
+        }
+
+        disconnectFromDevice();
+        mySelectedDevice = device;
+        connectToDevice();
+      }
+
+      @Override
+      public void deviceChanged(@NotNull IDevice device, int changeMask) {
+        if ((changeMask & IDevice.CHANGE_STATE) > 0) {
+          if (device.isOnline() && mySelectedDeviceProfilerService == null) {
+            connectToDevice();
+          }
+          else if (device.isOffline() || device.getState() == IDevice.DeviceState.DISCONNECTED) {
+            disconnectFromDevice();
+          }
+        }
+      }
+
+      @Override
+      public void clientSelected(@Nullable Client c) {
+        mySelectedClient = c;
+      }
+    }, this);
+  }
+
   // TODO: refactor to use ActionToolbar, as we're going to have more actions in the toolbar
   private void createToolbarComponent() {
     JBPanel toolbar = new JBPanel(new HorizontalLayout(TOOLBAR_HORIZONTAL_GAP));
-    DeviceContext deviceContext = new DeviceContext();
-    DevicePanel devicePanel = new DevicePanel(myProject, deviceContext);
+    DevicePanel devicePanel = new DevicePanel(myProject, myDeviceContext);
     myCollapseSegmentsButton = new JButton();
     // TODO: use proper icon
     myCollapseSegmentsButton.setIcon(AllIcons.Actions.Back);
@@ -294,5 +350,25 @@ public class AndroidMonitorToolWindow implements Disposable {
       mySegmentsContainer.remove(myThreadsSegment);
       myThreadsSegment = null;
     }
+  }
+
+  private void disconnectFromDevice() {
+    if (mySelectedDeviceProfilerService != null) {
+      ProfilerService.getInstance().disconnect(this, mySelectedDeviceProfilerService);
+      mySelectedDeviceProfilerService = null;
+    }
+  }
+
+  private void connectToDevice() {
+    if (mySelectedDevice == null) {
+      return;
+    }
+
+    if (mySelectedDevice.isOffline()) {
+      return;
+    }
+
+    assert mySelectedDevice.isOnline();
+    mySelectedDeviceProfilerService = ProfilerService.getInstance().connect(this, mySelectedDevice);
   }
 }
