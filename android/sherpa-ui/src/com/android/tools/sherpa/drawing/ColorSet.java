@@ -38,7 +38,7 @@ public class ColorSet {
     protected Color mMargins;
     protected Color mText;
     protected Color mSnapGuides;
-    protected Color mCreatedConstraints = new Color(250, 135, 52);
+    protected Color mCreatedConstraints = new Color(250, 187, 32);
 
     protected Color mSubduedText;
     protected Color mSubduedBackground;

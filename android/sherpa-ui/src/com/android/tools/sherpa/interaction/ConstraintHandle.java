@@ -552,43 +552,42 @@ public class ConstraintHandle {
                         targetWidget);
             }
         } else {
-            addPathConnection(transform, g, isSelected, true, drawing, colorSet,
-                    targetHandle.getDrawX(), targetHandle.getDrawY());
+            if (targetHandle != null) {
+                boolean showMargin = true;
+                if (mAnchor.getConnectionCreator() == ConstraintAnchor.SCOUT_CREATOR) {
+                    showMargin = false;
+                }
+                addPathConnection(transform, g, isSelected, showMargin, drawing, colorSet,
+                        targetHandle.getDrawX(), targetHandle.getDrawY());
+            }
         }
 
         boolean drawShadow = progress == 1 && isSelected
                 && mAnchor.getConnectionCreator() != ConstraintAnchor.AUTO_CONSTRAINT_CREATOR;
-        if (true || drawShadow) {
-            Color pre = g.getColor();
-            Stroke s = g.getStroke();
-            if (colorSet.getStyle() == WidgetDecorator.BLUEPRINT_STYLE) {
-                g.setPaint(colorSet.getBackgroundPaint());
-                g.setStroke(sLineShadowStroke);
-            } else {
-                g.setColor(sShadowColor);
-                g.setStroke(sShadowStroke);
-            }
-            drawing.draw(g);
-            g.setColor(pre);
-            g.setStroke(s);
-        }
+
         // If a lock timer is active, draw the path a second time
-        if (progress <= 1 && progress > 0.1) {
+        if (progress <= 1 && progress >= 0.1) {
             Stroke s = g.getStroke();
             int distance = lengthOfPath(drawing.mPath);
             int dashFull = (int) (distance * progress);
             int dashEmpty = (int) (distance * (1 - progress));
             if (dashFull > 0 || dashEmpty > 0) {
-                if (originalCreator == ConstraintAnchor.AUTO_CONSTRAINT_CREATOR) {
-                    g.setColor(colorSet.getWeakConstraintColor());
-                    g.setStroke(ConnectionDraw.sDashedStroke);
-                    drawing.draw(g);
+                if (originalCreator == ConstraintAnchor.AUTO_CONSTRAINT_CREATOR
+                        || originalCreator == ConstraintAnchor.SCOUT_CREATOR) {
+                    if (originalCreator != ConstraintAnchor.SCOUT_CREATOR) {
+                        g.setColor(colorSet.getWeakConstraintColor());
+                        g.setStroke(ConnectionDraw.sDashedStroke);
+                        drawing.draw(g);
+                    }
                     Stroke progressStroke = new BasicStroke(2, BasicStroke.CAP_BUTT,
                             BasicStroke.JOIN_BEVEL, 0, new float[] { dashFull, dashEmpty }, 0);
                     g.setStroke(progressStroke);
-                    g.setColor(colorSet.getSelectedConstraints());
                     if (progress != 1) {
                         drawing.mDrawArrow = false;
+                    }
+                    if (originalCreator != ConstraintAnchor.SCOUT_CREATOR) {
+                        g.setColor(colorSet.getSelectedConstraints());
+                        paintShadow(g, colorSet, drawing);
                     }
                     drawing.draw(g);
                 } else {
@@ -607,8 +606,30 @@ public class ConstraintHandle {
                 g.setStroke(s);
             }
         } else {
+            paintShadow(g, colorSet, drawing);
             drawing.draw(g);
         }
+    }
+
+    /**
+     * Utility to draw the given drawing as a shadow
+     * @param g
+     * @param colorSet
+     * @param drawing
+     */
+    private void paintShadow(Graphics2D g, ColorSet colorSet, ConnectionDrawing drawing) {
+        Color pre = g.getColor();
+        Stroke s = g.getStroke();
+        if (colorSet.getStyle() == WidgetDecorator.BLUEPRINT_STYLE) {
+            g.setPaint(colorSet.getBackgroundPaint());
+            g.setStroke(sLineShadowStroke);
+        } else {
+            g.setColor(sShadowColor);
+            g.setStroke(sShadowStroke);
+        }
+        drawing.draw(g);
+        g.setColor(pre);
+        g.setStroke(s);
     }
 
     /**
@@ -621,8 +642,7 @@ public class ConstraintHandle {
      * @param target     the geometry point the connection should point to
      */
     public void drawConnection(ViewTransform transform, Graphics2D g, ColorSet colorSet,
-            boolean isSelected,
-            Point target) {
+            boolean isSelected, Point target) {
 
         ConnectionDrawing drawing = new ConnectionDrawing();
         addPathConnection(transform, g, isSelected, false, drawing, colorSet,
