@@ -530,10 +530,12 @@ public class WidgetDecorator {
                 || mDisplayAnchorsPolicy.contains(WidgetDraw.ANCHORS_DISPLAY.BOTTOM)
                 || mDisplayAnchorsPolicy.contains(WidgetDraw.ANCHORS_DISPLAY.VERTICAL);
 
-        showLeftAnchor |= leftAnchorIsConnected;
-        showRightAnchor |= rightAnchorIsConnected;
-        showTopAnchor |= topAnchorIsConnected;
-        showBottomAnchor |= bottomAnchorIsConnected;
+        if (!mDisplayAnchorsPolicy.contains(WidgetDraw.ANCHORS_DISPLAY.NONE)) {
+            showLeftAnchor |= leftAnchorIsConnected;
+            showRightAnchor |= rightAnchorIsConnected;
+            showTopAnchor |= topAnchorIsConnected;
+            showBottomAnchor |= bottomAnchorIsConnected;
+        }
 
         WidgetCompanion widgetCompanion = (WidgetCompanion) mWidget.getCompanionWidget();
         WidgetDecorator decorator = widgetCompanion.getWidgetDecorator(mColorSet.getStyle());
@@ -607,7 +609,7 @@ public class WidgetDecorator {
             return;
         }
         g.setColor(mConstraintsColor.getColor());
-        if (mIsSelected || isShowAllConstraints()) {
+        if (mIsSelected || isShowAllConstraints() || getLook() == ColorTheme.Look.HIGHLIGHTED) {
             if (mWidget.getVisibility() == ConstraintWidget.INVISIBLE) {
                 g.setStroke(SnapDraw.sDashedStroke);
             }
@@ -807,6 +809,7 @@ public class WidgetDecorator {
         if (selectedWidget != null) {
             if (!isShowAllConstraints()) {
                 mDisplayAnchorsPolicy.clear();
+                mDisplayAnchorsPolicy.add(WidgetDraw.ANCHORS_DISPLAY.NONE);
             }
             ConstraintAnchor left =
                     isConnectedAnchor(selectedWidget, ConstraintAnchor.Type.LEFT, mWidget);
@@ -841,6 +844,10 @@ public class WidgetDecorator {
                     mDisplayAnchorsPolicy.add(WidgetDraw.ANCHORS_DISPLAY.HORIZONTAL);
                 }
             }
+        }
+        if (getLook() == ColorTheme.Look.HIGHLIGHTED) {
+            mDisplayAnchorsPolicy.clear();
+            mDisplayAnchorsPolicy.add(WidgetDraw.ANCHORS_DISPLAY.CONNECTED);
         }
     }
 
