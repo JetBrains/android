@@ -29,6 +29,7 @@ import com.android.tools.idea.gradle.structure.configurables.ui.treeview.Abstrac
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseExpandAllAction;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.NodeHyperlinkSupport;
+import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsIssue;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
@@ -56,6 +57,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.setUp;
+import static com.android.tools.idea.gradle.structure.model.PsPath.TexType.HTML;
 import static com.intellij.icons.AllIcons.Actions.Collapseall;
 import static com.intellij.icons.AllIcons.Actions.Expandall;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
@@ -87,11 +89,11 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
 
       for (PsIssue issue : issues) {
         buffer.append("<li>")
-              .append(issue.getPath().getHtml()).append(": ").append(issue.getText())
+              .append(issue.getPath().toText(HTML)).append(": ").append(issue.getText())
               .append("</li>");
       }
 
-      buffer.append("</ul></body></html");
+      buffer.append("</ul></body></html>");
       return buffer.toString();
     });
     setIssuesViewer(myIssuesViewer);
@@ -163,14 +165,20 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
 
     myHyperlinkSupport = new NodeHyperlinkSupport<>(myTree, ModuleDependencyNode.class, myContext, true);
 
-    PsModule.DependenciesChangeListener dependenciesChangeListener = spec -> {
+    PsModule.DependenciesChangeListener dependenciesChangeListener = event -> {
       fakeModule.setModified(true);
-      myTreeBuilder.reset(() -> {
-        LibraryDependencyNode found = myTreeBuilder.find(spec);
-        if (found != null) {
-          myTreeBuilder.select(found);
-        }
-      });
+      if (event instanceof PsModule.LibraryDependencyAddedEvent) {
+        PsArtifactDependencySpec spec = ((PsModule.LibraryDependencyAddedEvent)event).getSpec();
+        myTreeBuilder.reset(() -> {
+          LibraryDependencyNode found = myTreeBuilder.find(spec);
+          if (found != null) {
+            myTreeBuilder.select(found);
+          }
+        });
+      }
+      else if (event != null) {
+        myTreeBuilder.reset(null);
+      }
     };
     myContext.getProject().forEachModule(module -> module.add(dependenciesChangeListener, this));
   }

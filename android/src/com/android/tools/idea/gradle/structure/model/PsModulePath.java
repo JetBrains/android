@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.navigation;
+package com.android.tools.idea.gradle.structure.model;
 
-import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.google.common.base.Objects;
 import org.jetbrains.annotations.NotNull;
 
-public class PsModulePath extends PsNavigationPath {
+public class PsModulePath extends PsPath {
   @NotNull private final String myModuleName;
 
   public PsModulePath(@NotNull PsModule module) {
@@ -33,14 +32,14 @@ public class PsModulePath extends PsNavigationPath {
 
   @Override
   @NotNull
-  public String getPlainText() {
-    return myModuleName;
-  }
-
-  @Override
-  @NotNull
-  public String getHtml() {
-    return "";
+  public String toText(@NotNull TexType type) {
+    switch (type) {
+      case FOR_COMPARE_TO:
+      case PLAIN_TEXT:
+        return myModuleName;
+      default:
+        return "";
+    }
   }
 
   @Override
@@ -58,10 +57,5 @@ public class PsModulePath extends PsNavigationPath {
   @Override
   public int hashCode() {
     return Objects.hashCode(myModuleName);
-  }
-
-  @Override
-  public String toString() {
-    return getPlainText();
   }
 }

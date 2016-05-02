@@ -33,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.util.*;
 
+import static com.android.tools.idea.gradle.structure.model.PsDependency.TextType.PLAIN_TEXT;
 import static com.intellij.util.PlatformIcons.LIBRARY_ICON;
 
 public class PsAndroidLibraryDependency extends PsAndroidDependency implements PsLibraryDependency {
@@ -65,13 +66,18 @@ public class PsAndroidLibraryDependency extends PsAndroidDependency implements P
   }
 
   @Override
-  public void setPomDependencies(@NotNull List<PsArtifactDependencySpec> pomDependencies) {
+  public void setDependenciesFromPomFile(@NotNull List<PsArtifactDependencySpec> pomDependencies) {
     myPomDependencies.clear();
     myPomDependencies.addAll(pomDependencies);
   }
 
-  private void setDeclaredSpec(@Nullable ArtifactDependencyModel parsedModel) {
-    myDeclaredSpec = createSpec(parsedModel);
+  @Nullable
+  private static PsArtifactDependencySpec createSpec(@Nullable ArtifactDependencyModel parsedModel) {
+    if (parsedModel != null) {
+      String compactNotation = parsedModel.compactNotation().value();
+      return PsArtifactDependencySpec.create(compactNotation);
+    }
+    return null;
   }
 
   @NotNull
@@ -160,8 +166,19 @@ public class PsAndroidLibraryDependency extends PsAndroidDependency implements P
 
   @Override
   @NotNull
-  public String getValueAsText() {
-    return myResolvedSpec.toString();
+  public String toText(@NotNull TextType type) {
+    switch (type) {
+      case PLAIN_TEXT:
+        return myResolvedSpec.toString();
+      case FOR_NAVIGATION:
+        PsArtifactDependencySpec spec = myDeclaredSpec;
+        if (spec == null) {
+          spec = myResolvedSpec;
+        }
+        return spec.toString();
+      default:
+        return "";
+    }
   }
 
   @Override
@@ -171,6 +188,31 @@ public class PsAndroidLibraryDependency extends PsAndroidDependency implements P
       return declaredVersion != null && declaredVersion.compareTo(myResolvedSpec.version) < 0;
     }
     return false;
+  }
+
+  @Override
+  public void setVersion(@NotNull String version) {
+    boolean modified = false;
+    ArtifactDependencyModel reference = null;
+    for (DependencyModel parsedDependency : getParsedModels()) {
+      if (parsedDependency instanceof ArtifactDependencyModel) {
+        ArtifactDependencyModel dependency = (ArtifactDependencyModel)parsedDependency;
+        dependency.setVersion(version);
+        if (reference == null) {
+          reference = dependency;
+        }
+        modified = true;
+      }
+    }
+    if (modified) {
+      setDeclaredSpec(reference);
+      setModified(true);
+      getParent().fireDependencyModifiedEvent(this);
+    }
+  }
+
+  private void setDeclaredSpec(@Nullable ArtifactDependencyModel parsedModel) {
+    myDeclaredSpec = createSpec(parsedModel);
   }
 
   @Override
@@ -185,15 +227,6 @@ public class PsAndroidLibraryDependency extends PsAndroidDependency implements P
     return Objects.equals(myResolvedSpec, that.myResolvedSpec);
   }
 
-  @Nullable
-  private static PsArtifactDependencySpec createSpec(@Nullable ArtifactDependencyModel parsedModel) {
-    if (parsedModel != null) {
-      String compactNotation = parsedModel.compactNotation().value();
-      return PsArtifactDependencySpec.create(compactNotation);
-    }
-    return null;
-  }
-
   @Override
   public int hashCode() {
     return Objects.hash(myDeclaredSpec);
@@ -201,6 +234,6 @@ public class PsAndroidLibraryDependency extends PsAndroidDependency implements P
 
   @Override
   public String toString() {
-    return getValueAsText();
+    return toText(PLAIN_TEXT);
   }
 }

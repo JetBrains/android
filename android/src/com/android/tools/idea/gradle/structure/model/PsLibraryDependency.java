@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model;
 
+import com.android.tools.idea.gradle.structure.model.PsDependency.TextType;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -31,10 +32,12 @@ public interface PsLibraryDependency extends PsAndroidModel {
   @NotNull
   PsArtifactDependencySpec getResolvedSpec();
 
-  void setPomDependencies(@NotNull List<PsArtifactDependencySpec> pomDependencies);
-
   boolean hasPromotedVersion();
 
   @NotNull
-  String getValueAsText();
+  String toText(@NotNull TextType type);
+
+  void setDependenciesFromPomFile(@NotNull List<PsArtifactDependencySpec> pomDependencies);
+
+  void setVersion(@NotNull String version);
 }

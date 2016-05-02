@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.structure.daemon.analysis;
 
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.structure.model.PsIssue;
-import com.android.tools.idea.gradle.structure.navigation.PsNavigationPath;
+import com.android.tools.idea.gradle.structure.model.PsPath;
 import org.junit.Test;
 
 import static com.android.builder.model.SyncIssue.SEVERITY_ERROR;
@@ -37,7 +37,7 @@ public class PsAndroidModuleAnalyzerTest {
                                             "and test app (16.0.1) differ. See http://g.co/androidstudio/app-test-app-conflict for " +
                                             "details.");
     when(syncIssue.getSeverity()).thenReturn(SEVERITY_ERROR);
-    PsNavigationPath path = mock(PsNavigationPath.class);
+    PsPath path = mock(PsPath.class);
 
     PsIssue issue = PsAndroidModuleAnalyzer.createIssueFrom(syncIssue, path, null);
     assertThat(issue.getText()).isEqualTo("Conflict with dependency 'com.google.guava:guava'. Resolved versions for app (16.0) " +
