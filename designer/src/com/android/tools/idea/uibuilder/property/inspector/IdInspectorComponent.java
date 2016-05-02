@@ -24,6 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.List;
 import java.util.Map;
 
 public class IdInspectorComponent implements InspectorComponent {
@@ -32,8 +33,7 @@ public class IdInspectorComponent implements InspectorComponent {
   private final NlReferenceEditor myIdField;
   private final NlLayoutEditor myLayoutEditor;
 
-  public IdInspectorComponent(@Nullable NlComponent component,
-                              @NotNull Map<String, NlProperty> properties,
+  public IdInspectorComponent(@NotNull Map<String, NlProperty> properties,
                               @NotNull NlPropertiesManager propertiesManager) {
     myPropertiesManager = propertiesManager;
 
@@ -41,12 +41,14 @@ public class IdInspectorComponent implements InspectorComponent {
 
     myIdField = NlReferenceEditor.createForInspector(propertiesManager.getProject(), createReferenceListener());
     myLayoutEditor = new NlLayoutEditor(propertiesManager.getProject());
-    myLayoutEditor.setSelectedComponent(component, properties);
+    myLayoutEditor.setSelectedComponents(properties);
   }
 
   @Override
   public void attachToInspector(@NotNull InspectorPanel inspector) {
-    inspector.addComponent("ID", getTooltip(myIdAttr), myIdField.getComponent());
+    if (myIdAttr != null) {
+      inspector.addComponent("ID", getTooltip(myIdAttr), myIdField.getComponent());
+    }
     inspector.addPanel(myLayoutEditor);
     addEditor(inspector, myLayoutEditor.getEnumPropertyEditor());
     addEditor(inspector, myLayoutEditor.getReferencePropertyEditor());

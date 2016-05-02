@@ -18,17 +18,17 @@ package com.android.tools.idea.uibuilder.property;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlPropertyAccumulator.PropertyNamePrefixAccumulator;
 import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
 import static com.android.SdkConstants.*;
 
 public class NlPropertiesGrouper {
-  public List<PTableItem> group(@NotNull List<NlPropertyItem> properties, @NotNull final NlComponent component) {
-    final String className = component.getTagName();
+  public List<PTableItem> group(@NotNull List<NlPropertyItem> properties, @NotNull List<NlComponent> components) {
+    String className = getCommonTagName(components);
 
     List<PTableItem> result = Lists.newArrayListWithExpectedSize(properties.size());
 
@@ -37,8 +37,10 @@ public class NlPropertiesGrouper {
       "Theme", p -> p != null && (p.getParentStylables().contains("Theme") || p.getName().equalsIgnoreCase("theme")));
 
     // group attributes that correspond to this component together
-    NlPropertyAccumulator customViewPropertiesAccumulator = new NlPropertyAccumulator(
-      className, p -> p != null && p.getParentStylables().contains(className));
+    NlPropertyAccumulator customViewPropertiesAccumulator = null;
+    if (className != null) {
+      customViewPropertiesAccumulator = new NlPropertyAccumulator(className, p -> p != null && p.getParentStylables().contains(className));
+    }
 
     // group margin, padding and layout attributes together
     NlPropertyAccumulator marginPropertiesAccumulator = new NlMarginPropertyAccumulator("Margin", ATTR_LAYOUT_LEFT_MARGIN, ATTR_LAYOUT_RIGHT_MARGIN, ATTR_LAYOUT_TOP_MARGIN, ATTR_LAYOUT_BOTTOM_MARGIN);
@@ -47,9 +49,17 @@ public class NlPropertiesGrouper {
 
     PropertyNamePrefixAccumulator constraintPropertiesAccumulator = new PropertyNamePrefixAccumulator("Constraints", "layout_constraint");
 
-    List<NlPropertyAccumulator> accumulators = ImmutableList.of(customViewPropertiesAccumulator, themePropertiesAccumulator,
-                                                                marginPropertiesAccumulator, paddingPropertiesAccumulator,
-                                                                layoutViewPropertiesAccumulator, constraintPropertiesAccumulator);
+    List<NlPropertyAccumulator> accumulators = Lists.newArrayList(
+      themePropertiesAccumulator,
+      marginPropertiesAccumulator,
+      paddingPropertiesAccumulator,
+      layoutViewPropertiesAccumulator,
+      constraintPropertiesAccumulator);
+
+    if (customViewPropertiesAccumulator != null) {
+      accumulators.add(customViewPropertiesAccumulator);
+    }
+
     for (NlPropertyItem p : properties) {
       boolean added = false;
       for (NlPropertyAccumulator accumulator : accumulators) {
@@ -71,5 +81,20 @@ public class NlPropertiesGrouper {
     }
 
     return result;
+  }
+
+  @Nullable
+  public static String getCommonTagName(@NotNull List<NlComponent> components) {
+    String commonTagName = null;
+    for (NlComponent component : components) {
+      String tagName = component.getTagName();
+      if (commonTagName == null) {
+        commonTagName = tagName;
+      }
+      else if (!tagName.equals(commonTagName)) {
+        return null;
+      }
+    }
+    return commonTagName;
   }
 }

@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.property;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Table;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -43,7 +44,8 @@ public class NlPropertiesTest extends LayoutTestCase {
     XmlTag rootTag = xmlFile.getRootTag();
     assert rootTag != null;
 
-    Table<String, String, NlPropertyItem> properties = NlProperties.getInstance().getProperties(MockNlComponent.create(rootTag));
+    Table<String, String, NlPropertyItem> properties = NlProperties.getInstance().getProperties(
+      ImmutableList.of(MockNlComponent.create(rootTag)));
     assertTrue(properties.size() > 120); // at least 124 attributes (view + layouts) are available as of API 22
 
     // check that some of the View's attributes are there..
@@ -74,7 +76,8 @@ public class NlPropertiesTest extends LayoutTestCase {
     XmlTag[] subTags = rootTag.getSubTags();
     assertEquals(1, subTags.length);
 
-    Table<String, String, NlPropertyItem> properties = NlProperties.getInstance().getProperties(MockNlComponent.create(subTags[0]));
+    Table<String, String, NlPropertyItem> properties =
+      NlProperties.getInstance().getProperties(ImmutableList.of(MockNlComponent.create(subTags[0])));
     assertTrue(properties.size() > 180); // at least 190 attributes are available as of API 22
 
     // A text view should have all of its attributes and the parent class's (View) attributes
@@ -99,7 +102,8 @@ public class NlPropertiesTest extends LayoutTestCase {
     XmlTag[] subTags = rootTag.getSubTags();
     assertEquals(1, subTags.length);
 
-    Table<String, String, NlPropertyItem> properties = NlProperties.getInstance().getProperties(MockNlComponent.create(subTags[0]));
+    Table<String, String, NlPropertyItem> properties =
+      NlProperties.getInstance().getProperties(ImmutableList.of(MockNlComponent.create(subTags[0])));
     assertTrue("# of properties lesser than expected: " + properties.size(), properties.size() > 90);
 
     assertPresent(tag, properties, SdkConstants.ANDROID_URI, ANDROID_VIEW_ATTRS);
@@ -117,7 +121,8 @@ public class NlPropertiesTest extends LayoutTestCase {
     XmlTag[] subTags = rootTag.getSubTags();
     assertEquals(1, subTags.length);
 
-    Table<String, String, NlPropertyItem> properties = NlProperties.getInstance().getProperties(MockNlComponent.create(subTags[0]));
+    Table<String, String, NlPropertyItem> properties =
+      NlProperties.getInstance().getProperties(ImmutableList.of(MockNlComponent.create(subTags[0])));
 
     NlPropertyItem p = properties.get(SdkConstants.ANDROID_URI, "id");
     assertNotNull(p);
@@ -206,7 +211,8 @@ public class NlPropertiesTest extends LayoutTestCase {
     XmlTag[] subTags = rootTag.getSubTags();
     assertEquals(1, subTags.length);
 
-    Table<String, String, NlPropertyItem> properties = NlProperties.getInstance().getProperties(MockNlComponent.create(subTags[0]));
+    Table<String, String, NlPropertyItem> properties =
+      NlProperties.getInstance().getProperties(ImmutableList.of(MockNlComponent.create(subTags[0])));
     assertTrue(properties.size() > 180); // at least 190 attributes are available as of API 22
 
     // The attrs.xml in appcompat-22.0.0 includes android:focusable, theme and android:theme.

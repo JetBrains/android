@@ -22,7 +22,6 @@ import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
@@ -59,27 +58,27 @@ public class NlPropertiesSorter {
     }
   }
 
-  public List<PTableItem> sort(@NotNull List<PTableItem> groupedProperties, @NotNull final NlComponent component) {
-    final String tagName = component.getTagName();
-    final Set<String> modifiedAttributeNames = getModifiedAttributes(component);
+  public List<PTableItem> sort(@NotNull List<PTableItem> groupedProperties, @NotNull List<NlComponent> components) {
+    final String tagName = NlPropertiesGrouper.getCommonTagName(components);
+    final Set<String> modifiedAttributeNames = getModifiedAttributes(components);
 
-    Collections.sort(groupedProperties, new Comparator<PTableItem>() {
-      @Override
-      public int compare(PTableItem p1, PTableItem p2) {
-        SortOrder s1 = SortOrder.of(p1.getName(), tagName.equalsIgnoreCase(p1.getName()), modifiedAttributeNames.contains(p1.getName()));
-        SortOrder s2 = SortOrder.of(p2.getName(), tagName.equalsIgnoreCase(p2.getName()), modifiedAttributeNames.contains(p2.getName()));
-        return s1.ordinal() - s2.ordinal();
-      }
+    Collections.sort(groupedProperties, (p1, p2) -> {
+      SortOrder s1 = SortOrder.of(p1.getName(), p1.getName().equalsIgnoreCase(tagName), modifiedAttributeNames.contains(p1.getName()));
+      SortOrder s2 = SortOrder.of(p2.getName(), p2.getName().equalsIgnoreCase(tagName), modifiedAttributeNames.contains(p2.getName()));
+      return s1.ordinal() - s2.ordinal();
     });
     return groupedProperties;
   }
 
   @NotNull
-  public static Set<String> getModifiedAttributes(@NotNull NlComponent component) {
-    List<AttributeSnapshot> attrs = component.getAttributes();
+  public static Set<String> getModifiedAttributes(@NotNull List<NlComponent> components) {
+    List<AttributeSnapshot> attrs = components.get(0).getAttributes();
     Set<String> modifiedAttrs = Sets.newHashSetWithExpectedSize(attrs.size());
-    for (AttributeSnapshot snapshot : attrs) {
-      modifiedAttrs.add(snapshot.name);
+    for (NlComponent component : components) {
+      attrs = component.getAttributes();
+      for (AttributeSnapshot snapshot : attrs) {
+        modifiedAttrs.add(snapshot.name);
+      }
     }
     return modifiedAttrs;
   }

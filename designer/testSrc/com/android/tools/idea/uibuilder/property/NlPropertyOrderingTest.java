@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.property;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Table;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -36,9 +37,9 @@ public class NlPropertyOrderingTest extends LayoutTestCase {
                     "  <TextView />" +
                     "</RelativeLayout>";
     NlComponent component = getFirstComponent(source);
-    Table<String, String, NlPropertyItem> properties = NlProperties.getInstance().getProperties(component);
+    Table<String, String, NlPropertyItem> properties = NlProperties.getInstance().getProperties(ImmutableList.of(component));
     List<NlPropertyItem> propertyList = new ArrayList<>(properties.values());
-    List<PTableItem> items = new NlPropertiesGrouper().group(propertyList, component);
+    List<PTableItem> items = new NlPropertiesGrouper().group(propertyList, ImmutableList.of(component));
 
     // assert that all padding related attributes are grouped together
     PTableItem padding = findItemByName(items, "Padding");
@@ -64,10 +65,10 @@ public class NlPropertyOrderingTest extends LayoutTestCase {
                     "</RelativeLayout>";
 
     NlComponent component = getFirstComponent(source);
-    Table<String, String, NlPropertyItem> properties = NlProperties.getInstance().getProperties(component);
+    Table<String, String, NlPropertyItem> properties = NlProperties.getInstance().getProperties(ImmutableList.of(component));
     List<NlPropertyItem> propertyList = new ArrayList<>(properties.values());
-    List<PTableItem> items = new NlPropertiesGrouper().group(propertyList, component);
-    items = new NlPropertiesSorter().sort(items, component);
+    List<PTableItem> items = new NlPropertiesGrouper().group(propertyList, ImmutableList.of(component));
+    items = new NlPropertiesSorter().sort(items, ImmutableList.of(component));
 
     assertEquals("id attribute is not the first item", "id", items.get(0).getName());
     assertEquals("Layout_width attribute is not the second item", "layout_width", items.get(1).getName());

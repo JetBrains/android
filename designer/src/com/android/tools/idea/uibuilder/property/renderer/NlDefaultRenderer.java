@@ -108,7 +108,7 @@ public class NlDefaultRenderer extends NlAttributeRenderer {
       return getColorIcon(text);
     }
 
-    Configuration configuration = property.getComponent().getModel().getConfiguration();
+    Configuration configuration = property.getModel().getConfiguration();
     //noinspection ConstantConditions
     if (configuration == null) { // happens in unit test
       return null;
@@ -142,7 +142,7 @@ public class NlDefaultRenderer extends NlAttributeRenderer {
       return null;
     }
 
-    File file = AndroidColorAnnotator.pickBestBitmap(ResourceHelper.resolveDrawable(resolver, drawable, property.getComponent().getModel().getProject()));
+    File file = AndroidColorAnnotator.pickBestBitmap(ResourceHelper.resolveDrawable(resolver, drawable, property.getModel().getProject()));
     return file == null ? null : GutterIconCache.getInstance().getIcon(file.getPath());
   }
 

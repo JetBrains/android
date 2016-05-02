@@ -36,6 +36,8 @@ import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class NlProperties {
@@ -50,25 +52,22 @@ public class NlProperties {
   }
 
   @NotNull
-  public Table<String, String, NlPropertyItem> getProperties(@NotNull final NlComponent component) {
+  public Table<String, String, NlPropertyItem> getProperties(@NotNull final List<NlComponent> components) {
     return ApplicationManager.getApplication().runReadAction(
-      (Computable<Table<String, String, NlPropertyItem>>)() -> getPropertiesWithReadLock(component));
+      (Computable<Table<String, String, NlPropertyItem>>)() -> getPropertiesWithReadLock(components));
   }
 
   @NotNull
-  private Table<String, String, NlPropertyItem> getPropertiesWithReadLock(@NotNull NlComponent component) {
-    XmlTag tag = component.getTag();
-    if (!tag.isValid()) {
+  private Table<String, String, NlPropertyItem> getPropertiesWithReadLock(@NotNull List<NlComponent> components) {
+    assert !components.isEmpty();
+    NlComponent first = components.get(0);
+    XmlTag firstTag = first.getTag();
+    if (!firstTag.isValid()) {
       return ImmutableTable.of();
     }
 
-    AndroidFacet facet = AndroidFacet.getInstance(tag);
+    AndroidFacet facet = AndroidFacet.getInstance(firstTag);
     if (facet == null) {
-      return ImmutableTable.of();
-    }
-
-    XmlElementDescriptor elementDescriptor = myDescriptorProvider.getDescriptor(tag);
-    if (elementDescriptor == null) {
       return ImmutableTable.of();
     }
 
@@ -82,18 +81,35 @@ public class NlProperties {
     AttributeDefinitions localAttrDefs = localResourceManager.getAttributeDefinitions();
     AttributeDefinitions systemAttrDefs = systemResourceManager.getAttributeDefinitions();
 
-    XmlAttributeDescriptor[] descriptors = elementDescriptor.getAttributesDescriptors(tag);
-    Table<String, String, NlPropertyItem>  properties = HashBasedTable.create(3, descriptors.length);
+    Table<String, String, NlPropertyItem> combinedProperties = null;
 
-    for (XmlAttributeDescriptor desc : descriptors) {
-      String namespace = getNamespace(desc, tag);
-      AttributeDefinitions attrDefs = SdkConstants.NS_RESOURCES.equals(namespace) ? systemAttrDefs : localAttrDefs;
-      AttributeDefinition attrDef = attrDefs == null ? null : attrDefs.getAttrDefByName(desc.getName());
-      NlPropertyItem property = NlPropertyItem.create(component, desc, attrDef);
-      properties.put(StringUtil.notNullize(namespace), property.getName(), property);
+    for (NlComponent component : components) {
+      XmlTag tag = component.getTag();
+      if (!tag.isValid()) {
+        return ImmutableTable.of();
+      }
+
+      XmlElementDescriptor elementDescriptor = myDescriptorProvider.getDescriptor(tag);
+      if (elementDescriptor == null) {
+        return ImmutableTable.of();
+      }
+
+      XmlAttributeDescriptor[] descriptors = elementDescriptor.getAttributesDescriptors(tag);
+      Table<String, String, NlPropertyItem> properties = HashBasedTable.create(3, descriptors.length);
+
+      for (XmlAttributeDescriptor desc : descriptors) {
+        String namespace = getNamespace(desc, tag);
+        AttributeDefinitions attrDefs = SdkConstants.NS_RESOURCES.equals(namespace) ? systemAttrDefs : localAttrDefs;
+        AttributeDefinition attrDef = attrDefs == null ? null : attrDefs.getAttrDefByName(desc.getName());
+        NlPropertyItem property = NlPropertyItem.create(components, desc, attrDef);
+        properties.put(StringUtil.notNullize(namespace), property.getName(), property);
+      }
+
+      combinedProperties = combine(properties, combinedProperties);
     }
 
-    return properties;
+    //noinspection ConstantConditions
+    return combinedProperties;
   }
 
   @Nullable
@@ -103,5 +119,29 @@ public class NlProperties {
     } else {
       return null;
     }
+  }
+
+  private static Table<String, String, NlPropertyItem> combine(@NotNull Table<String, String, NlPropertyItem> properties,
+                                                               @Nullable Table<String, String, NlPropertyItem> combinedProperties) {
+    if (combinedProperties == null) {
+      return properties;
+    }
+    List<String> namespaces = new ArrayList<>(combinedProperties.rowKeySet());
+    List<String> propertiesToRemove = new ArrayList<>();
+    for (String namespace : namespaces) {
+      propertiesToRemove.clear();
+      for (Map.Entry<String, NlPropertyItem> entry : combinedProperties.row(namespace).entrySet()) {
+        NlPropertyItem other = properties.get(namespace, entry.getKey());
+        if (!entry.getValue().sameDefinition(other)) {
+          propertiesToRemove.add(entry.getKey());
+        }
+      }
+      for (String propertyName : propertiesToRemove) {
+        combinedProperties.remove(namespace, propertyName);
+      }
+    }
+    // Never include the ID attribute when looking at multiple components:
+    combinedProperties.remove(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ID);
+    return combinedProperties;
   }
 }

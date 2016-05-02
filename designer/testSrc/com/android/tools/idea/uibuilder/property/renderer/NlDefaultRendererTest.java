@@ -20,6 +20,7 @@ import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.property.MockNlComponent;
 import com.android.tools.idea.uibuilder.property.NlProperties;
 import com.android.tools.idea.uibuilder.property.NlPropertyItem;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Table;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -38,7 +39,8 @@ public class NlDefaultRendererTest extends LayoutTestCase {
     XmlTag[] subTags = xmlFile.getRootTag().getSubTags();
     assertEquals(1, subTags.length);
 
-    Table<String, String, NlPropertyItem> properties = NlProperties.getInstance().getProperties(MockNlComponent.create(subTags[0]));
+    Table<String, String, NlPropertyItem> properties =
+      NlProperties.getInstance().getProperties(ImmutableList.of(MockNlComponent.create(subTags[0])));
 
     NlDefaultRenderer renderer = new NlDefaultRenderer();
 
