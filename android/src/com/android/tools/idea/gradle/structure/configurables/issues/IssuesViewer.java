@@ -53,11 +53,13 @@ public class IssuesViewer {
   private JPanel myIssuesPanel1;
   private JPanel myIssuesPanel2;
   private JPanel myIssuesPanel3;
+  private JPanel myIssuesPanel4;
   private JPanel myMainPanel;
 
   private JEditorPane myIssuesView1;
   private JEditorPane myIssuesView2;
   private JEditorPane myIssuesView3;
+  private JEditorPane myIssuesView4;
 
   public IssuesViewer(@NotNull PsContext context, @NotNull IssuesRenderer renderer) {
     myContext = context;
@@ -70,6 +72,7 @@ public class IssuesViewer {
       myIssuesPanel1.setVisible(false);
       myIssuesPanel2.setVisible(false);
       myIssuesPanel3.setVisible(false);
+      myIssuesPanel4.setVisible(false);
       revalidateAndRepaintPanels();
       return;
     }
@@ -78,6 +81,7 @@ public class IssuesViewer {
       myIssuesPanel1.setVisible(true);
       myIssuesPanel2.setVisible(true);
       myIssuesPanel3.setVisible(true);
+      myIssuesPanel4.setVisible(true);
     }
 
     Map<PsIssue.Severity, List<PsIssue>> issuesBySeverity = Maps.newHashMap();
@@ -95,12 +99,26 @@ public class IssuesViewer {
     Collections.sort(severities, (t1, t2) -> t1.getPriority() - t2.getPriority());
 
     int typeCount = severities.size();
-    assert typeCount < 4; // There are only 3 types of issues
+    assert typeCount < 5; // There are only 4 types of issues
 
     // Start displaying from last to first
     int currentIssueIndex = typeCount - 1;
     PsIssue.Severity severity = severities.get(currentIssueIndex);
     List<PsIssue> group = issuesBySeverity.get(severity);
+    updateTitle(((CollapsiblePanel)myIssuesPanel4), severity, group);
+    myIssuesView4.setText(myRenderer.render(group));
+
+    currentIssueIndex--;
+    if (currentIssueIndex < 0) {
+      myIssuesPanel1.setVisible(false);
+      myIssuesPanel2.setVisible(false);
+      myIssuesPanel3.setVisible(false);
+      revalidateAndRepaintPanels();
+      return;
+    }
+
+    severity = severities.get(currentIssueIndex);
+    group = issuesBySeverity.get(severity);
     updateTitle(((CollapsiblePanel)myIssuesPanel3), severity, group);
     myIssuesView3.setText(myRenderer.render(group));
 
@@ -135,7 +153,7 @@ public class IssuesViewer {
   private void revalidateAndRepaintPanels() {
     revalidateAndRepaint(myIssuesPanel1);
     revalidateAndRepaint(myIssuesPanel2);
-    revalidateAndRepaint(myIssuesPanel3);
+    revalidateAndRepaint(myIssuesPanel4);
     revalidateAndRepaint(myMainPanel);
   }
 
@@ -174,6 +192,12 @@ public class IssuesViewer {
     myIssuesView3.addHyperlinkListener(hyperlinkListener);
     setUpAsHtmlLabel(myIssuesView3, font);
     ((CollapsiblePanel)myIssuesPanel3).setContents(myIssuesView3);
+
+    myIssuesPanel4 = new CollapsiblePanel();
+    myIssuesView4 = new JEditorPane();
+    myIssuesView4.addHyperlinkListener(hyperlinkListener);
+    setUpAsHtmlLabel(myIssuesView4, font);
+    ((CollapsiblePanel)myIssuesPanel4).setContents(myIssuesView4);
   }
 
   private class NavigationHyperlinkListener extends HyperlinkAdapter {
