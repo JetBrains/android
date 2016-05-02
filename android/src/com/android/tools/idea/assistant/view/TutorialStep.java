@@ -31,6 +31,8 @@ import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
 import java.awt.*;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -273,6 +275,14 @@ public class TutorialStep extends JPanel {
       if (scroll == null) {
         return editor;
       }
+      // Disable vertical wheel scrolling if no vertical bars necessary. This removes the default behavior of applying vertical scroll to
+      // horizontal bars when no vertical bars present. Note that this does not appear to impact track-pad side scrolling.
+      if (getActualPreferredHeight() < MAX_HEIGHT) {
+        scroll.setWheelScrollingEnabled(false);
+      }
+      // Add a custom listener to duplicate/bubble scroll events to the parent scroll context. This avoids the code samples capturing
+      // the scroll events when a user is simply trying to move up and down the tutorial.
+      scroll.addMouseWheelListener(new CodeMouseWheelListener(scroll));
 
       // Set margins on the code scroll pane.
       scroll.setViewportBorder(BorderFactory.createEmptyBorder(PAD, PAD, PAD, PAD));
@@ -294,6 +304,76 @@ public class TutorialStep extends JPanel {
       horizontalScrollBar.setValue(horizontalScrollBar.getMinimum());
 
       return editor;
+    }
+
+    /**
+     * Listener to defeat Swing's default behavior of scrollpanes not bubbling scroll events even when scroll to their max in the
+     * given direction. This class causes the behavior to be similar to html scroll blocks.
+     */
+    class CodeMouseWheelListener implements MouseWheelListener {
+
+      private JScrollBar myScrollBar;
+      private int myLastScrollOffset = 0;
+      private JScrollPane myParentScrollPane;
+      private JScrollPane currentScrollPane;
+
+      public CodeMouseWheelListener(JScrollPane scroll) {
+        currentScrollPane = scroll;
+        myScrollBar = currentScrollPane.getVerticalScrollBar();
+      }
+
+      @Override
+      public void mouseWheelMoved(MouseWheelEvent e) {
+        JScrollPane parent = getParentScrollPane();
+        // If we're not in a nested context, remove on first event capture. Note that parent is null in ctor so this safety check must
+        // occur at a later time (ie, now).
+        if (parent == null) {
+          currentScrollPane.removeMouseWheelListener(this);
+          return;
+        }
+
+        /*
+         * Only dispatch if we have reached top/bottom on previous scroll.
+         */
+        int terminalValue = e.getWheelRotation() < 0 ? 0 : getMax();
+        if (myScrollBar.getValue() == terminalValue && myLastScrollOffset == terminalValue) {
+          // Clone the event since this pane already consumes it.
+          parent.dispatchEvent(cloneEvent(e));
+        }
+        myLastScrollOffset = myScrollBar.getValue();
+      }
+
+      private JScrollPane getParentScrollPane() {
+        if (myParentScrollPane == null) {
+          Component parent = getParent();
+          while (!(parent instanceof JScrollPane) && parent != null) {
+            parent = parent.getParent();
+          }
+          myParentScrollPane = (JScrollPane)parent;
+        }
+        return myParentScrollPane;
+      }
+
+      private int getMax() {
+        return myScrollBar.getMaximum() - myScrollBar.getVisibleAmount();
+      }
+
+      /**
+       * Clones the mousewheel event so that it's not treated as consumed when dispatched to the parent.
+       */
+      private MouseWheelEvent cloneEvent(MouseWheelEvent e) {
+        return new MouseWheelEvent(getParentScrollPane(),
+                                   e.getID(),
+                                   e.getWhen(),
+                                   e.getModifiers(),
+                                   e.getX(),
+                                   e.getY(),
+                                   e.getClickCount(),
+                                   e.isPopupTrigger(),
+                                   e.getScrollType(),
+                                   e.getScrollAmount(),
+                                   e.getWheelRotation());
+      }
     }
   }
 }
