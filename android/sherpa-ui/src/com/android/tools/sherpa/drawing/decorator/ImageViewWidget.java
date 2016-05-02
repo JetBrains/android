@@ -124,8 +124,8 @@ public class ImageViewWidget extends WidgetDecorator {
      * to wrap_content, using the default font
      */
     protected void wrapContent() {
-        mWidget.setMinWidth(100);
-        mWidget.setMinHeight(100);
+        mWidget.setMinWidth(32);
+        mWidget.setMinHeight(32);
         int tw = mWidget.getMinWidth();
         int th = mWidget.getMinHeight();
 
