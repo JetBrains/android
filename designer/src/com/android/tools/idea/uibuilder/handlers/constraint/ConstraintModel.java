@@ -45,6 +45,7 @@ public class ConstraintModel implements ModelListener {
   private Selection mySelection = new Selection(null);
   private boolean mAutoConnect = true;
   private float myDpiFactor;
+  private int mNeedsAnimateConstraints = -1;
 
   public void setAutoConnect(boolean autoConnect) {
     if (autoConnect != mAutoConnect) {
@@ -387,5 +388,13 @@ public class ConstraintModel implements ModelListener {
     if (widget != null && !widget.isRoot()) {
       mySelection.add(widget);
     }
+  }
+
+  public void setNeedsAnimateConstraints(int type) {
+    mNeedsAnimateConstraints = type;
+  }
+
+  public int getNeedsAnimateConstraints() {
+    return mNeedsAnimateConstraints;
   }
 }
