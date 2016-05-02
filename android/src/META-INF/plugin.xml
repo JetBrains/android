@@ -311,6 +311,7 @@
     <applicationService serviceImplementation="com.android.tools.idea.fd.InstantRunConfiguration"/>
     <applicationService serviceInterface="com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings"
                         serviceImplementation="com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings"/>
+    <applicationService serviceImplementation="com.android.tools.idea.monitor.profilerclient.ProfilerService" />
 
     <errorHandler        implementation="com.android.tools.idea.diagnostics.error.ErrorReporter"/>
     <statisticsService   implementationClass="com.android.tools.idea.stats.AndroidStatisticsService" key="android-studio" />
