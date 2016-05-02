@@ -82,7 +82,7 @@ public class PsModuleDependency extends PsAndroidDependency {
 
   @Override
   @NotNull
-  public String getValueAsText() {
+  public String toText(@NotNull TextType type) {
     return myName;
   }
 

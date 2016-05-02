@@ -13,25 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.navigation;
+package com.android.tools.idea.gradle.structure.model;
 
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class PsNavigationPath implements Comparable<PsNavigationPath> {
+import static com.android.tools.idea.gradle.structure.model.PsPath.TexType.FOR_COMPARE_TO;
+
+public abstract class PsPath implements Comparable<PsPath> {
   @NonNls public static final String GO_TO_PATH_TYPE = "psdGoTo://";
+  @NonNls public static final String QUICK_FIX_PATH_TYPE = "psdFix://";
 
   @NotNull
-  public static final PsNavigationPath EMPTY_PATH = new PsNavigationPath() {
+  public static final PsPath EMPTY_PATH = new PsPath() {
     @Override
     @NotNull
-    public String getHtml() {
-      return getPlainText();
-    }
-
-    @Override
-    @NotNull
-    public String getPlainText() {
+    public String toText(@NotNull TexType type) {
       return "";
     }
 
@@ -52,13 +49,19 @@ public abstract class PsNavigationPath implements Comparable<PsNavigationPath> {
   };
 
   @Override
-  public int compareTo(PsNavigationPath path) {
-    return getPlainText().compareTo(path.getPlainText());
+  public int compareTo(PsPath path) {
+    return toText(FOR_COMPARE_TO).compareTo(path.toText(FOR_COMPARE_TO));
   }
 
   @NotNull
-  public abstract String getPlainText();
+  public abstract String toText(@NotNull TexType type);
 
-  @NotNull
-  public abstract String getHtml();
+  @Override
+  public String toString() {
+    return toText(FOR_COMPARE_TO);
+  }
+
+  public enum TexType {
+    PLAIN_TEXT, HTML, FOR_COMPARE_TO
+  }
 }

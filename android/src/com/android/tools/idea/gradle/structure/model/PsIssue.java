@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.structure.model;
 
-import com.android.tools.idea.gradle.structure.navigation.PsNavigationPath;
 import com.google.common.base.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,14 +28,15 @@ import static com.intellij.ui.JBColor.*;
 
 public class PsIssue {
   @NotNull private final String myText;
-  @NotNull private final PsNavigationPath myPath;
+  @NotNull private final PsPath myPath;
   @NotNull private final PsIssueType myType;
   @NotNull private final Severity mySeverity;
 
   @Nullable private final String myDescription;
-  @Nullable private PsNavigationPath myExtraPath;
+  @Nullable private PsPath myExtraPath;
+  @Nullable private PsPath myQuickFixPath;
 
-  public PsIssue(@NotNull String text, @NotNull PsNavigationPath path, @NotNull PsIssueType type, @NotNull Severity severity) {
+  public PsIssue(@NotNull String text, @NotNull PsPath path, @NotNull PsIssueType type, @NotNull Severity severity) {
     myText = text;
     myPath = path;
     myType = type;
@@ -46,7 +46,7 @@ public class PsIssue {
 
   public PsIssue(@NotNull String text,
                  @NotNull String description,
-                 @NotNull PsNavigationPath path,
+                 @NotNull PsPath path,
                  @NotNull PsIssueType type,
                  @NotNull Severity severity) {
     myText = text;
@@ -72,17 +72,26 @@ public class PsIssue {
   }
 
   @NotNull
-  public PsNavigationPath getPath() {
+  public PsPath getPath() {
     return myPath;
   }
 
   @Nullable
-  public PsNavigationPath getExtraPath() {
+  public PsPath getExtraPath() {
     return myExtraPath;
   }
 
-  public void setExtraPath(@Nullable PsNavigationPath extraPath) {
+  public void setExtraPath(@Nullable PsPath extraPath) {
     myExtraPath = extraPath;
+  }
+
+  @Nullable
+  public PsPath getQuickFixPath() {
+    return myQuickFixPath;
+  }
+
+  public void setQuickFixPath(@Nullable PsPath quickFixPath) {
+    myQuickFixPath = quickFixPath;
   }
 
   @Override

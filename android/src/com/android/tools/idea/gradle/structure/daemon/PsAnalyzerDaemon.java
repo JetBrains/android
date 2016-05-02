@@ -22,8 +22,8 @@ import com.android.tools.idea.gradle.structure.daemon.analysis.PsAndroidModuleAn
 import com.android.tools.idea.gradle.structure.daemon.analysis.PsModelAnalyzer;
 import com.android.tools.idea.gradle.structure.model.*;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
-import com.android.tools.idea.gradle.structure.navigation.PsLibraryDependencyPath;
-import com.android.tools.idea.gradle.structure.navigation.PsModulePath;
+import com.android.tools.idea.gradle.structure.navigation.PsLibraryDependencyNavigationPath;
+import com.android.tools.idea.gradle.structure.model.PsModulePath;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ReadAction;
@@ -69,6 +69,12 @@ public class PsAnalyzerDaemon extends PsDaemon {
     createModelAnalyzers();
   }
 
+
+  public void recreateUpdateIssues() {
+    removeIssues(LIBRARY_UPDATES_AVAILABLE);
+    addApplicableUpdatesAsIssues();
+  }
+
   private void addApplicableUpdatesAsIssues() {
     PsContext context = getContext();
     AvailableLibraryUpdates results = context.getLibraryUpdateCheckerDaemon().getAvailableUpdates();
@@ -85,9 +91,9 @@ public class PsAnalyzerDaemon extends PsDaemon {
             if (spec != null) {
               AvailableLibraryUpdate update = results.findUpdateFor(spec);
               if (update != null) {
-                String text = String.format("Newer version available: %1$s (%2$s)", update.version, update.repository);
+                String text = String.format("Newer version available: <b>%1$s</b> (%2$s)", update.version, update.repository);
 
-                PsLibraryDependencyPath mainPath = new PsLibraryDependencyPath(context, libraryDependency);
+                PsLibraryDependencyNavigationPath mainPath = new PsLibraryDependencyNavigationPath(context, libraryDependency);
                 PsIssue issue = new PsIssue(text, mainPath, LIBRARY_UPDATES_AVAILABLE, UPDATE);
                 issue.setExtraPath(new PsModulePath(module));
 
