@@ -60,6 +60,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.Processor;
 import icons.AndroidIcons;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -81,6 +82,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.*;
+import static com.android.builder.model.AndroidProject.GENERATION_COMPONENT;
+import static com.android.builder.model.AndroidProject.GENERATION_ORIGINAL;
 import static com.android.ide.common.repository.GradleCoordinate.parseCoordinateString;
 import static com.android.tools.idea.gradle.dsl.model.GradleBuildModel.parseBuildFile;
 import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.CLASSPATH;
@@ -1414,5 +1417,28 @@ public final class GradleUtil {
         }
       });
     }
+  }
+
+  public static boolean isUsingExperimentalPlugin(@NotNull Module module) {
+    // First query the model
+    AndroidGradleModel androidGradleModel = AndroidGradleModel.get(module);
+    if (androidGradleModel != null) {
+      try {
+        // only true for experimental plugin 0.6.0-betaX (or whenever the getPluginGeneration() was added) or later.
+        return androidGradleModel.getAndroidProject().getPluginGeneration() == GENERATION_COMPONENT;
+      }
+      catch (UnsupportedMethodException t) {
+        // happens for 2.0.0-alphaX or earlier stable version plugins and 0.6.0-alphax or earlier experimental plugin versions.
+      }
+    }
+
+    // Now look at the applied plugins in the build.gradle file.
+    GradleBuildModel buildModel = GradleBuildModel.get(module);
+    if (buildModel == null) {
+      return false;
+    }
+
+    List<String> appliedPlugins = buildModel.appliedPlugins();
+    return appliedPlugins.contains("com.android.model.application") || appliedPlugins.contains("com.android.model.library");
   }
 }
