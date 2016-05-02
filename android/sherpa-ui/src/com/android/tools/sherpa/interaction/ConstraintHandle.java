@@ -552,15 +552,8 @@ public class ConstraintHandle {
                         targetWidget);
             }
         } else {
-            if (mAnchor.isConnected() && mAnchor.getTarget().getOwner() == getOwner().getParent()) {
-                // If the connection points to our parent, draw the connection in the same manner
-                // as a centered connection (straight lines)
-                addPathCenteredConnection(transform, g, isSelected, drawing, colorSet, targetHandle,
-                        targetWidget);
-            } else {
-                addPathConnection(transform, g, isSelected, true, drawing, colorSet,
-                        targetHandle.getDrawX(), targetHandle.getDrawY());
-            }
+            addPathConnection(transform, g, isSelected, true, drawing, colorSet,
+                    targetHandle.getDrawX(), targetHandle.getDrawY());
         }
 
         boolean drawShadow = progress == 1 && isSelected
@@ -681,6 +674,18 @@ public class ConstraintHandle {
         int maxDistance = Math.min(24 + (int) (0.1f * distance), 64);
         maxDistance = distance > maxDistance ? maxDistance : distance;
         int controlDistance = transform.getSwingDimension(maxDistance);
+
+        // If the connection points to our parent, draw the connection in a straight line
+        boolean beStraight = mAnchor.isConnected()
+                && mAnchor.getTarget().getOwner() == getOwner().getParent();
+        if (beStraight) {
+            if (isVertical) {
+                x1 = x0;
+            } else {
+                y1 = y0;
+            }
+        }
+
         if (isVertical) {
             boolean isBaseline = mAnchor.getType() == ConstraintAnchor.Type.BASELINE;
             boolean isTopConnection = mAnchor.getType() == ConstraintAnchor.Type.TOP;
