@@ -48,6 +48,12 @@ public class ProductFlavorStub implements ProductFlavor {
 
   @Override
   @Nullable
+  public String getVersionNameSuffix() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  @Nullable
   public String getDimension() {
     throw new UnsupportedOperationException();
   }
