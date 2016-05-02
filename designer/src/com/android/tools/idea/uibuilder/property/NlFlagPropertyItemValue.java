@@ -18,15 +18,18 @@ package com.android.tools.idea.uibuilder.property;
 import com.android.SdkConstants;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.property.editors.NlPropertyEditors;
 import com.android.tools.idea.uibuilder.property.ptable.PTableCellEditor;
 import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
 import com.android.tools.idea.uibuilder.property.renderer.NlPropertyRenderers;
+import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.table.TableCellRenderer;
+import java.util.List;
 
 public class NlFlagPropertyItemValue extends PTableItem implements NlProperty {
   private final String myName;
@@ -100,13 +103,25 @@ public class NlFlagPropertyItemValue extends PTableItem implements NlProperty {
 
   @NotNull
   @Override
-  public NlComponent getComponent() {
-    return myFlags.getComponent();
+  public List<NlComponent> getComponents() {
+    return myFlags.getComponents();
   }
 
   @Override
   public ResourceResolver getResolver() {
     return myFlags.getResolver();
+  }
+
+  @NotNull
+  @Override
+  public NlModel getModel() {
+    return myFlags.getModel();
+  }
+
+  @Nullable
+  @Override
+  public XmlTag getTag() {
+    return myFlags.getTag();
   }
 
   @NotNull

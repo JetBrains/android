@@ -32,12 +32,13 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Model {
   private static final String CARD_ADVANCED = "table";
@@ -49,7 +50,7 @@ public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Mo
 
   private JBLabel mySelectedComponentLabel;
   private JPanel myCardPanel;
-  private NlComponent myComponent;
+  private List<NlComponent> myComponents;
   private List<NlPropertyItem> myProperties;
   private boolean myShowAdvancedProperties;
 
@@ -76,6 +77,8 @@ public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Mo
                                                                      ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                                                                      ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER));
     myCardPanel.add(CARD_ADVANCED, ScrollPaneFactory.createScrollPane(myTable));
+    myComponents = Collections.emptyList();
+    myProperties = Collections.emptyList();
   }
 
   @NotNull
@@ -93,21 +96,21 @@ public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Mo
     return panel;
   }
 
-  public void setItems(@Nullable NlComponent component,
+  public void setItems(@NotNull List<NlComponent> components,
                        @NotNull Table<String, String, NlPropertyItem> properties,
                        @NotNull NlPropertiesManager propertiesManager) {
-    String componentName = component == null ? "" : component.getTagName();
-    myComponent = component;
+    String componentName = components.isEmpty() ? "" : (components.size() == 1 ? components.get(0).getTagName() : "Multiple");
+    myComponents = components;
     myProperties = extractPropertiesForTable(properties);
     mySelectedComponentLabel.setText(componentName);
 
     List<PTableItem> sortedProperties;
-    if (component == null) {
+    if (components.isEmpty()) {
       sortedProperties = Collections.emptyList();
     }
     else {
-      List<PTableItem> groupedProperties = new NlPropertiesGrouper().group(myProperties, component);
-      sortedProperties = new NlPropertiesSorter().sort(groupedProperties, component);
+      List<PTableItem> groupedProperties = new NlPropertiesGrouper().group(myProperties, components);
+      sortedProperties = new NlPropertiesSorter().sort(groupedProperties, components);
     }
     if (myTable.isEditing()) {
       myTable.removeEditor();
@@ -115,7 +118,7 @@ public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Mo
     myModel.setItems(sortedProperties);
 
     updateDefaultProperties(propertiesManager);
-    myInspectorPanel.setComponent(component, properties, propertiesManager);
+    myInspectorPanel.setComponent(components, properties, propertiesManager);
   }
 
   @NotNull
@@ -141,10 +144,10 @@ public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Mo
   }
 
   private void updateDefaultProperties(@NotNull NlPropertiesManager propertiesManager) {
-    if (myComponent == null || myProperties == null) {
+    if (myComponents.isEmpty() || myProperties.isEmpty()) {
       return;
     }
-    PropertiesMap defaultValues = propertiesManager.getDefaultProperties(myComponent);
+    PropertiesMap defaultValues = propertiesManager.getDefaultProperties(myComponents);
     if (defaultValues.isEmpty()) {
       return;
     }

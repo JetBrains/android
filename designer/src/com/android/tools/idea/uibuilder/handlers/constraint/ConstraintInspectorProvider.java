@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
-import com.android.SdkConstants;
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
@@ -25,23 +22,27 @@ import com.android.tools.idea.uibuilder.property.inspector.InspectorComponent;
 import com.android.tools.idea.uibuilder.property.inspector.InspectorProvider;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 import java.util.Map;
+
+import static com.android.SdkConstants.*;
 
 /**
  * This is the factory for the builder for the Constraint inspector
  */
 public class ConstraintInspectorProvider implements InspectorProvider {
   @Override
-  public boolean isApplicable(@NonNull NlComponent component, @NonNull Map<String, NlProperty> properties) {
-    NlComponent parent = component.getParent();
-    return parent != null && SdkConstants.CONSTRAINT_LAYOUT.equals(parent.getTagName());
+  public boolean isApplicable(@NotNull List<NlComponent> components, @NotNull Map<String, NlProperty> properties) {
+    return !components.isEmpty() &&
+           properties.containsKey(ATTR_LAYOUT_TOP_MARGIN) && properties.containsKey(ATTR_LAYOUT_BOTTOM_MARGIN) &&
+           properties.containsKey(ATTR_LAYOUT_LEFT_MARGIN) && properties.containsKey(ATTR_LAYOUT_RIGHT_MARGIN);
   }
 
-  @NonNull
+  @NotNull
   @Override
-  public InspectorComponent createCustomInspector(@Nullable NlComponent component,
-                                                  @NonNull Map<String, NlProperty> properties,
+  public InspectorComponent createCustomInspector(@NotNull List<NlComponent> components,
+                                                  @NotNull Map<String, NlProperty> properties,
                                                   @NotNull NlPropertiesManager propertiesManager) {
-    return new ConstraintInspectorComponent(component);
+    return new ConstraintInspectorComponent(components);
   }
 }

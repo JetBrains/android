@@ -92,7 +92,7 @@ public class InspectorPanel extends JPanel {
     return new MigLayout(layoutConstraints, columnConstraints);
   }
 
-  public void setComponent(@Nullable NlComponent component,
+  public void setComponent(@NotNull List<NlComponent> components,
                            @NotNull Table<String, String, ? extends NlProperty> properties,
                            @NotNull NlPropertiesManager propertiesManager) {
     mySplitComponents.clear();
@@ -114,7 +114,7 @@ public class InspectorPanel extends JPanel {
       new FontInspectorProvider(),
     };
 
-    List<InspectorComponent> inspectors = createInspectorComponents(component, propertiesManager, propertiesByName, allProviders);
+    List<InspectorComponent> inspectors = createInspectorComponents(components, propertiesManager, propertiesByName, allProviders);
 
     for (InspectorComponent inspector : inspectors) {
       inspector.attachToInspector(this);
@@ -129,22 +129,22 @@ public class InspectorPanel extends JPanel {
   }
 
   @NotNull
-  private static List<InspectorComponent> createInspectorComponents(@Nullable NlComponent component,
+  private static List<InspectorComponent> createInspectorComponents(@NotNull List<NlComponent> components,
                                                                     @NotNull NlPropertiesManager propertiesManager,
                                                                     @NotNull Map<String, NlProperty> properties,
                                                                     @NotNull InspectorProvider[] allProviders) {
     List<InspectorComponent> inspectors = Lists.newArrayListWithExpectedSize(allProviders.length);
 
-    if (component == null) {
+    if (components.isEmpty()) {
       // create just the id inspector, which we know can handle a null component
       // this is simply to avoid the screen flickering when switching components
       return ImmutableList.of(
-        new IdInspectorProvider().createCustomInspector(null, properties, propertiesManager));
+        new IdInspectorProvider().createCustomInspector(Collections.<NlComponent>emptyList(), properties, propertiesManager));
     }
 
     for (InspectorProvider provider : allProviders) {
-      if (provider.isApplicable(component, properties)) {
-        inspectors.add(provider.createCustomInspector(component, properties, propertiesManager));
+      if (provider.isApplicable(components, properties)) {
+        inspectors.add(provider.createCustomInspector(components, properties, propertiesManager));
       }
     }
 

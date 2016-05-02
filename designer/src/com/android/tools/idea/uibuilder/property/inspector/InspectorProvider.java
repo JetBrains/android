@@ -20,13 +20,14 @@ import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 import java.util.Map;
 
 public interface InspectorProvider {
-  boolean isApplicable(@NotNull NlComponent component, @NotNull Map<String, NlProperty> properties);
+  boolean isApplicable(@NotNull List<NlComponent> components, @NotNull Map<String, NlProperty> properties);
 
   @NotNull
-  InspectorComponent createCustomInspector(@NotNull NlComponent component,
+  InspectorComponent createCustomInspector(@NotNull List<NlComponent> components,
                                            @NotNull Map<String, NlProperty> properties,
                                            @NotNull NlPropertiesManager propertiesManager);
 }
