@@ -126,15 +126,14 @@ public abstract class ToolWindowFixture {
       return;
     }
 
-    final Callback callback = new Callback();
     execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
-        myToolWindow.activate(callback);
+        myToolWindow.activate(null);
       }
     });
 
-    Wait.seconds(SECONDS_TO_WAIT).expecting("ToolWindow '" + myToolWindowId + "' to be activated").until(() -> callback.finished);
+    Wait.seconds(SECONDS_TO_WAIT).expecting("ToolWindow '" + myToolWindowId + "' to be activated").until(this::isActive);
   }
 
   protected void waitUntilIsVisible() {
@@ -163,14 +162,5 @@ public abstract class ToolWindowFixture {
         return component.isVisible() && component.isShowing();
       }
     });
-  }
-
-  private static class Callback implements Runnable {
-    volatile boolean finished;
-
-    @Override
-    public void run() {
-      finished = true;
-    }
   }
 }
