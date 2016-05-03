@@ -373,7 +373,9 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
             Module module = (Module)moduleList.getSelectedItem();
             Set<ServiceCategory> categories = Sets.newHashSet();
             for (DeveloperService s : DeveloperServices.getAll(module)) {
-              categories.add(s.getCategory());
+              if (!s.getContext().hiddenFromStructureDialog().get()) {
+                categories.add(s.getCategory());
+              }
             }
             ArrayList<ServiceCategory> categoriesSorted = Lists.newArrayList(categories);
             Collections.sort(categoriesSorted);

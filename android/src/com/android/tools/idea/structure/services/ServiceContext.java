@@ -55,6 +55,7 @@ public final class ServiceContext {
   private final Map<AbstractProperty, Object> myWatched = new WeakHashMap<AbstractProperty, Object>();
   private final BoolValueProperty myInstalled = new BoolValueProperty();
   private final BoolValueProperty myModified = new BoolValueProperty();
+  private final BoolValueProperty myHiddenFromStructureDialog = new BoolValueProperty();
 
   private final InvalidationListener myWatchedListener = new InvalidationListener() {
     @Override
@@ -137,6 +138,15 @@ public final class ServiceContext {
   public ObservableBool modified() {
     return myModified;
   }
+
+  /**
+   * TODO: This is a temporary measure as we update the Project Structure dialog and consider
+   * better integrating the PSD and the Assistant toolbar. Either we need to reconcile the two
+   * features (e.g. PSD delegates responsibility to the Assistant toolbar), or if we find out
+   * there are valid cases for a service to appear in one and not the other, at least we should
+   * architect the code more cleanly than by branching on a boolean property like this.
+   */
+  public BoolValueProperty hiddenFromStructureDialog() { return myHiddenFromStructureDialog; }
 
   /**
    * Take a snapshot of the current state of all watched values and clear the modified flag. You
