@@ -650,7 +650,7 @@ public class ConstraintUtilities {
     }
     else if (layout_width != null && layout_width.equalsIgnoreCase(SdkConstants.VALUE_WRAP_CONTENT)) {
       widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.WRAP_CONTENT);
-      widget.setMinWidth(widget.getWidth());
+      widget.setWrapWidth(widget.getWidth());
     }
     else {
       widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.FIXED);
@@ -661,11 +661,13 @@ public class ConstraintUtilities {
     }
     else if (layout_height != null && layout_height.equalsIgnoreCase(SdkConstants.VALUE_WRAP_CONTENT)) {
       widget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.WRAP_CONTENT);
-      widget.setMinHeight(widget.getHeight());
+      widget.setWrapHeight(widget.getHeight());
     }
     else {
       widget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.FIXED);
     }
+    widget.setMinWidth(widget.getMinWidth());
+    widget.setMinHeight(widget.getMinHeight());
 
     int x = constraintModel.pxToDp(component.x);
     int y = constraintModel.pxToDp(component.y);
