@@ -15,18 +15,22 @@
  */
 package com.android.tools.idea.gradle.structure.configurables;
 
+import com.android.tools.idea.gradle.GradleSyncState;
+import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowHeader;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.options.SearchableConfigurable;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MasterDetailsComponent;
 import com.intellij.openapi.ui.NamedConfigurable;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.ui.TreeSpeedSearch;
+import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.navigation.Place;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -48,14 +52,43 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
   protected boolean myUiDisposed = true;
 
   private ToolWindowHeader myHeader;
+  private JBLoadingPanel myLoadingPanel;
   private JComponent myCenterComponent;
 
   private boolean myTreeInitialized;
   private boolean myTreeMinimized;
 
   protected BasePerspectiveConfigurable(@NotNull PsContext context) {
+    Project project = context.getProject().getResolvedModel();
+
+    // Listening to 'project sync' events from the PSD is not that straightforward.
+    // The PSD is a modal dialog, which makes GradleSyncState#subscribe not work for listening to 'sync finished' events, because they will
+    // be fired *after* the PSD dialog is closed. The reason is that PostProjectSetupTaskExecutor is executed in the EDT, when a project is
+    // initialized.
+    // Because of this, to listen to 'sync finished' events we have to pass a GradleSyncListener as a parameter in the 'Gradle sync'
+    // request. It is currently the only way to get notified when a sync is finished.
+    context.add(new GradleSyncListener.Adapter() {
+      @Override
+      public void syncSucceeded(@NotNull Project project) {
+        stopSyncAnimation();
+      }
+
+      @Override
+      public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
+        stopSyncAnimation();
+      }
+    }, this);
+    GradleSyncState.subscribe(project, new GradleSyncListener.Adapter() {
+      @Override
+      public void syncStarted(@NotNull Project project) {
+        if (myLoadingPanel != null) {
+          myLoadingPanel.startLoading();
+        }
+      }
+    }, this);
+
     myContext = context;
-    myContext.addListener((moduleName, source) -> {
+    myContext.add((moduleName, source) -> {
       if (source != this) {
         selectModule(moduleName);
       }
@@ -63,9 +96,7 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
     myContext.getAnalyzerDaemon().add(model -> {
       if (myTree.isShowing()) {
         // If issues are updated and the tree is showing, trigger a repaint so the proper highlight and tooltip is applied.
-        invokeLaterIfNeeded(() -> {
-          revalidateAndRepaint(myTree);
-        });
+        invokeLaterIfNeeded(() -> revalidateAndRepaint(myTree));
       }
     }, this);
 
@@ -81,6 +112,12 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
         reInitWholePanelIfNeeded();
       }
     }, this);
+  }
+
+  private void stopSyncAnimation() {
+    if (myLoadingPanel != null) {
+      myLoadingPanel.stopLoading();
+    }
   }
 
   protected void selectModule(@NotNull String moduleName) {
@@ -213,6 +250,16 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
     createModuleNodes(extraTopModules);
     ((DefaultTreeModel)myTree.getModel()).reload();
     myUiDisposed = false;
+  }
+
+  @Override
+  @NotNull
+  public JComponent createComponent() {
+    JComponent contents = super.createComponent();
+    myLoadingPanel = new JBLoadingPanel(new BorderLayout(), this);
+    myLoadingPanel.setLoadingText("Syncing Project with Gradle");
+    myLoadingPanel.add(contents, BorderLayout.CENTER);
+    return myLoadingPanel;
   }
 
   @NotNull
