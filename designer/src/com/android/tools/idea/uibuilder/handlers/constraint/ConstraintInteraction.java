@@ -101,47 +101,24 @@ public class ConstraintInteraction extends Interaction {
       return;
     }
 
-    Project project = myScreenView.getModel().getProject();
     final NlModel nlModel = myScreenView.getModel();
     final int ax = Coordinates.getAndroidX(myScreenView, x);
     final int ay = Coordinates.getAndroidY(myScreenView, y);
-
-    XmlFile file = nlModel.getFile();
 
     DrawConstraintModel model = ConstraintModel.getDrawConstraintModel(myScreenView);
     model.updateModifiers(modifiers);
     model.mouseReleased(ax, ay);
 
-    Selection selection = model.getConstraintModel().getSelection();
-    if (!selection.getModifiedWidgets().isEmpty()) {
-      WriteCommandAction action = new WriteCommandAction(project, "Constraint", file) {
-        @Override
-        protected void run(@NotNull Result result) throws Throwable {
-          Selection selection = model.getConstraintModel().getSelection();
-          for (ConstraintWidget widget : selection.getModifiedWidgets()) {
-            ConstraintUtilities.commitElement(widget, nlModel);
-          }
-          selection.clearModifiedWidgets();
-        }
-      };
-      action.execute();
-    }
-    myScreenView.getModel().notifyModified();
-    model.getConstraintModel().setModificationCount(myScreenView.getModel().getModificationCount());
     SelectionModel selectionModel = myScreenView.getSelectionModel();
     selectionModel.clear();
     ArrayList<NlComponent> components = new ArrayList<>();
+    Selection selection = model.getConstraintModel().getSelection();
     for (Selection.Element selectedElement : selection.getElements()) {
       WidgetCompanion companion = (WidgetCompanion)selectedElement.widget.getCompanionWidget();
       NlComponent component = (NlComponent)companion.getWidgetModel();
       components.add(component);
     }
     selectionModel.setSelection(components);
-    /*
-    The model will automatically detect the modification when the XML is modified.
-    TODO: Add this back when we update directly the layout params as opposed to updating the XML.
-    nlModel.notifyModified();
-     */
     myScreenView.getSurface().repaint();
   }
 
