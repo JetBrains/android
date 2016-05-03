@@ -24,7 +24,6 @@ import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.InputValidator;
@@ -80,22 +79,6 @@ public class CreateMultiRootResourceFileAction extends CreateTypedResourceFileAc
           dialog.show();
           return PsiElement.EMPTY_ARRAY;
         }
-      }
-    }
-
-    Module module = LangDataKeys.MODULE.getData(dataContext);
-    if (module != null) {
-      final AndroidFacet facet = AndroidFacet.getInstance(module);
-      assert facet != null;
-      PsiDirectory directory = getResourceDirectory(null, module, true);
-      if (directory != null) {
-        PsiDirectory typeDirectory = directory.findSubdirectory(myResourceType.getName());
-        if (typeDirectory == null) {
-          return PsiElement.EMPTY_ARRAY;
-        }
-        InputValidator validator = createValidator(project, typeDirectory);
-        final MyDialog dialog = new MyDialog(facet, validator);
-        dialog.show();
       }
     }
     return PsiElement.EMPTY_ARRAY;
