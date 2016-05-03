@@ -18,6 +18,9 @@ package com.android.tools.idea.gradle.dsl.parser;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.parser.android.*;
+import com.android.tools.idea.gradle.dsl.parser.android.external.CMakeDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.external.ExternalNativeBuildDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.external.NdkBuildDslElement;
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement;
 import com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement;
 import com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement;
@@ -50,6 +53,9 @@ import java.util.List;
 import static com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement.ANDROID_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.BuildTypesDslElement.BUILD_TYPES_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorsDslElement.PRODUCT_FLAVORS_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.external.CMakeDslElement.CMAKE_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.external.ExternalNativeBuildDslElement.EXTERNAL_NATIVE_BUILD_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.external.NdkBuildDslElement.NDK_BUILD_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement.APPLY_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement.BUILDSCRIPT_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement.SUBPROJECTS_BLOCK_NAME;
@@ -532,6 +538,20 @@ public final class GradleDslParser {
           }
           else if (COMPILE_OPTIONS_BLOCK_NAME.equals(nestedElementName)) {
             newElement = new CompileOptionsDslElement(resultElement);
+          }
+          else if (EXTERNAL_NATIVE_BUILD_BLOCK_NAME.equals(nestedElementName)) {
+            newElement = new ExternalNativeBuildDslElement(resultElement);
+          }
+          else {
+            return null;
+          }
+        }
+        else if (resultElement instanceof ExternalNativeBuildDslElement) {
+          if (CMAKE_BLOCK_NAME.equals(nestedElementName)) {
+            newElement = new CMakeDslElement(resultElement);
+          }
+          else if (NDK_BUILD_BLOCK_NAME.equals(nestedElementName)) {
+            newElement = new NdkBuildDslElement(resultElement);
           }
           else {
             return null;

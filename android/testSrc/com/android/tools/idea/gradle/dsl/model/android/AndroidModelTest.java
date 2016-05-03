@@ -17,8 +17,11 @@ package com.android.tools.idea.gradle.dsl.model.android;
 
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
+import com.android.tools.idea.gradle.dsl.model.android.external.CMakeModel;
+import com.android.tools.idea.gradle.dsl.model.android.external.ExternalNativeBuildModel;
 import com.google.common.collect.ImmutableList;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.Iterator;
 
@@ -199,6 +202,25 @@ public class AndroidModelTest extends GradleFileModelTestCase {
     ProductFlavorModel flavor2 = productFlavorsIterator.next();
     assertEquals("name", "flavor2", flavor2.name());
     assertEquals("applicationId", "com.example.myapplication.flavor2", flavor2.applicationId());
+  }
+
+  public void testAndroidBlockWithExternalNativeBuildBlock() throws Exception {
+    String text = "android {\n" +
+                  "  externalNativeBuild {\n" +
+                  "    cmake {\n" +
+                  "      path file(\"foo/bar\")\n" +
+                  "    }\n" +
+                  "  }\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    AndroidModel android = getGradleBuildModel().android();
+    ExternalNativeBuildModel externalNativeBuild = android.externalNativeBuild();
+    assertTrue(externalNativeBuild.hasValidPsiElement());
+    CMakeModel cmake = externalNativeBuild.cmake();
+    assertTrue(cmake.hasValidPsiElement());
+    assertEquals("path", new File("foo/bar"), cmake.path());
   }
 
   public void testRemoveAndResetElements() throws Exception {

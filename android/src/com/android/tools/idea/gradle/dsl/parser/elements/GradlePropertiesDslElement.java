@@ -165,10 +165,10 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
         resultValue = ((GradleDslExpression)propertyElement).getValue(clazz);
       }
       if (resultValue != null) {
-        return new GradleNullableValue<T>(propertyElement, resultValue);
+        return new GradleNullableValue<>(propertyElement, resultValue);
       }
     }
-    return new GradleNullableValue<T>(this, null);
+    return new GradleNullableValue<>(this, null);
   }
 
   /**
@@ -382,13 +382,13 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
 
   @Override
   protected void reset() {
-    myToBeRemovedProperties.clear();
-    myToBeAddedProperties.clear();
-    for (GradleDslElement element : myProperties.values()) {
+    for (GradleDslElement element : getPropertyElements().values()) {
       if (element.isModified()) {
         element.resetState();
       }
     }
+    myToBeAddedProperties.clear();
+    myToBeRemovedProperties.clear();
   }
 
   protected void clear() {
