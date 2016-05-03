@@ -19,6 +19,8 @@ import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.MergeCookie;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.sdklib.devices.Device;
+import com.android.sdklib.devices.Screen;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.res.ResourceNotificationManager;
@@ -90,7 +92,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   @NotNull private final AndroidFacet myFacet;
   private final XmlFile myFile;
   private RenderResult myRenderResult;
-  private final Configuration myConfiguration;
+  private Configuration myConfiguration;
   private final List<ModelListener> myListeners = Lists.newArrayList();
   private List<NlComponent> myComponents = Lists.newArrayList();
   private final SelectionModel mySelectionModel;
@@ -457,6 +459,38 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   @NotNull
   public Configuration getConfiguration() {
     return myConfiguration;
+  }
+
+  /**
+   * Changes the configuration to use a custom device with screen size defined by xDimension and yDimension.
+   */
+  public void overrideConfigurationScreenSize(int xDimension, int yDimension) {
+    Device.Builder deviceBuilder = new Device.Builder(myConfiguration.getDevice());
+    deviceBuilder.setName("Custom");
+    deviceBuilder.setId("Custom");
+    Device device = deviceBuilder.build();
+    Screen screen = device.getDefaultHardware().getScreen();
+    screen.setXDimension(xDimension);
+    screen.setYDimension(yDimension);
+
+    // If a custom device already exists, remove it before adding the latest one
+    List<Device> devices = myConfiguration.getConfigurationManager().getDevices();
+    for (int i = 0; i < devices.size(); i++) {
+      if ("Custom".equals(devices.get(i).getId())) {
+        devices.remove(i);
+      }
+    }
+    devices.add(device);
+
+    myConfiguration.setDevice(device, true);
+
+    //Change the orientation of the device depending on the shape of the canvas
+    if (xDimension > yDimension) {
+      myConfiguration.setDeviceState(device.getState("Landscape"));
+    }
+    else {
+      myConfiguration.setDeviceState(device.getState("Portrait"));
+    }
   }
 
   @NotNull
@@ -1444,6 +1478,15 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   public void notifyModified() {
     myModificationCount++;
     requestModelUpdate();
+  }
+
+  public void setConfiguration(@NotNull Configuration configuration) {
+    myConfiguration = configuration;
+    ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myFile.getProject());
+    ResourceVersion version = manager.addListener(this, myFacet, myFile, myConfiguration);
+    if (!version.equals(myRenderedVersion)) {
+      requestModelUpdate();
+    }
   }
 
   private class AndroidPreviewProgressIndicator extends ProgressIndicatorBase {
