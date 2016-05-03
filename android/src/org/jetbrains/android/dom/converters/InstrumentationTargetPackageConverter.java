@@ -94,7 +94,7 @@ public class InstrumentationTargetPackageConverter extends Converter<String> imp
     @NotNull
     @Override
     public Object[] getVariants() {
-      final Set<String> result = new HashSet<String>();
+      final Set<String> result = new HashSet<>();
 
       processApkPackageAttrs(new Processor<GenericAttributeValue<String>>() {
         @Override

@@ -314,9 +314,9 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
           }
         }, false);
       if (cachedDocsMap == null) {
-        cachedDocsMap = new HashMap<XmlName, CachedValue<String>>();
+        cachedDocsMap = new HashMap<>();
         originalElement.putUserData(ANDROID_ATTRIBUTE_DOCUMENTATION_CACHE_KEY,
-                                    new SoftReference<Map<XmlName, CachedValue<String>>>(cachedDocsMap));
+                                    new SoftReference<>(cachedDocsMap));
       }
       cachedDocsMap.put(xmlName, cachedValue);
       return cachedValue.getValue();
@@ -400,7 +400,7 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
 
     if (formats.size() > 0) {
       builder.append("Formats: ");
-      final List<String> formatLabels = new ArrayList<String>(formats.size());
+      final List<String> formatLabels = new ArrayList<>(formats.size());
 
       for (AttributeFormat format : formats) {
         formatLabels.add(format.name().toLowerCase(Locale.US));

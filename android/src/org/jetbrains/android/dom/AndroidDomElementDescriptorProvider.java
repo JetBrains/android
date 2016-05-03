@@ -47,7 +47,7 @@ import javax.swing.*;
 import java.util.Map;
 
 public class AndroidDomElementDescriptorProvider implements XmlElementDescriptorProvider {
-  private static final Map<String, Ref<Icon>> ourViewTagName2Icon = new SoftHashMap<String, Ref<Icon>>();
+  private static final Map<String, Ref<Icon>> ourViewTagName2Icon = new SoftHashMap<>();
 
   @Nullable
   private static XmlElementDescriptor getDescriptor(DomElement domElement, XmlTag tag, @Nullable String baseClassName) {
@@ -141,7 +141,7 @@ public class AndroidDomElementDescriptorProvider implements XmlElementDescriptor
 
   @NotNull
   private static Map<String, Icon> getInitialViewTagName2IconMap() {
-    final HashMap<String, Icon> map = new HashMap<String, Icon>();
+    final HashMap<String, Icon> map = new HashMap<>();
     map.put("fragment", AndroidIcons.Views.Fragment);
     map.put("include", AndroidIcons.Views.Include);
     map.put("view", AndroidIcons.Views.View);

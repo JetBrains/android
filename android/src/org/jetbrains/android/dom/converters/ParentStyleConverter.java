@@ -89,7 +89,7 @@ public class ParentStyleConverter extends ResourceReferenceConverter {
     if (ids.length < 2) {
       return PsiReference.EMPTY_ARRAY;
     }
-    final List<PsiReference> result = new ArrayList<PsiReference>(ids.length - 1);
+    final List<PsiReference> result = new ArrayList<>(ids.length - 1);
     int offset = s.length();
 
     for (int i = ids.length - 1; i >= 0; i--) {

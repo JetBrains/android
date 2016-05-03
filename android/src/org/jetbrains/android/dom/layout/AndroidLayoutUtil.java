@@ -21,7 +21,7 @@ public class AndroidLayoutUtil {
 
   @NotNull
   public static List<String> getPossibleRoots(@NotNull AndroidFacet facet) {
-    final List<String> result = new ArrayList<String>();
+    final List<String> result = new ArrayList<>();
     result.add(VIEW_TAG);
     result.add(VIEW_MERGE);
     result.add(VIEW_FRAGMENT);

@@ -18,7 +18,6 @@ package org.jetbrains.android.dom.manifest;
 import com.android.xml.AndroidManifest;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.xml.DomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -62,10 +61,6 @@ public class ManifestDomFileDescription extends DomFileDescription<Manifest> {
   public static boolean isManifestFile(@NotNull XmlFile file, @NotNull AndroidFacet facet) {
     return file.getName().equals(FN_ANDROID_MANIFEST_XML) ||
            facet.requiresAndroidModel() && IdeaSourceProvider.isManifestFile(facet, file.getVirtualFile());
-  }
-
-  public static boolean isManifestFile(@NotNull VirtualFile file, @NotNull AndroidFacet facet) {
-    return file.getName().equals(FN_ANDROID_MANIFEST_XML) || facet.requiresAndroidModel() && IdeaSourceProvider.isManifestFile(facet, file);
   }
 
   @Override
