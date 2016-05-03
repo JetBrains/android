@@ -20,7 +20,6 @@ import com.android.tools.idea.uibuilder.surface.Interaction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.sherpa.structure.Selection;
 import com.android.tools.sherpa.structure.WidgetCompanion;
-import com.google.tnt.solver.widgets.ConstraintAnchor;
 import com.google.tnt.solver.widgets.ConstraintWidget;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -64,7 +63,6 @@ public class ConstraintInteraction extends Interaction {
     int androidX = Coordinates.getAndroidX(myScreenView, myStartX);
     int androidY = Coordinates.getAndroidY(myScreenView, myStartY);
 
-    final NlModel nlModel = myScreenView.getModel();
     DrawConstraintModel model = ConstraintModel.getDrawConstraintModel(myScreenView);
 
     model.updateModifiers(startMask);
@@ -107,12 +105,11 @@ public class ConstraintInteraction extends Interaction {
     final NlModel nlModel = myScreenView.getModel();
     final int ax = Coordinates.getAndroidX(myScreenView, x);
     final int ay = Coordinates.getAndroidY(myScreenView, y);
-    final int theModifiers = modifiers;
 
     XmlFile file = nlModel.getFile();
 
     DrawConstraintModel model = ConstraintModel.getDrawConstraintModel(myScreenView);
-    model.updateModifiers(theModifiers);
+    model.updateModifiers(modifiers);
     model.mouseReleased(ax, ay);
 
     Selection selection = model.getConstraintModel().getSelection();

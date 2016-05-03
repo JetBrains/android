@@ -41,13 +41,12 @@ import java.util.ArrayList;
  * Uses a SceneDraw to render an iconic form of the widget
  */
 public class SingleWidgetView extends JPanel {
-  Color mBackgroundColor = new Color(47, 75, 126);
   static Color mLinesColor = new Color(100, 152, 199);
   static Color sStrokeColor = mLinesColor;
   WidgetConstraintPanel mWidgetConstraintPanel;
   ColorSet mColorSet = new InspectorColorSet();
 
-  class InspectorColorSet extends BlueprintColorSet {
+  static class InspectorColorSet extends BlueprintColorSet {
     public InspectorColorSet() {
       mDrawBackground = false;
       mDrawWidgetInfos = true;
@@ -59,11 +58,11 @@ public class SingleWidgetView extends JPanel {
   int mBoxSize;
 
   WidgetRender mWidgetRender = new WidgetRender();
-  ArrayList<Graphic> mGraphicList = new ArrayList<Graphic>();
-  MarginWidget mTopMargin = new MarginWidget(JLabel.LEFT);
-  MarginWidget mLeftMargin = new MarginWidget(JLabel.CENTER);
-  MarginWidget mRightMargin = new MarginWidget(JLabel.CENTER);
-  MarginWidget mBottomMargin = new MarginWidget(JLabel.LEFT);
+  ArrayList<Graphic> mGraphicList = new ArrayList<>();
+  MarginWidget mTopMargin = new MarginWidget(SwingConstants.LEFT);
+  MarginWidget mLeftMargin = new MarginWidget(SwingConstants.CENTER);
+  MarginWidget mRightMargin = new MarginWidget(SwingConstants.CENTER);
+  MarginWidget mBottomMargin = new MarginWidget(SwingConstants.LEFT);
 
   public SingleWidgetView(WidgetConstraintPanel constraintPanel) {
     super(null);
@@ -79,36 +78,15 @@ public class SingleWidgetView extends JPanel {
     add(mLeftMargin);
     add(mRightMargin);
     add(mBottomMargin);
-    mTopMargin.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        mWidgetConstraintPanel.setTopMargin(mTopMargin.getMargin());
-      }
-    });
-    mLeftMargin.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        mWidgetConstraintPanel.setLeftMargin(mLeftMargin.getMargin());
-      }
-    });
-    mRightMargin.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        mWidgetConstraintPanel.setRightMargin(mRightMargin.getMargin());
-      }
-    });
-    mBottomMargin.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        mWidgetConstraintPanel.setBottomMargin(mBottomMargin.getMargin());
-      }
-    });
+    mTopMargin.addActionListener(e -> mWidgetConstraintPanel.setTopMargin(mTopMargin.getMargin()));
+    mLeftMargin.addActionListener(e -> mWidgetConstraintPanel.setLeftMargin(mLeftMargin.getMargin()));
+    mRightMargin.addActionListener(e -> mWidgetConstraintPanel.setRightMargin(mRightMargin.getMargin()));
+    mBottomMargin.addActionListener(e -> mWidgetConstraintPanel.setBottomMargin(mBottomMargin.getMargin()));
 
     setBackground(null);
     addMouseMotionListener(new MouseMotionAdapter() {
       @Override
       public void mouseMoved(MouseEvent e) {
-        System.out.println("move");
         mTopMargin.showUI(mTopMargin.getBounds().contains(e.getPoint()));
         mLeftMargin.showUI(mLeftMargin.getBounds().contains(e.getPoint()));
         mRightMargin.showUI(mRightMargin.getBounds().contains(e.getPoint()));
@@ -327,8 +305,7 @@ public class SingleWidgetView extends JPanel {
       g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 
       int rootMargin = 0;
-      boolean redraw = false;
-      redraw |= mSceneDraw.drawBackground(mViewTransform, g,
+      boolean redraw = mSceneDraw.drawBackground(mViewTransform, g,
                                           rootMargin, getWidth(), getHeight());
 
       redraw |= mSceneDraw.paintWidgets(getWidth(), getHeight(),

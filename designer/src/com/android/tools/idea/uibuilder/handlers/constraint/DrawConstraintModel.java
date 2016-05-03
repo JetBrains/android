@@ -17,8 +17,10 @@ package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.android.tools.sherpa.drawing.*;
-import com.android.tools.sherpa.drawing.decorator.ColorTheme;
+import com.android.tools.sherpa.drawing.AndroidColorSet;
+import com.android.tools.sherpa.drawing.BlueprintColorSet;
+import com.android.tools.sherpa.drawing.SceneDraw;
+import com.android.tools.sherpa.drawing.ViewTransform;
 import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
 import com.android.tools.sherpa.interaction.MouseInteraction;
 import com.android.tools.sherpa.interaction.WidgetMotion;
@@ -34,24 +36,19 @@ import java.awt.event.InputEvent;
  * Utility class holding the necessary objects to draw a ConstraintModel
  */
 class DrawConstraintModel {
-  private ConstraintModel myConstraintModel;
+  private final ConstraintModel myConstraintModel;
 
-  private final WidgetsScene myWidgetsScene;
-  private final Selection mySelection;
+  private final ViewTransform myViewTransform = new ViewTransform();
 
-  private ViewTransform myViewTransform = new ViewTransform();
-  private WidgetMotion myWidgetMotion;
-  private WidgetResize myWidgetResize = new WidgetResize();
+  private final SceneDraw mySceneDraw;
+  private final MouseInteraction myMouseInteraction;
 
-  private SceneDraw mySceneDraw;
-  private MouseInteraction myMouseInteraction;
   private boolean mShowFakeUI = true;
-  private RepaintSurface myRepaintSurface = new RepaintSurface();
 
   /**
    * Simple helper class to avoid reallocation
    */
-  class RepaintSurface implements SceneDraw.Repaintable {
+  private static class RepaintSurface implements SceneDraw.Repaintable {
     ScreenView myScreenView;
 
     @Override
@@ -69,18 +66,20 @@ class DrawConstraintModel {
    */
   public DrawConstraintModel(ScreenView screenView, ConstraintModel constraintModel) {
     myConstraintModel = constraintModel;
-    myWidgetsScene = constraintModel.getScene();
-    mySelection = constraintModel.getSelection();
-    myRepaintSurface.myScreenView = screenView;
+    WidgetsScene widgetsScene = constraintModel.getScene();
+    Selection selection = constraintModel.getSelection();
+    RepaintSurface repaintSurface = new RepaintSurface();
+    repaintSurface.myScreenView = screenView;
 
-    myWidgetMotion = new WidgetMotion(myWidgetsScene, mySelection);
-    mySceneDraw = new SceneDraw(new BlueprintColorSet(), myWidgetsScene, mySelection,
-                                myWidgetMotion, myWidgetResize);
-    mySceneDraw.setRepaintableSurface(myRepaintSurface);
+    WidgetMotion widgetMotion = new WidgetMotion(widgetsScene, selection);
+    WidgetResize widgetResize = new WidgetResize();
+    mySceneDraw = new SceneDraw(new BlueprintColorSet(), widgetsScene, selection,
+                                widgetMotion, widgetResize);
+    mySceneDraw.setRepaintableSurface(repaintSurface);
     myMouseInteraction = new MouseInteraction(myViewTransform,
-                                              myWidgetsScene, mySelection,
-                                              myWidgetMotion, myWidgetResize,
-                                              mySceneDraw, myMouseInteraction);
+                                              widgetsScene, selection,
+                                              widgetMotion, widgetResize,
+                                              mySceneDraw, null);
 
     if (screenView.getScreenViewType() == ScreenView.ScreenViewType.NORMAL) {
       mySceneDraw.setColorSet(new AndroidColorSet());
@@ -171,7 +170,6 @@ class DrawConstraintModel {
    * Paint ourselves and our children
    *
    * @param gc                 the graphic context
-   * @param screenView
    * @param width              width of the canvas
    * @param height             height of the canvas
    * @param showAllConstraints flag to show or not all the existing constraints
