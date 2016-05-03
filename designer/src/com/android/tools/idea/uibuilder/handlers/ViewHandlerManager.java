@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Computable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
@@ -293,6 +295,8 @@ public class ViewHandlerManager implements ProjectComponent {
         return new ViewStubHandler();
       case VIEW_TAG:
         return new ViewTagHandler();
+      case VIEW_MERGE:
+        return new MergeHandler();
       case ZOOM_BUTTON:
         return new ZoomButtonHandler();
     }
@@ -307,39 +311,40 @@ public class ViewHandlerManager implements ProjectComponent {
     catch (Exception ignore) {
     }
 
-    String qualifiedClassName = getFullyQualifiedClassName(viewTag);
-    if (qualifiedClassName != null) {
-      String handlerName = viewTag + HANDLER_CLASS_SUFFIX;
-      JavaPsiFacade facade = JavaPsiFacade.getInstance(myProject);
-      PsiClass[] classes = facade.findClasses(handlerName, GlobalSearchScope.allScope(myProject));
+    return ApplicationManager.getApplication().runReadAction((Computable<ViewHandler>)() -> {
+      String qualifiedClassName = getFullyQualifiedClassName(viewTag);
+      if (qualifiedClassName != null) {
+        String handlerName = viewTag + HANDLER_CLASS_SUFFIX;
+        JavaPsiFacade facade = JavaPsiFacade.getInstance(myProject);
+        PsiClass[] classes = facade.findClasses(handlerName, GlobalSearchScope.allScope(myProject));
 
-      if (classes.length == 0) {
-        // No view handler found for this class; look up the custom view and get the handler for its
-        // parent view instead. For example, if you've customized a LinearLayout by subclassing it, then
-        // if you don't provide a ViewHandler for the subclass, we dall back to the LinearLayout's
-        // ViewHandler instead.
-        classes = facade.findClasses(qualifiedClassName, GlobalSearchScope.allScope(myProject));
-        for (PsiClass cls : classes) {
-          PsiClass superClass = cls.getSuperClass();
-          if (superClass != null) {
-            String fqn = superClass.getQualifiedName();
-            if (fqn != null) {
-              return getHandler(NlComponent.viewClassToTag(fqn));
+        if (classes.length == 0) {
+          // No view handler found for this class; look up the custom view and get the handler for its
+          // parent view instead. For example, if you've customized a LinearLayout by subclassing it, then
+          // if you don't provide a ViewHandler for the subclass, we dall back to the LinearLayout's
+          // ViewHandler instead.
+          classes = facade.findClasses(qualifiedClassName, GlobalSearchScope.allScope(myProject));
+          for (PsiClass cls : classes) {
+            PsiClass superClass = cls.getSuperClass();
+            if (superClass != null) {
+              String fqn = superClass.getQualifiedName();
+              if (fqn != null) {
+                return getHandler(NlComponent.viewClassToTag(fqn));
+              }
             }
           }
         }
-      }
-      else {
-        for (PsiClass cls : classes) {
-          // Look for bytecode and instantiate if possible, then return
-          // TODO: Instantiate
-          // noinspection UseOfSystemOutOrSystemErr
-          System.out.println("Find view handler " + cls.getQualifiedName() + " of type " + cls.getClass().getName());
+        else {
+          for (PsiClass cls : classes) {
+            // Look for bytecode and instantiate if possible, then return
+            // TODO: Instantiate
+            // noinspection UseOfSystemOutOrSystemErr
+            System.out.println("Find view handler " + cls.getQualifiedName() + " of type " + cls.getClass().getName());
+          }
         }
       }
-    }
-
-    return NONE;
+      return NONE;
+    });
   }
 
   @Nullable

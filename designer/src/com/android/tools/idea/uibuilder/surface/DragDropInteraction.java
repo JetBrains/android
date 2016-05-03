@@ -176,6 +176,7 @@ public class DragDropInteraction extends Interaction {
       String error = myDragHandler.update(ax, ay, modifiers);
       final List<NlComponent> added = Lists.newArrayList();
       if (commit && error == null) {
+        added.addAll(myDraggedComponents);
         final NlModel model = myScreenView.getModel();
         XmlFile file = model.getFile();
         String label = myType.getDescription();

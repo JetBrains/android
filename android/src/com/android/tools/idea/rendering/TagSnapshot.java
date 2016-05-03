@@ -16,12 +16,17 @@
 package com.android.tools.idea.rendering;
 
 import com.google.common.collect.Lists;
+import com.google.common.hash.HashFunction;
+import com.google.common.hash.Hasher;
+import com.google.common.hash.Hashing;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
+
+import static com.google.common.base.Charsets.UTF_8;
 
 /**
  * A snapshot of the state of an {@link XmlTag}.
@@ -84,6 +89,13 @@ public class TagSnapshot {
     return new TagSnapshot(tag, tag.getName(), tag.getNamespacePrefix(), tag.getNamespace(), attributes, children);
   }
 
+  @NotNull
+  public static TagSnapshot createTagSnapshotWithoutChildren(@NotNull XmlTag tag) {
+    List<AttributeSnapshot> attributes = AttributeSnapshot.createAttributesForTag(tag);
+    List<TagSnapshot> children = Collections.emptyList();
+    return new TagSnapshot(tag, tag.getName(), tag.getNamespacePrefix(), tag.getNamespace(), attributes, children);
+  }
+
   @Nullable
   public String getAttribute(@NotNull String name) {
     return getAttribute(name, null);
@@ -136,5 +148,23 @@ public class TagSnapshot {
   @Override
   public String toString() {
     return "TagSnapshot{" + tagName + ", attributes=" + attributes + ", children=\n" + children + "\n}";
+  }
+
+  /** Creates a signature/fingerprint of this tag snapshot (which encapsulates the tag name and attributes */
+  public long getSignature() {
+    HashFunction hashFunction = Hashing.goodFastHash(64);
+    Hasher hasher = hashFunction.newHasher();
+    hasher.putString(tagName, UTF_8);
+    for (AttributeSnapshot attribute : attributes) {
+      if (attribute.prefix != null) {
+        hasher.putString(attribute.prefix, UTF_8);
+      }
+      hasher.putString(attribute.name, UTF_8);
+      if (attribute.value != null) {
+        hasher.putString(attribute.value, UTF_8);
+      }
+      // Note that we're not bothering with namespaces here; the prefix will identify it uniquely
+    }
+    return hasher.hash().asLong();
   }
 }

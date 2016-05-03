@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import com.android.tools.idea.uibuilder.LayoutTestUtilities;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
-import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.psi.codeStyle.CodeStyleManager;
@@ -107,7 +107,7 @@ public class LinearLayoutHandlerTest extends AbstractViewHandlerTest {
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x1000}\n" +
                  "    NlComponent{tag=<TextView>, bounds=[100,100:100x100}\n" +
                  "    NlComponent{tag=<Button>, bounds=[100,200:100x100}",
-                 NlComponent.toTree(model.getComponents()));
+                 LayoutTestUtilities.toTree(model.getComponents()));
     WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
       @Override
       public void run() {
