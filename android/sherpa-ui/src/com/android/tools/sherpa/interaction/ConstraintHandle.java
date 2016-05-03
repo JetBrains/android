@@ -52,6 +52,11 @@ public class ConstraintHandle {
     static final Stroke sLineShadowStroke = new BasicStroke(5);
     static final Stroke sSimpleStroke = new BasicStroke(1);
 
+    public static Stroke
+            sAutoLongDashedtroke = new BasicStroke(1, BasicStroke.CAP_BUTT,
+            BasicStroke.JOIN_BEVEL, 0, new float[] { 4 }, 0);
+
+
     class ConnectionDrawing {
         ArrayList<Shape> mShapes = new ArrayList();
         Path2D.Float mPath = new Path2D.Float();
@@ -501,7 +506,7 @@ public class ConstraintHandle {
 
     public void drawConnection(ViewTransform transform, Graphics2D g,
             ColorSet colorSet, boolean isSelected) {
-        drawConnection(transform, g, colorSet, isSelected, -1, 0);
+        drawConnection(transform, g, colorSet, isSelected, true, -1, 0);
     }
 
     /**
@@ -513,7 +518,8 @@ public class ConstraintHandle {
      * @param isSelected if the connection is selected
      */
     public void drawConnection(ViewTransform transform, Graphics2D g,
-            ColorSet colorSet, boolean isSelected, int originalCreator, float progress) {
+            ColorSet colorSet, boolean isSelected, boolean showMargin,
+            int originalCreator, float progress) {
         if (!mAnchor.isConnected()) {
             return;
         }
@@ -529,9 +535,6 @@ public class ConstraintHandle {
                 targetCompanion.getWidgetInteractionTargets();
         ConstraintHandle targetHandle = interactionTargets.getConstraintHandle(mAnchor.getTarget());
 
-        if (isSelected) {
-            drawing.mDrawEndCircle = true;
-        }
         if (mAnchor.getOpposite() != null && mAnchor.getOpposite().isConnected()) {
             // Draw centered connections
             if (mAnchor.getOpposite().getTarget() == mAnchor.getTarget()) {
@@ -542,21 +545,23 @@ public class ConstraintHandle {
             } else if ((mAnchor.getOpposite().getTarget().getOwner() ==
                     mAnchor.getTarget().getOwner())
                     && targetWidget != getOwner().getParent()) {
+                if (mAnchor.getConnectionCreator() == ConstraintAnchor.AUTO_CONSTRAINT_CREATOR) {
+                    g.setStroke(sAutoLongDashedtroke);
+                }
                 // Center connection on same widget (save our parent)
                 addPathCenteredConnectionOnSameWidget(transform, g, isSelected, drawing, colorSet,
                         targetHandle,
                         targetWidget);
             } else {
+                if (mAnchor.getConnectionCreator() == ConstraintAnchor.AUTO_CONSTRAINT_CREATOR) {
+                    g.setStroke(sAutoLongDashedtroke);
+                }
                 // Center connection on different widgets (or our parent)
                 addPathCenteredConnection(transform, g, isSelected, drawing, colorSet, targetHandle,
                         targetWidget);
             }
         } else {
             if (targetHandle != null) {
-                boolean showMargin = true;
-                if (mAnchor.getConnectionCreator() == ConstraintAnchor.SCOUT_CREATOR) {
-                    showMargin = false;
-                }
                 addPathConnection(transform, g, isSelected, showMargin, drawing, colorSet,
                         targetHandle.getDrawX(), targetHandle.getDrawY());
             }
@@ -573,7 +578,7 @@ public class ConstraintHandle {
                         || originalCreator == ConstraintAnchor.SCOUT_CREATOR) {
                     if (originalCreator != ConstraintAnchor.SCOUT_CREATOR) {
                         g.setColor(colorSet.getWeakConstraintColor());
-                        g.setStroke(ConnectionDraw.sDashedStroke);
+                        g.setStroke(sAutoLongDashedtroke);
                         drawing.draw(g);
                     }
                     Stroke progressStroke = new BasicStroke(2, BasicStroke.CAP_BUTT,
@@ -584,12 +589,15 @@ public class ConstraintHandle {
                     }
                     if (originalCreator != ConstraintAnchor.SCOUT_CREATOR) {
                         g.setColor(colorSet.getSelectedConstraints());
+                    }
+                    if (originalCreator != ConstraintAnchor.SCOUT_CREATOR
+                            && originalCreator != ConstraintAnchor.AUTO_CONSTRAINT_CREATOR) {
                         paintShadow(g, colorSet, drawing);
                     }
                     drawing.draw(g);
                 } else {
                     g.setColor(colorSet.getWeakConstraintColor());
-                    g.setStroke(ConnectionDraw.sDashedStroke);
+                    g.setStroke(sAutoLongDashedtroke);
                     drawing.draw(g);
                     Stroke progressStroke = new BasicStroke(2, BasicStroke.CAP_BUTT,
                             BasicStroke.JOIN_BEVEL, 0, new float[] { dashEmpty, dashFull }, 0);
@@ -691,6 +699,13 @@ public class ConstraintHandle {
         int maxDistance = Math.min(24 + (int) (0.1f * distance), 64);
         maxDistance = distance > maxDistance ? maxDistance : distance;
         int controlDistance = transform.getSwingDimension(maxDistance);
+
+        int delta = ConnectionDraw.CONNECTION_ANCHOR_SIZE;
+        if (isVertical) {
+            x1 = x0 < x1 ? x1 - delta : x1 + delta;
+        } else {
+            y1 = y0 < y1 ? y1 - delta : y1 + delta;
+        }
 
         // If the connection points to our parent, draw the connection in a straight line
         boolean beStraight = mAnchor.isConnected()
@@ -927,6 +942,12 @@ public class ConstraintHandle {
         int y0 = transform.getSwingFY(mY);
         int x1 = transform.getSwingFX(targetHandle.getDrawX());
         int y1 = transform.getSwingFY(targetHandle.getDrawY());
+        int delta = ConnectionDraw.CONNECTION_ANCHOR_SIZE;
+        if (isVertical) {
+            x1 = x0 < x1 ? x1 - delta : x1 + delta;
+        } else {
+            y1 = y0 < y1 ? y1 - delta : y1 + delta;
+        }
         drawing.mPath.moveTo(x0, y0);
         if (isVertical) {
             boolean isTopConnection = targetHandle.getDrawY() < getDrawY();
@@ -1062,6 +1083,10 @@ public class ConstraintHandle {
                     connectionY);
         }
 
+        float xt = targetHandle.getDrawX();
+        float yt = targetHandle.getDrawY();
+        int delta = ConnectionDraw.CONNECTION_ANCHOR_SIZE;
+
         // TODO: handle cases when w is too small to have the current values for connection
 
         if (mAnchor.getType() == ConstraintAnchor.Type.LEFT
@@ -1131,30 +1156,30 @@ public class ConstraintHandle {
 
             // Now draw the final connection to the anchor
 
-            float xt = targetHandle.getDrawX();
-            float yt = targetHandle.getDrawY();
             float y6 = yt + radius;
 
             if (!isAboveConnection) {
                 y6 = yt - radius;
             }
             drawing.mPath.lineTo(transform.getSwingFX(connectionX), transform.getSwingFY(y6));
+
+            int sxt = transform.getSwingFX(xt);
+            int syt = transform.getSwingFY(yt);
+            syt = t < yt ? syt - delta : syt + delta;
+
             if (rightConnection) {
                 addQuarterArc(drawing.mPath, transform.getSwingFX(connectionX),
                         transform.getSwingFY(y6),
-                        transform.getSwingFX(xt) + ConnectionDraw.ARROW_SIDE,
-                        transform.getSwingFY(yt), curvature, true);
-                drawing.setArrow(ConnectionDraw.getLeftArrow(),
-                        transform.getSwingFX(xt),
-                        transform.getSwingFY(yt));
+                        sxt + ConnectionDraw.ARROW_SIDE,
+                        syt, curvature, true);
+                drawing.setArrow(ConnectionDraw.getLeftArrow(), sxt, syt);
             } else {
                 addQuarterArc(drawing.mPath, transform.getSwingFX(connectionX),
                         transform.getSwingFY(y6),
-                        transform.getSwingFX(xt) - ConnectionDraw.ARROW_SIDE,
-                        transform.getSwingFY(yt), curvature, true);
+                        sxt - ConnectionDraw.ARROW_SIDE,
+                        syt, curvature, true);
                 drawing.setArrow(ConnectionDraw.getRightArrow(),
-                        transform.getSwingFX(xt),
-                        transform.getSwingFY(yt));
+                        sxt, syt);
             }
 
         } else if (mAnchor.getType() == ConstraintAnchor.Type.TOP
@@ -1230,34 +1255,33 @@ public class ConstraintHandle {
 
             // Now draw the final connection to the anchor
 
-            float xt = targetHandle.getDrawX();
-            float yt = targetHandle.getDrawY();
             float x6 = xt + radius;
 
             if (!isLeftConnection) {
                 x6 = xt - radius;
             }
             drawing.mPath.lineTo(transform.getSwingFX(x6), transform.getSwingFY(connectionY));
+
+            int sxt = transform.getSwingFX(xt);
+            int syt = transform.getSwingFY(yt);
+            sxt = l < xt ? sxt - delta : sxt + delta;
+
             if (bottomConnection) {
                 addQuarterArc(drawing.mPath,
                         transform.getSwingFX(x6),
                         transform.getSwingFY(connectionY),
-                        transform.getSwingFX(xt),
-                        transform.getSwingFY(yt) + ConnectionDraw.ARROW_SIDE, curvature,
+                        sxt, syt + ConnectionDraw.ARROW_SIDE, curvature,
                         false);
                 drawing.setArrow(ConnectionDraw.getTopArrow(),
-                        transform.getSwingFX(xt),
-                        transform.getSwingFY(yt));
+                        sxt, syt);
             } else {
                 addQuarterArc(drawing.mPath,
                         transform.getSwingFX(x6),
                         transform.getSwingFY(connectionY),
-                        transform.getSwingFX(xt),
-                        transform.getSwingFY(yt) - ConnectionDraw.ARROW_SIDE, curvature,
+                        sxt, syt - ConnectionDraw.ARROW_SIDE, curvature,
                         false);
                 drawing.setArrow(ConnectionDraw.getBottomArrow(),
-                        transform.getSwingFX(xt),
-                        transform.getSwingFY(yt));
+                        sxt, syt);
             }
         }
 
@@ -1286,11 +1310,20 @@ public class ConstraintHandle {
         float y0 = mY;
         float xt = targetHandle.getDrawX();
         float yt = targetHandle.getDrawY();
+        int delta = ConnectionDraw.CONNECTION_ANCHOR_SIZE;
 
         boolean isTopConnection = mAnchor.getType() == ConstraintAnchor.Type.TOP;
         boolean isLeftConnection = targetHandle.getDrawX() < getDrawX();
 
         boolean isVerticalConnection = mAnchor.isVerticalAnchor();
+
+        int xdelta = 0;
+        int ydelta = 0;
+        if (isVerticalConnection) {
+            xdelta = x0 > xt ? - delta : delta;
+        } else {
+            ydelta = y0 < yt ? - delta : delta;
+        }
 
         if (isVerticalConnection) {
             float base = Math.min(transform.getSwingFY(y0),
@@ -1360,8 +1393,8 @@ public class ConstraintHandle {
             addQuarterArc(drawing.mPath,
                     transform.getSwingFX(x2),
                     sy1,
-                    transform.getSwingFX(xt),
-                    syt, radius,
+                    transform.getSwingFX(xt) + xdelta,
+                    syt + ydelta, radius,
                     false);
 
             if (isSelected) {
@@ -1385,12 +1418,12 @@ public class ConstraintHandle {
 
             if (isTopConnection) {
                 drawing.setArrow(ConnectionDraw.getBottomArrow(),
-                        transform.getSwingFX(xt),
-                        transform.getSwingFY(yt));
+                        transform.getSwingFX(xt) + xdelta,
+                        transform.getSwingFY(yt) + ydelta);
             } else {
                 drawing.setArrow(ConnectionDraw.getTopArrow(),
-                        transform.getSwingFX(xt),
-                        transform.getSwingFY(yt));
+                        transform.getSwingFX(xt) + xdelta,
+                        transform.getSwingFY(yt) + ydelta);
             }
 
         } else {
@@ -1469,8 +1502,8 @@ public class ConstraintHandle {
             addQuarterArc(drawing.mPath,
                     sx1,
                     transform.getSwingFY(y2),
-                    sxt,
-                    transform.getSwingFY(yt),
+                    sxt + xdelta,
+                    transform.getSwingFY(yt) + ydelta,
                     radius,
                     true);
 
@@ -1499,12 +1532,12 @@ public class ConstraintHandle {
 
             if (isLeftConnection) {
                 drawing.setArrow(ConnectionDraw.getRightArrow(),
-                        transform.getSwingFX(xt),
-                        transform.getSwingFY(yt));
+                        transform.getSwingFX(xt) + xdelta,
+                        transform.getSwingFY(yt) + ydelta);
             } else {
                 drawing.setArrow(ConnectionDraw.getLeftArrow(),
-                        transform.getSwingFX(xt),
-                        transform.getSwingFY(yt));
+                        transform.getSwingFX(xt) + xdelta,
+                        transform.getSwingFY(yt) + ydelta);
             }
 
         }

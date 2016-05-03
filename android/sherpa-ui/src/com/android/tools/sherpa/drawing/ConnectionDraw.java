@@ -53,7 +53,7 @@ public class ConnectionDraw {
             sDashedStroke = new BasicStroke(1, BasicStroke.CAP_BUTT,
             BasicStroke.JOIN_BEVEL, 0, new float[] { 2 }, 0);
 
-    static Stroke
+    public static Stroke
             sLongDashedStroke = new BasicStroke(1, BasicStroke.CAP_BUTT,
             BasicStroke.JOIN_BEVEL, 0, new float[] { 8 }, 0);
 
