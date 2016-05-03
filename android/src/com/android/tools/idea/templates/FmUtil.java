@@ -15,6 +15,17 @@
  */
 package com.android.tools.idea.templates;
 
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectLocator;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VirtualFile;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.io.File;
+
 /**
  * Utility Methods for custom Freemarker commands
  */
@@ -42,5 +53,20 @@ public class FmUtil {
     }
 
     return name;
+  }
+
+  /**
+   * Tries to find the {@link Module} for the given {@code modulePath}. Returns {@code null} when a valid module is not found.
+   */
+  @Nullable
+  public static Module findModule(@NotNull String modulePath) {
+    VirtualFile file = LocalFileSystem.getInstance().findFileByIoFile(new File(modulePath.replace('/', File.separatorChar)));
+    if (file != null) {
+      Project project = ProjectLocator.getInstance().guessProjectForFile(file);
+      if (project != null) {
+        return ModuleUtilCore.findModuleForFile(file, project);
+      }
+    }
+    return null;
   }
 }

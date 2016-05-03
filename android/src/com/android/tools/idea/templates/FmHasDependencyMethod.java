@@ -80,32 +80,25 @@ public class FmHasDependencyMethod implements TemplateMethodModelEx {
     // Find the corresponding module, if any
     String modulePath = (String)myParamMap.get(TemplateMetadata.ATTR_PROJECT_OUT);
     if (modulePath != null) {
-      VirtualFile file = LocalFileSystem.getInstance().findFileByIoFile(new File(modulePath.replace('/', File.separatorChar)));
-      if (file != null) {
-        Project project = ProjectLocator.getInstance().guessProjectForFile(file);
-        if (project != null) {
-          Module module = ModuleUtilCore.findModuleForFile(file, project);
-          if (module != null) {
-            AndroidFacet facet = AndroidFacet.getInstance(module);
-            if (facet != null) {
-              // TODO: b/23032990
-              AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
-              if (androidModel != null) {
-                boolean dependsOn;
-                switch (configuration) {
-                  case SdkConstants.GRADLE_COMPILE_CONFIGURATION:
-                    dependsOn = GradleUtil.dependsOn(androidModel, artifact);
-                    break;
-                  case SdkConstants.GRADLE_ANDROID_TEST_COMPILE_CONFIGURATION:
-                    dependsOn = GradleUtil.dependsOnAndroidTest(androidModel, artifact);
-                    break;
-                  default:
-                    throw new TemplateModelException("Unknown dependency configuration " + configuration);
-                }
-
-                return dependsOn ? TemplateBooleanModel.TRUE : TemplateBooleanModel.FALSE;
-              }
+      Module module = FmUtil.findModule(modulePath);
+      if (module != null) {
+        AndroidFacet facet = AndroidFacet.getInstance(module);
+        if (facet != null) {
+          // TODO: b/23032990
+          AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
+          if (androidModel != null) {
+            boolean dependsOn;
+            switch (configuration) {
+              case SdkConstants.GRADLE_COMPILE_CONFIGURATION:
+                dependsOn = GradleUtil.dependsOn(androidModel, artifact);
+                break;
+              case SdkConstants.GRADLE_ANDROID_TEST_COMPILE_CONFIGURATION:
+                dependsOn = GradleUtil.dependsOnAndroidTest(androidModel, artifact);
+                break;
+              default:
+                throw new TemplateModelException("Unknown dependency configuration " + configuration);
             }
+            return dependsOn ? TemplateBooleanModel.TRUE : TemplateBooleanModel.FALSE;
           }
         }
       }
