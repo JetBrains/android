@@ -26,7 +26,7 @@ import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.navigation.PsLibraryDependencyNavigationPath;
 import com.android.tools.idea.gradle.structure.model.PsModulePath;
 import com.android.tools.idea.gradle.structure.model.PsPath;
-import com.android.tools.idea.gradle.structure.quickfix.PsLibraryDependenyVersionQuickFixPath;
+import com.android.tools.idea.gradle.structure.quickfix.PsLibraryDependencyVersionQuickFixPath;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
@@ -86,7 +86,7 @@ public class PsAndroidModuleAnalyzer extends PsModelAnalyzer<PsAndroidModule> {
           PsIssue issue = new PsIssue(message, "", path, PROJECT_ANALYSIS, WARNING);
           issue.setExtraPath(modulePath);
 
-          PsPath quickFix = new PsLibraryDependenyVersionQuickFixPath(libraryDependency);
+          PsPath quickFix = new PsLibraryDependencyVersionQuickFixPath(libraryDependency);
           issue.setQuickFixPath(quickFix);
 
           issueCollection.add(issue);
