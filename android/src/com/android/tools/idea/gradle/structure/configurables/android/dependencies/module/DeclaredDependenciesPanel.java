@@ -58,6 +58,7 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.ui.IdeBorderFactory.createEmptyBorder;
 import static com.intellij.ui.ScrollPaneFactory.createScrollPane;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
+import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 import static java.awt.Cursor.*;
 import static java.awt.event.KeyEvent.KEY_PRESSED;
 import static java.awt.event.KeyEvent.KEY_RELEASED;
@@ -87,7 +88,7 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
     myContext = context;
     myContext.getAnalyzerDaemon().add(model -> {
       if (model == module) {
-        // TODO Implement once updating adding/deleting/updating dependencies is implemented.
+        invokeLaterIfNeeded(this::updateDetailsAndIssues);
       }
     }, this);
 
