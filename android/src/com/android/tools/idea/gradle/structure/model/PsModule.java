@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.model.repositories.JCenterDefaultRepositoryModel;
 import com.android.tools.idea.gradle.dsl.model.repositories.MavenCentralRepositoryModel;
 import com.android.tools.idea.gradle.dsl.model.repositories.RepositoryModel;
+import com.android.tools.idea.gradle.structure.daemon.PsAnalyzerDaemon;
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository;
 import com.android.tools.idea.gradle.structure.model.repositories.search.JCenterRepository;
 import com.android.tools.idea.gradle.structure.model.repositories.search.MavenCentralRepository;
@@ -34,6 +35,8 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.util.EventListener;
 import java.util.List;
+
+import static com.android.tools.idea.gradle.structure.model.PsIssueType.PROJECT_ANALYSIS;
 
 public abstract class PsModule extends PsChildModel {
   @Nullable private String myGradlePath;
@@ -106,7 +109,11 @@ public abstract class PsModule extends PsChildModel {
   }
 
   protected void fireLibraryDependencyAddedEvent(@NotNull PsArtifactDependencySpec spec) {
-    myDependenciesChangeEventDispatcher.getMulticaster().libraryDependencyAdded(spec);
+    myDependenciesChangeEventDispatcher.getMulticaster().dependencyChanged(new LibraryDependencyAddedEvent(spec));
+  }
+
+  public void fireDependencyModifiedEvent(@NotNull PsDependency dependency) {
+    myDependenciesChangeEventDispatcher.getMulticaster().dependencyChanged(new DependencyModifiedEvent(dependency));
   }
 
   @Nullable
@@ -148,6 +155,35 @@ public abstract class PsModule extends PsChildModel {
   }
 
   public interface DependenciesChangeListener extends EventListener {
-    void libraryDependencyAdded(@NotNull PsArtifactDependencySpec spec);
+    void dependencyChanged(@NotNull DependencyChangedEvent event);
+  }
+
+  public interface DependencyChangedEvent {
+  }
+
+  public static class LibraryDependencyAddedEvent implements DependencyChangedEvent {
+    @NotNull private final PsArtifactDependencySpec mySpec;
+
+    LibraryDependencyAddedEvent(@NotNull PsArtifactDependencySpec spec) {
+      mySpec = spec;
+    }
+
+    @NotNull
+    public PsArtifactDependencySpec getSpec() {
+      return mySpec;
+    }
+  }
+
+  public static class DependencyModifiedEvent implements DependencyChangedEvent {
+    @NotNull private final PsDependency myDependency;
+
+    DependencyModifiedEvent(@NotNull PsDependency dependency) {
+      myDependency = dependency;
+    }
+
+    @NotNull
+    public PsDependency getDependency() {
+      return myDependency;
+    }
   }
 }

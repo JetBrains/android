@@ -24,7 +24,7 @@ import java.util.List;
 
 import static com.android.tools.idea.gradle.structure.model.PsIssue.Severity.WARNING;
 import static com.android.tools.idea.gradle.structure.model.PsIssueType.PROJECT_ANALYSIS;
-import static com.android.tools.idea.gradle.structure.navigation.PsNavigationPath.EMPTY_PATH;
+import static com.android.tools.idea.gradle.structure.model.PsPath.EMPTY_PATH;
 import static org.junit.Assert.assertEquals;
 
 /**

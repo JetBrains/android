@@ -24,9 +24,8 @@ import com.android.tools.idea.gradle.structure.configurables.android.dependencie
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesViewer;
 import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeEventDispatcher;
 import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeListener;
-import com.android.tools.idea.gradle.structure.model.PsIssue;
+import com.android.tools.idea.gradle.structure.model.*;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidLibraryDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.model.android.PsModuleDependency;
 import com.google.common.collect.Lists;
@@ -52,6 +51,8 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.isMetaOrCtrlKeyPressed;
+import static com.android.tools.idea.gradle.structure.model.PsDependency.TextType.FOR_NAVIGATION;
+import static com.android.tools.idea.gradle.structure.model.PsPath.TexType.HTML;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.ui.IdeBorderFactory.createEmptyBorder;
 import static com.intellij.ui.ScrollPaneFactory.createScrollPane;
@@ -100,6 +101,11 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
 
       for (PsIssue issue : issues) {
         buffer.append("<li>").append(issue.getText());
+        PsPath quickFixPath = issue.getQuickFixPath();
+        if (quickFixPath != null) {
+          buffer.append(" ").append(quickFixPath.toText(HTML));
+        }
+
         String description = issue.getDescription();
         if (isNotEmpty(description)) {
           buffer.append("<br/><br/>").append(description);
@@ -130,11 +136,21 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
       }
     };
 
-    module.add(spec -> {
+    module.add(event -> {
       myDependenciesTableModel.reset();
-      PsAndroidLibraryDependency dependency = myDependenciesTableModel.findDependency(spec);
-      if (dependency != null) {
-        myDependenciesTable.setSelection(Collections.singletonList(dependency));
+      PsAndroidDependency toSelect = null;
+      if (event instanceof PsModule.LibraryDependencyAddedEvent) {
+        PsArtifactDependencySpec spec = ((PsModule.LibraryDependencyAddedEvent)event).getSpec();
+        toSelect = myDependenciesTableModel.findDependency(spec);
+      }
+      else if (event instanceof PsModule.DependencyModifiedEvent) {
+        PsDependency dependency = ((PsModule.DependencyModifiedEvent)event).getDependency();
+        if (dependency instanceof PsAndroidDependency) {
+          toSelect = (PsAndroidDependency)dependency;
+        }
+      }
+      if (toSelect != null) {
+        myDependenciesTable.setSelection(Collections.singletonList(toSelect));
       }
     }, this);
 
@@ -337,7 +353,8 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
         myDependenciesTable.requestFocusInWindow();
         if (!pathText.isEmpty()) {
           for (PsAndroidDependency dependency : myDependenciesTable.getItems()) {
-            if (pathText.equals(dependency.getValueAsText())) {
+            String dependencyAsText = dependency.toText(FOR_NAVIGATION);
+            if (pathText.equals(dependencyAsText)) {
               myDependenciesTable.setSelection(Collections.singletonList(dependency));
               break;
             }
@@ -355,7 +372,7 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
     if (details != null) {
       PsAndroidDependency model = details.getModel();
       if (model != null) {
-        dependency = model.getValueAsText();
+        dependency = model.toText(FOR_NAVIGATION);
       }
     }
     putPath(place, dependency);

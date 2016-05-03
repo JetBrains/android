@@ -23,8 +23,8 @@ import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsIssue;
 import com.android.tools.idea.gradle.structure.model.PsIssueCollection;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidLibraryDependency;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.model.android.PsModuleDependency;
 import com.google.common.collect.Lists;
 import com.intellij.ui.SimpleTextAttributes;
@@ -39,6 +39,7 @@ import java.awt.*;
 import java.util.Collections;
 import java.util.List;
 
+import static com.android.tools.idea.gradle.structure.model.PsDependency.TextType.PLAIN_TEXT;
 import static com.android.tools.idea.gradle.structure.model.PsIssueCollection.getTooltipText;
 import static com.intellij.ui.SimpleTextAttributes.*;
 
@@ -63,7 +64,7 @@ class DeclaredDependenciesTableModel extends ListTableModel<PsAndroidDependency>
       @Override
       @NotNull
       public String valueOf(PsAndroidDependency dependency) {
-        return dependency.getValueAsText();
+        return dependency.toText(PLAIN_TEXT);
       }
 
       @Override
@@ -165,7 +166,7 @@ class DeclaredDependenciesTableModel extends ListTableModel<PsAndroidDependency>
     @NotNull
     protected String getText() {
       PsAndroidDependency dependency = getModel();
-      String text = dependency.getValueAsText();
+      String text = dependency.toText(PLAIN_TEXT);
 
       if (dependency instanceof PsAndroidLibraryDependency) {
         PsAndroidLibraryDependency library = (PsAndroidLibraryDependency)dependency;
