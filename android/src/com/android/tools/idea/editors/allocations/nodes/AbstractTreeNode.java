@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editors.allocations.nodes;
 
-import com.android.tools.chartlib.ValuedTreeNode;
+import com.android.tools.adtui.ValuedTreeNode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

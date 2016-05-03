@@ -70,7 +70,7 @@
     <orderEntry type="library" name="jcip" level="project" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="module" module-name="rpclib" />
-    <orderEntry type="module" module-name="chartlib" />
+    <orderEntry type="module" module-name="adt-ui" />
     <orderEntry type="module-library">
       <library>
         <CLASSES>

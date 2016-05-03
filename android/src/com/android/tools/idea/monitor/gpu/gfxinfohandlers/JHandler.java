@@ -16,7 +16,7 @@
 package com.android.tools.idea.monitor.gpu.gfxinfohandlers;
 
 import com.android.ddmlib.*;
-import com.android.tools.chartlib.TimelineData;
+import com.android.tools.adtui.TimelineData;
 import com.android.tools.idea.monitor.DeviceSampler;
 import com.android.tools.idea.monitor.gpu.GpuSampler;
 import com.intellij.util.ThreeState;
