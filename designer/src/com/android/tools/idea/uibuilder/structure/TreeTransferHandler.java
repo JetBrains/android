@@ -77,7 +77,7 @@ public final class TreeTransferHandler extends TransferHandlerWithDragImage {
     }
     int width = 0;
     int height = 0;
-    List<BufferedImage> images = new ArrayList<BufferedImage>(paths.length);
+    List<BufferedImage> images = new ArrayList<>(paths.length);
     for (TreePath path : paths) {
       int row = tree.getRowForPath(path);
       Component comp =
