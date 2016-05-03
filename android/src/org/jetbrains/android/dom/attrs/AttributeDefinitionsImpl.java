@@ -51,10 +51,10 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
   //Used for parsing group of attributes, used heuristically to skip long comments before <eat-comment/>
   private static final int ATTR_GROUP_MAX_CHARACTERS = 40;
 
-  private Map<String, AttributeDefinition> myAttrs = new HashMap<String, AttributeDefinition>();
-  private Map<String, StyleableDefinitionImpl> myStyleables = new HashMap<String, StyleableDefinitionImpl>();
+  private Map<String, AttributeDefinition> myAttrs = new HashMap<>();
+  private Map<String, StyleableDefinitionImpl> myStyleables = new HashMap<>();
 
-  private final Map<String, Map<String, Integer>> myEnumMap = new HashMap<String, Map<String, Integer>>();
+  private final Map<String, Map<String, Integer>> myEnumMap = new HashMap<>();
 
   public AttributeDefinitionsImpl(@NotNull XmlFile... files) {
     for (XmlFile file : files) {
@@ -63,7 +63,7 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
   }
 
   private void addAttrsFromFile(XmlFile file) {
-    Map<StyleableDefinitionImpl, String[]> parentMap = new HashMap<StyleableDefinitionImpl, String[]>();
+    Map<StyleableDefinitionImpl, String[]> parentMap = new HashMap<>();
     final XmlDocument document = file.getDocument();
     if (document == null) return;
     final XmlTag rootTag = document.getRootTag();
@@ -131,7 +131,7 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
       return null;
     }
     List<AttributeFormat> parsedFormats;
-    List<AttributeFormat> formats = new ArrayList<AttributeFormat>();
+    List<AttributeFormat> formats = new ArrayList<>();
     String format = tag.getAttributeValue(ATTR_FORMAT);
     if (format != null) {
       parsedFormats = parseAttrFormat(format);
@@ -191,7 +191,7 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
 
   @Nullable
   private static List<AttributeFormat> parseAttrFormat(String formatString) {
-    List<AttributeFormat> result = new ArrayList<AttributeFormat>();
+    List<AttributeFormat> result = new ArrayList<>();
     final String[] formats = formatString.split("\\|");
     for (String format : formats) {
       final AttributeFormat attributeFormat;
@@ -229,7 +229,7 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
             int intValue = (int) (long) Long.decode(strIntValue);
             Map<String, Integer> value2Int = myEnumMap.get(def.getName());
             if (value2Int == null) {
-              value2Int = new HashMap<String, Integer>();
+              value2Int = new HashMap<>();
               myEnumMap.put(def.getName(), value2Int);
             }
             value2Int.put(valueName, intValue);

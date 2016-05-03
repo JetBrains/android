@@ -30,6 +30,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 public class FormatConverter extends DelimitedListConverter<AttributeFormat> {
   public FormatConverter() {
@@ -45,12 +46,12 @@ public class FormatConverter extends DelimitedListConverter<AttributeFormat> {
   @Override
   protected String toString(@Nullable AttributeFormat format) {
     if (format == null) return null;
-    return format.name().toLowerCase();
+    return format.name().toLowerCase(Locale.US);
   }
 
   @Override
   protected Object[] getReferenceVariants(final ConvertContext context, final GenericDomValue<List<AttributeFormat>> value) {
-    List<AttributeFormat> variants = new ArrayList<AttributeFormat>();
+    List<AttributeFormat> variants = new ArrayList<>();
     Collections.addAll(variants, AttributeFormat.values());
     filterVariants(variants, value);
     String[] stringVariants = new String[variants.size()];

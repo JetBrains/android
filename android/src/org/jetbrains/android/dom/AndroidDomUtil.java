@@ -315,7 +315,7 @@ public class AndroidDomUtil {
 
   @NotNull
   public static Collection<String> removeUnambiguousNames(@NotNull Map<String, PsiClass> viewClassMap) {
-    final Map<String, String> class2Name = new HashMap<String, String>();
+    final Map<String, String> class2Name = new HashMap<>();
 
     for (String tagName : viewClassMap.keySet()) {
       final PsiClass viewClass = viewClassMap.get(tagName);

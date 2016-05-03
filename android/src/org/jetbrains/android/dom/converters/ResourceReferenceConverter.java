@@ -142,7 +142,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
   @Override
   @NotNull
   public Collection<? extends ResourceValue> getVariants(ConvertContext context) {
-    Set<ResourceValue> result = new HashSet<ResourceValue>();
+    Set<ResourceValue> result = new HashSet<>();
     Module module = context.getModule();
     if (module == null) return result;
     AndroidFacet facet = AndroidFacet.getInstance(module);
@@ -507,7 +507,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
                 resType != null &&
                 resourceName != null &&
                 AndroidResourceUtil.isCorrectAndroidResourceName(resourceName)) {
-              final List<LocalQuickFix> fixes = new ArrayList<LocalQuickFix>();
+              final List<LocalQuickFix> fixes = new ArrayList<>();
 
               if (AndroidResourceUtil.XML_FILE_RESOURCE_TYPES.contains(resType)) {
                 fixes.add(new CreateFileResourceQuickFix(facet, resType, resourceName, context.getFile(), false));

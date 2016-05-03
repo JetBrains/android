@@ -178,8 +178,8 @@ public class ConstantFieldConverter extends Converter<String> implements CustomR
     @NotNull
     @Override
     public Object[] getVariants() {
-      final List<Object> result = new ArrayList<Object>();
-      final Set<String> added = new HashSet<String>();
+      final List<Object> result = new ArrayList<>();
+      final Set<String> added = new HashSet<>();
 
       processFields(new Processor<Pair<PsiField, String>>() {
         @Override

@@ -30,7 +30,7 @@ import java.util.Set;
  * @author coyote
  */
 public class StaticEnumConverter extends ResolvingConverter<String> {
-  private final Set<String> myValues = new HashSet<String>();
+  private final Set<String> myValues = new HashSet<>();
 
   /**
    * Flag to control whether converter has information about all available values.

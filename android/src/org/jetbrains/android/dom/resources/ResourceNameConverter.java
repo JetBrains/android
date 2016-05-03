@@ -81,7 +81,7 @@ public class ResourceNameConverter extends ResolvingConverter<String> implements
       return Collections.emptyList();
     }
     final Collection<String> styleNames = manager.getResourceNames(ResourceType.STYLE);
-    final List<String> result = new ArrayList<String>();
+    final List<String> result = new ArrayList<>();
 
     final String currentValue = element.getStringValue();
     for (String name : styleNames) {
@@ -126,7 +126,7 @@ public class ResourceNameConverter extends ResolvingConverter<String> implements
         style.getParentStyle().getStringValue() != null) {
       return PsiReference.EMPTY_ARRAY;
     }
-    final List<PsiReference> result = new ArrayList<PsiReference>(ids.length - 1);
+    final List<PsiReference> result = new ArrayList<>(ids.length - 1);
     int offset = s.length();
 
     for (int i = ids.length - 1; i >= 0; i--) {
