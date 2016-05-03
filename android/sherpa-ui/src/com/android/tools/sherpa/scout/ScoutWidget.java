@@ -332,6 +332,40 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
         }
     }
 
+    /**
+     * set a centered constraint if possible return true if it did
+     *
+     * @param dir   direction 0 = vertical
+     * @param to1   first widget  to connect to
+     * @param cDir1 the side of first widget to connect to
+     * @return true if it was able to connect
+     */
+    boolean setEdgeCentered(int dir, ScoutWidget to1, Direction cDir1) {
+        Direction ori = (dir == 0) ? Direction.NORTH : Direction.WEST;
+        ConstraintAnchor anchor1 = mConstraintWidget.getAnchor(lookupType(ori));
+        ConstraintAnchor anchor2 = mConstraintWidget.getAnchor(lookupType(ori.getOpposite()));
+
+        if (mKeepExistingConnections && (anchor1.isConnected() || anchor2.isConnected())) {
+            if (anchor1.isConnected() ^ anchor2.isConnected()) {
+                return false;
+            }
+            if (anchor1.isConnected()
+                    && (anchor1.getTarget().getOwner() != to1.mConstraintWidget)) {
+                return false;
+            }
+        }
+
+        if (anchor1.isConnectionAllowed(to1.mConstraintWidget)) {
+            connect(mConstraintWidget, lookupType(ori), to1.mConstraintWidget, lookupType(cDir1),
+                    0);
+            connect(mConstraintWidget, lookupType(ori.getOpposite()), to1.mConstraintWidget,
+                    lookupType(cDir1),
+                    0);
+        }
+        return true;
+    }
+
+
     private void connect(ConstraintWidget fromWidget, ConstraintAnchor.Type fromType,
             ConstraintWidget toWidget, ConstraintAnchor.Type toType, int gap) {
         fromWidget.connect(fromType, toWidget, toType, gap);
