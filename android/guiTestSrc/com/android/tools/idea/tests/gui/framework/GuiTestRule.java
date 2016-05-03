@@ -216,29 +216,28 @@ public class GuiTestRule implements TestRule {
     containerMap.clear();
   }
 
-  public void importSimpleApplication() throws IOException {
-    importProjectAndWaitForProjectSyncToFinish("SimpleApplication");
+  public IdeFrameFixture importSimpleApplication() throws IOException {
+    return importProjectAndWaitForProjectSyncToFinish("SimpleApplication");
   }
 
-  public void importMultiModule() throws IOException {
-    importProjectAndWaitForProjectSyncToFinish("MultiModule");
+  public IdeFrameFixture importMultiModule() throws IOException {
+    return importProjectAndWaitForProjectSyncToFinish("MultiModule");
   }
 
-  public void importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName) throws IOException {
-    importProjectAndWaitForProjectSyncToFinish(projectDirName, null);
+  public IdeFrameFixture importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName) throws IOException {
+    return importProjectAndWaitForProjectSyncToFinish(projectDirName, null);
   }
 
-  public void importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName, @Nullable String gradleVersion)
+  public IdeFrameFixture importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName, @Nullable String gradleVersion)
     throws IOException {
-    importProject(projectDirName, gradleVersion);
-    ideFrame().waitForGradleProjectSyncToFinish();
+    return importProject(projectDirName, gradleVersion).waitForGradleProjectSyncToFinish();
   }
 
-  public void importProject(@NotNull String projectDirName) throws IOException {
-    importProject(projectDirName, null);
+  public IdeFrameFixture importProject(@NotNull String projectDirName) throws IOException {
+    return importProject(projectDirName, null);
   }
 
-  private void importProject(@NotNull String projectDirName, String gradleVersion) throws IOException {
+  private IdeFrameFixture importProject(@NotNull String projectDirName, String gradleVersion) throws IOException {
     setUpProject(projectDirName, gradleVersion);
     final VirtualFile toSelect = checkNotNull(VfsUtil.findFileByIoFile(myProjectPath, true));
     GuiActionRunner.execute(new GuiTask() {
@@ -247,6 +246,7 @@ public class GuiTestRule implements TestRule {
         GradleProjectImporter.getInstance().importProject(toSelect);
       }
     });
+    return ideFrame();
   }
 
   /**
