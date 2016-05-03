@@ -118,7 +118,7 @@ public abstract class Animation {
             end = 0;
             progress -= 1;
         }
-        return Animator.EaseInOutinterpolator(progress, start, end);
+        return (int)Animator.EaseInOutinterpolator(progress, start, end);
     }
 
     /**
