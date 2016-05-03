@@ -17,29 +17,25 @@ package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.tools.sherpa.drawing.BlueprintColorSet;
 import com.android.tools.sherpa.drawing.ColorSet;
+import com.intellij.openapi.ui.ComboBox;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
-import javax.swing.event.EventListenerList;
 import javax.swing.plaf.basic.BasicArrowButton;
 import javax.swing.plaf.basic.BasicComboBoxEditor;
 import javax.swing.plaf.basic.BasicComboBoxUI;
-import javax.swing.plaf.basic.BasicComboPopup;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.util.ArrayList;
-import java.util.EventListener;
 
 /**
  * Widget to support margin editing on the ui
  */
 public class MarginWidget extends JPanel {
   String[] str = new String[]{"0", "8", "16", "24", "32"};
-  JComboBox<String> combo = new JComboBox<String>(str);
+  ComboBox combo = new ComboBox(str);
   ColorSet mColorSet = new BlueprintColorSet();
   ArrayList<ActionListener> mCallbacks = new ArrayList<ActionListener>();
 
@@ -67,13 +63,10 @@ public class MarginWidget extends JPanel {
     combo.getEditor().getEditorComponent().setBackground(mColorSet.getBackground());
     combo.setBackground(mColorSet.getBackground());
     combo.setForeground(mColorSet.getSubduedText());
-    combo.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        label.setText((String)combo.getSelectedItem());
-        for (ActionListener cb : mCallbacks) {
-          cb.actionPerformed(e);
-        }
+    combo.addActionListener(e -> {
+      label.setText((String)combo.getSelectedItem());
+      for (ActionListener cb : mCallbacks) {
+        cb.actionPerformed(e);
       }
     });
 
@@ -107,7 +100,7 @@ public class MarginWidget extends JPanel {
 
     @Override
     protected JButton createArrowButton() {
-      button = new BasicArrowButton(BasicArrowButton.SOUTH);
+      button = new BasicArrowButton(SwingConstants.SOUTH);
       button.setBackground(mColorSet.getSubduedText());
       button.setBorder(new EmptyBorder(0, 0, 0, 0));
       return button;
@@ -115,8 +108,9 @@ public class MarginWidget extends JPanel {
   };
 
   public void setMargin(int margin) {
-    combo.setSelectedItem("" + margin);
-    label.setText(margin + "");
+    String marginText = String.valueOf(margin);
+    combo.setSelectedItem(marginText);
+    label.setText(marginText);
   }
 
   public int getMargin() {
