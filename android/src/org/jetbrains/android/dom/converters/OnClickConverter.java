@@ -151,8 +151,8 @@ public abstract class OnClickConverter extends Converter<String> implements Cust
       if (activityBaseClass == null) {
         return ResolveResult.EMPTY_ARRAY;
       }
-      final List<ResolveResult> result = new ArrayList<ResolveResult>();
-      final List<ResolveResult> resultsWithMistake = new ArrayList<ResolveResult>();
+      final List<ResolveResult> result = new ArrayList<>();
+      final List<ResolveResult> resultsWithMistake = new ArrayList<>();
 
       for (PsiMethod method : methods) {
         final PsiClass parentClass = method.getContainingClass();
@@ -184,8 +184,8 @@ public abstract class OnClickConverter extends Converter<String> implements Cust
         return EMPTY_ARRAY;
       }
 
-      final List<Object> result = new ArrayList<Object>();
-      final Set<String> methodNames = new HashSet<String>();
+      final List<Object> result = new ArrayList<>();
+      final Set<String> methodNames = new HashSet<>();
 
       ClassInheritorsSearch.search(activityClass, module.getModuleWithDependenciesScope(), true).forEach(new Processor<PsiClass>() {
         @Override

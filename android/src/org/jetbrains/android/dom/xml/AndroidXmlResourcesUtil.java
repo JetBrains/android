@@ -58,7 +58,7 @@ public class AndroidXmlResourcesUtil {
 
   @NotNull
   public static List<String> getPossibleRoots(@NotNull AndroidFacet facet) {
-    List<String> result = new ArrayList<String>();
+    List<String> result = new ArrayList<>();
     result.addAll(AndroidDomUtil.removeUnambiguousNames(AndroidDomExtender.getPreferencesClassMap(facet)));
     result.addAll(ROOT_TAGS);
 

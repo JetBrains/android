@@ -26,9 +26,9 @@ import java.util.List;
  */
 public class StyleableDefinitionImpl implements StyleableDefinition {
   private final String myName;
-  private final List<StyleableDefinition> myParents = new ArrayList<StyleableDefinition>();
-  private final List<AttributeDefinition> myAttributes = new ArrayList<AttributeDefinition>();
-  private final List<StyleableDefinition> myChildren = new ArrayList<StyleableDefinition>();
+  private final List<StyleableDefinition> myParents = new ArrayList<>();
+  private final List<AttributeDefinition> myAttributes = new ArrayList<>();
+  private final List<StyleableDefinition> myChildren = new ArrayList<>();
 
   public StyleableDefinitionImpl(@NotNull String name) {
     myName = name;

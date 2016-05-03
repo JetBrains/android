@@ -18,7 +18,7 @@ import java.util.*;
 public class DimensionConverter extends ResolvingConverter<String> implements AttributeValueDocumentationProvider {
   public static final DimensionConverter INSTANCE = new DimensionConverter();
 
-  private static final Map<String, String> ourUnits = new HashMap<String, String>();
+  private static final Map<String, String> ourUnits = new HashMap<>();
 
   static {
     ourUnits.put(SdkConstants.UNIT_DP, "<b>Density-independent Pixels</b> - an abstract unit " +
@@ -33,7 +33,7 @@ public class DimensionConverter extends ResolvingConverter<String> implements At
 
   @NotNull
   @Override
-  public Collection<? extends String> getVariants(ConvertContext context) {
+  public Collection<String> getVariants(ConvertContext context) {
     final XmlElement element = context.getXmlElement();
 
     if (element == null) {
@@ -49,7 +49,7 @@ public class DimensionConverter extends ResolvingConverter<String> implements At
     if (intPrefix.isEmpty()) {
       return Collections.emptyList();
     }
-    final List<String> result = new ArrayList<String>(ourUnits.size());
+    final List<String> result = new ArrayList<>(ourUnits.size());
 
     for (String unit : ourUnits.keySet()) {
       result.add(intPrefix + unit);

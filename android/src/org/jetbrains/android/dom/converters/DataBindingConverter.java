@@ -178,7 +178,7 @@ public class DataBindingConverter extends ResolvingConverter<PsiClass> implement
 
     final int start = attrValue.getValueTextRange().getStartOffset() - attrValue.getTextRange().getStartOffset();
 
-    List<PsiReference> result = new ArrayList<PsiReference>();
+    List<PsiReference> result = new ArrayList<>();
     final String[] nameParts = strValue.split("[$.]");
     Module module = context.getModule();
     if (nameParts.length == 0 || module == null) {

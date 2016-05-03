@@ -21,8 +21,8 @@ import java.util.List;
 public class ApiVersionConverter extends ResolvingConverter<String> {
   @NotNull
   @Override
-  public Collection<? extends String> getVariants(ConvertContext context) {
-    final List<String> result = new ArrayList<String>(SdkVersionInfo.HIGHEST_KNOWN_API);
+  public Collection<String> getVariants(ConvertContext context) {
+    final List<String> result = new ArrayList<>(SdkVersionInfo.HIGHEST_KNOWN_API);
 
     for (int i = 1; i <= SdkVersionInfo.HIGHEST_KNOWN_API; i++) {
       if (i > SdkVersionInfo.HIGHEST_KNOWN_STABLE_API) {

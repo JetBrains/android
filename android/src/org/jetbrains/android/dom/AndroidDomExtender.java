@@ -281,7 +281,7 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
     final String tagName = tag.getName();
     String styleableName = AndroidXmlResourcesUtil.SPECIAL_STYLEABLE_NAMES.get(tagName);
     if (styleableName != null) {
-      final Set<XmlName> newSkipAttrNames = new HashSet<XmlName>();
+      final Set<XmlName> newSkipAttrNames = new HashSet<>();
       if (element instanceof Intent) {
         newSkipAttrNames.add(new XmlName("action", NS_RESOURCES));
       }
@@ -357,7 +357,7 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
   }
 
   private static String[] getClassNames(@NotNull Collection<PsiClass> classes) {
-    List<String> names = new ArrayList<String>();
+    List<String> names = new ArrayList<>();
     for (PsiClass aClass : classes) {
       names.add(aClass.getName());
     }
@@ -450,8 +450,8 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
                                                Type type,
                                                Set<String> registeredSubtags,
                                                MyCallback callback) {
-    final Set<String> allAllowedTags = new HashSet<String>();
-    final Map<String, String> class2Name = new HashMap<String, String>();
+    final Set<String> allAllowedTags = new HashSet<>();
+    final Map<String, String> class2Name = new HashMap<>();
 
     for (String tagName : classMap.keySet()) {
       final PsiClass aClass = classMap.get(tagName);
@@ -477,12 +477,7 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
     for (String tagName : tagsToComplete) {
       registerSubtags(tagName, type, callback, registeredSubtags);
     }
-    registerExistingSubtags(tag, callback, new Processor<String>() {
-      @Override
-      public boolean process(String s) {
-        return allowedTags.contains(s);
-      }
-    }, type);
+    registerExistingSubtags(tag, callback, allowedTags::contains, type);
   }
 
   public static void processAttrsAndSubtags(@NotNull AndroidDomElement element,
@@ -492,8 +487,8 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
     XmlTag tag = element.getXmlTag();
 
     final Set<XmlName> skippedAttributes =
-      processAllExistingAttrsFirst ? registerExistingAttributes(facet, tag, callback, element) : new HashSet<XmlName>();
-    Set<String> registeredSubtags = new HashSet<String>();
+      processAllExistingAttrsFirst ? registerExistingAttributes(facet, tag, callback, element) : new HashSet<>();
+    Set<String> registeredSubtags = new HashSet<>();
     if (element instanceof ManifestElement) {
       if (tag.getParentTag() != null) {
         // Don't register attributes for root element
@@ -633,7 +628,7 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
 
   @NotNull
   private static Set<XmlName> registerExistingAttributes(AndroidFacet facet, XmlTag tag, MyCallback callback, AndroidDomElement element) {
-    final Set<XmlName> result = new HashSet<XmlName>();
+    final Set<XmlName> result = new HashSet<>();
     XmlAttribute[] attrs = tag.getAttributes();
 
     for (XmlAttribute attr : attrs) {

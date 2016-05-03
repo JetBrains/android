@@ -96,7 +96,7 @@ public class DeclareStyleableNameConverter extends Converter<String> implements 
       if (viewClass == null) {
         return EMPTY_ARRAY;
       }
-      final Set<Object> shortNames = new HashSet<Object>();
+      final Set<Object> shortNames = new HashSet<>();
 
       ClassInheritorsSearch.search(viewClass, myFacet.getModule().getModuleWithDependenciesScope(), true).
         forEach(new Processor<PsiClass>() {

@@ -163,7 +163,7 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
       return PsiReference.EMPTY_ARRAY;
     }
 
-    final List<PsiReference> result = new ArrayList<PsiReference>();
+    final List<PsiReference> result = new ArrayList<>();
     final Module module = context.getModule();
 
     /**
@@ -283,7 +283,7 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
       Query<PsiClass> query = ClassInheritorsSearch.search(base, scope, true);
       return query.findAll();
     }
-    return new ArrayList<PsiClass>();
+    return new ArrayList<>();
   }
 
   private static class MyReference extends PsiReferenceBase<PsiElement> implements EmptyResolveMessageProvider, LocalQuickFixProvider {
@@ -374,11 +374,11 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
     @Override
     public Object[] getVariants() {
       if (myExtendsClasses != null) {
-        final List<PsiClass> classes = new ArrayList<PsiClass>();
+        final List<PsiClass> classes = new ArrayList<>();
         for (String extendsClass : myExtendsClasses) {
           classes.addAll(findInheritors(myElement.getProject(), myModule, extendsClass, myCompleteOnlyModuleClasses));
         }
-        final List<Object> result = new ArrayList<Object>(classes.size());
+        final List<Object> result = new ArrayList<>(classes.size());
 
         //noinspection ForLoopReplaceableByForEach
         for (int i = 0, n = classes.size(); i < n; i++) {
