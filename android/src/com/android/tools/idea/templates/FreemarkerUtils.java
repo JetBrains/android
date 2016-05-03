@@ -63,6 +63,7 @@ public final class FreemarkerUtils {
     paramMap.put("compareVersions", new FmCompareVersionsMethod());
     paramMap.put("getApplicationTheme", new FmGetApplicationThemeMethod(paramMap));
     paramMap.put("getAppManifestDir", new FmGetAppManifestDirMethod(paramMap));
+    paramMap.put("isGradleComponentPluginUsed", new FmIsGradleComponentPluginUsed(paramMap));
 
     // Dependencies multimap. Doesn't store duplicates, preserves insertion order.
     paramMap.put(TemplateMetadata.ATTR_DEPENDENCIES_MULTIMAP, LinkedHashMultimap.create());
