@@ -40,6 +40,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
 
+import static com.android.tools.idea.gradle.structure.model.PsDependency.TextType.PLAIN_TEXT;
 import static com.android.tools.idea.gradle.structure.model.pom.MavenPoms.findDependenciesInPomFile;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
@@ -222,7 +223,7 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
     PsAndroidDependency transitive = addLibrary(transitiveDependency, artifact);
     if (transitive != null && dependency instanceof PsAndroidLibraryDependency) {
       PsAndroidLibraryDependency libraryDependency = (PsAndroidLibraryDependency)dependency;
-      libraryDependency.addTransitiveDependency(transitive.getValueAsText());
+      libraryDependency.addTransitiveDependency(transitive.toText(PLAIN_TEXT));
     }
   }
 
@@ -276,7 +277,7 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
         if (libraryPath != null) {
           pomDependencies = findDependenciesInPomFile(libraryPath);
         }
-        dependency.setPomDependencies(pomDependencies);
+        dependency.setDependenciesFromPomFile(pomDependencies);
       }
     }
     else {

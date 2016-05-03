@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.configurables.messages;
 
 import com.android.tools.idea.gradle.structure.configurables.AbstractCounterDisplayConfigurable;
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
+import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 
@@ -54,5 +55,11 @@ public class MessagesConfigurable extends AbstractCounterDisplayConfigurable {
   @Nls
   public String getDisplayName() {
     return "Messages";
+  }
+
+  @Override
+  public void disposeUIResources() {
+    Disposer.dispose(myMessagesForm);
+    super.disposeUIResources();
   }
 }

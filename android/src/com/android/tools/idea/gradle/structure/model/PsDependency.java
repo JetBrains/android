@@ -78,5 +78,9 @@ public abstract class PsDependency extends PsChildModel implements PsAndroidMode
   }
 
   @NotNull
-  public abstract String getValueAsText();
+  public abstract String toText(@NotNull TextType type);
+
+  public enum TextType {
+    PLAIN_TEXT, FOR_NAVIGATION
+  }
 }

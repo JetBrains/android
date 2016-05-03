@@ -22,6 +22,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Comparator;
 
+import static com.android.tools.idea.gradle.structure.model.PsDependency.TextType.PLAIN_TEXT;
+
 public class PsAndroidDependencyComparator implements Comparator<PsAndroidDependency> {
   @NotNull public static final PsAndroidDependencyComparator INSTANCE = new PsAndroidDependencyComparator();
 
@@ -39,7 +41,7 @@ public class PsAndroidDependencyComparator implements Comparator<PsAndroidDepend
     }
     else if (d1 instanceof PsModuleDependency) {
       if (d2 instanceof PsModuleDependency) {
-        return d1.getValueAsText().compareTo(d2.getValueAsText());
+        return d1.toText(PLAIN_TEXT).compareTo(d2.toText(PLAIN_TEXT));
       }
       else if (d2 instanceof PsAndroidLibraryDependency) {
         return 1;

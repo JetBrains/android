@@ -22,10 +22,9 @@ import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidLibraryDependency;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.IdeaTestCase;
 import com.intellij.util.ui.ColumnInfo;
 import org.jetbrains.annotations.NotNull;
@@ -33,6 +32,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.function.Consumer;
 
+import static com.android.tools.idea.gradle.structure.model.PsDependency.TextType.PLAIN_TEXT;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -71,7 +71,7 @@ public class DeclaredDependenciesTableModelTest extends IdeaTestCase {
     PsArtifactDependencySpec spec = new PsArtifactDependencySpec("appcompat-v7", "com.android.support", "23.1.0");
     when(myLibraryDependency.getResolvedSpec()).thenReturn(spec);
     when(myLibraryDependency.getDeclaredSpec()).thenReturn(spec);
-    when(myLibraryDependency.getValueAsText()).thenReturn("com.android.support:appcompat-v7:23.1.0");
+    when(myLibraryDependency.toText(PLAIN_TEXT)).thenReturn("com.android.support:appcompat-v7:23.1.0");
 
     ColumnInfo[] columnInfos = myTableModel.getColumnInfos();
 

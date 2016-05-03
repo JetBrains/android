@@ -36,8 +36,10 @@ import java.util.List;
 import java.util.Map;
 
 import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.revalidateAndRepaint;
+import static com.android.tools.idea.gradle.structure.model.PsPath.GO_TO_PATH_TYPE;
+import static com.android.tools.idea.gradle.structure.model.PsPath.QUICK_FIX_PATH_TYPE;
 import static com.android.tools.idea.gradle.structure.navigation.Places.deserialize;
-import static com.android.tools.idea.gradle.structure.navigation.PsNavigationPath.GO_TO_PATH_TYPE;
+import static com.android.tools.idea.gradle.structure.quickfix.QuickFixes.executeQuickFix;
 import static com.intellij.ide.BrowserUtil.browse;
 import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
@@ -210,6 +212,11 @@ public class IssuesViewer {
         Place place = deserialize(serializedPlace);
         ProjectStructureConfigurable mainConfigurable = myContext.getMainConfigurable();
         mainConfigurable.navigateTo(place, true);
+        return;
+      }
+      if (target.startsWith(QUICK_FIX_PATH_TYPE)) {
+        String quickFixPath = target.substring(QUICK_FIX_PATH_TYPE.length());
+        executeQuickFix(quickFixPath, myContext);
         return;
       }
       if (target.startsWith("https://") || target.startsWith("http://")) {

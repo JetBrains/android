@@ -21,7 +21,8 @@ import com.android.tools.idea.gradle.structure.configurables.issues.IssuesViewer
 import com.android.tools.idea.gradle.structure.daemon.PsAnalyzerDaemon;
 import com.android.tools.idea.gradle.structure.daemon.PsDaemon;
 import com.android.tools.idea.gradle.structure.model.PsIssue;
-import com.android.tools.idea.gradle.structure.navigation.PsModulePath;
+import com.android.tools.idea.gradle.structure.model.PsModulePath;
+import com.intellij.openapi.Disposable;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -31,11 +32,12 @@ import java.util.List;
 
 import static com.android.tools.idea.gradle.structure.model.PsIssueType.LIBRARY_UPDATES_AVAILABLE;
 import static com.android.tools.idea.gradle.structure.model.PsIssueType.PROJECT_ANALYSIS;
+import static com.android.tools.idea.gradle.structure.model.PsPath.TexType.HTML;
 import static com.intellij.ui.ScrollPaneFactory.createScrollPane;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
-class MessagesForm {
+class MessagesForm implements Disposable {
   @NotNull private final PsContext myContext;
   @NotNull private final IssuesViewer myIssuesViewer;
 
@@ -48,17 +50,23 @@ class MessagesForm {
 
   MessagesForm(@NotNull PsContext context) {
     myContext = context;
+
+    myContext.getProject().forEachModule(module -> module.add(event -> {
+      myContext.getAnalyzerDaemon().recreateUpdateIssues();
+      analyzeProject();
+    }, this));
+
     myIssuesViewer = new IssuesViewer(context, issues -> {
       StringBuilder buffer = new StringBuilder();
       buffer.append("<html><body><ol>");
 
       for (PsIssue issue : issues) {
         buffer.append("<li>")
-              .append(issue.getPath().getHtml()).append(": ").append(issue.getText())
+              .append(issue.getPath().toText(HTML)).append(": ").append(issue.getText())
               .append("</li>");
       }
 
-      buffer.append("</ul></body></html");
+      buffer.append("</ul></body></html>");
       return buffer.toString();
     });
 
@@ -69,18 +77,20 @@ class MessagesForm {
 
     renderIssues();
 
-    myAnalyzeProjectButton.addActionListener(e -> {
-      myAnalyzeProjectButton.setEnabled(false);
-      PsAnalyzerDaemon daemon = myContext.getAnalyzerDaemon();
-      daemon.removeIssues(PROJECT_ANALYSIS);
-      myContext.getProject().forEachModule(daemon::queueCheck);
-    });
+    myAnalyzeProjectButton.addActionListener(e -> analyzeProject());
 
     myCheckForUpdateButton.addActionListener(e -> {
       myCheckForUpdateButton.setEnabled(false);
       myContext.getAnalyzerDaemon().removeIssues(LIBRARY_UPDATES_AVAILABLE);
       myContext.getLibraryUpdateCheckerDaemon().queueUpdateCheck();
     });
+  }
+
+  private void analyzeProject() {
+    myAnalyzeProjectButton.setEnabled(false);
+    PsAnalyzerDaemon daemon = myContext.getAnalyzerDaemon();
+    daemon.removeIssues(PROJECT_ANALYSIS);
+    myContext.getProject().forEachModule(daemon::queueCheck);
   }
 
   private void enableButtons() {
@@ -109,5 +119,10 @@ class MessagesForm {
 
   int getMessageCount() {
     return myMessageCount;
+  }
+
+  @Override
+  public void dispose() {
+
   }
 }

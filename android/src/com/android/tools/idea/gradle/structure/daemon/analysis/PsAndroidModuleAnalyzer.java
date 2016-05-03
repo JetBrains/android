@@ -23,9 +23,10 @@ import com.android.tools.idea.gradle.structure.model.PsIssue;
 import com.android.tools.idea.gradle.structure.model.PsIssueCollection;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidLibraryDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
-import com.android.tools.idea.gradle.structure.navigation.PsLibraryDependencyPath;
-import com.android.tools.idea.gradle.structure.navigation.PsModulePath;
-import com.android.tools.idea.gradle.structure.navigation.PsNavigationPath;
+import com.android.tools.idea.gradle.structure.navigation.PsLibraryDependencyNavigationPath;
+import com.android.tools.idea.gradle.structure.model.PsModulePath;
+import com.android.tools.idea.gradle.structure.model.PsPath;
+import com.android.tools.idea.gradle.structure.quickfix.PsLibraryDependenyVersionQuickFixPath;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
@@ -67,7 +68,7 @@ public class PsAndroidModuleAnalyzer extends PsModelAnalyzer<PsAndroidModule> {
     module.forEachDependency(dependency -> {
       if (dependency instanceof PsAndroidLibraryDependency && dependency.isDeclared()) {
         PsAndroidLibraryDependency libraryDependency = (PsAndroidLibraryDependency)dependency;
-        PsNavigationPath path = new PsLibraryDependencyPath(myContext, libraryDependency);
+        PsPath path = new PsLibraryDependencyNavigationPath(myContext, libraryDependency);
 
         PsArtifactDependencySpec resolvedSpec = libraryDependency.getResolvedSpec();
         String issueKey = resolvedSpec.group + GRADLE_PATH_SEPARATOR + resolvedSpec.name;
@@ -84,6 +85,10 @@ public class PsAndroidModuleAnalyzer extends PsModelAnalyzer<PsAndroidModule> {
           String message = "Avoid using '+' in version numbers; can lead to unpredictable and unrepeatable builds.";
           PsIssue issue = new PsIssue(message, "", path, PROJECT_ANALYSIS, WARNING);
           issue.setExtraPath(modulePath);
+
+          PsPath quickFix = new PsLibraryDependenyVersionQuickFixPath(libraryDependency);
+          issue.setQuickFixPath(quickFix);
+
           issueCollection.add(issue);
         }
 
@@ -102,7 +107,7 @@ public class PsAndroidModuleAnalyzer extends PsModelAnalyzer<PsAndroidModule> {
 
   @VisibleForTesting
   @NotNull
-  static PsIssue createIssueFrom(@NotNull SyncIssue syncIssue, @NotNull PsNavigationPath path, @Nullable PsNavigationPath extraPath) {
+  static PsIssue createIssueFrom(@NotNull SyncIssue syncIssue, @NotNull PsPath path, @Nullable PsPath extraPath) {
     String message = escapeString(syncIssue.getMessage());
     Matcher matcher = URL_PATTERN.matcher(message);
     boolean result = matcher.find();
