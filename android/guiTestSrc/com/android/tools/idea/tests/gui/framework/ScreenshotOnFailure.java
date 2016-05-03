@@ -31,9 +31,10 @@ class ScreenshotOnFailure extends TestWatcher {
     String fileName = description.getTestClass().getSimpleName() + "." + description.getMethodName() + ".png";
 
     try {
-      String filePath = new File(IdeTestApplication.getFailedTestScreenshotDirPath(), fileName).getPath();
-      myScreenshotTaker.saveDesktopAsPng(filePath);
-      System.out.println("Screenshot: " + filePath);
+      File file = new File(IdeTestApplication.getFailedTestScreenshotDirPath(), fileName);
+      file.delete();
+      myScreenshotTaker.saveDesktopAsPng(file.getPath());
+      System.out.println("Screenshot: " + file);
     }
     catch (Throwable t) {
       System.out.println("Screenshot failed. " + t.getMessage());
