@@ -362,6 +362,7 @@
   </group>
 
   <group name="Layouts">
+    <item tag="com.google.tnt.sherpa.ConstraintLayout"/>
     <item tag="GridLayout"/>
     <item tag="FrameLayout"/>
     <item tag="LinearLayout"
