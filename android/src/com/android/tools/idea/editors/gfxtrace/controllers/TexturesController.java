@@ -220,7 +220,7 @@ public class TexturesController extends ImagePanelController {
     }
 
     @Override
-    public void onAtomSelected(AtomPath path) {
+    public void onAtomSelected(AtomPath path, Object source) {
       update(false);
     }
   }

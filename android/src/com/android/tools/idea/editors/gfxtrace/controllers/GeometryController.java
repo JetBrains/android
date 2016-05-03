@@ -183,7 +183,7 @@ public class GeometryController extends Controller implements AtomStream.Listene
   }
 
   @Override
-  public void onAtomSelected(AtomPath path) {
+  public void onAtomSelected(AtomPath path, Object source) {
     CardLayout layout = (CardLayout)myPanel.getLayout();
     if (myEditor.getAtomStream().getSelectedAtom().isDrawCall()) {
       layout.show(myPanel, CARD_GEOMETRY);

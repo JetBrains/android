@@ -135,7 +135,7 @@ public class ScrubberController extends ImageCellController<ScrubberController.D
   }
 
   @Override
-  public void onAtomSelected(AtomPath path) {
+  public void onAtomSelected(AtomPath path, Object source) {
     int index = 0;
     for (Data data : myList.items()) {
       if (data.range.contains(path.getIndex())) {
