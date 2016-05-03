@@ -36,6 +36,7 @@ public class ScoutProbabilities {
     private static final boolean SUPPORT_WEAK_TO_CENTER = true;
     private static final int NEGATIVE_GAP_FLAG = -3;
     private static final int CONSTRAINT_FAILED_FLAG = -2;
+    private static final float CENTER_ERROR = 2;
 
     float[][][] mProbability; // probability of a connection
     float[][][] mMargin; // margin needed for that connection
@@ -138,6 +139,7 @@ public class ScoutProbabilities {
     public void applyConstraints(ScoutWidget[] list) {
 
         // this provides the sequence of connections
+        pickCenterOverlap(list);
         pickColumnWidgets(list);
         pickBaseLineConnections(list); // baseline first
         pickCenteredConnections(list, true); // centered connections that stretch
@@ -151,6 +153,34 @@ public class ScoutProbabilities {
         }
     }
 
+    /**
+     * Find and connect widgets centered over other widgets
+     * @param list
+     */
+    private void pickCenterOverlap(ScoutWidget[] list) {
+        // find any widget centered over the edge of another
+        for (int i = 0; i < list.length; i++) {
+            ScoutWidget scoutWidget = list[i];
+            float centerX = scoutWidget.getX()+scoutWidget.getWidth()/2;
+            float centerY = scoutWidget.getY()+scoutWidget.getHeight()/2;
+            for (int j = 0; j < list.length; j++) {
+                if (i == j) continue;
+                ScoutWidget widget = list[j];
+                if (Math.abs(widget.getX() - centerX) < CENTER_ERROR) {
+                    scoutWidget.setEdgeCentered(1, widget, Direction.WEST);
+                }
+                if (Math.abs(widget.getY() - centerY) < CENTER_ERROR) {
+                    scoutWidget.setEdgeCentered(1, widget, Direction.NORTH);
+                }
+                if (Math.abs(widget.getX() + widget.getWidth() - centerX) < CENTER_ERROR) {
+                    scoutWidget.setEdgeCentered(1, widget, Direction.EAST);
+                }
+                if (Math.abs(widget.getY() + widget.getHeight() - centerY) < CENTER_ERROR) {
+                    scoutWidget.setEdgeCentered(1, widget,Direction.SOUTH);
+                }
+            }
+        }
+    }
     /**
      *  force structure for column cases
      * @param list
