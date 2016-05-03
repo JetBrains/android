@@ -924,6 +924,16 @@ public class MouseInteraction {
                                     margin = sMargin;
                                 }
                             }
+                            if (handleTarget.getAnchor().getType() == handle.getAnchor().getType()) {
+                                if (handleTarget.getOwner().isRoot()) {
+                                    margin = Math.max(16, margin); // for root we keep a default 16dp margin
+                                } else {
+                                    // If we have a connection between the same type of anchors,
+                                    // let's not set a margin, as it's more likely to be a direct
+                                    // alignment
+                                    margin = 0;
+                                }
+                            }
                             ConstraintAnchor.Strength strength = ConstraintAnchor.Strength.STRONG;
                             if (isShiftDown()) {
                                 strength = ConstraintAnchor.Strength.WEAK;
