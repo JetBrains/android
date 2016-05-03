@@ -37,7 +37,6 @@ import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.InputValidator;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.StreamUtil;
@@ -49,6 +48,7 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.android.actions.CreateResourceDirectoryDialog;
+import org.jetbrains.android.actions.ElementCreatingValidator;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
@@ -128,9 +128,8 @@ public class OverrideResourceAction extends AbstractIntentionAction {
 
   @Override
   public void invoke(@NotNull final Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
-    AndroidFacet facet = AndroidFacet.getInstance(file);
     ResourceFolderType folderType = ResourceHelper.getFolderType(file);
-    if (facet == null || folderType == null) {
+    if (folderType == null) {
       // shouldn't happen; we checked in isAvailable
       return;
     }
@@ -138,21 +137,20 @@ public class OverrideResourceAction extends AbstractIntentionAction {
     if (folderType != ResourceFolderType.VALUES) {
       forkResourceFile((XmlFile)file, null, true);
     } else if (editor != null) {
-      forkResourceValue(project, editor, file, facet, null, true);
+      forkResourceValue(project, editor, file, null, true);
     }
   }
 
   private static void forkResourceValue(@NotNull Project project,
                                         @NotNull Editor editor,
                                         @NotNull PsiFile file,
-                                        @NotNull AndroidFacet facet,
                                         @Nullable PsiDirectory dir,
                                         boolean open) {
     XmlTag tag = getValueTag(editor, file);
     if (tag == null) {
       return; // shouldn't happen; we checked in isAvailable
     }
-    forkResourceValue(project, tag, file, facet, dir, open);
+    forkResourceValue(project, tag, file, dir, open);
   }
 
   @Nullable
@@ -166,14 +164,12 @@ public class OverrideResourceAction extends AbstractIntentionAction {
    * @param project Current project
    * @param tag Resource to be copied
    * @param file File containing the resource
-   * @param facet Facet to contain the new resource
    * @param dir Directory to contain the new resource, or null to ask the user
    * @param open if true, open the file containing the new resource
    */
   public static void forkResourceValue(@NotNull Project project,
                                        @NotNull XmlTag tag,
                                        @NotNull PsiFile file,
-                                       @NotNull AndroidFacet facet,
                                        @Nullable PsiDirectory dir,
                                        boolean open) {
 
@@ -191,7 +187,7 @@ public class OverrideResourceAction extends AbstractIntentionAction {
     }
     if (dir != null) {
       String value = ResourceHelper.getTextContent(tag).trim();
-      createValueResource(file, facet, dir, name, value, type, tag.getText(), open);
+      createValueResource(project, resFolder, file, dir, name, value, type, tag.getText(), open);
     }
   }
 
@@ -229,19 +225,19 @@ public class OverrideResourceAction extends AbstractIntentionAction {
     return current;
   }
 
-  private static void createValueResource(@NotNull PsiFile file,
-                                          @NotNull AndroidFacet facet,
-                                          @NotNull PsiDirectory dir,
+  private static void createValueResource(@NotNull final Project project,
+                                          @NotNull final PsiDirectory resDir,
+                                          @NotNull PsiFile file,
+                                          @NotNull PsiDirectory resourceSubdir,
                                           @NotNull final String resName,
                                           @NotNull final String value,
                                           @NotNull final ResourceType type,
                                           @NotNull final String oldTagText,
                                           boolean open) {
     final String filename = file.getName();
-    final List<String> dirNames = Collections.singletonList(dir.getName());
-    final Module module = facet.getModule();
+    final List<String> dirNames = Collections.singletonList(resourceSubdir.getName());
     final AtomicReference<PsiElement> openAfter = new AtomicReference<PsiElement>();
-    final WriteCommandAction<Void> action = new WriteCommandAction<Void>(facet.getModule().getProject(),
+    final WriteCommandAction<Void> action = new WriteCommandAction<Void>(project,
                                                                    "Override Resource " + resName, file) {
       @Override
       protected void run(@NotNull Result<Void> result) {
@@ -253,7 +249,7 @@ public class OverrideResourceAction extends AbstractIntentionAction {
         // create the corresponding tag, and then *afterwards* we will replace the tag with a text copy
         // from the resource tag we are overriding. We do this all under a single write lock such
         // that it becomes a single atomic operation.
-        AndroidResourceUtil.createValueResource(module, resName, type, filename, dirNames, value, elements);
+        AndroidResourceUtil.createValueResource(project, resDir.getVirtualFile(), resName, type, filename, dirNames, value, elements);
         if (elements.size() == 1) {
           final XmlTag tag = elements.get(0).getXmlTag();
           if (tag != null && tag.isValid()) {
@@ -296,7 +292,7 @@ public class OverrideResourceAction extends AbstractIntentionAction {
     }
     XmlFile xmlFile = context.getXmlFile();
     Configuration configuration = context.getConfiguration();
-    forkResourceFile(module, ResourceFolderType.LAYOUT, file, xmlFile, newFolder, configuration, open);
+    forkResourceFile(module.getProject(), ResourceFolderType.LAYOUT, file, xmlFile, newFolder, configuration, open);
   }
 
   /**
@@ -327,20 +323,16 @@ public class OverrideResourceAction extends AbstractIntentionAction {
       }
     }
 
-    // Suppress: IntelliJ claims folderType can be null here, but it can't (and inserting assert folderType != null is correctly
-    // identified as redundant)
-    //noinspection ConstantConditions
-    forkResourceFile(module, folderType, file, xmlFile, myNewFolder, configuration, open);
+    forkResourceFile(module.getProject(), folderType, file, xmlFile, myNewFolder, configuration, open);
   }
 
-  private static void forkResourceFile(@NotNull Module module,
+  private static void forkResourceFile(@NotNull Project project,
                                        @NotNull final ResourceFolderType folderType,
                                        @NotNull final VirtualFile file,
                                        @Nullable final XmlFile xmlFile,
                                        @Nullable String myNewFolder,
                                        @Nullable Configuration configuration,
                                        boolean open) {
-    final Project project = module.getProject();
     final FolderConfiguration folderConfig;
     if (myNewFolder == null) {
       // Open a file chooser to select the configuration to be created
@@ -432,7 +424,7 @@ public class OverrideResourceAction extends AbstractIntentionAction {
 
   @Nullable
   public static PsiDirectory selectFolderDir(final Project project, VirtualFile res, ResourceFolderType folderType) {
-    final PsiDirectory directory = PsiManager.getInstance(project).findDirectory(res);
+    PsiDirectory directory = PsiManager.getInstance(project).findDirectory(res);
     if (directory == null) {
       return null;
     }
@@ -443,20 +435,16 @@ public class OverrideResourceAction extends AbstractIntentionAction {
       }
       return directory.createSubdirectory(ourTargetFolderName);
     }
-    final CreateResourceDirectoryDialog dialog = new CreateResourceDirectoryDialog(project, folderType, directory, null) {
-      @Override
-      protected InputValidator createValidator() {
-        return new ResourceDirectorySelector(project, directory);
-      }
-    };
+    CreateResourceDirectoryDialog dialog = new CreateResourceDirectoryDialog(
+      project, folderType, directory, null, null,
+      resDirectory -> new ResourceDirectorySelector(project, resDirectory));
     dialog.setTitle("Select Resource Directory");
-    dialog.show();
-    final InputValidator validator = dialog.getValidator();
-    if (validator != null) {
-      PsiElement[] createdElements = ((ResourceDirectorySelector)validator).getCreatedElements();
-      if (createdElements != null && createdElements.length > 0) {
-        return (PsiDirectory)createdElements[0];
-      }
+    if (!dialog.showAndGet()) {
+      return null;
+    }
+    PsiElement[] createdElements = dialog.getCreatedElements();
+    if (createdElements != null && createdElements.length > 0) {
+      return (PsiDirectory)createdElements[0];
     }
 
     return null;
@@ -475,7 +463,7 @@ public class OverrideResourceAction extends AbstractIntentionAction {
   /**
    * Selects (and optionally creates) a resource directory
    */
-  private static class ResourceDirectorySelector extends ElementCreator implements InputValidator {
+  private static class ResourceDirectorySelector extends ElementCreator implements ElementCreatingValidator {
     private final PsiDirectory myDirectory;
     private PsiElement[] myCreatedElements = PsiElement.EMPTY_ARRAY;
 
@@ -515,6 +503,7 @@ public class OverrideResourceAction extends AbstractIntentionAction {
       return myCreatedElements.length > 0;
     }
 
+    @Override
     public final PsiElement[] getCreatedElements() {
       return myCreatedElements;
     }
@@ -543,20 +532,17 @@ public class OverrideResourceAction extends AbstractIntentionAction {
           } else {
             XmlTag tag = getValueTag(PsiTreeUtil.getParentOfType(startElement, XmlTag.class, false));
             if (tag != null) {
-              AndroidFacet facet = AndroidFacet.getInstance(startElement);
-              if (facet != null) {
-                PsiDirectory dir = null;
-                if (myFolder != null) {
-                  PsiDirectory resFolder = findRes(file);
-                  if (resFolder != null) {
-                    dir = resFolder.findSubdirectory(myFolder);
-                    if (dir == null) {
-                      dir = resFolder.createSubdirectory(myFolder);
-                    }
+              PsiDirectory dir = null;
+              if (myFolder != null) {
+                PsiDirectory resFolder = findRes(file);
+                if (resFolder != null) {
+                  dir = resFolder.findSubdirectory(myFolder);
+                  if (dir == null) {
+                    dir = resFolder.createSubdirectory(myFolder);
                   }
                 }
-                forkResourceValue(startElement.getProject(), tag, file, facet, dir, true);
               }
+              forkResourceValue(startElement.getProject(), tag, file, dir, true);
             }
           }
         }
