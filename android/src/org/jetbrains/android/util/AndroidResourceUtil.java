@@ -24,6 +24,7 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.res.ResourceHelper;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.ide.actions.CreateElementActionBase;
 import com.intellij.ide.fileTemplates.FileTemplate;
@@ -94,9 +95,7 @@ public class AndroidResourceUtil {
   public static final Set<ResourceType> ALL_VALUE_RESOURCE_TYPES = EnumSet.noneOf(ResourceType.class);
 
   public static final Set<ResourceType> REFERRABLE_RESOURCE_TYPES = EnumSet.noneOf(ResourceType.class);
-  public static final Set<ResourceType> XML_FILE_RESOURCE_TYPES = EnumSet
-    .of(ResourceType.ANIM, ResourceType.ANIMATOR, ResourceType.INTERPOLATOR, ResourceType.LAYOUT, ResourceType.MENU, ResourceType.XML,
-        ResourceType.COLOR, ResourceType.DRAWABLE, ResourceType.MIPMAP, ResourceType.RAW, ResourceType.TRANSITION);
+  public static final Map<ResourceType, ResourceFolderType> XML_FILE_RESOURCE_TYPES = Maps.newEnumMap(ResourceType.class);
   static final String ROOT_TAG_PROPERTY = "ROOT_TAG";
   static final String LAYOUT_WIDTH_PROPERTY = "LAYOUT_WIDTH";
   static final String LAYOUT_HEIGHT_PROPERTY = "LAYOUT_HEIGHT";
@@ -141,6 +140,18 @@ public class AndroidResourceUtil {
     ALL_VALUE_RESOURCE_TYPES.addAll(VALUE_RESOURCE_TYPES);
     ALL_VALUE_RESOURCE_TYPES.add(ATTR);
     ALL_VALUE_RESOURCE_TYPES.add(STYLEABLE);
+
+    XML_FILE_RESOURCE_TYPES.put(ResourceType.ANIM, ResourceFolderType.ANIM);
+    XML_FILE_RESOURCE_TYPES.put(ResourceType.ANIMATOR, ResourceFolderType.ANIMATOR);
+    XML_FILE_RESOURCE_TYPES.put(ResourceType.COLOR, ResourceFolderType.COLOR);
+    XML_FILE_RESOURCE_TYPES.put(ResourceType.DRAWABLE, ResourceFolderType.DRAWABLE);
+    XML_FILE_RESOURCE_TYPES.put(ResourceType.INTERPOLATOR, ResourceFolderType.INTERPOLATOR);
+    XML_FILE_RESOURCE_TYPES.put(ResourceType.LAYOUT, ResourceFolderType.LAYOUT);
+    XML_FILE_RESOURCE_TYPES.put(ResourceType.MENU, ResourceFolderType.MENU);
+    XML_FILE_RESOURCE_TYPES.put(ResourceType.MIPMAP, ResourceFolderType.MIPMAP);
+    XML_FILE_RESOURCE_TYPES.put(ResourceType.RAW, ResourceFolderType.RAW);
+    XML_FILE_RESOURCE_TYPES.put(ResourceType.TRANSITION, ResourceFolderType.TRANSITION);
+    XML_FILE_RESOURCE_TYPES.put(ResourceType.XML, ResourceFolderType.XML);
   }
 
   public static String packageToRClass(@NotNull String packageName) {
