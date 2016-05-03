@@ -34,10 +34,9 @@ import com.intellij.util.Consumer;
 import com.intellij.util.containers.HashSet;
 import com.intellij.util.xml.*;
 import com.intellij.util.xml.converters.DelimitedListConverter;
-import com.intellij.util.xml.reflect.DomExtension;
 import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider;
-import org.jetbrains.android.dom.AndroidDomExtender;
 import org.jetbrains.android.dom.AndroidResourceDomFileDescription;
+import org.jetbrains.android.dom.AttributeProcessingUtil;
 import org.jetbrains.android.dom.animation.AndroidAnimationUtils;
 import org.jetbrains.android.dom.animator.AndroidAnimatorUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
@@ -61,7 +60,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.*;
@@ -222,32 +220,25 @@ public class AndroidCompletionContributor extends CompletionContributor {
     final XmlTag tag = attribute.getParent();
     final DomElement element = DomManager.getDomManager(tag.getProject()).getDomElement(tag);
 
-    // Quirk of AndroidDomExtender "API": we need to create mutable sets to pass them to registerExtensionsForLayout
-    final Set<String> registeredSubtags = new HashSet<String>();
-    final Set<XmlName> registeredAttributes = new HashSet<XmlName>();
+    final Set<XmlName> registeredAttributes = new HashSet<>();
 
     if (element instanceof LayoutElement) {
-      AndroidDomExtender.registerExtensionsForLayout(facet, tag, (LayoutElement)element, new AndroidDomExtender.MyCallback() {
-        @Nullable
-        @Override
-        public DomExtension processAttribute(@NotNull XmlName xmlName,
-                                             @NotNull AttributeDefinition attrDef,
-                                             @Nullable String parentStyleableName) {
-          if (SdkConstants.ANDROID_URI.equals(xmlName.getNamespaceKey())) {
-            final String localName = xmlName.getLocalName();
+      AttributeProcessingUtil.processLayoutAttributes(facet, tag, (LayoutElement)element, registeredAttributes,
+                                                      (xmlName, attrDef, parentStyleableName) -> {
+        if (SdkConstants.ANDROID_URI.equals(xmlName.getNamespaceKey())) {
+          final String localName = xmlName.getLocalName();
 
-            // Lookup string is something that would be inserted when attribute is completed, so we want to use
-            // local name as an argument of .create(), otherwise we'll end up with getting completions like
-            // "tools:tools:src". However, we want to show "tools:" prefix in the completion list, and for that
-            // .withPresentableText is used
-            final LookupElementBuilder element =
-              LookupElementBuilder.create(psiElement, localName).withInsertHandler(XmlAttributeInsertHandler.INSTANCE)
-                .withPresentableText(namespacePrefix + ":" + localName);
-            resultSet.addElement(element);
-          }
-          return null;
+          // Lookup string is something that would be inserted when attribute is completed, so we want to use
+          // local name as an argument of .create(), otherwise we'll end up with getting completions like
+          // "tools:tools:src". However, we want to show "tools:" prefix in the completion list, and for that
+          // .withPresentableText is used
+          final LookupElementBuilder lookupElement =
+            LookupElementBuilder.create(psiElement, localName).withInsertHandler(XmlAttributeInsertHandler.INSTANCE)
+              .withPresentableText(namespacePrefix + ":" + localName);
+          resultSet.addElement(lookupElement);
         }
-      }, registeredSubtags, registeredAttributes);
+        return null;
+      });
     }
   }
 
