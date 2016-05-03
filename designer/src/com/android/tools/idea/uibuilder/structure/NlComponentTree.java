@@ -40,10 +40,8 @@ import javax.swing.tree.*;
 import java.awt.*;
 import java.awt.Insets;
 import java.awt.dnd.DropTarget;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.android.SdkConstants.*;
@@ -56,7 +54,6 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
 
   private final StructureTreeDecorator myDecorator;
   private final Map<NlComponent, DefaultMutableTreeNode> myComponent2Node;
-  private final Map<String, DefaultMutableTreeNode> myId2Node;
   private final AtomicBoolean mySelectionIsUpdating;
   private final MergingUpdateQueue myUpdateQueue;
 
@@ -68,8 +65,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
 
   public NlComponentTree(@NotNull DesignSurface designSurface) {
     myDecorator = new StructureTreeDecorator(designSurface.getProject());
-    myComponent2Node = new HashMap<>();
-    myId2Node = new HashMap<>();
+    myComponent2Node = new IdentityHashMap<>();
     mySelectionIsUpdating = new AtomicBoolean(false);
     myUpdateQueue = new MergingUpdateQueue(
       "android.layout.structure-pane", UPDATE_DELAY_MSECS, true, null, null, null, SWING_THREAD);
@@ -110,11 +106,6 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   @NotNull
   Map<NlComponent, DefaultMutableTreeNode> getComponentToNode() {
     return myComponent2Node;
-  }
-
-  @NotNull
-  Map<String, DefaultMutableTreeNode> getIdToNode() {
-    return myId2Node;
   }
 
   @Nullable
