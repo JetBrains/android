@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
+import com.android.tools.idea.uibuilder.LayoutTestUtilities;
 import com.intellij.psi.xml.XmlTag;
 import org.junit.Before;
 import org.junit.Test;
@@ -77,6 +78,6 @@ public final class NlComponentTest {
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x800}\n" +
                  "    NlComponent{tag=<TextView>, bounds=[0,0:200x100}\n" +
                  "    NlComponent{tag=<Button>, bounds=[10,110:400x100}",
-                 NlComponent.toTree(Collections.singletonList(linearLayout)));
+                 LayoutTestUtilities.toTree(Collections.singletonList(linearLayout)));
   }
 }

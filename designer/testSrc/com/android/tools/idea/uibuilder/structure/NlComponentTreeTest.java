@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
+import com.android.tools.idea.uibuilder.LayoutTestUtilities;
 import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
@@ -223,7 +224,8 @@ public class NlComponentTreeTest extends LayoutTestCase {
                  "    NlComponent{tag=<LinearLayout>, bounds=[0,0:200x200}\n" +
                  "        NlComponent{tag=<Button>, bounds=[0,0:100x100}\n" +
                  "    NlComponent{tag=<TextView>, bounds=[0,200:100x100}\n" +
-                 "    NlComponent{tag=<AbsoluteLayout>, bounds=[0,300:400x500}", NlComponent.toTree(model.getComponents()));
+                 "    NlComponent{tag=<AbsoluteLayout>, bounds=[0,300:400x500}",
+                 LayoutTestUtilities.toTree(model.getComponents()));
     return model;
   }
 
@@ -257,7 +259,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
                  "            NlComponent{tag=<android.support.v7.widget.Toolbar>, bounds=[0,0:1000x18}\n" +
                  "    NlComponent{tag=<android.support.v4.widget.NestedScrollView>, bounds=[0,192:1000x808}\n" +
                  "        NlComponent{tag=<TextView>, bounds=[0,192:1000x808}",
-                 NlComponent.toTree(model.getComponents()));
+                 LayoutTestUtilities.toTree(model.getComponents()));
     return model;
   }
 }

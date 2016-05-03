@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.model;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.MergeCookie;
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.res.ResourceNotificationManager;
@@ -31,11 +32,7 @@ import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.util.PropertiesMap;
 import com.android.utils.XmlUtils;
-import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import com.google.common.collect.*;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
@@ -45,6 +42,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.util.ProgressIndicatorBase;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.util.text.StringUtil;
@@ -170,7 +168,9 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   public void setLintAnnotationsModel(@Nullable LintAnnotationsModel model) {
     myLintAnnotationsModel = model;
-    ApplicationManager.getApplication().invokeLater(this::notifyListenersModelUpdateComplete);
+    // Deliberately not rev'ing the model version and firing changes here;
+    // we know only the warnings layer cares about this change and can be
+    // updated by a single repaint
   }
 
   /**
@@ -287,6 +287,23 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       myRenderResult = result;
       updateHierarchy(result);
     }
+  }
+
+  private void updateHierarchy(@Nullable RenderResult result) {
+    if (result == null || !result.getRenderResult().isSuccess()) {
+      myComponents = Collections.emptyList();
+    } else {
+      XmlTag rootTag = AndroidPsiUtils.getRootTagSafely(myFile);
+      List<ViewInfo> rootViews = result.getRootViews();
+      updateHierarchy(rootTag, rootViews);
+    }
+    myModificationCount++;
+  }
+
+  @VisibleForTesting
+  public void updateHierarchy(@Nullable XmlTag rootTag, @Nullable Iterable<ViewInfo> rootViews) {
+    ModelUpdater updater = new ModelUpdater(this);
+    updater.update(rootTag, rootViews);
   }
 
   /**
@@ -446,193 +463,335 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     return myComponents;
   }
 
-  private final Map<XmlTag, NlComponent> myTagToComponentMap = Maps.newIdentityHashMap();
-  private final Map<XmlTag, NlComponent> myMergeComponentMap = Maps.newHashMap();
+  /**
+   * Synchronizes a {@linkplain NlModel} after a render such that the component hierarchy
+   * is up to date wrt view bounds, tag snapshots etc. Crucially, it attempts to preserve
+   * component hierarchy (since XmlTags may sometimes not survive a PSI reparse, but we
+   * want the {@linkplain NlComponent} instances to keep the same instances across these
+   * edits such that for example the selection (a set of {@link NlComponent} instances)
+   * are preserved.
+   */
+  private static class ModelUpdater {
+    private final NlModel myModel;
+    private final Map<XmlTag, NlComponent> myTagToComponentMap = Maps.newIdentityHashMap();
+    /** Map from snapshots in the old component map to the corresponding components */
+    private final Map<TagSnapshot, NlComponent> mySnapshotToComponent = Maps.newIdentityHashMap();
+    /** Map from tags in the view render tree to the corresponding snapshots */
+    private final Map<XmlTag, TagSnapshot> myTagToSnapshot = Maps.newHashMap();
 
-  private void updateHierarchy(@Nullable RenderResult result) {
-    if (result == null || !result.getRenderResult().isSuccess()) {
-      myComponents.clear();
-      return;
+    public ModelUpdater(@NotNull NlModel model) {
+      myModel = model;
     }
 
-    Iterable<ViewInfo> rootViews = Objects.firstNonNull(result.getRootViews(), Collections.<ViewInfo>emptyList());
-
-    if (ResourceType.valueOf(myFile).equals(ResourceType.PREFERENCE_SCREEN)) {
-      updatePreferenceScreenHierarchy(rootViews);
-    }
-    else {
-      updateHierarchy(rootViews);
-    }
-  }
-
-  private void updatePreferenceScreenHierarchy(@NotNull Iterable<ViewInfo> rootViews) {
-    ApplicationManager.getApplication().runReadAction(() -> {
-      List<NlComponent> components = new ArrayList<>(1);
-      components.add(new PreferenceScreenModel(rootViews, this).getRootComponent());
-
-      myModificationCount++;
-      myComponents = components;
-    });
-  }
-
-  @VisibleForTesting
-  public void updateHierarchy(@NotNull Iterable<ViewInfo> rootViews) {
-    for (NlComponent component : myComponents) {
-      initTagMap(component);
-      component.children = null;
-    }
-
-    final List<NlComponent> newRoots = Lists.newArrayList();
-
-    for (ViewInfo info : rootViews) {
-      updateHierarchy(newRoots, null, info, 0, 0);
-    }
-
-    updateSnapshot(newRoots);
-
-    myModificationCount++;
-    myComponents = newRoots;
-  }
-
-  private static void updateSnapshot(@NotNull Iterable<NlComponent> roots) {
-    // TODO: Use result from rendering instead, if available!
-    ApplicationManager.getApplication().runReadAction(() -> {
-      for (NlComponent root : roots) {
-        updateSnapshot(root, TagSnapshot.createTagSnapshot(root.getTag()));
-      }
-    });
-  }
-
-  private static void updateSnapshot(@NotNull NlComponent component, @NotNull TagSnapshot snapshot) {
-    assert component.getTag() == snapshot.tag;
-    component.setSnapshot(snapshot);
-    if (!snapshot.children.isEmpty()) {
-      if (snapshot.children.size() != component.getChildCount()) {
-        // TODO: Investigate this; some layouts in the Google I/O application trigger this
+    /**
+     * Update the component hierarchy associated with this {@linkplain ModelUpdater} such
+     * that the associated component list correctly reflects the latest versions of the
+     * XML PSI file, the given tag snapshot and {@link ViewInfo} hierarchy from layoutlib.
+     */
+    @VisibleForTesting
+    public void update(@Nullable XmlTag newRoot, @Nullable Iterable<ViewInfo> rootViews) {
+      if (newRoot == null) {
+        myModel.myComponents = Collections.emptyList();
         return;
       }
-      assert snapshot.children.size() == component.getChildCount();
-      for (int i = 0, n = component.getChildCount(); i < n; i++) {
-        NlComponent child = component.getChild(i);
-        assert child != null;
-        updateSnapshot(child, snapshot.children.get(i));
-      }
-    }
-    else {
-      assert component.getChildCount() == 0;
-    }
-  }
 
-  private void initTagMap(@NotNull NlComponent root) {
-    myTagToComponentMap.clear();
-    for (NlComponent component : root.getChildren()) {
-      gatherTags(myTagToComponentMap, component);
-    }
-  }
-
-  private static void gatherTags(Map<XmlTag, NlComponent> map, NlComponent component) {
-    XmlTag tag = component.getTag();
-    map.put(tag, component);
-
-    for (NlComponent child : component.getChildren()) {
-      gatherTags(map, child);
-    }
-  }
-
-  private void updateHierarchy(@NotNull List<NlComponent> newRoots,
-                               @Nullable NlComponent parent,
-                               @NotNull ViewInfo view,
-                               @AndroidCoordinate int parentX,
-                               @AndroidCoordinate int parentY) {
-    Object cookie = view.getCookie();
-    NlComponent component = null;
-    ViewInfo bounds = RenderService.getSafeBounds(view);
-
-    XmlTag tag = null;
-    boolean isMerge = false;
-    if (cookie instanceof XmlTag) {
-      tag = (XmlTag)cookie;
-    }
-    else if (cookie instanceof MergeCookie) {
-      isMerge = true;
-      cookie = ((MergeCookie)cookie).getCookie();
-      if (cookie instanceof XmlTag) {
-        tag = (XmlTag)cookie;
-        NlComponent mergedComponent = myMergeComponentMap.get(tag);
-        if (mergedComponent == null && parent != null && tag == parent.getTag()) {
-          // NumberPicker will render its children with merge cookies pointing to the root
-          // component (which was not a <merge>)
-          mergedComponent = parent;
+      // Next find the snapshots corresponding to the missing components.
+      // We have to search among the view infos in the new components.
+      if (rootViews != null) {
+        for (ViewInfo rootView : rootViews) {
+          gatherTagsAndSnapshots(rootView, myTagToSnapshot);
         }
-        if (mergedComponent != null) {
-          // Just expand the bounds
-          int left = parentX + bounds.getLeft();
-          int top = parentY + bounds.getTop();
-          int width = bounds.getRight() - bounds.getLeft();
-          int height = bounds.getBottom() - bounds.getTop();
-          Rectangle rectanglePrev = new Rectangle(mergedComponent.x, mergedComponent.y,
-                                                  mergedComponent.w, mergedComponent.h);
-          Rectangle rectangle = new Rectangle(left, top, width, height);
-          rectangle.add(rectanglePrev);
-          mergedComponent.setBounds(rectanglePrev.x, rectanglePrev.y, rectanglePrev.width, rectanglePrev.height);
-          if (parent != null) {
-            parent.addChild(mergedComponent);
+      }
+
+      NlComponent root = ApplicationManager.getApplication().runReadAction((Computable<NlComponent>)() -> {
+        // Ensure that all XmlTags in the new XmlFile contents map to a corresponding component
+        // form the old map
+        mapOldToNew(newRoot);
+        // Build up the new component tree
+        return createTree(newRoot);
+      });
+
+      myModel.myComponents = Collections.singletonList(root);
+
+      // Wipe out state in older components to make sure on reuse we don't accidentally inherit old
+      // data
+      for (NlComponent component : myTagToComponentMap.values()) {
+        component.setBounds(0, 0, -1, -1); // -1: not initialized
+        component.viewInfo = null;
+        component.setSnapshot(null);
+      }
+
+      // Update the bounds. This is based on the ViewInfo instances.
+      if (rootViews != null) {
+        for (ViewInfo view : rootViews) {
+          updateHierarchy(view, 0, 0);
+        }
+      }
+
+      // Finally, fix up bounds: ensure that all components not found in the view
+      // info hierarchy inherit position from parent
+      fixBounds(root);
+    }
+
+    private static void fixBounds(NlComponent root) {
+      boolean computeBounds = false;
+      if (root.w == -1 && root.h == -1) { // -1: not initialized
+        computeBounds = true;
+
+        // Look at parent instead
+        NlComponent parent = root.getParent();
+        if (parent != null && parent.w >= 0) {
+          root.setBounds(parent.x, parent.y, 0, 0);
+        }
+      }
+
+      List<NlComponent> children = root.children;
+      if (children != null && !children.isEmpty()) {
+        for (NlComponent child : children) {
+          fixBounds(child);
+        }
+
+        if (computeBounds) {
+          Rectangle rectangle = new Rectangle(root.x, root.y, root.w, root.h);
+          // Grow bounds to include child bounds
+          for (NlComponent child : children) {
+            rectangle = rectangle.union(new Rectangle(child.x, child.y, child.w, child.h));
           }
-          return;
+          root.setBounds(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
         }
       }
     }
-    if (tag != null && parent != null && parent.getTag() == tag) {
-      tag = null;
-    }
-    if (tag != null) {
-      component = myTagToComponentMap.get(tag);
 
-      //noinspection StatementWithEmptyBody
-      if (component != null) {
-        // TODO: Clear out component if the tag is not valid
-        //if (!tag.isValid()) {
-        //  component = null;
-        //}
+    private void mapOldToNew(@NotNull XmlTag newRootTag) {
+      ApplicationManager.getApplication().assertReadAccessAllowed();
+
+      // First build up a new component tree to reflect the latest XmlFile hierarchy.
+      // If there have been no structural changes, these map 1-1 from the previous hierarchy.
+      // We first attempt to do it based on the XmlTags:
+      //  (1) record a map from XmlTag to NlComponent in the previous component list
+      for (NlComponent component : myModel.myComponents) {
+        gatherTagsAndSnapshots(component);
       }
+
+      // Look for any NlComponents no longer present in the new set
+      List<XmlTag> missing = Lists.newArrayList();
+      Set<XmlTag> remaining = Sets.newIdentityHashSet();
+      remaining.addAll(myTagToComponentMap.keySet());
+      checkMissing(newRootTag, remaining, missing);
+
+      // If we've just removed a component, there will be no missing tags; we
+      // can build the new/updated component hierarchy directly from the old
+      // NlComponent instances
+      if (missing.isEmpty()) {
+        return;
+      }
+
+      // If we've just added a component, there will be no remaining tags from
+      // old component instances. In this case all components should be new
+      // instances
+      if (remaining.isEmpty()) {
+        return;
+      }
+
+      // Try to map more component instances from old to new.
+      // We will do this via multiple heuristics:
+      //   - mapping id's
+      //   - looking at all component attributes (e.g. snapshots)
+
+      // First check by id.
+      // Note: We can't use XmlTag#getAttribute on the old component hierarchy;
+      // those elements may not be valid and PSI will throw exceptions if we
+      // attempt to access them.
+      Map<String,NlComponent> oldIds = Maps.newHashMap();
+      for (Map.Entry<TagSnapshot, NlComponent> entry : mySnapshotToComponent.entrySet()) {
+        TagSnapshot snapshot = entry.getKey();
+        String id = snapshot.getAttribute(ATTR_ID, ANDROID_URI);
+        if (id != null) {
+          oldIds.put(id, entry.getValue());
+        }
+      }
+      ListIterator<XmlTag> missingIterator = missing.listIterator();
+      while (missingIterator.hasNext()) {
+        XmlTag tag = missingIterator.next();
+        String id = tag.getAttributeValue(ATTR_ID, ANDROID_URI);
+        if (id != null) {
+          // TODO: Consider unifying @+id/ and @id/ references here
+          // (though it's unlikely for this to change across component
+          // synchronization operations)
+          NlComponent component = oldIds.get(id);
+          if (component != null) {
+            myTagToComponentMap.put(tag, component);
+            remaining.remove(component.getTag());
+            missingIterator.remove();
+          }
+        }
+      }
+
+      if (missing.isEmpty() || remaining.isEmpty()) {
+        // We've now resolved everything
+        return;
+      }
+
+      // Next attempt to correlate components based on tag snapshots
+
+      // First compute fingerprints of the old components
+      Multimap<Long, TagSnapshot> snapshotIds = ArrayListMultimap.create();
+      for (XmlTag old : remaining) {
+        NlComponent component = myTagToComponentMap.get(old);
+        if (component != null) { // this *should* be the case
+          TagSnapshot snapshot = component.getSnapshot();
+          if (snapshot != null) {
+            snapshotIds.put(snapshot.getSignature(), snapshot);
+          }
+        }
+      }
+
+      // Note that we're using a multimap rather than a map for these keys,
+      // so if you have the same exact element and attributes multiple times,
+      // they'll be found and matched in the same order. (This works because
+      // we're also tracking the missing xml tags in iteration order by using a
+      // list instead of a set.)
+      missingIterator = missing.listIterator();
+      while (missingIterator.hasNext()) {
+        XmlTag tag = missingIterator.next();
+        TagSnapshot snapshot = myTagToSnapshot.get(tag);
+        if (snapshot != null) {
+          long signature = snapshot.getSignature();
+          Collection<TagSnapshot> snapshots = snapshotIds.get(signature);
+          if (!snapshots.isEmpty()) {
+            TagSnapshot first = snapshots.iterator().next();
+            NlComponent component = mySnapshotToComponent.get(first);
+            if (component != null) {
+              myTagToComponentMap.put(tag, component);
+              remaining.remove(component.getTag());
+              snapshotIds.remove(tag, first);
+              missingIterator.remove();
+            }
+          }
+        }
+      }
+
+      // Finally, if there's just a single tag in question, it might have been
+      // that we changed an attribute of a tag (so the fingerprint no longer matches).
+      // If the tag name is identical, we'll go ahead.
+      if (missing.size() == 1 && remaining.size() == 1) {
+        XmlTag oldTag = remaining.iterator().next();
+        NlComponent component = myTagToComponentMap.get(oldTag);
+        if (component != null) {
+          XmlTag newTag = missing.get(0);
+          TagSnapshot snapshot = component.getSnapshot();
+          if (snapshot != null) {
+            if (snapshot.tagName.equals(newTag.getName())) {
+              myTagToComponentMap.put(newTag, component);
+            }
+          }
+        }
+      }
+    }
+
+    /**
+     * Processes through the XML tag hierarchy recursively, and checks
+     * whether the tag is in the remaining set, and if so removes it,
+     * otherwise adds it to the missing set.
+     */
+    private static void checkMissing(XmlTag tag, Set<XmlTag> remaining, List<XmlTag> missing) {
+      boolean found = remaining.remove(tag);
+      if (!found) {
+        missing.add(tag);
+      }
+      for (XmlTag child : tag.getSubTags()) {
+        checkMissing(child, remaining, missing);
+      }
+    }
+
+    private void gatherTagsAndSnapshots(@NotNull NlComponent component) {
+      XmlTag tag = component.getTag();
+      myTagToComponentMap.put(tag, component);
+      mySnapshotToComponent.put(component.getSnapshot(), component);
+
+      for (NlComponent child : component.getChildren()) {
+        gatherTagsAndSnapshots(child);
+      }
+    }
+
+    private static void gatherTagsAndSnapshots(ViewInfo view, Map<XmlTag, TagSnapshot> map) {
+      Object cookie = view.getCookie();
+      if (cookie instanceof TagSnapshot) {
+        TagSnapshot snapshot = (TagSnapshot) cookie;
+        map.put(snapshot.tag, snapshot);
+      }
+
+      for (ViewInfo child : view.getChildren()) {
+        gatherTagsAndSnapshots(child, map);
+      }
+    }
+
+    @NotNull
+    private NlComponent createTree(XmlTag tag) {
+      NlComponent component = myTagToComponentMap.get(tag);
       if (component == null) {
-        component = new NlComponent(this, tag);
+        // New component: tag didn't exist in the previous component hierarchy,
+        // and no similar tag was found
+        component = new NlComponent(myModel, tag);
+        myTagToComponentMap.put(tag, component);
+      }
+
+      XmlTag[] subTags = tag.getSubTags();
+      if (subTags.length > 0) {
+        List<NlComponent> children = new ArrayList<>(subTags.length);
+        for (XmlTag subtag : subTags) {
+          NlComponent child = createTree(subtag);
+          children.add(child);
+        }
+        component.setChildren(children);
       }
       else {
-        component.children = null;
-        myTagToComponentMap.remove(tag);
-        component.setTag(tag);
+        component.setChildren(null);
       }
 
-      component.viewInfo = view;
+      return component;
+    }
 
-      int left = parentX + bounds.getLeft();
-      int top = parentY + bounds.getTop();
-      int width = bounds.getRight() - bounds.getLeft();
-      int height = bounds.getBottom() - bounds.getTop();
-
-      component.setBounds(left, top, Math.max(width, VISUAL_EMPTY_COMPONENT_SIZE), Math.max(height, VISUAL_EMPTY_COMPONENT_SIZE));
-
-      if (parent == null) {
-        newRoots.add(component);
-      }
-      else if (parent != component) {
-        parent.addChild(component);
-        if (isMerge) {
-          myMergeComponentMap.put(tag, component);
+    private void updateHierarchy(ViewInfo view,
+                                 int parentX,
+                                 int parentY) {
+      ViewInfo bounds = RenderService.getSafeBounds(view);
+      Object cookie = view.getCookie();
+      NlComponent component = null;
+      if (cookie != null) {
+        if (cookie instanceof MergeCookie) {
+          cookie = ((MergeCookie)cookie).getCookie();
+        }
+        if (cookie instanceof TagSnapshot) {
+          TagSnapshot snapshot = (TagSnapshot)cookie;
+          component = mySnapshotToComponent.get(snapshot);
+          if (component == null) {
+            component = myTagToComponentMap.get(snapshot.tag);
+            if (component != null) {
+              component.setSnapshot(snapshot);
+            }
+          } else {
+            component.setSnapshot(snapshot);
+          }
         }
       }
-    }
 
-    if (component != null) {
-      parent = component;
-    }
+      if (component != null) {
+        component.viewInfo = view;
+        int left = parentX + bounds.getLeft();
+        int top = parentY + bounds.getTop();
+        int width = bounds.getRight() - bounds.getLeft();
+        int height = bounds.getBottom() - bounds.getTop();
 
-    parentX += bounds.getLeft();
-    parentY += bounds.getTop();
+        component.setBounds(left, top, Math.max(width, VISUAL_EMPTY_COMPONENT_SIZE), Math.max(height, VISUAL_EMPTY_COMPONENT_SIZE));
+      }
 
-    for (ViewInfo child : view.getChildren()) {
-      updateHierarchy(newRoots, parent, child, parentX, parentY);
+      parentX += bounds.getLeft();
+      parentY += bounds.getTop();
+
+      for (ViewInfo child : view.getChildren()) {
+        updateHierarchy(child, parentX, parentY);
+      }
     }
   }
 
@@ -1100,7 +1259,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   }
 
   /**
-   * Recursively update all attributes such that XML attributes with prefixes in the {@code oldPrefixToPrefix} keyset
+   * Recursively update all attributes such that XML attributes with prefixes in the {@code oldPrefixToPrefix} key set
    * are replaced with the corresponding values
    */
   private static void updatePrefixes(@NotNull XmlTag tag, @NotNull Map<String, String> oldPrefixToPrefix) {

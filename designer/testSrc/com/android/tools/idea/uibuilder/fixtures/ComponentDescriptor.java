@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.fixtures;
 
+import com.android.tools.idea.rendering.TagSnapshot;
+import com.google.common.truth.Truth;
+import com.intellij.util.ArrayUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.android.ide.common.rendering.api.ViewInfo;
@@ -24,11 +27,15 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.util.Pair;
 import com.intellij.psi.xml.XmlTag;
 import junit.framework.TestCase;
+import org.jetbrains.plugins.groovy.lang.psi.typeEnhancers.FirstParamHintProcessor;
 
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
+import static com.google.common.truth.Truth.assertThat;
 
 public class ComponentDescriptor {
   @NotNull private final String myTagName;
@@ -63,6 +70,11 @@ public class ComponentDescriptor {
   }
 
   public ComponentDescriptor id(@NotNull String id) {
+    if (id.isEmpty()) {
+      // Allow id to be specified as optional in the fluent API, e.g.
+      //  component().text("foo").id(ids ? "@+id/foo" : "")
+      return this;
+    }
     return withAttribute(ANDROID_URI, ATTR_ID, id);
   }
 
@@ -137,6 +149,97 @@ public class ComponentDescriptor {
     return this;
   }
 
+  public ComponentDescriptor removeChild(ComponentDescriptor child) {
+    assertThat(myChildren).asList().contains(child);
+    List<ComponentDescriptor> list = Lists.newArrayList(myChildren);
+    list.remove(child);
+    myChildren = list.toArray(new ComponentDescriptor[0]);
+    return this;
+  }
+
+  public ComponentDescriptor addChild(@NotNull ComponentDescriptor child, @Nullable ComponentDescriptor before) {
+    assertThat(myChildren).asList().doesNotContain(child);
+    List<ComponentDescriptor> list = Lists.newArrayList(myChildren);
+    if (before != null) {
+      assertThat(myChildren).asList().contains(before);
+      int index = ArrayUtil.indexOf(myChildren, before);
+      list.add(index, child);
+    } else {
+      list.add(child);
+    }
+    myChildren = list.toArray(new ComponentDescriptor[0]);
+    return this;
+  }
+
+  @Nullable
+  public ComponentDescriptor findById(@NotNull String id) {
+    assertThat(id).startsWith("@");
+    for (Pair<String, String> pair : myAttributes) {
+      if (ATTR_ID.equals(pair.getFirst())) {
+        if (id.equals(pair.getSecond())) {
+          return this;
+        }
+      }
+    }
+    for (ComponentDescriptor child : myChildren) {
+      ComponentDescriptor match = child.findById(id);
+      if (match != null) {
+        return match;
+      }
+    }
+    return null;
+  }
+
+  @Nullable
+  public ComponentDescriptor findByPath(@NotNull String... path) {
+    assertThat(path).asList().isNotEmpty();
+    String tagName = path[0];
+    if (myTagName.equals(tagName)) {
+      if (path.length == 1) {
+        return this;
+      }
+      String[] remainingPath = Arrays.copyOfRange(path, 1, path.length);
+      for (ComponentDescriptor child : myChildren) {
+        ComponentDescriptor match = child.findByPath(remainingPath);
+        if (match != null) {
+          return match;
+        }
+      }
+    }
+    return null;
+  }
+
+  @Nullable
+  public ComponentDescriptor findByTag(@NotNull String tag) {
+    if (myTagName.equals(tag)) {
+      return this;
+    }
+    for (ComponentDescriptor child : myChildren) {
+      ComponentDescriptor match = child.findByTag(tag);
+      if (match != null) {
+        return match;
+      }
+    }
+    return null;
+  }
+
+  @Nullable
+  public ComponentDescriptor findByBounds(@AndroidCoordinate int x,
+                                          @AndroidCoordinate int y,
+                                          @AndroidCoordinate int width,
+                                          @AndroidCoordinate int height) {
+    if (x == myX && y == myY && width == myWidth && height == myHeight) {
+      return this;
+    }
+    for (ComponentDescriptor child : myChildren) {
+      ComponentDescriptor match = child.findByBounds(x, y, width, height);
+      if (match != null) {
+        return match;
+      }
+    }
+    return null;
+  }
+
   public void appendXml(@NotNull StringBuilder sb, int depth) {
     for (int i = 0; i < depth; i++) {
       sb.append("  ");
@@ -170,7 +273,6 @@ public class ComponentDescriptor {
 
   @NotNull
   public ViewInfo createViewInfo(@Nullable ComponentDescriptor parent, @NotNull XmlTag tag) {
-    TestCase.assertNull(myViewInfo);
     int left = myX;
     int top = myY;
     if (parent != null) {
@@ -179,7 +281,8 @@ public class ComponentDescriptor {
     }
     int right = left + myWidth;
     int bottom = top + myHeight;
-    myViewInfo = new ViewInfo(myTagName, tag, left, top, right, bottom, myViewObject, myLayoutParamsObject);
+    TagSnapshot snapshot = TagSnapshot.createTagSnapshotWithoutChildren(tag);
+    myViewInfo = new ViewInfo(myTagName, snapshot, left, top, right, bottom, myViewObject, myLayoutParamsObject);
 
     List<ViewInfo> childList = Lists.newArrayList();
     XmlTag[] subTags = tag.getSubTags();

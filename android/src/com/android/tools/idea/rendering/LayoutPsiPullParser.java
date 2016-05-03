@@ -218,10 +218,7 @@ public class LayoutPsiPullParser extends LayoutPullParser {
   @Override
   public Object getViewCookie() {
     if (myProvideViewCookies) {
-      TagSnapshot element = getCurrentNode();
-      if (element != null) {
-        return element.tag;
-      }
+      return getCurrentNode();
     }
 
     return null;
