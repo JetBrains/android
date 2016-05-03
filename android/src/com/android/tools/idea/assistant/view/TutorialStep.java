@@ -274,12 +274,19 @@ public class TutorialStep extends JPanel {
     @Override
     protected EditorEx createEditor() {
       EditorEx editor = super.createEditor();
+      // Set the background manually as it appears to persist as an old color on theme change.
+      editor.setBackgroundColor(UIUtils.getBackgroundColor());
 
       JScrollPane scroll = editor.getScrollPane();
 
       // Escape early, should not occur when we're doing the final render.
       if (scroll == null) {
         return editor;
+      }
+      // Set the background manually as it appears to persist as an old color on theme change.
+      scroll.getViewport().setBackground(UIUtils.getBackgroundColor());
+      if(scroll.getViewport().getView() != null) {
+        scroll.getViewport().getView().setBackground(UIUtils.getBackgroundColor());
       }
       // Disable vertical wheel scrolling if no vertical bars necessary. This removes the default behavior of applying vertical scroll to
       // horizontal bars when no vertical bars present. Note that this does not appear to impact track-pad side scrolling.
@@ -291,7 +298,7 @@ public class TutorialStep extends JPanel {
       scroll.addMouseWheelListener(new CodeMouseWheelListener(scroll));
 
       // Set margins on the code scroll pane.
-      scroll.setViewportBorder(BorderFactory.createEmptyBorder(PAD, PAD, PAD, PAD));
+      scroll.setViewportBorder(BorderFactory.createMatteBorder(PAD, PAD, PAD, PAD, UIUtils.getBackgroundColor()));
 
       // Code typically overflows width, causing a horizontal scrollbar, and we need to account for the additional height so as to not
       // occlude the last line in the code sample. Value is used in the constructor so this method _must_ be triggered at least once prior

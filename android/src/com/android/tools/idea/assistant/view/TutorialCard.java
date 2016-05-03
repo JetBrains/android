@@ -19,10 +19,8 @@ import com.android.tools.idea.assistant.datamodel.StepData;
 import com.android.tools.idea.assistant.datamodel.TutorialData;
 import com.android.tools.idea.structure.services.DeveloperService;
 import com.intellij.icons.AllIcons;
-import com.intellij.ui.Gray;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -160,8 +158,7 @@ public class TutorialCard extends CardViewPanel {
       add(Box.createRigidArea(new Dimension(5, 0)));
 
       JBLabel label = new JBLabel(location);
-      // TODO: Color stolen from ContentTabLabel passive label color, find a better fit.
-      label.setForeground(UIUtil.isUnderDarcula() ? UIUtil.getLabelDisabledForeground() : Gray._75);
+      label.setForeground(UIUtils.getSecondaryColor());
       add(label);
     }
   }

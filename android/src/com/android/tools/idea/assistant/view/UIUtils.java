@@ -75,12 +75,21 @@ public class UIUtils {
   private static final Color BACKGROUND_COLOR = new JBColor(0xFFFFFF, 0xFF3C3F41);
 
   /**
+   * Hover color for components using {@code BACKGROUND_COLOR}.
+   */
+  private static final Color BACKGROUND_HOVER_COLOR = new JBColor(0xFFE8E8E8, 0x000000);
+
+  /**
    * "Normal" background color as is found on a new JPanel background.
    */
   private static final Color AS_STANDARD_BACKGROUND_COLOR = new JBColor(0xFFE8E8E8, 0xFF3D3F41);
 
   public static Color getBackgroundColor() {
     return BACKGROUND_COLOR;
+  }
+
+  public static Color getBackgroundHoverColor() {
+    return BACKGROUND_HOVER_COLOR;
   }
 
   public static Color getSeparatorColor() {
