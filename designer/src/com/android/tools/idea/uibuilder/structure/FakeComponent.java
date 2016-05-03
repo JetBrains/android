@@ -27,12 +27,17 @@ import org.jetbrains.annotations.Nullable;
  * A "fake" component whose behavior is specified by the ViewHandler. Used for the Device Screen and PreferenceScreen root nodes in the
  * Structure panel.
  */
-final class FakeComponent extends NlComponent {
+public final class FakeComponent extends NlComponent {
   private final ViewHandler myViewHandler;
 
   FakeComponent(@NotNull NlModel model, @NotNull XmlTag tag, @NotNull ViewHandler viewHandler) {
     super(model, tag);
     myViewHandler = viewHandler;
+  }
+
+  @Override
+  public boolean isRoot() {
+    return true;
   }
 
   @NotNull
