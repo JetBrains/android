@@ -263,7 +263,7 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
     myLayers.add(new ScreenViewLayer(myScreenView));
     myLayers.add(new SelectionLayer(myScreenView));
 
-    if (ResourceType.valueOf(myScreenView.getModel().getFile()).equals(ResourceType.LAYOUT)) {
+    if (myScreenView.getModel().getType().isLayout()) {
       myLayers.add(new ConstraintsLayer(this, myScreenView, true));
     }
 

@@ -35,7 +35,7 @@ import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
 import com.android.tools.idea.uibuilder.model.DnDTransferComponent;
 import com.android.tools.idea.uibuilder.model.DnDTransferItem;
 import com.android.tools.idea.uibuilder.model.ItemTransferable;
-import com.android.tools.idea.uibuilder.model.ResourceType;
+import com.android.tools.idea.uibuilder.model.NlLayoutType;
 import com.android.tools.idea.uibuilder.structure.NlComponentTree;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
@@ -110,7 +110,7 @@ public class NlPalettePanel extends JPanel
   private final Set<String> myMissingLibraries;
   private final Disposable myDisposable;
   private final DesignerEditorPanelFacade myDesigner;
-  private final ResourceType myResourceType;
+  private final NlLayoutType myLayoutType;
   private final DnDManager myDndManager;
   private final DnDSource myDndSource;
 
@@ -128,7 +128,9 @@ public class NlPalettePanel extends JPanel
     myMissingLibraries = new HashSet<String>();
     myDisposable = Disposer.newDisposable();
     myDesigner = designer;
-    myResourceType = initResourceType();
+    // TODO: This cannot be done statically; the type can change over time.
+    // (Open preference file, open palette, then switch to layout file; palette still reflects preference items.)
+    myLayoutType = initLayoutType();
 
     myMode = Mode.ICON_AND_TEXT;
 
@@ -159,7 +161,7 @@ public class NlPalettePanel extends JPanel
   }
 
   @NotNull
-  private ResourceType initResourceType() {
+  private NlLayoutType initLayoutType() {
     XmlFile file;
 
     if (myDesigner instanceof NlEditorPanel) {
@@ -174,7 +176,7 @@ public class NlPalettePanel extends JPanel
       throw new IllegalStateException(myDesigner.toString());
     }
 
-    return ResourceType.valueOf(file);
+    return NlLayoutType.typeOf(file);
   }
 
   @NotNull
@@ -418,7 +420,7 @@ public class NlPalettePanel extends JPanel
       @Override
       public void run() {
         DefaultMutableTreeNode root = (DefaultMutableTreeNode)myPaletteTree.getModel().getRoot();
-        addItems(myModel.getPalette(myResourceType).getItems(), root);
+        addItems(myModel.getPalette(myLayoutType).getItems(), root);
         checkForNewMissingDependencies();
         expandAll(myPaletteTree, root);
       }
@@ -556,7 +558,7 @@ public class NlPalettePanel extends JPanel
     List<String> missing = Collections.emptyList();
     if (module != null) {
       GradleDependencyManager manager = GradleDependencyManager.getInstance(module.getProject());
-      missing = fromGradleCoordinates(manager.findMissingDependencies(module, myModel.getPalette(myResourceType).getGradleCoordinates()));
+      missing = fromGradleCoordinates(manager.findMissingDependencies(module, myModel.getPalette(myLayoutType).getGradleCoordinates()));
       if (missing.size() == myMissingLibraries.size() && myMissingLibraries.containsAll(missing)) {
         return false;
       }
@@ -666,7 +668,7 @@ public class NlPalettePanel extends JPanel
         if (myConfiguration != null) {
           // We want to delay the generation of the preview images as much as possible because it is time consuming.
           // Do this just before the images are needed for painting.
-          if (myIconFactory.load(myConfiguration, myModel.getPalette(myResourceType), false)) {
+          if (myIconFactory.load(myConfiguration, myModel.getPalette(myLayoutType), false)) {
             // If we just generated the preview images, we must invalidate the row heights that the tree is
             // caching internally. Then invalidate and wait for the next paint.
             // Otherwise some images may be cropped.
