@@ -136,22 +136,6 @@ public class FeatureEntryPoint extends JPanel {
   }
 
   private class SummaryHandler extends MouseAdapter {
-    private static final double FACTOR = .9;
-
-    private Color myBackground = getHoverColor();
-
-    /**
-     * Stolen from {@code Color#darker()} with a smaller factor.
-     * @return
-     */
-    private Color getHoverColor() {
-      Color background = getBackground();
-
-      return new Color(Math.max((int)(background.getRed()  *FACTOR), 0),
-                       Math.max((int)(background.getGreen()*FACTOR), 0),
-                       Math.max((int)(background.getBlue() *FACTOR), 0),
-                       background.getAlpha());
-    }
 
     @Override
     public void mouseClicked(MouseEvent e) {
@@ -163,7 +147,7 @@ public class FeatureEntryPoint extends JPanel {
       // Null out the background before setting otherwise Swing doesn't appear to realize there's a change and doesn't update.
       myTargetPane.setBackground(null);
       myTargetPane.setOpaque(true);
-      myTargetPane.setBackground(myBackground);
+      myTargetPane.setBackground(UIUtils.getBackgroundHoverColor());
     }
 
     @Override
