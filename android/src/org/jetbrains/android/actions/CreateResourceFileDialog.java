@@ -22,6 +22,7 @@ import com.android.resources.ResourceConstants;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceNameValidator;
+import com.google.common.collect.Maps;
 import com.intellij.CommonBundle;
 import com.intellij.application.options.ModulesComboBox;
 import com.intellij.ide.actions.TemplateKindCombo;
@@ -36,7 +37,6 @@ import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.TextFieldWithAutoCompletion;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.PlatformIcons;
-import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.DeviceConfiguratorPanel;
@@ -74,10 +74,9 @@ public class CreateResourceFileDialog extends DialogWrapper {
   private TextFieldWithAutoCompletion<String> myRootElementField;
   private InputValidator myValidator;
 
-  private final Map<String, CreateTypedResourceFileAction> myResType2ActionMap = new HashMap<String, CreateTypedResourceFileAction>();
+  private final Map<ResourceFolderType, CreateTypedResourceFileAction> myResType2ActionMap = Maps.newEnumMap(ResourceFolderType.class);
   private final DeviceConfiguratorPanel myDeviceConfiguratorPanel;
   private final AndroidFacet myFacet;
-  private final ResourceFolderType myPredefinedResourceType;
   private PsiDirectory myResDirectory;
 
   public CreateResourceFileDialog(@NotNull AndroidFacet facet,
@@ -92,7 +91,6 @@ public class CreateResourceFileDialog extends DialogWrapper {
                                   @Nullable PsiDirectory resDirectory) {
     super(facet.getModule().getProject());
     myFacet = facet;
-    myPredefinedResourceType = predefinedResourceType;
     myResDirectory = resDirectory;
 
     myResTypeLabel.setLabelFor(myResourceTypeCombo);
@@ -109,13 +107,13 @@ public class CreateResourceFileDialog extends DialogWrapper {
     String selectedTemplate = null;
 
     for (CreateTypedResourceFileAction action : actionArray) {
-      String resType = action.getResourceType();
+      ResourceFolderType resType = action.getResourceFolderType();
       assert !myResType2ActionMap.containsKey(resType);
       myResType2ActionMap.put(resType, action);
-      myResourceTypeCombo.addItem(action.toString(), null, resType);
+      myResourceTypeCombo.addItem(action.toString(), null, resType.getName());
 
-      if (predefinedResourceType != null && predefinedResourceType.getName().equals(resType)) {
-        selectedTemplate = resType;
+      if (predefinedResourceType != null && predefinedResourceType == resType) {
+        selectedTemplate = resType.getName();
       }
     }
 
@@ -129,13 +127,8 @@ public class CreateResourceFileDialog extends DialogWrapper {
           myErrorLabel.setText("");
           myDirectoryNameTextField.setText("");
           if (selectedAction != null) {
-            final String resTypeStr = selectedAction.getResourceType();
-            if (resTypeStr != null) {
-              final ResourceFolderType resFolderType = ResourceFolderType.getTypeByName(resTypeStr);
-              if (resFolderType != null) {
-                myDirectoryNameTextField.setText(config.getFolderName(resFolderType));
-              }
-            }
+            final ResourceFolderType resFolderType = selectedAction.getResourceFolderType();
+            myDirectoryNameTextField.setText(config.getFolderName(resFolderType));
           }
         }
         catch (InvalidOptionValueException e) {
@@ -396,7 +389,11 @@ public class CreateResourceFileDialog extends DialogWrapper {
     return "reference.new.resource.file";
   }
 
-  public CreateTypedResourceFileAction getSelectedAction() {
-    return myResType2ActionMap.get(myResourceTypeCombo.getSelectedName());
+  private CreateTypedResourceFileAction getSelectedAction() {
+    ResourceFolderType folderType = ResourceFolderType.getFolderType(myResourceTypeCombo.getSelectedName());
+    if (folderType == null) {
+      return null;
+    }
+    return myResType2ActionMap.get(folderType);
   }
 }

@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.dom.converters;
 
+import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.res.AppResourceRepository;
@@ -509,8 +510,9 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
                 AndroidResourceUtil.isCorrectAndroidResourceName(resourceName)) {
               final List<LocalQuickFix> fixes = new ArrayList<>();
 
-              if (AndroidResourceUtil.XML_FILE_RESOURCE_TYPES.contains(resType)) {
-                fixes.add(new CreateFileResourceQuickFix(facet, resType, resourceName, context.getFile(), false));
+              ResourceFolderType folderType = AndroidResourceUtil.XML_FILE_RESOURCE_TYPES.get(resType);
+              if (folderType != null) {
+                fixes.add(new CreateFileResourceQuickFix(facet, folderType, resourceName, context.getFile(), false));
               }
               if (AndroidResourceUtil.VALUE_RESOURCE_TYPES.contains(resType) && resType != ResourceType.LAYOUT) { // layouts: aliases only
                 fixes.add(new CreateValueResourceQuickFix(facet, resType, resourceName, context.getFile(), false));
