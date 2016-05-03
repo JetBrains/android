@@ -606,9 +606,11 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       Map<String,NlComponent> oldIds = Maps.newHashMap();
       for (Map.Entry<TagSnapshot, NlComponent> entry : mySnapshotToComponent.entrySet()) {
         TagSnapshot snapshot = entry.getKey();
-        String id = snapshot.getAttribute(ATTR_ID, ANDROID_URI);
-        if (id != null) {
-          oldIds.put(id, entry.getValue());
+        if (snapshot != null) {
+          String id = snapshot.getAttribute(ATTR_ID, ANDROID_URI);
+          if (id != null) {
+            oldIds.put(id, entry.getValue());
+          }
         }
       }
       ListIterator<XmlTag> missingIterator = missing.listIterator();
