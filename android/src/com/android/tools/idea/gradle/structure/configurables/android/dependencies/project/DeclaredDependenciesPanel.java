@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.structure.configurables.android.dependencie
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview.DeclaredDependenciesTreeBuilder;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.*;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractPsNodeTreeBuilder.MatchingNodeCollector;
+import com.android.tools.idea.gradle.structure.configurables.issues.IssuesRenderer;
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesViewer;
 import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeEventDispatcher;
 import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeListener;
@@ -57,7 +58,6 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.setUp;
-import static com.android.tools.idea.gradle.structure.model.PsPath.TexType.HTML;
 import static com.intellij.icons.AllIcons.Actions.Collapseall;
 import static com.intellij.icons.AllIcons.Actions.Expandall;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
@@ -83,19 +83,7 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel {
 
     initializeDependencyDetails();
 
-    myIssuesViewer = new IssuesViewer(myContext, issues -> {
-      StringBuilder buffer = new StringBuilder();
-      buffer.append("<html><body><ol>");
-
-      for (PsIssue issue : issues) {
-        buffer.append("<li>")
-              .append(issue.getPath().toText(HTML)).append(": ").append(issue.getText())
-              .append("</li>");
-      }
-
-      buffer.append("</ul></body></html>");
-      return buffer.toString();
-    });
+    myIssuesViewer = new IssuesViewer(myContext, new IssuesRenderer());
     setIssuesViewer(myIssuesViewer);
 
     DefaultTreeModel treeModel = new DefaultTreeModel(new DefaultMutableTreeNode());

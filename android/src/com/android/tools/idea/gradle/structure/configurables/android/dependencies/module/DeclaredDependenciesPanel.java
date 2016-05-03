@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.structure.configurables.android.dependencie
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.ModuleDependencyDetails;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.ModuleLibraryDependencyDetails;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview.DependencySelection;
+import com.android.tools.idea.gradle.structure.configurables.issues.IssuesRenderer;
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesViewer;
 import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeEventDispatcher;
 import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeListener;
@@ -95,26 +96,30 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
     getContentsPanel().add(createActionsPanel(), BorderLayout.NORTH);
     initializeDependencyDetails();
 
-    myIssuesViewer = new IssuesViewer(myContext, issues -> {
-      StringBuilder buffer = new StringBuilder();
-      buffer.append("<html><body><ol>");
+    myIssuesViewer = new IssuesViewer(myContext, new IssuesRenderer() {
+      @Override
+      @NotNull
+      public String render(@NotNull Collection<PsIssue> issues) {
+        StringBuilder buffer = new StringBuilder();
+        buffer.append("<html><body><ol>");
 
-      for (PsIssue issue : issues) {
-        buffer.append("<li>").append(issue.getText());
-        PsPath quickFixPath = issue.getQuickFixPath();
-        if (quickFixPath != null) {
-          buffer.append(" ").append(quickFixPath.toText(HTML));
+        for (PsIssue issue : issues) {
+          buffer.append("<li>").append(issue.getText());
+          PsPath quickFixPath = issue.getQuickFixPath();
+          if (quickFixPath != null) {
+            buffer.append(" ").append(quickFixPath.toText(HTML));
+          }
+
+          String description = issue.getDescription();
+          if (isNotEmpty(description)) {
+            buffer.append("<br/><br/>").append(description);
+          }
+          buffer.append("</li>");
         }
 
-        String description = issue.getDescription();
-        if (isNotEmpty(description)) {
-          buffer.append("<br/><br/>").append(description);
-        }
-        buffer.append("</li>");
+        buffer.append("</ol></body></html>");
+        return buffer.toString();
       }
-
-      buffer.append("</ol></body></html>");
-      return buffer.toString();
     });
     setIssuesViewer(myIssuesViewer);
 

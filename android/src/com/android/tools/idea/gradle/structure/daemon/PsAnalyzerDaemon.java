@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.structure.model.*;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.navigation.PsLibraryDependencyNavigationPath;
 import com.android.tools.idea.gradle.structure.model.PsModulePath;
+import com.android.tools.idea.gradle.structure.quickfix.PsLibraryDependencyVersionQuickFixPath;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ReadAction;
@@ -96,6 +97,11 @@ public class PsAnalyzerDaemon extends PsDaemon {
                 PsLibraryDependencyNavigationPath mainPath = new PsLibraryDependencyNavigationPath(context, libraryDependency);
                 PsIssue issue = new PsIssue(text, mainPath, LIBRARY_UPDATES_AVAILABLE, UPDATE);
                 issue.setExtraPath(new PsModulePath(module));
+
+                PsLibraryDependencyVersionQuickFixPath quickFix =
+                  new PsLibraryDependencyVersionQuickFixPath(libraryDependency, update.version);
+                quickFix.setHrefText("[Update]");
+                issue.setQuickFixPath(quickFix);
 
                 myIssues.add(issue);
                 updatesFound.set(true);

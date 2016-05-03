@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.configurables.messages;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesByTypeAndTextComparator;
+import com.android.tools.idea.gradle.structure.configurables.issues.IssuesRenderer;
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesViewer;
 import com.android.tools.idea.gradle.structure.daemon.PsAnalyzerDaemon;
 import com.android.tools.idea.gradle.structure.daemon.PsDaemon;
@@ -32,7 +33,6 @@ import java.util.List;
 
 import static com.android.tools.idea.gradle.structure.model.PsIssueType.LIBRARY_UPDATES_AVAILABLE;
 import static com.android.tools.idea.gradle.structure.model.PsIssueType.PROJECT_ANALYSIS;
-import static com.android.tools.idea.gradle.structure.model.PsPath.TexType.HTML;
 import static com.intellij.ui.ScrollPaneFactory.createScrollPane;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
@@ -56,19 +56,7 @@ class MessagesForm implements Disposable {
       analyzeProject();
     }, this));
 
-    myIssuesViewer = new IssuesViewer(context, issues -> {
-      StringBuilder buffer = new StringBuilder();
-      buffer.append("<html><body><ol>");
-
-      for (PsIssue issue : issues) {
-        buffer.append("<li>")
-              .append(issue.getPath().toText(HTML)).append(": ").append(issue.getText())
-              .append("</li>");
-      }
-
-      buffer.append("</ul></body></html>");
-      return buffer.toString();
-    });
+    myIssuesViewer = new IssuesViewer(context, new IssuesRenderer());
 
     JPanel issuesViewerPanel = myIssuesViewer.getPanel();
     JScrollPane scrollPane = createScrollPane(issuesViewerPanel, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);

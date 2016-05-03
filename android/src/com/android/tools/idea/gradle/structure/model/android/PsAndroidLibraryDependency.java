@@ -34,12 +34,13 @@ import javax.swing.*;
 import java.util.*;
 
 import static com.android.tools.idea.gradle.structure.model.PsDependency.TextType.PLAIN_TEXT;
+import static com.google.common.base.Strings.nullToEmpty;
 import static com.intellij.util.PlatformIcons.LIBRARY_ICON;
 
 public class PsAndroidLibraryDependency extends PsAndroidDependency implements PsLibraryDependency {
-  @NotNull private final PsArtifactDependencySpec myResolvedSpec;
   @NotNull private final List<PsArtifactDependencySpec> myPomDependencies = Lists.newArrayList();
   @NotNull private final Set<String> myTransitiveDependencies = Sets.newHashSet();
+  @NotNull private PsArtifactDependencySpec myResolvedSpec;
 
   @Nullable private final Library myResolvedModel;
   @Nullable private PsArtifactDependencySpec myDeclaredSpec;
@@ -205,6 +206,12 @@ public class PsAndroidLibraryDependency extends PsAndroidDependency implements P
       }
     }
     if (modified) {
+      GradleVersion parsedVersion = GradleVersion.parse(version);
+      String resolvedVersion = nullToEmpty(myResolvedSpec.version);
+      if (parsedVersion.compareTo(resolvedVersion) != 0) {
+        // Update the "resolved" spec with the new version
+        myResolvedSpec = new PsArtifactDependencySpec(myResolvedSpec.name, myResolvedSpec.group, version);
+      }
       setDeclaredSpec(reference);
       setModified(true);
       getParent().fireDependencyModifiedEvent(this);
