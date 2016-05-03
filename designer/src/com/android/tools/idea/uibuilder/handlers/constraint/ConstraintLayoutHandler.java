@@ -57,9 +57,9 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
   @Override
   public void addViewActions(@NotNull List<ViewAction> actions) {
     ViewAction action;
-    myActions = new ArrayList<ViewAction>();
+    myActions = new ArrayList<>();
 
-    myControlActions = new ArrayList<ViewAction>();
+    myControlActions = new ArrayList<>();
 
     actions.add(new ToggleConstraintModeAction());
     actions.add(new ViewActionSeparator());
@@ -156,7 +156,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
   }
 
   interface Enableable {
-    public void enable(Selection selection);
+    void enable(Selection selection);
   }
 
   /**
