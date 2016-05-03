@@ -16,7 +16,7 @@
 package com.android.tools.idea.monitor;
 
 import com.android.ddmlib.Client;
-import com.android.tools.chartlib.TimelineData;
+import com.android.tools.adtui.TimelineData;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import org.jetbrains.annotations.NotNull;
