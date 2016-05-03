@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.uibuilder.model.ResourceType;
+import com.android.tools.idea.uibuilder.model.NlLayoutType;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorPolicy;
 import com.intellij.openapi.fileEditor.FileEditorProvider;
@@ -32,6 +30,8 @@ import com.intellij.psi.xml.XmlFile;
 import org.jdom.Element;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.AndroidEditorSettings;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class NlEditorProvider implements FileEditorProvider, DumbAware {
   /**
@@ -57,11 +57,7 @@ public class NlEditorProvider implements FileEditorProvider, DumbAware {
       return false;
     }
 
-    XmlFile xmlFile = (XmlFile)psiFile;
-
-    return ResourceType.LAYOUT.isResourceTypeOf(xmlFile) ||
-           ResourceType.MENU.isResourceTypeOf(xmlFile) ||
-           ResourceType.PREFERENCE_SCREEN.isResourceTypeOf(xmlFile);
+    return NlLayoutType.supports((XmlFile)psiFile);
   }
 
   @NotNull
