@@ -285,6 +285,7 @@ public class AndroidIcons {
     public static final Icon CheckBox = load("/icons/views/CheckBox.png"); // 16x16
     public static final Icon CheckedTextView = load("/icons/views/CheckedTextView.png"); // 16x16
     public static final Icon Chronometer = load("/icons/views/Chronometer.png"); // 16x16
+    public static final Icon ConstraintLayout = load("/icons/views/ConstraintLayout.png"); // 16x16
     public static final Icon CoordinatorLayout = load("/icons/views/CoordinatorLayout.png"); // 16x16
     public static final Icon DatePicker = load("/icons/views/DatePicker.png"); // 16x16
     public static final Icon DetailsFragment = load("/icons/views/DetailsFragment.png"); // 16x16
