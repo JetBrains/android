@@ -17,7 +17,7 @@ package com.android.tools.adtui;
 
 import junit.framework.TestCase;
 
-import static com.android.tools.chartlib.TimelineComponent.formatTime;
+import static com.android.tools.adtui.TimelineComponent.formatTime;
 
 
 public class TimelineComponentTest extends TestCase {
