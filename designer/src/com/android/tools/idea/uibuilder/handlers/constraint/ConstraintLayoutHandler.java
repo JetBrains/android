@@ -40,27 +40,17 @@ import java.util.List;
  */
 public class ConstraintLayoutHandler extends ViewGroupHandler {
 
-  private static final boolean UPDATE_CURSOR = false;
-  private final Cursor myUnlinkAnchorCursor;
-  private final Cursor myLeftAnchorCursor;
-  private final Cursor myTopAnchorCursor;
-  private final Cursor myRightAnchorCursor;
-  private final Cursor myBottomAnchorCursor;
   private boolean myShowAllConstraints = true;
 
   ArrayList<ViewAction> myActions;
   ArrayList<ViewAction> myControlActions;
+
   private boolean mControlIsPressed;
 
   /**
    * Base constructor
    */
   public ConstraintLayoutHandler() {
-    myUnlinkAnchorCursor = createCursor(AndroidIcons.SherpaIcons.UnlinkConstraintCursor, 8, 8, "unlink constraint");
-    myLeftAnchorCursor = createCursor(AndroidIcons.SherpaIcons.LeftConstraintCursor, 18, 12, "left constraint");
-    myTopAnchorCursor = createCursor(AndroidIcons.SherpaIcons.TopConstraintCursor, 12, 18, "top constraint");
-    myRightAnchorCursor = createCursor(AndroidIcons.SherpaIcons.RightConstraintCursor, 6, 12, "right constraint");
-    myBottomAnchorCursor = createCursor(AndroidIcons.SherpaIcons.BottomConstraintCursor, 12, 6, "bottom constraint");
   }
 
   @Override
@@ -244,7 +234,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
    * @return a new custom cursor
    */
   @NotNull
-  private Cursor createCursor(@NotNull Icon icon, int x, int y, @NotNull String text) {
+  private static Cursor createCursor(@NotNull Icon icon, int x, int y, @NotNull String text) {
     Toolkit toolkit = Toolkit.getDefaultToolkit();
     Image image = ((ImageIcon)icon).getImage();
     return toolkit.createCustomCursor(image, new Point(x, y), text);
@@ -275,11 +265,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
   public boolean drawGroup(@NotNull Graphics2D gc, @NotNull ScreenView screenView,
                            int width, int height, @NotNull NlComponent component,
                            boolean transparent) {
-    boolean needsRepaint = false;
-
-    if (screenView.getModel() == null) {
-      needsRepaint = true;
-    }
     ConstraintModel constraintModel = ConstraintModel.getConstraintModel(screenView.getModel());
     DrawConstraintModel drawConstraintModel = ConstraintModel.getDrawConstraintModel(screenView);
     updateActions(constraintModel.getSelection());
@@ -291,8 +276,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       }
     }
 
-    needsRepaint |= drawConstraintModel.paint(gc, width, height, myShowAllConstraints);
-    return needsRepaint;
+    return drawConstraintModel.paint(gc, width, height, myShowAllConstraints);
   }
 
   private static class ToggleAutoConnectAction extends ToggleViewAction implements Enableable {
@@ -444,7 +428,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
   }
 
   private Icon getControlIcon(final Icon icon) {
-    Icon wrap = new Icon() {
+    return new Icon() {
       private Icon myIcon = icon;
 
       @Override
@@ -471,7 +455,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
         return myIcon.getIconHeight();
       }
     };
-    return wrap;
   }
 
   private static class AlignAction extends DirectViewAction implements Enableable {
@@ -522,7 +505,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       if (model == null) {
         return;
       }
-      WidgetsScene scene = model.getScene();
       Scout.arrangeWidgets(myActionType, model.getSelection().getWidgets(), false);
       ConstraintUtilities.saveModelToXML(component.getModel());
     }
