@@ -19,7 +19,11 @@ import com.android.SdkConstants;
 import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.BuildType;
 import com.android.builder.model.BuildTypeContainer;
-import com.android.manifmerger.*;
+import com.android.builder.model.ProductFlavor;
+import com.android.manifmerger.Actions;
+import com.android.manifmerger.ManifestMerger2;
+import com.android.manifmerger.ManifestSystemProperty;
+import com.android.manifmerger.MergingReport;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.GradleSyncState;
@@ -27,6 +31,7 @@ import com.android.utils.ILogger;
 import com.android.utils.NullLogger;
 import com.android.utils.Pair;
 import com.google.common.base.Charsets;
+import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.intellij.lang.xml.XMLLanguage;
@@ -141,21 +146,26 @@ public final class ManifestInfo {
       assert buildTypeContainer != null;
       BuildType buildType = buildTypeContainer.getBuildType();
 
+      ProductFlavor mergedProductFlavor = gradleModel.getSelectedVariant().getMergedFlavor();
       // copy-paste from {@link VariantConfiguration#getManifestPlaceholders()}
-      Map<String, Object> placeHolders = new HashMap<String, Object>(gradleModel.getSelectedVariant().getMergedFlavor().getManifestPlaceholders());
+      Map<String, Object> placeHolders = new HashMap<String, Object>(mergedProductFlavor.getManifestPlaceholders());
       placeHolders.putAll(buildType.getManifestPlaceholders());
       manifestMergerInvoker.setPlaceHolderValues(placeHolders);
 
       // @deprecated maxSdkVersion has been ignored since Android 2.1 (API level 7)
-      Integer maxSdkVersion = gradleModel.getSelectedVariant().getMergedFlavor().getMaxSdkVersion();
+      Integer maxSdkVersion = mergedProductFlavor.getMaxSdkVersion();
       if (maxSdkVersion != null) {
         manifestMergerInvoker.setOverride(ManifestSystemProperty.MAX_SDK_VERSION, maxSdkVersion.toString());
       }
 
       // TODO we should have version Name for non-gradle projects
       // copy-paste from {@link VariantConfiguration#getVersionName()}
-      String versionName = gradleModel.getSelectedVariant().getMergedFlavor().getVersionName();
-      String versionNameSuffix = buildType.getVersionNameSuffix();
+      String versionName = mergedProductFlavor.getVersionName();
+      String flavorVersionNameSuffix = null;
+      if (gradleModel.supportsProductFlavorVersionSuffix()){
+        flavorVersionNameSuffix = mergedProductFlavor.getVersionNameSuffix();
+      }
+      String versionNameSuffix = Joiner.on("").skipNulls().join(flavorVersionNameSuffix, buildType.getVersionNameSuffix());
       if (!Strings.isNullOrEmpty(versionName) || !Strings.isNullOrEmpty(versionNameSuffix)) {
         if (Strings.isNullOrEmpty(versionName)) {
           Manifest manifest = facet.getManifest();

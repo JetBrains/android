@@ -181,6 +181,10 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
     return modelVersionIsAtLeast("2.1.0");
   }
 
+  public boolean supportsProductFlavorVersionSuffix(){
+    return  modelVersionIsAtLeast("2.2.0");
+  }
+
   public boolean modelVersionIsAtLeast(@NotNull String revision) {
     return myModelVersion != null && myModelVersion.compareIgnoringQualifiers(revision) >= 0;
   }

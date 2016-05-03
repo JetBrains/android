@@ -70,7 +70,7 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
   private static final BuildFileKey[] DEFAULT_CONFIG_KEYS =
       { BuildFileKey.APPLICATION_ID, BuildFileKey.VERSION_CODE, BuildFileKey.VERSION_NAME, BuildFileKey.MIN_SDK_VERSION,
         BuildFileKey.TARGET_SDK_VERSION, BuildFileKey.TEST_APPLICATION_ID, BuildFileKey.TEST_INSTRUMENTATION_RUNNER,
-        BuildFileKey.SIGNING_CONFIG};
+        BuildFileKey.SIGNING_CONFIG, BuildFileKey.VERSION_NAME_SUFFIX};
   private static final Set<String> HARDCODED_BUILD_TYPES = ImmutableSet.of("debug", "release");
 
   private JPanel myPanel;
@@ -468,6 +468,9 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
             obj.setValue(BuildFileKey.VERSION_CODE, versionCode);
           }
           obj.setValue(BuildFileKey.VERSION_NAME, flavor.getVersionName());
+          if (androidModel.supportsProductFlavorVersionSuffix()) {
+            obj.setValue(BuildFileKey.VERSION_NAME_SUFFIX, flavor.getVersionNameSuffix());
+          }
           ApiVersion minSdkVersion = flavor.getMinSdkVersion();
           if (minSdkVersion != null) {
             obj.setValue(BuildFileKey.MIN_SDK_VERSION,
