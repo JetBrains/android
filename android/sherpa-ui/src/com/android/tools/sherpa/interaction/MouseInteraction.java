@@ -71,6 +71,9 @@ public class MouseInteraction {
     private int mMouseCursor = Cursor.DEFAULT_CURSOR;
     private ConstraintWidget mPreviousHoverWidget = null;
 
+    private long mPressTime = 0;
+
+    private final static int LONG_PRESS_THRESHOLD = 500; // ms -- after that delay, prevent delete anchor
     private final static int BASELINE_TIME_THRESHOLD = 250; // ms -- after that delay, allow baseline selection
     private final static int LOCK_TIME_THRESHOLD = 500; // ms -- after that delay, prevent dragging
 
@@ -540,6 +543,7 @@ public class MouseInteraction {
             mMouseMode = MouseMode.INACTIVE;
             return;
         }
+        mPressTime = System.currentTimeMillis();
         Animator.setAnimationEnabled(true);
         mMouseDown = true;
         mStartPoint.setLocation(x, y);
@@ -686,6 +690,10 @@ public class MouseInteraction {
      * @param y mouse y coordinate
      */
     public void mouseReleased(int x, int y) {
+        boolean longPress = false;
+        if (System.currentTimeMillis() - mPressTime > LONG_PRESS_THRESHOLD) {
+            longPress = true;
+        }
         mLockTimer.stop();
         if (mMouseMode == MouseMode.INACTIVE) {
             return;
@@ -719,7 +727,7 @@ public class MouseInteraction {
 
         if (mSelection.getSelectedAnchor() != null
                 && mSelection.getConnectionCandidateAnchor() == null
-                && anchor == mSelection.getSelectedAnchor()) {
+                && anchor == mSelection.getSelectedAnchor() && !longPress) {
             // delete the anchor connection
             if (mSelection.getSelectedAnchor().isConnected()
                     && mSelection.getSelectedAnchor().getTarget()
