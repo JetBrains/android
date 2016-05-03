@@ -139,6 +139,8 @@ public class TextWidget extends WidgetDecorator {
         }
         int tw = fm.stringWidth(string) + 2 * (mHorizontalPadding + mHorizontalMargin);
         int th = fm.getMaxAscent() + 2*fm.getMaxDescent() + 2 * (mVerticalPadding + mVerticalMargin);
+        mWidget.setWrapWidth(tw);
+        mWidget.setWrapHeight(th);
         if (tw > mWidget.getMinWidth()) {
             mWidget.setMinWidth(tw);
         }
