@@ -112,6 +112,9 @@ public final class DeveloperServicesPanel extends EditorPanel {
     }
 
     for (DeveloperService service : DeveloperServices.getFor(module, serviceCategory)) {
+      if (service.getContext().hiddenFromStructureDialog().get()) {
+        continue;
+      }
       myPanelsList.add(new DeveloperServicePanel(service));
     }
 
