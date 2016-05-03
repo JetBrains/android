@@ -900,6 +900,12 @@ public class RenderTask implements IImageFactory {
   @Override
   public BufferedImage getImage(int width, int height) {
     BufferedImage cached = myCachedImageReference != null ? myCachedImageReference.get() : null;
+
+    // This can cause flicker; see steps listed in http://b.android.com/208984
+    // Temporarily disable image cache.
+    // TODO: Reenable!
+    cached = null;
+
     if (cached == null || cached.getWidth() != width || cached.getHeight() != height) {
       cached = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
       myCachedImageReference = new SoftReference<>(cached);
