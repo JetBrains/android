@@ -16,7 +16,9 @@
 package com.android.tools.idea.gradle.dsl.model.android;
 
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
+import com.android.tools.idea.gradle.dsl.model.android.external.ExternalNativeBuildModel;
 import com.android.tools.idea.gradle.dsl.parser.android.*;
+import com.android.tools.idea.gradle.dsl.parser.android.external.ExternalNativeBuildDslElement;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -27,6 +29,7 @@ import java.util.List;
 
 import static com.android.tools.idea.gradle.dsl.parser.android.BuildTypesDslElement.BUILD_TYPES_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorsDslElement.PRODUCT_FLAVORS_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.external.ExternalNativeBuildDslElement.EXTERNAL_NATIVE_BUILD_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement.COMPILE_OPTIONS_BLOCK_NAME;
 
 public final class AndroidModel extends GradleDslBlockModel {
@@ -159,6 +162,17 @@ public final class AndroidModel extends GradleDslBlockModel {
   public AndroidModel removeDefaultPublishConfig() {
     myDslElement.removeProperty(DEFAULT_PUBLISH_CONFIG);
     return this;
+  }
+
+  @NotNull
+  public ExternalNativeBuildModel externalNativeBuild() {
+    ExternalNativeBuildDslElement externalNativeBuildDslElement = myDslElement.getProperty(EXTERNAL_NATIVE_BUILD_BLOCK_NAME,
+                                                                                           ExternalNativeBuildDslElement.class);
+    if (externalNativeBuildDslElement == null) {
+      externalNativeBuildDslElement = new ExternalNativeBuildDslElement(myDslElement);
+      myDslElement.setNewElement(EXTERNAL_NATIVE_BUILD_BLOCK_NAME, externalNativeBuildDslElement);
+    }
+    return new ExternalNativeBuildModel(externalNativeBuildDslElement);
   }
 
   @Nullable
