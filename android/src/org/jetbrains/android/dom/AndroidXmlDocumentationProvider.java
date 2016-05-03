@@ -26,7 +26,6 @@ import com.intellij.psi.xml.XmlToken;
 import com.intellij.reference.SoftReference;
 import com.intellij.util.xml.*;
 import com.intellij.util.xml.reflect.DomAttributeChildDescription;
-import com.intellij.util.xml.reflect.DomExtension;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
@@ -344,17 +343,13 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
     }
     final Ref<Pair<AttributeDefinition, String>> result = Ref.create();
     try {
-      AndroidDomExtender.processAttrsAndSubtags((AndroidDomElement)parentDomElement, new AndroidDomExtender.MyCallback() {
-        @Nullable
-        @Override
-        public DomExtension processAttribute(@NotNull XmlName xn, @NotNull AttributeDefinition attrDef, @Nullable String parentStyleableName) {
-          if (xn.getLocalName().equals(localName) && namespace.equals(xn.getNamespaceKey())) {
-            result.set(Pair.of(attrDef, parentStyleableName));
-            throw new MyStopException();
-          }
-          return null;
+      AttributeProcessingUtil.processAttributes((AndroidDomElement)parentDomElement, facet, false, (xn, attrDef, parentStyleableName) -> {
+        if (xn.getLocalName().equals(localName) && namespace.equals(xn.getNamespaceKey())) {
+          result.set(Pair.of(attrDef, parentStyleableName));
+          throw new MyStopException();
         }
-      }, facet, false);
+        return null;
+      });
     }
     catch (MyStopException e) {
       // ignore
