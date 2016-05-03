@@ -23,6 +23,7 @@ import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.ui.EditorTextField;
+import com.intellij.ui.JBColor;
 
 import javax.swing.*;
 import javax.swing.border.AbstractBorder;
@@ -43,6 +44,9 @@ import java.util.logging.Logger;
  */
 public class TutorialStep extends JPanel {
   private static final Logger logger = Logger.getLogger(TutorialStep.class.getName());
+
+  // TODO: Refactor number related code to be an inner class + revisit colors.
+  public  final JBColor NUMBER_COLOR = new JBColor(0x52639B , 0x589df6);
 
   private final int myIndex;
   private final StepData myStep;
@@ -146,7 +150,7 @@ public class TutorialStep extends JPanel {
     Font boldFont = new Font(font.getFontName(), Font.BOLD, 11);
     stepNumber.setFont(boldFont);
     stepNumber.setOpaque(false);
-    stepNumber.setForeground(UIUtils.getLinkColor());
+    stepNumber.setForeground(NUMBER_COLOR);
     stepNumber.setBorder(new NumberBorder());
     Dimension size = new Dimension(21, 21);
     stepNumber.setSize(size);
@@ -175,13 +179,14 @@ public class TutorialStep extends JPanel {
    * TODO: Adjust values further to match specs.
    */
   class NumberBorder extends AbstractBorder {
+
     @Override
     public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
       Graphics2D g2 = (Graphics2D)g.create();
       g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
       // Shrink the diameter by 1px as attempting to use full bounds results in clipping.
       int d = height - 1;
-      g2.setColor(UIUtils.getLinkColor());
+      g2.setColor(NUMBER_COLOR);
       g2.drawOval(x, y, d, d);
       g2.dispose();
     }
@@ -206,6 +211,7 @@ public class TutorialStep extends JPanel {
    * TODO: Add a listener to select all code when clicked. Potentially do a hover listener instead that surfaces a button that copies all
    * content to your clipboard.
    * TODO(b/28357327): Try to reduce the number of hacks and fragile code paths.
+   * TODO: Determine why the background does not update on theme change.
    */
   private class CodePane extends EditorTextField {
 
