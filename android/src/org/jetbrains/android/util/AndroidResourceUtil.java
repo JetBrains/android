@@ -754,19 +754,16 @@ public class AndroidResourceUtil {
     return ArrayUtil.toStringArray(names);
   }
 
-  public static boolean createValueResource(@NotNull Module module,
+  public static boolean createValueResource(@NotNull Project project,
+                                            @NotNull VirtualFile resDir,
                                             @NotNull String resourceName,
                                             @Nullable String resourceValue,
                                             @NotNull final ResourceType resourceType,
                                             @NotNull String fileName,
                                             @NotNull List<String> dirNames,
                                             @NotNull Processor<ResourceElement> afterAddedProcessor) {
-    final Project project = module.getProject();
-    final AndroidFacet facet = AndroidFacet.getInstance(module);
-    assert facet != null;
-
     try {
-      return addValueResource(facet, resourceName, resourceType, fileName, dirNames, resourceValue, afterAddedProcessor);
+      return addValueResource(project, resDir, resourceName, resourceType, fileName, dirNames, resourceValue, afterAddedProcessor);
     }
     catch (Exception e) {
       final String message = CreateElementActionBase.filterMessage(e.getMessage());
@@ -782,23 +779,25 @@ public class AndroidResourceUtil {
     }
   }
 
-  public static boolean createValueResource(@NotNull Module module,
+  public static boolean createValueResource(@NotNull Project project,
+                                            @NotNull VirtualFile resDir,
                                             @NotNull String resourceName,
                                             @NotNull final ResourceType resourceType,
                                             @NotNull String fileName,
                                             @NotNull List<String> dirNames,
                                             @NotNull final String value) {
-    return createValueResource(module, resourceName, resourceType, fileName, dirNames, value, null);
+    return createValueResource(project, resDir, resourceName, resourceType, fileName, dirNames, value, null);
   }
 
-  public static boolean createValueResource(@NotNull Module module,
+  public static boolean createValueResource(@NotNull Project project,
+                                            @NotNull VirtualFile resDir,
                                             @NotNull String resourceName,
                                             @NotNull final ResourceType resourceType,
                                             @NotNull String fileName,
                                             @NotNull List<String> dirNames,
                                             @NotNull final String value,
                                             @Nullable final List<ResourceElement> outTags) {
-    return createValueResource(module, resourceName, value, resourceType, fileName, dirNames, new Processor<ResourceElement>() {
+    return createValueResource(project, resDir, resourceName, value, resourceType, fileName, dirNames, new Processor<ResourceElement>() {
       @Override
       public boolean process(ResourceElement element) {
         if (value.length() > 0) {
@@ -818,7 +817,8 @@ public class AndroidResourceUtil {
     });
   }
 
-  private static boolean addValueResource(@NotNull AndroidFacet facet,
+  private static boolean addValueResource(@NotNull Project project,
+                                          @NotNull VirtualFile resDir,
                                           @NotNull final String resourceName,
                                           @NotNull final ResourceType resourceType,
                                           @NotNull String fileName,
@@ -831,29 +831,28 @@ public class AndroidResourceUtil {
     final VirtualFile[] resFiles = new VirtualFile[dirNames.size()];
 
     for (int i = 0, n = dirNames.size(); i < n; i++) {
-      final VirtualFile resFile = findOrCreateResourceFile(facet, fileName, dirNames.get(i));
+      final VirtualFile resFile = findOrCreateResourceFile(project, resDir, fileName, dirNames.get(i));
       if (resFile == null) {
         return false;
       }
       resFiles[i] = resFile;
     }
 
-    if (!ReadonlyStatusHandler.ensureFilesWritable(facet.getModule().getProject(), resFiles)) {
+    if (!ReadonlyStatusHandler.ensureFilesWritable(project, resFiles)) {
       return false;
     }
     final Resources[] resourcesElements = new Resources[resFiles.length];
 
     for (int i = 0; i < resFiles.length; i++) {
-      final Resources resources = AndroidUtils.loadDomElement(facet.getModule(), resFiles[i], Resources.class);
+      final Resources resources = AndroidUtils.loadDomElement(project, resFiles[i], Resources.class);
       if (resources == null) {
-        AndroidUtils.reportError(facet.getModule().getProject(), AndroidBundle.message("not.resource.file.error", fileName));
+        AndroidUtils.reportError(project, AndroidBundle.message("not.resource.file.error", fileName));
         return false;
       }
       resourcesElements[i] = resources;
     }
 
     List<PsiFile> psiFiles = Lists.newArrayListWithExpectedSize(resFiles.length);
-    Project project = facet.getModule().getProject();
     PsiManager manager = PsiManager.getInstance(project);
     for (VirtualFile file : resFiles) {
       PsiFile psiFile = manager.findFile(file);
@@ -879,7 +878,8 @@ public class AndroidResourceUtil {
 
   /**
    * Sets a new value for a resource.
-   * @param facet {@link AndroidFacet} instance
+   * @param project the project containing the resource
+   * @param resDir the res/ directory containing the resource
    * @param name the name of the resource to be modified
    * @param newValue the new resource value
    * @param fileName the resource values file name
@@ -888,7 +888,8 @@ public class AndroidResourceUtil {
    *                         and not only the XML editor
    * @return true if the resource value was changed
    */
-  public static boolean changeValueResource(@NotNull AndroidFacet facet,
+  public static boolean changeValueResource(@NotNull final Project project,
+                                            @NotNull VirtualFile resDir,
                                             @NotNull final String name,
                                             @NotNull final ResourceType resourceType,
                                             @NotNull final String newValue,
@@ -901,28 +902,27 @@ public class AndroidResourceUtil {
     ArrayList<VirtualFile> resFiles = Lists.newArrayListWithExpectedSize(dirNames.size());
 
     for (String dirName : dirNames) {
-      final VirtualFile resFile = findResourceFile(facet, fileName, dirName);
+      final VirtualFile resFile = findResourceFile(resDir, fileName, dirName);
       if (resFile != null) {
         resFiles.add(resFile);
       }
     }
 
-    if (!ensureFilesWritable(facet.getModule().getProject(), resFiles)) {
+    if (!ensureFilesWritable(project, resFiles)) {
       return false;
     }
     final Resources[] resourcesElements = new Resources[resFiles.size()];
 
     for (int i = 0; i < resFiles.size(); i++) {
-      final Resources resources = AndroidUtils.loadDomElement(facet.getModule(), resFiles.get(i), Resources.class);
+      final Resources resources = AndroidUtils.loadDomElement(project, resFiles.get(i), Resources.class);
       if (resources == null) {
-        AndroidUtils.reportError(facet.getModule().getProject(), AndroidBundle.message("not.resource.file.error", fileName));
+        AndroidUtils.reportError(project, AndroidBundle.message("not.resource.file.error", fileName));
         return false;
       }
       resourcesElements[i] = resources;
     }
 
     List<PsiFile> psiFiles = Lists.newArrayListWithExpectedSize(resFiles.size());
-    final Project project = facet.getModule().getProject();
     PsiManager manager = PsiManager.getInstance(project);
     for (VirtualFile file : resFiles) {
       PsiFile psiFile = manager.findFile(file);
@@ -955,16 +955,10 @@ public class AndroidResourceUtil {
   }
 
   @Nullable
-  private static VirtualFile findResourceFile(@NotNull AndroidFacet facet,
+  private static VirtualFile findResourceFile(@NotNull VirtualFile resDir,
                                               @NotNull final String fileName,
                                               @NotNull String dirName) {
-    final VirtualFile resDir = facet.getPrimaryResourceDir();
-
-    if (resDir == null) {
-      return null;
-    }
     VirtualFile dir = resDir.findChild(dirName);
-
     if (dir == null) {
       return null;
     }
@@ -972,17 +966,10 @@ public class AndroidResourceUtil {
   }
 
   @Nullable
-  private static VirtualFile findOrCreateResourceFile(@NotNull AndroidFacet facet,
+  private static VirtualFile findOrCreateResourceFile(@NotNull Project project,
+                                                      @NotNull VirtualFile resDir,
                                                       @NotNull final String fileName,
                                                       @NotNull String dirName) throws Exception {
-    final Module module = facet.getModule();
-    final Project project = module.getProject();
-    final VirtualFile resDir = facet.getPrimaryResourceDir();
-
-    if (resDir == null) {
-      AndroidUtils.reportError(project, AndroidBundle.message("check.resource.dir.error", module.getName()));
-      return null;
-    }
     final VirtualFile dir = AndroidUtils.createChildDirectoryIfNotExist(project, resDir, dirName);
     final String dirPath = FileUtil.toSystemDependentName(resDir.getPath() + '/' + dirName);
 
@@ -1295,7 +1282,8 @@ public class AndroidResourceUtil {
   /**
    * Finds and returns the resource files named stateListName in the directories listed in dirNames.
    * If some of the directories do not contain a file with that name, creates such a resource file.
-   * @param module Module containing the directories under investigation
+   * @param project the project
+   * @param resDir the res/ dir containing the directories under investigation
    * @param folderType Type of the directories under investigation
    * @param resourceType Type of the resource file to create if necessary
    * @param stateListName Name of the resource files to be returned
@@ -1303,20 +1291,13 @@ public class AndroidResourceUtil {
    * @return List of found and created files
    */
   @Nullable
-  public static List<VirtualFile> findOrCreateStateListFiles(@NotNull Module module, @NotNull final ResourceFolderType folderType,
-                                                             @NotNull final ResourceType resourceType, @NotNull final String stateListName,
+  public static List<VirtualFile> findOrCreateStateListFiles(@NotNull final Project project,
+                                                             @NotNull final VirtualFile resDir,
+                                                             @NotNull final ResourceFolderType folderType,
+                                                             @NotNull final ResourceType resourceType,
+                                                             @NotNull final String stateListName,
                                                              @NotNull final List<String> dirNames) {
-    final Project project = module.getProject();
     final PsiManager manager = PsiManager.getInstance(project);
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    assert facet != null;
-    final VirtualFile resDir = facet.getPrimaryResourceDir();
-
-    if (resDir == null) {
-      AndroidUtils.reportError(project, AndroidBundle.message("check.resource.dir.error", module.getName()));
-      return null;
-    }
-
     final List<VirtualFile> files = Lists.newArrayListWithCapacity(dirNames.size());
     boolean foundFiles = new WriteCommandAction<Boolean>(project, "Find statelists files") {
       @Override
@@ -1368,8 +1349,8 @@ public class AndroidResourceUtil {
     return foundFiles ? files : null;
   }
 
-  public static void updateStateList(@NotNull Module module, final @NotNull ResourceHelper.StateList stateList, @NotNull List<VirtualFile> files) {
-    Project project = module.getProject();
+  public static void updateStateList(@NotNull Project project, final @NotNull ResourceHelper.StateList stateList,
+                                     @NotNull List<VirtualFile> files) {
     if (!ensureFilesWritable(project, files)) {
       return;
     }
@@ -1394,7 +1375,7 @@ public class AndroidResourceUtil {
       selectorClass = DrawableSelector.class;
     }
     for (VirtualFile file : files) {
-      final AndroidDomElement selector = AndroidUtils.loadDomElement(module, file, selectorClass);
+      final AndroidDomElement selector = AndroidUtils.loadDomElement(project, file, selectorClass);
       if (selector == null) {
         AndroidUtils.reportError(project, file.getName() + " is not a statelist file");
         return;
