@@ -37,6 +37,7 @@ public class ScoutProbabilities {
     private static final int NEGATIVE_GAP_FLAG = -3;
     private static final int CONSTRAINT_FAILED_FLAG = -2;
     private static final float CENTER_ERROR = 2;
+    private static final float SLOPE_CENTER_CONNECTION = 4;
 
     float[][][] mProbability; // probability of a connection
     float[][][] mMargin; // margin needed for that connection
@@ -703,7 +704,7 @@ public class ScoutProbabilities {
         float distance1 = ScoutWidget.distance(from, to1) / scale;
         float distance2 = ScoutWidget.distance(from, to2) / scale;
         float diff = Math.abs(positionDiff1 - positionDiff2);
-        float probability = ((diff < 20) ? 1 : 0); // favor close distance
+        float probability = ((diff < SLOPE_CENTER_CONNECTION) ? 1 : 0); // favor close distance
         probability = probability / (1+ distance1 + distance2);
         probability += 1 / (1 + Math.abs(positionDiff1 - positionDiff2));
         probability *=
