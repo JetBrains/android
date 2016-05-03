@@ -24,21 +24,34 @@ import org.jetbrains.annotations.NotNull;
 import static com.android.tools.idea.gradle.structure.quickfix.QuickFixes.QUICK_FIX_PATH_SEPARATOR;
 import static com.android.tools.idea.gradle.structure.quickfix.QuickFixes.SET_LIBRARY_DEPENDENCY_QUICK_FIX;
 
-public class PsLibraryDependenyVersionQuickFixPath extends PsPath {
+public class PsLibraryDependencyVersionQuickFixPath extends PsPath {
   @NotNull private final String myModuleName;
   @NotNull private final String myDependency;
   @NotNull private final String myVersion;
 
-  public PsLibraryDependenyVersionQuickFixPath(@NotNull PsLibraryDependency dependency) {
+  @NotNull private String myHrefText = "[Fix]";
+
+  public PsLibraryDependencyVersionQuickFixPath(@NotNull PsLibraryDependency dependency) {
     myModuleName = dependency.getParent().getName();
+    myDependency = getCompactNotation(dependency);
+    String version = dependency.getResolvedSpec().version;
+    assert version != null;
+    myVersion = version;
+  }
+
+  public PsLibraryDependencyVersionQuickFixPath(@NotNull PsLibraryDependency dependency, @NotNull String version) {
+    myModuleName = dependency.getParent().getName();
+    myDependency = getCompactNotation(dependency);
+    myVersion = version;
+  }
+
+  @NotNull
+  private static String getCompactNotation(@NotNull PsLibraryDependency dependency) {
     PsArtifactDependencySpec spec = dependency.getDeclaredSpec();
     if (spec == null) {
       spec = dependency.getResolvedSpec();
     }
-    myDependency = spec.compactNotation();
-    String version = dependency.getResolvedSpec().version;
-    assert version != null;
-    myVersion = version;
+    return spec.compactNotation();
   }
 
   @Override
@@ -50,10 +63,14 @@ public class PsLibraryDependenyVersionQuickFixPath extends PsPath {
     return myDependency;
   }
 
+  public void setHrefText(@NotNull String hrefText) {
+    myHrefText = hrefText;
+  }
+
   @NotNull
   private String getHtmlText() {
     String path = Joiner.on(QUICK_FIX_PATH_SEPARATOR).join(SET_LIBRARY_DEPENDENCY_QUICK_FIX, myModuleName, myDependency, myVersion);
     String href = QUICK_FIX_PATH_TYPE + path;
-    return String.format("<a href='%1$s'>[Fix]</a>", href);
+    return String.format("<a href='%1$s'>%2$s</a>", href, myHrefText);
   }
 }
