@@ -26,7 +26,6 @@ import java.awt.Graphics2D;
  * Simple class animating between two colors
  */
 public class AnimatedColor extends Animation {
-
     private final Color mBeginColor;
     private final Color mEndColor;
 
@@ -53,13 +52,34 @@ public class AnimatedColor extends Animation {
      */
     public Color getColor() {
         double progress = getProgress();
-        int r = Animator.EaseInOutinterpolator(progress, mBeginColor.getRed(), mEndColor.getRed());
-        int g = Animator.EaseInOutinterpolator(progress, mBeginColor.getGreen(),
-                mEndColor.getGreen());
-        int b = Animator.EaseInOutinterpolator(progress, mBeginColor.getBlue(),
-                mEndColor.getBlue());
-        int a = Animator.EaseInOutinterpolator(progress, mBeginColor.getAlpha(),
-                mEndColor.getAlpha());
-        return new Color(r, g, b, a);
+
+        double bR = mBeginColor.getRed() / 255.0;
+        double bG = mBeginColor.getGreen() / 255.0;
+        double bB = mBeginColor.getBlue() / 255.0;
+        double bA = mBeginColor.getAlpha() / 255.0;
+
+        double eR = mEndColor.getRed() / 255.0;
+        double eG = mEndColor.getGreen() / 255.0;
+        double eB = mEndColor.getBlue() / 255.0;
+        double eA = mEndColor.getAlpha() / 255.0;
+
+        bR = Math.pow(bR, 2.2);
+        bG = Math.pow(bG, 2.2);
+        bB = Math.pow(bB, 2.2);
+
+        eR = Math.pow(eR, 2.2);
+        eG = Math.pow(eG, 2.2);
+        eB = Math.pow(eB, 2.2);
+
+        double r = Animator.EaseInOutinterpolator(progress, bR, eR);
+        double g = Animator.EaseInOutinterpolator(progress, bG, eG);
+        double b = Animator.EaseInOutinterpolator(progress, bB, eB);
+        double a = Animator.EaseInOutinterpolator(progress, bA, eA);
+
+        r = Math.pow(r, 1.0 / 2.2);
+        g = Math.pow(g, 1.0 / 2.2);
+        b = Math.pow(b, 1.0 / 2.2);
+
+        return new Color((int) (r * 255.0), (int) (g * 255.0), (int) (b * 255.0), (int) (a * 255.0));
     }
 }

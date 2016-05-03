@@ -33,7 +33,7 @@ public class AnimatedText extends Animation {
     private final String mText;
     private final int mX;
     private final int mY;
-    private Color mTextColor = Color.white;
+    private Color mTextColor = Color.WHITE;
     private static Font sFont = new Font("Helvetica", Font.PLAIN, 12);
     private int mTextWidth;
     private int mTextHeight;
@@ -51,7 +51,7 @@ public class AnimatedText extends Animation {
 
     @Override
     public void onPaint(ViewTransform transform, Graphics2D g) {
-        int alpha = Animator.EaseInOutinterpolator(getProgress(), 255, 0);
+        int alpha = (int)Animator.EaseInOutinterpolator(getProgress(), 255, 0);
         Color color = new Color(mTextColor.getRed(),
                 mTextColor.getGreen(),
                 mTextColor.getBlue(), alpha);
