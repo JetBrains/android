@@ -104,6 +104,7 @@ public class ChooseResourceDialog extends DialogWrapper {
   private static final Logger LOG = Logger.getInstance(ChooseResourceDialog.class);
 
   private static final String TYPE_KEY = "ResourceType";
+  private static final String FOLDER_TYPE_KEY = "ResourceFolderType";
 
   private static final Icon RESOURCE_ITEM_ICON = AllIcons.Css.Property;
   public static final String APP_NAMESPACE_LABEL = "Project";
@@ -150,7 +151,7 @@ public class ChooseResourceDialog extends DialogWrapper {
   private final AnAction myNewResourceFileAction = new AnAction() {
     @Override
     public void actionPerformed(AnActionEvent e) {
-      ResourceType type = (ResourceType)getTemplatePresentation().getClientProperty(TYPE_KEY);
+      ResourceFolderType type = (ResourceFolderType)getTemplatePresentation().getClientProperty(FOLDER_TYPE_KEY);
       createNewResourceFile(type);
     }
   };
@@ -565,9 +566,10 @@ public class ChooseResourceDialog extends DialogWrapper {
     ResourcePanel panel = getSelectedPanel();
     ResourceType resourceType = panel.getType();
 
-    if (AndroidResourceUtil.XML_FILE_RESOURCE_TYPES.contains(resourceType)) {
-      myNewResourceFileAction.getTemplatePresentation().setText("New " + resourceType + " File...");
-      myNewResourceFileAction.getTemplatePresentation().putClientProperty(TYPE_KEY, resourceType);
+    ResourceFolderType folderType = AndroidResourceUtil.XML_FILE_RESOURCE_TYPES.get(resourceType);
+    if (folderType != null) {
+      myNewResourceFileAction.getTemplatePresentation().setText("New " + folderType.getName() + " File...");
+      myNewResourceFileAction.getTemplatePresentation().putClientProperty(FOLDER_TYPE_KEY, folderType);
       actionGroup.add(myNewResourceFileAction);
     }
     if (AndroidResourceUtil.VALUE_RESOURCE_TYPES.contains(resourceType)) {
@@ -624,9 +626,10 @@ public class ChooseResourceDialog extends DialogWrapper {
     close(OK_EXIT_CODE);
   }
 
-  private void createNewResourceFile(ResourceType resourceType) {
+  private void createNewResourceFile(ResourceFolderType folderType) {
     // if we are not showing the stateList picker, and we do have a stateList in it, then we can open it to allow the user to edit it.
-    if (myStateListPicker != null && myStateListPicker.getStateList() != null && resourceType == myStateListPicker.getStateList().getType()) {
+    if (myStateListPicker != null && myStateListPicker.getStateList() != null &&
+        folderType == myStateListPicker.getStateList().getFolderType()) {
       assert myStateListPickerPanel != null;
       getSelectedPanel().showNewResource(myStateListPickerPanel);
       return;
@@ -634,7 +637,7 @@ public class ChooseResourceDialog extends DialogWrapper {
 
     AndroidFacet facet = AndroidFacet.getInstance(myModule);
     assert facet != null;
-    XmlFile newFile = CreateResourceFileAction.createFileResource(facet, resourceType, null, null, null, true, null);
+    XmlFile newFile = CreateResourceFileAction.createFileResource(facet, folderType, null, null, null, true, null);
 
     if (newFile != null) {
       String name = newFile.getName();
@@ -642,7 +645,7 @@ public class ChooseResourceDialog extends DialogWrapper {
       if (index != -1) {
         name = name.substring(0, index);
       }
-      myResultResourceName = "@" + resourceType.getName() + "/" + name;
+      myResultResourceName = "@" + folderType.getName() + "/" + name;
       close(OK_EXIT_CODE);
     }
   }

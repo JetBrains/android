@@ -17,11 +17,10 @@
 package org.jetbrains.android.actions;
 
 
-import com.android.SdkConstants;
 import com.android.builder.model.SourceProvider;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceFolderType;
-import com.android.resources.ResourceType;
+import com.google.common.collect.Maps;
 import com.intellij.CommonBundle;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
@@ -46,7 +45,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -55,7 +53,7 @@ import java.util.Map;
 public class CreateResourceFileAction extends CreateResourceActionBase {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.actions.CreateResourceFileAction");
 
-  private final Map<String, CreateTypedResourceFileAction> mySubactions = new HashMap<String, CreateTypedResourceFileAction>();
+  private final Map<ResourceFolderType, CreateTypedResourceFileAction> mySubactions = Maps.newEnumMap(ResourceFolderType.class);
   private String myRootElement;
   private boolean myNavigate;
 
@@ -72,7 +70,7 @@ public class CreateResourceFileAction extends CreateResourceActionBase {
   }
 
   public void add(CreateTypedResourceFileAction action) {
-    mySubactions.put(action.getResourceType(), action);
+    mySubactions.put(action.getResourceFolderType(), action);
   }
 
   public Collection<CreateTypedResourceFileAction> getSubactions() {
@@ -125,26 +123,6 @@ public class CreateResourceFileAction extends CreateResourceActionBase {
     }
     assert elements.length == 1 && elements[0] instanceof XmlFile;
     return (XmlFile)elements[0];
-  }
-
-  @Deprecated
-  @Nullable
-  public static XmlFile createFileResource(@NotNull AndroidFacet facet,
-                                           @NotNull final ResourceType resType,
-                                           @Nullable String resName,
-                                           @Nullable String rootElement,
-                                           @Nullable FolderConfiguration config,
-                                           boolean chooseResName,
-                                           @Nullable String dialogTitle) {
-    // THIS IS WRONG. You can't create resource folders from a ResourceType; you should use a ResourceFolderType.
-    // For example, a ResourceType.STRING has no corresponding resource folder; it should be ResourceFolderType.VALUES.
-    // However, I changed the type in this method to ResourceFolderType, and it cascaded down to a lot of references,
-    // which in turn were called by many other references, so I'm adding a conversion here; we should revisit
-    // this soon and switch to the correct type. (The correct method exists below; this method should be deleted.)
-    ResourceFolderType folderType = ResourceFolderType.getTypeByName(resType.getName());
-    assert folderType != null : resType;
-
-    return createFileResource(facet, folderType, resName, rootElement, config, chooseResName, dialogTitle, true);
   }
 
   @Nullable
@@ -321,11 +299,11 @@ public class CreateResourceFileAction extends CreateResourceActionBase {
 
   private CreateTypedResourceFileAction getActionByDir(PsiDirectory directory) {
     String baseDirName = directory.getName();
-    final int index = baseDirName.indexOf(SdkConstants.RES_QUALIFIER_SEP);
-    if (index >= 0) {
-      baseDirName = baseDirName.substring(0, index);
+    ResourceFolderType folderType = ResourceFolderType.getFolderType(baseDirName);
+    if (folderType == null) {
+      return null;
     }
-    return mySubactions.get(baseDirName);
+    return mySubactions.get(folderType);
   }
 
   @Override
