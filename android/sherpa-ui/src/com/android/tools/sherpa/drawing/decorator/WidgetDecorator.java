@@ -652,7 +652,7 @@ public class WidgetDecorator {
                         float progress = mLockTimer.getProgress();
                         if (progress > 0) {
                             startHandle
-                                    .drawConnection(transform, g, mColorSet, mIsSelected,
+                                    .drawConnection(transform, g, mColorSet, mIsSelected, true,
                                             mLockTimer.getOriginalCreator(), progress);
                             painted = true;
                         }
@@ -793,6 +793,9 @@ public class WidgetDecorator {
             ConstraintAnchor selectedAnchor) {
         mDisplayAnchorsPolicy.clear();
         mDisplayAnchorsPolicy.add(WidgetDraw.ANCHORS_DISPLAY.NONE);
+        if (getLook() != ColorTheme.Look.HIGHLIGHTED) {
+            return;
+        }
         if (isShowAllConstraints()) {
             if (mWidget.getParent() != null) {
                 // we should only show the constraints anchors if our parent doesn't handle

@@ -42,7 +42,7 @@ public class AnimatedConnection extends Animation {
             if (p > 1) {
                 p = 1;
             }
-            sourceHandle.drawConnection(transform, g, mColorSet, true, mOriginalCreator, p);
+            sourceHandle.drawConnection(transform, g, mColorSet, true, false, mOriginalCreator, p);
         }
     }
 }
