@@ -162,10 +162,10 @@ public class ScoutArrange {
                 for (ConstraintWidget widget : widgets) {
                     int parentWidth = widget.getParent().getWidth();
                     int width = widget.getWidth();
-                    widget.setX((int) (parentWidth - width)/2);
-                    if (applyConstraints)  {
-                            widget.connect(ConstraintAnchor.Type.CENTER_X, widget.getParent(),
-                                    ConstraintAnchor.Type.CENTER_X, 0);
+                    widget.setX((int) (parentWidth - width) / 2);
+                    if (applyConstraints) {
+                        widget.connect(ConstraintAnchor.Type.CENTER_X, widget.getParent(),
+                                ConstraintAnchor.Type.CENTER_X, 0);
                     }
                 }
             }
@@ -174,7 +174,7 @@ public class ScoutArrange {
                 for (ConstraintWidget widget : widgets) {
                     int parentHeight = widget.getParent().getHeight();
                     int height = widget.getHeight();
-                    widget.setY((int) (parentHeight - height));
+                    widget.setY((int) (parentHeight - height) / 2);
                     if (applyConstraints) {
                             widget.connect(ConstraintAnchor.Type.CENTER_Y, widget.getParent(),
                                     ConstraintAnchor.Type.CENTER_Y, 0);
