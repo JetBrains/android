@@ -16,9 +16,9 @@
 package com.android.tools.idea.editors.allocations;
 
 import com.android.ddmlib.AllocationInfo;
-import com.android.tools.chartlib.Choreographer;
-import com.android.tools.chartlib.SunburstComponent;
-import com.android.tools.chartlib.ValuedTreeNode;
+import com.android.tools.adtui.Choreographer;
+import com.android.tools.adtui.SunburstComponent;
+import com.android.tools.adtui.ValuedTreeNode;
 import com.android.tools.idea.actions.EditMultipleSourcesAction;
 import com.android.tools.idea.actions.PsiFileAndLineNavigation;
 import com.android.tools.idea.editors.allocations.nodes.*;
