@@ -19,6 +19,7 @@ package com.android.tools.idea.uibuilder.handlers.constraint;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.api.actions.*;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
+import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.SelectionModel;
 import com.android.tools.idea.uibuilder.surface.Interaction;
@@ -276,7 +277,9 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       }
     }
 
-    return drawConstraintModel.paint(gc, width, height, myShowAllConstraints);
+    return drawConstraintModel.paint(gc, Coordinates.getSwingDimension(screenView, component.w),
+                                              Coordinates.getSwingDimension(screenView, component.h),
+                                              myShowAllConstraints);
   }
 
   private static class ToggleAutoConnectAction extends ToggleViewAction implements Enableable {
