@@ -535,6 +535,36 @@ public class ConstraintHandle {
                 targetCompanion.getWidgetInteractionTargets();
         ConstraintHandle targetHandle = interactionTargets.getConstraintHandle(mAnchor.getTarget());
 
+        int sx = transform.getSwingFX(mX);
+        int sy = transform.getSwingFY(mY);
+        int tx = transform.getSwingFX(targetHandle.getDrawX());
+        int ty = transform.getSwingFX(targetHandle.getDrawY());
+        if (targetHandle.getOwner().isRoot()) {
+            if (mAnchor.isVerticalAnchor()) {
+                tx = sx;
+            } else {
+                ty = sy;
+            }
+        }
+        int minimum = (int) (1.5 * ConnectionDraw.CONNECTION_ANCHOR_SIZE);
+        if (Math.abs(sx - tx) < minimum && Math.abs(sy - ty) < minimum) {
+            switch (mAnchor.getType()) {
+                case LEFT: {
+                    drawShadowedArrow(g, colorSet, ConnectionDraw.getLeftArrow(), sx, sy);
+                } break;
+                case TOP: {
+                    drawShadowedArrow(g, colorSet, ConnectionDraw.getTopArrow(), sx, sy);
+                } break;
+                case RIGHT: {
+                    drawShadowedArrow(g, colorSet, ConnectionDraw.getRightArrow(), sx, sy);
+                } break;
+                case BOTTOM: {
+                    drawShadowedArrow(g, colorSet, ConnectionDraw.getBottomArrow(), sx, sy);
+                } break;
+            }
+            return;
+        }
+
         if (mAnchor.getOpposite() != null && mAnchor.getOpposite().isConnected()) {
             // Draw centered connections
             if (mAnchor.getOpposite().getTarget() == mAnchor.getTarget()) {
@@ -614,27 +644,6 @@ public class ConstraintHandle {
             paintShadow(g, colorSet, drawing);
             drawing.draw(g);
         }
-    }
-
-    /**
-     * Utility to draw the given drawing as a shadow
-     * @param g
-     * @param colorSet
-     * @param drawing
-     */
-    private void paintShadow(Graphics2D g, ColorSet colorSet, ConnectionDrawing drawing) {
-        Color pre = g.getColor();
-        Stroke s = g.getStroke();
-        if (colorSet.getStyle() == WidgetDecorator.BLUEPRINT_STYLE) {
-            g.setPaint(colorSet.getBackgroundPaint());
-            g.setStroke(sLineShadowStroke);
-        } else {
-            g.setColor(sShadowColor);
-            g.setStroke(sShadowStroke);
-        }
-        drawing.draw(g);
-        g.setColor(pre);
-        g.setStroke(s);
     }
 
     /**
@@ -1546,6 +1555,51 @@ public class ConstraintHandle {
     /*-----------------------------------------------------------------------*/
     // Utilities draw functions for path
     /*-----------------------------------------------------------------------*/
+
+    /**
+     * Utility to draw the given drawing as a shadow
+     * @param g
+     * @param colorSet
+     * @param drawing
+     */
+    private void paintShadow(Graphics2D g, ColorSet colorSet, ConnectionDrawing drawing) {
+        Color pre = g.getColor();
+        Stroke s = g.getStroke();
+        if (colorSet.getStyle() == WidgetDecorator.BLUEPRINT_STYLE) {
+            g.setPaint(colorSet.getBackgroundPaint());
+            g.setStroke(sLineShadowStroke);
+        } else {
+            g.setColor(sShadowColor);
+            g.setStroke(sShadowStroke);
+        }
+        drawing.draw(g);
+        g.setColor(pre);
+        g.setStroke(s);
+    }
+
+    /**
+     * Utility to draw a shadowed arrow
+     * @param g
+     * @param colorSet
+     * @param arrow
+     * @param x
+     * @param y
+     */
+    private void drawShadowedArrow(Graphics2D g, ColorSet colorSet, Polygon arrow, int x, int y) {
+        Color pre = g.getColor();
+        Stroke s = g.getStroke();
+        if (colorSet.getStyle() == WidgetDecorator.BLUEPRINT_STYLE) {
+            g.setPaint(colorSet.getBackgroundPaint());
+            g.setStroke(sLineShadowStroke);
+        } else {
+            g.setColor(sShadowColor);
+            g.setStroke(sShadowStroke);
+        }
+        ConnectionDraw.drawArrow(g, arrow, x, y);
+        g.setColor(pre);
+        g.setStroke(s);
+        ConnectionDraw.drawArrow(g, arrow, x, y);
+    }
 
     /**
      * Add an vertical spring between (x0, y1) and (x0, y1) to the given path object
