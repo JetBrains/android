@@ -10,7 +10,6 @@ import com.intellij.codeInspection.ProblemDescriptor;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.undo.UndoUtil;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -25,6 +24,7 @@ import org.jetbrains.android.dom.resources.ResourcesDomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidResourceUtil;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -82,11 +82,13 @@ public class CreateValueResourceQuickFix implements LocalQuickFix, IntentionActi
   }
 
   protected boolean doInvoke() {
+    Project project = myFile.getProject();
     if (ApplicationManager.getApplication().isUnitTestMode()) {
       final String fileName = AndroidResourceUtil.getDefaultResourceFileName(myResourceType);
       assert fileName != null;
-
-      if (!AndroidResourceUtil.createValueResource(myFacet.getModule(), myResourceName, myResourceType, fileName,
+      VirtualFile resourceDir = myFacet.getPrimaryResourceDir();
+      assert resourceDir != null;
+      if (!AndroidResourceUtil.createValueResource(project, resourceDir, myResourceName, myResourceType, fileName,
                                                    Collections.singletonList(SdkConstants.FD_RES_VALUES), "a")) {
         return false;
       }
@@ -98,8 +100,8 @@ public class CreateValueResourceQuickFix implements LocalQuickFix, IntentionActi
       VirtualFile defaultFileToCreate = null;
 
       if (myFile instanceof XmlFile && myFile.isWritable() && myFile.getManager().isInProject(myFile)) {
-        final DomFileDescription<?> description = DomManager.getDomManager(
-          myFile.getProject()).getDomFileDescription((XmlFile)myFile);
+        final DomFileDescription<?> description = DomManager.getDomManager(project)
+          .getDomFileDescription((XmlFile)myFile);
 
         if (description instanceof ResourcesDomFileDescription) {
           final VirtualFile defaultFile = myFile.getVirtualFile();
@@ -115,19 +117,19 @@ public class CreateValueResourceQuickFix implements LocalQuickFix, IntentionActi
         return false;
       }
 
-      final Module moduleToPlaceResource = dialog.getModule();
-      if (moduleToPlaceResource == null) {
+      final VirtualFile resourceDir = dialog.getResourceDirectory();
+      if (resourceDir == null) {
+        AndroidUtils.reportError(project, AndroidBundle.message("check.resource.dir.error", myFacet.getModule()));
         return false;
       }
       final String fileName = dialog.getFileName();
       final List<String> dirNames = dialog.getDirNames();
       final String resValue = dialog.getValue();
       final String resName = dialog.getResourceName();
-      if (!AndroidResourceUtil.createValueResource(moduleToPlaceResource, resName, myResourceType, fileName, dirNames, resValue)) {
+      if (!AndroidResourceUtil.createValueResource(project, resourceDir, resName, myResourceType, fileName, dirNames, resValue)) {
         return false;
       }
     }
-    Project project = myFile.getProject();
     PsiDocumentManager.getInstance(project).commitAllDocuments();
     UndoUtil.markPsiFileForUndo(myFile);
     return true;

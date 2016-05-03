@@ -6,9 +6,7 @@ import com.intellij.CommonBundle;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.InputValidator;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
@@ -37,21 +35,15 @@ public class CreateResourceDirectoryAction extends CreateResourceActionBase {
   }
 
   @NotNull
-  public PsiElement[] invokeDialog(@NotNull final Project project, @NotNull final PsiDirectory directory) {
-    final CreateResourceDirectoryDialog dialog = new CreateResourceDirectoryDialog(project, myResourceFolderType, directory,
-                                                                                   AndroidPsiUtils.getModuleSafely(directory)) {
-      @Override
-      protected InputValidator createValidator() {
-        return CreateResourceDirectoryAction.this.createValidator(project, directory);
-      }
-    };
+  public PsiElement[] invokeDialog(@NotNull final Project project, @NotNull PsiDirectory directory) {
+    CreateResourceDirectoryDialog dialog = new CreateResourceDirectoryDialog(
+      project, myResourceFolderType, directory, null, AndroidPsiUtils.getModuleSafely(directory),
+      resDirectory -> new MyInputValidator(project, resDirectory));
     dialog.setTitle(AndroidBundle.message("new.resource.dir.dialog.title"));
-    dialog.show();
-    final InputValidator validator = dialog.getValidator();
-    if (validator == null) {
+    if (!dialog.showAndGet()) {
       return PsiElement.EMPTY_ARRAY;
     }
-    return ((MyInputValidator)validator).getCreatedElements();
+    return dialog.getCreatedElements();
   }
 
   @NotNull
@@ -64,29 +56,14 @@ public class CreateResourceDirectoryAction extends CreateResourceActionBase {
       folderType = CreateResourceFileAction.getUniqueFolderType(files);
     }
 
-    final CreateResourceDirectoryDialog dialog = new CreateResourceDirectoryDialog(project, folderType,
-                                                                                   findResourceDirectory(dataContext),
-                                                                                   LangDataKeys.MODULE.getData(dataContext)) {
-      @Override
-      protected InputValidator createValidator() {
-        Module module = LangDataKeys.MODULE.getData(dataContext);
-        assert module != null;
-        PsiDirectory resourceDirectory = getResourceDirectory(dataContext, true);
-        return CreateResourceDirectoryAction.this.createValidator(module.getProject(), resourceDirectory);
-      }
-    };
+    CreateResourceDirectoryDialog dialog = new CreateResourceDirectoryDialog(
+      project, folderType, findResourceDirectory(dataContext), dataContext, LangDataKeys.MODULE.getData(dataContext),
+      resDirectory -> new MyInputValidator(project, resDirectory));
     dialog.setTitle(AndroidBundle.message("new.resource.dir.dialog.title"));
-    dialog.show();
-    final InputValidator validator = dialog.getValidator();
-    if (validator == null) {
+    if (!dialog.showAndGet()) {
       return PsiElement.EMPTY_ARRAY;
     }
-    return ((MyInputValidator)validator).getCreatedElements();
-  }
-
-  @NotNull
-  private MyInputValidator createValidator(Project project, final PsiDirectory resDir) {
-    return new MyInputValidator(project, resDir);
+    return dialog.getCreatedElements();
   }
 
   @NotNull

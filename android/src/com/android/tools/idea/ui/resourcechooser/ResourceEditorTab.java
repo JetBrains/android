@@ -21,17 +21,18 @@ import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.ResourceNameValidator;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.ValidationInfo;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.HideableDecorator;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.actions.CreateXmlResourcePanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 
 /**
  * A tab that goes inside the {@link EditResourcePanel}
@@ -136,6 +137,11 @@ public abstract class ResourceEditorTab {
     Module module = getLocationSettings().getModule();
     assert module != null;
     return module;
+  }
+
+  @Nullable
+  public VirtualFile getResourceDirectory() {
+    return getLocationSettings().getResourceDirectory();
   }
 
   @NotNull
