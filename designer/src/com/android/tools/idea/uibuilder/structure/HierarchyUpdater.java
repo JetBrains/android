@@ -23,7 +23,9 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
-import java.util.*;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * <p>Updates the tree nodes after the NlModel has changed. Doing that presents a few problems:
@@ -52,21 +54,18 @@ import java.util.*;
  */
 final class HierarchyUpdater {
   private final NlComponentTree myTree;
-  private final Set<DefaultMutableTreeNode> myVisibleNodes;
-  private final Map<String, DefaultMutableTreeNode> myId2TempNode;
+  private final Map<NlComponent, DefaultMutableTreeNode> myComponent2Node;
+  private final Map<NlComponent, DefaultMutableTreeNode> myOldComponent2Node;
 
   HierarchyUpdater(@NotNull NlComponentTree tree) {
     myTree = tree;
-    myVisibleNodes = new HashSet<>();
-    myId2TempNode = new HashMap<>(tree.getIdToNode());
+    myComponent2Node = new IdentityHashMap<>();
+    myOldComponent2Node = myTree.getComponentToNode();
   }
 
   public void execute() {
-    myTree.getIdToNode().clear();
-    myTree.getComponentToNode().clear();
+//    myTree.clearToggledPaths();
     TreePath rootPath = new TreePath(myTree.getModel().getRoot());
-    recordVisibleNodes(rootPath);
-    myTree.clearToggledPaths();
 
     NlModel model = myTree.getDesignerModel();
     List<NlComponent> components = model != null ? model.getComponents() : null;
@@ -79,53 +78,28 @@ final class HierarchyUpdater {
       rootNode.setUserObject(deviceScreen);
     }
     myTree.expandPath(rootPath);
-  }
-
-  private void recordVisibleNodes(@NotNull TreePath path) {
-    if (myTree.isExpanded(path)) {
-      DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
-      for (int i = 0; i < node.getChildCount(); i++) {
-        DefaultMutableTreeNode child = (DefaultMutableTreeNode)node.getChildAt(i);
-        recordVisibleNodes(path.pathByAddingChild(child));
-        myVisibleNodes.add(child);
-      }
-    }
+    myOldComponent2Node.clear();
+    myOldComponent2Node.putAll(myComponent2Node);
   }
 
   private void replaceChildNodes(@NotNull TreePath path, @Nullable List<NlComponent> subComponents) {
     DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
     node.removeAllChildren();
     if (subComponents != null) {
-      boolean mustExpand = false;
       for (NlComponent child : subComponents) {
-        mustExpand |= addChildNode(path, child);
-      }
-      if (mustExpand) {
-        myTree.expandPath(path);
+        addChildNode(path, child);
       }
     }
   }
 
-  private boolean addChildNode(@NotNull TreePath path, @NotNull NlComponent component) {
-    String id = component.getId();
-    Map<String, DefaultMutableTreeNode> idToNode = myTree.getIdToNode();
-    DefaultMutableTreeNode node = null;
-
-    if (id != null && !idToNode.containsKey(id)) {
-      node = myId2TempNode.get(id);
-    }
+  private void addChildNode(@NotNull TreePath path, @NotNull NlComponent component) {
+    DefaultMutableTreeNode node = myOldComponent2Node.get(component);
     if (node == null) {
       node = new DefaultMutableTreeNode(component);
     }
-    else {
-      node.setUserObject(component);
-    }
-    if (id != null) {
-      idToNode.put(id, node);
-    }
-    myTree.getComponentToNode().put(component, node);
+    myComponent2Node.put(component, node);
+    node.removeAllChildren();
     ((DefaultMutableTreeNode)path.getLastPathComponent()).add(node);
     replaceChildNodes(path.pathByAddingChild(node), component.children);
-    return myVisibleNodes.contains(node);
   }
 }
