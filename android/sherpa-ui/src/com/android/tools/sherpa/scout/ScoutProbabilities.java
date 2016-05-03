@@ -161,8 +161,8 @@ public class ScoutProbabilities {
         // find any widget centered over the edge of another
         for (int i = 0; i < list.length; i++) {
             ScoutWidget scoutWidget = list[i];
-            float centerX = scoutWidget.getX()+scoutWidget.getWidth()/2;
-            float centerY = scoutWidget.getY()+scoutWidget.getHeight()/2;
+            float centerX = scoutWidget.getX() + scoutWidget.getWidth() / 2;
+            float centerY = scoutWidget.getY() + scoutWidget.getHeight() / 2;
             for (int j = 0; j < list.length; j++) {
                 if (i == j) continue;
                 ScoutWidget widget = list[j];
@@ -170,13 +170,13 @@ public class ScoutProbabilities {
                     scoutWidget.setEdgeCentered(1, widget, Direction.WEST);
                 }
                 if (Math.abs(widget.getY() - centerY) < CENTER_ERROR) {
-                    scoutWidget.setEdgeCentered(1, widget, Direction.NORTH);
+                    scoutWidget.setEdgeCentered(0, widget, Direction.NORTH);
                 }
                 if (Math.abs(widget.getX() + widget.getWidth() - centerX) < CENTER_ERROR) {
                     scoutWidget.setEdgeCentered(1, widget, Direction.EAST);
                 }
                 if (Math.abs(widget.getY() + widget.getHeight() - centerY) < CENTER_ERROR) {
-                    scoutWidget.setEdgeCentered(1, widget,Direction.SOUTH);
+                    scoutWidget.setEdgeCentered(0, widget, Direction.SOUTH);
                 }
             }
         }
