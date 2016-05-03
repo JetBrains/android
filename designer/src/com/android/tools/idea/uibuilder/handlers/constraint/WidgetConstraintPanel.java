@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.constraint;
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.sherpa.drawing.ConnectionDraw;
+import com.intellij.openapi.util.text.StringUtil;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -30,8 +31,8 @@ import java.awt.*;
  */
 public class WidgetConstraintPanel extends JPanel {
   SingleWidgetView mMain;
-  JSlider mVerticalSlider = new JSlider(JSlider.VERTICAL);
-  JSlider mHorizontalSlider = new JSlider(JSlider.HORIZONTAL);
+  JSlider mVerticalSlider = new JSlider(SwingConstants.VERTICAL);
+  JSlider mHorizontalSlider = new JSlider(SwingConstants.HORIZONTAL);
   NlComponent mComponent;
 
   public WidgetConstraintPanel(NlComponent component) {
@@ -55,20 +56,12 @@ public class WidgetConstraintPanel extends JPanel {
     gbc.gridy = 1;
 
     add(mHorizontalSlider, gbc);
-    mVerticalSlider.setUI(new SliderUI(mVerticalSlider));
-    mHorizontalSlider.setUI(new SliderUI(mHorizontalSlider));
-    mHorizontalSlider.addChangeListener(new ChangeListener() {
-      @Override
-      public void stateChanged(ChangeEvent e) {
-        ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS,"" + mHorizontalSlider.getValue() / 100f);
-      }
-    });
-    mVerticalSlider.addChangeListener(new ChangeListener() {
-      @Override
-      public void stateChanged(ChangeEvent e) {
-        ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, "" + (1f - (mVerticalSlider.getValue() / 100f)));
-      }
-    });
+    mVerticalSlider.setUI(new WidgetSliderUI(mVerticalSlider));
+    mHorizontalSlider.setUI(new WidgetSliderUI(mHorizontalSlider));
+    mHorizontalSlider.addChangeListener(e -> ConstraintUtilities.saveNlAttribute(
+      mComponent, SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, String.valueOf(mHorizontalSlider.getValue() / 100f)));
+    mVerticalSlider.addChangeListener(e -> ConstraintUtilities.saveNlAttribute(
+      mComponent, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, String.valueOf(1f - (mVerticalSlider.getValue() / 100f))));
   }
 
   /**
@@ -77,14 +70,10 @@ public class WidgetConstraintPanel extends JPanel {
    * @param str
    * @return
    */
-  private int convert(String str) {
-    System.out.println(str);
+  private static int convert(String str) {
     if (str == null) return 0;
     try {
-      if (str.endsWith("dp")) {
-        str = str.substring(0, str.length() - 2);
-      }
-      return Integer.parseInt(str);
+      return Integer.parseInt(StringUtil.trimEnd(str, "dp"));
     }
     catch (NumberFormatException e) {
       return 0;
@@ -170,8 +159,8 @@ public class WidgetConstraintPanel extends JPanel {
   /**
    * Look and Feel for the sliders
    */
-  class SliderUI extends BasicSliderUI {
-    SliderUI(JSlider s) {
+  static class WidgetSliderUI extends BasicSliderUI {
+    WidgetSliderUI(JSlider s) {
       super(s);
     }
 
@@ -199,8 +188,7 @@ public class WidgetConstraintPanel extends JPanel {
         g.setColor(Color.LIGHT_GRAY);
         percentText = "";
       }
-      ConnectionDraw
-        .drawCircledText(g2d, percentText, thumbRect.x + thumbRect.width / 2 - 1,
+      ConnectionDraw.drawCircledText(g2d, percentText, thumbRect.x + thumbRect.width / 2 - 1,
                          thumbRect.y + thumbRect.height / 2 - 1);
     }
   }

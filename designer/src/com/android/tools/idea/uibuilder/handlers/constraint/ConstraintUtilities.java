@@ -16,25 +16,23 @@
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.uibuilder.model.*;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.android.tools.sherpa.structure.Selection;
+import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
+import com.android.tools.idea.uibuilder.model.Insets;
+import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.sherpa.structure.WidgetCompanion;
+import com.android.tools.sherpa.structure.WidgetsScene;
+import com.google.tnt.solver.widgets.ConstraintAnchor;
+import com.google.tnt.solver.widgets.ConstraintWidget;
+import com.google.tnt.solver.widgets.ConstraintWidgetContainer;
+import com.google.tnt.solver.widgets.WidgetContainer;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
-import com.android.tools.sherpa.structure.WidgetsScene;
-import com.google.tnt.solver.widgets.ConstraintAnchor;
-import com.google.tnt.solver.widgets.ConstraintWidget;
-import com.google.tnt.solver.widgets.ConstraintWidgetContainer;
-import com.google.tnt.solver.widgets.WidgetContainer;
-import com.intellij.openapi.projectRoots.Sdk;
 
-import java.util.ArrayList;
 import java.util.Collection;
 
 /**
@@ -51,6 +49,7 @@ public class ConstraintUtilities {
   @Nullable
   static String getConnectionAttributeStrength(@Nullable ConstraintAnchor anchor) {
     if (anchor != null) {
+      //noinspection EnumSwitchStatementWhichMissesCases
       switch (anchor.getType()) {
         case LEFT: {
           return SdkConstants.ATTR_LAYOUT_LEFT_STRENGTH;
@@ -78,6 +77,7 @@ public class ConstraintUtilities {
   @Nullable
   static String getConnectionAttributeMargin(@Nullable ConstraintAnchor anchor) {
     if (anchor != null) {
+      //noinspection EnumSwitchStatementWhichMissesCases
       switch (anchor.getType()) {
         case LEFT: {
           return SdkConstants.ATTR_LAYOUT_LEFT_MARGIN;
@@ -103,6 +103,7 @@ public class ConstraintUtilities {
    * @param target the anchor the connection ends with
    * @return the connection attribute
    */
+  @SuppressWarnings("EnumSwitchStatementWhichMissesCases")
   @Nullable
   static String getConnectionAttribute(@Nullable ConstraintAnchor origin, @Nullable ConstraintAnchor target) {
     String attribute = null;
@@ -180,6 +181,7 @@ public class ConstraintUtilities {
   @Nullable
   static String getConnectionAttributeCreator(@Nullable ConstraintAnchor anchor) {
     if (anchor != null) {
+      //noinspection EnumSwitchStatementWhichMissesCases
       switch (anchor.getType()) {
         case LEFT: {
           return SdkConstants.ATTR_LAYOUT_LEFT_CREATOR;
@@ -217,6 +219,7 @@ public class ConstraintUtilities {
    * @param anchorType the anchor type
    */
   public static void resetAnchor(@NotNull NlComponent component, @NotNull ConstraintAnchor.Type anchorType) {
+    //noinspection EnumSwitchStatementWhichMissesCases
     switch (anchorType) {
       case LEFT: {
         component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_LEFT_STRENGTH, null);
@@ -342,7 +345,9 @@ public class ConstraintUtilities {
         String margin = String.format(SdkConstants.VALUE_N_DP, anchor.getMargin());
         component.setAttribute(SdkConstants.SHERPA_URI, marginAttribute, margin);
       }
-      component.setAttribute(SdkConstants.SHERPA_URI, getConnectionAttributeCreator(anchor), "" + anchor.getConnectionCreator());
+      String attributeCreator = getConnectionAttributeCreator(anchor);
+      component.setAttribute(SdkConstants.SHERPA_URI,
+                             attributeCreator, String.valueOf(anchor.getConnectionCreator()));
     }
   }
 
@@ -397,7 +402,7 @@ public class ConstraintUtilities {
     float bias = widget.getHorizontalBiasPercent();
     if (bias != 0.5f) {
       component.setAttribute(SdkConstants.SHERPA_URI,
-                             SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, "" + bias);
+                             SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, String.valueOf(bias));
     }
   }
 
@@ -411,7 +416,7 @@ public class ConstraintUtilities {
     float bias = widget.getVerticalBiasPercent();
     if (bias != 0.5f) {
       component.setAttribute(SdkConstants.SHERPA_URI,
-                             SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, "" + bias);
+                             SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, String.valueOf(bias));
     }
   }
 
@@ -717,8 +722,8 @@ public class ConstraintUtilities {
     setBottomMargin(bottom2, component, widget);
     setTarget(model, scene, baseline, widget, ConstraintAnchor.Type.BASELINE, ConstraintAnchor.Type.BASELINE);
     setTarget(model, scene, centerY, widget, ConstraintAnchor.Type.CENTER_Y, ConstraintAnchor.Type.CENTER_Y);
-    setLeftMargin(centerY, component, widget);
-    setRightMargin(centerY, component, widget);
+    setTopMargin(centerY, component, widget);
+    setBottomMargin(centerY, component, widget);
 
     setStrength(SdkConstants.ATTR_LAYOUT_LEFT_STRENGTH, ConstraintAnchor.Type.LEFT, component, widget);
     setStrength(SdkConstants.ATTR_LAYOUT_RIGHT_STRENGTH, ConstraintAnchor.Type.RIGHT, component, widget);

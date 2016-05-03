@@ -73,8 +73,8 @@ public class ConstraintModel implements ModelListener {
     return myModificationCount;
   }
 
-  private static final WeakHashMap<ScreenView, DrawConstraintModel> ourDrawModelCache = new WeakHashMap<ScreenView, DrawConstraintModel>();
-  private static final WeakHashMap<NlModel, ConstraintModel> ourModelCache = new WeakHashMap<NlModel, ConstraintModel>();
+  private static final WeakHashMap<ScreenView, DrawConstraintModel> ourDrawModelCache = new WeakHashMap<>();
+  private static final WeakHashMap<NlModel, ConstraintModel> ourModelCache = new WeakHashMap<>();
 
   //////////////////////////////////////////////////////////////////////////////
   // Utilities
@@ -146,9 +146,7 @@ public class ConstraintModel implements ModelListener {
       model.addListener(constraintModel);
       ourModelCache.put(model, constraintModel);
     }
-    if (constraintModel != null) {
-      constraintModel.modelChanged(model);
-    }
+    constraintModel.modelChanged(model);
     ourLock.unlock();
     return constraintModel;
   }
@@ -218,7 +216,7 @@ public class ConstraintModel implements ModelListener {
    */
   private void updateNlModel(@NotNull List<NlComponent> components) {
     // Initialize a list of widgets to potentially removed from the current list of widgets
-    ArrayList<ConstraintWidget> widgets = new ArrayList(myWidgetsScene.getWidgets());
+    ArrayList<ConstraintWidget> widgets = new ArrayList<>(myWidgetsScene.getWidgets());
     if (widgets.size() > 0) {
       // Let's check for widgets to remove
       for (NlComponent component : components) {
@@ -279,20 +277,7 @@ public class ConstraintModel implements ModelListener {
    * @param component the component we want to represent
    */
   private void createSolverWidgetFromComponent(@NotNull NlComponent component) {
-    ConstraintWidget widget = null;
-    if (component.getTag() != null) {
-      widget = myWidgetsScene.getWidget(component.getTag());
-    }
-    else {
-      for (ConstraintWidget w : myWidgetsScene.getWidgets()) {
-        WidgetCompanion companion = (WidgetCompanion)w.getCompanionWidget();
-        NlComponent c = (NlComponent)companion.getWidgetModel();
-        if (component == c) {
-          widget = w;
-          break;
-        }
-      }
-    }
+    ConstraintWidget widget = myWidgetsScene.getWidget(component.getTag());
     if (widget == null) {
       if (component.getTagName().equalsIgnoreCase(SdkConstants.CONSTRAINT_LAYOUT)) {
         widget = new ConstraintWidgetContainer();
@@ -336,7 +321,7 @@ public class ConstraintModel implements ModelListener {
    * @param widget    the ConstraintWidget associated
    * @return a new WidgetDecorator instance
    */
-  private WidgetDecorator createDecorator(NlComponent component, ConstraintWidget widget) {
+  private static WidgetDecorator createDecorator(NlComponent component, ConstraintWidget widget) {
     WidgetDecorator decorator = null;
     if (component.getTagName().equalsIgnoreCase(SdkConstants.TEXT_VIEW)) {
       String text = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT);
