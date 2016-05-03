@@ -330,6 +330,7 @@ public class MouseInteraction {
             }
             if (mSelection.contains(mWidget)) {
                 mWidgetsScene.toggleLockConstraints(mWidget);
+                mSelection.addModifiedWidget(mWidget);
                 mSceneDraw.repaint();
             }
         }
@@ -712,6 +713,7 @@ public class MouseInteraction {
                 candidate.source.getOwner().connect(
                         candidate.source, candidate.target, margin,
                         ConstraintAnchor.AUTO_CONSTRAINT_CREATOR);
+                mSelection.addModifiedWidget(candidate.source.getOwner());
             }
         }
 
@@ -850,8 +852,10 @@ public class MouseInteraction {
                             directionLockedStatus =
                                     mWidgetMotion.dragWidget(getStartPoint(), selection, x, y,
                                             snapPosition, isShiftDown(), mViewTransform);
-                            mSelection.addModifiedWidget(selection.widget);
                         }
+                    }
+                    for (Selection.Element selection : mSelection.getElements()) {
+                        mSelection.addModifiedWidget(selection.widget);
                     }
                 }
             }
