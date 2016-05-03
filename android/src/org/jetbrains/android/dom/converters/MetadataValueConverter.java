@@ -23,8 +23,6 @@ import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.CustomReferenceConverter;
 import com.intellij.util.xml.GenericDomValue;
 import com.intellij.util.xml.ResolvingConverter;
-import org.jetbrains.android.dom.converters.PackageClassConverter;
-import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -71,7 +69,7 @@ public class MetadataValueConverter extends ResolvingConverter<Object> implement
       return Collections.emptyList();
     }
 
-    ArrayList<Object> results = new ArrayList<Object>();
+    ArrayList<Object> results = new ArrayList<>();
     results.addAll(myResourceReferenceConverter.getVariants(context));
 
     return results;

@@ -45,7 +45,7 @@ public class AndroidXmlReferenceProvider extends PsiReferenceProvider {
     if (baseClassQName == null) {
       return PsiReference.EMPTY_ARRAY;
     }
-    final List<PsiReference> result = new ArrayList<PsiReference>();
+    final List<PsiReference> result = new ArrayList<>();
     final XmlTag tag = (XmlTag)element;
 
     if (startTagName != null && areReferencesProvidedByReferenceProvider(startTagName)) {
@@ -187,7 +187,7 @@ public class AndroidXmlReferenceProvider extends PsiReferenceProvider {
       if (baseClass == null) {
         return EMPTY_ARRAY;
       }
-      final List<Object> result = new ArrayList<Object>();
+      final List<Object> result = new ArrayList<>();
 
       ClassInheritorsSearch.search(baseClass, myModule.getModuleWithDependenciesAndLibrariesScope(false), true, true, false).forEach(
         new Processor<PsiClass>() {

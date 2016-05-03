@@ -57,7 +57,7 @@ public class AndroidResourceReference extends AndroidResourceReferenceBase {
     }
     if (converter instanceof ResolvingConverter) {
       final ResolvingConverter resolvingConverter = (ResolvingConverter)converter;
-      ArrayList<Object> result = new ArrayList<Object>();
+      ArrayList<Object> result = new ArrayList<>();
       final ConvertContext convertContext = ConvertContextFactory.createConvertContext(myValue);
       for (Object variant : resolvingConverter.getVariants(convertContext)) {
         String name = converter.toString(variant, convertContext);

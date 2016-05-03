@@ -62,7 +62,7 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
   @NotNull
   public PsiElement[] computeTargetElements() {
     final ResolveResult[] resolveResults = multiResolve(false);
-    final List<PsiElement> results = new ArrayList<PsiElement>();
+    final List<PsiElement> results = new ArrayList<>();
 
     for (ResolveResult result : resolveResults) {
       PsiElement element = result.getElement();
@@ -97,10 +97,10 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
 
   @NotNull
   private ResolveResult[] resolveInner() {
-    final List<PsiElement> elements = new ArrayList<PsiElement>();
+    final List<PsiElement> elements = new ArrayList<>();
     final boolean attrReference = myResourceValue.getPrefix() == '?';
     collectTargets(myFacet, myResourceValue, elements, attrReference);
-    final List<ResolveResult> result = new ArrayList<ResolveResult>();
+    final List<ResolveResult> result = new ArrayList<>();
 
     if (elements.isEmpty() && myResourceValue.getResourceName() != null &&
         !AndroidUtils.SYSTEM_RESOURCE_PACKAGE.equals(myResourceValue.getNamespace())) {
