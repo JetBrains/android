@@ -61,7 +61,7 @@ public class EmbeddedDistributionPaths {
     }
 
     // Add locally published studio repo
-    String relativePath = toSystemDependentName("/../../out/studio");
+    String relativePath = toSystemDependentName("/../../out/studio/repo");
     repoPath = new File(PathManager.getHomePath() + relativePath);
     if (repoPath.isDirectory()) {
       repoPaths.add(repoPath);
