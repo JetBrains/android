@@ -37,6 +37,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.util.InheritanceUtil;
@@ -58,6 +59,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowManager;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidResourceUtil;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -195,7 +197,9 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
     if (resName != null && ApplicationManager.getApplication().isUnitTestMode()) {
       String fileName = AndroidResourceUtil.getDefaultResourceFileName(type);
       assert fileName != null;
-      AndroidResourceUtil.createValueResource(facet.getModule(), resName, type, fileName,
+      VirtualFile resourceDir = facet.getPrimaryResourceDir();
+      assert resourceDir != null;
+      AndroidResourceUtil.createValueResource(project, resourceDir, resName, type, fileName,
                                               Collections.singletonList(ResourceFolderType.VALUES.getName()), value);
     }
     else {
@@ -207,14 +211,15 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
         return;
       }
 
-      final Module module = dialog.getModule();
-      if (module == null) {
+      VirtualFile resourceDir = dialog.getResourceDirectory();
+      if (resourceDir == null) {
+        AndroidUtils.reportError(project, AndroidBundle.message("check.resource.dir.error", facetModule));
         return;
       }
 
       resName = dialog.getResourceName();
       if (!AndroidResourceUtil
-        .createValueResource(module, resName, type, dialog.getFileName(), dialog.getDirNames(), value)) {
+        .createValueResource(project, resourceDir, resName, type, dialog.getFileName(), dialog.getDirNames(), value)) {
         return;
       }
     }

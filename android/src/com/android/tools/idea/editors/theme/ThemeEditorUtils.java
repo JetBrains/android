@@ -33,12 +33,13 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.configurations.ResourceResolverCache;
 import com.android.tools.idea.configurations.ThemeSelectionPanel;
-import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
+import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.res.*;
+import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 import com.google.common.base.Predicate;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -71,7 +72,7 @@ import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.resources.Style;
 import org.jetbrains.android.facet.AndroidFacet;
-import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
@@ -298,20 +299,26 @@ public class ThemeEditorUtils {
 
   /**
    * Creates a new style
-   * @param module the module where the new style is being created
+   * @param project the project where the new style is being created
+   * @param resourceDir the res/ directory where the new style is being created
    * @param newStyleName the new style name
    * @param parentStyleName the name of the new style parent
    * @param fileName name of the xml file where the style will be added (usually "styles.xml")
    * @param folderNames folder names where the style will be added
    * @return true if the style was created or false otherwise
    */
-  public static boolean createNewStyle(@NotNull final Module module, final @NotNull String newStyleName, final @Nullable String parentStyleName, final @NotNull String fileName, final @NotNull List<String> folderNames) {
-    return new WriteCommandAction<Boolean>(module.getProject(), "Create new style " + newStyleName) {
+  public static boolean createNewStyle(@NotNull final Project project,
+                                       @NotNull final VirtualFile resourceDir,
+                                       final @NotNull String newStyleName,
+                                       final @Nullable String parentStyleName,
+                                       final @NotNull String fileName,
+                                       final @NotNull List<String> folderNames) {
+    return new WriteCommandAction<Boolean>(project, "Create new style " + newStyleName) {
       @Override
       protected void run(@NotNull Result<Boolean> result) {
-        CommandProcessor.getInstance().markCurrentCommandAsGlobal(module.getProject());
+        CommandProcessor.getInstance().markCurrentCommandAsGlobal(project);
         result.setResult(AndroidResourceUtil.
-          createValueResource(module, newStyleName, null,
+          createValueResource(project, resourceDir, newStyleName, null,
                               ResourceType.STYLE, fileName, folderNames, new Processor<ResourceElement>() {
               @Override
               public boolean process(ResourceElement element) {
@@ -383,8 +390,20 @@ public class ThemeEditorUtils {
 
     final List<String> dirNames = Collections.singletonList(config.getFolderName(ResourceFolderType.VALUES));
     String parentStyleName = dialog.getStyleParentName();
-    boolean isCreated = createNewStyle(
-      themeEditorContext.getCurrentContextModule(), dialog.getStyleName(), parentStyleName, fileName, dirNames);
+
+    Module module = themeEditorContext.getCurrentContextModule();
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet == null) {
+      LOG.error("Create new style for non-Android module " + module.getName());
+      return null;
+    }
+    Project project = module.getProject();
+    VirtualFile resourceDir = facet.getPrimaryResourceDir();
+    if (resourceDir == null) {
+      AndroidUtils.reportError(project, AndroidBundle.message("check.resource.dir.error", module.getName()));
+      return null;
+    }
+    boolean isCreated = createNewStyle(project, resourceDir, dialog.getStyleName(), parentStyleName, fileName, dirNames);
 
     return isCreated ? dialog.getStyleName() : null;
   }
@@ -439,21 +458,18 @@ public class ThemeEditorUtils {
     else {
       XmlTag tag = OverrideResourceAction.getValueTag(PsiTreeUtil.getParentOfType(toBeCopied, XmlTag.class, false));
       if (tag != null) {
-        AndroidFacet facet = AndroidFacet.getInstance(toBeCopied);
-        if (facet != null) {
-          PsiDirectory dir = null;
-          PsiDirectory resFolder = file.getParent();
-          if (resFolder != null) {
-            resFolder = resFolder.getParent();
-          }
-          if (resFolder != null) {
-            dir = resFolder.findSubdirectory(folder);
-            if (dir == null) {
-              dir = resFolder.createSubdirectory(folder);
-            }
-          }
-          OverrideResourceAction.forkResourceValue(toBeCopied.getProject(), tag, file, facet, dir, false);
+        PsiDirectory dir = null;
+        PsiDirectory resFolder = file.getParent();
+        if (resFolder != null) {
+          resFolder = resFolder.getParent();
         }
+        if (resFolder != null) {
+          dir = resFolder.findSubdirectory(folder);
+          if (dir == null) {
+            dir = resFolder.createSubdirectory(folder);
+          }
+        }
+        OverrideResourceAction.forkResourceValue(toBeCopied.getProject(), tag, file, dir, false);
       }
     }
   }

@@ -1,7 +1,6 @@
 package org.jetbrains.android.refactoring;
 
 import com.intellij.openapi.actionSystem.Presentation;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.util.ArrayUtil;
@@ -87,8 +86,9 @@ public class AndroidExtractStyleTest extends AndroidTestCase {
     }
     final VirtualFile f =
       myFixture.copyFileToProject(BASE_PATH + testName + ".xml", "res/layout/test" + testName + ".xml");
+    VirtualFile resourceDir = f.getParent().getParent();
     myFixture.configureFromExistingVirtualFile(f);
-    myFixture.testAction(new AndroidExtractStyleAction(new MyConfig(myModule, styleName, attributesToExtract, expectedExtractableAttrs)));
+    myFixture.testAction(new AndroidExtractStyleAction(new MyConfig(resourceDir, styleName, attributesToExtract, expectedExtractableAttrs)));
     myFixture.checkResultByFile(BASE_PATH + testName + "_after.xml");
     myFixture.checkResultByFile("res/values/styles.xml", BASE_PATH + testName + "_styles_after.xml", true);
   }
@@ -96,11 +96,11 @@ public class AndroidExtractStyleTest extends AndroidTestCase {
   private static class MyConfig extends AndroidExtractStyleAction.MyTestConfig {
     private final String[] myExpectedExtractableAttributes;
 
-    MyConfig(@NotNull Module module,
+    MyConfig(@NotNull VirtualFile resourceDir,
              @NotNull String styleName,
              @NotNull String[] attributesToExtract,
              @NotNull String[] expectedExtractableAttributes) {
-      super(module, styleName, attributesToExtract);
+      super(resourceDir, styleName, attributesToExtract);
       myExpectedExtractableAttributes = expectedExtractableAttributes;
       Arrays.sort(myExpectedExtractableAttributes);
     }

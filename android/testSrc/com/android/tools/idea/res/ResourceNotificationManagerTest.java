@@ -23,6 +23,7 @@ import com.android.tools.idea.res.ResourceNotificationManager.ResourceVersion;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.util.Ref;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
@@ -55,6 +56,9 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
           "        android:text=\"@string/hello\" />\n" +
           "</FrameLayout>";
     final XmlFile layout1 = (XmlFile)myFixture.addFileToProject("res/layout/my_layout1.xml", xml);
+    @SuppressWarnings("ConstantConditions")
+    VirtualFile resourceDir = layout1.getParent().getParent().getVirtualFile();
+    assertNotNull(resourceDir);
 
     xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
           "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
@@ -119,8 +123,8 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
     // the resource item first:
     //noinspection ConstantConditions
     assertEquals("#ff0000", configuration1.getResourceResolver().getStyle("AppTheme", false).getItem("colorBackground", true).getValue());
-    AndroidResourceUtil.createValueResource(myModule, "color2", ResourceType.COLOR, "colors.xml", Collections.singletonList("values"),
-                                            "#fa2395");
+    AndroidResourceUtil.createValueResource(getProject(), resourceDir, "color2", ResourceType.COLOR, "colors.xml",
+                                            Collections.singletonList("values"), "#fa2395");
     ensureCalled(called1, calledValue1, called2, calledValue2, Reason.RESOURCE_EDIT);
     clear(called1, calledValue1, called2, calledValue2);
     @SuppressWarnings("ConstantConditions")
@@ -180,8 +184,8 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
     // Check that recreating AppResourceRepository object doesn't affect the ResourceNotificationManager
     clear(called1, calledValue1, called2, calledValue2);
     myFacet.refreshResources();
-    AndroidResourceUtil.createValueResource(myModule, "color4", ResourceType.COLOR, "colors.xml", Collections.singletonList("values"),
-                                            "#ff2300");
+    AndroidResourceUtil.createValueResource(getProject(), resourceDir, "color4", ResourceType.COLOR, "colors.xml",
+                                            Collections.singletonList("values"), "#ff2300");
     ensureCalled(called1, calledValue1, called2, calledValue2, Reason.RESOURCE_EDIT);
 
     // Finally check that once we remove the listeners there are no more notifications

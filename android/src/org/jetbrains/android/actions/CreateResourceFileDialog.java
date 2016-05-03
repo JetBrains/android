@@ -16,6 +16,7 @@
 
 package org.jetbrains.android.actions;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.SourceProvider;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceConstants;
@@ -26,13 +27,11 @@ import com.google.common.collect.Maps;
 import com.intellij.CommonBundle;
 import com.intellij.application.options.ModulesComboBox;
 import com.intellij.ide.actions.TemplateKindCombo;
-import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.DialogWrapper;
-import com.intellij.openapi.ui.InputValidator;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiElement;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.TextFieldWithAutoCompletion;
 import com.intellij.ui.components.JBLabel;
@@ -43,7 +42,6 @@ import org.jetbrains.android.uipreview.DeviceConfiguratorPanel;
 import org.jetbrains.android.uipreview.InvalidOptionValueException;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -72,7 +70,8 @@ public class CreateResourceFileDialog extends DialogWrapper {
   private JComboBox mySourceSetCombo;
   private JBLabel mySourceSetLabel;
   private TextFieldWithAutoCompletion<String> myRootElementField;
-  private InputValidator myValidator;
+  private ElementCreatingValidator myValidator;
+  private ValidatorFactory myValidatorFactory;
 
   private final Map<ResourceFolderType, CreateTypedResourceFileAction> myResType2ActionMap = Maps.newEnumMap(ResourceFolderType.class);
   private final DeviceConfiguratorPanel myDeviceConfiguratorPanel;
@@ -86,12 +85,14 @@ public class CreateResourceFileDialog extends DialogWrapper {
                                   @Nullable String predefinedRootElement,
                                   @Nullable FolderConfiguration predefinedConfig,
                                   boolean chooseFileName,
-                                  @NotNull Module module,
                                   boolean chooseModule,
-                                  @Nullable PsiDirectory resDirectory) {
+                                  @Nullable PsiDirectory resDirectory,
+                                  @NotNull ValidatorFactory validatorFactory) {
     super(facet.getModule().getProject());
+    Module module = facet.getModule();
     myFacet = facet;
     myResDirectory = resDirectory;
+    myValidatorFactory = validatorFactory;
 
     myResTypeLabel.setLabelFor(myResourceTypeCombo);
     myResourceTypeCombo.registerUpDownHint(myFileNameField);
@@ -273,14 +274,10 @@ public class CreateResourceFileDialog extends DialogWrapper {
     }
   }
 
+  @VisibleForTesting
   @NotNull
   public String getFileName() {
     return myFileNameField.getText().trim();
-  }
-
-  @Nullable
-  protected InputValidator createValidator(@NotNull String subdirName) {
-    return null;
   }
 
   @Override
@@ -294,7 +291,8 @@ public class CreateResourceFileDialog extends DialogWrapper {
       return;
     }
 
-    if (!action.isChooseTagName() && getRootElement().length() == 0) {
+    String rootElement = getRootElement();
+    if (!action.isChooseTagName() && rootElement.length() == 0) {
       Messages.showErrorDialog(myPanel, AndroidBundle.message("root.element.not.specified.error"), CommonBundle.getErrorTitle());
       return;
     }
@@ -310,10 +308,28 @@ public class CreateResourceFileDialog extends DialogWrapper {
       Messages.showErrorDialog(myPanel, errorMessage, CommonBundle.getErrorTitle());
       return;
     }
-    myValidator = createValidator(subdirName);
-    if (myValidator == null || myValidator.checkInput(fileName) && myValidator.canClose(fileName)) {
+    PsiDirectory resDir = getResourceDirectory();
+    if (resDir == null) {
+      Messages.showErrorDialog(myPanel, AndroidBundle.message("check.resource.dir.error", getSelectedModule()),
+                               CommonBundle.getErrorTitle());
+      super.doOKAction();
+      return;
+    }
+
+    myValidator = myValidatorFactory.create(resDir, subdirName, rootElement);
+    if (myValidator.checkInput(fileName) && myValidator.canClose(fileName)) {
       super.doOKAction();
     }
+  }
+
+  public PsiElement[] getCreatedElements() {
+    return myValidator != null ? myValidator.getCreatedElements() : PsiElement.EMPTY_ARRAY;
+  }
+
+  public interface ValidatorFactory {
+    @NotNull
+    ElementCreatingValidator create(@NotNull PsiDirectory resourceDirectory, @NotNull String subdirName,
+                                    @Nullable String rootElement);
   }
 
   @Override
@@ -322,32 +338,28 @@ public class CreateResourceFileDialog extends DialogWrapper {
   }
 
   @Nullable
-  public SourceProvider getSourceProvider() {
-    return CreateResourceActionBase.getSourceProvider(mySourceSetCombo);
-  }
-
-  @Contract("_,true -> !null")
-  @Nullable
-  public PsiDirectory getResourceDirectory(@Nullable DataContext context, boolean create) {
+  private PsiDirectory getResourceDirectory() {
     if (myResDirectory != null) {
       return myResDirectory;
     }
-    if (context != null) {
-      Module module = LangDataKeys.MODULE.getData(context);
-      assert module != null;
-      return CreateResourceActionBase.getResourceDirectory(getSourceProvider(), module, create);
-    }
-
-    return null;
+    Module module = getSelectedModule();
+    return CreateResourceActionBase.getResourceDirectory(getSourceProvider(), module, true);
   }
 
   @NotNull
-  public Module getSelectedModule() {
-    return myModuleCombo.getSelectedModule();
+  private Module getSelectedModule() {
+    Module module = myModuleCombo.getSelectedModule();
+    assert module != null;
+    return module;
+  }
+
+  @Nullable
+  private SourceProvider getSourceProvider() {
+    return CreateResourceActionBase.getSourceProvider(mySourceSetCombo);
   }
 
   @NotNull
-  public String getSubdirName() {
+  private String getSubdirName() {
     return myDirectoryNameTextField.getText().trim();
   }
 
@@ -356,9 +368,6 @@ public class CreateResourceFileDialog extends DialogWrapper {
     return myRootElementField.getText().trim();
   }
 
-  public InputValidator getValidator() {
-    return myValidator;
-  }
 
   @Override
   protected JComponent createCenterPanel() {
