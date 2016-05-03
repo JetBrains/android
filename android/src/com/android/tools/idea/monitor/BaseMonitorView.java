@@ -17,9 +17,9 @@ package com.android.tools.idea.monitor;
 
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
-import com.android.tools.chartlib.Choreographer;
-import com.android.tools.chartlib.EventData;
-import com.android.tools.chartlib.TimelineComponent;
+import com.android.tools.adtui.Choreographer;
+import com.android.tools.adtui.EventData;
+import com.android.tools.adtui.TimelineComponent;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.intellij.ide.util.PropertiesComponent;

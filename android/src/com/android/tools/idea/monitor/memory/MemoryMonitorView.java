@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.monitor.memory;
 
-import com.android.tools.chartlib.TimelineComponent;
+import com.android.tools.adtui.TimelineComponent;
 import com.android.tools.idea.actions.BrowserHelpAction;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.ddms.actions.GcAction;

@@ -16,7 +16,7 @@
 package com.android.tools.idea.monitor.network;
 
 import com.android.ddmlib.*;
-import com.android.tools.chartlib.TimelineData;
+import com.android.tools.adtui.TimelineData;
 import com.android.tools.idea.monitor.DeviceSampler;
 import org.jetbrains.annotations.NotNull;
 
