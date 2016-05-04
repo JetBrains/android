@@ -50,26 +50,13 @@ class MenuFixture {
    * @param path the series of menu names, e.g. {@link invokeActionByMenuPath("Build", "Make Project ")}
    */
   void invokeMenuPath(@NotNull String... path) {
-    JMenuItem menuItem = findActionMenuItem(false, path);
-    assertWithMessage("Menu path \"" + Joiner.on(" -> ").join(path) + "\" is not enabled").that(menuItem.isEnabled()).isTrue();
-    myRobot.click(menuItem);
-  }
-
-  /**
-   * Invokes an action by menu path (where each segment is a regular expression). This is particularly
-   * useful when the menu items can change dynamically, such as the labels of Undo actions, Run actions,
-   * etc.
-   *
-   * @param path the series of menu name regular expressions, e.g. {@link invokeActionByMenuPath("Build", "Make( Project)?")}
-   */
-  void invokeMenuPathRegex(@NotNull String... path) {
-    JMenuItem menuItem = findActionMenuItem(true, path);
+    JMenuItem menuItem = findActionMenuItem(path);
     assertWithMessage("Menu path \"" + Joiner.on(" -> ").join(path) + "\" is not enabled").that(menuItem.isEnabled()).isTrue();
     myRobot.click(menuItem);
   }
 
   @NotNull
-  private JMenuItem findActionMenuItem(final boolean pathIsRegex, @NotNull String... path) {
+  private JMenuItem findActionMenuItem(@NotNull String... path) {
     myRobot.waitForIdle(); // UI events can trigger modifications of the menu contents
     assertThat(path).isNotEmpty();
     int segmentCount = path.length;
@@ -84,7 +71,7 @@ class MenuFixture {
       JMenuItem found = myRobot.finder().find(root, new GenericTypeMatcher<JMenuItem>(JMenuItem.class) {
         @Override
         protected boolean isMatching(@NotNull JMenuItem menuItem) {
-          return pathIsRegex ? menuItem.getText().matches(segment) : segment.equals(menuItem.getText());
+          return segment.equals(menuItem.getText());
         }
       });
       if (root instanceof JPopupMenu) {
@@ -131,7 +118,7 @@ class MenuFixture {
    * @param path the series of menu names, e.g. {@link isMenuPathEnabled("Build", "Make Project ")}
    */
   public boolean isMenuPathEnabled(String... path) {
-    boolean isEnabled = findActionMenuItem(false, path).isEnabled();
+    boolean isEnabled = findActionMenuItem(path).isEnabled();
     myRobot.pressAndReleaseKey(KeyEvent.VK_ESCAPE); // Close the menu before continuing.
 
     return isEnabled;
