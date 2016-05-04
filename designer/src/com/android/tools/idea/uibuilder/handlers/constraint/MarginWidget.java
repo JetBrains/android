@@ -35,9 +35,10 @@ import java.util.ArrayList;
  */
 public class MarginWidget extends JPanel {
   String[] str = new String[]{"0", "8", "16", "24", "32"};
-  ComboBox combo = new ComboBox(str);
+  @SuppressWarnings("UndesirableClassUsage")
+  JComboBox<String> combo = new JComboBox<>(str);
   ColorSet mColorSet = new BlueprintColorSet();
-  ArrayList<ActionListener> mCallbacks = new ArrayList<ActionListener>();
+  ArrayList<ActionListener> mCallbacks = new ArrayList<>();
 
   JLabel label = new JLabel("0");
   CardLayout layout;
@@ -83,6 +84,7 @@ public class MarginWidget extends JPanel {
       }
     });
 
+    //noinspection GtkPreferredJComboBoxRenderer
     combo.setRenderer(new DefaultListCellRenderer() {
       @Override
       public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
