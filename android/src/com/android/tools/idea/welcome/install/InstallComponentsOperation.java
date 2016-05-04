@@ -17,6 +17,7 @@ package com.android.tools.idea.welcome.install;
 
 import com.android.repository.api.RemotePackage;
 import com.android.tools.idea.npw.ImportUIUtil;
+import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.google.common.collect.Lists;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.diagnostic.Logger;
@@ -66,13 +67,24 @@ public class InstallComponentsOperation extends InstallOperation<File, File> {
   @Override
   protected File perform(@NotNull ProgressIndicator indicator, @NotNull File sdkLocation) throws WizardException {
     indicator.setText("Checking for updated SDK components");
-    List<RemotePackage> packages = myComponentInstaller.getPackagesToInstall(myComponents);
+    List<RemotePackage> packages;
+    try {
+      packages = myComponentInstaller.getPackagesToInstall(myComponents);
+    }
+    catch (SdkQuickfixUtils.PackageResolutionException e) {
+      throw new WizardException("Failed to determine required packages", e);
+    }
     while (!packages.isEmpty()) {
       SdkManagerProgressIndicatorIntegration logger = new SdkManagerProgressIndicatorIntegration(indicator, myContext);
       myComponentInstaller.installPackages(packages, logger);
       // If we didn't set remote information on the installer we assume we weren't expecting updates. So set false for
       // defaultUpdateAvailable so we don't think everything failed to install.
-      packages = myComponentInstaller.getPackagesToInstall(myComponents);
+      try {
+        packages = myComponentInstaller.getPackagesToInstall(myComponents);
+      }
+      catch (SdkQuickfixUtils.PackageResolutionException e) {
+        throw new WizardException("Failed to determine required packages", e);
+      }
       String message = getRetryMessage(packages);
       if (message != null) {
         promptToRetry(message, logger.getErrors(), null);

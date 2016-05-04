@@ -423,7 +423,6 @@ public class PatchInstallerFactory extends AbstractInstallerFactory {
     return loader;
   }
 
-  @VisibleForTesting
   abstract static class PatchInstallerBase extends AbstractPackageOperation.AbstractInstaller {
 
     protected final LocalPackage myExisting;
@@ -540,7 +539,7 @@ public class PatchInstallerFactory extends AbstractInstallerFactory {
       }
       File completePatch = new File(patchDir, PATCH_JAR_FN);
       try (FileSystem completeFs = FileSystems.newFileSystem(URI.create("jar:" + completePatch.toURI()), new HashMap<>());
-           FileSystem patchFs = FileSystems.newFileSystem(URI.create("jar:" + patchFile.toURI().toString()), new HashMap<>());) {
+           FileSystem patchFs = FileSystems.newFileSystem(URI.create("jar:" + patchFile.toURI().toString()), new HashMap<>())) {
         mFop.copyFile(patcherFile, completePatch);
         Files.copy(patchFs.getPath(PATCH_ZIP_FN), completeFs.getPath(PATCH_ZIP_FN));
         InstallerUtil.writePendingPackageXml(getPackage(), patchDir, getRepoManager(), mFop, progress);
@@ -566,7 +565,7 @@ public class PatchInstallerFactory extends AbstractInstallerFactory {
     }
 
     @Override
-    protected boolean doPrepareInstall(@NotNull File installTempPath, @NotNull ProgressIndicator progress) {
+    protected boolean doPrepare(@NotNull File installTempPath, @NotNull ProgressIndicator progress) {
       if (!downloadAndUnzip(installTempPath, progress)) {
         return false;
       }
@@ -669,8 +668,8 @@ public class PatchInstallerFactory extends AbstractInstallerFactory {
     }
 
     @Override
-    protected boolean doPrepareInstall(@NotNull File tempDir,
-                                       @NotNull ProgressIndicator progress) {
+    protected boolean doPrepare(@NotNull File tempDir,
+                                @NotNull ProgressIndicator progress) {
       LocalPackage local = getRepoManager().getPackages().getLocalPackages().get(getPackage().getPath());
       Archive archive = getPackage().getArchive();
       assert archive != null;
@@ -699,7 +698,7 @@ public class PatchInstallerFactory extends AbstractInstallerFactory {
     }
 
     @Override
-    protected boolean doPrepareUninstall(@NotNull ProgressIndicator progress) {
+    protected boolean doPrepare(@NotNull ProgressIndicator progress) {
       return true;
     }
 
@@ -740,8 +739,8 @@ public class PatchInstallerFactory extends AbstractInstallerFactory {
         }
 
         @Override
-        protected boolean doPrepareInstall(@NotNull File installTempPath,
-                                           @NotNull ProgressIndicator progress) {
+        protected boolean doPrepare(@NotNull File installTempPath,
+                                    @NotNull ProgressIndicator progress) {
           return false;
         }
       };

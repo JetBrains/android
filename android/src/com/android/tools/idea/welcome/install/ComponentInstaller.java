@@ -38,17 +38,18 @@ public final class ComponentInstaller {
     mySdkHandler = sdkHandler;
   }
 
-  public List<RemotePackage> getPackagesToInstall(@NotNull Iterable<? extends InstallableComponent> components) {
+  public List<RemotePackage> getPackagesToInstall(@NotNull Iterable<? extends InstallableComponent> components)
+    throws SdkQuickfixUtils.PackageResolutionException {
     // TODO: Prompt about connection in handoff case?
-    Set<String> requests = Sets.newHashSet();
+    Set<UpdatablePackage> requests = Sets.newHashSet();
     StudioLoggerProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
     RepoManager sdkManager = mySdkHandler.getSdkManager(progress);
     for (InstallableComponent component : components) {
       requests.addAll(component.getPackagesToInstall());
     }
     List<UpdatablePackage> resolved = Lists.newArrayList();
-    List<String> problems = Lists.newArrayList();
-    SdkQuickfixUtils.resolve(requests, null, sdkManager, resolved, problems);
+    resolved.addAll(SdkQuickfixUtils.resolve(requests, sdkManager.getPackages()));
+
     List<RemotePackage> result = Lists.newArrayList();
     for (UpdatablePackage p : resolved) {
       result.add(p.getRemote());
