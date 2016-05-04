@@ -15,28 +15,24 @@
  */
 package com.android.tools.idea.editors.manifest;
 
-import com.android.SdkConstants;
 import com.android.ide.common.blame.SourceFile;
 import com.android.ide.common.blame.SourceFilePosition;
 import com.android.ide.common.blame.SourcePosition;
 import com.android.manifmerger.Actions;
 import com.android.manifmerger.XmlNode;
 import com.android.tools.idea.model.MergedManifest;
-import com.android.xml.AndroidManifest;
+import com.android.tools.lint.detector.api.LintUtils;
+import com.android.utils.PositionXmlParser;
 import com.google.common.base.Joiner;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiDocumentManager;
-import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlAttribute;
-import com.intellij.psi.xml.XmlElement;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -45,11 +41,17 @@ import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.inspections.lint.SuppressLintIntentionAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.*;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import static com.android.SdkConstants.*;
+import static com.android.xml.AndroidManifest.ATTRIBUTE_GLESVERSION;
+import static org.jetbrains.android.dom.attrs.ToolsAttributeUtil.ATTR_NODE;
+import static org.jetbrains.android.dom.attrs.ToolsAttributeUtil.ATTR_REMOVE;
 
 public class ManifestUtils {
 
@@ -57,19 +59,19 @@ public class ManifestUtils {
   }
 
   @NotNull
-  static List<? extends Actions.Record> getRecords(@NotNull MergedManifest manifest, @NotNull XmlElement item) {
+  static List<? extends Actions.Record> getRecords(@NotNull MergedManifest manifest, @NotNull Node item) {
     Actions actions = manifest.getActions();
     if (actions != null) {
-      if (item instanceof XmlTag) {
-        XmlTag xmlTag = (XmlTag)item;
-        XmlNode.NodeKey key = getNodeKey(manifest, xmlTag);
+      if (item instanceof Element) {
+        Element element = (Element)item;
+        XmlNode.NodeKey key = getNodeKey(manifest, element);
         return actions.getNodeRecords(key);
       }
-      else if (item instanceof XmlAttribute) {
-        XmlAttribute xmlAttribute = (XmlAttribute)item;
-        XmlTag xmlTag = xmlAttribute.getParent();
-        XmlNode.NodeKey key = getNodeKey(manifest, xmlTag);
-        XmlNode.NodeName name = XmlNode.fromXmlName(xmlAttribute.getName());
+      else if (item instanceof Attr) {
+        Attr attribute = (Attr)item;
+        Element element = attribute.getOwnerElement();
+        XmlNode.NodeKey key = getNodeKey(manifest, element);
+        XmlNode.NodeName name = XmlNode.fromXmlName(attribute.getName());
         List<? extends Actions.Record> attributeRecords = actions.getAttributeRecords(key, name);
         if (!attributeRecords.isEmpty()) {
           return attributeRecords;
@@ -81,29 +83,32 @@ public class ManifestUtils {
   }
 
   @Nullable("can not find report node for xml tag")
-  static XmlNode.NodeKey getNodeKey(@NotNull MergedManifest manifest, @NotNull XmlTag xmlTag) {
-    XmlNode.NodeKey key = manifest.getNodeKey(xmlTag.getName());
+  static XmlNode.NodeKey getNodeKey(@NotNull MergedManifest manifest, @NotNull Element element) {
+    XmlNode.NodeKey key = manifest.getNodeKey(element.getNodeName());
     if (key == null) {
-      XmlAttribute nameAttribute = xmlTag.getAttribute(SdkConstants.ATTR_NAME, SdkConstants.ANDROID_URI);
+      Attr nameAttribute = element.getAttributeNodeNS(ANDROID_URI, ATTR_NAME);
       if (nameAttribute != null) {
-        key = manifest.getNodeKey(xmlTag.getName() + "#" + nameAttribute.getValue());
+        key = manifest.getNodeKey(element.getTagName() + "#" + nameAttribute.getValue());
       }
       else {
-        XmlAttribute glEsVersionAttribute = xmlTag.getAttribute(AndroidManifest.ATTRIBUTE_GLESVERSION, SdkConstants.ANDROID_URI);
+        Attr glEsVersionAttribute = element.getAttributeNodeNS(ANDROID_URI, ATTRIBUTE_GLESVERSION);
         if (glEsVersionAttribute != null) {
-          key = manifest.getNodeKey(xmlTag.getName() + "#" + glEsVersionAttribute.getValue());
+          key = manifest.getNodeKey(element.getTagName() + "#" + glEsVersionAttribute.getValue());
         }
         else {
-          XmlTag[] children = xmlTag.getSubTags();
-          List<String> names = new ArrayList<String>();
-          for (XmlTag child : children) {
-            XmlAttribute childAttribute = child.getAttribute(SdkConstants.ATTR_NAME, SdkConstants.ANDROID_URI);
-            if (childAttribute != null) {
-              names.add(childAttribute.getValue());
+          NodeList children = element.getChildNodes();
+          List<String> names = new ArrayList<>(children.getLength());
+          for (int i = 0; i < children.getLength(); i++) {
+            Node child = children.item(i);
+            if (child.getNodeType() == Node.ELEMENT_NODE) {
+              Attr childAttribute = ((Element)child).getAttributeNodeNS(ANDROID_URI, ATTR_NAME);
+              if (childAttribute != null) {
+                names.add(childAttribute.getValue());
+              }
             }
           }
           Collections.sort(names);
-          key = manifest.getNodeKey(xmlTag.getName() + "#" + Joiner.on('+').join(names));
+          key = manifest.getNodeKey(element.getTagName() + "#" + Joiner.on('+').join(names));
         }
       }
     }
@@ -122,14 +127,18 @@ public class ManifestUtils {
       Module fileModule = ModuleUtilCore.findModuleForFile(vFile, module.getProject());
       if (fileModule != null && !fileModule.equals(module)) {
         MergedManifest manifest = MergedManifest.get(fileModule);
-        XmlTag root = manifest.getXmlTag();
+        Document document = manifest.getDocument();
+        assert document != null;
+        Element root = document.getDocumentElement();
         assert root != null;
-        XmlElement xmlElement = getXmlElement((XmlFile)root.getContainingFile(), sourcePosition.getStartLine() + 1, sourcePosition.getStartColumn() + 1);
-        if (xmlElement == null) {
-          Logger.getInstance(ManifestPanel.class).warn("can not find xmlElement in " + fileModule + " for " + sourceFilePosition);
+        int startLine = sourcePosition.getStartLine();
+        int startColumn = sourcePosition.getStartColumn();
+        Node node = PositionXmlParser.findNodeAtLineAndCol(document, startLine, startColumn);
+        if (node == null) {
+          Logger.getInstance(ManifestPanel.class).warn("Can not find node in " + fileModule + " for " + sourceFilePosition);
         }
         else {
-          List<? extends Actions.Record> records = getRecords(manifest, xmlElement);
+          List<? extends Actions.Record> records = getRecords(manifest, node);
           if (!records.isEmpty()) {
             return getActionLocation(fileModule, records.get(0));
           }
@@ -157,69 +166,45 @@ public class ManifestUtils {
     return (XmlFile) psiFile;
   }
 
-  /**
-   * @param line Line number in human form: starting from 1, NOT 0!
-   * @param col Column number in human readable form, starting from 1, NOT 0!
-   */
-  @Nullable("could not find xml element at that location")
-  public static XmlElement getXmlElement(@NotNull XmlFile file, int line, int col) {
-    if (line <= 0 || col <= 0) {
-      throw new IllegalArgumentException();
-    }
-    Document doc = PsiDocumentManager.getInstance(file.getProject()).getDocument(file);
-    assert doc != null;
-    int offset = doc.getLineStartOffset(line - 1) + col - 1;
-    PsiElement psiElement = file.findElementAt(offset);
-    PsiElement parent = psiElement == null ? null : psiElement.getParent();
-    return parent instanceof XmlElement ? (XmlElement)parent : null;
-  }
-
-  /**
-   * @param line Line number in human form: starting from 1, NOT 0!
-   * @param col Column number in human readable form, starting from 1, NOT 0!
-   */
-  @Nullable("could not find tag at that location")
-  public static XmlTag getXmlTag(@NotNull XmlFile file, int line, int col) {
-    XmlElement element = getXmlElement(file, line, col);
-    return element instanceof XmlTag ? (XmlTag)element : null;
-  }
-
-  static void toolsRemove(@NotNull XmlFile manifest, @NotNull XmlElement item) {
+  static void toolsRemove(@NotNull XmlFile manifest, @NotNull Node item) {
     ApplicationManager.getApplication().assertWriteAccessAllowed();
-    if (item instanceof XmlTag) {
-      toolsRemove(manifest, (XmlTag)item);
+    if (item instanceof Element) {
+      toolsRemove(manifest, (Element)item);
     }
-    else if (item instanceof XmlAttribute) {
-      XmlAttribute xmlAttribute = (XmlAttribute)item;
-      XmlTag xmlTag = xmlAttribute.getParent();
-      // can never mark name tag as removed, as we would need the name tag to ID the tag
-      if ((SdkConstants.ATTR_NAME.equals(xmlAttribute.getLocalName()) && SdkConstants.ANDROID_URI.equals(xmlAttribute.getNamespace())) ||
-          (xmlTag.getSubTags().length == 0 && xmlTag.getAttributes().length == 1)) {
-        toolsRemove(manifest, xmlTag);
+    else if (item instanceof Attr) {
+      Attr attribute = (Attr)item;
+      Element element = attribute.getOwnerElement();
+      // Can never mark name tag as removed, as we would need the name tag to ID the tag
+      if ((ATTR_NAME.equals(attribute.getLocalName()) && ANDROID_URI.equals(attribute.getNamespaceURI())) ||
+          (LintUtils.getChildCount(element) == 0 && element.getAttributes().getLength() == 1)) {
+        toolsRemove(manifest, element);
       }
       else {
-        toolsRemove(manifest, xmlAttribute);
+        toolsRemove(manifest, attribute);
       }
     }
   }
 
-  static void toolsRemove(@NotNull XmlFile manifest, @NotNull XmlTag item) {
-    addToolsAttribute(manifest, item, "node", "remove");
+  static void toolsRemove(@NotNull XmlFile manifest, @NotNull Element item) {
+    addToolsAttribute(manifest, item, ATTR_NODE, "remove");
   }
 
-  static void toolsRemove(@NotNull XmlFile manifest, @NotNull XmlAttribute item) {
-    addToolsAttribute(manifest, item.getParent(), "remove", item.getName());
+  static void toolsRemove(@NotNull XmlFile manifest, @NotNull Attr item) {
+    addToolsAttribute(manifest, item.getOwnerElement(), ATTR_REMOVE, item.getName());
   }
 
-  static void addToolsAttribute(@NotNull XmlFile manifest, @NotNull XmlTag item, @NotNull String attributeName, @NotNull String attributeValue) {
+  static void addToolsAttribute(@NotNull XmlFile manifest,
+                                @NotNull Element item,
+                                @NotNull String attributeName,
+                                @NotNull String attributeValue) {
     if (attributeName.contains(":")) {
       throw new IllegalArgumentException("should not have namespace as it's always tools");
     }
     ApplicationManager.getApplication().assertWriteAccessAllowed();
-    SuppressLintIntentionAction.ensureNamespaceImported(manifest.getProject(), manifest, SdkConstants.TOOLS_URI);
+    SuppressLintIntentionAction.ensureNamespaceImported(manifest.getProject(), manifest, TOOLS_URI);
     XmlTag parent = null;
     XmlTag[] manifestTags = new XmlTag[]{manifest.getRootTag()};
-    for (XmlTag tag : getPath(item)) {
+    for (Element tag : getPath(item)) {
       XmlTag found = findTag(manifestTags, tag);
       if (found == null) {
         if (parent == null) {
@@ -229,21 +214,21 @@ public class ManifestUtils {
         }
         found = parent.createChildTag(tag.getLocalName(), null, null, false); // we ignore namespace for tag names in manifest
         found = parent.addSubTag(found, true); // add it right away, or namespace will not work
-        XmlAttribute nameAttribute = tag.getAttribute(SdkConstants.ATTR_NAME, SdkConstants.ANDROID_URI);
+        Attr nameAttribute = tag.getAttributeNodeNS(ANDROID_URI, ATTR_NAME);
         if (nameAttribute != null) {
-          found.setAttribute(nameAttribute.getLocalName(), nameAttribute.getNamespace(), nameAttribute.getValue());
+          found.setAttribute(nameAttribute.getLocalName(), nameAttribute.getNamespaceURI(), nameAttribute.getValue());
         }
         if (tag == item) {
-          found.setAttribute(attributeName, SdkConstants.TOOLS_URI ,attributeValue);
+          found.setAttribute(attributeName, TOOLS_URI ,attributeValue);
         }
       }
       else if (tag == item) {
-        XmlAttribute attribute = found.getAttribute(attributeName, SdkConstants.TOOLS_URI);
+        XmlAttribute attribute = found.getAttribute(attributeName, TOOLS_URI);
         if (attribute == null) {
-          found.setAttribute(attributeName, SdkConstants.TOOLS_URI, attributeValue);
+          found.setAttribute(attributeName, TOOLS_URI, attributeValue);
         }
         else {
-          found.setAttribute(attributeName, SdkConstants.TOOLS_URI, attribute.getValue() + "," + attributeValue);
+          found.setAttribute(attributeName, TOOLS_URI, attribute.getValue() + "," + attributeValue);
         }
       }
       parent = found;
@@ -252,13 +237,13 @@ public class ManifestUtils {
   }
 
   @Nullable
-  private static XmlTag findTag(@NotNull XmlTag[] manifestTags, @NotNull XmlTag tag) {
-    XmlAttribute nameAttribute = tag.getAttribute(SdkConstants.ATTR_NAME, SdkConstants.ANDROID_URI);
+  private static XmlTag findTag(@NotNull XmlTag[] manifestTags, @NotNull Element tag) {
+    Attr nameAttribute = tag.getAttributeNodeNS(ANDROID_URI, ATTR_NAME);
     String name = nameAttribute == null ? null : nameAttribute.getValue();
     for (XmlTag xmlTag : manifestTags) {
-      if (tag.getName().equals(xmlTag.getName())) {
+      if (tag.getTagName().equals(xmlTag.getName())) {
         if (name != null) {
-          XmlAttribute xmlAttribute = xmlTag.getAttribute(SdkConstants.ATTR_NAME, SdkConstants.ANDROID_URI);
+          XmlAttribute xmlAttribute = xmlTag.getAttribute(ATTR_NAME, ANDROID_URI);
           if (xmlAttribute != null && name.equals(xmlAttribute.getValue())) {
             return xmlTag;
           }
@@ -272,13 +257,19 @@ public class ManifestUtils {
   }
 
   @NotNull
-  private static List<XmlTag> getPath(@NotNull XmlTag xmlTag) {
-    XmlTag tag = xmlTag;
-    List<XmlTag> path = new ArrayList<XmlTag>();
-    do {
+  private static List<Element> getPath(@NotNull Element element) {
+    Element tag = element;
+    List<Element> path = new ArrayList<>();
+    while (true) {
       path.add(tag);
-      tag = tag.getParentTag();
-    } while (tag != null);
+      Node parentNode = tag.getParentNode();
+      if (parentNode instanceof Element) {
+        tag = (Element)parentNode;
+      }
+      else {
+        break;
+      }
+    }
     Collections.reverse(path);
     return path;
   }

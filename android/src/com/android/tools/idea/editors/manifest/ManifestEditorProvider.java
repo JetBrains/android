@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.manifest;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorPolicy;
 import com.intellij.openapi.fileEditor.FileEditorProvider;
@@ -32,15 +33,14 @@ import org.jetbrains.annotations.NotNull;
 public class ManifestEditorProvider implements FileEditorProvider {
   @Override
   public boolean accept(@NotNull Project project, @NotNull VirtualFile file) {
-    // Hold this feature until preview 2
-    if (true) {
-      return false;
-    }
     Module module = ModuleUtilCore.findModuleForFile(file, project);
     if (module != null) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null) {
-        return SdkConstants.FN_ANDROID_MANIFEST_XML.equals(file.getName());
+        boolean isManifest = SdkConstants.FN_ANDROID_MANIFEST_XML.equals(file.getName());
+        if (isManifest && Projects.isBuildWithGradle(module)) {
+          return true;
+        }
       }
     }
     return false;
