@@ -31,6 +31,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.ValidationInfo;
+import com.intellij.openapi.util.JDOMUtil;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
@@ -67,7 +68,6 @@ import static com.android.tools.idea.gradle.AndroidProjectKeys.ANDROID_MODEL;
 import static com.android.tools.idea.gradle.AndroidProjectKeys.GRADLE_MODEL;
 import static com.intellij.icons.AllIcons.Nodes.PpJdk;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getChildren;
-import static com.intellij.openapi.util.JDOMUtil.loadDocument;
 import static com.intellij.openapi.util.JDOMUtil.writeDocument;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
@@ -421,10 +421,9 @@ public class ModulesToImportDialog extends DialogWrapper {
 
     @NotNull
     static List<String> load(@NotNull File file) throws JDOMException, IOException {
-      Document document = loadDocument(file);
       List<String> modules = Lists.newArrayList();
-      Element rootElement = document.getRootElement();
-      if (rootElement != null && ROOT_ELEMENT_NAME.equals(rootElement.getName())) {
+      Element rootElement = JDOMUtil.load(file);
+      if (ROOT_ELEMENT_NAME.equals(rootElement.getName())) {
         for (Element child : rootElement.getChildren(MODULE_ELEMENT_NAME)) {
           String moduleName = child.getAttributeValue(MODULE_NAME_ATTRIBUTE_NAME);
           if (isNotEmpty(moduleName)) {
