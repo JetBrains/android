@@ -243,13 +243,11 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
    * @param width       width of the surface
    * @param height      height of the surface
    * @param component   the component to draw
-   * @param transparent if true, it will only draw the widget decorations
    * @return true to indicate that we will need to be repainted
    */
   @Override
   public boolean drawGroup(@NotNull Graphics2D gc, @NotNull ScreenView screenView,
-                           int width, int height, @NotNull NlComponent component,
-                           boolean transparent) {
+                           @NotNull NlComponent component) {
     ConstraintModel constraintModel = ConstraintModel.getConstraintModel(screenView.getModel());
     DrawConstraintModel drawConstraintModel = ConstraintModel.getDrawConstraintModel(screenView);
     updateActions(constraintModel.getSelection());
