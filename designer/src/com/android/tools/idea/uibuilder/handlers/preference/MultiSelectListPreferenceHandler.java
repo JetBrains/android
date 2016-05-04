@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.handlers;
+package com.android.tools.idea.uibuilder.handlers.preference;
 
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
@@ -27,17 +27,19 @@ import org.jetbrains.annotations.Nullable;
 import static com.android.SdkConstants.ATTR_TITLE;
 import static com.android.SdkConstants.PreferenceAttributes.DEFAULT_VALUE;
 import static com.android.SdkConstants.PreferenceAttributes.KEY;
-import static com.android.SdkConstants.PreferenceTags.CHECK_BOX_PREFERENCE;
+import static com.android.SdkConstants.PreferenceTags.MULTI_SELECT_LIST_PREFERENCE;
 
-final class CheckBoxPreferenceHandler extends PreferenceHandler {
+public final class MultiSelectListPreferenceHandler extends PreferenceHandler {
   @Language("XML")
   @NotNull
   @Override
   public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {
     return new XmlBuilder()
       .startTag(tagName)
-      .androidAttribute(DEFAULT_VALUE, false)
-      .androidAttribute(ATTR_TITLE, "Check box preference")
+      .androidAttribute(DEFAULT_VALUE, "@array/multi_select_list_preference_default_value")
+      .androidAttribute("entries", "@array/list_preference_entries")
+      .androidAttribute("entryValues", "@array/list_preference_entry_values")
+      .androidAttribute(ATTR_TITLE, "Multi select list preference")
       .endTag(tagName)
       .toString();
   }
@@ -48,7 +50,7 @@ final class CheckBoxPreferenceHandler extends PreferenceHandler {
                           @NotNull NlComponent newChild,
                           @NotNull InsertType type) {
     super.onCreate(editor, parent, newChild, type);
-    newChild.setAndroidAttribute(KEY, generateKey(newChild, CHECK_BOX_PREFERENCE, "check_box_preference_"));
+    newChild.setAndroidAttribute(KEY, generateKey(newChild, MULTI_SELECT_LIST_PREFERENCE, "multi_select_list_preference_"));
 
     return true;
   }

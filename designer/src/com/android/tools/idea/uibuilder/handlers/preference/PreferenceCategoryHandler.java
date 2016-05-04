@@ -13,44 +13,46 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.handlers;
+package com.android.tools.idea.uibuilder.handlers.preference;
 
-import com.android.tools.idea.uibuilder.api.InsertType;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.android.tools.idea.uibuilder.api.XmlBuilder;
-import com.android.tools.idea.uibuilder.api.XmlType;
+import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.android.SdkConstants.ATTR_TITLE;
-import static com.android.SdkConstants.PreferenceAttributes.DEFAULT_VALUE;
-import static com.android.SdkConstants.PreferenceAttributes.KEY;
-import static com.android.SdkConstants.PreferenceTags.LIST_PREFERENCE;
+import java.util.List;
 
-final class ListPreferenceHandler extends PreferenceHandler {
+import static com.android.SdkConstants.*;
+
+public final class PreferenceCategoryHandler extends ViewGroupHandler {
   @Language("XML")
   @NotNull
   @Override
   public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {
     return new XmlBuilder()
       .startTag(tagName)
-      .androidAttribute(DEFAULT_VALUE, 1)
-      .androidAttribute("entries", "@array/list_preference_entries")
-      .androidAttribute("entryValues", "@array/list_preference_entry_values")
-      .androidAttribute(ATTR_TITLE, "List preference")
+      .androidAttribute(ATTR_TITLE, "Preference category")
       .endTag(tagName)
       .toString();
+  }
+
+  @NotNull
+  @Override
+  public DragHandler createDragHandler(@NotNull ViewEditor editor,
+                                       @NotNull NlComponent preferenceCategory,
+                                       @NotNull List<NlComponent> preferences,
+                                       @NotNull DragType type) {
+    return new PreferenceCategoryDragHandler(editor, this, preferenceCategory, preferences, type);
   }
 
   @Override
   public boolean onCreate(@NotNull ViewEditor editor,
                           @Nullable NlComponent parent,
                           @NotNull NlComponent newChild,
-                          @NotNull InsertType type) {
-    super.onCreate(editor, parent, newChild, type);
-    newChild.setAndroidAttribute(KEY, generateKey(newChild, LIST_PREFERENCE, "list_preference_"));
+                          @NotNull InsertType insertType) {
+    newChild.removeAndroidAttribute(ATTR_LAYOUT_WIDTH);
+    newChild.removeAndroidAttribute(ATTR_LAYOUT_HEIGHT);
 
     return true;
   }
