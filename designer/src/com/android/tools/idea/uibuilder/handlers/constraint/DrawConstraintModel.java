@@ -100,6 +100,7 @@ class DrawConstraintModel {
    * @param y y mouse coordinate
    */
   public void mousePressed(@AndroidCoordinate int x, @AndroidCoordinate int y) {
+    myConstraintModel.allowsUpdate(false);
     if (myMouseInteraction != null) {
       myMouseInteraction.mousePressed(pxToDp(x), pxToDp(y), false);
       myMouseInteraction.setAutoConnect(myConstraintModel.isAutoConnect());
@@ -132,6 +133,7 @@ class DrawConstraintModel {
     if (!selection.getModifiedWidgets().isEmpty()) {
       myConstraintModel.saveToXML();
     }
+    myConstraintModel.allowsUpdate(true);
   }
 
   /**

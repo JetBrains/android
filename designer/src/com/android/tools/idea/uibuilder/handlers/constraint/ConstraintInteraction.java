@@ -98,6 +98,8 @@ public class ConstraintInteraction extends Interaction {
   public void end(@SwingCoordinate int x, @SwingCoordinate int y, int modifiers, boolean canceled) {
     super.end(x, y, modifiers, canceled);
     if (canceled) {
+      ConstraintModel model = ConstraintModel.getConstraintModel(myScreenView.getModel());
+      model.allowsUpdate(true);
       return;
     }
 
