@@ -21,8 +21,8 @@ import com.android.repository.impl.meta.SchemaModuleUtil;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.testframework.MockFileOp;
 import com.google.common.collect.ImmutableList;
-import junit.framework.TestCase;
 import com.intellij.util.PathUtil;
+import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.bind.JAXBException;
@@ -105,7 +105,9 @@ public class PatchInstallerTest extends TestCase {
     repoManager.loadSynchronously(0, progress, null, null);
     RemotePackage p = getRemotePackage(repoManager, progress);
 
-    File result = ((PatchInstallerFactory.PatchInstaller)new PatchInstallerFactory().createInstaller(p, repoManager, ourFileOp)).getPatcherFile(repoManager.getPackages().getLocalPackages(), progress);
+    PatchInstallerFactory.PatchInstallerBase installer =
+      (PatchInstallerFactory.PatchInstallerBase)new PatchInstallerFactory().createInstaller(p, repoManager, ourFileOp);
+    File result = PatchInstallerFactory.getPatcherFile(p, repoManager, ourFileOp, progress);
     progress.assertNoErrorsOrWarnings();
     assertEquals("/sdk/patcher/v1/patcher.jar", PathUtil.toSystemIndependentName(result.getPath()));
   }
