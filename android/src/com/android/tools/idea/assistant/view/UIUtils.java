@@ -18,6 +18,7 @@ package com.android.tools.idea.assistant.view;
 import com.intellij.ui.BrowserHyperlinkListener;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.util.ui.UIUtil;
 
 import javax.swing.*;
 import java.awt.*;
@@ -80,9 +81,15 @@ public class UIUtils {
   private static final Color BACKGROUND_HOVER_COLOR = new JBColor(0xFFE8E8E8, 0x000000);
 
   /**
+   * Do not reference, this is to address skew across OS's and should only be used with {@code AS_STANDARD_BACKGROUND_COLOR}.
+   */
+  private static final Color CURRENT_BG_COLOR = new JPanel().getBackground();
+
+  /**
    * "Normal" background color as is found on a new JPanel background.
    */
-  private static final Color AS_STANDARD_BACKGROUND_COLOR = new JBColor(0xFFE8E8E8, 0xFF3D3F41);
+  private static final Color AS_STANDARD_BACKGROUND_COLOR =
+    new JBColor(UIUtil.isUnderDarcula() ? 0xFFE8E8E8 : CURRENT_BG_COLOR.getRGB(), 0xFF3D3F41);
 
   public static Color getBackgroundColor() {
     return BACKGROUND_COLOR;
