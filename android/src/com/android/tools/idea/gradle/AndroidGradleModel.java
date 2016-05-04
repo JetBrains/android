@@ -83,13 +83,10 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
   @Nullable private transient CountDownLatch myProxyAndroidProjectLatch;
   @Nullable private AndroidProject myProxyAndroidProject;
 
-  @SuppressWarnings("NullableProblems") // Set in the constructor.
   @NotNull private String mySelectedVariantName;
+  @NotNull private String mySelectedTestArtifactName;
 
   private transient VirtualFile myRootDir;
-
-  @SuppressWarnings("NullableProblems") // Set in the constructor.
-  @NotNull private String mySelectedTestArtifactName;
 
   @Nullable private Boolean myOverridesManifestPackage;
   @Nullable private transient AndroidVersion myMinSdkVersion;
@@ -123,22 +120,19 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
     parseAndSetModelVersion();
 
     // Compute the proxy object to avoid re-proxying the model during every serialization operation and also schedule it to run
-    // asynchronously to avoid blocking the project sync operation for reproxying to complete.
-    ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
-      @Override
-      public void run() {
-        myProxyAndroidProjectLatch = new CountDownLatch(1);
-        myProxyAndroidProject = reproxy(AndroidProject.class, myAndroidProject);
-        myProxyAndroidProjectLatch.countDown();
-      }
+    // asynchronously to avoid blocking the project sync operation for re-proxying to complete.
+    ApplicationManager.getApplication().executeOnPooledThread(() -> {
+      myProxyAndroidProjectLatch = new CountDownLatch(1);
+      myProxyAndroidProject = reproxy(AndroidProject.class, myAndroidProject);
+      myProxyAndroidProjectLatch.countDown();
     });
 
     populateBuildTypesByName();
     populateProductFlavorsByName();
     populateVariantsByName();
 
-    setSelectedVariantName(selectedVariantName);
-    setSelectedTestArtifactName(selectedTestArtifactName);
+    mySelectedVariantName = findVariantToSelect(selectedVariantName);
+    mySelectedTestArtifactName = validateTestArtifactName(selectedTestArtifactName);
   }
 
   private void populateBuildTypesByName() {
@@ -170,6 +164,7 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
   @NotNull
   public Dependencies getSelectedAndroidTestCompileDependencies() {
     AndroidArtifact androidTestArtifact = getAndroidTestArtifactInSelectedVariant();
+    assert androidTestArtifact != null;
     return getDependencies(androidTestArtifact, getModelVersion());
   }
 
@@ -655,10 +650,19 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
    * @param name the new name.
    */
   public void setSelectedVariantName(@NotNull String name) {
+    mySelectedVariantName = findVariantToSelect(name);
+
+    // force lazy recompute
+    myOverridesManifestPackage = null;
+    myMinSdkVersion = null;
+  }
+
+  @NotNull
+  private String findVariantToSelect(@NotNull String variantName) {
     Collection<String> variantNames = getVariantNames();
     String newVariantName;
-    if (variantNames.contains(name)) {
-      newVariantName = name;
+    if (variantNames.contains(variantName)) {
+      newVariantName = variantName;
     }
     else {
       List<String> sorted = Lists.newArrayList(variantNames);
@@ -666,16 +670,17 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
       // AndroidProject has always at least 2 variants (debug and release.)
       newVariantName = sorted.get(0);
     }
-    mySelectedVariantName = newVariantName;
-
-    // force lazy recompute
-    myOverridesManifestPackage = null;
-    myMinSdkVersion = null;
+    return newVariantName;
   }
 
   public void setSelectedTestArtifactName(@NotNull String selectedTestArtifactName) {
+    mySelectedTestArtifactName = validateTestArtifactName(selectedTestArtifactName);
+  }
+
+  @NotNull
+  private static String validateTestArtifactName(@NotNull String selectedTestArtifactName) {
     assert selectedTestArtifactName.equals(ARTIFACT_ANDROID_TEST) || selectedTestArtifactName.equals(ARTIFACT_UNIT_TEST);
-    mySelectedTestArtifactName = selectedTestArtifactName;
+    return selectedTestArtifactName;
   }
 
   @NotNull
@@ -851,7 +856,6 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
           return new SourceFileContainerInfo(variant);
         }
       }
-
     }
 
     return null; // not found.
@@ -1005,9 +1009,9 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
 
   /**
    * Returns the source providers for the available flavors, which will never be {@code null} for a project backed by an
-   * {@link AndroidProject}, and always null for a legacy Android project.
+   * {@link AndroidProject}, and always {@code null} for a legacy Android project.
    *
-   * @return the flavor source providers or null in legacy projects.
+   * @return the flavor source providers or {@code null} in legacy projects.
    */
   @NotNull
   public List<SourceProvider> getFlavorSourceProviders() {
