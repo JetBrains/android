@@ -34,11 +34,19 @@ import java.awt.*;
 @SuppressWarnings("UseJBColor") // We are generating colors in our icons, no need for JBColor here
 public final class AndroidLauncherIconGenerator extends AndroidIconGenerator {
 
+  private final ObjectProperty<Color> myForegroundColor = new ObjectValueProperty<>(Color.BLACK);
   private final ObjectProperty<Color> myBackgroundColor = new ObjectValueProperty<>(Color.WHITE);
   private final BoolProperty myCropped = new BoolValueProperty();
-  private final ObjectProperty<GraphicGenerator.Shape> myShape =
-    new ObjectValueProperty<>(GraphicGenerator.Shape.SQUARE);
+  private final ObjectProperty<GraphicGenerator.Shape> myShape = new ObjectValueProperty<>(GraphicGenerator.Shape.SQUARE);
   private final BoolProperty myDogEared = new BoolValueProperty();
+
+  /**
+   * A color for rendering the foreground icon.
+   */
+  @NotNull
+  public ObjectProperty<Color> foregroundColor() {
+    return myForegroundColor;
+  }
 
   /**
    * A color for rendering the background shape.
@@ -87,6 +95,7 @@ public final class AndroidLauncherIconGenerator extends AndroidIconGenerator {
     launcherOptions.shape = myShape.get();
     launcherOptions.crop = myCropped.get();
     launcherOptions.style = GraphicGenerator.Style.SIMPLE;
+    launcherOptions.foregroundColor = myForegroundColor.get().getRGB();
     launcherOptions.backgroundColor = myBackgroundColor.get().getRGB();
     launcherOptions.isWebGraphic = true;
     launcherOptions.isDogEar = myDogEared.get();
