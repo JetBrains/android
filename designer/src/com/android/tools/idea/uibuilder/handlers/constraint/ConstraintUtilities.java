@@ -754,6 +754,8 @@ public class ConstraintUtilities {
           int value = Integer.parseInt(textSize);
           textWidget.setTextSize(value);
         }
+      } else {
+        textWidget.setTextSize(18);
       }
     }
   }
