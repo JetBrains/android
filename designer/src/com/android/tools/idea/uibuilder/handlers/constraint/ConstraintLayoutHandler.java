@@ -43,8 +43,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
 
   private boolean myShowAllConstraints = true;
 
-  ArrayList<ViewAction> myActions;
-  ArrayList<ViewAction> myControlActions;
+  ArrayList<ViewAction> myActions = new ArrayList<>();
+  ArrayList<ViewAction> myControlActions = new ArrayList<>();
 
   private boolean mControlIsPressed;
 
@@ -57,9 +57,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
   @Override
   public void addViewActions(@NotNull List<ViewAction> actions) {
     ViewAction action;
-    myActions = new ArrayList<>();
-
-    myControlActions = new ArrayList<>();
+    myActions.clear();
+    myControlActions.clear();
 
     actions.add(new ToggleConstraintModeAction());
     actions.add(new ViewActionSeparator());
