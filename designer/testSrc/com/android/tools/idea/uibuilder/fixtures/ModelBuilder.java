@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.fixtures;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.uibuilder.SyncNlModel;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
+import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.utils.XmlUtils;
 import com.google.common.collect.Lists;
@@ -148,7 +149,29 @@ public class ModelBuilder {
   public void updateModel(NlModel model, boolean preserveXmlTags) {
     assertThat(model).isNotNull();
     name("linear2.xml"); // temporary workaround: replacing contents not working
-    SyncNlModel newModel = (SyncNlModel)(preserveXmlTags ? model : build());
+    NlModel newModel = preserveXmlTags ? model : build();
     model.updateHierarchy(newModel.getFile().getRootTag(), buildViewInfos(newModel));
+    for (NlComponent component : newModel.getComponents()) {
+      checkStructure(component);
+    }
+  }
+
+  private static void checkStructure(NlComponent component) {
+    assertThat(component.w).isNotEqualTo(-1);
+    assertThat(component.getSnapshot()).isNotNull();
+    assertThat(component.getTag()).isNotNull();
+    assertThat(component.getTagName().equals(component.getTag().getName()));
+
+    assertThat(component.getTag().isValid()).isTrue();
+    assertThat(component.getTag().getContainingFile()).isEqualTo(component.getModel().getFile());
+
+    for (NlComponent child : component.getChildren()) {
+      assertThat(child).isNotSameAs(component);
+      assertThat(child.getParent()).isSameAs(component);
+      assertThat(child.getTag().getParent()).isSameAs(component.getTag());
+
+      // Check recursively
+      checkStructure(child);
+    }
   }
 }
