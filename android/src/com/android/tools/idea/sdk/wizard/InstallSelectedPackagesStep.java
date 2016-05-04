@@ -240,14 +240,14 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
           Installer installer;
           if (op == null || !(op instanceof Installer)) {
             installer = StudioSdkInstallerUtil.createInstallerFactory(remote, mySdkHandler)
-              .createInstaller(remote, myRepoManager, mySdkHandler.getFileOp());
+              .createInstaller(remote, myRepoManager, new StudioDownloader(indicator), mySdkHandler.getFileOp());
           }
           else {
             installer = (Installer)op;
           }
           myLogger.logInfo(String.format("Installing %1$s", remote.getDisplayName()));
           try {
-            success = installer.prepareInstall(new StudioDownloader(indicator), myProgress);
+            success = installer.prepare(myProgress);
           }
           catch (Exception e) {
             Logger.getInstance(getClass()).warn(e);
@@ -269,7 +269,7 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
           if (!myBackgroundAction.isBackgrounded()) {
             // If we're not backgrounded, go on to the final part immediately.
             myLogger.logInfo(String.format("Finishing installation of %1$s.", remote.getDisplayName()));
-            installer.completeInstall(myProgress);
+            installer.complete(myProgress);
             myLogger.logInfo(String.format("Installation of %1$s complete.", remote.getDisplayName()));
           }
           else {

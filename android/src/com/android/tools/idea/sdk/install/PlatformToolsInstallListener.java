@@ -62,8 +62,7 @@ public class PlatformToolsInstallListener implements PackageOperation.StatusChan
 
   @Override
   public void statusChanged(@NonNull PackageOperation installer, @NonNull final ProgressIndicator progress) {
-    if (installer.getInstallStatus() == PackageOperation.InstallStatus.INSTALLING ||
-        installer.getInstallStatus() == PackageOperation.InstallStatus.UNINSTALL_STARTING) {
+    if (installer.getInstallStatus() == PackageOperation.InstallStatus.RUNNING) {
       stopAdb(progress);
     }
   }

@@ -224,9 +224,9 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithDescription {
       for (RemotePackage p : myRequestedPackages) {
         FileOp fop = FileOpUtils.create();
         InstallerFactory factory = StudioSdkInstallerUtil.createInstallerFactory(p, mySdkHandler);
-        Installer installer = factory.createInstaller(p, sdkManager, fop);
-        if (installer.prepareInstall(new StudioDownloader(indicator), repoProgress)) {
-          installer.completeInstall(repoProgress);
+        Installer installer = factory.createInstaller(p, sdkManager, new StudioDownloader(indicator), fop);
+        if (installer.prepare(repoProgress)) {
+          installer.complete(repoProgress);
         }
       }
       sdkManager.loadSynchronously(0, repoProgress, null, null);
