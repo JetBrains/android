@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
+import com.android.SdkConstants;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
@@ -23,7 +24,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Locale;
 
-public enum ResourceType {
+/**
+ * Describes the supported types of editors (where each editor type refers to the type of resource that the editor can handle
+ */
+public enum NlLayoutType {
   LAYOUT {
     @Override
     public boolean isResourceTypeOf(@NotNull XmlFile file) {
@@ -40,15 +44,33 @@ public enum ResourceType {
     @Override
     public boolean isResourceTypeOf(@NotNull XmlFile file) {
       XmlTag tag = file.getRootTag();
-      return tag != null && tag.getName().equals("PreferenceScreen");
+      return tag != null && tag.getName().equals(SdkConstants.TAG_PREFERENCE_SCREEN);
     }
   };
 
   public abstract boolean isResourceTypeOf(@NotNull XmlFile file);
 
+  public boolean isLayout() {
+    return this == LAYOUT;
+  }
+
+  public boolean isPreferenceScreen() {
+    return this == PREFERENCE_SCREEN;
+  }
+
+  public static boolean supports(@NotNull XmlFile file) {
+    for (NlLayoutType type : values()) {
+      if (type.isResourceTypeOf(file)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   @NotNull
-  public static ResourceType valueOf(@NotNull XmlFile file) {
-    for (ResourceType type : values()) {
+  public static NlLayoutType typeOf(@NotNull XmlFile file) {
+    for (NlLayoutType type : values()) {
       if (type.isResourceTypeOf(file)) {
         return type;
       }

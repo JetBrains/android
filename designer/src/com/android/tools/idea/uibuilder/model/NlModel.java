@@ -105,6 +105,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   private AndroidPreviewProgressIndicator myCurrentIndicator;
   private static final Object PROGRESS_LOCK = new Object();
   private RenderTask myRenderTask;
+  private NlLayoutType myType;
 
   @NotNull
   public static NlModel create(@NotNull DesignSurface surface,
@@ -126,6 +127,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     if (parent != null) {
       Disposer.register(parent, this);
     }
+    myType = NlLayoutType.typeOf(file);
   }
 
   /**
@@ -155,8 +157,14 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     }
   }
 
+  @NotNull
   public XmlFile getFile() {
     return myFile;
+  }
+
+  @NotNull
+  public NlLayoutType getType() {
+    return myType;
   }
 
   @NotNull

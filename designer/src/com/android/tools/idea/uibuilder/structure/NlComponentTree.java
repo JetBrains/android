@@ -178,7 +178,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     myUpdateQueue.queue(new Update("updateComponentStructure") {
       @Override
       public void run() {
-        ResourceType resourceType = ResourceType.valueOf(myModel.getFile());
+        NlLayoutType resourceType = myModel.getType();
 
         try {
           mySelectionIsUpdating.set(true);
@@ -186,7 +186,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
             myWasExpanded = false;
           }
 
-          if (resourceType.equals(ResourceType.PREFERENCE_SCREEN)) {
+          if (resourceType.isPreferenceScreen()) {
             updatePreferenceScreenHierarchy();
           }
           else {
@@ -199,7 +199,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
           setPaintBusy(false);
           mySelectionIsUpdating.set(false);
         }
-        if (firstLoad && resourceType.equals(ResourceType.LAYOUT)) {
+        if (firstLoad && resourceType.isLayout()) {
           updateSelection();
         }
       }
@@ -371,7 +371,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   // ---- Implemented SelectionListener ----
   @Override
   public void selectionChanged(@NotNull SelectionModel model, @NotNull List<NlComponent> selection) {
-    if (!ResourceType.valueOf(myModel.getFile()).equals(ResourceType.LAYOUT)) {
+    if (!myModel.getType().isLayout()) {
       return;
     }
 
