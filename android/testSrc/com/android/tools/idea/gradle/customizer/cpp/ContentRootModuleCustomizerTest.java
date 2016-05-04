@@ -32,6 +32,7 @@ import com.intellij.openapi.roots.SourceFolder;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.IdeaTestCase;
 import com.intellij.util.ExceptionUtil;
+import com.intellij.util.PathUtil;
 
 import java.io.File;
 import java.util.List;
@@ -136,7 +137,7 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
     }
 
     for (File file : sourceFolderPaths) {
-      allExpectedPaths.add(file.getPath());
+      allExpectedPaths.add(PathUtil.toSystemIndependentName(file.getPath()));
     }
 
     assertEquals(allExpectedPaths, sourcePaths);
