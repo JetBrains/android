@@ -67,6 +67,8 @@ public class ColorSet {
     protected Color mAnchorDisconnectionCircle;
     protected Color mAnchorConnectionCircle;
 
+    protected Color mSelectionColor;
+
     protected Color mShadow = new Color(0, 0, 0, 50);
     protected Stroke mShadowStroke = new BasicStroke(3);
 
@@ -192,4 +194,7 @@ public class ColorSet {
         return mCreatedConstraints;
     }
 
+    public Color getSelectionColor() {
+        return mSelectionColor;
+    }
 }

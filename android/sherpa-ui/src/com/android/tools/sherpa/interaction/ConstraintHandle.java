@@ -1569,8 +1569,8 @@ public class ConstraintHandle {
             g.setPaint(colorSet.getBackgroundPaint());
             g.setStroke(sLineShadowStroke);
         } else {
-            g.setColor(sShadowColor);
-            g.setStroke(sShadowStroke);
+            g.setColor(colorSet.getShadow());
+            g.setStroke(colorSet.getShadowStroke());
         }
         drawing.draw(g);
         g.setColor(pre);
