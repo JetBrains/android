@@ -33,6 +33,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
@@ -108,7 +109,7 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
     recordGoogleApisSysImg23(fop);
     fop.recordExistingFile(new File(DeviceArtDescriptor.getBundledDescriptorsFolder(), "nexus_5x"));
 
-    AndroidSdkHandler sdkHandler = new AndroidSdkHandler(new File("/sdk"), fop);
+    AndroidSdkHandler sdkHandler = new AndroidSdkHandler(new File(new File("/sdk").getAbsolutePath()), fop);
 
     final AvdManagerConnection connection = new AvdManagerConnection(sdkHandler, fop);
     FakePackage remotePlatform = new FakePackage("platforms;android-23", new Revision(1), ImmutableList.<Dependency>of());
@@ -132,7 +133,7 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
     Map<String, String> properties = avdInfo.getProperties();
     Map<String, String> referenceMap = getReferenceMap();
     for (Map.Entry<String, String> entry : referenceMap.entrySet()) {
-      assertEquals(entry.getKey(), entry.getValue(), properties.get(entry.getKey()));
+      assertEquals(entry.getKey(), entry.getValue(), FileUtil.toSystemIndependentName(properties.get(entry.getKey())));
     }
     // AVD manager will set some extra properties that we don't care about and that may be system dependant.
     // We do not care about those so we only ensure we have the ones we need.
