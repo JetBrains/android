@@ -863,7 +863,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
           if (file.getPath().contains(EXPLODED_AAR)) {
             AndroidGradleModel androidModel = AndroidGradleModel.get(module);
             if (androidModel != null) {
-              library = GradleUtil.findLibrary(file.getParentFile(), androidModel.getSelectedVariant());
+              library = GradleUtil.findLibrary(file.getParentFile(), androidModel.getSelectedVariant(), androidModel.getModelVersion());
               if (library != null) {
                 if (library.getProject() != null) {
                   libraryModule = GradleUtil.findModuleByGradlePath(facet.getModule().getProject(), library.getProject());
