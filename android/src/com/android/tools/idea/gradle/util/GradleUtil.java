@@ -56,7 +56,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Ref;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.Processor;
 import icons.AndroidIcons;
@@ -84,7 +83,6 @@ import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.*;
 import static com.android.builder.model.AndroidProject.GENERATION_COMPONENT;
-import static com.android.builder.model.AndroidProject.GENERATION_ORIGINAL;
 import static com.android.ide.common.repository.GradleCoordinate.parseCoordinateString;
 import static com.android.tools.idea.gradle.dsl.model.GradleBuildModel.parseBuildFile;
 import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.CLASSPATH;
@@ -156,6 +154,7 @@ public final class GradleUtil {
     if (modelVersion != null && androidModelSupportsDependencyGraph(modelVersion)) {
       return artifact.getCompileDependencies();
     }
+    //noinspection deprecation
     return artifact.getDependencies();
   }
 
@@ -1444,8 +1443,9 @@ public final class GradleUtil {
   }
 
   @Nullable
-  public static AndroidLibrary findLibrary(@NotNull File bundleDir, @NotNull Variant variant) {
-    Dependencies dependencies = variant.getMainArtifact().getDependencies();
+  public static AndroidLibrary findLibrary(@NotNull File bundleDir, @NotNull Variant variant, @Nullable GradleVersion modelVersion) {
+    AndroidArtifact artifact = variant.getMainArtifact();
+    Dependencies dependencies = getDependencies(artifact, modelVersion);
     for (AndroidLibrary library : dependencies.getLibraries()) {
       AndroidLibrary result = findLibrary(library, bundleDir);
       if (result != null) {
