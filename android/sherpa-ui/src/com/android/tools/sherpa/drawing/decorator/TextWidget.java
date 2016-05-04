@@ -19,11 +19,11 @@ package com.android.tools.sherpa.drawing.decorator;
 import com.android.tools.sherpa.drawing.ViewTransform;
 import com.google.tnt.solver.widgets.ConstraintWidget;
 
-import java.awt.Canvas;
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics2D;
+import java.awt.*;
+import java.awt.font.FontRenderContext;
+import java.awt.font.LineBreakMeasurer;
+import java.text.AttributedCharacterIterator;
+import java.text.AttributedString;
 
 /**
  * Decorator for text widgets
@@ -233,7 +233,11 @@ public class TextWidget extends WidgetDecorator {
                 fty = ty + h - fontMetrics.getMaxDescent() - verticalPadding;
             } break;
         }
+
+        Shape clip = g.getClip();
+        g.setClip(tx, ty, w, h);
         g.drawString(string, ftx, fty);
+        g.setClip(clip);
     }
 
     public void setDisplayText(boolean displayText) {
