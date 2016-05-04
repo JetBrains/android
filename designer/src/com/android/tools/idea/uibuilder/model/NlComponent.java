@@ -136,6 +136,9 @@ public class NlComponent {
   }
 
   public void addChild(@NotNull NlComponent component, @Nullable NlComponent before) {
+    if (component == this) {
+      throw new IllegalArgumentException();
+    }
     if (children == null) {
       children = Lists.newArrayList();
     }
@@ -150,6 +153,9 @@ public class NlComponent {
   }
 
   public void removeChild(@NotNull NlComponent component) {
+    if (component == this) {
+      throw new IllegalArgumentException();
+    }
     if (children != null) {
       children.remove(component);
     }
@@ -160,6 +166,9 @@ public class NlComponent {
     children = components;
     if (components != null) {
       for (NlComponent component : components) {
+        if (component == this) {
+          throw new IllegalArgumentException();
+        }
         component.setParent(this);
       }
     }

@@ -18,9 +18,9 @@ package com.android.tools.idea.uibuilder.model;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.MergeCookie;
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.tools.idea.AndroidPsiUtils;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Screen;
+import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.res.ResourceNotificationManager;
@@ -542,6 +542,18 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
         // Ensure that all XmlTags in the new XmlFile contents map to a corresponding component
         // form the old map
         mapOldToNew(newRoot);
+
+        for (Map.Entry<XmlTag, NlComponent> entry : myTagToComponentMap.entrySet()) {
+          XmlTag tag = entry.getKey();
+          NlComponent component = entry.getValue();
+          if (!component.getTagName().equals(tag.getName())) {
+            // One or more incompatible changes: PSI nodes have been reused unpredictably
+            // so completely recompute the hierarchy
+            myTagToComponentMap.clear();
+            break;
+          }
+        }
+
         // Build up the new component tree
         return createTree(newRoot);
       });
@@ -806,9 +818,13 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
             component = myTagToComponentMap.get(snapshot.tag);
             if (component != null) {
               component.setSnapshot(snapshot);
+              assert snapshot.tag != null;
+              component.setTag(snapshot.tag);
             }
           } else {
             component.setSnapshot(snapshot);
+            assert snapshot.tag != null;
+            component.setTag(snapshot.tag);
           }
         }
       }
