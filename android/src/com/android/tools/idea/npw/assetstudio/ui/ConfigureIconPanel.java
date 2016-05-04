@@ -401,6 +401,7 @@ public final class ConfigureIconPanel extends JPanel implements Disposable {
     switch (myIconType) {
       case LAUNCHER:
         AndroidLauncherIconGenerator launcherIconGenerator = (AndroidLauncherIconGenerator)myIconGenerator;
+        myGeneralBindings.bindTwoWay(myForegroundColor, launcherIconGenerator.foregroundColor());
         myGeneralBindings.bindTwoWay(myBackgroundColor, launcherIconGenerator.backgroundColor());
         myGeneralBindings.bindTwoWay(myCropped, launcherIconGenerator.cropped());
         myGeneralBindings.bindTwoWay(myShape, launcherIconGenerator.shape());
