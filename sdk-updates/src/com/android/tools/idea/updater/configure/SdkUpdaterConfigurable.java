@@ -234,7 +234,9 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
             FileOp fop = FileOpUtils.create();
             for (LocalPackage item : toDelete) {
               InstallerFactory factory = StudioSdkInstallerUtil.createInstallerFactory(item, getSdkHandler());
-              factory.createUninstaller(item, getRepoManager(), fop).uninstall(repoProgress);
+              Uninstaller uninstaller = factory.createUninstaller(item, getRepoManager(), fop);
+              uninstaller.prepare(repoProgress);
+              uninstaller.complete(repoProgress);
             }
           }
         }, "Uninstalling", false, null, myPanel.getComponent());

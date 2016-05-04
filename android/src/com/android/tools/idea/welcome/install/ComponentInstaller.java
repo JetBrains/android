@@ -62,9 +62,9 @@ public final class ComponentInstaller {
       // Intentionally don't register any listeners on the installer, so we don't recurse on haxm
       // TODO: This is a hack. Any future rewrite of this shouldn't require this behavior.
       InstallerFactory factory = new BasicInstallerFactory();
-      Installer installer = factory.createInstaller(request, sdkManager, mySdkHandler.getFileOp());
-      if (installer.prepareInstall(new StudioDownloader(), progress)) {
-        installer.completeInstall(progress);
+      Installer installer = factory.createInstaller(request, sdkManager, new StudioDownloader(), mySdkHandler.getFileOp());
+      if (installer.prepare(progress)) {
+        installer.complete(progress);
       }
     }
     sdkManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, progress, null, null);
