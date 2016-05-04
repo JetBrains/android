@@ -16,9 +16,6 @@
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.SdkConstants;
-import com.android.ide.common.resources.ResourceResolver;
-import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.sherpa.drawing.*;
@@ -343,6 +340,12 @@ public class ConstraintModel implements ModelListener {
     }
     else if (component.getTagName().equalsIgnoreCase(SdkConstants.SWITCH)) {
       decorator = new SwitchWidget(widget, ConstraintUtilities.getResolvedText(component));
+    }
+    else if (component.getTagName().equalsIgnoreCase(SdkConstants.IMAGE_VIEW)) {
+      decorator = new ImageViewWidget(widget);
+    }
+    else if (component.getTagName().equalsIgnoreCase(SdkConstants.WEB_VIEW)) {
+      decorator = new WebViewWidget(widget);
     }
     if (decorator == null) {
       decorator = new WidgetDecorator(widget);
