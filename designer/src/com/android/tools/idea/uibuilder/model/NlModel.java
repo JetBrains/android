@@ -325,7 +325,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * If the layout hasn't been inflated before, this call will inflate the layout before rendering.
    */
   public void render() {
-    boolean notifyListeners = false;
     synchronized (RENDERING_LOCK) {
       boolean inflated = false;
       if (myRenderTask == null) {
@@ -339,13 +338,10 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
         if (!inflated) {
           updateHierarchy(myRenderResult);
         }
-        notifyListeners = true;
       }
     }
 
-    if (notifyListeners) {
-      notifyListenersRenderComplete();
-    }
+    notifyListenersRenderComplete();
   }
 
   /**
