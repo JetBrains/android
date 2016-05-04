@@ -34,6 +34,8 @@ public class WidgetConstraintPanel extends JPanel {
   JSlider mVerticalSlider = new JSlider(SwingConstants.VERTICAL);
   JSlider mHorizontalSlider = new JSlider(SwingConstants.HORIZONTAL);
   NlComponent mComponent;
+  private String mWidgetWidthCache;
+  private String mWidgetHeightCache;
 
   public WidgetConstraintPanel(NlComponent component) {
     super(new GridBagLayout());
@@ -105,7 +107,8 @@ public class WidgetConstraintPanel extends JPanel {
     String basline = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF);
     String hbias = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS);
     String vbias = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS);
-
+    String widthStr = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH);
+    String heightStr = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_HEIGHT);
     if (rl == null && rr == null) {
       right = -1;
     }
@@ -133,8 +136,29 @@ public class WidgetConstraintPanel extends JPanel {
     }
     mHorizontalSlider.setValue((int)(horizBias * 100));
     mVerticalSlider.setValue(100 - (int)(vertBias * 100));
+    int widthVal = SingleWidgetView.FIXED;
+    int heightValue = SingleWidgetView.FIXED;
+    if (SdkConstants.VALUE_WRAP_CONTENT.equals(widthStr)) {
+      widthVal = SingleWidgetView.WRAP_CONTENT;
+    }
+    else if ("0dp".equals(widthStr)) {
+      widthVal = SingleWidgetView.SPRING;
+    }
+    else {
+      mWidgetWidthCache = widthStr;
+    }
 
-    mMain.configureUi(mWidgetName, bottom, top, left, right, basline);
+    if (SdkConstants.VALUE_WRAP_CONTENT.equals(heightStr)) {
+      heightValue = SingleWidgetView.WRAP_CONTENT;
+    }
+    else if ("0dp".equals(heightStr)) {
+      heightValue = SingleWidgetView.SPRING;
+    }
+    else {
+      mWidgetHeightCache = heightStr;
+    }
+
+    mMain.configureUi(mWidgetName, bottom, top, left, right, basline, widthVal, heightValue);
   }
 
   public void setTopMargin(int margin) {
@@ -181,6 +205,41 @@ public class WidgetConstraintPanel extends JPanel {
     this(null);
   }
 
+  public void setHorizontalConstraint(int horizontalConstraint) {
+    switch (horizontalConstraint) {
+      case SingleWidgetView.SPRING:
+        ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ANDROID_URI,
+                                            SdkConstants.ATTR_LAYOUT_WIDTH, "0dp");
+        break;
+      case SingleWidgetView.FIXED:
+        ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ANDROID_URI,
+                                            SdkConstants.ATTR_LAYOUT_WIDTH, mWidgetWidthCache);
+        break;
+      case SingleWidgetView.WRAP_CONTENT:
+        ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH,
+                                            SdkConstants.VALUE_WRAP_CONTENT);
+        break;
+    }
+  }
+
+  public void setVerticalConstraint(int verticalConstraint) {
+
+    switch (verticalConstraint) {
+      case SingleWidgetView.SPRING:
+        ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ANDROID_URI,
+                                            SdkConstants.ATTR_LAYOUT_HEIGHT, "0dp");
+        break;
+      case SingleWidgetView.FIXED:
+        ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ANDROID_URI,
+                                            SdkConstants.ATTR_LAYOUT_HEIGHT, mWidgetHeightCache);
+        break;
+      case SingleWidgetView.WRAP_CONTENT:
+        ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ANDROID_URI,
+                                            SdkConstants.ATTR_LAYOUT_HEIGHT, SdkConstants.VALUE_WRAP_CONTENT);
+        break;
+    }
+  }
+
   /**
    * Look and Feel for the sliders
    */
@@ -213,8 +272,9 @@ public class WidgetConstraintPanel extends JPanel {
         g.setColor(Color.LIGHT_GRAY);
         percentText = "";
       }
+      ((Graphics2D)g).setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
       ConnectionDraw.drawCircledText(g2d, percentText, thumbRect.x + thumbRect.width / 2 - 1,
-                         thumbRect.y + thumbRect.height / 2 - 1);
+                                     thumbRect.y + thumbRect.height / 2 - 1);
     }
   }
 }

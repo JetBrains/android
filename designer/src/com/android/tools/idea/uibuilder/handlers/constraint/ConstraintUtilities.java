@@ -790,6 +790,17 @@ public class ConstraintUtilities {
    * @param value     String or null to clear attribute
    */
   static void saveNlAttribute(NlComponent component, String attribute, final String value) {
+    saveNlAttribute(component, SdkConstants.SHERPA_URI, attribute, value);
+  }
+
+  /**
+   * Utility function to commit an attribute to the NlModel
+   * @param component
+   * @param nameSpace
+   * @param attribute
+   * @param value String or null to clear attribute
+   */
+  static void saveNlAttribute(NlComponent component,String nameSpace, String attribute, final String value) {
     NlModel nlModel = component.getModel();
     Project project = nlModel.getProject();
     XmlFile file = nlModel.getFile();
@@ -798,7 +809,7 @@ public class ConstraintUtilities {
     WriteCommandAction action = new WriteCommandAction(project, label, file) {
       @Override
       protected void run(@NotNull Result result) throws Throwable {
-        component.setAttribute(SdkConstants.SHERPA_URI, attribute, value);
+        component.setAttribute(nameSpace, attribute, value);
       }
     };
     action.execute();
