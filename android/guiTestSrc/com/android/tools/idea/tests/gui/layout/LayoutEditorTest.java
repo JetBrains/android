@@ -167,7 +167,7 @@ public class LayoutEditorTest {
     layout.requireComponentTree("Device Screen\n" +
                                 "    *RelativeLayout\n", true);
 
-    guiTest.ideFrame().invokeMenuPathRegex("Edit", "Undo.*");
+    guiTest.ideFrame().invokeMenuPath("Edit", "Undo Delete Selection");
 
     layout.waitForNextRenderToFinish();
     layout.requireComponentTree("Device Screen\n" +
