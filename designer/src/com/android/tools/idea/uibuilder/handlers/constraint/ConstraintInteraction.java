@@ -101,7 +101,6 @@ public class ConstraintInteraction extends Interaction {
       return;
     }
 
-    final NlModel nlModel = myScreenView.getModel();
     final int ax = Coordinates.getAndroidX(myScreenView, x);
     final int ay = Coordinates.getAndroidY(myScreenView, y);
 
