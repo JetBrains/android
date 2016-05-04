@@ -320,28 +320,6 @@ public class ConstraintModel implements ModelListener {
     }
   }
 
-  @NotNull
-  private static String resolveStringResource(@NotNull NlComponent component, @NotNull String text) {
-    Configuration configuration = component.getModel().getConfiguration();
-    ResourceResolver resourceResolver = configuration.getResourceResolver();
-    if (resourceResolver != null) {
-      return ResourceHelper.resolveStringValue(resourceResolver, text);
-    }
-    return "";
-  }
-
-  @NotNull
-  private static String getResolvedText(NlComponent component) {
-    String text = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT);
-    if (text != null) {
-      if (text.startsWith(SdkConstants.PREFIX_RESOURCE_REF)) {
-        return resolveStringResource(component, text);
-      }
-      return text;
-    }
-    return "";
-  }
-
   /**
    * Return a new instance of WidgetDecorator given a component and its ConstraintWidget
    *
@@ -352,19 +330,19 @@ public class ConstraintModel implements ModelListener {
   private static WidgetDecorator createDecorator(NlComponent component, ConstraintWidget widget) {
     WidgetDecorator decorator = null;
     if (component.getTagName().equalsIgnoreCase(SdkConstants.TEXT_VIEW)) {
-      decorator = new TextWidget(widget, getResolvedText(component));
+      decorator = new TextWidget(widget, ConstraintUtilities.getResolvedText(component));
     }
     else if (component.getTagName().equalsIgnoreCase(SdkConstants.BUTTON)) {
-      decorator = new ButtonWidget(widget, getResolvedText(component));
+      decorator = new ButtonWidget(widget, ConstraintUtilities.getResolvedText(component));
     }
     else if (component.getTagName().equalsIgnoreCase(SdkConstants.RADIO_BUTTON)) {
-      decorator = new RadiobuttonWidget(widget, getResolvedText(component));
+      decorator = new RadiobuttonWidget(widget, ConstraintUtilities.getResolvedText(component));
     }
     else if (component.getTagName().equalsIgnoreCase(SdkConstants.CHECK_BOX)) {
-      decorator = new CheckboxWidget(widget, getResolvedText(component));
+      decorator = new CheckboxWidget(widget, ConstraintUtilities.getResolvedText(component));
     }
     else if (component.getTagName().equalsIgnoreCase(SdkConstants.SWITCH)) {
-      decorator = new SwitchWidget(widget, getResolvedText(component));
+      decorator = new SwitchWidget(widget, ConstraintUtilities.getResolvedText(component));
     }
     if (decorator == null) {
       decorator = new WidgetDecorator(widget);

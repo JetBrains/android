@@ -16,10 +16,15 @@
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.SdkConstants;
+import com.android.ide.common.resources.ResourceResolver;
+import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.Insets;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.sherpa.drawing.decorator.TextWidget;
+import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
 import com.android.tools.sherpa.structure.WidgetCompanion;
 import com.android.tools.sherpa.structure.WidgetsScene;
 import com.google.tnt.solver.widgets.ConstraintAnchor;
@@ -29,6 +34,7 @@ import com.google.tnt.solver.widgets.WidgetContainer;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -733,6 +739,45 @@ public class ConstraintUtilities {
     setStrength(SdkConstants.ATTR_LAYOUT_BOTTOM_STRENGTH, ConstraintAnchor.Type.BOTTOM, component, widget);
     setBias(SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, component, widget);
     setBias(SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, component, widget);
+
+    // Update text decorator
+    WidgetCompanion companion = (WidgetCompanion)widget.getCompanionWidget();
+    WidgetDecorator decorator = companion.getWidgetDecorator(WidgetDecorator.BLUEPRINT_STYLE);
+    if (decorator != null && decorator instanceof TextWidget) {
+      TextWidget textWidget = (TextWidget) decorator;
+      textWidget.setText(getResolvedText(component));
+      String textSize = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT_SIZE);
+      if (textSize != null) {
+        // TODO: current font size used in the decorator isn't quite correct
+        textSize = StringUtil.trimEnd(textSize, "sp");
+        if (textSize.length() > 0) {
+          int value = Integer.parseInt(textSize);
+          textWidget.setTextSize(value);
+        }
+      }
+    }
+  }
+
+  @NotNull
+  static String resolveStringResource(@NotNull NlComponent component, @NotNull String text) {
+    Configuration configuration = component.getModel().getConfiguration();
+    ResourceResolver resourceResolver = configuration.getResourceResolver();
+    if (resourceResolver != null) {
+      return ResourceHelper.resolveStringValue(resourceResolver, text);
+    }
+    return "";
+  }
+
+  @NotNull
+  static String getResolvedText(NlComponent component) {
+    String text = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT);
+    if (text != null) {
+      if (text.startsWith(SdkConstants.PREFIX_RESOURCE_REF)) {
+        return resolveStringResource(component, text);
+      }
+      return text;
+    }
+    return "";
   }
 
   /**
