@@ -17,29 +17,52 @@ package com.android.tools.idea.gradle.structure.navigation;
 
 import com.android.tools.idea.gradle.structure.configurables.DependenciesPerspectiveConfigurable;
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
-import com.android.tools.idea.gradle.structure.model.android.PsLibraryDependency;
+import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
+import com.android.tools.idea.gradle.structure.model.PsLibraryDependency;
+import com.android.tools.idea.gradle.structure.model.PsPath;
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable;
 import com.google.common.base.Objects;
 import com.intellij.ui.navigation.Place;
 import org.jetbrains.annotations.NotNull;
 
+import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
+import static com.android.tools.idea.gradle.structure.model.PsDependency.TextType.FOR_NAVIGATION;
 import static com.android.tools.idea.gradle.structure.navigation.Places.serialize;
 import static com.android.tools.idea.structure.dialog.ProjectStructureConfigurable.putPath;
 
-public class PsLibraryDependencyPath extends PsNavigationPath {
+public class PsLibraryDependencyNavigationPath extends PsPath {
   @NotNull private final PsContext myContext;
   @NotNull private final String myModuleName;
   @NotNull private final String myDependency;
+  @NotNull private final String myNavigationText;
 
-  public PsLibraryDependencyPath(@NotNull PsContext context, @NotNull PsLibraryDependency dependency) {
+  public PsLibraryDependencyNavigationPath(@NotNull PsContext context, @NotNull PsLibraryDependency dependency) {
     myContext = context;
     myModuleName = dependency.getParent().getName();
-    myDependency = dependency.getValueAsText();
+    PsArtifactDependencySpec spec = dependency.getDeclaredSpec();
+    if (spec == null) {
+      spec = dependency.getResolvedSpec();
+    }
+    myNavigationText = dependency.toText(FOR_NAVIGATION);
+    myDependency = spec.name + GRADLE_PATH_SEPARATOR + spec.version;
   }
 
   @Override
   @NotNull
-  public String toHtml() {
+  public String toText(@NotNull TexType type) {
+    switch (type) {
+      case PLAIN_TEXT:
+        return myDependency;
+      case HTML:
+        return getHtmlText();
+      case FOR_COMPARE_TO:
+        return myDependency + " / " + myModuleName;
+    }
+    return "";
+  }
+
+  @NotNull
+  private String getHtmlText() {
     Place place = new Place();
 
     ProjectStructureConfigurable mainConfigurable = myContext.getMainConfigurable();
@@ -47,10 +70,10 @@ public class PsLibraryDependencyPath extends PsNavigationPath {
     assert target != null;
 
     putPath(place, target);
-    target.putPath(place, myModuleName, myDependency);
+    target.putPath(place, myModuleName, myNavigationText);
 
     String href = GO_TO_PATH_TYPE + serialize(place);
-    return String.format("Library <a href='%1$s'>%2$s</a> (<b>module '%3$s'</b>)", href, myDependency, myModuleName);
+    return String.format("<a href='%1$s'>%2$s</a> (%3$s)", href, myDependency, myModuleName);
   }
 
   @Override
@@ -61,17 +84,14 @@ public class PsLibraryDependencyPath extends PsNavigationPath {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    PsLibraryDependencyPath that = (PsLibraryDependencyPath)o;
-    return Objects.equal(myModuleName, that.myModuleName) && Objects.equal(myDependency, that.myDependency);
+    PsLibraryDependencyNavigationPath that = (PsLibraryDependencyNavigationPath)o;
+    return Objects.equal(myModuleName, that.myModuleName) &&
+           Objects.equal(myDependency, that.myDependency) &&
+           Objects.equal(myNavigationText, that.myNavigationText);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(myModuleName, myDependency);
-  }
-
-  @Override
-  public String toString() {
-    return myModuleName + "/" + myDependency;
+    return Objects.hashCode(myModuleName, myDependency, myNavigationText);
   }
 }

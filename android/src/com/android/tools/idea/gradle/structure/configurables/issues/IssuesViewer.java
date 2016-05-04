@@ -21,7 +21,6 @@ import com.android.tools.idea.gradle.structure.model.PsIssue;
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.intellij.ide.BrowserUtil;
 import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.components.JBLabel;
@@ -31,12 +30,17 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import java.awt.*;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.revalidateAndRepaint;
+import static com.android.tools.idea.gradle.structure.model.PsPath.GO_TO_PATH_TYPE;
+import static com.android.tools.idea.gradle.structure.model.PsPath.QUICK_FIX_PATH_TYPE;
 import static com.android.tools.idea.gradle.structure.navigation.Places.deserialize;
-import static com.android.tools.idea.gradle.structure.navigation.PsNavigationPath.GO_TO_PATH_TYPE;
+import static com.android.tools.idea.gradle.structure.quickfix.QuickFixes.executeQuickFix;
+import static com.intellij.ide.BrowserUtil.browse;
 import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 import static com.intellij.util.ui.UIUtil.getTreeFont;
@@ -51,24 +55,27 @@ public class IssuesViewer {
   private JPanel myIssuesPanel1;
   private JPanel myIssuesPanel2;
   private JPanel myIssuesPanel3;
+  private JPanel myIssuesPanel4;
   private JPanel myMainPanel;
 
   private JEditorPane myIssuesView1;
   private JEditorPane myIssuesView2;
   private JEditorPane myIssuesView3;
+  private JEditorPane myIssuesView4;
 
   public IssuesViewer(@NotNull PsContext context, @NotNull IssuesRenderer renderer) {
     myContext = context;
     myRenderer = renderer;
   }
 
-  public void display(@NotNull List<PsIssue> issues) {
+  public void display(@NotNull Collection<PsIssue> issues) {
     if (issues.isEmpty()) {
       myEmptyIssuesLabel.setVisible(true);
       myIssuesPanel1.setVisible(false);
       myIssuesPanel2.setVisible(false);
       myIssuesPanel3.setVisible(false);
-      revalidateAndRepaint();
+      myIssuesPanel4.setVisible(false);
+      revalidateAndRepaintPanels();
       return;
     }
     else {
@@ -76,70 +83,87 @@ public class IssuesViewer {
       myIssuesPanel1.setVisible(true);
       myIssuesPanel2.setVisible(true);
       myIssuesPanel3.setVisible(true);
+      myIssuesPanel4.setVisible(true);
     }
 
-    Map<PsIssue.Type, List<PsIssue>> issuesByType = Maps.newHashMap();
+    Map<PsIssue.Severity, List<PsIssue>> issuesBySeverity = Maps.newHashMap();
     for (PsIssue issue : issues) {
-      PsIssue.Type type = issue.getType();
-      List<PsIssue> currentIssues = issuesByType.get(type);
+      PsIssue.Severity severity = issue.getSeverity();
+      List<PsIssue> currentIssues = issuesBySeverity.get(severity);
       if (currentIssues == null) {
         currentIssues = Lists.newArrayList();
-        issuesByType.put(type, currentIssues);
+        issuesBySeverity.put(severity, currentIssues);
       }
       currentIssues.add(issue);
     }
 
-    List<PsIssue.Type> types = Lists.newArrayList(issuesByType.keySet());
-    Collections.sort(types, (t1, t2) -> t1.getPriority() - t2.getPriority());
+    List<PsIssue.Severity> severities = Lists.newArrayList(issuesBySeverity.keySet());
+    Collections.sort(severities, (t1, t2) -> t1.getPriority() - t2.getPriority());
 
-    int typeCount = types.size();
-    assert typeCount < 4; // There are only 3 types of issues
+    int typeCount = severities.size();
+    assert typeCount < 5; // There are only 4 types of issues
 
     // Start displaying from last to first
     int currentIssueIndex = typeCount - 1;
-    PsIssue.Type type = types.get(currentIssueIndex);
-    List<PsIssue> group = issuesByType.get(type);
-    updateTitle(((CollapsiblePanel)myIssuesPanel3), type, group);
+    PsIssue.Severity severity = severities.get(currentIssueIndex);
+    List<PsIssue> group = issuesBySeverity.get(severity);
+    updateTitle(((CollapsiblePanel)myIssuesPanel4), severity, group);
+    myIssuesView4.setText(myRenderer.render(group));
+
+    currentIssueIndex--;
+    if (currentIssueIndex < 0) {
+      myIssuesPanel1.setVisible(false);
+      myIssuesPanel2.setVisible(false);
+      myIssuesPanel3.setVisible(false);
+      revalidateAndRepaintPanels();
+      return;
+    }
+
+    severity = severities.get(currentIssueIndex);
+    group = issuesBySeverity.get(severity);
+    updateTitle(((CollapsiblePanel)myIssuesPanel3), severity, group);
     myIssuesView3.setText(myRenderer.render(group));
 
     currentIssueIndex--;
     if (currentIssueIndex < 0) {
       myIssuesPanel1.setVisible(false);
       myIssuesPanel2.setVisible(false);
-      revalidateAndRepaint();
+      revalidateAndRepaintPanels();
       return;
     }
 
-    type = types.get(currentIssueIndex);
-    group = issuesByType.get(type);
-    updateTitle(((CollapsiblePanel)myIssuesPanel2), type, group);
+    severity = severities.get(currentIssueIndex);
+    group = issuesBySeverity.get(severity);
+    updateTitle(((CollapsiblePanel)myIssuesPanel2), severity, group);
     myIssuesView2.setText(myRenderer.render(group));
 
     currentIssueIndex--;
     if (currentIssueIndex < 0) {
       myIssuesPanel1.setVisible(false);
-      revalidateAndRepaint();
+      revalidateAndRepaintPanels();
       return;
     }
 
-    type = types.get(currentIssueIndex);
-    group = issuesByType.get(type);
-    updateTitle(((CollapsiblePanel)myIssuesPanel1), type, group);
+    severity = severities.get(currentIssueIndex);
+    group = issuesBySeverity.get(severity);
+    updateTitle(((CollapsiblePanel)myIssuesPanel1), severity, group);
     myIssuesView1.setText(myRenderer.render(group));
 
-    revalidateAndRepaint();
+    revalidateAndRepaintPanels();
   }
 
-  private void revalidateAndRepaint() {
-    myMainPanel.revalidate();
-    myMainPanel.repaint();
+  private void revalidateAndRepaintPanels() {
+    revalidateAndRepaint(myIssuesPanel1);
+    revalidateAndRepaint(myIssuesPanel2);
+    revalidateAndRepaint(myIssuesPanel4);
+    revalidateAndRepaint(myMainPanel);
   }
 
-  private static void updateTitle(@NotNull CollapsiblePanel panel, @NotNull PsIssue.Type type, @NotNull List<PsIssue> issues) {
+  private static void updateTitle(@NotNull CollapsiblePanel panel, @NotNull PsIssue.Severity severity, @NotNull List<PsIssue> issues) {
     SimpleColoredComponent title = panel.getTitleComponent();
     title.clear();
-    title.setIcon(type.getIcon());
-    title.append(type.getText(), REGULAR_ATTRIBUTES);
+    title.setIcon(severity.getIcon());
+    title.append(severity.getText(), REGULAR_ATTRIBUTES);
     int issueCount = issues.size();
     title.append(" (" + issueCount + (issueCount == 1 ? " item)" : " items)"), GRAY_ATTRIBUTES);
   }
@@ -170,6 +194,12 @@ public class IssuesViewer {
     myIssuesView3.addHyperlinkListener(hyperlinkListener);
     setUpAsHtmlLabel(myIssuesView3, font);
     ((CollapsiblePanel)myIssuesPanel3).setContents(myIssuesView3);
+
+    myIssuesPanel4 = new CollapsiblePanel();
+    myIssuesView4 = new JEditorPane();
+    myIssuesView4.addHyperlinkListener(hyperlinkListener);
+    setUpAsHtmlLabel(myIssuesView4, font);
+    ((CollapsiblePanel)myIssuesPanel4).setContents(myIssuesView4);
   }
 
   private class NavigationHyperlinkListener extends HyperlinkAdapter {
@@ -184,8 +214,13 @@ public class IssuesViewer {
         mainConfigurable.navigateTo(place, true);
         return;
       }
+      if (target.startsWith(QUICK_FIX_PATH_TYPE)) {
+        String quickFixPath = target.substring(QUICK_FIX_PATH_TYPE.length());
+        executeQuickFix(quickFixPath, myContext);
+        return;
+      }
       if (target.startsWith("https://") || target.startsWith("http://")) {
-        BrowserUtil.browse(target);
+        browse(target);
       }
     }
   }

@@ -18,6 +18,8 @@ package com.android.tools.idea.gradle.structure.model.repositories.search;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
+
 public class SearchRequest {
   @NotNull private final String myArtifactName;
 
@@ -57,5 +59,34 @@ public class SearchRequest {
 
   int getStart() {
     return myStart;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    SearchRequest that = (SearchRequest)o;
+    return myRowCount == that.myRowCount &&
+           myStart == that.myStart &&
+           Objects.equals(myArtifactName, that.myArtifactName) &&
+           Objects.equals(myGroupId, that.myGroupId);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(myArtifactName, myGroupId, myRowCount, myStart);
+  }
+
+  @Override
+  public String toString() {
+    return "{artifact='" + myArtifactName + '\'' +
+           ", group='" + myGroupId + '\'' +
+           ", rowCount=" + myRowCount +
+           ", start=" + myStart +
+           '}';
   }
 }

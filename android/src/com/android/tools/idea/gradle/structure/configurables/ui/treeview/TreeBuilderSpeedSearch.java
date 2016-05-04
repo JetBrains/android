@@ -42,6 +42,7 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.List;
 
+import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.revalidateAndRepaint;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.intellij.util.ui.UIUtil.*;
 import static java.awt.Font.BOLD;
@@ -110,8 +111,7 @@ public class TreeBuilderSpeedSearch extends SpeedSearchSupply {
   private void manageSearchPopup(@Nullable SearchPopup searchPopup) {
     if (mySearchPopup != null) {
       myPopupLayeredPane.remove(mySearchPopup);
-      myPopupLayeredPane.validate();
-      myPopupLayeredPane.repaint();
+      revalidateAndRepaint(myPopupLayeredPane);
       myPopupLayeredPane = null;
     }
 

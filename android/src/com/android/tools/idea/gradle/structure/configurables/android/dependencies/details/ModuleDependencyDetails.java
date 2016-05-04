@@ -68,7 +68,7 @@ public class ModuleDependencyDetails implements DependencyDetails<PsModuleDepend
     myNameLabel.setText(dependency.getName());
     myGradlePathLabel.setText(dependency.getGradlePath());
     if (myShowScope) {
-      myScopeLabel.setText(dependency.getConfigurationName());
+      myScopeLabel.setText(dependency.getJoinedConfigurationNames());
     }
   }
 

@@ -13,17 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.dependencies;
+package com.android.tools.idea.gradle.structure.model;
 
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.util.List;
-
-interface DependencyConfigurationsForm {
-  @NotNull
-  JPanel getPanel();
-
-  @NotNull
-  List<String> getSelectedConfigurations();
+public interface PsIssueType {
+  PsIssueType PROJECT_ANALYSIS = new PsIssueType() {};
+  PsIssueType LIBRARY_UPDATES_AVAILABLE = new PsIssueType() {};
 }

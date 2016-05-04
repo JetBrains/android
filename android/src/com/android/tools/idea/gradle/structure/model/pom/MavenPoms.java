@@ -30,6 +30,7 @@ import java.util.List;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.findPomForLibrary;
 import static com.intellij.openapi.util.JDOMUtil.loadDocument;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.util.text.StringUtil.nullize;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
@@ -83,18 +84,27 @@ public class MavenPoms {
     String artifactId = null;
     String groupId = null;
     String version = null;
+    String scope = null;
+    boolean optional = false;
     for (Element childElement : dependencyElement.getChildren()) {
-      if ("artifactId".equals(childElement.getName())) {
+      String name = childElement.getName();
+      if ("artifactId".equals(name)) {
         artifactId = textOf(childElement);
       }
-      else if ("groupId".equals(childElement.getName())) {
+      else if ("groupId".equals(name)) {
         groupId = textOf(childElement);
       }
-      else if ("version".equals(childElement.getName())) {
+      else if ("version".equals(name)) {
         version = textOf(childElement);
       }
+      else if ("optional".equals(name)) {
+        optional = Boolean.valueOf(textOf(childElement));
+      }
+      else if ("scope".equals(name)) {
+        scope = textOf(childElement);
+      }
     }
-    if (isNotEmpty(artifactId)) {
+    if (isNotEmpty(artifactId) && !optional && ("compile".equals(scope) || isEmpty(scope))) {
       return new PsArtifactDependencySpec(artifactId, groupId, version);
     }
 

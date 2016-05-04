@@ -43,17 +43,9 @@ public class ResolvedDependenciesTreeBuilder extends AbstractPsNodeTreeBuilder {
       AbstractTreeStructure treeStructure = getTreeStructure();
 
       if (treeStructure instanceof ResolvedDependenciesTreeStructure) {
-        PsAndroidDependency selected = myDependencySelectionSource.getSelection();
-
         boolean needsUpdate = ((ResolvedDependenciesTreeStructure)treeStructure).settingsChanged();
         if (needsUpdate) {
-          ActionCallback actionCallback = queueUpdate();
-          actionCallback.doWhenDone(new Runnable() {
-            @Override
-            public void run() {
-              myDependencySelectionDestination.setSelection(selected);
-            }
-          });
+          queueUpdateAndRestoreSelection();
         }
       }
     };
@@ -66,5 +58,18 @@ public class ResolvedDependenciesTreeBuilder extends AbstractPsNodeTreeBuilder {
       PsAndroidDependency selection = myDependencySelectionSource.getSelection();
       myDependencySelectionDestination.setSelection(selection);
     });
+  }
+
+  public void reset() {
+    AbstractTreeStructure treeStructure = getTreeStructure();
+    if (treeStructure instanceof ResolvedDependenciesTreeStructure) {
+      ((ResolvedDependenciesTreeStructure)treeStructure).reset();
+      queueUpdateAndRestoreSelection();
+    }
+  }
+
+  private void queueUpdateAndRestoreSelection() {
+    PsAndroidDependency selected = myDependencySelectionSource.getSelection();
+    queueUpdate().doWhenDone(() -> myDependencySelectionDestination.setSelection(selected));
   }
 }

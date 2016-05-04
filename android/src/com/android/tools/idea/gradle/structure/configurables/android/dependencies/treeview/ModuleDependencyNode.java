@@ -27,6 +27,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 import static com.android.builder.model.AndroidProject.ARTIFACT_MAIN;
+import static com.android.tools.idea.gradle.structure.model.PsDependency.TextType.PLAIN_TEXT;
 
 public class ModuleDependencyNode extends AbstractDependencyNode<PsModuleDependency> {
   private final List<AbstractPsModelNode<?>> myChildren = Lists.newArrayList();
@@ -42,7 +43,7 @@ public class ModuleDependencyNode extends AbstractDependencyNode<PsModuleDepende
   }
 
   private void setUp(@NotNull PsModuleDependency moduleDependency) {
-    myName = moduleDependency.getValueAsText();
+    myName = moduleDependency.toText(PLAIN_TEXT);
 
     PsAndroidModule dependentModule = moduleDependency.getParent();
     PsProject project = dependentModule.getParent();

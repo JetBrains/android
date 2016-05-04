@@ -44,7 +44,7 @@ class ResolvedDependenciesTreeRootNode extends AbstractRootNode<PsAndroidModule>
     if (PsUISettings.getInstance().RESOLVED_DEPENDENCIES_GROUP_VARIANTS != myGroupVariants) {
       // If the "Group Variants" setting changed, remove all children nodes, so the subsequent call to "queueUpdate" will recreate them.
       myGroupVariants = PsUISettings.getInstance().RESOLVED_DEPENDENCIES_GROUP_VARIANTS;
-      removeChildren();
+      reset();
       return true;
     }
     return false;
@@ -136,7 +136,7 @@ class ResolvedDependenciesTreeRootNode extends AbstractRootNode<PsAndroidModule>
     Map<String, PsDependencyContainer> containerWithMainArtifact = Maps.newHashMap();
 
     module.forEachDependency(dependency -> {
-      Set<PsDependencyContainer> containers = dependency.getContainers();
+      Collection<PsDependencyContainer> containers = dependency.getContainers();
       for (PsDependencyContainer container : containers) {
         if (container.getArtifact().equals(ARTIFACT_MAIN)) {
           containerWithMainArtifact.put(container.getVariant(), container);
