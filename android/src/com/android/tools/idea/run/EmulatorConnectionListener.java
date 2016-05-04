@@ -17,6 +17,7 @@ package com.android.tools.idea.run;
 
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.ddms.adb.AdbService;
 import com.android.tools.idea.run.util.LaunchUtils;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -25,17 +26,21 @@ import com.google.common.util.concurrent.Uninterruptibles;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 /** A utility class to wait for an emulator to be fully launched (ready for "pm install") and connected to adb. */
 public class EmulatorConnectionListener {
   // Wait for a device corresponding to given emulator to come online for the given timeout period
-  public static ListenableFuture<IDevice> getDeviceForEmulator(@NotNull String avdName,
+  public static ListenableFuture<IDevice> getDeviceForEmulator(@NotNull Project project,
+                                                               @NotNull String avdName,
                                                                @Nullable ProcessHandler emulatorProcessHandler,
                                                                long timeout,
                                                                @NotNull TimeUnit units) {
@@ -44,7 +49,7 @@ public class EmulatorConnectionListener {
     }
 
     final SettableFuture<IDevice> future = SettableFuture.create();
-    WaitForEmulatorTask task = new WaitForEmulatorTask(future, avdName, emulatorProcessHandler, timeout, units);
+    WaitForEmulatorTask task = new WaitForEmulatorTask(project, future, avdName, emulatorProcessHandler, timeout, units);
     ApplicationManager.getApplication().executeOnPooledThread(task);
     return future;
   }
@@ -52,16 +57,19 @@ public class EmulatorConnectionListener {
   private static final class WaitForEmulatorTask implements Runnable {
     private static final TimeUnit POLL_TIMEUNIT = TimeUnit.SECONDS;
 
+    private final Project myProject;
     private final SettableFuture<IDevice> myDeviceFuture;
     private final String myAvdName;
     private final ProcessHandler myEmulatorProcessHandler;
     private final long myTimeout; // in POLL_TIMEUNIT units
 
-    private WaitForEmulatorTask(@NotNull SettableFuture<IDevice> device,
+    private WaitForEmulatorTask(@NotNull Project project,
+                                @NotNull SettableFuture<IDevice> device,
                                 @NotNull String avdName,
                                 @NotNull ProcessHandler emulatorProcessHandler,
                                 long timeout,
                                 @NotNull TimeUnit units) {
+      myProject = project;
       myDeviceFuture = device;
       myAvdName = avdName;
       myEmulatorProcessHandler = emulatorProcessHandler;
@@ -70,6 +78,12 @@ public class EmulatorConnectionListener {
 
     @Override
     public void run() {
+      File adb = AndroidSdkUtils.getAdb(myProject);
+      if (adb == null) {
+        myDeviceFuture.setException(new IllegalArgumentException("Unable to locate adb"));
+        return;
+      }
+
       for (long i = 0; i < myTimeout; i++) {
         if (myDeviceFuture.isCancelled()) {
           return;
@@ -80,8 +94,19 @@ public class EmulatorConnectionListener {
           return;
         }
 
-        // We assume the bridge has been connected prior to this
-        AndroidDebugBridge bridge = AndroidDebugBridge.getBridge();
+        ListenableFuture<AndroidDebugBridge> bridgeFuture = AdbService.getInstance().getDebugBridge(adb);
+        AndroidDebugBridge bridge;
+        try {
+          bridge = bridgeFuture.get(1, POLL_TIMEUNIT);
+        }
+        catch (TimeoutException e) {
+          continue;
+        }
+        catch (Exception e) {
+          myDeviceFuture.setException(e);
+          return;
+        }
+
         if (bridge == null || !bridge.isConnected()) {
           myDeviceFuture.setException(new RuntimeException("adb connection not available, or was terminated."));
           return;
