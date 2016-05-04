@@ -167,7 +167,7 @@ public class GuiTestRule implements TestRule {
     catch (Throwable e) {
       errors.add(e);
     }
-    errors.addAll(cleanUpAndCheckForModalDialogs());
+    errors.addAll(checkForModalDialogs());
     GuiTests.closeAllProjects();
     if (myProjectPath != null) {
       FileUtilRt.delete(myProjectPath);
@@ -181,7 +181,7 @@ public class GuiTestRule implements TestRule {
     fixMemLeaks();
   }
 
-  private List<AssertionError> cleanUpAndCheckForModalDialogs() {
+  private List<AssertionError> checkForModalDialogs() {
     List<AssertionError> errors = new ArrayList<>();
     // We close all modal dialogs left over, because they block the AWT thread and could trigger a deadlock in the next test.
     Dialog modalDialog;
