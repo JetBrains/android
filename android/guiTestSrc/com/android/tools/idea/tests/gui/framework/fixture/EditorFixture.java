@@ -112,21 +112,11 @@ public class EditorFixture {
     myFrame = frame;
   }
 
-  /**
-   * Returns the current file being shown in the editor, if there is a current
-   * editor open and it's a file editor
-   *
-   * @return the currently edited file or null
-   */
+  /** Returns the selected file with most recent focused editor, or {@code null} if there are no selected files. */
   @Nullable
   public VirtualFile getCurrentFile() {
-    FileEditorManager manager = FileEditorManager.getInstance(myFrame.getProject());
-    VirtualFile[] selectedFiles = manager.getSelectedFiles();
-    if (selectedFiles.length > 0) {
-      return selectedFiles[0];
-    }
-
-    return null;
+    VirtualFile[] selectedFiles = FileEditorManager.getInstance(myFrame.getProject()).getSelectedFiles();
+    return (selectedFiles.length > 0) ? selectedFiles[0] : null;
   }
 
   /**
