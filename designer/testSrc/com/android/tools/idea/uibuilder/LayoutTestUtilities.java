@@ -34,6 +34,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -147,16 +148,16 @@ public class LayoutTestUtilities {
     when(configuration.getFile()).thenReturn(model.getFile().getVirtualFile());
 
     ScreenView screenView = mock(ScreenView.class);
+    when(screenView.getConfiguration()).thenReturn(configuration);
     when(screenView.getModel()).thenReturn(model);
-    when(screenView.getSelectionModel()).thenReturn(selectionModel);
-    when(screenView.getSelectionModel()).thenReturn(selectionModel);
     when(screenView.getScale()).thenReturn(scale);
+    when(screenView.getSelectionModel()).thenReturn(selectionModel);
+    when(screenView.getSize()).thenReturn(new Dimension());
+    when(screenView.getSurface()).thenReturn(surface);
     when(screenView.getX()).thenReturn(x);
     when(screenView.getY()).thenReturn(y);
-    when(screenView.getConfiguration()).thenReturn(configuration);
-    when(surface.getScreenView(anyInt(), anyInt())).thenReturn(screenView);
-    when(screenView.getSurface()).thenReturn(surface);
 
+    when(surface.getScreenView(anyInt(), anyInt())).thenReturn(screenView);
     return screenView;
   }
 
