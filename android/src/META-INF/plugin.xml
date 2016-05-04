@@ -28,6 +28,9 @@
       <implementation-class>com.android.tools.idea.gradle.project.compatibility.VersionMetadataUpdater</implementation-class>
       <headless-implementation-class/>
     </component>
+    <component>
+      <implementation-class>com.android.tools.idea.apk.viewer.ApkFileSystem</implementation-class>
+    </component>
   </application-components>
   <project-components>
     <component>
@@ -367,6 +370,7 @@
     <fileEditorProvider implementation="com.android.tools.idea.editors.strings.StringResourceEditorProvider" />
     <fileEditorProvider implementation="com.android.tools.idea.editors.theme.ThemeEditorProvider"/>
     <fileEditorProvider implementation="com.android.tools.idea.editors.manifest.ManifestEditorProvider"/>
+    <fileEditorProvider implementation="com.android.tools.idea.apk.viewer.ApkEditorProvider"/>
 
     <runConfigurationProducer implementation="com.android.tools.idea.run.AndroidConfigurationProducer"/>
     <runConfigurationProducer implementation="com.android.tools.idea.run.testing.AndroidTestConfigurationProducer" order="first"/>
