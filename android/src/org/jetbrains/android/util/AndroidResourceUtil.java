@@ -1428,8 +1428,6 @@ public class AndroidResourceUtil {
    */
   @NotNull
   public static String ensureNamespaceImported(@NotNull XmlFile file, @NotNull String namespaceUri, @Nullable String suggestedPrefix) {
-    ApplicationManager.getApplication().assertWriteAccessAllowed();
-
     final XmlTag rootTag = file.getRootTag();
 
     assert rootTag != null;
@@ -1439,6 +1437,8 @@ public class AndroidResourceUtil {
     if (prefix != null) {
       return prefix;
     }
+
+    ApplicationManager.getApplication().assertWriteAccessAllowed();
 
     if (suggestedPrefix != null) {
       prefix = suggestedPrefix;
