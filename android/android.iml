@@ -152,5 +152,18 @@
     <orderEntry type="module" module-name="layoutlib" />
     <orderEntry type="module" module-name="sherpa-solver" />
     <orderEntry type="module" module-name="sherpa-ui" />
+    <orderEntry type="module-library">
+      <library name="dexlib2">
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/lib/dexlib2-2.0.8-dev.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib/dexlib2-util-2.0.8-dev.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="jar://$MODULE_DIR$/lib/src/dexlib2-2.0.8-dev-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib/src/dexlib2-util-2.0.8-dev-sources.jar!/" />
+        </SOURCES>
+      </library>
+    </orderEntry>
   </component>
 </module>
