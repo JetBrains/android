@@ -92,7 +92,7 @@ public class ThemeSelectorTest {
     // Testing Undo
     ideFrame.invokeMenuPath("Window", "Editor Tabs", "Select Next Tab");
     themesComboBox.selectItem("NewAppTheme");
-    ideFrame.invokeMenuPathRegex("Edit", "Undo.*");
+    ideFrame.invokeMenuPath("Edit", "Undo Renaming attribute value AppTh...");
     ideFrame.findMessageDialog("Undo").clickOk();
     themeEditor.waitForThemeSelection("AppTheme");
     themeEditor.focus(); // required to ensure that the Select Previous Tab action is available
@@ -215,7 +215,7 @@ public class ThemeSelectorTest {
 
     // Tests Undo
     guiTest.ideFrame().invokeMenuPath("Window", "Editor Tabs", "Select Next Tab");
-    guiTest.ideFrame().invokeMenuPathRegex("Edit", "Undo.*");
+    guiTest.ideFrame().invokeMenuPath("Edit", "Undo Create new style NewTheme");
     themeEditor.waitForThemeSelection("AppTheme");
     guiTest.ideFrame().invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
     assertThat(editor.getCurrentFileContents()).doesNotContain("name=\"NewTheme");

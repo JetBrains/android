@@ -96,10 +96,10 @@ public class ThemeEditorTableTest {
     parentCellFixture.stopEditing();
     assertEquals(newParent, themeEditorTable.getComboBoxSelectionAt(parentCell));
 
-    guiTest.ideFrame().invokeMenuPathRegex("Edit", "Undo.*");
+    guiTest.ideFrame().invokeMenuPath("Edit", "Undo Updating Parent to Theme.AppCo...");
     assertEquals("android:Theme.Holo.Light.DarkActionBar", themeEditorTable.getComboBoxSelectionAt(parentCell));
 
-    guiTest.ideFrame().invokeMenuPathRegex("Edit", "Redo.*");
+    guiTest.ideFrame().invokeMenuPath("Edit", "Redo Updating Parent to Theme.AppCo...");
     assertEquals(newParent, themeEditorTable.getComboBoxSelectionAt(parentCell));
 
     Wait.seconds(30).expecting("potential tooltips to disappear").until(() -> guiTest.robot().findActivePopupMenu() == null);
