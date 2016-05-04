@@ -285,6 +285,18 @@ public class InteractionManager {
       }
     }
     else {
+      // Allow a view group handler to update the cursor
+      NlComponent component = Coordinates.findComponent(screenView, x, y);
+      if (component != null) {
+        ViewGroupHandler viewGroupHandler = component.getViewGroupHandler();
+        if (viewGroupHandler != null) {
+          int mx = Coordinates.getAndroidX(screenView, x);
+          int my = Coordinates.getAndroidY(screenView, y);
+          if (viewGroupHandler.updateCursor(screenView, mx, my)) {
+            mySurface.repaint();
+          }
+        }
+      }
       Dimension size = screenView.getSize();
       // TODO: use constants for those numbers
       Rectangle resizeIcon = new Rectangle(screenView.getX() + size.width + 3, screenView.getY() + size.height + 3, 12, 12);
@@ -493,6 +505,7 @@ public class InteractionManager {
       myLastMouseY = y;
       myLastStateMask = event.getModifiersEx();
 
+      mySurface.hover(x, y);
       if ((myLastStateMask & InputEvent.BUTTON1_DOWN_MASK) != 0) {
         if (myCurrentInteraction != null) {
           updateMouse(x, y);
