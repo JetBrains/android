@@ -128,53 +128,45 @@ final class FormFactorSdkControls {
       }
     });
 
-    myBinder.register(API_FEEDBACK_KEY, myHelpMeChooseLabel2, new ScopedDataBinder.ComponentBinding<String, JBLabel>() {
-      @Override
-      public void setValue(@Nullable String newValue, @NotNull JBLabel label) {
-        final JBLabel referenceLabel = label;
-        final String referenceString = newValue;
-        ApplicationManager.getApplication().invokeLater(new Runnable() {
-          @Override
-          public void run() {
-            referenceLabel.setText(referenceString);
-          }
-        });
-      }
-    });
-    myBinder.registerValueDeriver(API_FEEDBACK_KEY, new ScopedDataBinder.ValueDeriver<String>() {
-      @Nullable
-      @Override
-      public Set<ScopedStateStore.Key<?>> getTriggerKeys() {
-        return makeSetOf(getTargetComboBoxKey(MOBILE));
-      }
-
-      @Nullable
-      @Override
-      public String deriveValue(@NotNull ScopedStateStore state, ScopedStateStore.Key changedKey, @Nullable String currentValue) {
-        FormFactorApiComboBox.AndroidTargetComboBoxItem selectedItem = state.get(getTargetComboBoxKey(MOBILE));
-        String name = Integer.toString(selectedItem == null ? 0 : selectedItem.getApiLevel());
-        if (selectedItem != null && selectedItem.target != null) {
-          name = selectedItem.target.getVersion().getApiString();
+    // We only want to bind the stats-related component and value deriver if we're the component that's actually showing the stats
+    // (that is, Mobile).
+    if (myStatsPanel.isVisible()) {
+      myBinder.register(API_FEEDBACK_KEY, myHelpMeChooseLabel2, new ScopedDataBinder.ComponentBinding<String, JBLabel>() {
+        @Override
+        public void setValue(@Nullable String newValue, @NotNull JBLabel label) {
+          final JBLabel referenceLabel = label;
+          final String referenceString = newValue;
+          ApplicationManager.getApplication().invokeLater(() -> referenceLabel.setText(referenceString));
         }
-        return getApiHelpText(selectedItem == null || !myStatsPanel.isVisible() ? 0 : selectedItem.getApiLevel(), name);
-      }
-    });
+      });
+      myBinder.registerValueDeriver(API_FEEDBACK_KEY, new ScopedDataBinder.ValueDeriver<String>() {
+        @Nullable
+        @Override
+        public Set<ScopedStateStore.Key<?>> getTriggerKeys() {
+          return makeSetOf(getTargetComboBoxKey(MOBILE));
+        }
 
+        @Nullable
+        @Override
+        public String deriveValue(@NotNull ScopedStateStore state, ScopedStateStore.Key changedKey, @Nullable String currentValue) {
+          FormFactorApiComboBox.AndroidTargetComboBoxItem selectedItem = state.get(getTargetComboBoxKey(MOBILE));
+          String name = Integer.toString(selectedItem == null ? 0 : selectedItem.getApiLevel());
+          if (selectedItem != null && selectedItem.target != null) {
+            name = selectedItem.target.getVersion().getApiString();
+          }
+          return getApiHelpText(selectedItem == null || !myStatsPanel.isVisible() ? 0 : selectedItem.getApiLevel(), name);
+        }
+      });
+    }
     myMinSdkCombobox.init(myFormFactor, myMinApi, loadComplete,
-                          new Runnable() {
-                            @Override
-                            public void run() {
-                              myInclusionCheckBox.setEnabled(true);
-                              myLabel.setEnabled(true);
-                              myMinSdkCombobox.setEnabled(true);
-                            }
+                          () -> {
+                            myInclusionCheckBox.setEnabled(true);
+                            myLabel.setEnabled(true);
+                            myMinSdkCombobox.setEnabled(true);
                           },
-                          new Runnable() {
-                            @Override
-                            public void run() {
-                              myInclusionCheckBox.setSelected(false);
-                              myNotAvailableLabel.setVisible(true);
-                            }
+                          () -> {
+                            myInclusionCheckBox.setSelected(false);
+                            myNotAvailableLabel.setVisible(true);
                           });
 
     myMinSdkCombobox.registerWith(myBinder);
@@ -182,30 +174,16 @@ final class FormFactorSdkControls {
     myMinSdkCombobox.loadSavedApi();
 
     if (myStatsPanel.isVisible()) {
-      DistributionService.getInstance().refresh(new Runnable() {
-        @Override
-        public void run() {
-          ApplicationManager.getApplication().invokeLater(new Runnable() {
-            @Override
-            public void run() {
-              ((CardLayout)myStatsPanel.getLayout()).show(myStatsPanel, "stats");
-              myBinder.invokeUpdate(getTargetComboBoxKey(MOBILE));
-            }
-          });
-        }
-      }, new Runnable() {
-        @Override
-        public void run() {
-          ApplicationManager.getApplication().invokeLater(new Runnable() {
-            @Override
-            public void run() {
-              ((CardLayout)myStatsPanel.getLayout()).show(myStatsPanel, "stats");
-              myBinder.invokeUpdate(getTargetComboBoxKey(MOBILE));
-              myStatsLoadFailedLabel.setVisible(true);
-            }
-          });
-        }
-      });
+      DistributionService.getInstance().refresh(
+        () -> ApplicationManager.getApplication().invokeLater(() -> {
+          ((CardLayout)myStatsPanel.getLayout()).show(myStatsPanel, "stats");
+          myBinder.invokeUpdate(getTargetComboBoxKey(MOBILE));
+        }),
+        () -> ApplicationManager.getApplication().invokeLater(() -> {
+          ((CardLayout)myStatsPanel.getLayout()).show(myStatsPanel, "stats");
+          myBinder.invokeUpdate(getTargetComboBoxKey(MOBILE));
+          myStatsLoadFailedLabel.setVisible(true);
+        }));
     }
   }
 
