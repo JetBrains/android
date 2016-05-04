@@ -31,6 +31,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
+import java.util.regex.Matcher;
 
 public class SdkMerger {
   private static final Logger LOG = Logger.getInstance(SdkMerger.class);
@@ -59,7 +60,8 @@ public class SdkMerger {
       }
       try {
         FileUtil.copyDir(pkg.srcPkg.getLocation(),
-                         new File(pkg.destLocation, pkg.srcPkg.getPath().replaceAll(RepoPackage.PATH_SEPARATOR + "", File.separator)));
+                         new File(pkg.destLocation, pkg.srcPkg.getPath().replaceAll(RepoPackage.PATH_SEPARATOR + "",
+                                                                                    Matcher.quoteReplacement(File.separator))));
       }
       catch (IOException e) {
         LOG.error("Unable to copy package " + pkg.srcPkg.getPath(), e);
