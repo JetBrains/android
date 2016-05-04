@@ -329,7 +329,10 @@ public class ConstraintModel implements ModelListener {
   private static String getResolvedText(NlComponent component) {
     String text = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT);
     if (text != null) {
-      return resolveStringResource(component, text);
+      if (text.startsWith(SdkConstants.PREFIX_RESOURCE_REF)) {
+        return resolveStringResource(component, text);
+      }
+      return text;
     }
     return "";
   }
