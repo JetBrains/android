@@ -1004,9 +1004,10 @@ public class MouseInteraction {
             }
             mPreviousHoverWidget = widget;
             if (mSelection.contains(widget) && decorator.isShowBaseline()) {
+                mBaselineTimer.restart();
+            } else {
                 mClickListener.mEnableBaseline = false;
                 mHoverListener.mEnableBaseline = false;
-                mBaselineTimer.restart();
             }
         }
 
