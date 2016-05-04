@@ -226,22 +226,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
   }
 
   /**
-   * Utility function to get a mouse Cursor from an Icon
-   *
-   * @param icon the icon we want to use
-   * @param x    the x offset in the icon
-   * @param y    the y offset in the icon
-   * @param text the alternate text for this cursor
-   * @return a new custom cursor
-   */
-  @NotNull
-  private static Cursor createCursor(@NotNull Icon icon, int x, int y, @NotNull String text) {
-    Toolkit toolkit = Toolkit.getDefaultToolkit();
-    Image image = ((ImageIcon)icon).getImage();
-    return toolkit.createCustomCursor(image, new Point(x, y), text);
-  }
-
-  /**
    * Return true to be in charge of the painting
    *
    * @return true
