@@ -77,6 +77,7 @@ public class NlPaletteModelTest extends PaletteTestCase {
     assertEquals("Items in text fields group", 14, textFields.getItems().size());
 
     iterator = layouts.getItems().iterator();
+    assertConstraintLayout(iterator.next());
     assertGridLayout(iterator.next());
     assertFrameLayout(iterator.next());
     assertLinearLayoutItem(iterator.next());
