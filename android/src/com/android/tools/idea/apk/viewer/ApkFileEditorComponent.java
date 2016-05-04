@@ -20,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-interface ApkFileEditorComponent extends Disposable {
+public interface ApkFileEditorComponent extends Disposable {
   @NotNull
   JComponent getComponent();
 }
