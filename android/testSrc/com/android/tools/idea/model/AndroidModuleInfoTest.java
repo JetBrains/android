@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.model;
 
+import com.android.tools.idea.run.activity.ActivityLocatorUtils;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
@@ -31,11 +32,10 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.android.dom.manifest.Activity;
-import org.jetbrains.android.dom.manifest.Service;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Element;
 
 import java.util.Arrays;
 import java.util.List;
@@ -83,15 +83,16 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
     assertNotNull(myAndroidFacet);
 
     MergedManifest manifestInfo = MergedManifest.get(myAndroidFacet);
-    List<Activity> mergedActivities = manifestInfo.getActivities();
+    List<Element> mergedActivities = manifestInfo.getActivities();
     assertEquals(2, mergedActivities.size());
-    Set<String> activities = Sets.newHashSet(mergedActivities.get(0).getActivityClass().getRawText(),
-                                             mergedActivities.get(1).getActivityClass().getRawText());
+    Set<String> activities = Sets.newHashSet(ActivityLocatorUtils.getQualifiedName(mergedActivities.get(0)),
+                                             ActivityLocatorUtils.getQualifiedName(mergedActivities.get(1)));
     assertTrue(activities.contains("com.example.unittest.Main"));
     assertTrue(activities.contains("from.gradle.debug.Debug"));
 
-    List<Service> services = manifestInfo.getServices();
+    List<Element> services = manifestInfo.getServices();
     assertEquals(1, services.size());
+    assertEquals("com.example.unittest.WatchFace", ActivityLocatorUtils.getQualifiedName(services.get(0)));
 
     assertEquals("@style/AppTheme", manifestInfo.getManifestTheme());
   }
@@ -139,11 +140,11 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
     assertEquals(1, AndroidUtils.getAllAndroidDependencies(myAndroidFacet.getModule(), true).size());
 
     MergedManifest manifestInfo = MergedManifest.get(myAndroidFacet);
-    List<Activity> mergedActivities = manifestInfo.getActivities();
+    List<Element> mergedActivities = manifestInfo.getActivities();
     assertEquals(3, mergedActivities.size());
-    Set<String> activities = Sets.newHashSet(mergedActivities.get(0).getActivityClass().getRawText(),
-                                             mergedActivities.get(1).getActivityClass().getRawText(),
-                                             mergedActivities.get(2).getActivityClass().getRawText());
+    Set<String> activities = Sets.newHashSet(ActivityLocatorUtils.getQualifiedName(mergedActivities.get(0)),
+                                             ActivityLocatorUtils.getQualifiedName(mergedActivities.get(1)),
+                                             ActivityLocatorUtils.getQualifiedName(mergedActivities.get(2)));
     assertTrue(activities.contains("test.helloworldapp.Debug"));
     assertTrue(activities.contains("test.helloworldapp.MyActivity"));
     assertTrue(activities.contains("test.helloworldapp.lib.LibActivity"));
@@ -151,7 +152,7 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
     assertNotNull(manifestInfo.getVersionCode());
     assertEquals(2, manifestInfo.getVersionCode().intValue());
 
-    // make a change to the psi
+    // Make a change to the psi
     VirtualFile manifestFile = AndroidRootUtil.getPrimaryManifestFile(myAndroidFacet);
     assertNotNull(manifestFile);
     PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(manifestFile);
@@ -179,10 +180,10 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
     manifestInfo.clear();
     mergedActivities = manifestInfo.getActivities();
     assertEquals(4, mergedActivities.size());
-    activities = Sets.newHashSet(mergedActivities.get(0).getActivityClass().getRawText(),
-                                 mergedActivities.get(1).getActivityClass().getRawText(),
-                                 mergedActivities.get(2).getActivityClass().getRawText(),
-                                 mergedActivities.get(3).getActivityClass().getRawText());
+    activities = Sets.newHashSet(ActivityLocatorUtils.getQualifiedName(mergedActivities.get(0)),
+                                 ActivityLocatorUtils.getQualifiedName(mergedActivities.get(1)),
+                                 ActivityLocatorUtils.getQualifiedName(mergedActivities.get(2)),
+                                 ActivityLocatorUtils.getQualifiedName(mergedActivities.get(3)));
     assertTrue(activities.contains("test.helloworldapp.Debug"));
     assertTrue(activities.contains("test.helloworldapp.MyActivity"));
     assertTrue(activities.contains("test.helloworldapp.lib.LibActivity"));
@@ -206,11 +207,11 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
     manifestInfo.clear();
     mergedActivities = manifestInfo.getActivities();
     assertEquals(5, mergedActivities.size());
-    activities = Sets.newHashSet(mergedActivities.get(0).getActivityClass().getRawText(),
-                                 mergedActivities.get(1).getActivityClass().getRawText(),
-                                 mergedActivities.get(2).getActivityClass().getRawText(),
-                                 mergedActivities.get(3).getActivityClass().getRawText(),
-                                 mergedActivities.get(4).getActivityClass().getRawText());
+    activities = Sets.newHashSet(ActivityLocatorUtils.getQualifiedName(mergedActivities.get(0)),
+                                 ActivityLocatorUtils.getQualifiedName(mergedActivities.get(1)),
+                                 ActivityLocatorUtils.getQualifiedName(mergedActivities.get(2)),
+                                 ActivityLocatorUtils.getQualifiedName(mergedActivities.get(3)),
+                                 ActivityLocatorUtils.getQualifiedName(mergedActivities.get(4)));
     assertTrue(activities.contains("test.helloworldapp.Debug"));
     assertTrue(activities.contains("test.helloworldapp.MyActivity"));
     assertTrue(activities.contains("test.helloworldapp.lib.LibActivity"));

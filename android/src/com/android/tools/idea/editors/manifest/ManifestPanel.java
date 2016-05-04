@@ -16,22 +16,24 @@
 package com.android.tools.idea.editors.manifest;
 
 import com.android.SdkConstants;
+import com.android.builder.model.AndroidLibrary;
+import com.android.builder.model.MavenCoordinates;
 import com.android.ide.common.blame.SourceFile;
 import com.android.ide.common.blame.SourceFilePosition;
 import com.android.ide.common.blame.SourcePosition;
 import com.android.manifmerger.Actions;
 import com.android.manifmerger.MergingReport;
-import com.android.manifmerger.XmlNode;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.parser.NamedObject;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.rendering.HtmlLinkManager;
 import com.android.utils.HtmlBuilder;
-import com.android.xml.AndroidManifest;
-import com.google.common.base.*;
+import com.android.utils.PositionXmlParser;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -39,20 +41,24 @@ import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.editor.XmlHighlighterColors;
+import com.intellij.openapi.editor.colors.EditorColorsManager;
+import com.intellij.openapi.editor.colors.EditorColorsScheme;
+import com.intellij.openapi.editor.colors.EditorFontType;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.JBMenuItem;
+import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiManager;
-import com.intellij.psi.xml.XmlAttribute;
-import com.intellij.psi.xml.XmlElement;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.*;
@@ -64,6 +70,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.*;
 
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
@@ -78,6 +85,8 @@ import java.util.*;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static com.android.tools.idea.gradle.AndroidGradleModel.EXPLODED_AAR;
 
 // TODO for permission if not from main file
 // TODO then have option to tools:node="remove" tools:selector="com.example.lib1"
@@ -94,46 +103,56 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
   private static final Pattern ADD_SUGGESTION_FORMAT = Pattern.compile(".*? 'tools:([\\w:]+)=\"([\\w:]+)\"' to \\<(\\w+)\\> element at [^:]+:(\\d+):(\\d+)-[\\d:]+ to override\\.", Pattern.DOTALL);
 
   private final AndroidFacet myFacet;
+  private final Font myDefaultFont;
   private Tree myTree;
   private JEditorPane myDetails;
   private JPopupMenu myPopup;
   private JMenuItem myRemoveItem;
+  private JMenuItem myGotoItem;
 
   private MergedManifest myManifest;
   private final List<File> myFiles = new ArrayList<File>();
+  private final List<File> myOtherFiles = new ArrayList<File>();
   private final HtmlLinkManager myHtmlLinkManager = new HtmlLinkManager();
+  private VirtualFile myFile;
+  private final Color myBackgroundColor;
 
   public ManifestPanel(final @NotNull AndroidFacet facet) {
     myFacet = facet;
     setLayout(new BorderLayout());
 
-    myTree = new Tree() {
-      /**
-       * @see com.intellij.ide.projectView.impl.ProjectViewTree#isFileColorsEnabledFor(JTree)
-       */
-      @Override
-      public boolean isFileColorsEnabled() {
-        if (isOpaque()) {
-          // needed for fileColors to be able to paint
-          setOpaque(false);
-        }
-        return true;
-      }
+    EditorColorsManager colorsManager = EditorColorsManager.getInstance();
+    EditorColorsScheme scheme = colorsManager.getGlobalScheme();
+    myBackgroundColor = scheme.getDefaultBackground();
+    myDefaultFont = scheme.getFont(EditorFontType.PLAIN);
 
-      @Nullable
-      @Override
-      public Color getFileColorFor(Object object) {
-        return getBackgroundColorForXmlElement((XmlElement)object);
-      }
-    };
+    myTree = new FileColorTree();
+    myTree.setCellRenderer(new SyntaxHighlightingCellRenderer());
 
     TreeSelectionModel selectionModel = myTree.getSelectionModel();
     selectionModel.setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
     selectionModel.addTreeSelectionListener(this);
 
-    myDetails = new JEditorPane();
-    myDetails.setContentType(UIUtil.HTML_MIME);
-    myDetails.setEditable(false);
+    myDetails = createDetailsPane(facet);
+
+    addSpeedSearch();
+    createPopupMenu();
+    registerGotoAction();
+
+    JBSplitter splitter = new JBSplitter(0.5f);
+    splitter.setFirstComponent(new JBScrollPane(myTree));
+    splitter.setSecondComponent(new JBScrollPane(myDetails));
+
+    add(splitter);
+  }
+
+  private JEditorPane createDetailsPane(@NotNull final AndroidFacet facet) {
+    JEditorPane details = new JEditorPane();
+    details.setMargin(new Insets(5, 5, 5, 5));
+    details.setContentType(UIUtil.HTML_MIME);
+    details.setEditable(false);
+    details.setFont(myDefaultFont);
+    details.setBackground(myBackgroundColor);
     HyperlinkListener hyperLinkListener = new HyperlinkListener() {
       @Override
       public void hyperlinkUpdate(HyperlinkEvent e) {
@@ -143,52 +162,26 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
         }
       }
     };
-    myDetails.addHyperlinkListener(hyperLinkListener);
+    details.addHyperlinkListener(hyperLinkListener);
 
-    // We have to use ColoredTreeCellRenderer instead of DefaultTreeCellRenderer to allow the Tree.isFileColorsEnabled to work
-    // as otherwise the DefaultTreeCellRenderer will always insist on filling the background
-    myTree.setCellRenderer(new ColoredTreeCellRenderer() {
+    return details;
+  }
+
+  private void createPopupMenu() {
+    myPopup = new JBPopupMenu();
+    myGotoItem = new JBMenuItem("Go to Declaration");
+    myGotoItem.addActionListener(new ActionListener() {
       @Override
-      public void customizeCellRenderer(@NotNull JTree tree,
-                                        Object value,
-                                        boolean selected,
-                                        boolean expanded,
-                                        boolean leaf,
-                                        int row,
-                                        boolean hasFocus) {
-
-        if (value instanceof ManifestTreeNode) {
-          ManifestTreeNode node = (ManifestTreeNode)value;
-
-          // on GTK theme the Tree.isFileColorsEnabled does not work, so we fall back to using the background
-          if (UIUtil.isUnderGTKLookAndFeel()) {
-            // we need to make the colors saturated, but with alpha, so the selector and foreground text still work
-            setBackground(ColorUtil.withAlpha(harder(getBackgroundColorForXmlElement(node.getUserObject())), 0.2));
-            setOpaque(true);
-          }
-
-          setIcon(null);
-
-          if (node.getUserObject() instanceof XmlTag) {
-            append("<" + node.toString() + (expanded ? "" : " ... " + getCloseTag(node)), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
-          }
-          if (node.getUserObject() instanceof XmlAttribute) {
-            // if we are the last child, add ">"
-            ManifestTreeNode parent = node.getParent();
-            assert parent != null; // can not be null if we are a XmlAttribute
-            append(node.toString() + (parent.lastAttribute() == node ? " " + getCloseTag(node) : ""));
-          }
+      public void actionPerformed(@NotNull ActionEvent e) {
+        TreePath treePath = myTree.getSelectionPath();
+        final ManifestTreeNode node = (ManifestTreeNode)treePath.getLastPathComponent();
+        if (node != null) {
+          goToDeclaration(node.getUserObject());
         }
       }
-
-      private String getCloseTag(ManifestTreeNode node) {
-        return node.hasXmlTagChildren() ? ">" : "/>";
-      }
     });
-    new TreeSpeedSearch(myTree);
-
-    myPopup = new JPopupMenu();
-    myRemoveItem = new JMenuItem("Remove");
+    myPopup.add(myGotoItem);
+    myRemoveItem = new JBMenuItem("Remove");
     myRemoveItem.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(@NotNull ActionEvent e) {
@@ -208,25 +201,54 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     MouseListener ml = new MouseAdapter() {
       @Override
       public void mousePressed(@NotNull MouseEvent e) {
-        if (SwingUtilities.isRightMouseButton(e)) {
+        if (e.isPopupTrigger()) {
+          handlePopup(e);
+        }
+      }
+
+      @Override
+      public void mouseReleased(MouseEvent e) {
+        if (e.isPopupTrigger()) {
+          handlePopup(e);
+        }
+      }
+
+      @Override
+      public void mouseClicked(MouseEvent e) {
+        if (e.getClickCount() == 2 && e.getButton() == MouseEvent.BUTTON1) {
           TreePath treePath = myTree.getPathForLocation(e.getX(), e.getY());
           if (treePath != null) {
             ManifestTreeNode node = (ManifestTreeNode)treePath.getLastPathComponent();
-            myRemoveItem.setVisible(canRemove(node.getUserObject()));
-
-            if (hasVisibleChildren(myPopup)) {
-              myPopup.show(e.getComponent(), e.getX(), e.getY());
+            Node attribute = node.getUserObject();
+            if (attribute instanceof Attr) {
+              goToDeclaration(attribute);
             }
           }
         }
       }
+
+      private void handlePopup(@NotNull MouseEvent e) {
+        TreePath treePath = myTree.getPathForLocation(e.getX(), e.getY());
+        if (treePath == null || e.getSource() == myDetails) {
+          // Use selection instead
+          treePath = myTree.getSelectionPath();
+        }
+        if (treePath != null) {
+          ManifestTreeNode node = (ManifestTreeNode)treePath.getLastPathComponent();
+          myRemoveItem.setEnabled(canRemove(node.getUserObject()));
+          myPopup.show(e.getComponent(), e.getX(), e.getY());
+        }
+      }
     };
     myTree.addMouseListener(ml);
+    myDetails.addMouseListener(ml);
+  }
 
+  private void registerGotoAction() {
     AnAction goToDeclarationAction = new AnAction() {
       @Override
       public void actionPerformed(AnActionEvent e) {
-        ManifestPanel.ManifestTreeNode node = (ManifestPanel.ManifestTreeNode)myTree.getLastSelectedPathComponent();
+        ManifestTreeNode node = (ManifestTreeNode)myTree.getLastSelectedPathComponent();
         if (node != null) {
           goToDeclaration(node.getUserObject());
         }
@@ -234,29 +256,99 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     };
     goToDeclarationAction
       .registerCustomShortcutSet(ActionManager.getInstance().getAction(IdeActions.ACTION_GOTO_DECLARATION).getShortcutSet(), myTree);
-
-    JBSplitter splitter = new JBSplitter(0.66f);
-    splitter.setFirstComponent(new JBScrollPane(myTree));
-    splitter.setSecondComponent(new JBScrollPane(myDetails));
-
-    add(splitter);
   }
 
+  @NotNull
+  private TreeSpeedSearch addSpeedSearch() {
+    return new TreeSpeedSearch(myTree);
+  }
+
+
   public void setManifest(@NotNull MergedManifest manifest, @NotNull VirtualFile selectedManifest) {
+    myFile = selectedManifest;
     myManifest = manifest;
-    XmlTag root = myManifest.getXmlTag();
+    Document document = myManifest.getDocument();
+    Element root = document != null ? document.getDocumentElement() : null;
     myTree.setModel(root == null ? null : new DefaultTreeModel(new ManifestTreeNode(root)));
 
     myFiles.clear();
+    myOtherFiles.clear();
+    List<VirtualFile> manifestFiles = myManifest.getManifestFiles();
+
     // make sure that the selected manifest is always the first color
     myFiles.add(VfsUtilCore.virtualToIoFile(selectedManifest));
+    Set<File> referenced = Sets.newHashSet();
+    if (root != null) {
+      recordLocationReferences(root, referenced);
+    }
+
+    if (manifestFiles != null) {
+      for (VirtualFile f : manifestFiles) {
+        if (!f.equals(selectedManifest)) {
+          File file = VfsUtilCore.virtualToIoFile(f);
+          if (referenced.contains(file)) {
+            myFiles.add(file);
+          } else {
+            myOtherFiles.add(file);
+          }
+        }
+      }
+      Collections.sort(myFiles, MANIFEST_SORTER);
+      Collections.sort(myOtherFiles, MANIFEST_SORTER);
+    }
 
     if (root != null) {
       TreeUtil.expandAll(myTree);
     }
 
     // display the LoggingRecords from the merger
-    valueChanged(null);
+    updateDetails(null);
+  }
+
+  private static final Comparator<File> MANIFEST_SORTER = new Comparator<File>() {
+
+    @Override
+    public int compare(File o1, File o2) {
+      String p1 = o1.getPath();
+      String p2 = o2.getPath();
+      boolean lib1 = p1.contains(EXPLODED_AAR);
+      boolean lib2 = p2.contains(EXPLODED_AAR);
+      if (lib1 != lib2) {
+        return lib1 ? 1 : -1;
+      }
+      return p1.compareTo(p2);
+    }
+  };
+
+  private void recordLocationReferences(@NotNull Node node, @NotNull Set<File> files) {
+    short type = node.getNodeType();
+    if (type == Node.ATTRIBUTE_NODE) {
+      List<? extends Actions.Record> records = ManifestUtils.getRecords(myManifest, node);
+      if (!records.isEmpty()) {
+        for (Actions.Record record : records) {
+          if (record.getActionType() == Actions.ActionType.INJECTED) {
+            continue;
+          }
+          File location = record.getActionLocation().getFile().getSourceFile();
+          if (location != null && !files.contains(location)) {
+            files.add(location);
+          }
+        }
+      }
+    } else if (type == Node.ELEMENT_NODE) {
+      Node child = node.getFirstChild();
+      while (child != null) {
+        if (child.getNodeType() == Node.ELEMENT_NODE) {
+          recordLocationReferences(child, files);
+        }
+        child = child.getNextSibling();
+      }
+
+      NamedNodeMap attributes = node.getAttributes();
+      for (int i = 0, n = attributes.getLength(); i < n; i++) {
+        recordLocationReferences(attributes.item(i), files);
+      }
+    }
   }
 
   @Override
@@ -264,27 +356,101 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     if (e != null && e.isAddedPath()) {
       TreePath treePath = e.getPath();
       ManifestTreeNode node = (ManifestTreeNode)treePath.getLastPathComponent();
+      updateDetails(node);
+    }
+    else {
+      updateDetails(null);
+    }
+  }
+
+  public void updateDetails(@Nullable ManifestTreeNode node) {
+    HtmlBuilder sb = new HtmlBuilder();
+    Font font = UIUtil.getLabelFont();
+    sb.addHtml("<html><body style=\"font-family: " + font.getFamily() + "; " + "font-size: " + font.getSize() + "pt;\">");
+    sb.beginUnderline().beginBold();
+    sb.add("Manifest Sources");
+    sb.endBold().endUnderline().newline();
+    sb.addHtml("<table border=\"0\">");
+    String borderColor = ColorUtil.toHex(JBColor.GRAY);
+    for (File file : myFiles) {
+      Color color = getFileColor(file);
+      sb.addHtml("<tr><td width=\"24\" height=\"24\" style=\"background-color:#");
+      sb.addHtml(ColorUtil.toHex(color));
+      sb.addHtml("; border: 1px solid #");
+      sb.addHtml(borderColor);
+      sb.addHtml(";\">");
+      sb.addHtml("</td><td>");
+      describePosition(sb, myFacet, new SourceFilePosition(file, SourcePosition.UNKNOWN));
+      sb.addHtml("</td></tr>");
+    }
+    sb.addHtml("</table>");
+    sb.newline();
+    if (!myOtherFiles.isEmpty()) {
+      sb.beginUnderline().beginBold();
+      sb.add("Other Manifest Files");
+      sb.endBold().endUnderline().newline();
+      sb.add("(Included in merge, but did not contribute any elements)").newline();
+      boolean first = true;
+      for (File file : myOtherFiles) {
+        if (first) {
+          first = false;
+        } else {
+          sb.add(", ");
+        }
+        describePosition(sb, myFacet, new SourceFilePosition(file, SourcePosition.UNKNOWN));
+      }
+      sb.newline().newline();
+    }
+
+    // See if there are errors; if so, show the merging report instead of node selection report
+    if (!myManifest.getLoggingRecords().isEmpty()) {
+      for (MergingReport.Record record : myManifest.getLoggingRecords()) {
+        if (record.getSeverity() == MergingReport.Record.Severity.ERROR) {
+          node = null;
+          break;
+        }
+      }
+    }
+
+    if (node != null) {
       List<? extends Actions.Record> records = ManifestUtils.getRecords(myManifest, node.getUserObject());
-      HtmlBuilder sb = new HtmlBuilder();
-      sb.openHtmlBody();
+      sb.beginUnderline().beginBold();
+      sb.add("Merging Log");
+      sb.endBold().endUnderline().newline();
+
+      if (records.isEmpty()) {
+        sb.add("No records found. (This is a bug in the manifest merger.)");
+      }
+
+      SourceFilePosition prev = null;
       for (Actions.Record record : records) {
-        sb.add(StringUtil.capitalize(String.valueOf(record.getActionType()).toLowerCase(Locale.US)));
-        sb.add(" from ");
-        sb.addHtml(getHtml(myFacet, ManifestUtils.getActionLocation(myFacet.getModule(), record)));
+        // There are currently some duplicated entries; filter these out
+        SourceFilePosition location = ManifestUtils.getActionLocation(myFacet.getModule(), record);
+        if (location.equals(prev)) {
+          continue;
+        }
+        prev = location;
+
+        Actions.ActionType actionType = record.getActionType();
+        if (actionType == Actions.ActionType.INJECTED) {
+          sb.add("Value provided by Gradle"); // TODO: include module source? Are we certain it's correct?
+          sb.newline();
+          continue;
+        }
+        sb.add(StringUtil.capitalize(String.valueOf(actionType).toLowerCase(Locale.US)));
+        sb.add(" from the ");
+        sb.addHtml(getHtml(myFacet, location));
 
         String reason = record.getReason();
         if (reason != null) {
-          sb.add(" reason: ");
+          sb.add("; reason: ");
           sb.add(reason);
         }
         sb.newline();
       }
-      sb.closeHtmlBody();
-      myDetails.setText(sb.getHtml());
     }
-    else {
-      HtmlBuilder sb = new HtmlBuilder();
-      sb.openHtmlBody();
+    else if (!myManifest.getLoggingRecords().isEmpty()) {
+      sb.add("Merging Errors:").newline();
       for (MergingReport.Record record : myManifest.getLoggingRecords()) {
         sb.addHtml(getHtml(record.getSeverity()));
         sb.add(" ");
@@ -300,13 +466,15 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
         sb.addHtml(getHtml(myFacet, record.getSourceLocation()));
         sb.newline();
       }
-      sb.closeHtmlBody();
-      myDetails.setText(sb.getHtml());
     }
+
+    sb.closeHtmlBody();
+    myDetails.setText(sb.getHtml());
+    myDetails.setCaretPosition(0);
   }
 
   @NotNull
-  private Color getBackgroundColorForXmlElement(@NotNull XmlElement item) {
+  private Color getNodeColor(@NotNull Node item) {
     List<? extends Actions.Record> records = ManifestUtils.getRecords(myManifest, item);
     if (!records.isEmpty()) {
       File file = ManifestUtils.getActionLocation(myFacet.getModule(), records.get(0)).getFile().getSourceFile();
@@ -314,7 +482,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
         return getFileColor(file);
       }
     }
-    return myTree.getBackground();
+    return myBackgroundColor;
   }
 
   @NotNull
@@ -324,13 +492,13 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     }
     int index = myFiles.indexOf(file);
     if (index == 0) {
-      // use white ONLY for default file.
-      return JBColor.WHITE;
+      // current file shouldn't be highlighted with a background
+      return myBackgroundColor;
     }
     return AnnotationColors.BG_COLORS[(index - 1) * AnnotationColors.BG_COLORS_PRIME % AnnotationColors.BG_COLORS.length];
   }
 
-  private boolean canRemove(@NotNull XmlElement node) {
+  private boolean canRemove(@NotNull Node node) {
     List<? extends Actions.Record> records = ManifestUtils.getRecords(myManifest, node);
     if (records.isEmpty()) {
       // if we don't know where we are coming from, we are prob displaying the main manifest with a merge error.
@@ -346,16 +514,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     return true;
   }
 
-  private static boolean hasVisibleChildren(@NotNull Container container) {
-    for (Component component : container.getComponents()) {
-      if (component.isVisible()) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  private void goToDeclaration(XmlElement element) {
+  private void goToDeclaration(Node element) {
     List<? extends Actions.Record> records = ManifestUtils.getRecords(myManifest, element);
     for (Actions.Record record : records) {
       SourceFilePosition sourceFilePosition = ManifestUtils.getActionLocation(myFacet.getModule(), record);
@@ -375,7 +534,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
           Project project = myFacet.getModule().getProject();
           OpenFileDescriptor descriptor = new OpenFileDescriptor(project, file, line, column);
           FileEditorManager.getInstance(project).openEditor(descriptor, true);
-          return;
+          break;
         }
       }
     }
@@ -436,22 +595,42 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     String tagName = matcher.group(3);
     int line = Integer.parseInt(matcher.group(4));
     int col = Integer.parseInt(matcher.group(5));
-    XmlFile mainManifest = ManifestUtils.getMainManifest(facet);
-    final XmlTag xmlTag = ManifestUtils.getXmlTag(mainManifest, line, col);
+    final XmlFile mainManifest = ManifestUtils.getMainManifest(facet);
 
-    if (xmlTag != null && tagName.equals(xmlTag.getName())) {
+    Element element = getElementAt(mainManifest, line, col);
+    if (element != null && tagName.equals(element.getTagName())) {
+      final Element xmlTag = element;
       sb.addLink(message, htmlLinkManager.createRunnableLink(new Runnable() {
         @Override
         public void run() {
-          addToolsAttribute(xmlTag, attributeName, attributeValue);
+          addToolsAttribute(mainManifest, xmlTag, attributeName, attributeValue);
         }
       }));
     }
     else {
-      Logger.getInstance(ManifestPanel.class).warn("can not find " + tagName + " tag " + xmlTag);
+      Logger.getInstance(ManifestPanel.class).warn("can not find " + tagName + " tag " + element);
       sb.add(message);
     }
     return sb.getHtml();
+  }
+
+  @Nullable
+  private static Element getElementAt(XmlFile mainManifest, int line, int col) {
+    Element element = null;
+    try {
+      Document document = PositionXmlParser.parse(mainManifest.getText());
+      Node node = PositionXmlParser.findNodeAtLineAndCol(document, line, col);
+      while (node != null) {
+        if (node instanceof Element) {
+          element = (Element)node;
+          break;
+        } else
+          node = node.getParentNode();
+      }
+    }
+    catch (Throwable ignore) {
+    }
+    return element;
   }
 
   @NotNull
@@ -478,28 +657,29 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     final String suggestion = message.substring(message.indexOf(' ') + 1, end + 1);
     if (!SourcePosition.UNKNOWN.equals(position.getPosition())) {
       XmlFile mainManifest = ManifestUtils.getMainManifest(facet);
-      final XmlTag xmlTag = ManifestUtils.getXmlTag(mainManifest, position.getPosition().getStartLine() + 1, position.getPosition().getStartColumn() + 1);
-      if (xmlTag != null && SdkConstants.TAG_USES_SDK.equals(xmlTag.getName())) {
+      Element element = getElementAt(mainManifest, position.getPosition().getStartLine(), position.getPosition().getStartColumn());
+      if (element != null && SdkConstants.TAG_USES_SDK.equals(element.getTagName())) {
         sb.addLink(message.substring(0, end + 1), htmlLinkManager.createRunnableLink(new Runnable() {
           @Override
           public void run() {
             int eq = suggestion.indexOf('=');
             String attributeName = suggestion.substring(suggestion.indexOf(':') + 1, eq);
             String attributeValue = suggestion.substring(eq + 2, suggestion.length() - 1);
-            addToolsAttribute(xmlTag, attributeName, attributeValue);
+            addToolsAttribute(mainManifest, element, attributeName, attributeValue);
           }
         }));
         sb.add(message.substring(end + 1));
       }
       else {
-        Logger.getInstance(ManifestPanel.class).warn("can not find uses-sdk tag " + xmlTag);
+        Logger.getInstance(ManifestPanel.class).warn("Can not find uses-sdk tag " + element);
         sb.add(message);
       }
     }
     else {
-      // if we do not have a uses-sdk tag in our main manifest, the suggestion is not useful
+      // If we do not have a uses-sdk tag in our main manifest, the suggestion is not useful
       sb.add(message);
     }
+    sb.newlineIfNecessary().newline();
     return sb.getHtml();
   }
 
@@ -630,68 +810,140 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     return null;
   }
 
-  static void addToolsAttribute(final @NotNull XmlTag xmlTag, final @NotNull String attributeName, final @NotNull String attributeValue) {
-    final XmlFile file = (XmlFile)xmlTag.getContainingFile();
+  static void addToolsAttribute(final @NotNull XmlFile file,
+                                final @NotNull Element element,
+                                final @NotNull String attributeName,
+                                final @NotNull String attributeValue) {
     final Project project = file.getProject();
     new WriteCommandAction.Simple(project, "Apply manifest suggestion", file) {
       @Override
       protected void run() throws Throwable {
-        ManifestUtils.addToolsAttribute(file, xmlTag, attributeName, attributeValue);
+        ManifestUtils.addToolsAttribute(file, element, attributeName, attributeValue);
       }
     }.execute();
   }
 
   @NotNull
   static String getHtml(@NotNull MergingReport.Record.Severity severity) {
+    String severityString = StringUtil.capitalize(severity.toString().toLowerCase(Locale.US));
     if (severity == MergingReport.Record.Severity.ERROR) {
       return new HtmlBuilder().addHtml("<font color=\"#" + ColorUtil.toHex(JBColor.RED) + "\">")
-        .addBold(severity.toString()).addHtml("</font>").getHtml();
+        .addBold(severityString).addHtml("</font>:").getHtml();
     }
-    return severity.toString();
+    return severityString;
   }
 
   @NotNull
-  static String getHtml(@NotNull AndroidFacet facet, @NotNull SourceFilePosition sourceFilePosition) {
+  String getHtml(@NotNull AndroidFacet facet, @NotNull SourceFilePosition sourceFilePosition) {
     HtmlBuilder sb = new HtmlBuilder();
+    describePosition(sb, facet, sourceFilePosition);
+    return sb.getHtml();
+  }
+
+
+  private void describePosition(@NotNull HtmlBuilder sb, @NotNull AndroidFacet facet, @NotNull SourceFilePosition sourceFilePosition) {
     SourceFile sourceFile = sourceFilePosition.getFile();
     SourcePosition sourcePosition = sourceFilePosition.getPosition();
     File file = sourceFile.getSourceFile();
+    AndroidLibrary library = null;
     if (file != null) {
-      sb.addHtml("<a href=\"");
-      sb.add(file.toURI().toString());
-      if (!SourcePosition.UNKNOWN.equals(sourcePosition)) {
-        sb.add(":");
-        sb.add(String.valueOf(sourcePosition.getStartLine()));
-        sb.add(":");
-        sb.add(String.valueOf(sourcePosition.getStartColumn()));
-      }
-      sb.addHtml("\">");
-      sb.add(file.getName());
-      if (!SourcePosition.UNKNOWN.equals(sourcePosition)) {
-        sb.add(":");
-        sb.add(String.valueOf(sourcePosition));
-      }
+      String source = null;
 
+      Module libraryModule = null;
+      Module[] modules = ModuleManager.getInstance(facet.getModule().getProject()).getModules();
       VirtualFile vFile = LocalFileSystem.getInstance().findFileByIoFile(file);
       if (vFile != null) {
         Module module = ModuleUtilCore.findModuleForFile(vFile, facet.getModule().getProject());
         if (module != null) {
-          if (!module.equals(facet.getModule())) {
-            sb.add(" (");
-            sb.add(module.getName());
-            sb.add(")");
+          if (modules.length >= 2) {
+            source = module.getName();
+          }
+
+          // AAR Library?
+          if (file.getPath().contains(EXPLODED_AAR)) {
+            AndroidGradleModel androidModel = AndroidGradleModel.get(module);
+            if (androidModel != null) {
+              library = GradleUtil.findLibrary(file.getParentFile(), androidModel.getSelectedVariant());
+              if (library != null) {
+                if (library.getProject() != null) {
+                  libraryModule = GradleUtil.findModuleByGradlePath(facet.getModule().getProject(), library.getProject());
+                  if (libraryModule != null) {
+                    module = libraryModule;
+                    source = module.getName();
+                  } else {
+                    source = library.getProject();
+                    source = StringUtil.trimStart(source, ":");
+                  }
+                }
+                else {
+                  MavenCoordinates coordinates = library.getResolvedCoordinates();
+                  source = /*coordinates.getGroupId() + ":" +*/  coordinates.getArtifactId() + ":" + coordinates.getVersion();
+                }
+              }
+            }
           }
         }
+
         IdeaSourceProvider provider = ManifestUtils.findManifestSourceProvider(facet, vFile);
-        if (provider != null && !provider.equals(facet.getMainIdeaSourceProvider())) {
-          sb.add(" (");
-          sb.add(provider.getName());
-          sb.add(")");
+        if (provider != null /*&& !provider.equals(facet.getMainIdeaSourceProvider())*/) {
+          String providerName = provider.getName();
+          if (source == null) {
+            source = providerName;
+          } else {
+            // "the app main manifest" - "app" is the module name, "main" is the source provider name
+            source = source + " " + providerName;
+          }
         }
       }
+
+      if (source == null) {
+        source = file.getName();
+        if (!SourcePosition.UNKNOWN.equals(sourcePosition)) {
+          source += ":" + String.valueOf(sourcePosition);
+        }
+      }
+
+      sb.addHtml("<a href=\"");
+
+      boolean redirected = false;
+      if (libraryModule != null) {
+        AndroidFacet libraryFacet = AndroidFacet.getInstance(libraryModule);
+        if (libraryFacet != null) {
+          File manifestFile = libraryFacet.getMainSourceProvider().getManifestFile();
+          if (manifestFile.exists()) {
+            sb.add(manifestFile.toURI().toString());
+            redirected = true;
+            // Line numbers probably aren't right
+            sourcePosition = SourcePosition.UNKNOWN;
+            // TODO: Set URL which points to the element/attribute path
+          }
+        }
+      }
+
+      if (!redirected) {
+        sb.add(file.toURI().toString());
+        if (!SourcePosition.UNKNOWN.equals(sourcePosition)) {
+          sb.add(":");
+          sb.add(String.valueOf(sourcePosition.getStartLine()));
+          sb.add(":");
+          sb.add(String.valueOf(sourcePosition.getStartColumn()));
+        }
+      }
+      sb.addHtml("\">");
+
+      sb.add(source);
       sb.addHtml("</a>");
+      sb.add(" manifest");
+
+      if (FileUtil.filesEqual(file, VfsUtilCore.virtualToIoFile(myFile))) {
+        sb.add(" (this file)");
+      }
+
+      if (!SourcePosition.UNKNOWN.equals(sourcePosition)) {
+        sb.add(", line ");
+        sb.add(Integer.toString(sourcePosition.getStartLine()));
+      }
     }
-    return sb.getHtml();
   }
 
   /**
@@ -706,22 +958,33 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
 
   static class ManifestTreeNode extends DefaultMutableTreeNode {
 
-    public ManifestTreeNode(@NotNull XmlElement obj) {
+    public ManifestTreeNode(@NotNull Node obj) {
       super(obj);
     }
 
     @Override
     @NotNull
-    public XmlElement getUserObject() {
-      return (XmlElement)super.getUserObject();
+    public Node getUserObject() {
+      return (Node)super.getUserObject();
     }
+
 
     @Override
     public int getChildCount() {
-      XmlElement obj = getUserObject();
-      if (obj instanceof XmlTag) {
-        XmlTag xmlTag = (XmlTag)obj;
-        return xmlTag.getAttributes().length + xmlTag.getSubTags().length;
+      Node obj = getUserObject();
+      if (obj instanceof Element) {
+        Element element = (Element)obj;
+        NamedNodeMap attributes = element.getAttributes();
+        int count = attributes.getLength();
+        NodeList childNodes = element.getChildNodes();
+        for (int i = 0, n = childNodes.getLength(); i < n; i++) {
+          Node child = childNodes.item(i);
+          if (child.getNodeType() == Node.ELEMENT_NODE) {
+            count++;
+          }
+        }
+
+        return count;
       }
       return 0;
     }
@@ -729,14 +992,19 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     @Override
     @NotNull
     public ManifestTreeNode getChildAt(int index) {
-      XmlElement obj = getUserObject();
-      if (children == null && obj instanceof XmlTag) {
-        XmlTag xmlTag = (XmlTag)obj;
-        for (XmlAttribute xmlAttribute : xmlTag.getAttributes()) {
-          add(new ManifestTreeNode(xmlAttribute));
+      Node obj = getUserObject();
+      if (children == null && obj instanceof Element) {
+        Element element = (Element)obj;
+        NamedNodeMap attributes = element.getAttributes();
+        for (int i = 0, n = attributes.getLength(); i < n; i++) {
+          add(new ManifestTreeNode(attributes.item(i)));
         }
-        for (XmlTag childTag : xmlTag.getSubTags()) {
-          add(new ManifestTreeNode(childTag));
+        NodeList childNodes = element.getChildNodes();
+        for (int i = 0, n = childNodes.getLength(); i < n; i++) {
+          Node child = childNodes.item(i);
+          if (child.getNodeType() == Node.ELEMENT_NODE) {
+            add(new ManifestTreeNode(child));
+          }
         }
       }
       return (ManifestTreeNode)super.getChildAt(index);
@@ -752,14 +1020,14 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     @Override
     @NotNull
     public String toString() {
-      XmlElement obj = getUserObject();
-      if (obj instanceof XmlAttribute) {
-        XmlAttribute xmlAttribute = (XmlAttribute)obj;
+      Node obj = getUserObject();
+      if (obj instanceof Attr) {
+        Attr xmlAttribute = (Attr)obj;
         return xmlAttribute.getName() + " = " + xmlAttribute.getValue();
       }
-      if (obj instanceof XmlTag) {
-        XmlTag xmlTag = (XmlTag)obj;
-        return xmlTag.getName();
+      if (obj instanceof Element) {
+        Element xmlTag = (Element)obj;
+        return xmlTag.getTagName();
       }
       return obj.toString();
     }
@@ -772,18 +1040,126 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
 
     @NotNull
     public ManifestTreeNode lastAttribute() {
-      XmlTag xmlTag = (XmlTag)getUserObject();
-      return getChildAt(xmlTag.getAttributes().length - 1);
+      Node xmlTag = getUserObject();
+      return getChildAt(xmlTag.getAttributes().getLength() - 1);
     }
 
-    public boolean hasXmlTagChildren() {
-      XmlElement element = getUserObject();
-      if (element instanceof XmlAttribute) {
+    public boolean hasElementChildren() {
+      Node node = getUserObject();
+      if (node instanceof Attr) {
         ManifestTreeNode parent = getParent();
-        assert parent != null; // can not be null if we are a XmlAttribute
-        return parent.hasXmlTagChildren();
+        assert parent != null; // all attribute nodes have a parent element node
+        return parent.hasElementChildren();
+      } else {
+        return node.getChildNodes().getLength() > 0;
       }
-      return !((XmlTag)element).isEmpty();
+    }
+  }
+
+  /**
+   * Cellrenderer which renders XML Element and Attr nodes using the current color scheme's
+   * syntax token colors
+   */
+  private class SyntaxHighlightingCellRenderer extends ColoredTreeCellRenderer {
+    // We have to use ColoredTreeCellRenderer instead of DefaultTreeCellRenderer to allow the Tree.isFileColorsEnabled to work
+    // as otherwise the DefaultTreeCellRenderer will always insist on filling the background
+
+    private final SimpleTextAttributes myTagNameAttributes;
+    private final SimpleTextAttributes myNameAttributes;
+    private final SimpleTextAttributes myValueAttributes;
+    private final SimpleTextAttributes myPrefixAttributes;
+
+    public SyntaxHighlightingCellRenderer() {
+      EditorColorsScheme globalScheme = EditorColorsManager.getInstance().getGlobalScheme();
+      Color tagNameColor = globalScheme.getAttributes(XmlHighlighterColors.XML_TAG_NAME).getForegroundColor();
+      Color nameColor = globalScheme.getAttributes(XmlHighlighterColors.XML_ATTRIBUTE_NAME).getForegroundColor();
+      Color valueColor = globalScheme.getAttributes(XmlHighlighterColors.XML_ATTRIBUTE_VALUE).getForegroundColor();
+      Color prefixColor = globalScheme.getAttributes(XmlHighlighterColors.XML_NS_PREFIX).getForegroundColor();
+      myTagNameAttributes = new SimpleTextAttributes(SimpleTextAttributes.STYLE_BOLD, tagNameColor);
+      myNameAttributes = new SimpleTextAttributes(SimpleTextAttributes.STYLE_PLAIN, nameColor);
+      myValueAttributes = new SimpleTextAttributes(SimpleTextAttributes.STYLE_PLAIN, valueColor);
+      myPrefixAttributes = new SimpleTextAttributes(SimpleTextAttributes.STYLE_PLAIN, prefixColor);
+    }
+
+    @Override
+    public void customizeCellRenderer(@NotNull JTree tree,
+                                      Object value,
+                                      boolean selected,
+                                      boolean expanded,
+                                      boolean leaf,
+                                      int row,
+                                      boolean hasFocus) {
+      if (value instanceof ManifestTreeNode) {
+        ManifestTreeNode node = (ManifestTreeNode)value;
+
+        // on GTK theme the Tree.isFileColorsEnabled does not work, so we fall back to using the background
+        if (UIUtil.isUnderGTKLookAndFeel()) {
+          // we need to make the colors saturated, but with alpha, so the selector and foreground text still work
+          setBackground(ColorUtil.withAlpha(harder(getNodeColor(node.getUserObject())), 0.2));
+          setOpaque(true);
+        }
+
+        setIcon(null);
+
+        if (node.getUserObject() instanceof Element) {
+          Element element = (Element)node.getUserObject();
+          append("<");
+
+          append(element.getTagName(), myTagNameAttributes);
+          if (!expanded) {
+            append(" ... " + getCloseTag(node));
+          }
+        }
+        if (node.getUserObject() instanceof Attr) {
+          Attr attr = (Attr)node.getUserObject();
+          // if we are the last child, add ">"
+          ManifestTreeNode parent = node.getParent();
+          assert parent != null; // can not be null if we are a XmlAttribute
+
+          if (attr.getPrefix() != null) {
+            append(attr.getPrefix(), myPrefixAttributes);
+            append(":");
+            append(attr.getLocalName(), myNameAttributes);
+          } else {
+            append(attr.getName(), myNameAttributes);
+          }
+          append("=\"");
+          append(attr.getValue(), myValueAttributes);
+          append("\"");
+          if (parent.lastAttribute() == node) {
+            append(" " + getCloseTag(node));
+          }
+        }
+      }
+    }
+
+    private String getCloseTag(ManifestTreeNode node) {
+      return node.hasElementChildren() ? ">" : "/>";
+    }
+  }
+
+  private class FileColorTree extends Tree {
+    public FileColorTree() {
+      setFont(myDefaultFont);
+      setBackground(myBackgroundColor);
+    }
+
+    /**
+     * @see com.intellij.ide.projectView.impl.ProjectViewTree#isFileColorsEnabledFor(JTree)
+     */
+    @Override
+    public boolean isFileColorsEnabled() {
+      if (isOpaque()) {
+        // needed for fileColors to be able to paint
+        setOpaque(false);
+      }
+      return true;
+    }
+
+    @Nullable
+    @Override
+    public Color getFileColorFor(Object object) {
+      return getNodeColor((Node)object);
     }
   }
 }

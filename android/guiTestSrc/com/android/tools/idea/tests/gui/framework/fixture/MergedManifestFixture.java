@@ -16,7 +16,10 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.editors.manifest.ManifestPanel;
-import com.intellij.ui.ColorUtil;
+import com.android.utils.SdkUtils;
+import com.google.common.truth.Truth;
+import com.intellij.openapi.editor.colors.EditorColorsManager;
+import com.intellij.openapi.editor.colors.EditorColorsScheme;
 import com.intellij.ui.treeStructure.Tree;
 import org.fest.swing.annotation.RunsInEDT;
 import org.fest.swing.core.MouseButton;
@@ -29,11 +32,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
 import javax.swing.tree.TreePath;
 import java.awt.*;
 
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 public class MergedManifestFixture extends ComponentFixture<MergedManifestFixture, ManifestPanel>{
 
@@ -53,19 +57,40 @@ public class MergedManifestFixture extends ComponentFixture<MergedManifestFixtur
     return myTree;
   }
 
-  @NotNull
-  public JTextComponentFixture getInfoPane() {
-    return myInfoPane;
+  public void requireText(@NotNull String expected, boolean wrap) {
+    try {
+      Document document = myInfoPane.target().getDocument();
+      String text = document.getText(0, document.getLength()).trim();
+      if (wrap) {
+        text = SdkUtils.wrap(text, 80, null);
+      }
+      assertEquals(expected, text);
+    } catch (BadLocationException ignore) {
+    }
   }
 
-  public void clickLinkAtOffset(int offset) {
+  public void clickLinkText(String linkText) {
     try {
-      Rectangle rect = myInfoPane.target().modelToView(offset);
-      robot().click(myInfoPane.target(), rect.getLocation(), MouseButton.LEFT_BUTTON, 1);
+      // Can't use myInfoPane.text() -- which gives us the HTML markup. We
+      // want the rendered text instead
+      Document document = myInfoPane.target().getDocument();
+      String text = document.getText(0, document.getLength());
+      int index = text.indexOf(linkText);
+      Truth.assertThat(index).isAtLeast(0);
+      Rectangle rect = myInfoPane.target().modelToView(index);
+      Point location = rect.getLocation();
+      location.translate(2, 0);
+      robot().click(myInfoPane.target(), location, MouseButton.LEFT_BUTTON, 1);
     }
     catch (Exception ex) {
       throw new AssertionError(ex);
     }
+  }
+
+  public Color getDefaultBackgroundColor() {
+    EditorColorsManager colorsManager = EditorColorsManager.getInstance();
+    EditorColorsScheme scheme = colorsManager.getGlobalScheme();
+    return scheme.getDefaultBackground();
   }
 
   @Nullable

@@ -20,6 +20,8 @@ import com.android.ddmlib.NullOutputReceiver;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.run.activity.ActivityLocatorUtils;
+import com.android.tools.lint.detector.api.LintUtils;
 import com.intellij.execution.ExecutionManager;
 import com.intellij.execution.Executor;
 import com.intellij.execution.ui.RunContentDescriptor;
@@ -31,25 +33,25 @@ import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.content.Content;
-import org.jetbrains.android.dom.AndroidAttributeValue;
-import org.jetbrains.android.dom.AndroidDomUtil;
-import org.jetbrains.android.dom.manifest.IntentFilter;
-import org.jetbrains.android.dom.manifest.Service;
 import org.jetbrains.android.dom.manifest.UsesFeature;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Attr;
+import org.w3c.dom.Element;
 
 import javax.swing.event.HyperlinkEvent;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.VALUE_TRUE;
 
 public class LaunchUtils {
   /** Returns whether the given application can be debugged on the given device. */
@@ -88,44 +90,32 @@ public class LaunchUtils {
       return false;
     }
 
-    final List<Service> services = info.getServices();
+    final List<Element> services = info.getServices();
     if (services.size() != 1) {
       return false;
     }
 
-    return ApplicationManager.getApplication().runReadAction(new Computable<Boolean>() {
-      @Override
-      public Boolean compute() {
-        List<IntentFilter> filters = services.get(0).getIntentFilters();
-        return filters.size() == 1 &&
-               AndroidDomUtil.containsAction(filters.get(0), AndroidUtils.WALLPAPER_SERVICE_ACTION_NAME) &&
-               AndroidDomUtil.containsCategory(filters.get(0), AndroidUtils.WATCHFACE_CATEGORY_NAME);
-      }
-    });
+    Element service = services.get(0);
+    List<Element> filters = LintUtils.getChildren(service);
+    return filters.size() == 1 &&
+           ActivityLocatorUtils.containsAction(filters.get(0), AndroidUtils.WALLPAPER_SERVICE_ACTION_NAME) &&
+           ActivityLocatorUtils.containsCategory(filters.get(0), AndroidUtils.WATCHFACE_CATEGORY_NAME);
   }
 
   /** Returns whether the watch hardware feature is required for the given facet. */
   public static boolean isWatchFeatureRequired(@NotNull AndroidFacet facet) {
-    List<UsesFeature> usedFeatures = MergedManifest.get(facet).getUsedFeatures();
-
-    for (UsesFeature feature : usedFeatures) {
-      AndroidAttributeValue<String> name = feature.getName();
-      if (name != null && UsesFeature.HARDWARE_TYPE_WATCH.equals(name.getStringValue())) {
-        return isRequired(feature.getRequired());
-      }
-    }
-
-    return false;
+    MergedManifest mergedManifest = MergedManifest.get(facet);
+    Element feature = mergedManifest.findUsedFeature(UsesFeature.HARDWARE_TYPE_WATCH);
+    return feature != null && isRequired(feature);
   }
 
-  private static boolean isRequired(@Nullable AndroidAttributeValue<Boolean> required) {
-    if (required == null) {
+  private static boolean isRequired(@NotNull Element feature) {
+    Attr requiredNode = feature.getAttributeNodeNS(ANDROID_URI, "required");
+    if (requiredNode == null) { // unspecified => required
       return true;
     }
 
-    Boolean value = required.getValue();
-    return value == null // unspecified => required
-           || value;
+    return VALUE_TRUE.equals(requiredNode.getValue());
   }
 
   public static void showNotification(@NotNull final Project project,
