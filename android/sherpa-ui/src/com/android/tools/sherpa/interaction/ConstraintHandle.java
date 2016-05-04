@@ -538,7 +538,7 @@ public class ConstraintHandle {
         int sx = transform.getSwingFX(mX);
         int sy = transform.getSwingFY(mY);
         int tx = transform.getSwingFX(targetHandle.getDrawX());
-        int ty = transform.getSwingFX(targetHandle.getDrawY());
+        int ty = transform.getSwingFY(targetHandle.getDrawY());
         if (targetHandle.getOwner().isRoot()) {
             if (mAnchor.isVerticalAnchor()) {
                 tx = sx;
