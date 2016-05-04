@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
-import com.android.tools.idea.uibuilder.model.ResourceType;
+import com.android.tools.idea.uibuilder.model.NlLayoutType;
 
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -28,9 +28,9 @@ public class NlPaletteModelTest extends PaletteTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     model = NlPaletteModel.get(getProject());
-    Reader reader = new InputStreamReader(NlPaletteModel.class.getResourceAsStream(ResourceType.LAYOUT.getPaletteFileName()));
+    Reader reader = new InputStreamReader(NlPaletteModel.class.getResourceAsStream(NlLayoutType.LAYOUT.getPaletteFileName()));
     try {
-      model.loadPalette(reader, ResourceType.LAYOUT);
+      model.loadPalette(reader, NlLayoutType.LAYOUT);
     }
     finally {
       reader.close();
@@ -38,7 +38,7 @@ public class NlPaletteModelTest extends PaletteTestCase {
   }
 
   public void testPalette() throws Exception {
-    Palette palette = model.getPalette(ResourceType.LAYOUT);
+    Palette palette = model.getPalette(NlLayoutType.LAYOUT);
     Iterator<Palette.BaseItem> iterator = palette.getItems().iterator();
     Palette.Group widgets = assertIsGroup(iterator.next(), "Widgets");
     Palette.Group textFields = assertIsGroup(iterator.next(), "Text Fields");

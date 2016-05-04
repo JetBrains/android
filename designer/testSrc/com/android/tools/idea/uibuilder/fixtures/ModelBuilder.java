@@ -19,6 +19,7 @@ import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.uibuilder.SyncNlModel;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlLayoutType;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.utils.XmlUtils;
 import com.google.common.collect.Lists;
@@ -132,6 +133,7 @@ public class ModelBuilder {
       assertNotNull(document);
       NlModel model = SyncNlModel.create(createSurface(), myFixture.getProject(), myFacet, xmlFile);
       model.updateHierarchy(xmlFile.getRootTag(), buildViewInfos(model));
+      assertSame(NlLayoutType.LAYOUT, model.getType());
       return model;
     });
   }

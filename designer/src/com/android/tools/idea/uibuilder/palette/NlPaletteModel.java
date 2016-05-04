@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
+import com.android.tools.idea.uibuilder.model.NlLayoutType;
 import org.jetbrains.annotations.NotNull;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
-import com.android.tools.idea.uibuilder.model.ResourceType;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
@@ -32,7 +32,7 @@ public class NlPaletteModel {
   public static final String ANDROID_PALETTE = "android-palette";
   public static final String PALETTE_VERSION = "v1";
 
-  private final Map<ResourceType, Palette> resourceTypeToPalette;
+  private final Map<NlLayoutType, Palette> myTypeToPalette;
   private final Project myProject;
 
   public static NlPaletteModel get(@NotNull Project project) {
@@ -40,24 +40,24 @@ public class NlPaletteModel {
   }
 
   private NlPaletteModel(@NotNull Project project) {
-    resourceTypeToPalette = new EnumMap<ResourceType, Palette>(ResourceType.class);
+    myTypeToPalette = new EnumMap<>(NlLayoutType.class);
     myProject = project;
   }
 
   @NotNull
-  Palette getPalette(@NotNull ResourceType type) {
-    Palette palette = resourceTypeToPalette.get(type);
+  Palette getPalette(@NotNull NlLayoutType type) {
+    Palette palette = myTypeToPalette.get(type);
 
     if (palette == null) {
       loadPalette(type);
-      return resourceTypeToPalette.get(type);
+      return myTypeToPalette.get(type);
     }
     else {
       return palette;
     }
   }
 
-  private void loadPalette(@NotNull ResourceType type) {
+  private void loadPalette(@NotNull NlLayoutType type) {
     try {
       String name = type.getPaletteFileName();
       File file = new File(PathManager.getSystemPath(), ANDROID_PALETTE + File.separatorChar + PALETTE_VERSION + File.separatorChar + name);
@@ -83,9 +83,9 @@ public class NlPaletteModel {
   }
 
   @VisibleForTesting
-  void loadPalette(@NotNull Reader reader, @NotNull ResourceType type) throws JAXBException {
+  void loadPalette(@NotNull Reader reader, @NotNull NlLayoutType type) throws JAXBException {
     Palette palette = Palette.parse(reader, ViewHandlerManager.get(myProject));
-    resourceTypeToPalette.put(type, palette);
+    myTypeToPalette.put(type, palette);
   }
 
   private static void copyPredefinedPalette(@NotNull File paletteFile, @NotNull String metadata) throws IOException {

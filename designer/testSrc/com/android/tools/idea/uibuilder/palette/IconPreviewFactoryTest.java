@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.palette;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.uibuilder.model.ResourceType;
+import com.android.tools.idea.uibuilder.model.NlLayoutType;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -89,10 +89,10 @@ public class IconPreviewFactoryTest extends AndroidTestCase {
   private Palette loadPalette() throws Exception {
     NlPaletteModel model = NlPaletteModel.get(getProject());
 
-    try (Reader reader = new InputStreamReader(NlPaletteModel.class.getResourceAsStream(ResourceType.LAYOUT.getPaletteFileName()))) {
-      model.loadPalette(reader, ResourceType.LAYOUT);
+    try (Reader reader = new InputStreamReader(NlPaletteModel.class.getResourceAsStream(NlLayoutType.LAYOUT.getPaletteFileName()))) {
+      model.loadPalette(reader, NlLayoutType.LAYOUT);
     }
 
-    return model.getPalette(ResourceType.LAYOUT);
+    return model.getPalette(NlLayoutType.LAYOUT);
   }
 }
