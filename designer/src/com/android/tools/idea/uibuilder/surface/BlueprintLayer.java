@@ -16,8 +16,6 @@
 package com.android.tools.idea.uibuilder.surface;
 
 import org.jetbrains.annotations.NotNull;
-import com.android.tools.idea.rendering.RenderResult;
-import com.android.tools.idea.uibuilder.model.NlModel;
 
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
@@ -34,7 +32,8 @@ public class BlueprintLayer extends Layer {
   }
 
   /**
-   * Base paint method. Draw the layer's background and call drawComponent() on the root component.
+   * Base paint method. Draw the blueprint background.
+   * TODO: We might want to simplify the stack of layers and not keep this one.
    *
    * @param gc The Graphics object to draw into
    */
@@ -48,30 +47,11 @@ public class BlueprintLayer extends Layer {
       return;
     }
 
-    NlModel myModel = myScreenView.getModel();
-    RenderResult renderResult = myModel.getRenderResult();
-    if (renderResult == null || renderResult.getImage() == null) {
-      return;
-    }
-
-    if (myModel.getComponents().isEmpty()) {
-      return;
-    }
-
-    Rectangle originalBounds = renderResult.getOriginalBounds();
-    double scale = myScreenView.getScale();
-    int width = (int)(originalBounds.getWidth() * scale);
-    int height = (int)(originalBounds.getHeight() * scale);
-
-    int tlx = myScreenView.getX();
-    int tly = myScreenView.getY();
-
     // Draw the background
     Graphics2D g = (Graphics2D) gc.create();
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
     g.setColor(BLUEPRINT_BG_COLOR);
-    g.fillRect(tlx, tly, width, height);
-
+    g.fillRect(mySizeRectangle.x, mySizeRectangle.y, mySizeRectangle.width, mySizeRectangle.height);
     g.dispose();
   }
 
