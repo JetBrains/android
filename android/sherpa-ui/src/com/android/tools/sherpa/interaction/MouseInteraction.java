@@ -886,7 +886,7 @@ public class MouseInteraction {
 
                     mDragListener.populate();
                     mDragListener.find(mViewTransform.getSwingFX(getLastPoint().x),
-                            mViewTransform.getSwingFX(getLastPoint().y));
+                            mViewTransform.getSwingFY(getLastPoint().y));
                     ConstraintAnchor anchor = mDragListener.getConstraintAnchor();
 
                     if (anchor != null

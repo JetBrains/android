@@ -30,18 +30,18 @@ public class AndroidColorSet extends ColorSet {
 
         mStyle = WidgetDecorator.ANDROID_STYLE;
 
-        mShadow = new Color(255, 255, 255, 50);
+        mShadow = new Color(250, 250, 250);
 
         mDrawBackground = false;
         mDrawWidgetInfos = false;
 
         // Base colors
 
-        mBackground = Color.white;
+        mBackground = new Color(250, 250, 250);
         mFrames = Color.lightGray;
         mConstraints = Color.blue;
-        mWeakConstraintColor = Color.yellow;
-        mMargins = Color.cyan;
+        mWeakConstraintColor = Color.cyan.darker();
+        mMargins = Color.lightGray;
         mText = Color.black;
         mSnapGuides = Color.red;
 
@@ -57,14 +57,16 @@ public class AndroidColorSet extends ColorSet {
         mHighlightedBackground = Color.white;
         mHighlightedFrames = Color.blue;
         mHighlightedSnapGuides = Color.orange;
-        mHighlightedConstraints = Color.cyan;
+        mHighlightedConstraints = Color.blue.brighter();
 
         // Selected colors
 
-        mSelectedBackground = Color.white;
+        mSelectedBackground = mBackground;
         mSelectedFrames = Color.blue;
         mSelectedConstraints = Color.blue;
         mSelectedText = Color.black;
+
+        mSelectionColor = Color.black;
 
         // Anchor colors
 

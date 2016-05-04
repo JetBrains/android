@@ -75,6 +75,8 @@ public class BlueprintColorSet extends ColorSet {
         mAnchorDisconnectionCircle = new Color(180, 0, 0);
         mAnchorConnectionCircle = new Color(10, 130, 10);
 
+        mSelectionColor = Color.white;
+
         // Inspector colors
 
         mInspectorTrackBackgroundColor = new Color(228, 228, 238);

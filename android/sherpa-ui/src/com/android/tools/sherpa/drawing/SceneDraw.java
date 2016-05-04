@@ -589,14 +589,17 @@ public class SceneDraw {
 
             if (!selectedHandle.getAnchor().isConnected()
                     || selectedHandle.getAnchor().getTarget() != anchor) {
-                selectedHandle
-                        .drawConnection(transform, g, mColorSet, true,
-                                mouseInteraction.getLastPoint());
+                Point lastPoint = mouseInteraction.getLastPoint();
+                if (lastPoint.x != 0 && lastPoint.y != 0) {
+                    selectedHandle
+                      .drawConnection(transform, g, mColorSet, true,
+                                      mouseInteraction.getLastPoint());
+                }
             }
         }
 
         if (selectedResizeHandle != null) {
-            g.setColor(Color.white);
+            g.setColor(mColorSet.getSelectionColor());
             WidgetDraw.drawResizeHandleSelection(transform, g,
                     selectedResizeHandle);
         }
@@ -616,7 +619,7 @@ public class SceneDraw {
             int w = x2 - x1;
             int h = y2 - y1;
             if (w > 0 || h > 0) {
-                g.setColor(Color.white);
+                g.setColor(mColorSet.getSelectionColor());
                 g.setStroke(SnapDraw.sDashedStroke);
                 if (w >= 8 && h >= 8) {
                     g.drawRect(ax1, ay1, ax2 - ax1, ay2 - ay1);
@@ -637,7 +640,7 @@ public class SceneDraw {
 
         if (mSelection.getSelectionBounds() != null) {
             Selection.Element bounds = mSelection.getSelectionBounds();
-            g.setColor(Color.white);
+            g.setColor(mColorSet.getSelectionColor());
             g.setStroke(SnapDraw.sDashedStroke);
             int x = transform.getSwingX(bounds.widget.getDrawX());
             int y = transform.getSwingY(bounds.widget.getDrawY());
