@@ -20,12 +20,13 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.layout.LayoutEditorFixture;
+import com.google.common.base.Strings;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static com.google.common.truth.Truth.assertThat;
-import static junit.framework.Assert.assertEquals;
 
 @RunIn(TestGroup.EDITING)
 @RunWith(GuiTestRunner.class)
@@ -33,43 +34,23 @@ public class EditorFixtureTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   @Test
-  public void testEditorScrolling() throws Exception {
-    guiTest.importSimpleApplication();
-
-    EditorFixture editor = guiTest.ideFrame().getEditor();
-    editor.open("app/src/main/java/google/simpleapplication/MyActivity.java");
-
-    editor.moveTo(0).enterText("\n").moveTo(0);
-    editor.enterText("// firstLine");
-
-    final int numLines = 100;
-    for (int i = 0; i < numLines; i++) {
-      editor.enterText("\n");
-    }
-
-    editor.enterText("// lastLine");
-
-    editor.moveTo(0);
-    assertEquals(editor.getCurrentLineNumber(), 1);
-
-    editor.moveToLine(numLines+1);
-    assertEquals(editor.getCurrentLineNumber(), numLines+1);
-
-    editor.moveToLine(1);
-    assertEquals(editor.getCurrentLineNumber(), 1);
+  public void moveToLine_scrollsWhenNeeded() throws Exception {
+    int lineNumber = guiTest.importSimpleApplication()
+      .getEditor()
+      .open("app/src/main/java/google/simpleapplication/MyActivity.java")
+      .enterText(Strings.repeat("\n", 100))
+      .moveToLine(1)
+      .getCurrentLineNumber();
+    assertThat(lineNumber).isEqualTo(1);
   }
 
-  /**
-   * Tests that the editor opens the file in the requested tab, independently of the history of that file.
-   */
   @Test
-  public void testOpenFileInTab() throws Exception {
-    guiTest.importSimpleApplication();
-
-    EditorFixture editor = guiTest.ideFrame().getEditor();
-    editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR);
-    editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
-
-    assertThat(editor.getLayoutEditor(false)).isNotNull();
+  public void open_selectsEditorTab() throws Exception {
+    LayoutEditorFixture layoutEditor = guiTest.importSimpleApplication()
+      .getEditor()
+      .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
+      .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)
+      .getLayoutEditor(false);  // false: don't select the editor; expect it to be selected already
+    assertThat(layoutEditor).isNotNull();  // non-null means an AndroidDesignerEditor is selected
   }
 }
