@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.updaterui;
+package com.android.tools.idea.sdk.updater;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
@@ -124,8 +124,8 @@ public class RepoUpdaterUI extends SwingUpdaterUI {
     catch (PatchInstallerFactory.RestartRequiredException e) {
       throw e;
     }
-    catch (Exception e) {
-      // ignore other exceptions and show the dialog.
+    catch (Throwable e) {
+      // ignore other exceptions and errors and show the dialog.
     }
     return super.askUser(validationResults);
   }

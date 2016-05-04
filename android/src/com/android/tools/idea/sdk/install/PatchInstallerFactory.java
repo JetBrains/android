@@ -16,7 +16,6 @@
 package com.android.tools.idea.sdk.install;
 
 import com.android.SdkConstants;
-import com.android.annotations.NonNull;
 import com.android.repository.Revision;
 import com.android.repository.api.*;
 import com.android.repository.impl.installer.AbstractInstallerFactory;
@@ -29,7 +28,6 @@ import com.android.repository.util.InstallerUtil;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Maps;
 import com.intellij.icons.AllIcons;
 import com.intellij.idea.Main;
 import com.intellij.openapi.application.ApplicationNamesInfo;
@@ -56,6 +54,7 @@ import java.net.URL;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -92,7 +91,12 @@ public class PatchInstallerFactory extends AbstractInstallerFactory {
   /**
    * Interface for the actual UI class we'll create.
    */
-  private static final String REPO_UI_CLASS_NAME = "com.android.tools.idea.updaterui.RepoUpdaterUI";
+  private static final String REPO_UI_CLASS_NAME = "com.android.tools.idea.sdk.updater.RepoUpdaterUI";
+
+  /**
+   * Class that can generate patches that this patcher can read.
+   */
+  private static final String PATCH_GENERATOR_CLASS_NAME = "com.android.tools.idea.sdk.updater.PatchGenerator";
 
   /**
    * Directory under the sdk root where we keep pending patches that may require restart.
@@ -172,6 +176,7 @@ public class PatchInstallerFactory extends AbstractInstallerFactory {
           // has already been applied.
           Revision rev = AndroidCommonUtils.parsePackageRevision(androidSdkPath.getPath(), relativePath);
           if (rev != null && rev.equals(pendingPackage.getVersion())) {
+            // We need to make sure the listeners are fired, so create an installer that does nothing and invoke it.
             InstallerFactory dummyFactory = new DummyInstallerFactory(pendingPackage);
             dummyFactory.setListenerFactory(new StudioSdkInstallListenerFactory(handler));
             Installer installer = dummyFactory.createInstaller(pendingPackage, mgr, fop);
@@ -207,212 +212,56 @@ public class PatchInstallerFactory extends AbstractInstallerFactory {
 
   @NotNull
   @Override
-  protected Installer doCreateInstaller(@NonNull RemotePackage p, @NonNull RepoManager mgr, @NonNull FileOp fop) {
-    return new PatchInstaller(p, mgr, fop);
+  protected Installer doCreateInstaller(@NotNull RemotePackage p, @NotNull RepoManager mgr, @NotNull FileOp fop) {
+    LocalPackage local = mgr.getPackages().getLocalPackages().get(p.getPath());
+    Archive archive = p.getArchive();
+    assert archive != null;
+    if (local != null && archive.getPatch(local.getVersion()) != null) {
+      new PatchInstaller(local, p, mgr, fop);
+    }
+    return new FullInstaller(local, p, mgr, fop);
   }
 
   @NotNull
   @Override
-  protected Uninstaller doCreateUninstaller(@NonNull LocalPackage p, @NonNull RepoManager mgr, @NonNull FileOp fop) {
+  protected Uninstaller doCreateUninstaller(@NotNull LocalPackage p, @NotNull RepoManager mgr, @NotNull FileOp fop) {
     return new PatchUninstaller(p, mgr, fop);
   }
 
-  /**
-   * Installer for binary diff packages, as built by {@code com.intellij.updater.Runner}.
-   */
-  public static class PatchInstaller extends AbstractPackageOperation.AbstractInstaller {
-
-    public PatchInstaller(@NotNull RemotePackage p, @NotNull RepoManager mgr, @NotNull FileOp fop) {
-      super(p, mgr, fop);
-    }
-
-    @Override
-    protected boolean doPrepareInstall(@NotNull File tempDir,
-                                       @NotNull Downloader downloader,
-                                       @NotNull ProgressIndicator progress) {
-      Map<String, ? extends LocalPackage> localPackages = getRepoManager().getPackages().getLocalPackages();
-      LocalPackage local = localPackages.get(getPackage().getPath());
-      assert local != null;
-      RemotePackage p = getPackage();
-      Archive archive = p.getArchive();
-      assert archive != null;
-      Archive.PatchType patch = archive.getPatch(local.getVersion());
-      assert patch != null;
-
-      File patchFile = getPatchFile(patch, p, tempDir, downloader, progress);
-      if (patchFile == null) {
-        progress.logWarning("Patch failed to download.");
-        return false;
-      }
+  public static boolean canHandlePackage(@NotNull RepoPackage p, @NotNull AndroidSdkHandler handler) {
+    if (p instanceof LocalPackage) {
+      // Once uninstaller is implemented this needs to check for an installed patcher
       return true;
     }
-
-    @Override
-    protected boolean doCompleteInstall(@Nullable File installTempPath,
-                                        @NotNull File destination,
-                                        @NotNull ProgressIndicator progress) {
-      if (installTempPath == null) {
-        return false;
-      }
-      Map<String, ? extends LocalPackage> localPackages = getRepoManager().getPackages().getLocalPackages();
-      File patcherJar = getPatcherFile(localPackages, progress);
-      if (patcherJar == null) {
-        progress.logWarning("Couldn't find patcher jar!");
-        return false;
-      }
-
-      Map<String, Class<?>> classMap = loadClasses(patcherJar, progress);
-      if (classMap == null) {
-        return false;
-      }
-
-      // The patcher won't expect this to be in the target directory, so delete it beforehand.
-      mFop.deleteFileOrFolder(new File(destination, InstallerUtil.INSTALLER_DIR_FN));
-
-      // Move the package.xml away, since the installer won't expect that either. But we want to be able to move it back if need be.
-      File existingPackageXml = new File(destination, LocalRepoLoaderImpl.PACKAGE_XML_FN);
-      File tempPackageXml = new File(installTempPath, LocalRepoLoaderImpl.PACKAGE_XML_FN);
-      mFop.renameTo(existingPackageXml, tempPackageXml);
-
-      boolean result;
-      File patchFile = new File(installTempPath, "patch.jar");
-      try {
-        result = runPatcher(progress, destination, patchFile, classMap.get(RUNNER_CLASS_NAME),
-                            classMap.get(UPDATER_UI_CLASS_NAME), classMap.get(REPO_UI_CLASS_NAME));
-      }
-      catch (RestartRequiredException e) {
-        askAboutRestart(patchFile, patcherJar, progress);
-        result = false;
-      }
-      if (!result) {
-        // We cancelled or selected restart later, or there was some problem. Move package.xml back into place.
-        mFop.renameTo(tempPackageXml, existingPackageXml);
-        return false;
-      }
-      progress.logInfo("Done");
-
-      return true;
-    }
-
-    /**
-     * If a patch fails to install because Studio is locking some of the files, we have to restart studio. Ask if the user wants
-     * to, and then move things into place so they can be picked up on restart.
-     */
-    private void askAboutRestart(@NonNull final File patchFile,
-                                 @NonNull File patcherFile,
-                                 @NonNull final ProgressIndicator progress) {
-      final ApplicationEx application = ApplicationManagerEx.getApplicationEx();
-      application.invokeLater(() -> {
-        String[] options;
-        ApplicationNamesInfo names = ApplicationNamesInfo.getInstance();
-        boolean restartable = application.isRestartCapable();
-        if (restartable) {
-          options = new String[]{"Cancel", "Restart Later", "Restart Now"};
-        }
-        else {
-          options = new String[]{"Cancel", String.format("Exit %s", names.getProductName())};
-        }
-        int result = Messages.showDialog(
-          (Project)null,
-          String.format(
-            "%1$s is currently in use by %2$s and cannot be updated. Please restart to complete installation.",
-            getPackage().getDisplayName(),
-            names.getFullProductName()),
-          "Restart Required", options, options.length - 1, AllIcons.General.QuestionDialog);
-        if (result == 0) {
-          progress.logInfo("Cancelled");
-        }
-        else {
-          if (setupPatchDir(patchFile, patcherFile, progress)) {
-            if (result == 1 && restartable) {
-              progress.logInfo("Installation will continue after restart");
-            }
-            else {
-              application.exit(true, true);
-            }
-          }
-        }
-      }, ModalityState.any());
-    }
-
-    /**
-     * Create and populate the directory that we'll look in during startup for pending patches.
-     * This includes copying the patch zip there, and then adding the patcher jar into the zip (so it can be run by the update runner).
-     */
-    private boolean setupPatchDir(@NonNull File patchFile, @NonNull File patcherFile, @NonNull ProgressIndicator progress) {
-      File patchesDir = new File(getRepoManager().getLocalPath(), PATCHES_DIR_NAME);
-      File patchDir;
-      for (int i = 1; ; i++) {
-        patchDir = new File(patchesDir, PATCH_DIR_PREFIX + i);
-        if (!mFop.exists(patchDir)) {
-          mFop.mkdirs(patchDir);
-          break;
-        }
-      }
-      try {
-        File completePatch = new File(patchDir, PATCH_JAR_FN);
-        mFop.copyFile(patcherFile, completePatch);
-        FileSystem completeFs = FileSystems.newFileSystem(URI.create("jar:" + completePatch.toURI().toString()), Maps.newHashMap());
-        FileSystem patchFs = FileSystems.newFileSystem(URI.create("jar:" + patchFile.toURI().toString()), Maps.newHashMap());
-        Files.copy(patchFs.getPath(PATCH_ZIP_FN), completeFs.getPath(PATCH_ZIP_FN));
-        completeFs.close();
-        patchFs.close();
-        InstallerUtil.writePendingPackageXml(getPackage(), patchDir, getRepoManager(), mFop, progress);
-      }
-      catch (IOException e) {
-        progress.logWarning("Error while setting up patch.", e);
-        return false;
-      }
-      return true;
-    }
-
-    /**
-     * Gets the patcher jar required by our package.
-     *
-     * @return The location of the patcher.jar, or null if it was not found.
-     */
-    @Nullable
-    @VisibleForTesting
-    File getPatcherFile(@NotNull Map<String, ? extends LocalPackage> localPackages,
-                        @NotNull ProgressIndicator progress) {
-      File patcherJar = null;
-      for (Dependency d : getPackage().getAllDependencies()) {
-        if (d.getPath().startsWith(PATCHER_PATH_PREFIX)) {
-          LocalPackage patcher = localPackages.get(d.getPath());
-          if (patcher != null) {
-            patcherJar = new File(patcher.getLocation(), PATCHER_JAR_FN);
-            break;
-          }
-        }
-      }
-      if (patcherJar == null || !mFop.isFile(patcherJar)) {
-        progress.logWarning("Failed to find patcher!");
-        return null;
-      }
-      return patcherJar;
-    }
+    ProgressIndicator progress = new StudioLoggerProgressIndicator(PatchInstallerFactory.class);
+    return getPatcherFile((RemotePackage)p, handler.getSdkManager(progress), handler.getFileOp(), progress) != null;
   }
 
   /**
-   * TODO: right now this just deletes the package, but it should construct a diff package on the fly that removes all the files in the
-   * component and then runs it (to deal with e.g. in-use files).
+   * Gets the patcher jar required by our package.
+   *
+   * @return The location of the patcher.jar, or null if it was not found.
    */
-  public static class PatchUninstaller extends AbstractPackageOperation.AbstractUninstaller {
-    public PatchUninstaller(@NotNull LocalPackage p, @NotNull RepoManager mgr, @NotNull FileOp fop) {
-      super(p, mgr, fop);
-    }
+  @VisibleForTesting
+  @Nullable
+  static File getPatcherFile(@NotNull RemotePackage remote, @NotNull RepoManager mgr, @NotNull FileOp fop,
+                             @NotNull ProgressIndicator progress) {
+    File patcherJar = null;
 
-    @Override
-    protected boolean doUninstall(@NonNull ProgressIndicator progress) {
-      // TODO: use patch mechanism
-      try {
-        mFop.deleteFileOrFolder(getPackage().getLocation());
+    for (Dependency d : remote.getAllDependencies()) {
+      if (d.getPath().startsWith(PATCHER_PATH_PREFIX)) {
+        LocalPackage patcher = mgr.getPackages().getLocalPackages().get(d.getPath());
+        if (patcher != null) {
+          patcherJar = new File(patcher.getLocation(), PATCHER_JAR_FN);
+          break;
+        }
       }
-      catch (Exception e) {
-        return false;
-      }
-      return true;
     }
+    if (patcherJar == null || !fop.isFile(patcherJar)) {
+      progress.logWarning("Failed to find patcher!");
+      return null;
+    }
+    return patcherJar;
   }
 
   /**
@@ -456,11 +305,11 @@ public class PatchInstallerFactory extends AbstractInstallerFactory {
 
     try {
       progress.logInfo("Running patch installer...");
-        if (!(Boolean)doInstall.invoke(null, patchFile.getPath(), ui, localPackageLocation.getPath())) {
-          progress.logWarning("Failed to apply patch");
-          return false;
-        }
-        progress.logInfo("Patch applied.");
+      if (!(Boolean)doInstall.invoke(null, patchFile.getPath(), ui, localPackageLocation.getPath())) {
+        progress.logWarning("Failed to apply patch");
+        return false;
+      }
+      progress.logInfo("Patch applied.");
     }
     catch (InvocationTargetException e) {
       if (e.getTargetException() instanceof RestartRequiredException) {
@@ -484,11 +333,11 @@ public class PatchInstallerFactory extends AbstractInstallerFactory {
    */
   @Nullable
   @VisibleForTesting
-  static File getPatchFile(@NotNull Archive.PatchType patch,
-                           @NotNull RemotePackage p,
-                           @NotNull File tempDir,
-                           @NotNull Downloader downloader,
-                           @NotNull ProgressIndicator progress) {
+  static File downloadPatchFile(@NotNull Archive.PatchType patch,
+                                @NotNull RemotePackage p,
+                                @NotNull File tempDir,
+                                @NotNull Downloader downloader,
+                                @NotNull ProgressIndicator progress) {
     URL url = InstallerUtil.resolveUrl(patch.getUrl(), p, progress);
     if (url == null) {
       progress.logWarning("Failed to resolve URL: " + patch.getUrl());
@@ -539,11 +388,12 @@ public class PatchInstallerFactory extends AbstractInstallerFactory {
   @Nullable
   private static Map<String, Class<?>> loadClasses(@NotNull ProgressIndicator progress, @NotNull ClassLoader loader) {
     Map<String, Class<?>> result;
-    result = Maps.newHashMap();
+    result = new HashMap<>();
     try {
       result.put(RUNNER_CLASS_NAME, Class.forName(RUNNER_CLASS_NAME, true, loader));
       result.put(UPDATER_UI_CLASS_NAME, Class.forName(UPDATER_UI_CLASS_NAME, true, loader));
       result.put(REPO_UI_CLASS_NAME, Class.forName(REPO_UI_CLASS_NAME, true, loader));
+      result.put(PATCH_GENERATOR_CLASS_NAME, Class.forName(PATCH_GENERATOR_CLASS_NAME, true, loader));
     }
     catch (Throwable e) {
       progress.logWarning("Failed to find installer classes", e);
@@ -569,6 +419,283 @@ public class PatchInstallerFactory extends AbstractInstallerFactory {
     return loader;
   }
 
+  @VisibleForTesting
+  abstract static class PatchInstallerBase extends AbstractPackageOperation.AbstractInstaller {
+
+    protected final LocalPackage myExisting;
+
+    public PatchInstallerBase(@Nullable LocalPackage existing, @NotNull RemotePackage p, @NotNull RepoManager mgr, @NotNull FileOp fop) {
+      super(p, mgr, fop);
+      myExisting = existing;
+    }
+
+    @Override
+    protected boolean doCompleteInstall(@Nullable File installTempPath,
+                                        @NotNull File destination,
+                                        @NotNull ProgressIndicator progress) {
+      if (installTempPath == null) {
+        return false;
+      }
+      File patcherJar = getPatcherFile(getPackage(), getRepoManager(), mFop, progress);
+      if (patcherJar == null) {
+        progress.logWarning("Couldn't find patcher JAR!");
+        return false;
+      }
+
+      Map<String, Class<?>> classMap = loadClasses(patcherJar, progress);
+      if (classMap == null) {
+        return false;
+      }
+
+      // The patcher won't expect this to be in the target directory, so delete it beforehand.
+      mFop.deleteFileOrFolder(new File(destination, InstallerUtil.INSTALLER_DIR_FN));
+
+      // Move the package.xml away, since the installer won't expect that either. But we want to be able to move it back if need be.
+      File existingPackageXml = new File(destination, LocalRepoLoaderImpl.PACKAGE_XML_FN);
+      File tempPackageXml = new File(installTempPath, LocalRepoLoaderImpl.PACKAGE_XML_FN);
+      mFop.renameTo(existingPackageXml, tempPackageXml);
+
+      boolean result;
+      File patchFile = new File(installTempPath, PATCH_JAR_FN);
+      try {
+        result = runPatcher(progress, destination, patchFile, classMap.get(RUNNER_CLASS_NAME),
+                            classMap.get(UPDATER_UI_CLASS_NAME), classMap.get(REPO_UI_CLASS_NAME));
+      }
+      catch (RestartRequiredException e) {
+        askAboutRestart(patchFile, patcherJar, progress);
+        result = false;
+      }
+      if (!result) {
+        // We cancelled or selected restart later, or there was some problem. Move package.xml back into place.
+        mFop.renameTo(tempPackageXml, existingPackageXml);
+        return false;
+      }
+      progress.logInfo("Done");
+
+      return true;
+    }
+
+    /**
+     * If a patch fails to install because Studio is locking some of the files, we have to restart Studio. Ask if the user wants
+     * to, and then move things into place so they can be picked up on restart.
+     */
+    private void askAboutRestart(@NotNull final File patchFile,
+                                 @NotNull File patcherFile,
+                                 @NotNull final ProgressIndicator progress) {
+      final ApplicationEx application = ApplicationManagerEx.getApplicationEx();
+      application.invokeLater(() -> {
+        String[] options;
+        ApplicationNamesInfo names = ApplicationNamesInfo.getInstance();
+        boolean restartable = application.isRestartCapable();
+        if (restartable) {
+          options = new String[]{"Cancel", "Restart Later", "Restart Now"};
+        }
+        else {
+          options = new String[]{"Cancel", String.format("Exit %s", names.getProductName())};
+        }
+        int result = Messages.showDialog(
+          (Project)null,
+          String.format(
+            "%1$s is currently in use by %2$s and cannot be updated. Please restart to complete installation.",
+            getPackage().getDisplayName(),
+            names.getFullProductName()),
+          "Restart Required", options, options.length - 1, AllIcons.General.QuestionDialog);
+        if (result == 0) {
+          progress.logInfo("Cancelled");
+        }
+        else {
+          if (setupPatchDir(patchFile, patcherFile, progress)) {
+            if (result == 1 && restartable) {
+              progress.logInfo("Installation will continue after restart");
+            }
+            else {
+              application.exit(true, true);
+            }
+          }
+        }
+      }, ModalityState.any());
+    }
+
+    /**
+     * Create and populate the directory that we'll look in during startup for pending patches.
+     * This includes copying the patch zip there, and then adding the patcher jar into the zip (so it can be run by the update runner).
+     */
+    private boolean setupPatchDir(@NotNull File patchFile, @NotNull File patcherFile, @NotNull ProgressIndicator progress) {
+      File patchesDir = new File(getRepoManager().getLocalPath(), PATCHES_DIR_NAME);
+      File patchDir;
+      for (int i = 1; ; i++) {
+        patchDir = new File(patchesDir, PATCH_DIR_PREFIX + i);
+        if (!mFop.exists(patchDir)) {
+          mFop.mkdirs(patchDir);
+          break;
+        }
+      }
+      File completePatch = new File(patchDir, PATCH_JAR_FN);
+      try (FileSystem completeFs = FileSystems.newFileSystem(URI.create("jar:" + completePatch.toURI()), new HashMap<>());
+           FileSystem patchFs = FileSystems.newFileSystem(URI.create("jar:" + patchFile.toURI().toString()), new HashMap<>());) {
+        mFop.copyFile(patcherFile, completePatch);
+        Files.copy(patchFs.getPath(PATCH_ZIP_FN), completeFs.getPath(PATCH_ZIP_FN));
+        InstallerUtil.writePendingPackageXml(getPackage(), patchDir, getRepoManager(), mFop, progress);
+      }
+      catch (IOException e) {
+        progress.logWarning("Error while setting up patch.", e);
+        return false;
+      }
+      return true;
+    }
+  }
+
+  public static class FullInstaller extends PatchInstallerBase {
+
+    private static final String UNZIP_DIR_FN = "unzip";
+
+    protected FullInstaller(@Nullable LocalPackage existing, @NotNull RemotePackage p, @NotNull RepoManager mgr, @NotNull FileOp fop) {
+      super(existing, p, mgr, fop);
+    }
+
+    @Override
+    protected boolean doPrepareInstall(@NotNull File installTempPath, @NotNull Downloader downloader, @NotNull ProgressIndicator progress) {
+      if (!downloadAndUnzip(installTempPath, downloader, progress)) {
+        return false;
+      }
+      File pkgRoot = new File(installTempPath, UNZIP_DIR_FN);
+      File[] children = mFop.listFiles(pkgRoot);
+      if (children.length == 1) {
+        // This is the expected case
+        pkgRoot = children[0];
+      }
+
+      File patcherJar = getPatcherFile(getPackage(), getRepoManager(), mFop, progress);
+      if (patcherJar == null) {
+        progress.logWarning("Couldn't find patcher JAR!");
+        return false;
+      }
+
+      Map<String, Class<?>> classMap = loadClasses(patcherJar, progress);
+      if (classMap == null) {
+        return false;
+      }
+
+      File existingRoot = myExisting == null ? null : myExisting.getLocation();
+      String existingDescription = myExisting == null ? "None" : myExisting.getDisplayName() + " Revision " + myExisting.getVersion();
+      String description = "Version " + getPackage().getVersion();
+      Class<?> patchGeneratorClass = classMap.get(PATCH_GENERATOR_CLASS_NAME);
+      try {
+        Method generateMethod = patchGeneratorClass.getMethod("generateFullPackage", File.class, File.class, File.class, String.class,
+                                                              String.class, ProgressIndicator.class);
+        return (Boolean)generateMethod.invoke(null, pkgRoot, existingRoot,
+                                              new File(installTempPath, PATCH_JAR_FN), existingDescription, description, progress);
+      }
+      catch (NoSuchMethodException e) {
+        progress.logWarning("Patcher doesn't support full package generation!");
+        return false;
+      }
+      catch (InvocationTargetException | IllegalAccessException e) {
+        progress.logWarning("Patch generation failed!");
+        return false;
+      }
+    }
+
+    private boolean downloadAndUnzip(@NotNull File installTempPath, @NotNull Downloader downloader, @NotNull ProgressIndicator progress) {
+      URL url = InstallerUtil.resolveCompleteArchiveUrl(getPackage(), progress);
+      if (url == null) {
+        progress.logWarning("No compatible archive found!");
+        return false;
+      }
+      Archive archive = getPackage().getArchive();
+      assert archive != null;
+      try {
+        File downloadLocation = new File(installTempPath, url.getFile());
+        String checksum = archive.getComplete().getChecksum();
+        downloader.downloadFully(url, downloadLocation, checksum, progress);
+        if (progress.isCanceled()) {
+          return false;
+        }
+        if (!mFop.exists(downloadLocation)) {
+          progress.logWarning("Failed to download package!");
+          return false;
+        }
+        File unzip = new File(installTempPath, UNZIP_DIR_FN);
+        mFop.mkdirs(unzip);
+        InstallerUtil.unzip(downloadLocation, unzip, mFop,
+                            archive.getComplete().getSize(), progress);
+        if (progress.isCanceled()) {
+          return false;
+        }
+        mFop.delete(downloadLocation);
+
+        return true;
+      } catch (IOException e) {
+        StringBuilder message =
+          new StringBuilder("An error occurred while preparing SDK package ")
+            .append(getPackage().getDisplayName());
+        String exceptionMessage = e.getMessage();
+        if (exceptionMessage != null && !exceptionMessage.isEmpty()) {
+          message.append(": ")
+            .append(exceptionMessage);
+        }
+        else {
+          message.append(".");
+        }
+        progress.logWarning(message.toString(), e);
+      }
+      return false;
+    }
+  }
+
+  /**
+   * Installer for binary diff packages, as built by {@code com.intellij.updater.Runner}.
+   */
+  public static class PatchInstaller extends PatchInstallerBase {
+
+    public PatchInstaller(@Nullable LocalPackage existing, @NotNull RemotePackage p, @NotNull RepoManager mgr, @NotNull FileOp fop) {
+      super(existing, p, mgr, fop);
+    }
+
+    @Override
+    protected boolean doPrepareInstall(@NotNull File tempDir,
+                                       @NotNull Downloader downloader,
+                                       @NotNull ProgressIndicator progress) {
+      LocalPackage local = getRepoManager().getPackages().getLocalPackages().get(getPackage().getPath());
+      Archive archive = getPackage().getArchive();
+      assert archive != null;
+
+      RemotePackage p = getPackage();
+      Archive.PatchType patch = archive.getPatch(local.getVersion());
+      assert patch != null;
+
+      File patchFile = downloadPatchFile(patch, p, tempDir, downloader, progress);
+      if (patchFile == null) {
+        progress.logWarning("Patch failed to download.");
+        return false;
+      }
+      return true;
+    }
+
+  }
+
+  /**
+   * TODO: right now this just deletes the package, but it should construct a diff package on the fly that removes all the files in the
+   * component and then runs it (to deal with e.g. in-use files).
+   */
+  public static class PatchUninstaller extends AbstractPackageOperation.AbstractUninstaller {
+    public PatchUninstaller(@NotNull LocalPackage p, @NotNull RepoManager mgr, @NotNull FileOp fop) {
+      super(p, mgr, fop);
+    }
+
+    @Override
+    protected boolean doUninstall(@NotNull ProgressIndicator progress) {
+      // TODO: use patch mechanism
+      try {
+        mFop.deleteFileOrFolder(getPackage().getLocation());
+        return true;
+      }
+      catch (Exception e) {
+        return false;
+      }
+    }
+  }
+
   public static class RestartRequiredException extends RuntimeException {}
 
   private static class DummyInstallerFactory extends AbstractInstallerFactory {
@@ -578,29 +705,29 @@ public class PatchInstallerFactory extends AbstractInstallerFactory {
       myPendingPackage = pendingPackage;
     }
 
-    @NonNull
+    @NotNull
     @Override
-    protected Installer doCreateInstaller(@NonNull RemotePackage p, @NonNull RepoManager mgr, @NonNull FileOp fop) {
+    protected Installer doCreateInstaller(@NotNull RemotePackage p, @NotNull RepoManager mgr, @NotNull FileOp fop) {
       return new AbstractPackageOperation.AbstractInstaller(myPendingPackage, mgr, fop) {
         @Override
         protected boolean doCompleteInstall(@com.android.annotations.Nullable File installTemp,
-                                            @NonNull File dest,
-                                            @NonNull ProgressIndicator progress) {
+                                            @NotNull File dest,
+                                            @NotNull ProgressIndicator progress) {
           return true;
         }
 
         @Override
-        protected boolean doPrepareInstall(@NonNull File installTempPath,
-                                           @NonNull Downloader downloader,
-                                           @NonNull ProgressIndicator progress) {
+        protected boolean doPrepareInstall(@NotNull File installTempPath,
+                                           @NotNull Downloader downloader,
+                                           @NotNull ProgressIndicator progress) {
           return false;
         }
       };
     }
 
-    @NonNull
+    @NotNull
     @Override
-    protected Uninstaller doCreateUninstaller(@NonNull LocalPackage p, @NonNull RepoManager mgr, @NonNull FileOp fop) {
+    protected Uninstaller doCreateUninstaller(@NotNull LocalPackage p, @NotNull RepoManager mgr, @NotNull FileOp fop) {
       throw new UnsupportedOperationException();
     }
   }
