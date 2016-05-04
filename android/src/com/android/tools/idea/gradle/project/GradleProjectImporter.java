@@ -248,12 +248,12 @@ public class GradleProjectImporter {
   }
 
   @NotNull
-  private Runnable createSyncRequest(@NotNull final Project project,
-                                     @NotNull final ProgressExecutionMode executionMode,
-                                     final boolean generateSourcesOnSuccess,
-                                     final boolean cleanProject,
-                                     final boolean useCachedProjectData,
-                                     @Nullable final GradleSyncListener listener) {
+  private Runnable createSyncRequest(@NotNull Project project,
+                                     @NotNull ProgressExecutionMode executionMode,
+                                     boolean generateSourcesOnSuccess,
+                                     boolean cleanProject,
+                                     boolean useCachedProjectData,
+                                     @Nullable GradleSyncListener listener) {
     return () -> {
       if (isBuildInProgress(project)) {
         setSyncRequestedDuringBuild(project, true);
@@ -287,16 +287,16 @@ public class GradleProjectImporter {
     return false;
   }
 
-  private void doRequestSync(@NotNull final Project project,
+  private void doRequestSync(@NotNull Project project,
                              @NotNull ProgressExecutionMode progressExecutionMode,
                              @NotNull ImportOptions options,
-                             @Nullable final GradleSyncListener listener) throws ConfigurationException {
+                             @Nullable GradleSyncListener listener) throws ConfigurationException {
     if (requiresAndroidModel(project) || hasTopLevelGradleBuildFile(project)) {
       FileDocumentManager.getInstance().saveAllDocuments();
       setUpGradleSettings(project);
       resetProject(project);
       setGradleVersionUsed(project, null);
-      doImport(project, false /* existing project */, progressExecutionMode, options, listener);
+      doImport(project, progressExecutionMode, options, false /* existing project */, listener);
     }
     else {
       Runnable notificationTask = () -> {
@@ -324,7 +324,7 @@ public class GradleProjectImporter {
   }
 
   // See issue: https://code.google.com/p/android/issues/detail?id=64508
-  private static void resetProject(@NotNull final Project project) {
+  private static void resetProject(@NotNull Project project) {
     executeProjectChanges(project, () -> {
       removeLibrariesAndStoreAttachments(project);
 
@@ -406,7 +406,7 @@ public class GradleProjectImporter {
       newProject.save();
     }
 
-    doImport(newProject, true /* new project */, MODAL_SYNC /* synchronous import */, options, listener);
+    doImport(newProject, MODAL_SYNC, options, true /* new project */,  /* synchronous import */  listener);
   }
 
   private static void createTopLevelBuildFileIfNotExisting(@NotNull File projectRootDirPath) throws IOException {
@@ -420,10 +420,10 @@ public class GradleProjectImporter {
     writeToFile(projectFile, contents);
   }
 
-  private static void setUpProject(@NotNull final Project newProject, @Nullable final LanguageLevel initialLanguageLevel) {
+  private static void setUpProject(@NotNull Project newProject, @Nullable LanguageLevel initialLanguageLevel) {
     CommandProcessor.getInstance().executeCommand(newProject, () -> ApplicationManager.getApplication().runWriteAction(() -> {
       if (initialLanguageLevel != null) {
-        final LanguageLevelProjectExtension extension = LanguageLevelProjectExtension.getInstance(newProject);
+        LanguageLevelProjectExtension extension = LanguageLevelProjectExtension.getInstance(newProject);
         if (extension != null) {
           extension.setLanguageLevel(initialLanguageLevel);
         }
@@ -469,11 +469,11 @@ public class GradleProjectImporter {
     }
   }
 
-  private void doImport(@NotNull final Project project,
-                        final boolean newProject,
-                        @NotNull final ProgressExecutionMode progressExecutionMode,
+  private void doImport(@NotNull Project project,
+                        @NotNull ProgressExecutionMode progressExecutionMode,
                         @NotNull ImportOptions options,
-                        @Nullable final GradleSyncListener listener) throws ConfigurationException {
+                        boolean newProject,
+                        @Nullable GradleSyncListener listener) throws ConfigurationException {
     invokeAndWaitIfNeeded(() -> ensureToolWindowContentInitialized(project, GRADLE_SYSTEM_ID));
     if (isAndroidStudio()) {
       // See https://code.google.com/p/android/issues/detail?id=169743
@@ -621,9 +621,9 @@ public class GradleProjectImporter {
   static class ImporterDelegate {
     void importProject(@NotNull Project project,
                        @NotNull ExternalProjectRefreshCallback callback,
-                       @NotNull final ProgressExecutionMode progressExecutionMode) throws ConfigurationException {
+                       @NotNull ProgressExecutionMode progressExecutionMode) throws ConfigurationException {
       try {
-        final String externalProjectPath = ExternalSystemApiUtil.toCanonicalPath(getBaseDirPath(project).getPath());
+        String externalProjectPath = ExternalSystemApiUtil.toCanonicalPath(getBaseDirPath(project).getPath());
         refreshProject(project, GRADLE_SYSTEM_ID, externalProjectPath, callback, false /* resolve dependencies */,
                        progressExecutionMode, true /* always report import errors */);
       }
@@ -635,10 +635,10 @@ public class GradleProjectImporter {
   }
 
   private static class ImportOptions {
-    public final boolean generateSourcesOnSuccess;
-    public final boolean cleanProject;
-    public final boolean importingExistingProject;
-    public final boolean useCachedProjectData;
+    final boolean generateSourcesOnSuccess;
+    final boolean cleanProject;
+    final boolean importingExistingProject;
+    final boolean useCachedProjectData;
 
     ImportOptions(boolean generateSourcesOnSuccess,
                   boolean cleanProject,
