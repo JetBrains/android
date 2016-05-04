@@ -39,10 +39,13 @@ public class AndroidResourceUtilTest extends AndroidTestCase {
   }
 
   public void testCaseSensitivityInChangeColorResource() {
-    myFixture.copyFileToProject("util/colors_before.xml", "res/values/colors.xml");
+    VirtualFile xmlFile = myFixture.copyFileToProject("util/colors_before.xml", "res/values/colors.xml");
+    VirtualFile resDir = xmlFile.getParent().getParent();
     List<String> dirNames = ImmutableList.of("values");
-    assertTrue(AndroidResourceUtil.changeValueResource(myFacet, "myColor", ResourceType.COLOR, "#000000", "colors.xml", dirNames, false));
-    assertFalse(AndroidResourceUtil.changeValueResource(myFacet, "mycolor", ResourceType.COLOR, "#FFFFFF", "colors.xml", dirNames, false));
+    assertTrue(AndroidResourceUtil.changeValueResource(getProject(), resDir, "myColor", ResourceType.COLOR, "#000000", "colors.xml",
+                                                       dirNames, false));
+    assertFalse(AndroidResourceUtil.changeValueResource(getProject(), resDir, "mycolor", ResourceType.COLOR, "#FFFFFF", "colors.xml",
+                                                        dirNames, false));
     myFixture.checkResultByFile("res/values/colors.xml", "util/colors_after.xml", true);
   }
 

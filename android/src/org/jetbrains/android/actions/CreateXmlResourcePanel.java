@@ -339,6 +339,7 @@ public class CreateXmlResourcePanel {
   }
 
   private void doAddNewDirectory() {
+    myResourceDir = getResourceDirectory();
     if (myResourceDir == null) {
       return;
     }
@@ -359,19 +360,12 @@ public class CreateXmlResourcePanel {
   }
 
   private void updateDirectories(boolean updateFileCombo) {
-    final Module module = getModule();
+    final VirtualFile resourceDir = getResourceDirectory();
     List<VirtualFile> directories = Collections.emptyList();
 
-    if (module != null) {
-      final AndroidFacet facet = AndroidFacet.getInstance(module);
-
-      if (facet != null) {
-        myResourceDir = facet.getPrimaryResourceDir();
-
-        if (myResourceDir != null) {
-          directories = AndroidResourceUtil.getResourceSubdirs(myFolderType, new VirtualFile[]{myResourceDir});
-        }
-      }
+    myResourceDir = resourceDir;
+    if (myResourceDir != null) {
+      directories = AndroidResourceUtil.getResourceSubdirs(myFolderType, new VirtualFile[]{myResourceDir});
     }
 
     Collections.sort(directories, new Comparator<VirtualFile>() {
@@ -449,10 +443,11 @@ public class CreateXmlResourcePanel {
    * @see CreateXmlResourceDialog#doValidate()
    */
   public ValidationInfo doValidate() {
-    final String resourceName = getResourceName();
-    final Module selectedModule = getModule();
-    final List<String> directoryNames = getDirNames();
-    final String fileName = getFileName();
+    String resourceName = getResourceName();
+    Module selectedModule = getModule();
+    VirtualFile resourceDir = getResourceDirectory();
+    List<String> directoryNames = getDirNames();
+    String fileName = getFileName();
 
     if (myNameField.isVisible() && resourceName.isEmpty()) {
       return new ValidationInfo("specify resource name", myNameField);
@@ -466,6 +461,9 @@ public class CreateXmlResourcePanel {
     else if (selectedModule == null) {
       return new ValidationInfo("specify module", myModuleCombo);
     }
+    else if (resourceDir == null) {
+      return new ValidationInfo("specify a module with resources", myModuleCombo);
+    }
     else if (directoryNames.isEmpty()) {
       return new ValidationInfo("choose directories", myDirectoriesList);
     }
@@ -473,7 +471,8 @@ public class CreateXmlResourcePanel {
       return new ValidationInfo("specify more than resource prefix", myNameField);
     }
 
-    return CreateXmlResourceDialog.checkIfResourceAlreadyExists(selectedModule, resourceName, myResourceType, directoryNames, fileName);
+    return CreateXmlResourceDialog.checkIfResourceAlreadyExists(selectedModule.getProject(), resourceDir, resourceName,
+                                                                myResourceType, directoryNames, fileName);
   }
 
   /**
@@ -528,13 +527,31 @@ public class CreateXmlResourcePanel {
   }
 
   @Nullable
-  public SourceProvider getSourceProvider() {
+  private SourceProvider getSourceProvider() {
     return CreateResourceActionBase.getSourceProvider(mySourceSetCombo);
   }
 
   @Nullable
   public Module getModule() {
     return myModule != null ? myModule : myModuleCombo.getSelectedModule();
+  }
+
+  /**
+   * Return the chosen base res/ directory where the new resource will reside.
+   * @return the res/ directory. Null if the user did not supply sufficient information to determine the res/ directory.
+   *         For example, if the user selected a module + source provider without any resource directories.
+   */
+  @Nullable
+  public VirtualFile getResourceDirectory() {
+    Module module = getModule();
+    if (module == null) {
+      return null;
+    }
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet == null) {
+      return null;
+    }
+    return facet.getPrimaryResourceDir();
   }
 
   public JComponent getPanel() {

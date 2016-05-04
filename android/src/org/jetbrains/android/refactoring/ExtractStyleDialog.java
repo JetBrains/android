@@ -17,13 +17,14 @@ package org.jetbrains.android.refactoring;
 
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.ResourceHelper;
+import com.intellij.application.options.ModulesComboBox;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.ActionToolbarPosition;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
-import com.intellij.application.options.ModulesComboBox;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.ValidationInfo;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.ui.*;
 import com.intellij.ui.components.JBCheckBox;
@@ -218,7 +219,13 @@ class ExtractStyleDialog extends DialogWrapper {
     if (module == null) {
       return new ValidationInfo("specify module", myModuleCombo);
     }
-    return CreateXmlResourceDialog.checkIfResourceAlreadyExists(module, getStyleName(), ResourceType.STYLE, myDirNames, myFileName);
+    VirtualFile resourceDir = getResourceDirectory();
+    if (resourceDir == null) {
+      return new ValidationInfo("specify a module with resources", myModuleCombo);
+    }
+
+    return CreateXmlResourceDialog.checkIfResourceAlreadyExists(module.getProject(), resourceDir, getStyleName(), ResourceType.STYLE,
+                                                                myDirNames, myFileName);
   }
 
   @NotNull
@@ -242,8 +249,21 @@ class ExtractStyleDialog extends DialogWrapper {
   }
 
   @Nullable
-  public Module getChosenModule() {
+  private Module getChosenModule() {
     return myModule != null ? myModule : myModuleCombo.getSelectedModule();
+  }
+
+  @Nullable
+  public VirtualFile getResourceDirectory() {
+    Module module = getChosenModule();
+    if (module == null) {
+      return null;
+    }
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet == null) {
+      return null;
+    }
+    return facet.getPrimaryResourceDir();
   }
 
   public boolean isToSearchStyleApplications() {

@@ -19,6 +19,7 @@ import com.android.resources.ResourceType;
 import com.intellij.CommonBundle;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.ValidationInfo;
@@ -26,7 +27,6 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.resources.Resources;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
@@ -113,8 +113,9 @@ public class CreateXmlResourceDialog extends DialogWrapper {
     return myPanel.getPanel();
   }
 
-  public Module getModule() {
-    return myPanel.getModule();
+  @Nullable
+  public VirtualFile getResourceDirectory() {
+    return myPanel.getResourceDirectory();
   }
 
   public String getResourceName() {
@@ -134,7 +135,8 @@ public class CreateXmlResourceDialog extends DialogWrapper {
   }
 
   @Nullable
-  public static ValidationInfo checkIfResourceAlreadyExists(@NotNull Module selectedModule,
+  public static ValidationInfo checkIfResourceAlreadyExists(@NotNull Project project,
+                                                            @NotNull VirtualFile resourceDir,
                                                             @NotNull String resourceName,
                                                             @NotNull ResourceType resourceType,
                                                             @NotNull List<String> dirNames,
@@ -142,12 +144,6 @@ public class CreateXmlResourceDialog extends DialogWrapper {
     if (resourceName.length() == 0 ||
         dirNames.size() == 0 ||
         fileName.length() == 0) {
-      return null;
-    }
-
-    final AndroidFacet facet = AndroidFacet.getInstance(selectedModule);
-    final VirtualFile resourceDir = facet != null ? facet.getPrimaryResourceDir() : null;
-    if (resourceDir == null) {
       return null;
     }
 
@@ -166,7 +162,7 @@ public class CreateXmlResourceDialog extends DialogWrapper {
         return new ValidationInfo("File " + FileUtil.toSystemDependentName(resFile.getPath()) + " is not XML file");
       }
 
-      final Resources resources = AndroidUtils.loadDomElement(selectedModule, resFile, Resources.class);
+      final Resources resources = AndroidUtils.loadDomElement(project, resFile, Resources.class);
       if (resources == null) {
         return new ValidationInfo(AndroidBundle.message("not.resource.file.error", FileUtil.toSystemDependentName(resFile.getPath())));
       }

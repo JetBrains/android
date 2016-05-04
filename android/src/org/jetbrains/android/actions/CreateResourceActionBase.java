@@ -30,7 +30,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.InputValidator;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -269,17 +268,13 @@ public abstract class CreateResourceActionBase extends AnAction {
     return null;
   }
 
-  protected class MyInputValidator extends ElementCreator implements InputValidator {
+  protected class MyInputValidator extends ElementCreator implements ElementCreatingValidator {
     private final PsiDirectory myDirectory;
     private PsiElement[] myCreatedElements = PsiElement.EMPTY_ARRAY;
 
     public MyInputValidator(final Project project, final PsiDirectory directory) {
       super(project, getErrorTitle());
       myDirectory = directory;
-    }
-
-    public PsiDirectory getDirectory() {
-      return myDirectory;
     }
 
     @Override
@@ -303,6 +298,7 @@ public abstract class CreateResourceActionBase extends AnAction {
       return myCreatedElements.length > 0;
     }
 
+    @Override
     public final PsiElement[] getCreatedElements() {
       return myCreatedElements;
     }
