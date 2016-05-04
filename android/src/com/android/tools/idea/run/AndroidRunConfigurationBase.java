@@ -75,7 +75,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   public String PREFERRED_AVD = "";
 
   public boolean CLEAR_LOGCAT = false;
-  public boolean SHOW_LOGCAT_AUTOMATICALLY = true;
+  public boolean SHOW_LOGCAT_AUTOMATICALLY = false;
   public boolean SKIP_NOOP_APK_INSTALLATIONS = true; // skip installation if the APK hasn't hasn't changed
   public boolean FORCE_STOP_RUNNING_APP = true; // if no new apk is being installed, then stop the app before launching it again
 
