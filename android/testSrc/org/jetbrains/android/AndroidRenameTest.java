@@ -20,7 +20,6 @@ import com.android.SdkConstants;
 import com.intellij.codeInsight.TargetElementUtil;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -141,35 +140,25 @@ public class AndroidRenameTest extends AndroidTestCase {
   }
 
   private void renameElementWithTextOccurences(final String newName) throws Throwable {
-    new WriteCommandAction.Simple(myFixture.getProject()) {
-      @Override
-      protected void run() throws Throwable {
-        Editor editor = myFixture.getEditor();
-        PsiFile file = myFixture.getFile();
-        Editor completionEditor = InjectedLanguageUtil.getEditorForInjectedLanguageNoCommit(editor, file);
-        PsiElement element = TargetElementUtil.findTargetElement(completionEditor, TargetElementUtil.REFERENCED_ELEMENT_ACCEPTED |
-                                                                                   TargetElementUtil.ELEMENT_NAME_ACCEPTED);
-        assert element != null;
-        final PsiElement substitution = RenamePsiElementProcessor.forElement(element).substituteElementToRename(element, editor);
-        new RenameProcessor(myFixture.getProject(), substitution, newName, false, true).run();
-      }
-    }.execute().throwException();
+    Editor editor = myFixture.getEditor();
+    PsiFile file = myFixture.getFile();
+    Editor completionEditor = InjectedLanguageUtil.getEditorForInjectedLanguageNoCommit(editor, file);
+    PsiElement element = TargetElementUtil.findTargetElement(completionEditor, TargetElementUtil.REFERENCED_ELEMENT_ACCEPTED |
+                                                                               TargetElementUtil.ELEMENT_NAME_ACCEPTED);
+    assert element != null;
+    final PsiElement substitution = RenamePsiElementProcessor.forElement(element).substituteElementToRename(element, editor);
+    new RenameProcessor(myFixture.getProject(), substitution, newName, false, true).run();
   }
 
   private void moveClass(final String className, final String newPackageName) throws Throwable {
-    new WriteCommandAction.Simple(myFixture.getProject()) {
-      @Override
-      protected void run() throws Throwable {
-        PsiClass aClass = JavaPsiFacade.getInstance(getProject()).findClass(className, GlobalSearchScope.projectScope(getProject()));
-        PsiPackage aPackage = JavaPsiFacade.getInstance(getProject()).findPackage(newPackageName);
+    PsiClass aClass = JavaPsiFacade.getInstance(getProject()).findClass(className, GlobalSearchScope.projectScope(getProject()));
+    PsiPackage aPackage = JavaPsiFacade.getInstance(getProject()).findPackage(newPackageName);
 
-        final PsiDirectory[] dirs = aPackage.getDirectories();
-        assertEquals(dirs.length, 1);
+    final PsiDirectory[] dirs = aPackage.getDirectories();
+    assertEquals(dirs.length, 1);
 
-        new MoveClassesOrPackagesProcessor(getProject(), new PsiElement[]{aClass}, new SingleSourceRootMoveDestination(
-          PackageWrapper.create(JavaDirectoryService.getInstance().getPackage(dirs[0])), dirs[0]), true, true, null).run();
-      }
-    }.execute().throwException();
+    new MoveClassesOrPackagesProcessor(getProject(), new PsiElement[]{aClass}, new SingleSourceRootMoveDestination(
+      PackageWrapper.create(JavaDirectoryService.getInstance().getPackage(dirs[0])), dirs[0]), true, true, null).run();
   }
 
   public void testXmlReferenceToValueResource() throws Throwable {
