@@ -229,6 +229,10 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     checkComponent(createMockComponent(EDIT_TEXT), "EditText - \"My value for EditText\"", AndroidIcons.Views.EditText);
   }
 
+  final void assertConstraintLayout(@NotNull Palette.BaseItem item) {
+    assertStandardLayout(item, "com.google.tnt.sherpa.ConstraintLayout", IN_PLATFORM);
+  }
+
   public void assertGridLayout(@NotNull Palette.BaseItem item) {
     assertStandardLayout(item, GRID_LAYOUT, IN_PLATFORM);
   }
