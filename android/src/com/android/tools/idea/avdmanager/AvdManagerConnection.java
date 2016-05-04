@@ -426,7 +426,7 @@ public class AvdManagerConnection {
       }
     });
 
-    return EmulatorConnectionListener.getDeviceForEmulator(info.getName(), processHandler, 5, TimeUnit.MINUTES);
+    return EmulatorConnectionListener.getDeviceForEmulator(project, info.getName(), processHandler, 5, TimeUnit.MINUTES);
   }
 
   /**
