@@ -38,6 +38,7 @@ public class ScoutProbabilities {
     private static final int CONSTRAINT_FAILED_FLAG = -2;
     private static final float CENTER_ERROR = 2;
     private static final float SLOPE_CENTER_CONNECTION = 4;
+    private static final int MAX_DIST_FOR_CENTER_OVERLAP = 40;
 
     float[][][] mProbability; // probability of a connection
     float[][][] mMargin; // margin needed for that connection
@@ -167,17 +168,29 @@ public class ScoutProbabilities {
             for (int j = 0; j < list.length; j++) {
                 if (i == j) continue;
                 ScoutWidget widget = list[j];
-                if (Math.abs(widget.getX() - centerX) < CENTER_ERROR) {
-                    scoutWidget.setEdgeCentered(1, widget, Direction.WEST);
+                if (scoutWidget.isGuideline()) {
+                    continue;
                 }
-                if (Math.abs(widget.getY() - centerY) < CENTER_ERROR) {
-                    scoutWidget.setEdgeCentered(0, widget, Direction.NORTH);
+                if (!widget.isGuideline() &&
+                        ScoutWidget.distance(scoutWidget, widget) > MAX_DIST_FOR_CENTER_OVERLAP) {
+                    continue;
                 }
-                if (Math.abs(widget.getX() + widget.getWidth() - centerX) < CENTER_ERROR) {
-                    scoutWidget.setEdgeCentered(1, widget, Direction.EAST);
+                if (!widget.isGuideline() || widget.isHorizontalGuideline()) {
+                    if (Math.abs(widget.getX() - centerX) < CENTER_ERROR) {
+                        scoutWidget.setEdgeCentered(1, widget, Direction.WEST);
+                    }
+                    if (Math.abs(widget.getX() + widget.getWidth() - centerX) < CENTER_ERROR) {
+                        scoutWidget.setEdgeCentered(1, widget, Direction.EAST);
+                    }
                 }
-                if (Math.abs(widget.getY() + widget.getHeight() - centerY) < CENTER_ERROR) {
-                    scoutWidget.setEdgeCentered(0, widget, Direction.SOUTH);
+                if (!widget.isGuideline() || !widget.isHorizontalGuideline()) {
+                    if (Math.abs(widget.getY() - centerY) < CENTER_ERROR) {
+                        scoutWidget.setEdgeCentered(0, widget, Direction.NORTH);
+                    }
+
+                    if (Math.abs(widget.getY() + widget.getHeight() - centerY) < CENTER_ERROR) {
+                        scoutWidget.setEdgeCentered(0, widget, Direction.SOUTH);
+                    }
                 }
             }
         }

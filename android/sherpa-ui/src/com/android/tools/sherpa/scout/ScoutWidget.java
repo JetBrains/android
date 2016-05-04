@@ -319,17 +319,60 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
                 float pos2 = to2.getLocation(cDir2);
                 Direction c1 = (pos1 < pos2) ? (ori) : (ori.getOpposite());
                 Direction c2 = (pos1 > pos2) ? (ori) : (ori.getOpposite());
+                int gap1 = gap(mConstraintWidget, c1, to1.mConstraintWidget, cDir1);
+                int gap2 = gap(mConstraintWidget, c2, to2.mConstraintWidget, cDir2);
 
                 connect(mConstraintWidget, lookupType(c1), to1.mConstraintWidget, lookupType(cDir1),
-                        (int) gap);
+                        (int) Math.max(0, gap1));
                 connect(mConstraintWidget, lookupType(c2), to2.mConstraintWidget, lookupType(cDir2),
-                        (int) gap);
+                        (int) Math.max(0, gap2));
             }
             return true;
         } else {
 
             return false;
         }
+    }
+
+    /**
+     * Get the gap between two specific edges of widgets
+     * @param widget1
+     * @param direction1
+     * @param widget2
+     * @param direction2
+     * @return distance in dp
+     */
+    private static int gap(ConstraintWidget widget1, Direction direction1,
+            ConstraintWidget widget2, Direction direction2) {
+        switch (direction1) {
+            case NORTH:
+            case WEST:
+                return getPos(widget1, direction1) - getPos(widget2, direction2);
+            case SOUTH:
+            case EAST:
+                return getPos(widget2, direction2) - getPos(widget1, direction1);
+        }
+        return 0;
+    }
+
+    /**
+     * Get the position of a edge of a widget
+     * @param widget
+     * @param direction
+     * @return
+     */
+    private static int getPos(ConstraintWidget widget, Direction direction) {
+        switch (direction) {
+            case NORTH:
+                return widget.getY();
+            case SOUTH:
+                return widget.getY() + widget.getHeight();
+            case WEST:
+                return widget.getX();
+            case EAST:
+                return widget.getX() + widget.getWidth();
+        }
+        return 0;
     }
 
     /**
@@ -923,6 +966,9 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
     };
 
     public int rootDistanceY() {
+        if (mConstraintWidget == null ||  mConstraintWidget.getParent() == null) {
+            return 0;
+        }
         int rootHeight = mConstraintWidget.getParent().getHeight();
         int aY = mConstraintWidget.getY();
         int aHeight = mConstraintWidget.getHeight();
