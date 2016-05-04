@@ -19,22 +19,20 @@ import com.android.tools.sherpa.drawing.BlueprintColorSet;
 import com.android.tools.sherpa.drawing.ColorSet;
 import com.android.tools.sherpa.drawing.SceneDraw;
 import com.android.tools.sherpa.drawing.ViewTransform;
-import com.android.tools.sherpa.drawing.decorator.TextWidget;
 import com.android.tools.sherpa.interaction.MouseInteraction;
-import com.android.tools.sherpa.interaction.WidgetInteractionTargets;
-import com.android.tools.sherpa.interaction.WidgetMotion;
-import com.android.tools.sherpa.interaction.WidgetResize;
-import com.android.tools.sherpa.structure.Selection;
 import com.android.tools.sherpa.structure.WidgetCompanion;
 import com.android.tools.sherpa.structure.WidgetsScene;
-import com.google.tnt.solver.widgets.ConstraintAnchor;
 import com.google.tnt.solver.widgets.ConstraintWidget;
 import com.google.tnt.solver.widgets.ConstraintWidgetContainer;
 
 import javax.swing.*;
+import javax.swing.event.AncestorListener;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.Ellipse2D;
+import java.awt.geom.Path2D;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 
 /**
@@ -63,11 +61,16 @@ public class SingleWidgetView extends JPanel {
   MarginWidget mLeftMargin = new MarginWidget(SwingConstants.CENTER);
   MarginWidget mRightMargin = new MarginWidget(SwingConstants.CENTER);
   MarginWidget mBottomMargin = new MarginWidget(SwingConstants.LEFT);
-
+  HConstraintDisplay mHbar1 = new HConstraintDisplay(mColorSet, true);
+  HConstraintDisplay mHbar2 = new HConstraintDisplay(mColorSet, false);
+  VConstraintDisplay mVbar1 = new VConstraintDisplay(mColorSet, true);
+  VConstraintDisplay mVbar2 = new VConstraintDisplay(mColorSet, false);
   KillButton mTopKill = new KillButton(mColorSet);
   KillButton mLeftKill = new KillButton(mColorSet);
   KillButton mRightKill = new KillButton(mColorSet);
   KillButton mBottomKill = new KillButton(mColorSet);
+  KillButton mBaselineKill = new KillButton(mColorSet);
+
   public SingleWidgetView(WidgetConstraintPanel constraintPanel) {
     super(null);
     mWidgetConstraintPanel = constraintPanel;
@@ -90,13 +93,22 @@ public class SingleWidgetView extends JPanel {
     add(mLeftKill);
     add(mRightKill);
     add(mBottomKill);
-    //mTopKill.addActionListener(al);
-    //mLeftKill.addActionListener(al);
-    //mRightKill.addActionListener(al);
-    //mBottomKill.addActionListener(al);
+    add(mBaselineKill);
+    add(mHbar1);
+    add(mHbar2);
+    add(mVbar1);
+    add(mVbar2);
 
+    mTopKill.addActionListener(e -> mWidgetConstraintPanel.killTopConstraint());
+    mLeftKill.addActionListener(e -> mWidgetConstraintPanel.killLeftConstraint());
+    mRightKill.addActionListener(e -> mWidgetConstraintPanel.killRightConstraint());
+    mBottomKill.addActionListener(e -> mWidgetConstraintPanel.killTopConstraint());
+    mBaselineKill.addActionListener(e -> mWidgetConstraintPanel.killTopConstraint());
+    mHbar1.addPropertyChangeListener(TriStateControl.STATE, e -> mHbar2.setState(mHbar1.getState()));
+    mHbar2.addPropertyChangeListener(TriStateControl.STATE, e -> mHbar1.setState(mHbar2.getState()));
+    mVbar1.addPropertyChangeListener(TriStateControl.STATE, e -> mVbar2.setState(mVbar1.getState()));
+    mVbar2.addPropertyChangeListener(TriStateControl.STATE, e -> mVbar1.setState(mVbar2.getState()));
 
-    setBackground(null);
     addMouseMotionListener(new MouseMotionAdapter() {
       @Override
       public void mouseMoved(MouseEvent e) {
@@ -130,10 +142,20 @@ public class SingleWidgetView extends JPanel {
     mRightMargin.setBounds(boxLeft + mBoxSize + (hSpace - cw) / 2, vgap + (mHeight - ch) / 2, cw, ch);
     mBottomMargin.setBounds(hgap + mWidth / 2, boxTop + mBoxSize + (vSpace - ch) / 2, cw, ch);
     int rad = 10;
-    mTopKill.setBounds(boxLeft + mBoxSize / 2 - rad, boxTop - rad, rad*2, rad*2);
-    mLeftKill.setBounds(boxLeft - 5, boxTop + mBoxSize / 2 - rad, rad*2, rad*2);
-    mRightKill.setBounds(boxLeft + mBoxSize - rad, boxTop + mBoxSize / 2 - rad, rad*2, rad*2);
-    mBottomKill.setBounds(boxLeft + mBoxSize / 2 - rad, boxTop + mBoxSize - rad, rad*2, rad*2);
+    int size = rad * 2 + 1;
+    mTopKill.setBounds(boxLeft + mBoxSize / 2 - rad, boxTop - rad, size + 2, size);
+    mLeftKill.setBounds(boxLeft - rad, boxTop + mBoxSize / 2 - rad, size + 2, size);
+    mRightKill.setBounds(boxLeft + mBoxSize - rad, boxTop + mBoxSize / 2 - rad, size + 2, size);
+    mBottomKill.setBounds(boxLeft + mBoxSize / 2 - rad, boxTop + mBoxSize - rad, size + 2, size);
+    mBaselineKill.setBounds(boxLeft + mBoxSize - rad, boxTop + (2 * mBoxSize) / 3 - rad, size + 2, size);
+    int barSize = 10;
+    int barLong = mBoxSize / 2 - barSize - 1;
+
+    mHbar1.setBounds(1 + boxLeft, boxTop + mBoxSize / 2 - barSize / 2, barLong, barSize);
+    mHbar2.setBounds(boxLeft + mBoxSize / 2 + barSize, boxTop + mBoxSize / 2 - barSize / 2, barLong, barSize);
+    mVbar1.setBounds(boxLeft + mBoxSize / 2 - barSize / 2, 1 + boxTop, barSize, barLong);
+    mVbar2.setBounds(boxLeft + mBoxSize / 2 - barSize / 2, boxTop + mBoxSize / 2 + barSize, barSize, barLong);
+
   }
 
   @Override
@@ -151,24 +173,64 @@ public class SingleWidgetView extends JPanel {
     if (redraw) {
       repaint();
     }
-
   }
 
+  /**
+   * Buttons that can kill the constraint
+   */
   static class KillButton extends JButton {
     boolean mMouseIn;
+    boolean mShow = true;
     ColorSet mColorSet;
     private static int sCircleRadius = 10;
 
-    static Dimension size = new Dimension(sCircleRadius*2,sCircleRadius*2);
+    @Override
+    public void paint(Graphics g) {
+      if (mMouseIn && mShow) {
+        super.paint(g);
+      }
+    }
+
+    public void setShown(boolean show) {
+      mShow = show;
+    }
+
+    public KillButton(ColorSet colorSet) {
+      mColorSet = colorSet;
+      setIcon(icon);
+      setPreferredSize(size);
+      setSize(size);
+      setFocusPainted(false);
+      setOpaque(true);
+      setContentAreaFilled(false);
+      setBorderPainted(false);
+
+      addMouseListener(new java.awt.event.MouseAdapter() {
+        @Override
+        public void mouseEntered(java.awt.event.MouseEvent evt) {
+          mMouseIn = true;
+          repaint();
+        }
+
+        @Override
+        public void mouseExited(java.awt.event.MouseEvent evt) {
+          mMouseIn = false;
+          repaint();
+        }
+      });
+    }
+
+    static Dimension size = new Dimension(sCircleRadius * 2, sCircleRadius * 2);
     Icon icon = new Icon() {
 
       @Override
       public void paintIcon(Component c, Graphics g, int x, int y) {
         g.setColor(Color.BLUE);
-        if (mMouseIn || hasFocus()) {
-          g.fillRoundRect(x, y, size.width, size.height, size.width, size.height);
+        if (mMouseIn) {
+          drawCircle((Graphics2D)g, x + sCircleRadius, y + sCircleRadius, sCircleRadius, true);
         }
       }
+
       /**
        * Draw a circle representing the connection
        *
@@ -179,7 +241,7 @@ public class SingleWidgetView extends JPanel {
        * @param full   if the circle is full or not
        */
       private void drawCircle(Graphics2D g2, int x, int y, int radius, boolean full) {
-        Graphics2D g = (Graphics2D) g2.create();
+        Graphics2D g = (Graphics2D)g2.create();
         Ellipse2D.Float circle = new Ellipse2D.Float(x - radius, y - radius,
                                                      radius * 2, radius * 2);
         g.setColor(mColorSet.getInspectorStroke());
@@ -206,46 +268,18 @@ public class SingleWidgetView extends JPanel {
         }
         g.dispose();
       }
+
       @Override
       public int getIconWidth() {
-        return sCircleRadius*2;
+        return sCircleRadius * 2 + 2;
       }
 
       @Override
       public int getIconHeight() {
-        return sCircleRadius*2;
+        return sCircleRadius * 2;
       }
     };
-
-
-
-
-    public KillButton(ColorSet colorSet) {
-      mColorSet = colorSet;
-      setIcon(icon);
-      setPreferredSize(size);
-      setSize(size);
-      //setFocusPainted(false);
-      setOpaque(false);
-      setContentAreaFilled(false);
-      setBorderPainted(false);
-      addMouseListener(new java.awt.event.MouseAdapter() {
-        @Override
-        public void mouseEntered(java.awt.event.MouseEvent evt) {
-          mMouseIn = true;
-           repaint();
-        }
-
-        @Override
-        public void mouseExited(java.awt.event.MouseEvent evt) {
-          mMouseIn = false;
-          repaint();
-        }
-      });
-    }
   }
-
-
 
   /**
    * This configures the display
@@ -256,7 +290,7 @@ public class SingleWidgetView extends JPanel {
    * @param left   sets the margin -1 = no margin
    * @param right  sets the margin -1 = no margin
    */
-  public void configureUi(String name, int bottom, int top, int left, int right) {
+  public void configureUi(String name, int bottom, int top, int left, int right, String baseline) {
     mTopMargin.setVisible(top >= 0);
     mLeftMargin.setVisible(left >= 0);
     mRightMargin.setVisible(right >= 0);
@@ -270,6 +304,12 @@ public class SingleWidgetView extends JPanel {
     mWidgetRender.mMarginTop = top;
     mWidgetRender.mMarginLeft = left;
     mWidgetRender.mMarginRight = right;
+    mWidgetRender.mBaseline = (baseline != null);
+    mTopKill.setVisible(top >= 0);
+    mLeftKill.setVisible(left >= 0);
+    mRightKill.setVisible(right >= 0);
+    mBottomKill.setVisible(bottom >= 0);
+    mBaselineKill.setVisible(baseline != null);
   }
 
   /**
@@ -277,8 +317,106 @@ public class SingleWidgetView extends JPanel {
    */
   interface Graphic {
     boolean paint(Graphics2D g);
+  }
 
-    boolean click(Point p);
+  class Box implements Graphic {
+    int mX, mY, mWidth, mHeight;
+
+    Box(int x, int y, int w, int h) {
+      mX = x;
+      mY = y;
+      mHeight = h;
+      mWidth = w;
+    }
+
+    @Override
+    public boolean paint(Graphics2D g) {
+      g.drawRect(mX, mY, mWidth, mHeight);
+      return false;
+    }
+
+  }
+
+  class BaseLineBox extends Box {
+    String mTitle = null;
+    boolean mBaseline;
+    boolean mDisplay;
+
+    BaseLineBox(String title, int x, int y, int w, int h, boolean baseline, boolean display) {
+      super(x, y, w, h);
+      mTitle = title;
+      mBaseline = baseline;
+      mDisplay = display;
+    }
+
+    @Override
+    public boolean paint(Graphics2D g) {
+      super.paint(g);
+      if (mDisplay) {
+        if (mBaseline) {
+          int y = mY + (2 * mHeight) / 3;
+          g.drawLine(mX, y, mX + mWidth, y);
+        }
+        if (mTitle != null) {
+          int decent = g.getFontMetrics().getDescent();
+          g.drawString(mTitle, mX + 2, mY + mHeight - decent);
+        }
+      }
+      return false;
+    }
+
+  }
+
+  class LineArrow implements Graphic {
+    int mX1, mY1, mX2, mY2;
+    boolean mDisplay;
+
+    LineArrow(int x1, int y1, int x2, int y2, boolean display) {
+      mX1 = x1;
+      mY1 = y1;
+      mX2 = x2;
+      mY2 = y2;
+      mDisplay = display;
+    }
+
+    @Override
+    public boolean paint(Graphics2D g) {
+      if (mDisplay) {
+        g.drawLine(mX1, mY1, mX2, mY2);
+      }
+      return false;
+    }
+
+  }
+
+  class SplineArrow implements Graphic {
+    int mX1, mY1, mX2, mY2;
+    boolean mDisplay;
+    Path2D.Float mPath;
+
+    SplineArrow(int x1, int y1, int x2, int y2, boolean vertical, boolean display) {
+      mX1 = x1;
+      mY1 = y1;
+      mX2 = x2;
+      mY2 = y2;
+      mPath = new Path2D.Float();
+      mPath.moveTo(x1, y1);
+      if (vertical) {
+        mPath.curveTo(x1, y2, x2, y1, x2, y2);
+      }
+      else {
+        mPath.curveTo(x2, y1, x1, y2, x2, y2);
+      }
+      mDisplay = display;
+    }
+
+    @Override
+    public boolean paint(Graphics2D g) {
+      if (mDisplay) {
+        g.draw(mPath);
+      }
+      return false;
+    }
   }
 
   /**
@@ -294,35 +432,25 @@ public class SingleWidgetView extends JPanel {
     int mMarginTop;
     int mMarginRight;
     int mMarginBottom;
+    boolean mBaseline;
     String mWidgetName = "";
-    ConstraintWidget mWidgetCenter;
-    ConstraintWidget mWidgetLeft;
-    ConstraintWidget mWidgetRight;
-    ConstraintWidget mWidgetTop;
-    ConstraintWidget mWidgetBottom;
+    Box mWidgetCenter;
+    Box mWidgetLeft;
+    Box mWidgetRight;
+    Box mWidgetTop;
+    Box mWidgetBottom;
+    Box mWidgetBase;
+    LineArrow mTopArrow;
+    LineArrow mLeftArrow;
+    LineArrow mRightArrow;
+    LineArrow mBottomArrow;
+    SplineArrow mBaselineArrow;
 
     void setConstraints(int left, int top, int right, int bottom) {
-      mMarginLeft = left;
       mMarginTop = top;
+      mMarginLeft = left;
       mMarginRight = right;
       mMarginBottom = bottom;
-      connect();
-    }
-
-    void connect() {
-      mWidgetCenter.resetAnchors();
-      if (mMarginLeft >= 0) {
-        mWidgetCenter.connect(ConstraintAnchor.Type.LEFT, mWidgetLeft, ConstraintAnchor.Type.RIGHT, mMarginLeft);
-      }
-      if (mMarginTop >= 0) {
-        mWidgetCenter.connect(ConstraintAnchor.Type.TOP, mWidgetTop, ConstraintAnchor.Type.BOTTOM, mMarginTop);
-      }
-      if (mMarginRight >= 0) {
-        mWidgetCenter.connect(ConstraintAnchor.Type.RIGHT, mWidgetRight, ConstraintAnchor.Type.LEFT, mMarginRight);
-      }
-      if (mMarginBottom >= 0) {
-        mWidgetCenter.connect(ConstraintAnchor.Type.BOTTOM, mWidgetBottom, ConstraintAnchor.Type.TOP, mMarginBottom);
-      }
     }
 
     /**
@@ -341,92 +469,348 @@ public class SingleWidgetView extends JPanel {
       mRoot.setWidth(width + 1);
       mRoot.setHeight(height + 1);
       mRoot.forceUpdateDrawPosition();
-
       mWidgetsScene = new WidgetsScene();
       mWidgetsScene.setRoot(mRoot);
-
       mBoxSize = Math.min(width, height) / 2;
 
       int inset = 5 + width / 100;
       int boxLeft = (width - mBoxSize) / 2;
       int boxTop = (height - mBoxSize) / 2;
 
-      mWidgetCenter = addWidget(mWidgetName, boxLeft, boxTop, mBoxSize, mBoxSize);
+      mWidgetCenter = new BaseLineBox(null, boxLeft, boxTop, mBoxSize, mBoxSize, mBaseline, true);
 
-      mWidgetRight = addWidget(" ", width - inset, boxTop, mBoxSize, mBoxSize);
-      mWidgetBottom = addWidget("  ", boxLeft, height - inset, mBoxSize, mBoxSize);
-      mWidgetLeft = addWidget("   ", inset - mBoxSize, boxTop, mBoxSize, mBoxSize);
-      mWidgetTop = addWidget("    ", boxLeft, inset - mBoxSize, mBoxSize, mBoxSize);
+      mWidgetRight = new Box(width - inset, boxTop, mBoxSize, mBoxSize);
+      mWidgetBottom = new Box(boxLeft, height - inset, mBoxSize, mBoxSize);
+      mWidgetLeft = new Box(inset - mBoxSize, boxTop, mBoxSize, mBoxSize);
+      mWidgetTop = new Box(boxLeft, inset - mBoxSize, mBoxSize, mBoxSize);
+      // TODO support left vs right
+      //  mWidgetBase = new BaseLineBox(null, inset - mBoxSize, boxTop + mBoxSize + 10, mBoxSize, mBoxSize / 2, true);
 
+      int endPointY = boxTop + mBoxSize + 10;
+      mWidgetBase = new BaseLineBox(null, width - inset, endPointY, mBoxSize, mBoxSize / 2, mBaseline, mBaseline);
+      mBaselineArrow =
+        new SplineArrow(boxLeft + mBoxSize, boxTop + (2 * mBoxSize) / 3, width - inset, endPointY + mBoxSize / 3, false, mBaseline);
 
-      Selection mSelection = new Selection(null);
-      WidgetMotion mWidgetMotion = new WidgetMotion(mWidgetsScene, mSelection);
-      WidgetResize mWidgetResize = new WidgetResize();
-      mSceneDraw = new SceneDraw(mColorSet, mWidgetsScene, mSelection,
-                                 mWidgetMotion, mWidgetResize);
-      mSceneDraw.setApplyConstraints(false);
-      mSceneDraw.setDrawOutsideShade(true);
-      mSceneDraw.setDrawResizeHandle(true);
-      mMouseInteraction = new MouseInteraction(mViewTransform,
-                                               mWidgetsScene, mSelection,
-                                               mWidgetMotion, mWidgetResize,
-                                               mSceneDraw, mMouseInteraction);
-      connect();
-    }
+      mTopArrow = new LineArrow(width / 2, boxTop, width / 2, inset, (mMarginTop >= 0));
+      mLeftArrow = new LineArrow(boxLeft, height / 2, inset, height / 2, (mMarginLeft >= 0));
+      mRightArrow = new LineArrow(boxLeft + mBoxSize, height / 2, width - inset, height / 2, (mMarginRight >= 0));
+      mBottomArrow = new LineArrow(width / 2, boxTop + mBoxSize, width / 2, height - inset, (mMarginBottom >= 0));
 
-    /**
-     * Utility used to build a single widget in the scene
-     *
-     * @param str
-     * @param x
-     * @param y
-     * @param w
-     * @param h
-     * @return
-     */
-    ConstraintWidget addWidget(String str, int x, int y, int w, int h) {
-      ConstraintWidget widget = new ConstraintWidget();
-      widget.setType("TextView");
-      widget.setDebugName(str);
-      widget.setOrigin(x, y);
-      widget.setWidth(w);
-      widget.setHeight(h);
-      widget.forceUpdateDrawPosition();
-      TextWidget decorator = new TextWidget(widget, str);
-      WidgetCompanion companion = new WidgetCompanion();
-      companion.addDecorator(decorator);
-      companion.setWidgetInteractionTargets(new WidgetInteractionTargets(widget));
-      widget.setCompanionWidget(companion);
-      decorator.setTextSize(h * 1.2f);
-      decorator.applyDimensionBehaviour();
-      widget.setWidth(w);
-      widget.setHeight(h);
-      mRoot.add(widget);
-      mWidgetsScene.addWidget(widget);
-      return widget;
     }
 
     @Override
     public boolean paint(Graphics2D g) {
-
-      ViewTransform mViewTransform = new ViewTransform();
-      mViewTransform.setTranslate(0, 0);
-      mViewTransform.setScale(1);
       g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
       g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+      g.setColor(mColorSet.getBackground());
+      g.fillRect(0, 0, getWidth(), getHeight());
+      g.setColor(mColorSet.getFrames());
+      mWidgetCenter.paint(g);
+      mWidgetLeft.paint(g);
+      mWidgetRight.paint(g);
+      mWidgetTop.paint(g);
+      mWidgetBottom.paint(g);
+      mWidgetBase.paint(g);
+      mTopArrow.paint(g);
+      mLeftArrow.paint(g);
+      mRightArrow.paint(g);
+      mBottomArrow.paint(g);
+      mBaselineArrow.paint(g);
 
-      int rootMargin = 0;
-      boolean redraw = mSceneDraw.drawBackground(mViewTransform, g,
-                                          rootMargin, getWidth(), getHeight());
+      return false;
+    }
 
-      redraw |= mSceneDraw.paintWidgets(getWidth(), getHeight(),
-                                        mViewTransform, g, true, mMouseInteraction);
-      return redraw;
+  }
+
+
+
+  /*-----------------------------------------------------------------------*/
+  // TriStateControl
+  /*-----------------------------------------------------------------------*/
+
+  static class TriStateControl extends JComponent {
+    boolean mMouseIn;
+    int mState;
+    Color mBackground;
+    Color mLineColor;
+    public final static String STATE = "state";
+
+    TriStateControl(ColorSet colorSet) {
+      mBackground = colorSet.getBackground();
+      mLineColor = colorSet.getConstraints();
+      setPreferredSize(new Dimension(200, 30));
+
+      addMouseListener(new MouseAdapter() {
+        @Override
+        public void mouseClicked(MouseEvent e) {
+          int oldValue = mState;
+          mState = (mState + 1) % 3;
+          firePropertyChange(STATE, oldValue, mState);
+          repaint();
+        }
+
+        @Override
+        public void mouseExited(MouseEvent e) {
+          mMouseIn = false;
+          repaint();
+        }
+
+        @Override
+        public void mouseEntered(MouseEvent e) {
+          mMouseIn = true;
+          repaint();
+        }
+      });
+      addComponentListener(new ComponentAdapter() {
+        @Override
+        public void componentResized(ComponentEvent e) {
+          resize();
+        }
+      });
+    }
+
+    public int getState() {
+      return mState;
+    }
+
+    public void setState(int state) {
+      mState = state;
+      repaint();
+    }
+
+    void resize() {
     }
 
     @Override
-    public boolean click(Point p) {
-      return false;
+    protected void paintComponent(Graphics g) {
+      int width = getWidth();
+      int height = getHeight();
+      g.setColor(mBackground);
+      g.fillRect(0, 0, getWidth(), getHeight());
+      ((Graphics2D)g).setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+      g.setColor(mMouseIn ? Color.WHITE : mLineColor);
+      drawState(g, width, height);
+    }
+
+    void drawState(Graphics g, int width, int height) {
+
     }
   }
+
+  /*-----------------------------------------------------------------------*/
+  // HConstraintDisplay
+  /*-----------------------------------------------------------------------*/
+
+  static class HConstraintDisplay extends TriStateControl {
+    boolean mDirection;
+
+    HConstraintDisplay(ColorSet colorSet, boolean direction) {
+      super(colorSet);
+      mDirection = direction;
+      setPreferredSize(new Dimension(200, 30));
+    }
+
+    @Override
+    void resize() {
+
+    }
+
+    @Override
+    void drawState(Graphics g, int width, int height) {
+      int start = 5;
+      int end = width - 5;
+      int pos = height / 2;
+      switch (mState) {
+        case 0:
+          drawFixedHorizontalConstraint(g, start, pos, end);
+          break;
+        case 1:
+          drawSpringHorizontalConstraint(g, start, pos, end);
+          break;
+        case 2:
+          drawWrapHorizontalConstraint(g, start, pos, end, mDirection);
+          break;
+      }
+    }
+
+    /**
+     * Utility function to draw an horizontal spring
+     *
+     * @param g graphics context
+     * @param l left end
+     * @param y y origin
+     * @param r right end
+     */
+
+    private void drawSpringHorizontalConstraint(Graphics g, int l, int y, int r) {
+      int m = 6;
+      int d = 3;
+      int w = (r - l);
+      int ni = (w / (2 * d)) - 1;
+      int margin = (w - (ni * 2 * d)) / 2;
+
+      g.drawLine(l, y - m, l, y + m);
+      g.drawLine(l, y, l + margin, y);
+      for (int i = l + margin; i <= r - margin - 2 * d; i += 2 * d) {
+        g.drawLine(i, y, i + d, y - d);
+        g.drawLine(i + d, y - d, i + d, y + d);
+        g.drawLine(i + d, y + d, i + 2 * d, y);
+      }
+      g.drawLine(r - margin, y, r, y);
+      g.drawLine(r, y - m, r, y + m);
+    }
+
+    /**
+     * Utility function to draw the wrap horizontal constraint (drawing chevrons)
+     *
+     * @param g                    graphics context
+     * @param l                    left end
+     * @param y                    y origin
+     * @param r                    right end
+     * @param directionLeftToRight indicates the direction of the chevrons
+     */
+    private void drawWrapHorizontalConstraint(Graphics g, int l, int y, int r,
+                                              boolean directionLeftToRight) {
+      int d = 4;
+      int w = (r - l);
+      int ni = (w / (2 * d)) - 1;
+      int margin = (w - (ni * 2 * d)) / 2;
+
+      Graphics2D g2 = (Graphics2D)g;
+      if (directionLeftToRight) {
+        for (int i = l + margin; i <= r - margin; i += 2 * d) {
+          g2.drawLine(i, y - d, i + d, y);
+          g2.drawLine(i + d, y, i, y + d);
+        }
+      }
+      else {
+        for (int i = l + margin; i <= r - margin; i += 2 * d) {
+          g2.drawLine(i, y - d, i - d, y);
+          g2.drawLine(i - d, y, i, y + d);
+        }
+      }
+    }
+
+    /**
+     * Utility function to draw a fixed horizontal constraint
+     *
+     * @param g graphics context
+     * @param l left end
+     * @param y y origin
+     * @param r right end
+     */
+    private void drawFixedHorizontalConstraint(Graphics g, int l, int y, int r) {
+      int m = 6;
+      g.drawLine(l, y - m, l, y + m);
+      g.drawLine(l, y, r, y);
+      g.drawLine(r, y - m, r, y + m);
+    }
+
+  }
+
+  /*-----------------------------------------------------------------------*/
+  // VConstraintDisplay
+   /*-----------------------------------------------------------------------*/
+
+  static class VConstraintDisplay extends TriStateControl {
+    boolean mDirection;
+
+    VConstraintDisplay(ColorSet colorSet, boolean direction) {
+      super(colorSet);
+      mDirection = direction;
+      setPreferredSize(new Dimension(30, 200));
+    }
+
+    @Override
+    void drawState(Graphics g, int width, int height) {
+      int start = 5;
+      int end = height - 5;
+      int pos = width / 2;
+      switch (mState) {
+        case 0:
+          drawFixedVerticalConstraint(g, start, pos, end);
+          break;
+        case 1:
+          drawSpringVerticalConstraint(g, start, pos, end);
+          break;
+        case 2:
+          drawWrapVerticalConstraint(g, start, pos, end, mDirection);
+          break;
+      }
+    }
+
+    /**
+     * Utility function to draw a vertical spring
+     *
+     * @param g graphics context
+     * @param t top end
+     * @param x x origin
+     * @param b bottom end
+     */
+    private void drawSpringVerticalConstraint(Graphics g, int t, int x, int b) {
+      int m = 6;
+      int d = 3;
+      int h = (b - t);
+      int ni = (h / (2 * d)) - 1;
+      int margin = (h - (ni * 2 * d)) / 2;
+
+      g.drawLine(x - m, t, x + m, t);
+      g.drawLine(x, t, x, t + margin);
+      for (int i = t + margin; i <= b - margin - 2 * d; i += 2 * d) {
+        g.drawLine(x, i, x + d, i + d);
+        g.drawLine(x + d, i + d, x - d, i + d);
+        g.drawLine(x - d, i + d, x, i + 2 * d);
+      }
+      g.drawLine(x, b - margin, x, b);
+      g.drawLine(x - m, b, x + m, b);
+    }
+
+    /**
+     * Utility function to draw a vertical constraint
+     *
+     * @param g graphics context
+     * @param t top end
+     * @param x x origin
+     * @param b bottom end
+     */
+    private void drawFixedVerticalConstraint(Graphics g, int t, int x, int b) {
+      int m = 6;
+      g.drawLine(x - m, t, x + m, t);
+      g.drawLine(x, t, x, b);
+      g.drawLine(x - m, b, x + m, b);
+    }
+
+    /**
+     * Utility function to draw the wrap vertical constraint (drawing chevrons)
+     *
+     * @param g           graphics context
+     * @param t           top end
+     * @param x           x origin
+     * @param b           bottom end
+     * @param topToBottom indicates the direction of the chevrons
+     */
+    private void drawWrapVerticalConstraint(Graphics g, int t, int x, int b,
+                                            boolean topToBottom) {
+      int m = 6;
+      int d = 4;
+      int h = (b - t);
+      int ni = (h / (2 * d)) - 1;
+      int margin = (h - (ni * 2 * d)) / 2;
+
+      if (topToBottom) {
+        for (int i = t + margin; i <= b - margin; i += 2 * d) {
+          g.drawLine(x - d, i, x, i + d);
+          g.drawLine(x, i + d, x + d, i);
+        }
+      }
+      else {
+        for (int i = t + margin; i <= b - margin; i += 2 * d) {
+          g.drawLine(x - d, i + d, x, i);
+          g.drawLine(x, i, x + d, i + d);
+        }
+      }
+    }
+
+  }
+
 }
