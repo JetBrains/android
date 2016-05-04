@@ -25,6 +25,7 @@ import com.android.sdklib.devices.Abi;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.sdklib.internal.avd.GpuMode;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.meta.DetailsTypes;
@@ -70,7 +71,7 @@ public class AndroidVirtualDevice extends InstallableComponent {
 
   private static final Set<String> ENABLED_HARDWARE = ImmutableSet
     .of(HW_ACCELEROMETER, HW_AUDIO_INPUT, HW_BATTERY, HW_GPS, HW_KEYBOARD, HW_ORIENTATION_SENSOR, HW_PROXIMITY_SENSOR, HW_SDCARD,
-        AVD_INI_GPU_EMULATION, AVD_INI_GPU_MODE);
+        AVD_INI_GPU_EMULATION);
   private static final Set<String> DISABLED_HARDWARE = ImmutableSet.of(HW_DPAD, HW_MAINKEYS, HW_TRACKBALL, AVD_INI_SNAPSHOT_PRESENT);
   private ProgressStep myProgressStep;
   @Nullable
@@ -140,6 +141,7 @@ public class AndroidVirtualDevice extends InstallableComponent {
 
   private static Map<String, String> getAvdSettings(@NotNull String internalName, @NotNull Device device) {
     Map<String, String> result = Maps.newHashMap();
+    result.put(AVD_INI_GPU_MODE, GpuMode.AUTO.getGpuSetting());
     for (String key : ENABLED_HARDWARE) {
       result.put(key, BOOLEAN_YES);
     }
