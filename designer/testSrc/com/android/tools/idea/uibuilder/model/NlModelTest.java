@@ -15,10 +15,26 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
+import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.tools.idea.rendering.TagSnapshot;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.LayoutTestUtilities;
 import com.android.tools.idea.uibuilder.fixtures.ComponentDescriptor;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
+import com.google.common.collect.Lists;
+import com.intellij.ide.actions.UndoAction;
+import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.command.undo.UndoManager;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.project.Project;
+import com.intellij.psi.PsiDocumentManager;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.ui.UIUtil;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 import static com.android.SdkConstants.*;
 import static com.google.common.truth.Truth.assertThat;
@@ -267,6 +283,95 @@ public class NlModelTest extends LayoutTestCase {
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x1000, instance=0}\n" +
                  "    NlComponent{tag=<EditText>, bounds=[100,100:100x100, instance=3}\n" +
                  "    NlComponent{tag=<TextView>, bounds=[100,100:100x100, instance=1}",
+                 LayoutTestUtilities.toTree(model.getComponents(), true));
+  }
+
+  public void testMoveInHierarchyWithWrongXmlTags() throws Exception {
+    LayoutTestUtilities.resetComponentTestIds();
+    ModelBuilder modelBuilder = model("linear.xml", component(LINEAR_LAYOUT)
+      .withBounds(0, 0, 1000, 1000)
+      .matchParentWidth()
+      .matchParentHeight()
+      .withAttribute(ANDROID_URI, ATTR_ORIENTATION, VALUE_VERTICAL)
+      .children(
+        component(FRAME_LAYOUT)
+          .withBounds(100, 100, 100, 100)
+          .width("100dp")
+          .height("100dp")
+          .children(
+            component(BUTTON)
+              .withBounds(100, 100, 100, 100)
+              .width("100dp")
+              .height("100dp")
+      )));
+
+    NlModel model = modelBuilder.build();
+
+    assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x1000, instance=0}\n" +
+                 "    NlComponent{tag=<FrameLayout>, bounds=[100,100:100x100, instance=1}\n" +
+                 "        NlComponent{tag=<Button>, bounds=[100,100:100x100, instance=2}",
+                 LayoutTestUtilities.toTree(model.getComponents(), true));
+
+    XmlTag originalRoot = model.getFile().getRootTag();
+    assertThat(originalRoot).isNotNull();
+    XmlTag originalFrameLayout = originalRoot.getSubTags()[0];
+
+    final Project project = model.getProject();
+    WriteCommandAction.runWriteCommandAction(project, new Runnable() {
+      @Override
+      public void run() {
+        PsiDocumentManager manager = PsiDocumentManager.getInstance(project);
+        Document document = manager.getDocument(model.getFile());
+        assertThat(document).isNotNull();
+        document.setText("<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                         "    android:layout_width=\"match_parent\"\n" +
+                         "    android:layout_height=\"match_parent\"\n" +
+                         "    android:orientation=\"vertical\">\n" +
+                         "    <Button\n" +
+                         "        android:layout_width=\"100dp\"\n" +
+                         "        android:layout_height=\"100dp\"\n" +
+                         "        android:text=\"Button\" />\n" +
+                         "    <FrameLayout\n" +
+                         "        android:layout_width=\"100dp\"\n" +
+                         "        android:layout_height=\"100dp\">\n" +
+                         "\n" +
+                         "    </FrameLayout>\n" +
+                         "\n" +
+                         "</LinearLayout>");
+        manager.commitAllDocuments();
+      }
+    });
+
+    // Manually construct the view hierarchy
+    // Assert that component identity is preserved
+    List<ViewInfo> views = Lists.newArrayList();
+    XmlTag newRoot = model.getFile().getRootTag();
+    assertThat(newRoot).isNotNull();
+    XmlTag[] newRootSubTags = newRoot.getSubTags();
+    XmlTag newButton = newRootSubTags[0];
+
+    assertThat(originalRoot).isSameAs(newRoot);
+
+    assertThat(originalFrameLayout).isSameAs(newButton);
+
+    TagSnapshot snapshot = TagSnapshot.createTagSnapshot(newRoot);
+    ViewInfo viewInfo = new ViewInfo("android.widget.LinearLayout", snapshot, 0, 0, 500, 500);
+    views.add(viewInfo);
+
+    ViewInfo buttonInfo = new ViewInfo("android.widget.Button", snapshot.children.get(0), 0, 0, 500, 500);
+    buttonInfo.setChildren(Collections.emptyList());
+    ViewInfo frameViewInfo = new ViewInfo("android.widget.TextView", snapshot.children.get(1), 0, 0, 300, 300);
+    frameViewInfo.setChildren(Collections.emptyList());
+    viewInfo.setChildren(Arrays.asList(buttonInfo, frameViewInfo));
+
+    model.updateHierarchy(newRoot, views);
+
+    assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:500x500, instance=3}\n" +
+                 // Make sure these instances are NOT reusing instances from before that
+                 // mismatch, e.g. we should not get <Button> with instance=1 here
+                 // since before the reparse instance=1 was associated with a <FrameLayout> !
+                 "    NlComponent{tag=<Button>, bounds=[0,0:500x500, instance=4}\n" +
+                 "    NlComponent{tag=<FrameLayout>, bounds=[0,0:300x300, instance=5}",
                  LayoutTestUtilities.toTree(model.getComponents(), true));
   }
 
