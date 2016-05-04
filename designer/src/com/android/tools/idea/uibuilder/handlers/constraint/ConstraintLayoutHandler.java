@@ -165,6 +165,9 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
    * @param selection
    */
   public void updateActions(Selection selection) {
+    if (myActions == null) {
+      return;
+    }
     for (ViewAction action : myActions) {
       if (action instanceof Enableable) {
         Enableable e = (Enableable)action;

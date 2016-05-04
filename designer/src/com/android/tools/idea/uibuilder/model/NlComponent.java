@@ -492,7 +492,7 @@ public class NlComponent {
    */
   public void setAttribute(@Nullable String namespace, @NotNull String attribute, @Nullable String value) {
     String prefix = null;
-    if (namespace != null) {
+    if (namespace != null && ANDROID_URI.equals(namespace)) {
       prefix = AndroidResourceUtil.ensureNamespaceImported((XmlFile)myTag.getContainingFile(), namespace, null);
     }
 
