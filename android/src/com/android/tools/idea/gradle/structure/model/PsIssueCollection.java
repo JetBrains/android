@@ -16,26 +16,23 @@
 package com.android.tools.idea.gradle.structure.model;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
-import com.android.tools.idea.gradle.structure.model.android.PsLibraryDependency;
-import com.android.tools.idea.gradle.structure.navigation.PsLibraryDependencyPath;
-import com.android.tools.idea.gradle.structure.navigation.PsModulePath;
-import com.android.tools.idea.gradle.structure.navigation.PsNavigationPath;
+import com.android.tools.idea.gradle.structure.configurables.issues.IssuesByTypeAndTextComparator;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidLibraryDependency;
+import com.android.tools.idea.gradle.structure.navigation.PsLibraryDependencyNavigationPath;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.util.containers.ConcurrentMultiMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.intellij.xml.util.XmlStringUtil.escapeString;
+import static com.android.tools.idea.gradle.structure.model.PsPath.TexType.PLAIN_TEXT;
 
 public class PsIssueCollection {
-  @NotNull private final ConcurrentMultiMap<PsNavigationPath, PsIssue> myIssues = new ConcurrentMultiMap<>();
+  @NotNull private final ConcurrentMultiMap<PsPath, PsIssue> myIssues = new ConcurrentMultiMap<>();
   @NotNull private final PsContext myContext;
 
   public PsIssueCollection(@NotNull PsContext context) {
@@ -43,8 +40,9 @@ public class PsIssueCollection {
   }
 
   public void add(@NotNull PsIssue issue) {
-    myIssues.putValue(issue.getPath(), issue);
-    PsNavigationPath extraPath = issue.getExtraPath();
+    PsPath path = issue.getPath();
+    myIssues.putValue(path, issue);
+    PsPath extraPath = issue.getExtraPath();
     if (extraPath != null) {
       myIssues.putValue(extraPath, issue);
     }
@@ -52,33 +50,45 @@ public class PsIssueCollection {
 
   @NotNull
   public List<PsIssue> findIssues(@NotNull PsModel model, @Nullable Comparator<PsIssue> comparator) {
-    PsNavigationPath path = null;
+    PsPath path = null;
     if (model instanceof PsModule) {
       PsModule module = (PsModule)model;
       path = new PsModulePath(module);
     }
-    if (model instanceof PsLibraryDependency) {
-      PsLibraryDependency dependency = (PsLibraryDependency)model;
-      path = new PsLibraryDependencyPath(myContext, dependency);
+
+    if (model instanceof PsAndroidLibraryDependency) {
+      PsAndroidLibraryDependency dependency = (PsAndroidLibraryDependency)model;
+      path = new PsLibraryDependencyNavigationPath(myContext, dependency);
     }
+
     if (path != null) {
       return findIssues(path, comparator);
     }
+
     return Collections.emptyList();
   }
 
   @NotNull
-  public List<PsIssue> findIssues(@NotNull PsNavigationPath path, @Nullable Comparator<PsIssue> comparator) {
-    List<PsIssue> issues = Lists.newArrayList(myIssues.get(path));
-    if (comparator != null && issues.size() > 1) {
-      Collections.sort(issues, comparator);
+  public List<PsIssue> findIssues(@NotNull PsPath path, @Nullable Comparator<PsIssue> comparator) {
+    Set<PsIssue> issues = Sets.newHashSet(myIssues.get(path));
+    List<PsIssue> issueList = issues.stream().collect(Collectors.toList());
+    if (comparator != null && issueList.size() > 1) {
+      Collections.sort(issueList, comparator);
     }
-    return issues;
+    return issueList;
   }
 
   @NotNull
-  public List<PsIssue> getIssues() {
-    return Lists.newArrayList(myIssues.values());
+  public List<PsIssue> getValues() {
+    Set<PsIssue> issues = Sets.newHashSet(myIssues.values());
+    return issues.stream().collect(Collectors.toList());
+  }
+
+  @NotNull
+  public List<PsIssue> getValues(@NotNull Class<? extends PsPath> pathType) {
+    Set<PsIssue> issues = Sets.newHashSet();
+    myIssues.keySet().stream().filter(pathType::isInstance).forEachOrdered(path -> issues.addAll(myIssues.get(path)));
+    return issues.stream().collect(Collectors.toList());
   }
 
   public boolean isEmpty() {
@@ -91,10 +101,19 @@ public class PsIssueCollection {
       return null;
     }
 
+    List<PsIssue> sorted = Lists.newArrayList(issues);
+    Collections.sort(sorted, IssuesByTypeAndTextComparator.INSTANCE);
+
     // Removed duplicated lines.
     Set<String> lines = Sets.newLinkedHashSet();
-    lines.addAll(issues.stream().map(issue -> escapeString(issue.getText()))
-                                .collect(Collectors.toList()));
+    for (PsIssue issue : sorted) {
+      String line = issue.getText();
+      String path = issue.getPath().toText(PLAIN_TEXT);
+      if (!path.isEmpty()) {
+        line = path + ": " + line;
+      }
+      lines.add(line);
+    }
 
     StringBuilder buffer = new StringBuilder();
     buffer.append("<html><body>");
@@ -103,7 +122,7 @@ public class PsIssueCollection {
 
     int count = 0;
     for (String line : lines) {
-      buffer.append(escapeString(line)).append("<br>");
+      buffer.append(line).append("<br>");
       problems++;
 
       if (count++ > 9 && issueCount > 12) {
@@ -113,5 +132,23 @@ public class PsIssueCollection {
     }
     buffer.append("</body></html>");
     return buffer.toString();
+  }
+
+  public void remove(@NotNull PsIssueType type) {
+    for (PsPath path : myIssues.keySet()) {
+      List<PsIssue> toRemove = Collections.emptyList();
+      Collection<PsIssue> issues = myIssues.getModifiable(path);
+      if (!issues.isEmpty()) {
+        toRemove = issues.stream().filter(issue -> issue.getType().equals(type)).collect(Collectors.toList());
+      }
+      if (!toRemove.isEmpty()) {
+        issues.removeAll(toRemove);
+      }
+    }
+  }
+
+  @TestOnly
+  void clear() {
+    myIssues.clear();
   }
 }

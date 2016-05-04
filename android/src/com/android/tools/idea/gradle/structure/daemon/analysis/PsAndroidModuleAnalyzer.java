@@ -15,21 +15,39 @@
  */
 package com.android.tools.idea.gradle.structure.daemon.analysis;
 
+import com.android.builder.model.SyncIssue;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsIssue;
 import com.android.tools.idea.gradle.structure.model.PsIssueCollection;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidLibraryDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
-import com.android.tools.idea.gradle.structure.model.android.PsLibraryDependency;
-import com.android.tools.idea.gradle.structure.navigation.PsLibraryDependencyPath;
-import com.android.tools.idea.gradle.structure.navigation.PsModulePath;
-import com.android.tools.idea.gradle.structure.navigation.PsNavigationPath;
+import com.android.tools.idea.gradle.structure.navigation.PsLibraryDependencyNavigationPath;
+import com.android.tools.idea.gradle.structure.model.PsModulePath;
+import com.android.tools.idea.gradle.structure.model.PsPath;
+import com.android.tools.idea.gradle.structure.quickfix.PsLibraryDependencyVersionQuickFixPath;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import static com.android.tools.idea.gradle.structure.model.PsIssue.Type.INFO;
-import static com.android.tools.idea.gradle.structure.model.PsIssue.Type.WARNING;
+import java.util.Collection;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
+import static com.android.builder.model.SyncIssue.SEVERITY_ERROR;
+import static com.android.builder.model.SyncIssue.SEVERITY_WARNING;
+import static com.android.tools.idea.gradle.structure.model.PsIssue.Severity.*;
+import static com.android.tools.idea.gradle.structure.model.PsIssueType.PROJECT_ANALYSIS;
+import static com.google.common.base.Strings.nullToEmpty;
+import static com.intellij.xml.util.XmlStringUtil.escapeString;
 
 public class PsAndroidModuleAnalyzer extends PsModelAnalyzer<PsAndroidModule> {
+  private static final Pattern URL_PATTERN = Pattern.compile("\\(?http://[-A-Za-z0-9+&@#/%?=~_()|!:,.;]*[-A-Za-z0-9+&@#/%=~_()|]");
+
   @NotNull private final PsContext myContext;
 
   public PsAndroidModuleAnalyzer(@NotNull PsContext context) {
@@ -38,39 +56,82 @@ public class PsAndroidModuleAnalyzer extends PsModelAnalyzer<PsAndroidModule> {
 
   @Override
   protected void doAnalyze(@NotNull PsAndroidModule module, @NotNull PsIssueCollection issueCollection) {
+    Multimap<String, SyncIssue> issuesByData = ArrayListMultimap.create();
+    AndroidGradleModel gradleModel = module.getGradleModel();
+    Collection<SyncIssue> syncIssues = gradleModel.getAndroidProject().getSyncIssues();
+    for (SyncIssue syncIssue : syncIssues) {
+      String data = nullToEmpty(syncIssue.getData());
+      issuesByData.put(data, syncIssue);
+    }
+
     PsModulePath modulePath = new PsModulePath(module);
     module.forEachDependency(dependency -> {
-      if (dependency instanceof PsLibraryDependency && dependency.isDeclared()) {
-        PsLibraryDependency libraryDependency = (PsLibraryDependency)dependency;
-        PsNavigationPath path = new PsLibraryDependencyPath(myContext, libraryDependency);
+      if (dependency instanceof PsAndroidLibraryDependency && dependency.isDeclared()) {
+        PsAndroidLibraryDependency libraryDependency = (PsAndroidLibraryDependency)dependency;
+        PsPath path = new PsLibraryDependencyNavigationPath(myContext, libraryDependency);
+
+        PsArtifactDependencySpec resolvedSpec = libraryDependency.getResolvedSpec();
+        String issueKey = resolvedSpec.group + GRADLE_PATH_SEPARATOR + resolvedSpec.name;
+        Collection<SyncIssue> librarySyncIssues = issuesByData.get(issueKey);
+        for (SyncIssue syncIssue : librarySyncIssues) {
+          PsIssue issue = createIssueFrom(syncIssue, path, modulePath);
+          issueCollection.add(issue);
+        }
 
         PsArtifactDependencySpec declaredSpec = libraryDependency.getDeclaredSpec();
         assert declaredSpec != null;
         String declaredVersion = declaredSpec.version;
         if (declaredVersion != null && declaredVersion.endsWith("+")) {
           String message = "Avoid using '+' in version numbers; can lead to unpredictable and unrepeatable builds.";
-          String description = "Using '+' in dependencies lets you automatically pick up the latest available " +
-                               "version rather than a specific, named version. However, this is not recommended; " +
-                               "your builds are not repeatable; you may have tested with a slightly different " +
-                               "version than what the build server used. (Using a dynamic version as the major " +
-                               "version number is more problematic than using it in the minor version position.)";
-          PsIssue issue = new PsIssue(message, description, path, WARNING);
+          PsIssue issue = new PsIssue(message, "", path, PROJECT_ANALYSIS, WARNING);
           issue.setExtraPath(modulePath);
+
+          PsPath quickFix = new PsLibraryDependencyVersionQuickFixPath(libraryDependency);
+          issue.setQuickFixPath(quickFix);
+
           issueCollection.add(issue);
         }
 
         if (libraryDependency.hasPromotedVersion()) {
-          PsArtifactDependencySpec resolvedSpec = libraryDependency.getResolvedSpec();
           String message = "Gradle promoted library version from " + declaredVersion + " to " + resolvedSpec.version;
           String description = "To resolve version conflicts, Gradle by default uses the newest version of a dependency. " +
                                "<a href='https://docs.gradle.org/current/userguide/dependency_management.html'>Open Gradle " +
                                "documentation</a>";
-          PsIssue issue = new PsIssue(message, description, path, INFO);
+          PsIssue issue = new PsIssue(message, description, path, PROJECT_ANALYSIS, INFO);
           issue.setExtraPath(modulePath);
           issueCollection.add(issue);
         }
       }
     });
+  }
+
+  @VisibleForTesting
+  @NotNull
+  static PsIssue createIssueFrom(@NotNull SyncIssue syncIssue, @NotNull PsPath path, @Nullable PsPath extraPath) {
+    String message = escapeString(syncIssue.getMessage());
+    Matcher matcher = URL_PATTERN.matcher(message);
+    boolean result = matcher.find();
+    // Replace URLs with <a href='url'>url</a>.
+    while (result) {
+      String url = matcher.group();
+      message = message.replace(url, "<a href='" + url + "'>" + url + "</a>");
+      result = matcher.find();
+    }
+    PsIssue issue = new PsIssue(message, path, PROJECT_ANALYSIS, getSeverity(syncIssue));
+    issue.setExtraPath(extraPath);
+    return issue;
+  }
+
+  @NotNull
+  private static PsIssue.Severity getSeverity(@NotNull SyncIssue issue) {
+    int severity = issue.getSeverity();
+    switch (severity) {
+      case SEVERITY_ERROR:
+        return ERROR;
+      case SEVERITY_WARNING:
+        return WARNING;
+    }
+    return INFO;
   }
 
   @Override

@@ -17,14 +17,14 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsAndroidDependencyComparator;
-import com.android.tools.idea.gradle.structure.configurables.issues.IssuesByTypeComparator;
+import com.android.tools.idea.gradle.structure.configurables.issues.IssuesByTypeAndTextComparator;
 import com.android.tools.idea.gradle.structure.configurables.ui.AbstractPsModelTableCellRenderer;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsIssue;
 import com.android.tools.idea.gradle.structure.model.PsIssueCollection;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidLibraryDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
-import com.android.tools.idea.gradle.structure.model.android.PsLibraryDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsModuleDependency;
 import com.google.common.collect.Lists;
 import com.intellij.ui.SimpleTextAttributes;
@@ -39,6 +39,7 @@ import java.awt.*;
 import java.util.Collections;
 import java.util.List;
 
+import static com.android.tools.idea.gradle.structure.model.PsDependency.TextType.PLAIN_TEXT;
 import static com.android.tools.idea.gradle.structure.model.PsIssueCollection.getTooltipText;
 import static com.intellij.ui.SimpleTextAttributes.*;
 
@@ -46,17 +47,16 @@ import static com.intellij.ui.SimpleTextAttributes.*;
  * Model for the table displaying the "editable" dependencies of a module.
  */
 class DeclaredDependenciesTableModel extends ListTableModel<PsAndroidDependency> {
+  @NotNull private final PsAndroidModule myModule;
   @NotNull private final PsContext myContext;
 
   @Nullable private PsModuleDependency myHoveredDependency;
 
   DeclaredDependenciesTableModel(@NotNull PsAndroidModule module, @NotNull PsContext context) {
+    myModule = module;
     myContext = context;
     createAndSetColumnInfos();
-    List<PsAndroidDependency> dependencies = Lists.newArrayList();
-    module.forEachDeclaredDependency(dependencies::add);
-    Collections.sort(dependencies, PsAndroidDependencyComparator.INSTANCE);
-    setItems(dependencies);
+    reset();
   }
 
   private void createAndSetColumnInfos() {
@@ -64,7 +64,7 @@ class DeclaredDependenciesTableModel extends ListTableModel<PsAndroidDependency>
       @Override
       @NotNull
       public String valueOf(PsAndroidDependency dependency) {
-        return dependency.getValueAsText();
+        return dependency.toText(PLAIN_TEXT);
       }
 
       @Override
@@ -81,11 +81,11 @@ class DeclaredDependenciesTableModel extends ListTableModel<PsAndroidDependency>
       }
     };
 
-    ColumnInfo<PsAndroidDependency, String> scopeColumnInfo = new ColumnInfo<PsAndroidDependency, String>("Configuration") {
+    ColumnInfo<PsAndroidDependency, String> scopeColumnInfo = new ColumnInfo<PsAndroidDependency, String>("Scope") {
       @Override
       @Nullable
       public String valueOf(PsAndroidDependency dependency) {
-        return dependency.getConfigurationName();
+        return dependency.getJoinedConfigurationNames();
       }
 
       @Override
@@ -101,6 +101,26 @@ class DeclaredDependenciesTableModel extends ListTableModel<PsAndroidDependency>
 
   void setHoveredDependency(@Nullable PsModuleDependency hoveredDependency) {
     myHoveredDependency = hoveredDependency;
+  }
+
+  void reset() {
+    List<PsAndroidDependency> dependencies = Lists.newArrayList();
+    myModule.forEachDeclaredDependency(dependencies::add);
+    Collections.sort(dependencies, PsAndroidDependencyComparator.INSTANCE);
+    setItems(dependencies);
+  }
+
+  @Nullable
+  PsAndroidLibraryDependency findDependency(@NotNull PsArtifactDependencySpec spec) {
+    for (PsAndroidDependency dependency : getItems()) {
+      if (dependency instanceof PsAndroidLibraryDependency) {
+        PsAndroidLibraryDependency libraryDependency = (PsAndroidLibraryDependency)dependency;
+        if (spec.equals(libraryDependency.getDeclaredSpec())) {
+          return libraryDependency;
+        }
+      }
+    }
+    return null;
   }
 
   static class DependencyCellRenderer extends AbstractPsModelTableCellRenderer<PsAndroidDependency> {
@@ -122,8 +142,8 @@ class DeclaredDependenciesTableModel extends ListTableModel<PsAndroidDependency>
       setIconOpaque(true);
       setFocusBorderAroundIcon(true);
 
-      PsIssueCollection issueCollection = myContext.getDaemonAnalyzer().getIssues();
-      List<PsIssue> issues = issueCollection.findIssues(myDependency, IssuesByTypeComparator.INSTANCE);
+      PsIssueCollection issueCollection = myContext.getAnalyzerDaemon().getIssues();
+      List<PsIssue> issues = issueCollection.findIssues(myDependency, IssuesByTypeAndTextComparator.INSTANCE);
 
       setToolTipText(getTooltipText(issues));
 
@@ -135,7 +155,7 @@ class DeclaredDependenciesTableModel extends ListTableModel<PsAndroidDependency>
         textAttributes = REGULAR_ATTRIBUTES;
         if (!issues.isEmpty()) {
           PsIssue issue = issues.get(0);
-          Color waveColor = issue.getType().getColor();
+          Color waveColor = issue.getSeverity().getColor();
           textAttributes = textAttributes.derive(STYLE_WAVED, null, null, waveColor);
         }
       }
@@ -146,10 +166,10 @@ class DeclaredDependenciesTableModel extends ListTableModel<PsAndroidDependency>
     @NotNull
     protected String getText() {
       PsAndroidDependency dependency = getModel();
-      String text = dependency.getValueAsText();
+      String text = dependency.toText(PLAIN_TEXT);
 
-      if (dependency instanceof PsLibraryDependency) {
-        PsLibraryDependency library = (PsLibraryDependency)dependency;
+      if (dependency instanceof PsAndroidLibraryDependency) {
+        PsAndroidLibraryDependency library = (PsAndroidLibraryDependency)dependency;
         PsArtifactDependencySpec spec = library.getDeclaredSpec();
         assert spec != null;
         text = spec.getDisplayText();

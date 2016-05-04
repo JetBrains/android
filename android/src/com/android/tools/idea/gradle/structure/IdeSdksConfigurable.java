@@ -203,6 +203,9 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
 
   @Override
   public void apply() throws ConfigurationException {
+    if (!isModified()) {
+      return;
+    }
     ApplicationManager.getApplication().runWriteAction(() -> {
       // Setting the Sdk path will trigger the project sync. Set the Ndk path and Jdk path before the Sdk path to get the changes to them
       // to take effect during the sync.

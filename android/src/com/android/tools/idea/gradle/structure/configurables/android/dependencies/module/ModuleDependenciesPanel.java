@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.module;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
-import com.android.tools.idea.gradle.structure.configurables.ui.AbstractMainPanel;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.AbstractMainDependenciesPanel;
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowHeader;
 import com.android.tools.idea.gradle.structure.model.PsModule;
@@ -33,9 +33,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.UiUtil.createMainVerticalSplitter;
-
-class ModuleDependenciesPanel extends AbstractMainPanel {
+class ModuleDependenciesPanel extends AbstractMainDependenciesPanel {
   @NotNull private final JBSplitter myVerticalSplitter;
   @NotNull private final DeclaredDependenciesPanel myDeclaredDependenciesPanel;
   @NotNull private final ResolvedDependenciesPanel myResolvedDependenciesPanel;

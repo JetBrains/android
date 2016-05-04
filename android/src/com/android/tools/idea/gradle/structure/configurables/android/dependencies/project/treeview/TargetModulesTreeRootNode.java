@@ -23,10 +23,10 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collections;
 import java.util.List;
 
-class TargetModelsTreeRootNode extends AbstractPsModelNode<PsProject> {
+class TargetModulesTreeRootNode extends AbstractPsModelNode<PsProject> {
   @NotNull private List<TargetAndroidModuleNode> myChildren = Collections.emptyList();
 
-  TargetModelsTreeRootNode(@NotNull PsProject project) {
+  TargetModulesTreeRootNode(@NotNull PsProject project) {
     super(project);
   }
 

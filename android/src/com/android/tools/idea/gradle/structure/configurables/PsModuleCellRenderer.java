@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables;
 
-import com.android.tools.idea.gradle.structure.configurables.issues.IssuesByTypeComparator;
+import com.android.tools.idea.gradle.structure.configurables.issues.IssuesByTypeAndTextComparator;
 import com.android.tools.idea.gradle.structure.model.PsIssue;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.intellij.openapi.ui.MasterDetailsComponent;
@@ -65,12 +65,12 @@ public class PsModuleCellRenderer extends ColoredTreeCellRenderer {
       }
       else if (namedConfigurable instanceof BaseNamedConfigurable) {
         PsModule module = ((BaseNamedConfigurable)namedConfigurable).getEditableObject();
-        List<PsIssue> issues = myContext.getDaemonAnalyzer().getIssues().findIssues(module, IssuesByTypeComparator.INSTANCE);
+        List<PsIssue> issues = myContext.getAnalyzerDaemon().getIssues().findIssues(module, IssuesByTypeAndTextComparator.INSTANCE);
         setToolTipText(getTooltipText(issues));
 
         if (!issues.isEmpty()) {
           PsIssue issue = issues.get(0);
-          Color waveColor = issue.getType().getColor();
+          Color waveColor = issue.getSeverity().getColor();
           textAttributes = textAttributes.derive(STYLE_WAVED, null, null, waveColor);
         }
       }

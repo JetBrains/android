@@ -18,9 +18,9 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.DependencyDetails;
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesViewer;
+import com.android.tools.idea.gradle.structure.configurables.ui.ChooseModuleDialog;
 import com.android.tools.idea.gradle.structure.configurables.ui.EmptyPanel;
 import com.android.tools.idea.gradle.structure.dependencies.AddLibraryDependencyDialog;
-import com.android.tools.idea.gradle.structure.configurables.ui.ChooseModuleDialog;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
@@ -220,6 +220,9 @@ public abstract class AbstractDeclaredDependenciesPanel extends JPanel implement
     return myHistory;
   }
 
+  protected void beforeAddingDependency() {
+  }
+
   private class AddDependencyAction extends AbstractPopupAction {
     AddDependencyAction() {
       super("Artifact Dependency", LIBRARY_ICON, 1);
@@ -233,12 +236,15 @@ public abstract class AbstractDeclaredDependenciesPanel extends JPanel implement
         dialog.showAndGet();
         return;
       }
+      beforeAddingDependency();
       showAddLibraryDependencyDialog(myModule);
     }
 
     private void showAddLibraryDependencyDialog(@NotNull PsModule module) {
       AddLibraryDependencyDialog dialog = new AddLibraryDependencyDialog(module);
-      dialog.showAndGet();
+      if (dialog.showAndGet()) {
+        dialog.addNewDependency();
+      }
     }
   }
 

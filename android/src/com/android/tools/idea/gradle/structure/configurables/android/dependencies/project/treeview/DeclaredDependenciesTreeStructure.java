@@ -31,4 +31,8 @@ class DeclaredDependenciesTreeStructure extends AbstractBaseTreeStructure {
   public Object getRootElement() {
     return myRootNode;
   }
+
+  void reset() {
+    myRootNode.reset();
+  }
 }
