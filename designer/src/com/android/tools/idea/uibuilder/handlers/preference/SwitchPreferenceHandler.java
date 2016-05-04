@@ -13,24 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.handlers;
+package com.android.tools.idea.uibuilder.handlers.preference;
 
-import com.android.tools.idea.uibuilder.api.*;
+import com.android.tools.idea.uibuilder.api.InsertType;
+import com.android.tools.idea.uibuilder.api.ViewEditor;
+import com.android.tools.idea.uibuilder.api.XmlBuilder;
+import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.android.SdkConstants.*;
+import static com.android.SdkConstants.ATTR_TITLE;
+import static com.android.SdkConstants.PreferenceAttributes.DEFAULT_VALUE;
+import static com.android.SdkConstants.PreferenceAttributes.KEY;
+import static com.android.SdkConstants.PreferenceTags.SWITCH_PREFERENCE;
 
-final class PreferenceCategoryHandler extends ViewGroupHandler {
+public final class SwitchPreferenceHandler extends PreferenceHandler {
   @Language("XML")
   @NotNull
   @Override
   public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {
     return new XmlBuilder()
       .startTag(tagName)
-      .androidAttribute(ATTR_TITLE, "Preference category")
+      .androidAttribute(DEFAULT_VALUE, false)
+      .androidAttribute(ATTR_TITLE, "Switch preference")
       .endTag(tagName)
       .toString();
   }
@@ -39,9 +46,9 @@ final class PreferenceCategoryHandler extends ViewGroupHandler {
   public boolean onCreate(@NotNull ViewEditor editor,
                           @Nullable NlComponent parent,
                           @NotNull NlComponent newChild,
-                          @NotNull InsertType insertType) {
-    newChild.removeAndroidAttribute(ATTR_LAYOUT_WIDTH);
-    newChild.removeAndroidAttribute(ATTR_LAYOUT_HEIGHT);
+                          @NotNull InsertType type) {
+    super.onCreate(editor, parent, newChild, type);
+    newChild.setAndroidAttribute(KEY, generateKey(newChild, SWITCH_PREFERENCE, "switch_preference_"));
 
     return true;
   }

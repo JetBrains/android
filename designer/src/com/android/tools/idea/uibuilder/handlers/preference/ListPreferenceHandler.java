@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.handlers;
+package com.android.tools.idea.uibuilder.handlers.preference;
 
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
@@ -27,17 +27,19 @@ import org.jetbrains.annotations.Nullable;
 import static com.android.SdkConstants.ATTR_TITLE;
 import static com.android.SdkConstants.PreferenceAttributes.DEFAULT_VALUE;
 import static com.android.SdkConstants.PreferenceAttributes.KEY;
-import static com.android.SdkConstants.PreferenceTags.SWITCH_PREFERENCE;
+import static com.android.SdkConstants.PreferenceTags.LIST_PREFERENCE;
 
-final class SwitchPreferenceHandler extends PreferenceHandler {
+public final class ListPreferenceHandler extends PreferenceHandler {
   @Language("XML")
   @NotNull
   @Override
   public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {
     return new XmlBuilder()
       .startTag(tagName)
-      .androidAttribute(DEFAULT_VALUE, false)
-      .androidAttribute(ATTR_TITLE, "Switch preference")
+      .androidAttribute(DEFAULT_VALUE, 1)
+      .androidAttribute("entries", "@array/list_preference_entries")
+      .androidAttribute("entryValues", "@array/list_preference_entry_values")
+      .androidAttribute(ATTR_TITLE, "List preference")
       .endTag(tagName)
       .toString();
   }
@@ -48,7 +50,7 @@ final class SwitchPreferenceHandler extends PreferenceHandler {
                           @NotNull NlComponent newChild,
                           @NotNull InsertType type) {
     super.onCreate(editor, parent, newChild, type);
-    newChild.setAndroidAttribute(KEY, generateKey(newChild, SWITCH_PREFERENCE, "switch_preference_"));
+    newChild.setAndroidAttribute(KEY, generateKey(newChild, LIST_PREFERENCE, "list_preference_"));
 
     return true;
   }
