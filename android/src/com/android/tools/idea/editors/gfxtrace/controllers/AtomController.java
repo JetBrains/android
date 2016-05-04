@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.editors.gfxtrace.controllers;
 
-import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
-import com.android.tools.idea.editors.gfxtrace.actions.EditFieldAction;
+import com.android.tools.idea.editors.gfxtrace.actions.EditAtomParametersAction;
 import com.android.tools.idea.editors.gfxtrace.models.AtomStream;
 import com.android.tools.idea.editors.gfxtrace.renderers.Render;
-import com.android.tools.idea.editors.gfxtrace.renderers.RenderUtils;
 import com.android.tools.idea.editors.gfxtrace.service.RenderSettings;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.WireframeMode;
@@ -32,11 +30,11 @@ import com.android.tools.idea.editors.gfxtrace.service.image.FetchedImage;
 import com.android.tools.idea.editors.gfxtrace.service.memory.MemoryProtos.PoolNames;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.android.tools.idea.editors.gfxtrace.widgets.LoadableIcon;
-import com.android.tools.idea.editors.gfxtrace.widgets.LoadingIndicator;
-import com.android.tools.idea.editors.gfxtrace.widgets.Repaintables;
 import com.android.tools.idea.logcat.RegexFilterComponent;
 import com.google.common.base.Objects;
-import com.google.common.util.concurrent.*;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.popup.Balloon;
@@ -64,7 +62,6 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -107,7 +104,7 @@ public class AtomController extends TreeController implements AtomStream.Listene
     }
 
     @NotNull
-    public Path getFieldPath(@NotNull AtomsPath atomsPath, int fieldIndex) {
+    public FieldPath getFieldPath(@NotNull AtomsPath atomsPath, int fieldIndex) {
       return atomsPath.index(index).field(atom.getFieldInfo(fieldIndex).getName());
     }
 
@@ -318,16 +315,11 @@ public class AtomController extends TreeController implements AtomStream.Listene
             DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode)path.getLastPathComponent();
             Object userObject = treeNode.getUserObject();
             if (userObject instanceof Node) {
-              Rectangle bounds = myTree.getPathBounds(path);
-              assert bounds != null; // can't be null, as our path is valid
-              int fieldIndex = Render.getNodeFieldIndex(myTree, treeNode, e.getX() - bounds.x);
-              if (fieldIndex >= 0) {
-                EditFieldAction editFieldAction = EditFieldAction.getEditActionFor((Node)userObject, fieldIndex, myEditor);
-                if (editFieldAction != null) {
-                  popupMenu.removeAll();
-                  popupMenu.add(editFieldAction);
-                  popupMenu.show(e.getComponent(), e.getX(), e.getY());
-                }
+              EditAtomParametersAction editAction = EditAtomParametersAction.getEditActionFor((Node)userObject, myEditor);
+              if (editAction != null) {
+                popupMenu.removeAll();
+                popupMenu.add(editAction);
+                popupMenu.show(e.getComponent(), e.getX(), e.getY());
               }
             }
           }
