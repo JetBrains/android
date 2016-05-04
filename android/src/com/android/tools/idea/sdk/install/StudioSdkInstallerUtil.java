@@ -35,12 +35,14 @@ public final class StudioSdkInstallerUtil {
   @NotNull
   public static InstallerFactory createInstallerFactory(@NotNull RepoPackage p, @NotNull AndroidSdkHandler sdkHandler) {
     InstallerFactory factory = null;
-    if (p instanceof RemotePackage) {
-      LocalPackage local = sdkHandler.getLocalPackage(p.getPath(), LOGGER);
-      Archive archive = ((RemotePackage)p).getArchive();
-      assert archive != null;
-      if (local != null && archive.getPatch(local.getVersion()) != null) {
-        factory = new PatchInstallerFactory();
+    if (Boolean.getBoolean("sdk.patches")) {
+      if (p instanceof RemotePackage) {
+        LocalPackage local = sdkHandler.getLocalPackage(p.getPath(), LOGGER);
+        Archive archive = ((RemotePackage)p).getArchive();
+        assert archive != null;
+        if (local != null && archive.getPatch(local.getVersion()) != null) {
+          factory = new PatchInstallerFactory();
+        }
       }
     }
     if (factory == null) {
