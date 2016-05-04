@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
@@ -33,11 +32,24 @@ public class ConstraintsLayer extends Layer {
   private Dimension myScreenViewSize = new Dimension();
   private Rectangle mySizeRectangle = new Rectangle();
   private final boolean showOnSelection;
+  private boolean myShowOnHover = false;
 
   public ConstraintsLayer(DesignSurface designSurface, @NotNull ScreenView screenView, boolean showOnSelection) {
     myDesignSurface = designSurface;
     myScreenView = screenView;
     this.showOnSelection = showOnSelection;
+  }
+
+  public boolean isShowOnHover() {
+    return myShowOnHover;
+  }
+
+  public void setShowOnHover(boolean value) {
+    myShowOnHover = value;
+  }
+
+  public ScreenView getScreenView() {
+    return myScreenView;
   }
 
   /**
@@ -56,7 +68,8 @@ public class ConstraintsLayer extends Layer {
     }
 
     NlModel myModel = myScreenView.getModel();
-    if (showOnSelection && myModel.getSelectionModel().isEmpty()) {
+
+    if (!myShowOnHover && showOnSelection) {
       return;
     }
 

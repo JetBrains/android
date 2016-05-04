@@ -336,7 +336,44 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
     return myScreenView;
   }
 
+  /**
+   * Return the ScreenView under the given position
+   * @param x
+   * @param y
+   * @return the ScreenView, or null if we are not above one.
+   */
+  @Nullable
+  private ScreenView getHoverScreenView(@SwingCoordinate int x, @SwingCoordinate int y) {
+    if (myBlueprintView != null
+        && x >= myBlueprintView.getX() && x <= myBlueprintView.getX() + myBlueprintView.getSize().width
+        && y >= myBlueprintView.getY() && y <= myBlueprintView.getY() + myBlueprintView.getSize().height) {
+      return myBlueprintView;
+    }
+    if (myScreenView != null
+        && x >= myScreenView.getX() && x <= myScreenView.getX() + myScreenView.getSize().width
+        && y >= myScreenView.getY() && y <= myScreenView.getY() + myScreenView.getSize().height) {
+      return myScreenView;
+    }
+    return null;
+  }
+
   public void hover(@SwingCoordinate int x, @SwingCoordinate int y) {
+    // For constraint layer, set show on hover if they are above their screenview
+    ScreenView current = getHoverScreenView(x, y);
+    for (Layer layer : myLayers) {
+      if (layer instanceof ConstraintsLayer) {
+        ConstraintsLayer constraintsLayer = (ConstraintsLayer)layer;
+        boolean show = false;
+        if (constraintsLayer.getScreenView() == current) {
+          show = true;
+        }
+        if (constraintsLayer.isShowOnHover() != show) {
+          constraintsLayer.setShowOnHover(show);
+          repaint();
+        }
+      }
+    }
+
     if (myErrorPanel.isVisible() && myRenderHasProblems) {
       // don't show any warnings on hover if there is already some errors that are being displayed
       // TODO: we should really move this logic into the error panel itself
