@@ -70,4 +70,13 @@ public class SearchResult {
     myArtifacts.forEach(artifact -> coordinates.addAll(artifact.getCoordinates()));
     return coordinates;
   }
+
+  @Override
+  public String toString() {
+    return "{repository='" + myRepositoryName + '\'' +
+           ", artifacts=" + myArtifacts +
+           ", error=" + myError +
+           ", totalFound=" + myTotalFound +
+           '}';
+  }
 }

@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
-import com.android.tools.idea.gradle.structure.model.android.PsLibraryDependency;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidLibraryDependency;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.ui.popup.Balloon;
 import com.intellij.ui.HintHint;
@@ -38,7 +38,7 @@ import java.util.List;
 import static com.intellij.codeInsight.hint.HintUtil.INFORMATION_COLOR;
 import static org.jetbrains.android.util.AndroidUiUtil.setUpAsHtmlLabel;
 
-public class ModuleLibraryDependencyDetails implements DependencyDetails<PsLibraryDependency> {
+public class ModuleLibraryDependencyDetails implements DependencyDetails<PsAndroidLibraryDependency> {
   @NotNull private final PsContext myContext;
 
   private JPanel myMainPanel;
@@ -50,7 +50,7 @@ public class ModuleLibraryDependencyDetails implements DependencyDetails<PsLibra
   private JBLabel myRequestedVersionLabel;
   private LightweightHint mySourceInfoHint;
 
-  @Nullable private PsLibraryDependency myDependency;
+  @Nullable private PsAndroidLibraryDependency myDependency;
 
   public ModuleLibraryDependencyDetails(@NotNull PsContext context) {
     myContext = context;
@@ -114,7 +114,7 @@ public class ModuleLibraryDependencyDetails implements DependencyDetails<PsLibra
   }
 
   @Override
-  public void display(@NotNull PsLibraryDependency dependency) {
+  public void display(@NotNull PsAndroidLibraryDependency dependency) {
     myDependency = dependency;
 
     PsArtifactDependencySpec declaredSpec = myDependency.getDeclaredSpec();
@@ -128,18 +128,18 @@ public class ModuleLibraryDependencyDetails implements DependencyDetails<PsLibra
     mySourceInfoHint = null;
 
     myRequestedVersionLabel.setText(declaredSpec.version);
-    myScopeLabel.setText(myDependency.getConfigurationName());
+    myScopeLabel.setText(myDependency.getJoinedConfigurationNames());
   }
 
   @Override
   @NotNull
-  public Class<PsLibraryDependency> getSupportedModelType() {
-    return PsLibraryDependency.class;
+  public Class<PsAndroidLibraryDependency> getSupportedModelType() {
+    return PsAndroidLibraryDependency.class;
   }
 
   @Override
   @Nullable
-  public PsLibraryDependency getModel() {
+  public PsAndroidLibraryDependency getModel() {
     return myDependency;
   }
 }

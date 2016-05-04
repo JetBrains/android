@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.ui.treeview;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
-import com.android.tools.idea.gradle.structure.configurables.issues.IssuesByTypeComparator;
+import com.android.tools.idea.gradle.structure.configurables.issues.IssuesByTypeAndTextComparator;
 import com.android.tools.idea.gradle.structure.model.PsIssue;
 import com.android.tools.idea.gradle.structure.model.PsIssueCollection;
 import com.android.tools.idea.gradle.structure.model.PsModel;
@@ -35,14 +35,13 @@ import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
 import java.awt.*;
-import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.UiUtil.isMetaOrCtrlKeyPressed;
+import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.isMetaOrCtrlKeyPressed;
 import static com.android.tools.idea.gradle.structure.model.PsIssueCollection.getTooltipText;
 import static com.intellij.ui.SimpleTextAttributes.LINK_ATTRIBUTES;
 import static com.intellij.ui.SimpleTextAttributes.STYLE_WAVED;
@@ -77,7 +76,7 @@ public class NodeHyperlinkSupport<T extends SimpleNode> implements Disposable {
 
         if (myShowIssues && node instanceof AbstractPsModelNode) {
           AbstractPsModelNode<? extends PsModel> modelNode = (AbstractPsModelNode<? extends PsModel>)node;
-          issues = findIssues(modelNode, IssuesByTypeComparator.INSTANCE);
+          issues = findIssues(modelNode, IssuesByTypeAndTextComparator.INSTANCE);
           node.getPresentation().setTooltip(getTooltipText(issues));
         }
 
@@ -88,7 +87,7 @@ public class NodeHyperlinkSupport<T extends SimpleNode> implements Disposable {
         SimpleTextAttributes textAttributes = super.getSimpleTextAttributes(node, color);
         if (!issues.isEmpty()) {
           PsIssue issue = issues.get(0);
-          Color waveColor = issue.getType().getColor();
+          Color waveColor = issue.getSeverity().getColor();
           textAttributes = textAttributes.derive(STYLE_WAVED, null, null, waveColor);
         }
 
@@ -149,29 +148,26 @@ public class NodeHyperlinkSupport<T extends SimpleNode> implements Disposable {
     myTree.addMouseMotionListener(mouseListener);
 
     // Make the cursor change to 'hand' if the mouse pointer is over a supported node and the user presses Ctrl or Cmd.
-    myKeyEventDispatcher = new KeyEventDispatcher() {
-      @Override
-      public boolean dispatchKeyEvent(KeyEvent e) {
-        T node = null;
-        if (e.getID() == KEY_PRESSED) {
-          Cursor cursor = getDefaultCursor();
-          if (isMetaOrCtrlKeyPressed(e)) {
-            node = getNodeUnderMousePointer();
-            if (node != null) {
-              cursor = getPredefinedCursor(HAND_CURSOR);
-            }
+    myKeyEventDispatcher = e -> {
+      T node = null;
+      if (e.getID() == KEY_PRESSED) {
+        Cursor cursor = getDefaultCursor();
+        if (isMetaOrCtrlKeyPressed(e)) {
+          node = getNodeUnderMousePointer();
+          if (node != null) {
+            cursor = getPredefinedCursor(HAND_CURSOR);
           }
-          setHoveredNode(node);
-          myTree.setCursor(cursor);
         }
-        else if (e.getID() == KEY_RELEASED) {
-          if (isMetaOrCtrlKeyPressed(e)) {
-            setHoveredNode(null);
-          }
-          myTree.setCursor(getDefaultCursor());
-        }
-        return false;
+        setHoveredNode(node);
+        myTree.setCursor(cursor);
       }
+      else if (e.getID() == KEY_RELEASED) {
+        if (isMetaOrCtrlKeyPressed(e)) {
+          setHoveredNode(null);
+        }
+        myTree.setCursor(getDefaultCursor());
+      }
+      return false;
     };
 
     KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(myKeyEventDispatcher);
@@ -181,7 +177,7 @@ public class NodeHyperlinkSupport<T extends SimpleNode> implements Disposable {
   private List<PsIssue> findIssues(@NotNull AbstractPsModelNode<? extends PsModel> modelNode, @Nullable Comparator<PsIssue> comparator) {
     List<PsIssue> issues = Lists.newArrayList();
 
-    PsIssueCollection issueCollection = myContext.getDaemonAnalyzer().getIssues();
+    PsIssueCollection issueCollection = myContext.getAnalyzerDaemon().getIssues();
     for (PsModel model : modelNode.getModels()) {
       issues.addAll(issueCollection.findIssues(model, null));
     }

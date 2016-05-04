@@ -19,24 +19,27 @@ import com.android.builder.model.AndroidProject;
 import com.android.builder.model.ApiVersion;
 import com.android.builder.model.Variant;
 import com.android.ide.common.repository.GradleCoordinate;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.List;
+import java.util.Objects;
 
 import static com.android.ide.common.repository.GradleCoordinate.parseCoordinateString;
 import static com.android.tools.idea.templates.RepositoryUrlManager.*;
 import static com.google.common.base.Strings.nullToEmpty;
 
 public class AndroidSdkRepository extends ArtifactRepository {
-  private final List<GradleCoordinate> myGradleCoordinates = Lists.newArrayList();
+  @Nullable private final File myAndroidSdkPath;
+
+  @NotNull private final List<GradleCoordinate> myGradleCoordinates = Lists.newArrayList();
 
   public AndroidSdkRepository(@Nullable AndroidProject androidProject) {
     this(androidProject, IdeSdks.getAndroidSdkPath());
@@ -44,6 +47,7 @@ public class AndroidSdkRepository extends ArtifactRepository {
 
   @VisibleForTesting
   AndroidSdkRepository(@Nullable AndroidProject androidProject, @Nullable File androidSdkPath) {
+    myAndroidSdkPath = androidSdkPath;
     if (androidSdkPath != null) {
       boolean preview = false;
       if (androidProject != null) {
@@ -98,6 +102,11 @@ public class AndroidSdkRepository extends ArtifactRepository {
   }
 
   @Override
+  public boolean isRemote() {
+    return false;
+  }
+
+  @Override
   @NotNull
   protected SearchResult doSearch(@NotNull SearchRequest request) {
     List<FoundArtifact> artifacts = Lists.newArrayList();
@@ -108,7 +117,8 @@ public class AndroidSdkRepository extends ArtifactRepository {
       if (matches(coordinate.getArtifactId(), request.getArtifactName())) {
         String groupId = nullToEmpty(coordinate.getGroupId());
         String name = nullToEmpty(coordinate.getArtifactId());
-        FoundArtifact artifact = new FoundArtifact(getName(), groupId, name, coordinate.getRevision());
+        GradleVersion version = GradleVersion.parse(coordinate.getRevision());
+        FoundArtifact artifact = new FoundArtifact(getName(), groupId, name, version);
         artifacts.add(artifact);
       }
     }
@@ -116,12 +126,29 @@ public class AndroidSdkRepository extends ArtifactRepository {
   }
 
   private static boolean matches(@Nullable String s1, @Nullable String s2) {
-    if (Objects.equal(s1, s2)) {
+    if (Objects.equals(s1, s2)) {
       return true;
     }
     if (s2 == null) {
       return true;
     }
     return s1 != null && s1.contains(s2);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    AndroidSdkRepository that = (AndroidSdkRepository)o;
+    return Objects.equals(myAndroidSdkPath, that.myAndroidSdkPath);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(myAndroidSdkPath);
   }
 }

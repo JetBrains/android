@@ -13,27 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables;
+package com.android.tools.idea.structure.dialog;
 
-import com.android.tools.idea.gradle.structure.model.PsProject;
-import com.android.tools.idea.structure.dialog.MainGroupConfigurableContributor;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collections;
 import java.util.List;
 
-public class GradleMainGroupConfigurableContributor extends MainGroupConfigurableContributor {
-  @Override
+public abstract class AndroidConfigurableContributor {
+  public static final ExtensionPointName<AndroidConfigurableContributor> EP_NAME =
+    ExtensionPointName.create("com.android.ide.androidConfigurableContributor");
+
   @NotNull
-  public List<Configurable> getConfigurables(@NotNull Project project, @NotNull Disposable parentDisposable) {
-    PsContext context = new PsContext(new PsProject(project), parentDisposable);
+  public abstract List<Configurable> getMainConfigurables(@NotNull Project project, @NotNull Disposable parentDisposable);
 
-    List<Configurable> configurables = Lists.newArrayList();
-    configurables.add(new DependenciesPerspectiveConfigurable(context));
-
-    return configurables;
+  @NotNull
+  public List<ProjectStructureItemGroup> getAdditionalConfigurableGroups() {
+    return Collections.emptyList();
   }
 }

@@ -23,6 +23,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
 
+import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.revalidateAndRepaint;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES;
 import static com.intellij.util.ui.UIUtil.getTreeCollapsedIcon;
 import static com.intellij.util.ui.UIUtil.getTreeExpandedIcon;
@@ -76,7 +77,7 @@ public class CollapsiblePanel extends JPanel {
     }
     myContents = contents;
     myPanel.add(myContents, BorderLayout.CENTER);
-    revalidateAndRepaint();
+    revalidateAndRepaint(this);
   }
 
   @NotNull
@@ -109,14 +110,9 @@ public class CollapsiblePanel extends JPanel {
       else {
         remove(myPanel);
       }
-      revalidateAndRepaint();
+      revalidateAndRepaint(this);
       firePropertyChange("expanded", oldExpanded, expanded);
     }
-  }
-
-  private void revalidateAndRepaint() {
-    revalidate();
-    repaint();
   }
 
   private class CollapseListener implements ChangeListener {

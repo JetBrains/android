@@ -21,31 +21,39 @@ import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyModel;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidArtifact;
 import com.google.common.base.Joiner;
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.List;
-import java.util.Map;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 
 public class PsParsedDependencies {
   // Key: module's Gradle path
-  @NotNull private final Map<String, ModuleDependencyModel> myParsedModuleDependencies = Maps.newHashMap();
+  @NotNull private final Multimap<String, ModuleDependencyModel> myParsedModuleDependencies = ArrayListMultimap.create();
 
   // Key: artifact group ID + ":" + artifact name (e.g. "com.google.guava:guava")
-  @NotNull private final Map<String, ArtifactDependencyModel> myParsedArtifactDependencies = Maps.newHashMap();
+  @NotNull private final Multimap<String, ArtifactDependencyModel> myParsedArtifactDependencies = ArrayListMultimap.create();
 
   public PsParsedDependencies(@Nullable GradleBuildModel parsedModel) {
+    reset(parsedModel);
+  }
+
+  void reset(@Nullable GradleBuildModel parsedModel) {
+    myParsedArtifactDependencies.clear();
+    myParsedModuleDependencies.clear();
     if (parsedModel != null) {
       for (DependencyModel parsedDependency : parsedModel.dependencies().all()) {
         if (parsedDependency instanceof ArtifactDependencyModel) {
           ArtifactDependencyModel artifact = (ArtifactDependencyModel)parsedDependency;
-          myParsedArtifactDependencies.put(getIdentifier(artifact), artifact);
+          myParsedArtifactDependencies.put(createIdFrom(artifact), artifact);
         }
         else if (parsedDependency instanceof ModuleDependencyModel) {
           ModuleDependencyModel module = (ModuleDependencyModel)parsedDependency;
@@ -56,24 +64,39 @@ public class PsParsedDependencies {
   }
 
   @NotNull
-  private static String getIdentifier(@NotNull ArtifactDependencyModel dependency) {
+  private static String createIdFrom(@NotNull ArtifactDependencyModel dependency) {
     List<String> segments = Lists.newArrayList(dependency.group().value(), dependency.name().value());
     return joinAsGradlePath(segments);
   }
 
+  @NotNull
+  public List<ArtifactDependencyModel> findLibraryDependencies(@NotNull PsArtifactDependencySpec spec,
+                                                               @NotNull Predicate<ArtifactDependencyModel> predicate) {
+    String id = createIdFrom(spec);
+    Collection<ArtifactDependencyModel> potentialMatches = myParsedArtifactDependencies.get(id);
+    return potentialMatches.stream().filter(predicate).collect(Collectors.toList());
+  }
+
+  @NotNull
+  private static String createIdFrom(@NotNull PsArtifactDependencySpec spec) {
+    List<String> segments = Lists.newArrayList(spec.group, spec.name);
+    return joinAsGradlePath(segments);
+  }
+
   @Nullable
-  public ArtifactDependencyModel findMatchingArtifactDependency(@NotNull MavenCoordinates coordinates,
-                                                                @NotNull PsAndroidArtifact artifact) {
-    String identifier = getIdentifier(coordinates);
-    ArtifactDependencyModel parsedDependency = myParsedArtifactDependencies.get(identifier);
-    if (parsedDependency != null && isDependencyInArtifact(parsedDependency, artifact)) {
-      return parsedDependency;
+  public ArtifactDependencyModel findLibraryDependency(@NotNull MavenCoordinates coordinates,
+                                                       @NotNull Predicate<ArtifactDependencyModel> predicate) {
+    Collection<ArtifactDependencyModel> potentialMatches = myParsedArtifactDependencies.get(createIdFrom(coordinates));
+    for (ArtifactDependencyModel dependency : potentialMatches) {
+      if (predicate.test(dependency)) {
+        return dependency;
+      }
     }
     return null;
   }
 
   @NotNull
-  private static String getIdentifier(@NotNull MavenCoordinates coordinates) {
+  private static String createIdFrom(@NotNull MavenCoordinates coordinates) {
     List<String> segments = Lists.newArrayList(coordinates.getGroupId(), coordinates.getArtifactId());
     return joinAsGradlePath(segments);
   }
@@ -84,16 +107,13 @@ public class PsParsedDependencies {
   }
 
   @Nullable
-  public ModuleDependencyModel findMatchingModuleDependency(@NotNull String gradlePath, @NotNull PsAndroidArtifact artifact) {
-    ModuleDependencyModel parsedDependency = myParsedModuleDependencies.get(gradlePath);
-    if (parsedDependency != null && isDependencyInArtifact(parsedDependency, artifact)) {
-      return parsedDependency;
+  public ModuleDependencyModel findModuleDependency(@NotNull String gradlePath, @NotNull Predicate<ModuleDependencyModel> predicate) {
+    Collection<ModuleDependencyModel> potentialMatches = myParsedModuleDependencies.get(gradlePath);
+    for (ModuleDependencyModel dependency : potentialMatches) {
+      if (predicate.test(dependency)) {
+        return dependency;
+      }
     }
     return null;
-  }
-
-  public static boolean isDependencyInArtifact(@NotNull DependencyModel parsedDependency, @NotNull PsAndroidArtifact artifact) {
-    String configurationName = parsedDependency.configurationName();
-    return artifact.getPossibleConfigurationNames().contains(configurationName);
   }
 }

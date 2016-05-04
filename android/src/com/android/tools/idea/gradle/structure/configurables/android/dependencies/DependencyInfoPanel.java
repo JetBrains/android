@@ -22,6 +22,10 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
+import java.awt.*;
+
+import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.revalidateAndRepaint;
+
 class DependencyInfoPanel {
   private JPanel myMainPanel;
   private JPanel myDependencyDetailsPanel;
@@ -38,17 +42,12 @@ class DependencyInfoPanel {
   }
 
   void setIssuesViewer(@NotNull IssuesViewer viewer) {
-    ((CollapsiblePanel)myIssuesPanel).setContents(viewer.getPanel());
+    myIssuesPanel.add(viewer.getPanel(), BorderLayout.CENTER);
     revalidateAndRepaint(myMainPanel);
-  }
-
-  private static void revalidateAndRepaint(@NotNull JComponent c) {
-    c.revalidate();
-    c.repaint();
   }
 
   private void createUIComponents() {
     myDependencyDetailsPanel = new CollapsiblePanel("Details");
-    myIssuesPanel = new CollapsiblePanel("Messages");
+    myIssuesPanel = new JPanel(new BorderLayout());
   }
 }

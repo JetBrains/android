@@ -15,20 +15,9 @@
  */
 package com.android.tools.idea.gradle.structure.dependencies;
 
-import com.android.builder.model.AndroidProject;
-import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.model.repositories.JCenterDefaultRepositoryModel;
-import com.android.tools.idea.gradle.dsl.model.repositories.MavenCentralRepositoryModel;
-import com.android.tools.idea.gradle.dsl.model.repositories.RepositoryModel;
 import com.android.tools.idea.gradle.structure.configurables.ui.ArtifactRepositorySearchForm;
 import com.android.tools.idea.gradle.structure.model.PsModule;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
-import com.android.tools.idea.gradle.structure.model.repositories.search.AndroidSdkRepository;
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository;
-import com.android.tools.idea.gradle.structure.model.repositories.search.JCenterRepository;
-import com.android.tools.idea.gradle.structure.model.repositories.search.MavenCentralRepository;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
 import com.intellij.ui.components.JBLabel;
 import org.jetbrains.annotations.NotNull;
@@ -55,26 +44,7 @@ class LibraryDependencyForm implements Disposable {
     myLibraryLabel.setBackground(getTextFieldBackground());
     myLibraryLabel.setText(" ");
 
-    List<ArtifactRepository> repositories = Lists.newArrayList();
-    GradleBuildModel parsedModel = module.getParsedModel();
-    if (parsedModel != null) {
-      for (RepositoryModel repositoryModel : parsedModel.repositories().repositories()) {
-        if (repositoryModel instanceof JCenterDefaultRepositoryModel) {
-          repositories.add(new JCenterRepository());
-          continue;
-        }
-        if (repositoryModel instanceof MavenCentralRepositoryModel) {
-          repositories.add(new MavenCentralRepository());
-        }
-      }
-    }
-
-    AndroidProject androidProject = null;
-    if (module instanceof PsAndroidModule) {
-      AndroidGradleModel gradleModel = ((PsAndroidModule)module).getGradleModel();
-      androidProject = gradleModel.getAndroidProject();
-    }
-    repositories.add(new AndroidSdkRepository(androidProject));
+    List<ArtifactRepository> repositories = module.getArtifactRepositories();
 
     mySearchForm = new ArtifactRepositorySearchForm(repositories);
     mySearchForm.add(selectedLibrary -> {

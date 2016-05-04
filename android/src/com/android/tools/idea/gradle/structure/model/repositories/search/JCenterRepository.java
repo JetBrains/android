@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model.repositories.search;
 
+import com.android.ide.common.repository.GradleVersion;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
@@ -35,6 +36,11 @@ public class JCenterRepository extends ArtifactRepository {
   @NotNull
   public String getName() {
     return "JCenter";
+  }
+
+  @Override
+  public boolean isRemote() {
+    return true;
   }
 
   @Override
@@ -175,19 +181,35 @@ public class JCenterRepository extends ArtifactRepository {
       JsonObject root = array.get(i).getAsJsonObject();
       String name = root.getAsJsonPrimitive("name").getAsString();
 
-      List<String> availableVerions = Lists.newArrayList();
+      List<GradleVersion> availableVersions = Lists.newArrayList();
       JsonArray versions = root.getAsJsonArray("versions");
       versions.forEach(element -> {
         String version = element.getAsString();
-        availableVerions.add(version);
+        availableVersions.add(GradleVersion.parse(version));
       });
 
       List<String> coordinate = Splitter.on(GRADLE_PATH_SEPARATOR).splitToList(name);
       assert coordinate.size() == 2;
 
-      artifacts.add(new FoundArtifact(getName(), coordinate.get(0), coordinate.get(1), availableVerions));
+      artifacts.add(new FoundArtifact(getName(), coordinate.get(0), coordinate.get(1), availableVersions));
     }
 
     return new SearchResult(getName(), artifacts, totalFound);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    return 1;
   }
 }
