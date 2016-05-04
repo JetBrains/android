@@ -37,6 +37,7 @@ import com.intellij.ui.navigation.BackAction;
 import com.intellij.ui.navigation.ForwardAction;
 import com.intellij.ui.navigation.History;
 import com.intellij.ui.navigation.Place;
+import com.intellij.util.EventDispatcher;
 import com.intellij.util.io.storage.HeavyProcessLatch;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NonNls;
@@ -45,6 +46,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.EventListener;
 import java.util.List;
 
 import static com.intellij.ui.navigation.Place.goFurther;
@@ -81,6 +83,9 @@ public class ProjectStructureConfigurable extends BaseConfigurable
 
   private final JLabel myEmptySelection = new JLabel("<html><body><center>Select a setting to view or edit its details here</center></body></html>",
                                                      SwingConstants.CENTER);
+  private final EventDispatcher<ProjectStructureChangeListener> myChangeEventDispatcher =
+    EventDispatcher.create(ProjectStructureChangeListener.class);
+
   private MyDisposable myDisposable = new MyDisposable();
 
   @NotNull
@@ -382,8 +387,15 @@ public class ProjectStructureConfigurable extends BaseConfigurable
 
   @Override
   public void apply() throws ConfigurationException {
+    boolean applied = false;
     for (Configurable configurable : myConfigurables) {
-      configurable.apply();
+      if (configurable.isModified()) {
+        configurable.apply();
+        applied = true;
+      }
+    }
+    if (applied) {
+      myChangeEventDispatcher.getMulticaster().projectStructureChanged();
     }
   }
 
@@ -450,6 +462,10 @@ public class ProjectStructureConfigurable extends BaseConfigurable
     return myHistory;
   }
 
+  public void add(@NotNull ProjectStructureChangeListener listener, @NotNull Disposable parentDisposable) {
+    myChangeEventDispatcher.addListener(listener, parentDisposable);
+  }
+
   private class MyPanel extends JPanel implements DataProvider {
     MyPanel() {
       super(new BorderLayout());
@@ -481,5 +497,9 @@ public class ProjectStructureConfigurable extends BaseConfigurable
     public void dispose() {
       disposed = true;
     }
+  }
+
+  public interface ProjectStructureChangeListener extends EventListener {
+    void projectStructureChanged();
   }
 }
