@@ -50,6 +50,7 @@ public class ConstraintModel implements ModelListener {
   private float myDpiFactor;
   private int mNeedsAnimateConstraints = -1;
   private final NlModel myNlModel;
+  private boolean mAllowsUpdate = true;
 
   public void setAutoConnect(boolean autoConnect) {
     if (autoConnect != mAutoConnect) {
@@ -64,14 +65,6 @@ public class ConstraintModel implements ModelListener {
   private static Lock ourLock = new ReentrantLock();
 
   private long myModificationCount = -1;
-
-  public void setModificationCount(long count) {
-    myModificationCount = count;
-  }
-
-  public long getModificationCount() {
-    return myModificationCount;
-  }
 
   private static final WeakHashMap<ScreenView, DrawConstraintModel> ourDrawModelCache = new WeakHashMap<>();
   private static final WeakHashMap<NlModel, ConstraintModel> ourModelCache = new WeakHashMap<>();
@@ -159,11 +152,13 @@ public class ConstraintModel implements ModelListener {
   @Override
   public void modelChanged(@NotNull NlModel model) {
     ourLock.lock();
-    if (model.getModificationCount() > getModificationCount()) {
-      int dpi = model.getConfiguration().getDensity().getDpiValue();
-      setDpiValue(dpi);
-      updateNlModel(model.getComponents());
-      setModificationCount(model.getModificationCount());
+    if (model.getModificationCount() > myModificationCount) {
+      if (mAllowsUpdate) {
+        int dpi = model.getConfiguration().getDensity().getDpiValue();
+        setDpiValue(dpi);
+        updateNlModel(model.getComponents());
+      }
+      myModificationCount = model.getModificationCount();
     }
     ourLock.unlock();
   }
@@ -171,6 +166,16 @@ public class ConstraintModel implements ModelListener {
   @Override
   public void modelRendered(@NotNull NlModel model) {
     // Do nothing here
+  }
+
+  /**
+   * Allows update to the model to come in or not
+   * @param value
+   */
+  public void allowsUpdate(boolean value) {
+    ourLock.lock();
+    mAllowsUpdate = value;
+    ourLock.unlock();
   }
 
   //////////////////////////////////////////////////////////////////////////////
@@ -397,8 +402,11 @@ public class ConstraintModel implements ModelListener {
    * Save the model to xml
    */
   public void saveToXML() {
+    ourLock.lock();
+    myModificationCount ++;
+    ourLock.unlock();
+
     ConstraintUtilities.saveModelToXML(myNlModel);
-    myModificationCount++;
   }
 
   public void setNeedsAnimateConstraints(int type) {
