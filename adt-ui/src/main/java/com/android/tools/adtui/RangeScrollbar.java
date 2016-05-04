@@ -96,16 +96,6 @@ public final class RangeScrollbar extends JScrollBar implements Animatable {
     mStableScrolling = fixedScrolling;
   }
 
-  /**
-   * Adjust zoom by a percentage of the current view range.
-   */
-  public void zoom(float percentage) {
-    double zoomDelta = mRange.getLength() * percentage;
-    double targetMin = Math.max(mGlobalRange.getMin(), mRange.getMin() - zoomDelta);
-    double targetMax = Math.min(mGlobalRange.getMax(), mRange.getMax() + zoomDelta);
-    mRange.setTarget(targetMin, targetMax);
-  }
-
   @Override
   public void animate(float frameLength) {
     if (mScrollingMode == ScrollingMode.STREAMING) {

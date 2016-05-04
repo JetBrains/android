@@ -171,7 +171,7 @@ public class Range implements Animatable {
     return mCurrentMax - mCurrentMin;
   }
 
-  public boolean isEmpty() {
+  public boolean isPoint() {
     return getMax() == getMin();
   }
 

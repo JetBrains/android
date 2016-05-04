@@ -20,6 +20,8 @@ import com.android.annotations.NonNull;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.awt.geom.Path2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.RoundRectangle2D;
@@ -30,6 +32,11 @@ import java.awt.geom.RoundRectangle2D;
 public final class SelectionComponent extends AnimatedComponent {
 
   /**
+   * Percentage of the current range to apply on each zoom in/out operation.
+   */
+  public static final float ZOOM_FACTOR = 0.1f;
+
+  /**
    * Default drawing Dimension for the handles.
    */
   private static final Dimension HANDLE_DIM = new Dimension(12, 40);
@@ -38,6 +45,8 @@ public final class SelectionComponent extends AnimatedComponent {
   private static final Color SELECTION_BACKCOLOR = new Color(0x5588aae2, true);
 
   private enum Mode {
+    // There are currently no selection.
+    NO_SELECTION,
     // User is not modifying the selection but one exists.
     OBSERVE,
     // User is currently creating a selection. The min/max handles are created at the point
@@ -83,6 +92,9 @@ public final class SelectionComponent extends AnimatedComponent {
    */
   private double mSelectionBlockClickOffset = 0;
 
+  private boolean mZoomRequested;
+  private double mZoomMinTarget;
+  private double mZoomMaxTarget;
 
   public SelectionComponent(@NonNull AxisComponent axis,
                             @NonNull Range selectionRange,
@@ -91,8 +103,16 @@ public final class SelectionComponent extends AnimatedComponent {
     mAxis = axis;
     mDataRange = dataRange;
     mViewRange = viewRange;
-    mode = Mode.OBSERVE;
+    mode = Mode.NO_SELECTION;
     mSelectionRange = selectionRange;
+
+    initListeners();
+  }
+
+  // TODO add logic to cancel selection by clicking
+  // e.g.1 When the user presses once, after having a range selection the selection should deselect.
+  // e.g.2 When the user moves the mouse after a point selection, after X seconds the selection should deselect
+  private void initListeners() {
     addMouseListener(new MouseAdapter() {
       @Override
       public void mousePressed(MouseEvent e) {
@@ -104,7 +124,9 @@ public final class SelectionComponent extends AnimatedComponent {
         Point mMousePosition = getMouseLocation();
         mode = getModeForMousePosition(mMousePosition);
         switch (mode) {
+          case NO_SELECTION:
           case CREATE:
+            // TODO add delay before changing selection from a point to a range.
             double value = mAxis.getValueAtPosition(e.getX());
             mSelectionRange.set(value, value);
             mode = Mode.ADJUST_MIN;
@@ -120,7 +142,25 @@ public final class SelectionComponent extends AnimatedComponent {
         if (!(e.getButton() == MouseEvent.BUTTON1)) {
           return;
         }
+
+        // Perform zooming to selection.
+        if (e.isControlDown()) {
+          requestZoom(mSelectionRange.getMin(), mSelectionRange.getMax());
+        }
+
         mode = Mode.OBSERVE;
+      }
+    });
+
+    addMouseWheelListener(new MouseWheelListener() {
+      @Override
+      public void mouseWheelMoved(MouseWheelEvent e) {
+        double anchor = mAxis.getValueAtPosition(e.getPoint().x);
+        float zoomPercentage = ZOOM_FACTOR * e.getWheelRotation();
+        double delta = zoomPercentage * mViewRange.getLength();
+        double minDelta = delta * (anchor - mViewRange.getMin()) / mViewRange.getLength();
+        double maxDelta = delta - minDelta;
+        requestZoom(mViewRange.getMin() - minDelta, mViewRange.getMax() + maxDelta);
       }
     });
   }
@@ -161,11 +201,45 @@ public final class SelectionComponent extends AnimatedComponent {
     mSelectionBlockClickOffset = mSelectionRange.getMin() - value;
   }
 
+  /**
+   * Zoom by a percentage of the current view range using the center as the anchor
+   */
+  public void zoom(float percentage) {
+    double zoomDelta = mViewRange.getLength() * percentage;
+    requestZoom(mViewRange.getMin() - zoomDelta, mViewRange.getMax() + zoomDelta);
+  }
+
+  /*
+   * Resets the view range to match the data range.
+   * TODO this does not animate at the moment because we have a running mDataRange max value.
+   */
+  public void resetZoom() {
+    mViewRange.set(mDataRange.getMin(), mDataRange.getMax());
+  }
+
+  public void clear() {
+    mSelectionRange.set(0, 0);
+    mode = Mode.NO_SELECTION;
+  }
+
   @Override
   protected void updateData() {
-    // Early return if the component is hidden or in OBSERVE mode
+    // Early return if the component is hidden.
     // TODO probably abstract the isShowing check to somewhere across all AnimatedComponents
-    if (!isShowing() || mode == Mode.OBSERVE) {
+    if (!isShowing()) {
+      return;
+    }
+
+    if (mZoomRequested) {
+      // TODO clamp zooming if a min range is reached.
+      if (mZoomMinTarget != mViewRange.getMin() || mZoomMaxTarget != mViewRange.getMax()) {
+        mViewRange.setTarget(mZoomMinTarget, mZoomMaxTarget);
+      }
+      mZoomRequested = false;
+    }
+
+    // Early return if in observe mode and the selection has not changed.
+    if (mode == Mode.OBSERVE || mode == Mode.NO_SELECTION) {
       return;
     }
 
@@ -244,7 +318,8 @@ public final class SelectionComponent extends AnimatedComponent {
 
   @Override
   protected void draw(Graphics2D g) {
-    if (mSelectionRange.isEmpty()) {
+    // Early return if there is no active selection.
+    if (mode == Mode.NO_SELECTION) {
       return;
     }
 
@@ -273,6 +348,12 @@ public final class SelectionComponent extends AnimatedComponent {
     // Draw handles
     drawHandleAtValue(g, mSelectionRange.getMin());
     drawHandleAtValue(g, mSelectionRange.getMax());
+  }
+
+  private void requestZoom(double minTarget, double maxTarget) {
+    mZoomMinTarget = Math.max(mDataRange.getMin(), minTarget);
+    mZoomMaxTarget = Math.min(mDataRange.getMax(), maxTarget);
+    mZoomRequested = true;
   }
 
   private void drawHandleAtValue(Graphics2D g, double value) {
