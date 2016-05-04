@@ -53,14 +53,21 @@ public class GradleFileSimpleMerger {
                                         @Nullable String supportLibVersionFilter) {
     SimpleGradleBuildFileParser templateParser = new SimpleGradleBuildFileParser(source);
     Ast template = templateParser.parse();
+    assert template != null;
     SimpleGradleBuildFileParser existingParser = new SimpleGradleBuildFileParser(dest);
     Ast existing = existingParser.parse();
 
-    MergeContext mergeContext = new MergeContext(project, supportLibVersionFilter);
-    existing.merge(mergeContext, template);
-
     PrintContext printContext = new PrintContext();
-    existing.print(printContext);
+    if (existing != null) {
+      MergeContext mergeContext = new MergeContext(project, supportLibVersionFilter);
+      existing.merge(mergeContext, template);
+
+      existing.print(printContext);
+    }
+    else {
+      // If existing file doesn't parse, just return template file
+      template.print(printContext);
+    }
 
     return printContext.toString();
   }
@@ -104,6 +111,7 @@ public class GradleFileSimpleMerger {
       }
     }
 
+    @Nullable
     public Ast parse() {
       if (myType == null) {
         return null;
