@@ -40,6 +40,10 @@ public class CanvasResizeInteraction extends Interaction {
     super.update(x, y, modifiers);
     myCurrentX = x;
     myCurrentY = y;
+    if (myScreenView.getScreenViewType() == ScreenView.ScreenViewType.BLUEPRINT) {
+      myScreenView.getModel().overrideConfigurationScreenSize(Coordinates.getAndroidX(myScreenView, x),
+                                                              Coordinates.getAndroidY(myScreenView, y));
+    }
   }
 
   @Override

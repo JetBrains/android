@@ -29,8 +29,7 @@ import java.awt.geom.Rectangle2D;
 public class ConstraintsLayer extends Layer {
   private final ScreenView myScreenView;
   private final DesignSurface myDesignSurface;
-  private int myWidth;
-  private int myHeight;
+
   private Dimension myScreenViewSize = new Dimension();
   private Rectangle mySizeRectangle = new Rectangle();
   private final boolean showOnSelection;
@@ -57,21 +56,9 @@ public class ConstraintsLayer extends Layer {
     }
 
     NlModel myModel = myScreenView.getModel();
-    RenderResult renderResult = myModel.getRenderResult();
-    if (renderResult == null) {
-      return;
-    }
-
     if (showOnSelection && myModel.getSelectionModel().isEmpty()) {
       return;
     }
-
-    Rectangle originalBounds = renderResult.getOriginalBounds();
-    double scale = myScreenView.getScale();
-    int width = (int)(originalBounds.getWidth() * scale);
-    int height = (int)(originalBounds.getHeight() * scale);
-    myWidth = width;
-    myHeight = height;
 
     if (myModel.getComponents().size() == 0) {
       return;
@@ -124,7 +111,7 @@ public class ConstraintsLayer extends Layer {
     if (handler != null && handler instanceof ViewGroupHandler) {
       ViewGroupHandler viewGroupHandler = (ViewGroupHandler)handler;
       if (viewGroupHandler.handlesPainting()) {
-        return viewGroupHandler.drawGroup(gc, myScreenView, myWidth, myHeight, component, showOnSelection);
+        return viewGroupHandler.drawGroup(gc, myScreenView, component);
       }
     }
 
