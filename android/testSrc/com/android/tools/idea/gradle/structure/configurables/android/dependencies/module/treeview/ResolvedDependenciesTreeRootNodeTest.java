@@ -22,10 +22,8 @@ import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.model.android.PsDependencyContainer;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.intellij.openapi.module.Module;
+import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Before;
-import org.junit.Test;
 
 import java.util.List;
 import java.util.Map;
@@ -40,13 +38,14 @@ import static org.mockito.Mockito.when;
 /**
  * Tests for {@link ResolvedDependenciesTreeRootNode}.
  */
-public class ResolvedDependenciesTreeRootNodeTest {
+public class ResolvedDependenciesTreeRootNodeTest extends IdeaTestCase {
   private PsAndroidDependency myD1;
   private PsAndroidDependency myD2;
   private PsAndroidDependency myD3;
 
-  @Before
-  public void setUp() {
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
     myD1 = mock(PsAndroidDependency.class);
     when(myD1.toString()).thenReturn("d1");
 
@@ -57,7 +56,6 @@ public class ResolvedDependenciesTreeRootNodeTest {
     when(myD3.toString()).thenReturn("d3");
   }
 
-  @Test
   public void testGroupingByArtifacts1() {
     // v1 main
     //    d1
@@ -92,7 +90,6 @@ public class ResolvedDependenciesTreeRootNodeTest {
     assertThat(dependencies).containsExactly(myD1, myD2);
   }
 
-  @Test
   public void testGroupingByArtifacts2() {
     // v1 main
     //    d2
@@ -137,7 +134,6 @@ public class ResolvedDependenciesTreeRootNodeTest {
     assertThat(dependencies).containsExactly(myD1);
   }
 
-  @Test
   public void testGroupingByArtifacts3() {
     // v1 main
     //    d2
@@ -177,11 +173,11 @@ public class ResolvedDependenciesTreeRootNodeTest {
     return new PsDependencyContainer(variant, artifact);
   }
 
-  private static class PsAndroidModuleStub extends PsAndroidModule {
+  private class PsAndroidModuleStub extends PsAndroidModule {
     @NotNull private final List<PsAndroidDependency> myDependencies;
 
     public PsAndroidModuleStub(@NotNull List<PsAndroidDependency> dependencies) {
-      super(mock(PsProject.class), mock(Module.class), "", mock(AndroidGradleModel.class));
+      super(new PsProject(myProject), myModule, "", mock(AndroidGradleModel.class));
       myDependencies = dependencies;
     }
 

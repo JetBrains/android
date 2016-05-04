@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.project;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
-import com.android.tools.idea.gradle.structure.configurables.ui.AbstractMainPanel;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.AbstractMainDependenciesPanel;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.intellij.openapi.util.ActionCallback;
 import com.intellij.openapi.util.Disposer;
@@ -29,28 +29,25 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.UiUtil.createMainVerticalSplitter;
-
-class ProjectDependenciesPanel extends AbstractMainPanel {
-  @NotNull private final JBSplitter myVerticalSplitter;
+class ProjectDependenciesPanel extends AbstractMainDependenciesPanel {
   @NotNull private final DeclaredDependenciesPanel myDeclaredDependenciesPanel;
   @NotNull private final TargetModulesPanel myTargetModulesPanel;
 
-  ProjectDependenciesPanel(@NotNull PsContext context, @NotNull List<PsModule> extraTopModules) {
+  ProjectDependenciesPanel(@NotNull PsModule module, @NotNull PsContext context, @NotNull List<PsModule> extraTopModules) {
     super(context, extraTopModules);
 
-    myDeclaredDependenciesPanel = new DeclaredDependenciesPanel(context);
+    myDeclaredDependenciesPanel = new DeclaredDependenciesPanel(module, context);
     myDeclaredDependenciesPanel.setHistory(getHistory());
 
     myTargetModulesPanel = new TargetModulesPanel(context);
 
     myDeclaredDependenciesPanel.add(myTargetModulesPanel::displayTargetModules);
 
-    myVerticalSplitter = createMainVerticalSplitter();
-    myVerticalSplitter.setFirstComponent(myDeclaredDependenciesPanel);
-    myVerticalSplitter.setSecondComponent(myTargetModulesPanel);
+    JBSplitter verticalSplitter = createMainVerticalSplitter();
+    verticalSplitter.setFirstComponent(myDeclaredDependenciesPanel);
+    verticalSplitter.setSecondComponent(myTargetModulesPanel);
 
-    add(myVerticalSplitter, BorderLayout.CENTER);
+    add(verticalSplitter, BorderLayout.CENTER);
   }
 
   @Override

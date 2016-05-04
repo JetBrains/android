@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model.repositories.search;
 
+import com.android.ide.common.repository.GradleVersion;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
@@ -36,6 +37,11 @@ public class MavenCentralRepository extends ArtifactRepository {
   @NotNull
   public String getName() {
     return "Maven Central";
+  }
+
+  @Override
+  public boolean isRemote() {
+    return true;
   }
 
   @Override
@@ -116,16 +122,19 @@ public class MavenCentralRepository extends ArtifactRepository {
       }
       for (Element doc : result.getChildren("doc")) {
         String id = null;
-        String latestVersion = null;
+        GradleVersion latestVersion = null;
         for (Element str : doc.getChildren("str")) {
           String name = str.getAttributeValue("name");
           if ("id".equals(name)) {
             id = str.getTextTrim();
           }
           else if ("latestVersion".equals(name)) {
-            latestVersion = str.getTextTrim();
+            String value = str.getTextTrim();
+            if (isNotEmpty(value)) {
+              latestVersion = GradleVersion.parse(value);
+            }
           }
-          if (isNotEmpty(id) && isNotEmpty(latestVersion)) {
+          if (isNotEmpty(id) && latestVersion != null) {
             List<String> coordinate = Splitter.on(GRADLE_PATH_SEPARATOR).splitToList(id);
             assert coordinate.size() == 2;
 
@@ -137,5 +146,21 @@ public class MavenCentralRepository extends ArtifactRepository {
     }
 
     return new SearchResult(getName(), artifacts, totalFound);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    return 1;
   }
 }

@@ -17,28 +17,24 @@ package com.android.tools.idea.gradle.structure.model.android;
 
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
-import com.android.tools.idea.gradle.structure.model.PsChildModel;
+import com.android.tools.idea.gradle.structure.model.PsDependency;
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
+import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public abstract class PsAndroidDependency extends PsChildModel implements PsAndroidModel {
+public abstract class PsAndroidDependency extends PsDependency {
   @NotNull private final Set<PsDependencyContainer> myContainers = Sets.newHashSet();
 
-  @Nullable private DependencyModel myParsedModel;
-
   PsAndroidDependency(@NotNull PsAndroidModule parent,
-                      @Nullable PsAndroidArtifact container,
+                      @NotNull PsAndroidArtifact container,
                       @Nullable DependencyModel parsedModel) {
-    super(parent);
-    myParsedModel = parsedModel;
-    if (container != null) {
-      addContainer(container);
-    }
+    super(parent, parsedModel);
+    addContainer(container);
   }
 
   @Override
@@ -59,39 +55,14 @@ public abstract class PsAndroidDependency extends PsChildModel implements PsAndr
 
   @TestOnly
   @NotNull
-  public Set<String> getVariants() {
-    Set<String> variants = Sets.newHashSet();
-    variants.addAll(myContainers.stream().map(PsDependencyContainer::getVariant)
-                                         .collect(Collectors.toList()));
-    return variants;
+  public Collection<String> getVariants() {
+    return myContainers.stream().map(PsDependencyContainer::getVariant).collect(Collectors.toSet());
   }
 
   @NotNull
-  public Set<PsDependencyContainer> getContainers() {
+  public Collection<PsDependencyContainer> getContainers() {
     return myContainers;
   }
-
-  @Nullable
-  public String getConfigurationName() {
-    return myParsedModel != null ? myParsedModel.configurationName() : null;
-  }
-
-  @Override
-  public boolean isDeclared() {
-    return myParsedModel != null;
-  }
-
-  @Nullable
-  public DependencyModel getParsedModel() {
-    return myParsedModel;
-  }
-
-  protected void setParsedModel(@Nullable DependencyModel parsedModel) {
-    myParsedModel = parsedModel;
-  }
-
-  @NotNull
-  public abstract String getValueAsText();
 
   public boolean isIn(@NotNull String artifactName, @Nullable String variantName) {
     for (PsDependencyContainer container : myContainers) {
@@ -104,7 +75,6 @@ public abstract class PsAndroidDependency extends PsChildModel implements PsAndr
         }
       }
     }
-
     return false;
   }
 }

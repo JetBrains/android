@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.structure.model;
 
-import com.android.tools.idea.gradle.structure.navigation.PsNavigationPath;
 import com.google.common.base.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -23,34 +22,38 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 
-import static com.intellij.icons.AllIcons.General.BalloonError;
-import static com.intellij.icons.AllIcons.General.BalloonInformation;
-import static com.intellij.icons.AllIcons.General.BalloonWarning;
-import static com.intellij.ui.JBColor.GRAY;
-import static com.intellij.ui.JBColor.RED;
-import static com.intellij.ui.JBColor.YELLOW;
+import static com.intellij.icons.AllIcons.Actions.Download;
+import static com.intellij.icons.AllIcons.General.*;
+import static com.intellij.ui.JBColor.*;
 
 public class PsIssue {
   @NotNull private final String myText;
-  @NotNull private final Type myType;
-  @NotNull private final PsNavigationPath myPath;
+  @NotNull private final PsPath myPath;
+  @NotNull private final PsIssueType myType;
+  @NotNull private final Severity mySeverity;
 
   @Nullable private final String myDescription;
+  @Nullable private PsPath myExtraPath;
+  @Nullable private PsPath myQuickFixPath;
 
-  @Nullable private PsNavigationPath myExtraPath;
-
-  public PsIssue(@NotNull String text, @NotNull PsNavigationPath path, @NotNull Type type) {
+  public PsIssue(@NotNull String text, @NotNull PsPath path, @NotNull PsIssueType type, @NotNull Severity severity) {
     myText = text;
     myPath = path;
     myType = type;
+    mySeverity = severity;
     myDescription = null;
   }
 
-  public PsIssue(@NotNull String text, @NotNull String description, @NotNull PsNavigationPath path, @NotNull Type type) {
+  public PsIssue(@NotNull String text,
+                 @NotNull String description,
+                 @NotNull PsPath path,
+                 @NotNull PsIssueType type,
+                 @NotNull Severity severity) {
     myText = text;
     myDescription = description;
     myPath = path;
     myType = type;
+    mySeverity = severity;
   }
 
   @NotNull
@@ -64,22 +67,31 @@ public class PsIssue {
   }
 
   @NotNull
-  public Type getType() {
-    return myType;
+  public Severity getSeverity() {
+    return mySeverity;
   }
 
   @NotNull
-  public PsNavigationPath getPath() {
+  public PsPath getPath() {
     return myPath;
   }
 
   @Nullable
-  public PsNavigationPath getExtraPath() {
+  public PsPath getExtraPath() {
     return myExtraPath;
   }
 
-  public void setExtraPath(@Nullable PsNavigationPath extraPath) {
+  public void setExtraPath(@Nullable PsPath extraPath) {
     myExtraPath = extraPath;
+  }
+
+  @Nullable
+  public PsPath getQuickFixPath() {
+    return myQuickFixPath;
+  }
+
+  public void setQuickFixPath(@Nullable PsPath quickFixPath) {
+    myQuickFixPath = quickFixPath;
   }
 
   @Override
@@ -94,28 +106,34 @@ public class PsIssue {
     return Objects.equal(myText, that.myText)
            && Objects.equal(myDescription, that.myDescription)
            && Objects.equal(myPath, that.getPath())
-           && myType == that.myType;
+           && mySeverity == that.mySeverity;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(myText, myDescription, myPath, myType);
+    return Objects.hashCode(myText, myDescription, myPath, mySeverity);
   }
 
   @Override
   public String toString() {
-    return myType.name() + ": " + myText;
+    return mySeverity.name() + ": " + myText;
   }
 
-  public enum Type {
-    ERROR("Error", BalloonError, RED, 0), WARNING("Warning", BalloonWarning, YELLOW, 1), INFO("Information", BalloonInformation, GRAY, 2);
+  @NotNull
+  public PsIssueType getType() {
+    return myType;
+  }
+
+  public enum Severity {
+    ERROR("Error", BalloonError, RED, 0), WARNING("Warning", BalloonWarning, YELLOW, 1), INFO("Information", BalloonInformation, GRAY, 2),
+    UPDATE("Update", Download, GRAY, 3);
 
     @NotNull private final Icon myIcon;
     @NotNull private final String myText;
     @NotNull private final Color myColor;
     private final int myPriority;
 
-    Type(@NotNull String text, @NotNull Icon icon, @NotNull Color color, int priority) {
+    Severity(@NotNull String text, @NotNull Icon icon, @NotNull Color color, int priority) {
       myText = text;
       myColor = color;
       myIcon = icon;

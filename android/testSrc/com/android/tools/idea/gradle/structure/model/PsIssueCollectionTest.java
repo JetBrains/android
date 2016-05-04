@@ -22,8 +22,9 @@ import org.mockito.Mockito;
 
 import java.util.List;
 
-import static com.android.tools.idea.gradle.structure.model.PsIssue.Type.WARNING;
-import static com.android.tools.idea.gradle.structure.navigation.PsNavigationPath.EMPTY_PATH;
+import static com.android.tools.idea.gradle.structure.model.PsIssue.Severity.WARNING;
+import static com.android.tools.idea.gradle.structure.model.PsIssueType.PROJECT_ANALYSIS;
+import static com.android.tools.idea.gradle.structure.model.PsPath.EMPTY_PATH;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -40,18 +41,22 @@ public class PsIssueCollectionTest {
   @Test
   public void testGetTooltipText() {
     for (int i = 0; i < 5; i++) {
-      myIssueCollection.add(new PsIssue("Issue " + (i + 1), EMPTY_PATH, WARNING));
+      myIssueCollection.add(new PsIssue("Issue " + (i + 1), EMPTY_PATH, PROJECT_ANALYSIS, WARNING));
     }
-    List<PsIssue> issues = myIssueCollection.getIssues();
+    List<PsIssue> issues = myIssueCollection.getValues();
     String expected = "<html><body>Issue 1<br>Issue 2<br>Issue 3<br>Issue 4<br>Issue 5<br></body></html>";
     assertEquals(expected, PsIssueCollection.getTooltipText(issues));
 
-    for (int i = 5; i < 20; i++) {
-      myIssueCollection.add(new PsIssue("Issue " + (i + 1), EMPTY_PATH, WARNING));
+    myIssueCollection.clear();
+
+    for (int i = 0; i < 16; i++) {
+      int issueNumber = i + 1;
+      String text = "Issue " + String.format("%02d", issueNumber);
+      myIssueCollection.add(new PsIssue(text, EMPTY_PATH, PROJECT_ANALYSIS, WARNING));
     }
-    issues = myIssueCollection.getIssues();
-    expected = "<html><body>Issue 1<br>Issue 2<br>Issue 3<br>Issue 4<br>Issue 5<br>Issue 6<br>Issue 7<br>Issue 8<br>Issue 9<br>" +
-               "Issue 10<br>Issue 11<br>9 more problems...<br></body></html>";
+    issues = myIssueCollection.getValues();
+    expected = "<html><body>Issue 01<br>Issue 02<br>Issue 03<br>Issue 04<br>Issue 05<br>Issue 06<br>Issue 07<br>Issue 08<br>Issue 09<br>" +
+               "Issue 10<br>Issue 11<br>5 more problems...<br></body></html>";
     assertEquals(expected, PsIssueCollection.getTooltipText(issues));
   }
 }
