@@ -16,19 +16,14 @@
 package com.android.tools.idea.updater.configure;
 
 import com.android.repository.api.*;
-import com.android.repository.api.ProgressIndicator;
 import com.android.repository.impl.meta.RepositoryPackages;
-import com.android.repository.io.FileOp;
-import com.android.repository.io.FileOpUtils;
 import com.android.repository.util.InstallerUtil;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.StudioSettingsController;
-import com.android.tools.idea.sdk.progress.RepoProgressIndicatorAdapter;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
-import com.android.tools.idea.sdk.install.StudioSdkInstallerUtil;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.android.utils.HtmlBuilder;
 import com.google.common.base.Objects;
@@ -40,7 +35,6 @@ import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.options.ex.Settings;
-import com.intellij.openapi.progress.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.ui.AncestorListenerAdapter;
@@ -226,34 +220,15 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
     message.closeHtmlBody();
     if (found) {
       if (confirmChange(message)) {
-        ProgressManager.getInstance().runProcessWithProgressSynchronously(new Runnable() {
-          @Override
-          public void run() {
-            com.intellij.openapi.progress.ProgressIndicator progress = ProgressManager.getInstance().getProgressIndicator();
-            com.android.repository.api.ProgressIndicator repoProgress = new RepoProgressIndicatorAdapter(progress);
-            FileOp fop = FileOpUtils.create();
-            for (LocalPackage item : toDelete) {
-              InstallerFactory factory = StudioSdkInstallerUtil.createInstallerFactory(item, getSdkHandler());
-              Uninstaller uninstaller = factory.createUninstaller(item, getRepoManager(), fop);
-              uninstaller.prepare(repoProgress);
-              uninstaller.complete(repoProgress);
-            }
-          }
-        }, "Uninstalling", false, null, myPanel.getComponent());
-        if (!requestedPackages.isEmpty()) {
-          ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPackages(myPanel.getComponent(), requestedPackages.values(), true);
+        if (!requestedPackages.isEmpty() || !toDelete.isEmpty()) {
+          ModelWizardDialog dialog =
+            SdkQuickfixUtils.createDialogForPackages(myPanel.getComponent(), requestedPackages.values(), toDelete, true);
           if (dialog != null) {
             dialog.show();
             for (RemotePackage remotePackage : requestedPackages.keySet()) {
               PackageOperation installer = getRepoManager().getInProgressInstallOperation(remotePackage);
               if (installer != null) {
-                PackageOperation.StatusChangeListener listener = new PackageOperation.StatusChangeListener() {
-                  @Override
-                  public void statusChanged(@NotNull PackageOperation installer,
-                                            @NotNull ProgressIndicator progress) {
-                    myPanel.getComponent().repaint();
-                  }
-                };
+                PackageOperation.StatusChangeListener listener = (installer1, progress) -> myPanel.getComponent().repaint();
                 myListeners.add(listener);
                 installer.registerStateChangeListener(listener);
               }

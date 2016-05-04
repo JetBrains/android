@@ -77,13 +77,13 @@ public abstract class InstallableComponent extends ComponentTreeNode {
    * or have an update available, if we're installing updates).
    */
   @NotNull
-  public Collection<String> getPackagesToInstall() {
-    List<String> result = Lists.newArrayList();
+  public Collection<UpdatablePackage> getPackagesToInstall() {
+    List<UpdatablePackage> result = Lists.newArrayList();
     Map<String, UpdatablePackage> consolidatedPackages = myRepositoryPackages.getConsolidatedPkgs();
     for (String path : getRequiredSdkPackages()) {
       UpdatablePackage p = consolidatedPackages.get(path);
       if (p != null && p.hasRemote() && (!p.hasLocal() || (myInstallUpdates && p.isUpdate()))) {
-        result.add(path);
+        result.add(p);
       }
     }
     return result;
@@ -180,9 +180,9 @@ public abstract class InstallableComponent extends ComponentTreeNode {
 
   public long getDownloadSize() {
     long size = 0;
-    for (String path : getPackagesToInstall()) {
+    for (UpdatablePackage updatable : getPackagesToInstall()) {
       // TODO: support patches if this is an update
-      Archive archive = myRepositoryPackages.getRemotePackages().get(path).getArchive();
+      Archive archive = updatable.getRemote().getArchive();
       if (archive != null) {
         size += archive.getComplete().getSize();
       }
