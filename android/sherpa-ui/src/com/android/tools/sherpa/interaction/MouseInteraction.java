@@ -482,7 +482,7 @@ public class MouseInteraction {
             }
             for (ConstraintHandle handle : targets.getConstraintHandles()) {
                 int x = mViewTransform.getSwingX(handle.getDrawX());
-                int y = mViewTransform.getSwingX(handle.getDrawY());
+                int y = mViewTransform.getSwingY(handle.getDrawY());
                 ConstraintAnchor.Type type = handle.getAnchor().getType();
                 if (type == ConstraintAnchor.Type.CENTER
                         || type == ConstraintAnchor.Type.CENTER_X
