@@ -20,21 +20,19 @@ import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.BuildType;
 import com.android.builder.model.BuildTypeContainer;
 import com.android.builder.model.ProductFlavor;
-import com.android.manifmerger.Actions;
-import com.android.manifmerger.ManifestMerger2;
-import com.android.manifmerger.ManifestSystemProperty;
-import com.android.manifmerger.MergingReport;
+import com.android.manifmerger.*;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.utils.ILogger;
 import com.android.utils.NullLogger;
 import com.android.utils.Pair;
+import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
-import com.intellij.lang.xml.XMLLanguage;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -45,10 +43,7 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.PsiManager;
-import com.intellij.psi.xml.XmlFile;
-import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
@@ -56,6 +51,7 @@ import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Document;
 import org.xml.sax.SAXParseException;
 
 import java.io.ByteArrayInputStream;
@@ -72,33 +68,9 @@ import static com.android.SdkConstants.ANDROID_URI;
  *
  * @see com.android.xml.AndroidManifest
  */
-public final class ManifestInfo {
+final class ManifestInfo {
 
   private ManifestInfo() {
-  }
-
-  /**
-   * Returns the value of the given attribute from the android namespace
-   */
-  @Nullable("if the attribute value is null or empty")
-  static String getAttributeValue(@NotNull XmlTag xmlTag, @NotNull String attributeName) {
-    return getAttributeValue(xmlTag, attributeName, ANDROID_URI);
-  }
-
-  /**
-   * Returns the value of the given attribute
-   */
-  @Nullable("if the attribute value is null or empty")
-  static String getAttributeValue(@NotNull XmlTag xmlTag, @NotNull String attributeName, @Nullable String attributeNamespace) {
-    return Strings.emptyToNull(xmlTag.getAttributeValue(attributeName, attributeNamespace));
-  }
-
-  /**
-   * @deprecated use {@link MergedManifest#get(Module)} instead
-   */
-  @Deprecated
-  public static MergedManifest get(Module module, boolean ignored) {
-    return MergedManifest.get(module);
   }
 
   @NotNull
@@ -114,7 +86,8 @@ public final class ManifestInfo {
     AndroidGradleModel gradleModel = AndroidGradleModel.get(facet);
 
     ManifestMerger2.Invoker manifestMergerInvoker = ManifestMerger2.newMerger(mainManifestFile, logger, mergeType);
-    manifestMergerInvoker.addFlavorAndBuildTypeManifests(VfsUtilCore.virtualToIoFiles(flavorAndBuildTypeManifests).toArray(new File[flavorAndBuildTypeManifests.size()]));
+    manifestMergerInvoker.withFeatures(ManifestMerger2.Invoker.Feature.SKIP_BLAME, ManifestMerger2.Invoker.Feature.SKIP_XML_STRING);
+    manifestMergerInvoker.addFlavorAndBuildTypeManifests(VfsUtilCore.virtualToIoFiles(flavorAndBuildTypeManifests).toArray(new File[0]));
 
     List<Pair<String, File>> libraryManifests = new ArrayList<Pair<String, File>>();
     for (VirtualFile file : libManifests) {
@@ -192,7 +165,7 @@ public final class ManifestInfo {
       protected InputStream getInputStream(@NotNull File file) throws FileNotFoundException {
         VirtualFile vFile;
         if (file == mainManifestFile) {
-          // some tests use VirtualFile files (e.g. temp:///src/AndroidManifest.xml) for the main manifest
+          // Some tests use VirtualFile files (e.g. temp:///src/AndroidManifest.xml) for the main manifest
           vFile = primaryManifestFile;
         }
         else {
@@ -200,26 +173,35 @@ public final class ManifestInfo {
         }
         assert vFile != null : file;
 
-        // we do not want to do this check if we have no lib manifests
+        // We do not want to do this check if we have no library manifests.
         // findModuleForFile does not work for other build systems (e.g. bazel)
         if (!libManifests.isEmpty()) {
           Module fileModule = ModuleUtilCore.findModuleForFile(vFile, project);
           if (fileModule != null && !module.equals(fileModule)) {
             assert libManifests.contains(vFile); // if it's a different module, it must be one of the lib manifests
             MergedManifest manifest = MergedManifest.get(fileModule);
-            XmlTag xmlTag = manifest.getXmlTag();
-            assert xmlTag != null; // we must have a file here as we had a source VirtualFile
-            String text = xmlTag.getContainingFile().getText();
+            Document document = manifest.getDocument();
+            assert document != null;
+            // This is not very efficient. Consider enhancing the manifest merger API
+            // such that I can pass back a fully merged DOM document instead of
+            // an XML string since it will need to turn around and parse it anyway.
+            String text = XmlUtils.toXml(document);
             return new ByteArrayInputStream(text.getBytes(Charsets.UTF_8));
           }
         }
 
-        PsiFile psiFile = PsiManager.getInstance(project).findFile(vFile);
-        if (psiFile != null) {
-          String text = psiFile.getText();
-          return new ByteArrayInputStream(text.getBytes(Charsets.UTF_8));
+        try {
+          PsiFile psiFile = PsiManager.getInstance(project).findFile(vFile);
+          if (psiFile != null) {
+            String text = psiFile.getText();
+            return new ByteArrayInputStream(text.getBytes(Charsets.UTF_8));
+          }
+        } catch (ProcessCanceledException ignore) {
+          // During startup we may receive a progress canceled exception here,
+          // but we don't *need* to read from PSI; we can read directly from
+          // disk. PSI is useful when the file has been modified, but that's not
+          // the case in the typical scenario where we hit process canceled.
         }
-        Logger.getInstance(ManifestInfo.class).warn("can not find PSI File for " + file);
         return super.getInputStream(file);
       }
     });
@@ -229,7 +211,8 @@ public final class ManifestInfo {
 
   static class ManifestFile {
     private final @NotNull AndroidFacet myFacet;
-    private @Nullable XmlFile myXmlFile;
+    private @Nullable Document myDocument;
+    private @Nullable List<VirtualFile> myManifestFiles;
     private @Nullable Map<Object, Long> myLastModifiedMap;
 
     private @Nullable ImmutableList<MergingReport.Record> myLoggingRecords;
@@ -245,7 +228,9 @@ public final class ManifestInfo {
     }
 
     @Nullable
-    private XmlFile parseManifest(@NotNull final VirtualFile primaryManifestFile, @NotNull List<VirtualFile> flavorAndBuildTypeManifests, @NotNull List<VirtualFile> libManifests) {
+    private Document parseManifest(@NotNull final VirtualFile primaryManifestFile,
+                                   @NotNull List<VirtualFile> flavorAndBuildTypeManifests,
+                                   @NotNull List<VirtualFile> libManifests) {
       ApplicationManager.getApplication().assertReadAccessAllowed();
 
       Project project = myFacet.getModule().getProject();
@@ -258,9 +243,9 @@ public final class ManifestInfo {
         myLoggingRecords = mergingReport.getLoggingRecords();
         myActions = mergingReport.getActions();
 
-        String doc = mergingReport.getMergedDocument(MergingReport.MergedManifestKind.MERGED);
-        if (!Strings.isNullOrEmpty(doc)) {
-          return (XmlFile)PsiFileFactory.getInstance(project).createFileFromText(SdkConstants.FN_ANDROID_MANIFEST_XML, XMLLanguage.INSTANCE, doc);
+        XmlDocument doc = mergingReport.getMergedXmlDocument(MergingReport.MergedManifestKind.MERGED);
+        if (doc != null) {
+          return doc.getXml();
         }
         else {
           Logger.getInstance(ManifestInfo.class).warn("getMergedManifest failed " + mergingReport.getReportString());
@@ -279,7 +264,12 @@ public final class ManifestInfo {
       }
 
       PsiFile psiFile = PsiManager.getInstance(project).findFile(primaryManifestFile);
-      return (psiFile instanceof XmlFile) ? (XmlFile)psiFile : null;
+      if (psiFile != null) {
+        String text = psiFile.getText();
+        return XmlUtils.parseDocumentSilently(text, true);
+      }
+
+      return null;
     }
 
     public boolean refresh() {
@@ -311,11 +301,18 @@ public final class ManifestInfo {
       }
       trackChanges(lastModifiedMap, flavorAndBuildTypeManifestsOfLibs);
 
-      if (myXmlFile == null || !lastModifiedMap.equals(myLastModifiedMap)) {
-        myXmlFile = parseManifest(primaryManifestFile, flavorAndBuildTypeManifests, libraryManifests);
-        if (myXmlFile == null) {
+      if (myDocument == null || !lastModifiedMap.equals(myLastModifiedMap)) {
+        myDocument = parseManifest(primaryManifestFile, flavorAndBuildTypeManifests, libraryManifests);
+        if (myDocument == null) {
+          myManifestFiles = null;
           return false;
         }
+
+        myManifestFiles = Lists.newArrayList();
+        myManifestFiles.add(primaryManifestFile);
+        myManifestFiles.addAll(flavorAndBuildTypeManifests);
+        myManifestFiles.addAll(libraryManifests);
+
         myLastModifiedMap = lastModifiedMap;
         return true;
       } else {
@@ -391,13 +388,21 @@ public final class ManifestInfo {
     }
 
     private long getFileModificationStamp(@NotNull VirtualFile file) {
-      PsiFile psiFile = PsiManager.getInstance(myFacet.getModule().getProject()).findFile(file);
-      return psiFile == null ? file.getModificationStamp() : psiFile.getModificationStamp();
+      try {
+        PsiFile psiFile = PsiManager.getInstance(myFacet.getModule().getProject()).findFile(file);
+        return psiFile == null ? file.getModificationStamp() : psiFile.getModificationStamp();
+      } catch (ProcessCanceledException ignore) {
+        return 0L;
+      }
+    }
+
+    public Document getXmlDocument() {
+      return myDocument;
     }
 
     @Nullable
-    public XmlFile getXmlFile() {
-      return myXmlFile;
+    public List<VirtualFile> getManifestFiles() {
+      return myManifestFiles;
     }
 
     @NotNull
