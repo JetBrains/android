@@ -44,7 +44,6 @@ public class ManifestEditor extends UserDataHolderBase implements FileEditor {
   private final AndroidFacet myFacet;
   private JPanel myLazyContainer;
   private ManifestPanel myManifestPanel;
-  private final MergedManifest myManifest;
   private final VirtualFile mySelectedFile;
   private boolean mySelected;
   private final PsiTreeChangeListener myPsiChangeListener = new PsiTreeChangeAdapter() {
@@ -89,7 +88,6 @@ public class ManifestEditor extends UserDataHolderBase implements FileEditor {
   ManifestEditor(@NotNull AndroidFacet facet, @NotNull VirtualFile manifestFile) {
     myFacet = facet;
     mySelectedFile = manifestFile;
-    myManifest = MergedManifest.get(facet);
     myLazyContainer = new JPanel(new BorderLayout());
   }
 
@@ -110,7 +108,7 @@ public class ManifestEditor extends UserDataHolderBase implements FileEditor {
 
   private void reload() {
     if (mySelected) {
-      myManifestPanel.setManifest(myManifest, mySelectedFile);
+      myManifestPanel.setManifest(MergedManifest.get(myFacet), mySelectedFile);
     }
   }
 

@@ -22,7 +22,6 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.util.Condition;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.manifest.*;
@@ -31,8 +30,12 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 import java.util.List;
+
+import static com.android.xml.AndroidManifest.NODE_INTENT;
 
 public class DefaultActivityLocator extends ActivityLocator {
   @NotNull
@@ -70,7 +73,8 @@ public class DefaultActivityLocator extends ActivityLocator {
     return DumbService.getInstance(facet.getModule().getProject()).runReadActionInSmartMode(new Computable<String>() {
       @Override
       public String compute() {
-        return computeDefaultActivity(manifestInfo.getActivities(), manifestInfo.getActivityAliases(), device);
+        return computeDefaultActivity(ActivityWrapper.get(manifestInfo.getActivities(), manifestInfo.getActivityAliases()),
+                                      device);
       }
     });
   }
@@ -85,16 +89,14 @@ public class DefaultActivityLocator extends ActivityLocator {
           return null;
         }
 
-        return computeDefaultActivity(application.getActivities(), application.getActivityAliass(), null);
+        return computeDefaultActivity(merge(application.getActivities(), application.getActivityAliass()), null);
       }
     });
   }
 
   @Nullable
-  private static String computeDefaultActivity(@NotNull List<Activity> activities,
-                                              @NotNull List<ActivityAlias> activityAliases,
-                                              @Nullable IDevice device) {
-    List<ActivityWrapper> launchableActivities = getLaunchableActivities(merge(activities, activityAliases));
+  private static String computeDefaultActivity(@NotNull List<ActivityWrapper> activities, @Nullable IDevice device) {
+    List<ActivityWrapper> launchableActivities = getLaunchableActivities(activities);
     if (launchableActivities.isEmpty()) {
       return null;
     }
@@ -137,10 +139,8 @@ public class DefaultActivityLocator extends ActivityLocator {
   @Nullable
   private static ActivityWrapper findLeanbackLauncher(@NotNull List<ActivityWrapper> launcherActivities) {
     for (ActivityWrapper activity : launcherActivities) {
-      for (IntentFilter filter : activity.getIntentFilters()) {
-        if (AndroidDomUtil.containsCategory(filter, AndroidUtils.LEANBACK_LAUNCH_CATEGORY_NAME)) {
-          return activity;
-        }
+      if (activity.hasCategory(AndroidUtils.LEANBACK_LAUNCH_CATEGORY_NAME)) {
+        return activity;
       }
     }
 
@@ -150,10 +150,8 @@ public class DefaultActivityLocator extends ActivityLocator {
   @Nullable
   private static ActivityWrapper findDefaultLauncher(@NotNull List<ActivityWrapper> launcherActivities) {
     for (ActivityWrapper activity : launcherActivities) {
-      for (IntentFilter filter : activity.getIntentFilters()) {
-        if (AndroidDomUtil.containsCategory(filter, AndroidUtils.DEFAULT_CATEGORY_NAME)) {
-          return activity;
-        }
+      if (activity.hasCategory(AndroidUtils.DEFAULT_CATEGORY_NAME)) {
+        return activity;
       }
     }
 
@@ -162,12 +160,7 @@ public class DefaultActivityLocator extends ActivityLocator {
 
   @NotNull
   private static List<ActivityWrapper> getLaunchableActivities(@NotNull List<ActivityWrapper> allActivities) {
-    return ContainerUtil.filter(allActivities, new Condition<ActivityWrapper>() {
-      @Override
-      public boolean value(ActivityWrapper activity) {
-        return ActivityLocatorUtils.containsLauncherIntent(activity.getIntentFilters());
-      }
-    });
+    return ContainerUtil.filter(allActivities, ActivityLocatorUtils::containsLauncherIntent);
   }
 
   private static List<ActivityWrapper> merge(List<Activity> activities, List<ActivityAlias> activityAliases) {
@@ -183,8 +176,8 @@ public class DefaultActivityLocator extends ActivityLocator {
 
   /** {@link ActivityWrapper} is a simple wrapper class around an {@link Activity} or an {@link ActivityAlias}. */
   public static abstract class ActivityWrapper {
-    @NotNull
-    public abstract List<IntentFilter> getIntentFilters();
+    public abstract boolean hasCategory(@NotNull String name);
+    public abstract boolean hasAction(@NotNull String name);
 
     @Nullable
     public abstract String getQualifiedName();
@@ -196,6 +189,21 @@ public class DefaultActivityLocator extends ActivityLocator {
     public static ActivityWrapper get(@NotNull ActivityAlias activityAlias) {
       return new ActivityAliasWrapper(activityAlias);
     }
+
+    public static ActivityWrapper get(@NotNull Element activityOrAlias) {
+      return new ElementActivityWrapper(activityOrAlias);
+    }
+
+    public static List<ActivityWrapper> get(@NotNull List<Element> activities, @NotNull List<Element> aliases) {
+      List<ActivityWrapper> list = Lists.newArrayListWithCapacity(activities.size() + aliases.size());
+      for (Element element : activities) {
+        list.add(new ElementActivityWrapper(element));
+      }
+      for (Element element : aliases) {
+        list.add(new ElementActivityWrapper(element));
+      }
+      return list;
+    }
   }
 
   private static class RealActivityWrapper extends ActivityWrapper {
@@ -205,10 +213,26 @@ public class DefaultActivityLocator extends ActivityLocator {
       myActivity = activity;
     }
 
-    @NotNull
     @Override
-    public List<IntentFilter> getIntentFilters() {
-      return myActivity.getIntentFilters();
+    public boolean hasCategory(@NotNull String name) {
+      for (IntentFilter filter : myActivity.getIntentFilters()) {
+        if (AndroidDomUtil.containsCategory(filter, name)) {
+          return true;
+        }
+      }
+
+      return false;
+    }
+
+    @Override
+    public boolean hasAction(@NotNull String name) {
+      for (IntentFilter filter : myActivity.getIntentFilters()) {
+        if (AndroidDomUtil.containsAction(filter, name)) {
+          return true;
+        }
+      }
+
+      return false;
     }
 
     @Nullable
@@ -225,16 +249,78 @@ public class DefaultActivityLocator extends ActivityLocator {
       myAlias = activityAlias;
     }
 
-    @NotNull
     @Override
-    public List<IntentFilter> getIntentFilters() {
-      return myAlias.getIntentFilters();
+    public boolean hasCategory(@NotNull String name) {
+      for (IntentFilter filter : myAlias.getIntentFilters()) {
+        if (AndroidDomUtil.containsCategory(filter, name)) {
+          return true;
+        }
+      }
+
+      return false;
+    }
+
+    @Override
+    public boolean hasAction(@NotNull String name) {
+      for (IntentFilter filter : myAlias.getIntentFilters()) {
+        if (AndroidDomUtil.containsAction(filter, name)) {
+          return true;
+        }
+      }
+
+      return false;
     }
 
     @Nullable
     @Override
     public String getQualifiedName() {
       return ActivityLocatorUtils.getQualifiedName(myAlias);
+    }
+  }
+
+  private static class ElementActivityWrapper extends ActivityWrapper {
+    private final Element myActivity;
+
+    public ElementActivityWrapper(Element activity) {
+      myActivity = activity;
+    }
+
+    @Override
+    public boolean hasCategory(@NotNull String name) {
+      Node node = myActivity.getFirstChild();
+      while (node != null) {
+        if (node.getNodeType() == Node.ELEMENT_NODE && NODE_INTENT.equals(node.getNodeName())) {
+          Element filter = (Element) node;
+          if (ActivityLocatorUtils.containsCategory(filter, name)) {
+            return true;
+          }
+        }
+        node = node.getNextSibling();
+      }
+
+      return false;
+    }
+
+    @Override
+    public boolean hasAction(@NotNull String name) {
+      Node node = myActivity.getFirstChild();
+      while (node != null) {
+        if (node.getNodeType() == Node.ELEMENT_NODE && NODE_INTENT.equals(node.getNodeName())) {
+          Element filter = (Element) node;
+          if (ActivityLocatorUtils.containsAction(filter, name)) {
+            return true;
+          }
+        }
+        node = node.getNextSibling();
+      }
+
+      return false;
+    }
+
+    @Nullable
+    @Override
+    public String getQualifiedName() {
+      return ActivityLocatorUtils.getQualifiedName(myActivity);
     }
   }
 }

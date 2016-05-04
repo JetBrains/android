@@ -16,21 +16,27 @@
 package com.android.tools.idea.editors.manifest;
 
 import com.android.SdkConstants;
+import com.android.tools.lint.detector.api.LintUtils;
+import com.android.utils.PositionXmlParser;
 import com.intellij.lang.xml.XMLLanguage;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.psi.PsiFileFactory;
-import com.intellij.psi.xml.XmlAttribute;
-import com.intellij.psi.xml.XmlElement;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
+import org.w3c.dom.Attr;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+
+import static com.android.SdkConstants.ANDROID_URI;
 
 public class ManifestUtilsTest extends AndroidTestCase {
 
-  private XmlTag activity;
-  private XmlAttribute name;
-  private XmlAttribute label;
+  private Element activity;
+  private Attr name;
+  private Attr label;
 
   @Override
   protected void setUp() throws Exception {
@@ -44,16 +50,19 @@ public class ManifestUtilsTest extends AndroidTestCase {
                      "</manifest>");
     XmlTag root = overlay.getRootTag();
     assert root != null;
-    activity = root.getSubTags()[0].getSubTags()[0];
-    name = activity.getAttribute("name", SdkConstants.ANDROID_URI);
-    label = activity.getAttribute("label", SdkConstants.ANDROID_URI);
+
+    Document document = PositionXmlParser.parse(overlay.getText());
+    activity = LintUtils.getChildren(LintUtils.getChildren(document.getDocumentElement()).get(0)).get(0);
+
+    name = activity.getAttributeNodeNS(ANDROID_URI, "name");
+    label = activity.getAttributeNodeNS(ANDROID_URI, "label");
   }
 
   private XmlFile getDoc(String text) {
     return (XmlFile)PsiFileFactory.getInstance(getProject()).createFileFromText(SdkConstants.FN_ANDROID_MANIFEST_XML, XMLLanguage.INSTANCE, text);
   }
 
-  private void toolsRemove(final @NotNull String input, final @NotNull XmlElement item, @NotNull String result) {
+  private void toolsRemove(final @NotNull String input, final @NotNull Node item, @NotNull String result) {
     final XmlFile file = getDoc(input);
     new WriteCommandAction.Simple(getProject(), file) {
       @Override

@@ -56,6 +56,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Ref;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.Processor;
 import icons.AndroidIcons;
@@ -1440,5 +1441,34 @@ public final class GradleUtil {
 
     List<String> appliedPlugins = buildModel.appliedPlugins();
     return appliedPlugins.contains("com.android.model.application") || appliedPlugins.contains("com.android.model.library");
+  }
+
+  @Nullable
+  public static AndroidLibrary findLibrary(@NotNull File bundleDir, @NotNull Variant variant) {
+    Dependencies dependencies = variant.getMainArtifact().getDependencies();
+    for (AndroidLibrary library : dependencies.getLibraries()) {
+      AndroidLibrary result = findLibrary(library, bundleDir);
+      if (result != null) {
+        return result;
+      }
+    }
+
+    return null;
+  }
+
+  @Nullable
+  public static AndroidLibrary findLibrary(@NotNull AndroidLibrary library, @NotNull File bundleDir) {
+    if (filesEqual(bundleDir, library.getFolder())) {
+      return library;
+    }
+
+    for (AndroidLibrary dependency : library.getLibraryDependencies()) {
+      AndroidLibrary result = findLibrary(dependency, bundleDir);
+      if (result != null) {
+        return result;
+      }
+    }
+
+    return null;
   }
 }
