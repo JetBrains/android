@@ -55,7 +55,7 @@ public class VisualTests {
     return panel;
   }
 
-  static JPanel createControlledPane(JPanel panel, AnimatedComponent animated) {
+  static JPanel createControlledPane(JPanel panel, Component animated) {
     panel.setLayout(new BorderLayout());
     panel.add(animated, BorderLayout.CENTER);
 
@@ -96,6 +96,7 @@ public class VisualTests {
       @Override
       public void run() {
         VisualTestsDialog dialog = new VisualTestsDialog();
+        dialog.addTest(new AccordionVisualTest());
         dialog.addTest(new ThreadCallsVisualTest());
         dialog.addTest(new AxisLineChartVisualTest());
         dialog.addTest(new StateChartVisualTest());
