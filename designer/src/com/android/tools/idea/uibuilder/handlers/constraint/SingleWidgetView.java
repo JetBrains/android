@@ -43,6 +43,14 @@ public class SingleWidgetView extends JPanel {
   static Color sStrokeColor = mLinesColor;
   WidgetConstraintPanel mWidgetConstraintPanel;
   ColorSet mColorSet = new InspectorColorSet();
+  public final static int SPRING = 1;
+  public final static int WRAP_CONTENT = 2;
+  public final static int FIXED = 0;
+  final static BasicStroke DASHED_STROKE =
+    new BasicStroke(1.0f,
+                    BasicStroke.CAP_BUTT,
+                    BasicStroke.JOIN_MITER,
+                    10.0f, new float[]{10.0f}, 0.0f);
 
   static class InspectorColorSet extends BlueprintColorSet {
     public InspectorColorSet() {
@@ -108,6 +116,11 @@ public class SingleWidgetView extends JPanel {
     mHbar2.addPropertyChangeListener(TriStateControl.STATE, e -> mHbar1.setState(mHbar2.getState()));
     mVbar1.addPropertyChangeListener(TriStateControl.STATE, e -> mVbar2.setState(mVbar1.getState()));
     mVbar2.addPropertyChangeListener(TriStateControl.STATE, e -> mVbar1.setState(mVbar2.getState()));
+
+    mHbar1.addPropertyChangeListener(TriStateControl.STATE, e -> mWidgetConstraintPanel.setHorizontalConstraint(mHbar1.getState()));
+    mHbar2.addPropertyChangeListener(TriStateControl.STATE, e -> mWidgetConstraintPanel.setHorizontalConstraint(mHbar2.getState()));
+    mVbar1.addPropertyChangeListener(TriStateControl.STATE, e -> mWidgetConstraintPanel.setVerticalConstraint(mVbar1.getState()));
+    mVbar2.addPropertyChangeListener(TriStateControl.STATE, e -> mWidgetConstraintPanel.setVerticalConstraint(mVbar2.getState()));
 
     addMouseMotionListener(new MouseMotionAdapter() {
       @Override
@@ -282,15 +295,17 @@ public class SingleWidgetView extends JPanel {
   }
 
   /**
-   * This configures the display
    *
-   * @param name   sets the id of the widget
+   * @param name
    * @param bottom sets the margin -1 = no margin
-   * @param top    sets the margin -1 = no margin
-   * @param left   sets the margin -1 = no margin
-   * @param right  sets the margin -1 = no margin
+   * @param top sets the margin -1 = no margin
+   * @param left sets the margin -1 = no margin
+   * @param right sets the margin -1 = no margin
+   * @param baseline  sets the name of baseline connection null = no baseline
+   * @param width   the horizontal constraint state 0,1,2 = FIXED, SPRING, WRAP respectively
+   * @param height the vertical constraint state 0,1,2 = FIXED, SPRING, WRAP respectively
    */
-  public void configureUi(String name, int bottom, int top, int left, int right, String baseline) {
+  public void configureUi(String name, int bottom, int top, int left, int right, String baseline, int width, int height) {
     mTopMargin.setVisible(top >= 0);
     mLeftMargin.setVisible(left >= 0);
     mRightMargin.setVisible(right >= 0);
@@ -310,6 +325,10 @@ public class SingleWidgetView extends JPanel {
     mRightKill.setVisible(right >= 0);
     mBottomKill.setVisible(bottom >= 0);
     mBaselineKill.setVisible(baseline != null);
+    mHbar1.setState(width);
+    mHbar2.setState(width);
+    mVbar1.setState(height);
+    mVbar2.setState(height);
   }
 
   /**
@@ -351,11 +370,14 @@ public class SingleWidgetView extends JPanel {
 
     @Override
     public boolean paint(Graphics2D g) {
-      super.paint(g);
       if (mDisplay) {
+        super.paint(g);
         if (mBaseline) {
-          int y = mY + (2 * mHeight) / 3;
+          int y = mY + (3 * mHeight) / 4;
+          Stroke defaultStroke = g.getStroke();
+          g.setStroke(DASHED_STROKE);
           g.drawLine(mX, y, mX + mWidth, y);
+          g.setStroke(defaultStroke);
         }
         if (mTitle != null) {
           int decent = g.getFontMetrics().getDescent();
@@ -487,9 +509,10 @@ public class SingleWidgetView extends JPanel {
       //  mWidgetBase = new BaseLineBox(null, inset - mBoxSize, boxTop + mBoxSize + 10, mBoxSize, mBoxSize / 2, true);
 
       int endPointY = boxTop + mBoxSize + 10;
-      mWidgetBase = new BaseLineBox(null, width - inset, endPointY, mBoxSize, mBoxSize / 2, mBaseline, mBaseline);
+      int baslineBox = mBoxSize / 2;
+      mWidgetBase = new BaseLineBox(null, width - inset, endPointY, baslineBox, baslineBox, mBaseline, mBaseline);
       mBaselineArrow =
-        new SplineArrow(boxLeft + mBoxSize, boxTop + (2 * mBoxSize) / 3, width - inset, endPointY + mBoxSize / 3, false, mBaseline);
+        new SplineArrow(boxLeft + mBoxSize, boxTop + (3 * mBoxSize) / 4, width - inset, endPointY + 3 * baslineBox / 4, false, mBaseline);
 
       mTopArrow = new LineArrow(width / 2, boxTop, width / 2, inset, (mMarginTop >= 0));
       mLeftArrow = new LineArrow(boxLeft, height / 2, inset, height / 2, (mMarginLeft >= 0));
@@ -621,13 +644,13 @@ public class SingleWidgetView extends JPanel {
       int end = width - 5;
       int pos = height / 2;
       switch (mState) {
-        case 0:
+        case FIXED:
           drawFixedHorizontalConstraint(g, start, pos, end);
           break;
-        case 1:
+        case SPRING:
           drawSpringHorizontalConstraint(g, start, pos, end);
           break;
-        case 2:
+        case WRAP_CONTENT:
           drawWrapHorizontalConstraint(g, start, pos, end, mDirection);
           break;
       }
@@ -727,13 +750,13 @@ public class SingleWidgetView extends JPanel {
       int end = height - 5;
       int pos = width / 2;
       switch (mState) {
-        case 0:
+        case FIXED:
           drawFixedVerticalConstraint(g, start, pos, end);
           break;
-        case 1:
+        case SPRING:
           drawSpringVerticalConstraint(g, start, pos, end);
           break;
-        case 2:
+        case WRAP_CONTENT:
           drawWrapVerticalConstraint(g, start, pos, end, mDirection);
           break;
       }
