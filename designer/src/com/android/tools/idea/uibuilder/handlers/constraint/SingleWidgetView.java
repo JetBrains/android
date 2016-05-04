@@ -27,7 +27,6 @@ import com.android.tools.sherpa.interaction.WidgetResize;
 import com.android.tools.sherpa.structure.Selection;
 import com.android.tools.sherpa.structure.WidgetCompanion;
 import com.android.tools.sherpa.structure.WidgetsScene;
-import com.google.tnt.solver.widgets.Animator;
 import com.google.tnt.solver.widgets.ConstraintAnchor;
 import com.google.tnt.solver.widgets.ConstraintWidget;
 import com.google.tnt.solver.widgets.ConstraintWidgetContainer;
@@ -35,6 +34,7 @@ import com.google.tnt.solver.widgets.ConstraintWidgetContainer;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.geom.Ellipse2D;
 import java.util.ArrayList;
 
 /**
@@ -64,6 +64,10 @@ public class SingleWidgetView extends JPanel {
   MarginWidget mRightMargin = new MarginWidget(SwingConstants.CENTER);
   MarginWidget mBottomMargin = new MarginWidget(SwingConstants.LEFT);
 
+  KillButton mTopKill = new KillButton(mColorSet);
+  KillButton mLeftKill = new KillButton(mColorSet);
+  KillButton mRightKill = new KillButton(mColorSet);
+  KillButton mBottomKill = new KillButton(mColorSet);
   public SingleWidgetView(WidgetConstraintPanel constraintPanel) {
     super(null);
     mWidgetConstraintPanel = constraintPanel;
@@ -82,6 +86,15 @@ public class SingleWidgetView extends JPanel {
     mLeftMargin.addActionListener(e -> mWidgetConstraintPanel.setLeftMargin(mLeftMargin.getMargin()));
     mRightMargin.addActionListener(e -> mWidgetConstraintPanel.setRightMargin(mRightMargin.getMargin()));
     mBottomMargin.addActionListener(e -> mWidgetConstraintPanel.setBottomMargin(mBottomMargin.getMargin()));
+    add(mTopKill);
+    add(mLeftKill);
+    add(mRightKill);
+    add(mBottomKill);
+    //mTopKill.addActionListener(al);
+    //mLeftKill.addActionListener(al);
+    //mRightKill.addActionListener(al);
+    //mBottomKill.addActionListener(al);
+
 
     setBackground(null);
     addMouseMotionListener(new MouseMotionAdapter() {
@@ -116,6 +129,11 @@ public class SingleWidgetView extends JPanel {
     mLeftMargin.setBounds((boxLeft + inset - cw) / 2, vgap + (mHeight - ch) / 2, cw, ch);
     mRightMargin.setBounds(boxLeft + mBoxSize + (hSpace - cw) / 2, vgap + (mHeight - ch) / 2, cw, ch);
     mBottomMargin.setBounds(hgap + mWidth / 2, boxTop + mBoxSize + (vSpace - ch) / 2, cw, ch);
+    int rad = 10;
+    mTopKill.setBounds(boxLeft + mBoxSize / 2 - rad, boxTop - rad, rad*2, rad*2);
+    mLeftKill.setBounds(boxLeft - 5, boxTop + mBoxSize / 2 - rad, rad*2, rad*2);
+    mRightKill.setBounds(boxLeft + mBoxSize - rad, boxTop + mBoxSize / 2 - rad, rad*2, rad*2);
+    mBottomKill.setBounds(boxLeft + mBoxSize / 2 - rad, boxTop + mBoxSize - rad, rad*2, rad*2);
   }
 
   @Override
@@ -135,6 +153,99 @@ public class SingleWidgetView extends JPanel {
     }
 
   }
+
+  static class KillButton extends JButton {
+    boolean mMouseIn;
+    ColorSet mColorSet;
+    private static int sCircleRadius = 10;
+
+    static Dimension size = new Dimension(sCircleRadius*2,sCircleRadius*2);
+    Icon icon = new Icon() {
+
+      @Override
+      public void paintIcon(Component c, Graphics g, int x, int y) {
+        g.setColor(Color.BLUE);
+        if (mMouseIn || hasFocus()) {
+          g.fillRoundRect(x, y, size.width, size.height, size.width, size.height);
+        }
+      }
+      /**
+       * Draw a circle representing the connection
+       *
+       * @param g2     graphics context
+       * @param x      x coordinate of the circle
+       * @param y      y coordinate of the circle
+       * @param radius radius of the circle
+       * @param full   if the circle is full or not
+       */
+      private void drawCircle(Graphics2D g2, int x, int y, int radius, boolean full) {
+        Graphics2D g = (Graphics2D) g2.create();
+        Ellipse2D.Float circle = new Ellipse2D.Float(x - radius, y - radius,
+                                                     radius * 2, radius * 2);
+        g.setColor(mColorSet.getInspectorStroke());
+        g.draw(circle);
+        g.fill(circle);
+        radius -= 1;
+        Ellipse2D.Float emptyCircle = new Ellipse2D.Float(x - radius, y - radius,
+                                                          radius * 2, radius * 2);
+        g.setColor(mColorSet.getInspectorBackgroundColor());
+        g.draw(emptyCircle);
+        g.fill(emptyCircle);
+        if (full) {
+          radius -= 2;
+          Ellipse2D.Float innerCircle = new Ellipse2D.Float(x - radius, y - radius,
+                                                            radius * 2, radius * 2);
+          g.setColor(mColorSet.getInspectorStroke());
+          g.fill(innerCircle);
+          g.draw(innerCircle);
+          g.setColor(mColorSet.getInspectorBackgroundColor());
+          g.setStroke(new BasicStroke(2));
+          radius = 4;
+          g.drawLine(x - radius, y - radius, x + radius, y + radius);
+          g.drawLine(x - radius, y + radius, x + radius, y - radius);
+        }
+        g.dispose();
+      }
+      @Override
+      public int getIconWidth() {
+        return sCircleRadius*2;
+      }
+
+      @Override
+      public int getIconHeight() {
+        return sCircleRadius*2;
+      }
+    };
+
+
+
+
+    public KillButton(ColorSet colorSet) {
+      mColorSet = colorSet;
+      setIcon(icon);
+      setPreferredSize(size);
+      setSize(size);
+      //setFocusPainted(false);
+      setOpaque(false);
+      setContentAreaFilled(false);
+      setBorderPainted(false);
+      addMouseListener(new java.awt.event.MouseAdapter() {
+        @Override
+        public void mouseEntered(java.awt.event.MouseEvent evt) {
+          mMouseIn = true;
+           repaint();
+        }
+
+        @Override
+        public void mouseExited(java.awt.event.MouseEvent evt) {
+          mMouseIn = false;
+          repaint();
+        }
+      });
+    }
+  }
+
+
 
   /**
    * This configures the display
