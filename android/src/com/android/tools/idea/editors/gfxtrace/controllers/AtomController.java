@@ -724,7 +724,11 @@ public class AtomController extends TreeController implements AtomStream.Listene
   }
 
   @Override
-  public void onAtomSelected(AtomPath path) {
-    selectDeepestVisibleNode(path);
+  public void onAtomSelected(AtomPath path, Object source) {
+    // Only update the selection if the event came from outside the tree. This is to allow the user
+    // to select a group and have the selection stay on the group rather than jump to the last atom.
+    if (source != this) {
+      selectDeepestVisibleNode(path);
+    }
   }
 }

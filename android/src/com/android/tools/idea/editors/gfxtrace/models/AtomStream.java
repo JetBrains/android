@@ -84,7 +84,7 @@ public class AtomStream implements PathListener {
     }
 
     if (myAtomPath.updateIfNotNull(event.findAtomPath())) {
-      myListeners.onAtomSelected(myAtomPath.getPath());
+      myListeners.onAtomSelected(myAtomPath.getPath(), event.source);
     }
   }
 
@@ -172,7 +172,7 @@ public class AtomStream implements PathListener {
 
     void onAtomLoadingComplete(AtomStream atoms);
 
-    void onAtomSelected(AtomPath path);
+    void onAtomSelected(AtomPath path, Object source);
   }
 
   private static class Listeners extends ArrayList<Listener> implements Listener {
@@ -194,9 +194,9 @@ public class AtomStream implements PathListener {
     }
 
     @Override
-    public void onAtomSelected(AtomPath path) {
+    public void onAtomSelected(AtomPath path, Object source) {
       for (Listener listener : toArray(new Listener[size()])) {
-        listener.onAtomSelected(path);
+        listener.onAtomSelected(path, source);
       }
     }
 
