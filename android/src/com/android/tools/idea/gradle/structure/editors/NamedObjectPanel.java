@@ -27,6 +27,7 @@ import com.google.common.collect.Sets;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
 import com.intellij.pom.java.LanguageLevel;
@@ -34,6 +35,7 @@ import com.intellij.psi.PsiNameHelper;
 import com.intellij.ui.*;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.containers.SortedList;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -448,7 +450,7 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
           obj.setValue(BuildFileKey.RENDERSCRIPT_DEBUG_BUILD, buildType.isRenderscriptDebuggable());
           obj.setValue(BuildFileKey.RENDERSCRIPT_OPTIM_LEVEL, buildType.getRenderscriptOptimLevel());
           obj.setValue(BuildFileKey.APPLICATION_ID_SUFFIX, buildType.getApplicationIdSuffix());
-          obj.setValue(BuildFileKey.VERSION_NAME_SUFFIX, buildType.getVersionNameSuffix());
+          obj.setValue(BuildFileKey.VERSION_NAME_SUFFIX, getVersionNameSuffix(buildType));
           obj.setValue(BuildFileKey.MINIFY_ENABLED, buildType.isMinifyEnabled());
           obj.setValue(BuildFileKey.ZIP_ALIGN, buildType.isZipAlignEnabled());
           results.add(obj);
@@ -469,7 +471,7 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
           }
           obj.setValue(BuildFileKey.VERSION_NAME, flavor.getVersionName());
           if (androidModel.supportsProductFlavorVersionSuffix()) {
-            obj.setValue(BuildFileKey.VERSION_NAME_SUFFIX, flavor.getVersionNameSuffix());
+            obj.setValue(BuildFileKey.VERSION_NAME_SUFFIX, getVersionNameSuffix(flavor));
           }
           ApiVersion minSdkVersion = flavor.getMinSdkVersion();
           if (minSdkVersion != null) {
@@ -491,6 +493,18 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
         break;
     }
     return results;
+  }
+
+  // TODO: Remove once Android plugin v. 2.3 is the "recommended" version.
+  @Nullable
+  private static String getVersionNameSuffix(@NotNull BaseConfig config) {
+    try {
+      return config.getVersionNameSuffix();
+    }
+    catch (UnsupportedMethodException e) {
+      Logger.getInstance(NamedObjectPanel.class).warn("Method 'getVersionNameSuffix' not found", e);
+      return null;
+    }
   }
 
   private void updatePanelGroup() {

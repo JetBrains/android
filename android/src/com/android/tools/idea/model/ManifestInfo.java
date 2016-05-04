@@ -16,10 +16,7 @@
 package com.android.tools.idea.model;
 
 import com.android.SdkConstants;
-import com.android.builder.model.AndroidLibrary;
-import com.android.builder.model.BuildType;
-import com.android.builder.model.BuildTypeContainer;
-import com.android.builder.model.ProductFlavor;
+import com.android.builder.model.*;
 import com.android.manifmerger.*;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.AndroidGradleModel;
@@ -44,6 +41,7 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
@@ -74,7 +72,10 @@ final class ManifestInfo {
   }
 
   @NotNull
-  static MergingReport getMergedManifest(final @NotNull AndroidFacet facet, @NotNull final VirtualFile primaryManifestFile, @NotNull List<VirtualFile> flavorAndBuildTypeManifests, @NotNull List<VirtualFile> libManifests) throws ManifestMerger2.MergeFailureException {
+  static MergingReport getMergedManifest(@NotNull AndroidFacet facet,
+                                         @NotNull VirtualFile primaryManifestFile,
+                                         @NotNull List<VirtualFile> flavorAndBuildTypeManifests,
+                                         @NotNull List<VirtualFile> libManifests) throws ManifestMerger2.MergeFailureException {
     ApplicationManager.getApplication().assertReadAccessAllowed();
 
     final File mainManifestFile = VfsUtilCore.virtualToIoFile(primaryManifestFile);
@@ -89,7 +90,7 @@ final class ManifestInfo {
     manifestMergerInvoker.withFeatures(ManifestMerger2.Invoker.Feature.SKIP_BLAME, ManifestMerger2.Invoker.Feature.SKIP_XML_STRING);
     manifestMergerInvoker.addFlavorAndBuildTypeManifests(VfsUtilCore.virtualToIoFiles(flavorAndBuildTypeManifests).toArray(new File[0]));
 
-    List<Pair<String, File>> libraryManifests = new ArrayList<Pair<String, File>>();
+    List<Pair<String, File>> libraryManifests = new ArrayList<>();
     for (VirtualFile file : libManifests) {
       libraryManifests.add(Pair.of(file.getName(), VfsUtilCore.virtualToIoFile(file)));
     }
@@ -121,7 +122,7 @@ final class ManifestInfo {
 
       ProductFlavor mergedProductFlavor = gradleModel.getSelectedVariant().getMergedFlavor();
       // copy-paste from {@link VariantConfiguration#getManifestPlaceholders()}
-      Map<String, Object> placeHolders = new HashMap<String, Object>(mergedProductFlavor.getManifestPlaceholders());
+      Map<String, Object> placeHolders = new HashMap<>(mergedProductFlavor.getManifestPlaceholders());
       placeHolders.putAll(buildType.getManifestPlaceholders());
       manifestMergerInvoker.setPlaceHolderValues(placeHolders);
 
@@ -135,10 +136,10 @@ final class ManifestInfo {
       // copy-paste from {@link VariantConfiguration#getVersionName()}
       String versionName = mergedProductFlavor.getVersionName();
       String flavorVersionNameSuffix = null;
-      if (gradleModel.supportsProductFlavorVersionSuffix()){
-        flavorVersionNameSuffix = mergedProductFlavor.getVersionNameSuffix();
+      if (gradleModel.supportsProductFlavorVersionSuffix()) {
+        flavorVersionNameSuffix = getVersionNameSuffix(mergedProductFlavor);
       }
-      String versionNameSuffix = Joiner.on("").skipNulls().join(flavorVersionNameSuffix, buildType.getVersionNameSuffix());
+      String versionNameSuffix = Joiner.on("").skipNulls().join(flavorVersionNameSuffix, getVersionNameSuffix(buildType));
       if (!Strings.isNullOrEmpty(versionName) || !Strings.isNullOrEmpty(versionNameSuffix)) {
         if (Strings.isNullOrEmpty(versionName)) {
           Manifest manifest = facet.getManifest();
@@ -209,6 +210,18 @@ final class ManifestInfo {
     return manifestMergerInvoker.merge();
   }
 
+  // TODO: Remove once Android plugin v. 2.3 is the "recommended" version.
+  @Nullable
+  private static String getVersionNameSuffix(@NotNull BaseConfig config) {
+    try {
+      return config.getVersionNameSuffix();
+    }
+    catch (UnsupportedMethodException e) {
+      Logger.getInstance(ManifestInfo.class).warn("Method 'getVersionNameSuffix' not found", e);
+      return null;
+    }
+  }
+
   static class ManifestFile {
     private final @NotNull AndroidFacet myFacet;
     private @Nullable Document myDocument;
@@ -273,7 +286,7 @@ final class ManifestInfo {
     }
 
     public boolean refresh() {
-      Map<Object, Long> lastModifiedMap = new HashMap<Object, Long>();
+      Map<Object, Long> lastModifiedMap = new HashMap<>();
 
       VirtualFile primaryManifestFile = AndroidRootUtil.getPrimaryManifestFile(myFacet);
       if (primaryManifestFile == null) {
@@ -329,7 +342,7 @@ final class ManifestInfo {
     @NotNull
     private static List<VirtualFile> getFlavorAndBuildTypeManifests(@NotNull AndroidFacet facet) {
       // get all other manifests for this module, (NOT including the default one)
-      List<VirtualFile> flavorAndBuildTypeManifests = new ArrayList<VirtualFile>();
+      List<VirtualFile> flavorAndBuildTypeManifests = new ArrayList<>();
       IdeaSourceProvider defaultSourceProvider = facet.getMainIdeaSourceProvider();
       for (IdeaSourceProvider provider : IdeaSourceProvider.getCurrentSourceProviders(facet)) {
         if (!defaultSourceProvider.equals(provider)) {
@@ -407,7 +420,7 @@ final class ManifestInfo {
 
     @NotNull
     public ImmutableList<MergingReport.Record> getLoggingRecords() {
-      return myLoggingRecords == null ? ImmutableList.<MergingReport.Record>of() : myLoggingRecords;
+      return myLoggingRecords == null ? ImmutableList.of() : myLoggingRecords;
     }
 
     @Nullable
