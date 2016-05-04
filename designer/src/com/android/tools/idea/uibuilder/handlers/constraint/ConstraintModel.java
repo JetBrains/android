@@ -16,6 +16,9 @@
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.SdkConstants;
+import com.android.ide.common.resources.ResourceResolver;
+import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.sherpa.drawing.*;
@@ -52,10 +55,6 @@ public class ConstraintModel implements ModelListener {
     if (autoConnect != mAutoConnect) {
       mAutoConnect = autoConnect;
     }
-  }
-
-  public void toggleAutoConnect() {
-    setAutoConnect(!mAutoConnect);
   }
 
   public boolean isAutoConnect() {
@@ -316,6 +315,25 @@ public class ConstraintModel implements ModelListener {
     }
   }
 
+  @NotNull
+  private static String resolveStringResource(@NotNull NlComponent component, @NotNull String text) {
+    Configuration configuration = component.getModel().getConfiguration();
+    ResourceResolver resourceResolver = configuration.getResourceResolver();
+    if (resourceResolver != null) {
+      return ResourceHelper.resolveStringValue(resourceResolver, text);
+    }
+    return "";
+  }
+
+  @NotNull
+  private static String getResolvedText(NlComponent component) {
+    String text = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT);
+    if (text != null) {
+      return resolveStringResource(component, text);
+    }
+    return "";
+  }
+
   /**
    * Return a new instance of WidgetDecorator given a component and its ConstraintWidget
    *
@@ -326,24 +344,19 @@ public class ConstraintModel implements ModelListener {
   private static WidgetDecorator createDecorator(NlComponent component, ConstraintWidget widget) {
     WidgetDecorator decorator = null;
     if (component.getTagName().equalsIgnoreCase(SdkConstants.TEXT_VIEW)) {
-      String text = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT);
-      decorator = new TextWidget(widget, text);
+      decorator = new TextWidget(widget, getResolvedText(component));
     }
     else if (component.getTagName().equalsIgnoreCase(SdkConstants.BUTTON)) {
-      String text = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT);
-      decorator = new ButtonWidget(widget, text);
+      decorator = new ButtonWidget(widget, getResolvedText(component));
     }
     else if (component.getTagName().equalsIgnoreCase(SdkConstants.RADIO_BUTTON)) {
-      String text = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT);
-      decorator = new RadiobuttonWidget(widget, text);
+      decorator = new RadiobuttonWidget(widget, getResolvedText(component));
     }
     else if (component.getTagName().equalsIgnoreCase(SdkConstants.CHECK_BOX)) {
-      String text = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT);
-      decorator = new CheckboxWidget(widget, text);
+      decorator = new CheckboxWidget(widget, getResolvedText(component));
     }
     else if (component.getTagName().equalsIgnoreCase(SdkConstants.SWITCH)) {
-      String text = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT);
-      decorator = new SwitchWidget(widget, text);
+      decorator = new SwitchWidget(widget, getResolvedText(component));
     }
     if (decorator == null) {
       decorator = new WidgetDecorator(widget);
