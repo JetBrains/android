@@ -303,7 +303,8 @@ public class TutorialStep extends JPanel {
       // Code typically overflows width, causing a horizontal scrollbar, and we need to account for the additional height so as to not
       // occlude the last line in the code sample. Value is used in the constructor so this method _must_ be triggered at least once prior
       // to setting minimum and preferred heights.
-      myScrollBarHeight = scroll.getHorizontalScrollBar().getPreferredSize().height;
+      // HACK ALERT: In Mac, with scrollbars always on, this value is reported as 2px less than it is. Adding 2px for safety.
+      myScrollBarHeight = scroll.getHorizontalScrollBar().getPreferredSize().height + 2;
 
       // Set the scrollbars to show if the content overflows.
       // TODO(b/28357327): Why isn't this the default...
