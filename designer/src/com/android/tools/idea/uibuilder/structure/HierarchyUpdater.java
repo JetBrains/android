@@ -32,23 +32,12 @@ import java.util.Map;
  *
  * <ul>
  *   <li>We would like the current expanded nodes to continue to appear expanded.
- *   <li>NlComponent and XmlTag instances may have been changed and can no longer be trusted.
+ *   <li>XmlTag instances may have been changed and can no longer be trusted.
  * </ul>
  *
- * <p>The solution used here is not elegant. The idea is to attempt to restore the visible nodes that have an id. We require:
+ * <p>As a side effect we build the following map:
  *
  * <ul>
- *   <li>A mapping from component id to the tree node from the previous update.
- *   <li>A set of nodes that are currently visible which is computed here from the current tree.
- * </ul>
- *
- * <p>When we find an old node for a component id we will reuse that node and make sure all parent nodes are expanded if this node was
- * visible before the update.
- *
- * <p>As a side effect we build the following maps:
- *
- * <ul>
- *   <li>A map from component id to the new tree node (for the next hierarchy update).
  *   <li>A map from component reference to the new tree node (for handling of selection changes).
  * </ul>
  */
@@ -64,7 +53,6 @@ final class HierarchyUpdater {
   }
 
   public void execute() {
-//    myTree.clearToggledPaths();
     TreePath rootPath = new TreePath(myTree.getModel().getRoot());
 
     NlModel model = myTree.getDesignerModel();

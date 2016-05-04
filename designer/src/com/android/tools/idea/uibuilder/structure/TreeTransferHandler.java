@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
+import com.android.tools.idea.uibuilder.model.NlModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import com.android.tools.idea.uibuilder.model.NlModel;
-import com.intellij.util.ui.UIUtil;
 
 import javax.swing.*;
 import javax.swing.tree.TreePath;
@@ -26,19 +25,11 @@ import java.awt.*;
 import java.awt.datatransfer.Transferable;
 import java.awt.dnd.DnDConstants;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Enable dragging of components in the component tree.
  */
-public final class TreeTransferHandler extends TransferHandlerWithDragImage {
-
-  //////////////////////////////////////////////////////////////////////////////////////////
-  //
-  // TransferHandler
-  //
-  //////////////////////////////////////////////////////////////////////////////////////////
+public final class TreeTransferHandler extends TransferHandler {
 
   @Override
   public int getSourceActions(JComponent c) {
@@ -77,30 +68,30 @@ public final class TreeTransferHandler extends TransferHandlerWithDragImage {
     }
     int width = 0;
     int height = 0;
-    List<BufferedImage> images = new ArrayList<BufferedImage>(paths.length);
     for (TreePath path : paths) {
       int row = tree.getRowForPath(path);
-      Component comp =
+      Component component =
         tree.getCellRenderer().getTreeCellRendererComponent(tree, path.getLastPathComponent(), false, true, true, row, false);
-      comp.setSize(comp.getPreferredSize());
-      final BufferedImage image = UIUtil.createImage(comp.getWidth(), comp.getHeight(), BufferedImage.TYPE_INT_ARGB);
-      Graphics2D g2 = (Graphics2D)image.getGraphics();
-      g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.7f));
-      comp.paint(g2);
-      g2.dispose();
-      images.add(image);
-      width = Math.max(width, comp.getWidth());
-      height += comp.getHeight();
+      Dimension size = component.getPreferredSize();
+      width = Math.max(width, size.width);
+      height += size.height;
     }
-    final BufferedImage result = UIUtil.createImage(width, height, BufferedImage.TYPE_INT_ARGB);
-    Graphics2D g2 = (Graphics2D)result.getGraphics();
-    int y = 0;
-    for (BufferedImage image : images) {
-      g2.drawImage(image, null, 0, y);
-      y += image.getHeight();
+
+    @SuppressWarnings("UndesirableClassUsage")
+    BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+    Graphics2D g2 = (Graphics2D)image.getGraphics();
+    for (TreePath path : paths) {
+      int row = tree.getRowForPath(path);
+      Component component =
+        tree.getCellRenderer().getTreeCellRendererComponent(tree, path.getLastPathComponent(), false, true, true, row, false);
+      Dimension size = component.getPreferredSize();
+      component.setSize(size);
+      g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.7f));
+      component.paint(g2);
+      g2.translate(0, size.height);
     }
     g2.dispose();
 
-    return result;
+    return image;
   }
 }

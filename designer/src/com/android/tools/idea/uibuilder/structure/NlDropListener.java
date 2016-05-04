@@ -141,10 +141,11 @@ public class NlDropListener extends DropTargetAdapter {
     else {
       myTree.markInsertionPoint(point.getFirst(), point.getSecond());
 
-      // This determines the icon presented to the user while dragging.
-      // If we are dragging a component from the palette then use the icon for a copy, otherwise show the icon
-      // that reflect the users choice i.e. controlled by the modifier key.
-      event.accept(determineInsertType(event, true).isCreate() ? DnDConstants.ACTION_COPY : event.getDropAction());
+      // This determines how the DnD source acts to a completed drop.
+      // If we set the accepted drop action to DndConstants.ACTION_MOVE then the source should delete the source component.
+      // When we move a component within the current designer the addComponents call will remove the source component in the transaction.
+      // Only when we move a component from a different designer (handled as a InsertType.COPY) would we mark this as a ACTION_MOVE.
+      event.accept(determineInsertType(event, true) == InsertType.COPY ? event.getDropAction() : DnDConstants.ACTION_COPY);
     }
   }
 
