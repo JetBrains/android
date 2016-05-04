@@ -31,7 +31,7 @@ import com.android.tools.idea.ui.properties.expressions.value.AsValueExpression;
 import com.android.tools.idea.ui.properties.swing.SelectedItemProperty;
 import com.android.tools.idea.ui.validation.Validator;
 import com.android.tools.idea.ui.validation.ValidatorPanel;
-import com.android.tools.idea.ui.validation.validators.TrueValidator;
+import com.android.tools.idea.ui.validation.validators.FalseValidator;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
@@ -109,7 +109,7 @@ public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIcon
     String alreadyExistsError = WizardUtils.toHtmlString(
       "Some existing files will be overwritten by this operation.<br>" +
       "Files which replace existing files are marked red in the preview above.");
-    myValidatorPanel.registerValidator(myFilesAlreadyExist, new TrueValidator(Validator.Severity.WARNING, alreadyExistsError));
+    myValidatorPanel.registerValidator(myFilesAlreadyExist, new FalseValidator(Validator.Severity.WARNING, alreadyExistsError));
   }
 
   @NotNull
