@@ -418,17 +418,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   /**
-   * Invokes an action by menu path (where each segment is a regular expression). This is particularly
-   * useful when the menu items can change dynamically, such as the labels of Undo actions, Run actions,
-   * etc.
-   *
-   * @param path the series of menu name regular expressions, e.g. {@link invokeActionByMenuPath("Build", "Make( Project)?")}
-   */
-  public void invokeMenuPathRegex(@NotNull String... path) {
-    getMenuFixture().invokeMenuPathRegex(path);
-  }
-
-  /**
    * Returns whether a menu path is enabled
    *
    * @param path the series of menu names, e.g. {@link isMenuPathEnabled("Build", "Make Project ")}
