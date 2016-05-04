@@ -80,7 +80,9 @@ public class SnapPlacement {
                 if (!SnapPlacement.snapExistingHorizontalMargin(widget, candidatePoint)) {
                     SnapCandidate candidate = new SnapCandidate();
                     findSnap(widgets, widget, candidate, true);
-                    if (candidate.target == null) {
+                    if (candidate.target == null
+                            || candidate.target.getType() == ConstraintAnchor.Type.CENTER_X
+                            || candidate.target.getType() == ConstraintAnchor.Type.CENTER) {
                         // no anchor found, let's try to find margins
                         for (int i = SNAP_MARGIN_INCREMENT; i <= SNAP_MARGIN_MAX;
                                 i += SNAP_MARGIN_INCREMENT) {
@@ -119,7 +121,9 @@ public class SnapPlacement {
                 if (!SnapPlacement.snapExistingVerticalMargin(widget, candidatePoint)) {
                     SnapCandidate candidate = new SnapCandidate();
                     findSnap(widgets, widget, candidate, false);
-                    if (candidate.target == null) {
+                    if (candidate.target == null
+                            || candidate.target.getType() == ConstraintAnchor.Type.CENTER_Y
+                            || candidate.target.getType() == ConstraintAnchor.Type.CENTER) {
                         // no anchor found, let's try to find margins
                         for (int i = SNAP_MARGIN_INCREMENT; i <= SNAP_MARGIN_MAX;
                                 i += SNAP_MARGIN_INCREMENT) {
@@ -513,13 +517,17 @@ public class SnapPlacement {
                 distance = Math.sqrt(anchorDistance * anchorDistance);
             }
             if (anchorDistance < slope && distance <= candidate.distance
-                    && (ALLOWS_ALL_SNAP_MARGIN || distance < MAX_SNAP_MARGIN_DISTANCE)
-                    && (candidate.target == null ||
-                    (candidate.target != null && candidate.margin > margin))) {
-                candidate.distance = distance;
-                candidate.target = target;
-                candidate.source = source;
-                candidate.margin = margin;
+                    && (ALLOWS_ALL_SNAP_MARGIN || distance < MAX_SNAP_MARGIN_DISTANCE)) {
+                if (candidate.target == null
+                        || (candidate.margin > margin
+                            || (candidate.target.getType() == ConstraintAnchor.Type.CENTER_X
+                                || candidate.target.getType() == ConstraintAnchor.Type.CENTER
+                                || candidate.target.getType() == ConstraintAnchor.Type.CENTER_Y))) {
+                    candidate.distance = distance;
+                    candidate.target = target;
+                    candidate.source = source;
+                    candidate.margin = margin;
+                }
             }
         }
     }
