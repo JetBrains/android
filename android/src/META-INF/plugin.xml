@@ -809,6 +809,7 @@
                     serviceImplementation="org.jetbrains.android.maven.AndroidExternalApklibDependenciesManager"/>
     <projectService serviceInterface="com.android.tools.idea.configurations.ConfigurationStateManager"
                     serviceImplementation="com.android.tools.idea.configurations.ConfigurationStateManager"/>
+    <projectService serviceImplementation="com.android.tools.idea.gradle.structure.daemon.AvailableLibraryUpdateStorage"/>
 
     <xml.xmlExtension implementation="org.jetbrains.android.dom.AndroidXmlExtension" order="first"/>
     <psi.referenceProvider language="XML" providerClass="org.jetbrains.android.dom.AndroidXmlReferenceProvider">
@@ -977,8 +978,8 @@
                     interface="com.android.tools.idea.structure.dialog.ProjectStructureItemsContributor"/>
     <extensionPoint qualifiedName="com.android.ide.moduleStructureConfigurableContributor"
                     interface="com.android.tools.idea.structure.dialog.ModuleStructureConfigurableContributor"/>
-    <extensionPoint qualifiedName="com.android.ide.mainGroupConfigurableContributor"
-                    interface="com.android.tools.idea.structure.dialog.MainGroupConfigurableContributor"/>
+    <extensionPoint qualifiedName="com.android.ide.androidConfigurableContributor"
+                    interface="com.android.tools.idea.structure.dialog.AndroidConfigurableContributor"/>
     <extensionPoint qualifiedName="com.android.run.androidDebugger" interface="com.android.tools.idea.run.editor.AndroidDebugger" />
     <extensionPoint qualifiedName="com.android.logcat.filterProvider"
                     interface="com.android.tools.idea.logcat.LogcatFilterProvider" />
@@ -1039,8 +1040,8 @@
   <extensions defaultExtensionNs="com.android.ide">
     <sdkEventListener implementation="com.android.tools.idea.gradle.sdk.GradleAndroidSdkEventListener"/>
     <developerServiceBuildSystemOperations implementation="com.android.tools.idea.gradle.structure.services.GradleOperations"/>
-    <mainGroupConfigurableContributor
-        implementation="com.android.tools.idea.gradle.structure.configurables.GradleMainGroupConfigurableContributor"/>
+    <androidConfigurableContributor
+        implementation="com.android.tools.idea.gradle.structure.configurables.GradleAndroidConfigurableContributor"/>
 
   </extensions>
 
