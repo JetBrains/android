@@ -23,7 +23,7 @@ import com.android.tools.adtui.Range;
  * Represents a view into a continuous series, where the data in view is only
  * within given x and y ranged.
  */
-public class RangedContinuousSeries {
+public class RangedContinuousSeries implements ReportingSeries {
   @NonNull
   private final Range mXRange;
 
@@ -52,5 +52,19 @@ public class RangedContinuousSeries {
   @NonNull
   public Range getXRange() {
     return mXRange;
+  }
+
+  @Override
+  public double getRangeLength() {
+    return mYRange.getLength();
+  }
+
+  @Override
+  public double getLatestValue() {
+    double value = 0.0;
+    if (mSeries.size() != 0) {
+      value = mSeries.getY(mSeries.size() - 1);
+    }
+    return value;
   }
 }
