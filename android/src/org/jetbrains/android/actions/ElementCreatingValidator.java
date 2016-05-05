@@ -17,6 +17,7 @@ package org.jetbrains.android.actions;
 
 import com.intellij.openapi.ui.InputValidator;
 import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * InputValidator that creates elements when things are validated and the dialog closes
@@ -25,5 +26,7 @@ import com.intellij.psi.PsiElement;
  * This allows a user to grab the created elements.
  */
 public interface ElementCreatingValidator extends InputValidator {
+
+  @NotNull
   PsiElement[] getCreatedElements();
 }

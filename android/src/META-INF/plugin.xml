@@ -987,6 +987,8 @@
     <extensionPoint qualifiedName="com.android.run.androidDebugger" interface="com.android.tools.idea.run.editor.AndroidDebugger" />
     <extensionPoint qualifiedName="com.android.logcat.filterProvider"
                     interface="com.android.tools.idea.logcat.LogcatFilterProvider" />
+    <extensionPoint qualifiedName="org.jetbrains.android.actions.newResourceCreationHandler"
+                    interface="org.jetbrains.android.actions.NewResourceCreationHandler" />
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.android">
@@ -1002,6 +1004,11 @@
     <newModuleWizardPathFactory implementation="com.android.tools.idea.npw.WrapArchiveWizardPathFactory"/>
     <newModuleDynamicPathFactory implementation="com.android.tools.idea.npw.LegacyWizardPathProvider"/>
     <newModuleDynamicPathFactory implementation="com.android.tools.idea.npw.JavaWizardPathProvider"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="org.jetbrains.android.actions">
+    <newResourceCreationHandler
+        implementation="com.android.tools.idea.gradle.actions.GradleNewResourceCreationHandler" />
   </extensions>
 
   <extensions defaultExtensionNs="com.android.gradle">
