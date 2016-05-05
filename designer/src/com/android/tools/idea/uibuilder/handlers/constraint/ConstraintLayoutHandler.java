@@ -75,6 +75,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
    * Base constructor
    */
   public ConstraintLayoutHandler() {
+    loadWidgetDecoratorImages();
   }
 
   private void loadWidgetDecoratorImages() {
@@ -101,8 +102,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     actions.add(new ViewActionSeparator());
     actions.add(new ClearConstraintsAction());
     actions.add((new InferAction()));
-
-    loadWidgetDecoratorImages();
 
     String str;
     str = "Align group horizontally on the left";

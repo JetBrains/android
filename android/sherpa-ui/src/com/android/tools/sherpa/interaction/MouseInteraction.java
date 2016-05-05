@@ -731,6 +731,11 @@ public class MouseInteraction {
      * @param y mouse y coordinate
      */
     public void mouseReleased(int x, int y) {
+        for (ConstraintWidget widget : mWidgetsScene.getWidgets()) {
+            WidgetCompanion companion = (WidgetCompanion) widget.getCompanionWidget();
+            WidgetDecorator decorator = companion.getWidgetDecorator(mSceneDraw.getCurrentStyle());
+            decorator.setShowActions(true);
+        }
         boolean longPress = false;
         if (System.currentTimeMillis() - mPressTime > LONG_PRESS_THRESHOLD) {
             longPress = true;
@@ -738,11 +743,6 @@ public class MouseInteraction {
         mLockTimer.stop();
         if (mMouseMode == MouseMode.INACTIVE) {
             return;
-        }
-        for (ConstraintWidget widget : mWidgetsScene.getWidgets()) {
-            WidgetCompanion companion = (WidgetCompanion) widget.getCompanionWidget();
-            WidgetDecorator decorator = companion.getWidgetDecorator(mSceneDraw.getCurrentStyle());
-            decorator.setShowActions(true);
         }
         if (mAutoConnect) {
             // Auto-connect to candidates
