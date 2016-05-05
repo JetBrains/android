@@ -19,6 +19,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ToggleAction;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 
 public class ShowExpertProperties extends ToggleAction {
@@ -34,7 +35,7 @@ public class ShowExpertProperties extends ToggleAction {
     String text = "Show expert properties";
     presentation.setText(text);
     presentation.setDescription(text);
-    presentation.setIcon(AllIcons.General.Filter);
+    presentation.setIcon(AndroidIcons.NeleIcons.ToggleProperties);
 
     myModel = model;
   }
