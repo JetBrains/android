@@ -19,9 +19,11 @@ import com.intellij.util.xml.Convert;
 import com.intellij.util.xml.Required;
 import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.AndroidResourceType;
+import org.jetbrains.android.dom.Styleable;
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
 import org.jetbrains.android.dom.resources.ResourceValue;
 
+@Styleable("ViewTag")
 public interface Tag extends LayoutElement {
   @Required
   @AndroidResourceType("id")
