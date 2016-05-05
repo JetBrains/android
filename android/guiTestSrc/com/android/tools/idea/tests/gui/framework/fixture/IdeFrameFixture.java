@@ -848,12 +848,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   @NotNull
   public FindDialogFixture invokeFindInPathDialog() {
     invokeMenuPath("Edit", "Find", "Find in Path...");
-    return FindDialogFixture.find(robot());
-  }
-
-  @NotNull
-  public FindToolWindowFixture getFindToolWindow() {
-    return new FindToolWindowFixture(this);
+    return FindDialogFixture.find(this);
   }
 
   @NotNull

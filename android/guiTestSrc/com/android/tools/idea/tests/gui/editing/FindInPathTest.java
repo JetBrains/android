@@ -19,11 +19,12 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
-import com.android.tools.idea.tests.gui.framework.fixture.FindDialogFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.FindToolWindowFixture;
+import com.google.common.collect.ImmutableList;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import static com.google.common.truth.Truth.assertThat;
 
 @RunIn(TestGroup.PROJECT_SUPPORT)
 @RunWith(GuiTestRunner.class)
@@ -33,34 +34,21 @@ public class FindInPathTest {
 
   @Test
   public void testResultsOnlyInGeneratedCode() throws Exception {
-    guiTest.importSimpleApplication();
-
-    FindDialogFixture findDialog = guiTest.ideFrame().invokeFindInPathDialog();
-    findDialog.setTextToFind("ActionBarDivider")
-              .clickFind();
-
-    guiTest.waitForBackgroundTasks();
-
-    FindToolWindowFixture findToolWindow = guiTest.ideFrame().getFindToolWindow();
-    FindToolWindowFixture.ContentFixture selectedContext = findToolWindow.getSelectedContext();
-
-    selectedContext.findUsagesInGeneratedCodeGroup();
+    ImmutableList<String> usageGroupNames = guiTest.importSimpleApplication()
+      .invokeFindInPathDialog()
+      .setTextToFind("ActionBarDivider")
+      .clickFind()
+      .getUsageGroupNames();
+    assertThat(usageGroupNames).containsExactly("Usages in generated code");
   }
 
   @Test
   public void testResultsInBothProductionAndGeneratedCode() throws Exception {
-    guiTest.importSimpleApplication();
-
-    FindDialogFixture findDialog = guiTest.ideFrame().invokeFindInPathDialog();
-    findDialog.setTextToFind("DarkActionBar")
-              .clickFind();
-
-    guiTest.waitForBackgroundTasks();
-
-    FindToolWindowFixture findToolWindow = guiTest.ideFrame().getFindToolWindow();
-    FindToolWindowFixture.ContentFixture selectedContext = findToolWindow.getSelectedContext();
-
-    selectedContext.findUsagesInGeneratedCodeGroup();
-    selectedContext.findUsageGroup("Code usages");
+    ImmutableList<String> usageGroupNames = guiTest.importSimpleApplication()
+      .invokeFindInPathDialog()
+      .setTextToFind("DarkActionBar")
+      .clickFind()
+      .getUsageGroupNames();
+    assertThat(usageGroupNames).containsExactly("Usages in generated code", "Code usages");
   }
 }
