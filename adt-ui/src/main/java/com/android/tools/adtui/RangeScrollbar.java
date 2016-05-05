@@ -32,10 +32,10 @@ import java.awt.event.MouseEvent;
  * +              x----------------------|             +
  * +---------------------------------------------------+
  *
- * A. Range data's global minimum → {@link DefaultBoundedRangeModel#min}
- * B. {@link Range#mCurrentMin} → BoundedRangeModel's min
- * C. {@link Range#mCurrentMax} → BoundedRangeModel's min + extent
- * D. Range data's global maximum → BoundedRangeModel's max
+ * A. Range data's global minimum -> {@link DefaultBoundedRangeModel#min}
+ * B. {@link Range#mCurrentMin} -> BoundedRangeModel's min
+ * C. {@link Range#mCurrentMax} -> BoundedRangeModel's min + extent
+ * D. Range data's global maximum -> BoundedRangeModel's max
  */
 public final class RangeScrollbar extends JScrollBar implements Animatable {
 
@@ -96,17 +96,6 @@ public final class RangeScrollbar extends JScrollBar implements Animatable {
     mStableScrolling = fixedScrolling;
   }
 
-  /**
-   * Adjust zoom by a percentage of the current view range.
-   */
-  public void zoom(float percentage) {
-    double zoomDelta = mRange.getLength() * percentage;
-    double targetMin = Math.max(mGlobalRange.getMin(), mRange.getMin() - zoomDelta);
-    double targetMax = Math.min(mGlobalRange.getMax(), mRange.getMax() + zoomDelta);
-    mRange.setMinTarget(targetMin);
-    mRange.setMaxTarget(targetMax);
-  }
-
   @Override
   public void animate(float frameLength) {
     if (mScrollingMode == ScrollingMode.STREAMING) {
@@ -119,10 +108,10 @@ public final class RangeScrollbar extends JScrollBar implements Animatable {
     // Keeps the scrollbar visuals in sync with the global and current data range.
     // Because the scrollbar's model operates with ints, we map the current data range to the
     // scrollbar's width and scale all the other values needed by the model accordingly.
-    double globalRange = mGlobalRange.getLength();
-    double currentRange = mRange.getLength();
+    double globalLength = mGlobalRange.getLength();
+    double currentLength = mRange.getLength();
     int scrollbarExtent = getWidth();
-    int scrollbarRange = (int)(globalRange * scrollbarExtent / currentRange);
+    int scrollbarRange = (int)(globalLength * scrollbarExtent / currentLength);
 
     switch (mScrollingMode) {
       case STREAMING:
@@ -132,11 +121,11 @@ public final class RangeScrollbar extends JScrollBar implements Animatable {
       case VIEWING:
         // User is viewing data in the past but not actively scrolling,
         // so keep the size and position up to date.
-        setValues((int)(scrollbarRange * mRange.getMin() / globalRange),
+        setValues((int)(scrollbarRange * mRange.getMin() / globalLength),
                   scrollbarExtent, 0, scrollbarRange);
         break;
       case SCROLLING:
-        // Only update the scrollbar's max if stable scrolling is disable.
+        // Only update the scrollbar's max if stable scrolling is disabled.
         if (!mStableScrolling) {
           setMaximum(scrollbarRange);
         }
@@ -165,9 +154,8 @@ public final class RangeScrollbar extends JScrollBar implements Animatable {
           adjustedValue = 0f;
         }
         // Use the ratio of adjustValue relative to scrollbarRange to get new min
-        double newMin = (globalRange * adjustedValue / scrollbarRange) + mGlobalRange.getMin();
-        mRange.setMin(newMin);
-        mRange.setMax(newMin + currentRange);
+        double newMin = (globalLength * adjustedValue / scrollbarRange) + mGlobalRange.getMin();
+        mRange.set(newMin, newMin + currentLength);
         mRange.lockValues();
         break;
     }
