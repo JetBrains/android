@@ -716,6 +716,12 @@ public class MouseInteraction {
         } else {
             mLockTimer.stop();
         }
+
+        for (ConstraintWidget w : mWidgetsScene.getWidgets()) {
+            WidgetCompanion companion = (WidgetCompanion) w.getCompanionWidget();
+            WidgetDecorator decorator = companion.getWidgetDecorator(mSceneDraw.getCurrentStyle());
+            decorator.setShowActions(false);
+        }
     }
 
     /**
@@ -732,6 +738,11 @@ public class MouseInteraction {
         mLockTimer.stop();
         if (mMouseMode == MouseMode.INACTIVE) {
             return;
+        }
+        for (ConstraintWidget widget : mWidgetsScene.getWidgets()) {
+            WidgetCompanion companion = (WidgetCompanion) widget.getCompanionWidget();
+            WidgetDecorator decorator = companion.getWidgetDecorator(mSceneDraw.getCurrentStyle());
+            decorator.setShowActions(true);
         }
         if (mAutoConnect) {
             // Auto-connect to candidates
