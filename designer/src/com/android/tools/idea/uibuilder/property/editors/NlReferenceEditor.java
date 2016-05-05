@@ -67,6 +67,7 @@ public class NlReferenceEditor implements NlComponentEditor {
 
   private NlProperty myProperty;
   private String myLastReadValue;
+  private String myLastWriteValue;
   private JLabel myLabel;
 
   public interface EditingListener {
@@ -177,6 +178,7 @@ public class NlReferenceEditor implements NlComponentEditor {
     String propValue = StringUtil.notNullize(myProperty.getValue());
     if (!propValue.equals(myLastReadValue)) {
       myLastReadValue = propValue;
+      myLastWriteValue = propValue;
       myTextFieldWithAutoCompletion.setText(propValue);
     }
   }
@@ -227,8 +229,10 @@ public class NlReferenceEditor implements NlComponentEditor {
   }
 
   private void stopEditing(@NotNull String newValue) {
-    myProperty.setValue(newValue);
-    myListener.stopEditing(this, newValue);
+    if (!newValue.equals(myLastWriteValue)) {
+      myListener.stopEditing(this, newValue);
+      myLastWriteValue = newValue;
+    }
   }
 
   private void displayResourcePicker() {
