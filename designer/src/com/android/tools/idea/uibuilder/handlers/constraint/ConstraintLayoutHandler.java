@@ -40,6 +40,8 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.android.SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT;
+
 /**
  * Handles interactions for the ConstraintLayout viewgroups
  */
@@ -88,6 +90,12 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     if (WidgetDecorator.sDeleteConnectionsImageIcon == null) {
       WidgetDecorator.sDeleteConnectionsImageIcon = iconToImage(AndroidIcons.SherpaIcons.DeleteConstraint);
     }
+  }
+
+  @Override
+  @NotNull
+  public String getGradleCoordinate(@NotNull String tagName) {
+    return CONSTRAINT_LAYOUT_LIB_ARTIFACT;
   }
 
   @Override
