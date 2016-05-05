@@ -65,6 +65,9 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
     if (attributeDefinition != null && attributeDefinition.getFormats().contains(AttributeFormat.Flag)) {
       return new NlFlagPropertyItem(components, descriptor, attributeDefinition);
     }
+    else if (descriptor.getName().equals(SdkConstants.ATTR_ID)) {
+      return new NlIdPropertyItem(components, descriptor, attributeDefinition);
+    }
     else {
       return new NlPropertyItem(components, descriptor, attributeDefinition);
     }
