@@ -844,10 +844,10 @@ public class MouseInteraction {
                         }
                         if (didResetAutoConnections) {
                             mSelection.addModifiedWidget(selection.widget);
-                            for (ConstraintWidget widget : mWidgetsScene.getWidgets()) {
-                                widget.disconnectWidget(selection.widget);
-                                mSelection.addModifiedWidget(widget);
-                            }
+                        }
+                        for (ConstraintWidget widget : mWidgetsScene.getWidgets()) {
+                            widget.disconnectUnlockedWidget(selection.widget);
+                            mSelection.addModifiedWidget(widget);
                         }
                     }
                     // Dragging the widget is no anchors or resize handles are selected
