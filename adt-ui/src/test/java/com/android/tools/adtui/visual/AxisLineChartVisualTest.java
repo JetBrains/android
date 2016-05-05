@@ -30,8 +30,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class AxisLineChartVisualTest extends VisualTest {
 
-  private static final float ZOOM_FACTOR = 0.1f;
-
   private static final int AXIS_SIZE = 100;
 
   private long mStartTimeMs;
@@ -137,7 +135,7 @@ public class AxisLineChartVisualTest extends VisualTest {
 
   @Override
   public String getName() {
-    return "AxisLineChart";
+    return "Axis+Scroll+Zoom";
   }
 
   @Override
@@ -214,16 +212,28 @@ public class AxisLineChartVisualTest extends VisualTest {
                                    mMemoryAxis1 : null);
       }
     }));
-    controls.add(VisualTests.createButton("Zoom In Test", new ActionListener() {
+    controls.add(VisualTests.createButton("Zoom In", new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        mScrollbar.zoom(-ZOOM_FACTOR);
+        mSelection.zoom(-SelectionComponent.ZOOM_FACTOR);
       }
     }));
-    controls.add(VisualTests.createButton("Zoom Out Test", new ActionListener() {
+    controls.add(VisualTests.createButton("Zoom Out", new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        mScrollbar.zoom(ZOOM_FACTOR);
+        mSelection.zoom(SelectionComponent.ZOOM_FACTOR);
+      }
+    }));
+    controls.add(VisualTests.createButton("Reset Zoom", new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        mSelection.resetZoom();
+      }
+    }));
+    controls.add(VisualTests.createButton("Clear Selection", new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        mSelection.clear();
       }
     }));
 
