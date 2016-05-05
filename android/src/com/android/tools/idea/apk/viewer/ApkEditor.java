@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.apk.viewer;
 
+import com.android.SdkConstants;
+import com.android.tools.idea.apk.viewer.dex.DexFileViewer;
 import com.android.tools.idea.editors.NinePatchEditorProvider;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
@@ -169,6 +171,10 @@ public class ApkEditor implements FileEditor, ApkViewPanel.Listener {
 
     if (ApkFileSystem.getInstance().isBinaryXml(file) || ApkFileSystem.getInstance().isArsc(file)) {
       return new BinaryXmlViewer(myBaseFile, file);
+    }
+
+    if (SdkConstants.EXT_DEX.equals(file.getExtension())) {
+      return new DexFileViewer(file);
     }
 
     Optional<FileEditorProvider> providers = getFileEditorProviders(file);

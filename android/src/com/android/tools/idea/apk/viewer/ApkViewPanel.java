@@ -65,20 +65,25 @@ public class ApkViewPanel implements TreeSelectionListener {
 
     myContainer.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
 
+    // construct the main tree along with the uncompressed sizes
+    ListenableFuture<DefaultMutableTreeNode> treeStructureFuture = apkParser.constructTreeStructure();
     FutureCallBackAdapter<DefaultMutableTreeNode> setRootNode = new FutureCallBackAdapter<DefaultMutableTreeNode>() {
       @Override
       public void onSuccess(DefaultMutableTreeNode result) {
         setRootNode(result);
       }
     };
-
-    // construct the main tree along with the uncompressed sizes
-    ListenableFuture<DefaultMutableTreeNode> treeStructureFuture = apkParser.constructTreeStructure();
     Futures.addCallback(treeStructureFuture, setRootNode, EdtExecutor.INSTANCE);
 
-    // in parallel, kick off computation of the compressed archive, and once its available, update the tree again
+    // in parallel, kick off computation of the compressed archive, and once its available, refresh the tree
     ListenableFuture<DefaultMutableTreeNode> compressedTreeFuture = apkParser.constructTreeStructureWithCompressedSizes();
-    Futures.addCallback(compressedTreeFuture, setRootNode, EdtExecutor.INSTANCE);
+    FutureCallBackAdapter<DefaultMutableTreeNode> refreshTree = new FutureCallBackAdapter<DefaultMutableTreeNode>() {
+      @Override
+      public void onSuccess(DefaultMutableTreeNode result) {
+        refreshTree();
+      }
+    };
+    Futures.addCallback(compressedTreeFuture, refreshTree, EdtExecutor.INSTANCE);
 
     // identify and set the application name and version
     myNameAsyncIcon.setVisible(true);
@@ -174,6 +179,11 @@ public class ApkViewPanel implements TreeSelectionListener {
     myTree.setPaintBusy(!entry.isCompressedSizeKnown());
     myTree.setRootVisible(false);
     myTree.setModel(myTreeModel);
+  }
+
+  private void refreshTree() {
+    myTree.setPaintBusy(false);
+    myTreeModel.reload();
   }
 
   private void setApkSizes(long uncompressed, long compressedFullApk) {
