@@ -22,12 +22,12 @@ import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.util.PropertiesMap;
+import com.google.common.collect.Table;
 import com.intellij.designer.LightToolWindowContent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.util.Alarm;
-import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
@@ -36,6 +36,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -120,22 +121,19 @@ public class NlPropertiesManager implements DesignSurfaceListener, ModelListener
     return myUpdateQueue;
   }
 
-  private void setSelectedComponent(@Nullable final NlComponent component, @Nullable final Runnable postUpdateRunnable) {
-    if (component == null) {
-      setEmptySelection();
-      return;
-    }
+  private void setSelectedComponents(@NotNull List<NlComponent> components, @Nullable Runnable postUpdateRunnable) {
+    assert !components.isEmpty();
 
     // Obtaining the properties, especially the first time around on a big project
     // can take close to a second, so we do it on a separate thread..
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
-      final List<NlPropertyItem> properties = NlProperties.getInstance().getProperties(component);
+      Table<String, String, NlPropertyItem> properties = NlProperties.getInstance().getProperties(components);
 
       UIUtil.invokeLaterIfNeeded(() -> {
         if (myProject.isDisposed()) {
           return;
         }
-        myPropertiesPanel.setItems(component, properties, this);
+        myPropertiesPanel.setItems(components, properties, this);
         if (postUpdateRunnable != null) {
           postUpdateRunnable.run();
         }
@@ -144,7 +142,10 @@ public class NlPropertiesManager implements DesignSurfaceListener, ModelListener
   }
 
   @NotNull
-  public PropertiesMap getDefaultProperties(@NotNull NlComponent component) {
+  public PropertiesMap getDefaultProperties(@NotNull List<NlComponent> components) {
+    if (components.isEmpty()) {
+      return PropertiesMap.EMPTY_MAP;
+    }
     if (mySurface == null) {
       return PropertiesMap.EMPTY_MAP;
     }
@@ -153,11 +154,33 @@ public class NlPropertiesManager implements DesignSurfaceListener, ModelListener
       return PropertiesMap.EMPTY_MAP;
     }
     Map<Object, PropertiesMap> map = view.getModel().getDefaultProperties();
-    return map.getOrDefault(component.getTag(), PropertiesMap.EMPTY_MAP);
-  }
-
-  private void setEmptySelection() {
-    myPropertiesPanel.setItems(null, Collections.emptyList(), this);
+    List<PropertiesMap> propertiesMaps = new ArrayList<>(components.size());
+    for (NlComponent component : components) {
+      PropertiesMap propertiesMap = map.get(component.getTag());
+      if (propertiesMap == null) {
+        return PropertiesMap.EMPTY_MAP;
+      }
+      propertiesMaps.add(propertiesMap);
+    }
+    PropertiesMap first = propertiesMaps.get(0);
+    if (propertiesMaps.size() == 1) {
+      return first;
+    }
+    PropertiesMap commonProperties = new PropertiesMap();
+    for (Map.Entry<String, PropertiesMap.Property> property : first.entrySet()) {
+      boolean include = true;
+      for (int index = 1; index < propertiesMaps.size(); index++) {
+        PropertiesMap other = propertiesMaps.get(index);
+        if (!property.getValue().equals(other.get(property.getKey()))) {
+          include = false;
+          break;
+        }
+      }
+      if (include) {
+        commonProperties.put(property.getKey(), property.getValue());
+      }
+    }
+    return commonProperties;
   }
 
   public void setValue(@NotNull NlProperty property, @Nullable String value) {
@@ -179,9 +202,7 @@ public class NlPropertiesManager implements DesignSurfaceListener, ModelListener
       return;
     }
 
-    // TODO: handle multiple selections
-    final NlComponent firstComponent = ContainerUtil.getFirstItem(newSelection, null);
-    if (firstComponent == null) {
+    if (newSelection.isEmpty()) {
       return;
     }
 
@@ -192,7 +213,7 @@ public class NlPropertiesManager implements DesignSurfaceListener, ModelListener
     queue.queue(new Update("updateProperties") {
       @Override
       public void run() {
-        setSelectedComponent(firstComponent, myLoadingPanel::stopLoading);
+        setSelectedComponents(newSelection, myLoadingPanel::stopLoading);
       }
 
       @Override

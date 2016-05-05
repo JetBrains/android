@@ -249,10 +249,10 @@ public class NlReferenceEditor implements NlComponentEditor {
   }
 
   public static ChooseResourceDialog showResourceChooser(@NotNull NlProperty p) {
-    Module m = p.getComponent().getModel().getModule();
+    Module m = p.getModel().getModule();
     AttributeDefinition definition = p.getDefinition();
     ResourceType[] types = getResourceTypes(definition);
-    return new ChooseResourceDialog(m, types, p.getValue(), p.getComponent().getTag());
+    return new ChooseResourceDialog(m, types, p.getValue(), p.getTag());
   }
 
   @NotNull
@@ -313,7 +313,7 @@ public class NlReferenceEditor implements NlComponentEditor {
       ResourceType[] types = getResourceTypes(definition);
       List<String> items = Lists.newArrayList();
 
-      AndroidFacet facet = p.getComponent().getModel().getFacet();
+      AndroidFacet facet = p.getModel().getFacet();
 
       for (ResourceType type : types) {
         List<ResourceItem> resItems =

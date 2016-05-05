@@ -20,6 +20,7 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.property.editors.NlPropertyEditors;
 import com.android.tools.idea.uibuilder.property.ptable.PTableCellEditor;
 import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
@@ -30,6 +31,8 @@ import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.xml.XmlTag;
 import com.intellij.xml.NamespaceAwareXmlAttributeDescriptor;
 import com.intellij.xml.XmlAttributeDescriptor;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
@@ -50,51 +53,66 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
     SdkConstants.ATTR_LAYOUT // <include layout="..." />
   );
 
-  @NotNull protected final NlComponent myComponent;
+  @NotNull protected final List<NlComponent> myComponents;
   @Nullable protected final AttributeDefinition myDefinition;
   @NotNull private final String myName;
   @Nullable private final String myNamespace;
   @Nullable private PropertiesMap.Property myDefaultValue;
 
-  public static NlPropertyItem create(@NotNull NlComponent component,
+  public static NlPropertyItem create(@NotNull List<NlComponent> components,
                                       @NotNull XmlAttributeDescriptor descriptor,
                                       @Nullable AttributeDefinition attributeDefinition) {
     if (attributeDefinition != null && attributeDefinition.getFormats().contains(AttributeFormat.Flag)) {
-      return new NlFlagPropertyItem(component, descriptor, attributeDefinition);
+      return new NlFlagPropertyItem(components, descriptor, attributeDefinition);
+    }
+    else if (descriptor.getName().equals(SdkConstants.ATTR_ID)) {
+      return new NlIdPropertyItem(components, descriptor, attributeDefinition);
     }
     else {
-      return new NlPropertyItem(component, descriptor, attributeDefinition);
+      return new NlPropertyItem(components, descriptor, attributeDefinition);
     }
   }
 
-  protected NlPropertyItem(@NotNull NlComponent component,
+  protected NlPropertyItem(@NotNull List<NlComponent> components,
                            @NotNull XmlAttributeDescriptor descriptor,
                            @Nullable AttributeDefinition attributeDefinition) {
-    if (attributeDefinition == null && !ATTRS_WITHOUT_DEFINITIONS.contains(descriptor.getName())) {
+    assert !components.isEmpty();
+    String namespace = descriptor instanceof NamespaceAwareXmlAttributeDescriptor ?
+                       ((NamespaceAwareXmlAttributeDescriptor)descriptor).getNamespace(components.get(0).getTag()) : null;
+    if (attributeDefinition == null &&
+        !ATTRS_WITHOUT_DEFINITIONS.contains(descriptor.getName()) &&
+        !SdkConstants.TOOLS_URI.equals(namespace)) {
       throw new IllegalArgumentException("Missing attribute definition for " + descriptor.getName());
     }
 
     // NOTE: we do not save any PSI data structures as fields as they could go out of date as the user edits the file.
     // Instead, we have a reference to the component, and query whatever information we need from the component, and expect
     // that the component can provide that information by having a shadow copy that is consistent with the rendering
-    myComponent = component;
+    myComponents = components;
     myName = descriptor.getName();
-    myNamespace = descriptor instanceof NamespaceAwareXmlAttributeDescriptor ?
-                  ((NamespaceAwareXmlAttributeDescriptor)descriptor).getNamespace(component.getTag()) : null;
+    myNamespace = namespace;
     myDefinition = attributeDefinition;
   }
 
   protected NlPropertyItem(@NotNull NlPropertyItem property, @NotNull String namespace) {
-    myComponent = property.myComponent;
+    assert !property.myComponents.isEmpty();
+    myComponents = property.myComponents;
     myName = property.myName;
     myNamespace = namespace;
     myDefinition = property.myDefinition;
   }
 
+  public boolean sameDefinition(@Nullable NlPropertyItem other) {
+    return other != null &&
+           Objects.equal(myName, other.myName) &&
+           Objects.equal(myNamespace, other.myNamespace) &&
+           myDefinition == other.myDefinition;
+  }
+
   @Override
   @NotNull
-  public NlComponent getComponent() {
-    return myComponent;
+  public List<NlComponent> getComponents() {
+    return myComponents;
   }
 
   @Override
@@ -103,8 +121,9 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
     return myName;
   }
 
-  @NotNull
-  protected String getNamespace() {
+  @Override
+  @Nullable
+  public String getNamespace() {
     return myNamespace;
   }
 
@@ -115,10 +134,36 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
   @Override
   @Nullable
   public String getValue() {
-    // TODO: Consider making getApplication() a field to avoid statics
     ApplicationManager.getApplication().assertIsDispatchThread();
-    String value = myComponent.getAttribute(myNamespace, myName);
+    String prev = null;
+    for (NlComponent component : myComponents) {
+      String value = getValue(component);
+      if (value == null) {
+        return null;
+      }
+      if (prev == null) {
+        prev = value;
+      }
+      else if (!value.equals(prev)) {
+        return null;
+      }
+    }
+    return prev;
+  }
+
+  private String getValue(@NotNull NlComponent component) {
+    String value = component.getAttribute(myNamespace, myName);
     return value == null && myDefaultValue != null ? myDefaultValue.resource : value;
+  }
+
+  @Override
+  @Nullable
+  public String getResolvedValue() {
+    String value = getValue();
+    if (value != null) {
+      value = resolveValue(value);
+    }
+    return value;
   }
 
   @Override
@@ -189,16 +234,28 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
   @NotNull
   @Override
   public NlProperty getDesignTimeProperty() {
-    if (myNamespace.equals(SdkConstants.TOOLS_URI)) {
+    if (SdkConstants.TOOLS_URI.equals(myNamespace)) {
       return this;
     }
     return new NlPropertyItem(this, SdkConstants.TOOLS_URI);
   }
 
   @Override
+  @NotNull
+  public NlModel getModel() {
+    return myComponents.get(0).getModel();
+  }
+
+  @Override
+  @Nullable
+  public XmlTag getTag() {
+    return myComponents.size() == 1 ? myComponents.get(0).getTag() : null;
+  }
+
+  @Override
   @Nullable
   public ResourceResolver getResolver() {
-    Configuration configuration = myComponent.getModel().getConfiguration();
+    Configuration configuration = getModel().getConfiguration();
     //noinspection ConstantConditions
     if (configuration == null) { // happens in unit test
       return null;
@@ -217,12 +274,16 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
       strValue = null;
     }
     final String attrValue = strValue;
-    String msg = String.format("Set %1$s.%2$s to %3$s", myComponent.getTagName(), myName, attrValue);
-    new WriteCommandAction.Simple(myComponent.getModel().getProject(), msg, myComponent.getTag().getContainingFile()) {
+    NlComponent first = myComponents.get(0);
+    String componentName = myComponents.size() == 1 ? first.getTagName() : "Multiple";
+    String msg = String.format("Set %1$s.%2$s to %3$s", componentName, myName, attrValue);
+    new WriteCommandAction.Simple(getModel().getProject(), msg, first.getTag().getContainingFile()) {
       @Override
       protected void run() throws Throwable {
-        String v = StringUtil.isEmpty(attrValue) ? null : attrValue;
-        myComponent.setAttribute(myNamespace, myName, v);
+        for (NlComponent component : myComponents) {
+          String v = StringUtil.isEmpty(attrValue) ? null : attrValue;
+          component.setAttribute(myNamespace, myName, v);
+        }
       }
     }.execute();
   }

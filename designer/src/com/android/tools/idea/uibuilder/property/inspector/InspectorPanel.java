@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.inspector;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintInspectorProvider;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
@@ -22,6 +23,7 @@ import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Table;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.ui.components.JBLabel;
@@ -90,15 +92,18 @@ public class InspectorPanel extends JPanel {
     return new MigLayout(layoutConstraints, columnConstraints);
   }
 
-  public void setComponent(@Nullable NlComponent component,
-                           @NotNull List<? extends NlProperty> properties,
+  public void setComponent(@NotNull List<NlComponent> components,
+                           @NotNull Table<String, String, ? extends NlProperty> properties,
                            @NotNull NlPropertiesManager propertiesManager) {
     mySplitComponents.clear();
     myInspector.removeAll();
     myInspector.repaint();
 
     Map<String, NlProperty> propertiesByName = Maps.newHashMapWithExpectedSize(properties.size());
-    for (NlProperty property : properties) {
+    for (NlProperty property : properties.row(SdkConstants.ANDROID_URI).values()) {
+      propertiesByName.put(property.getName(), property);
+    }
+    for (NlProperty property : properties.row(SdkConstants.AUTO_URI).values()) {
       propertiesByName.put(property.getName(), property);
     }
 
@@ -109,7 +114,7 @@ public class InspectorPanel extends JPanel {
       new FontInspectorProvider(),
     };
 
-    List<InspectorComponent> inspectors = createInspectorComponents(component, propertiesManager, propertiesByName, allProviders);
+    List<InspectorComponent> inspectors = createInspectorComponents(components, propertiesManager, propertiesByName, allProviders);
 
     for (InspectorComponent inspector : inspectors) {
       inspector.attachToInspector(this);
@@ -124,22 +129,22 @@ public class InspectorPanel extends JPanel {
   }
 
   @NotNull
-  private static List<InspectorComponent> createInspectorComponents(@Nullable NlComponent component,
+  private static List<InspectorComponent> createInspectorComponents(@NotNull List<NlComponent> components,
                                                                     @NotNull NlPropertiesManager propertiesManager,
                                                                     @NotNull Map<String, NlProperty> properties,
                                                                     @NotNull InspectorProvider[] allProviders) {
     List<InspectorComponent> inspectors = Lists.newArrayListWithExpectedSize(allProviders.length);
 
-    if (component == null) {
+    if (components.isEmpty()) {
       // create just the id inspector, which we know can handle a null component
       // this is simply to avoid the screen flickering when switching components
       return ImmutableList.of(
-        new IdInspectorProvider().createCustomInspector(null, properties, propertiesManager));
+        new IdInspectorProvider().createCustomInspector(Collections.<NlComponent>emptyList(), properties, propertiesManager));
     }
 
     for (InspectorProvider provider : allProviders) {
-      if (provider.isApplicable(component, properties)) {
-        inspectors.add(provider.createCustomInspector(component, properties, propertiesManager));
+      if (provider.isApplicable(components, properties)) {
+        inspectors.add(provider.createCustomInspector(components, properties, propertiesManager));
       }
     }
 
