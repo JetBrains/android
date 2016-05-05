@@ -232,8 +232,10 @@ public class NlReferenceEditor implements NlComponentEditor {
 
   private void stopEditing(@NotNull String newValue) {
     if (!newValue.equals(myLastWriteValue)) {
-      myListener.stopEditing(this, newValue);
       myLastWriteValue = newValue;
+      myLastReadValue = newValue;
+      myListener.stopEditing(this, newValue);
+      refresh();
     }
   }
 
