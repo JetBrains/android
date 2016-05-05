@@ -264,7 +264,19 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     loadProject(relativePath, buildProject, null);
   }
 
+  protected void loadProject(@NotNull String relativePath, @NotNull String chosenModuleName)
+    throws IOException, ConfigurationException, InterruptedException {
+
+    loadProject(relativePath, false, null, chosenModuleName);
+  }
+
   protected void loadProject(String relativePath, boolean buildProject, @Nullable GradleSyncListener listener)
+    throws IOException, ConfigurationException, InterruptedException {
+    loadProject(relativePath, buildProject, listener, null);
+  }
+
+  protected void loadProject(
+    String relativePath, boolean buildProject, @Nullable GradleSyncListener listener, @Nullable String chosenModuleName)
     throws IOException, ConfigurationException, InterruptedException {
     File root = new File(getTestDataPath(), relativePath.replace('/', File.separatorChar));
     assertTrue(root.getPath(), root.exists());
@@ -299,14 +311,28 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
     ModuleManager moduleManager = ModuleManager.getInstance(project);
     Module[] modules = moduleManager.getModules();
-    // first try and find a non-lib facet
-    for (Module module : modules) {
-      AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-      if (androidFacet != null && !androidFacet.isLibraryProject()) {
-        myAndroidFacet = androidFacet;
-        break;
+
+    // if module name is specified, find it
+    if (chosenModuleName != null) {
+      for (Module module : modules) {
+        if (chosenModuleName.equals(module.getName())){
+          myAndroidFacet = AndroidFacet.getInstance(module);
+          break;
+        }
       }
     }
+
+    if (myAndroidFacet == null) {
+      // then try and find a non-lib facet
+      for (Module module : modules) {
+        AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+        if (androidFacet != null && !androidFacet.isLibraryProject()) {
+          myAndroidFacet = androidFacet;
+          break;
+        }
+      }
+    }
+
     // then try and find ANY android facet
     if (myAndroidFacet == null) {
       for (Module module : modules) {

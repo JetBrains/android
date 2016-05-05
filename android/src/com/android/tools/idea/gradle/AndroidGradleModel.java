@@ -172,6 +172,10 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
     return myModelVersion != null && androidModelSupportsDependencyGraph(myModelVersion);
   }
 
+  public boolean supportsTestedTargetVariants() {
+    return modelVersionIsAtLeast("2.2.0");
+  }
+
   public boolean supportsShaders() {
     return modelVersionIsAtLeast("2.1.0");
   }
@@ -641,6 +645,12 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
     Variant selected = myVariantsByName.get(mySelectedVariantName);
     assert selected != null;
     return selected;
+  }
+
+  /** Returns the specified variant */
+  @Nullable
+  public Variant findVariantByName(@NotNull String variantName) {
+    return myVariantsByName.get(variantName);
   }
 
   /**
