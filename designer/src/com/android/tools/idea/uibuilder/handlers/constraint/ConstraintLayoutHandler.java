@@ -151,6 +151,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     str = "Expand vertically";
     actions.add(action = new AlignAction(Scout.Arrange.ExpandVertically,
                                          AndroidIcons.SherpaIcons.VerticalExpand, str));
+    actions.add(new LockConstraints());
     myActions.add(action);
   }
 
@@ -347,6 +348,33 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       presentation.setEnabled(mEnable);
       presentation.setIcon(AndroidIcons.SherpaIcons.DeleteConstraint);
       presentation.setLabel("Clear all constraints");
+    }
+  }
+
+  private static class LockConstraints extends DirectViewAction {
+    @Override
+    public void perform(@NotNull ViewEditor editor,
+                        @NotNull ViewHandler handler,
+                        @NotNull NlComponent component,
+                        @NotNull List<NlComponent> selectedChildren) {
+      ConstraintModel model = ConstraintModel.getConstraintModel(editor.getModel());
+      if (model == null) {
+        return;
+      }
+      if (model.getSelection().getWidgets().size() == 1) {
+        WidgetsScene scene = model.getScene();
+        scene.toggleLockConstraints((model.getSelection().getWidgets().get(0)));
+      }
+    }
+
+    @Override
+    public void updatePresentation(@NotNull ViewActionPresentation presentation,
+                                   @NotNull ViewEditor editor,
+                                   @NotNull ViewHandler handler,
+                                   @NotNull NlComponent component,
+                                   @NotNull List<NlComponent> selectedChildren) {
+      presentation.setIcon(AndroidIcons.SherpaIcons.LockConstraints);
+      presentation.setLabel("Locks auto inferred constraints");
     }
   }
 
