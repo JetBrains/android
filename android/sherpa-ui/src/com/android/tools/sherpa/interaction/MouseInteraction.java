@@ -74,7 +74,7 @@ public class MouseInteraction {
     private long mPressTime = 0;
 
     private final static int LONG_PRESS_THRESHOLD = 500; // ms -- after that delay, prevent delete anchor
-    private final static int BASELINE_TIME_THRESHOLD = 250; // ms -- after that delay, allow baseline selection
+    private final static int BASELINE_TIME_THRESHOLD = 800; // ms -- after that delay, allow baseline selection
     private final static int LOCK_TIME_THRESHOLD = 500; // ms -- after that delay, prevent dragging
 
     public static void setMargin(int margin) {
@@ -450,8 +450,10 @@ public class MouseInteraction {
                 if ((mHitConstraintHandle == null) || (mHitConstraintHandleDistance > dist)) {
                     if (handle.getAnchor().getType() == ConstraintAnchor.Type.BASELINE) {
                         if (mEnableBaseline || mMode == DRAG_MODE) {
-                            mHitConstraintHandle = handle;
-                            mHitConstraintHandleDistance = dist;
+                            if (dist < 4) {
+                                mHitConstraintHandle = handle;
+                                mHitConstraintHandleDistance = dist;
+                            }
                         }
                     } else {
                         mHitConstraintHandle = handle;
@@ -831,11 +833,20 @@ public class MouseInteraction {
                 if (!mSelection.isEmpty()) {
                     // Remove any constraints auto-created
                     for (Selection.Element selection : mSelection.getElements()) {
+                        boolean didResetAutoConnections = false;
                         for (ConstraintAnchor anchor : selection.widget.getAnchors()) {
                             if (anchor.isConnected()
                                     && anchor.getConnectionCreator()
                                     == ConstraintAnchor.AUTO_CONSTRAINT_CREATOR) {
                                 anchor.getOwner().resetAnchor(anchor);
+                                didResetAutoConnections = true;
+                            }
+                        }
+                        if (didResetAutoConnections) {
+                            mSelection.addModifiedWidget(selection.widget);
+                            for (ConstraintWidget widget : mWidgetsScene.getWidgets()) {
+                                widget.disconnectWidget(selection.widget);
+                                mSelection.addModifiedWidget(widget);
                             }
                         }
                     }
@@ -972,7 +983,9 @@ public class MouseInteraction {
         if (mMoveOnlyMode) {
             return;
         }
-        mBaselineTimer.stop();
+        mClickListener.mEnableBaseline = false;
+        mHoverListener.mEnableBaseline = false;
+        mBaselineTimer.restart();
         updateFromHoverListener(mViewTransform.getSwingFX(x), mViewTransform.getSwingFY(y));
     }
 
@@ -1003,12 +1016,6 @@ public class MouseInteraction {
                 decorator.setLook(ColorTheme.Look.HIGHLIGHTED);
             }
             mPreviousHoverWidget = widget;
-            if (mSelection.contains(widget) && decorator.isShowBaseline()) {
-                mBaselineTimer.restart();
-            } else {
-                mClickListener.mEnableBaseline = false;
-                mHoverListener.mEnableBaseline = false;
-            }
         }
 
         mSceneDraw.setCurrentUnderneathAnchor(anchor);

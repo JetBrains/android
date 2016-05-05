@@ -164,6 +164,8 @@ public class WidgetDecorator {
         mWidget = widget;
         mShowBias.setDelay(0);
         mShowBias.setDuration(1000);
+        mShowBaseline.setDelay(1000);
+        mShowBaseline.setDuration(1000);
     }
 
     /**
