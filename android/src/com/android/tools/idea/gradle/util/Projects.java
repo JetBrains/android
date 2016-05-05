@@ -24,7 +24,9 @@ import com.android.tools.idea.gradle.customizer.dependency.LibraryDependency;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.project.PostProjectSetupTasksExecutor;
+import com.android.tools.idea.gradle.project.subset.ProjectSubset;
 import com.android.tools.idea.model.AndroidModel;
+import com.google.common.collect.Lists;
 import com.intellij.ide.DataManager;
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
@@ -59,6 +61,7 @@ import org.jetbrains.plugins.gradle.util.GradleConstants;
 import javax.swing.*;
 import java.io.File;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.*;
@@ -68,6 +71,7 @@ import static com.intellij.ide.impl.ProjectUtil.updateLastProjectLocation;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY;
 import static com.intellij.openapi.externalSystem.model.ProjectKeys.PROJECT;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findAll;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.visit;
 import static com.intellij.openapi.module.ModuleUtilCore.findModuleForFile;
 import static com.intellij.openapi.util.io.FileUtil.*;
@@ -124,7 +128,55 @@ public final class Projects {
     return module.getUserData(MODULE_COMPILED_ARTIFACT);
   }
 
-  public static void populate(@NotNull final Project project, @NotNull final Collection<DataNode<ModuleData>> modules) {
+  public static void populate(@NotNull Project project,
+                              @NotNull DataNode<ProjectData> projectInfo,
+                              boolean selectModulesToImport,
+                              boolean runPostProjectSetupTasks) {
+    populate(project, getModulesToImport(project, projectInfo, selectModulesToImport), runPostProjectSetupTasks);
+  }
+
+  @NotNull
+  private static Collection<DataNode<ModuleData>> getModulesToImport(@NotNull Project project,
+                                                                     @NotNull DataNode<ProjectData> projectInfo,
+                                                                     boolean selectModulesToImport) {
+    Collection<DataNode<ModuleData>> modules = findAll(projectInfo, ProjectKeys.MODULE);
+    ProjectSubset subview = ProjectSubset.getInstance(project);
+    if (!ApplicationManager.getApplication().isUnitTestMode() && ProjectSubset.isSettingEnabled() && modules.size() > 1) {
+      if (selectModulesToImport) {
+        // Importing a project. Allow user to select which modules to include in the project.
+        Collection<DataNode<ModuleData>> selection = subview.showModuleSelectionDialog(modules);
+        if (selection != null) {
+          return selection;
+        }
+      }
+      else {
+        // We got here because a project was synced with Gradle. Make sure that we don't add any modules that were not selected during
+        // project import (if applicable.)
+        String[] persistedModuleNames = subview.getSelection();
+        if (persistedModuleNames != null) {
+          int moduleCount = persistedModuleNames.length;
+          if (moduleCount > 0) {
+            List<String> moduleNames = Lists.newArrayList(persistedModuleNames);
+            List<DataNode<ModuleData>> selectedModules = Lists.newArrayListWithExpectedSize(moduleCount);
+            for (DataNode<ModuleData> module : modules) {
+              String name = module.getData().getExternalName();
+              if (moduleNames.contains(name)) {
+                selectedModules.add(module);
+              }
+            }
+            return selectedModules;
+          }
+        }
+      }
+    }
+    // Delete any stored module selection.
+    subview.clearSelection();
+    return modules;
+  }
+
+  public static void populate(@NotNull Project project,
+                              @NotNull Collection<DataNode<ModuleData>> modules,
+                              boolean runPostProjectSetupTasks) {
     invokeAndWaitIfNeeded((Runnable)() -> {
       ProjectSyncMessages messages = ProjectSyncMessages.getInstance(project);
       messages.removeMessages(PROJECT_STRUCTURE_ISSUES, MISSING_DEPENDENCIES_BETWEEN_MODULES, FAILED_TO_SET_UP_DEPENDENCIES,
@@ -140,7 +192,9 @@ public final class Projects {
       });
       // We need to call this method here, otherwise the IDE will think the project is not a Gradle project and it won't generate
       // sources for it. This happens on new projects.
-      PostProjectSetupTasksExecutor.getInstance(project).onProjectSyncCompletion();
+      if (runPostProjectSetupTasks) {
+        PostProjectSetupTasksExecutor.getInstance(project).onProjectSyncCompletion();
+      }
     });
   }
 
@@ -154,9 +208,9 @@ public final class Projects {
                                         ExternalSystemApiUtil.findParent(enabledModules.iterator().next(), PROJECT);
 
     if (projectNode != null) {
-      final Collection<DataNode<ModuleData>> allModules = ExternalSystemApiUtil.findAll(projectNode, ProjectKeys.MODULE);
+      Collection<DataNode<ModuleData>> allModules = findAll(projectNode, ProjectKeys.MODULE);
       if (enabledModules.size() != allModules.size()) {
-        final Set<DataNode<ModuleData>> moduleToIgnore = ContainerUtil.newIdentityTroveSet(allModules);
+        Set<DataNode<ModuleData>> moduleToIgnore = ContainerUtil.newIdentityTroveSet(allModules);
         moduleToIgnore.removeAll(enabledModules);
         for (DataNode<ModuleData> moduleNode : moduleToIgnore) {
           visit(moduleNode, node -> node.setIgnored(true));
@@ -168,7 +222,7 @@ public final class Projects {
     }
   }
 
-  public static void executeProjectChanges(@NotNull final Project project, @NotNull final Runnable changes) {
+  public static void executeProjectChanges(@NotNull Project project, @NotNull Runnable changes) {
     if (ApplicationManager.getApplication().isWriteAccessAllowed()) {
       if (!project.isDisposed()) {
         changes.run();

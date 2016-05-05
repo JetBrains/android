@@ -382,6 +382,10 @@ public class ProjectSyncMessages {
     }
   }
 
+  public void removeAllMessages() {
+    myNotificationManager.clearNotifications(null, NOTIFICATION_SOURCE, GRADLE_SYSTEM_ID);
+  }
+
   private static class ShowDependencyInProjectStructureHyperlink extends NotificationHyperlink {
     @NotNull private final Module myModule;
     @NotNull private final GradleCoordinate myDependency;
