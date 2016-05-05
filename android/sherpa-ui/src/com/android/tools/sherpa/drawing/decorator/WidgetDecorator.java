@@ -1153,12 +1153,14 @@ public class WidgetDecorator {
             mY = y;
             x += r / 2;
             y += r / 2;
+            if (mAnimatedColor == null) {
+                return false;
+            }
+            mAnimatedColor.step();
             Color pre = g.getColor();
             if (!mOver) {
-                if (mAnimatedColor == null || mAnimatedColor.getProgress() == 0) {
-                    if (mAnimatedColor != null && mAnimatedColor.step()) {
-                        repaint(x - r / 2, y - r / 2, r, r);
-                    }
+                if (mAnimatedColor.getProgress() == 0) {
+                    repaint(x - r / 2, y - r / 2, r, r);
                     return false;
                 }
                 g.setColor(mAnimatedColor.getColor());

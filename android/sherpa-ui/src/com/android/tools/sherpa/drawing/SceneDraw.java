@@ -243,12 +243,8 @@ public class SceneDraw {
                     if (owner instanceof Guideline || owner.isRoot()
                             || a.getType() == ConstraintAnchor.Type.BASELINE) {
                         mAnimationCandidateAnchors.add(new AnimatedLine(constraintHandle));
-                        if (owner.isRoot() && a.getType() != ConstraintAnchor.Type.BASELINE) {
-                            // also add the circle
-                            mAnimationCandidateAnchors.add(new AnimatedCircle(constraintHandle));
-                        }
                     } else {
-                        mAnimationCandidateAnchors.add(new AnimatedCircle(constraintHandle));
+                        mAnimationCandidateAnchors.add(new AnimatedLine(constraintHandle));
                     }
                     highlighted = true;
                 }

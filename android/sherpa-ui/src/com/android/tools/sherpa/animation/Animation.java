@@ -70,7 +70,7 @@ public abstract class Animation {
      *
      * @return the current progress value for this animation
      */
-    public double getProgress() { step(); return mProgress; }
+    public double getProgress() { return mProgress; }
 
     /**
      * Start the animation
