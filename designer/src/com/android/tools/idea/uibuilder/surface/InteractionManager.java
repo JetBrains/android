@@ -360,7 +360,15 @@ public class InteractionManager {
       }
       NlComponent component = Coordinates.findComponent(screenView, myLastMouseX, myLastMouseY);
       if (component == null) {
-        return;
+        // If we cannot find an element where we clicked, try to use the first element currently selected
+        // (if any) to find the view group handler that may want to handle the mousePressed()
+        // This allows us to correctly handle elements out of the bounds of the screenview.
+        List<NlComponent> selection = screenView.getSelectionModel().getSelection();
+        if (selection.size() > 0) {
+          component = selection.get(0);
+        } else {
+          return;
+        }
       }
       ViewGroupHandler viewGroupHandler = component.getViewGroupHandler();
       if (viewGroupHandler == null) {

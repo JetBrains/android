@@ -69,7 +69,7 @@ public class AnimatedHoverAnchor extends Animation {
         boolean isNewConnection = mAnchor.getAnchor().getTarget() != null
                 && mOriginalTarget != mAnchor.getAnchor().getTarget();
         if (isNewConnection || !mAnchor.getAnchor().isConnected()) {
-            text = "Create ";
+            text = "Drag To Create ";
         } else {
             text = "Delete ";
             if (mAnchor.getAnchor().getConnectionCreator() == ConstraintAnchor.AUTO_CONSTRAINT_CREATOR) {

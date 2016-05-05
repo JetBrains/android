@@ -50,9 +50,9 @@ public class WidgetDecorator {
     public static final int BLUEPRINT_STYLE = 0;
     public static final int ANDROID_STYLE = 1;
 
-    public static ImageIcon sLockImageIcon = null;
-    public static ImageIcon sUnlockImageIcon = null;
-    public static ImageIcon sDeleteConnectionsImageIcon = null;
+    public static Image sLockImageIcon = null;
+    public static Image sUnlockImageIcon = null;
+    public static Image sDeleteConnectionsImageIcon = null;
 
     private static boolean sShowAllConstraints = false;
     private static boolean sShowTextUI = false;
@@ -1108,7 +1108,7 @@ public class WidgetDecorator {
 
         void show(int delay) {
             mAnimatedColor = new AnimatedColor(new Color(0, 0, 0, 0),
-                    mColorSet.getSelectedFrames());
+                    mColorSet.getWidgetActionBackground());
             mAnimatedColor.setDuration(500);
             mAnimatedColor.setDelay(delay);
             mAnimatedColor.start();
@@ -1140,7 +1140,7 @@ public class WidgetDecorator {
                     textWidth + 2 * padding, textHeight + 2 * padding, 8, 8);
             g.setColor(Color.black);
             g.drawString(text, tx + 1, ty + 1);
-            g.setColor(mColorSet.getSelectionColor());
+            g.setColor(mColorSet.getAnchorCreationCircle());
             g.drawString(text, tx, ty);
 
             g.setFont(prefont);
@@ -1163,7 +1163,7 @@ public class WidgetDecorator {
                 }
                 g.setColor(mAnimatedColor.getColor());
             } else {
-                g.setColor(mColorSet.getSelectionColor());
+                g.setColor(mColorSet.getWidgetActionSelectedBackground());
             }
             int c = 8;
             if (mAnimatedColor.getProgress() < 1) {
@@ -1237,9 +1237,9 @@ public class WidgetDecorator {
             int rect = ACTION_SIZE - 2 * m;
             if (mAnimatedColor.getProgress() == 1) {
                 if (sLockImageIcon != null) {
-                    Image image = sUnlockImageIcon.getImage();
+                    Image image = sUnlockImageIcon;
                     if (mConstraintsCreator == ConstraintAnchor.AUTO_CONSTRAINT_CREATOR) {
-                        image = sLockImageIcon.getImage();
+                        image = sLockImageIcon;
                     }
                     g.drawImage(image, x + m, y + m,
                             rect, rect, null, null);
@@ -1327,7 +1327,7 @@ public class WidgetDecorator {
             int rect = ACTION_SIZE - 2 * m;
             if (mAnimatedColor.getProgress() == 1) {
                 if (sDeleteConnectionsImageIcon != null) {
-                    g.drawImage(sDeleteConnectionsImageIcon.getImage(), x + m, y + m,
+                    g.drawImage(sDeleteConnectionsImageIcon, x + m, y + m,
                             rect, rect, null, null);
                 }
             }
