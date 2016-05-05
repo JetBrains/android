@@ -1130,18 +1130,34 @@ public class WidgetDecorator {
 
             g.setFont(sFont);
             FontMetrics fm = g.getFontMetrics(sFont);
-            int textWidth = fm.stringWidth(text);
-            int textHeight = fm.getMaxAscent() + fm.getMaxDescent();
-            int tx = x - textWidth / 2;
-            int ty = y - 12 - textHeight;
-            g.setColor(mColorSet.getTooltipBackground());
+
+            String[] lines = text.split("\n");
+            int textWidth = 0;
+            int textHeight = 0;
+            int margin = 4;
             int padding = 10;
-            g.fillRoundRect(tx - padding, ty - fm.getMaxAscent() - padding,
-                    textWidth + 2 * padding, textHeight + 2 * padding, 8, 8);
-            g.setColor(Color.black);
-            g.drawString(text, tx + 1, ty + 1);
-            g.setColor(mColorSet.getAnchorCreationCircle());
-            g.drawString(text, tx, ty);
+            int th = fm.getMaxAscent() + fm.getMaxDescent();
+            for (int i = 0; i < lines.length; i++) {
+                textWidth = Math.max(textWidth, fm.stringWidth(lines[i]));
+                textHeight += th + margin;
+            }
+            int rectX = x - textWidth / 2 - padding;
+            int rectY = y - padding - textHeight - 2*padding;
+            int rectWidth = textWidth + 2 * padding;
+            int rectHeight = textHeight + 2 * padding;
+
+            g.setColor(mColorSet.getTooltipBackground());
+            g.fillRoundRect(rectX, rectY, rectWidth, rectHeight, 8, 8);
+
+            for (int i = 0; i < lines.length; i++) {
+                int tw = fm.stringWidth(lines[i]);
+                int tx = x - tw / 2;
+                int ty = y - (lines.length - i) * (th + margin) - padding;
+                g.setColor(Color.black);
+                g.drawString(lines[i], tx + 1, ty + 1);
+                g.setColor(mColorSet.getAnchorCreationCircle());
+                g.drawString(lines[i], tx, ty);
+            }
 
             g.setFont(prefont);
             g.setColor(precolor);
@@ -1225,7 +1241,7 @@ public class WidgetDecorator {
         @Override
         String getText() {
             if (mConstraintsCreator == ConstraintAnchor.AUTO_CONSTRAINT_CREATOR) {
-                return "Lock Constraints";
+                return "Lock Constraints\n(unlock constraints are broken\nby dragging the widget)";
             }
             return "Unlock Constraints";
         }
