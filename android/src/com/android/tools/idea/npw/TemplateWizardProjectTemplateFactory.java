@@ -72,7 +72,7 @@ public class TemplateWizardProjectTemplateFactory extends ProjectTemplatesFactor
     }
     TemplateManager manager = TemplateManager.getInstance();
     List<File> templates = manager.getTemplates(Template.CATEGORY_PROJECTS);
-    List<ProjectTemplate> tt = new ArrayList<ProjectTemplate>();
+    List<ProjectTemplate> tt = new ArrayList<>();
     for (File template : templates) {
       final String templateName = template.getName();
 
@@ -98,7 +98,7 @@ public class TemplateWizardProjectTemplateFactory extends ProjectTemplatesFactor
                                             metadata,
                                             project,
                                             null,
-                                            new ArrayList<ModuleWizardStep>(),
+                                            new ArrayList<>(),
                                             parentDisposable,
                                             true));
       myTemplateMetadata = metadata;

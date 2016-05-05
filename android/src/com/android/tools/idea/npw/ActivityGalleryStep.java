@@ -69,7 +69,7 @@ public class ActivityGalleryStep extends DynamicWizardStepWithDescription {
   }
 
   private JComponent createGallery() {
-    myGallery = new ASGallery<Optional<TemplateEntry>>();
+    myGallery = new ASGallery<>();
     Dimension thumbnailSize = DEFAULT_GALLERY_THUMBNAIL_SIZE;
     myGallery.setThumbnailSize(thumbnailSize);
     myGallery.setMinimumSize(new Dimension(thumbnailSize.width * 2 + 1, thumbnailSize.height));

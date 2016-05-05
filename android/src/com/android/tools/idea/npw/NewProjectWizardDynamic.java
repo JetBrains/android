@@ -117,8 +117,8 @@ public class NewProjectWizardDynamic extends DynamicWizard {
     state.put(WizardConstants.GRADLE_VERSION_KEY, SdkConstants.GRADLE_LATEST_VERSION);
     state.put(WizardConstants.IS_GRADLE_PROJECT_KEY, true);
     state.put(WizardConstants.IS_NEW_PROJECT_KEY, true);
-    state.put(WizardConstants.TARGET_FILES_KEY, new HashSet<File>());
-    state.put(WizardConstants.FILES_TO_OPEN_KEY, new ArrayList<File>());
+    state.put(WizardConstants.TARGET_FILES_KEY, new HashSet<>());
+    state.put(WizardConstants.FILES_TO_OPEN_KEY, new ArrayList<>());
     state.put(WizardConstants.USE_PER_MODULE_REPOS_KEY, false);
 
     try {
@@ -149,12 +149,7 @@ public class NewProjectWizardDynamic extends DynamicWizard {
 
   @Override
   public void performFinishingActions() {
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        runFinish();
-      }
-    });
+    ApplicationManager.getApplication().invokeLater(this::runFinish);
   }
 
   private void runFinish() {

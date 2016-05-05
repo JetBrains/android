@@ -144,7 +144,7 @@ public final class GenerateIconsPanel extends JPanel implements Disposable {
       myOutputPreviewPanel.add(iconsPanel);
     }
 
-    myOutputIconType = new AsValueExpression<AndroidIconType>(new SelectedItemProperty<AndroidIconType>(myIconTypeCombo));
+    myOutputIconType = new AsValueExpression<>(new SelectedItemProperty<>(myIconTypeCombo));
 
     initializeListenersAndBindings();
 

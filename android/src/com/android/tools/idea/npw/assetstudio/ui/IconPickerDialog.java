@@ -69,7 +69,7 @@ public final class IconPickerDialog extends DialogWrapper {
   /**
    * A list of all active icons (based on the currently selected category).
    */
-  private final List<VdIcon> myIconList = new ArrayList<VdIcon>();
+  private final List<VdIcon> myIconList = new ArrayList<>();
 
   private final AbstractTableModel myModel = new AbstractTableModel() {
 

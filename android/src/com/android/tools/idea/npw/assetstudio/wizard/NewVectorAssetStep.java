@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.npw.assetstudio.wizard;
 
-import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidVectorIconGenerator;
 import com.android.tools.idea.npw.assetstudio.ui.VectorAssetBrowser;
@@ -49,7 +48,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.Collection;
@@ -69,7 +67,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
 
   private final AndroidVectorIconGenerator myIconGenerator = new AndroidVectorIconGenerator();
   private final ObjectProperty<VectorAsset> myActiveAsset;
-  private final OptionalProperty<Dimension> myOriginalSize = new OptionalValueProperty<Dimension>();
+  private final OptionalProperty<Dimension> myOriginalSize = new OptionalValueProperty<>();
 
   private final BoolProperty isValidAsset = new BoolValueProperty();
   private final SvgPreviewUpdater myPreviewUpdater = new SvgPreviewUpdater();
@@ -113,7 +111,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
     // Start with the icon radio button selected, because icons are easy to browse and play around
     // with right away.
     myMaterialIconRadioButton.setSelected(true);
-    myActiveAsset = new ObjectValueProperty<VectorAsset>(myIconButton.getAsset());
+    myActiveAsset = new ObjectValueProperty<>(myIconButton.getAsset());
   }
 
   @NotNull
@@ -124,12 +122,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
 
   @Override
   protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
-    final Runnable onAssetModified = new Runnable() {
-      @Override
-      public void run() {
-        myPreviewUpdater.enqueueUpdate();
-      }
-    };
+    final Runnable onAssetModified = myPreviewUpdater::enqueueUpdate;
 
     SelectedProperty iconSelected = new SelectedProperty(myMaterialIconRadioButton);
     myListeners.listenAndFire(iconSelected, new Consumer<Boolean>() {
@@ -140,12 +133,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
         myActiveAsset.set(isIconActive ? myIconButton.getAsset() : mySvgBrowser.getAsset());
       }
     });
-    ActionListener assetListener = new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent actionEvent) {
-        onAssetModified.run();
-      }
-    };
+    ActionListener assetListener = actionEvent -> onAssetModified.run();
     myIconButton.addAssetListener(assetListener);
     mySvgBrowser.addAssetListener(assetListener);
     Disposer.register(this, myIconButton);
@@ -214,7 +202,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
     ApplicationManager.getApplication().invokeLater(onAssetModified, ModalityState.any());
 
     // Cast VectorAsset -> BaseAsset
-    myGeneralBindings.bind(myIconGenerator.sourceAsset(), new AsOptionalExpression<BaseAsset>(myActiveAsset));
+    myGeneralBindings.bind(myIconGenerator.sourceAsset(), new AsOptionalExpression<>(myActiveAsset));
     myGeneralBindings.bind(myIconGenerator.name(), name);
   }
 

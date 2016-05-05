@@ -58,7 +58,7 @@ abstract public class CommonAssetSetStep extends TemplateWizardStep implements D
   protected AssetType mySelectedAssetType;
   protected boolean myInitialized;
   protected final MergingUpdateQueue myUpdateQueue;
-  protected final Map<String, Map<String, BufferedImage>> myImageMap = new ConcurrentHashMap<String, Map<String, BufferedImage>>();
+  protected final Map<String, Map<String, BufferedImage>> myImageMap = new ConcurrentHashMap<>();
 
   @SuppressWarnings("UseJBColor") // Colors are used for the graphics generator, not the plugin UI
   public CommonAssetSetStep(TemplateWizardState state,
@@ -103,12 +103,7 @@ abstract public class CommonAssetSetStep extends TemplateWizardStep implements D
       public void run() {
         try {
           myAssetGenerator.generateImages(myImageMap, true, true);
-          SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-              updatePreviewImages();
-            }
-          });
+          SwingUtilities.invokeLater(CommonAssetSetStep.this::updatePreviewImages);
         }
         catch (final ImageGeneratorException e) {
           SwingUtilities.invokeLater(new Runnable() {

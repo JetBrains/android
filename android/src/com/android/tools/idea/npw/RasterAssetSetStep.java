@@ -275,12 +275,7 @@ public class RasterAssetSetStep extends CommonAssetSetStep {
         }
 
         if (!myTemplateState.myModified.contains(ATTR_ASSET_NAME)) {
-          updateDerivedValue(ATTR_ASSET_NAME, myResourceNameField, new Callable<String>() {
-            @Override
-            public String call() throws Exception {
-              return computeResourceName();
-            }
-          });
+          updateDerivedValue(ATTR_ASSET_NAME, myResourceNameField, this::computeResourceName);
         }
       }
     }
