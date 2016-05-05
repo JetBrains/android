@@ -18,12 +18,15 @@ package com.android.tools.idea.uibuilder.property;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Table;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class NlPropertyOrderingTest extends LayoutTestCase {
@@ -34,8 +37,9 @@ public class NlPropertyOrderingTest extends LayoutTestCase {
                     "  <TextView />" +
                     "</RelativeLayout>";
     NlComponent component = getFirstComponent(source);
-    List<NlPropertyItem> properties = NlProperties.getInstance().getProperties(component);
-    List<PTableItem> items = new NlPropertiesGrouper().group(properties, component);
+    Table<String, String, NlPropertyItem> properties = NlProperties.getInstance().getProperties(ImmutableList.of(component));
+    List<NlPropertyItem> propertyList = new ArrayList<>(properties.values());
+    List<PTableItem> items = new NlPropertiesGrouper().group(propertyList, ImmutableList.of(component));
 
     // assert that all padding related attributes are grouped together
     PTableItem padding = findItemByName(items, "Padding");
@@ -61,13 +65,16 @@ public class NlPropertyOrderingTest extends LayoutTestCase {
                     "</RelativeLayout>";
 
     NlComponent component = getFirstComponent(source);
-    List<NlPropertyItem> properties = NlProperties.getInstance().getProperties(component);
-    List<PTableItem> items = new NlPropertiesGrouper().group(properties, component);
-    items = new NlPropertiesSorter().sort(items, component);
+    Table<String, String, NlPropertyItem> properties = NlProperties.getInstance().getProperties(ImmutableList.of(component));
+    List<NlPropertyItem> propertyList = new ArrayList<>(properties.values());
+    List<PTableItem> items = new NlPropertiesGrouper().group(propertyList, ImmutableList.of(component));
+    items = new NlPropertiesSorter().sort(items, ImmutableList.of(component));
 
     assertEquals("id attribute is not the first item", "id", items.get(0).getName());
-    assertEquals("Layout attributes group is not the second item", "Layout", items.get(1).getName());
-    assertEquals("Padding attributes group is not the third item", "Padding", items.get(2).getName());
+    assertEquals("Layout_width attribute is not the second item", "layout_width", items.get(1).getName());
+    assertEquals("Layout_height attribute is not the third item", "layout_height", items.get(2).getName());
+    assertEquals("Layout attributes group is not the fourth item", "Layout", items.get(3).getName());
+    assertEquals("Padding attributes group is not the fifth item", "Padding", items.get(4).getName());
     assertTrue("TextView group not within the top 10 items", findItemIndex(items, "TextView") < 10);
     assertTrue("Modified attribute text not in the top 10 items", findItemIndex(items, "text") < 10);
   }

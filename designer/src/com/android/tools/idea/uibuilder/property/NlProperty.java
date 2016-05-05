@@ -17,9 +17,13 @@ package com.android.tools.idea.uibuilder.property;
 
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlModel;
+import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 public interface NlProperty {
   /**
@@ -29,6 +33,12 @@ public interface NlProperty {
   String getName();
 
   /**
+   * Get the namespace of the property.
+   */
+  @Nullable
+  String getNamespace();
+
+  /**
    * Get the value of the property as a string.
    * If the value exists in the XML tag return that value,
    * otherwise return the default value determined from the
@@ -36,6 +46,13 @@ public interface NlProperty {
    */
   @Nullable
   String getValue();
+
+  /**
+   * Get the resolved value of the property as a string.
+   * This is a shortcut for resolveValue(getValue())
+   */
+  @Nullable
+  String getResolvedValue();
 
   /**
    * Returns true if the specified value is the default value.
@@ -66,15 +83,27 @@ public interface NlProperty {
   AttributeDefinition getDefinition();
 
   /**
-   * Get the component this property is associated with.
+   * Get the components this property is associated with.
    */
   @NotNull
-  NlComponent getComponent();
+  List<NlComponent> getComponents();
 
   /**
    * Get the {@link ResourceResolver} for the component this property is associated with.
    */
   ResourceResolver getResolver();
+
+  /**
+   * Get the {@link NlModel} for the components we are handling.
+   */
+  @NotNull
+  NlModel getModel();
+
+  /**
+   * Get the XmlTag of the single component we are handling or {@code null} if we are handling multiple components.
+   */
+  @Nullable
+  XmlTag getTag();
 
   /**
    * Return a child property by name.

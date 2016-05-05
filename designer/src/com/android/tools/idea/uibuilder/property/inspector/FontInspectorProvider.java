@@ -22,17 +22,18 @@ import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 import java.util.Map;
 
 public class FontInspectorProvider implements InspectorProvider {
   @Override
-  public boolean isApplicable(@NonNull NlComponent component, @NonNull Map<String, NlProperty> properties) {
+  public boolean isApplicable(@NonNull List<NlComponent> components, @NonNull Map<String, NlProperty> properties) {
     return properties.keySet().containsAll(FontInspectorComponent.TEXT_PROPERTIES);
   }
 
   @NonNull
   @Override
-  public InspectorComponent createCustomInspector(@Nullable NlComponent component,
+  public InspectorComponent createCustomInspector(@Nullable List<NlComponent> components,
                                                   @NonNull Map<String, NlProperty> properties,
                                                   @NotNull NlPropertiesManager propertiesManager) {
     return new FontInspectorComponent(properties, propertiesManager);

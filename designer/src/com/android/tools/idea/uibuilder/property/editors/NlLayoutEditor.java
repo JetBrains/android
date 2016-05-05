@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.tools.idea.uibuilder.handlers.ui.RotatedLabel;
-import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlFlagPropertyItem;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.google.common.collect.ImmutableList;
@@ -109,25 +108,31 @@ public class NlLayoutEditor extends JPanel {
     return myGravityEditor;
   }
 
-  public void setSelectedComponent(@Nullable NlComponent component, @NotNull Map<String, NlProperty> properties) {
+  public void setSelectedComponents(@NotNull Map<String, NlProperty> properties) {
     myProperties = properties;
-    myPaddingPanel.add(myGravityPanel, BorderLayout.CENTER);
+    removeAll();
+    if (hasProperties(ATTR_GRAVITY)) {
+      myPaddingPanel.add(myGravityPanel, BorderLayout.CENTER);
+    }
     myLayoutPanel.add(myPaddingPanel, BorderLayout.CENTER);
-    NlComponent parent = null;
-    if (component != null) {
-      parent = component.getParent();
-    }
-    if (parent != null && parent.getTagName().equals(CONSTRAINT_LAYOUT)) {
-      myConstraintMarginPanel.add(myLayoutPanel, BorderLayout.CENTER);
-      removeAll();
-      add(myConstraintMarginPanel, BorderLayout.CENTER);
-    }
-    else {
+    if (hasProperties(ATTR_LAYOUT_MARGIN, ATTR_LAYOUT_GRAVITY)) {
       myLayoutMarginPanel.add(myLayoutPanel, BorderLayout.CENTER);
       myLayoutGravityPanel.add(myLayoutMarginPanel, BorderLayout.CENTER);
-      removeAll();
       add(myLayoutGravityPanel, BorderLayout.CENTER);
     }
+    else if (hasProperties(ATTR_LAYOUT_TOP_MARGIN, ATTR_LAYOUT_BOTTOM_MARGIN, ATTR_LAYOUT_LEFT_MARGIN, ATTR_LAYOUT_RIGHT_MARGIN)) {
+      myConstraintMarginPanel.add(myLayoutPanel, BorderLayout.CENTER);
+      add(myConstraintMarginPanel, BorderLayout.CENTER);
+    }
+  }
+
+  private boolean hasProperties(@NotNull String... propertyNames) {
+    for (String propertyName : propertyNames) {
+      if (!myProperties.containsKey(propertyName)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   public void refresh() {
@@ -549,17 +554,16 @@ public class NlLayoutEditor extends JPanel {
     public String getValue(@NotNull Map<String, NlProperty> properties) {
       for (String attribute : myDependentAttributes) {
         NlProperty property = properties.get(attribute);
-        // TODO: Add a NlProperty.getResolvedValue and simplify the following:
-        String value = property != null ? property.getValue() : null;
+        String value = property != null ? property.getResolvedValue() : null;
         if (!StringUtil.isEmpty(value)) {
-          return property.resolveValue(value);
+          return value;
         }
       }
       if (myDependentAttributes.isEmpty()) {
         NlProperty property = properties.get(myAttribute);
-        String value = property != null ? property.getValue() : null;
+        String value = property != null ? property.getResolvedValue() : null;
         if (!StringUtil.isEmpty(value)) {
-          return property.resolveValue(value);
+          return value;
         }
       }
       return " ";

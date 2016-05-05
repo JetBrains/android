@@ -42,10 +42,10 @@ public class NlFlagPropertyItem extends NlPropertyItem implements NlProperty {
 
   private static final Splitter VALUE_SPLITTER = Splitter.on("|").trimResults();
 
-  protected NlFlagPropertyItem(@NotNull NlComponent component,
+  protected NlFlagPropertyItem(@NotNull List<NlComponent> components,
                                @NotNull XmlAttributeDescriptor descriptor,
                                @Nullable AttributeDefinition attributeDefinition) {
-    super(component, descriptor, attributeDefinition);
+    super(components, descriptor, attributeDefinition);
     assert attributeDefinition != null;
   }
 
@@ -85,7 +85,7 @@ public class NlFlagPropertyItem extends NlPropertyItem implements NlProperty {
   @NotNull
   @Override
   public NlProperty getDesignTimeProperty() {
-    if (getNamespace().equals(SdkConstants.TOOLS_URI)) {
+    if (SdkConstants.TOOLS_URI.equals(getNamespace())) {
       return this;
     }
     return new NlFlagPropertyItem(this, SdkConstants.TOOLS_URI);
@@ -125,7 +125,7 @@ public class NlFlagPropertyItem extends NlPropertyItem implements NlProperty {
   }
 
   private void cacheValues() {
-    if (myLastRead == myComponent.getModel().getModificationCount()) {
+    if (myLastRead == getModel().getModificationCount()) {
       return;
     }
     Set<String> values = Collections.emptySet();
@@ -140,7 +140,7 @@ public class NlFlagPropertyItem extends NlPropertyItem implements NlProperty {
     myLastValues = values;
     myLastValue = rawValue;
     myLastFormattedValue = formattedValue;
-    myLastRead = myComponent.getModel().getModificationCount();
+    myLastRead = getModel().getModificationCount();
   }
 
   public boolean isItemSet(@NotNull NlFlagPropertyItemValue item) {

@@ -51,7 +51,7 @@ public class NlPropertyEditors {
       return getComboEditor();
     }
 
-    return getDefaultEditor(property.getComponent().getModel().getProject());
+    return getDefaultEditor(property.getModel().getProject());
   }
 
   private static PTableCellEditor getBooleanEditor() {

@@ -16,30 +16,45 @@
 package com.android.tools.idea.uibuilder.property;
 
 import com.android.tools.idea.uibuilder.property.ptable.PTableGroupItem;
-import com.google.common.base.Predicate;
 import com.intellij.ui.ColoredTableCellRenderer;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.table.TableCellRenderer;
+import java.util.function.Predicate;
 
 class NlPropertyAccumulator {
   private final String myGroupName;
   private final Predicate<NlPropertyItem> myFilter;
-  private GroupNode myGroupNode;
+  private PTableGroupItem myGroupNode;
+
+  public NlPropertyAccumulator(@NotNull String groupName) {
+    myGroupName = groupName;
+    myFilter = null;
+  }
 
   public NlPropertyAccumulator(@NotNull String groupName, @NotNull Predicate<NlPropertyItem> isApplicable) {
     myGroupName = groupName;
     myFilter = isApplicable;
   }
 
+  @NotNull
+  public String getGroupName() {
+    return myGroupName;
+  }
+
+  protected boolean isApplicable(@NotNull NlPropertyItem p) {
+    assert myFilter != null;
+    return myFilter.test(p);
+  }
+
   public boolean process(@NotNull NlPropertyItem p) {
-    if (!myFilter.apply(p)) {
+    if (!isApplicable(p)) {
       return false;
     }
 
     if (myGroupNode == null) {
-      myGroupNode = new GroupNode(myGroupName);
+      myGroupNode = createGroupNode(myGroupName);
     }
 
     myGroupNode.addChild(p);
@@ -51,8 +66,13 @@ class NlPropertyAccumulator {
   }
 
   @NotNull
-  public GroupNode getGroupNode() {
-    return myGroupNode == null ? new GroupNode(myGroupName) : myGroupNode;
+  public PTableGroupItem getGroupNode() {
+    return myGroupNode == null ? createGroupNode(myGroupName) : myGroupNode;
+  }
+
+  @NotNull
+  protected PTableGroupItem createGroupNode(@NotNull String groupName) {
+    return new GroupNode(groupName);
   }
 
   private static class GroupNode extends PTableGroupItem {
@@ -82,12 +102,7 @@ class NlPropertyAccumulator {
 
   public static class PropertyNamePrefixAccumulator extends NlPropertyAccumulator {
     public PropertyNamePrefixAccumulator(@NotNull String groupName, @NotNull final String prefix) {
-      super(groupName, new Predicate<NlPropertyItem>() {
-        @Override
-        public boolean apply(NlPropertyItem p) {
-          return p != null && p.getName().startsWith(prefix);
-        }
-      });
+      super(groupName, p -> p != null && p.getName().startsWith(prefix));
     }
   }
 }

@@ -99,17 +99,16 @@ public class NlDefaultRenderer extends NlAttributeRenderer {
 
   @Nullable
   public static Icon getIcon(@NotNull NlProperty property) {
-    Object value = property.getValue();
-    if (value == null) {
+    String text = property.getResolvedValue();
+    if (text == null) {
       return null;
     }
-    String text = property.resolveValue(value.toString());
 
     if (isColorValue(text)) {
       return getColorIcon(text);
     }
 
-    Configuration configuration = property.getComponent().getModel().getConfiguration();
+    Configuration configuration = property.getModel().getConfiguration();
     //noinspection ConstantConditions
     if (configuration == null) { // happens in unit test
       return null;
@@ -143,7 +142,7 @@ public class NlDefaultRenderer extends NlAttributeRenderer {
       return null;
     }
 
-    File file = AndroidColorAnnotator.pickBestBitmap(ResourceHelper.resolveDrawable(resolver, drawable, property.getComponent().getModel().getProject()));
+    File file = AndroidColorAnnotator.pickBestBitmap(ResourceHelper.resolveDrawable(resolver, drawable, property.getModel().getProject()));
     return file == null ? null : GutterIconCache.getInstance().getIcon(file.getPath());
   }
 
