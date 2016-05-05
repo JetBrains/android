@@ -237,15 +237,19 @@ public class RenderTask implements IImageFactory {
     return myShowDecorations;
   }
 
+  /**
+   * Disposes the RenderTask and releases the allocated resources. Do not call this method while holding the read lock.
+   */
   public void dispose() {
     myLayoutlibCallback.setLogger(null);
     myLayoutlibCallback.setResourceResolver(null);
     if (myRenderSession != null) {
+      assert ApplicationManager.getApplication().isDispatchThread() ||
+             !ApplicationManager.getApplication().isReadAccessAllowed() : "Do not hold read lock during dispose!";
+
       try {
-        RenderService.runRenderAction(() -> {
-          myRenderSession.dispose();
-          myRenderSession = null;
-        });
+        RenderService.runRenderAction(myRenderSession::dispose);
+        myRenderSession = null;
       }
       catch (Exception ignored) {
       }
