@@ -35,6 +35,6 @@ public class WrapArchiveWizardPathFactory implements NewModuleWizardPathFactory 
                                                   @Nullable Project project,
                                                   @Nullable Icon sidePanelIcon,
                                                   @NotNull Disposable disposable) {
-    return Collections.<WizardPath>singleton(new WrapArchiveWizardPath(wizardState, project, updateListener, sidePanelIcon));
+    return Collections.singleton(new WrapArchiveWizardPath(wizardState, project, updateListener, sidePanelIcon));
   }
 }

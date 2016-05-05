@@ -68,7 +68,7 @@ class TemplateListProvider extends ScopedDataBinder.ValueDeriver<TemplateEntry[]
                                                  @Nullable Set<String> excluded) {
     TemplateManager manager = TemplateManager.getInstance();
     List<File> templates = manager.getTemplatesInCategory(category);
-    List<TemplateEntry> metadataList = new ArrayList<TemplateEntry>(templates.size());
+    List<TemplateEntry> metadataList = new ArrayList<>(templates.size());
     for (File template : templates) {
       TemplateMetadata metadata = manager.getTemplateMetadata(template);
       if (metadata == null || !metadata.isSupported()) {
@@ -90,7 +90,7 @@ class TemplateListProvider extends ScopedDataBinder.ValueDeriver<TemplateEntry[]
   @Nullable
   @Override
   public Set<ScopedStateStore.Key<?>> getTriggerKeys() {
-    return ImmutableSet.<ScopedStateStore.Key<?>>of(AddAndroidActivityPath.KEY_IS_LAUNCHER);
+    return ImmutableSet.of(AddAndroidActivityPath.KEY_IS_LAUNCHER);
   }
 
   @NotNull

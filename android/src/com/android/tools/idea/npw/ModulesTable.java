@@ -205,7 +205,7 @@ public final class ModulesTable extends JBPanel implements Scrollable {
     if (myListModel == null) {
       myListModel = new ModuleListModel(project);
     }
-    myListModel.setContents(currentPath, modules == null ? ImmutableSet.<ModuleToImport>of() : modules);
+    myListModel.setContents(currentPath, modules == null ? ImmutableSet.of() : modules);
     refreshModulesList();
   }
 

@@ -111,9 +111,9 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
   private JComboBox mySourceSet;
   private JLabel mySourceSetLabel;
   private boolean myUpdatingDefaults = false;
-  private Map<Parameter, List<JComponent>> myParameterComponents = new WeakHashMap<Parameter, List<JComponent>>();
+  private Map<Parameter, List<JComponent>> myParameterComponents = new WeakHashMap<>();
   private final StringEvaluator myEvaluator = new StringEvaluator();
-  private Map<JComponent, Parameter> myDataComponentParameters = new WeakHashMap<JComponent, Parameter>();
+  private Map<JComponent, Parameter> myDataComponentParameters = new WeakHashMap<>();
   private final String myStepTitle;
 
   /**
@@ -229,7 +229,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
   }
 
   private Map<String, Object> getImplicitParameters() {
-    ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<String, Object>();
+    ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
     for (Key<?> parameter : AddAndroidActivityPath.IMPLICIT_PARAMETERS) {
       Object value = myState.get(parameter);
       if (value != null) {
@@ -281,7 +281,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
           dataComponent = new JTextField();
           break;
         case SEPARATOR:
-          return Collections.<JComponent>singletonList(new JSeparator(SwingConstants.HORIZONTAL));
+          return Collections.singletonList(new JSeparator(SwingConstants.HORIZONTAL));
         default:
           throw new IllegalStateException(parameter.type.toString());
       }
@@ -555,7 +555,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
     register(KEY_TEMPLATE_ICON, myTemplateIcon, new ComponentBinding<File, JLabel>() {
       @Override
       public void setValue(@Nullable File newValue, @NotNull JLabel component) {
-        Optional<Icon> thumbnail = newValue == null ? Optional.<Icon>absent() : myThumbnailsCache.getUnchecked(newValue);
+        Optional<Icon> thumbnail = newValue == null ? Optional.absent() : myThumbnailsCache.getUnchecked(newValue);
         Icon icon = thumbnail.orNull();
         component.setIcon(icon);
         component.setVisible(icon != null);
@@ -947,7 +947,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
         if (key.isFile()) {
           BufferedImage image = ImageIO.read(key);
           if (image != null) {
-            return Optional.<Icon>of(new ImageIcon(image.getScaledInstance(256, 256, Image.SCALE_SMOOTH)));
+            return Optional.of(new ImageIcon(image.getScaledInstance(256, 256, Image.SCALE_SMOOTH)));
           }
           else {
             log.error("File " + key.getAbsolutePath() + " exists but is not a valid image");

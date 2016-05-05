@@ -225,7 +225,7 @@ public final class ConfigureIconPanel extends JPanel implements Disposable {
     VectorAsset clipartAsset = myClipartAssetButton.getAsset();
     clipartAsset.outputWidth().set(CLIPART_RESOLUTION.width);
     clipartAsset.outputHeight().set(CLIPART_RESOLUTION.height);
-    myActiveAsset = new ObjectValueProperty<BaseAsset>(clipartAsset);
+    myActiveAsset = new ObjectValueProperty<>(clipartAsset);
     myClipartRadioButton.setSelected(true);
 
     initializeListenersAndBindings();
@@ -244,16 +244,16 @@ public final class ConfigureIconPanel extends JPanel implements Disposable {
     final StringProperty paddingValueString = new TextProperty(myPaddingValueLabel);
     myGeneralBindings.bind(paddingValueString, new FormatExpression("%d %%", paddingPercent));
 
-    myForegroundColor = new OptionalToValuePropertyAdapter<Color>(new ColorProperty(myForegroundColorPanel));
-    myBackgroundColor = new OptionalToValuePropertyAdapter<Color>(new ColorProperty(myBackgroundColorPanel));
+    myForegroundColor = new OptionalToValuePropertyAdapter<>(new ColorProperty(myForegroundColorPanel));
+    myBackgroundColor = new OptionalToValuePropertyAdapter<>(new ColorProperty(myBackgroundColorPanel));
     myCropped = new SelectedProperty(myCropRadioButton);
     myDogEared = new SelectedProperty(myDogEarRadioButton);
 
-    myTheme = new OptionalToValuePropertyAdapter<ActionBarIconGenerator.Theme>(
-      new SelectedItemProperty<ActionBarIconGenerator.Theme>(myThemeComboBox));
-    myThemeColor = new OptionalToValuePropertyAdapter<Color>(new ColorProperty(myCustomThemeColorPanel));
+    myTheme = new OptionalToValuePropertyAdapter<>(
+      new SelectedItemProperty<>(myThemeComboBox));
+    myThemeColor = new OptionalToValuePropertyAdapter<>(new ColorProperty(myCustomThemeColorPanel));
 
-    myShape = new OptionalToValuePropertyAdapter<GraphicGenerator.Shape>(new SelectedItemProperty<GraphicGenerator.Shape>(myShapeComboBox));
+    myShape = new OptionalToValuePropertyAdapter<>(new SelectedItemProperty<>(myShapeComboBox));
 
     updateBindingsAndUiForActiveIconType();
 
@@ -281,12 +281,7 @@ public final class ConfigureIconPanel extends JPanel implements Disposable {
       assetComponent.addAssetListener(assetPanelListener);
     }
 
-    final Runnable onAssetModified = new Runnable() {
-      @Override
-      public void run() {
-        fireAssetListeners();
-      }
-    };
+    final Runnable onAssetModified = this::fireAssetListeners;
     myListeners
       .listenAll(trimmed, paddingPercent, myForegroundColor, myBackgroundColor, myCropped, myDogEared, myTheme, myThemeColor, myShape)
       .with(onAssetModified);
@@ -400,7 +395,7 @@ public final class ConfigureIconPanel extends JPanel implements Disposable {
   private void updateBindingsAndUiForActiveIconType() {
     myOutputName.set(myIconType.toOutputName("name"));
 
-    myGeneralBindings.bind(myIconGenerator.sourceAsset(), new AsOptionalExpression<BaseAsset>(myActiveAsset));
+    myGeneralBindings.bind(myIconGenerator.sourceAsset(), new AsOptionalExpression<>(myActiveAsset));
     myGeneralBindings.bind(myIconGenerator.name(), myOutputName);
 
     switch (myIconType) {

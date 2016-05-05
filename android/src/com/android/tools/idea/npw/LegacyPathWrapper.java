@@ -74,12 +74,12 @@ public class LegacyPathWrapper implements NewModuleDynamicPath {
       LegacyModuleTemplate importGradle =
         new LegacyModuleTemplate(template, "Import Gradle Project", "Import an existing Gradle project as a module",
                                  AndroidIcons.ModuleTemplates.GradleModule);
-      return ImmutableList.<ModuleTemplate>of(importGradle, importEclipse);
+      return ImmutableList.of(importGradle, importEclipse);
     }
     else if (wizardPath instanceof WrapArchiveWizardPath) {
       ChooseTemplateStep.MetadataListItem template = Iterables.getFirst(templates, null);
       assert template != null;
-      return Collections.<ModuleTemplate>singleton(
+      return Collections.singleton(
         new LegacyModuleTemplate(template, "Import .JAR/.AAR Package", "Import an existing JAR or AAR package as a new project module",
                                  AndroidIcons.ModuleTemplates.Android));
     }

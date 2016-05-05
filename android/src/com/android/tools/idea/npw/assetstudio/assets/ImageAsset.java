@@ -40,7 +40,7 @@ public final class ImageAsset extends BaseAsset {
     String pathToSampleImageInTemplate =
       FileUtil.join(Template.CATEGORY_PROJECTS, "NewAndroidModule", "root", "res", "mipmap-xxxhdpi", "ic_launcher.png");
 
-    myImagePath = new ObjectValueProperty<File>(new File(TemplateManager.getTemplateRootFolder(), pathToSampleImageInTemplate));
+    myImagePath = new ObjectValueProperty<>(new File(TemplateManager.getTemplateRootFolder(), pathToSampleImageInTemplate));
   }
 
   /**

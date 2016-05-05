@@ -35,7 +35,7 @@ import java.awt.image.BufferedImage;
 public abstract class BaseAsset {
   private final BoolProperty myTrimmed = new BoolValueProperty();
   private final IntProperty myPaddingPercent = new IntValueProperty();
-  private final ObjectProperty<Color> myColor = new ObjectValueProperty<Color>(Color.BLACK);
+  private final ObjectProperty<Color> myColor = new ObjectValueProperty<>(Color.BLACK);
 
   /**
    * Whether or not transparent space should be removed from the asset before rendering.

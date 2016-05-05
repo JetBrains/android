@@ -74,8 +74,8 @@ public enum FormFactor {
     myIcon64 = icon64;
     myIcon128 = icon128;
     myMaxOfflineApiLevel = Math.min(maxOfflineApiLevel, SdkVersionInfo.HIGHEST_KNOWN_STABLE_API);
-    myApiBlacklist = apiBlacklist != null ? apiBlacklist : Collections.<Integer>emptyList();
-    myTags = apiTags != null ? apiTags : Collections.<IdDisplay>emptyList();
+    myApiBlacklist = apiBlacklist != null ? apiBlacklist : Collections.emptyList();
+    myTags = apiTags != null ? apiTags : Collections.emptyList();
     this.baseFormFactor = baseFormFactor;
   }
 

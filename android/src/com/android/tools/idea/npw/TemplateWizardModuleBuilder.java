@@ -99,7 +99,7 @@ public class TemplateWizardModuleBuilder extends ImportWizardModuleBuilder {
 
     Set<String> excludedTemplates = Sets.newHashSet();
     Set<ChooseTemplateStep.MetadataListItem> builtinTemplateList =
-      new TreeSet<ChooseTemplateStep.MetadataListItem>(new Comparator<ChooseTemplateStep.MetadataListItem>() {
+      new TreeSet<>(new Comparator<ChooseTemplateStep.MetadataListItem>() {
         @Override
         public int compare(ChooseTemplateStep.MetadataListItem o1, ChooseTemplateStep.MetadataListItem o2) {
           return Collator.getInstance().compare(o1.toString(), o2.toString());

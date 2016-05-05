@@ -42,7 +42,7 @@ import java.util.Map;
  * Helper class which handles the logic of generating some target icons given a {@link BaseAsset}.
  */
 public abstract class AndroidIconGenerator {
-  private final OptionalProperty<BaseAsset> mySourceAsset = new OptionalValueProperty<BaseAsset>();
+  private final OptionalProperty<BaseAsset> mySourceAsset = new OptionalValueProperty<>();
   private final StringProperty myName = new StringValueProperty();
 
   @NotNull

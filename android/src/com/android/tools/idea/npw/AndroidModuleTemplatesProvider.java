@@ -52,11 +52,11 @@ public final class AndroidModuleTemplatesProvider implements ModuleTemplateProvi
       CreateModuleTemplate androidLibrary =
         new CreateModuleTemplate(metadata, formFactor, "Android Library", AndroidIcons.ModuleTemplates.Android);
       androidLibrary.setCustomValue(WizardConstants.IS_LIBRARY_KEY, true);
-      return ImmutableSet.<ModuleTemplate>of(androidApplication, androidLibrary);
+      return ImmutableSet.of(androidApplication, androidLibrary);
     }
     else {
-      return ImmutableSet.<ModuleTemplate>of(new CreateModuleTemplate(metadata, formFactor, metadata.getTitle(),
-                                                                      getModuleTypeIcon(formFactor)));
+      return ImmutableSet.of(new CreateModuleTemplate(metadata, formFactor, metadata.getTitle(),
+                                                      getModuleTypeIcon(formFactor)));
     }
   }
 
