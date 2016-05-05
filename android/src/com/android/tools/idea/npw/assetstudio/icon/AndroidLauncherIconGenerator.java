@@ -34,10 +34,10 @@ import java.awt.*;
 @SuppressWarnings("UseJBColor") // We are generating colors in our icons, no need for JBColor here
 public final class AndroidLauncherIconGenerator extends AndroidIconGenerator {
 
-  private final ObjectProperty<Color> myBackgroundColor = new ObjectValueProperty<Color>(Color.WHITE);
+  private final ObjectProperty<Color> myBackgroundColor = new ObjectValueProperty<>(Color.WHITE);
   private final BoolProperty myCropped = new BoolValueProperty();
   private final ObjectProperty<GraphicGenerator.Shape> myShape =
-    new ObjectValueProperty<GraphicGenerator.Shape>(GraphicGenerator.Shape.SQUARE);
+    new ObjectValueProperty<>(GraphicGenerator.Shape.SQUARE);
   private final BoolProperty myDogEared = new BoolValueProperty();
 
   /**

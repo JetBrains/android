@@ -51,7 +51,7 @@ public final class RenderTemplateModel extends WizardModel {
   @NotNull private final TemplateHandle myTemplateHandle;
   @NotNull private final String myCommandName;
 
-  private final OptionalProperty<SourceProvider> mySourceSet = new OptionalValueProperty<SourceProvider>();
+  private final OptionalProperty<SourceProvider> mySourceSet = new OptionalValueProperty<>();
 
   private final Map<String, Object> myTemplateValues = Maps.newHashMap();
   @NotNull private final AndroidFacet myAndroidFacet;

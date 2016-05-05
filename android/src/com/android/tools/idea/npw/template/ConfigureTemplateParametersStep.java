@@ -259,7 +259,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
     }
 
     if (mySourceSets.size() > 1) {
-      RowEntry row = new RowEntry<JComboBox>("Target Source Set", new SourceSetComboProvider(mySourceSets));
+      RowEntry row = new RowEntry<>("Target Source Set", new SourceSetComboProvider(mySourceSets));
       row.setEnabled(mySourceSets.size() > 1);
       row.addToPanel(myParametersPanel);
 
@@ -326,12 +326,12 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       assert parameter.name != null;
       RowEntry<?> rowEntry;
       if (module != null) {
-        rowEntry = new RowEntry<EditorComboBox>(parameter.name,
-                                                new PackageComboProvider(module.getProject(), parameter, myPackageName.get(),
-                                                                         getRecentsKeyForParameter(parameter)));
+        rowEntry = new RowEntry<>(parameter.name,
+                                  new PackageComboProvider(module.getProject(), parameter, myPackageName.get(),
+                                                           getRecentsKeyForParameter(parameter)));
       }
       else {
-        rowEntry = new RowEntry<LabelWithEditLink>(parameter.name, new LabelWithEditLinkProvider(parameter));
+        rowEntry = new RowEntry<>(parameter.name, new LabelWithEditLinkProvider(parameter));
       }
 
       // All ATTR_PACKAGE_NAME providers should be string types and provide StringProperties
@@ -345,9 +345,9 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
     if (ATTR_PARENT_ACTIVITY_CLASS.equals(parameter.id)) {
       if (module != null) {
         assert parameter.name != null;
-        return new RowEntry<ReferenceEditorComboWithBrowseButton>(parameter.name, new ActivityComboProvider(module, parameter,
-                                                                                                            getRecentsKeyForParameter(
-                                                                                                              parameter)));
+        return new RowEntry<>(parameter.name, new ActivityComboProvider(module, parameter,
+                                                                        getRecentsKeyForParameter(
+                                                                          parameter)));
       }
     }
 
@@ -357,14 +357,14 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
     switch (parameter.type) {
       case STRING:
         assert parameter.name != null;
-        return new RowEntry<JTextField>(parameter.name, new TextFieldProvider(parameter));
+        return new RowEntry<>(parameter.name, new TextFieldProvider(parameter));
       case BOOLEAN:
-        return new RowEntry<JCheckBox>(new CheckboxProvider(parameter), RowEntry.WantGrow.NO);
+        return new RowEntry<>(new CheckboxProvider(parameter), RowEntry.WantGrow.NO);
       case SEPARATOR:
-        return new RowEntry<JSeparator>(new SeparatorProvider(parameter), RowEntry.WantGrow.YES);
+        return new RowEntry<>(new SeparatorProvider(parameter), RowEntry.WantGrow.YES);
       case ENUM:
         assert parameter.name != null;
-        return new RowEntry<JComboBox>(parameter.name, new EnumComboProvider(parameter));
+        return new RowEntry<>(parameter.name, new EnumComboProvider(parameter));
       default:
         throw new IllegalStateException(
           String.format("Can't create UI for unknown component type: %1$s (%2$s)", parameter.type, parameter.id));
@@ -383,12 +383,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
     }
     myEvaluationState = EvaluationState.REQUEST_ENQUEUED;
 
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        evaluateParameters();
-      }
-    }, ModalityState.any());
+    ApplicationManager.getApplication().invokeLater(this::evaluateParameters, ModalityState.any());
   }
 
   /**

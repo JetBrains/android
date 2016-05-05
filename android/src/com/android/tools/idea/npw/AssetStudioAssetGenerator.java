@@ -387,7 +387,7 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
    */
   @NotNull
   public Map<String, Map<String, BufferedImage>> generateImages(boolean previewOnly) throws ImageGeneratorException {
-    Map<String, Map<String, BufferedImage>> categoryMap = new LinkedHashMap<String, Map<String, BufferedImage>>();
+    Map<String, Map<String, BufferedImage>> categoryMap = new LinkedHashMap<>();
     generateImages(categoryMap, false, previewOnly);
     return categoryMap;
   }

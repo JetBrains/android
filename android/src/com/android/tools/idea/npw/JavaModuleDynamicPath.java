@@ -65,7 +65,7 @@ public class JavaModuleDynamicPath extends DynamicWizardPath implements NewModul
   @Override
   protected void init() {
     TemplateParameterStep2 parameterStep =
-      new TemplateParameterStep2(null, ImmutableMap.<String, Object>of(), myDisposable, PACKAGE_NAME,
+      new TemplateParameterStep2(null, ImmutableMap.of(), myDisposable, PACKAGE_NAME,
                                  new SourceProvider[]{}, JAVA_LIBRARY) {
         @Override
         public boolean isStepVisible() {
@@ -148,6 +148,6 @@ public class JavaModuleDynamicPath extends DynamicWizardPath implements NewModul
   @NotNull
   @Override
   public Iterable<ModuleTemplate> getModuleTemplates() {
-    return ImmutableSet.<ModuleTemplate>of(myModuleTemplate);
+    return ImmutableSet.of(myModuleTemplate);
   }
 }
