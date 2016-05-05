@@ -23,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 public interface InspectorComponent {
   /**
    * Return the maximum number of rows that attachToInspector may generate.
+   * A row is either a title, separator, or a component row
    */
   int getMaxNumberOfRows();
 
