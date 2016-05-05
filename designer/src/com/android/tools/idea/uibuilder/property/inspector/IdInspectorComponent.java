@@ -45,6 +45,11 @@ public class IdInspectorComponent implements InspectorComponent {
   }
 
   @Override
+  public int getMaxNumberOfRows() {
+    return 6;
+  }
+
+  @Override
   public void attachToInspector(@NotNull InspectorPanel inspector) {
     if (myIdAttr != null) {
       inspector.addComponent("ID", getTooltip(myIdAttr), myIdField.getComponent());

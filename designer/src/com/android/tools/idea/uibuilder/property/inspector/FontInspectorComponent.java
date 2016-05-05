@@ -111,6 +111,11 @@ public class FontInspectorComponent implements InspectorComponent {
   }
 
   @Override
+  public int getMaxNumberOfRows() {
+    return 7;
+  }
+
+  @Override
   public void attachToInspector(@NotNull InspectorPanel inspector) {
     inspector.addSeparator();
     inspector.addExpandableTitle("Text Attributes", myStyle);
