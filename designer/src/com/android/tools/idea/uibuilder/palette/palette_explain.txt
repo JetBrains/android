@@ -4,3 +4,9 @@ MediaController -      This component should be instantiated in code. Does not w
 Gallery         -      This component was deprecated in API level 16
 ExtractEditText -      This component is a specialization of EditText rendered on devices in landscape mode.
 TwoLineListItem -      This component was deprecated in API level 17.
+
+The following components were removed because they're considered obsolete
+(not commonly used, and just adds clutter and confusion to the menu) :
+- GestureOverlayView, DialerFilter, ZoomButton, ZoomControls, Chronometer, the clocks
+
+TODO: Consider removing transition widgets.

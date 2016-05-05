@@ -407,9 +407,6 @@
     <item tag="TimePicker" render-separately="true"/>
     <item tag="DatePicker"/>
     <item tag="CalendarView"/>
-    <item tag="Chronometer"/>
-    <item tag="AnalogClock" scale="0.6"/>
-    <item tag="TextClock"/>
   </group>
   <group name="Transitions">
     <item tag="ImageSwitcher"/>
@@ -425,13 +422,9 @@
     <item tag="requestFocus"/>
     <item tag="view"/>
     <item tag="ViewStub"/>
-    <item tag="GestureOverlayView" render-separately="true"/>
     <item tag="TextureView"/>
     <item tag="SurfaceView"/>
     <item tag="NumberPicker"/>
-    <item tag="ZoomButton" render-separately="true"/>
-    <item tag="ZoomControls"/>
-    <item tag="DialerFilter"/>
   </group>
   <group name="Custom - Google">
     <item tag="com.google.android.gms.ads.AdView"/>
