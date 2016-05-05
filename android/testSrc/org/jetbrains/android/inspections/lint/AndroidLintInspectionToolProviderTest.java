@@ -44,13 +44,13 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
       checkAllLintChecksRegistered(getProject()));
   }
 
-  private static boolean sDone;
+  private static boolean ourDone;
   @SuppressWarnings("deprecation")
   public static boolean checkAllLintChecksRegistered(Project project) throws Exception {
-    if (sDone) {
+    if (ourDone) {
       return true;
     }
-    sDone = true;
+    ourDone = true;
 
     // For some reason, I can't just use
     //   AndroidLintInspectionBase.getInspectionShortNameByIssue
