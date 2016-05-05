@@ -188,6 +188,15 @@ public class AndroidIcons {
     public static final Icon Wear = load("/icons/nele/wear.png");
     public static final Icon Tv = load("/icons/nele/tv.png");
     public static final Icon Theme = load("/icons/nele/theme.png");
+
+    public static final Icon ZoomIn = load("/icons/nele/zoom-in.png");
+    public static final Icon ZoomOut = load("/icons/nele/zoom-out.png");
+    public static final Icon ExpandToFit = load("/icons/nele/expand-to-fit.png");
+    public static final Icon Blueprint = load("/icons/nele/blueprint.png"); // 16x16
+    public static final Icon DesignView = load("/icons/nele/designview.png"); // 16x16
+    public static final Icon Elevation = load("/icons/nele/elevation.png"); // 16x16
+    public static final Icon VirtualDevice = load("/icons/nele/virtualdevice.png"); // 16x16
+    public static final Icon UiMode = load("/icons/nele/uimode.png"); // 16x16
   }
 
   public static class TextDecoration {
@@ -245,7 +254,6 @@ public class AndroidIcons {
     public static final Icon BottomAlign = load("/icons/sherpa/bottom-align.png");
     public static final Icon CenterAligned = load("/icons/sherpa/center-aligned.png");
     public static final Icon DeleteConstraint = load("/icons/sherpa/delete-constraint.png");
-    public static final Icon ExpandToFit = load("/icons/sherpa/expand-to-fit.png");
     public static final Icon Hide = load("/icons/sherpa/hide.png");
     public static final Icon HorizontalCenter = load("/icons/sherpa/horizontal-center.png");
     public static final Icon HorizontalDistribute = load("/icons/sherpa/horizontal-distribute.png");
@@ -260,8 +268,6 @@ public class AndroidIcons {
     public static final Icon Unhide = load("/icons/sherpa/unhide.png");
     public static final Icon VerticalCenter = load("/icons/sherpa/vertical-center.png");
     public static final Icon verticallyDistribute = load("/icons/sherpa/vertically-distribute.png");
-    public static final Icon ZoomIn = load("/icons/sherpa/zoom-in.png");
-    public static final Icon ZoomOut = load("/icons/sherpa/zoom-out.png");
     public static final Icon AutoConnect = load("/icons/sherpa/auto_connect.png");
     public static final Icon AutoConnectOff = load("/icons/sherpa/auto_connect_off.png");
     public static final Icon VerticalCenterParent = load("/icons/sherpa/vertical-center-parent.png");
