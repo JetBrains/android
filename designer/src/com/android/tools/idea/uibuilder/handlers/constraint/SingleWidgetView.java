@@ -191,16 +191,18 @@ public class SingleWidgetView extends JPanel {
   /**
    * Buttons that can kill the constraint
    */
-  static class KillButton extends JButton {
+  static class KillButton extends JComponent {
     boolean mMouseIn;
     boolean mShow = true;
     ColorSet mColorSet;
+
     private static int sCircleRadius = 10;
+    private ActionListener mListener;
 
     @Override
     public void paint(Graphics g) {
       if (mMouseIn && mShow) {
-        super.paint(g);
+        icon.paintIcon(this, g, 0, 0);
       }
     }
 
@@ -210,23 +212,24 @@ public class SingleWidgetView extends JPanel {
 
     public KillButton(ColorSet colorSet) {
       mColorSet = colorSet;
-      setIcon(icon);
       setPreferredSize(size);
       setSize(size);
-      setFocusPainted(false);
-      setOpaque(true);
-      setContentAreaFilled(false);
-      setBorderPainted(false);
+      setOpaque(false);
 
-      addMouseListener(new java.awt.event.MouseAdapter() {
+      addMouseListener(new MouseAdapter() {
         @Override
-        public void mouseEntered(java.awt.event.MouseEvent evt) {
+        public void mouseEntered(MouseEvent evt) {
           mMouseIn = true;
           repaint();
         }
 
         @Override
-        public void mouseExited(java.awt.event.MouseEvent evt) {
+        public void mouseClicked(MouseEvent e) {
+          mListener.actionPerformed(null);
+        }
+
+        @Override
+        public void mouseExited(MouseEvent evt) {
           mMouseIn = false;
           repaint();
         }
@@ -292,18 +295,21 @@ public class SingleWidgetView extends JPanel {
         return sCircleRadius * 2;
       }
     };
+
+    public void addActionListener(ActionListener listener) {
+      mListener = listener;
+    }
   }
 
   /**
-   *
    * @param name
-   * @param bottom sets the margin -1 = no margin
-   * @param top sets the margin -1 = no margin
-   * @param left sets the margin -1 = no margin
-   * @param right sets the margin -1 = no margin
-   * @param baseline  sets the name of baseline connection null = no baseline
-   * @param width   the horizontal constraint state 0,1,2 = FIXED, SPRING, WRAP respectively
-   * @param height the vertical constraint state 0,1,2 = FIXED, SPRING, WRAP respectively
+   * @param bottom   sets the margin -1 = no margin
+   * @param top      sets the margin -1 = no margin
+   * @param left     sets the margin -1 = no margin
+   * @param right    sets the margin -1 = no margin
+   * @param baseline sets the name of baseline connection null = no baseline
+   * @param width    the horizontal constraint state 0,1,2 = FIXED, SPRING, WRAP respectively
+   * @param height   the vertical constraint state 0,1,2 = FIXED, SPRING, WRAP respectively
    */
   public void configureUi(String name, int bottom, int top, int left, int right, String baseline, int width, int height) {
     mTopMargin.setVisible(top >= 0);
@@ -338,7 +344,7 @@ public class SingleWidgetView extends JPanel {
     boolean paint(Graphics2D g);
   }
 
-  class Box implements Graphic {
+  static class Box implements Graphic {
     int mX, mY, mWidth, mHeight;
 
     Box(int x, int y, int w, int h) {
@@ -356,7 +362,7 @@ public class SingleWidgetView extends JPanel {
 
   }
 
-  class BaseLineBox extends Box {
+  static class BaseLineBox extends Box {
     String mTitle = null;
     boolean mBaseline;
     boolean mDisplay;
@@ -389,7 +395,7 @@ public class SingleWidgetView extends JPanel {
 
   }
 
-  class LineArrow implements Graphic {
+  static class LineArrow implements Graphic {
     int mX1, mY1, mX2, mY2;
     boolean mDisplay;
 
@@ -411,7 +417,7 @@ public class SingleWidgetView extends JPanel {
 
   }
 
-  class SplineArrow implements Graphic {
+  static class SplineArrow implements Graphic {
     int mX1, mY1, mX2, mY2;
     boolean mDisplay;
     Path2D.Float mPath;
@@ -542,10 +548,7 @@ public class SingleWidgetView extends JPanel {
 
       return false;
     }
-
   }
-
-
 
   /*-----------------------------------------------------------------------*/
   // TriStateControl
