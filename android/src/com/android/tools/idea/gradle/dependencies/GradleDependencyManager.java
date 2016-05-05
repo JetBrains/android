@@ -129,7 +129,7 @@ public class GradleDependencyManager {
         return coordinate.getArtifactId();
       }
     }, ", ");
-    String message = String.format("This operation requires the %1$s: %2$s. \n\nWould you like to add %3$s %1$s now?",
+    String message = String.format("This operation requires the %1$s %2$s. \n\nWould you like to add %3$s %1$s now?",
                                    pluralize("library", missing.size()), libraryNames, pluralize("this", missing.size()));
     Project project = module.getProject();
     return Messages.showOkCancelDialog(project, message, "Add Project Dependency", Messages.getErrorIcon()) == Messages.OK;
