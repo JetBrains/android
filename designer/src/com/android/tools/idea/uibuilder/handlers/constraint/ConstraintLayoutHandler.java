@@ -171,12 +171,12 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                                          getControlIcon(AndroidIcons.SherpaIcons.VerticalCenterParent), str));
     myActions.add(action);
 
-    str = "pack selection horizontally";
+    str = "Pack selection horizontally";
     actions.add(action = new AlignAction(Scout.Arrange.HorizontalPack,
                                          getControlIcon(AndroidIcons.SherpaIcons.PackSelectionHorizontally), str));
     myActions.add(action);
 
-    str = "pack selection vertically";
+    str = "Pack selection vertically";
     actions.add(action = new AlignAction(Scout.Arrange.VerticalPack,
                                          getControlIcon(AndroidIcons.SherpaIcons.PackSelectionVertically), str));
     myActions.add(action);
