@@ -175,7 +175,7 @@ public class ScoutProbabilities {
                         ScoutWidget.distance(scoutWidget, widget) > MAX_DIST_FOR_CENTER_OVERLAP) {
                     continue;
                 }
-                if (!widget.isGuideline() || widget.isHorizontalGuideline()) {
+                if (!widget.isGuideline() || widget.isVerticalGuideline()) {
                     if (Math.abs(widget.getX() - centerX) < CENTER_ERROR) {
                         scoutWidget.setEdgeCentered(1, widget, Direction.WEST);
                     }
@@ -183,7 +183,7 @@ public class ScoutProbabilities {
                         scoutWidget.setEdgeCentered(1, widget, Direction.EAST);
                     }
                 }
-                if (!widget.isGuideline() || !widget.isHorizontalGuideline()) {
+                if (!widget.isGuideline() || widget.isHorizontalGuideline()) {
                     if (Math.abs(widget.getY() - centerY) < CENTER_ERROR) {
                         scoutWidget.setEdgeCentered(0, widget, Direction.NORTH);
                     }
