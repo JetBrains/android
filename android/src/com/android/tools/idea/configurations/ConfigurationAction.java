@@ -17,6 +17,8 @@ package com.android.tools.idea.configurations;
 
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.rendering.RenderService;
+import com.android.tools.idea.uibuilder.editor.NlEditor;
+import com.android.tools.idea.uibuilder.editor.NlEditorProvider;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -114,7 +116,9 @@ abstract class ConfigurationAction extends AnAction implements ConfigurationList
     List<FileEditor> editors = manager.openEditor(descriptor, true);
 
     // Switch to the same type of editor (XML or Layout Editor) in the target file
-    if (selectedEditor != null) {
+    if (selectedEditor instanceof NlEditor) {
+      manager.setSelectedEditor(file, NlEditorProvider.DESIGNER_ID);
+    } else if (selectedEditor != null) {
       manager.setSelectedEditor(file, TextEditorProvider.getInstance().getEditorTypeId());
 
       // Proactively switch to the new editor right away in the layout XML preview, if applicable

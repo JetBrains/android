@@ -54,12 +54,16 @@ public class ConfigurationMenuAction extends FlatComboAction {
     mySurface = surface;
     Presentation presentation = getTemplatePresentation();
     presentation.setDescription("Configuration to render this layout with inside the IDE");
+    /* TODO: We'll have a preview action here later;
     if (RenderService.NELE_ENABLED) {
-      presentation.setText("Preview");
-      presentation.setIcon(AndroidIcons.NeleIcons.Preview);
+      presentation.setText("Variations");
+      presentation.setIcon(AndroidIcons.NeleIcons.VirtualDevice);
     } else {
-      presentation.setIcon(AndroidIcons.AndroidFile);
-    }
+
+    ... but for now this is just for variations
+    */
+    presentation.setIcon(AndroidIcons.NeleIcons.VirtualDevice);
+    //presentation.setIcon(AndroidIcons.AndroidFile);
   }
 
   @Override
