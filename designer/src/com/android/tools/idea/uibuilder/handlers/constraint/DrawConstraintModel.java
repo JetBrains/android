@@ -57,6 +57,11 @@ class DrawConstraintModel {
         myScreenView.getSurface().repaint();
       }
     }
+
+    @Override
+    public void repaint(int x, int y, int w, int h) {
+      myScreenView.getSurface().repaint(x, y, w, h);
+    }
   }
 
   /**
