@@ -37,7 +37,7 @@ public class NlEditorProvider implements FileEditorProvider, DumbAware {
   /**
    * FileEditorProvider ID for the layout editor
    */
-  private static final String DESIGNER_ID = "android-designer2";
+  public static final String DESIGNER_ID = "android-designer2";
 
   @Nullable
   private static AndroidFacet getFacet(@NotNull Project project, @NotNull VirtualFile file) {
