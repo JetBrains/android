@@ -72,6 +72,9 @@ public class AnimatedHoverAnchor extends Animation {
             text = "Create ";
         } else {
             text = "Delete ";
+            if (mAnchor.getAnchor().getConnectionCreator() == ConstraintAnchor.AUTO_CONSTRAINT_CREATOR) {
+                text += " Unlocked ";
+            }
         }
         switch (mAnchor.getAnchor().getType()) {
             case LEFT: {
