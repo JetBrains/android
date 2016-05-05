@@ -29,6 +29,7 @@ import com.android.sdklib.repositoryv2.meta.DetailsTypes;
 import com.android.tools.idea.sdk.remote.internal.DownloadCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.android.AndroidTestCase;
 
@@ -42,6 +43,7 @@ import java.util.Map;
  */
 public class LegacyRemoteTest extends AndroidTestCase {
   public void testLegacyRemoteSdk() throws Exception {
+    if (SystemInfo.isWindows) return;
     MockFileOp fop = new MockFileOp();
     final AndroidSdkHandler handler = new AndroidSdkHandler(null, fop);
     FakeProgressIndicator progress = new FakeProgressIndicator();
