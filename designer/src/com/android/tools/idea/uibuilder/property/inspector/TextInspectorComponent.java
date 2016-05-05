@@ -61,6 +61,11 @@ public class TextInspectorComponent implements InspectorComponent {
   }
 
   @Override
+  public int getMaxNumberOfRows() {
+    return 6;
+  }
+
+  @Override
   public void attachToInspector(@NotNull InspectorPanel inspector) {
     inspector.addSeparator();
     inspector.addExpandableTitle("Text", myText);
