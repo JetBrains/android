@@ -38,6 +38,8 @@ public class MarginWidget extends JPanel {
   @SuppressWarnings("UndesirableClassUsage")
   JComboBox<String> combo = new JComboBox<>(str);
   ColorSet mColorSet = new BlueprintColorSet();
+  Color TEXT_COLOR = mColorSet.getSelectedConstraints();
+  Color BACKGROUND_COLOR = mColorSet.getBackground();
   ArrayList<ActionListener> mCallbacks = new ArrayList<>();
 
   JLabel label = new JLabel("0");
@@ -59,11 +61,11 @@ public class MarginWidget extends JPanel {
     label.setBackground(null);
     label.setOpaque(false);
     label.setHorizontalAlignment(alignment);
-    label.setForeground(mColorSet.getSubduedText());
-    combo.getEditor().getEditorComponent().setForeground(mColorSet.getSubduedText());
-    combo.getEditor().getEditorComponent().setBackground(mColorSet.getBackground());
-    combo.setBackground(mColorSet.getBackground());
-    combo.setForeground(mColorSet.getSubduedText());
+    label.setForeground(TEXT_COLOR);
+    combo.getEditor().getEditorComponent().setForeground(TEXT_COLOR);
+    combo.getEditor().getEditorComponent().setBackground(BACKGROUND_COLOR);
+    combo.setBackground(BACKGROUND_COLOR);
+    combo.setForeground(TEXT_COLOR);
     combo.addActionListener(e -> {
       label.setText((String)combo.getSelectedItem());
       for (ActionListener cb : mCallbacks) {
@@ -78,8 +80,8 @@ public class MarginWidget extends JPanel {
       @Override
       public Component getEditorComponent() {
         Component ret = super.getEditorComponent();
-        ret.setBackground(mColorSet.getBackground());
-        ret.setForeground(mColorSet.getSubduedText());
+        ret.setBackground(BACKGROUND_COLOR);
+        ret.setForeground(TEXT_COLOR);
         return ret;
       }
     });
@@ -90,8 +92,8 @@ public class MarginWidget extends JPanel {
       public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
         Component ret = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
 
-        ret.setBackground((isSelected) ? mColorSet.getSubduedText() : mColorSet.getBackground());
-        ret.setForeground((isSelected) ? mColorSet.getBackground() : mColorSet.getSubduedText());
+        ret.setBackground((isSelected) ? TEXT_COLOR : BACKGROUND_COLOR);
+        ret.setForeground((isSelected) ? BACKGROUND_COLOR : TEXT_COLOR);
         ((JLabel)ret).setBorder(new LineBorder(mColorSet.getSubduedFrames(), 1));
         return ret;
       }
@@ -103,7 +105,7 @@ public class MarginWidget extends JPanel {
     @Override
     protected JButton createArrowButton() {
       button = new BasicArrowButton(SwingConstants.SOUTH);
-      button.setBackground(mColorSet.getSubduedText());
+      button.setBackground(TEXT_COLOR);
       button.setBorder(new EmptyBorder(0, 0, 0, 0));
       return button;
     }
