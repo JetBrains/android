@@ -36,8 +36,9 @@ public class CreateResourceDirectoryAction extends CreateResourceActionBase {
 
   @NotNull
   public PsiElement[] invokeDialog(@NotNull final Project project, @NotNull PsiDirectory directory) {
-    CreateResourceDirectoryDialog dialog = new CreateResourceDirectoryDialog(
-      project, myResourceFolderType, directory, null, AndroidPsiUtils.getModuleSafely(directory),
+    NewResourceCreationHandler newResourceHandler = NewResourceCreationHandler.getInstance(project);
+    CreateResourceDirectoryDialogBase dialog = newResourceHandler.createNewResourceDirectoryDialog(
+      project, AndroidPsiUtils.getModuleSafely(directory), myResourceFolderType, directory, null,
       resDirectory -> new MyInputValidator(project, resDirectory));
     dialog.setTitle(AndroidBundle.message("new.resource.dir.dialog.title"));
     if (!dialog.showAndGet()) {
@@ -56,8 +57,10 @@ public class CreateResourceDirectoryAction extends CreateResourceActionBase {
       folderType = CreateResourceFileAction.getUniqueFolderType(files);
     }
 
-    CreateResourceDirectoryDialog dialog = new CreateResourceDirectoryDialog(
-      project, folderType, findResourceDirectory(dataContext), dataContext, LangDataKeys.MODULE.getData(dataContext),
+    NewResourceCreationHandler newResourceHandler = NewResourceCreationHandler.getInstance(project);
+    CreateResourceDirectoryDialogBase dialog = newResourceHandler.createNewResourceDirectoryDialog(
+      project, LangDataKeys.MODULE.getData(dataContext), folderType,
+      CreateResourceDialogUtils.findResourceDirectory(dataContext), dataContext,
       resDirectory -> new MyInputValidator(project, resDirectory));
     dialog.setTitle(AndroidBundle.message("new.resource.dir.dialog.title"));
     if (!dialog.showAndGet()) {

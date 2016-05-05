@@ -15,7 +15,10 @@
  */
 package org.jetbrains.android.actions;
 
+import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.res.ResourceNameValidator;
 import com.intellij.CommonBundle;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
@@ -35,6 +38,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * @author Eugene.Kudelevsky
@@ -43,24 +47,21 @@ public class CreateXmlResourceDialog extends DialogWrapper {
 
   final CreateXmlResourcePanel myPanel;
 
-
   public CreateXmlResourceDialog(@NotNull Module module,
-                                 @NotNull ResourceType resourceType,
-                                 @Nullable String predefinedName,
-                                 @Nullable String predefinedValue,
-                                 boolean chooseName) {
-    this(module, resourceType, predefinedName, predefinedValue, chooseName, null);
-  }
-
-  public CreateXmlResourceDialog(@NotNull Module module,
-                                 @NotNull ResourceType resourceType,
+                                 @NotNull final ResourceType resourceType,
                                  @Nullable String predefinedName,
                                  @Nullable String predefinedValue,
                                  boolean chooseName,
-                                 @Nullable VirtualFile defaultFile) {
+                                 @Nullable VirtualFile defaultFile,
+                                 @Nullable VirtualFile contextFile) {
     super(module.getProject());
 
-    myPanel = new CreateXmlResourcePanel(module, resourceType, predefinedName, predefinedValue, chooseName, defaultFile);
+    NewResourceCreationHandler newResourceHandler = NewResourceCreationHandler.getInstance(module.getProject());
+    Function<Module, ResourceNameValidator> nameValidatorFactory =
+      selectedModule -> ResourceNameValidator.create(true, AppResourceRepository.getAppResources(selectedModule, true), resourceType);
+    myPanel = newResourceHandler.createNewResourceValuePanel(module, resourceType, ResourceFolderType.VALUES,
+                                                             predefinedName, predefinedValue, chooseName, true, true, defaultFile,
+                                                             contextFile, nameValidatorFactory);
 
     init();
   }
