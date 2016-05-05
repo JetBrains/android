@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.run;
 
+import com.android.annotations.NonNull;
 import com.android.ddmlib.IDevice;
 import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.templates.AndroidGradleArtifactsTestCase;
 import org.junit.After;
 import org.junit.Before;
@@ -113,6 +115,32 @@ public class GradleApkProviderTest extends AndroidGradleArtifactsTestCase {
       }
       else {
         assertThat(path).endsWith(getName() + "-debug-androidTest.apk");
+      }
+    }
+  }
+
+  @Test
+  public void testGetApksForTestOnlyModule() throws Exception {
+    loadProject("projects/testOnlyModule", "test");
+    GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, new GradleApplicationIdProvider(myAndroidFacet), true);
+
+    Collection<ApkInfo> apks = provider.getApks(mock(IDevice.class));
+    ApkInfo testApk = apks.stream().filter(a -> a.getApplicationId().equals("com.example.android.app.test"))
+      .findFirst().orElse(null);
+    assertThat(testApk).isNotNull();
+
+    GradleVersion modelVersion = getModel().getModelVersion();
+    if (modelVersion != null) {
+      if (modelVersion.compareIgnoringQualifiers("2.2.0") < 0) {
+        // only the test-module apk should be there
+        assertThat(apks).hasSize(1);
+      } else {
+        // both test-module apk and main apk should be there
+        assertThat(apks).hasSize(2);
+        ApkInfo mainApk = apks.stream().filter(a -> a.getApplicationId().equals("com.example.android.app"))
+          .findFirst().orElse(null);
+
+        assertThat(mainApk).isNotNull();
       }
     }
   }
