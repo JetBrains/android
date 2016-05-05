@@ -28,12 +28,9 @@ public class NlPaletteModelTest extends PaletteTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     model = NlPaletteModel.get(getProject());
-    Reader reader = new InputStreamReader(NlPaletteModel.class.getResourceAsStream(NlLayoutType.LAYOUT.getPaletteFileName()));
-    try {
+
+    try (Reader reader = new InputStreamReader(NlPaletteModel.class.getResourceAsStream(NlLayoutType.LAYOUT.getPaletteFileName()))) {
       model.loadPalette(reader, NlLayoutType.LAYOUT);
-    }
-    finally {
-      reader.close();
     }
   }
 
@@ -110,9 +107,6 @@ public class NlPaletteModelTest extends PaletteTestCase {
     assertTimePicker(iterator.next());
     assertDatePicker(iterator.next());
     assertCalendarView(iterator.next());
-    assertChronometer(iterator.next());
-    assertAnalogClock(iterator.next());
-    assertTextClock(iterator.next());
     assertFalse(iterator.hasNext());
 
     iterator = transitions.getItems().iterator();
@@ -130,13 +124,9 @@ public class NlPaletteModelTest extends PaletteTestCase {
     assertRequestFocus(iterator.next());
     assertViewTag(iterator.next());
     assertViewStub(iterator.next());
-    assertGestureOverlayView(iterator.next());
     assertTextureView(iterator.next());
     assertSurfaceView(iterator.next());
     assertNumberPicker(iterator.next());
-    assertZoomButton(iterator.next());
-    assertZoomControls(iterator.next());
-    assertDialerFilter(iterator.next());
     assertFalse(iterator.hasNext());
 
     iterator = google.getItems().iterator();
