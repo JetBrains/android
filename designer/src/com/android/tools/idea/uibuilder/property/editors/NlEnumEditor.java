@@ -47,11 +47,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-public class NlEnumEditor implements NlComponentEditor {
+public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEditor {
   private static final int SMALL_WIDTH = 65;
   private static final JBColor DIM_TEXT_COLOR = new JBColor(Gray._128, Gray._128);
   private static final List<String> AVAILABLE_TEXT_SIZES = ImmutableList.of("8sp", "10sp", "12sp", "14sp", "18sp", "24sp", "30sp", "36sp");
   private static final List<String> AVAILABLE_LINE_SPACINGS = AVAILABLE_TEXT_SIZES;
+  private static final Listener DEFAULT_LISTENER = new DefaultListener();
 
   private final JPanel myPanel;
   private final JComboBox<ValueWithDisplayString> myCombo;
@@ -62,7 +63,6 @@ public class NlEnumEditor implements NlComponentEditor {
   private NlProperty myProperty;
   private boolean myUpdatingProperty;
   private int myAddedValueIndex;
-  private JLabel myLabel;
 
   public interface Listener {
     /** Invoked when one of the enums is selected. */
@@ -81,6 +81,10 @@ public class NlEnumEditor implements NlComponentEditor {
 
   public static NlEnumEditor createForInspector(@NotNull Listener listener) {
     return new NlEnumEditor(listener, false, false);
+  }
+
+  public static Listener getDefaultListener() {
+    return DEFAULT_LISTENER;
   }
 
   private NlEnumEditor(@NotNull Listener listener, boolean useDarculaUI, boolean includeBrowseButton) {
@@ -150,33 +154,8 @@ public class NlEnumEditor implements NlComponentEditor {
   }
 
   @Override
-  public void refresh() {
-    if (myProperty != null) {
-      setProperty(myProperty);
-    }
-  }
-
-  @Override
   public void requestFocus() {
     myCombo.requestFocus();
-  }
-
-  @Override
-  public JLabel getLabel() {
-    return myLabel;
-  }
-
-  @Override
-  public void setLabel(@NotNull JLabel label) {
-    myLabel = label;
-  }
-
-  @Override
-  public void setVisible(boolean visible) {
-    myPanel.setVisible(visible);
-    if (myLabel != null) {
-      myLabel.setVisible(visible);
-    }
   }
 
   private void setModel(@NotNull NlProperty property) {
@@ -344,5 +323,24 @@ public class NlEnumEditor implements NlComponentEditor {
     ValueWithDisplayString[] array = new ValueWithDisplayString[list.size()];
     list.toArray(array);
     return array;
+  }
+
+  private static class DefaultListener implements Listener {
+    @Override
+    public void itemPicked(@NotNull NlEnumEditor source, @Nullable String value) {
+      if (source.getProperty() != null) {
+        source.getProperty().setValue(value);
+        source.refresh();
+      }
+    }
+
+    @Override
+    public void resourcePicked(@NotNull NlEnumEditor source, @NotNull String value) {
+      itemPicked(source, value);
+    }
+
+    @Override
+    public void resourcePickerCancelled(@NotNull NlEnumEditor source) {
+    }
   }
 }

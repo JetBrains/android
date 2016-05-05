@@ -19,20 +19,20 @@ import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.NlReferenceEditor;
 import com.google.common.collect.ImmutableSet;
+import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 import java.util.Set;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.uibuilder.property.editors.NlEditingListener.DEFAULT_LISTENER;
 
 /**
  * Text font inspector component for setting font family, size, decorations, color.
  */
 public class TextInspectorComponent implements InspectorComponent {
   public static final Set<String> TEXT_PROPERTIES = ImmutableSet.of(ATTR_TEXT, ATTR_HINT, ATTR_CONTENT_DESCRIPTION);
-
-  private final NlPropertiesManager myPropertiesManager;
 
   private final NlProperty myText;
   private final NlProperty myDesignText;
@@ -46,18 +46,16 @@ public class TextInspectorComponent implements InspectorComponent {
 
   public TextInspectorComponent(@NotNull Map<String, NlProperty> properties,
                                 @NotNull NlPropertiesManager propertiesManager) {
-    myPropertiesManager = propertiesManager;
-
     myText = properties.get(ATTR_TEXT);
     myDesignText = myText.getDesignTimeProperty();
     myHint = properties.get(ATTR_HINT);
     myDescription = properties.get(ATTR_CONTENT_DESCRIPTION);
 
-    NlReferenceEditor.EditingListener listener = createReferenceListener();
-    myTextEditor = NlReferenceEditor.createForInspectorWithBrowseButton(propertiesManager.getProject(), listener);
-    myDesignTextEditor = NlReferenceEditor.createForInspectorWithBrowseButton(propertiesManager.getProject(), listener);
-    myHintEditor = NlReferenceEditor.createForInspectorWithBrowseButton(propertiesManager.getProject(), listener);
-    myDescriptionEditor = NlReferenceEditor.createForInspectorWithBrowseButton(propertiesManager.getProject(), listener);
+    Project project = propertiesManager.getProject();
+    myTextEditor = NlReferenceEditor.createForInspectorWithBrowseButton(project, DEFAULT_LISTENER);
+    myDesignTextEditor = NlReferenceEditor.createForInspectorWithBrowseButton(project, DEFAULT_LISTENER);
+    myHintEditor = NlReferenceEditor.createForInspectorWithBrowseButton(project, DEFAULT_LISTENER);
+    myDescriptionEditor = NlReferenceEditor.createForInspectorWithBrowseButton(project, DEFAULT_LISTENER);
   }
 
   @Override
@@ -83,21 +81,5 @@ public class TextInspectorComponent implements InspectorComponent {
     myDesignTextEditor.setProperty(myDesignText);
     myHintEditor.setProperty(myHint);
     myDescriptionEditor.setProperty(myDescription);
-  }
-
-  private NlReferenceEditor.EditingListener createReferenceListener() {
-    return new NlReferenceEditor.EditingListener() {
-      @Override
-      public void stopEditing(@NotNull NlReferenceEditor source, @NotNull String value) {
-        if (source.getProperty() != null) {
-          myPropertiesManager.setValue(source.getProperty(), value);
-          source.setProperty(source.getProperty());
-        }
-      }
-
-      @Override
-      public void cancelEditing(@NotNull NlReferenceEditor editor) {
-      }
-    };
   }
 }

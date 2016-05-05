@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.uibuilder.property.editors.NlEditingListener.DEFAULT_LISTENER;
 
 /**
  * Text font inspector component for setting font family, size, decorations, color.
@@ -95,7 +96,7 @@ public class FontInspectorComponent implements InspectorComponent {
     myCenterEditor = new NlBooleanIconEditor(AndroidVectorIcons.EditorIcons.AlignCenter, TextAlignment.CENTER);
     myRightEditor = new NlBooleanIconEditor(AndroidVectorIcons.EditorIcons.AlignRight, TextAlignment.TEXT_END);
     myEndEditor = new NlBooleanIconEditor(AndroidVectorIcons.EditorIcons.AlignRight, TextAlignment.VIEW_END);
-    myColorEditor = NlReferenceEditor.createForInspectorWithBrowseButton(propertiesManager.getProject(), createReferenceListener());
+    myColorEditor = NlReferenceEditor.createForInspectorWithBrowseButton(propertiesManager.getProject(), DEFAULT_LISTENER);
 
     myTextStylePanel = new JPanel();
     myTextStylePanel.add(myBoldEditor.getComponent());
@@ -156,6 +157,7 @@ public class FontInspectorComponent implements InspectorComponent {
         if (source.getProperty() != null) {
           myPropertiesManager.setValue(source.getProperty(), value);
           if (source == myStyleEditor) {
+            // TODO: Create a write transaction here to include all these changes in one undo event
             myFontFamily.setValue(null);
             myFontSize.setValue(null);
             mySpacing.setValue(null);
@@ -175,22 +177,6 @@ public class FontInspectorComponent implements InspectorComponent {
 
       @Override
       public void resourcePickerCancelled(@NotNull NlEnumEditor source) {
-      }
-    };
-  }
-
-  private NlReferenceEditor.EditingListener createReferenceListener() {
-    return new NlReferenceEditor.EditingListener() {
-      @Override
-      public void stopEditing(@NotNull NlReferenceEditor source, @NotNull String value) {
-        if (source.getProperty() != null) {
-          myPropertiesManager.setValue(source.getProperty(), value);
-          source.setProperty(source.getProperty());
-        }
-      }
-
-      @Override
-      public void cancelEditing(@NotNull NlReferenceEditor editor) {
       }
     };
   }
