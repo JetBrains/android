@@ -28,21 +28,28 @@ import com.android.tools.idea.uibuilder.model.SelectionModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.idea.uibuilder.surface.ZoomType;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ex.CustomComponentAction;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.psi.PsiFile;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
+import com.intellij.ui.components.JBLabel;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -104,15 +111,10 @@ public class NlActionsToolbar implements DesignSurfaceListener, ModelListener {
     JPanel bottom = new JPanel(new BorderLayout());
     bottom.add(layoutToolBar.getComponent(), BorderLayout.WEST);
 
-    /* TODO: Add the RHS toolbar here
-    RenderOptionsMenuBuilder optionsMenuBuilder = RenderOptionsMenuBuilder.create(context);
-    ActionToolbar optionsToolBar = optionsMenuBuilder.addPreferXmlOption().addDeviceFrameOption().addRetinaOption().build();
     JPanel combined = new JPanel(new BorderLayout());
-    ActionToolbar zoomToolBar = actionManager.createActionToolbar("NlActionsToolbar", getRhsActions(mySurface), true);
+    ActionToolbar zoomToolBar = actionManager.createActionToolbar("NlRhsToolbar", getRhsActions(mySurface), true);
     combined.add(zoomToolBar.getComponent(), BorderLayout.WEST);
-    combined.add(optionsToolBar.getComponent(), BorderLayout.EAST);
     bottom.add(combined, BorderLayout.EAST);
-    */
 
     panel.add(bottom, BorderLayout.SOUTH);
 
@@ -126,13 +128,104 @@ public class NlActionsToolbar implements DesignSurfaceListener, ModelListener {
   private static ActionGroup getRhsActions(DesignSurface surface) {
     DefaultActionGroup group = new DefaultActionGroup();
 
-    /*
-    TODO: Add the RHS toolbar actions here
-    ZoomMenuAction zoomAction = new ZoomMenuAction(surface);
-    group.add(zoomAction);
-    */
+    group.add(new SetZoomAction(surface, ZoomType.FIT));
+    group.add(new SetZoomAction(surface, ZoomType.IN));
+    group.add(new ZoomLabelAction(surface));
+    group.add(new SetZoomAction(surface, ZoomType.OUT));
 
     return group;
+  }
+
+  // We're using a FlatComboAction because a plain AnAction does not
+  // get its text presentation painted as a label...
+  public static class ZoomLabelAction extends AnAction implements CustomComponentAction {
+    @NotNull private final DesignSurface mySurface;
+
+    public ZoomLabelAction(@NotNull DesignSurface surface) {
+      mySurface = surface;
+      Presentation presentation = getTemplatePresentation();
+      presentation.setDescription("Current Zoom Level");
+      updatePresentation(presentation);
+    }
+
+    @Override
+    public void update(AnActionEvent e) {
+      super.update(e);
+      updatePresentation(e.getPresentation());
+    }
+
+    @Override
+    public void actionPerformed(AnActionEvent e) {
+      // No-op: only label matters
+    }
+
+    private void updatePresentation(Presentation presentation) {
+      double scale = mySurface.getScale();
+      if (SystemInfo.isMac && UIUtil.isRetina()) {
+        scale *= 2;
+      }
+
+      String label = String.format("%d%% ", (int)(100 * scale));
+      presentation.setText(label);
+    }
+
+    @Override
+    public JComponent createCustomComponent(Presentation presentation) {
+      JBLabel label = new JBLabel() {
+        private PropertyChangeListener myPresentationSyncer;
+        private Presentation myPresentation = presentation;
+
+        @Override
+        public void addNotify() {
+          super.addNotify();
+          if (myPresentationSyncer == null) {
+            myPresentationSyncer = new PresentationSyncer();
+            myPresentation.addPropertyChangeListener(myPresentationSyncer);
+          }
+          setText(myPresentation.getText());
+        }
+
+        @Override
+        public void removeNotify() {
+          if (myPresentationSyncer != null) {
+            myPresentation.removePropertyChangeListener(myPresentationSyncer);
+            myPresentationSyncer = null;
+          }
+          super.removeNotify();
+        }
+
+        class PresentationSyncer implements PropertyChangeListener {
+          @Override
+          public void propertyChange(PropertyChangeEvent evt) {
+            String propertyName = evt.getPropertyName();
+            if (Presentation.PROP_TEXT.equals(propertyName)) {
+              setText((String)evt.getNewValue());
+              invalidate();
+              repaint();
+            }
+          }
+        }
+      };
+      label.setFont(UIUtil.getToolTipFont());
+      return label;
+    }
+  }
+
+  private static class SetZoomAction extends AnAction {
+    @NotNull private final DesignSurface mySurface;
+    @NotNull private final ZoomType myType;
+
+    public SetZoomAction(@NotNull DesignSurface surface, @NotNull ZoomType type) {
+      super(type.getLabel());
+      myType = type;
+      mySurface = surface;
+      getTemplatePresentation().setIcon(type.getIcon());
+    }
+
+    @Override
+    public void actionPerformed(AnActionEvent e) {
+      mySurface.zoom(myType);
+    }
   }
 
   private static DefaultActionGroup createConfigActions(ConfigurationHolder configurationHolder, DesignSurface surface) {
@@ -153,6 +246,10 @@ public class NlActionsToolbar implements DesignSurfaceListener, ModelListener {
 
     LocaleMenuAction localeAction = new LocaleMenuAction(configurationHolder);
     group.add(localeAction);
+
+    group.addSeparator();
+    group.add(new DesignModeAction(surface));
+    group.add(new BlueprintModeAction(surface));
 
     ConfigurationMenuAction configAction = new ConfigurationMenuAction(surface);
     group.add(configAction);

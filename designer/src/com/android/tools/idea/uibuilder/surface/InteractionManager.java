@@ -16,12 +16,12 @@
 package com.android.tools.idea.uibuilder.surface;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.rendering.RefreshRenderAction;
 import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.model.*;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.util.registry.Registry;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.registry.Registry;
@@ -561,16 +561,13 @@ public class InteractionManager {
       if (keyChar == '1') {
         mySurface.zoomActual();
       } else if (keyChar == 'r') {
-        ScreenView screenView = mySurface.getScreenView(myLastMouseX, myLastMouseY);
-        if (screenView != null) {
-          screenView.getModel().notifyModified();
-        }
-        mySurface.zoomIn();
+        // Refresh layout
+        RefreshRenderAction.clearCache(mySurface);
       } else if (keyChar == '+') {
         mySurface.zoomIn();
       } else if (keyChar == 'b') {
         DesignSurface.ScreenMode nextMode = mySurface.getScreenMode().next();
-        mySurface.setScreenMode(nextMode);
+        mySurface.setScreenMode(nextMode, true);
       } else if (keyChar == '-') {
         mySurface.zoomOut();
       } else if (keyChar == '0') {
