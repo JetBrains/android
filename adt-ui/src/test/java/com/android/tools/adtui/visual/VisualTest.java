@@ -63,6 +63,10 @@ public abstract class VisualTest {
    */
   protected abstract List<Animatable> createComponentsList();
 
+  protected final void addToChoreographer(@NonNull Animatable animatable) {
+    mChoreographer.register(animatable);
+  }
+
   /**
    * The UI elements for the test should be populated inside {@code panel}. It can use elements
    * created in {@code createComponentsList}.
