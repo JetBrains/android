@@ -315,25 +315,27 @@ public class SceneDraw {
         if (mBackgroundFactorColor != backgroundFactorColor
                 || mBackgroundFactorX != xr
                 || mBackgroundFactorY != yr
-                ||mBackgroundFactorSize != tileSize ) { // if background inputs changed
+                || mBackgroundFactorSize != tileSize) { // if background inputs changed
             mBackgroundFactorColor = backgroundFactorColor;
             mBackgroundFactorX = xr;
             mBackgroundFactorY = yr;
             mBackgroundFactorSize = tileSize;
-            Color backgroundLines = ColorTheme.updateBrightness(backgroundColor, 1.06f);
-            GraphicsEnvironment environment = GraphicsEnvironment.getLocalGraphicsEnvironment();
-            GraphicsDevice device = environment.getDefaultScreenDevice();
-            GraphicsConfiguration config = device.getDefaultConfiguration();
-            BufferedImage image = config.createCompatibleImage(tileSize, tileSize);
-            Graphics2D graphics = image.createGraphics();
-            graphics.setColor(backgroundColor);
-            graphics.fillRect(0,0,tileSize,tileSize);
-            graphics.setColor(backgroundLines);
-            graphics.drawLine(0,tileSize-1,tileSize,tileSize-1);
-            graphics.drawLine(tileSize-1,0,tileSize-1,tileSize);
-            graphics.dispose();
-            backgroundPaint = new TexturePaint(image, new Rectangle(xr+1, yr+1, tileSize, tileSize));
-            mColorSet.setBackgroundPaint(backgroundPaint);
+            if (tileSize > 0) {
+                Color backgroundLines = ColorTheme.updateBrightness(backgroundColor, 1.06f);
+                GraphicsEnvironment environment = GraphicsEnvironment.getLocalGraphicsEnvironment();
+                GraphicsDevice device = environment.getDefaultScreenDevice();
+                GraphicsConfiguration config = device.getDefaultConfiguration();
+                BufferedImage image = config.createCompatibleImage(tileSize, tileSize);
+                Graphics2D graphics = image.createGraphics();
+                graphics.setColor(backgroundColor);
+                graphics.fillRect(0, 0, tileSize, tileSize);
+                graphics.setColor(backgroundLines);
+                graphics.drawLine(0, tileSize - 1, tileSize, tileSize - 1);
+                graphics.drawLine(tileSize - 1, 0, tileSize - 1, tileSize);
+                graphics.dispose();
+                backgroundPaint = new TexturePaint(image, new Rectangle(xr + 1, yr + 1, tileSize, tileSize));
+                mColorSet.setBackgroundPaint(backgroundPaint);
+            }
         }
 
         if (DRAW_ONLY_ROOT_BACKGROUND) {
