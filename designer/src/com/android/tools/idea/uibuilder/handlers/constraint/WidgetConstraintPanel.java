@@ -203,6 +203,10 @@ public class WidgetConstraintPanel extends JPanel {
     ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF, null);
   }
 
+  public void killBaselineConstraint() {
+    ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF, null);;
+  }
+
   public WidgetConstraintPanel() {
     this(null);
   }

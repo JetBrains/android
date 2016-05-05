@@ -26,13 +26,10 @@ import com.google.tnt.solver.widgets.ConstraintWidget;
 import com.google.tnt.solver.widgets.ConstraintWidgetContainer;
 
 import javax.swing.*;
-import javax.swing.event.AncestorListener;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Path2D;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 
 /**
@@ -110,8 +107,9 @@ public class SingleWidgetView extends JPanel {
     mTopKill.addActionListener(e -> mWidgetConstraintPanel.killTopConstraint());
     mLeftKill.addActionListener(e -> mWidgetConstraintPanel.killLeftConstraint());
     mRightKill.addActionListener(e -> mWidgetConstraintPanel.killRightConstraint());
-    mBottomKill.addActionListener(e -> mWidgetConstraintPanel.killTopConstraint());
-    mBaselineKill.addActionListener(e -> mWidgetConstraintPanel.killTopConstraint());
+    mBottomKill.addActionListener(e -> mWidgetConstraintPanel.killBottomConstraint());
+    mBaselineKill.addActionListener(e -> mWidgetConstraintPanel.killBaselineConstraint());
+
     mHbar1.addPropertyChangeListener(TriStateControl.STATE, e -> mHbar2.setState(mHbar1.getState()));
     mHbar2.addPropertyChangeListener(TriStateControl.STATE, e -> mHbar1.setState(mHbar2.getState()));
     mVbar1.addPropertyChangeListener(TriStateControl.STATE, e -> mVbar2.setState(mVbar1.getState()));
