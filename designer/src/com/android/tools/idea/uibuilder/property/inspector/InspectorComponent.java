@@ -17,9 +17,22 @@ package com.android.tools.idea.uibuilder.property.inspector;
 
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
-
+/**
+ * Interface for generating the UI components for a specific inspector.
+ */
 public interface InspectorComponent {
+  /**
+   * Return the maximum number of rows that attachToInspector may generate.
+   */
+  int getMaxNumberOfRows();
+
+  /**
+   * Add rows of controls to the inspector panel for this inspector.
+   */
   void attachToInspector(@NotNull InspectorPanel inspector);
+
+  /**
+   * Refresh the values shown in this inspector.
+   */
   void refresh();
 }
