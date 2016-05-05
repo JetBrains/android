@@ -37,7 +37,7 @@ public class ScoutProbabilities {
     private static final int NEGATIVE_GAP_FLAG = -3;
     private static final int CONSTRAINT_FAILED_FLAG = -2;
     private static final float CENTER_ERROR = 2;
-    private static final float SLOPE_CENTER_CONNECTION = 4;
+    private static final float SLOPE_CENTER_CONNECTION = 20;
     private static final int MAX_DIST_FOR_CENTER_OVERLAP = 40;
 
     float[][][] mProbability; // probability of a connection
