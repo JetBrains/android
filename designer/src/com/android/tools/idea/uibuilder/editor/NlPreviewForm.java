@@ -84,7 +84,7 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
     myManager = manager;
     mySurface = new DesignSurface(manager.getProject());
     mySurface.setCentered(true);
-    mySurface.setScreenMode(DesignSurface.ScreenMode.SCREEN_ONLY);
+    mySurface.setScreenMode(DesignSurface.ScreenMode.SCREEN_ONLY, false);
     mySurface.addListener(new DesignSurfaceListener() {
       @Override
       public void componentSelectionChanged(@NotNull DesignSurface surface, @NotNull List<NlComponent> newSelection) {

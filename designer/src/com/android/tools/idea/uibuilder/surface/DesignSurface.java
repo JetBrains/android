@@ -82,7 +82,10 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
     }
   }
 
-  @NotNull private ScreenMode myScreenMode = ScreenMode.SCREEN_ONLY;
+  // TODO: Persist screen mode across IDE sessions
+  @NotNull private static ScreenMode ourDefaultScreenMode = ScreenMode.BOTH;
+
+  @NotNull private ScreenMode myScreenMode = ourDefaultScreenMode;
   @Nullable private ScreenView myScreenView;
   @Nullable private ScreenView myBlueprintView;
   @SwingCoordinate private int myScreenX = RULER_SIZE_PX + DEFAULT_SCREEN_OFFSET_X;
@@ -176,7 +179,11 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
     return myScreenMode;
   }
 
-  public void setScreenMode(@NotNull ScreenMode screenMode) {
+  public void setScreenMode(@NotNull ScreenMode screenMode, boolean setAsDefault) {
+    if (setAsDefault) {
+      ourDefaultScreenMode = screenMode;
+    }
+
     if (screenMode != myScreenMode) {
       // If we're going from 1 screens to 2 or back from 2 to 1, must adjust the zoom
       // to-fit the screen(s) in the surface
@@ -203,6 +210,8 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
     List<NlComponent> selectionAfter = Collections.emptyList();
 
     if (myScreenView != null) {
+      myScreenView.getModel().removeListener(myModelListener);
+
       SelectionModel selectionModel = myScreenView.getSelectionModel();
       selectionBefore = selectionModel.getSelection();
       selectionModel.removeListener(mySelectionListener);
@@ -212,6 +221,7 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
     myLayers.clear();
     if (model != null) {
       myScreenView = new ScreenView(this, ScreenView.ScreenViewType.NORMAL, model);
+      myScreenView.getModel().addListener(myModelListener);
 
       // If the model has already rendered, there may be errors to display,
       // so update the error panel to reflect that.
@@ -532,9 +542,6 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
       return;
     }
     Dimension screenViewSize = myScreenView.getSize();
-    if (screenViewSize == null) {
-      return;
-    }
 
     // Position primary screen
 
@@ -650,6 +657,18 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
       else {
         notifySelectionListeners(Collections.<NlComponent>emptyList());
       }
+    }
+  };
+
+  private final ModelListener myModelListener = new ModelListener() {
+    @Override
+    public void modelChanged(@NotNull NlModel model) {
+      positionScreens();
+    }
+
+    @Override
+    public void modelRendered(@NotNull NlModel model) {
+      positionScreens();
     }
   };
 
