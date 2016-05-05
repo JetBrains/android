@@ -72,7 +72,7 @@ public class ColorSet {
     protected Color mShadow = new Color(0, 0, 0, 50);
     protected Stroke mShadowStroke = new BasicStroke(3);
 
-    protected Color mTooltipBackground = new Color(0, 0, 0, 110);
+    protected Color mTooltipBackground = new Color(0, 0, 0, 160);
 
     protected int mStyle;
 
