@@ -395,6 +395,32 @@ public class NlComponent {
     return -1;
   }
 
+  public int getMinimumWidth() {
+    try {
+      if (viewInfo != null) {
+        Object viewObject = viewInfo.getViewObject();
+        return (Integer)viewObject.getClass().getMethod("getMinimumWidth").invoke(viewObject);
+      }
+    }
+    catch (Throwable ignore) {
+    }
+
+    return 0;
+  }
+
+  public int getMinimumHeight() {
+    try {
+      if (viewInfo != null) {
+        Object viewObject = viewInfo.getViewObject();
+        return (Integer)viewObject.getClass().getMethod("getMinimumHeight").invoke(viewObject);
+      }
+    }
+    catch (Throwable ignore) {
+    }
+
+    return 0;
+  }
+
   private Insets myMargins;
   private Insets myPadding;
 
