@@ -268,6 +268,9 @@ public class AndroidIcons {
     public static final Icon HorizontalCenterParent = load("/icons/sherpa/horizontal-center-parent.png");
     public static final Icon VerticalExpand = load("/icons/sherpa/vertical-expand.png");
     public static final Icon HorizontalExpand = load("/icons/sherpa/horizontal-expand.png");
+    public static final Icon LockConstraints = load("/icons/sherpa/ic_lock_black_18dp_1x.png");
+    public static final Icon UnlockConstraints = load("/icons/sherpa/ic_lock_open_black_18dp_1x.png");
+    public static final Icon ConstraintInfo = load("/icons/sherpa/question.png");
 
   }
 
