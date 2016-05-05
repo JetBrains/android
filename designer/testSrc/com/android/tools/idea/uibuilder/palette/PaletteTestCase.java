@@ -230,7 +230,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
   }
 
   final void assertConstraintLayout(@NotNull Palette.BaseItem item) {
-    assertStandardLayout(item, "com.google.tnt.sherpa.ConstraintLayout", IN_PLATFORM);
+    assertStandardLayout(item, "com.google.tnt.sherpa.ConstraintLayout", CONSTRAINT_LAYOUT_LIB_ARTIFACT);
   }
 
   public void assertGridLayout(@NotNull Palette.BaseItem item) {
@@ -435,18 +435,6 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     assertStandardView(item, CALENDAR_VIEW, IN_PLATFORM, 0.4);
   }
 
-  public void assertChronometer(@NotNull Palette.BaseItem item) {
-    assertStandardView(item, CHRONOMETER, IN_PLATFORM, NO_SCALE);
-  }
-
-  public void assertAnalogClock(@NotNull Palette.BaseItem item) {
-    assertStandardView(item, "AnalogClock", IN_PLATFORM, 0.6);
-  }
-
-  public void assertTextClock(@NotNull Palette.BaseItem item) {
-    assertStandardView(item, TEXT_CLOCK, IN_PLATFORM, NO_SCALE);
-  }
-
   public void assertImageSwitcher(@NotNull Palette.BaseItem item) {
     assertStandardLayout(item, IMAGE_SWITCHER, IN_PLATFORM);
   }
@@ -496,10 +484,6 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     assertNoPreviewView(item, VIEW_STUB, IN_PLATFORM);
   }
 
-  public void assertGestureOverlayView(@NotNull Palette.BaseItem item) {
-    assertStandardLayout(item, GESTURE_OVERLAY_VIEW, IN_PLATFORM);
-  }
-
   public void assertTextureView(@NotNull Palette.BaseItem item) {
     assertNoPreviewView(item, TEXTURE_VIEW, IN_PLATFORM);
   }
@@ -510,27 +494,6 @@ public abstract class PaletteTestCase extends AndroidTestCase {
 
   public void assertNumberPicker(@NotNull Palette.BaseItem item) {
     assertNoPreviewView(item, "NumberPicker", IN_PLATFORM);
-  }
-
-  @Language("XML")
-  private static final String ZOOM_BUTTON_XML =
-    "<ZoomButton\n" +
-    "    android:src=\"@android:drawable/btn_plus\"\n" +
-    "    android:layout_width=\"wrap_content\"\n" +
-    "    android:layout_height=\"wrap_content\" />\n";
-
-  public void assertZoomButton(@NotNull Palette.BaseItem item) {
-    checkItem(item, ZOOM_BUTTON, "ZoomButton", AndroidIcons.Views.ZoomButton, ZOOM_BUTTON_XML, ZOOM_BUTTON_XML, ZOOM_BUTTON_XML,
-              IN_PLATFORM, NO_SCALE);
-    checkComponent(createMockComponent(ZOOM_BUTTON), "ZoomButton", AndroidIcons.Views.ZoomButton);
-  }
-
-  public void assertZoomControls(@NotNull Palette.BaseItem item) {
-    assertStandardView(item, "ZoomControls", IN_PLATFORM, 0.6);
-  }
-
-  public void assertDialerFilter(@NotNull Palette.BaseItem item) {
-    assertStandardLayout(item, DIALER_FILTER, IN_PLATFORM);
   }
 
   public void assertAdView(@NotNull Palette.BaseItem item) {
