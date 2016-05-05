@@ -69,6 +69,13 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
     // request. It is currently the only way to get notified when a sync is finished.
     context.add(new GradleSyncListener.Adapter() {
       @Override
+      public void syncStarted(@NotNull Project project) {
+        if (myLoadingPanel != null) {
+          myLoadingPanel.startLoading();
+        }
+      }
+
+      @Override
       public void syncSucceeded(@NotNull Project project) {
         stopSyncAnimation();
       }

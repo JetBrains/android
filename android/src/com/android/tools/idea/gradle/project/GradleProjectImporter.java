@@ -38,7 +38,6 @@ import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
 import com.intellij.openapi.externalSystem.service.project.ExternalProjectRefreshCallback;
-import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.externalSystem.util.ExternalSystemBundle;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
@@ -92,7 +91,8 @@ import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.ensure
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.refreshProject;
 import static com.intellij.openapi.project.ProjectTypeService.setProjectType;
 import static com.intellij.openapi.ui.Messages.showErrorDialog;
-import static com.intellij.openapi.util.io.FileUtil.*;
+import static com.intellij.openapi.util.io.FileUtil.join;
+import static com.intellij.openapi.util.io.FileUtil.writeToFile;
 import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
@@ -465,7 +465,7 @@ public class GradleProjectImporter {
 
     String basePath = project.getBasePath();
     if (basePath != null) {
-      settings.setExternalProjectPath(toCanonicalPath(basePath));
+      settings.setExternalProjectPath(basePath);
     }
   }
 
@@ -623,7 +623,7 @@ public class GradleProjectImporter {
                        @NotNull ExternalProjectRefreshCallback callback,
                        @NotNull ProgressExecutionMode progressExecutionMode) throws ConfigurationException {
       try {
-        String externalProjectPath = ExternalSystemApiUtil.toCanonicalPath(getBaseDirPath(project).getPath());
+        String externalProjectPath = getBaseDirPath(project).getPath();
         refreshProject(project, GRADLE_SYSTEM_ID, externalProjectPath, callback, false /* resolve dependencies */,
                        progressExecutionMode, true /* always report import errors */);
       }
