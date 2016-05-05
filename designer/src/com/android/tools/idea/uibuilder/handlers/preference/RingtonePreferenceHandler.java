@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.handlers;
+package com.android.tools.idea.uibuilder.handlers.preference;
 
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
@@ -24,23 +24,20 @@ import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.android.SdkConstants.ATTR_SINGLE_LINE;
 import static com.android.SdkConstants.ATTR_TITLE;
 import static com.android.SdkConstants.PreferenceAttributes.DEFAULT_VALUE;
 import static com.android.SdkConstants.PreferenceAttributes.KEY;
-import static com.android.SdkConstants.PreferenceTags.EDIT_TEXT_PREFERENCE;
+import static com.android.SdkConstants.PreferenceTags.RINGTONE_PREFERENCE;
 
-final class EditTextPreferenceHandler extends PreferenceHandler {
+public final class RingtonePreferenceHandler extends PreferenceHandler {
   @Language("XML")
   @NotNull
   @Override
   public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {
     return new XmlBuilder()
       .startTag(tagName)
-      .androidAttribute(DEFAULT_VALUE, "Default value")
-      .androidAttribute("selectAllOnFocus", true)
-      .androidAttribute(ATTR_SINGLE_LINE, true)
-      .androidAttribute(ATTR_TITLE, "Edit text preference")
+      .androidAttribute(DEFAULT_VALUE, "")
+      .androidAttribute(ATTR_TITLE, "Ringtone preference")
       .endTag(tagName)
       .toString();
   }
@@ -51,7 +48,7 @@ final class EditTextPreferenceHandler extends PreferenceHandler {
                           @NotNull NlComponent newChild,
                           @NotNull InsertType type) {
     super.onCreate(editor, parent, newChild, type);
-    newChild.setAndroidAttribute(KEY, generateKey(newChild, EDIT_TEXT_PREFERENCE, "edit_text_preference_"));
+    newChild.setAndroidAttribute(KEY, generateKey(newChild, RINGTONE_PREFERENCE, "ringtone_preference_"));
 
     return true;
   }

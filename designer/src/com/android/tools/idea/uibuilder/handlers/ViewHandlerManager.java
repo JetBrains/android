@@ -15,10 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.util.Computable;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
@@ -31,16 +27,21 @@ import com.android.tools.idea.uibuilder.handlers.leanback.BrowseFragmentHandler;
 import com.android.tools.idea.uibuilder.handlers.leanback.DetailsFragmentHandler;
 import com.android.tools.idea.uibuilder.handlers.leanback.PlaybackOverlayFragmentHandler;
 import com.android.tools.idea.uibuilder.handlers.leanback.SearchFragmentHandler;
+import com.android.tools.idea.uibuilder.handlers.preference.*;
 import com.android.tools.idea.uibuilder.handlers.relative.RelativeLayoutHandler;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.search.GlobalSearchScope;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 import java.util.Set;
@@ -256,7 +257,7 @@ public class ViewHandlerManager implements ProjectComponent {
       case PreferenceTags.PREFERENCE_CATEGORY:
         return new PreferenceCategoryHandler();
       case PreferenceTags.PREFERENCE_SCREEN:
-        return new ViewGroupHandler();
+        return new PreferenceScreenHandler();
       case PreferenceTags.RINGTONE_PREFERENCE:
         return new RingtonePreferenceHandler();
       case PreferenceTags.SWITCH_PREFERENCE:
