@@ -141,11 +141,15 @@ public class InspectorPanel extends JPanel {
     return inspectors;
   }
 
-  public JLabel addExpandableTitle(@NotNull String title, @NotNull NlProperty groupStartProperty) {
+  public JLabel addTitle(@NotNull String title) {
     JLabel label = createLabel(title, null, null);
     label.setFont(myBoldLabelFont);
     addLineComponent(label, myRow++);
+    return label;
+  }
 
+  public JLabel addExpandableTitle(@NotNull String title, @NotNull NlProperty groupStartProperty) {
+    JLabel label = addTitle(title);
     startGroup(label, groupStartProperty);
     return label;
   }

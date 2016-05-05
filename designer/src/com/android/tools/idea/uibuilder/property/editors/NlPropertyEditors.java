@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Set;
 
 public class NlPropertyEditors {
-  private static NlBooleanEditor ourBooleanEditor;
+  private static NlBooleanTableCellEditor ourBooleanEditor;
   private static NlFlagEditor ourFlagEditor;
   private static NlEnumTableCellEditor ourComboEditor;
   private static NlReferenceTableCellEditor ourDefaultEditor;
@@ -56,7 +56,7 @@ public class NlPropertyEditors {
 
   private static PTableCellEditor getBooleanEditor() {
     if (ourBooleanEditor == null) {
-      ourBooleanEditor = new NlBooleanEditor();
+      ourBooleanEditor = new NlBooleanTableCellEditor();
     }
 
     return ourBooleanEditor;

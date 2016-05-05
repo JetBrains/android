@@ -21,29 +21,42 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-/**
- * Common interface for various inspector editors.
- */
-public interface NlComponentEditor {
-
-  @NotNull
-  JComponent getComponent();
-
-  void setEnabled(boolean enabled);
-
-  void setVisible(boolean visible);
+public abstract class NlBaseComponentEditor implements NlComponentEditor {
+  private JLabel myLabel;
 
   @Nullable
-  NlProperty getProperty();
+  @Override
+  public JLabel getLabel() {
+    return myLabel;
+  }
 
-  void setProperty(@NotNull NlProperty property);
+  @Override
+  public void setLabel(@NotNull JLabel label) {
+    myLabel = label;
+  }
+  @Override
+  public void setVisible(boolean visible) {
+    getComponent().setVisible(visible);
+    if (myLabel != null) {
+      myLabel.setVisible(visible);
+    }
+  }
 
-  void refresh();
+  @Override
+  public void refresh() {
+    NlProperty property = getProperty();
+    if (property != null) {
+      setProperty(property);
+    }
+  }
 
-  void requestFocus();
+  @Override
+  public void setEnabled(boolean enabled) {
+    getComponent().setEnabled(enabled);
+  }
 
-  @Nullable
-  JLabel getLabel();
-
-  void setLabel(@NotNull JLabel label);
+  @Override
+  public void requestFocus() {
+    getComponent().requestFocus();
+  }
 }
