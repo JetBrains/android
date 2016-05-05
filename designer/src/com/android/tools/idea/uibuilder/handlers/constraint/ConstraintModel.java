@@ -347,6 +347,9 @@ public class ConstraintModel implements ModelListener {
     else if (component.getTagName().equalsIgnoreCase(SdkConstants.WEB_VIEW)) {
       decorator = new WebViewWidget(widget);
     }
+    else if (component.getTagName().equalsIgnoreCase(SdkConstants.EDIT_TEXT)) {
+      decorator = new TextWidget(widget, ConstraintUtilities.getResolvedText(component));
+    }
     if (decorator == null) {
       decorator = new WidgetDecorator(widget);
     }
