@@ -442,6 +442,12 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintBatteryLifeInspection extends AndroidLintInspectionBase {
+    public AndroidLintBatteryLifeInspection() {
+      super(AndroidBundle.message("android.lint.inspections.battery.life"), BatteryDetector.ISSUE);
+    }
+  }
+
   public static class AndroidLintButtonCaseInspection extends AndroidLintInspectionBase {
     public AndroidLintButtonCaseInspection() {
       super(AndroidBundle.message("android.lint.inspections.button.case"), ButtonDetector.CASE);
