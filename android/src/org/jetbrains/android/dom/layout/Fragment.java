@@ -21,8 +21,10 @@ import com.intellij.util.xml.Convert;
 import com.intellij.util.xml.DefinesXml;
 import com.intellij.util.xml.GenericAttributeValue;
 import org.jetbrains.android.dom.AndroidAttributeValue;
+import org.jetbrains.android.dom.Styleable;
 import org.jetbrains.android.dom.converters.FragmentClassConverter;
 
+@Styleable("Fragment")
 @DefinesXml
 public interface Fragment extends LayoutElement {
   @Attribute("name")
