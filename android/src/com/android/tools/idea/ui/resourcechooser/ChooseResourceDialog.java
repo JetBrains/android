@@ -613,7 +613,8 @@ public class ChooseResourceDialog extends DialogWrapper {
       return;
     }
 
-    CreateXmlResourceDialog dialog = new CreateXmlResourceDialog(myModule, resourceType, null, null, true);
+    CreateXmlResourceDialog dialog = new CreateXmlResourceDialog(myModule, resourceType, null, null, true,
+                                                                 null, null);
     dialog.setTitle("New " + StringUtil.capitalize(resourceType.getDisplayName()) + " Value Resource");
     if (!dialog.showAndGet()) {
       return;
@@ -651,7 +652,8 @@ public class ChooseResourceDialog extends DialogWrapper {
 
     AndroidFacet facet = AndroidFacet.getInstance(myModule);
     assert facet != null;
-    XmlFile newFile = CreateResourceFileAction.createFileResource(facet, folderType, null, null, null, true, null);
+    XmlFile newFile = CreateResourceFileAction.createFileResource(facet, folderType, null, null, null, true, null,
+                                                                  null, null);
 
     if (newFile != null) {
       String name = newFile.getName();

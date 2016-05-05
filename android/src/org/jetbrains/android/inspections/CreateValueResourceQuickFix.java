@@ -20,6 +20,7 @@ import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.xml.DomFileDescription;
 import com.intellij.util.xml.DomManager;
 import org.jetbrains.android.actions.CreateXmlResourceDialog;
+import org.jetbrains.android.actions.NewResourceCreationHandler;
 import org.jetbrains.android.dom.resources.ResourcesDomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowManager;
@@ -112,7 +113,8 @@ public class CreateValueResourceQuickFix implements LocalQuickFix, IntentionActi
         }
       }
       final CreateXmlResourceDialog dialog =
-        new CreateXmlResourceDialog(myFacet.getModule(), myResourceType, myResourceName, value, myChooseName, defaultFileToCreate);
+        new CreateXmlResourceDialog(myFacet.getModule(), myResourceType, myResourceName, value, myChooseName, defaultFileToCreate,
+                                    myFile.getVirtualFile());
       dialog.setTitle("New " + StringUtil.capitalize(myResourceType.getDisplayName()) + " Value Resource");
       if (!dialog.showAndGet()) {
         return false;
