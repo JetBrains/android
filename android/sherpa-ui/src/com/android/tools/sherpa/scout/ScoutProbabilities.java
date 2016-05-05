@@ -39,6 +39,7 @@ public class ScoutProbabilities {
     private static final float CENTER_ERROR = 2;
     private static final float SLOPE_CENTER_CONNECTION = 20;
     private static final int MAX_DIST_FOR_CENTER_OVERLAP = 40;
+    private static final int ROOT_MARGIN_DISCOUNT = 16;
 
     float[][][] mProbability; // probability of a connection
     float[][][] mMargin; // margin needed for that connection
@@ -646,7 +647,9 @@ public class ScoutProbabilities {
         float positionDiff =
                 (fromDir.reverse()) ? fromLocation - toLocation : toLocation - fromLocation;
         float distance = 2 * ScoutWidget.distance(from, to);
-
+        if (to.isRoot()) {
+            distance = Math.abs(distance - ROOT_MARGIN_DISCOUNT);
+        }
         // probability decreases with distance and margin distance
         float probability = 1 / (1 + distance * distance + positionDiff * positionDiff);
         if (fromDir == Direction.BASE) { // prefer baseline
