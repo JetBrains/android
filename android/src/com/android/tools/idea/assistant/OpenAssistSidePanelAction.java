@@ -89,5 +89,11 @@ public class OpenAssistSidePanelAction extends AnAction {
         toolWindow.activate(null);
       }
     });
+    onActionPerformed(event);
   }
+
+  /**
+   * Allows plugins to perform some action on panel being opened without requiring/allowing them to override {@code actionPerformed}.
+   */
+  public void onActionPerformed(AnActionEvent event) {}
 }
