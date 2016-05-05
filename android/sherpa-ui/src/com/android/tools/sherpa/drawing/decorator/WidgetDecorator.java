@@ -789,7 +789,8 @@ public class WidgetDecorator {
         ConstraintAnchor left = mWidget.getAnchor(ConstraintAnchor.Type.LEFT);
         ConstraintAnchor right = mWidget.getAnchor(ConstraintAnchor.Type.RIGHT);
         if (left != null && right != null
-                && left.isConnected() && right.isConnected()) {
+                && left.isConnected() && right.isConnected()
+                && left.getConnectionCreator() != ConstraintAnchor.AUTO_CONSTRAINT_CREATOR) {
             if (mShowBias.isRunning()) {
                 float progress = 1 - mShowBias.getProgress();
                 int percent = (int) (mWidget.getHorizontalBiasPercent() * 100);
