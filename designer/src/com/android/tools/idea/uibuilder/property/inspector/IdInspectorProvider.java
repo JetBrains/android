@@ -19,12 +19,13 @@ import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
 
 public class IdInspectorProvider implements InspectorProvider {
+  private IdInspectorComponent myComponent;
+
   @Override
   public boolean isApplicable(@NotNull List<NlComponent> components, @NotNull Map<String, NlProperty> properties) {
     return true;
@@ -35,6 +36,10 @@ public class IdInspectorProvider implements InspectorProvider {
   public InspectorComponent createCustomInspector(@NotNull List<NlComponent> components,
                                                   @NotNull Map<String, NlProperty> properties,
                                                   @NotNull NlPropertiesManager propertiesManager) {
-    return new IdInspectorComponent(properties, propertiesManager);
+    if (myComponent == null) {
+      myComponent = new IdInspectorComponent(propertiesManager);
+    }
+    myComponent.updateProperties(components, properties);
+    return myComponent;
   }
 }

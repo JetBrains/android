@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.inspector;
 
+import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.NlReferenceEditor;
@@ -22,6 +23,7 @@ import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -34,28 +36,30 @@ import static com.android.tools.idea.uibuilder.property.editors.NlEditingListene
 public class TextInspectorComponent implements InspectorComponent {
   public static final Set<String> TEXT_PROPERTIES = ImmutableSet.of(ATTR_TEXT, ATTR_HINT, ATTR_CONTENT_DESCRIPTION);
 
-  private final NlProperty myText;
-  private final NlProperty myDesignText;
-  private final NlProperty myHint;
-  private final NlProperty myDescription;
-
   private final NlReferenceEditor myTextEditor;
   private final NlReferenceEditor myDesignTextEditor;
   private final NlReferenceEditor myHintEditor;
   private final NlReferenceEditor myDescriptionEditor;
 
-  public TextInspectorComponent(@NotNull Map<String, NlProperty> properties,
-                                @NotNull NlPropertiesManager propertiesManager) {
-    myText = properties.get(ATTR_TEXT);
-    myDesignText = myText.getDesignTimeProperty();
-    myHint = properties.get(ATTR_HINT);
-    myDescription = properties.get(ATTR_CONTENT_DESCRIPTION);
+  private NlProperty myText;
+  private NlProperty myDesignText;
+  private NlProperty myHint;
+  private NlProperty myDescription;
 
+  public TextInspectorComponent(@NotNull NlPropertiesManager propertiesManager) {
     Project project = propertiesManager.getProject();
     myTextEditor = NlReferenceEditor.createForInspectorWithBrowseButton(project, DEFAULT_LISTENER);
     myDesignTextEditor = NlReferenceEditor.createForInspectorWithBrowseButton(project, DEFAULT_LISTENER);
     myHintEditor = NlReferenceEditor.createForInspectorWithBrowseButton(project, DEFAULT_LISTENER);
     myDescriptionEditor = NlReferenceEditor.createForInspectorWithBrowseButton(project, DEFAULT_LISTENER);
+  }
+
+  @Override
+  public void updateProperties(@NotNull List<NlComponent> components, @NotNull Map<String, NlProperty> properties) {
+    myText = properties.get(ATTR_TEXT);
+    myDesignText = myText.getDesignTimeProperty();
+    myHint = properties.get(ATTR_HINT);
+    myDescription = properties.get(ATTR_CONTENT_DESCRIPTION);
   }
 
   @Override

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.inspector;
 
+import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.NlBooleanEditor;
@@ -23,19 +24,13 @@ import com.android.tools.idea.uibuilder.property.editors.NlReferenceEditor;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 import java.util.Map;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.property.editors.NlEditingListener.DEFAULT_LISTENER;
 
 public class ImageViewInspectorComponent implements InspectorComponent {
-  private final NlProperty mySource;
-  private final NlProperty myContentDescription;
-  private final NlProperty myBackground;
-  private final NlProperty myScaleType;
-  private final NlProperty myAdjustViewBounds;
-  private final NlProperty myCropToPadding;
-
   private final NlReferenceEditor mySourceEditor;
   private final NlReferenceEditor myContentDescriptionEditor;
   private final NlReferenceEditor myBackgroundEditor;
@@ -43,15 +38,14 @@ public class ImageViewInspectorComponent implements InspectorComponent {
   private final NlBooleanEditor myAdjustViewBoundsEditor;
   private final NlBooleanEditor myCropToPaddingEditor;
 
-  public ImageViewInspectorComponent(@NotNull Map<String, NlProperty> properties,
-                                     @NotNull NlPropertiesManager propertiesManager) {
-    mySource = properties.get(ATTR_SRC);
-    myContentDescription = properties.get(ATTR_CONTENT_DESCRIPTION);
-    myBackground = properties.get(ATTR_BACKGROUND);
-    myScaleType = properties.get(ATTR_SCALE_TYPE);
-    myAdjustViewBounds = properties.get(ATTR_ADJUST_VIEW_BOUNDS);
-    myCropToPadding = properties.get(ATTR_CROP_TO_PADDING);
+  private NlProperty mySource;
+  private NlProperty myContentDescription;
+  private NlProperty myBackground;
+  private NlProperty myScaleType;
+  private NlProperty myAdjustViewBounds;
+  private NlProperty myCropToPadding;
 
+  public ImageViewInspectorComponent(@NotNull NlPropertiesManager propertiesManager) {
     Project project = propertiesManager.getProject();
     mySourceEditor = NlReferenceEditor.createForInspectorWithBrowseButton(project, DEFAULT_LISTENER);
     myContentDescriptionEditor = NlReferenceEditor.createForInspectorWithBrowseButton(project, DEFAULT_LISTENER);
@@ -59,6 +53,16 @@ public class ImageViewInspectorComponent implements InspectorComponent {
     myScaleTypeEditor = NlEnumEditor.createForInspector(NlEnumEditor.getDefaultListener());
     myAdjustViewBoundsEditor = NlBooleanEditor.createForInspector(DEFAULT_LISTENER);
     myCropToPaddingEditor = NlBooleanEditor.createForInspector(DEFAULT_LISTENER);
+  }
+
+  @Override
+  public void updateProperties(@NotNull List<NlComponent> components, @NotNull Map<String, NlProperty> properties) {
+    mySource = properties.get(ATTR_SRC);
+    myContentDescription = properties.get(ATTR_CONTENT_DESCRIPTION);
+    myBackground = properties.get(ATTR_BACKGROUND);
+    myScaleType = properties.get(ATTR_SCALE_TYPE);
+    myAdjustViewBounds = properties.get(ATTR_ADJUST_VIEW_BOUNDS);
+    myCropToPadding = properties.get(ATTR_CROP_TO_PADDING);
   }
 
   @Override
