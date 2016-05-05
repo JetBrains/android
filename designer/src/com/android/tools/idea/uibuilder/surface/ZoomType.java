@@ -15,47 +15,58 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
 
 /** Describes different types of zoom actions */
 public enum ZoomType {
   /**
    * Zoom to fit (the screen view port)
    */
-  FIT("Zoom to Fit Screen"),
+  FIT("Zoom to Fit Screen", AndroidIcons.NeleIcons.ExpandToFit),
 
   /**
    * Zoom to fit, but do not zoom more than 100%
    */
-  FIT_INTO("Zoom out to Fit Screen"),
+  FIT_INTO("Zoom out to Fit Screen", AndroidIcons.NeleIcons.ExpandToFit),
 
   /**
    * Zoom to actual size (100%)
    */
-  ACTUAL("100%"),
+  ACTUAL("100%", null),
 
   /**
    * Zoom in
    */
-  IN("Zoom In"),
+  IN("Zoom In", AndroidIcons.NeleIcons.ZoomIn),
 
   /**
    * Zoom out
    */
-  OUT("Zoom Out"),
+  OUT("Zoom Out", AndroidIcons.NeleIcons.ZoomOut),
 
   /**
    * Zoom to match the exact device size (depends on the monitor dpi)
    */
-  SCREEN("Exact Device Size");
+  SCREEN("Exact Device Size", null);
 
-  ZoomType(@NotNull String label) {
+  ZoomType(@NotNull String label, @Nullable Icon icon) {
     myLabel = label;
+    myIcon = icon;
   }
 
   /** Describes the zoom action to the user */
   public String getLabel() {
     return myLabel;
+  }
+
+  /** Returns an icon for this zoom type, if any */
+  @Nullable
+  public Icon getIcon() {
+    return myIcon;
   }
 
   /** Returns true if this zoom type should be shown to the user */
@@ -69,4 +80,8 @@ public enum ZoomType {
   }
 
   private final String myLabel;
+  private final Icon myIcon;
+
+  // Zoom percentages
+  // 25%, 33%, 50%, 67%, 75%, 90%, 100%, 110%, 125%, 150%, 200%, 300%, 400%, .... +100%
 }
