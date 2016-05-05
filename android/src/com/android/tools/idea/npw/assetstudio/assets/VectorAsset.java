@@ -46,7 +46,7 @@ public final class VectorAsset extends BaseAsset {
 
   private final FileType myFileType;
 
-  private final ObjectProperty<File> myPath = new ObjectValueProperty<File>(new File(System.getProperty("user.home")));
+  private final ObjectProperty<File> myPath = new ObjectValueProperty<>(new File(System.getProperty("user.home")));
   private final IntProperty myOpacity = new IntValueProperty(100);
   private final BoolProperty myAutoMirrored = new BoolValueProperty();
   private final IntProperty myOutputWidth = new IntValueProperty();

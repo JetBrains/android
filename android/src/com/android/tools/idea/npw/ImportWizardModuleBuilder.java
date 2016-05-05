@@ -126,12 +126,7 @@ public class ImportWizardModuleBuilder extends ModuleBuilder
     Template.convertApisToInt(myWizardState.getParameters());
     Iterable<WizardPath> paths = setupWizardPaths(project, sidePanelIcon, disposable);
     if (inGlobalWizard) {
-      myPaths = Iterables.filter(paths, new Predicate<WizardPath>() {
-        @Override
-        public boolean apply(WizardPath input) {
-          return input.supportsGlobalWizard();
-        }
-      });
+      myPaths = Iterables.filter(paths, WizardPath::supportsGlobalWizard);
     }
     else {
       myPaths = paths;
@@ -158,7 +153,7 @@ public class ImportWizardModuleBuilder extends ModuleBuilder
 
   protected Iterable<WizardPath> setupWizardPaths(@Nullable Project project, @Nullable Icon sidePanelIcon, Disposable disposable) {
     myImportSourcesPath = new ImportSourceModulePath(myImportSource, myWizardState, new WizardContext(project), sidePanelIcon, this);
-    return ImmutableList.<WizardPath>of(myImportSourcesPath);
+    return ImmutableList.of(myImportSourcesPath);
   }
 
   protected void addSteps(WizardPath path) {

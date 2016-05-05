@@ -66,8 +66,8 @@ public final class TextAssetEditor extends JPanel implements AssetComponent<Text
     final String initialFont = myTextAsset.fontFamily().get();
     myFontCombo.setSelectedItem(initialFont);
 
-    SelectedItemProperty<String> selectedFont = new SelectedItemProperty<String>(myFontCombo);
-    myBindings.bind(myTextAsset.fontFamily(), new AsValueExpression<String>(selectedFont));
+    SelectedItemProperty<String> selectedFont = new SelectedItemProperty<>(myFontCombo);
+    myBindings.bind(myTextAsset.fontFamily(), new AsValueExpression<>(selectedFont));
 
     InvalidationListener onTextChanged = new InvalidationListener() {
       @Override

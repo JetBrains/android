@@ -120,7 +120,7 @@ public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIcon
 
   @Override
   protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
-    mySelectedPaths = new AsValueExpression<AndroidProjectPaths>(new SelectedItemProperty<AndroidProjectPaths>(myPathsComboBox));
+    mySelectedPaths = new AsValueExpression<>(new SelectedItemProperty<>(myPathsComboBox));
   }
 
   @NotNull

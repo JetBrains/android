@@ -84,7 +84,7 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
   public static final Set<String> PACKAGE_NAME_PARAMETERS = ImmutableSet.of(ATTR_PACKAGE_NAME);
   public static final Set<String> CLASS_NAME_PARAMETERS = ImmutableSet.of(ATTR_PARENT_ACTIVITY_CLASS);
   public static final Key<Boolean> KEY_OPEN_EDITORS = createKey("open.editors", WIZARD, Boolean.class);
-  public static final Set<Key<?>> IMPLICIT_PARAMETERS = ImmutableSet.<Key<?>>of(KEY_PACKAGE_NAME, KEY_SOURCE_PROVIDER_NAME);
+  public static final Set<Key<?>> IMPLICIT_PARAMETERS = ImmutableSet.of(KEY_PACKAGE_NAME, KEY_SOURCE_PROVIDER_NAME);
 
   private static final Logger LOG = Logger.getInstance(AddAndroidActivityPath.class);
   public static final String CUSTOMIZE_ACTIVITY_TITLE = "Customize the Activity";
@@ -292,7 +292,7 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
 
   public static List<String> getParameterValueHistory(@NotNull Parameter parameter, Project project) {
     List<String> entries = RecentsManager.getInstance(project).getRecentEntries(getRecentHistoryKey(parameter.id));
-    return entries == null ? ImmutableList.<String>of() : entries;
+    return entries == null ? ImmutableList.of() : entries;
   }
 
   public static String getRecentHistoryKey(@Nullable String parameter) {

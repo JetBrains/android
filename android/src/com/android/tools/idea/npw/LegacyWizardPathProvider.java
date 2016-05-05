@@ -22,7 +22,7 @@ public class LegacyWizardPathProvider implements NewModuleDynamicPathFactory {
   public Collection<NewModuleDynamicPath> createWizardPaths(@Nullable Project project, @NotNull Disposable disposable) {
     LegacyWizardModuleBuilder builder = new LegacyWizardModuleBuilder(project, disposable);
     Collection<LegacyPathWrapper> wrappers = builder.getWrappers();
-    return ImmutableSet.<NewModuleDynamicPath>copyOf(wrappers);
+    return ImmutableSet.copyOf(wrappers);
   }
 
   @Retention(RetentionPolicy.RUNTIME)
@@ -33,7 +33,7 @@ public class LegacyWizardPathProvider implements NewModuleDynamicPathFactory {
     private final Collection<LegacyPathWrapper> myWrappers;
 
     public LegacyWizardModuleBuilder(@Nullable Project project, Disposable disposable) {
-      super(null, null, project, null, Lists.<ModuleWizardStep>newLinkedList(), disposable, false);
+      super(null, null, project, null, Lists.newLinkedList(), disposable, false);
       myWrappers = wrapPaths();
     }
 

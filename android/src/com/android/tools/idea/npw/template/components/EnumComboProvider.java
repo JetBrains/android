@@ -58,7 +58,7 @@ public final class EnumComboProvider extends ParameterComponentProvider<JComboBo
     String optionLabel = childNodes.item(0).getNodeValue().trim();
     int minSdk = getIntegerOptionValue(option, TemplateMetadata.ATTR_MIN_API, parameter.name, 1);
     int minBuildApi = getIntegerOptionValue(option, TemplateMetadata.ATTR_MIN_BUILD_API, parameter.name, 1);
-    return new ApiComboBoxItem<String>(optionId, optionLabel, minSdk, minBuildApi);
+    return new ApiComboBoxItem<>(optionId, optionLabel, minSdk, minBuildApi);
   }
 
   /**

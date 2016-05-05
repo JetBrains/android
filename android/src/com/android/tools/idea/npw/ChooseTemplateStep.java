@@ -100,7 +100,7 @@ public class ChooseTemplateStep extends TemplateWizardStep implements ListSelect
    */
   protected static List<MetadataListItem> getTemplateList(TemplateWizardState state, List<File> templateFiles, @Nullable Set<String> excluded) {
     TemplateManager manager = TemplateManager.getInstance();
-    List<MetadataListItem> metadataList = new ArrayList<MetadataListItem>(templateFiles.size());
+    List<MetadataListItem> metadataList = new ArrayList<>(templateFiles.size());
     for (File template : templateFiles) {
       TemplateMetadata metadata = manager.getTemplateMetadata(template);
       if (metadata == null || !metadata.isSupported()) {

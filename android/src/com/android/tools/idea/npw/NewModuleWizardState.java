@@ -70,7 +70,7 @@ public class NewModuleWizardState extends TemplateWizardState {
   /**
    * Map from a template name to the wizard path that has provided this template.
    */
-  private Map<String, WizardPath> myTemplateToPathMap = new HashMap<String, WizardPath>();
+  private Map<String, WizardPath> myTemplateToPathMap = new HashMap<>();
   /**
    * The active wizard path.
    */

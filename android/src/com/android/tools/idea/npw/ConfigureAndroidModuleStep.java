@@ -340,7 +340,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
   @NotNull
   public static IAndroidTarget[] getCompilationTargets(@NotNull AndroidSdkData sdkData) {
     IAndroidTarget[] targets = sdkData.getTargets();
-    List<IAndroidTarget> list = new ArrayList<IAndroidTarget>();
+    List<IAndroidTarget> list = new ArrayList<>();
 
     for (IAndroidTarget target : targets) {
       if (!target.isPlatform() && target.getAdditionalLibraries().isEmpty()) {
@@ -469,25 +469,10 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
 
   @Override
   protected void deriveValues() {
-    updateDerivedValue(FormFactorUtils.ATTR_MODULE_NAME, myModuleName, new Callable<String>() {
-      @Override
-      public String call() {
-        return computeModuleName();
-      }
-    });
-    updateDerivedValue(ATTR_PACKAGE_NAME, myPackageName, new Callable<String>() {
-      @Override
-      public String call() {
-        return computePackageName();
-      }
-    });
+    updateDerivedValue(FormFactorUtils.ATTR_MODULE_NAME, myModuleName, this::computeModuleName);
+    updateDerivedValue(ATTR_PACKAGE_NAME, myPackageName, this::computePackageName);
     if (!myTemplateState.myHidden.contains(ATTR_PROJECT_LOCATION)) {
-      updateDerivedValue(ATTR_PROJECT_LOCATION, myProjectLocation.getTextField(), new Callable<String>() {
-        @Override
-        public String call() {
-          return computeProjectLocation();
-        }
-      });
+      updateDerivedValue(ATTR_PROJECT_LOCATION, myProjectLocation.getTextField(), this::computeProjectLocation);
     }
     if (!myInitializedPackageNameText) {
       myInitializedPackageNameText = true;

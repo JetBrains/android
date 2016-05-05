@@ -115,7 +115,7 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
 
   private final StringEvaluator myStringEvaluator = new StringEvaluator();
   private final MergingUpdateQueue myUpdateQueue;
-  private final Map<String, Map<String, BufferedImage>> myImageMap = new ConcurrentHashMap<String, Map<String, BufferedImage>>();
+  private final Map<String, Map<String, BufferedImage>> myImageMap = new ConcurrentHashMap<>();
   private final Key<TemplateEntry> myTemplateKey;
   private final Key<SourceProvider> mySourceProviderKey;
   private AssetStudioAssetGenerator myAssetGenerator;
@@ -373,7 +373,7 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
   }
 
   private <E> void register(Key<E> key, Map<JRadioButton, E> buttonsToValues) {
-    RadioButtonGroupBinding<E> binding = new RadioButtonGroupBinding<E>(buttonsToValues);
+    RadioButtonGroupBinding<E> binding = new RadioButtonGroupBinding<>(buttonsToValues);
     for (JRadioButton button : buttonsToValues.keySet()) {
       register(key, button, binding);
     }
@@ -478,12 +478,7 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
           }
           myAssetGenerator.generateImages(myImageMap, true, true);
 
-          ApplicationManager.getApplication().invokeLater(new Runnable() {
-            @Override
-            public void run() {
-              updatePreviewImages();
-            }
-          });
+          ApplicationManager.getApplication().invokeLater(IconStep.this::updatePreviewImages);
         }
         catch (final ImageGeneratorException exception) {
           ApplicationManager.getApplication().invokeLater(new Runnable() {
