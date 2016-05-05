@@ -54,11 +54,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class NlReferenceEditor implements NlComponentEditor {
+public class NlReferenceEditor extends NlBaseComponentEditor implements NlComponentEditor {
   private static final int HORIZONTAL_SPACING = 4;
   private static final int VERTICAL_SPACING = 2;
 
-  private final EditingListener myListener;
+  private final NlEditingListener myListener;
   private final boolean myIncludeBrowseButton;
   private final JPanel myPanel;
   private final JLabel myIconLabel;
@@ -69,26 +69,20 @@ public class NlReferenceEditor implements NlComponentEditor {
   private NlProperty myProperty;
   private String myLastReadValue;
   private String myLastWriteValue;
-  private JLabel myLabel;
 
-  public interface EditingListener {
-    void stopEditing(@NotNull NlReferenceEditor editor, @NotNull String value);
-    void cancelEditing(@NotNull NlReferenceEditor editor);
-  }
-
-  public static NlReferenceEditor createForTable(@NotNull Project project, @NotNull EditingListener listener) {
+  public static NlReferenceEditor createForTable(@NotNull Project project, @NotNull NlEditingListener listener) {
     return new NlReferenceEditor(project, listener, true);
   }
 
-  public static NlReferenceEditor createForInspector(@NotNull Project project, @NotNull EditingListener listener) {
+  public static NlReferenceEditor createForInspector(@NotNull Project project, @NotNull NlEditingListener listener) {
     return new NlReferenceEditor(project, listener, false);
   }
 
-  public static NlReferenceEditor createForInspectorWithBrowseButton(@NotNull Project project, @NotNull EditingListener listener) {
+  public static NlReferenceEditor createForInspectorWithBrowseButton(@NotNull Project project, @NotNull NlEditingListener listener) {
     return new NlReferenceEditor(project, listener, true);
   }
 
-  private NlReferenceEditor(@NotNull Project project, @NotNull EditingListener listener, boolean includeBrowseButton) {
+  private NlReferenceEditor(@NotNull Project project, @NotNull NlEditingListener listener, boolean includeBrowseButton) {
     myIncludeBrowseButton = includeBrowseButton;
     myListener = listener;
     myPanel = new JPanel(new BorderLayout(SystemInfo.isMac ? 0 : 2, 0));
@@ -186,34 +180,8 @@ public class NlReferenceEditor implements NlComponentEditor {
   }
 
   @Override
-  public void refresh() {
-    if (myProperty != null) {
-      setProperty(myProperty);
-    }
-  }
-
-  @Override
   public void requestFocus() {
     myTextFieldWithAutoCompletion.requestFocus();
-  }
-
-  @Override
-  @Nullable
-  public JLabel getLabel() {
-    return myLabel;
-  }
-
-  @Override
-  public void setLabel(@NotNull JLabel label) {
-    myLabel = label;
-  }
-
-  @Override
-  public void setVisible(boolean visible) {
-    myPanel.setVisible(visible);
-    if (myLabel != null) {
-      myLabel.setVisible(visible);
-    }
   }
 
   @NotNull

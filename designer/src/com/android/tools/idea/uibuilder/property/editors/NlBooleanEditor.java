@@ -15,22 +15,23 @@
  */
 package com.android.tools.idea.uibuilder.property.editors;
 
+import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 import com.android.tools.idea.uibuilder.property.NlProperty;
-import com.android.tools.idea.uibuilder.property.ptable.PTableCellEditor;
 import com.android.tools.idea.uibuilder.property.renderer.NlBooleanRenderer;
 import com.intellij.openapi.ui.FixedSizeButton;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.UIBundle;
 import com.intellij.util.ui.ThreeStateCheckBox;
 import com.intellij.util.ui.UIUtil;
-import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
-public class NlBooleanEditor extends PTableCellEditor implements ActionListener {
+public class NlBooleanEditor extends NlBaseComponentEditor implements NlComponentEditor {
+  private final NlEditingListener myListener;
   private final JPanel myPanel;
   private final FixedSizeButton myBrowseButton;
   private final ThreeStateCheckBox myCheckbox;
@@ -38,75 +39,96 @@ public class NlBooleanEditor extends PTableCellEditor implements ActionListener 
   private NlProperty myProperty;
   private Object myValue;
 
-  public NlBooleanEditor() {
-    myPanel = new JPanel(new BorderLayout(SystemInfo.isMac ? 0 : 2, 0));
+  public static NlBooleanEditor createForTable(@NotNull NlEditingListener listener) {
+    return new NlBooleanEditor(listener, true);
+  }
 
+  public static NlBooleanEditor createForInspector(@NotNull NlEditingListener listener) {
+    return new NlBooleanEditor(listener, false);
+  }
+
+  private NlBooleanEditor(@NotNull NlEditingListener listener, boolean includeBrowseButton) {
+    myListener = listener;
     myCheckbox = new ThreeStateCheckBox();
-    myPanel.add(myCheckbox, BorderLayout.LINE_START);
+    myCheckbox.addActionListener(this::checkboxChanged);
 
-    myBrowseButton = new FixedSizeButton(myCheckbox);
-    myBrowseButton.setToolTipText(UIBundle.message("component.with.browse.button.browse.button.tooltip.text"));
-    myPanel.add(myBrowseButton, BorderLayout.LINE_END);
+    if (!includeBrowseButton) {
+      myPanel = null;
+      myBrowseButton = null;
+    }
+    else {
+      myPanel = new JPanel(new BorderLayout(SystemInfo.isMac ? 0 : 2, 0));
+      myPanel.add(myCheckbox, BorderLayout.LINE_START);
 
-    myCheckbox.addActionListener(this);
-    myBrowseButton.addActionListener(this);
+      myBrowseButton = new FixedSizeButton(myCheckbox);
+      myBrowseButton.setToolTipText(UIBundle.message("component.with.browse.button.browse.button.tooltip.text"));
+      myPanel.add(myBrowseButton, BorderLayout.LINE_END);
+
+      myBrowseButton.addActionListener(this::browse);
+    }
+  }
+
+  @Nullable
+  @Override
+  public NlProperty getProperty() {
+    return myProperty;
   }
 
   @Override
-  public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-    assert value instanceof NlProperty;
-
-    myProperty = (NlProperty)value;
+  public void setProperty(@NotNull NlProperty property) {
+    myProperty = property;
 
     Color fg = UIUtil.getTableSelectionForeground();
     Color bg = UIUtil.getTableSelectionBackground();
 
-    myPanel.setForeground(fg);
-    myPanel.setBackground(bg);
+    if (myPanel != null) {
+      myPanel.setForeground(fg);
+      myPanel.setBackground(bg);
 
-    for (int i = 0; i < myPanel.getComponentCount(); i++) {
-      Component comp = myPanel.getComponent(i);
-      comp.setForeground(fg);
-      comp.setBackground(bg);
+      for (int i = 0; i < myPanel.getComponentCount(); i++) {
+        Component comp = myPanel.getComponent(i);
+        comp.setForeground(fg);
+        comp.setBackground(bg);
+      }
+    }
+    else {
+      myCheckbox.setForeground(fg);
+      myCheckbox.setBackground(bg);
     }
 
     String propValue = myProperty.getValue();
     myValue = propValue;
     ThreeStateCheckBox.State state = NlBooleanRenderer.getState(propValue);
     myCheckbox.setState(state == null ? ThreeStateCheckBox.State.NOT_SELECTED : state);
-
-    return myPanel;
   }
 
+  @NotNull
   @Override
-  public Object getCellEditorValue() {
+  public JComponent getComponent() {
+    return myPanel != null ? myPanel : myCheckbox;
+  }
+
+  public Object getValue() {
     return myValue;
   }
 
-  @Override
-  public void actionPerformed(ActionEvent e) {
-    if (e.getSource() == myCheckbox) {
-      myValue = NlBooleanRenderer.getBoolean(myCheckbox.getState());
-      stopCellEditing();
-    } else if (e.getSource() == myBrowseButton) {
-      ChooseResourceDialog dialog = NlReferenceEditor.showResourceChooser(myProperty);
-      if (dialog.showAndGet()) {
-        myValue = dialog.getResourceName();
-        stopCellEditing();
-      } else {
-        cancelCellEditing();
-      }
-    }
-  }
-
-  @Override
-  public void activate() {
+  public void setNextState() {
     myValue = NlBooleanRenderer.getNextState(myCheckbox.getState());
-    stopCellEditing();
+    myListener.stopEditing(this, myValue);
   }
 
-  @Override
-  public boolean isBooleanEditor() {
-    return true;
+  private void checkboxChanged(ActionEvent e) {
+    myValue = NlBooleanRenderer.getBoolean(myCheckbox.getState());
+    myListener.stopEditing(this, myValue);
+  }
+
+  private void browse(ActionEvent e) {
+    ChooseResourceDialog dialog = NlReferenceEditor.showResourceChooser(myProperty);
+    if (dialog.showAndGet()) {
+      myValue = dialog.getResourceName();
+      myListener.stopEditing(this, myValue);
+    } else {
+      myListener.cancelEditing(this);
+    }
   }
 }

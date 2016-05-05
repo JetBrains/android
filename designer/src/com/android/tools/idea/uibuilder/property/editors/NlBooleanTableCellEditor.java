@@ -17,30 +17,39 @@ package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.ptable.PTableCellEditor;
-import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
 
-public class NlReferenceTableCellEditor extends PTableCellEditor implements NlEditingListener {
-  private final NlReferenceEditor myReferenceEditor;
+public class NlBooleanTableCellEditor extends PTableCellEditor implements NlEditingListener {
+  private NlBooleanEditor myEditor;
 
-  public NlReferenceTableCellEditor(@NotNull Project project) {
-    myReferenceEditor = NlReferenceEditor.createForTable(project, this);
+  public NlBooleanTableCellEditor() {
+    myEditor = NlBooleanEditor.createForTable(this);
   }
 
   @Override
   public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
     assert value instanceof NlProperty;
-    myReferenceEditor.setProperty((NlProperty)value);
-    return myReferenceEditor.getComponent();
+    myEditor.setProperty((NlProperty)value);
+    return myEditor.getComponent();
   }
 
   @Override
   public Object getCellEditorValue() {
-    return myReferenceEditor.getValue();
+    return myEditor.getValue();
+  }
+
+  @Override
+  public void activate() {
+    myEditor.setNextState();
+  }
+
+  @Override
+  public boolean isBooleanEditor() {
+    return true;
   }
 
   @Override
