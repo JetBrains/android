@@ -638,6 +638,9 @@ public class ConstraintUtilities {
       widget.setDimension(constraintModel.pxToDp(component.w),
                           constraintModel.pxToDp(component.h));
     }
+    widget.setMinWidth(constraintModel.pxToDp(component.getMinimumWidth()));
+    widget.setMinHeight(constraintModel.pxToDp(component.getMinimumHeight()));
+
     NlComponent parent = component.getParent();
     NlModel model = component.getModel();
     if (parent != null) {
