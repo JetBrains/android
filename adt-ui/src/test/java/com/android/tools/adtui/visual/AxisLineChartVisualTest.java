@@ -18,6 +18,8 @@ package com.android.tools.adtui.visual;
 
 import com.android.annotations.NonNull;
 import com.android.tools.adtui.*;
+import com.android.tools.adtui.config.LineConfig;
+import com.android.tools.adtui.model.LegendRenderData;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 
 import javax.swing.*;
@@ -31,6 +33,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class AxisLineChartVisualTest extends VisualTest {
 
   private static final int AXIS_SIZE = 100;
+
+  private static final int LABEL_UPDATE_MILLIS = 100;
 
   private long mStartTimeMs;
 
@@ -64,6 +68,10 @@ public class AxisLineChartVisualTest extends VisualTest {
   @NonNull
   private RangeScrollbar mScrollbar;
 
+  @NonNull
+  private LegendComponent mLegendComponent;
+
+
   @Override
   protected List<Animatable> createComponentsList() {
     mData = new ArrayList<>();
@@ -95,8 +103,12 @@ public class AxisLineChartVisualTest extends VisualTest {
                                      new MemoryAxisDomain(4, 10, 5));
     RangedContinuousSeries ranged2 = new RangedContinuousSeries(xRange, yRange2Animatable);
     mData.add(ranged2);
-
     mLineChart.addLines(mData);
+    LegendRenderData[] legendRenderInfo = {
+      new LegendRenderData("Sending", LegendRenderData.IconType.BOX, LineConfig.COLORS[0], mData.get(0)),
+      new LegendRenderData("Receiving", LegendRenderData.IconType.LINE, LineConfig.COLORS[1], null)
+    };
+    mLegendComponent = new LegendComponent(legendRenderInfo, LegendComponent.Orientation.VERTICAL, LABEL_UPDATE_MILLIS, new MemoryAxisDomain(4, 10, 5));
 
     mGrid = new GridComponent();
     mGrid.addAxis(mTimeAxis);
@@ -120,7 +132,8 @@ public class AxisLineChartVisualTest extends VisualTest {
                          mGrid, // No-op.
                          xRange, // Reset flags.
                          mXGlobalRange, // Reset flags.
-                         xSelectionRange); // Reset flags.
+                         xSelectionRange,
+                         mLegendComponent); // Reset flags.
   }
 
   @Override
@@ -131,6 +144,7 @@ public class AxisLineChartVisualTest extends VisualTest {
     components.add(mMemoryAxis1);
     components.add(mMemoryAxis2);
     components.add(mGrid);
+    components.add(mLegendComponent);
   }
 
   @Override
@@ -252,6 +266,10 @@ public class AxisLineChartVisualTest extends VisualTest {
     timelinePane.add(mSelection);
     timelinePane.add(mGrid);
     timelinePane.add(mScrollbar);
+    JPanel labelPanel = new JPanel();
+    labelPanel.setLayout(new FlowLayout());
+    labelPanel.add(mLegendComponent);
+    timelinePane.add(labelPanel);
     timelinePane.addComponentListener(new ComponentAdapter() {
       @Override
       public void componentResized(ComponentEvent e) {
