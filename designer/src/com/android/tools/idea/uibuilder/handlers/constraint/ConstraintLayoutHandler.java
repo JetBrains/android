@@ -36,6 +36,9 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.AWTEventListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
@@ -78,6 +81,24 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
    */
   public ConstraintLayoutHandler() {
     loadWidgetDecoratorImages();
+    Toolkit.getDefaultToolkit().addAWTEventListener(new AWTEventListener() {
+      boolean mKey;
+
+      @Override
+      public void eventDispatched(AWTEvent event) {
+        if (event instanceof KeyEvent) {
+          KeyEvent e = (KeyEvent)event;
+          if (mKey != e.isControlDown()) {
+            mKey = e.isControlDown();
+            controlDownUpdate(mKey);
+          }
+        }
+      }
+    }, WindowEvent.KEY_EVENT_MASK);
+  }
+
+  private void controlDownUpdate(boolean key) {
+    mControlIsPressed = key;
   }
 
   private void loadWidgetDecoratorImages() {
@@ -493,15 +514,11 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
 
       @Override
       public void paintIcon(Component c, Graphics g, int x, int y) {
+
         myIcon.paintIcon(c, g, x, y);
         if (mControlIsPressed) {
-          g.setColor(new Color(0, 0, 200, 150));
-          if (c.getWidth() > 2 * getIconWidth()) {
-            g.fillRect(2, 2, 4, c.getHeight());
-          }
-          else {
-            g.fillRect(2, c.getHeight() - 4, c.getWidth() - 4, 4);
-          }
+          g.setColor(new Color(0x03a9f4));
+          g.fillRect(x, y + getIconHeight() - 2, getIconWidth(), 2);
         }
       }
 
@@ -517,7 +534,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     };
   }
 
-  private static class AlignAction extends DirectViewAction implements Enableable {
+  private class AlignAction extends DirectViewAction implements Enableable {
     private final Scout.Arrange myActionType;
     private final Icon myAlignIcon;
     private final String myToolTip;
@@ -566,7 +583,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
         return;
       }
 
-      Scout.arrangeWidgets(myActionType, model.getSelection().getWidgets(), model.isAutoConnect());
+      Scout.arrangeWidgets(myActionType, model.getSelection().getWidgets(), mControlIsPressed || model.isAutoConnect());
       model.saveToXML();
     }
 
@@ -581,5 +598,4 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       presentation.setLabel(myToolTip);
     }
   }
-
 }

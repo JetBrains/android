@@ -19,12 +19,14 @@ import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.sherpa.drawing.ConnectionDraw;
 import com.intellij.openapi.util.text.StringUtil;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.plaf.basic.BasicSliderUI;
 import java.awt.*;
+import java.util.*;
 
 /**
  * UI component for Constraint Inspector
@@ -37,12 +39,12 @@ public class WidgetConstraintPanel extends JPanel {
   private String mWidgetWidthCache;
   private String mWidgetHeightCache;
 
-  public WidgetConstraintPanel(NlComponent component) {
+  public WidgetConstraintPanel(@NotNull java.util.List<NlComponent> components) {
     super(new GridBagLayout());
     mMain = new SingleWidgetView(this);
     setPreferredSize(new Dimension(200, 216));
-    mComponent = component;
-    configureUI(component);
+    mComponent = components.get(0);
+    configureUI(mComponent);
     GridBagConstraints gbc = new GridBagConstraints();
     gbc.gridy = 0;
     gbc.gridx = 0;

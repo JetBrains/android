@@ -42,7 +42,7 @@ public class TextWidget extends WidgetDecorator {
     protected int mAlignmentY = TEXT_ALIGNMENT_VIEW_START;
     private String mText;
     protected Font mFont = new Font("Helvetica", Font.PLAIN, 12);
-    private float mFontSize = 18;
+    private float mFontSize = 14;
     private boolean mDisplayText = true;
 
     /**
@@ -89,7 +89,7 @@ public class TextWidget extends WidgetDecorator {
     }
 
     public static int androidToSwingFontSize(float fontSize) {
-        return  (int) Math.round((fontSize * 1.333f + 4.5f) / 2.41f);
+        return  (int) Math.round((fontSize * 2f + 4.5f) / 2.41f);
     }
     /**
      * Accessor for the text content
