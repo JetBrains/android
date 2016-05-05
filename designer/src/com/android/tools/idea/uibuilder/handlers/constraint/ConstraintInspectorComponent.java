@@ -26,11 +26,11 @@ import java.util.List;
  * This is the builder for the Constraint panel
  */
 public class ConstraintInspectorComponent implements InspectorComponent {
-  NlComponent mComponent;
+  List<NlComponent>  mComponents;
 
   public ConstraintInspectorComponent(@NotNull List<NlComponent> components) {
     // TODO: Support multiple components
-    mComponent = components.get(0);
+    mComponents = components;
   }
 
   @Override
@@ -40,7 +40,7 @@ public class ConstraintInspectorComponent implements InspectorComponent {
 
   @Override
   public void attachToInspector(@NotNull InspectorPanel inspector) {
-    inspector.addPanel(new WidgetConstraintPanel(mComponent));
+    inspector.addPanel(new WidgetConstraintPanel(mComponents));
     inspector.addSeparator();
 
     refresh();
