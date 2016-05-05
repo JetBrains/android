@@ -387,7 +387,7 @@ public class ConstraintModel implements ModelListener {
    */
   public void saveToXML() {
     ourLock.lock();
-    myModificationCount ++;
+    myModificationCount = myNlModel.getModificationCount() + 1;
     ourLock.unlock();
 
     ConstraintUtilities.saveModelToXML(myNlModel);
