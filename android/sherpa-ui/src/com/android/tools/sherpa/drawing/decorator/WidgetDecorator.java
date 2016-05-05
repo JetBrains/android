@@ -757,7 +757,7 @@ public class WidgetDecorator {
 
         g.setColor(mColorSet.getSelectedFrames());
         for (WidgetAction action : mWidgetActions) {
-            action.update(mWidget);
+            action.update();
             if (!action.isVisible()) {
                 continue;
             }
