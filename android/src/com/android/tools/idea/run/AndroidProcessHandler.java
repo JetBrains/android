@@ -117,7 +117,7 @@ public class AndroidProcessHandler extends DefaultDebugProcessHandler implements
         notifyTextAvailable(message + "\n", key);
       }
     };
-    AndroidLogcatService.getInstance().addListener(device, logListener);
+    AndroidLogcatService.getInstance().addListener(device, logListener, true);
     myLogListeners.put(device, logListener);
 
     setMinDeviceApiLevel(device.getVersion());
