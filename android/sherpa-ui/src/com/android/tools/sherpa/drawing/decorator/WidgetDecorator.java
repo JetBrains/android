@@ -63,6 +63,7 @@ public class WidgetDecorator {
     private boolean mIsSelected = false;
     private boolean mShowResizeHandles = false;
     private boolean mShowSizeIndicator = false;
+    private boolean mShowActions = true;
     protected ColorSet mColorSet;
 
     private SceneDraw.Repaintable mRepaintableSurface;
@@ -412,6 +413,15 @@ public class WidgetDecorator {
     }
 
     /**
+     * Set to true to show widget actions if present
+     *
+     * @param value
+     */
+    public void setShowActions(boolean value) {
+        mShowActions = value;
+    }
+
+    /**
      * Set to true to show the size indicator for this decorator widget
      *
      * @param value
@@ -742,6 +752,9 @@ public class WidgetDecorator {
             return;
         }
         if (!mShowResizeHandles) {
+            return;
+        }
+        if (!mShowActions) {
             return;
         }
         if (mWidgetActions.size() == 0) {
