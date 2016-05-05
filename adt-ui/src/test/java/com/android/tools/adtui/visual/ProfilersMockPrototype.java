@@ -26,6 +26,7 @@ public class ProfilersMockPrototype {
     SwingUtilities.invokeAndWait(() -> {
       VisualTestsDialog dialog = new VisualTestsDialog();
       dialog.setTitle(PROFILERS_DIALOG_TITLE);
+      dialog.addTest(new NetworkProfilerVisualTest());
       dialog.addTest(new CPUProfilerVisualTest());
       dialog.addTest(new MemoryProfilerVisualTest());
       dialog.pack();
