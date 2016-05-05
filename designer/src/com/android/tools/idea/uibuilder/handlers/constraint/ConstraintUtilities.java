@@ -649,14 +649,15 @@ public class ConstraintUtilities {
         }
       }
     }
+
     // FIXME: need to agree on the correct magic value for this rather than simply using zero.
     String layout_width = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH);
     if ((component.w == 0) || (layout_width != null && (layout_width.equalsIgnoreCase("0") || layout_width.equalsIgnoreCase("0dp")))) {
       widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.ANY);
     }
     else if (layout_width != null && layout_width.equalsIgnoreCase(SdkConstants.VALUE_WRAP_CONTENT)) {
-      widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.WRAP_CONTENT);
       widget.setWrapWidth(widget.getWidth());
+      widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.WRAP_CONTENT);
     }
     else {
       widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.FIXED);
@@ -666,14 +667,12 @@ public class ConstraintUtilities {
       widget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.ANY);
     }
     else if (layout_height != null && layout_height.equalsIgnoreCase(SdkConstants.VALUE_WRAP_CONTENT)) {
-      widget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.WRAP_CONTENT);
       widget.setWrapHeight(widget.getHeight());
+      widget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.WRAP_CONTENT);
     }
     else {
       widget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.FIXED);
     }
-    widget.setMinWidth(widget.getMinWidth());
-    widget.setMinHeight(widget.getMinHeight());
 
     int x = constraintModel.pxToDp(component.x);
     int y = constraintModel.pxToDp(component.y);
