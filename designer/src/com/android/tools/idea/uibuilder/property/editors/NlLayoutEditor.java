@@ -399,10 +399,10 @@ public class NlLayoutEditor extends JPanel {
     };
   }
 
-  private NlReferenceEditor.EditingListener createReferenceListener() {
-    return new NlReferenceEditor.EditingListener() {
+  private NlEditingListener createReferenceListener() {
+    return new NlEditingListener() {
       @Override
-      public void stopEditing(@NotNull NlReferenceEditor editor, @NotNull String value) {
+      public void stopEditing(@NotNull NlComponentEditor editor, @Nullable Object value) {
         JLabel label = editor.getLabel();
         assert label != null;
         AttributeDependency dependency = (AttributeDependency)label.getClientProperty(ATTRIBUTE_DEPENDENCY_KEY);
@@ -412,7 +412,7 @@ public class NlLayoutEditor extends JPanel {
       }
 
       @Override
-      public void cancelEditing(@NotNull NlReferenceEditor editor) {
+      public void cancelEditing(@NotNull NlComponentEditor editor) {
         closeEditor(editor);
       }
     };
@@ -569,7 +569,7 @@ public class NlLayoutEditor extends JPanel {
       return " ";
     }
 
-    public void setValue(@NotNull Map<String, NlProperty> properties, @Nullable String newValue) {
+    public void setValue(@NotNull Map<String, NlProperty> properties, @Nullable Object newValue) {
       NlProperty property = properties.get(myAttribute);
       assert property != null;
       if (newValue != null) {

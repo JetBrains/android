@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.property.inspector;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.*;
@@ -24,22 +23,18 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.List;
 import java.util.Map;
 
 public class IdInspectorComponent implements InspectorComponent {
-  private final NlPropertiesManager myPropertiesManager;
   private final NlProperty myIdAttr;
   private final NlReferenceEditor myIdField;
   private final NlLayoutEditor myLayoutEditor;
 
   public IdInspectorComponent(@NotNull Map<String, NlProperty> properties,
                               @NotNull NlPropertiesManager propertiesManager) {
-    myPropertiesManager = propertiesManager;
-
     myIdAttr = properties.get(SdkConstants.ATTR_ID);
 
-    myIdField = NlReferenceEditor.createForInspector(propertiesManager.getProject(), createReferenceListener());
+    myIdField = NlReferenceEditor.createForInspector(propertiesManager.getProject(), NlEditingListener.DEFAULT_LISTENER);
     myLayoutEditor = new NlLayoutEditor(propertiesManager.getProject());
     myLayoutEditor.setSelectedComponents(properties);
   }
@@ -91,21 +86,5 @@ public class IdInspectorComponent implements InspectorComponent {
       myIdField.setProperty(myIdAttr);
     }
     myLayoutEditor.refresh();
-  }
-
-  private NlReferenceEditor.EditingListener createReferenceListener() {
-    return new NlReferenceEditor.EditingListener() {
-      @Override
-      public void stopEditing(@NotNull NlReferenceEditor source, @NotNull String value) {
-        if (source.getProperty() != null) {
-          myPropertiesManager.setValue(source.getProperty(), value);
-          source.setProperty(source.getProperty());
-        }
-      }
-
-      @Override
-      public void cancelEditing(@NotNull NlReferenceEditor editor) {
-      }
-    };
   }
 }
