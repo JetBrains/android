@@ -27,6 +27,7 @@ import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrNamedArgument;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrCommandArgumentList;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrString;
@@ -216,7 +217,13 @@ public final class GradleDslLiteral extends GradleDslExpression {
       }
     }
     else {
-      PsiElement added = psiElement.addAfter(newLiteral, psiElement.getLastChild());
+      PsiElement added;
+      if (psiElement instanceof GrArgumentList && !(psiElement instanceof GrCommandArgumentList)) { // Method call arguments in ().
+        added = psiElement.addBefore(newLiteral, psiElement.getLastChild()); // add before )
+      }
+      else {
+        added = psiElement.addAfter(newLiteral, psiElement.getLastChild());
+      }
       if (added instanceof GrLiteral) {
         myExpression = (GrLiteral)added;
       }
