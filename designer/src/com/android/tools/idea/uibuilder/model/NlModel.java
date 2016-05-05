@@ -1468,12 +1468,16 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   @Override
   public void dispose() {
     deactivate(); // ensure listeners are unregistered if necessary
-    synchronized (RENDERING_LOCK) {
-      if (myRenderTask != null) {
-        myRenderTask.dispose();
-        myRenderTask = null;
+
+    // dispose is called by the project close using the read lock. Invoke the render task dispose later without the lock.
+    ApplicationManager.getApplication().invokeLater(() -> {
+      synchronized (RENDERING_LOCK) {
+        if (myRenderTask != null) {
+          myRenderTask.dispose();
+          myRenderTask = null;
+        }
       }
-    }
+    });
   }
 
   @Override
