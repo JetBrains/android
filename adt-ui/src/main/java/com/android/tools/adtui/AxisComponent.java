@@ -21,6 +21,9 @@ import gnu.trove.TFloatArrayList;
 import java.awt.*;
 import java.awt.geom.Line2D;
 
+import static com.android.tools.adtui.AxisComponent.AxisOrientation.LEFT;
+import static com.android.tools.adtui.AxisComponent.AxisOrientation.RIGHT;
+
 /**
  * A component that draw an axis based on data from a {@link Range} object.
  */
@@ -38,6 +41,8 @@ public final class AxisComponent extends AnimatedComponent {
   private static final int MAJOR_MARKER_LENGTH = 12;
   private static final int MINOR_MARKER_LENGTH = 3;
   private static final int MARKER_LABEL_MARGIN = 2;
+  private static final int LABEL_BOUNDS_OFFSET = 5;
+  private static final int MAXIMUM_LABEL_WIDTH = 50;
 
   /**
    * The axis to which this axis should sync its intervals to.
@@ -337,8 +342,8 @@ public final class AxisComponent extends AnimatedComponent {
     g2d.setColor(TEXT_COLOR);
 
     if (mShowMinMax) {
-      drawMarkerLabel(g2d, 0, origin, mCurrentMinValue, true);
-      drawMarkerLabel(g2d, mAxisLength, origin, mCurrentMaxValue, true);
+      drawMarkerLabel(g2d, LABEL_BOUNDS_OFFSET, origin, mCurrentMinValue, true);
+      drawMarkerLabel(g2d, mAxisLength - LABEL_BOUNDS_OFFSET, origin, mCurrentMaxValue, true);
     }
 
     // TODO fade in/out markers.
@@ -431,5 +436,12 @@ public final class AxisComponent extends AnimatedComponent {
     if (isMinMax || (markerOffset - reserved > 0 && markerOffset + reserved < mAxisLength)) {
       g2d.drawString(formattedValue, labelX, labelY);
     }
+  }
+
+  @Override
+  public Dimension getPreferredSize() {
+    int width = MAJOR_MARKER_LENGTH + MARKER_LABEL_MARGIN + MAXIMUM_LABEL_WIDTH;
+    int height = mStartMargin + mEndMargin;
+    return (mOrientation == LEFT || mOrientation == RIGHT) ? new Dimension(width, height) : new Dimension(height, width);
   }
 }
