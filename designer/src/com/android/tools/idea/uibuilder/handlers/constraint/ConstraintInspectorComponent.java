@@ -31,6 +31,11 @@ public class ConstraintInspectorComponent implements InspectorComponent {
   }
 
   @Override
+  public int getMaxNumberOfRows() {
+    return 2;
+  }
+
+  @Override
   public void attachToInspector(@NotNull InspectorPanel inspector) {
     inspector.addPanel(new WidgetConstraintPanel(mComponent));
     inspector.addSeparator();
