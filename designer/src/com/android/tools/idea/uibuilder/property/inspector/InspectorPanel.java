@@ -91,6 +91,7 @@ public class InspectorPanel extends JPanel {
     InspectorProvider[] allProviders = new InspectorProvider[]{
       new ConstraintInspectorProvider(),
       new IdInspectorProvider(),
+      new ImageViewInspectorProvider(),
       new TextInspectorProvider(),
       new FontInspectorProvider(),
     };
