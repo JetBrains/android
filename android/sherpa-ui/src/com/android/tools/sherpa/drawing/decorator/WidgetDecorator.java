@@ -16,11 +16,14 @@
 
 package com.android.tools.sherpa.drawing.decorator;
 
+import com.android.tools.sherpa.animation.AnimatedColor;
 import com.android.tools.sherpa.drawing.ColorSet;
 import com.android.tools.sherpa.drawing.ConnectionDraw;
+import com.android.tools.sherpa.drawing.SceneDraw;
 import com.android.tools.sherpa.drawing.SnapDraw;
 import com.android.tools.sherpa.drawing.ViewTransform;
 import com.android.tools.sherpa.interaction.ConstraintHandle;
+import com.android.tools.sherpa.interaction.DrawPicker;
 import com.android.tools.sherpa.interaction.MouseInteraction;
 import com.android.tools.sherpa.interaction.WidgetInteractionTargets;
 import com.android.tools.sherpa.structure.Selection;
@@ -31,6 +34,7 @@ import com.google.tnt.solver.widgets.ConstraintWidget;
 import com.google.tnt.solver.widgets.ConstraintWidgetContainer;
 
 import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -46,13 +50,22 @@ public class WidgetDecorator {
     public static final int BLUEPRINT_STYLE = 0;
     public static final int ANDROID_STYLE = 1;
 
+    public static ImageIcon sLockImageIcon = null;
+    public static ImageIcon sUnlockImageIcon = null;
+    public static ImageIcon sDeleteConnectionsImageIcon = null;
+
     private static boolean sShowAllConstraints = false;
     private static boolean sShowTextUI = false;
+
+    private static Font sFont = new Font("Helvetica", Font.PLAIN, 12);
+
     private boolean mIsVisible = true;
     private boolean mIsSelected = false;
     private boolean mShowResizeHandles = false;
     private boolean mShowSizeIndicator = false;
     protected ColorSet mColorSet;
+
+    private SceneDraw.Repaintable mRepaintableSurface;
 
     private AnimationProgress mShowBaseline = new AnimationProgress();
     private AnimationProgress mShowBias = new AnimationProgress();
@@ -60,9 +73,22 @@ public class WidgetDecorator {
     public static Font sInfoFont = new Font("Helvetica", Font.PLAIN, 12);
     private MouseInteraction.LockTimer mLockTimer;
 
-    public void setLockTimer(MouseInteraction.LockTimer lockTimer) {
-        mLockTimer = lockTimer;
-    }
+    private ArrayList<WidgetAction> mWidgetActions = new ArrayList<>();
+
+    private EnumSet<WidgetDraw.ANCHORS_DISPLAY> mDisplayAnchorsPolicy =
+            EnumSet.of(WidgetDraw.ANCHORS_DISPLAY.NONE);
+
+    private ColorTheme mBackgroundColor;
+    private ColorTheme mFrameColor;
+    protected ColorTheme mTextColor;
+    private ColorTheme mConstraintsColor;
+
+    private ColorTheme.Look mLook;
+
+    protected final ConstraintWidget mWidget;
+    private int mStyle;
+
+    private final static int ACTION_SIZE = 22;
 
     /**
      * Utility class encapsulating a simple animation timer
@@ -120,19 +146,6 @@ public class WidgetDecorator {
         }
     }
 
-    private EnumSet<WidgetDraw.ANCHORS_DISPLAY> mDisplayAnchorsPolicy =
-            EnumSet.of(WidgetDraw.ANCHORS_DISPLAY.NONE);
-
-    private ColorTheme mBackgroundColor;
-    private ColorTheme mFrameColor;
-    protected ColorTheme mTextColor;
-    private ColorTheme mConstraintsColor;
-
-    private ColorTheme.Look mLook;
-
-    protected final ConstraintWidget mWidget;
-    private int mStyle;
-
     /**
      * Utility function to load an image from the resources
      *
@@ -166,6 +179,48 @@ public class WidgetDecorator {
         mShowBias.setDuration(1000);
         mShowBaseline.setDelay(1000);
         mShowBaseline.setDuration(1000);
+        if (sLockImageIcon != null) {
+            // Temporary protection to not show in studio
+            mWidgetActions.add(new LockWidgetAction(mWidget));
+            mWidgetActions.add(new DeleteConnectionsWidgetAction(mWidget));
+        }
+    }
+
+    public void setLockTimer(MouseInteraction.LockTimer lockTimer) {
+        mLockTimer = lockTimer;
+    }
+
+    /**
+     * Accessor for the actions on this widget
+     * @return list of available actions
+     */
+    public ArrayList<WidgetAction> getWidgetActions() { return mWidgetActions; }
+
+    /**
+     * Set a repaintable object
+     *
+     * @param repaintableSurface
+     */
+    public void setRepaintableSurface(SceneDraw.Repaintable repaintableSurface) {
+        mRepaintableSurface = repaintableSurface;
+    }
+
+    /**
+     * Call repaint() on the repaintable object
+     */
+    public void repaint() {
+        if (mRepaintableSurface != null) {
+            mRepaintableSurface.repaint();
+        }
+    }
+
+    /**
+     * Call repaint() on the repaintable object
+     */
+    public void repaint(int x, int y, int w, int h) {
+        if (mRepaintableSurface != null) {
+            mRepaintableSurface.repaint(x, y, w, h);
+        }
     }
 
     /**
@@ -330,6 +385,7 @@ public class WidgetDecorator {
             setLook(ColorTheme.Look.SELECTED);
             mShowBaseline.start();
             mShowBias.start();
+            showActions();
         } else {
             setLook(ColorTheme.Look.NORMAL);
             mShowBaseline.reset();
@@ -670,6 +726,47 @@ public class WidgetDecorator {
     }
 
     /**
+     * Paint the actions (if any) of this widget
+     *
+     * @param transform the view transform
+     * @param g         the graphics context
+     */
+    public void onPaintActions(ViewTransform transform, Graphics2D g) {
+        if (!mIsSelected) {
+            return;
+        }
+        if (mColorSet == null) {
+            return;
+        }
+        if (mWidget.getVisibility() == ConstraintWidget.GONE) {
+            return;
+        }
+        if (!mShowResizeHandles) {
+            return;
+        }
+        if (mWidgetActions.size() == 0) {
+            return;
+        }
+
+        int l = transform.getSwingFX(mWidget.getDrawX());
+        int t = transform.getSwingFY(mWidget.getDrawY());
+        int h = transform.getSwingDimension(mWidget.getHeight());
+
+        int x = l;
+        int y = t + h + ConnectionDraw.CONNECTION_ANCHOR_SIZE + 4;
+
+        g.setColor(mColorSet.getSelectedFrames());
+        for (WidgetAction action : mWidgetActions) {
+            action.update(mWidget);
+            if (!action.isVisible()) {
+                continue;
+            }
+            action.onPaint(transform, g, x, y);
+            x += ACTION_SIZE + ConnectionDraw.CONNECTION_ANCHOR_SIZE;
+        }
+    }
+
+    /**
      * Paint the horizontal and vertical informations of this widget, if appropriate
      *
      * @param transform the view transform
@@ -948,4 +1045,302 @@ public class WidgetDecorator {
     public void setStyle(int style) {
         mStyle = style;
     }
+
+    /**
+     * Make the actions appear
+     */
+    private void showActions() {
+        if (mColorSet == null) {
+            return;
+        }
+        int delay = 0;
+        for (WidgetAction action : mWidgetActions) {
+            action.show(delay);
+            delay += 250;
+        }
+        repaint();
+    }
+
+    /*-----------------------------------------------------------------------*/
+    // WidgetAction implementation
+    /*-----------------------------------------------------------------------*/
+
+    /**
+     * Base class implementing Widget actions
+     */
+    public class WidgetAction {
+
+        protected AnimatedColor mAnimatedColor;
+        private int mX;
+        private int mY;
+        private boolean mOver = false;
+        protected final ConstraintWidget mWidget;
+
+        public WidgetAction(ConstraintWidget widget) {
+            mWidget = widget;
+        }
+
+        /**
+         * Reimplement to draw a tooltip
+         * @return
+         */
+        String getText() { return null; }
+
+        /**
+         * Called before paint
+         */
+        void update() {}
+
+        /**
+         * Return true if the action is visible
+         * @return
+         */
+        boolean isVisible() { return true; }
+
+        /**
+         * Return true if the click modified the widget
+         * @return
+         */
+        public boolean click() {
+            return false;
+        }
+
+
+        void show(int delay) {
+            mAnimatedColor = new AnimatedColor(new Color(0, 0, 0, 0),
+                    mColorSet.getSelectedFrames());
+            mAnimatedColor.setDuration(500);
+            mAnimatedColor.setDelay(delay);
+            mAnimatedColor.start();
+        }
+
+        /**
+         * Draw a tooltip
+         * @param g
+         * @param x
+         * @param y
+         */
+        void drawText(Graphics2D g, int x, int y) {
+            String text = getText();
+            if (text == null) {
+                return;
+            }
+            Font prefont = g.getFont();
+            Color precolor = g.getColor();
+
+            g.setFont(sFont);
+            FontMetrics fm = g.getFontMetrics(sFont);
+            int textWidth = fm.stringWidth(text);
+            int textHeight = fm.getMaxAscent() + fm.getMaxDescent();
+            int tx = x - textWidth / 2;
+            int ty = y - 12 - textHeight;
+            g.setColor(mColorSet.getTooltipBackground());
+            int padding = 10;
+            g.fillRoundRect(tx - padding, ty - fm.getMaxAscent() - padding,
+                    textWidth + 2 * padding, textHeight + 2 * padding, 8, 8);
+            g.setColor(Color.black);
+            g.drawString(text, tx + 1, ty + 1);
+            g.setColor(mColorSet.getSelectionColor());
+            g.drawString(text, tx, ty);
+
+            g.setFont(prefont);
+            g.setColor(precolor);
+        }
+
+        boolean onPaint(ViewTransform transform, Graphics2D g, int x, int y) {
+            int r = ACTION_SIZE;
+            mX = x;
+            mY = y;
+            x += r / 2;
+            y += r / 2;
+            Color pre = g.getColor();
+            if (!mOver) {
+                if (mAnimatedColor == null || mAnimatedColor.getProgress() == 0) {
+                    if (mAnimatedColor != null && mAnimatedColor.step()) {
+                        repaint(x - r / 2, y - r / 2, r, r);
+                    }
+                    return false;
+                }
+                g.setColor(mAnimatedColor.getColor());
+            } else {
+                g.setColor(mColorSet.getSelectionColor());
+            }
+            int c = 8;
+            if (mAnimatedColor.getProgress() < 1) {
+                repaint(x - r / 2, y - r / 2, r, r);
+            } else {
+                // Draw an outline
+                Color prec = g.getColor();
+                g.setColor(mColorSet.getBackground());
+                g.fillRoundRect(x - r / 2 - 2, y - r / 2 - 2, r + 4, r + 4, c, c);
+                g.drawRoundRect(x - r / 2 - 2, y - r / 2 - 2, r + 4, r + 4, c, c);
+                g.setColor(prec);
+            }
+            g.fillRoundRect(x - r / 2, y - r / 2, r, r, c, c);
+            g.drawRoundRect(x - r / 2, y - r / 2, r, r, c, c);
+            g.setColor(pre);
+            if (mOver) {
+                drawText(g, x, y);
+            }
+            return true;
+        }
+
+        public void over(boolean value) {
+            mOver = value;
+            int r = ACTION_SIZE;
+            repaint(mX - r / 2, mY - r / 2, r, r);
+        }
+
+        public void addToPicker(ViewTransform transform, DrawPicker picker) {
+            picker.addRect(WidgetAction.this, 0, mX, mY, mX + ACTION_SIZE, mY + ACTION_SIZE);
+        }
+
+        public ConstraintWidget getWidget() {
+            return mWidget;
+        }
+
+    }
+
+    /**
+     * Simple action implementing a lock / unlock of the widget constraints
+     */
+    class LockWidgetAction extends WidgetAction {
+
+        int mConstraintsCreator = -1;
+
+        public LockWidgetAction(ConstraintWidget widget) {
+            super(widget);
+        }
+
+        @Override
+        void update() {
+            mConstraintsCreator = getMainConstraintsCreator(mWidget);
+        }
+
+        @Override
+        boolean isVisible() { return mConstraintsCreator != -1; }
+
+        @Override
+        String getText() {
+            if (mConstraintsCreator == ConstraintAnchor.AUTO_CONSTRAINT_CREATOR) {
+                return "Lock Constraints";
+            }
+            return "Unlock Constraints";
+        }
+
+        @Override
+        boolean onPaint(ViewTransform transform, Graphics2D g, int x, int y) {
+            if (!super.onPaint(transform, g, x, y)) {
+                return false;
+            }
+            int m = 4;
+            int rect = ACTION_SIZE - 2 * m;
+            if (mAnimatedColor.getProgress() == 1) {
+                if (sLockImageIcon != null) {
+                    Image image = sUnlockImageIcon.getImage();
+                    if (mConstraintsCreator == ConstraintAnchor.AUTO_CONSTRAINT_CREATOR) {
+                        image = sLockImageIcon.getImage();
+                    }
+                    g.drawImage(image, x + m, y + m,
+                            rect, rect, null, null);
+                }
+            }
+            return true;
+        }
+
+        @Override
+        public boolean click() {
+            if (mConstraintsCreator == ConstraintAnchor.AUTO_CONSTRAINT_CREATOR) {
+                setConstraintsCreator(mWidget, ConstraintAnchor.USER_CREATOR);
+            } else {
+                setConstraintsCreator(mWidget, ConstraintAnchor.AUTO_CONSTRAINT_CREATOR);
+            }
+            repaint();
+            return true;
+        }
+
+        void setConstraintsCreator(ConstraintWidget widget, int creator) {
+            for (ConstraintAnchor anchor : widget.getAnchors()) {
+                if (anchor.isConnected()) {
+                    anchor.setConnectionCreator(creator);
+                }
+            }
+        }
+
+        int getMainConstraintsCreator(ConstraintWidget widget) {
+            int numAuto = 0;
+            int numUser = 0;
+            for (ConstraintAnchor anchor : widget.getAnchors()) {
+                if (anchor.isConnected()) {
+                    if (anchor.getConnectionCreator() == ConstraintAnchor.AUTO_CONSTRAINT_CREATOR) {
+                        numAuto++;
+                    } else {
+                        numUser++;
+                    }
+                }
+            }
+            if (numAuto == 0 && numUser == 0) {
+                return -1;
+            }
+            if (numUser > numAuto) {
+                return ConstraintAnchor.USER_CREATOR;
+            }
+            return ConstraintAnchor.AUTO_CONSTRAINT_CREATOR;
+        }
+
+    }
+
+    /**
+     * Action implementing a deletion of all constraints of the widget
+     */
+    class DeleteConnectionsWidgetAction extends WidgetAction {
+
+        boolean mIsVisible = false;
+
+        public DeleteConnectionsWidgetAction(ConstraintWidget widget) {
+            super(widget);
+        }
+
+        @Override
+        String getText() { return "Delete All Constraints"; }
+
+        @Override
+        void update() {
+            mIsVisible = false;
+            for (ConstraintAnchor anchor : mWidget.getAnchors()) {
+                if (anchor.isConnected()) {
+                    mIsVisible = true;
+                    return;
+                }
+            }
+        }
+
+        @Override
+        boolean isVisible() { return mIsVisible; }
+
+        @Override
+        boolean onPaint(ViewTransform transform, Graphics2D g, int x, int y) {
+            if (!super.onPaint(transform, g, x, y)) {
+                return false;
+            }
+            int m = 4;
+            int rect = ACTION_SIZE - 2 * m;
+            if (mAnimatedColor.getProgress() == 1) {
+                if (sDeleteConnectionsImageIcon != null) {
+                    g.drawImage(sDeleteConnectionsImageIcon.getImage(), x + m, y + m,
+                            rect, rect, null, null);
+                }
+            }
+            return true;
+        }
+
+        @Override
+        public boolean click() {
+            mWidget.resetAnchors();
+            repaint();
+            return true;
+        }
+
+    }
+
 }

@@ -389,6 +389,8 @@ public class MouseInteraction {
         private double mHitConstraintHandleDistance = 0;
         private ResizeHandle mHitResizeHandle = null;
         private double mHitResizeHandleDistance = 0;
+        private WidgetDecorator.WidgetAction mHitWidgetAction = null;
+        private double mHitWidgetActionDistance = 0;
         public boolean mEnableBaseline = false;
 
         static final int CLICK_MODE = 0;
@@ -417,6 +419,11 @@ public class MouseInteraction {
             mHitConstraintHandleDistance = Double.MAX_VALUE;
             mHitResizeHandle = null;
             mHitResizeHandleDistance = Double.MAX_VALUE;
+            if (mHitWidgetAction != null) {
+                mHitWidgetAction.over(false);
+            }
+            mHitWidgetAction = null;
+            mHitWidgetActionDistance = Double.MAX_VALUE;
         }
 
         public void populate() {
@@ -435,6 +442,10 @@ public class MouseInteraction {
                 return null;
             }
             return mHitConstraintHandle.getAnchor();
+        }
+
+        public WidgetDecorator.WidgetAction getWidgetAction() {
+            return mHitWidgetAction;
         }
 
         @Override
@@ -465,6 +476,18 @@ public class MouseInteraction {
                 if ((mHitConstraintHandle == null) || (mHitResizeHandleDistance > dist)) {
                     mHitResizeHandle = handle;
                     mHitResizeHandleDistance = dist;
+                }
+            } else if (over instanceof WidgetDecorator.WidgetAction) {
+                if ((mHitWidgetAction == null) || (mHitWidgetActionDistance > dist)) {
+                    WidgetDecorator.WidgetAction action = (WidgetDecorator.WidgetAction) over;
+                    if (mHitWidgetAction != null) {
+                        mHitWidgetAction.over(false);
+                    }
+                    mHitWidgetAction = action;
+                    mHitWidgetActionDistance = dist;
+                    if (dist == 0) {
+                        mHitWidgetAction.over(true);
+                    }
                 }
             }
         }
@@ -525,6 +548,10 @@ public class MouseInteraction {
                 int y = mViewTransform.getSwingFY((float) bounds.getCenterY());
                 picker.addPoint(handle, handleSelectionMargin, x, y);
             }
+            WidgetDecorator decorator = companion.getWidgetDecorator(mSceneDraw.getCurrentStyle());
+            for (WidgetDecorator.WidgetAction action : decorator.getWidgetActions()) {
+                action.addToPicker(mViewTransform, picker);
+            }
         }
 
         public void find(int x, int y) {
@@ -570,6 +597,11 @@ public class MouseInteraction {
         ConstraintWidget widget = mClickListener.mHitWidget;
         ConstraintAnchor anchor = mClickListener.getConstraintAnchor();
         ResizeHandle resizeHandle = mClickListener.mHitResizeHandle;
+
+        WidgetDecorator.WidgetAction widgetAction = mClickListener.getWidgetAction();
+        if (widgetAction != null && widget == null) {
+            widget = widgetAction.getWidget();
+        }
 
         // don't allow direct interactions with root
         if (widget == mWidgetsScene.getRoot()) {
@@ -728,6 +760,10 @@ public class MouseInteraction {
         mClickListener.clearSelection();
         mClickListener.find(mViewTransform.getSwingFX(x), mViewTransform.getSwingFY(y));
         ConstraintAnchor anchor = mClickListener.getConstraintAnchor();
+        WidgetDecorator.WidgetAction widgetAction = mClickListener.getWidgetAction();
+        if (widgetAction != null && widgetAction.click()) {
+            mSelection.addModifiedWidget(widgetAction.getWidget());
+        }
 
         if (mSelection.getSelectedAnchor() != null
                 && mSelection.getConnectionCandidateAnchor() == null

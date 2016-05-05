@@ -28,6 +28,7 @@ public abstract class Animation {
 
     private int mDuration = 400;
     private long mStart = 0;
+    private long mDelay = 0;
     private double mProgress = 0;
     private boolean mLoop = false;
 
@@ -39,6 +40,13 @@ public abstract class Animation {
     public void setDuration(int duration) {
         mDuration = duration;
     }
+
+    /**
+     * Setter for the delay
+     *
+     * @param delay the animation's delay before starting
+     */
+    public void setDelay(int delay) { mDelay = delay; }
 
     /**
      * Setter for looping the animation
@@ -62,13 +70,13 @@ public abstract class Animation {
      *
      * @return the current progress value for this animation
      */
-    public double getProgress() { return mProgress; }
+    public double getProgress() { step(); return mProgress; }
 
     /**
      * Start the animation
      */
     public void start() {
-        mStart = System.currentTimeMillis();
+        mStart = System.currentTimeMillis() + mDelay;
     }
 
     /**
@@ -85,12 +93,12 @@ public abstract class Animation {
      */
     public boolean step() {
         long current = System.currentTimeMillis();
-        if (mStart == 0) {
+        if (mStart == 0 || (current - mStart < 0)) {
             mProgress = 0;
         } else if (current - mStart > mDuration) {
             if (mLoop) {
                 mProgress = 0;
-                mStart = System.currentTimeMillis();
+                start();
                 return true;
             }
             mProgress = 1;
