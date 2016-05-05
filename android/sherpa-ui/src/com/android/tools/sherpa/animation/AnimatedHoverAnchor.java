@@ -182,8 +182,8 @@ public class AnimatedHoverAnchor extends Animation {
         FontMetrics fm = g.getFontMetrics(sFont);
         int textWidth = fm.stringWidth(text);
         int textHeight = fm.getMaxAscent() + fm.getMaxDescent();
-        int tx = l + w / 2 - textWidth / 2;
-        int ty = t - 8 - textHeight;
+        int tx = x - textWidth / 2;
+        int ty = y - 12 - textHeight;
         g.setColor(mTooltipColor);
         int padding = 10;
         g.fillRoundRect(tx - padding, ty - fm.getMaxAscent() - padding,
