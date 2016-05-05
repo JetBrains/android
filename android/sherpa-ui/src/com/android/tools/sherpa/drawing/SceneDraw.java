@@ -95,6 +95,7 @@ public class SceneDraw {
 
     public interface Repaintable {
         void repaint();
+        void repaint(int x, int y, int w, int h);
     }
 
     /**
@@ -403,6 +404,7 @@ public class SceneDraw {
         boolean needsRepaint = false;
         WidgetDecorator decorator =
                 getDecorator(container, selectedWidget, selectedAnchor, selectedResizeHandle);
+        decorator.setRepaintableSurface(mRepaintableSurface);
         if (!decorator.isVisible()) {
             return needsRepaint;
         }
@@ -447,6 +449,7 @@ public class SceneDraw {
                         getDecorator(widget, selectedWidget, selectedAnchor, selectedResizeHandle);
                 if (widgetDecorator.isVisible()) {
                     needsRepaint |= widgetDecorator.onPaint(transform, g);
+                    widgetDecorator.setRepaintableSurface(mRepaintableSurface);
                 }
             }
         }
@@ -565,6 +568,7 @@ public class SceneDraw {
                     ColorTheme.Look.HIGHLIGHTED)) {
                 decorator.onPaintConstraints(transform, g);
                 decorator.onPaintAnchors(transform, g);
+                decorator.onPaintActions(transform, g);
             }
         }
 
