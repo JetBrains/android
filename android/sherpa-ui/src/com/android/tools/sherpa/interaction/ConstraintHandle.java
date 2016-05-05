@@ -534,7 +534,10 @@ public class ConstraintHandle {
         WidgetInteractionTargets interactionTargets =
                 targetCompanion.getWidgetInteractionTargets();
         ConstraintHandle targetHandle = interactionTargets.getConstraintHandle(mAnchor.getTarget());
-
+        if (targetHandle == null) {
+            // TODO fix -- sometimes triggered with guideline and inference
+            return;
+        }
         int sx = transform.getSwingFX(mX);
         int sy = transform.getSwingFY(mY);
         int tx = transform.getSwingFX(targetHandle.getDrawX());
