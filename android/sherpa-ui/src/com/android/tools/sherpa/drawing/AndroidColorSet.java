@@ -75,6 +75,11 @@ public class AndroidColorSet extends ColorSet {
         mAnchorDisconnectionCircle = new Color(180, 0, 0);
         mAnchorConnectionCircle = new Color(10, 130, 10);
 
+        // Widget actions
+
+        mWidgetActionBackground = Color.lightGray;
+        mWidgetActionSelectedBackground = Color.white;
+
         // Inspector colors
 
         mInspectorTrackBackgroundColor = new Color(228, 228, 238);

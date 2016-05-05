@@ -67,6 +67,9 @@ public class ColorSet {
     protected Color mAnchorDisconnectionCircle;
     protected Color mAnchorConnectionCircle;
 
+    protected Color mWidgetActionBackground;
+    protected Color mWidgetActionSelectedBackground;
+
     protected Color mSelectionColor;
 
     protected Color mShadow = new Color(0, 0, 0, 50);
@@ -197,4 +200,8 @@ public class ColorSet {
     public Color getSelectionColor() {
         return mSelectionColor;
     }
+
+    public Color getWidgetActionBackground() { return mWidgetActionBackground; }
+
+    public Color getWidgetActionSelectedBackground() { return mWidgetActionSelectedBackground; }
 }

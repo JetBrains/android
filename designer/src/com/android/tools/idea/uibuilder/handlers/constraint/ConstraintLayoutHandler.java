@@ -16,6 +16,7 @@
 
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
+import com.android.tools.idea.gradle.structure.configurables.ui.UiUtil;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.api.actions.*;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
@@ -24,15 +25,18 @@ import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.SelectionModel;
 import com.android.tools.idea.uibuilder.surface.Interaction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
 import com.android.tools.sherpa.scout.Scout;
 import com.android.tools.sherpa.structure.Selection;
 import com.android.tools.sherpa.structure.WidgetsScene;
 import com.google.tnt.solver.widgets.ConstraintAnchor;
+import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -49,9 +53,40 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
   private boolean mControlIsPressed;
 
   /**
+   * Utility function to convert from an Icon to an Image
+   * @param icon
+   * @return
+   */
+  static Image iconToImage(Icon icon) {
+    if (icon instanceof ImageIcon) {
+      return ((ImageIcon)icon).getImage();
+    } else {
+      int w = icon.getIconWidth();
+      int h = icon.getIconHeight();
+      BufferedImage image = UIUtil.createImage(w, h, BufferedImage.TYPE_4BYTE_ABGR);
+      Graphics2D g = image.createGraphics();
+      icon.paintIcon(null, g, 0, 0);
+      g.dispose();
+      return image;
+    }
+  }
+
+  /**
    * Base constructor
    */
   public ConstraintLayoutHandler() {
+  }
+
+  private void loadWidgetDecoratorImages() {
+    if (WidgetDecorator.sLockImageIcon == null) {
+      WidgetDecorator.sLockImageIcon = iconToImage(AndroidIcons.SherpaIcons.LockConstraints);
+    }
+    if (WidgetDecorator.sUnlockImageIcon == null) {
+      WidgetDecorator.sUnlockImageIcon = iconToImage(AndroidIcons.SherpaIcons.UnlockConstraints);
+    }
+    if (WidgetDecorator.sDeleteConnectionsImageIcon == null) {
+      WidgetDecorator.sDeleteConnectionsImageIcon = iconToImage(AndroidIcons.SherpaIcons.DeleteConstraint);
+    }
   }
 
   @Override
@@ -66,6 +101,9 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     actions.add(new ViewActionSeparator());
     actions.add(new ClearConstraintsAction());
     actions.add((new InferAction()));
+
+    loadWidgetDecoratorImages();
+
     String str;
     str = "Align group horizontally on the left";
     actions.add(action = new AlignAction(Scout.Arrange.AlignHorizontallyLeft,
