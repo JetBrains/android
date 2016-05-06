@@ -51,7 +51,10 @@ public class InspectorPanel extends JPanel {
   private static final InspectorProvider[] ourProviders = new InspectorProvider[]{
     new ConstraintInspectorProvider(),
     new IdInspectorProvider(),
+    // View type inspectors:
+    new FloatingActionButtonInspectorProvider(),
     new ImageViewInspectorProvider(),
+    // General inspectors:
     new TextInspectorProvider(),
     new FontInspectorProvider(),
   };
