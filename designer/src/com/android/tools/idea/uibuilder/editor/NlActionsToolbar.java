@@ -116,10 +116,10 @@ public class NlActionsToolbar implements DesignSurfaceListener, ModelListener {
   private static ActionGroup getRhsActions(DesignSurface surface) {
     DefaultActionGroup group = new DefaultActionGroup();
 
-    group.add(new SetZoomAction(surface, ZoomType.FIT));
-    group.add(new SetZoomAction(surface, ZoomType.IN));
-    group.add(new ZoomLabelAction(surface));
     group.add(new SetZoomAction(surface, ZoomType.OUT));
+    group.add(new ZoomLabelAction(surface));
+    group.add(new SetZoomAction(surface, ZoomType.IN));
+    group.add(new SetZoomAction(surface, ZoomType.FIT));
 
     return group;
   }
