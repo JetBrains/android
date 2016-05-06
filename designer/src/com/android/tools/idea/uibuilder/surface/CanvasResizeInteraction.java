@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.surface;
 
 import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.SwingCoordinate;
+import org.intellij.lang.annotations.JdkConstants.InputEventMask;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -36,7 +37,7 @@ public class CanvasResizeInteraction extends Interaction {
   }
 
   @Override
-  public void update(@SwingCoordinate int x, @SwingCoordinate int y, int modifiers) {
+  public void update(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiers) {
     super.update(x, y, modifiers);
     myCurrentX = x;
     myCurrentY = y;
@@ -47,7 +48,7 @@ public class CanvasResizeInteraction extends Interaction {
   }
 
   @Override
-  public void end(@SwingCoordinate int x, @SwingCoordinate int y, int modifiers, boolean canceled) {
+  public void end(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiers, boolean canceled) {
     super.end(x, y, modifiers, canceled);
     myScreenView.getModel().overrideConfigurationScreenSize(Coordinates.getAndroidX(myScreenView, x),
                                                             Coordinates.getAndroidY(myScreenView, y));

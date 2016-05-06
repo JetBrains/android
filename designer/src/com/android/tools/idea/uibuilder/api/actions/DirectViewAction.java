@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.api.actions;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import org.intellij.lang.annotations.JdkConstants.InputEventMask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,15 +51,17 @@ public abstract class DirectViewAction extends ViewAction {
    * @param handler          the view handler
    * @param component        the component this action is associated with
    * @param selectedChildren any selected children of the component
+   * @param modifiers        modifiers in effect when the action was initiated
    */
   public abstract void perform(@NotNull ViewEditor editor,
                                @NotNull ViewHandler handler,
                                @NotNull NlComponent component,
-                               @NotNull List<NlComponent> selectedChildren);
+                               @NotNull List<NlComponent> selectedChildren,
+                               @InputEventMask int modifiers);
 
   /**
    * Creates a new view action. If you use this method you must also override
-   * {@link #updatePresentation(ViewActionPresentation, ViewEditor, ViewHandler, NlComponent, List)}
+   * {@link ViewAction#updatePresentation(ViewActionPresentation, ViewEditor, ViewHandler, NlComponent, List, int)}
    * to set an icon or label just-in-time.
    */
   public DirectViewAction() {
@@ -67,7 +70,7 @@ public abstract class DirectViewAction extends ViewAction {
 
   /**
    * Creates a new view action. If you use this method you must also override
-   * {@link #updatePresentation(ViewActionPresentation, ViewEditor, ViewHandler, NlComponent, List)}
+   * {@link ViewAction#updatePresentation(ViewActionPresentation, ViewEditor, ViewHandler, NlComponent, List, int)}
    * to set an icon or label just-in-time.
    *
    * @param rank the relative sorting order of this action; see {@link #getRank()}
@@ -104,6 +107,7 @@ public abstract class DirectViewAction extends ViewAction {
                                  @NotNull ViewEditor editor,
                                  @NotNull ViewHandler handler,
                                  @NotNull NlComponent component,
-                                 @NotNull List<NlComponent> selectedChildren) {
+                                 @NotNull List<NlComponent> selectedChildren,
+                                 @InputEventMask int modifiers) {
   }
 }

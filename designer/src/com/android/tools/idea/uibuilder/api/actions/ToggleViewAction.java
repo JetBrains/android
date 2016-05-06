@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.api.actions;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import org.intellij.lang.annotations.JdkConstants.InputEventMask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -93,10 +94,11 @@ public abstract class ToggleViewAction extends ViewAction {
 
   @Override
   public final void updatePresentation(@NotNull ViewActionPresentation presentation,
-                                 @NotNull ViewEditor editor,
-                                 @NotNull ViewHandler handler,
-                                 @NotNull NlComponent component,
-                                 @NotNull List<NlComponent> selectedChildren) {
+                                       @NotNull ViewEditor editor,
+                                       @NotNull ViewHandler handler,
+                                       @NotNull NlComponent component,
+                                       @NotNull List<NlComponent> selectedChildren,
+                                       @InputEventMask int modifiers) {
   }
 
   /**
@@ -109,6 +111,7 @@ public abstract class ToggleViewAction extends ViewAction {
    * @param handler          the view handler
    * @param component        the component this action is associated with
    * @param selectedChildren any selected children of the component
+   * @param modifiers        modifiers currently in effect
    * @param selected         whether the action is currently selected
    */
   public void updatePresentation(@NotNull ViewActionPresentation presentation,
@@ -116,6 +119,7 @@ public abstract class ToggleViewAction extends ViewAction {
                                  @NotNull ViewHandler handler,
                                  @NotNull NlComponent component,
                                  @NotNull List<NlComponent> selectedChildren,
+                                 @InputEventMask int modifiers,
                                  boolean selected) {
   }
 

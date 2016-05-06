@@ -26,6 +26,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.registry.Registry;
 import com.intellij.util.PsiNavigateUtil;
+import org.intellij.lang.annotations.JdkConstants.InputEventMask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -87,7 +88,8 @@ public class InteractionManager {
    * Most recently seen mouse mask. We keep a copy of this since in some
    * scenarios (such as on a drag interaction) we don't get access to it.
    */
-  protected int myLastStateMask;
+  @InputEventMask
+  protected static int ourLastStateMask;
 
   /**
    * A timer used to control when to initiate a mouse hover action. It is active only when
@@ -188,12 +190,18 @@ public class InteractionManager {
     return myLayers;
   }
 
+  /** Returns the most recently observed input event mask */
+  @InputEventMask
+  public static int getLastModifiers() {
+    return ourLastStateMask;
+  }
+
   /**
    * Updates the current interaction, if any, for the given event.
    */
   private void updateMouse(@SwingCoordinate int x, @SwingCoordinate int y) {
     if (myCurrentInteraction != null) {
-      myCurrentInteraction.update(x, y, myLastStateMask);
+      myCurrentInteraction.update(x, y, ourLastStateMask);
       mySurface.repaint();
     }
   }
@@ -220,7 +228,8 @@ public class InteractionManager {
         myLayers = null;
       }
       myCurrentInteraction = null;
-      myLastStateMask = 0;
+      //noinspection AssignmentToStaticFieldFromInstanceMethod
+      ourLastStateMask = 0;
       updateCursor(x, y);
       mySurface.repaint();
     }
@@ -342,7 +351,8 @@ public class InteractionManager {
 
       myLastMouseX = event.getX();
       myLastMouseY = event.getY();
-      myLastStateMask = event.getModifiersEx();
+      //noinspection AssignmentToStaticFieldFromInstanceMethod
+      ourLastStateMask = event.getModifiers();
 
       // Check if we have a ViewGroupHandler that might want
       // to handle the entire interaction
@@ -355,7 +365,7 @@ public class InteractionManager {
       // TODO: use constants for those numbers
       Rectangle resizeIcon = new Rectangle(screenView.getX() + size.width + 3, screenView.getY() + size.height + 3, 12, 12);
       if (resizeIcon.contains(myLastMouseX, myLastMouseY)) {
-        startInteraction(myLastMouseX, myLastMouseY, new CanvasResizeInteraction(screenView), myLastStateMask);
+        startInteraction(myLastMouseX, myLastMouseY, new CanvasResizeInteraction(screenView), ourLastStateMask);
         return;
       }
       NlComponent component = Coordinates.findComponent(screenView, myLastMouseX, myLastMouseY);
@@ -376,7 +386,7 @@ public class InteractionManager {
       }
       Interaction interaction = viewGroupHandler.createInteraction(screenView, component);
       if (interaction != null) {
-        startInteraction(myLastMouseX, myLastMouseY, interaction, myLastStateMask);
+        startInteraction(myLastMouseX, myLastMouseY, interaction, ourLastStateMask);
       }
     }
 
@@ -386,7 +396,7 @@ public class InteractionManager {
 
       int x = event.getX();
       int y = event.getY();
-      int modifiers = event.getModifiersEx();
+      int modifiers = event.getModifiers();
       if (myCurrentInteraction == null) {
         // Just a click, select
         ScreenView screenView = mySurface.getScreenView(x, y);
@@ -407,8 +417,14 @@ public class InteractionManager {
           }
         }
 
-        List<NlComponent> components = component != null ? Collections.singletonList(component) : Collections.<NlComponent>emptyList();
-        screenView.getSelectionModel().setSelection(components);
+        if (component == null) {
+          selectionModel.clear();
+        } else if (event.isShiftDown() || event.isMetaDown()) {
+          selectionModel.toggle(component);
+        } else {
+          selectionModel.setSelection(Collections.singletonList(component));
+        }
+
         mySurface.repaint();
       }
       if (myCurrentInteraction == null) {
@@ -440,13 +456,16 @@ public class InteractionManager {
       if (myCurrentInteraction != null) {
         myLastMouseX = x;
         myLastMouseY = y;
-        myLastStateMask = event.getModifiersEx();
-        myCurrentInteraction.update(myLastMouseX, myLastMouseY, myLastStateMask);
+        //noinspection AssignmentToStaticFieldFromInstanceMethod
+        ourLastStateMask = event.getModifiers();
+        myCurrentInteraction.update(myLastMouseX, myLastMouseY, ourLastStateMask);
         mySurface.repaint();
       } else {
         x = myLastMouseX; // initiate the drag from the mousePress location, not the point we've dragged to
         y = myLastMouseY;
-        int modifiers = event.getModifiersEx();
+        int modifiers = event.getModifiers();
+        //noinspection AssignmentToStaticFieldFromInstanceMethod
+        ourLastStateMask = modifiers;
         boolean toggle = (modifiers & (InputEvent.SHIFT_MASK | InputEvent.CTRL_MASK)) != 0;
         ScreenView screenView = mySurface.getScreenView(x, y);
         if (screenView == null) {
@@ -511,10 +530,11 @@ public class InteractionManager {
       int y = event.getY();
       myLastMouseX = x;
       myLastMouseY = y;
-      myLastStateMask = event.getModifiersEx();
+      //noinspection AssignmentToStaticFieldFromInstanceMethod
+      ourLastStateMask = event.getModifiers();
 
       mySurface.hover(x, y);
-      if ((myLastStateMask & InputEvent.BUTTON1_DOWN_MASK) != 0) {
+      if ((ourLastStateMask & InputEvent.BUTTON1_DOWN_MASK) != 0) {
         if (myCurrentInteraction != null) {
           updateMouse(x, y);
           mySurface.repaint();
@@ -531,30 +551,24 @@ public class InteractionManager {
 
     @Override
     public void keyTyped(KeyEvent event) {
+      //noinspection AssignmentToStaticFieldFromInstanceMethod
+      ourLastStateMask = event.getModifiers();
     }
 
     @Override
     public void keyPressed(KeyEvent event) {
-      myLastStateMask = event.getModifiersEx();
-      // Workaround for the fact that in keyPressed the current state
-      // mask is not yet updated
+      int modifiers = event.getModifiers();
       int keyCode = event.getKeyCode();
       char keyChar = event.getKeyChar();
-      if (keyCode == KeyEvent.VK_SHIFT) {
-        myLastStateMask |= InputEvent.SHIFT_MASK;
-      }
-      if (keyCode == KeyEvent.VK_META) {
-        myLastStateMask |= InputEvent.META_MASK;
-      }
-      if (keyCode == KeyEvent.VK_CONTROL) {
-        myLastStateMask |= InputEvent.CTRL_MASK;
-      }
+
+      //noinspection AssignmentToStaticFieldFromInstanceMethod
+      ourLastStateMask = modifiers;
 
       // Give interactions a first chance to see and consume the key press
       if (myCurrentInteraction != null) {
         // unless it's "Escape", which cancels the interaction
         if (keyCode == KeyEvent.VK_ESCAPE) {
-          finishInteraction(myLastMouseX, myLastMouseY, myLastStateMask, true);
+          finishInteraction(myLastMouseX, myLastMouseY, ourLastStateMask, true);
           return;
         }
 
@@ -606,18 +620,10 @@ public class InteractionManager {
 
     @Override
     public void keyReleased(KeyEvent event) {
-      myLastStateMask = event.getModifiersEx();
-      // Workaround for the fact that in keyPressed the current state
-      // mask is not yet updated
-      if (event.getKeyCode() == KeyEvent.VK_SHIFT) {
-        myLastStateMask |= InputEvent.SHIFT_MASK;
-      }
-      if (event.getKeyCode() == KeyEvent.VK_META) {
-        myLastStateMask |= InputEvent.META_MASK;
-      }
-      if (event.getKeyCode() == KeyEvent.VK_CONTROL) {
-        myLastStateMask |= InputEvent.CTRL_MASK;
-      }
+      int modifiers = event.getModifiers();
+
+      //noinspection AssignmentToStaticFieldFromInstanceMethod
+      ourLastStateMask = modifiers;
 
       if (myCurrentInteraction != null) {
         myCurrentInteraction.keyReleased(event);
@@ -683,7 +689,7 @@ public class InteractionManager {
       ScreenView screenView = mySurface.getScreenView(myLastMouseX, myLastMouseY);
       if (screenView != null && myCurrentInteraction instanceof DragDropInteraction) {
         DragDropInteraction interaction = (DragDropInteraction)myCurrentInteraction;
-        interaction.update(myLastMouseX, myLastMouseY, myLastStateMask);
+        interaction.update(myLastMouseX, myLastMouseY, ourLastStateMask);
         DragType dragType = event.getDropAction() == DnDConstants.ACTION_COPY ? DragType.COPY : DragType.MOVE;
         interaction.setType(dragType);
         NlModel model = screenView.getModel();
@@ -705,7 +711,7 @@ public class InteractionManager {
     @Override
     public void dragExit(DropTargetEvent event) {
       if (myCurrentInteraction instanceof DragDropInteraction) {
-        finishInteraction(myLastMouseX, myLastMouseY, myLastStateMask, true /* cancel interaction */);
+        finishInteraction(myLastMouseX, myLastMouseY, ourLastStateMask, true /* cancel interaction */);
       }
     }
 
@@ -731,7 +737,7 @@ public class InteractionManager {
         return null;
       }
       InsertType insertType = updateDropInteraction(dropAction, transferable);
-      finishInteraction(myLastMouseX, myLastMouseY, myLastStateMask, (insertType == null));
+      finishInteraction(myLastMouseX, myLastMouseY, ourLastStateMask, (insertType == null));
       return insertType;
     }
 

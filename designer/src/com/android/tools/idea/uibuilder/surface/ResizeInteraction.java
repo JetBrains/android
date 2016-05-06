@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.api.ResizeHandler;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
@@ -27,6 +26,8 @@ import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.xml.XmlFile;
+import org.intellij.lang.annotations.JdkConstants.InputEventMask;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.util.Collections;
@@ -58,7 +59,7 @@ public class ResizeInteraction extends Interaction {
   }
 
   @Override
-  public void begin(@SwingCoordinate int x, @SwingCoordinate int y, int startMask) {
+  public void begin(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int startMask) {
     super.begin(x, y, startMask);
     NlComponent parent = myComponent.getParent();
 
@@ -80,13 +81,13 @@ public class ResizeInteraction extends Interaction {
   }
 
   @Override
-  public void update(@SwingCoordinate int x, @SwingCoordinate int y, int modifiers) {
+  public void update(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiers) {
     super.update(x, y, modifiers);
     moveTo(x, y, modifiers, false);
   }
 
   @Override
-  public void end(@SwingCoordinate int x, @SwingCoordinate int y, int modifiers, boolean canceled) {
+  public void end(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiers, boolean canceled) {
     super.end(x, y, modifiers, canceled);
     moveTo(x, y, modifiers, !canceled);
     if (!canceled) {
@@ -94,7 +95,7 @@ public class ResizeInteraction extends Interaction {
     }
   }
 
-  private void moveTo(@SwingCoordinate int x, @SwingCoordinate int y, final int modifiers, boolean commit) {
+  private void moveTo(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask final int modifiers, boolean commit) {
     if (myResizeHandler == null) {
       return;
     }

@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.model.SwingCoordinate;
+import org.intellij.lang.annotations.JdkConstants.InputEventMask;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.event.KeyEvent;
 import java.util.Collections;
@@ -72,7 +73,7 @@ public class Interaction {
   @SwingCoordinate protected int myStartY;
 
   /** Initial AWT mask when the interaction started. */
-  protected int myStartMask;
+  @InputEventMask protected int myStartMask;
 
   /**
    * Returns a list of overlays, from bottom to top (where the later overlays
@@ -96,10 +97,10 @@ public class Interaction {
    * @param startMask The initial AWT mask for the interaction, if known, or
    *                  otherwise 0.
    */
-  public void begin(@SwingCoordinate int x, @SwingCoordinate int y, int modifiers) {
+  public void begin(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int startMask) {
     myStartX = x;
     myStartY = y;
-    myStartMask = modifiers;
+    myStartMask = startMask;
   }
 
   /**
@@ -111,7 +112,7 @@ public class Interaction {
    *                  interaction
    * @param modifiers current modifier key mask
    */
-  public void update(@SwingCoordinate int x, @SwingCoordinate int y, int modifiers) {
+  public void update(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiers) {
   }
 
   /**
@@ -126,7 +127,7 @@ public class Interaction {
    * @param modifiers current modifier key mask
    * @param canceled  True if the interaction was canceled, and false otherwise.
    */
-  public void end(@SwingCoordinate int x, @SwingCoordinate int y, int modifiers, boolean canceled) {
+  public void end(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiers, boolean canceled) {
   }
 
   /**
