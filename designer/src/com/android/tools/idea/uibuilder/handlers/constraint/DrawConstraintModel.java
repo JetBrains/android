@@ -192,7 +192,7 @@ class DrawConstraintModel {
     Graphics2D g = (Graphics2D)gc.create();
     WidgetDecorator.setShowFakeUI(mShowFakeUI);
     if (mySceneDraw.getCurrentStyle() == WidgetDecorator.BLUEPRINT_STYLE) {
-      mySceneDraw.drawBackground(myViewTransform, g, 0, width, height);
+      mySceneDraw.drawBackground(myViewTransform, g, width, height);
     }
     if (myConstraintModel.getNeedsAnimateConstraints() != -1) {
       mySceneDraw.animateConstraints(myConstraintModel.getNeedsAnimateConstraints());

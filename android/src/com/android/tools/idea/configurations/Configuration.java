@@ -391,26 +391,22 @@ public class Configuration implements Disposable, ModificationTracker {
     if (myActivity == NO_ACTIVITY) {
       return null;
     } else if (myActivity == null && myFile != null) {
-      myActivity = ApplicationManager.getApplication().runReadAction(new Computable<String>() {
-        @Nullable
-        @Override
-        public String compute() {
-          if (myPsiFile == null) {
-            myPsiFile = PsiManager.getInstance(myManager.getProject()).findFile(myFile);
-          }
-          if (myPsiFile instanceof XmlFile) {
-            XmlFile xmlFile = (XmlFile)myPsiFile;
-            XmlTag rootTag = xmlFile.getRootTag();
-            if (rootTag != null) {
-              XmlAttribute attribute = rootTag.getAttribute(ATTR_CONTEXT, TOOLS_URI);
-              if (attribute != null) {
-                return attribute.getValue();
-              }
-            }
-
-          }
-          return null;
+      myActivity = ApplicationManager.getApplication().runReadAction((Computable<String>)() -> {
+        if (myPsiFile == null) {
+          myPsiFile = PsiManager.getInstance(myManager.getProject()).findFile(myFile);
         }
+        if (myPsiFile instanceof XmlFile) {
+          XmlFile xmlFile = (XmlFile)myPsiFile;
+          XmlTag rootTag = xmlFile.getRootTag();
+          if (rootTag != null) {
+            XmlAttribute attribute = rootTag.getAttribute(ATTR_CONTEXT, TOOLS_URI);
+            if (attribute != null) {
+              return attribute.getValue();
+            }
+          }
+
+        }
+        return null;
       });
       if (myActivity == null) {
         myActivity = NO_ACTIVITY;
@@ -779,8 +775,8 @@ public class Configuration implements Disposable, ModificationTracker {
   private static String getClosestMatch(@NotNull FolderConfiguration oldConfig, @NotNull List<State> states) {
     // create 2 lists as we're going to go through one and put the
     // candidates in the other.
-    List<State> list1 = new ArrayList<State>(states.size());
-    List<State> list2 = new ArrayList<State>(states.size());
+    List<State> list1 = new ArrayList<>(states.size());
+    List<State> list2 = new ArrayList<>(states.size());
 
     list1.addAll(states);
 
@@ -1182,7 +1178,7 @@ public class Configuration implements Disposable, ModificationTracker {
    */
   public void addListener(@NotNull ConfigurationListener listener) {
     if (myListeners == null) {
-      myListeners = new ArrayList<ConfigurationListener>();
+      myListeners = new ArrayList<>();
     }
     myListeners.add(listener);
   }

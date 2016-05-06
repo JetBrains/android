@@ -34,7 +34,6 @@ import com.google.tnt.solver.widgets.ConstraintWidget;
 import com.google.tnt.solver.widgets.ConstraintWidgetContainer;
 
 import javax.imageio.ImageIO;
-import javax.swing.ImageIcon;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -515,8 +514,8 @@ public class WidgetDecorator {
 
         g.setColor(mFrameColor.getColor());
         WidgetDraw.drawWidgetFrame(transform, g, mWidget,
-                mColorSet, mDisplayAnchorsPolicy, mShowResizeHandles,
-                mShowSizeIndicator, mIsSelected, mStyle);
+                                   mDisplayAnchorsPolicy, mShowResizeHandles,
+                mShowSizeIndicator, mIsSelected);
 
         g.setColor(mConstraintsColor.getColor());
         onPaintAnchors(transform, g);

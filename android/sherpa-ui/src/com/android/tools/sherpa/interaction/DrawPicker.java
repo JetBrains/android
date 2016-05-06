@@ -79,7 +79,16 @@ public class DrawPicker {
     mHitElementListener = listener;
   }
 
-  private final boolean inRect(int x, int y, int x1, int y1, int x2, int y2) {
+  private static boolean inRect(int x, int y, int x1, int y1, int x2, int y2) {
+    if (x < x1) return false;
+    if (y < y1) return false;
+    if (x >= x2) return false;
+    if (y >= y2) return false;
+    return true;
+  }
+
+
+  private static boolean inRect(double x, double y, double x1, double y1, double x2, double y2) {
     if (x < x1) return false;
     if (y < y1) return false;
     if (x >= x2) return false;
@@ -278,9 +287,7 @@ public class DrawPicker {
     @Override
     protected boolean inRange() {
       double range = mObjectData[mDataOffset];
-      ;
       double lineLengthSq = mObjectData[mDataOffset + 1];
-      ;
       double x1 = mObjectData[mDataOffset + 2];
       double y1 = mObjectData[mDataOffset + 3];
       double x2 = mObjectData[mDataOffset + 4];
@@ -334,14 +341,6 @@ public class DrawPicker {
       mObjects[mObjectCount] = select;
       mTypes[mObjectCount] = OBJECT_RECTANGLE;
       mObjectCount++;
-    }
-
-    private final boolean inRect(double x, double y, double x1, double y1, double x2, double y2) {
-      if (x < x1) return false;
-      if (y < y1) return false;
-      if (x >= x2) return false;
-      if (y >= y2) return false;
-      return true;
     }
 
     @Override
@@ -459,15 +458,13 @@ public class DrawPicker {
     public final double evalX(double t) {
       double t2 = t * t;
       double t3 = t * t2;
-      double x = cx0 + cx1 * t + cx2 * t2 + cx3 * t3;
-      return x;
+      return cx0 + cx1 * t + cx2 * t2 + cx3 * t3;
     }
 
     public final double evalY(double t) {
       double t2 = t * t;
       double t3 = t * t2;
-      double y = cy0 + cy1 * t + cy2 * t2 + cy3 * t3;
-      return y;
+      return cy0 + cy1 * t + cy2 * t2 + cy3 * t3;
     }
 
     /**

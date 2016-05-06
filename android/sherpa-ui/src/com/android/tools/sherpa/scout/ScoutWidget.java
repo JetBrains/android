@@ -36,15 +36,9 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
     private float mWidth;
     private float mHeight;
     private float mBaseLine;
-    private int index;
-    private float mAboveDist;
-    private float mBelowDist;
-    private float mLeftDist;
-    private float mRightDist;
     private ScoutWidget mParent;
     private float mRootDistance;
     private float[] mDistToRootCache = new float[] { -1, -1, -1, -1 };
-    public static final int PREFERENCE_STRETCH_RATIO = 70;
     ConstraintWidget mConstraintWidget;
     private boolean mKeepExistingConnections = true;
     private Rectangle mRectangle;
@@ -287,7 +281,6 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
             if (!isResizable(dir)) {
                 if (dir == 0) {
                     int height = mConstraintWidget.getHeight();
-                    int rootHeight = getParent().mConstraintWidget.getHeight();
                     float stretchRatio = (gap * 2) / (float) height;
                     if (isCandidateResizable(dir) && stretchRatio < MAXIMUM_STRETCH_GAP) {
                         mConstraintWidget.setVerticalDimensionBehaviour(
@@ -297,7 +290,6 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
                     }
                 } else {
                     int width = mConstraintWidget.getWidth();
-                    int rootWidth = getParent().mConstraintWidget.getHeight();
                     float stretchRatio = (gap * 2) / (float) width;
                     if (isCandidateResizable(dir) && stretchRatio < MAXIMUM_STRETCH_GAP) {
                         mConstraintWidget.setHorizontalDimensionBehaviour(
@@ -323,9 +315,9 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
                 int gap2 = gap(mConstraintWidget, c2, to2.mConstraintWidget, cDir2);
 
                 connect(mConstraintWidget, lookupType(c1), to1.mConstraintWidget, lookupType(cDir1),
-                        (int) Math.max(0, gap1));
+                        Math.max(0, gap1));
                 connect(mConstraintWidget, lookupType(c2), to2.mConstraintWidget, lookupType(cDir2),
-                        (int) Math.max(0, gap2));
+                        Math.max(0, gap2));
             }
             return true;
         } else {
@@ -409,14 +401,14 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
     }
 
 
-    private void connect(ConstraintWidget fromWidget, ConstraintAnchor.Type fromType,
-            ConstraintWidget toWidget, ConstraintAnchor.Type toType, int gap) {
+    private static void connect(ConstraintWidget fromWidget, ConstraintAnchor.Type fromType,
+                                ConstraintWidget toWidget, ConstraintAnchor.Type toType, int gap) {
         fromWidget.connect(fromType, toWidget, toType, gap);
         fromWidget.getAnchor(fromType).setConnectionCreator(ConstraintAnchor.SCOUT_CREATOR);
     }
 
-    private void connectWeak(ConstraintWidget fromWidget, ConstraintAnchor.Type fromType,
-            ConstraintWidget toWidget, ConstraintAnchor.Type toType, int gap) {
+    private static void connectWeak(ConstraintWidget fromWidget, ConstraintAnchor.Type fromType,
+                                    ConstraintWidget toWidget, ConstraintAnchor.Type toType, int gap) {
         fromWidget.connect(fromType, toWidget, toType, gap, ConstraintAnchor.Strength.WEAK);
         fromWidget.getAnchor(fromType).setConnectionCreator(ConstraintAnchor.SCOUT_CREATOR);
     }
@@ -776,15 +768,14 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
         float margin = anchor.getMargin();
         ConstraintAnchor toAnchor = anchor.getTarget();
 
-        ConstraintWidget toWidget = (ConstraintWidget) toAnchor.getOwner();
+        ConstraintWidget toWidget = toAnchor.getOwner();
         if (list[0].mConstraintWidget == toWidget) { // found the base return;
             return margin;
         }
 
         // if atached to the same side
         if (toAnchor.getType() == anchorType) {
-            for (int i = 0; i < list.length; i++) {
-                ScoutWidget scoutWidget = list[i];
+            for (ScoutWidget scoutWidget : list) {
                 if (scoutWidget.mConstraintWidget == toWidget) {
                     float dist = scoutWidget.recursiveConnectedDistanceToRoot(list, direction);
                     scoutWidget.cacheRootDistance(direction, dist);
@@ -794,8 +785,7 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
         }
         // if atached to the other side (you will need to add the length of the widget
         if (toAnchor.getType() == lookupType(direction.getOpposite())) {
-            for (int i = 0; i < list.length; i++) {
-                ScoutWidget scoutWidget = list[i];
+            for (ScoutWidget scoutWidget : list) {
                 if (scoutWidget.mConstraintWidget == toWidget) {
                     margin += scoutWidget.getLength(direction);
                     float dist = scoutWidget.recursiveConnectedDistanceToRoot(list, direction);
@@ -859,9 +849,9 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
     }
 
     static ScoutWidget[] getWidgetArray(WidgetContainer base) {
-        ArrayList<ConstraintWidget> list = new ArrayList<ConstraintWidget>(base.getChildren());
+        ArrayList<ConstraintWidget> list = new ArrayList<>(base.getChildren());
         list.add(0, base);
-        return ScoutWidget.create(list.toArray(new ConstraintWidget[list.size()]));
+        return create(list.toArray(new ConstraintWidget[list.size()]));
     }
 
     /**
@@ -909,7 +899,6 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
 
         }
         int min = Integer.MAX_VALUE;
-        ScoutWidget minWidget = null;
         for (int i = 1; i < list.length; i++) {
             ScoutWidget scoutWidget = list[i];
             if (scoutWidget == this) {
@@ -917,9 +906,8 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
             }
             Rectangle r = scoutWidget.getRectangle();
             if (r.intersects(rect)) {
-                int dist = (int) ScoutWidget.distance(scoutWidget, this);
+                int dist = (int) distance(scoutWidget, this);
                 if (min > dist) {
-                    minWidget = scoutWidget;
                     min = dist;
                 }
             }
@@ -965,12 +953,7 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
     /**
      * Comparator to sort widgets by y
      */
-    static Comparator<ScoutWidget> sSortY = new Comparator<ScoutWidget>() {
-        @Override
-        public int compare(ScoutWidget w1, ScoutWidget w2) {
-            return w1.mConstraintWidget.getY() - w2.mConstraintWidget.getY();
-        }
-    };
+    static Comparator<ScoutWidget> sSortY = (w1, w2) -> w1.mConstraintWidget.getY() - w2.mConstraintWidget.getY();
 
     public int rootDistanceY() {
         if (mConstraintWidget == null ||  mConstraintWidget.getParent() == null) {

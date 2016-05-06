@@ -24,8 +24,7 @@ import java.awt.Color;
  * This class adds support for color transitions
  */
 public class ColorTheme {
-
-    private final int sAnimationDuration = 250; // ms
+    private static final int sAnimationDuration = 250; // ms
 
     /**
      * The type of looks we support
