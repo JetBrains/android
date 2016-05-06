@@ -140,6 +140,11 @@ public class LineChart extends AnimatedComponent implements ReportingSeriesRende
   }
 
   @Override
+  public Color getReportingSeriesColor(@NonNull ReportingSeries series) {
+    return mLinesConfig.get(series).getColor();
+  }
+
+  @Override
   public void markData(long x) {
     mMarkedData.add(x);
   }

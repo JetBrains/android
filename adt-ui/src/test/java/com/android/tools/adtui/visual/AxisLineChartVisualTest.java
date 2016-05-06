@@ -36,6 +36,9 @@ public class AxisLineChartVisualTest extends VisualTest {
 
   private static final int LABEL_UPDATE_MILLIS = 100;
 
+  private static final String SERIES1_LABEL = "Memory1";
+  private static final String SERIES2_LABEL = "Memory2";
+
   private long mStartTimeMs;
 
   @NonNull
@@ -90,23 +93,27 @@ public class AxisLineChartVisualTest extends VisualTest {
 
     // left memory data + axis
     Range yRange1Animatable = new Range(0, 100);
-    mMemoryAxis1 = new AxisComponent(yRange1Animatable, yRange1Animatable, "MEMORY1",
+    mMemoryAxis1 = new AxisComponent(yRange1Animatable, yRange1Animatable, SERIES1_LABEL,
                                      AxisComponent.AxisOrientation.LEFT, AXIS_SIZE, AXIS_SIZE, true,
                                      new MemoryAxisDomain(4, 10, 5));
-    RangedContinuousSeries ranged1 = new RangedContinuousSeries(xRange, yRange1Animatable);
+    RangedContinuousSeries ranged1 = new RangedContinuousSeries(SERIES1_LABEL, xRange, yRange1Animatable);
     mData.add(ranged1);
 
     // right memory data + axis
     Range yRange2Animatable = new Range(0, 100);
-    mMemoryAxis2 = new AxisComponent(yRange2Animatable, yRange2Animatable, "MEMORY2",
+    mMemoryAxis2 = new AxisComponent(yRange2Animatable, yRange2Animatable, SERIES2_LABEL,
                                      AxisComponent.AxisOrientation.RIGHT, AXIS_SIZE, AXIS_SIZE, true,
                                      new MemoryAxisDomain(4, 10, 5));
-    RangedContinuousSeries ranged2 = new RangedContinuousSeries(xRange, yRange2Animatable);
+    RangedContinuousSeries ranged2 = new RangedContinuousSeries(SERIES2_LABEL, xRange, yRange2Animatable);
     mData.add(ranged2);
     mLineChart.addLines(mData);
     List<LegendRenderData> legendRenderInfo = new ArrayList<>();
-    legendRenderInfo.add(new LegendRenderData("Sending", LegendRenderData.IconType.BOX, LineConfig.COLORS[0], mData.get(0)));
-    legendRenderInfo.add(new LegendRenderData("Receiving", LegendRenderData.IconType.LINE, LineConfig.COLORS[1], null));
+
+    //Test the populated series case
+    legendRenderInfo.add(new LegendRenderData(LegendRenderData.IconType.BOX, LineConfig.COLORS[0], mData.get(0)));
+    //Test the null series case
+    legendRenderInfo.add(new LegendRenderData(LegendRenderData.IconType.LINE, LineConfig.COLORS[1], null));
+
     mLegendComponent = new LegendComponent(legendRenderInfo, LegendComponent.Orientation.VERTICAL, LABEL_UPDATE_MILLIS, new MemoryAxisDomain(4, 10, 5));
 
     mGrid = new GridComponent();

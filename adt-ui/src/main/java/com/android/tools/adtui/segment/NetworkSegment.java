@@ -1,124 +1,51 @@
 package com.android.tools.adtui.segment;
 
 import com.android.annotations.NonNull;
-import com.android.tools.adtui.Animatable;
-import com.android.tools.adtui.AnimatedComponent;
-import com.android.tools.adtui.AxisComponent;
-import com.android.tools.adtui.GridComponent;
-import com.android.tools.adtui.LineChart;
-import com.android.tools.adtui.MemoryAxisDomain;
-import com.android.tools.adtui.Range;
+import com.android.tools.adtui.*;
+import com.android.tools.adtui.config.LineConfig;
+import com.android.tools.adtui.model.LegendRenderData;
 import com.android.tools.adtui.model.RangedContinuousSeries;
+import com.android.tools.adtui.model.ReportingSeries;
+import com.android.tools.adtui.model.ReportingSeriesRenderer;
 
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.Dimension;
+import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
 
-public class NetworkSegment extends SegmentBase {
+public class NetworkSegment extends BasicTwoAxisSegment {
 
   private static final String SEGMENT_NAME = "Network";
+  private static final String SENDING_NAME = "Sending";
+  private static final String RECEIVING_NAME = "Receiving";
 
-  @NonNull
-  private Range mTimeGlobalRange;
-
-  @NonNull
-  private AxisComponent mConnectionsAxis;
-
-  @NonNull
-  private AxisComponent mBandwidthAxis;
-
-  @NonNull
-  private GridComponent mGrid;
-
-  @NonNull
-  private LineChart mLineChart;
-
-  @NonNull
-  List<RangedContinuousSeries> mData;
-
-  //TODO Add labels for series data.
-
-  public NetworkSegment(@NonNull Range scopedRange, @NonNull List<RangedContinuousSeries> incommingData) {
-    super(SEGMENT_NAME, scopedRange);
-    mData = incommingData;
+  public NetworkSegment(@NonNull Range scopedRange, @NonNull List<RangedContinuousSeries> data) {
+    super(SEGMENT_NAME, scopedRange, data, MemoryAxisDomain.DEFAULT, MemoryAxisDomain.DEFAULT);
   }
 
   @Override
-  public void createComponentsList(@NonNull List<Animatable> animatables) {
-    mTimeGlobalRange = new Range(0, 0);
-
-    // right memory data + axis
-    Range yRange1Animatable = new Range(0, 0);
-    mConnectionsAxis = new AxisComponent(yRange1Animatable, yRange1Animatable, "MEMORY1",
-                                         AxisComponent.AxisOrientation.RIGHT, 0, 0, true,
-                                         MemoryAxisDomain.DEFAULT);
-    RangedContinuousSeries ranged1 = new RangedContinuousSeries(mScopedRange, yRange1Animatable);
-    mData.add(ranged1);
-
-    // left memory data + axis
-    Range yRange2Animatable = new Range(0, 0);
-    mBandwidthAxis = new AxisComponent(yRange2Animatable, yRange2Animatable, "MEMORY2",
-                                       AxisComponent.AxisOrientation.LEFT, 0, 0, true,
-                                       MemoryAxisDomain.DEFAULT);
-    RangedContinuousSeries ranged2 = new RangedContinuousSeries(mScopedRange, yRange2Animatable);
-    mData.add(ranged2);
-
-    mGrid = new GridComponent();
-    mGrid.addAxis(mConnectionsAxis);
-    mLineChart = new LineChart(getName(), mData);
-
-    // Note: the order below is important as some components depend on
-    // others to be updated first. e.g. the ranges need to be updated before the axes.
-    // The comment on each line highlights why the component needs to be in that position.
-    animatables.add(mLineChart); // Set y's interpolation values.
-    animatables.add(yRange1Animatable); // Interpolate y1.
-    animatables.add(yRange2Animatable); // Interpolate y2.
-    animatables.add(mConnectionsAxis); // Read ranges.
-    animatables.add(mBandwidthAxis); // Read ranges.
-    animatables.add(mGrid); // No-op.
-    animatables.add(mTimeGlobalRange); // Reset flags.
+  public List<LegendRenderData> createLegendData(@NonNull ReportingSeriesRenderer renderer) {
+    List<LegendRenderData> legendRenderDataList = new ArrayList<>();
+    List<ReportingSeries> reportingSeriesList = renderer.getReportingSeries();
+    for (ReportingSeries series : reportingSeriesList) {
+      Color color = renderer.getReportingSeriesColor(series);
+      LegendRenderData renderData = new LegendRenderData(LegendRenderData.IconType.LINE, color, series);
+      legendRenderDataList.add(renderData);
+    }
+    return legendRenderDataList;
   }
 
   @Override
-  public void registerComponents(@NonNull List<AnimatedComponent> components) {
-    components.add(mLineChart);
-    components.add(mConnectionsAxis);
-    components.add(mBandwidthAxis);
-    components.add(mGrid);
-  }
+  public void populateSeriesData(@NonNull List<RangedContinuousSeries> data, @NonNull Range leftAxisRange, @NonNull Range rightAxisRange) {
 
-  @Override
-  protected void setLeftContent(@NonNull JPanel panel) {
-    panel.add(mBandwidthAxis, BorderLayout.CENTER);
-  }
-
-  @Override
-  protected void setCenterContent(@NonNull JPanel panel) {
-    JLayeredPane layeredPane = new JLayeredPane();
-    layeredPane.add(mLineChart);
-    layeredPane.add(mGrid);
-    layeredPane.addComponentListener(new ComponentAdapter() {
-      @Override
-      public void componentResized(ComponentEvent e) {
-        JLayeredPane host = (JLayeredPane) e.getComponent();
-        if (host != null) {
-          Dimension dim = host.getSize();
-          for (Component c : host.getComponents()) {
-            c.setBounds(0, 0, dim.width, dim.height);
-          }
-        }
-      }
-    });
-    panel.add(layeredPane, BorderLayout.CENTER);
-  }
-
-  @Override
-  protected void setRightContent(@NonNull JPanel panel) {
-    panel.add(mConnectionsAxis, BorderLayout.CENTER);
+    //TODO Refactor the interaction between TestData, LineChart, and this.
+    //Currently an array is passed from the test framework, to us, to LineChart for it to configure the chart.
+    //Ideally this function can create the series, and set them on the LineChart with the proper configs. To do this the test framework and
+    //monitor framework need some way to set data on the series created here.
+    data.add(new RangedContinuousSeries(SENDING_NAME, mScopedRange, leftAxisRange));
+    data.add(new RangedContinuousSeries(RECEIVING_NAME, mScopedRange, rightAxisRange));
   }
 }
