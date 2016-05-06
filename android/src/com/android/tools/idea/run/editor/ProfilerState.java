@@ -45,6 +45,12 @@ public class ProfilerState {
 
   public static final String GAPID_AAR_PATH_NAME = "android.profiler.gapid.tracer_aar";  // Hidden setting.
 
+  public boolean SUPPORT_LIB_ENABLED = true;
+  private static final String SUPPORT_LIB_ENABLED_NAME = "android.profiler.supportLib.enabled";
+
+  public boolean INSTRUMENTATION_ENABLED = true;
+  private static final String INSTRUMENTATION_ENABLED_NAME = "android.profiler.instrumentation.enabled";
+
   /**
    * Reads the state from the {@link Element}, overwriting all member values.
    */
@@ -61,6 +67,8 @@ public class ProfilerState {
 
   public Properties toProperties() {
     Properties result = new Properties();
+    result.setProperty(SUPPORT_LIB_ENABLED_NAME, String.valueOf(SUPPORT_LIB_ENABLED));
+    result.setProperty(INSTRUMENTATION_ENABLED_NAME, String.valueOf(INSTRUMENTATION_ENABLED));
     result.setProperty(ENABLE_ADVANCED_PROFILING_NAME, String.valueOf(ENABLE_ADVANCED_PROFILING));
     result.setProperty(GAPID_ENABLED_NAME, String.valueOf(GAPID_ENABLED));
     result.setProperty(GAPID_DISABLE_PCS_NAME, String.valueOf(GAPID_DISABLE_PCS));
