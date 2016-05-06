@@ -335,7 +335,7 @@ public final class FormFactorApiComboBox extends JComboBox {
     return list.toArray(new IAndroidTarget[list.size()]);
   }
 
-  public static class AndroidTargetComboBoxItem extends ApiComboBoxItem<String> {
+  public static class AndroidTargetComboBoxItem extends com.android.tools.idea.ui.ApiComboBoxItem<String> {
     public int apiLevel = -1;
     public IAndroidTarget target = null;
 
