@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle;
 
 import com.android.builder.model.*;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.facet.NativeAndroidGradleFacet;
 import com.google.common.collect.*;
 import com.intellij.openapi.application.ApplicationManager;
@@ -41,8 +42,8 @@ public class NativeAndroidGradleModel implements Serializable {
   @NotNull private String myModuleName;
   @NotNull private File myRootDirPath;
   @NotNull private NativeAndroidProject myNativeAndroidProject;
-  // TODO: Serialize the model using the proxy objects to cache the model data properly.
 
+  @Nullable private transient GradleVersion myModelVersion;
   @Nullable private transient CountDownLatch myProxyNativeAndroidProjectLatch;
   @Nullable private NativeAndroidProject myProxyNativeAndroidProject;
 
@@ -77,6 +78,8 @@ public class NativeAndroidGradleModel implements Serializable {
     myRootDirPath = rootDirPath;
     myNativeAndroidProject = nativeAndroidProject;
 
+    parseAndSetModelVersion();
+
     // Compute the proxy object to avoid re-proxying the model during every serialization operation and also schedule it to run
     // asynchronously to avoid blocking the project sync operation for reproxying to complete.
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
@@ -94,7 +97,7 @@ public class NativeAndroidGradleModel implements Serializable {
 
   private void populateVariantsByName() {
     for (NativeArtifact artifact : myNativeAndroidProject.getArtifacts()) {
-      String variantName = artifact.getGroupName();
+      String variantName = modelVersionIsAtLeast("2.0.0") ? artifact.getGroupName() : artifact.getName();
       NativeVariant variant = myVariantsByName.get(variantName);
       if (variant == null) {
         variant = new NativeVariant(variantName);
@@ -140,6 +143,14 @@ public class NativeAndroidGradleModel implements Serializable {
     sort(sortedVariantNames);
     assert !sortedVariantNames.isEmpty();
     mySelectedVariantName = sortedVariantNames.get(0);
+  }
+
+  private void parseAndSetModelVersion() {
+    myModelVersion = GradleVersion.tryParse(myNativeAndroidProject.getModelVersion());
+  }
+
+  public boolean modelVersionIsAtLeast(@NotNull String revision) {
+    return myModelVersion != null && myModelVersion.compareIgnoringQualifiers(revision) >= 0;
   }
 
   @NotNull
@@ -249,6 +260,8 @@ public class NativeAndroidGradleModel implements Serializable {
     myNativeAndroidProject = (NativeAndroidProject)in.readObject();
     mySelectedVariantName = (String)in.readObject();
 
+    parseAndSetModelVersion();
+
     myProxyNativeAndroidProject = myNativeAndroidProject;
 
     myVariantsByName = Maps.newHashMap();
@@ -260,7 +273,7 @@ public class NativeAndroidGradleModel implements Serializable {
     populateSettingsByName();
   }
 
-  public static class NativeVariant {
+  public class NativeVariant {
     @NotNull private final String myVariantName;
     @NotNull private final Map<String, NativeArtifact> myArtifactsByName = Maps.newHashMap();
 
@@ -286,8 +299,10 @@ public class NativeAndroidGradleModel implements Serializable {
     public Collection<File> getSourceFolders() {
       Set<File> sourceFolders = Sets.newLinkedHashSet();
       for (NativeArtifact artifact : getArtifacts()) {
-        for (File headerRoot : artifact.getExportedHeaders()) {
-          sourceFolders.add(headerRoot);
+        if (modelVersionIsAtLeast("2.0.0")) {
+          for (File headerRoot : artifact.getExportedHeaders()) {
+            sourceFolders.add(headerRoot);
+          }
         }
         for (NativeFolder sourceFolder : artifact.getSourceFolders()) {
           sourceFolders.add(sourceFolder.getFolderPath());
