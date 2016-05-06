@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure;
 
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
+import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
@@ -31,6 +32,7 @@ import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleExecutionSettings;
 import static com.android.tools.idea.gradle.util.Projects.populate;
+import static com.android.tools.idea.gradle.util.Projects.setSkipSyncIssueReporting;
 import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter.NULL_OBJECT;
 import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.RESOLVE_PROJECT;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
@@ -40,8 +42,7 @@ public class FastGradleSync {
 
   @NotNull
   public Callback requestProjectSync(@NotNull Project project) {
-    ProjectSyncMessages messages = ProjectSyncMessages.getInstance(project);
-    messages.removeAllMessages();
+    setSkipSyncIssueReporting(project, true);
 
     Callback callback = new Callback();
     GradleExecutionSettings settings = getGradleExecutionSettings(project);
@@ -58,6 +59,9 @@ public class FastGradleSync {
       }
       catch (Throwable e) {
         callback.setRejected(e);
+      }
+      finally {
+        setSkipSyncIssueReporting(project, null);
       }
     });
     return callback;
