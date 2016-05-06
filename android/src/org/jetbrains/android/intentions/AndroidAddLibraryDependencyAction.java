@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames;
+import com.android.tools.idea.templates.SupportLibrary;
 import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
@@ -86,12 +87,9 @@ public class AndroidAddLibraryDependencyAction extends AbstractIntentionAction i
 
     ImmutableList.Builder<String> dependenciesBuilder = ImmutableList.builder();
     RepositoryUrlManager repositoryUrlManager = RepositoryUrlManager.get();
-    for (RepositoryUrlManager.RepositoryLibrary library : RepositoryUrlManager.EXTRAS_REPOSITORY.values()) {
+    for (SupportLibrary library : SupportLibrary.values()) {
       // Coordinate for any version available
-      GradleCoordinate libraryCoordinate = GradleCoordinate.parseCoordinateString(String.format(library.baseCoordinate, library.id, "+"));
-      if (libraryCoordinate == null) {
-        continue;
-      }
+      GradleCoordinate libraryCoordinate = library.getGradleCoordinate("+");
 
       // Get from the library coordinate only the group and artifactId to check if we have already added it
       if (!existingDependencies.contains(libraryCoordinate.getId())) {
