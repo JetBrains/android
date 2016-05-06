@@ -940,6 +940,7 @@
     <debugger.nodeRenderer implementation="com.android.tools.idea.debug.AndroidTypedIntegerRenderer" />
     <debugger.nodeRenderer implementation="com.android.tools.idea.debug.ArrayMapRenderer" />
     <debugger.nodeRenderer implementation="com.android.tools.idea.debug.SupportArrayMapRenderer" />
+    <debugger.nodeRenderer implementation="com.android.tools.idea.debug.MeasureSpecRenderer" />
 
     <virtualFileSystem key="android-dummy" implementationClass="com.android.tools.idea.editors.AndroidFakeFileSystem"/>
     <generatedSourcesFilter implementation="com.android.tools.idea.editors.AndroidGeneratedSourcesFilter"/>
