@@ -86,7 +86,9 @@ public class AndroidProfilersPanel {
    * Assigns the current UI state to the specified {@link ProfilerState}.
    */
   void applyTo(ProfilerState state) {
-    state.ENABLE_ADVANCED_PROFILING = myAdvancedProfilingCheckBox.isSelected() && System.getProperty(ENABLE_EXPERIMENTAL_PROFILING) != null;
+
+    boolean enabled = System.getProperty(ENABLE_EXPERIMENTAL_PROFILING) != null;
+    state.ENABLE_ADVANCED_PROFILING = myAdvancedProfilingCheckBox.isSelected() && enabled;
     state.GAPID_ENABLED = myGapidEnabled.isSelected();
     state.GAPID_DISABLE_PCS = myGapidDisablePCS.isSelected();
   }
