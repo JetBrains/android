@@ -562,8 +562,8 @@ public class ResourceHelper {
    * Tries to resolve the given resource value to a dimension in pixels. The returned value is
    * function of the configuration's device's density.
    *
-   * @param resources the resource resolver to use to follow drawable references
-   * @param value the dimension to resolve
+   * @param resources     the resource resolver to use to follow references
+   * @param value         the dimension to resolve
    * @param configuration the device configuration
    * @return a dimension in pixels, or null
    */
@@ -660,10 +660,8 @@ public class ResourceHelper {
      * in size. The given <var>data</var> must be structured as a
      * {@link #TYPE_DIMENSION}.
      *
-     * @param data A complex data value holding a unit, magnitude, and
-     *             mantissa.
+     * @param data   A complex data value holding a unit, magnitude, and mantissa.
      * @param config The device configuration
-     *
      * @return The number of pixels specified by the data and its desired
      * multiplier and units.
      */
@@ -685,7 +683,6 @@ public class ResourceHelper {
      * describe.  The units are ignored.
      *
      * @param complex A complex data value.
-     *
      * @return A floating point value corresponding to the complex data.
      */
     static float complexToFloat(int complex) {
@@ -698,10 +695,9 @@ public class ResourceHelper {
      * point value. The two parameters <var>unit</var> and <var>value</var>
      * are as in {@link #TYPE_DIMENSION}.
      *
-     * @param unit The unit to convert from.
-     * @param value The value to apply the unit to.
+     * @param unit   The unit to convert from.
+     * @param value  The value to apply the unit to.
      * @param config The device configuration
-     *
      * @return The complex floating point value multiplied by the appropriate
      * metrics depending on its unit.
      */
@@ -733,9 +729,8 @@ public class ResourceHelper {
   /**
    * Parse a float attribute and return the parsed value into a given TypedValue.
    *
-   * @param configuration
-   * @param value the string value of the attribute
-   * @param outValue the TypedValue to receive the parsed value
+   * @param value       the string value of the attribute
+   * @param outValue    the TypedValue to receive the parsed value
    * @param requireUnit whether the value is expected to contain a unit.
    * @return true if success.
    */
