@@ -37,15 +37,7 @@ import com.android.tools.sherpa.structure.WidgetsScene;
 import com.android.tools.sherpa.structure.Selection;
 import com.google.tnt.solver.widgets.*;
 
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.GraphicsConfiguration;
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.TexturePaint;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 
 /**
@@ -492,6 +484,9 @@ public class SceneDraw {
             ViewTransform transform, Graphics2D g,
             boolean showAllConstraints,
             MouseInteraction mouseInteraction) {
+
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                           RenderingHints.VALUE_INTERPOLATION_BICUBIC);
 
         WidgetContainer root = mWidgetsScene.getRoot();
         if (root == null) {
