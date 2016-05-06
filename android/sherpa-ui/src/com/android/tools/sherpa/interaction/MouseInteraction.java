@@ -599,8 +599,13 @@ public class MouseInteraction {
         ResizeHandle resizeHandle = mClickListener.mHitResizeHandle;
 
         WidgetDecorator.WidgetAction widgetAction = mClickListener.getWidgetAction();
-        if (widgetAction != null && widget == null) {
-            widget = widgetAction.getWidget();
+        if (anchor == null && widgetAction != null && widgetAction.isVisible()) {
+            if (widget == null) {
+                widget = widgetAction.getWidget();
+            }
+            if (widgetAction.click()) {
+                mSelection.addModifiedWidget(widgetAction.getWidget());
+            }
         }
 
         // don't allow direct interactions with root
@@ -771,10 +776,6 @@ public class MouseInteraction {
         mClickListener.clearSelection();
         mClickListener.find(mViewTransform.getSwingFX(x), mViewTransform.getSwingFY(y));
         ConstraintAnchor anchor = mClickListener.getConstraintAnchor();
-        WidgetDecorator.WidgetAction widgetAction = mClickListener.getWidgetAction();
-        if (widgetAction != null && widgetAction.click()) {
-            mSelection.addModifiedWidget(widgetAction.getWidget());
-        }
 
         if (mSelection.getSelectedAnchor() != null
                 && mSelection.getConnectionCandidateAnchor() == null
