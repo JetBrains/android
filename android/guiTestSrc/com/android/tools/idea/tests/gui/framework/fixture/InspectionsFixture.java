@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.google.common.collect.Lists;
 import com.intellij.codeInspection.ui.InspectionTree;
 import com.intellij.codeInspection.ui.InspectionTreeNode;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindowId;
-import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,10 +34,17 @@ import static org.fest.swing.edt.GuiActionRunner.execute;
  * Fixture for the Inspections window in the IDE
  */
 public class InspectionsFixture extends ToolWindowFixture {
+
+  @NotNull
+  static InspectionsFixture find(IdeFrameFixture ideFrameFixture) {
+    InspectionTree tree = GuiTests.waitUntilFound(ideFrameFixture.robot(), GuiTests.matcherForType(InspectionTree.class));
+    return new InspectionsFixture(ideFrameFixture, tree);
+  }
+
   private final InspectionTree myTree;
 
-  public InspectionsFixture(@NotNull Robot robot, @NotNull Project project, InspectionTree tree) {
-    super(ToolWindowId.INSPECTION, project, robot);
+  private InspectionsFixture(IdeFrameFixture ideFrameFixture, InspectionTree tree) {
+    super(ToolWindowId.INSPECTION, ideFrameFixture.getProject(), ideFrameFixture.robot());
     myTree = tree;
   }
 
@@ -57,7 +63,7 @@ public class InspectionsFixture extends ToolWindowFixture {
     });
   }
 
-  public static void describe(@NotNull InspectionTreeNode node, @NotNull StringBuilder sb, int depth) {
+  private static void describe(@NotNull InspectionTreeNode node, @NotNull StringBuilder sb, int depth) {
     for (int i = 0; i < depth; i++) {
       sb.append("    ");
     }
