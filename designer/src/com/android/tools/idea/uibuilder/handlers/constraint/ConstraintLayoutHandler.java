@@ -106,7 +106,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
   }
 
   @Override
-  public void addViewActions(@NotNull List<ViewAction> actions) {
+  public void addToolbarActions(@NotNull List<ViewAction> actions) {
     ViewAction action;
     myActions.clear();
     myControlActions.clear();
@@ -205,6 +205,13 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                                          AndroidIcons.SherpaIcons.VerticalExpand, str));
     // TODO Decide if we want lock actions.add(new LockConstraints());
     myActions.add(action);
+  }
+
+  @Override
+  public void addPopupMenuActions(@NotNull List<ViewAction> actions) {
+    actions.add((new InferAction()));
+    // Just dumps all the toolbar actions in the context menu under a menu item called "Constraint Layout"
+    addToolbarActionsToMenu("Constraint Layout", actions);
   }
 
   interface Enableable {

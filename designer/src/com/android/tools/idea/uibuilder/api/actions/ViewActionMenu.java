@@ -32,6 +32,16 @@ public final class ViewActionMenu extends ViewAction {
   /**
    * Creates a new view action.
    *
+   * @param menuName the menu label
+   * @param actions  the set of actions in this menu
+   */
+  public ViewActionMenu(@NotNull String menuName, @NotNull List<ViewAction> actions) {
+    this(-1, menuName, actions);
+  }
+
+  /**
+   * Creates a new view action.
+   *
    * @param rank     the sorting order of this action
    * @param menuName the menu label
    * @param actions  the set of actions in this menu

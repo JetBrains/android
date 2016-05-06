@@ -16,28 +16,20 @@
 package com.android.tools.idea.uibuilder.editor;
 
 import com.android.tools.idea.configurations.*;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.android.tools.idea.uibuilder.api.ViewHandler;
-import com.android.tools.idea.uibuilder.api.actions.*;
-import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
-import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.model.ModelListener;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.model.SelectionModel;
-import com.android.tools.idea.uibuilder.surface.*;
-import com.google.common.collect.Lists;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
+import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.idea.uibuilder.surface.ZoomType;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction;
-import com.intellij.openapi.application.Result;
-import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SystemInfo;
-import com.intellij.psi.PsiFile;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
@@ -45,11 +37,8 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.InputEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -299,370 +288,16 @@ public class NlActionsToolbar implements DesignSurfaceListener, ModelListener {
       return;
     }
 
+    // TODO: Perform caching
+    myDynamicGroup.removeAll();
     NlComponent parent = findSharedParent(newSelection);
-
     if (parent != null) {
-      Project project = mySurface.getProject();
-      ViewHandler handler = ViewHandlerManager.get(project).getHandler(parent);
-      if (handler != null) {
-        List<ViewAction> viewActions = new ArrayList<ViewAction>() {
-          @Override
-          public boolean add(ViewAction viewAction) {
-            // Ensure that if no rank is specified, we just sort in the insert order
-            if (!isEmpty()) {
-              ViewAction prev = get(size() - 1);
-              if (viewAction.getRank() == prev.getRank() || viewAction.getRank() == -1) {
-                viewAction.setRank(prev.getRank() + 5);
-              }
-            } else if (viewAction.getRank() == -1) {
-              viewAction.setRank(0);
-            }
-
-            return super.add(viewAction);
-          }
-        };
-        handler.addViewActions(viewActions);
-        Collections.sort(viewActions);
-
-        // TODO: Perform caching
-        myDynamicGroup.removeAll();
-        List<AnAction> target = Lists.newArrayList();
-        ViewEditor editor = new ViewEditorImpl(screenView);
-        for (ViewAction viewAction : viewActions) {
-          addActions(target, viewAction, project, editor, handler, parent, newSelection);
-        }
-        boolean lastWasSeparator = false;
-        for (AnAction action : target) {
-          // Merge repeated separators
-          boolean isSeparator = action instanceof Separator;
-          if (isSeparator && lastWasSeparator) {
-            continue;
-          }
-
-          myDynamicGroup.add(action);
-          lastWasSeparator = true;
-        }
-      }
-    }
-    else {
-      myDynamicGroup.removeAll();
-    }
-  }
-
-  /**
-   * Adds one or more {@link AnAction} to the target list from a given {@link ViewAction}. This
-   * is typically just one action, but in the case of a {@link ToggleViewActionGroup} it can add
-   * a series of related actions.
-   */
-  private void addActions(@NotNull List<AnAction> target, @NotNull ViewAction viewAction,
-                          @NotNull Project project, @NotNull ViewEditor editor, @NotNull ViewHandler handler,
-                          @NotNull NlComponent parent, @NotNull List<NlComponent> newSelection) {
-    if (viewAction instanceof DirectViewAction) {
-      target.add(new DirectViewActionWrapper(project, (DirectViewAction)viewAction, editor, handler, parent, newSelection));
-    }
-    else if (viewAction instanceof ViewActionSeparator) {
-      target.add(Separator.getInstance());
-    }
-    else if (viewAction instanceof ToggleViewAction) {
-      target.add(new ToggleViewActionWrapper(project, (ToggleViewAction)viewAction, editor, handler, parent, newSelection));
-    }
-    else if (viewAction instanceof ToggleViewActionGroup) {
-      List<ToggleViewActionWrapper> actions = Lists.newArrayList();
-      for (ToggleViewAction action : ((ToggleViewActionGroup)viewAction).getActions()) {
-        actions.add(new ToggleViewActionWrapper(project, action, editor, handler, parent, newSelection));
-      }
-      if (!actions.isEmpty()) {
-        ToggleViewActionWrapper prev = null;
-        for (ToggleViewActionWrapper action : actions) {
-          target.add(action);
-
-          if (prev != null) {
-            prev.myGroupSibling = action;
-          }
-          prev = action;
-        }
-        if (prev != null) { // last link back to first
-          prev.myGroupSibling = actions.get(0);
-        }
-      }
-    }
-    else if (viewAction instanceof ViewActionMenu) {
-      target.add(new ViewActionMenuWrapper((ViewActionMenu)viewAction, editor, handler, parent, newSelection));
-    }
-    else {
-      throw new UnsupportedOperationException(viewAction.getClass().getName());
+      mySurface.getActionManager().addViewActions(myDynamicGroup, null, parent, newSelection, true);
     }
   }
 
   public void setModel(NlModel model) {
     myModel = model;
-  }
-
-  /** Wrapper around a {@link DirectViewAction} which uses an IDE {@link AnAction} in the toolbar */
-  private class DirectViewActionWrapper extends AnAction implements ViewActionPresentation {
-    private final Project myProject;
-    private final DirectViewAction myAction;
-    private final ViewHandler myHandler;
-    private final ViewEditor myEditor;
-    private final NlComponent myComponent;
-    private final List<NlComponent> mySelectedChildren;
-    private Presentation myCurrentPresentation;
-
-    public DirectViewActionWrapper(@NotNull Project project,
-                                   @NotNull DirectViewAction action,
-                                   @NotNull ViewEditor editor,
-                                   @NotNull ViewHandler handler,
-                                   @NotNull NlComponent component,
-                                   @NotNull List<NlComponent> selectedChildren) {
-      myProject = project;
-      myAction = action;
-      myEditor = editor;
-      myHandler = handler;
-      myComponent = component;
-      mySelectedChildren = selectedChildren;
-      Presentation presentation = getTemplatePresentation();
-      presentation.setIcon(action.getDefaultIcon());
-      presentation.setText(action.getLabel());
-    }
-
-    @Override
-    public void actionPerformed(AnActionEvent e) {
-      String description = e.getPresentation().getText();
-      PsiFile file = myComponent.getTag().getContainingFile();
-      if (myAction.affectsUndo()) {
-        new WriteCommandAction<Void>(myProject, description, null, new PsiFile[]{file}) {
-          @Override
-          protected void run(@NotNull Result<Void> result) throws Throwable {
-            myAction.perform(myEditor, myHandler, myComponent, mySelectedChildren, e.getModifiers());
-          }
-        }.execute();
-      } else {
-        // Catch missing write lock and diagnose as missing affectsRedo
-        try {
-          myAction.perform(myEditor, myHandler, myComponent, mySelectedChildren, e.getModifiers());
-        } catch (Throwable t) {
-          throw new IncorrectOperationException("View Action required write lock: should not specify affectsUndo=false");
-        }
-      }
-
-      mySurface.repaint();
-    }
-
-    @Override
-    public void update(AnActionEvent e) {
-      // Unfortunately, the action event we're fed here does *not* have the correct
-      // current modifier state; there are code paths which just feed in a value of 0
-      // when manufacturing their own ActionEvents; for example, Utils#expandActionGroup
-      // which is usually how the toolbar code is updated.
-      //
-      // So, instead we'll need to feed it the most recently known mask from the
-      // InteractionManager which observes mouse and keyboard events in the design surface.
-      // This misses pure keyboard events when the design surface does not have focus
-      // (but moving the mouse over the design surface updates it immediately.)
-      //
-      // (Longer term we consider having a singleton Toolkit listener which listens
-      // for AWT events globally and tracks the most recent global modifier key state.)
-      int modifiers = InteractionManager.getLastModifiers();
-
-      myCurrentPresentation = e.getPresentation();
-      try {
-        myAction.updatePresentation(this, myEditor, myHandler, myComponent, mySelectedChildren, modifiers);
-      } finally {
-        myCurrentPresentation = null;
-      }
-    }
-
-    // ---- Implements ViewActionPresentation ----
-
-    @Override
-    public void setLabel(@NotNull String label) {
-      myCurrentPresentation.setText(label);
-    }
-
-    @Override
-    public void setEnabled(boolean enabled) {
-      myCurrentPresentation.setEnabled(enabled);
-    }
-
-    @Override
-    public void setVisible(boolean visible) {
-      myCurrentPresentation.setVisible(visible);
-    }
-
-    @Override
-    public void setIcon(@Nullable Icon icon) {
-      myCurrentPresentation.setIcon(icon);
-    }
-  }
-
-  /** Wrapper around a {@link ToggleViewAction} which uses an IDE {@link AnAction} in the toolbar */
-  private class ToggleViewActionWrapper extends ToggleAction implements ViewActionPresentation {
-    private final Project myProject;
-    private final ToggleViewAction myAction;
-    private final ViewEditor myEditor;
-    private final ViewHandler myHandler;
-    private final NlComponent myComponent;
-    private final List<NlComponent> mySelectedChildren;
-    private Presentation myCurrentPresentation;
-    private ToggleViewActionWrapper myGroupSibling;
-
-    public ToggleViewActionWrapper(@NotNull Project project,
-                                   @NotNull ToggleViewAction action,
-                                   @NotNull ViewEditor editor,
-                                   @NotNull ViewHandler handler,
-                                   @NotNull NlComponent component,
-                                   @NotNull List<NlComponent> selectedChildren) {
-      myProject = project;
-      myAction = action;
-      myEditor = editor;
-      myHandler = handler;
-      myComponent = component;
-      mySelectedChildren = selectedChildren;
-      Presentation presentation = getTemplatePresentation();
-      presentation.setText(action.getUnselectedLabel());
-      presentation.setIcon(action.getUnselectedIcon());
-      presentation.setSelectedIcon(action.getSelectedIcon());
-    }
-
-    @Override
-    public boolean isSelected(AnActionEvent e) {
-      return myAction.isSelected(myEditor, myHandler, myComponent, mySelectedChildren);
-    }
-
-    @Override
-    public void setSelected(AnActionEvent e, boolean state) {
-      String description = e.getPresentation().getText();
-      PsiFile file = myComponent.getTag().getContainingFile();
-
-      if (myAction.affectsUndo()) {
-        new WriteCommandAction<Void>(myProject, description, null, new PsiFile[]{file}) {
-          @Override
-          protected void run(@NotNull Result<Void> result) throws Throwable {
-            applySelection(state);
-          }
-        }.execute();
-      } else {
-        try {
-          applySelection(state);
-        } catch (Throwable t) {
-          throw new IncorrectOperationException("View Action required write lock: should not specify affectsUndo=false");
-        }
-      }
-    }
-
-    private void applySelection(boolean state) {
-      myAction.setSelected(myEditor, myHandler, myComponent, mySelectedChildren, state);
-
-      // Also clear any in the group (if any)
-      if (state) {
-        ToggleViewActionWrapper groupSibling = myGroupSibling;
-        while (groupSibling != null && groupSibling != this) { // This is a circular list.
-          groupSibling.myAction.setSelected(myEditor, myHandler, myComponent, mySelectedChildren, false);
-          groupSibling = groupSibling.myGroupSibling;
-        }
-      }
-
-      mySurface.repaint();
-    }
-
-    @Override
-    public void update(@NotNull AnActionEvent e) {
-      myCurrentPresentation = e.getPresentation();
-      try {
-        boolean selected = myAction.isSelected(myEditor, myHandler, myComponent, mySelectedChildren);
-        if (myAction.getSelectedLabel() != null) {
-          myCurrentPresentation.setText(selected ? myAction.getSelectedLabel() : myAction.getUnselectedLabel());
-        }
-        myAction.updatePresentation(this, myEditor, myHandler, myComponent, mySelectedChildren, e.getModifiers(), selected);
-      } finally {
-        myCurrentPresentation = null;
-      }
-    }
-
-    // ---- Implements ViewActionPresentation ----
-
-    @Override
-    public void setLabel(@NotNull String label) {
-      myCurrentPresentation.setText(label);
-    }
-
-    @Override
-    public void setEnabled(boolean enabled) {
-      myCurrentPresentation.setEnabled(enabled);
-    }
-
-    @Override
-    public void setVisible(boolean visible) {
-      myCurrentPresentation.setVisible(visible);
-    }
-
-    @Override
-    public void setIcon(@Nullable Icon icon) {
-      myCurrentPresentation.setIcon(icon);
-    }
-  }
-
-  /** Wrapper around a {@link ViewActionMenu} which uses an IDE {@link AnAction} in the toolbar */
-  private static class ViewActionMenuWrapper extends ActionGroup implements ViewActionPresentation {
-    private final ViewActionMenu myAction;
-    private final ViewEditor myEditor;
-    private final ViewHandler myHandler;
-    private final NlComponent myComponent;
-    private final List<NlComponent> mySelectedChildren;
-    private Presentation myCurrentPresentation;
-
-    public ViewActionMenuWrapper(@NotNull ViewActionMenu action,
-                                 @NotNull ViewEditor editor,
-                                 @NotNull ViewHandler handler,
-                                 @NotNull NlComponent component,
-                                 @NotNull List<NlComponent> selectedChildren) {
-      myAction = action;
-      myEditor = editor;
-      myHandler = handler;
-      myComponent = component;
-      mySelectedChildren = selectedChildren;
-      Presentation presentation = getTemplatePresentation();
-      presentation.setIcon(action.getDefaultIcon());
-      presentation.setText(action.getLabel());
-    }
-
-    @Override
-    public void update(AnActionEvent e) {
-      myCurrentPresentation = e.getPresentation();
-      try {
-        myAction.updatePresentation(this, myEditor, myHandler, myComponent, mySelectedChildren, e.getModifiers());
-      } finally {
-        myCurrentPresentation = null;
-      }
-    }
-
-    // ---- Implements ViewActionPresentation ----
-
-    @Override
-    public void setLabel(@NotNull String label) {
-      myCurrentPresentation.setText(label);
-    }
-
-    @Override
-    public void setEnabled(boolean enabled) {
-      myCurrentPresentation.setEnabled(enabled);
-    }
-
-    @Override
-    public void setVisible(boolean visible) {
-      myCurrentPresentation.setVisible(visible);
-    }
-
-    @Override
-    public void setIcon(@Nullable Icon icon) {
-      myCurrentPresentation.setIcon(icon);
-    }
-
-    @NotNull
-    @Override
-    public AnAction[] getChildren(@Nullable AnActionEvent e) {
-      return new AnAction[0];
-    }
   }
 
   // ---- Implements DesignSurfaceListener ----
