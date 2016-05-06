@@ -23,7 +23,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.Wait;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.FileFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.InspectionsFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.InspectCodeDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ConfigureAndroidProjectStepFixture;
@@ -99,12 +99,16 @@ public class NewProjectTest {
     editor.open(buildGradlePath, EditorFixture.Tab.EDITOR);
     editor.moveTo(editor.findOffset(null, "applicationId", true));
     editor.enterText("resValue \"string\", \"foo\", \"Typpo Here\"\n");
-    guiTest.ideFrame().requireEditorNotification("Gradle files have changed since last project sync").performAction("Sync Now");
-    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
 
-    InspectionsFixture inspections = guiTest.ideFrame().inspectCode();
+    String inspectionResults = guiTest.ideFrame()
+      .requireEditorNotification("Gradle files have changed since last project sync")
+      .performAction("Sync Now")
+      .waitForGradleProjectSyncToFinish()
+      .openFromMenu(InspectCodeDialogFixture::find, "Analyze", "Inspect Code...")
+      .clickOk()
+      .getResults();
 
-    assertThat(inspections.getResults()).isEqualTo(lines(
+    assertThat(inspectionResults).isEqualTo(lines(
       "Test Application",
       // This warning is from the "foo" string we created in the Gradle resValue declaration above
       "    Android > Lint > Performance",
