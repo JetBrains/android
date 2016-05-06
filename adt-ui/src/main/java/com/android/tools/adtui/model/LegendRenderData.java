@@ -30,21 +30,11 @@ public class LegendRenderData {
   }
 
   @NonNull
-  private final String mLabel;
-
-  @NonNull
   private final Color mColor;
 
   @NonNull
   private final IconType mIcon;
   private final ReportingSeries mSeries;
-
-  /**
-   * Label to be used as either a prefix, or the legend label, depending on if the series is set.
-   */
-  public String getLabel() {
-    return mLabel;
-  }
 
   public Color getColor() {
     return mColor;
@@ -67,8 +57,7 @@ public class LegendRenderData {
    * @param color The color of the icon to be associated with the elements in the chart.
    * @param series Series data to be used for gathering the latest value.
    */
-  public LegendRenderData(@NonNull String label, @NonNull IconType icon, @NonNull Color color, ReportingSeries series) {
-    mLabel = label;
+  public LegendRenderData(@NonNull IconType icon, @NonNull Color color, ReportingSeries series) {
     mColor = color;
     mIcon = icon;
     mSeries = series;

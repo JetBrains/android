@@ -86,7 +86,7 @@ public class AccordionVisualTest extends VisualTest {
         mYRange = new Range(0.0, 100.0);
         componentsList.add(mYRange);
       }
-      RangedContinuousSeries ranged = new RangedContinuousSeries(xRange, mYRange);
+      RangedContinuousSeries ranged = new RangedContinuousSeries("Widgets", xRange, mYRange);
       mData.add(ranged);
     }
     return componentsList;

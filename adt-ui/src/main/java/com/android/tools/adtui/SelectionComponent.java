@@ -386,7 +386,7 @@ public final class SelectionComponent extends AnimatedComponent {
     TIntArrayList dataWidthArray = new TIntArrayList();
     for (ReportingSeries.ReportingData data : mReportingData) {
       int labelWidth = mDefaultFontMetrics.stringWidth(data.label);
-      int dataWidth = mDefaultFontMetrics.stringWidth(data.formattedData);
+      int dataWidth = mDefaultFontMetrics.stringWidth(data.formattedYData);
       labelColumnWidth = Math.max(labelColumnWidth, labelWidth);
       dataColumnWidth = Math.max(dataColumnWidth, dataWidth);
       dataWidthArray.add(dataWidth);
@@ -421,7 +421,7 @@ public final class SelectionComponent extends AnimatedComponent {
       ReportingSeries.ReportingData data = mReportingData.get(i);
       textHeight += ascent;
       g.drawString(data.label, OVERLAY_INFO_PADDING, textHeight);
-      g.drawString(data.formattedData, overlayWidth - OVERLAY_INFO_PADDING - dataWidthArray.get(i), textHeight);
+      g.drawString(data.formattedYData, overlayWidth - OVERLAY_INFO_PADDING - dataWidthArray.get(i), textHeight);
       textHeight += OVERLAY_INFO_LINE_SPACING;
     }
 

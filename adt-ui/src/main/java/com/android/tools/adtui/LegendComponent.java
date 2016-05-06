@@ -26,6 +26,7 @@ import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Stroke;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -38,7 +39,6 @@ public class LegendComponent extends AnimatedComponent {
     VERTICAL,
   }
 
-  private static final String LABEL_FORMAT = "%s: %s";
   private static final int LINE_THICKNESS = 4;
   private static final int ICON_WIDTH = 16;
   private static final int ICON_PADDING = 2;
@@ -85,7 +85,7 @@ public class LegendComponent extends AnimatedComponent {
   private void initialize() {
     mLabelsToDraw = new ArrayList<>(mLegendRenderDatas.size());
     for (LegendRenderData data : mLegendRenderDatas) {
-      JLabel label = new JLabel(data.getLabel());
+      JLabel label = new JLabel();
       mLabelsToDraw.add(label);
     }
   }
@@ -102,9 +102,11 @@ public class LegendComponent extends AnimatedComponent {
         Dimension preferredSize = label.getPreferredSize();
         label.setBounds(0, 0, preferredSize.width, preferredSize.height);
         if (series != null) {
-          label.setText(String.format(LABEL_FORMAT, data.getLabel(), mAxisDomain.getFormattedString(
-            series.getRangeLength(),
-            series.getLatestValue())));
+          Collection<ReportingSeries.ReportingData> latestDataList = series.getFullReportingData((long)series.getLatestValue());
+          //TODO change getFullReportingData to return a single instance.
+          for (ReportingSeries.ReportingData latestData : latestDataList) {
+            label.setText(String.format("%s: %s", latestData.label, latestData.formattedXData));
+          }
         }
       }
 
@@ -174,4 +176,3 @@ public class LegendComponent extends AnimatedComponent {
     return new Dimension(totalWidth, totalHeight);
   }
 }
-

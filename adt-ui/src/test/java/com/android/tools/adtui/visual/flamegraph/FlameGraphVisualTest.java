@@ -220,7 +220,7 @@ public class FlameGraphVisualTest extends VisualTest implements ActionListener {
                 mSelectionRange.setMax(end);
 
                 // Generate dummy values to simulate CPU Load.
-                RangedContinuousSeries series = new RangedContinuousSeries(mDataRange,
+                RangedContinuousSeries series = new RangedContinuousSeries("CPU Load", mDataRange,
                                                                            new Range(0.0, (float)Sampler.MAX_VALUE));
                 Random r = new Random(System.currentTimeMillis());
                 for (int i = 0; i < 100; i++) {
