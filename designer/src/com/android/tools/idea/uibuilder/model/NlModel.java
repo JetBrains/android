@@ -18,11 +18,13 @@ package com.android.tools.idea.uibuilder.model;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.MergeCookie;
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.resources.ResourceFolderType;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Screen;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.*;
+import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceVersion;
@@ -305,7 +307,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       myComponents = Collections.emptyList();
     } else {
       XmlTag rootTag = AndroidPsiUtils.getRootTagSafely(myFile);
-      List<ViewInfo> rootViews = result.getRootViews();
+      List<ViewInfo> rootViews;
+      rootViews = myType == NlLayoutType.MENU ? result.getSystemRootViews() : result.getRootViews();
       updateHierarchy(rootTag, rootViews);
     }
     myModificationCount++;
