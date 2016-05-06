@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.property.inspector;
 
 import com.android.assetstudiolib.AndroidVectorIcons;
+import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlFlagPropertyItem;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
@@ -28,6 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -43,15 +45,6 @@ public class FontInspectorComponent implements InspectorComponent {
     ATTR_TEXT_COLOR_HINT);
 
   private final NlPropertiesManager myPropertiesManager;
-
-  private final NlProperty myStyle;
-  private final NlProperty myFontFamily;
-  private final NlProperty myFontSize;
-  private final NlProperty mySpacing;
-  private final NlFlagPropertyItem myTextStyle;
-  private final NlProperty myTextAllCaps;
-  private final NlProperty myAlignment;
-  private final NlProperty myColor;
 
   private final NlEnumEditor myStyleEditor;
   private final NlEnumEditor myFontFamilyEditor;
@@ -69,18 +62,17 @@ public class FontInspectorComponent implements InspectorComponent {
   private final JPanel myTextStylePanel;
   private final JPanel myAlignmentPanel;
 
-  public FontInspectorComponent(@NotNull Map<String, NlProperty> properties,
-                                @NotNull NlPropertiesManager propertiesManager) {
-    myPropertiesManager = propertiesManager;
+  private NlProperty myStyle;
+  private NlProperty myFontFamily;
+  private NlProperty myFontSize;
+  private NlProperty mySpacing;
+  private NlFlagPropertyItem myTextStyle;
+  private NlProperty myTextAllCaps;
+  private NlProperty myAlignment;
+  private NlProperty myColor;
 
-    myStyle = properties.get(ATTR_TEXT_APPEARANCE);
-    myFontFamily = properties.get(ATTR_FONT_FAMILY);
-    myFontSize = properties.get(ATTR_TEXT_SIZE);
-    mySpacing = properties.get(ATTR_LINE_SPACING_EXTRA);
-    myTextStyle = (NlFlagPropertyItem)properties.get(ATTR_TEXT_STYLE);
-    myTextAllCaps = properties.get(ATTR_TEXT_ALL_CAPS);
-    myAlignment = properties.get(ATTR_TEXT_ALIGNMENT);
-    myColor = properties.get(ATTR_TEXT_COLOR);
+  public FontInspectorComponent(@NotNull NlPropertiesManager propertiesManager) {
+    myPropertiesManager = propertiesManager;
 
     NlEnumEditor.Listener enumListener = createEnumListener();
 
@@ -109,6 +101,18 @@ public class FontInspectorComponent implements InspectorComponent {
     myAlignmentPanel.add(myCenterEditor.getComponent());
     myAlignmentPanel.add(myRightEditor.getComponent());
     myAlignmentPanel.add(myEndEditor.getComponent());
+  }
+
+  @Override
+  public void updateProperties(@NotNull List<NlComponent> components, @NotNull Map<String, NlProperty> properties) {
+    myStyle = properties.get(ATTR_TEXT_APPEARANCE);
+    myFontFamily = properties.get(ATTR_FONT_FAMILY);
+    myFontSize = properties.get(ATTR_TEXT_SIZE);
+    mySpacing = properties.get(ATTR_LINE_SPACING_EXTRA);
+    myTextStyle = (NlFlagPropertyItem)properties.get(ATTR_TEXT_STYLE);
+    myTextAllCaps = properties.get(ATTR_TEXT_ALL_CAPS);
+    myAlignment = properties.get(ATTR_TEXT_ALIGNMENT);
+    myColor = properties.get(ATTR_TEXT_COLOR);
   }
 
   @Override

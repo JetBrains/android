@@ -16,8 +16,6 @@
 package com.android.tools.idea.uibuilder.property.inspector;
 
 import com.android.SdkConstants;
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
@@ -27,17 +25,23 @@ import java.util.List;
 import java.util.Map;
 
 public class ImageViewInspectorProvider implements InspectorProvider {
+  private ImageViewInspectorComponent myComponent;
+
   @Override
-  public boolean isApplicable(@NonNull List<NlComponent> components, @NonNull Map<String, NlProperty> properties) {
+  public boolean isApplicable(@NotNull List<NlComponent> components, @NotNull Map<String, NlProperty> properties) {
     return components.size() == 1 && components.get(0).getTagName().equals(SdkConstants.IMAGE_VIEW);
   }
 
-  @NonNull
+  @NotNull
   @Override
-  public InspectorComponent createCustomInspector(@Nullable List<NlComponent> components,
-                                                  @NonNull Map<String, NlProperty> properties,
+  public InspectorComponent createCustomInspector(@NotNull List<NlComponent> components,
+                                                  @NotNull Map<String, NlProperty> properties,
                                                   @NotNull NlPropertiesManager propertiesManager) {
-    return new ImageViewInspectorComponent(properties, propertiesManager);
+    if (myComponent == null) {
+      myComponent = new ImageViewInspectorComponent(propertiesManager);
+    }
+    myComponent.updateProperties(components, properties);
+    return myComponent;
   }
 }
 
