@@ -19,6 +19,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.fixture.FindDialogFixture;
 import com.google.common.collect.ImmutableList;
 import org.junit.Rule;
 import org.junit.Test;
@@ -35,7 +36,7 @@ public class FindInPathTest {
   @Test
   public void testResultsOnlyInGeneratedCode() throws Exception {
     ImmutableList<String> usageGroupNames = guiTest.importSimpleApplication()
-      .invokeFindInPathDialog()
+      .openFromMenu(FindDialogFixture::find, "Edit", "Find", "Find in Path...")
       .setTextToFind("ActionBarDivider")
       .clickFind()
       .getUsageGroupNames();
@@ -45,7 +46,7 @@ public class FindInPathTest {
   @Test
   public void testResultsInBothProductionAndGeneratedCode() throws Exception {
     ImmutableList<String> usageGroupNames = guiTest.importSimpleApplication()
-      .invokeFindInPathDialog()
+      .openFromMenu(FindDialogFixture::find, "Edit", "Find", "Find in Path...")
       .setTextToFind("DarkActionBar")
       .clickFind()
       .getUsageGroupNames();

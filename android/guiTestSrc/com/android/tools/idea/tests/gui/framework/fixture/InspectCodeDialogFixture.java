@@ -16,17 +16,18 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.Wait;
 import com.intellij.openapi.ui.DialogWrapper;
 import org.fest.swing.core.GenericTypeMatcher;
-import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
 public class InspectCodeDialogFixture extends IdeaDialogFixture<DialogWrapper> {
   @NotNull
-  public static InspectCodeDialogFixture find(@NotNull Robot robot) {
-    return new InspectCodeDialogFixture(robot, find(robot, DialogWrapper.class, new GenericTypeMatcher<JDialog>(JDialog.class) {
+  public static InspectCodeDialogFixture find(@NotNull IdeFrameFixture ideFrameFixture) {
+    return new InspectCodeDialogFixture(
+      ideFrameFixture, find(ideFrameFixture.robot(), DialogWrapper.class, new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
       protected boolean isMatching(@NotNull JDialog dialog) {
         return "Specify Inspection Scope".equals(dialog.getTitle());
@@ -34,11 +35,16 @@ public class InspectCodeDialogFixture extends IdeaDialogFixture<DialogWrapper> {
     }));
   }
 
-  private InspectCodeDialogFixture(@NotNull Robot robot, @NotNull DialogAndWrapper<DialogWrapper> dialogAndWrapper) {
-    super(robot, dialogAndWrapper);
+  private final IdeFrameFixture myIdeFrameFixture;
+
+  private InspectCodeDialogFixture(@NotNull IdeFrameFixture ideFrameFixture, @NotNull DialogAndWrapper<DialogWrapper> dialogAndWrapper) {
+    super(ideFrameFixture.robot(), dialogAndWrapper);
+    myIdeFrameFixture = ideFrameFixture;
   }
 
-  public void clickOk() {
+  public InspectionsFixture clickOk() {
     GuiTests.findAndClickOkButton(this);
+    Wait.seconds(5).expecting("dialog to disappear").until(() -> !target().isShowing());
+    return InspectionsFixture.find(myIdeFrameFixture);
   }
 }
