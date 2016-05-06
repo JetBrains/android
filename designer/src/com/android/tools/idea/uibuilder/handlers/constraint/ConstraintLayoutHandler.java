@@ -36,9 +36,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.AWTEventListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.WindowEvent;
+import java.awt.event.InputEvent;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
@@ -59,13 +57,15 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
 
   /**
    * Utility function to convert from an Icon to an Image
+   *
    * @param icon
    * @return
    */
   static Image iconToImage(Icon icon) {
     if (icon instanceof ImageIcon) {
       return ((ImageIcon)icon).getImage();
-    } else {
+    }
+    else {
       int w = icon.getIconWidth();
       int h = icon.getIconHeight();
       BufferedImage image = UIUtil.createImage(w, h, BufferedImage.TYPE_4BYTE_ABGR);
@@ -81,20 +81,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
    */
   public ConstraintLayoutHandler() {
     loadWidgetDecoratorImages();
-    Toolkit.getDefaultToolkit().addAWTEventListener(new AWTEventListener() {
-      boolean mKey;
-
-      @Override
-      public void eventDispatched(AWTEvent event) {
-        if (event instanceof KeyEvent) {
-          KeyEvent e = (KeyEvent)event;
-          if (mKey != e.isControlDown()) {
-            mKey = e.isControlDown();
-            controlDownUpdate(mKey);
-          }
-        }
-      }
-    }, WindowEvent.KEY_EVENT_MASK);
   }
 
   private void controlDownUpdate(boolean key) {
@@ -131,82 +117,82 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     actions.add(new ViewActionSeparator());
     actions.add(new ClearConstraintsAction());
     actions.add((new InferAction()));
-
+    actions.add(new MarginSelector("Click to change default margin"));
     String str;
     str = "Align group horizontally on the left";
     actions.add(action = new AlignAction(Scout.Arrange.AlignHorizontallyLeft,
-                                         getControlIcon(AndroidIcons.SherpaIcons.LeftAligned), str));
+                                         new ControlIcon(AndroidIcons.SherpaIcons.LeftAligned), str));
     myActions.add(action);
 
     str = "Align group horizontally in the middle";
     actions.add(action = new AlignAction(Scout.Arrange.AlignHorizontallyCenter,
-                                         getControlIcon(AndroidIcons.SherpaIcons.CenterAligned), str));
+                                         new ControlIcon(AndroidIcons.SherpaIcons.CenterAligned), str));
     myActions.add(action);
 
     str = "Align group horizontally on the right";
     actions.add(action = new AlignAction(Scout.Arrange.AlignHorizontallyRight,
-                                         getControlIcon(AndroidIcons.SherpaIcons.RightAligned), str));
+                                         new ControlIcon(AndroidIcons.SherpaIcons.RightAligned), str));
     myActions.add(action);
 
     str = "Align group vertically to the top";
     actions.add(action = new AlignAction(Scout.Arrange.AlignVerticallyTop,
-                                         getControlIcon(AndroidIcons.SherpaIcons.TopAlign), str));
+                                         new ControlIcon(AndroidIcons.SherpaIcons.TopAlign), str));
     myActions.add(action);
 
     str = "Align group vertically to the middle";
     actions.add(action = new AlignAction(Scout.Arrange.AlignVerticallyMiddle,
-                                         getControlIcon(AndroidIcons.SherpaIcons.MiddleAlign), str));
+                                         new ControlIcon(AndroidIcons.SherpaIcons.MiddleAlign), str));
     myActions.add(action);
 
     str = "Align group vertically to the bottom";
     actions.add(action = new AlignAction(Scout.Arrange.AlignVerticallyBottom,
-                                         getControlIcon(AndroidIcons.SherpaIcons.BottomAlign), str));
+                                         new ControlIcon(AndroidIcons.SherpaIcons.BottomAlign), str));
     myActions.add(action);
 
     str = "Align group on the baseline";
     actions.add(action = new AlignAction(Scout.Arrange.AlignBaseline,
-                                         getControlIcon(AndroidIcons.SherpaIcons.BaselineAlign), str));
+                                         new ControlIcon(AndroidIcons.SherpaIcons.BaselineAlign), str));
     myActions.add(action);
 
     str = "Distribute group horizontally";
     actions.add(action = new AlignAction(Scout.Arrange.DistributeHorizontally,
-                                         getControlIcon(AndroidIcons.SherpaIcons.HorizontalDistribute), str));
+                                         new ControlIcon(AndroidIcons.SherpaIcons.HorizontalDistribute), str));
     myActions.add(action);
 
     str = "Distribute group vertically";
     actions.add(action = new AlignAction(Scout.Arrange.DistributeVertically,
-                                         getControlIcon(AndroidIcons.SherpaIcons.verticallyDistribute), str));
+                                         new ControlIcon(AndroidIcons.SherpaIcons.verticallyDistribute), str));
     myActions.add(action);
 
     str = "Center the widget horizontally";
     actions.add(action = new AlignAction(Scout.Arrange.CenterHorizontally,
-                                         getControlIcon(AndroidIcons.SherpaIcons.HorizontalCenter), str));
+                                         new ControlIcon(AndroidIcons.SherpaIcons.HorizontalCenter), str));
     myActions.add(action);
 
     str = "Center the widget vertically";
     actions.add(action = new AlignAction(Scout.Arrange.CenterVertically,
-                                         getControlIcon(AndroidIcons.SherpaIcons.VerticalCenter), str));
+                                         new ControlIcon(AndroidIcons.SherpaIcons.VerticalCenter), str));
     myActions.add(action);
 
     str = "Center the widget horizontally in parent";
     actions.add(action = new AlignAction(Scout.Arrange.CenterHorizontallyInParent,
-                                         getControlIcon(AndroidIcons.SherpaIcons.HorizontalCenterParent),
+                                         new ControlIcon(AndroidIcons.SherpaIcons.HorizontalCenterParent),
                                          str));
     myActions.add(action);
 
     str = "Center the widget vertically in parent";
     actions.add(action = new AlignAction(Scout.Arrange.CenterVerticallyInParent,
-                                         getControlIcon(AndroidIcons.SherpaIcons.VerticalCenterParent), str));
+                                         new ControlIcon(AndroidIcons.SherpaIcons.VerticalCenterParent), str));
     myActions.add(action);
 
     str = "Pack selection horizontally";
     actions.add(action = new AlignAction(Scout.Arrange.HorizontalPack,
-                                         getControlIcon(AndroidIcons.SherpaIcons.PackSelectionHorizontally), str));
+                                         AndroidIcons.SherpaIcons.PackSelectionHorizontally, str));
     myActions.add(action);
 
     str = "Pack selection vertically";
     actions.add(action = new AlignAction(Scout.Arrange.VerticalPack,
-                                         getControlIcon(AndroidIcons.SherpaIcons.PackSelectionVertically), str));
+                                         AndroidIcons.SherpaIcons.PackSelectionVertically, str));
     myActions.add(action);
 
     str = "Expand horizontally";
@@ -217,7 +203,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     str = "Expand vertically";
     actions.add(action = new AlignAction(Scout.Arrange.ExpandVertically,
                                          AndroidIcons.SherpaIcons.VerticalExpand, str));
-    actions.add(new LockConstraints());
+    // TODO Decide if we want lock actions.add(new LockConstraints());
     myActions.add(action);
   }
 
@@ -307,11 +293,11 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
   /**
    * Paint the component and its children on the given context
    *
-   * @param gc          graphics context
-   * @param screenView  the current screenview
-   * @param width       width of the surface
-   * @param height      height of the surface
-   * @param component   the component to draw
+   * @param gc         graphics context
+   * @param screenView the current screenview
+   * @param width      width of the surface
+   * @param height     height of the surface
+   * @param component  the component to draw
    * @return true to indicate that we will need to be repainted
    */
   @Override
@@ -329,8 +315,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     }
 
     return drawConstraintModel.paint(gc, Coordinates.getSwingDimension(screenView, component.w),
-                                              Coordinates.getSwingDimension(screenView, component.h),
-                                              myShowAllConstraints);
+                                     Coordinates.getSwingDimension(screenView, component.h),
+                                     myShowAllConstraints);
   }
 
   private static class ToggleAutoConnectAction extends ToggleViewAction implements Enableable {
@@ -516,31 +502,40 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     }
   }
 
-  private Icon getControlIcon(final Icon icon) {
-    return new Icon() {
-      private Icon myIcon = icon;
+  static class ControlIcon implements Icon {
+    Icon mIcon;
+    boolean mHighlight;
 
-      @Override
-      public void paintIcon(Component c, Graphics g, int x, int y) {
+    ControlIcon(Icon icon) {
+      mIcon = icon;
+    }
 
-        myIcon.paintIcon(c, g, x, y);
-        if (mControlIsPressed) {
-          g.setColor(new Color(0x03a9f4));
-          g.fillRect(x, y + getIconHeight() - 2, getIconWidth(), 2);
-        }
+
+    public void setHighlight(boolean mHighlight) {
+      this.mHighlight = mHighlight;
+    }
+
+    @Override
+    public void paintIcon(Component c, Graphics g, int x, int y) {
+
+      mIcon.paintIcon(c, g, x, y);
+      if (mHighlight) {
+        g.setColor(new Color(0x03a9f4));
+        g.fillRect(x, y + getIconHeight() - 2, getIconWidth(), 2);
       }
+    }
 
-      @Override
-      public int getIconWidth() {
-        return myIcon.getIconWidth();
-      }
+    @Override
+    public int getIconWidth() {
+      return mIcon.getIconWidth();
+    }
 
-      @Override
-      public int getIconHeight() {
-        return myIcon.getIconHeight();
-      }
-    };
+    @Override
+    public int getIconHeight() {
+      return mIcon.getIconHeight();
+    }
   }
+
 
   private class AlignAction extends DirectViewAction implements Enableable {
     private final Scout.Arrange myActionType;
@@ -603,9 +598,94 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                                    @NotNull NlComponent component,
                                    @NotNull List<NlComponent> selectedChildren,
                                    @InputEventMask int modifiers) {
+      if (myAlignIcon instanceof ControlIcon) {
+        ConstraintModel model = ConstraintModel.getConstraintModel(editor.getModel());
+        if (model != null) {
+          ((ControlIcon)myAlignIcon).setHighlight(model.isAutoConnect() || (InputEvent.CTRL_MASK & modifiers) != 0);
+        }
+      }
+
+      presentation.setVisible(mEnable);
       presentation.setEnabled(mEnable);
       presentation.setIcon(myAlignIcon);
       presentation.setLabel(myToolTip);
     }
   }
+
+  private class MarginSelector extends DirectViewAction {
+    private final String myToolTip;
+    boolean mEnable = true;
+    String[] mMargins = {"0", "8", "16"};
+    int[] mMarginsNumber = {0, 8, 16};
+    int mCurrentMargin = 1;
+
+    private final Icon myAlignIcon = new Icon() {
+      @Override
+      public void paintIcon(Component c, Graphics g, int x, int y) {
+        g.setFont(g.getFont().deriveFont(Font.BOLD, 12));
+        String m = mMargins[mCurrentMargin];
+        FontMetrics metrics = g.getFontMetrics();
+        int strWidth = metrics.stringWidth(m);
+
+        int stringY = (getIconHeight() - metrics.getHeight()) / 2 + metrics.getAscent();
+        g.drawString(m, x + (getIconWidth() - strWidth) / 2, y + stringY);
+      }
+
+      @Override
+      public int getIconWidth() {
+        return 16;
+      }
+
+      @Override
+      public int getIconHeight() {
+        return 16;
+      }
+    };
+
+    MarginSelector(String toolTip) {
+      myToolTip = toolTip;
+      int m = Scout.getMargin();
+      for (int i = 0; i < mMarginsNumber.length; i++) {
+        if (m == mMarginsNumber[i]) {
+          mCurrentMargin = i;
+        }
+      }
+    }
+
+    @Override
+    public void perform(@NotNull ViewEditor editor,
+                        @NotNull ViewHandler handler,
+                        @NotNull NlComponent component,
+                        @NotNull List<NlComponent> selectedChildren,
+                        @InputEventMask int modifiers) {
+      ConstraintModel model = ConstraintModel.getConstraintModel(editor.getModel());
+      if (model == null) {
+        return;
+      }
+      mCurrentMargin = (mCurrentMargin + 1) % mMargins.length;
+      Scout.setMargin(mMarginsNumber[mCurrentMargin]);
+    }
+
+    @Override
+    public void updatePresentation(@NotNull ViewActionPresentation presentation,
+                                   @NotNull ViewEditor editor,
+                                   @NotNull ViewHandler handler,
+                                   @NotNull NlComponent component,
+                                   @NotNull List<NlComponent> selectedChildren,
+                                   @InputEventMask int modifiers) {
+      if (myAlignIcon instanceof ControlIcon) {
+        ConstraintModel model = ConstraintModel.getConstraintModel(editor.getModel());
+        if (model != null) {
+          ((ControlIcon)myAlignIcon).setHighlight(model.isAutoConnect() || (InputEvent.CTRL_MASK & modifiers) != 0);
+        }
+      }
+
+      presentation.setVisible(mEnable);
+      presentation.setEnabled(mEnable);
+      presentation.setIcon(myAlignIcon);
+      presentation.setLabel(myToolTip);
+    }
+  }
+
+
 }
