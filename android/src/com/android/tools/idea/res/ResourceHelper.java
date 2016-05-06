@@ -24,7 +24,6 @@ import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.sdklib.devices.Device;
-import com.android.sdklib.devices.Hardware;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.databinding.DataBindingUtil;
@@ -75,8 +74,6 @@ public class ResourceHelper {
 
   private final static Pattern sFloatPattern = Pattern.compile("(-?[0-9]+(?:\\.[0-9]+)?)(.*)");
   private final static float[] sFloatOut = new float[1];
-
-  private final static TypedValue sValue = new TypedValue();
 
   /**
    * Returns true if the given style represents a project theme
@@ -225,13 +222,8 @@ public class ResourceHelper {
   public static ResourceFolderType getFolderType(@Nullable final PsiFile file) {
     if (file != null) {
       if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
-        return ApplicationManager.getApplication().runReadAction(new Computable<ResourceFolderType>() {
-          @Nullable
-          @Override
-          public ResourceFolderType compute() {
-            return getFolderType(file);
-          }
-        });
+        return ApplicationManager.getApplication().runReadAction(
+          (Computable<ResourceFolderType>)() -> getFolderType(file));
       }
       if (!file.isValid()) {
         return getFolderType(file.getVirtualFile());
@@ -270,13 +262,8 @@ public class ResourceHelper {
   public static FolderConfiguration getFolderConfiguration(@Nullable final PsiFile file) {
     if (file != null) {
       if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
-        return ApplicationManager.getApplication().runReadAction(new Computable<FolderConfiguration>() {
-          @Nullable
-          @Override
-          public FolderConfiguration compute() {
-            return getFolderConfiguration(file);
-          }
-        });
+        return ApplicationManager.getApplication().runReadAction(
+          (Computable<FolderConfiguration>)() -> getFolderConfiguration(file));
       }
       if (!file.isValid()) {
         return getFolderConfiguration(file.getVirtualFile());
@@ -317,7 +304,7 @@ public class ResourceHelper {
     }
 
     // Compute the set of layout files defining this layout resource
-    List<VirtualFile> variations = new ArrayList<VirtualFile>();
+    List<VirtualFile> variations = new ArrayList<>();
     String name = file.getName();
     VirtualFile parent = file.getParent();
     if (parent != null) {
@@ -523,7 +510,7 @@ public class ResourceHelper {
       return Collections.emptyList();
     }
 
-    final List<Color> result = new ArrayList<Color>();
+    final List<Color> result = new ArrayList<>();
 
     StateList stateList = resolveStateList(resources, value, project);
     if (stateList != null) {
@@ -535,7 +522,7 @@ public class ResourceHelper {
         }
         else {
           Color color = parseColor(state.getValue());
-          stateColors = color == null ? Collections.<Color>emptyList() : ImmutableList.of(color);
+          stateColors = color == null ? Collections.emptyList() : ImmutableList.of(color);
         }
         for (Color color : stateColors) {
           try {
@@ -940,7 +927,7 @@ public class ResourceHelper {
   private static StateListState createStateListState(XmlTag tag, boolean isFramework) {
     String stateValue = null;
     String alphaValue = null;
-    Map<String, Boolean> stateAttributes = new HashMap<String, Boolean>();
+    Map<String, Boolean> stateAttributes = new HashMap<>();
     XmlAttribute[] attributes = tag.getAttributes();
     for (XmlAttribute attr : attributes) {
       String name = attr.getLocalName();
@@ -1273,7 +1260,7 @@ public class ResourceHelper {
     public StateList(@NotNull String fileName, @NotNull String dirName) {
       myFileName = fileName;
       myDirName = dirName;
-      myStates = new ArrayList<StateListState>();
+      myStates = new ArrayList<>();
     }
 
     @NotNull

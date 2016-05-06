@@ -90,11 +90,7 @@ public class WebViewWidget extends WidgetDecorator {
     @Override
     public void onPaintBackground(ViewTransform transform, Graphics2D g) {
         super.onPaintBackground(transform, g);
-        int l = transform.getSwingX(mWidget.getDrawX());
-        int t = transform.getSwingY(mWidget.getDrawY());
-        int w = transform.getSwingDimension(mWidget.getDrawWidth());
-        int h = transform.getSwingDimension(mWidget.getDrawHeight());
-         if (mColorSet.drawBackground()) {
+        if (mColorSet.drawBackground()) {
             fakeUIPaint(transform,g, mWidget.getDrawX(), mWidget.getDrawY());
         }
     }
@@ -104,8 +100,7 @@ public class WebViewWidget extends WidgetDecorator {
         int t = transform.getSwingY(mWidget.getDrawY());
         int w = transform.getSwingDimension(mWidget.getDrawWidth());
         int h = transform.getSwingDimension(mWidget.getDrawHeight());
-        Graphics2D g2 = (Graphics2D) g.create(l, t, w, h);
-        return g2;
+        return (Graphics2D) g.create(l, t, w, h);
     }
 
     protected void fakeUIPaint(ViewTransform transform, Graphics2D g, int x, int y) {

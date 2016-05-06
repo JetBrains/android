@@ -27,10 +27,8 @@ import java.awt.Graphics2D;
  * Switch Widget decorator
  */
 public class SwitchWidget extends TextWidget {
-
-    private final int sSwitchWidth = 40;
-    private final int sSwitchHeight = 28;
-    private int mOriginalHeight = 0;
+    private static final int sSwitchWidth = 40;
+    private static final int sSwitchHeight = 28;
 
     /**
      * Base constructor
@@ -56,7 +54,6 @@ public class SwitchWidget extends TextWidget {
         super.wrapContent();
         int extra = sSwitchWidth + 2 * mHorizontalPadding;
         mWidget.setMinWidth(mWidget.getMinWidth() + extra);
-        mOriginalHeight = mWidget.getMinHeight();
         mWidget.setMinHeight(Math.max(mWidget.getMinHeight(), sSwitchHeight));
         mWidget.setDimension(0, 0);
     }

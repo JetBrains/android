@@ -70,12 +70,11 @@ public class WidgetDraw {
      * @param showAnchors       determinate how to display the Constraints anchors points
      * @param showResizeHandles pass true to show Resize handles
      * @param isSelected        if the widget is currently selected
-     * @param widgetStyle       current widget style
      */
     public static void drawWidgetFrame(ViewTransform transform, Graphics2D g,
-            ConstraintWidget widget, ColorSet colorSet,
-            EnumSet<ANCHORS_DISPLAY> showAnchors, boolean showResizeHandles,
-            boolean showSizeIndicator, boolean isSelected, int widgetStyle) {
+                                       ConstraintWidget widget,
+                                       EnumSet<ANCHORS_DISPLAY> showAnchors, boolean showResizeHandles,
+                                       boolean showSizeIndicator, boolean isSelected) {
         g.setStroke(SnapDraw.sNormalStroke);
         int l = transform.getSwingX(widget.getDrawX());
         int t = transform.getSwingY(widget.getDrawY());
@@ -127,9 +126,9 @@ public class WidgetDraw {
             g.fillRect(r - radiusRect, b - radiusRect, rectDimension, rectDimension);
             if (showSizeIndicator) {
                 ConnectionDraw
-                        .drawHorizontalMarginIndicator(g, "" + widget.getWidth(), l, r, t - 20);
+                        .drawHorizontalMarginIndicator(g, String.valueOf(widget.getWidth()), l, r, t - 20);
                 ConnectionDraw
-                        .drawVerticalMarginIndicator(g, "" + widget.getHeight(), l - 20, t, b);
+                        .drawVerticalMarginIndicator(g, String.valueOf(widget.getHeight()), l - 20, t, b);
             }
         }
 
@@ -356,8 +355,7 @@ public class WidgetDraw {
                 g.drawString("%", x - 4, t - 4);
                 if (isSelected) {
                     int percent = (guideline.getX() * 100) / root.getWidth();
-                    ConnectionDraw
-                            .drawCircledText(g, ConnectionDraw.sFont, "" + percent, x, t + 20);
+                    ConnectionDraw.drawCircledText(g, ConnectionDraw.sFont, String.valueOf(percent), x, t + 20);
                 }
             } else if (relative == Guideline.RELATIVE_BEGIN) {
                 Polygon arrow = ConnectionDraw.getLeftArrow();
@@ -367,8 +365,7 @@ public class WidgetDraw {
                 g.fill(arrow);
                 arrow.translate(-tx, -ty);
                 if (isSelected) {
-                    ConnectionDraw
-                            .drawHorizontalMarginIndicator(g, "" + guideline.getX(), l, x, ty + 20);
+                    ConnectionDraw.drawHorizontalMarginIndicator(g, String.valueOf(guideline.getX()), l, x, ty + 20);
                 }
             } else if (relative == Guideline.RELATIVE_END) {
                 Polygon arrow = ConnectionDraw.getRightArrow();
@@ -378,9 +375,8 @@ public class WidgetDraw {
                 g.fill(arrow);
                 arrow.translate(-tx, -ty);
                 if (isSelected) {
-                    ConnectionDraw
-                            .drawHorizontalMarginIndicator(g,
-                                    "" + (root.getWidth() - guideline.getX()), x, r, ty + 20);
+                    ConnectionDraw.drawHorizontalMarginIndicator(
+                      g, String.valueOf(root.getWidth() - guideline.getX()), x, r, ty + 20);
                 }
             }
         } else {
@@ -396,8 +392,7 @@ public class WidgetDraw {
                 g.drawString("%", l - 2 * circleSize + 1, y + 5);
                 if (isSelected) {
                     int percent = (guideline.getY() * 100) / root.getHeight();
-                    ConnectionDraw
-                            .drawCircledText(g, ConnectionDraw.sFont, "" + percent, l + 20, y);
+                    ConnectionDraw.drawCircledText(g, ConnectionDraw.sFont, String.valueOf(percent), l + 20, y);
                 }
             } else if (relative == Guideline.RELATIVE_BEGIN) {
                 Polygon arrow = ConnectionDraw.getTopArrow();
@@ -407,8 +402,7 @@ public class WidgetDraw {
                 g.fill(arrow);
                 arrow.translate(-tx, -ty);
                 if (isSelected) {
-                    ConnectionDraw
-                            .drawVerticalMarginIndicator(g, "" + guideline.getY(), l + 20, t, ty);
+                    ConnectionDraw.drawVerticalMarginIndicator(g, String.valueOf(guideline.getY()), l + 20, t, ty);
                 }
             } else if (relative == Guideline.RELATIVE_END) {
                 Polygon arrow = ConnectionDraw.getBottomArrow();
@@ -418,9 +412,8 @@ public class WidgetDraw {
                 g.fill(arrow);
                 arrow.translate(-tx, -ty);
                 if (isSelected) {
-                    ConnectionDraw
-                            .drawVerticalMarginIndicator(g,
-                                    "" + (root.getHeight() - guideline.getY()), l + 20, ty, b);
+                    ConnectionDraw.drawVerticalMarginIndicator(
+                      g, String.valueOf(root.getHeight() - guideline.getY()), l + 20, ty, b);
                 }
             }
         }
@@ -442,7 +435,6 @@ public class WidgetDraw {
             int t = transform.getSwingY(widget.getDrawY());
             int w = transform.getSwingDimension(widget.getDrawWidth());
             int h = transform.getSwingDimension(widget.getDrawHeight());
-            int r = transform.getSwingX(widget.getDrawX() + widget.getDrawWidth());
             int b = transform.getSwingY(widget.getDrawY() + widget.getDrawHeight());
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setClip(l, t, w, h);

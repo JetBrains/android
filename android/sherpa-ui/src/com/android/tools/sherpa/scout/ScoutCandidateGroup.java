@@ -55,7 +55,6 @@ class ScoutCandidateGroup {
         int groupArea = group.width * group.height;
         int widgetArea = 0;
         for (int i = 1; i < list.length; i++) {
-            ScoutWidget widget = list[i];
             if (group.intersects(rectList[i]) && !group.contains(rectList[i])) {
                 return null;
             }
@@ -92,8 +91,7 @@ class ScoutCandidateGroup {
      * @return
      */
     public ArrayList<ConstraintWidget> buildList(ScoutWidget[] list) {
-        ArrayList<ConstraintWidget> ret = new ArrayList<ConstraintWidget>();
-        int count = 0;
+        ArrayList<ConstraintWidget> ret = new ArrayList<>();
         for (int i = mContainSet.nextSetBit(0); i >= 0; i = mContainSet.nextSetBit(i + 1)) {
             ret.add(list[i].mConstraintWidget);
         }
@@ -153,9 +151,8 @@ class ScoutCandidateGroup {
      * @return
      */
     public Rectangle[] computeGaps() {
-        ArrayList<Rectangle> ret = new ArrayList<Rectangle>();
+        ArrayList<Rectangle> ret = new ArrayList<>();
         Rectangle gap = new Rectangle();
-        int area = 0;
         for (int i = 0; i < mRectList.length; i++) {
             Rectangle rectangleA = mRectList[i];
             for (int j = i + 1; j < mRectList.length; j++) {
@@ -173,7 +170,6 @@ class ScoutCandidateGroup {
                 }
                 if (viable) {
                     ret.add(new Rectangle(gap));
-                    area += gap.width * gap.height;
                 }
             }
         }
@@ -254,8 +250,7 @@ class ScoutCandidateGroup {
         empty /= mCount * mGroupArea;
         empty = (1 - empty); // counts for half of your score
         float tableProb = calculateTableConfidence(mRectList);
-        float prob = (tableProb + empty + (1 - 1 / ((float) mCount))) / 3;
-        return prob;
+        return (tableProb + empty + (1 - 1 / ((float) mCount))) / 3;
     }
 
     /**
@@ -274,7 +269,6 @@ class ScoutCandidateGroup {
      */
     public float calculateTableConfidence(Rectangle[] widgets) {
         int[][] bounds;
-        int[] mColAlign;
         mValidTable = true;
 
         bounds = new int[4][widgets.length];
@@ -291,9 +285,7 @@ class ScoutCandidateGroup {
         int[] c = Utils.cells(bounds[2], bounds[3]);
 
         Rectangle[][] table = new Rectangle[mCols][mRows];
-        for (int i = 0; i < widgets.length; i++) {
-            Rectangle widget = widgets[i];
-
+        for (Rectangle widget : widgets) {
             int row = Utils.getPosition(r, widget.y, widget.y + widget.height);
             int col = Utils.getPosition(c, widget.x, widget.x + widget.width);
             if (row == -1 || col == -1) { // multi cell span not supported
@@ -303,21 +295,17 @@ class ScoutCandidateGroup {
             table[col][row] = widget;
         }
 
-        // add support for skipping
-        int skips = 0;
-        for (int row = 0; row < mRows; row++) {
-            for (int col = 0; col < mCols; col++) {
-                if (table[col][row] == null) {
-                    skips++;
-                }
-            }
-        }
+        // TODO: add support for skipping
+        //for (int row = 0; row < mRows; row++) {
+        //    for (int col = 0; col < mCols; col++) {
+        //        if (table[col][row] == null) {
+        //        }
+        //    }
+        //}
 
         // Compute column alignment
-        mColAlign = new int[mCols];
         float sumprob = 0;
-        for (int col = 0; col < table.length; col++) {
-            Rectangle[] rec = table[col];
+        for (Rectangle[] rec : table) {
             float prob = alignmentProbability(rec);
             sumprob = prob + sumprob - (sumprob * prob); // sum independent probabilities
         }
@@ -330,7 +318,7 @@ class ScoutCandidateGroup {
      * @param widget
      * @return
      */
-    private float alignmentProbability(Rectangle[] widget) {
+    private static float alignmentProbability(Rectangle[] widget) {
         float[] start = new float[widget.length];
         float[] center = new float[widget.length];
         float[] end = new float[widget.length];
@@ -368,13 +356,13 @@ class ScoutCandidateGroup {
         float sum = 0.f;
         float sumSqr = 0.f;
         int count = 0;
-        for (int i = 0; i < pos.length; i++) {
-            if (Float.isNaN(pos[i])) {
+        for (float po : pos) {
+            if (Float.isNaN(po)) {
                 continue;
             }
             count++;
-            sum += pos[i];
-            sumSqr += pos[i] * pos[i];
+            sum += po;
+            sumSqr += po * po;
         }
         return (float) Math.sqrt(sumSqr / count - (sum / count) * (sum / count));
     }

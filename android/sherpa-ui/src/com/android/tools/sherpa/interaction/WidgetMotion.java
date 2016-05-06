@@ -42,8 +42,8 @@ public class WidgetMotion {
     private final Selection mSelection;
 
     // will contains a list of candidates and margins as we drag the widgets
-    private ArrayList<SnapCandidate> mSnapCandidates = new ArrayList<SnapCandidate>();
-    private ArrayList<SnapCandidate> mSimilarMargins = new ArrayList<SnapCandidate>();
+    private ArrayList<SnapCandidate> mSnapCandidates = new ArrayList<>();
+    private ArrayList<SnapCandidate> mSimilarMargins = new ArrayList<>();
 
     // flag to indicate we are dragging a widget and we want to hide its decorations
     private boolean mShowDecorations = true;
@@ -122,7 +122,7 @@ public class WidgetMotion {
             candidatePoint.y = 0;
         }
         mSnapCandidates.clear();
-        ArrayList<ConstraintWidget> widgetsToCheck = new ArrayList<ConstraintWidget>();
+        ArrayList<ConstraintWidget> widgetsToCheck = new ArrayList<>();
         for (ConstraintWidget w : mWidgetsScene.getWidgets()) {
             if (w.hasAncestor(widget.widget)) {
                 continue;
@@ -223,7 +223,7 @@ public class WidgetMotion {
      * @param percent
      * @return the modified percent value
      */
-    private float snapPercent(float percent) {
+    private static float snapPercent(float percent) {
         // We'll snap on the following values:
         // 1/4, 1/3, 1/2, 2/3, 3/4
         // as well as percents

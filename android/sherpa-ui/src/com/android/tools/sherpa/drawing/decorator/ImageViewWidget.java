@@ -65,16 +65,11 @@ public class ImageViewWidget extends WidgetDecorator {
         sPath2D.moveTo(move[0], move[1]);
         double cx = move[0];
         double cy = move[1];
-        double cpx = cx;
-        double cpy = cy;
 
-        for (int i = 0; i < curve.length; i++) {
-            double val[] = curve[i];
+        for (double[] val : curve) {
             int k = 0;
-            sPath2D.curveTo(cx + val[k + 0], cy + val[k + 1], cx + val[k + 2],
-                    cy + val[k + 3], cx + val[k + 4], cy + val[k + 5]);
-            cpx = cx + val[k + 2];
-            cpy = cy + val[k + 3];
+            sPath2D.curveTo(cx + val[k    ], cy + val[k + 1], cx + val[k + 2],
+                            cy + val[k + 3], cx + val[k + 4], cy + val[k + 5]);
             cx += val[k + 4];
             cy += val[k + 5];
         }
@@ -159,10 +154,6 @@ public class ImageViewWidget extends WidgetDecorator {
             return;
         }
         super.onPaintBackground(transform, g);
-        int l = transform.getSwingX(mWidget.getDrawX());
-        int t = transform.getSwingY(mWidget.getDrawY());
-        int w = transform.getSwingDimension(mWidget.getDrawWidth());
-        int h = transform.getSwingDimension(mWidget.getDrawHeight());
         if (mColorSet.drawBackground()) {
             fakeUIPaint(transform, g, mWidget.getDrawX(), mWidget.getDrawY());
         }
@@ -173,8 +164,7 @@ public class ImageViewWidget extends WidgetDecorator {
         int t = transform.getSwingY(mWidget.getDrawY());
         int w = transform.getSwingDimension(mWidget.getDrawWidth());
         int h = transform.getSwingDimension(mWidget.getDrawHeight());
-        Graphics2D g2 = (Graphics2D) g.create(l, t, w, h);
-        return g2;
+        return (Graphics2D) g.create(l, t, w, h);
     }
 
     protected void fakeUIPaint(ViewTransform transform, Graphics2D g, int x, int y) {

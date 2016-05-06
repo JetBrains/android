@@ -81,7 +81,7 @@ public class Scout {
      * @param list collection of widgets to connect
      */
     public static void inferConstraints(WidgetsScene list) {
-        inferConstraints((ConstraintWidgetContainer) list.getRoot());
+        inferConstraints(list.getRoot());
     }
 
     /**
@@ -103,7 +103,7 @@ public class Scout {
             }
         }
 
-        ArrayList<ConstraintWidget> list = new ArrayList<ConstraintWidget>(base.getChildren());
+        ArrayList<ConstraintWidget> list = new ArrayList<>(base.getChildren());
         list.add(0, base);
 
         ConstraintWidget[] widgets = list.toArray(new ConstraintWidget[list.size()]);
@@ -141,7 +141,7 @@ public class Scout {
             }
         }
 
-        ArrayList<ConstraintWidget> list = new ArrayList<ConstraintWidget>(base.getChildren());
+        ArrayList<ConstraintWidget> list = new ArrayList<>(base.getChildren());
         list.add(0, base);
 
         ConstraintWidget[] widgets = list.toArray(new ConstraintWidget[list.size()]);
