@@ -15,27 +15,29 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.intellij.find.impl.FindDialog;
 import com.intellij.openapi.ui.ComboBox;
-import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiTask;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickButton;
 import static com.google.common.truth.Truth.assertThat;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.junit.Assert.assertNotNull;
 
 public class FindDialogFixture extends IdeaDialogFixture<FindDialog> {
   @NotNull
-  public static FindDialogFixture find(@NotNull Robot robot) {
-    return new FindDialogFixture(robot, find(robot, FindDialog.class));
+  public static FindDialogFixture find(@NotNull IdeFrameFixture ideFrameFixture) {
+    return new FindDialogFixture(ideFrameFixture, find(ideFrameFixture.robot(), FindDialog.class));
   }
 
-  private FindDialogFixture(@NotNull Robot robot, @NotNull DialogAndWrapper<FindDialog> dialogAndWrapper) {
-    super(robot, dialogAndWrapper);
+  private final IdeFrameFixture myIdeFrameFixture;
+
+  private FindDialogFixture(@NotNull IdeFrameFixture ideFrameFixture, @NotNull DialogAndWrapper<FindDialog> dialogAndWrapper) {
+    super(ideFrameFixture.robot(), dialogAndWrapper);
+    myIdeFrameFixture = ideFrameFixture;
   }
 
   @NotNull
@@ -54,8 +56,9 @@ public class FindDialogFixture extends IdeaDialogFixture<FindDialog> {
   }
 
   @NotNull
-  public FindDialogFixture clickFind() {
-    findAndClickButton(this, "Find");
-    return this;
+  public FindToolWindowFixture.ContentFixture clickFind() {
+    GuiTests.findAndClickButton(this, "Find");
+    GuiTests.waitForBackgroundTasks(robot());
+    return new FindToolWindowFixture.ContentFixture(myIdeFrameFixture);
   }
 }
