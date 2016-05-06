@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.templates.SupportLibrary;
 import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.analysis.BaseAnalysisAction;
@@ -261,7 +262,7 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
                                    pluralize("module", count),
                                    moduleNames,
                                    count > 1 ? "do" : "does",
-                                   RepositoryUrlManager.SUPPORT_ANNOTATIONS,
+                                   SupportLibrary.SUPPORT_ANNOTATIONS.getArtifactId(),
                                    pluralize("dependency", count));
     if (Messages.showOkCancelDialog(project, message, "Infer Nullity Annotations", Messages.getErrorIcon()) == Messages.OK) {
       final LocalHistoryAction action = LocalHistory.getInstance().startAction(ADD_DEPENDENCY);
@@ -270,7 +271,7 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
           @Override
           protected void run(@NotNull final Result result) throws Throwable {
             RepositoryUrlManager manager = RepositoryUrlManager.get();
-            String annotationsLibraryCoordinate = manager.getLibraryCoordinate(RepositoryUrlManager.SUPPORT_ANNOTATIONS);
+            String annotationsLibraryCoordinate = manager.getLibraryStringCoordinate(SupportLibrary.SUPPORT_ANNOTATIONS, true);
             for (Module module : modulesWithoutAnnotations) {
               addDependency(module, annotationsLibraryCoordinate);
             }
