@@ -1109,7 +1109,7 @@ public class WidgetDecorator {
          * Return true if the action is visible
          * @return
          */
-        boolean isVisible() { return true; }
+        public boolean isVisible() { return true; }
 
         /**
          * Return true if the click modified the widget
@@ -1250,7 +1250,7 @@ public class WidgetDecorator {
         }
 
         @Override
-        boolean isVisible() { return mConstraintsCreator != -1; }
+        public boolean isVisible() { return mConstraintsCreator != -1; }
 
         @Override
         String getText() {
@@ -1348,7 +1348,7 @@ public class WidgetDecorator {
         }
 
         @Override
-        boolean isVisible() { return mIsVisible; }
+        public boolean isVisible() { return mIsVisible; }
 
         @Override
         boolean onPaint(ViewTransform transform, Graphics2D g, int x, int y) {
