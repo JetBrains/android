@@ -16,12 +16,9 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.tools.idea.gradle.GradleSyncState;
-import com.android.tools.idea.gradle.project.subset.ProjectSubset;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
-import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.project.ExternalProjectRefreshCallback;
 import com.intellij.openapi.externalSystem.util.ExternalSystemBundle;
@@ -30,14 +27,9 @@ import com.intellij.openapi.startup.StartupManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.List;
-
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.Projects.open;
 import static com.android.tools.idea.gradle.util.Projects.populate;
-import static com.intellij.openapi.externalSystem.model.ProjectKeys.MODULE;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findAll;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.ensureToolWindowContentInitialized;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
@@ -106,44 +98,7 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
   }
 
   private void populateProject(@NotNull final DataNode<ProjectData> projectInfo) {
-    StartupManager.getInstance(myProject).runWhenProjectIsInitialized(() -> populate(myProject, getModulesToImport(projectInfo)));
-  }
-
-  @NotNull
-  private Collection<DataNode<ModuleData>> getModulesToImport(DataNode<ProjectData> projectInfo) {
-    Collection<DataNode<ModuleData>> modules = findAll(projectInfo, MODULE);
-    ProjectSubset subview = ProjectSubset.getInstance(myProject);
-    if (!ApplicationManager.getApplication().isUnitTestMode() && ProjectSubset.isSettingEnabled() && modules.size() > 1) {
-      if (mySelectModulesToImport) {
-        // Importing a project. Allow user to select which modules to include in the project.
-        Collection<DataNode<ModuleData>> selection = subview.showModuleSelectionDialog(modules);
-        if (selection != null) {
-          return selection;
-        }
-      }
-      else {
-        // We got here because a project was synced with Gradle. Make sure that we don't add any modules that were not selected during
-        // project import (if applicable.)
-        String[] persistedModuleNames = subview.getSelection();
-        if (persistedModuleNames != null) {
-          int moduleCount = persistedModuleNames.length;
-          if (moduleCount > 0) {
-            List<String> moduleNames = Lists.newArrayList(persistedModuleNames);
-            List<DataNode<ModuleData>> selectedModules = Lists.newArrayListWithExpectedSize(moduleCount);
-            for (DataNode<ModuleData> module : modules) {
-              String name = module.getData().getExternalName();
-              if (moduleNames.contains(name)) {
-                selectedModules.add(module);
-              }
-            }
-            return selectedModules;
-          }
-        }
-      }
-    }
-    // Delete any stored module selection.
-    subview.clearSelection();
-    return modules;
+    StartupManager.getInstance(myProject).runWhenProjectIsInitialized(() -> populate(myProject, projectInfo, mySelectModulesToImport, true));
   }
 
   @Override
