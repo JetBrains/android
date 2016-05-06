@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.sherpa.drawing.ColorSet;
 import com.android.tools.sherpa.drawing.ConnectionDraw;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
@@ -26,6 +27,8 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.plaf.basic.BasicSliderUI;
 import java.awt.*;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.Rectangle2D;
 import java.util.*;
 
 /**
@@ -38,11 +41,18 @@ public class WidgetConstraintPanel extends JPanel {
   NlComponent mComponent;
   private String mWidgetWidthCache;
   private String mWidgetHeightCache;
+  ColorSet mColorSet = new SingleWidgetView.InspectorColorSet();
 
   public WidgetConstraintPanel(@NotNull java.util.List<NlComponent> components) {
     super(new GridBagLayout());
+    setBackground(mColorSet.getBackground());
     mMain = new SingleWidgetView(this);
     setPreferredSize(new Dimension(200, 216));
+    mVerticalSlider.setMajorTickSpacing(50);
+    mHorizontalSlider.setMajorTickSpacing(50);
+    mVerticalSlider.setBackground(mColorSet.getBackground());
+    mHorizontalSlider.setBackground(mColorSet.getBackground());
+
     mComponent = components.get(0);
     configureUI(mComponent);
     GridBagConstraints gbc = new GridBagConstraints();
@@ -60,8 +70,8 @@ public class WidgetConstraintPanel extends JPanel {
     gbc.gridy = 1;
 
     add(mHorizontalSlider, gbc);
-    mVerticalSlider.setUI(new WidgetSliderUI(mVerticalSlider));
-    mHorizontalSlider.setUI(new WidgetSliderUI(mHorizontalSlider));
+    mVerticalSlider.setUI(new WidgetSliderUI(mVerticalSlider, mColorSet));
+    mHorizontalSlider.setUI(new WidgetSliderUI(mHorizontalSlider, mColorSet));
     mHorizontalSlider.addChangeListener(e -> ConstraintUtilities.saveNlAttribute(
       mComponent, SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, String.valueOf(mHorizontalSlider.getValue() / 100f)));
     mVerticalSlider.addChangeListener(e -> ConstraintUtilities.saveNlAttribute(
@@ -204,7 +214,7 @@ public class WidgetConstraintPanel extends JPanel {
   }
 
   public void killBaselineConstraint() {
-    ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF, null);;
+    ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF, null);
   }
 
   public WidgetConstraintPanel() {
@@ -250,13 +260,18 @@ public class WidgetConstraintPanel extends JPanel {
    * Look and Feel for the sliders
    */
   static class WidgetSliderUI extends BasicSliderUI {
-    WidgetSliderUI(JSlider s) {
+    final int thumbSize = 22;
+    private static Font sSmallFont = new Font("Helvetica", Font.PLAIN, 10);
+    ColorSet mColorSet;
+
+    WidgetSliderUI(JSlider s, ColorSet colorSet) {
       super(s);
+      mColorSet = colorSet;
     }
 
     @Override
     protected Dimension getThumbSize() {
-      return new Dimension(18, 18);
+      return new Dimension(thumbSize, thumbSize);
     }
 
     @Override
@@ -267,20 +282,49 @@ public class WidgetConstraintPanel extends JPanel {
     }
 
     @Override
+    protected Color getShadowColor() {
+      return mColorSet.getInspectorStroke();
+    }
+
+    @Override
+    protected Color getHighlightColor() {
+      return mColorSet.getInspectorStroke();
+    }
+
+    @Override
+    protected Color getFocusColor() {
+      return new Color(0, 0, 0, 0);
+    }
+
+    @Override
     public void paintThumb(Graphics g) {
       Graphics2D g2d = (Graphics2D)g;
 
       String percentText = Integer.toString(slider.getValue());
       if (slider.isEnabled()) {
-        g.setColor(SingleWidgetView.sStrokeColor);
+        g.setColor(mColorSet.getAnchorCircle());
       }
       else {
-        g.setColor(Color.LIGHT_GRAY);
+        g.setColor(mColorSet.getBackground());
         percentText = "";
       }
       ((Graphics2D)g).setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-      ConnectionDraw.drawCircledText(g2d, percentText, thumbRect.x + thumbRect.width / 2 - 1,
-                                     thumbRect.y + thumbRect.height / 2 - 1);
+      g.fillRoundRect(thumbRect.x + 1, thumbRect.y + 1, thumbRect.width - 2, thumbRect.height - 2, thumbRect.width - 2,
+                      thumbRect.height - 2);
+      int x = thumbRect.x + thumbRect.width / 2 - 1;
+      int y = thumbRect.y + thumbRect.height / 2 - 1;
+      g.setFont(sSmallFont);
+      FontMetrics fm = g.getFontMetrics();
+      int padding = 4;
+      Rectangle2D bounds = fm.getStringBounds(percentText, g);
+      double th = bounds.getHeight();
+      double tw = bounds.getWidth();
+      float radius = (float)(Math.max(th, tw) / 2f + padding);
+      Ellipse2D.Float circle =
+        new Ellipse2D.Float(x - radius, y - radius, 2 * radius + 1, 2 * radius + 1);
+
+      g.setColor(mColorSet.getBackground());
+      g.drawString(percentText, (int)(x - tw / 2), (y + fm.getAscent() / 2));
     }
   }
 }

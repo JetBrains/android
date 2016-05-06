@@ -37,7 +37,6 @@ import java.util.ArrayList;
  */
 public class SingleWidgetView extends JPanel {
   static Color mLinesColor = new Color(100, 152, 199);
-  static Color sStrokeColor = mLinesColor;
   WidgetConstraintPanel mWidgetConstraintPanel;
   ColorSet mColorSet = new InspectorColorSet();
   public final static int SPRING = 1;
@@ -48,6 +47,14 @@ public class SingleWidgetView extends JPanel {
                     BasicStroke.CAP_BUTT,
                     BasicStroke.JOIN_MITER,
                     10.0f, new float[]{10.0f}, 0.0f);
+  private String mCacheName;
+  private int mCacheBottom;
+  private int mCacheTop;
+  private int mCacheLeft;
+  private int mCacheRight;
+  private String mCacheBaseline;
+  private int mCacheWidth;
+  private int mCacheHeight;
 
   static class InspectorColorSet extends BlueprintColorSet {
     public InspectorColorSet() {
@@ -104,11 +111,11 @@ public class SingleWidgetView extends JPanel {
     add(mVbar1);
     add(mVbar2);
 
-    mTopKill.addActionListener(e -> mWidgetConstraintPanel.killTopConstraint());
-    mLeftKill.addActionListener(e -> mWidgetConstraintPanel.killLeftConstraint());
-    mRightKill.addActionListener(e -> mWidgetConstraintPanel.killRightConstraint());
-    mBottomKill.addActionListener(e -> mWidgetConstraintPanel.killBottomConstraint());
-    mBaselineKill.addActionListener(e -> mWidgetConstraintPanel.killBaselineConstraint());
+    mTopKill.addActionListener(e -> topKill());
+    mLeftKill.addActionListener(e -> leftKill());
+    mRightKill.addActionListener(e -> rightKill());
+    mBottomKill.addActionListener(e -> bottomKill());
+    mBaselineKill.addActionListener(e -> baselineKill());
 
     mHbar1.addPropertyChangeListener(TriStateControl.STATE, e -> mHbar2.setState(mHbar1.getState()));
     mHbar2.addPropertyChangeListener(TriStateControl.STATE, e -> mHbar1.setState(mHbar2.getState()));
@@ -133,6 +140,46 @@ public class SingleWidgetView extends JPanel {
     mGraphicList.add(mWidgetRender);
   }
 
+  private  void topKill() {
+    mWidgetConstraintPanel.killTopConstraint();
+    mCacheTop = -1;
+    update();
+  }
+
+  private void leftKill() {
+    mWidgetConstraintPanel.killLeftConstraint();
+    mCacheLeft = -1;
+    update();
+  }
+
+  private void rightKill() {
+    mWidgetConstraintPanel.killRightConstraint();
+    mCacheRight = -1;
+    update();
+  }
+
+  private void bottomKill() {
+    mWidgetConstraintPanel.killBottomConstraint();;
+    mCacheBottom = -1;
+    update();
+  }
+
+  private void baselineKill() {
+    mWidgetConstraintPanel.killBaselineConstraint();
+    mCacheBaseline = null;
+    update();
+  }
+
+  private void update() {
+    configureUi(mCacheName, mCacheBottom, mCacheTop, mCacheLeft, mCacheRight, mCacheBaseline, mCacheWidth, mCacheHeight);
+    mWidgetRender.build(getWidth(),getHeight());
+  }
+
+  private void killTop(){
+    mWidgetConstraintPanel.killTopConstraint();
+    mTopKill.setVisible(false);
+  }
+
   void resize() {
     mWidth = getWidth();
     mHeight = getHeight();
@@ -155,19 +202,19 @@ public class SingleWidgetView extends JPanel {
     int rad = 10;
     int size = rad * 2 + 1;
     mTopKill.setBounds(boxLeft + mBoxSize / 2 - rad, boxTop - rad, size + 2, size);
-    mLeftKill.setBounds(boxLeft - rad, boxTop + mBoxSize / 2 - rad, size + 2, size);
-    mRightKill.setBounds(boxLeft + mBoxSize - rad, boxTop + mBoxSize / 2 - rad, size + 2, size);
+    mLeftKill.setBounds(boxLeft - rad, boxTop + mBoxSize / 2 - rad + 1, size + 2, size);
+    mRightKill.setBounds(boxLeft + mBoxSize - rad, boxTop + mBoxSize / 2 - rad + 1, size + 2, size);
     mBottomKill.setBounds(boxLeft + mBoxSize / 2 - rad, boxTop + mBoxSize - rad, size + 2, size);
-    mBaselineKill.setBounds(boxLeft + mBoxSize - rad, boxTop + (2 * mBoxSize) / 3 - rad, size + 2, size);
+    mBaselineKill.setBounds(boxLeft + mBoxSize - rad, boxTop + (3 * mBoxSize) / 4 - rad, size + 2, size);
     int barSize = 10;
     int barLong = mBoxSize / 2 - barSize - 1;
 
-    mHbar1.setBounds(1 + boxLeft, boxTop + mBoxSize / 2 - barSize / 2, barLong, barSize);
-    mHbar2.setBounds(boxLeft + mBoxSize / 2 + barSize, boxTop + mBoxSize / 2 - barSize / 2, barLong, barSize);
+    mHbar1.setBounds(1 + boxLeft, boxTop + mBoxSize / 2 - barSize / 2 + 1, barLong, barSize);
+    mHbar2.setBounds(boxLeft + mBoxSize / 2 + barSize, boxTop + mBoxSize / 2 - barSize / 2 + 1, barLong, barSize);
     mVbar1.setBounds(boxLeft + mBoxSize / 2 - barSize / 2, 1 + boxTop, barSize, barLong);
     mVbar2.setBounds(boxLeft + mBoxSize / 2 - barSize / 2, boxTop + mBoxSize / 2 + barSize, barSize, barLong);
-
   }
+
 
   @Override
   protected void paintComponent(Graphics g) {
@@ -310,6 +357,14 @@ public class SingleWidgetView extends JPanel {
    * @param height   the vertical constraint state 0,1,2 = FIXED, SPRING, WRAP respectively
    */
   public void configureUi(String name, int bottom, int top, int left, int right, String baseline, int width, int height) {
+    mCacheName = name;
+    mCacheBottom = bottom;
+    mCacheTop = top;
+    mCacheLeft = left;
+    mCacheRight = right;
+    mCacheBaseline = baseline;
+    mCacheWidth = width;
+    mCacheHeight = height;
     mTopMargin.setVisible(top >= 0);
     mLeftMargin.setVisible(left >= 0);
     mRightMargin.setVisible(right >= 0);
@@ -666,7 +721,7 @@ public class SingleWidgetView extends JPanel {
      * @param r right end
      */
 
-    private void drawSpringHorizontalConstraint(Graphics g, int l, int y, int r) {
+    private static void drawSpringHorizontalConstraint(Graphics g, int l, int y, int r) {
       int m = 6;
       int d = 3;
       int w = (r - l);
