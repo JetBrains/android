@@ -50,19 +50,17 @@ public final class ChooseDeviceDefinitionPanel extends JPanel implements DeviceU
   public ChooseDeviceDefinitionPanel(@Nullable Device initialDevice) {
     super(new BorderLayout());
     FormScalingUtil.scaleComponentTree(this.getClass(), myPanel);
-    myDeviceDefinitionList.addSelectionListener(new DeviceDefinitionList.DeviceDefinitionSelectionListener() {
-      @Override
-      public void onDeviceSelectionChanged(@Nullable Device selectedDevice) {
-        if (selectedDevice != null) {
-          myDeviceDefinitionPreview.getDeviceData().updateValuesFromDevice(selectedDevice);
-        }
-        else {
-          myDeviceDefinitionPreview.getDeviceData().name().set(DeviceDefinitionPreview.DO_NOT_DISPLAY);
-        }
-        updateEditButton(selectedDevice);
-        for (Consumer<Device> listener : myDeviceListeners) {
-          listener.consume(selectedDevice);
-        }
+    updateEditButton(initialDevice);
+    myDeviceDefinitionList.addSelectionListener(selectedDevice -> {
+      if (selectedDevice != null) {
+        myDeviceDefinitionPreview.getDeviceData().updateValuesFromDevice(selectedDevice);
+      }
+      else {
+        myDeviceDefinitionPreview.getDeviceData().name().set(DeviceDefinitionPreview.DO_NOT_DISPLAY);
+      }
+      updateEditButton(selectedDevice);
+      for (Consumer<Device> listener : myDeviceListeners) {
+        listener.consume(selectedDevice);
       }
     });
 
@@ -78,8 +76,6 @@ public final class ChooseDeviceDefinitionPanel extends JPanel implements DeviceU
     else {
       myDeviceDefinitionList.selectDefaultDevice();
     }
-
-    updateEditButton(initialDevice);
 
     add(myPanel);
   }
@@ -98,7 +94,6 @@ public final class ChooseDeviceDefinitionPanel extends JPanel implements DeviceU
   @Override
   public void setDevice(@Nullable Device device) {
     myDeviceDefinitionList.setSelectedDevice(device);
-    updateEditButton(device);
   }
 
   @Override
