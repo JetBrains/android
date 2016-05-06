@@ -167,6 +167,24 @@ public class ModelWizardTest {
   }
 
   @Test
+  public void cantCreateWizardWithoutAtLeastOneVisibleStep() throws Exception {
+    DummyModel model = new DummyModel();
+    ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
+    // Creates parent, which creates child
+    GrandparentStep grandparentStep = new GrandparentStep(model);
+    grandparentStep.setShouldSkip();
+
+    wizardBuilder.addStep(grandparentStep);
+
+    try {
+      wizardBuilder.build();
+      fail();
+    }
+    catch (IllegalStateException expected) {
+    }
+  }
+
+  @Test
   public void wizardCantGoForwardAfterFinishing() throws Exception {
     ModelWizard wizard = new ModelWizard.Builder(new DummyStep(new DummyModel())).build();
     wizard.goForward();
@@ -330,22 +348,6 @@ public class ModelWizardTest {
 
     ModelWizard wizard = wizardBuilder.build();
     assertThat(wizard.onLastStep().get()).isTrue();
-
-    Disposer.dispose(wizard);
-  }
-
-  @Test
-  public void startingAWizardWithNoVisibleStepsFinishesAutomatically() throws Exception {
-    DummyModel model = new DummyModel();
-    ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
-    // Creates parent, which creates child
-    GrandparentStep grandparentStep = new GrandparentStep(model);
-    grandparentStep.setShouldSkip();
-
-    wizardBuilder.addStep(grandparentStep);
-    ModelWizard wizard = wizardBuilder.build();
-
-    assertThat(wizard.isFinished()).isTrue();
 
     Disposer.dispose(wizard);
   }
