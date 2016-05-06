@@ -52,8 +52,7 @@ public class Range implements Animatable {
 
   /**
    * @param from The min value to set to.
-   * @return true if the min was set successfully, false if otherwise (e.g. the value has been
-   * locked).
+   * @return true if the min was set successfully, false if otherwise (e.g. the value has been locked).
    */
   public boolean setMin(double from) {
     if (mLock) {
@@ -66,8 +65,7 @@ public class Range implements Animatable {
 
   /**
    * @param fromTarget The target min value to interpolate to.
-   * @return true if the target min was set successfully, false if otherwise (e.g. the value has
-   * been locked).
+   * @return true if the target min was set successfully, false if otherwise (e.g. the value has been locked).
    */
   public boolean setMinTarget(double fromTarget) {
     if (mLock) {
@@ -80,8 +78,7 @@ public class Range implements Animatable {
 
   /**
    * @param to The max value to set to.
-   * @return true if the max was set successfully, false if otherwise (e.g. the value has been
-   * locked).
+   * @return true if the max was set successfully, false if otherwise (e.g. the value has been locked).
    */
   public boolean setMax(double to) {
     if (mLock) {
@@ -94,8 +91,7 @@ public class Range implements Animatable {
 
   /**
    * @param to The max value to interpolate to.
-   * @return true if the target max was set successfully, false if otherwise (e.g. the value has
-   * been locked).
+   * @return true if the target max was set successfully, false if otherwise (e.g. the value has been locked).
    */
   public boolean setMaxTarget(double to) {
     if (mLock) {

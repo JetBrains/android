@@ -21,6 +21,7 @@ import gnu.trove.TIntArrayList;
 /**
  * An auxiliary object that formats the axis by determining the marker placement positions and their
  * corresponding labels.
+ * TODO: move this class and its subclasses to a submodule
  */
 public abstract class BaseAxisDomain {
 
