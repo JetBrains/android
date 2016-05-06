@@ -118,9 +118,9 @@ public class NewModuleWizardStateTest extends AndroidGradleTestCase {
     RepositoryUrlManager urlManager = get();
 
     assertContainsElements(dependencies.get(SdkConstants.GRADLE_COMPILE_CONFIGURATION),
-                           urlManager.getLibraryCoordinate(SUPPORT_ID_V4),
-                           urlManager.getLibraryCoordinate(APP_COMPAT_ID_V7),
-                           urlManager.getLibraryCoordinate(GRID_LAYOUT_ID_V7));
+                           urlManager.getLibraryStringCoordinate(SupportLibrary.SUPPORT_V4, true),
+                           urlManager.getLibraryStringCoordinate(SupportLibrary.APP_COMPAT_V7, true),
+                           urlManager.getLibraryStringCoordinate(SupportLibrary.GRID_LAYOUT_V7, true));
 
     myState.put(ATTR_DEPENDENCIES_MULTIMAP, LinkedHashMultimap.create());
 
@@ -138,7 +138,7 @@ public class NewModuleWizardStateTest extends AndroidGradleTestCase {
     assertEquals(1, dependencies.size());
 
     assertContainsElements(dependencies.get(SdkConstants.GRADLE_COMPILE_CONFIGURATION),
-                           urlManager.getLibraryCoordinate(SUPPORT_ID_V4));
+                           urlManager.getLibraryStringCoordinate(SupportLibrary.SUPPORT_V4, true));
   }
 
   @SuppressWarnings("unchecked")

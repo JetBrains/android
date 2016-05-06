@@ -21,6 +21,7 @@ import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.templates.KeystoreUtils;
+import com.android.tools.idea.templates.SupportLibrary;
 import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
@@ -40,7 +41,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.android.tools.idea.templates.KeystoreUtils.getOrCreateDefaultDebugKeystore;
-import static com.android.tools.idea.templates.RepositoryUrlManager.*;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 
 /**
@@ -191,19 +191,21 @@ public class NewModuleWizardState extends TemplateWizardState {
     Object navigationDrawerExtra = get(ATTR_NAVIGATION_DRAWER_EXTRA);
     if ((fragmentsExtra != null && Boolean.parseBoolean(fragmentsExtra.toString())) ||
         (navigationDrawerExtra != null && Boolean.parseBoolean(navigationDrawerExtra.toString()))) {
-      dependencies.put(SdkConstants.GRADLE_COMPILE_CONFIGURATION,  urlManager.getLibraryCoordinate(SUPPORT_ID_V4));
+      dependencies.put(SdkConstants.GRADLE_COMPILE_CONFIGURATION,  urlManager.getLibraryStringCoordinate(SupportLibrary.SUPPORT_V4, true));
     }
 
     // AppCompat Library
     Object actionBarExtra = get(ATTR_ACTION_BAR_EXTRA);
     if (actionBarExtra != null && Boolean.parseBoolean(actionBarExtra.toString())) {
-      dependencies.put(SdkConstants.GRADLE_COMPILE_CONFIGURATION, urlManager.getLibraryCoordinate(APP_COMPAT_ID_V7));
+      dependencies.put(SdkConstants.GRADLE_COMPILE_CONFIGURATION, urlManager.getLibraryStringCoordinate(SupportLibrary.APP_COMPAT_V7,
+                                                                                                        true));
     }
 
     // GridLayout Library
     Object gridLayoutExtra = get(ATTR_GRID_LAYOUT_EXTRA);
     if (gridLayoutExtra != null && Boolean.parseBoolean(gridLayoutExtra.toString())) {
-      dependencies.put(SdkConstants.GRADLE_COMPILE_CONFIGURATION, urlManager.getLibraryCoordinate(GRID_LAYOUT_ID_V7));
+      dependencies.put(SdkConstants.GRADLE_COMPILE_CONFIGURATION, urlManager.getLibraryStringCoordinate(SupportLibrary.GRID_LAYOUT_V7,
+                                                                                                        true));
     }
 
     put(ATTR_DEPENDENCIES_MULTIMAP, dependencies);

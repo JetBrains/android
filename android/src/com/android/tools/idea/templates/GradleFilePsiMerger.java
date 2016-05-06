@@ -30,6 +30,8 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.codeStyle.CodeStyleManager;
+import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.GroovyFileType;
@@ -165,14 +167,18 @@ public class GradleFilePsiMerger {
 
     ImmutableList<String> configurations = CONFIGURATION_ORDERING.immutableSortedCopy(dependencies.keySet());
 
-    for (String configurationName : configurations) {
-      List<GradleCoordinate> resolved = urlManager.resolveDynamicDependencies(dependencies.get(configurationName),
-                                                                              supportLibVersionFilter);
-      for (GradleCoordinate dependency : resolved) {
-        PsiElement dependencyElement = factory.createStatementFromText(String.format("%s '%s'\n",
-                                                                                     configurationName,
-                                                                                     dependency.toString()));
-        toRoot.addBefore(dependencyElement, toRoot.getLastChild());
+    AndroidSdkData sdk = AndroidSdkUtils.tryToChooseAndroidSdk();
+    if (sdk != null) {
+      for (String configurationName : configurations) {
+        List<GradleCoordinate> resolved = urlManager.resolveDynamicSdkDependencies(dependencies.get(configurationName),
+                                                                                   supportLibVersionFilter,
+                                                                                   sdk);
+        for (GradleCoordinate dependency : resolved) {
+          PsiElement dependencyElement = factory.createStatementFromText(String.format("%s '%s'\n",
+                                                                                       configurationName,
+                                                                                       dependency.toString()));
+          toRoot.addBefore(dependencyElement, toRoot.getLastChild());
+        }
       }
     }
 

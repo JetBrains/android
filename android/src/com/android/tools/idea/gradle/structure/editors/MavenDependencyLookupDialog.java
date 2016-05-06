@@ -20,6 +20,7 @@ import com.android.builder.model.ApiVersion;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.templates.SupportLibrary;
 import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -127,7 +128,7 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
     }
 
     @Nullable
-    public static Artifact fromCoordinate(@NotNull String libraryCoordinate, @Nullable String libraryId) {
+    public static Artifact fromCoordinate(@NotNull String libraryCoordinate) {
       GradleCoordinate gradleCoordinate = GradleCoordinate.parseCoordinateString(libraryCoordinate);
       if (gradleCoordinate == null) {
         return null;
@@ -137,7 +138,7 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
       if (groupId == null || artifactId == null) {
         return null;
       }
-      return new Artifact(groupId, artifactId, gradleCoordinate.getRevision(), libraryId);
+      return new Artifact(groupId, artifactId, gradleCoordinate.getRevision(), groupId + ":" + artifactId);
     }
 
     @NotNull
@@ -237,10 +238,10 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
     }
 
     RepositoryUrlManager manager = RepositoryUrlManager.get();
-    for (String libraryId : RepositoryUrlManager.EXTRAS_REPOSITORY.keySet()) {
-      String libraryCoordinate = manager.getLibraryCoordinate(libraryId, null, preview);
+    for (SupportLibrary library : SupportLibrary.values()) {
+      String libraryCoordinate = manager.getLibraryStringCoordinate(library, true);
       if (libraryCoordinate != null) {
-        Artifact artifact = Artifact.fromCoordinate(libraryCoordinate, libraryId);
+        Artifact artifact = Artifact.fromCoordinate(libraryCoordinate);
         if (artifact != null) {
           myAndroidSdkLibraries.add(libraryCoordinate);
           myShownItems.add(artifact);
@@ -271,9 +272,7 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
       @Override
       protected void doAction(ActionEvent e) {
         String text = mySearchField.getText();
-        if (text != null &&
-            !hasVersion(text) &&
-            RepositoryUrlManager.EXTRAS_REPOSITORY.containsKey(getArtifact(text))) {
+        if (text != null && !hasVersion(text) && isKnownLocalLibrary(text)) {
           // If it's a known library that doesn't exist in the local repository, we don't display the version for it. Add it back so that
           // final string is a valid gradle coordinate.
           mySearchField.setText(text + ':' + REVISION_ANY);
@@ -284,7 +283,20 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
     init();
   }
 
-  private static String getArtifact(String coordinate) {
+  private static boolean isKnownLocalLibrary(@NotNull String text) {
+    String group = getGroup(text);
+    String artifact = getArtifact(text);
+
+    if (group == null || artifact == null) {
+      return false;
+    }
+
+    SupportLibrary library = SupportLibrary.find(group, artifact);
+    return library != null;
+  }
+
+  @Nullable
+  private static String getArtifact(@NotNull String coordinate) {
     int i = coordinate.indexOf(':');
     if (i >= 0 && i + 1 < coordinate.length()) {
       // There's at least one char after the first ':'
@@ -293,6 +305,15 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
       if (i < 0) {
         i = coordinate.length();
       }
+      return coordinate.substring(0, i);
+    }
+    return null;
+  }
+
+  @Nullable
+  private static String getGroup(@NotNull String coordinate) {
+    int i = coordinate.indexOf(':');
+    if (i > 0) {
       return coordinate.substring(0, i);
     }
     return null;
@@ -350,7 +371,7 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
       }
       synchronized (myShownItems) {
         for (String s : results) {
-          Artifact wrappedArtifact = Artifact.fromCoordinate(s, null);
+          Artifact wrappedArtifact = Artifact.fromCoordinate(s);
           if (!myShownItems.contains(wrappedArtifact)) {
             myShownItems.add(wrappedArtifact);
           }
