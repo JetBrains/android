@@ -569,11 +569,18 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
      * @return true if the widget is a good candidate for resize
      */
     public boolean isCandidateResizable(int dimension) {
-        float factor = 1.5f; // if the widget is bigger than 50% of its minimum size...
         if (dimension == 0) {
-            return mConstraintWidget.getHeight() > factor * mConstraintWidget.getMinHeight();
+            return mConstraintWidget.getVerticalDimensionBehaviour() ==
+                    ConstraintWidget.DimensionBehaviour.ANY
+                    || ((mConstraintWidget.getVerticalDimensionBehaviour() ==
+                    ConstraintWidget.DimensionBehaviour.FIXED)
+                    && mConstraintWidget.getHeight() > mConstraintWidget.getMinHeight());
         } else {
-            return mConstraintWidget.getWidth() > factor * mConstraintWidget.getMinWidth();
+            return (mConstraintWidget.getHorizontalDimensionBehaviour() ==
+                    ConstraintWidget.DimensionBehaviour.ANY)
+                    || ((mConstraintWidget.getHorizontalDimensionBehaviour() ==
+                    ConstraintWidget.DimensionBehaviour.FIXED)
+                    && mConstraintWidget.getWidth() > mConstraintWidget.getMinWidth());
         }
     }
 
