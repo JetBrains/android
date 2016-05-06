@@ -397,11 +397,11 @@ public class ViewHandlerManager implements ProjectComponent {
    * @return the associated view actions.
    */
   public List<ViewAction> getPopupMenuActions(@NotNull ViewHandler handler) {
-    List<ViewAction> actions = myToolbarActions.get(handler);
+    List<ViewAction> actions = myMenuActions.get(handler);
     if (actions == null) {
       actions = Lists.newArrayList();
       handler.addPopupMenuActions(actions);
-      myToolbarActions.put(handler, actions);
+      myMenuActions.put(handler, actions);
     }
     return actions;
   }

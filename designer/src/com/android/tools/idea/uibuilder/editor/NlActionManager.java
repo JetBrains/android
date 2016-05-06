@@ -89,9 +89,9 @@ public class NlActionManager {
     ScreenView screenView = mySurface.getScreenView(x, y);
     if (screenView == null) {
       screenView = mySurface.getCurrentScreenView();
-      if (screenView != null) {
-        component = Coordinates.findComponent(screenView, x, y);
-      }
+    }
+    if (screenView != null) {
+      component = Coordinates.findComponent(screenView, x, y);
     }
     showPopup(event, screenView, component);
   }
