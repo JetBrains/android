@@ -36,7 +36,7 @@ import java.util.HashMap;
  */
 public class WidgetsScene {
 
-    private HashMap<Object, ConstraintWidget> mWidgets = new HashMap<Object, ConstraintWidget>();
+    private HashMap<Object, ConstraintWidget> mWidgets = new HashMap<>();
     private ConstraintWidgetContainer mRoot;
     private Selection mSelection;
 
@@ -119,7 +119,7 @@ public class WidgetsScene {
             widget.disconnectWidget(container);
         }
         ArrayList<ConstraintWidget> children =
-                new ArrayList<ConstraintWidget>(container.getChildren());
+          new ArrayList<>(container.getChildren());
         for (ConstraintWidget child : children) {
             parent.add(child);
             child.resetAnchors();
@@ -137,7 +137,7 @@ public class WidgetsScene {
      * @param widget the widget
      * @return the widget's tag
      */
-    private Object getTag(ConstraintWidget widget) {
+    private static Object getTag(ConstraintWidget widget) {
         WidgetCompanion companion = (WidgetCompanion) widget.getCompanionWidget();
         Object tag = companion.getWidgetTag();
         if (tag != null) {
@@ -157,8 +157,7 @@ public class WidgetsScene {
         }
         if (widget instanceof ConstraintWidgetContainer) {
             ConstraintWidgetContainer container = (ConstraintWidgetContainer) widget;
-            ArrayList<ConstraintWidget> children =
-                    new ArrayList<ConstraintWidget>(container.getChildren());
+            ArrayList<ConstraintWidget> children = new ArrayList<>(container.getChildren());
             for (ConstraintWidget w : children) {
                 removeWidget(w);
             }
@@ -177,13 +176,12 @@ public class WidgetsScene {
      * @param root the root container we start from
      */
     public void flattenHierarchy(ConstraintWidgetContainer root) {
-        ArrayList<ConstraintWidgetContainer> containers =
-                WidgetsScene.gatherContainers(root);
+        ArrayList<ConstraintWidgetContainer> containers = gatherContainers(root);
         while (containers.size() > 0) {
             for (ConstraintWidgetContainer container : containers) {
                 removeContainer(container);
             }
-            containers = WidgetsScene.gatherContainers(root);
+            containers = gatherContainers(root);
         }
     }
 
@@ -205,7 +203,7 @@ public class WidgetsScene {
             if (!decorator.isVisible()) {
                 continue;
             }
-            if (widget instanceof WidgetContainer) {
+            if (widget instanceof ConstraintWidgetContainer) {
                 ConstraintWidget f = findWidget((ConstraintWidgetContainer) widget, x, y);
                 if (f != null) {
                     found = f;

@@ -89,7 +89,7 @@ public class TextWidget extends WidgetDecorator {
     }
 
     public static int androidToSwingFontSize(float fontSize) {
-        return  (int) Math.round((fontSize * 2f + 4.5f) / 2.41f);
+        return Math.round((fontSize * 2f + 4.5f) / 2.41f);
     }
     /**
      * Accessor for the text content
@@ -123,7 +123,7 @@ public class TextWidget extends WidgetDecorator {
      * to wrap_content, using the default font
      */
     protected void wrapContent() {
-        if (!TextWidget.DO_WRAP) {
+        if (!DO_WRAP) {
             return;
         }
         if (mText == null) {

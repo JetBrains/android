@@ -57,8 +57,8 @@ public class ConstraintHandle {
             BasicStroke.JOIN_BEVEL, 0, new float[] { 4 }, 0);
 
 
-    class ConnectionDrawing {
-        ArrayList<Shape> mShapes = new ArrayList();
+    static class ConnectionDrawing {
+        ArrayList<Shape> mShapes = new ArrayList<>();
         Path2D.Float mPath = new Path2D.Float();
         Polygon mArrow;
         boolean mDrawEndCircle = false;
@@ -234,9 +234,8 @@ public class ConstraintHandle {
     /**
      * Update the position of the anchor depending on the owner's position
      *
-     * @param viewTransform the view transform
      */
-    void updatePosition(ViewTransform viewTransform) {
+    void updatePosition() {
         if (mOwner == null) {
             mX = 0;
             mY = 0;
@@ -435,7 +434,6 @@ public class ConstraintHandle {
             int x = transform.getSwingX(getOwner().getDrawX());
             int y = transform.getSwingY(getOwner().getDrawY());
             int w = transform.getSwingDimension(getOwner().getDrawWidth());
-            int h = transform.getSwingDimension(getOwner().getDrawHeight());
             int baseline = transform.getSwingDimension(getOwner().getBaselineDistance());
             int padding = (w - getBaselineHandleWidth(transform)) / 2;
             int bh = 7;
@@ -594,10 +592,8 @@ public class ConstraintHandle {
                         targetWidget);
             }
         } else {
-            if (targetHandle != null) {
-                addPathConnection(transform, g, isSelected, showMargin, drawing, colorSet,
-                        targetHandle.getDrawX(), targetHandle.getDrawY());
-            }
+            addPathConnection(transform, g, isSelected, showMargin, drawing, colorSet,
+                    targetHandle.getDrawX(), targetHandle.getDrawY());
         }
 
         // If a lock timer is active, draw the path a second time
@@ -622,10 +618,6 @@ public class ConstraintHandle {
                     }
                     if (originalCreator != ConstraintAnchor.SCOUT_CREATOR) {
                         g.setColor(colorSet.getSelectedConstraints());
-                    }
-                    if (originalCreator != ConstraintAnchor.SCOUT_CREATOR
-                            && originalCreator != ConstraintAnchor.AUTO_CONSTRAINT_CREATOR) {
-                        paintShadow(g, colorSet, drawing);
                     }
                     drawing.draw(g);
                 } else {
@@ -810,7 +802,7 @@ public class ConstraintHandle {
 
                 // We may want to position the margin draw a little offset to the center,
                 // depending on the direction of the other connections
-                int marginPosition = x0;
+                int marginPosition;
                 ConstraintAnchor left = getOwner().getAnchor(ConstraintAnchor.Type.LEFT);
                 ConstraintAnchor right = getOwner().getAnchor(ConstraintAnchor.Type.RIGHT);
                 boolean centerConnectionAnchor = (left != null
@@ -834,8 +826,8 @@ public class ConstraintHandle {
 
                 Stroke pres = g.getStroke();
                 g.setStroke(sSimpleStroke);
-                ConnectionDraw.drawVerticalMarginIndicator(g, "" + mAnchor.getMargin(),
-                        marginPosition, y0, y1);
+                ConnectionDraw.drawVerticalMarginIndicator(g, String.valueOf(mAnchor.getMargin()),
+                                                           marginPosition, y0, y1);
                 g.setStroke(ConnectionDraw.sDashedStroke);
                 if (x0 > x1) {
                     g.drawLine(marginPosition + marginLineOffset, y1, x1, y1);
@@ -895,7 +887,7 @@ public class ConstraintHandle {
 
                 // We may want to position the margin draw a little offset to the center,
                 // depending on the direction of the other connections
-                int marginPosition = y0;
+                int marginPosition;
                 ConstraintAnchor top = getOwner().getAnchor(ConstraintAnchor.Type.TOP);
                 ConstraintAnchor bottom = getOwner().getAnchor(ConstraintAnchor.Type.BOTTOM);
                 boolean centerConnectionAnchor = (top != null
@@ -918,8 +910,8 @@ public class ConstraintHandle {
 
                 Stroke pres = g.getStroke();
                 g.setStroke(sSimpleStroke);
-                ConnectionDraw.drawHorizontalMarginIndicator(g, "" + mAnchor.getMargin(),
-                        x0, x1, marginPosition);
+                ConnectionDraw.drawHorizontalMarginIndicator(g, String.valueOf(mAnchor.getMargin()),
+                                                             x0, x1, marginPosition);
                 g.setStroke(ConnectionDraw.sDashedStroke);
                 if (y0 > y1) {
                     g.drawLine(x1, y0 + marginLineOffset, x1, y1);
@@ -976,8 +968,8 @@ public class ConstraintHandle {
                     g.setColor(colorSet.getMargins());
                     Stroke pres = g.getStroke();
                     g.setStroke(sSimpleStroke);
-                    ConnectionDraw.drawVerticalMarginIndicator(g, "" + mAnchor.getMargin(),
-                            x0, end, y1);
+                    ConnectionDraw.drawVerticalMarginIndicator(g, String.valueOf(mAnchor.getMargin()),
+                                                               x0, end, y1);
                     g.setStroke(pres);
                     g.setColor(pre);
                     Shape line = new Line2D.Float(x0 - transform.getSwingDimension(4),
@@ -1018,8 +1010,8 @@ public class ConstraintHandle {
                     g.setColor(colorSet.getMargins());
                     Stroke pres = g.getStroke();
                     g.setStroke(sSimpleStroke);
-                    ConnectionDraw.drawHorizontalMarginIndicator(g, "" + mAnchor.getMargin(),
-                            end, x1, y0);
+                    ConnectionDraw.drawHorizontalMarginIndicator(g, String.valueOf(mAnchor.getMargin()),
+                                                                 end, x1, y0);
                     g.setStroke(pres);
                     g.setColor(pre);
                     g.drawLine(end, y0 - transform.getSwingDimension(4),
@@ -1359,9 +1351,9 @@ public class ConstraintHandle {
                     g.setColor(colorSet.getMargins());
                     Stroke pres = g.getStroke();
                     g.setStroke(sSimpleStroke);
-                    ConnectionDraw.drawVerticalMarginIndicator(g, "" + mAnchor.getMargin(),
+                    ConnectionDraw.drawVerticalMarginIndicator(g, String.valueOf(mAnchor.getMargin()),
                             transform.getSwingFX(x0) + ConnectionDraw.ARROW_SIDE, end,
-                            transform.getSwingFY(yt));
+                                                               transform.getSwingFY(yt));
                     g.setStroke(pres);
                     g.setColor(pre);
                     g.drawLine(transform.getSwingFX(x0 - 4),
@@ -1466,8 +1458,8 @@ public class ConstraintHandle {
                     g.setColor(colorSet.getMargins());
                     Stroke pres = g.getStroke();
                     g.setStroke(sSimpleStroke);
-                    ConnectionDraw.drawHorizontalMarginIndicator(g, "" + mAnchor.getMargin(),
-                            end, transform.getSwingFX(xt),
+                    ConnectionDraw.drawHorizontalMarginIndicator(g, String.valueOf(mAnchor.getMargin()),
+                                                                 end, transform.getSwingFX(xt),
                             transform.getSwingFY(y0) + ConnectionDraw.ARROW_SIDE);
                     g.setStroke(pres);
                     g.setColor(pre);
@@ -1565,7 +1557,7 @@ public class ConstraintHandle {
      * @param colorSet
      * @param drawing
      */
-    private void paintShadow(Graphics2D g, ColorSet colorSet, ConnectionDrawing drawing) {
+    private static void paintShadow(Graphics2D g, ColorSet colorSet, ConnectionDrawing drawing) {
         Color pre = g.getColor();
         Stroke s = g.getStroke();
         if (colorSet.getStyle() == WidgetDecorator.BLUEPRINT_STYLE) {
@@ -1588,7 +1580,7 @@ public class ConstraintHandle {
      * @param x
      * @param y
      */
-    private void drawShadowedArrow(Graphics2D g, ColorSet colorSet, Polygon arrow, int x, int y) {
+    private static void drawShadowedArrow(Graphics2D g, ColorSet colorSet, Polygon arrow, int x, int y) {
         Color pre = g.getColor();
         Stroke s = g.getStroke();
         if (colorSet.getStyle() == WidgetDecorator.BLUEPRINT_STYLE) {
@@ -1612,7 +1604,7 @@ public class ConstraintHandle {
      * @param y1   the y start coordinate
      * @param y2   the y end coordiante
      */
-    private void addVerticalSmallSpring(Path2D.Float path, int x0, int y1, int y2) {
+    private static void addVerticalSmallSpring(Path2D.Float path, int x0, int y1, int y2) {
         int springHeight = 2;
         int springWidth = 2;
         int distance = Math.abs(y2 - y1);
@@ -1646,7 +1638,7 @@ public class ConstraintHandle {
      * @param x1   the x start coordinate
      * @param x2   the x end coordiante
      */
-    private void addHorizontalSmallSpring(Path2D.Float path, int y0, int x1, int x2) {
+    private static void addHorizontalSmallSpring(Path2D.Float path, int y0, int x1, int x2) {
         int springHeight = 2;
         int springWidth = 2;
         int distance = Math.abs(x2 - x1);
@@ -1683,7 +1675,7 @@ public class ConstraintHandle {
      * @param curvature     the curvature of the path
      * @param verticalStart true to start the arc vertically, false otherwise
      */
-    private void addQuarterArc(Path2D.Float path, float x1, float y1,
+    private static void addQuarterArc(Path2D.Float path, float x1, float y1,
             float x2, float y2,
             float curvature, boolean verticalStart) {
         boolean down = y1 < y2;
@@ -1730,7 +1722,7 @@ public class ConstraintHandle {
      * @param path
      * @return the length of the path
      */
-    private int lengthOfPath(Path2D.Float path) {
+    private static int lengthOfPath(Path2D.Float path) {
         FlatteningPathIterator f = new FlatteningPathIterator(
                 path.getPathIterator(null), 1);
         double sum = 0;

@@ -77,7 +77,7 @@ public class ScoutGroupInference {
         south = Utils.sortUnique(south);
         east = Utils.sortUnique(east);
         west = Utils.sortUnique(west);
-        ArrayList<ScoutCandidateGroup> candidatesList = new ArrayList<ScoutCandidateGroup>();
+        ArrayList<ScoutCandidateGroup> candidatesList = new ArrayList<>();
         Rectangle groupRectangle = new Rectangle();
 
         // for every potential bounding rectangle computed a candidate group
@@ -245,12 +245,12 @@ public class ScoutGroupInference {
      * @return
      */
     private static ScoutWidget[] removeGuidelines(ScoutWidget[] list) {
-        ArrayList<ScoutWidget> al = new ArrayList<ScoutWidget>();
-        for (int i = 0; i < list.length; i++) {
-            if (list[i].mConstraintWidget instanceof Guideline) {
+        ArrayList<ScoutWidget> al = new ArrayList<>();
+        for (ScoutWidget aList : list) {
+            if (aList.mConstraintWidget instanceof Guideline) {
                 continue;
             }
-            al.add(list[i]);
+            al.add(aList);
         }
         return al.toArray(new ScoutWidget[al.size()]);
     }
@@ -267,10 +267,9 @@ public class ScoutGroupInference {
         if (!DEBUG) {
             return;
         }
-        if (ScoutGroupInference.debugDraw != null) {
+        if (debugDraw != null) {
             g.setColor(Color.GREEN.darker());
-            for (int i = 0; i < ScoutGroupInference.debugDraw.length; i++) {
-                Rectangle r = ScoutGroupInference.debugDraw[i];
+            for (Rectangle r : debugDraw) {
                 int x = viewMargin + viewTransform.getSwingX(r.x);
                 int y = viewMargin + viewTransform.getSwingY(r.y);
                 int wid = viewTransform.getSwingDimension(r.width);
@@ -281,7 +280,7 @@ public class ScoutGroupInference {
             }
             g.setColor(Color.RED);
             {
-                Rectangle r = ScoutGroupInference.debugBestRect;
+                Rectangle r = debugBestRect;
                 int x = viewMargin + viewTransform.getSwingX(r.x);
                 int y = viewMargin + viewTransform.getSwingY(r.y);
                 int wid = viewTransform.getSwingDimension(r.width);
@@ -292,8 +291,7 @@ public class ScoutGroupInference {
             }
             g.setColor(new Color(0x50909022, true));
 
-            for (int i = 0; i < ScoutGroupInference.debugGap.length; i++) {
-                Rectangle r = ScoutGroupInference.debugGap[i];
+            for (Rectangle r : debugGap) {
                 int x = viewMargin + viewTransform.getSwingX(r.x);
                 int y = viewMargin + viewTransform.getSwingY(r.y);
                 int wid = viewTransform.getSwingDimension(r.width);

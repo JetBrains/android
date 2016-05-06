@@ -18,7 +18,6 @@ package com.android.tools.sherpa.interaction;
 
 import com.android.tools.sherpa.drawing.SceneDraw;
 import com.android.tools.sherpa.drawing.ViewTransform;
-import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
 import com.android.tools.sherpa.structure.WidgetCompanion;
 import com.google.tnt.solver.widgets.ConstraintAnchor;
 import com.google.tnt.solver.widgets.ConstraintWidget;
@@ -77,7 +76,7 @@ public class SnapPlacement {
 
             if (!checkHorizontalMarginsSnap(snapCandidates, widget, candidatePoint,
                     DEFAULT_MARGIN)) {
-                if (!SnapPlacement.snapExistingHorizontalMargin(widget, candidatePoint)) {
+                if (!snapExistingHorizontalMargin(widget, candidatePoint)) {
                     SnapCandidate candidate = new SnapCandidate();
                     findSnap(widgets, widget, candidate, true);
                     if (candidate.target == null
@@ -94,9 +93,9 @@ public class SnapPlacement {
                                     ConstraintAnchor.Type.LEFT, -i, CONNECTION_SLOPE);
                         }
                     }
-                    if (!SnapPlacement.snapToHorizontalAnchor(candidatePoint, widget, candidate)) {
+                    if (!snapToHorizontalAnchor(candidatePoint, widget, candidate)) {
                         if (useGridSnap) {
-                            SnapPlacement.snapHorizontalGrid(widget, candidatePoint);
+                            snapHorizontalGrid(candidatePoint);
                         }
                     } else {
                         snapCandidates.add(candidate);
@@ -118,7 +117,7 @@ public class SnapPlacement {
 
             if (!checkVerticalMarginsSnap(snapCandidates, widget, candidatePoint,
                     DEFAULT_MARGIN)) {
-                if (!SnapPlacement.snapExistingVerticalMargin(widget, candidatePoint)) {
+                if (!snapExistingVerticalMargin(widget, candidatePoint)) {
                     SnapCandidate candidate = new SnapCandidate();
                     findSnap(widgets, widget, candidate, false);
                     if (candidate.target == null
@@ -135,9 +134,9 @@ public class SnapPlacement {
                                     ConstraintAnchor.Type.TOP, -i, CONNECTION_SLOPE);
                         }
                     }
-                    if (!SnapPlacement.snapToVerticalAnchor(candidatePoint, widget, candidate)) {
+                    if (!snapToVerticalAnchor(candidatePoint, widget, candidate)) {
                         if (useGridSnap) {
-                            SnapPlacement.snapVerticalGrid(widget, candidatePoint);
+                            snapVerticalGrid(candidatePoint);
                         }
                     } else {
                         snapCandidates.add(candidate);
@@ -197,7 +196,7 @@ public class SnapPlacement {
             return;
         }
         // TODO: we should cache the margins found
-        ArrayList<SnapCandidate> foundMargins = new ArrayList<SnapCandidate>();
+        ArrayList<SnapCandidate> foundMargins = new ArrayList<>();
         for (ConstraintWidget w1 : widgets) {
             for (ConstraintAnchor a1 : w1.getAnchors()) {
                 if (!a1.isSideAnchor()) {
@@ -633,11 +632,10 @@ public class SnapPlacement {
     /**
      * Snap the widget on the horizontal axis to WidgetsView.GRID_SPACING
      *
-     * @param widget         the widget we operate on
      * @param candidatePoint the candidate new position
      * @return true if we changed the position on the horizontal axis
      */
-    private static boolean snapHorizontalGrid(ConstraintWidget widget, Point candidatePoint) {
+    private static boolean snapHorizontalGrid(Point candidatePoint) {
         int x = candidatePoint.x;
         x = (x / SceneDraw.GRID_SPACING) * SceneDraw.GRID_SPACING;
         candidatePoint.x = x;
@@ -647,11 +645,10 @@ public class SnapPlacement {
     /**
      * Snap the widget on the vertical axis to WidgetsView.GRID_SPACING
      *
-     * @param widget         the widget we operate on
      * @param candidatePoint the candidate new position
      * @return true if we changed the position on the vertical axis
      */
-    private static boolean snapVerticalGrid(ConstraintWidget widget, Point candidatePoint) {
+    private static boolean snapVerticalGrid(Point candidatePoint) {
         int y = candidatePoint.y;
         y = (y / SceneDraw.GRID_SPACING) * SceneDraw.GRID_SPACING;
         candidatePoint.y = y;
@@ -674,7 +671,7 @@ public class SnapPlacement {
         boolean snapped = false;
         if (left.isConnected() && right.isConnected()) {
             // we do nothing in this case.
-        } else if (left != null && left.isConnected()) {
+        } else if (left.isConnected()) {
             int x1 = x;
             int x2 = WidgetInteractionTargets.constraintHandle(left.getTarget()).getDrawX();
             int margin = ((x1 - x2) / SceneDraw.GRID_SPACING) * SceneDraw.GRID_SPACING;

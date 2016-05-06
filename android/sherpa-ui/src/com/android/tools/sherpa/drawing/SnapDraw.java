@@ -102,7 +102,7 @@ public class SnapDraw {
         int maxY = Math.max(y2, y4);
         if (candidate.margin != 0) {
             int x2 = transform.getSwingX(sourceHandle.getDrawX());
-            String textMargin = "" + Math.abs(candidate.margin);
+            String textMargin = String.valueOf(Math.abs(candidate.margin));
             int yS = y2;
             int yT = y4 + OVER_MARGIN / 2;
             int mY = yS + OVER_MARGIN;

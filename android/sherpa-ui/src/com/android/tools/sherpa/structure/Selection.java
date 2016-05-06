@@ -31,9 +31,9 @@ import java.util.ArrayList;
  */
 public class Selection {
 
-    private ArrayList<Element> mSelectedWidgets = new ArrayList<Element>();
-    private ArrayList<ConstraintWidget> mModifiedWidgets = new ArrayList<ConstraintWidget>();
-    private ArrayList<SelectionListener> mSelectionListeners = new ArrayList<SelectionListener>();
+    private ArrayList<Element> mSelectedWidgets = new ArrayList<>();
+    private ArrayList<ConstraintWidget> mModifiedWidgets = new ArrayList<>();
+    private ArrayList<SelectionListener> mSelectionListeners = new ArrayList<>();
 
     private ConstraintAnchor mSelectedAnchor = null;
     private ConstraintAnchor mConnectionCandidateAnchor = null;
@@ -261,7 +261,7 @@ public class Selection {
      * @return array of selected widgets
      */
     public ArrayList<ConstraintWidget> getWidgets() {
-        ArrayList<ConstraintWidget> widgets = new ArrayList<ConstraintWidget>();
+        ArrayList<ConstraintWidget> widgets = new ArrayList<>();
         for (Element selection : mSelectedWidgets) {
             widgets.add(selection.widget);
         }

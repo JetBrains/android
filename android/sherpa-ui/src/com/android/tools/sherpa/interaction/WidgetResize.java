@@ -30,7 +30,7 @@ import java.util.Collection;
  */
 public class WidgetResize {
 
-    private ArrayList<SnapCandidate> mSnapCandidates = new ArrayList<SnapCandidate>();
+    private ArrayList<SnapCandidate> mSnapCandidates = new ArrayList<>();
 
     /**
      * Resize the widget given the current mouse position
