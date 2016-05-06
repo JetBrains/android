@@ -634,7 +634,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
     EditorNotificationPanel notificationPanel = notificationPanelRef.get();
     assertNotNull(notificationPanel);
-    return new EditorNotificationPanelFixture(robot(), notificationPanel);
+    return new EditorNotificationPanelFixture(this, notificationPanel);
   }
 
   public void requireNoEditorNotification() {
@@ -766,15 +766,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   public RunConfigurationsDialogFixture invokeRunConfigurationsDialog() {
     invokeMenuPath("Run", "Edit Configurations...");
     return RunConfigurationsDialogFixture.find(robot());
-  }
-
-  @NotNull
-  public InspectionsFixture inspectCode() {
-    invokeMenuPath("Analyze", "Inspect Code...");
-
-    InspectCodeDialogFixture.find(robot()).clickOk();
-
-    return new InspectionsFixture(robot(), getProject(), GuiTests.waitUntilFound(robot(), GuiTests.matcherForType(InspectionTree.class)));
   }
 
   @NotNull

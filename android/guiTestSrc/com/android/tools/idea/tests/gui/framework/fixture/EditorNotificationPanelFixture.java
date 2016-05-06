@@ -16,19 +16,23 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.Wait;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.HyperlinkLabel;
 import org.fest.reflect.core.Reflection;
 import org.fest.swing.core.GenericTypeMatcher;
-import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
 
 public class EditorNotificationPanelFixture extends JComponentFixture<EditorNotificationPanelFixture, EditorNotificationPanel> {
-  public EditorNotificationPanelFixture(@NotNull Robot robot, @NotNull EditorNotificationPanel target) {
-    super(EditorNotificationPanelFixture.class, robot, target);
+
+  private final IdeFrameFixture myIdeFrameFixture;
+
+  EditorNotificationPanelFixture(@NotNull IdeFrameFixture ideFrameFixture, @NotNull EditorNotificationPanel target) {
+    super(EditorNotificationPanelFixture.class, ideFrameFixture.robot(), target);
+    myIdeFrameFixture = ideFrameFixture;
   }
 
-  public void performAction(@NotNull final String label) {
+  public IdeFrameFixture performAction(@NotNull final String label) {
     HyperlinkLabel link = GuiTests.waitUntilShowing(robot(), target(), new GenericTypeMatcher<HyperlinkLabel>(HyperlinkLabel.class) {
       @Override
       protected boolean isMatching(@NotNull HyperlinkLabel hyperlinkLabel) {
@@ -38,5 +42,7 @@ public class EditorNotificationPanelFixture extends JComponentFixture<EditorNoti
       }
     });
     driver().click(link);
+    Wait.seconds(5).expecting("notification panel to disappear").until(() -> !target().isShowing());
+    return myIdeFrameFixture;
   }
 }
