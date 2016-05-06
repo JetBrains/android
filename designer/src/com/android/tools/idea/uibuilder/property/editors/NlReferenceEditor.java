@@ -201,7 +201,7 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
   private void stopEditing(@NotNull String newValue) {
     if (!newValue.equals(myLastWriteValue)) {
       myLastWriteValue = newValue;
-      myLastReadValue = newValue;
+      myLastReadValue = null;
       myListener.stopEditing(this, newValue);
       refresh();
     }

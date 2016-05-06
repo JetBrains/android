@@ -26,7 +26,7 @@ import java.util.Set;
 
 public class NlPropertyEditors {
   private static NlBooleanTableCellEditor ourBooleanEditor;
-  private static NlFlagEditor ourFlagEditor;
+  private static NlFlagTableCellEditor ourFlagEditor;
   private static NlEnumTableCellEditor ourComboEditor;
   private static NlReferenceTableCellEditor ourDefaultEditor;
 
@@ -64,7 +64,7 @@ public class NlPropertyEditors {
 
   public static PTableCellEditor getFlagEditor() {
     if (ourFlagEditor == null) {
-      ourFlagEditor = new NlFlagEditor();
+      ourFlagEditor = new NlFlagTableCellEditor();
     }
 
     return ourFlagEditor;
