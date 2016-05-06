@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
@@ -27,10 +25,12 @@ import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.psi.xml.XmlTag;
+import org.intellij.lang.annotations.JdkConstants.InputEventMask;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.util.*;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -105,19 +105,19 @@ public class DragDropInteraction extends Interaction {
   }
 
   @Override
-  public void begin(@SwingCoordinate int x, @SwingCoordinate int y, int modifiers) {
+  public void begin(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiers) {
     super.begin(x, y, modifiers);
     moveTo(x, y, modifiers, false);
   }
 
   @Override
-  public void update(@SwingCoordinate int x, @SwingCoordinate int y, int modifiers) {
+  public void update(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiers) {
     super.update(x, y, modifiers);
     moveTo(x, y, modifiers, false);
   }
 
   @Override
-  public void end(@SwingCoordinate int x, @SwingCoordinate int y, int modifiers, boolean canceled) {
+  public void end(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiers, boolean canceled) {
     super.end(x, y, modifiers, canceled);
     moveTo(x, y, modifiers, !canceled);
     myScreenView = myDesignSurface.getScreenView(x, y);
@@ -126,7 +126,7 @@ public class DragDropInteraction extends Interaction {
     }
   }
 
-  private void moveTo(@SwingCoordinate int x, @SwingCoordinate int y, final int modifiers, boolean commit) {
+  private void moveTo(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask final int modifiers, boolean commit) {
     myScreenView = myDesignSurface.getScreenView(x, y);
     if (myScreenView == null) {
       return;

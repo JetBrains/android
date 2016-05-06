@@ -16,7 +16,6 @@
 
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
-import com.android.tools.idea.gradle.structure.configurables.ui.UiUtil;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.api.actions.*;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
@@ -32,6 +31,7 @@ import com.android.tools.sherpa.structure.WidgetsScene;
 import com.google.tnt.solver.widgets.ConstraintAnchor;
 import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
+import org.intellij.lang.annotations.JdkConstants.InputEventMask;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -375,6 +375,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                                    @NotNull ViewHandler handler,
                                    @NotNull NlComponent component,
                                    @NotNull List<NlComponent> selectedChildren,
+                                   @InputEventMask int modifiers,
                                    boolean selected) {
       ConstraintModel model = ConstraintModel.getConstraintModel(editor.getModel());
       if (model != null) {
@@ -395,7 +396,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     public void perform(@NotNull ViewEditor editor,
                         @NotNull ViewHandler handler,
                         @NotNull NlComponent component,
-                        @NotNull List<NlComponent> selectedChildren) {
+                        @NotNull List<NlComponent> selectedChildren,
+                        @InputEventMask int modifiers) {
       ConstraintModel model = ConstraintModel.getConstraintModel(editor.getModel());
       if (model == null) {
         return;
@@ -410,7 +412,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                                    @NotNull ViewEditor editor,
                                    @NotNull ViewHandler handler,
                                    @NotNull NlComponent component,
-                                   @NotNull List<NlComponent> selectedChildren) {
+                                   @NotNull List<NlComponent> selectedChildren,
+                                   @InputEventMask int modifiers) {
       presentation.setEnabled(mEnable);
       presentation.setIcon(AndroidIcons.SherpaIcons.DeleteConstraint);
       presentation.setLabel("Clear all constraints");
@@ -422,7 +425,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     public void perform(@NotNull ViewEditor editor,
                         @NotNull ViewHandler handler,
                         @NotNull NlComponent component,
-                        @NotNull List<NlComponent> selectedChildren) {
+                        @NotNull List<NlComponent> selectedChildren,
+                        @InputEventMask int modifiers) {
       ConstraintModel model = ConstraintModel.getConstraintModel(editor.getModel());
       if (model == null) {
         return;
@@ -438,7 +442,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                                    @NotNull ViewEditor editor,
                                    @NotNull ViewHandler handler,
                                    @NotNull NlComponent component,
-                                   @NotNull List<NlComponent> selectedChildren) {
+                                   @NotNull List<NlComponent> selectedChildren,
+                                   @InputEventMask int modifiers) {
       presentation.setIcon(AndroidIcons.SherpaIcons.LockConstraints);
       presentation.setLabel("Locks auto inferred constraints");
     }
@@ -449,7 +454,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     public void perform(@NotNull ViewEditor editor,
                         @NotNull ViewHandler handler,
                         @NotNull NlComponent component,
-                        @NotNull List<NlComponent> selectedChildren) {
+                        @NotNull List<NlComponent> selectedChildren,
+                        @InputEventMask int modifiers) {
       ConstraintModel model = ConstraintModel.getConstraintModel(editor.getModel());
       if (model == null) {
         return;
@@ -465,7 +471,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                                    @NotNull ViewEditor editor,
                                    @NotNull ViewHandler handler,
                                    @NotNull NlComponent component,
-                                   @NotNull List<NlComponent> selectedChildren) {
+                                   @NotNull List<NlComponent> selectedChildren,
+                                   @InputEventMask int modifiers) {
       presentation.setIcon(AndroidIcons.SherpaIcons.Inference);
       presentation.setLabel("Infer constraints");
     }
@@ -503,6 +510,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                                    @NotNull ViewHandler handler,
                                    @NotNull NlComponent component,
                                    @NotNull List<NlComponent> selectedChildren,
+                                   @InputEventMask int modifiers,
                                    boolean selected) {
       presentation.setIcon(myShowAllConstraints ? getSelectedIcon() : getUnselectedIcon());
     }
@@ -577,7 +585,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     public void perform(@NotNull ViewEditor editor,
                         @NotNull ViewHandler handler,
                         @NotNull NlComponent component,
-                        @NotNull List<NlComponent> selectedChildren) {
+                        @NotNull List<NlComponent> selectedChildren,
+                        @InputEventMask int modifiers) {
       ConstraintModel model = ConstraintModel.getConstraintModel(editor.getModel());
       if (model == null) {
         return;
@@ -592,7 +601,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                                    @NotNull ViewEditor editor,
                                    @NotNull ViewHandler handler,
                                    @NotNull NlComponent component,
-                                   @NotNull List<NlComponent> selectedChildren) {
+                                   @NotNull List<NlComponent> selectedChildren,
+                                   @InputEventMask int modifiers) {
       presentation.setEnabled(mEnable);
       presentation.setIcon(myAlignIcon);
       presentation.setLabel(myToolTip);

@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.api.actions;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import org.intellij.lang.annotations.JdkConstants.InputEventMask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -63,12 +64,14 @@ public abstract class ViewAction implements Comparable<ViewAction> {
    * @param handler          the view handler
    * @param component        the component this action is associated with
    * @param selectedChildren any selected children of the component
+   * @param modifiers        modifiers currently in effect
    */
   public abstract void updatePresentation(@NotNull ViewActionPresentation presentation,
                                           @NotNull ViewEditor editor,
                                           @NotNull ViewHandler handler,
                                           @NotNull NlComponent component,
-                                          @NotNull List<NlComponent> selectedChildren);
+                                          @NotNull List<NlComponent> selectedChildren,
+                                          @InputEventMask int modifiers);
 
   /**
    * The relative sorting order of this action. Should be unique for all actions

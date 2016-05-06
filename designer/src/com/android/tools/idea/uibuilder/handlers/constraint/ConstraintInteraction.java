@@ -15,16 +15,15 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
-import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.model.Coordinates;
+import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.SelectionModel;
+import com.android.tools.idea.uibuilder.model.SwingCoordinate;
 import com.android.tools.idea.uibuilder.surface.Interaction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.sherpa.structure.Selection;
 import com.android.tools.sherpa.structure.WidgetCompanion;
-import com.google.tnt.solver.widgets.ConstraintWidget;
-import com.intellij.openapi.application.Result;
-import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.project.Project;
-import com.intellij.psi.xml.XmlFile;
+import org.intellij.lang.annotations.JdkConstants.InputEventMask;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -58,7 +57,7 @@ public class ConstraintInteraction extends Interaction {
    * @param startMask The initial AWT mask for the interaction
    */
   @Override
-  public void begin(@SwingCoordinate int x, @SwingCoordinate int y, int startMask) {
+  public void begin(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int startMask) {
     super.begin(x, y, startMask);
     int androidX = Coordinates.getAndroidX(myScreenView, myStartX);
     int androidY = Coordinates.getAndroidY(myScreenView, myStartY);
@@ -77,7 +76,7 @@ public class ConstraintInteraction extends Interaction {
    * @param modifiers current modifier key mask
    */
   @Override
-  public void update(@SwingCoordinate int x, @SwingCoordinate int y, int modifiers) {
+  public void update(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiers) {
     super.update(x, y, modifiers);
     DrawConstraintModel model = ConstraintModel.getDrawConstraintModel(myScreenView);
     model.updateModifiers(modifiers);
@@ -95,7 +94,7 @@ public class ConstraintInteraction extends Interaction {
    * @param canceled  True if the interaction was canceled, and false otherwise.
    */
   @Override
-  public void end(@SwingCoordinate int x, @SwingCoordinate int y, int modifiers, boolean canceled) {
+  public void end(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiers, boolean canceled) {
     super.end(x, y, modifiers, canceled);
     if (canceled) {
       ConstraintModel model = ConstraintModel.getConstraintModel(myScreenView.getModel());

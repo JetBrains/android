@@ -25,10 +25,7 @@ import com.android.tools.idea.uibuilder.model.ModelListener;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.model.SelectionModel;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.android.tools.idea.uibuilder.surface.ZoomType;
+import com.android.tools.idea.uibuilder.surface.*;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction;
@@ -48,6 +45,8 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
@@ -434,13 +433,13 @@ public class NlActionsToolbar implements DesignSurfaceListener, ModelListener {
         new WriteCommandAction<Void>(myProject, description, null, new PsiFile[]{file}) {
           @Override
           protected void run(@NotNull Result<Void> result) throws Throwable {
-            myAction.perform(myEditor, myHandler, myComponent, mySelectedChildren);
+            myAction.perform(myEditor, myHandler, myComponent, mySelectedChildren, e.getModifiers());
           }
         }.execute();
       } else {
         // Catch missing write lock and diagnose as missing affectsRedo
         try {
-          myAction.perform(myEditor, myHandler, myComponent, mySelectedChildren);
+          myAction.perform(myEditor, myHandler, myComponent, mySelectedChildren, e.getModifiers());
         } catch (Throwable t) {
           throw new IncorrectOperationException("View Action required write lock: should not specify affectsUndo=false");
         }
@@ -451,9 +450,23 @@ public class NlActionsToolbar implements DesignSurfaceListener, ModelListener {
 
     @Override
     public void update(AnActionEvent e) {
+      // Unfortunately, the action event we're fed here does *not* have the correct
+      // current modifier state; there are code paths which just feed in a value of 0
+      // when manufacturing their own ActionEvents; for example, Utils#expandActionGroup
+      // which is usually how the toolbar code is updated.
+      //
+      // So, instead we'll need to feed it the most recently known mask from the
+      // InteractionManager which observes mouse and keyboard events in the design surface.
+      // This misses pure keyboard events when the design surface does not have focus
+      // (but moving the mouse over the design surface updates it immediately.)
+      //
+      // (Longer term we consider having a singleton Toolkit listener which listens
+      // for AWT events globally and tracks the most recent global modifier key state.)
+      int modifiers = InteractionManager.getLastModifiers();
+
       myCurrentPresentation = e.getPresentation();
       try {
-        myAction.updatePresentation(this, myEditor, myHandler, myComponent, mySelectedChildren);
+        myAction.updatePresentation(this, myEditor, myHandler, myComponent, mySelectedChildren, modifiers);
       } finally {
         myCurrentPresentation = null;
       }
@@ -560,7 +573,7 @@ public class NlActionsToolbar implements DesignSurfaceListener, ModelListener {
         if (myAction.getSelectedLabel() != null) {
           myCurrentPresentation.setText(selected ? myAction.getSelectedLabel() : myAction.getUnselectedLabel());
         }
-        myAction.updatePresentation(this, myEditor, myHandler, myComponent, mySelectedChildren, selected);
+        myAction.updatePresentation(this, myEditor, myHandler, myComponent, mySelectedChildren, e.getModifiers(), selected);
       } finally {
         myCurrentPresentation = null;
       }
@@ -617,7 +630,7 @@ public class NlActionsToolbar implements DesignSurfaceListener, ModelListener {
     public void update(AnActionEvent e) {
       myCurrentPresentation = e.getPresentation();
       try {
-        myAction.updatePresentation(this, myEditor, myHandler, myComponent, mySelectedChildren);
+        myAction.updatePresentation(this, myEditor, myHandler, myComponent, mySelectedChildren, e.getModifiers());
       } finally {
         myCurrentPresentation = null;
       }

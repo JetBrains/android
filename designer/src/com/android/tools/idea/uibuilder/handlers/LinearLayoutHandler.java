@@ -29,11 +29,13 @@ import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.psi.xml.XmlTag;
 import icons.AndroidDesignerIcons;
 import icons.AndroidIcons;
+import org.intellij.lang.annotations.JdkConstants.InputEventMask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.InputEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -288,7 +290,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
 
     @Nullable
     @Override
-    public String update(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers) {
+    public String update(@AndroidCoordinate int x, @AndroidCoordinate int y, @InputEventMask int modifiers) {
       super.update(x, y, modifiers);
 
       boolean isVertical = myVertical;
@@ -963,7 +965,8 @@ public class LinearLayoutHandler extends ViewGroupHandler {
   private class ToggleOrientationAction extends DirectViewAction {
     @Override
     public void perform(@NotNull ViewEditor editor, @NotNull ViewHandler handler, @NotNull NlComponent component,
-                        @NotNull List<NlComponent> selectedChildren) {
+                        @NotNull List<NlComponent> selectedChildren,
+                        @InputEventMask int modifiers) {
       boolean isHorizontal = !isVertical(component);
       String value = isHorizontal ? VALUE_VERTICAL : null; // null: horizontal is the default
       component.setAttribute(ANDROID_URI, ATTR_ORIENTATION, value);
@@ -974,7 +977,8 @@ public class LinearLayoutHandler extends ViewGroupHandler {
                                    @NotNull ViewEditor editor,
                                    @NotNull ViewHandler handler,
                                    @NotNull NlComponent component,
-                                   @NotNull List<NlComponent> selectedChildren) {
+                                   @NotNull List<NlComponent> selectedChildren,
+                                   @InputEventMask int modifiers) {
       boolean vertical = isVertical(component);
 
       presentation.setLabel("Convert orientation to " + (!vertical ? VALUE_VERTICAL : VALUE_HORIZONTAL));
@@ -993,13 +997,15 @@ public class LinearLayoutHandler extends ViewGroupHandler {
                                    @NotNull ViewEditor editor,
                                    @NotNull ViewHandler handler,
                                    @NotNull NlComponent component,
-                                   @NotNull List<NlComponent> selectedChildren) {
+                                   @NotNull List<NlComponent> selectedChildren,
+                                   @InputEventMask int modifiers) {
       presentation.setVisible(selectedChildren.size() > 1);
     }
 
     @Override
     public void perform(@NotNull ViewEditor editor, @NotNull ViewHandler handler, @NotNull NlComponent component,
-                        @NotNull List<NlComponent> selectedChildren) {
+                        @NotNull List<NlComponent> selectedChildren, @InputEventMask int modifiers) {
+
       distributeWeights(component, selectedChildren);
     }
   }
@@ -1011,7 +1017,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
 
     @Override
     public void perform(@NotNull ViewEditor editor, @NotNull ViewHandler handler, @NotNull NlComponent component,
-                        @NotNull List<NlComponent> selectedChildren) {
+                        @NotNull List<NlComponent> selectedChildren, @InputEventMask int modifiers) {
       distributeWeights(component, selectedChildren);
     }
 
@@ -1020,7 +1026,8 @@ public class LinearLayoutHandler extends ViewGroupHandler {
                                    @NotNull ViewEditor editor,
                                    @NotNull ViewHandler handler,
                                    @NotNull NlComponent component,
-                                   @NotNull List<NlComponent> selectedChildren) {
+                                   @NotNull List<NlComponent> selectedChildren,
+                                   @InputEventMask int modifiers) {
       presentation.setVisible(selectedChildren.size() > 1);
     }
   }
@@ -1032,7 +1039,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
 
     @Override
     public void perform(@NotNull ViewEditor editor, @NotNull ViewHandler handler, @NotNull NlComponent component,
-                        @NotNull List<NlComponent> selectedChildren) {
+                        @NotNull List<NlComponent> selectedChildren, @InputEventMask int modifiers) {
       clearWeights(component, selectedChildren);
     }
 
@@ -1042,7 +1049,8 @@ public class LinearLayoutHandler extends ViewGroupHandler {
                                    @NotNull ViewEditor editor,
                                    @NotNull ViewHandler handler,
                                    @NotNull NlComponent component,
-                                   @NotNull List<NlComponent> selectedChildren) {
+                                   @NotNull List<NlComponent> selectedChildren,
+                                   @InputEventMask int modifiers) {
       presentation.setVisible(selectedChildren.size() > 1);
     }
   }
@@ -1050,7 +1058,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
   private static class BaselineAction extends DirectViewAction {
     @Override
     public void perform(@NotNull ViewEditor editor, @NotNull ViewHandler handler, @NotNull NlComponent component,
-                        @NotNull List<NlComponent> selectedChildren) {
+                        @NotNull List<NlComponent> selectedChildren, @InputEventMask int modifiers) {
       boolean align = !isBaselineAligned(component);
       component.setAttribute(ANDROID_URI, ATTR_BASELINE_ALIGNED, align ? null : VALUE_FALSE);
     }
@@ -1061,7 +1069,8 @@ public class LinearLayoutHandler extends ViewGroupHandler {
                                    @NotNull ViewEditor editor,
                                    @NotNull ViewHandler handler,
                                    @NotNull NlComponent component,
-                                   @NotNull List<NlComponent> selectedChildren) {
+                                   @NotNull List<NlComponent> selectedChildren,
+                                   @InputEventMask int modifiers) {
       boolean align = !isBaselineAligned(component);
       presentation.setIcon(align ? AndroidDesignerIcons.Baseline : AndroidDesignerIcons.NoBaseline);
       presentation.setLabel(align ? "Align with the baseline" : "Do not align with the baseline");

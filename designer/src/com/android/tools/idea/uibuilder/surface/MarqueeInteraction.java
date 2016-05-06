@@ -15,13 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.SwingCoordinate;
 import com.google.common.collect.Lists;
+import org.intellij.lang.annotations.JdkConstants.InputEventMask;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.util.*;
@@ -60,7 +61,7 @@ public class MarqueeInteraction extends Interaction {
   }
 
   @Override
-  public void update(@SwingCoordinate int x, @SwingCoordinate int y, int modifiers) {
+  public void update(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiers) {
     if (myOverlay == null) {
       return;
     }

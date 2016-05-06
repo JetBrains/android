@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.api;
 import com.android.tools.idea.uibuilder.api.actions.ToggleViewAction;
 import com.android.tools.idea.uibuilder.api.actions.ViewActionPresentation;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import org.intellij.lang.annotations.JdkConstants.InputEventMask;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -67,6 +68,7 @@ public class ToggleSizeViewAction extends ToggleViewAction {
                                  @NotNull ViewHandler handler,
                                  @NotNull NlComponent component,
                                  @NotNull List<NlComponent> selectedChildren,
+                                 @InputEventMask int modifiers,
                                  boolean selected) {
     presentation.setEnabled(!selectedChildren.isEmpty());
 
