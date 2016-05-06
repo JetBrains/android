@@ -15,24 +15,26 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui;
 
+import com.intellij.icons.AllIcons;
 import com.intellij.ui.SimpleColoredComponent;
+import com.intellij.ui.components.JBLabel;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.revalidateAndRepaint;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES;
-import static com.intellij.util.ui.UIUtil.getTreeCollapsedIcon;
-import static com.intellij.util.ui.UIUtil.getTreeExpandedIcon;
 import static javax.swing.BorderFactory.createEmptyBorder;
 
 public class CollapsiblePanel extends JPanel {
   @NotNull private final JPanel myPanel;
-  @NotNull private final JCheckBox myExpandButton;
+  @NotNull private final JBLabel myExpandButton;
   @NotNull private final SimpleColoredComponent myTitleComponent;
+  @NotNull private final Icon myExpandedIcon;
+  @NotNull private final Icon myCollapsedIcon;
 
   private JComponent myContents;
   private boolean myExpanded;
@@ -43,15 +45,16 @@ public class CollapsiblePanel extends JPanel {
 
   public CollapsiblePanel(@NotNull String title) {
     super(new BorderLayout());
-    Icon treeExpandedIcon = getTreeExpandedIcon();
+
     myPanel = new JPanel(new BorderLayout());
     add(myPanel, BorderLayout.CENTER);
 
-    myExpandButton = new JCheckBox(" ");
+    myExpandButton = new JBLabel(" ");
     myExpandButton.setFocusable(false);
-    myExpandButton.setIcon(getTreeCollapsedIcon());
-    myExpandButton.setSelectedIcon(treeExpandedIcon);
-    myExpandButton.addChangeListener(new CollapseListener());
+    myExpandButton.addMouseListener(new CollapseListener());
+
+    myExpandedIcon = AllIcons.Nodes.TreeDownArrow;
+    myCollapsedIcon = AllIcons.Nodes.TreeRightArrow;
 
     myTitleComponent = new SimpleColoredComponent();
     myTitleComponent.append(title, REGULAR_BOLD_ATTRIBUTES);
@@ -66,7 +69,7 @@ public class CollapsiblePanel extends JPanel {
     expandPanel.setBorder(createEmptyBorder(0, left, 0, 0));
     add(expandPanel, BorderLayout.NORTH);
 
-    myPanel.setBorder(createEmptyBorder(10, 10 + treeExpandedIcon.getIconWidth() + left + iconTextGap, 10, 10));
+    myPanel.setBorder(createEmptyBorder(10, 10 + myExpandedIcon.getIconWidth() + left + iconTextGap, 10, 10));
 
     setExpanded(true);
   }
@@ -103,7 +106,8 @@ public class CollapsiblePanel extends JPanel {
     boolean oldExpanded = myExpanded;
     if (oldExpanded != expanded) {
       myExpanded = expanded;
-      myExpandButton.setSelected(myExpanded);
+      Icon icon = myExpanded ? myExpandedIcon : myCollapsedIcon;
+      myExpandButton.setIcon(icon);
       if (myExpanded) {
         add(myPanel, BorderLayout.CENTER);
       }
@@ -115,10 +119,10 @@ public class CollapsiblePanel extends JPanel {
     }
   }
 
-  private class CollapseListener implements ChangeListener {
+  private class CollapseListener extends MouseAdapter {
     @Override
-    public void stateChanged(ChangeEvent event) {
-      setExpanded(myExpandButton.isSelected());
+    public void mousePressed(MouseEvent e) {
+      setExpanded(!myExpanded);
     }
   }
 }
