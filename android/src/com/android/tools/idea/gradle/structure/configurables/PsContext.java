@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.gradle.structure.configurables;
 
-import com.android.tools.idea.gradle.GradleSyncState;
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
-import com.android.tools.idea.gradle.project.GradleProjectSyncData;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
+import com.android.tools.idea.gradle.structure.FastGradleSync;
 import com.android.tools.idea.gradle.structure.daemon.PsAnalyzerDaemon;
 import com.android.tools.idea.gradle.structure.daemon.PsLibraryUpdateCheckerDaemon;
 import com.android.tools.idea.gradle.structure.model.PsProject;
@@ -32,20 +30,22 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.EventListener;
 
+import static com.intellij.util.ExceptionUtil.getRootCause;
+
 public class PsContext implements Disposable {
   @NotNull private final PsProject myProject;
   @NotNull private final PsAnalyzerDaemon myAnalyzerDaemon;
+  @NotNull private final FastGradleSync myGradleSync;
   @NotNull private final PsLibraryUpdateCheckerDaemon myLibraryUpdateCheckerDaemon;
 
   @NotNull private final EventDispatcher<ChangeListener> myChangeEventDispatcher = EventDispatcher.create(ChangeListener.class);
   @NotNull private final EventDispatcher<GradleSyncListener> myGradleSyncEventDispatcher = EventDispatcher.create(GradleSyncListener.class);
-  @NotNull private final GradleSyncListener myGradleSyncListener;
 
   @Nullable private String mySelectedModuleName;
 
   public PsContext(@NotNull PsProject project, @NotNull Disposable parentDisposable) {
     myProject = project;
-    myGradleSyncListener = new SyncListener();
+    myGradleSync = new FastGradleSync();
 
     getMainConfigurable().add(this::requestGradleSync, this);
 
@@ -61,8 +61,16 @@ public class PsContext implements Disposable {
   }
 
   private void requestGradleSync() {
-    GradleProjectImporter.getInstance().requestProjectSync(myProject.getResolvedModel(), false /* No code generation */,
-                                                           myGradleSyncListener);
+    Project project = myProject.getResolvedModel();
+    myGradleSyncEventDispatcher.getMulticaster().syncStarted(project);
+    FastGradleSync.Callback callback = myGradleSync.requestProjectSync(project);
+    callback.doWhenDone(() -> myGradleSyncEventDispatcher.getMulticaster().syncSucceeded(project));
+    callback.doWhenRejected(() -> {
+      Throwable failure = callback.getFailure();
+      assert failure != null;
+      //noinspection ThrowableResultOfMethodCallIgnored
+      myGradleSyncEventDispatcher.getMulticaster().syncFailed(project, getRootCause(failure).getMessage());
+    });
   }
 
   public void add(@NotNull GradleSyncListener listener, @NotNull Disposable parentDisposable) {
@@ -109,39 +117,5 @@ public class PsContext implements Disposable {
 
   public interface ChangeListener extends EventListener {
     void moduleSelectionChanged(@NotNull String moduleName, @NotNull Object source);
-  }
-
-  private class SyncListener extends GradleSyncListener.Adapter {
-    @Override
-    public void syncStarted(@NotNull Project project) {
-      if (isMyProject(project)) {
-        myGradleSyncEventDispatcher.getMulticaster().syncStarted(project);
-      }
-    }
-
-    @Override
-    public void syncSucceeded(@NotNull Project project) {
-      if (isMyProject(project)) {
-        updateGradleSyncState(project);
-        myGradleSyncEventDispatcher.getMulticaster().syncSucceeded(project);
-      }
-    }
-
-    @Override
-    public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
-      if (isMyProject(project)) {
-        updateGradleSyncState(project);
-        myGradleSyncEventDispatcher.getMulticaster().syncFailed(project, errorMessage);
-      }
-    }
-
-    private void updateGradleSyncState(@NotNull Project project) {
-      GradleSyncState.getInstance(project).syncEnded();
-      GradleProjectSyncData.save(project);
-    }
-
-    private boolean isMyProject(@NotNull Project project) {
-      return project == myProject.getResolvedModel();
-    }
   }
 }

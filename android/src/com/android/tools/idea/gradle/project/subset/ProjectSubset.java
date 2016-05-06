@@ -95,7 +95,7 @@ public final class ProjectSubset {
       if (selectedModules != null) {
         setSelection(selectedModules);
         if (!Arrays.equals(getSelection(), selection)) {
-          populate(myProject, selectedModules);
+          populate(myProject, selectedModules, true);
         }
       }
     }
@@ -248,7 +248,7 @@ public final class ProjectSubset {
       }
     });
 
-    populate(myProject, selectedModules);
+    populate(myProject, selectedModules, true);
   }
 
   /**
@@ -300,7 +300,7 @@ public final class ProjectSubset {
 
             finalSelection.addAll(selectedModules);
             setSelection(finalSelection);
-            populate(myProject, finalSelection);
+            populate(myProject, finalSelection, true);
           }
         }
       }
@@ -343,7 +343,7 @@ public final class ProjectSubset {
           }
           if (!selectedModules.isEmpty() && found) {
             setSelection(selectedModules);
-            populate(project, selectedModules);
+            populate(project, selectedModules, true);
           }
         }
       }.queue();

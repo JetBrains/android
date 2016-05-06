@@ -58,7 +58,7 @@ public class JavaProject implements Serializable {
   private boolean myAndroidProjectWithoutVariants;
 
   @NotNull
-  public static JavaProject create(@NotNull final IdeaModule ideaModule,
+  public static JavaProject create(@NotNull IdeaModule ideaModule,
                                    @Nullable ModuleExtendedModel extendedModel,
                                    boolean androidProjectWithoutVariants) {
     Collection<? extends IdeaContentRoot> contentRoots = getContentRoots(ideaModule, extendedModel);
