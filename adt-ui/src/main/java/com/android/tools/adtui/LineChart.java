@@ -111,16 +111,22 @@ public class LineChart extends AnimatedComponent {
   @Override
   protected void updateData() {
     Map<Range, Long> max = new HashMap<>();
+    // Store the max of each range to make sure we're not going to set it to anything below its value
+    Map<Range, Double> initialMax = new HashMap<>();
     for (RangedContinuousSeries ranged : mLinesConfig.keySet()) {
+      Range range = ranged.getYRange();
+      initialMax.put(range, range.getMax());
       ContinuousSeries series = ranged.getSeries();
       long maxY = series.getMaxY();
-      Long m = max.get(ranged.getYRange());
-      max.put(ranged.getYRange(), m == null ? maxY : Math.max(maxY, m));
+      Long m = max.get(range);
+      max.put(range, m == null ? maxY : Math.max(maxY, m));
     }
 
     for (Map.Entry<Range, Long> entry : max.entrySet()) {
       Range range = entry.getKey();
-      range.setMaxTarget(entry.getValue());
+      if (initialMax.containsKey(range) && initialMax.get(range) < entry.getValue()) {
+        range.setMaxTarget(entry.getValue());
+      }
     }
   }
 
