@@ -77,6 +77,7 @@ public class SingleWidgetView extends JPanel {
   HConstraintDisplay mHbar2 = new HConstraintDisplay(mColorSet, false);
   VConstraintDisplay mVbar1 = new VConstraintDisplay(mColorSet, true);
   VConstraintDisplay mVbar2 = new VConstraintDisplay(mColorSet, false);
+
   KillButton mTopKill = new KillButton(mColorSet);
   KillButton mLeftKill = new KillButton(mColorSet);
   KillButton mRightKill = new KillButton(mColorSet);
@@ -85,6 +86,10 @@ public class SingleWidgetView extends JPanel {
 
   public SingleWidgetView(WidgetConstraintPanel constraintPanel) {
     super(null);
+    mHbar1.setSister(mHbar2);
+    mHbar2.setSister(mHbar1);
+    mVbar1.setSister(mVbar2);
+    mVbar2.setSister(mVbar1);
     mWidgetConstraintPanel = constraintPanel;
     addComponentListener(new ComponentAdapter() {
       @Override
@@ -140,7 +145,7 @@ public class SingleWidgetView extends JPanel {
     mGraphicList.add(mWidgetRender);
   }
 
-  private  void topKill() {
+  private void topKill() {
     mWidgetConstraintPanel.killTopConstraint();
     mCacheTop = -1;
     update();
@@ -159,7 +164,7 @@ public class SingleWidgetView extends JPanel {
   }
 
   private void bottomKill() {
-    mWidgetConstraintPanel.killBottomConstraint();;
+    mWidgetConstraintPanel.killBottomConstraint();
     mCacheBottom = -1;
     update();
   }
@@ -172,10 +177,10 @@ public class SingleWidgetView extends JPanel {
 
   private void update() {
     configureUi(mCacheName, mCacheBottom, mCacheTop, mCacheLeft, mCacheRight, mCacheBaseline, mCacheWidth, mCacheHeight);
-    mWidgetRender.build(getWidth(),getHeight());
+    mWidgetRender.build(getWidth(), getHeight());
   }
 
-  private void killTop(){
+  private void killTop() {
     mWidgetConstraintPanel.killTopConstraint();
     mTopKill.setVisible(false);
   }
@@ -612,6 +617,7 @@ public class SingleWidgetView extends JPanel {
     int mState;
     Color mBackground;
     Color mLineColor;
+    TriStateControl mSisterControl;
     public final static String STATE = "state";
 
     TriStateControl(ColorSet colorSet) {
@@ -631,12 +637,20 @@ public class SingleWidgetView extends JPanel {
         @Override
         public void mouseExited(MouseEvent e) {
           mMouseIn = false;
+          if (mSisterControl != null) {
+            mSisterControl.mMouseIn = mMouseIn;
+            mSisterControl.repaint();
+          }
           repaint();
         }
 
         @Override
         public void mouseEntered(MouseEvent e) {
           mMouseIn = true;
+          if (mSisterControl != null) {
+            mSisterControl.mMouseIn = mMouseIn;
+            mSisterControl.repaint();
+          }
           repaint();
         }
       });
@@ -646,6 +660,10 @@ public class SingleWidgetView extends JPanel {
           resize();
         }
       });
+    }
+
+    public void setSister(TriStateControl sister) {
+      mSisterControl = sister;
     }
 
     public int getState() {
