@@ -40,7 +40,6 @@ public class TestManifestTest {
   public void testManifest() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("ProjectWithUnitTests");
     EditorFixture editor = guiTest.ideFrame().getEditor();
-    guiTest.waitForBackgroundTasks(); // Needed to make sure nothing will interfere with the typing later
 
     editor.open("app/src/main/AndroidManifest.xml", EditorFixture.Tab.EDITOR);
     editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 0);
