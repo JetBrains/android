@@ -90,7 +90,16 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
     });
   }
 
-  public void testCustomizeModule() throws Exception {
+  public void testCustomizeModuleWithDefaultModel() {
+    verifyCustomizeModule();
+  }
+
+  public void testCustomizeModuleWithModel200() {
+    myNativeAndroidProject.setModelVersion("2.0.0");
+    verifyCustomizeModule();
+  }
+
+  private void verifyCustomizeModule() {
     final IdeModifiableModelsProviderImpl modelsProvider = new IdeModifiableModelsProviderImpl(myProject);
     try {
       myCustomizer.customizeModule(myProject, myModule, modelsProvider, myNativeAndroidGradleModel);
@@ -116,8 +125,10 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
 
     Set<File> sourceFolderPaths = Sets.newLinkedHashSet();
     for (NativeArtifact artifact : myNativeAndroidProject.getArtifacts()) {
-      for (File headerRoot : artifact.getExportedHeaders()) {
-        sourceFolderPaths.add(headerRoot);
+      if (myNativeAndroidGradleModel.modelVersionIsAtLeast("2.0.0")) {
+        for (File headerRoot : artifact.getExportedHeaders()) {
+          sourceFolderPaths.add(headerRoot);
+        }
       }
       for (NativeFolder sourceFolder : artifact.getSourceFolders()) {
         sourceFolderPaths.add(sourceFolder.getFolderPath());
