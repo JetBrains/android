@@ -466,6 +466,14 @@ public class ProjectStructureConfigurable extends BaseConfigurable
     myChangeEventDispatcher.addListener(listener, parentDisposable);
   }
 
+  public void add(@NotNull ProjectStructureChangeListener listener) {
+    myChangeEventDispatcher.addListener(listener);
+  }
+
+  public void remove(@NotNull ProjectStructureChangeListener listener) {
+    myChangeEventDispatcher.removeListener(listener);
+  }
+
   private class MyPanel extends JPanel implements DataProvider {
     MyPanel() {
       super(new BorderLayout());
