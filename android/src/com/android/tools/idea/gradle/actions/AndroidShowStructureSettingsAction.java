@@ -15,15 +15,20 @@
  */
 package com.android.tools.idea.gradle.actions;
 
+import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
+import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.structure.AndroidProjectStructureConfigurable;
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable;
+import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable.ProjectStructureChangeListener;
 import com.intellij.ide.actions.ShowStructureSettingsAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.android.tools.idea.gradle.project.GradleExperimentalSettings.ENABLE_NEW_PSD_SYSTEM_PROPERTY;
 import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
@@ -63,7 +68,15 @@ public class AndroidShowStructureSettingsAction extends ShowStructureSettingsAct
   private static void showAndroidProjectStructure(@NotNull Project project) {
     if (GradleExperimentalSettings.getInstance().USE_NEW_PROJECT_STRUCTURE_DIALOG &&
         SystemProperties.getBooleanProperty(ENABLE_NEW_PSD_SYSTEM_PROPERTY, false)) {
-      ProjectStructureConfigurable.getInstance(project).showDialog();
+      ProjectStructureConfigurable projectStructure = ProjectStructureConfigurable.getInstance(project);
+      AtomicBoolean needsSync = new AtomicBoolean();
+      ProjectStructureChangeListener changeListener = () -> needsSync.set(true);
+      projectStructure.add(changeListener);
+      projectStructure.showDialog();
+      projectStructure.remove(changeListener);
+      if (needsSync.get()) {
+        GradleProjectImporter.getInstance().requestProjectSync(project, null);
+      }
       return;
     }
     AndroidProjectStructureConfigurable.getInstance(project).showDialog();

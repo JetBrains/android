@@ -92,6 +92,7 @@ public final class Projects {
   private static final Key<DependencySetupErrors> DEPENDENCY_SETUP_ERRORS = Key.create("project.dependency.setup.errors");
   private static final Key<Collection<Module>> MODULES_TO_DISPOSE_POST_SYNC = Key.create("project.modules.to.dispose.post.sync");
   private static final Key<Boolean> SYNC_REQUESTED_DURING_BUILD = Key.create("project.sync.requested.during.build");
+  private static final Key<Boolean> SKIP_SYNC_ISSUE_REPORTING = Key.create("project.sync.skip.sync.issue.reporting");
 
   private Projects() {
   }
@@ -558,6 +559,14 @@ public final class Projects {
 
   public static boolean isSyncRequestedDuringBuild(@NotNull Project project) {
     return getBoolean(project, SYNC_REQUESTED_DURING_BUILD);
+  }
+
+  public static void setSkipSyncIssueReporting(@NotNull Project project, @Nullable Boolean value) {
+    project.putUserData(SKIP_SYNC_ISSUE_REPORTING, value);
+  }
+
+  public static boolean getSkipSyncIssueReporting(@NotNull Project project) {
+    return getBoolean(project, SKIP_SYNC_ISSUE_REPORTING);
   }
 
   private static boolean getBoolean(@NotNull Project project, @NotNull Key<Boolean> key) {

@@ -117,7 +117,7 @@ public class ProjectSyncMessages {
   }
 
   public void reportSyncIssues(@NotNull Collection<SyncIssue> syncIssues, @NotNull Module module) {
-    if (syncIssues.isEmpty()) {
+    if ( syncIssues.isEmpty() || getSkipSyncIssueReporting(module.getProject())) {
       return;
     }
 
@@ -165,7 +165,7 @@ public class ProjectSyncMessages {
   }
 
   public void reportUnresolvedDependencies(@NotNull Collection<String> unresolvedDependencies, @NotNull Module module) {
-    if (unresolvedDependencies.isEmpty()) {
+    if (unresolvedDependencies.isEmpty() || getSkipSyncIssueReporting(module.getProject())) {
       return;
     }
     VirtualFile buildFile = getBuildFile(module);
@@ -380,10 +380,6 @@ public class ProjectSyncMessages {
     for (String groupName : groupNames) {
       myNotificationManager.clearNotifications(groupName, NOTIFICATION_SOURCE, GRADLE_SYSTEM_ID);
     }
-  }
-
-  public void removeAllMessages() {
-    myNotificationManager.clearNotifications(null, NOTIFICATION_SOURCE, GRADLE_SYSTEM_ID);
   }
 
   private static class ShowDependencyInProjectStructureHyperlink extends NotificationHyperlink {
