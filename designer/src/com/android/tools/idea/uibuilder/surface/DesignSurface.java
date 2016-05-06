@@ -21,14 +21,12 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.ddms.screenshot.DeviceArtPainter;
 import com.android.tools.idea.rendering.RenderErrorPanel;
 import com.android.tools.idea.rendering.RenderResult;
-import com.android.tools.idea.uibuilder.actions.SelectAllAction;
+import com.android.tools.idea.uibuilder.editor.NlActionManager;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.palette.ScalableDesignSurface;
 import com.google.common.collect.Lists;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
@@ -45,7 +43,6 @@ import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import org.intellij.lang.annotations.JdkConstants;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -101,6 +98,7 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
   private final RenderErrorPanel myErrorPanel;
   private List<DesignSurfaceListener> myListeners;
   private boolean myCentered;
+  private NlActionManager myActionManager = new NlActionManager(this);
 
   public DesignSurface(@NotNull Project project) {
     super(new BorderLayout());
@@ -159,15 +157,19 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
     });
 
     myInteractionManager.registerListeners();
-
-    AnAction selectAllAction = new SelectAllAction(this);
-    registerAction(selectAllAction, "$SelectAll");
+    myActionManager.registerActions(myLayeredPane);
 
     Disposer.register(project, this);
   }
 
+  @NotNull
   public Project getProject() {
     return myProject;
+  }
+
+  @NotNull
+  public NlActionManager getActionManager() {
+    return myActionManager;
   }
 
   public void setCentered(boolean centered) {
@@ -181,6 +183,7 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
 
   public void setScreenMode(@NotNull ScreenMode screenMode, boolean setAsDefault) {
     if (setAsDefault) {
+      //noinspection AssignmentToStaticFieldFromInstanceMethod
       ourDefaultScreenMode = screenMode;
     }
 
@@ -288,13 +291,6 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
 
   @Override
   public void dispose() {
-  }
-
-  private void registerAction(AnAction action, @NonNls String actionId) {
-    action.registerCustomShortcutSet(
-      ActionManager.getInstance().getAction(actionId).getShortcutSet(),
-      myLayeredPane
-    );
   }
 
   private void updateScrolledAreaSize() {

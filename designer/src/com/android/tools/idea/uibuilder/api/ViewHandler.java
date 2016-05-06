@@ -16,9 +16,11 @@
 package com.android.tools.idea.uibuilder.api;
 
 import com.android.tools.idea.uibuilder.api.actions.*;
+import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.model.FillPolicy;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.google.common.collect.Lists;
 import icons.AndroidDesignerIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -93,19 +95,45 @@ public class ViewHandler extends StructurePaneComponentHandler {
   }
 
   /**
-   * Adds relevant view actions that apply for views of this type to the given list.
+   * Adds relevant toolbar view actions that apply for views of this type to the
+   * given list.
+   * <p>
    * They do not need to be in sorted order; actions from multiple sources will
    * all be merged and sorted before display by the IDE. Note that this method
    * may only be called once, so the set of actions should not depend on specific
    * current circumstances; instead, actions which do not apply should be made
    * disabled or invisible by calling the right methods from
-   * {@link ViewAction#updatePresentation(ViewActionPresentation, ViewHandler, NlComponent, List)}
+   * {@link ViewAction#updatePresentation(ViewActionPresentation, ViewEditor, ViewHandler, NlComponent, List, int)}
    *
    * @param actions a list of view actions, such as a
    *                {@link DirectViewAction}, {@link ToggleViewAction}, {@link ToggleViewActionGroup}, etc.
    */
-  public void addViewActions(@NotNull List<ViewAction> actions) {
+  public void addToolbarActions(@NotNull List<ViewAction> actions) {
     addDefaultViewActions(actions, 100);
+  }
+
+  /**
+   * Adds relevant context menu view actions that apply for views of this type
+   * to the given list.
+   * <p>
+   * They do not need to be in sorted order; actions from multiple sources will
+   * all be merged and sorted before display by the IDE. Note that this method
+   * may only be called once, so the set of actions should not depend on specific
+   * current circumstances; instead, actions which do not apply should be made
+   * disabled or invisible by calling the right methods from
+   * {@link ViewAction#updatePresentation(ViewActionPresentation, ViewEditor, ViewHandler, NlComponent, List, int)}
+   *
+   * @param actions a list of view actions, such as a
+   *                {@link DirectViewAction}, {@link ToggleViewAction}, {@link ToggleViewActionGroup}, etc.
+   */
+  public void addPopupMenuActions(@NotNull List<ViewAction> actions) {
+  }
+
+  /** Utility method which exposes the toolbar actions in a submenu */
+  protected void addToolbarActionsToMenu(@NotNull String label, @NotNull List<ViewAction> actions) {
+    List<ViewAction> nestedActions = Lists.newArrayList();
+    addToolbarActions(nestedActions);
+    actions.add(new ViewActionMenu(label, nestedActions));
   }
 
   protected void addDefaultViewActions(@NotNull List<ViewAction> actions, int startRank) {

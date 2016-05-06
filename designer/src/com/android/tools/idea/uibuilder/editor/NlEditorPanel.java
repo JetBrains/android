@@ -76,11 +76,9 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
     // The {@link LightFillLayout} provides the UI for the minimized forms of the {@link LightToolWindow}
     // used for the palette and the structure/properties panes.
     JPanel contentPanel = new JPanel(new LightFillLayout());
-    final NlActionsToolbar actionsToolbar = new NlActionsToolbar(mySurface);
-    actionsToolbar.setModel(model);
-    contentPanel.add(actionsToolbar.getToolbarComponent());
+    JComponent toolbarComponent = mySurface.getActionManager().createToolbar(model);
+    contentPanel.add(toolbarComponent);
     contentPanel.add(mySurface);
-    List<NlComponent> components = model.getComponents();
 
     myContentSplitter.setDividerWidth(0);
     myContentSplitter.setDividerMouseZoneSize(Registry.intValue("ide.splitter.mouseZone"));
