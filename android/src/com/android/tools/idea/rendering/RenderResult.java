@@ -147,6 +147,11 @@ public class RenderResult {
   }
 
   @Nullable
+  public List<ViewInfo> getSystemRootViews() {
+    return mySystemRootViews;
+  }
+
+  @Nullable
   public IncludeReference getIncludedWithin() {
     return myIncludedWithin;
   }
