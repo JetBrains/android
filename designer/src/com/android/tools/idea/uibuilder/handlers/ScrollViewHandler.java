@@ -100,7 +100,7 @@ public class ScrollViewHandler extends ViewGroupHandler {
   }
 
   @Override
-  public void addViewActions(@NotNull List<ViewAction> actions) {
+  public void addToolbarActions(@NotNull List<ViewAction> actions) {
     actions.add(new ToggleRenderModeAction());
   }
 

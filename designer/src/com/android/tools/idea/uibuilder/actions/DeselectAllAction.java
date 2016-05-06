@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,30 +15,28 @@
  */
 package com.android.tools.idea.uibuilder.actions;
 
-import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.model.SelectionModel;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import org.jetbrains.annotations.NotNull;
 
-public class DeleteAction extends AnAction {
-  private final DesignSurface mySurface;
+/**
+ * Deselect everything
+ */
+public class DeselectAllAction extends AnAction {
+  private final SelectionModel myModel;
 
-  public DeleteAction(@NotNull DesignSurface surface) {
-    super("Delete", "Delete", null);
-    mySurface = surface;
+  public DeselectAllAction(SelectionModel model) {
+    super("Deselect All", "Deselect All", null);
+    myModel = model;
+  }
+
+  @Override
+  public void update(AnActionEvent e) {
+    e.getPresentation().setEnabled(!myModel.isEmpty());
   }
 
   @Override
   public void actionPerformed(AnActionEvent e) {
-    ScreenView screenView = mySurface.getCurrentScreenView();
-    if (screenView == null) {
-      return;
-    }
-    SelectionModel selectionModel = screenView.getSelectionModel();
-    NlModel model = screenView.getModel();
-    model.delete(selectionModel.getSelection());
+    myModel.clear();
   }
 }

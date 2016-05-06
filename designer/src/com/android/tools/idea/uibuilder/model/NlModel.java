@@ -1046,7 +1046,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * @return a map from parents (or null) to a list of components with the corresponding parent
    */
   @NotNull
-  private static Map<NlComponent, List<NlComponent>> groupSiblings(@NotNull Collection<? extends NlComponent> components) {
+  public static Map<NlComponent, List<NlComponent>> groupSiblings(@NotNull Collection<? extends NlComponent> components) {
     Map<NlComponent, List<NlComponent>> siblingLists = new HashMap<>();
 
     if (components.isEmpty()) {

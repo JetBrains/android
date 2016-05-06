@@ -24,6 +24,7 @@ import com.android.tools.idea.uibuilder.model.*;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.registry.Registry;
 import com.intellij.util.PsiNavigateUtil;
 import org.intellij.lang.annotations.JdkConstants.InputEventMask;
@@ -341,11 +342,15 @@ public class InteractionManager {
           }
         }
       }
+      else if (event.isPopupTrigger()) {
+        selectComponentAt(event.getX(), event.getY(), false, true);
+        mySurface.getActionManager().showPopup(event);
+      }
     }
 
     @Override
     public void mousePressed(@NotNull MouseEvent event) {
-      if(event.getID() == MouseEvent.MOUSE_PRESSED){
+      if (event.getID() == MouseEvent.MOUSE_PRESSED) {
         mySurface.getLayeredPane().requestFocusInWindow();
       }
 
@@ -353,6 +358,12 @@ public class InteractionManager {
       myLastMouseY = event.getY();
       //noinspection AssignmentToStaticFieldFromInstanceMethod
       ourLastStateMask = event.getModifiers();
+
+      if (event.isPopupTrigger()) {
+        selectComponentAt(event.getX(), event.getY(), false, true);
+        mySurface.getActionManager().showPopup(event);
+        return;
+      }
 
       // Check if we have a ViewGroupHandler that might want
       // to handle the entire interaction
@@ -392,39 +403,23 @@ public class InteractionManager {
 
     @Override
     public void mouseReleased(@NotNull MouseEvent event) {
-      //ControlPoint mousePos = ControlPoint.create(mySurface, e);
+      if (event.isPopupTrigger()) {
+        selectComponentAt(event.getX(), event.getY(), false, true);
+        mySurface.repaint();
+        mySurface.getActionManager().showPopup(event);
+        return;
+      } else if (event.getButton() > 1 || SystemInfo.isMac && event.isControlDown()) {
+        // mouse release from a popup click (the popup menu was posted on
+        // the mousePressed event
+        return;
+      }
 
       int x = event.getX();
       int y = event.getY();
       int modifiers = event.getModifiers();
       if (myCurrentInteraction == null) {
-        // Just a click, select
-        ScreenView screenView = mySurface.getScreenView(x, y);
-        if (screenView == null) {
-          return;
-        }
-        SelectionModel selectionModel = screenView.getSelectionModel();
-        NlComponent component = Coordinates.findComponent(screenView, x, y);
-
-        if (component == null) {
-          // Clicked component resize handle?
-          int mx = Coordinates.getAndroidX(screenView, x);
-          int my = Coordinates.getAndroidY(screenView, y);
-          int max = Coordinates.getAndroidDimension(screenView, PIXEL_RADIUS + PIXEL_MARGIN);
-          SelectionHandle handle = selectionModel.findHandle(mx, my, max);
-          if (handle != null) {
-            component = handle.component;
-          }
-        }
-
-        if (component == null) {
-          selectionModel.clear();
-        } else if (event.isShiftDown() || event.isMetaDown()) {
-          selectionModel.toggle(component);
-        } else {
-          selectionModel.setSelection(Collections.singletonList(component));
-        }
-
+        boolean allowToggle = (modifiers & (InputEvent.SHIFT_MASK | InputEvent.META_MASK)) != 0;
+        selectComponentAt(x, y, allowToggle, false);
         mySurface.repaint();
       }
       if (myCurrentInteraction == null) {
@@ -433,6 +428,54 @@ public class InteractionManager {
         finishInteraction(x, y, modifiers, false);
       }
       mySurface.repaint();
+    }
+
+    /**
+     * Selects the component under the given x,y coordinate, optionally
+     * toggling or replacing the selection.
+     *
+     * @param x                       The mouse click x coordinate, in Swing coordinates.
+     * @param y                       The mouse click y coordinate, in Swing coordinates.
+     * @param allowToggle             If true, clicking an unselected component adds it to the selection,
+     *                                and clicking a selected component removes it from the selection. If not,
+     *                                the selection is replaced.
+     * @param ignoreIfAlreadySelected If true, and the clicked component is already selected, leave the
+     *                                selection (including possibly other selected components) alone
+     */
+    private void selectComponentAt(@SwingCoordinate int x, @SwingCoordinate int y, boolean allowToggle,
+                                   boolean ignoreIfAlreadySelected) {
+      // Just a click, select
+      ScreenView screenView = mySurface.getScreenView(x, y);
+      if (screenView == null) {
+        return;
+      }
+      SelectionModel selectionModel = screenView.getSelectionModel();
+      NlComponent component = Coordinates.findComponent(screenView, x, y);
+
+      if (component == null) {
+        // Clicked component resize handle?
+        int mx = Coordinates.getAndroidX(screenView, x);
+        int my = Coordinates.getAndroidY(screenView, y);
+        int max = Coordinates.getAndroidDimension(screenView, PIXEL_RADIUS + PIXEL_MARGIN);
+        SelectionHandle handle = selectionModel.findHandle(mx, my, max);
+        if (handle != null) {
+          component = handle.component;
+        }
+      }
+
+      if (ignoreIfAlreadySelected && component != null && selectionModel.isSelected(component)) {
+        return;
+      }
+
+      if (component == null) {
+        selectionModel.clear();
+      }
+      else if (allowToggle) {
+        selectionModel.toggle(component);
+      }
+      else {
+        selectionModel.setSelection(Collections.singletonList(component));
+      }
     }
 
     @Override
@@ -620,10 +663,8 @@ public class InteractionManager {
 
     @Override
     public void keyReleased(KeyEvent event) {
-      int modifiers = event.getModifiers();
-
       //noinspection AssignmentToStaticFieldFromInstanceMethod
-      ourLastStateMask = modifiers;
+      ourLastStateMask = event.getModifiers();
 
       if (myCurrentInteraction != null) {
         myCurrentInteraction.keyReleased(event);
@@ -779,7 +820,7 @@ public class InteractionManager {
       }
       if (dragged.size() != components.size()) {
         throw new AssertionError(
-          String.format("Problem with drop: dragged.size(%1$d) != components.size(%1$d)", dragged.size(), components.size()));
+          String.format("Problem with drop: dragged.size(%1$d) != components.size(%2$d)", dragged.size(), components.size()));
       }
       for (int index = 0; index < dragged.size(); index++) {
         components.get(index).x = dragged.get(index).x;
