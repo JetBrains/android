@@ -16,19 +16,16 @@
 package com.android.tools.idea.editors.gfxtrace.controllers;
 
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
-import com.intellij.execution.ui.layout.impl.JBRunnerTabs;
+import com.intellij.execution.ui.RunnerLayoutUi;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
-import com.intellij.ui.tabs.TabInfo;
+import com.intellij.ui.content.Content;
 import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -60,20 +57,17 @@ public class MainController extends Controller {
     threePanes.setFirstSize(150);
 
     // Configure the image tabs.
-    JBRunnerTabs imageTabs = new JBRunnerTabs(editor.getProject(), ActionManager.getInstance(), IdeFocusManager.findInstance(), this);
-    imageTabs.setPaintBorder(0, 0, 0, 0).setTabSidePaintBorder(1).setPaintFocus(UIUtil.isUnderDarcula() || UIUtil.isUnderIntelliJLaF())
-      .setAlwaysPaintSelectedTab(UIUtil.isUnderDarcula() || UIUtil.isUnderIntelliJLaF());
-    imageTabs.setBorder(JBUI.Borders.empty(0, 2, 0, 0));
-    imageTabs.addTab(new TabInfo(FrameBufferController.createUI(editor)).setText("Framebuffer"));
-    imageTabs.addTab(new TabInfo(TexturesController.createUI(editor)).setText("Textures"));
-    imageTabs.addTab(new TabInfo(GeometryController.createUI(editor)).setText("Geometry"));
-
+    // we use RunnerLayoutUi to allow the user to drag the tabs out of the JBRunnerTabs
+    RunnerLayoutUi layoutUi = RunnerLayoutUi.Factory.getInstance(editor.getProject()).create("gfx-runnerId", editor.getName(), editor.getSessionName(), this);
+    addTab(layoutUi, FrameBufferController.createUI(editor), "Framebuffer");
+    addTab(layoutUi, TexturesController.createUI(editor), "Textures");
+    addTab(layoutUi, GeometryController.createUI(editor), "Geometry");
 
     // Now add the atom tree and buffer views to the middle pane in the main pane.
     final JBSplitter middleSplitter = new JBSplitter(false);
     middleSplitter.setMinimumSize(JBUI.size(100, 10));
     middleSplitter.setFirstComponent(AtomController.createUI(editor));
-    middleSplitter.setSecondComponent(imageTabs);
+    middleSplitter.setSecondComponent(layoutUi.getComponent());
     middleSplitter.setProportion(0.3f);
     threePanes.setInnerComponent(middleSplitter);
 
@@ -88,6 +82,12 @@ public class MainController extends Controller {
     // Make sure the bottom splitter honors minimum sizes.
     threePanes.setHonorComponentsMinimumSize(true);
     Disposer.register(this, threePanes);
+  }
+
+  private static void addTab(RunnerLayoutUi layoutUi, JComponent component, String name) {
+    Content content = layoutUi.createContent(name + "-contentId", component, name, null, null);
+    content.setCloseable(false);
+    layoutUi.addContent(content);
   }
 
   @Override
