@@ -34,7 +34,6 @@ import com.google.tnt.solver.widgets.WidgetContainer;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -748,17 +747,28 @@ public class ConstraintUtilities {
     if (decorator != null && decorator instanceof TextWidget) {
       TextWidget textWidget = (TextWidget) decorator;
       textWidget.setText(getResolvedText(component));
-      String textSize = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT_SIZE);
-      if (textSize != null) {
-        // TODO: current font size used in the decorator isn't quite correct
-        textSize = StringUtil.trimEnd(textSize, "sp");
-        if (textSize.length() > 0) {
-          int value = Integer.parseInt(textSize);
-          textWidget.setTextSize(value);
+
+      Configuration configuration = component.getModel().getConfiguration();
+      ResourceResolver resourceResolver = configuration.getResourceResolver();
+
+      Integer size = null;
+
+      if (resourceResolver != null) {
+        String textSize = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT_SIZE);
+        if (textSize != null) {
+          size = ResourceHelper.resolveDimensionPixelSize(resourceResolver, textSize, configuration);
         }
-      } else {
-        textWidget.setTextSize(18);
       }
+
+      if (size == null) {
+        // With the specified string, this method cannot return null
+        //noinspection ConstantConditions
+        size = ResourceHelper.resolveDimensionPixelSize(resourceResolver, "15sp", configuration);
+      }
+
+      // Cannot be null, see previous condition
+      //noinspection ConstantConditions
+      textWidget.setTextSize(size * 160.0f / configuration.getDensity().getDpiValue()); // in dips
     }
   }
 
