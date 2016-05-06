@@ -92,6 +92,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 
 import static com.android.SdkConstants.FD_GRADLE;
 import static com.android.tools.idea.gradle.util.BuildMode.COMPILE_JAVA;
@@ -406,6 +407,12 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   protected void selectProjectMakeAction() {
     invokeMenuPath("Build", "Make Project");
+  }
+
+  /** Selects the item at {@code menuPath} and returns the result of {@code fixtureFunction} applied to this {@link IdeFrameFixture}. */
+  public <T> T openFromMenu(Function<IdeFrameFixture, T> fixtureFunction, @NotNull String... menuPath) {
+    getMenuFixture().invokeMenuPath(menuPath);
+    return fixtureFunction.apply(this);
   }
 
   /**
@@ -843,12 +850,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       }
     });
     return this;
-  }
-
-  @NotNull
-  public FindDialogFixture invokeFindInPathDialog() {
-    invokeMenuPath("Edit", "Find", "Find in Path...");
-    return FindDialogFixture.find(this);
   }
 
   @NotNull
