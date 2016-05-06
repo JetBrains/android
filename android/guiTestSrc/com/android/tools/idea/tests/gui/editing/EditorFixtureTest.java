@@ -20,7 +20,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.layout.LayoutEditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.layout.NlEditorFixture;
 import com.google.common.base.Strings;
 import org.junit.Rule;
 import org.junit.Test;
@@ -46,7 +46,7 @@ public class EditorFixtureTest {
 
   @Test
   public void open_selectsEditorTab() throws Exception {
-    LayoutEditorFixture layoutEditor = guiTest.importSimpleApplication()
+    NlEditorFixture layoutEditor = guiTest.importSimpleApplication()
       .getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)
