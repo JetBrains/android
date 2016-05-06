@@ -15,27 +15,36 @@
  */
 package com.android.tools.idea.uibuilder.property.inspector;
 
-import com.android.SdkConstants;
+import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
-import com.android.tools.idea.uibuilder.property.editors.*;
+import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
+import com.android.tools.idea.uibuilder.property.editors.NlEditingListener;
+import com.android.tools.idea.uibuilder.property.editors.NlLayoutEditor;
+import com.android.tools.idea.uibuilder.property.editors.NlReferenceEditor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.List;
 import java.util.Map;
 
+import static com.android.SdkConstants.ATTR_ID;
+
 public class IdInspectorComponent implements InspectorComponent {
-  private final NlProperty myIdAttr;
   private final NlReferenceEditor myIdField;
   private final NlLayoutEditor myLayoutEditor;
 
-  public IdInspectorComponent(@NotNull Map<String, NlProperty> properties,
-                              @NotNull NlPropertiesManager propertiesManager) {
-    myIdAttr = properties.get(SdkConstants.ATTR_ID);
+  private NlProperty myIdAttr;
 
+  public IdInspectorComponent(@NotNull NlPropertiesManager propertiesManager) {
     myIdField = NlReferenceEditor.createForInspector(propertiesManager.getProject(), NlEditingListener.DEFAULT_LISTENER);
     myLayoutEditor = new NlLayoutEditor(propertiesManager.getProject());
+  }
+
+  @Override
+  public void updateProperties(@NotNull List<NlComponent> components, @NotNull Map<String, NlProperty> properties) {
+    myIdAttr = properties.get(ATTR_ID);
     myLayoutEditor.setSelectedComponents(properties);
   }
 

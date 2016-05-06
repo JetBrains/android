@@ -48,6 +48,14 @@ import static com.intellij.uiDesigner.core.GridConstraints.*;
 public class InspectorPanel extends JPanel {
   public enum SplitLayout {SINGLE_ROW, STACKED, SEPARATE}
 
+  private static final InspectorProvider[] ourProviders = new InspectorProvider[]{
+    new ConstraintInspectorProvider(),
+    new IdInspectorProvider(),
+    new ImageViewInspectorProvider(),
+    new TextInspectorProvider(),
+    new FontInspectorProvider(),
+  };
+
   private final Font myBoldLabelFont = UIUtil.getLabelFont().deriveFont(Font.BOLD);
   private final Icon myExpandedIcon;
   private final Icon myCollapsedIcon;
@@ -88,15 +96,7 @@ public class InspectorPanel extends JPanel {
       propertiesByName.put(property.getName(), property);
     }
 
-    InspectorProvider[] allProviders = new InspectorProvider[]{
-      new ConstraintInspectorProvider(),
-      new IdInspectorProvider(),
-      new ImageViewInspectorProvider(),
-      new TextInspectorProvider(),
-      new FontInspectorProvider(),
-    };
-
-    List<InspectorComponent> inspectors = createInspectorComponents(components, propertiesManager, propertiesByName, allProviders);
+    List<InspectorComponent> inspectors = createInspectorComponents(components, propertiesManager, propertiesByName, ourProviders);
 
     int rows = 1;  // 1 for the spacer below
     for (InspectorComponent inspector : inspectors) {
@@ -129,8 +129,7 @@ public class InspectorPanel extends JPanel {
     if (components.isEmpty()) {
       // create just the id inspector, which we know can handle a null component
       // this is simply to avoid the screen flickering when switching components
-      return ImmutableList.of(
-        new IdInspectorProvider().createCustomInspector(Collections.<NlComponent>emptyList(), properties, propertiesManager));
+      return ImmutableList.of(new IdInspectorProvider().createCustomInspector(components, properties, propertiesManager));
     }
 
     for (InspectorProvider provider : allProviders) {

@@ -20,6 +20,7 @@ import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.inspector.InspectorComponent;
 import com.android.tools.idea.uibuilder.property.inspector.InspectorProvider;
+import com.android.tools.idea.uibuilder.property.inspector.TextInspectorComponent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -31,6 +32,8 @@ import static com.android.SdkConstants.*;
  * This is the factory for the builder for the Constraint inspector
  */
 public class ConstraintInspectorProvider implements InspectorProvider {
+  private ConstraintInspectorComponent myComponent;
+
   @Override
   public boolean isApplicable(@NotNull List<NlComponent> components, @NotNull Map<String, NlProperty> properties) {
     return !components.isEmpty() &&
@@ -43,6 +46,10 @@ public class ConstraintInspectorProvider implements InspectorProvider {
   public InspectorComponent createCustomInspector(@NotNull List<NlComponent> components,
                                                   @NotNull Map<String, NlProperty> properties,
                                                   @NotNull NlPropertiesManager propertiesManager) {
-    return new ConstraintInspectorComponent(components);
+    if (myComponent == null) {
+      myComponent = new ConstraintInspectorComponent();
+    }
+    myComponent.updateProperties(components, properties);
+    return myComponent;
   }
 }

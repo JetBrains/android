@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.Map;
 
 public class TextInspectorProvider implements InspectorProvider {
+  private TextInspectorComponent myComponent;
+
   @Override
   public boolean isApplicable(@NotNull List<NlComponent> components, @NotNull Map<String, NlProperty> properties) {
     return properties.keySet().containsAll(TextInspectorComponent.TEXT_PROPERTIES);
@@ -34,6 +36,10 @@ public class TextInspectorProvider implements InspectorProvider {
   public InspectorComponent createCustomInspector(@NotNull List<NlComponent> components,
                                                   @NotNull Map<String, NlProperty> properties,
                                                   @NotNull NlPropertiesManager propertiesManager) {
-    return new TextInspectorComponent(properties, propertiesManager);
+    if (myComponent == null) {
+      myComponent = new TextInspectorComponent(propertiesManager);
+    }
+    myComponent.updateProperties(components, properties);
+    return myComponent;
   }
 }

@@ -15,12 +15,24 @@
  */
 package com.android.tools.idea.uibuilder.property.inspector;
 
+import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.property.NlProperty;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * Interface for generating the UI components for a specific inspector.
  */
 public interface InspectorComponent {
+  /**
+   * Update the properties used
+   * @param components the components selected
+   * @param properties that are now available
+   */
+  void updateProperties(@NotNull List<NlComponent> components, @NotNull Map<String, NlProperty> properties);
+
   /**
    * Return the maximum number of rows that attachToInspector may generate.
    * A row is either a title, separator, or a component row

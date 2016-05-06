@@ -16,19 +16,22 @@
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.inspector.InspectorComponent;
 import com.android.tools.idea.uibuilder.property.inspector.InspectorPanel;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * This is the builder for the Constraint panel
  */
 public class ConstraintInspectorComponent implements InspectorComponent {
-  List<NlComponent>  mComponents;
+  private List<NlComponent>  mComponents;
 
-  public ConstraintInspectorComponent(@NotNull List<NlComponent> components) {
+  @Override
+  public void updateProperties(@NotNull List<NlComponent> components, @NotNull Map<String, NlProperty> properties) {
     // TODO: Support multiple components
     mComponents = components;
   }
