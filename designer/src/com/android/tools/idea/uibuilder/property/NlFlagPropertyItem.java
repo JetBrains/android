@@ -113,6 +113,12 @@ public class NlFlagPropertyItem extends NlPropertyItem implements NlProperty {
     return myLastValue;
   }
 
+  @Override
+  public void setValue(Object value) {
+    invalidateCachedValues();
+    super.setValue(value);
+  }
+
   public String getFormattedValue() {
     cacheValues();
     return myLastFormattedValue;
@@ -124,8 +130,12 @@ public class NlFlagPropertyItem extends NlPropertyItem implements NlProperty {
     return myLastValues;
   }
 
+  private void invalidateCachedValues() {
+    myLastValues = null;
+  }
+
   private void cacheValues() {
-    if (myLastRead == getModel().getModificationCount()) {
+    if (myLastValues != null && myLastRead == getModel().getModificationCount()) {
       return;
     }
     Set<String> values = Collections.emptySet();
