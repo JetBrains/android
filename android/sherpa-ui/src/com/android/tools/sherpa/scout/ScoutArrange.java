@@ -30,18 +30,8 @@ import java.util.Iterator;
  * This implements the standard arrange functions
  */
 public class ScoutArrange {
-    static Comparator<ConstraintWidget> sSortY = new Comparator<ConstraintWidget>() {
-        @Override
-        public int compare(ConstraintWidget w1, ConstraintWidget w2) {
-            return w1.getY() - w2.getY();
-        }
-    };
-    static Comparator<ConstraintWidget> sSortX = new Comparator<ConstraintWidget>() {
-        @Override
-        public int compare(ConstraintWidget w1, ConstraintWidget w2) {
-            return w1.getX() - w2.getX();
-        }
-    };
+    static Comparator<ConstraintWidget> sSortY = (w1, w2) -> w1.getY() - w2.getY();
+    static Comparator<ConstraintWidget> sSortX = (w1, w2) -> w1.getX() - w2.getX();
 
     /**
      * Perform various types of arrangements on a selection of widgets
@@ -89,7 +79,6 @@ public class ScoutArrange {
                 pears = parent.getChildren().toArray(pears);
 
                 for (ConstraintWidget widget : widgets) {
-                    int parentWidth = parent.getWidth();
                     rectangle.x = widget.getX();
                     rectangle.y = widget.getY();
                     rectangle.width = widget.getWidth();
@@ -127,7 +116,6 @@ public class ScoutArrange {
                 pears = parent.getChildren().toArray(pears);
 
                 for (ConstraintWidget widget : widgets) {
-                    int parentWidth = parent.getWidth();
                     rectangle.x = widget.getX();
                     rectangle.y = widget.getY();
                     rectangle.width = widget.getWidth();
@@ -162,7 +150,7 @@ public class ScoutArrange {
                 for (ConstraintWidget widget : widgets) {
                     int parentWidth = widget.getParent().getWidth();
                     int width = widget.getWidth();
-                    widget.setX((int) (parentWidth - width) / 2);
+                    widget.setX((parentWidth - width) / 2);
                     if (applyConstraints) {
                         widget.connect(ConstraintAnchor.Type.CENTER_X, widget.getParent(),
                                 ConstraintAnchor.Type.CENTER_X, 0);
@@ -174,7 +162,7 @@ public class ScoutArrange {
                 for (ConstraintWidget widget : widgets) {
                     int parentHeight = widget.getParent().getHeight();
                     int height = widget.getHeight();
-                    widget.setY((int) (parentHeight - height) / 2);
+                    widget.setY((parentHeight - height) / 2);
                     if (applyConstraints) {
                             widget.connect(ConstraintAnchor.Type.CENTER_Y, widget.getParent(),
                                     ConstraintAnchor.Type.CENTER_Y, 0);
@@ -212,7 +200,7 @@ public class ScoutArrange {
                 }
                 ConstraintWidget previousWidget = null;
                 for (ConstraintWidget widget : widgets) {
-                    widget.setX((int) (min));
+                    widget.setX(min);
                     if (applyConstraints) {
                         if (previousWidget != null) {
                             widget.resetAnchor(widget.getAnchor(ConstraintAnchor.Type.RIGHT));
@@ -251,7 +239,7 @@ public class ScoutArrange {
                 }
                 ConstraintWidget previousWidget = null;
                 for (ConstraintWidget widget : widgets) {
-                    widget.setY((int) (min));
+                    widget.setY(min);
                     if (applyConstraints) {
                         if (previousWidget != null) {
                             widget.resetAnchor(widget.getAnchor(ConstraintAnchor.Type.BOTTOM));
@@ -318,8 +306,8 @@ public class ScoutArrange {
                     }
                 } else { // if you are creating constraints and some are already constrained
                     // Build a list of constrained and unconstrained widgets
-                    ArrayList<ConstraintWidget> unconstrained = new ArrayList<ConstraintWidget>();
-                    ArrayList<ConstraintWidget> constrained = new ArrayList<ConstraintWidget>();
+                    ArrayList<ConstraintWidget> unconstrained = new ArrayList<>();
+                    ArrayList<ConstraintWidget> constrained = new ArrayList<>();
                     for (ConstraintWidget widget : widgets) {
                         if (isVerticallyConstrained(widget)) {
                             constrained.add(widget);
@@ -461,12 +449,7 @@ public class ScoutArrange {
                 Rectangle original = getBoundingBox(widgetList);
                 ConstraintWidget[] wArray = new ConstraintWidget[widgetList.size()];
                 wArray = widgetList.toArray(wArray);
-                Arrays.sort(wArray, new Comparator<ConstraintWidget>() {
-                    @Override
-                    public int compare(ConstraintWidget w1, ConstraintWidget w2) {
-                        return Integer.compare(w1.getY(), w2.getY());
-                    }
-                });
+                Arrays.sort(wArray, (w1, w2) -> Integer.compare(w1.getY(), w2.getY()));
                 ScoutWidget[] list = ScoutWidget.getWidgetArray(
                         (WidgetContainer) widgetList.get(0).getParent());
 
@@ -486,12 +469,7 @@ public class ScoutArrange {
                 Rectangle original = getBoundingBox(widgetList);
                 ConstraintWidget[] wArray = new ConstraintWidget[widgetList.size()];
                 wArray = widgetList.toArray(wArray);
-                Arrays.sort(wArray, new Comparator<ConstraintWidget>() {
-                    @Override
-                    public int compare(ConstraintWidget w1, ConstraintWidget w2) {
-                        return Integer.compare(w1.getX(), w2.getX());
-                    }
-                });
+                Arrays.sort(wArray, (w1, w2) -> Integer.compare(w1.getX(), w2.getX()));
                 ScoutWidget[] list = ScoutWidget.getWidgetArray(
                         (WidgetContainer) widgetList.get(0).getParent());
 
@@ -508,11 +486,11 @@ public class ScoutArrange {
             }
             break;
             case ExpandVertically: {
-                expandVertically(widgetList, applyConstraints, margin);
+                expandVertically(widgetList, margin);
             }
             break;
             case ExpandHorizontally: {
-                expandHorizontally(widgetList, applyConstraints, margin);
+                expandHorizontally(widgetList, margin);
             }
             break;
         }
@@ -521,13 +499,9 @@ public class ScoutArrange {
     /**
      * Expands widgets vertically in an evenly spaced manner
      * @param widgetList
-     * @param applyConstraints
      * @param margin
      */
-    private static void expandVertically(ArrayList<ConstraintWidget> widgetList,
-            boolean applyConstraints, int margin) {
-        ConstraintWidget[] widgetArray = new ConstraintWidget[widgetList.size()];
-        widgetArray = widgetList.toArray(widgetArray);
+    private static void expandVertically(ArrayList<ConstraintWidget> widgetList, int margin) {
         WidgetContainer base = (WidgetContainer) widgetList.get(0).getParent();
         ConstraintWidget[] pears = new ConstraintWidget[base.getChildren().size()];
         pears = base.getChildren().toArray(pears);
@@ -541,10 +515,10 @@ public class ScoutArrange {
         clip.y = selectBounds.y - gapNorth;
         clip.height = selectBounds.height + gapSouth + gapNorth;
 
-        ArrayList<ConstraintWidget> selectedList = new ArrayList<ConstraintWidget>(widgetList);
+        ArrayList<ConstraintWidget> selectedList = new ArrayList<>(widgetList);
         while (!selectedList.isEmpty()) {
             ConstraintWidget widget = selectedList.remove(0);
-            ArrayList<ConstraintWidget> col = new ArrayList<ConstraintWidget>();
+            ArrayList<ConstraintWidget> col = new ArrayList<>();
             col.add(widget);
             for (Iterator<ConstraintWidget> iterator = selectedList.iterator();
                     iterator.hasNext(); ) {
@@ -577,13 +551,9 @@ public class ScoutArrange {
     /**
      * Expands widgets horizontally in an evenly spaced manner
      * @param widgetList
-     * @param applyConstraints
      * @param margin
      */
-    public static void expandHorizontally(ArrayList<ConstraintWidget> widgetList,
-            boolean applyConstraints, int margin) {
-        ConstraintWidget[] widgetArray = new ConstraintWidget[widgetList.size()];
-        widgetArray = widgetList.toArray(widgetArray);
+    public static void expandHorizontally(ArrayList<ConstraintWidget> widgetList, int margin) {
         WidgetContainer base = (WidgetContainer) widgetList.get(0).getParent();
         ConstraintWidget[] pears = new ConstraintWidget[base.getChildren().size()];
         pears = base.getChildren().toArray(pears);
@@ -594,10 +564,11 @@ public class ScoutArrange {
         int gapEast = gap(Direction.EAST, selectBounds, pears);
         clip.x = selectBounds.x - gapWest;
         clip.width = selectBounds.width + gapEast + gapWest;
-        ArrayList<ConstraintWidget> selectedList = new ArrayList<ConstraintWidget>(widgetList);
+        ArrayList<ConstraintWidget> selectedList;
+        selectedList = new ArrayList<ConstraintWidget>(widgetList);
         while (!selectedList.isEmpty()) {
             ConstraintWidget widget = selectedList.remove(0);
-            ArrayList<ConstraintWidget> row = new ArrayList<ConstraintWidget>();
+            ArrayList<ConstraintWidget> row = new ArrayList<>();
             row.add(widget);
             for (Iterator<ConstraintWidget> iterator = selectedList.iterator();
                     iterator.hasNext(); ) {
@@ -710,12 +681,10 @@ public class ScoutArrange {
         }
         int min = Integer.MAX_VALUE;
         ConstraintWidget minWidget = null;
-        for (int i = 0; i < list.length; i++) {
-            ConstraintWidget widget = list[i];
-
+        for (ConstraintWidget widget : list) {
             Rectangle r = getRectangle(widget);
             if (r.intersects(rect)) {
-                int dist = (int) distance(r, region);
+                int dist = (int)distance(r, region);
                 if (min > dist) {
                     minWidget = widget;
                     min = dist;
@@ -774,7 +743,6 @@ public class ScoutArrange {
 
         }
         int min = Integer.MAX_VALUE;
-        ConstraintWidget minWidget = null;
         for (int i = 0; i < list.length; i++) {
             ConstraintWidget widget = list[i];
 
@@ -782,7 +750,6 @@ public class ScoutArrange {
             if (r.intersects(rect)) {
                 int dist = (int) distance(r, region);
                 if (min > dist) {
-                    minWidget = widget;
                     min = dist;
                 }
             }

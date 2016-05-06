@@ -32,18 +32,17 @@ import java.util.ArrayList;
  */
 public class TableDecorator extends WidgetDecorator {
 
-    private ArrayList<TableClickTarget> mTableClickTargets = new ArrayList<TableClickTarget>();
+    private ArrayList<TableClickTarget> mTableClickTargets = new ArrayList<>();
 
     /**
      * Simple helper class to keep track of hit targets on the table layout
      */
-    class TableClickTarget {
+    static class TableClickTarget {
         private Rectangle mBounds = new Rectangle();
         private final ConstraintTableLayout mTable;
         private final int mColumn;
 
-        public TableClickTarget(ConstraintTableLayout table, int column, int x, int y, int w,
-                int h) {
+        TableClickTarget(ConstraintTableLayout table, int column, int x, int y, int w, int h) {
             mTable = table;
             mColumn = column;
             mBounds.setBounds(x, y, w, h);

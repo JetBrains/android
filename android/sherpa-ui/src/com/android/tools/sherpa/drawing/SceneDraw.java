@@ -16,7 +16,6 @@
 
 package com.android.tools.sherpa.drawing;
 
-import com.android.tools.sherpa.animation.AnimatedCircle;
 import com.android.tools.sherpa.animation.AnimatedColor;
 import com.android.tools.sherpa.animation.AnimatedConnection;
 import com.android.tools.sherpa.animation.AnimatedHoverAnchor;
@@ -226,18 +225,12 @@ public class SceneDraw {
             for (ConstraintAnchor a : widget.getAnchors()) {
                 if (selectedAnchor.isValidConnection(a)
                         && selectedAnchor.isConnectionAllowed(a.getOwner())) {
-                    ConstraintWidget owner = a.getOwner();
                     ConstraintHandle constraintHandle =
                             WidgetInteractionTargets.constraintHandle(a);
                     if (constraintHandle == null) {
                         continue;
                     }
-                    if (owner instanceof Guideline || owner.isRoot()
-                            || a.getType() == ConstraintAnchor.Type.BASELINE) {
-                        mAnimationCandidateAnchors.add(new AnimatedLine(constraintHandle));
-                    } else {
-                        mAnimationCandidateAnchors.add(new AnimatedLine(constraintHandle));
-                    }
+                    mAnimationCandidateAnchors.add(new AnimatedLine(constraintHandle));
                     highlighted = true;
                 }
             }
@@ -278,13 +271,11 @@ public class SceneDraw {
      *
      * @param transform used to scale the textrue
      * @param g the graphics context to draw with
-     * @param rootMargin edges
      * @param w width of screen
      * @param h height of screen
      * @return
      */
-    public boolean drawBackground(ViewTransform transform, Graphics2D g, int rootMargin, int w,
-            int h) {
+    public boolean drawBackground(ViewTransform transform, Graphics2D g, int w, int h) {
         boolean needsRepaint = false;
         Color backgroundColor = mColorSet.getBackground();
         TexturePaint backgroundPaint = mColorSet.getBackgroundPaint();
@@ -337,7 +328,7 @@ public class SceneDraw {
             g.fillRect((int)transform.getTranslateX(), (int)transform.getTranslateY(), w, h);
 
             g.setColor(backgroundColor);
-            g.fillRect((int)0, 0, w, h);
+            g.fillRect(0, 0, w, h);
 
             int wr = transform.getSwingDimension(root.getDrawWidth());
             int hr = transform.getSwingDimension(root.getDrawHeight());
@@ -627,10 +618,10 @@ public class SceneDraw {
                 }
                 g.setStroke(SnapDraw.sNormalStroke);
                 if (w >= 8) {
-                    ConnectionDraw.drawHorizontalMarginIndicator(g, "" + w, ax1, ax2, ay1 - 20);
+                    ConnectionDraw.drawHorizontalMarginIndicator(g, String.valueOf(w), ax1, ax2, ay1 - 20);
                 }
                 if (h >= 8) {
-                    ConnectionDraw.drawVerticalMarginIndicator(g, "" + h, ax1 - 20, ay1, ay2);
+                    ConnectionDraw.drawVerticalMarginIndicator(g, String.valueOf(h), ax1 - 20, ay1, ay2);
                 }
             }
         }

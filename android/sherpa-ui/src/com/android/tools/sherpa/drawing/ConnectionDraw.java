@@ -53,10 +53,6 @@ public class ConnectionDraw {
             sDashedStroke = new BasicStroke(1, BasicStroke.CAP_BUTT,
             BasicStroke.JOIN_BEVEL, 0, new float[] { 2 }, 0);
 
-    public static Stroke
-            sLongDashedStroke = new BasicStroke(1, BasicStroke.CAP_BUTT,
-            BasicStroke.JOIN_BEVEL, 0, new float[] { 8 }, 0);
-
     public static final int ARROW_SIDE = 8;
 
     public static int CONNECTION_ANCHOR_SIZE = 6;
@@ -188,7 +184,6 @@ public class ConnectionDraw {
         int padding = 4;
         Rectangle2D bounds = fm.getStringBounds(text, g);
         int th = (int) bounds.getHeight();
-        int tw = (int) bounds.getWidth();
 
         int offset = 3 * CONNECTION_ARROW_SIZE;
 

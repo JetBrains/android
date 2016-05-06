@@ -44,7 +44,7 @@ public class WidgetInteractionTargets {
     private ResizeHandle mTopSide = new ResizeHandle(this, ResizeHandle.Type.TOP_SIDE);
     private ResizeHandle mBottomSide = new ResizeHandle(this, ResizeHandle.Type.BOTTOM_SIDE);
 
-    protected ArrayList<ResizeHandle> mResizeHandles = new ArrayList<ResizeHandle>();
+    protected ArrayList<ResizeHandle> mResizeHandles = new ArrayList<>();
 
     // The constraint handles available on the widget
     // note: all constraint handles should be added to the mResizeHandles array (see addConstraintHandles())
@@ -57,7 +57,7 @@ public class WidgetInteractionTargets {
     private ConstraintHandle mCenterYAnchor = new ConstraintHandle(this, ConstraintAnchor.Type.CENTER_Y);
     private ConstraintHandle mCenterAnchor = new ConstraintHandle(this, ConstraintAnchor.Type.CENTER);
 
-    protected ArrayList<ConstraintHandle> mConstraintHandles = new ArrayList<ConstraintHandle>();
+    protected ArrayList<ConstraintHandle> mConstraintHandles = new ArrayList<>();
 
     private final ConstraintWidget mWidget;
 
@@ -158,9 +158,8 @@ public class WidgetInteractionTargets {
      * @param viewTransform
      */
     private void updateResizeHandlesPositions(ViewTransform viewTransform) {
-        int numResizeHandles = mResizeHandles.size();
-        for (int i = 0; i < numResizeHandles; i++) {
-            mResizeHandles.get(i).updatePosition(viewTransform);
+        for (ResizeHandle mResizeHandle : mResizeHandles) {
+            mResizeHandle.updatePosition(viewTransform);
         }
     }
 
@@ -168,10 +167,9 @@ public class WidgetInteractionTargets {
      * Update the positions of the constraint handles
      * @param viewTransform the view transform
      */
-    private void updateConstraintHandlesPositions(ViewTransform viewTransform) {
-        int numConstraintHandles = mConstraintHandles.size();
-        for (int i = 0; i < numConstraintHandles; i++) {
-            mConstraintHandles.get(i).updatePosition(viewTransform);
+    private void updateConstraintHandlesPositions() {
+        for (ConstraintHandle mConstraintHandle : mConstraintHandles) {
+            mConstraintHandle.updatePosition();
         }
     }
 
@@ -181,7 +179,7 @@ public class WidgetInteractionTargets {
      */
     public void updatePosition(ViewTransform viewTransform) {
         updateResizeHandlesPositions(viewTransform);
-        updateConstraintHandlesPositions(viewTransform);
+        updateConstraintHandlesPositions();
     }
 
     /**
@@ -214,11 +212,11 @@ public class WidgetInteractionTargets {
         ConstraintAnchor baselineAnchor = mWidget.getAnchor(ConstraintAnchor.Type.BASELINE);
         for (ResizeHandle handle : mResizeHandles) {
             if (handle.hit(x, y)) {
-                boolean leftAnchorIsConnected = leftAnchor != null ? leftAnchor.isConnected() : false;
-                boolean topAnchorIsConnected = topAnchor != null ? topAnchor.isConnected() : false;
-                boolean rightAnchorIsConnected = rightAnchor != null ? rightAnchor.isConnected() : false;
-                boolean bottomAnchorIsConnected = bottomAnchor != null ? bottomAnchor.isConnected() : false;
-                boolean baselineAnchorIsConnected = baselineAnchor != null ? baselineAnchor.isConnected() : false;
+                boolean leftAnchorIsConnected = leftAnchor != null && leftAnchor.isConnected();
+                boolean topAnchorIsConnected = topAnchor != null && topAnchor.isConnected();
+                boolean rightAnchorIsConnected = rightAnchor != null && rightAnchor.isConnected();
+                boolean bottomAnchorIsConnected = bottomAnchor != null && bottomAnchor.isConnected();
+                boolean baselineAnchorIsConnected = baselineAnchor != null && baselineAnchor.isConnected();
                 switch (handle.getType()) {
                     case LEFT_TOP: {
                         if (leftAnchorIsConnected || topAnchorIsConnected) {
@@ -327,11 +325,11 @@ public class WidgetInteractionTargets {
             boolean mousePress) {
         // FIXME: should use subclasses this
         if (mWidget instanceof Guideline) {
-            float distance = 0;
+            float distance;
             Guideline guideline = (Guideline) mWidget;
             ConstraintAnchor anchor = guideline.getAnchor();
-            ConstraintHandle handle = WidgetInteractionTargets.constraintHandle(anchor);
-            if (handle == null || anchor == null) {
+            ConstraintHandle handle = constraintHandle(anchor);
+            if (handle == null) {
                 return;
             }
             if (guideline.getOrientation() == Guideline.HORIZONTAL) {

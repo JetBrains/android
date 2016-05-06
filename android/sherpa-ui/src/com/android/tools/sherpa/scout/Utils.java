@@ -102,8 +102,7 @@ public class Utils {
      * @param array
      */
     static void zero(float[][] array) {
-        for (int i = 0; i < array.length; i++) {
-            float[] aFloat = array[i];
+        for (float[] aFloat : array) {
             Arrays.fill(aFloat, -1);
         }
     }
@@ -118,7 +117,6 @@ public class Utils {
     public static int gaps(int[] start, int[] end) {
         Arrays.sort(start);
         Arrays.sort(end);
-        int len = start.length + end.length;
         int overlap = 0;
         int gaps = 0;
         for (int i = 0, j = 0; j < end.length; ) {
@@ -147,7 +145,6 @@ public class Utils {
         Arrays.sort(start);
         Arrays.sort(end);
 
-        int len = start.length + end.length;
         int overlap = 0;
         int gaps = 0;
         for (int i = 0, j = 0; j < end.length; ) {

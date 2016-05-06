@@ -53,9 +53,7 @@ public class ScoutGroup {
         int[] c = Utils.cells(bounds[2], bounds[3]);
 
         ConstraintWidget[][] table = new ConstraintWidget[mCols][mRows];
-        for (int i = 0; i < widgets.length; i++) {
-            ConstraintWidget widget = widgets[i];
-
+        for (ConstraintWidget widget : widgets) {
             int row = Utils.getPosition(r, widget.getY(), widget.getY() + widget.getHeight());
             int col = Utils.getPosition(c, widget.getX(), widget.getX() + widget.getWidth());
             if (row == -1 || col == -1) { // multi cell span not supported
@@ -96,7 +94,7 @@ public class ScoutGroup {
      * @param widget
      * @return
      */
-    private int inferAlignment(ConstraintWidget[] widget) {
+    private static int inferAlignment(ConstraintWidget[] widget) {
         float[] start = new float[widget.length];
         float[] center = new float[widget.length];
         float[] end = new float[widget.length];
@@ -130,17 +128,17 @@ public class ScoutGroup {
      * @param pos
      * @return
      */
-    private float standardDeviation(float[] pos) {
+    private static float standardDeviation(float[] pos) {
         float sum = 0.f;
         float sumSqr = 0.f;
         int count = 0;
-        for (int i = 0; i < pos.length; i++) {
-            if (Float.isNaN(pos[i])) {
+        for (float po : pos) {
+            if (Float.isNaN(po)) {
                 continue;
             }
             count++;
-            sum += pos[i];
-            sumSqr += pos[i] * pos[i];
+            sum += po;
+            sumSqr += po * po;
         }
         return (float) Math.sqrt(sumSqr / count - (sum / count) * (sum / count));
     }
