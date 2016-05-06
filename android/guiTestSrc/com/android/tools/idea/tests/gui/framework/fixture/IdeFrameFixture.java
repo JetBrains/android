@@ -92,6 +92,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 
 import static com.android.SdkConstants.FD_GRADLE;
 import static com.android.tools.idea.gradle.util.BuildMode.COMPILE_JAVA;
@@ -408,6 +409,12 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     invokeMenuPath("Build", "Make Project");
   }
 
+  /** Selects the item at {@code menuPath} and returns the result of {@code fixtureFunction} applied to this {@link IdeFrameFixture}. */
+  public <T> T openFromMenu(Function<IdeFrameFixture, T> fixtureFunction, @NotNull String... menuPath) {
+    getMenuFixture().invokeMenuPath(menuPath);
+    return fixtureFunction.apply(this);
+  }
+
   /**
    * Invokes an action by menu path
    *
@@ -627,7 +634,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
     EditorNotificationPanel notificationPanel = notificationPanelRef.get();
     assertNotNull(notificationPanel);
-    return new EditorNotificationPanelFixture(robot(), notificationPanel);
+    return new EditorNotificationPanelFixture(this, notificationPanel);
   }
 
   public void requireNoEditorNotification() {
@@ -762,15 +769,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
-  public InspectionsFixture inspectCode() {
-    invokeMenuPath("Analyze", "Inspect Code...");
-
-    InspectCodeDialogFixture.find(robot()).clickOk();
-
-    return new InspectionsFixture(robot(), getProject(), GuiTests.waitUntilFound(robot(), GuiTests.matcherForType(InspectionTree.class)));
-  }
-
-  @NotNull
   public ProjectViewFixture getProjectView() {
     return new ProjectViewFixture(getProject(), robot());
   }
@@ -843,12 +841,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       }
     });
     return this;
-  }
-
-  @NotNull
-  public FindDialogFixture invokeFindInPathDialog() {
-    invokeMenuPath("Edit", "Find", "Find in Path...");
-    return FindDialogFixture.find(this);
   }
 
   @NotNull
