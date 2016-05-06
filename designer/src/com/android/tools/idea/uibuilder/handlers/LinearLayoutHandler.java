@@ -951,7 +951,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
   }
 
   @Override
-  public void addViewActions(@NotNull List<ViewAction> actions) {
+  public void addToolbarActions(@NotNull List<ViewAction> actions) {
     int rank = 0;
     actions.add(new ToggleOrientationAction().setRank(rank += 20));
     actions.add(new BaselineAction().setRank(rank += 20));
@@ -960,6 +960,11 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     actions.add(new ClearWeightsAction().setRank(rank += 20));
     actions.add(new ViewActionSeparator().setRank(rank += 20));
     addDefaultViewActions(actions, rank);
+  }
+
+  @Override
+  public void addPopupMenuActions(@NotNull List<ViewAction> actions) {
+    addToolbarActionsToMenu("LinearLayout", actions);
   }
 
   private class ToggleOrientationAction extends DirectViewAction {

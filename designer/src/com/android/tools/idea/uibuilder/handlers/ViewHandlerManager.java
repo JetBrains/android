@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.handlers;
 
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.api.actions.ViewAction;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.google.AdViewHandler;
 import com.android.tools.idea.uibuilder.handlers.google.MapFragmentHandler;
@@ -31,6 +32,7 @@ import com.android.tools.idea.uibuilder.handlers.preference.*;
 import com.android.tools.idea.uibuilder.handlers.relative.RelativeLayoutHandler;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ProjectComponent;
@@ -43,6 +45,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -65,6 +68,8 @@ public class ViewHandlerManager implements ProjectComponent {
   private static final ViewHandler STANDARD_HANDLER = new ViewHandler();
   private static final ViewHandler TEXT_HANDLER = new TextViewHandler();
   private static final ViewHandler NO_PREVIEW_HANDLER = new NoPreviewHandler();
+  private final Map<ViewHandler, List<ViewAction>> myToolbarActions = Maps.newHashMap();
+  private final Map<ViewHandler, List<ViewAction>> myMenuActions = Maps.newHashMap();
 
   @NotNull
   public static ViewHandlerManager get(@NotNull Project project) {
@@ -361,6 +366,44 @@ public class ViewHandlerManager implements ProjectComponent {
       }
     }
     return null;
+  }
+
+  /**
+   * Get the toolbar view actions for the given handler.
+   * <p>
+   * This method will call {@link ViewHandler#addToolbarActionsToMenu(String, List)}
+   * but will cache results across invocations.
+   *
+   * @param handler the handler to look up actions for
+   * @return the associated view actions.
+   */
+  public List<ViewAction> getToolbarActions(@NotNull ViewHandler handler) {
+    List<ViewAction> actions = myToolbarActions.get(handler);
+    if (actions == null) {
+      actions = Lists.newArrayList();
+      handler.addToolbarActions(actions);
+      myToolbarActions.put(handler, actions);
+    }
+    return actions;
+  }
+
+  /**
+   * Get the popup menu view actions for the given handler.
+   * <p>
+   * This method will call {@link ViewHandler#addPopupMenuActions(List)} (String, List)}
+   * but will cache results across invocations.
+   *
+   * @param handler the handler to look up actions for
+   * @return the associated view actions.
+   */
+  public List<ViewAction> getPopupMenuActions(@NotNull ViewHandler handler) {
+    List<ViewAction> actions = myToolbarActions.get(handler);
+    if (actions == null) {
+      actions = Lists.newArrayList();
+      handler.addPopupMenuActions(actions);
+      myToolbarActions.put(handler, actions);
+    }
+    return actions;
   }
 
   @Override

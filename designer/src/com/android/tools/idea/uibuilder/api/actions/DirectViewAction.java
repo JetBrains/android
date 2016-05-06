@@ -34,13 +34,6 @@ import java.util.List;
  * <p>
  * These actions are typically shown in the layout actions toolbar but can also
  * be included in context menus for actions.
- * <p>
- * TODO:
- * <ul>
- *   Support for groups or mutually exclusive buttons ("radio buttons")
- *   Support for toggle buttons
- *   Support for sorting
- * </ul>
  */
 public abstract class DirectViewAction extends ViewAction {
   /**

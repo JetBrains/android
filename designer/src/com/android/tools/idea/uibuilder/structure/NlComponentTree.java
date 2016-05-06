@@ -40,8 +40,12 @@ import javax.swing.tree.*;
 import java.awt.*;
 import java.awt.Insets;
 import java.awt.dnd.DropTarget;
-import java.util.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.android.SdkConstants.*;
@@ -84,6 +88,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     new StructureSpeedSearch(this);
     enableDnD();
     setDesignSurface(designSurface);
+    addMouseListener(new StructurePaneMouseListener());
   }
 
   private void enableDnD() {
@@ -409,6 +414,37 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   @Nullable
   static NlComponent toComponent(@NotNull Object node) {
     return (NlComponent)(node instanceof DefaultMutableTreeNode ? ((DefaultMutableTreeNode)node).getUserObject() : node);
+  }
+
+  private class StructurePaneMouseListener extends MouseAdapter {
+    @Override
+    public void mouseClicked(MouseEvent e) {
+      handlePopup(e);
+    }
+
+    @Override
+    public void mousePressed(MouseEvent e) {
+      handlePopup(e);
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent e) {
+      handlePopup(e);
+    }
+
+    private void handlePopup(MouseEvent e) {
+      if (e.isPopupTrigger()) {
+        TreePath path = getPathForLocation(e.getX(), e.getY());
+        if (path != null) {
+          Object pathComponent = path.getLastPathComponent();
+          NlComponent component = toComponent(pathComponent);
+          if (component != null) {
+            // TODO: Ensure the node is selected first
+            myScreenView.getSurface().getActionManager().showPopup(e, myScreenView, component);
+          }
+        }
+      }
+    }
   }
 
   private class StructurePaneSelectionListener implements TreeSelectionListener {
