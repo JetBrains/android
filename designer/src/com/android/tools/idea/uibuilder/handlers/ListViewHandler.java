@@ -18,8 +18,11 @@ package com.android.tools.idea.uibuilder.handlers;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.XmlBuilder;
 import com.android.tools.idea.uibuilder.api.XmlType;
+import com.google.common.collect.ImmutableList;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 import static com.android.SdkConstants.*;
 
@@ -27,6 +30,18 @@ import static com.android.SdkConstants.*;
  * Handler for the {@code <ListView>} layout
  */
 public class ListViewHandler extends ViewGroupHandler {
+  @Override
+  @NotNull
+  public List<String> getInspectorProperties() {
+    return ImmutableList.of(
+      ATTR_BACKGROUND,
+      ATTR_DIVIDER,
+      ATTR_DIVIDER_HEIGHT,
+      ATTR_ENTRIES,
+      ATTR_SCROLLBARS,
+      ATTR_FOOTER_DIVIDERS_ENABLED,
+      ATTR_HEADER_DIVIDERS_ENABLED);
+  }
 
   @Override
   @Language("XML")

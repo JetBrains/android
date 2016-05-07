@@ -18,9 +18,12 @@ package com.android.tools.idea.uibuilder.handlers;
 import com.android.tools.idea.uibuilder.api.XmlBuilder;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.google.common.collect.ImmutableList;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 import static com.android.SdkConstants.*;
 
@@ -28,6 +31,19 @@ import static com.android.SdkConstants.*;
  * Handler for the {@code <android.support.design.widget.FloatingActionButton>} widget.
  */
 public class FloatingActionButtonHandler extends ImageViewHandler {
+  @Override
+  @NotNull
+  public List<String> getInspectorProperties() {
+    return ImmutableList.of(
+      ATTR_SRC,
+      ATTR_BACKGROUND_TINT,
+      ATTR_RIPPLE_COLOR,
+      ATTR_TINT,
+      ATTR_FAB_SIZE,
+      ATTR_LAYOUT_ANCHOR,
+      ATTR_LAYOUT_ANCHOR_GRAVITY,
+      ATTR_ELEVATION);
+  }
 
   @Override
   @NotNull

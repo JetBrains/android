@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.property.inspector;
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintInspectorProvider;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.property.NlDesignProperties;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.google.common.collect.ImmutableList;
@@ -26,6 +27,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Table;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
@@ -48,17 +50,8 @@ import static com.intellij.uiDesigner.core.GridConstraints.*;
 public class InspectorPanel extends JPanel {
   public enum SplitLayout {SINGLE_ROW, STACKED, SEPARATE}
 
-  private static final InspectorProvider[] ourProviders = new InspectorProvider[]{
-    new ConstraintInspectorProvider(),
-    new IdInspectorProvider(),
-    // View type inspectors:
-    new FloatingActionButtonInspectorProvider(),
-    new ImageViewInspectorProvider(),
-    // General inspectors:
-    new TextInspectorProvider(),
-    new FontInspectorProvider(),
-  };
-
+  private final List<InspectorProvider> myProviders;
+  private final NlDesignProperties myDesignProperties;
   private final Font myBoldLabelFont = UIUtil.getLabelFont().deriveFont(Font.BOLD);
   private final Icon myExpandedIcon;
   private final Icon myCollapsedIcon;
@@ -69,13 +62,24 @@ public class InspectorPanel extends JPanel {
   private GridConstraints myConstraints = new GridConstraints();
   private int myRow;
 
-  public InspectorPanel() {
+  public InspectorPanel(@NotNull Project project) {
     super(new BorderLayout());
+    myProviders = createProviders(project);
+    myDesignProperties = new NlDesignProperties();
     myExpandedIcon = (Icon)UIManager.get("Tree.expandedIcon");
     myCollapsedIcon = (Icon)UIManager.get("Tree.collapsedIcon");
     myInspector = new JPanel();
     myInspector.setBorder(BorderFactory.createEmptyBorder(0, 6, 0, 6));
     add(myInspector, BorderLayout.CENTER);
+  }
+
+  private static List<InspectorProvider> createProviders(@NotNull Project project) {
+    return ImmutableList.of(new ConstraintInspectorProvider(),
+                            new IdInspectorProvider(),
+                            new ViewInspectorProvider(project),
+                            new TextInspectorProvider(),
+                            new FontInspectorProvider()
+    );
   }
 
   private static GridLayoutManager createLayoutManager(int rows, int columns) {
@@ -98,8 +102,15 @@ public class InspectorPanel extends JPanel {
     for (NlProperty property : properties.row(SdkConstants.AUTO_URI).values()) {
       propertiesByName.put(property.getName(), property);
     }
+    for (NlProperty property : properties.row("").values()) {
+      propertiesByName.put(property.getName(), property);
+    }
+    // Add access to known design properties
+    for (NlProperty property : myDesignProperties.getKnownProperties(components)) {
+      propertiesByName.put(property.getName(), property);
+    }
 
-    List<InspectorComponent> inspectors = createInspectorComponents(components, propertiesManager, propertiesByName, ourProviders);
+    List<InspectorComponent> inspectors = createInspectorComponents(components, propertiesManager, propertiesByName, myProviders);
 
     int rows = 1;  // 1 for the spacer below
     for (InspectorComponent inspector : inspectors) {
@@ -126,8 +137,8 @@ public class InspectorPanel extends JPanel {
   private static List<InspectorComponent> createInspectorComponents(@NotNull List<NlComponent> components,
                                                                     @NotNull NlPropertiesManager propertiesManager,
                                                                     @NotNull Map<String, NlProperty> properties,
-                                                                    @NotNull InspectorProvider[] allProviders) {
-    List<InspectorComponent> inspectors = Lists.newArrayListWithExpectedSize(allProviders.length);
+                                                                    @NotNull List<InspectorProvider> allProviders) {
+    List<InspectorComponent> inspectors = Lists.newArrayListWithExpectedSize(allProviders.size());
 
     if (components.isEmpty()) {
       // create just the id inspector, which we know can handle a null component

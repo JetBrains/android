@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.api.InsertType;
@@ -29,12 +30,19 @@ import org.intellij.lang.annotations.Language;
 
 import javax.swing.*;
 
+import java.util.List;
+
 import static com.android.SdkConstants.*;
 
 /**
  * Handler for the {@code <fragment>} tag
  */
 public final class FragmentHandler extends ViewHandler {
+  @Override
+  @NotNull
+  public List<String> getInspectorProperties() {
+    return ImmutableList.of(ATTR_NAME);
+  }
 
   @Override
   @NotNull

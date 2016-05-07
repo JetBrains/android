@@ -180,6 +180,8 @@ public class ViewHandlerManager implements ProjectComponent {
     switch (viewTag) {
       case ABSOLUTE_LAYOUT:
         return new AbsoluteLayoutHandler();
+      case ACTION_MENU_VIEW:
+        return new ActionMenuViewHandler();
       case ADAPTER_VIEW:
       case STACK_VIEW:
         return new AdapterViewHandler();
@@ -187,25 +189,30 @@ public class ViewHandlerManager implements ProjectComponent {
         return new AdViewHandler();
       case APP_BAR_LAYOUT:
         return new AppBarLayoutHandler();
-      case AUTO_COMPLETE_TEXT_VIEW:
-      case BUTTON:
-      case CHECKED_TEXT_VIEW:
-      case CHECK_BOX:
       case EDIT_TEXT:
+        return new EditTextHandler();
+      case AUTO_COMPLETE_TEXT_VIEW:
       case MULTI_AUTO_COMPLETE_TEXT_VIEW:
-      case RADIO_BUTTON:
       case SWITCH:
       case TEXT_VIEW:
-      case TOGGLE_BUTTON:
         return TEXT_HANDLER;
       case BROWSE_FRAGMENT:
         return new BrowseFragmentHandler();
+      case BUTTON:
+        return new ButtonHandler();
       case CARD_VIEW:
         return new CardViewHandler();
+      case CHECK_BOX:
+      case RADIO_BUTTON:
+        return new CheckBoxHandler();
+      case CHECKED_TEXT_VIEW:
+        return new CheckedTextViewHandler();
       case CHRONOMETER:
       case QUICK_CONTACT_BADGE:
       case TEXT_CLOCK:
         return STANDARD_HANDLER;
+      case COLLAPSING_TOOLBAR_LAYOUT:
+        return new CollapsingToolbarLayoutHandler();
       case CONSTRAINT_LAYOUT:
         return new ConstraintLayoutHandler();
       case COORDINATOR_LAYOUT:
@@ -216,6 +223,8 @@ public class ViewHandlerManager implements ProjectComponent {
       case FQCN_RELATIVE_LAYOUT:
       case RELATIVE_LAYOUT:
         return new RelativeLayoutHandler();
+      case DRAWER_LAYOUT:
+        return new DrawerLayoutHandler();
       case EXPANDABLE_LIST_VIEW:
         // TODO: Find out why this fails to load by class name
         return new ListViewHandler();
@@ -247,6 +256,8 @@ public class ViewHandlerManager implements ProjectComponent {
         return new MapFragmentHandler();
       case MAP_VIEW:
         return new MapViewHandler();
+      case NAVIGATION_VIEW:
+        return new NavigationViewHandler();
       case PLAYBACK_OVERLAY_FRAGMENT:
         return new PlaybackOverlayFragmentHandler();
       case PROGRESS_BAR:
@@ -291,12 +302,16 @@ public class ViewHandlerManager implements ProjectComponent {
         return new TabHostHandler();
       case TEXT_INPUT_LAYOUT:
         return new TextInputLayoutHandler();
+      case TOGGLE_BUTTON:
+        return new ToggleButtonHandler();
       case TOOLBAR_V7:
         return new ToolbarHandler();
       case VIEW_FRAGMENT:
         return new FragmentHandler();
       case VIEW_INCLUDE:
         return new IncludeHandler();
+      case VIEW_PAGER:
+        return new ViewPagerHandler();
       case VIEW_STUB:
         return new ViewStubHandler();
       case VIEW_TAG:
