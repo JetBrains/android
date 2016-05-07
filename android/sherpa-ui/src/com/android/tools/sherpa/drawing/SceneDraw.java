@@ -46,6 +46,7 @@ public class SceneDraw {
 
     public static final int GRID_SPACING = 8; // Material Design 8dp grid
     public static boolean DRAW_ONLY_ROOT_BACKGROUND = true;
+    public static boolean DRAW_GRID = false;
 
     private ColorSet mColorSet;
 
@@ -278,7 +279,7 @@ public class SceneDraw {
     public boolean drawBackground(ViewTransform transform, Graphics2D g, int w, int h) {
         boolean needsRepaint = false;
         Color backgroundColor = mColorSet.getBackground();
-        TexturePaint backgroundPaint = mColorSet.getBackgroundPaint();
+        Paint backgroundPaint = mColorSet.getBackgroundPaint();
         // We want to draw a grid (on GRID_SPACING) in blueprint mode.
         if (mCurrentAnimation != null) {
             if (mCurrentAnimation.step()) {
@@ -295,35 +296,47 @@ public class SceneDraw {
         int yr = transform.getSwingY(root.getDrawY());
         int tileSize = transform.getSwingDimension(8);
 
-        if (mBackgroundFactorColor != backgroundFactorColor
+        if (!DRAW_GRID) {
+            mColorSet.setBackgroundPaint(backgroundColor);
+            backgroundPaint = backgroundColor;
+        } else if (mBackgroundFactorColor != backgroundFactorColor
                 || mBackgroundFactorX != xr
                 || mBackgroundFactorY != yr
                 || mBackgroundFactorSize != tileSize) { // if background inputs changed
+
             mBackgroundFactorColor = backgroundFactorColor;
             mBackgroundFactorX = xr;
             mBackgroundFactorY = yr;
             mBackgroundFactorSize = tileSize;
+
             if (tileSize > 0) {
-                Color backgroundLines = ColorTheme.updateBrightness(backgroundColor, 1.06f);
                 GraphicsEnvironment environment = GraphicsEnvironment.getLocalGraphicsEnvironment();
                 GraphicsDevice device = environment.getDefaultScreenDevice();
                 GraphicsConfiguration config = device.getDefaultConfiguration();
+
                 BufferedImage image = config.createCompatibleImage(tileSize, tileSize);
                 Graphics2D graphics = image.createGraphics();
+
                 graphics.setColor(backgroundColor);
                 graphics.fillRect(0, 0, tileSize, tileSize);
+
+                Color backgroundLines = ColorTheme.updateBrightness(backgroundColor, 1.06f);
                 graphics.setColor(backgroundLines);
                 graphics.drawLine(0, tileSize - 1, tileSize, tileSize - 1);
                 graphics.drawLine(tileSize - 1, 0, tileSize - 1, tileSize);
+
                 graphics.dispose();
+
                 backgroundPaint = new TexturePaint(image, new Rectangle(xr + 1, yr + 1, tileSize, tileSize));
                 mColorSet.setBackgroundPaint(backgroundPaint);
             }
         }
 
         if (DRAW_ONLY_ROOT_BACKGROUND) {
+            Paint paint = g.getPaint();
             g.setPaint(backgroundPaint);
             g.fillRect(xr, yr, w, h);
+            g.setPaint(paint);
         } else {
             g.fillRect((int)transform.getTranslateX(), (int)transform.getTranslateY(), w, h);
 
