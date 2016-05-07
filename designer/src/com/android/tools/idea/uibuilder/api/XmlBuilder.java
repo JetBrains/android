@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.api;
 
 import com.android.SdkConstants;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.SdkConstants.PreferenceTags.PREFERENCE_CATEGORY;
@@ -39,9 +40,11 @@ public final class XmlBuilder {
 
   @NotNull
   public XmlBuilder startTag(@NotNull String name) {
-    if (myLastAppendedConstruct.equals(Construct.ATTRIBUTE)) {
+    if (!myLastAppendedConstruct.equals(Construct.END_TAG)) {
       int length = myStringBuilder.length();
-      myStringBuilder.replace(length - 1, length, ">\n");
+      if (length > 0) {
+        myStringBuilder.replace(length - 1, length, ">\n");
+      }
     }
 
     if (myIndentationLevel != 0) {
@@ -80,9 +83,13 @@ public final class XmlBuilder {
   public XmlBuilder attribute(@NotNull String namespacePrefix, @NotNull String name, @NotNull String value) {
     indent();
 
+    if (!StringUtil.isEmpty(namespacePrefix)) {
+      myStringBuilder
+        .append(namespacePrefix)
+        .append(':');
+    }
+
     myStringBuilder
-      .append(namespacePrefix)
-      .append(':')
       .append(name)
       .append("=\"")
       .append(value)
