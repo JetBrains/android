@@ -25,6 +25,7 @@ import com.android.tools.idea.uibuilder.model.SelectionModel;
 import com.android.tools.idea.uibuilder.surface.Interaction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
+import com.android.tools.sherpa.interaction.MouseInteraction;
 import com.android.tools.sherpa.scout.Scout;
 import com.android.tools.sherpa.structure.Selection;
 import com.android.tools.sherpa.structure.WidgetsScene;
@@ -51,6 +52,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
   private boolean myShowAllConstraints = true;
 
   ArrayList<ViewAction> myActions = new ArrayList<>();
+  ArrayList<ViewAction> myPopupActions = new ArrayList<>();
   ArrayList<ViewAction> myControlActions = new ArrayList<>();
 
   private boolean mControlIsPressed;
@@ -209,9 +211,96 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
 
   @Override
   public void addPopupMenuActions(@NotNull List<ViewAction> actions) {
-    actions.add((new InferAction()));
+    actions.add(new ClearConstraintsAction());
     // Just dumps all the toolbar actions in the context menu under a menu item called "Constraint Layout"
+    String str;
+    ViewAction action;
+    str = "Align group horizontally on the left";
+    actions.add(action = new AlignAction(Scout.Arrange.AlignHorizontallyLeft,
+                                         new ControlIcon(AndroidIcons.SherpaIcons.LeftAligned), str));
+    myPopupActions.add(action);
+
+    str = "Align group horizontally in the middle";
+    actions.add(action = new AlignAction(Scout.Arrange.AlignHorizontallyCenter,
+                                         new ControlIcon(AndroidIcons.SherpaIcons.CenterAligned), str));
+    myPopupActions.add(action);
+
+    str = "Align group horizontally on the right";
+    actions.add(action = new AlignAction(Scout.Arrange.AlignHorizontallyRight,
+                                         new ControlIcon(AndroidIcons.SherpaIcons.RightAligned), str));
+    myPopupActions.add(action);
+
+    str = "Align group vertically to the top";
+    actions.add(action = new AlignAction(Scout.Arrange.AlignVerticallyTop,
+                                         new ControlIcon(AndroidIcons.SherpaIcons.TopAlign), str));
+    myPopupActions.add(action);
+
+    str = "Align group vertically to the middle";
+    actions.add(action = new AlignAction(Scout.Arrange.AlignVerticallyMiddle,
+                                         new ControlIcon(AndroidIcons.SherpaIcons.MiddleAlign), str));
+    myPopupActions.add(action);
+
+    str = "Align group vertically to the bottom";
+    actions.add(action = new AlignAction(Scout.Arrange.AlignVerticallyBottom,
+                                         new ControlIcon(AndroidIcons.SherpaIcons.BottomAlign), str));
+    myPopupActions.add(action);
+
+    str = "Align group on the baseline";
+    actions.add(action = new AlignAction(Scout.Arrange.AlignBaseline,
+                                         new ControlIcon(AndroidIcons.SherpaIcons.BaselineAlign), str));
+    myPopupActions.add(action);
+
+    str = "Distribute group horizontally";
+    actions.add(action = new AlignAction(Scout.Arrange.DistributeHorizontally,
+                                         new ControlIcon(AndroidIcons.SherpaIcons.HorizontalDistribute), str));
+    myPopupActions.add(action);
+
+    str = "Distribute group vertically";
+    actions.add(action = new AlignAction(Scout.Arrange.DistributeVertically,
+                                         new ControlIcon(AndroidIcons.SherpaIcons.verticallyDistribute), str));
+    myPopupActions.add(action);
+
+    str = "Center the widget horizontally";
+    actions.add(action = new AlignAction(Scout.Arrange.CenterHorizontally,
+                                         new ControlIcon(AndroidIcons.SherpaIcons.HorizontalCenter), str));
+    myPopupActions.add(action);
+
+    str = "Center the widget vertically";
+    actions.add(action = new AlignAction(Scout.Arrange.CenterVertically,
+                                         new ControlIcon(AndroidIcons.SherpaIcons.VerticalCenter), str));
+    myPopupActions.add(action);
+
+    str = "Center the widget horizontally in parent";
+    actions.add(action = new AlignAction(Scout.Arrange.CenterHorizontallyInParent,
+                                         new ControlIcon(AndroidIcons.SherpaIcons.HorizontalCenterParent),
+                                         str));
+    myPopupActions.add(action);
+
+    str = "Center the widget vertically in parent";
+    actions.add(action = new AlignAction(Scout.Arrange.CenterVerticallyInParent,
+                                         new ControlIcon(AndroidIcons.SherpaIcons.VerticalCenterParent), str));
+    myPopupActions.add(action);
+
+    str = "Pack selection horizontally";
+    actions.add(action = new AlignAction(Scout.Arrange.HorizontalPack,
+                                         AndroidIcons.SherpaIcons.PackSelectionHorizontally, str));
+    myPopupActions.add(action);
+
+    str = "Pack selection vertically";
+    actions.add(action = new AlignAction(Scout.Arrange.VerticalPack,
+                                         AndroidIcons.SherpaIcons.PackSelectionVertically, str));
+    myPopupActions.add(action);
+
+    str = "Expand horizontally";
+    actions.add(action = new AlignAction(Scout.Arrange.ExpandHorizontally,
+                                         AndroidIcons.SherpaIcons.HorizontalExpand, str));
+    myPopupActions.add(action);
+
+    str = "Expand vertically";
+    actions.add(action = new AlignAction(Scout.Arrange.ExpandVertically,
+                                         AndroidIcons.SherpaIcons.VerticalExpand, str));
     addToolbarActionsToMenu("Constraint Layout", actions);
+
   }
 
   interface Enableable {
@@ -228,6 +317,13 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       return;
     }
     for (ViewAction action : myActions) {
+      if (action instanceof Enableable) {
+        Enableable e = (Enableable)action;
+        e.enable(selection);
+      }
+    }
+
+    for (ViewAction action : myPopupActions) {
       if (action instanceof Enableable) {
         Enableable e = (Enableable)action;
         e.enable(selection);
@@ -671,6 +767,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       }
       mCurrentMargin = (mCurrentMargin + 1) % mMargins.length;
       Scout.setMargin(mMarginsNumber[mCurrentMargin]);
+      MouseInteraction.setMargin(mMarginsNumber[mCurrentMargin]);
     }
 
     @Override
