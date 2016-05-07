@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview;
 
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.PsRootNode;
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.PsRootNode;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseTreeStructure;
 import com.android.tools.idea.gradle.structure.model.PsModelNameComparator;
 import com.android.tools.idea.gradle.structure.model.android.*;
@@ -36,7 +36,7 @@ import static com.android.builder.model.AndroidProject.ARTIFACT_MAIN;
 
 public class TargetArtifactsTreeStructure extends AbstractBaseTreeStructure {
   @NotNull private final PsAndroidModule myModule;
-  @NotNull private final PsRootNode<TargetVariantNode> myRootNode = new PsRootNode<>();
+  @NotNull private final PsRootNode myRootNode = new PsRootNode();
 
   TargetArtifactsTreeStructure(@NotNull PsAndroidModule module) {
     myModule = module;

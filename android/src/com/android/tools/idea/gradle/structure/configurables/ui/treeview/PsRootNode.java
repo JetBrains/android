@@ -13,23 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview;
+package com.android.tools.idea.gradle.structure.configurables.ui.treeview;
 
-import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsNode;
 import com.intellij.ui.treeStructure.SimpleNode;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 import java.util.List;
 
-public class PsRootNode<T extends SimpleNode> extends AbstractPsNode {
-  @NotNull private List<T> myChildren = Collections.emptyList();
+public class PsRootNode extends AbstractPsNode {
+  @NotNull private List<? extends AbstractPsNode> myChildren = Collections.emptyList();
 
   public PsRootNode() {
     setAutoExpandNode(true);
   }
 
-  public void setChildren(@NotNull List<T> children) {
+  public void setChildren(@NotNull List<? extends AbstractPsNode> children) {
     myChildren = children;
   }
 

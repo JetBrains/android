@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview;
 
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode;
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsNode;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidLibraryDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsModuleDependency;
@@ -26,7 +27,7 @@ import java.util.List;
 
 public abstract class AbstractDependencyNode<T extends PsAndroidDependency> extends AbstractPsModelNode<T> {
   @Nullable
-  public static AbstractDependencyNode<?> createNode(@NotNull AbstractPsModelNode<?> parent, @NotNull PsAndroidDependency dependency) {
+  public static AbstractDependencyNode<?> createNode(@NotNull AbstractPsNode parent, @NotNull PsAndroidDependency dependency) {
     if (dependency instanceof PsAndroidLibraryDependency) {
       PsAndroidLibraryDependency libraryDependency = (PsAndroidLibraryDependency)dependency;
       return new LibraryDependencyNode(parent, libraryDependency);
@@ -38,11 +39,11 @@ public abstract class AbstractDependencyNode<T extends PsAndroidDependency> exte
     return null;
   }
 
-  protected AbstractDependencyNode(@NotNull AbstractPsModelNode<?> parent, @NotNull T dependency) {
+  protected AbstractDependencyNode(@NotNull AbstractPsNode parent, @NotNull T dependency) {
     super(parent, dependency);
   }
 
-  protected AbstractDependencyNode(@NotNull AbstractPsModelNode<?> parent, @NotNull List<T> dependencies) {
+  protected AbstractDependencyNode(@NotNull AbstractPsNode parent, @NotNull List<T> dependencies) {
     super(parent, dependencies);
   }
 
