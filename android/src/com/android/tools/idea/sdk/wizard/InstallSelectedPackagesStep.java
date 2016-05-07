@@ -324,7 +324,7 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
             for (RemotePackage p : myInstallRequests) {
               requests.add(p.getPath());
             }
-            ModelWizardDialog dialogForPaths = SdkQuickfixUtils.createDialogForPaths((Component)null, requests);
+            ModelWizardDialog dialogForPaths = SdkQuickfixUtils.createDialogForPaths(null, requests, false);
             if (dialogForPaths != null) {
               dialogForPaths.show();
             }
