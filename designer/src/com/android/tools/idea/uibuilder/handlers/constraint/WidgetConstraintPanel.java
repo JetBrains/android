@@ -16,20 +16,19 @@
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.sherpa.drawing.ColorSet;
-import com.android.tools.sherpa.drawing.ConnectionDraw;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.plaf.basic.BasicSliderUI;
 import java.awt.*;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * UI component for Constraint Inspector
@@ -43,7 +42,7 @@ public class WidgetConstraintPanel extends JPanel {
   private String mWidgetHeightCache;
   ColorSet mColorSet = new SingleWidgetView.InspectorColorSet();
 
-  public WidgetConstraintPanel(@NotNull java.util.List<NlComponent> components) {
+  public WidgetConstraintPanel(@NotNull List<NlComponent> components) {
     super(new GridBagLayout());
     setBackground(mColorSet.getBackground());
     mMain = new SingleWidgetView(this);
@@ -160,6 +159,16 @@ public class WidgetConstraintPanel extends JPanel {
       mWidgetWidthCache = widthStr;
     }
 
+    Configuration configuration = mComponent.getModel().getConfiguration();
+    float scale = configuration.getDensity().getDpiValue() / 160.0f;
+
+    // We don't have a width cache, which means the widget was initially
+    // created in spring or wrap_content mode, we can just use the current
+    // widget model's width as a fallback
+    if (mWidgetWidthCache == null) {
+      mWidgetWidthCache = String.valueOf((int) Math.max(mComponent.w / scale, 1.0)) + "dp";
+    }
+
     if (SdkConstants.VALUE_WRAP_CONTENT.equals(heightStr)) {
       heightValue = SingleWidgetView.WRAP_CONTENT;
     }
@@ -168,6 +177,11 @@ public class WidgetConstraintPanel extends JPanel {
     }
     else {
       mWidgetHeightCache = heightStr;
+    }
+
+    // See width above
+    if (mWidgetHeightCache == null) {
+      mWidgetHeightCache = String.valueOf((int) Math.max(mComponent.h / scale, 1.0)) + "dp";
     }
 
     mMain.configureUi(mWidgetName, bottom, top, left, right, basline, widthVal, heightValue);
@@ -218,7 +232,7 @@ public class WidgetConstraintPanel extends JPanel {
   }
 
   public WidgetConstraintPanel() {
-    this(null);
+    this(Collections.emptyList());
   }
 
   public void setHorizontalConstraint(int horizontalConstraint) {
