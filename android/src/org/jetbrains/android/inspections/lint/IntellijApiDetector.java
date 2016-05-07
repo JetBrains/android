@@ -31,6 +31,7 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 
+import static com.android.SdkConstants.FQCN_TARGET_API;
 import static org.jetbrains.android.inspections.lint.IntellijLintUtils.SUPPRESS_LINT_FQCN;
 import static org.jetbrains.android.inspections.lint.IntellijLintUtils.SUPPRESS_WARNINGS_FQCN;
 
@@ -92,6 +93,9 @@ public class IntellijApiDetector extends ApiDetector {
         PsiAnnotation annotation = null;
         if (modifierList != null) {
           annotation = modifierList.findAnnotation(TARGET_API_FQCN);
+          if (annotation == null) {
+            annotation = modifierList.findAnnotation(REQUIRES_API_ANNOTATION);
+          }
         }
         if (annotation != null) {
           for (PsiNameValuePair pair : annotation.getParameterList().getAttributes()) {
@@ -189,7 +193,7 @@ public class IntellijApiDetector extends ApiDetector {
       super.visitAnnotation(annotation);
 
       String fqcn = annotation.getQualifiedName();
-      if (TARGET_API_FQCN.equals(fqcn)) {
+      if (TARGET_API_FQCN.equals(fqcn) || REQUIRES_API_ANNOTATION.equals(fqcn)) {
         mySeenTargetApi = true;
       }
       else if (SUPPRESS_LINT_FQCN.equals(fqcn) || SUPPRESS_WARNINGS_FQCN.equals(fqcn)) {
