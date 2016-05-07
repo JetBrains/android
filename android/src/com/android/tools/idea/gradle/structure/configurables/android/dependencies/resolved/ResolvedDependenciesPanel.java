@@ -13,30 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables.android.dependencies.project;
+package com.android.tools.idea.gradle.structure.configurables.android.dependencies.resolved;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.AbstractDependenciesPanel;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.ModuleDependencyDetails;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.ProjectLibraryDependencyDetails;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview.DeclaredDependenciesTreeBuilder;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.ModuleLibraryDependencyDetails;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.resolved.treeview.ResolvedDependenciesTreeBuilder;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.*;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractPsNodeTreeBuilder.MatchingNodeCollector;
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesRenderer;
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesViewer;
-import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeEventDispatcher;
-import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeListener;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseCollapseAllAction;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseExpandAllAction;
-import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.NodeHyperlinkSupport;
-import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsIssue;
-import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.model.android.PsModuleDependency;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.util.ActionCallback;
 import com.intellij.openapi.util.Disposer;
@@ -52,33 +46,23 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import java.awt.*;
 import java.awt.event.MouseEvent;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.setUp;
 import static com.intellij.icons.AllIcons.Actions.Collapseall;
 import static com.intellij.icons.AllIcons.Actions.Expandall;
-import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static com.intellij.util.ui.tree.TreeUtil.ensureSelection;
 import static java.awt.event.MouseEvent.MOUSE_PRESSED;
 
-class DeclaredDependenciesPanel extends AbstractDependenciesPanel {
-  @NotNull private final PsContext myContext;
-
+class ResolvedDependenciesPanel extends AbstractDependenciesPanel {
   @NotNull private final Tree myTree;
-  @NotNull private final DeclaredDependenciesTreeBuilder myTreeBuilder;
+  @NotNull private final ResolvedDependenciesTreeBuilder myTreeBuilder;
+  @NotNull private final PsContext myContext;
   @NotNull private final NodeHyperlinkSupport<ModuleDependencyNode> myHyperlinkSupport;
   @NotNull private final IssuesViewer myIssuesViewer;
 
-  @NotNull private final SelectionChangeEventDispatcher<List<AbstractDependencyNode<? extends PsAndroidDependency>>> myEventDispatcher =
-    new SelectionChangeEventDispatcher<>();
-
-  private boolean myIgnoreTreeSelectionEvents;
-
-  DeclaredDependenciesPanel(@NotNull PsModule fakeModule, @NotNull PsContext context) {
-    super("All Dependencies", context, null);
+  ResolvedDependenciesPanel(@NotNull PsAndroidModule module, @NotNull PsContext context) {
+    super("Resolved Dependencies", context, module);
     myContext = context;
 
     initializeDependencyDetails();
@@ -96,7 +80,7 @@ class DeclaredDependenciesPanel extends AbstractDependenciesPanel {
           if (node != null) {
             PsModuleDependency moduleDependency = node.getModels().get(0);
             String name = moduleDependency.getName();
-            myContext.setSelectedModule(name, DeclaredDependenciesPanel.this);
+            myContext.setSelectedModule(name, ResolvedDependenciesPanel.this);
             // Do not call super, to avoid selecting the 'module' node when clicking a hyperlink.
             return;
           }
@@ -107,39 +91,19 @@ class DeclaredDependenciesPanel extends AbstractDependenciesPanel {
 
     getContentsPanel().add(createActionsPanel(), BorderLayout.NORTH);
 
-    myTreeBuilder = new DeclaredDependenciesTreeBuilder(myContext.getProject(), myTree, treeModel);
+    myTreeBuilder = new ResolvedDependenciesTreeBuilder(module, myTree, treeModel);
+
+    module.add(event -> myTreeBuilder.reset(), this);
+
     JScrollPane scrollPane = setUp(myTreeBuilder);
     getContentsPanel().add(scrollPane, BorderLayout.CENTER);
 
     TreeSelectionListener treeSelectionListener = e -> {
+      List<AbstractDependencyNode<? extends PsAndroidDependency>> selection = getMatchingSelection();
+      PsAndroidDependency selected = !selection.isEmpty() ? selection.get(0).getModels().get(0) : null;
 
-      if (!myIgnoreTreeSelectionEvents) {
-        List<AbstractDependencyNode<? extends PsAndroidDependency>> selection = getMatchingSelection();
-        PsAndroidDependency selected = !selection.isEmpty() ? selection.get(0).getModels().get(0) : null;
-
-        if (selected == null) {
-          notifySelectionChanged(Collections.emptyList());
-        }
-        else {
-          NodeSelectionDetector detector = new NodeSelectionDetector();
-          myTreeBuilder.collectNodesMatchingCurrentSelection(selected, new MatchingNodeCollector() {
-            @Override
-            protected void done(@NotNull List<AbstractPsModelNode> matchingNodes) {
-              matchingNodes.forEach(detector::add);
-
-              List<AbstractDependencyNode<? extends PsAndroidDependency>> singleSelection = Collections.emptyList();
-              if (!selection.isEmpty()) {
-                singleSelection = detector.getSingleTypeSelection();
-              }
-              notifySelectionChanged(singleSelection);
-            }
-          });
-        }
-
-        updateDetails(selected);
-        updateIssues(selection);
-      }
-      myIgnoreTreeSelectionEvents = false;
+      updateDetails(selected);
+      updateIssues(selection);
     };
     myTree.addTreeSelectionListener(treeSelectionListener);
     myTree.addMouseListener(new PopupHandler() {
@@ -151,24 +115,12 @@ class DeclaredDependenciesPanel extends AbstractDependenciesPanel {
 
     myTreeBuilder.getInitialized().doWhenDone(this::doEnsureSelection);
 
-    myHyperlinkSupport = new NodeHyperlinkSupport<>(myTree, ModuleDependencyNode.class, myContext, true);
+    myHyperlinkSupport = new NodeHyperlinkSupport<>(myTree, ModuleDependencyNode.class, myContext, false);
+  }
 
-    PsModule.DependenciesChangeListener dependenciesChangeListener = event -> {
-      fakeModule.setModified(true);
-      if (event instanceof PsModule.LibraryDependencyAddedEvent) {
-        PsArtifactDependencySpec spec = ((PsModule.LibraryDependencyAddedEvent)event).getSpec();
-        myTreeBuilder.reset(() -> {
-          LibraryDependencyNode found = myTreeBuilder.find(spec);
-          if (found != null) {
-            myTreeBuilder.select(found);
-          }
-        });
-      }
-      else if (event != null) {
-        myTreeBuilder.reset(null);
-      }
-    };
-    myContext.getProject().forEachModule(module -> module.add(dependenciesChangeListener, this));
+  private void initializeDependencyDetails() {
+    addDetails(new ModuleLibraryDependencyDetails());
+    addDetails(new ModuleDependencyDetails(getContext(), false));
   }
 
   @SuppressWarnings("unchecked")
@@ -192,46 +144,12 @@ class DeclaredDependenciesPanel extends AbstractDependenciesPanel {
     myIssuesViewer.display(issues);
   }
 
-  private void notifySelectionChanged(@NotNull List<AbstractDependencyNode<? extends PsAndroidDependency>> selected) {
-    myEventDispatcher.selectionChanged(selected);
-  }
-
-  private void popupInvoked(int x, int y) {
-    ModuleDependencyNode node = myHyperlinkSupport.getNodeForLocation(x, y);
-
-    if (node != null) {
-      PsModuleDependency moduleDependency = node.getModels().get(0);
-
-      String name = moduleDependency.getName();
-      DefaultActionGroup group = new DefaultActionGroup();
-      group.add(new GoToModuleAction(name, getContext(), myTree));
-
-      ActionPopupMenu popupMenu = ActionManager.getInstance().createActionPopupMenu("", group);
-      popupMenu.getComponent().show(myTree, x, y);
-    }
-  }
-
-  private void initializeDependencyDetails() {
-    addDetails(new ProjectLibraryDependencyDetails());
-    addDetails(new ModuleDependencyDetails(getContext(), false));
-  }
-
-  void add(@NotNull SelectionChangeListener<List<AbstractDependencyNode<? extends PsAndroidDependency>>> listener) {
-    myEventDispatcher.addListener(listener, this);
-  }
-
   @Override
   @NotNull
   protected List<AnAction> getExtraToolbarActions() {
     List<AnAction> actions = Lists.newArrayList();
 
     actions.add(new SelectNodesMatchingCurrentSelectionAction() {
-      @Override
-      public void actionPerformed(AnActionEvent e) {
-        myIgnoreTreeSelectionEvents = true;
-        super.actionPerformed(e);
-      }
-
       @Override
       @NotNull
       protected AbstractPsNodeTreeBuilder getTreeBuilder() {
@@ -253,7 +171,6 @@ class DeclaredDependenciesPanel extends AbstractDependenciesPanel {
       @Override
       public void actionPerformed(AnActionEvent e) {
         myTreeBuilder.clearSelection();
-        notifySelectionChanged(Collections.emptyList());
 
         myTree.requestFocusInWindow();
         myTreeBuilder.collapseAllNodes();
@@ -268,6 +185,21 @@ class DeclaredDependenciesPanel extends AbstractDependenciesPanel {
     ensureSelection(myTree);
   }
 
+  private void popupInvoked(int x, int y) {
+    ModuleDependencyNode node = myHyperlinkSupport.getNodeForLocation(x, y);
+
+    if (node != null) {
+      PsModuleDependency moduleDependency = node.getModels().get(0);
+
+      String name = moduleDependency.getName();
+      DefaultActionGroup group = new DefaultActionGroup();
+      group.add(new GoToModuleAction(name, myContext, myTree));
+
+      ActionPopupMenu popupMenu = ActionManager.getInstance().createActionPopupMenu("", group);
+      popupMenu.getComponent().show(myTree, x, y);
+    }
+  }
+
   @Override
   public void dispose() {
     Disposer.dispose(myTreeBuilder);
@@ -276,44 +208,11 @@ class DeclaredDependenciesPanel extends AbstractDependenciesPanel {
 
   @Override
   public ActionCallback navigateTo(@Nullable Place place, boolean requestFocus) {
-    // TODO implement
-    return ActionCallback.DONE;
+    return null;
   }
 
   @Override
   public void queryPlace(@NotNull Place place) {
-    // TODO implement
-  }
 
-  private static class NodeSelectionDetector {
-    private final Map<String, List<AbstractDependencyNode<? extends PsAndroidDependency>>> mySelection = Maps.newHashMap();
-
-    void add(@NotNull AbstractPsModelNode node) {
-      String key = null;
-      if (node instanceof ModuleDependencyNode) {
-        key = ((ModuleDependencyNode)node).getModels().get(0).getGradlePath();
-      }
-      if (node instanceof LibraryDependencyNode) {
-        key = ((LibraryDependencyNode)node).getModels().get(0).getResolvedSpec().toString();
-      }
-      if (key != null) {
-        List<AbstractDependencyNode<? extends PsAndroidDependency>> nodes = mySelection.get(key);
-        if (nodes == null) {
-          nodes = Lists.newArrayList();
-          mySelection.put(key, nodes);
-        }
-        nodes.add(((AbstractDependencyNode<? extends PsAndroidDependency>)node));
-      }
-    }
-
-    @NotNull
-    List<AbstractDependencyNode<? extends PsAndroidDependency>> getSingleTypeSelection() {
-      Set<String> keys = mySelection.keySet();
-      if (keys.size() == 1) {
-        // Only notify selection if all the selected nodes refer to the same dependency.
-        return mySelection.get(getFirstItem(keys));
-      }
-      return Collections.emptyList();
-    }
   }
 }

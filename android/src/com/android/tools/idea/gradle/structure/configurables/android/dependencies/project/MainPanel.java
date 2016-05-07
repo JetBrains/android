@@ -29,11 +29,11 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 import java.util.List;
 
-class ProjectDependenciesPanel extends AbstractMainDependenciesPanel {
+class MainPanel extends AbstractMainDependenciesPanel {
   @NotNull private final DeclaredDependenciesPanel myDeclaredDependenciesPanel;
   @NotNull private final TargetModulesPanel myTargetModulesPanel;
 
-  ProjectDependenciesPanel(@NotNull PsModule module, @NotNull PsContext context, @NotNull List<PsModule> extraTopModules) {
+  MainPanel(@NotNull PsModule module, @NotNull PsContext context, @NotNull List<PsModule> extraTopModules) {
     super(context, extraTopModules);
     myTargetModulesPanel = new TargetModulesPanel(context);
 
