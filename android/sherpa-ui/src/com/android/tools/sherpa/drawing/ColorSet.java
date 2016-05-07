@@ -16,10 +16,7 @@
 
 package com.android.tools.sherpa.drawing;
 
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Stroke;
-import java.awt.TexturePaint;
+import java.awt.*;
 
 /**
  * Holds a set of colors for drawing a scene
@@ -79,13 +76,13 @@ public class ColorSet {
 
     protected int mStyle;
 
-    private TexturePaint mBackgroundPaint;
+    private Paint mBackgroundPaint;
 
-    public TexturePaint getBackgroundPaint() {
+    public Paint getBackgroundPaint() {
         return mBackgroundPaint;
     }
 
-    public void setBackgroundPaint(TexturePaint backgroundPaint) {
+    public void setBackgroundPaint(Paint backgroundPaint) {
         mBackgroundPaint = backgroundPaint;
     }
 
