@@ -421,6 +421,22 @@ public class NlComponent {
     return 0;
   }
 
+  /**
+   * Return the actual view id used in layout lib
+   * @return the view id, or -1 if impossible to get
+   */
+  public int getAndroidViewId() {
+    try {
+      if (viewInfo != null) {
+        Object viewObject = viewInfo.getViewObject();
+        return (Integer)viewObject.getClass().getMethod("getId").invoke(viewObject);
+      }
+    }
+    catch (Throwable ignore) {
+    }
+    return -1;
+  }
+
   private Insets myMargins;
   private Insets myPadding;
 
