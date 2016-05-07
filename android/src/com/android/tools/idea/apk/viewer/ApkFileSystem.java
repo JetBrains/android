@@ -30,6 +30,8 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.IOException;
+
 public class ApkFileSystem extends ArchiveFileSystem {
   public static final String PROTOCOL = "apk";
   public static final String APK_SEPARATOR = URLUtil.JAR_SEPARATOR;
@@ -103,6 +105,17 @@ public class ApkFileSystem extends ArchiveFileSystem {
   @Override
   public void refresh(boolean asynchronous) {
     VfsImplUtil.refresh(this, asynchronous);
+  }
+
+  @NotNull
+  @Override
+  public byte[] contentsToByteArray(@NotNull VirtualFile file) throws IOException {
+    byte[] bytes = super.contentsToByteArray(file);
+    if (!isBinaryXml(file)) {
+      return bytes;
+    }
+
+    return BinaryXmlParser.decodeXml(file.getName(), bytes);
   }
 
   @Override

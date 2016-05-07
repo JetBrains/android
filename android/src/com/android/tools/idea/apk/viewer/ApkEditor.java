@@ -169,7 +169,7 @@ public class ApkEditor implements FileEditor, ApkViewPanel.Listener {
       return new EmptyPanel();
     }
 
-    if (ApkFileSystem.getInstance().isBinaryXml(file) || ApkFileSystem.getInstance().isArsc(file)) {
+    if (ApkFileSystem.getInstance().isArsc(file)) {
       return new BinaryXmlViewer(myBaseFile, file);
     }
 
