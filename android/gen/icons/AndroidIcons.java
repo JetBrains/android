@@ -278,8 +278,24 @@ public class AndroidIcons {
     public static final Icon HorizontalExpand = load("/icons/sherpa/horizontal-expand.png");
     public static final Icon LockConstraints = load("/icons/sherpa/ic_lock_black_18dp_1x.png");
     public static final Icon UnlockConstraints = load("/icons/sherpa/ic_lock_open_black_18dp_1x.png");
+    public static final Icon BaselineAlignB = load("/icons/sherpa/baseline-align_b.png");
+    public static final Icon BottomAlignB = load("/icons/sherpa/bottom-align_b.png");
+    public static final Icon CenterAlignedB = load("/icons/sherpa/center-aligned_b.png");
+    public static final Icon HorizontalCenterB = load("/icons/sherpa/horizontal-center_b.png");
+    public static final Icon HorizontalDistributeB = load("/icons/sherpa/horizontal-distribute_b.png");
+    public static final Icon LeftAlignedB = load("/icons/sherpa/left_aligned_b.png");
+    public static final Icon MiddleAlignB = load("/icons/sherpa/middle-align_b.png");
+    public static final Icon PackSelectionHorizontallyB = load("/icons/sherpa/pack_selection_horizontally_b.png");
+    public static final Icon PackSelectionVerticallyB = load("/icons/sherpa/pack_selection_vertically_b.png");
+    public static final Icon RightAlignedB = load("/icons/sherpa/right-aligned_b.png");
+    public static final Icon TopAlignB = load("/icons/sherpa/top-align_b.png");
+    public static final Icon VerticalCenterB = load("/icons/sherpa/vertical-center_b.png");
+    public static final Icon verticallyDistributeB = load("/icons/sherpa/vertically-distribute_b.png");
+    public static final Icon VerticalCenterParentB = load("/icons/sherpa/vertical-center-parent_b.png");
+    public static final Icon HorizontalCenterParentB = load("/icons/sherpa/horizontal-center-parent_b.png");
+    public static final Icon VerticalExpandB = load("/icons/sherpa/vertical-expand_b.png");
+    public static final Icon HorizontalExpandB = load("/icons/sherpa/horizontal-expand_b.png");
     public static final Icon ConstraintInfo = load("/icons/sherpa/question.png");
-
   }
 
   public static class Views {
