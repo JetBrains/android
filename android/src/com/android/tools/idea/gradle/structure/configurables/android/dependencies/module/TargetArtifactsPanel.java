@@ -13,25 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables.android.dependencies.project;
+package com.android.tools.idea.gradle.structure.configurables.android.dependencies.module;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview.TargetAndroidModuleNode;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview.TargetModulesTreeBuilder;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.*;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview.TargetArtifactsTreeBuilder;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.ModuleDependencyNode;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowPanel;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseCollapseAllAction;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseExpandAllAction;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.NodeHyperlinkSupport;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
+import com.android.tools.idea.gradle.structure.model.android.PsModuleDependency;
 import com.google.common.collect.Lists;
-import com.intellij.icons.AllIcons;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.ui.PopupHandler;
+import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.ui.treeStructure.Tree;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -43,14 +45,14 @@ import java.util.List;
 import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.setUp;
 import static java.awt.event.MouseEvent.MOUSE_PRESSED;
 
-class TargetModulesPanel extends ToolWindowPanel {
-  @NotNull private final PsContext myContext;
+class TargetArtifactsPanel extends ToolWindowPanel {
   @NotNull private final Tree myTree;
-  @NotNull private final TargetModulesTreeBuilder myTreeBuilder;
-  @NotNull private final NodeHyperlinkSupport<TargetAndroidModuleNode> myHyperlinkSupport;
+  @NotNull private final TargetArtifactsTreeBuilder myTreeBuilder;
+  @NotNull private final PsContext myContext;
+  @NotNull private final NodeHyperlinkSupport<ModuleDependencyNode> myHyperlinkSupport;
 
-  TargetModulesPanel(@NotNull PsContext context) {
-    super("Target Modules", AllIcons.Nodes.ModuleGroup, null);
+  TargetArtifactsPanel(@NotNull PsAndroidModule module, @NotNull PsContext context) {
+    super("Target Artifacts", AndroidIcons.Variant, ToolWindowAnchor.RIGHT);
     myContext = context;
 
     DefaultTreeModel treeModel = new DefaultTreeModel(new DefaultMutableTreeNode());
@@ -59,11 +61,11 @@ class TargetModulesPanel extends ToolWindowPanel {
       protected void processMouseEvent(MouseEvent e) {
         int id = e.getID();
         if (id == MOUSE_PRESSED) {
-          TargetAndroidModuleNode node = myHyperlinkSupport.getIfHyperlink(e);
+          ModuleDependencyNode node = myHyperlinkSupport.getIfHyperlink(e);
           if (node != null) {
-            PsAndroidModule module = node.getModels().get(0);
-            String name = module.getName();
-            myContext.setSelectedModule(name, TargetModulesPanel.this);
+            PsModuleDependency moduleDependency = node.getModels().get(0);
+            String name = moduleDependency.getName();
+            myContext.setSelectedModule(name, TargetArtifactsPanel.this);
             // Do not call super, to avoid selecting the 'module' node when clicking a hyperlink.
             return;
           }
@@ -72,22 +74,14 @@ class TargetModulesPanel extends ToolWindowPanel {
       }
     };
 
-    myTree.addMouseListener(new PopupHandler() {
-      @Override
-      public void invokePopup(Component comp, int x, int y) {
-        popupInvoked(x, y);
-      }
-    });
-
     setHeaderActions();
     getHeader().setPreferredFocusedComponent(myTree);
 
-    myTreeBuilder = new TargetModulesTreeBuilder(myTree, treeModel);
-
+    myTreeBuilder = new TargetArtifactsTreeBuilder(module, myTree, treeModel);
     JScrollPane scrollPane = setUp(myTreeBuilder);
     add(scrollPane, BorderLayout.CENTER);
 
-    myHyperlinkSupport = new NodeHyperlinkSupport<>(myTree, TargetAndroidModuleNode.class, myContext, false);
+    myHyperlinkSupport = new NodeHyperlinkSupport<>(myTree, ModuleDependencyNode.class, myContext, false);
   }
 
   private void setHeaderActions() {
@@ -111,22 +105,8 @@ class TargetModulesPanel extends ToolWindowPanel {
     getHeader().setAdditionalActions(additionalActions);
   }
 
-  private void popupInvoked(int x, int y) {
-    TargetAndroidModuleNode node = myHyperlinkSupport.getNodeForLocation(x, y);
-
-    if (node != null) {
-      PsAndroidModule module = node.getModels().get(0);
-
-      DefaultActionGroup group = new DefaultActionGroup();
-      group.add(new GoToModuleAction(module.getName(), myContext, myTree));
-
-      ActionPopupMenu popupMenu = ActionManager.getInstance().createActionPopupMenu("", group);
-      popupMenu.getComponent().show(myTree, x, y);
-    }
-  }
-
-  void displayTargetModules(@NotNull List<AbstractDependencyNode<? extends PsAndroidDependency>> dependencyNodes) {
-    myTreeBuilder.displayTargetModules(dependencyNodes);
+  void displayTargetArtifacts(@Nullable PsAndroidDependency dependency) {
+    myTreeBuilder.displayTargetArtifacts(dependency);
   }
 
   @Override

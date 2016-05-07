@@ -13,28 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview;
+package com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview;
 
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractPsNodeTreeBuilder;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractDependencyNode;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
-import java.util.List;
 
-public class TargetModulesTreeBuilder extends AbstractPsNodeTreeBuilder {
-  public TargetModulesTreeBuilder(@NotNull JTree tree, @NotNull DefaultTreeModel treeModel) {
-    super(tree, treeModel, new TargetModulesTreeStructure());
+public class TargetArtifactsTreeBuilder extends AbstractPsNodeTreeBuilder {
+  public TargetArtifactsTreeBuilder(@NotNull PsAndroidModule module, @NotNull JTree tree, @NotNull DefaultTreeModel treeModel) {
+    super(tree, treeModel, new TargetArtifactsTreeStructure(module));
   }
 
-  public void displayTargetModules(@NotNull List<AbstractDependencyNode<? extends PsAndroidDependency>> dependencyNodes) {
+  public void displayTargetArtifacts(@Nullable PsAndroidDependency dependency) {
     AbstractTreeStructure treeStructure = getTreeStructure();
-    if (treeStructure instanceof TargetModulesTreeStructure) {
-      ((TargetModulesTreeStructure)treeStructure).displayTargetModules(dependencyNodes);
-      queueUpdate();
+    if (treeStructure instanceof TargetArtifactsTreeStructure) {
+      ((TargetArtifactsTreeStructure)treeStructure).displayTargetArtifacts(dependency);
+      queueUpdate().doWhenDone(this::expandAllNodes);
     }
   }
 }
