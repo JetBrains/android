@@ -16,7 +16,7 @@
         </constraints>
         <properties>
           <componentStyle value="SMALL"/>
-          <fontColor value="BRIGHTER"/>
+          <fontColor value="NORMAL"/>
           <text value="Group ID:"/>
         </properties>
       </component>
@@ -26,7 +26,7 @@
         </constraints>
         <properties>
           <componentStyle value="SMALL"/>
-          <fontColor value="BRIGHTER"/>
+          <fontColor value="NORMAL"/>
           <text value="Artifact Name:"/>
         </properties>
       </component>

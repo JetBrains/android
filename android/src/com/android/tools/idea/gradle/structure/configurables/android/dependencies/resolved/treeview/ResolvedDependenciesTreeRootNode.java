@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview;
+package com.android.tools.idea.gradle.structure.configurables.android.dependencies.resolved.treeview;
 
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsAndroidDependencyComparator;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview.ArtifactComparator.ArtifactNameComparator;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.ArtifactComparator;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AndroidArtifactNode;
-import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsResettableNode;
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode;
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsResettableNode;
 import com.android.tools.idea.gradle.structure.model.android.*;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
@@ -29,10 +29,13 @@ import com.intellij.util.containers.SortedList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 import static com.android.builder.model.AndroidProject.ARTIFACT_MAIN;
-import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview.DependencyNodes.createNodesFor;
+import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.resolved.treeview.DependencyNodes.createNodesFor;
 
 class ResolvedDependenciesTreeRootNode extends AbstractPsResettableNode<PsAndroidModule> {
   private boolean myGroupVariants = PsUISettings.getInstance().RESOLVED_DEPENDENCIES_GROUP_VARIANTS;
@@ -284,7 +287,7 @@ class ResolvedDependenciesTreeRootNode extends AbstractPsResettableNode<PsAndroi
 
       if (dependenciesByArtifact != null) {
         List<String> artifactNames = Lists.newArrayList(dependenciesByArtifact.keySet());
-        Collections.sort(artifactNames, ArtifactNameComparator.INSTANCE);
+        Collections.sort(artifactNames, ArtifactComparator.byName());
 
         for (String artifactName : artifactNames) {
           PsAndroidArtifact artifact = variant.findArtifact(artifactName);

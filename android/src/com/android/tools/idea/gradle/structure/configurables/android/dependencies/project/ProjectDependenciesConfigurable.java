@@ -38,7 +38,7 @@ public class ProjectDependenciesConfigurable extends AbstractDependenciesConfigu
   @NotNull private final PsModule myModule;
   @NotNull private final PsContext myContext;
 
-  private ProjectDependenciesPanel myDependenciesPanel;
+  private MainPanel myMainPanel;
 
   public ProjectDependenciesConfigurable(@NotNull PsModule module, @NotNull PsContext context, @NotNull List<PsModule> extraTopModules) {
     super(module, context, extraTopModules);
@@ -53,12 +53,12 @@ public class ProjectDependenciesConfigurable extends AbstractDependenciesConfigu
   }
 
   @Override
-  public ProjectDependenciesPanel createOptionsPanel() {
-    if (myDependenciesPanel == null) {
-      myDependenciesPanel = new ProjectDependenciesPanel(myModule, getContext(), getExtraTopModules());
-      myDependenciesPanel.setHistory(getHistory());
+  public MainPanel createOptionsPanel() {
+    if (myMainPanel == null) {
+      myMainPanel = new MainPanel(myModule, getContext(), getExtraTopModules());
+      myMainPanel.setHistory(getHistory());
     }
-    return myDependenciesPanel;
+    return myMainPanel;
   }
 
   @Override
@@ -74,8 +74,8 @@ public class ProjectDependenciesConfigurable extends AbstractDependenciesConfigu
   @Override
   public void setHistory(History history) {
     super.setHistory(history);
-    if (myDependenciesPanel != null) {
-      myDependenciesPanel.setHistory(history);
+    if (myMainPanel != null) {
+      myMainPanel.setHistory(history);
     }
   }
 
@@ -131,8 +131,8 @@ public class ProjectDependenciesConfigurable extends AbstractDependenciesConfigu
 
   @Override
   public void disposeUIResources() {
-    if (myDependenciesPanel != null) {
-      Disposer.dispose(myDependenciesPanel);
+    if (myMainPanel != null) {
+      Disposer.dispose(myMainPanel);
     }
   }
 }

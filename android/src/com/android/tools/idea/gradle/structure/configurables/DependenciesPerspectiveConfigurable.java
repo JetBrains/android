@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.structure.configurables;
 
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.AbstractDependenciesConfigurable;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsAllModulesFakeModule;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.ModuleDependenciesConfigurable;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.AndroidModuleDependenciesConfigurable;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.ProjectDependenciesConfigurable;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsProject;
@@ -25,28 +25,19 @@ import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.ui.NamedConfigurable;
-import com.intellij.openapi.util.ActionCallback;
-import com.intellij.ui.navigation.Place;
 import org.jetbrains.annotations.Nls;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.tree.TreePath;
 import java.util.List;
 import java.util.Map;
 
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-import static com.intellij.ui.navigation.Place.goFurther;
-import static com.intellij.ui.navigation.Place.queryFurther;
-
 public class DependenciesPerspectiveConfigurable extends BasePerspectiveConfigurable {
-  @NonNls private static final String DEPENDENCIES_PLACE = "dependencies.place";
+  @NotNull private final Map<String, AbstractDependenciesConfigurable<? extends PsModule>> myConfigurablesByGradlePath = Maps.newHashMap();
 
-  private final Map<String, AbstractDependenciesConfigurable<? extends PsModule>> myConfigurablesByGradlePath = Maps.newHashMap();
-
-  private final List<PsModule> myExtraTopModules = Lists.newArrayListWithExpectedSize(2);
-  private final Map<PsModule, AbstractDependenciesConfigurable<? extends PsModule>> myExtraTopConfigurables = Maps.newHashMapWithExpectedSize(2);
+  @NotNull private final List<PsModule> myExtraTopModules = Lists.newArrayListWithExpectedSize(2);
+  @NotNull private final Map<PsModule, AbstractDependenciesConfigurable<? extends PsModule>> myExtraTopConfigurables =
+    Maps.newHashMapWithExpectedSize(2);
 
   public DependenciesPerspectiveConfigurable(@NotNull PsContext context) {
     super(context);
@@ -70,7 +61,7 @@ public class DependenciesPerspectiveConfigurable extends BasePerspectiveConfigur
       if (configurable == null) {
         if (module instanceof PsAndroidModule) {
           PsAndroidModule androidModule = (PsAndroidModule)module;
-          configurable = new ModuleDependenciesConfigurable(androidModule, getContext(), getExtraTopModules());
+          configurable = new AndroidModuleDependenciesConfigurable(androidModule, getContext(), getExtraTopModules());
           configurable.setHistory(myHistory);
           myConfigurablesByGradlePath.put(gradlePath, configurable);
         }
@@ -89,62 +80,10 @@ public class DependenciesPerspectiveConfigurable extends BasePerspectiveConfigur
     return myExtraTopModules;
   }
 
-  public void putPath(@NotNull Place place, @NotNull String moduleName, @NotNull String dependency) {
-    place.putPath(DEPENDENCIES_PLACE, moduleName);
-
-    PsModule module = findModule(moduleName);
-    assert module != null;
-
-    MyNode node = findNodeByObject(myRoot, module);
-    assert node != null;
-
-    NamedConfigurable configurable = node.getConfigurable();
-    assert configurable instanceof ModuleDependenciesConfigurable;
-
-    ModuleDependenciesConfigurable dependenciesConfigurable = (ModuleDependenciesConfigurable)configurable;
-    dependenciesConfigurable.putPath(place, dependency);
-  }
-
   @Override
-  public ActionCallback navigateTo(@Nullable Place place, boolean requestFocus) {
-    if (place != null) {
-      Object path = place.getPath(DEPENDENCIES_PLACE);
-      if (path instanceof String) {
-        String moduleName = (String)path;
-        if (!isEmpty(moduleName)) {
-          ActionCallback callback = new ActionCallback();
-          getContext().setSelectedModule(moduleName, this);
-          selectModule(moduleName);
-          goFurther(getSelectedConfigurable(), place, requestFocus).notifyWhenDone(callback);
-          return callback;
-        }
-      }
-    }
-    return ActionCallback.DONE;
-  }
-
-  @Override
-  public void queryPlace(@NotNull Place place) {
-    NamedConfigurable selectedConfigurable = getSelectedConfigurable();
-    if (selectedConfigurable instanceof BaseNamedConfigurable) {
-      PsModule module = ((BaseNamedConfigurable)selectedConfigurable).getEditableObject();
-      String moduleName = module.getName();
-      place.putPath(DEPENDENCIES_PLACE, moduleName);
-      queryFurther(selectedConfigurable, place);
-      return;
-    }
-    place.putPath(DEPENDENCIES_PLACE, "");
-  }
-
-  @Override
-  @Nullable
-  public NamedConfigurable getSelectedConfigurable() {
-    TreePath selectionPath = myTree.getSelectionPath();
-    if (selectionPath != null) {
-      MyNode node = (MyNode)selectionPath.getLastPathComponent();
-      return node.getConfigurable();
-    }
-    return null;
+  @NotNull
+  protected String getNavigationPathName() {
+    return "dependencies.place";
   }
 
   @Override
