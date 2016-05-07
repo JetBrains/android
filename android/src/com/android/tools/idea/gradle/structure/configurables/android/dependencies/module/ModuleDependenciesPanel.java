@@ -36,7 +36,7 @@ import java.util.List;
 class ModuleDependenciesPanel extends AbstractMainDependenciesPanel {
   @NotNull private final JBSplitter myVerticalSplitter;
   @NotNull private final DeclaredDependenciesPanel myDeclaredDependenciesPanel;
-  @NotNull private final ResolvedDependenciesPanel myResolvedDependenciesPanel;
+  @NotNull private final TargetArtifactsPanel myTargetArtifactsPanel;
   @NotNull private final JPanel myAltPanel;
 
   ModuleDependenciesPanel(@NotNull PsAndroidModule module, @NotNull PsContext context, @NotNull List<PsModule> extraTopModules) {
@@ -45,33 +45,31 @@ class ModuleDependenciesPanel extends AbstractMainDependenciesPanel {
     myDeclaredDependenciesPanel = new DeclaredDependenciesPanel(module, context);
     myDeclaredDependenciesPanel.setHistory(getHistory());
 
-    myResolvedDependenciesPanel = new ResolvedDependenciesPanel(module, context, myDeclaredDependenciesPanel);
+    myTargetArtifactsPanel = new TargetArtifactsPanel(module, context);
 
     myVerticalSplitter = createMainVerticalSplitter();
     myVerticalSplitter.setFirstComponent(myDeclaredDependenciesPanel);
-    myVerticalSplitter.setSecondComponent(myResolvedDependenciesPanel);
+    myVerticalSplitter.setSecondComponent(myTargetArtifactsPanel);
 
     add(myVerticalSplitter, BorderLayout.CENTER);
 
     myDeclaredDependenciesPanel.updateTableColumnSizes();
-    myDeclaredDependenciesPanel.add(myResolvedDependenciesPanel::setSelection);
-
-    myResolvedDependenciesPanel.add(myDeclaredDependenciesPanel::setSelection);
+    myDeclaredDependenciesPanel.add(myTargetArtifactsPanel::displayTargetArtifacts);
 
     myAltPanel = new JPanel(new BorderLayout());
 
-    ToolWindowHeader header = myResolvedDependenciesPanel.getHeader();
+    ToolWindowHeader header = myTargetArtifactsPanel.getHeader();
 
-    JPanel minimizedContainerPanel = myResolvedDependenciesPanel.getMinimizedPanel();
+    JPanel minimizedContainerPanel = myTargetArtifactsPanel.getMinimizedPanel();
     assert minimizedContainerPanel != null;
     myAltPanel.add(minimizedContainerPanel, BorderLayout.EAST);
 
-    header.addMinimizeListener(this::minimizeResolvedDependenciesPanel);
+    header.addMinimizeListener(this::minimizeTargetArtifactsPanel);
 
-    myResolvedDependenciesPanel.addRestoreListener(this::restoreResolvedDependenciesPanel);
+    myTargetArtifactsPanel.addRestoreListener(this::restoreTargetArtifactsPanel);
   }
 
-  private void restoreResolvedDependenciesPanel() {
+  private void restoreTargetArtifactsPanel() {
     remove(myAltPanel);
     myAltPanel.remove(myDeclaredDependenciesPanel);
     myVerticalSplitter.setFirstComponent(myDeclaredDependenciesPanel);
@@ -81,7 +79,7 @@ class ModuleDependenciesPanel extends AbstractMainDependenciesPanel {
     saveMinimizedState(false);
   }
 
-  private void minimizeResolvedDependenciesPanel() {
+  private void minimizeTargetArtifactsPanel() {
     remove(myVerticalSplitter);
     myVerticalSplitter.setFirstComponent(null);
     myAltPanel.add(myDeclaredDependenciesPanel, BorderLayout.CENTER);
@@ -92,18 +90,18 @@ class ModuleDependenciesPanel extends AbstractMainDependenciesPanel {
   }
 
   private static void saveMinimizedState(boolean minimize) {
-    PsUISettings.getInstance().RESOLVED_DEPENDENCIES_MINIMIZE = minimize;
+    PsUISettings.getInstance().TARGET_ARTIFACTS_MINIMIZE = minimize;
   }
 
   @Override
   public void addNotify() {
     super.addNotify();
-    boolean minimize = PsUISettings.getInstance().RESOLVED_DEPENDENCIES_MINIMIZE;
+    boolean minimize = PsUISettings.getInstance().TARGET_ARTIFACTS_MINIMIZE;
     if (minimize) {
-      minimizeResolvedDependenciesPanel();
+      minimizeTargetArtifactsPanel();
     }
     else {
-      restoreResolvedDependenciesPanel();
+      restoreTargetArtifactsPanel();
     }
   }
 
@@ -130,6 +128,6 @@ class ModuleDependenciesPanel extends AbstractMainDependenciesPanel {
   @Override
   public void dispose() {
     Disposer.dispose(myDeclaredDependenciesPanel);
-    Disposer.dispose(myResolvedDependenciesPanel);
+    Disposer.dispose(myTargetArtifactsPanel);
   }
 }
