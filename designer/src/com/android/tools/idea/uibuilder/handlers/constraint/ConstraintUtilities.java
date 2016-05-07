@@ -19,10 +19,7 @@ import com.android.SdkConstants;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.res.ResourceHelper;
-import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
-import com.android.tools.idea.uibuilder.model.Insets;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.sherpa.drawing.decorator.TextWidget;
 import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
 import com.android.tools.sherpa.structure.WidgetCompanion;
@@ -38,6 +35,8 @@ import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 
 /**
@@ -745,7 +744,7 @@ public class ConstraintUtilities {
     WidgetCompanion companion = (WidgetCompanion)widget.getCompanionWidget();
     WidgetDecorator decorator = companion.getWidgetDecorator(WidgetDecorator.BLUEPRINT_STYLE);
     if (decorator != null && decorator instanceof TextWidget) {
-      TextWidget textWidget = (TextWidget) decorator;
+      TextWidget textWidget = (TextWidget)decorator;
       textWidget.setText(getResolvedText(component));
 
       Configuration configuration = component.getModel().getConfiguration();
@@ -807,16 +806,25 @@ public class ConstraintUtilities {
 
   /**
    * Utility function to commit an attribute to the NlModel
+   *
    * @param component
    * @param nameSpace
    * @param attribute
-   * @param value String or null to clear attribute
+   * @param value     String or null to clear attribute
    */
-  static void saveNlAttribute(NlComponent component,String nameSpace, String attribute, final String value) {
+  static void saveNlAttribute(NlComponent component, String nameSpace, String attribute, final String value) {
     NlModel nlModel = component.getModel();
     Project project = nlModel.getProject();
     XmlFile file = nlModel.getFile();
 
+    String previousValue = component.getAttribute(nameSpace, attribute);
+    if ((value == null && previousValue == null)
+        || value.equalsIgnoreCase(previousValue)
+        || (value != null && value.equalsIgnoreCase("0dp") && previousValue == null)) {
+      // TODO: we should fix why we get there in the first place rather than catching it here.
+      // (WidgetConstraintPanel::configureUI configure the margin in the combobox and calls us...)
+      return;
+    }
     String label = "Constraint";
     WriteCommandAction action = new WriteCommandAction(project, label, file) {
       @Override
@@ -859,12 +867,6 @@ public class ConstraintUtilities {
   static void commitElement(@NotNull ConstraintWidget widget, @NotNull NlModel model) {
     WidgetCompanion companion = (WidgetCompanion)widget.getCompanionWidget();
     NlComponent component = (NlComponent)companion.getWidgetModel();
-    for (NlComponent c : model.getComponents()) {
-      if (c.getId() != null && c.getId().equalsIgnoreCase(component.getId())) {
-        component = c;
-        break;
-      }
-    }
     setEditorPosition(component, widget.getX(), widget.getY());
     if (!widget.isRoot()) {
       setDimension(component, widget);
@@ -875,4 +877,299 @@ public class ConstraintUtilities {
     setHorizontalBias(component, widget);
     setVerticalBias(component, widget);
   }
+
+  /**
+   * Utility function to render the current model to layoutlib
+   *
+   * @param model the ConstraintModel we want to render
+   */
+  static void renderModel(@NotNull ConstraintModel model) {
+    Collection<ConstraintWidget> widgets = model.getScene().getWidgets();
+    for (ConstraintWidget widget : widgets) {
+      saveWidgetLayoutParams(model, widget);
+    }
+    model.getNlModel().requestRender(); // let's render asynchronously for now
+  }
+
+  /**
+   * Apply the current attributes of the given widget to the layoutlib LayoutParams
+   *
+   * @param model
+   * @param widget
+   */
+  static void saveWidgetLayoutParams(@NotNull ConstraintModel model, @NotNull ConstraintWidget widget) {
+    try {
+      if (!widget.isRoot()) {
+        WidgetCompanion companion = (WidgetCompanion)widget.getCompanionWidget();
+        NlComponent component = (NlComponent)companion.getWidgetModel();
+
+        Object viewObject = component.viewInfo.getViewObject();
+        Object layoutParams = component.viewInfo.getLayoutParamsObject();
+
+        // Save the attributes to the layoutParams instance
+        saveEditorPosition(layoutParams, model.dpToPx(widget.getX()), model.dpToPx(widget.getY()));
+        saveDimension(model, widget, layoutParams);
+        for (ConstraintAnchor anchor : widget.getAnchors()) {
+          saveConnection(model, anchor, layoutParams);
+        }
+        saveBiases(widget, layoutParams);
+
+        // Now trigger a relayout
+        Class layoutParamsClass = layoutParams.getClass().getSuperclass();
+        viewObject.getClass().getMethod("setLayoutParams", layoutParamsClass)
+          .invoke(viewObject, layoutParams);
+      }
+    }
+    catch (IllegalAccessException e) {
+    }
+    catch (InvocationTargetException e) {
+    }
+    catch (NoSuchMethodException e) {
+    }
+  }
+
+  /**
+   * Save the current position to layoutParams
+   *
+   * @param layoutParams
+   * @param x
+   * @param y
+   */
+  static void saveEditorPosition(@NotNull Object layoutParams,
+                                 @AndroidCoordinate int x, @AndroidCoordinate int y) {
+    try {
+      Field editor_absolute_x = layoutParams.getClass().getField("editor_absolute_x");
+      Field editor_absolute_y = layoutParams.getClass().getField("editor_absolute_y");
+      editor_absolute_x.set(layoutParams, x);
+      editor_absolute_y.set(layoutParams, y);
+    }
+    catch (IllegalAccessException e) {
+    }
+    catch (NoSuchFieldException e) {
+    }
+  }
+
+  /**
+   * Save the current dimension to layoutParams
+   *
+   * @param model
+   * @param widget
+   * @param layoutParams
+   */
+  static void saveDimension(@NotNull ConstraintModel model, @NotNull ConstraintWidget widget, @NotNull Object layoutParams) {
+    try {
+      Field fieldWidth = layoutParams.getClass().getField("width");
+      Field fieldHeight = layoutParams.getClass().getField("height");
+      int previousWidth = fieldWidth.getInt(layoutParams);
+      int previousHeight = fieldHeight.getInt(layoutParams);
+      int newWidth = model.dpToPx(widget.getWidth());
+      int newHeight = model.dpToPx(widget.getHeight());
+      if (previousWidth != newWidth || previousHeight != newHeight) {
+        fieldWidth.set(layoutParams, newWidth);
+        fieldHeight.set(layoutParams, newHeight);
+      }
+    }
+    catch (IllegalAccessException e) {
+    }
+    catch (NoSuchFieldException e) {
+    }
+  }
+
+  /**
+   * Save the current horizontal and vertical biases to layoutParams
+   *
+   * @param widget
+   * @param layoutParams
+   */
+  static void saveBiases(@NotNull ConstraintWidget widget, @NotNull Object layoutParams) {
+    try {
+      Field horizontal_bias = layoutParams.getClass().getField("horizontal_bias");
+      Field vertical_bias = layoutParams.getClass().getField("vertical_bias");
+      horizontal_bias.set(layoutParams, widget.getHorizontalBiasPercent());
+      vertical_bias.set(layoutParams, widget.getVerticalBiasPercent());
+    }
+    catch (IllegalAccessException e) {
+    }
+    catch (NoSuchFieldException e) {
+    }
+  }
+
+  /**
+   * Save the current connections of this widget to layoutParams
+   *
+   * @param model
+   * @param component
+   * @param anchor
+   */
+  @SuppressWarnings("EnumSwitchStatementWhichMissesCases")
+  static void saveConnection(@NotNull ConstraintModel model, @NotNull ConstraintAnchor anchor, @NotNull Object layoutParams) {
+    try {
+      resetField(layoutParams, anchor);
+      if (anchor.isConnected()) {
+        ConstraintWidget target = anchor.getTarget().getOwner();
+        WidgetCompanion targetCompanion = (WidgetCompanion)target.getCompanionWidget();
+        NlComponent targetComponent = (NlComponent)targetCompanion.getWidgetModel();
+        int targetID = targetComponent.getAndroidViewId();
+        Field connectionField = getConnectionField(layoutParams, anchor);
+        if (connectionField != null) {
+          connectionField.set(layoutParams, targetID);
+        }
+        if (anchor.getMargin() > 0) {
+          switch (anchor.getType()) {
+            case LEFT: {
+              Field field = layoutParams.getClass().getField("left_margin");
+              field.set(layoutParams, model.dpToPx(anchor.getMargin()));
+            }
+            break;
+            case TOP: {
+              Field field = layoutParams.getClass().getField("top_margin");
+              field.set(layoutParams, model.dpToPx(anchor.getMargin()));
+            }
+            break;
+            case RIGHT: {
+              Field field = layoutParams.getClass().getField("right_margin");
+              field.set(layoutParams, model.dpToPx(anchor.getMargin()));
+            }
+            break;
+            case BOTTOM: {
+              Field field = layoutParams.getClass().getField("bottom_margin");
+              field.set(layoutParams, model.dpToPx(anchor.getMargin()));
+            }
+            break;
+          }
+        }
+      }
+    }
+    catch (IllegalAccessException e) {
+    }
+    catch (NoSuchFieldException e) {
+    }
+  }
+
+  /**
+   * Reset the fields associated to the given anchor in the layoutParams instance
+   *
+   * @param layoutParams
+   * @param anchor
+   * @throws NoSuchFieldException
+   * @throws IllegalAccessException
+   */
+  @SuppressWarnings("EnumSwitchStatementWhichMissesCases")
+  static void resetField(@NotNull Object layoutParams, @NotNull ConstraintAnchor anchor)
+    throws NoSuchFieldException, IllegalAccessException {
+    switch (anchor.getType()) {
+      case BASELINE: {
+        Field field = layoutParams.getClass().getField("baseline_to_baseline");
+        field.set(layoutParams, -1);
+      }
+      break;
+      case LEFT: {
+        Field field = layoutParams.getClass().getField("left_to_left");
+        field.set(layoutParams, -1);
+        field = layoutParams.getClass().getField("left_to_right");
+        field.set(layoutParams, -1);
+        field = layoutParams.getClass().getField("left_margin");
+        field.set(layoutParams, -1);
+      }
+      break;
+      case RIGHT: {
+        Field field = layoutParams.getClass().getField("right_to_left");
+        field.set(layoutParams, -1);
+        field = layoutParams.getClass().getField("right_to_right");
+        field.set(layoutParams, -1);
+        field = layoutParams.getClass().getField("right_margin");
+        field.set(layoutParams, -1);
+      }
+      break;
+      case TOP: {
+        Field field = layoutParams.getClass().getField("top_to_top");
+        field.set(layoutParams, -1);
+        field = layoutParams.getClass().getField("top_to_bottom");
+        field.set(layoutParams, -1);
+        field = layoutParams.getClass().getField("top_margin");
+        field.set(layoutParams, -1);
+      }
+      break;
+      case BOTTOM: {
+        Field field = layoutParams.getClass().getField("bottom_to_top");
+        field.set(layoutParams, -1);
+        field = layoutParams.getClass().getField("bottom_to_bottom");
+        field.set(layoutParams, -1);
+        field = layoutParams.getClass().getField("bottom_margin");
+        field.set(layoutParams, -1);
+      }
+      break;
+    }
+  }
+
+  /**
+   * Return the field in layoutParams corresponding to the given anchor
+   *
+   * @param layoutParams
+   * @param anchor
+   * @return
+   * @throws NoSuchFieldException
+   */
+  @SuppressWarnings("EnumSwitchStatementWhichMissesCases")
+  @Nullable
+  static Field getConnectionField(@NotNull Object layoutParams, @NotNull ConstraintAnchor anchor)
+    throws NoSuchFieldException {
+    ConstraintAnchor target = anchor.getTarget();
+    if (target != null) {
+      switch (anchor.getType()) {
+        case BASELINE: {
+          if (target.getType() == ConstraintAnchor.Type.BASELINE) {
+            return layoutParams.getClass().getField("baseline_to_baseline");
+          }
+          break;
+        }
+        case LEFT: {
+          switch (target.getType()) {
+            case LEFT: {
+              return layoutParams.getClass().getField("left_to_left");
+            }
+            case RIGHT: {
+              return layoutParams.getClass().getField("left_to_right");
+            }
+          }
+          break;
+        }
+        case RIGHT: {
+          switch (target.getType()) {
+            case LEFT: {
+              return layoutParams.getClass().getField("right_to_left");
+            }
+            case RIGHT: {
+              return layoutParams.getClass().getField("right_to_right");
+            }
+          }
+          break;
+        }
+        case TOP: {
+          switch (target.getType()) {
+            case TOP: {
+              return layoutParams.getClass().getField("top_to_top");
+            }
+            case BOTTOM: {
+              return layoutParams.getClass().getField("top_to_bottom");
+            }
+          }
+          break;
+        }
+        case BOTTOM: {
+          switch (target.getType()) {
+            case TOP: {
+              return layoutParams.getClass().getField("bottom_to_top");
+            }
+            case BOTTOM: {
+              return layoutParams.getClass().getField("bottom_to_bottom");
+            }
+          }
+          break;
+        }
+      }
+    }
+    return null;
+  }
+
 }

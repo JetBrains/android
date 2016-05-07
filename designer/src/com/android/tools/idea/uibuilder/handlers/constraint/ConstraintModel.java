@@ -28,6 +28,9 @@ import com.android.tools.sherpa.structure.Selection;
 import com.android.tools.sherpa.structure.WidgetsScene;
 import com.google.tnt.solver.widgets.*;
 
+import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
@@ -40,6 +43,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class ConstraintModel implements ModelListener {
 
   public static final int DEFAULT_DENSITY = 160;
+  private static final boolean DEBUG = false;
 
   private WidgetsScene myWidgetsScene = new WidgetsScene();
   private Selection mySelection = new Selection(null);
@@ -66,6 +70,8 @@ public class ConstraintModel implements ModelListener {
   private static final WeakHashMap<ScreenView, DrawConstraintModel> ourDrawModelCache = new WeakHashMap<>();
   private static final WeakHashMap<NlModel, ConstraintModel> ourModelCache = new WeakHashMap<>();
 
+  private SaveXMLTimer mSaveXmlTimer = new SaveXMLTimer();
+
   //////////////////////////////////////////////////////////////////////////////
   // Utilities
   //////////////////////////////////////////////////////////////////////////////
@@ -78,6 +84,16 @@ public class ConstraintModel implements ModelListener {
    */
   public int pxToDp(@AndroidCoordinate int px) {
     return (int)(px / myDpiFactor);
+  }
+
+  /**
+   * Transform android Dp into android pixels
+   *
+   * @param dp Dp value
+   * @return android pixels
+   */
+  public int dpToPx(@AndroidDpCoordinate int dp) {
+    return (int)(dp * myDpiFactor);
   }
 
   /**
@@ -135,8 +151,8 @@ public class ConstraintModel implements ModelListener {
       constraintModel = new ConstraintModel(model);
       model.addListener(constraintModel);
       ourModelCache.put(model, constraintModel);
+      constraintModel.modelChanged(model);
     }
-    constraintModel.modelChanged(model);
     ourLock.unlock();
     return constraintModel;
   }
@@ -149,6 +165,10 @@ public class ConstraintModel implements ModelListener {
   @Override
   public void modelChanged(@NotNull NlModel model) {
     ourLock.lock();
+    if (DEBUG) {
+      System.out.println("*** Model Changed " + model.getModificationCount()
+                         + " vs our " + myModificationCount);
+    }
     if (model.getModificationCount() > myModificationCount) {
       if (mAllowsUpdate) {
         int dpi = model.getConfiguration().getDensity().getDpiValue();
@@ -156,23 +176,87 @@ public class ConstraintModel implements ModelListener {
         updateNlModel(model.getComponents());
       }
       myModificationCount = model.getModificationCount();
+      if (DEBUG) {
+        System.out.println("-> updated [" + mAllowsUpdate + "] to " + myModificationCount);
+      }
+    } else {
+      if (DEBUG) {
+        System.out.println("-> no update");
+      }
     }
     ourLock.unlock();
   }
 
   @Override
   public void modelRendered(@NotNull NlModel model) {
-    // Do nothing here
+    if (DEBUG) {
+      ourLock.lock();
+      System.out.println("Model rendered " + model.getModificationCount()
+                         + " vs our " + myModificationCount);
+      ourLock.unlock();
+    }
+    mSaveXmlTimer.reset();
   }
 
   /**
    * Allows update to the model to come in or not
+   *
    * @param value
    */
   public void allowsUpdate(boolean value) {
     ourLock.lock();
     mAllowsUpdate = value;
     ourLock.unlock();
+    if (value) {
+      mSaveXmlTimer.reset();
+    }
+    else {
+      mSaveXmlTimer.cancel();
+    }
+  }
+
+  /**
+   * Timer class managing the xml save behaviour
+   * We only want to save if we are not doing something else...
+   */
+  class SaveXMLTimer implements ActionListener {
+    Timer mTimer = new Timer(800, this); // 800ms delay before saving
+
+    public SaveXMLTimer() {
+      mTimer.setRepeats(false);
+    }
+
+    public void reset() {
+      if (DEBUG) {
+        System.out.println("reset timer");
+      }
+      ourLock.lock();
+      boolean allowsUpdate = mAllowsUpdate;
+      ourLock.unlock();
+      if (allowsUpdate) {
+        mTimer.restart();
+      }
+    }
+
+    public void cancel() {
+      if (DEBUG) {
+        System.out.println("cancel timer");
+      }
+      mTimer.stop();
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      ourLock.lock();
+      boolean allowsUpdate = mAllowsUpdate;
+      ourLock.unlock();
+      if (allowsUpdate) {
+        if (DEBUG) {
+          System.out.println("save xml");
+        }
+        saveToXML();
+      }
+    }
   }
 
   //////////////////////////////////////////////////////////////////////////////
@@ -386,11 +470,39 @@ public class ConstraintModel implements ModelListener {
    * Save the model to xml
    */
   public void saveToXML() {
+    Selection selection = getSelection();
     ourLock.lock();
+    // inflate will call updateHierarchy, then render will call it as well,
+    // so let's increment our counter by 2
+    myModificationCount = myNlModel.getModificationCount() + 2;
+    ourLock.unlock();
+    if (!selection.getModifiedWidgets().isEmpty()) {
+      if (DEBUG) {
+        System.out.println("Model Saved to XML -> " + myModificationCount
+                           + "(" + selection.getModifiedWidgets().size()
+                           + " elements modified)");
+      }
+      ConstraintUtilities.saveModelToXML(myNlModel);
+      selection.clearModifiedWidgets();
+    }
+  }
+
+  /**
+   * Render the model in layoutlib
+   */
+  public void renderInLayoutLib() {
+    ourLock.lock();
+    // render will trigger updateHierarchy, so le'ts increment our
+    // counter by 1
     myModificationCount = myNlModel.getModificationCount() + 1;
+    if (DEBUG) {
+      System.out.println("### Model rendered to layoutlib -> "
+                         + myModificationCount + " vs "
+                          + myNlModel.getModificationCount());
+    }
     ourLock.unlock();
 
-    ConstraintUtilities.saveModelToXML(myNlModel);
+    ConstraintUtilities.renderModel(this);
   }
 
   public void setNeedsAnimateConstraints(int type) {
@@ -401,4 +513,7 @@ public class ConstraintModel implements ModelListener {
     return mNeedsAnimateConstraints;
   }
 
+  public NlModel getNlModel() {
+    return myNlModel;
+  }
 }

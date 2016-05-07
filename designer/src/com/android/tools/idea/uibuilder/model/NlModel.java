@@ -1492,7 +1492,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   @Override
   public void resourcesChanged(@NotNull Set<ResourceNotificationManager.Reason> reason) {
-    notifyModified();
+    myModificationCount += reason.size();
+    requestModelUpdate();
   }
 
   // ---- Implements ModificationTracker ----
