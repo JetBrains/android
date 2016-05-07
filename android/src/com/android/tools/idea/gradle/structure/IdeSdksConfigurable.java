@@ -321,7 +321,7 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
           return;
         }
         List<String> requested = ImmutableList.of(FD_NDK);
-        ModelWizardDialog dialog = createDialogForPaths(myWholePanel, requested);
+        ModelWizardDialog dialog = createDialogForPaths(myWholePanel, requested, false);
         if (dialog != null && dialog.showAndGet()) {
           File ndk = IdeSdks.getAndroidNdkPath();
           if (ndk != null) {
