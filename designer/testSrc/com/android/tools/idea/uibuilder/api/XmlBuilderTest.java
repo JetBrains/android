@@ -139,4 +139,38 @@ public final class XmlBuilderTest {
 
     assertEquals(expected, actual);
   }
+
+  @Test
+  public void toStringNoClosePreviousTagWithoutAttributes() {
+    @Language("XML")
+    String expected = "<Foo>\n\n" +
+                      "    <Bar />\n" +
+                      "</Foo>\n";
+
+    // @formatter:off
+    String actual = new XmlBuilder()
+      .startTag("Foo")
+        .startTag("Bar")
+        .endTag("Bar")
+      .endTag("Foo")
+      .toString();
+    // @formatter:on
+
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  public void toStringAttributeWithNoNamespace() {
+    @Language("XML")
+    String expected = "<Foo\n" +
+                      "    name=\"value\" />\n";
+
+    String actual = new XmlBuilder()
+      .startTag("Foo")
+      .attribute("", "name", "value")
+      .endTag("Foo")
+      .toString();
+
+    assertEquals(expected, actual);
+  }
 }
