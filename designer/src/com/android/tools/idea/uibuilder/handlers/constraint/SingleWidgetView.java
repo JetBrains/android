@@ -17,9 +17,6 @@ package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.tools.sherpa.drawing.BlueprintColorSet;
 import com.android.tools.sherpa.drawing.ColorSet;
-import com.android.tools.sherpa.drawing.SceneDraw;
-import com.android.tools.sherpa.drawing.ViewTransform;
-import com.android.tools.sherpa.interaction.MouseInteraction;
 import com.android.tools.sherpa.structure.WidgetCompanion;
 import com.android.tools.sherpa.structure.WidgetsScene;
 import com.google.tnt.solver.widgets.ConstraintWidget;
@@ -36,7 +33,6 @@ import java.util.ArrayList;
  * Uses a SceneDraw to render an iconic form of the widget
  */
 public class SingleWidgetView extends JPanel {
-  static Color mLinesColor = new Color(100, 152, 199);
   WidgetConstraintPanel mWidgetConstraintPanel;
   ColorSet mColorSet = new InspectorColorSet();
   public final static int SPRING = 1;
@@ -509,9 +505,6 @@ public class SingleWidgetView extends JPanel {
    * This renders the basic graphic of a Scene
    */
   class WidgetRender implements Graphic {
-    private MouseInteraction mMouseInteraction;
-    private SceneDraw mSceneDraw;
-    ViewTransform mViewTransform = new ViewTransform();
     WidgetsScene mWidgetsScene;
     ConstraintWidgetContainer mRoot;
     int mMarginLeft;
@@ -573,10 +566,10 @@ public class SingleWidgetView extends JPanel {
       //  mWidgetBase = new BaseLineBox(null, inset - mBoxSize, boxTop + mBoxSize + 10, mBoxSize, mBoxSize / 2, true);
 
       int endPointY = boxTop + mBoxSize + 10;
-      int baslineBox = mBoxSize / 2;
-      mWidgetBase = new BaseLineBox(null, width - inset, endPointY, baslineBox, baslineBox, mBaseline, mBaseline);
+      int baselineBox = mBoxSize / 2;
+      mWidgetBase = new BaseLineBox(null, width - inset, endPointY, baselineBox, baselineBox, mBaseline, mBaseline);
       mBaselineArrow =
-        new SplineArrow(boxLeft + mBoxSize, boxTop + (3 * mBoxSize) / 4, width - inset, endPointY + 3 * baslineBox / 4, false, mBaseline);
+        new SplineArrow(boxLeft + mBoxSize, boxTop + (3 * mBoxSize) / 4, width - inset, endPointY + 3 * baselineBox / 4, false, mBaseline);
 
       mTopArrow = new LineArrow(width / 2, boxTop, width / 2, inset, (mMarginTop >= 0));
       mLeftArrow = new LineArrow(boxLeft, height / 2, inset, height / 2, (mMarginLeft >= 0));
@@ -740,7 +733,7 @@ public class SingleWidgetView extends JPanel {
      */
 
     private static void drawSpringHorizontalConstraint(Graphics g, int l, int y, int r) {
-      int m = 6;
+      int m = 7;
       int d = 3;
       int w = (r - l);
       int ni = (w / (2 * d)) - 1;
@@ -766,8 +759,8 @@ public class SingleWidgetView extends JPanel {
      * @param r                    right end
      * @param directionLeftToRight indicates the direction of the chevrons
      */
-    private void drawWrapHorizontalConstraint(Graphics g, int l, int y, int r,
-                                              boolean directionLeftToRight) {
+    private static void drawWrapHorizontalConstraint(Graphics g, int l, int y, int r,
+                                                     boolean directionLeftToRight) {
       int d = 4;
       int w = (r - l);
       int ni = (w / (2 * d)) - 1;
@@ -796,8 +789,8 @@ public class SingleWidgetView extends JPanel {
      * @param y y origin
      * @param r right end
      */
-    private void drawFixedHorizontalConstraint(Graphics g, int l, int y, int r) {
-      int m = 6;
+    private static void drawFixedHorizontalConstraint(Graphics g, int l, int y, int r) {
+      int m = 7;
       g.drawLine(l, y - m, l, y + m);
       g.drawLine(l, y, r, y);
       g.drawLine(r, y - m, r, y + m);
@@ -844,8 +837,8 @@ public class SingleWidgetView extends JPanel {
      * @param x x origin
      * @param b bottom end
      */
-    private void drawSpringVerticalConstraint(Graphics g, int t, int x, int b) {
-      int m = 6;
+    private static void drawSpringVerticalConstraint(Graphics g, int t, int x, int b) {
+      int m = 7;
       int d = 3;
       int h = (b - t);
       int ni = (h / (2 * d)) - 1;
@@ -870,8 +863,8 @@ public class SingleWidgetView extends JPanel {
      * @param x x origin
      * @param b bottom end
      */
-    private void drawFixedVerticalConstraint(Graphics g, int t, int x, int b) {
-      int m = 6;
+    private static void drawFixedVerticalConstraint(Graphics g, int t, int x, int b) {
+      int m = 7;
       g.drawLine(x - m, t, x + m, t);
       g.drawLine(x, t, x, b);
       g.drawLine(x - m, b, x + m, b);
@@ -886,9 +879,8 @@ public class SingleWidgetView extends JPanel {
      * @param b           bottom end
      * @param topToBottom indicates the direction of the chevrons
      */
-    private void drawWrapVerticalConstraint(Graphics g, int t, int x, int b,
-                                            boolean topToBottom) {
-      int m = 6;
+    private static void drawWrapVerticalConstraint(Graphics g, int t, int x, int b,
+                                                   boolean topToBottom) {
       int d = 4;
       int h = (b - t);
       int ni = (h / (2 * d)) - 1;
