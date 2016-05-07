@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsAndroidDependencyComparator;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview.ArtifactComparator.ArtifactNameComparator;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AndroidArtifactNode;
-import com.android.tools.idea.gradle.structure.configurables.android.treeview.AbstractRootNode;
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsResettableNode;
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode;
 import com.android.tools.idea.gradle.structure.model.android.*;
@@ -34,7 +34,7 @@ import java.util.*;
 import static com.android.builder.model.AndroidProject.ARTIFACT_MAIN;
 import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview.DependencyNodes.createNodesFor;
 
-class ResolvedDependenciesTreeRootNode extends AbstractRootNode<PsAndroidModule> {
+class ResolvedDependenciesTreeRootNode extends AbstractPsResettableNode<PsAndroidModule> {
   private boolean myGroupVariants = PsUISettings.getInstance().RESOLVED_DEPENDENCIES_GROUP_VARIANTS;
 
   ResolvedDependenciesTreeRootNode(@NotNull PsAndroidModule module) {
