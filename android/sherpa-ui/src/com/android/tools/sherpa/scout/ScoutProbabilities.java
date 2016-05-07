@@ -40,6 +40,7 @@ public class ScoutProbabilities {
     private static final float SLOPE_CENTER_CONNECTION = 20;
     private static final int MAX_DIST_FOR_CENTER_OVERLAP = 40;
     private static final int ROOT_MARGIN_DISCOUNT = 16;
+    private static final int MAX_ROOT_OVERHANG = 10;
 
     float[][][] mProbability; // probability of a connection
     float[][][] mMargin; // margin needed for that connection
@@ -713,8 +714,19 @@ public class ScoutProbabilities {
         float positionDiff2 = toLoc2 - location2;
 
         if (positionDiff1 < 0 || positionDiff2 < 0) { // do not center if not aligned
-            result[RESULT_PROBABILITY] = NEGATIVE_GAP_FLAG;
-            return;
+            boolean badCandidate = true;
+            if (positionDiff2 < 0 && to2.isRoot() && positionDiff2 > -MAX_ROOT_OVERHANG) {
+                badCandidate = false;
+                positionDiff2 = 0;
+            }
+            if (positionDiff1 < 0 && to1.isRoot() && positionDiff2 > -MAX_ROOT_OVERHANG) {
+                badCandidate = false;
+                positionDiff2 = 0;
+            }
+            if (badCandidate) {
+                result[RESULT_PROBABILITY] = NEGATIVE_GAP_FLAG;
+                return;
+            }
         }
 
         float distance1 = ScoutWidget.distance(from, to1) / scale;
