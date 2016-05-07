@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.api.DragHandler;
@@ -34,6 +35,14 @@ import static com.android.SdkConstants.*;
  * Handler for the {@code <android.support.design.widget.CoordinatorLayout>} layout
  */
 public class CoordinatorLayoutHandler extends FrameLayoutHandler {
+  @Override
+  @NotNull
+  public List<String> getInspectorProperties() {
+    return ImmutableList.of(
+      ATTR_CONTEXT,
+      ATTR_FITS_SYSTEM_WINDOWS);
+  }
+
   @Nullable
   @Override
   public DragHandler createDragHandler(@NotNull ViewEditor editor,

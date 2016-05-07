@@ -18,8 +18,11 @@ package com.android.tools.idea.uibuilder.handlers;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlBuilder;
 import com.android.tools.idea.uibuilder.api.XmlType;
+import com.google.common.collect.ImmutableList;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 import static com.android.SdkConstants.*;
 import static com.android.SdkConstants.ImageViewAttributes.TINT;
@@ -29,6 +32,17 @@ import static com.android.SdkConstants.ViewAttributes.MIN_HEIGHT;
  * Handler for the {@code <Toolbar>} widget from appcompat
  */
 public class ToolbarHandler extends ViewHandler {
+  @Override
+  @NotNull
+  public List<String> getInspectorProperties() {
+    return ImmutableList.of(
+      ATTR_THEME,
+      ATTR_BACKGROUND,
+      ATTR_POPUP_THEME,
+      ATTR_MIN_HEIGHT,
+      ATTR_ELEVATION,
+      ATTR_ACTION_BAR);  // TODO: Make this work or remove
+  }
 
   @Override
   @Language("XML")

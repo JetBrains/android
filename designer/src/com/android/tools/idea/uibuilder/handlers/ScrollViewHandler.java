@@ -23,6 +23,7 @@ import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
+import com.google.common.collect.ImmutableList;
 import icons.AndroidDesignerIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,6 +34,16 @@ import static com.android.SdkConstants.*;
 
 /** Handler for the {@code <ScrollView>} widget */
 public class ScrollViewHandler extends ViewGroupHandler {
+  @Override
+  @NotNull
+  public List<String> getInspectorProperties() {
+    return ImmutableList.of(
+      ATTR_SCROLLBAR_STYLE,
+      ATTR_STYLE,
+      ATTR_FILL_VIEWPORT,
+      ATTR_CLIP_TO_PADDING);
+  }
+
   @Override
   public void onChildInserted(@NotNull NlComponent parent, @NotNull NlComponent child,
                               @NotNull InsertType insertType) {

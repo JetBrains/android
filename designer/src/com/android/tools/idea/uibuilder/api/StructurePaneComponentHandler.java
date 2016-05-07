@@ -23,7 +23,7 @@ import javax.swing.*;
 /**
  * A handler for a component in the structure pane.
  */
-public class StructurePaneComponentHandler extends PaletteComponentHandler {
+public class StructurePaneComponentHandler extends PropertyComponentHandler {
   /**
    * Returns the title used to identify this component in the structure pane
    *

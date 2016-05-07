@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.api.InsertType;
@@ -25,12 +26,19 @@ import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.google.common.collect.Sets;
 import org.intellij.lang.annotations.Language;
 
+import java.util.List;
+
 import static com.android.SdkConstants.*;
 
 /**
  * Handler for the {@code <view>} tag
  */
 public class ViewTagHandler extends ViewHandler {
+  @Override
+  @NotNull
+  public List<String> getInspectorProperties() {
+    return ImmutableList.of(ATTR_BACKGROUND, ATTR_VISIBILITY);
+  }
 
   @Override
   @NotNull

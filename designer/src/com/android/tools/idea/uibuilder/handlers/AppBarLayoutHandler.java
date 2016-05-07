@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.api.InsertType;
@@ -23,7 +24,19 @@ import com.android.tools.idea.uibuilder.handlers.ui.AppBarConfigurationDialog;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.intellij.psi.xml.XmlFile;
 
+import java.util.List;
+
+import static com.android.SdkConstants.*;
+
 public class AppBarLayoutHandler extends LinearLayoutHandler {
+  @Override
+  @NotNull
+  public List<String> getInspectorProperties() {
+    return ImmutableList.of(
+      ATTR_THEME,
+      ATTR_FITS_SYSTEM_WINDOWS,
+      ATTR_EXPANDED);
+  }
 
   @Override
   public boolean onCreate(@NotNull ViewEditor editor,

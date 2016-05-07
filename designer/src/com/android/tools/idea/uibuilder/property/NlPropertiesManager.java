@@ -57,7 +57,7 @@ public class NlPropertiesManager implements DesignSurfaceListener, ModelListener
   public NlPropertiesManager(@NotNull Project project, @NotNull DesignSurface designSurface) {
     myProject = project;
     myLoadingPanel = new JBLoadingPanel(new BorderLayout(), project, 20);
-    myPropertiesPanel = new NlPropertiesPanel();
+    myPropertiesPanel = new NlPropertiesPanel(project);
     myLoadingPanel.add(myPropertiesPanel);
     setDesignSurface(designSurface);
   }

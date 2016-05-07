@@ -18,11 +18,13 @@ package com.android.tools.idea.uibuilder.handlers;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.google.common.collect.ImmutableList;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.EnumSet;
+import java.util.List;
 
 import static com.android.SdkConstants.*;
 
@@ -30,6 +32,17 @@ import static com.android.SdkConstants.*;
  * Handler for the {@code <ImageView>} widget
  */
 public class ImageViewHandler extends ViewHandler {
+  @Override
+  @NotNull
+  public List<String> getInspectorProperties() {
+    return ImmutableList.of(
+      ATTR_SRC,
+      ATTR_CONTENT_DESCRIPTION,
+      ATTR_BACKGROUND,
+      ATTR_SCALE_TYPE,
+      ATTR_ADJUST_VIEW_BOUNDS,
+      ATTR_CROP_TO_PADDING);
+  }
 
   @Override
   @NotNull
