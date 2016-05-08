@@ -1088,6 +1088,7 @@ public class WidgetDecorator {
         private int mY;
         private boolean mOver = false;
         protected final ConstraintWidget mWidget;
+        private long mStartVisible = 0;
 
         public WidgetAction(ConstraintWidget widget) {
             mWidget = widget;
@@ -1097,7 +1098,7 @@ public class WidgetDecorator {
          * Reimplement to draw a tooltip
          * @return
          */
-        String getText() { return null; }
+        String[] getText() { return null; }
 
         /**
          * Called before paint
@@ -1118,62 +1119,13 @@ public class WidgetDecorator {
             return false;
         }
 
-
         void show(int delay) {
             mAnimatedColor = new AnimatedColor(new Color(0, 0, 0, 0),
                     mColorSet.getWidgetActionBackground());
             mAnimatedColor.setDuration(500);
             mAnimatedColor.setDelay(delay);
             mAnimatedColor.start();
-        }
-
-        /**
-         * Draw a tooltip
-         * @param g
-         * @param x
-         * @param y
-         */
-        void drawText(Graphics2D g, int x, int y) {
-            String text = getText();
-            if (text == null) {
-                return;
-            }
-            Font prefont = g.getFont();
-            Color precolor = g.getColor();
-
-            g.setFont(sFont);
-            FontMetrics fm = g.getFontMetrics(sFont);
-
-            String[] lines = text.split("\n");
-            int textWidth = 0;
-            int textHeight = 0;
-            int margin = 4;
-            int padding = 10;
-            int th = fm.getMaxAscent() + fm.getMaxDescent();
-            for (int i = 0; i < lines.length; i++) {
-                textWidth = Math.max(textWidth, fm.stringWidth(lines[i]));
-                textHeight += th + margin;
-            }
-            int rectX = x - textWidth / 2 - padding;
-            int rectY = y - padding - textHeight - 2*padding;
-            int rectWidth = textWidth + 2 * padding;
-            int rectHeight = textHeight + 2 * padding;
-
-            g.setColor(mColorSet.getTooltipBackground());
-            g.fillRoundRect(rectX, rectY, rectWidth, rectHeight, 8, 8);
-
-            for (int i = 0; i < lines.length; i++) {
-                int tw = fm.stringWidth(lines[i]);
-                int tx = x - tw / 2;
-                int ty = y - (lines.length - i) * (th + margin) - padding;
-                g.setColor(Color.black);
-                g.drawString(lines[i], tx + 1, ty + 1);
-                g.setColor(mColorSet.getAnchorCreationCircle());
-                g.drawString(lines[i], tx, ty);
-            }
-
-            g.setFont(prefont);
-            g.setColor(precolor);
+            mStartVisible = System.currentTimeMillis();
         }
 
         boolean onPaint(ViewTransform transform, Graphics2D g, int x, int y) {
@@ -1210,14 +1162,20 @@ public class WidgetDecorator {
             g.fillRoundRect(x - r / 2, y - r / 2, r, r, c, c);
             g.drawRoundRect(x - r / 2, y - r / 2, r, r, c, c);
             g.setColor(pre);
-            if (mOver) {
-                drawText(g, x, y);
+            if (mOver && mStartVisible != 0
+                    && (System.currentTimeMillis() - mStartVisible > WidgetDraw.TOOLTIP_DELAY)) {
+                WidgetDraw.drawTooltip(g, mColorSet, getText(), x, y, false);
+            } else if (!mOver) {
+                mStartVisible = 0;
             }
             return true;
         }
 
         public void over(boolean value) {
             mOver = value;
+            if (mOver && mStartVisible == 0) {
+                mStartVisible = System.currentTimeMillis();
+            }
             int r = ACTION_SIZE;
             repaint(mX - r / 2, mY - r / 2, r, r);
         }
@@ -1238,6 +1196,10 @@ public class WidgetDecorator {
     class LockWidgetAction extends WidgetAction {
 
         int mConstraintsCreator = -1;
+        String[] mLockConstraints = { "Lock Constraints",
+                "(unlock constraints are broken",
+                "by dragging the widget)"};
+        String[] mUnlockConstraints = { "Unlock Constraints" };
 
         public LockWidgetAction(ConstraintWidget widget) {
             super(widget);
@@ -1252,11 +1214,11 @@ public class WidgetDecorator {
         public boolean isVisible() { return mConstraintsCreator != -1; }
 
         @Override
-        String getText() {
+        String[] getText() {
             if (mConstraintsCreator == ConstraintAnchor.AUTO_CONSTRAINT_CREATOR) {
-                return "Lock Constraints\n(unlock constraints are broken\nby dragging the widget)";
+                return mLockConstraints;
             }
-            return "Unlock Constraints";
+            return mUnlockConstraints;
         }
 
         @Override
@@ -1325,7 +1287,7 @@ public class WidgetDecorator {
      * Action implementing a deletion of all constraints of the widget
      */
     class DeleteConnectionsWidgetAction extends WidgetAction {
-
+        String[] mDeleteText = { "Delete All Constraints" };
         boolean mIsVisible = false;
 
         public DeleteConnectionsWidgetAction(ConstraintWidget widget) {
@@ -1333,7 +1295,7 @@ public class WidgetDecorator {
         }
 
         @Override
-        String getText() { return "Delete All Constraints"; }
+        String[] getText() { return mDeleteText; }
 
         @Override
         void update() {

@@ -3,6 +3,7 @@ package com.android.tools.sherpa.animation;
 import com.android.tools.sherpa.drawing.ColorSet;
 import com.android.tools.sherpa.drawing.SceneDraw;
 import com.android.tools.sherpa.drawing.ViewTransform;
+import com.android.tools.sherpa.drawing.WidgetDraw;
 import com.android.tools.sherpa.interaction.ConstraintHandle;
 import com.google.tnt.solver.widgets.ConstraintAnchor;
 import com.google.tnt.solver.widgets.ConstraintWidget;
@@ -24,14 +25,11 @@ public class AnimatedHoverAnchor extends Animation {
     private ConstraintHandle mAnchor;
     private boolean mIsBaseline = false;
     private ConstraintAnchor mTargetAnchor;
-    private boolean mConnected = false;
-    private Color mTextColor = Color.white;
     protected Color mColor = Color.white;
     private ConstraintAnchor mOriginalTarget;
-    private static Font sFont = new Font("Helvetica", Font.PLAIN, 12);
     private Color mFrame;
-    private Color mTooltipColor;
     private boolean mShowTooltip = true;
+    private long mStartTime;
 
     /**
      * Constructor, create a new AnimatedCircle at the given anchor's position
@@ -42,18 +40,14 @@ public class AnimatedHoverAnchor extends Animation {
     public AnimatedHoverAnchor(ColorSet colorSet, ConstraintHandle anchor) {
         mAnchor = anchor;
         mColorSet = colorSet;
-        mTooltipColor = mColorSet.getTooltipBackground();
         mOriginalTarget = mAnchor.getAnchor().getTarget();
         mFrame = mColorSet.getAnchorCircle();
         if (mAnchor.getAnchor().isConnected()) {
             mColor = mColorSet.getAnchorDisconnectionCircle();
-            mTextColor = Color.red;
             mFrame = mColor;
-            mConnected = true;
             mTargetAnchor = mAnchor.getAnchor().getTarget();
         } else {
             mColor = mColorSet.getAnchorCreationCircle();
-            mTextColor = mColor;
         }
 
         if (mAnchor.getAnchor().getType() == ConstraintAnchor.Type.BASELINE) {
@@ -62,45 +56,45 @@ public class AnimatedHoverAnchor extends Animation {
 
         setDuration(1200);
         setLoop(true);
+        mStartTime = System.currentTimeMillis();
     }
 
-    private String getText() {
-        String text;
+    private String[] getText() {
+        String[] text = new String[2];
         boolean isNewConnection = mAnchor.getAnchor().getTarget() != null
                 && mOriginalTarget != mAnchor.getAnchor().getTarget();
         if (!mAnchor.getAnchor().isConnected()) {
-            text = "Drag To Create ";
+            text[0] = "Drag To Create";
         } else if (isNewConnection){
-            text = "Release to Create ";
+            text[0] = "Release to Create";
         } else {
-            text = "Delete ";
+            text[0] = "Delete";
             if (mAnchor.getAnchor().getConnectionCreator() == ConstraintAnchor.AUTO_CONSTRAINT_CREATOR) {
-                text += "Unlocked ";
+                text[0] += " Unlocked";
             }
         }
         switch (mAnchor.getAnchor().getType()) {
             case LEFT: {
-                text += "Left";
+                text[1] = "Left Constraint";
             }
             break;
             case RIGHT: {
-                text += "Right";
+                text[1] = "Right Constraint";
             }
             break;
             case TOP: {
-                text += "Top";
+                text[1] = "Top Constraint";
             }
             break;
             case BOTTOM: {
-                text += "Bottom";
+                text[1] = "Bottom Constraint";
             }
             break;
             case BASELINE: {
-                text += "Baseline";
+                text[1] = "Baseline Constraint";
             }
             break;
         }
-        text += " Constraint";
         return text;
     }
 
@@ -173,27 +167,9 @@ public class AnimatedHoverAnchor extends Animation {
         boolean showTooltip = mShowTooltip;
         boolean newConnection = mAnchor.getAnchor().getTarget() != mTargetAnchor;
         showTooltip |= newConnection;
-        if (!showTooltip) {
-            return;
+        if (showTooltip && (System.currentTimeMillis() - mStartTime > WidgetDraw.TOOLTIP_DELAY)) {
+            WidgetDraw.drawTooltip(g, mColorSet, getText(), x, y, true);
         }
-        if (mAnchor.getAnchor().getTarget() != null && newConnection) {
-            mTextColor = mColorSet.getAnchorCreationCircle();
-        }
-        g.setFont(sFont);
-        String text = getText();
-        FontMetrics fm = g.getFontMetrics(sFont);
-        int textWidth = fm.stringWidth(text);
-        int textHeight = fm.getMaxAscent() + fm.getMaxDescent();
-        int tx = x - textWidth / 2;
-        int ty = y - 12 - textHeight;
-        g.setColor(mTooltipColor);
-        int padding = 10;
-        g.fillRoundRect(tx - padding, ty - fm.getMaxAscent() - padding,
-                textWidth + 2 * padding, textHeight + 2 * padding, 8, 8);
-        g.setColor(Color.black);
-        g.drawString(text, tx + 1, ty + 1);
-        g.setColor(mTextColor);
-        g.drawString(text, tx, ty);
     }
 
     public void setShowTooltip(boolean showTooltip) {
