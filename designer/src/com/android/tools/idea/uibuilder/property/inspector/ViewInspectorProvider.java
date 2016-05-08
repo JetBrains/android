@@ -22,6 +22,7 @@ import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.*;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.project.Project;
 import icons.AndroidIcons;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
@@ -31,15 +32,16 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.util.*;
 
+import static com.android.SdkConstants.ATTR_COLLAPSE_PARALLAX_MULTIPLIER;
+import static com.android.SdkConstants.ATTR_LAYOUT_COLLAPSE_MODE;
+import static com.android.SdkConstants.ATTR_LAYOUT_SCROLL_FLAGS;
 import static com.android.tools.idea.uibuilder.property.editors.NlEditingListener.DEFAULT_LISTENER;
 
 public class ViewInspectorProvider implements InspectorProvider {
-  private final Project myProject;
   private final ViewHandlerManager myViewHandlerManager;
   private final Map<String, InspectorComponent> myInspectors;
 
   public ViewInspectorProvider(@NotNull Project project) {
-    myProject = project;
     myViewHandlerManager = ViewHandlerManager.get(project);
     myInspectors = new HashMap<>();
   }
@@ -57,7 +59,7 @@ public class ViewInspectorProvider implements InspectorProvider {
     if (handler == null || handler.getInspectorProperties().isEmpty()) {
       return false;
     }
-    myInspectors.put(tagName, new ViewInspectorComponent(myProject, tagName, properties, handler.getInspectorProperties()));
+    myInspectors.put(tagName, new ViewInspectorComponent(tagName, properties, handler.getInspectorProperties()));
     return true;
   }
 
@@ -70,41 +72,34 @@ public class ViewInspectorProvider implements InspectorProvider {
     String tagName = components.get(0).getTagName();
     InspectorComponent inspector = myInspectors.get(tagName);
     assert inspector != null;
+    inspector.updateProperties(components, properties);
     return inspector;
   }
 
   private static class ViewInspectorComponent implements InspectorComponent {
+    // These layout properties should be shown for all child components of layouts that have the property.
+    // Which we can do by simply ask if the property is present.
+    private static final List<String> LAYOUT_PROPERTIES = ImmutableList.of(
+      ATTR_LAYOUT_SCROLL_FLAGS,
+      ATTR_LAYOUT_COLLAPSE_MODE,
+      ATTR_COLLAPSE_PARALLAX_MULTIPLIER);
+
     private final String myComponentName;
     private final List<String> myPropertyNames;
     private final Map<String, NlComponentEditor> myEditors;
     private Map<String, NlProperty> myProperties;
 
-    public ViewInspectorComponent(@NotNull Project project,
-                                  @NotNull String tagName,
+    public ViewInspectorComponent(@NotNull String tagName,
                                   @NotNull Map<String, NlProperty> properties,
                                   @NotNull List<String> propertyNames) {
       myComponentName = tagName.substring(tagName.lastIndexOf('.') + 1);
-      myPropertyNames = propertyNames;
+      myPropertyNames = combineLists(propertyNames, LAYOUT_PROPERTIES);
       myEditors = new HashMap<>(propertyNames.size());
       myProperties = properties;
       for (String propertyName : propertyNames) {
         NlProperty property = properties.get(propertyName);
-        if (property == null) {
-          continue;
-        }
-        AttributeDefinition definition = property.getDefinition();
-        Set<AttributeFormat> formats = definition != null ? definition.getFormats() : Collections.emptySet();
-        if (formats.contains(AttributeFormat.Boolean)) {
-          myEditors.put(propertyName, NlBooleanEditor.createForInspector(DEFAULT_LISTENER));
-        }
-        else if (formats.contains(AttributeFormat.Enum)) {
-          myEditors.put(propertyName, NlEnumEditor.createForInspector(NlEnumEditor.getDefaultListener()));
-        }
-        else if (formats.contains(AttributeFormat.Flag)) {
-          myEditors.put(propertyName, NlFlagsEditor.create());
-        }
-        else {
-          myEditors.put(propertyName, NlReferenceEditor.createForInspectorWithBrowseButton(project, DEFAULT_LISTENER));
+        if (property != null) {
+          myEditors.put(propertyName, createEditor(property));
         }
       }
     }
@@ -112,6 +107,12 @@ public class ViewInspectorProvider implements InspectorProvider {
     @Override
     public void updateProperties(@NotNull List<NlComponent> components, @NotNull Map<String, NlProperty> properties) {
       myProperties = properties;
+      for (String propertyName : myPropertyNames) {
+        NlProperty property = properties.get(propertyName);
+        if (property != null && !myEditors.containsKey(propertyName)) {
+          myEditors.put(propertyName, createEditor(property));
+        }
+      }
     }
 
     @Override
@@ -142,6 +143,32 @@ public class ViewInspectorProvider implements InspectorProvider {
           myEditors.get(propertyName).setProperty(myProperties.get(propertyName));
         }
       }
+    }
+
+    @NotNull
+    private static NlComponentEditor createEditor(@NotNull NlProperty property) {
+      AttributeDefinition definition = property.getDefinition();
+      Set<AttributeFormat> formats = definition != null ? definition.getFormats() : Collections.emptySet();
+      if (formats.contains(AttributeFormat.Boolean)) {
+        return NlBooleanEditor.createForInspector(DEFAULT_LISTENER);
+      }
+      else if (formats.contains(AttributeFormat.Enum)) {
+        return NlEnumEditor.createForInspector(NlEnumEditor.getDefaultListener());
+      }
+      else if (formats.contains(AttributeFormat.Flag)) {
+        return NlFlagsEditor.create();
+      }
+      else {
+        return NlReferenceEditor.createForInspectorWithBrowseButton(property.getModel().getProject(), DEFAULT_LISTENER);
+      }
+    }
+
+    @NotNull
+    private static List<String> combineLists(@NotNull List<String> list1, @NotNull List<String> list2) {
+      List<String> combined = new ArrayList<>(list1.size() + list2.size());
+      combined.addAll(list1);
+      combined.addAll(list2);
+      return combined;
     }
   }
 }
