@@ -59,6 +59,7 @@ import static com.android.SdkConstants.*;
  * if visual it has bounds, etc.
  */
 public class NlComponent {
+  // TODO Add a needsId method to the handler classes
   private static final Collection<String> TAGS_THAT_DONT_NEED_DEFAULT_IDS = ImmutableSet.of(
     PreferenceTags.CHECK_BOX_PREFERENCE,
     PreferenceTags.EDIT_TEXT_PREFERENCE,
@@ -69,6 +70,7 @@ public class NlComponent {
     PreferenceTags.SWITCH_PREFERENCE,
     REQUEST_FOCUS,
     SPACE,
+    TAG_ITEM,
     VIEW_INCLUDE,
     VIEW_MERGE
   );
@@ -86,18 +88,9 @@ public class NlComponent {
   @Nullable private TagSnapshot mySnapshot;
 
   public NlComponent(@NotNull NlModel model, @NotNull XmlTag tag) {
-    this(model, tag, null);
-  }
-
-  NlComponent(@NotNull NlModel model, @Nullable TagSnapshot snapshot) {
-    this(model, snapshot == null ? EmptyXmlTag.INSTANCE : snapshot.tag == null ? EmptyXmlTag.INSTANCE : snapshot.tag, snapshot);
-  }
-
-  private NlComponent(@NotNull NlModel model, @NotNull XmlTag tag, @Nullable TagSnapshot snapshot) {
     myModel = model;
     myTag = tag;
     myTagName = tag.getName();
-    mySnapshot = snapshot;
   }
 
   @NotNull
@@ -175,7 +168,7 @@ public class NlComponent {
   }
 
   @NotNull
-  public Iterable<NlComponent> getChildren() {
+  public List<NlComponent> getChildren() {
     return children != null ? children : Collections.emptyList();
   }
 
@@ -423,6 +416,7 @@ public class NlComponent {
 
   /**
    * Return the actual view id used in layout lib
+   *
    * @return the view id, or -1 if impossible to get
    */
   public int getAndroidViewId() {

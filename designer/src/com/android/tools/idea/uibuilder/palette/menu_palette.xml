@@ -14,5 +14,7 @@
   ~ limitations under the License.
   -->
 <palette>
-  <item tag="MenuItem"/>
+  <item tag="item"/>
+  <item tag="menu"/>
+  <item tag="group"/>
 </palette>

@@ -46,7 +46,7 @@ final class PreferenceCategoryDragHandler extends PreferenceGroupDragHandler {
       drawBottom(graphics, getChild(count - 1));
     }
     else {
-      drawTop(graphics, getChild(myInsertIndex));
+      graphics.drawTop(getChild(myInsertIndex));
     }
   }
 
@@ -57,7 +57,7 @@ final class PreferenceCategoryDragHandler extends PreferenceGroupDragHandler {
 
     graphics.useStyle(NlDrawingStyle.DROP_RECIPIENT);
 
-    drawTop(graphics, myPreferenceGroup);
+    graphics.drawTop(myPreferenceGroup);
     graphics.drawLine(myPreferenceGroup.x, myPreferenceGroup.y, myPreferenceGroup.x, preference.y + preference.h);
 
     graphics.drawLine(myPreferenceGroup.x + myPreferenceGroup.w, myPreferenceGroup.y,
@@ -83,7 +83,7 @@ final class PreferenceCategoryDragHandler extends PreferenceGroupDragHandler {
         continue;
       }
 
-      drawTop(graphics, getChild(i));
+      graphics.drawTop(getChild(i));
     }
   }
 }

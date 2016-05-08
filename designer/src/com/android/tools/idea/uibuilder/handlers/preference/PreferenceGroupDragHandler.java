@@ -21,6 +21,7 @@ import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
+import com.android.tools.idea.uibuilder.handlers.Utils;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import org.jetbrains.annotations.NotNull;
@@ -64,7 +65,7 @@ abstract class PreferenceGroupDragHandler extends DragHandler {
     NlComponent lastPreference = getChild(count - 1);
     int lastPreferenceMidpoint = getMidpoint(lastPreference);
 
-    if (contains(lastPreference.y, lastPreferenceMidpoint, y)) {
+    if (Utils.contains(lastPreference.y, lastPreferenceMidpoint, y)) {
       myInsertIndex = count - 1;
       return null;
     }
@@ -78,11 +79,11 @@ abstract class PreferenceGroupDragHandler extends DragHandler {
       NlComponent nextPreference = getChild(i + 1);
       int midpoint = getMidpoint(preference, nextPreference);
 
-      if (contains(preference.y, midpoint, y)) {
+      if (Utils.contains(preference.y, midpoint, y)) {
         myInsertIndex = i;
         break;
       }
-      else if (contains(midpoint, nextPreference.y, y)) {
+      else if (Utils.contains(midpoint, nextPreference.y, y)) {
         myInsertIndex = i + 1;
         break;
       }
@@ -107,10 +108,6 @@ abstract class PreferenceGroupDragHandler extends DragHandler {
     return (preference1.y + preference2.y) / 2;
   }
 
-  private static boolean contains(int lowerBound, int upperBound, int y) {
-    return lowerBound <= y && y < upperBound;
-  }
-
   @Override
   public final void paint(@NotNull NlGraphics graphics) {
     drawDropPreviewLine(graphics);
@@ -123,10 +120,6 @@ abstract class PreferenceGroupDragHandler extends DragHandler {
   abstract void drawDropRecipientLines(@NotNull NlGraphics graphics);
 
   abstract void drawDropZoneLines(@NotNull NlGraphics graphics);
-
-  static void drawTop(@NotNull NlGraphics graphics, @NotNull NlComponent preference) {
-    graphics.drawLine(preference.x, preference.y, preference.x + preference.w, preference.y);
-  }
 
   static void drawBottom(@NotNull NlGraphics graphics, @NotNull NlComponent preference) {
     int height = getHeight(preference);

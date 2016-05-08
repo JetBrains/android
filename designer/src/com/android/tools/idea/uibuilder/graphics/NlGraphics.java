@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.graphics;
 
+import com.android.tools.idea.uibuilder.model.NlComponent;
 import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.Coordinates;
@@ -32,23 +33,15 @@ public class NlGraphics {
     myScreenView = screenView;
   }
 
-  @NotNull
-  public Graphics2D getSwingGraphics() {
-    return myGraphics;
-  }
-
-  @NotNull
-  public ScreenView getScreenView() {
-    return myScreenView;
-  }
-
   /**
    * Current style being used for drawing.
    */
   @NotNull
   private NlDrawingStyle myStyle = NlDrawingStyle.INVALID;
 
-  /** Use the given style for subsequent drawing operations */
+  /**
+   * Use the given style for subsequent drawing operations
+   */
   public void useStyle(@NotNull NlDrawingStyle style) {
     myStyle = style;
   }
@@ -68,6 +61,22 @@ public class NlGraphics {
 
       fillRect(myStyle, myGraphics, x, y, width, height);
     }
+  }
+
+  public void drawTop(@NotNull NlComponent component) {
+    drawLine(component.x, component.y, component.x + component.w, component.y);
+  }
+
+  public void drawLeft(@NotNull NlComponent component) {
+    drawLine(component.x, component.y, component.x, component.y + component.h);
+  }
+
+  public void drawRight(@NotNull NlComponent component) {
+    drawLine(component.x + component.w, component.y, component.x + component.w, component.y + component.h);
+  }
+
+  public void drawBottom(@NotNull NlComponent component) {
+    drawLine(component.x, component.y + component.h, component.x + component.w, component.y + component.h);
   }
 
   public void drawLine(@AndroidCoordinate int x1,
@@ -106,6 +115,7 @@ public class NlGraphics {
     drawArrow(myStyle, myGraphics, x1, y1, x2, y2);
   }
 
+  @SuppressWarnings("unused")
   public void drawCross(@AndroidCoordinate int radius) {
     radius = Coordinates.getSwingDimension(myScreenView, radius);
     drawCross(myStyle, myGraphics, radius);
@@ -144,6 +154,7 @@ public class NlGraphics {
     }
   }
 
+  @SuppressWarnings("unused")
   public static void drawStrokeFilledRect(@NotNull NlDrawingStyle style,
                                           @NotNull Graphics gc,
                                           @SwingCoordinate int x,
@@ -206,19 +217,22 @@ public class NlGraphics {
       if (y1 < y2) {
         y1 -= delta;
         y2 += delta;
-      } else {
+      }
+      else {
         y1 += delta;
-        y2-= delta;
+        y2 -= delta;
       }
 
-    } else if (y1 == y2 && Math.abs(x1 - x2) < MIN_LENGTH) {
+    }
+    else if (y1 == y2 && Math.abs(x1 - x2) < MIN_LENGTH) {
       int delta = (MIN_LENGTH - Math.abs(x1 - x2)) / 2;
       if (x1 < x2) {
         x1 -= delta;
         x2 += delta;
-      } else {
+      }
+      else {
         x1 += delta;
-        x2-= delta;
+        x2 -= delta;
       }
     }
 
@@ -231,20 +245,24 @@ public class NlGraphics {
       if (y2 > y1) {
         graphics.drawLine(x2 - arrowWidth, y2 - arrowHeight, x2, y2);
         graphics.drawLine(x2 + arrowWidth, y2 - arrowHeight, x2, y2);
-      } else {
+      }
+      else {
         graphics.drawLine(x2 - arrowWidth, y2 + arrowHeight, x2, y2);
         graphics.drawLine(x2 + arrowWidth, y2 + arrowHeight, x2, y2);
       }
-    } else if (y1 == y2) {
+    }
+    else if (y1 == y2) {
       // Horizontal
       if (x2 > x1) {
         graphics.drawLine(x2 - arrowHeight, y2 - arrowWidth, x2, y2);
         graphics.drawLine(x2 - arrowHeight, y2 + arrowWidth, x2, y2);
-      } else {
+      }
+      else {
         graphics.drawLine(x2 + arrowHeight, y2 - arrowWidth, x2, y2);
         graphics.drawLine(x2 + arrowHeight, y2 + arrowWidth, x2, y2);
       }
-    } else {
+    }
+    else {
       // Compute angle:
       int dy = y2 - y1;
       int dx = x2 - x1;
@@ -258,13 +276,13 @@ public class NlGraphics {
       // below this line and paint the lines to it:
       double ax = x1 + lineLength - arrowHeight;
       double ay = y1 - arrowWidth;
-      int rx = (int) (Math.cos(angle) * (ax-x1) - Math.sin(angle) * (ay-y1) + x1);
-      int ry = (int) (Math.sin(angle) * (ax-x1) + Math.cos(angle) * (ay-y1) + y1);
+      int rx = (int)(Math.cos(angle) * (ax - x1) - Math.sin(angle) * (ay - y1) + x1);
+      int ry = (int)(Math.sin(angle) * (ax - x1) + Math.cos(angle) * (ay - y1) + y1);
       graphics.drawLine(x2, y2, rx, ry);
 
       ay = y1 + arrowWidth;
-      rx = (int) (Math.cos(angle) * (ax-x1) - Math.sin(angle) * (ay-y1) + x1);
-      ry = (int) (Math.sin(angle) * (ax-x1) + Math.cos(angle) * (ay-y1) + y1);
+      rx = (int)(Math.cos(angle) * (ax - x1) - Math.sin(angle) * (ay - y1) + x1);
+      ry = (int)(Math.sin(angle) * (ax - x1) + Math.cos(angle) * (ay - y1) + y1);
       graphics.drawLine(x2, y2, rx, ry);
     }
   }
@@ -275,7 +293,8 @@ public class NlGraphics {
     if (fillColor != null) {
       fillRect(style, g, 0, size2, radius, 3);
       fillRect(style, g, size2, 0, 3, radius);
-    } else {
+    }
+    else {
       drawLine(style, g, 0, size2 + 1, radius, size2 + 1);
       drawLine(style, g, size2 + 1, 0, size2 + 1, radius);
     }
