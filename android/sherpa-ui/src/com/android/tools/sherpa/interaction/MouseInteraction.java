@@ -73,8 +73,10 @@ public class MouseInteraction {
 
     private long mPressTime = 0;
 
-    private final static int LONG_PRESS_THRESHOLD = 500; // ms -- after that delay, prevent delete anchor
-    private final static int BASELINE_TIME_THRESHOLD = 800; // ms -- after that delay, allow baseline selection
+    private final static int LONG_PRESS_THRESHOLD = 500;
+            // ms -- after that delay, prevent delete anchor
+    private final static int BASELINE_TIME_THRESHOLD = 800;
+            // ms -- after that delay, allow baseline selection
     private final static int LOCK_TIME_THRESHOLD = 500; // ms -- after that delay, prevent dragging
 
     public static void setMargin(int margin) {
@@ -83,7 +85,7 @@ public class MouseInteraction {
 
     // Represent the different mouse interaction modes
     enum MouseMode {
-       INACTIVE, SELECT, RESIZE, MOVE, CONNECT
+        INACTIVE, SELECT, RESIZE, MOVE, CONNECT
     }
 
     private MouseMode mMouseMode = MouseMode.SELECT;
@@ -91,13 +93,13 @@ public class MouseInteraction {
     /**
      * Base constructor
      *
-     * @param transform the view transform
+     * @param transform    the view transform
      * @param widgetsScene
      * @param selection
      * @param widgetMotion
      * @param widgetResize
      * @param sceneDraw
-     * @param previous get parameter from previous
+     * @param previous     get parameter from previous
      */
     public MouseInteraction(ViewTransform transform,
             WidgetsScene widgetsScene, Selection selection,
@@ -273,7 +275,9 @@ public class MouseInteraction {
      *
      * @return mouse cursor type
      */
-    public int getMouseCursor() { return mMouseCursor; }
+    public int getMouseCursor() {
+        return mMouseCursor;
+    }
 
     /*-----------------------------------------------------------------------*/
     // Mouse handling
@@ -317,7 +321,8 @@ public class MouseInteraction {
             mStart = 0;
             if (mWidget != null) {
                 WidgetCompanion companion = (WidgetCompanion) mWidget.getCompanionWidget();
-                WidgetDecorator decorator = companion.getWidgetDecorator(mSceneDraw.getCurrentStyle());
+                WidgetDecorator decorator =
+                        companion.getWidgetDecorator(mSceneDraw.getCurrentStyle());
                 decorator.setLockTimer(null);
                 mWidget = null;
             }
@@ -378,6 +383,18 @@ public class MouseInteraction {
     });
 
     /**
+     * Utility function to retrieve a decorator
+     *
+     * @param widget the widget we look at
+     * @return the decorator of the widget
+     */
+    private WidgetDecorator getDecorator(ConstraintWidget widget) {
+        WidgetCompanion companion = (WidgetCompanion) widget.getCompanionWidget();
+        WidgetDecorator decorator = companion.getWidgetDecorator(mSceneDraw.getCurrentStyle());
+        return decorator;
+    }
+
+    /**
      * Internal helper class handling mouse hits on the various elements
      */
     class HitListener implements DrawPicker.HitElementListener {
@@ -413,6 +430,9 @@ public class MouseInteraction {
         }
 
         public void clearSelection() {
+            if (mHitWidget != null) {
+                getDecorator(mHitWidget).over(false);
+            }
             mHitWidget = null;
             mHitWidgetDistance = Double.MAX_VALUE;
             mHitConstraintHandle = null;
@@ -453,8 +473,14 @@ public class MouseInteraction {
             if (over instanceof ConstraintWidget) {
                 ConstraintWidget widget = (ConstraintWidget) over;
                 if ((mHitWidget == null) || (mHitWidgetDistance > dist)) {
+                    if (mHitWidget != null) {
+                        getDecorator(mHitWidget).over(false);
+                    }
                     mHitWidget = widget;
                     mHitWidgetDistance = dist;
+                    if (dist == 0) {
+                        getDecorator(mHitWidget).over(true);
+                    }
                 }
             } else if (over instanceof ConstraintHandle) {
                 ConstraintHandle handle = (ConstraintHandle) over;
@@ -515,7 +541,7 @@ public class MouseInteraction {
                     continue;
                 }
                 if (type == ConstraintAnchor.Type.BASELINE) {
-                    if (widget.getBaselineDistance()>0) {
+                    if (widget.getBaselineDistance() > 0) {
                         picker.addLine(handle, handleSelectionMargin, l, y, r, y);
                     }
                 } else {
@@ -523,16 +549,20 @@ public class MouseInteraction {
                         switch (type) {
                             case LEFT: {
                                 picker.addLine(handle, handleSelectionMargin, l, t, l, b);
-                            } break;
+                            }
+                            break;
                             case RIGHT: {
                                 picker.addLine(handle, handleSelectionMargin, r, t, r, b);
-                            } break;
+                            }
+                            break;
                             case TOP: {
                                 picker.addLine(handle, handleSelectionMargin, l, t, r, t);
-                            } break;
+                            }
+                            break;
                             case BOTTOM: {
                                 picker.addLine(handle, handleSelectionMargin, l, b, r, b);
-                            } break;
+                            }
+                            break;
                             default: {
                                 picker.addPoint(handle, handleSelectionMargin, x, y);
                             }
@@ -681,7 +711,8 @@ public class MouseInteraction {
         // give a chance to widgets to respond to a mouse press even if out of bounds
         for (ConstraintWidget w : mWidgetsScene.getWidgets()) {
             WidgetCompanion widgetCompanion = (WidgetCompanion) w.getCompanionWidget();
-            WidgetDecorator decorator = widgetCompanion.getWidgetDecorator(WidgetDecorator.BLUEPRINT_STYLE);
+            WidgetDecorator decorator =
+                    widgetCompanion.getWidgetDecorator(WidgetDecorator.BLUEPRINT_STYLE);
             ConstraintWidget widgetHit = decorator.mousePressed(x, y, mViewTransform, mSelection);
             if (widgetHit != null && widget == null) {
                 widget = widgetHit;
@@ -839,8 +870,10 @@ public class MouseInteraction {
 
         // give a chance to widgets to respond to a mouse press
         for (Selection.Element selection : mSelection.getElements()) {
-            WidgetCompanion widgetCompanion = (WidgetCompanion) selection.widget.getCompanionWidget();
-            WidgetDecorator decorator = widgetCompanion.getWidgetDecorator(WidgetDecorator.BLUEPRINT_STYLE);
+            WidgetCompanion widgetCompanion =
+                    (WidgetCompanion) selection.widget.getCompanionWidget();
+            WidgetDecorator decorator =
+                    widgetCompanion.getWidgetDecorator(WidgetDecorator.BLUEPRINT_STYLE);
             decorator.mouseRelease(x, y, mViewTransform, mSelection);
         }
 
@@ -983,9 +1016,11 @@ public class MouseInteraction {
                                     margin = sMargin;
                                 }
                             }
-                            if (handleTarget.getAnchor().getType() == handle.getAnchor().getType()) {
+                            if (handleTarget.getAnchor().getType() ==
+                                    handle.getAnchor().getType()) {
                                 if (handleTarget.getOwner().isRoot()) {
-                                    margin = Math.max(16, margin); // for root we keep a default 16dp margin
+                                    // for root we use a default margin (16dp)
+                                    margin = Math.max(SnapPlacement.DEFAULT_MARGIN, margin);
                                 } else {
                                     // If we have a connection between the same type of anchors,
                                     // let's not set a margin, as it's more likely to be a direct
@@ -1039,6 +1074,7 @@ public class MouseInteraction {
 
     /**
      * Check the hover listener for any anchor to lit
+     *
      * @param x
      * @param y
      */
