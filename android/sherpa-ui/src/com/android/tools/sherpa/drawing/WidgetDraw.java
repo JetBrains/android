@@ -638,14 +638,14 @@ public class WidgetDraw {
         int padding = 5;
         int textWidth = 0;
         int textHeight = 2 * padding;
-        int th = fm.getMaxAscent() + fm.getMaxDescent();
         for (String line : lines) {
             textWidth = Math.max(textWidth, fm.stringWidth(line));
+            int th = (int) fm.getStringBounds(line, g).getHeight();
             textHeight += th + margin;
         }
         textHeight -= margin;
         textWidth += 2 * padding;
-        int rectX = x - offset; //textWidth / 2;
+        int rectX = x - offset;
         int rectY = y - textHeight - 2 * sArrowHeight - offset;
         if (!above) {
             rectY = y + offset + 2 * sArrowHeight;
@@ -659,7 +659,7 @@ public class WidgetDraw {
         }
 
         g.setColor(colorSet.getBackground());
-        g.setStroke(sLineShadowStroke); //colorSet.getShadowStroke());
+        g.setStroke(sLineShadowStroke);
         triangle.translate(x, triangleY);
         g.fillPolygon(triangle);
         g.draw(triangle);
@@ -676,12 +676,13 @@ public class WidgetDraw {
         g.fillRoundRect(rectX, rectY, textWidth, textHeight, 2, 2);
         g.drawRoundRect(rectX, rectY, textWidth, textHeight, 2, 2);
 
+        int ty = rectY + padding;
         for (int i = 0; i < lines.length; i++) {
             int tw = fm.stringWidth(lines[i]);
             int tx = rectX + textWidth / 2 - tw / 2; // x - tw / 2;
-            int ty = rectY + padding + fm.getMaxAscent() + (th + margin) * i;
             g.setColor(colorSet.getTooltipText());
-            g.drawString(lines[i], tx, ty);
+            g.drawString(lines[i], tx, ty + fm.getMaxAscent());
+            ty += fm.getStringBounds(lines[i], g).getHeight() + margin;
         }
 
         g.setFont(prefont);
