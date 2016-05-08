@@ -819,8 +819,8 @@ public class ConstraintUtilities {
 
     String previousValue = component.getAttribute(nameSpace, attribute);
     if ((value == null && previousValue == null)
-        || value.equalsIgnoreCase(previousValue)
-        || (value != null && value.equalsIgnoreCase("0dp") && previousValue == null)) {
+        || (value != null && previousValue != null && value.equalsIgnoreCase(previousValue))
+        || (value != null && previousValue == null && value.equalsIgnoreCase("0dp"))) {
       // TODO: we should fix why we get there in the first place rather than catching it here.
       // (WidgetConstraintPanel::configureUI configure the margin in the combobox and calls us...)
       return;
