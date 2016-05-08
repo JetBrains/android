@@ -768,7 +768,7 @@ public class ConstraintUtilities {
 
       // Cannot be null, see previous condition
       //noinspection ConstantConditions
-      textWidget.setTextSize(size * 160.0f / configuration.getDensity().getDpiValue()); // in dips
+      textWidget.setTextSize(constraintModel.pxToDp(size));
     }
   }
 
