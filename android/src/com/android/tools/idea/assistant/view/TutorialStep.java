@@ -146,7 +146,7 @@ public class TutorialStep extends JPanel {
     Font font = new JLabel().getFont();
     JTextPane stepNumber = new JTextPane();
     stepNumber.setEditable(false);
-    stepNumber.setText(myIndex + "");
+    stepNumber.setText(String.valueOf(myIndex));
     Font boldFont = new Font(font.getFontName(), Font.BOLD, 11);
     stepNumber.setFont(boldFont);
     stepNumber.setOpaque(false);

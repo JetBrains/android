@@ -27,9 +27,6 @@ import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.ArrayList;
-import java.util.List;
-
 
 /**
  * Renderer and behaviors for a single service in the {@code TutorialChooser}.
@@ -40,23 +37,18 @@ import java.util.List;
  * inherit in our own code.
  */
 public class FeatureEntryPoint extends JPanel {
-  private String myLabel;
-  private String myDescription;
-  private List<TutorialButton> myTutorials = new ArrayList<TutorialButton>();
   private boolean myExpanded = false;
   private JPanel myTutorialsList;
-  private JPanel mySummary;
   private ActionListener myListener;
   private JLabel myArrow;
-  private SummaryHandler mySummaryMouseHandler = new SummaryHandler();
   private JPanel myTargetPane;
 
   public FeatureEntryPoint(FeatureData feature, ActionListener listener) {
     super(new VerticalFlowLayout(0, 5));
     setOpaque(false);
 
-    myLabel = feature.getName();
-    myDescription = feature.getDescription();
+    String label = feature.getName();
+    String description = feature.getDescription();
     myListener = listener;
 
     myTargetPane = new JPanel();
@@ -64,8 +56,10 @@ public class FeatureEntryPoint extends JPanel {
     myTargetPane.setLayout(new BoxLayout(myTargetPane, BoxLayout.X_AXIS));
     add(myTargetPane);
 
+    SummaryHandler summaryMouseHandler = new SummaryHandler();
+
     myArrow = new JLabel();
-    myArrow.addMouseListener(mySummaryMouseHandler);
+    myArrow.addMouseListener(summaryMouseHandler);
     myArrow.setIcon(AllIcons.Nodes.TreeRightArrow);
     myArrow.setFocusable(true);
     myArrow.setBorder(BorderFactory.createEmptyBorder(9, 5, 0, 5));
@@ -82,10 +76,10 @@ public class FeatureEntryPoint extends JPanel {
     int innerContentsOffset = 0;
 
     JBLabel serviceLabel = new JBLabel();
-    serviceLabel.addMouseListener(mySummaryMouseHandler);
+    serviceLabel.addMouseListener(summaryMouseHandler);
     serviceLabel.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 5));
     serviceLabel.setFont(serviceLabel.getFont().deriveFont(Font.BOLD));
-    serviceLabel.setText(myLabel);
+    serviceLabel.setText(label);
     Icon featureIcon = feature.getIcon();
     if (featureIcon != null) {
       serviceLabel.setIcon(featureIcon);
@@ -95,8 +89,8 @@ public class FeatureEntryPoint extends JPanel {
 
     JTextPane descriptionPane = new JTextPane();
     descriptionPane.setOpaque(false);
-    descriptionPane.addMouseListener(mySummaryMouseHandler);
-    UIUtils.setHtml(descriptionPane, myDescription, "body {color: " + UIUtils.getCssColor(UIUtils.getSecondaryColor()) + "}");
+    descriptionPane.addMouseListener(summaryMouseHandler);
+    UIUtils.setHtml(descriptionPane, description, "body {color: " + UIUtils.getCssColor(UIUtils.getSecondaryColor()) + "}");
     descriptionPane.setBorder(BorderFactory.createEmptyBorder(0, innerContentsOffset, 5, 10));
     summary.add(descriptionPane);
 
@@ -119,7 +113,6 @@ public class FeatureEntryPoint extends JPanel {
     TutorialButton t = new TutorialButton(label, key, myListener);
     myTutorialsList.add(t);
     myTutorialsList.add(Box.createRigidArea(new Dimension(0, 10)));
-    myTutorials.add(t);
   }
 
   /**

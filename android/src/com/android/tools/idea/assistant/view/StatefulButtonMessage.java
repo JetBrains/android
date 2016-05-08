@@ -30,8 +30,6 @@ import java.awt.*;
  */
 public class StatefulButtonMessage extends JPanel {
   public ActionState myState;
-  private String myMessage;
-  private String myEditAction;
 
   public StatefulButtonMessage(String message, ActionState state, String editAction) {
     super(new FlowLayout(FlowLayout.LEFT, 0, 0));

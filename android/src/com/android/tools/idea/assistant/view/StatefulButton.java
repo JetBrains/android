@@ -120,7 +120,7 @@ public class StatefulButton extends JPanel {
    * logical handling and is not opinionated about display. Action buttons may have a variety of visual styles which will either be added
    * inline where used or by subclassing this class.
    */
-  public class ActionButton extends JButton {
+  public static class ActionButton extends JButton {
     private String myKey;
     private String myActionArgument;
     private StatefulButton myButtonWrapper;
