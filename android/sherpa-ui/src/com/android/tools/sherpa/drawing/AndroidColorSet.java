@@ -80,6 +80,11 @@ public class AndroidColorSet extends ColorSet {
         mWidgetActionBackground = Color.lightGray;
         mWidgetActionSelectedBackground = Color.white;
 
+        // Tooltip
+
+        mTooltipBackground = Color.yellow.darker();
+        mTootipText = Color.black;
+
         // Inspector colors
 
         mInspectorTrackBackgroundColor = new Color(228, 228, 238);
