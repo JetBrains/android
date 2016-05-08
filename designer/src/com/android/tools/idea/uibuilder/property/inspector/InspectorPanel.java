@@ -48,8 +48,6 @@ import java.util.Map;
 import static com.intellij.uiDesigner.core.GridConstraints.*;
 
 public class InspectorPanel extends JPanel {
-  public enum SplitLayout {SINGLE_ROW, STACKED, SEPARATE}
-
   private final List<InspectorProvider> myProviders;
   private final NlDesignProperties myDesignProperties;
   private final Font myBoldLabelFont = UIUtil.getLabelFont().deriveFont(Font.BOLD);
@@ -91,8 +89,8 @@ public class InspectorPanel extends JPanel {
   public void setComponent(@NotNull List<NlComponent> components,
                            @NotNull Table<String, String, ? extends NlProperty> properties,
                            @NotNull NlPropertiesManager propertiesManager) {
+    myInspector.setLayout(null);
     myInspector.removeAll();
-    myInspector.repaint();
     myRow = 0;
 
     Map<String, NlProperty> propertiesByName = Maps.newHashMapWithExpectedSize(properties.size());
@@ -111,12 +109,14 @@ public class InspectorPanel extends JPanel {
     }
 
     List<InspectorComponent> inspectors = createInspectorComponents(components, propertiesManager, propertiesByName, myProviders);
+    myInspectors = inspectors;
 
     int rows = 1;  // 1 for the spacer below
     for (InspectorComponent inspector : inspectors) {
       rows += inspector.getMaxNumberOfRows();
     }
-    myInspector.setLayout(createLayoutManager(rows, 2));
+    GridLayoutManager layout = createLayoutManager(rows, 2);
+    myInspector.setLayout(layout);
     for (InspectorComponent inspector : inspectors) {
       inspector.attachToInspector(this);
     }
@@ -125,8 +125,9 @@ public class InspectorPanel extends JPanel {
 
     // Add a vertical spacer
     myInspector.add(new Spacer(), new GridConstraints(myRow++, 0, 1, 2, ANCHOR_CENTER, FILL_HORIZONTAL, SIZEPOLICY_CAN_GROW, SIZEPOLICY_CAN_GROW | SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
-
-    myInspectors = inspectors;
+    layout.invalidateLayout(myInspector);
+    this.revalidate();
+    this.repaint();
   }
 
   public void refresh() {
@@ -186,45 +187,6 @@ public class InspectorPanel extends JPanel {
     addLabelComponent(label, myRow);
     addValueComponent(component, myRow++);
     return label;
-  }
-
-  public void addSplitComponents(@NotNull SplitLayout layout,
-                                 @NotNull String labelText1,
-                                 @Nullable String tooltip1,
-                                 @NotNull Component component1,
-                                 @NotNull String labelText2,
-                                 @Nullable String tooltip2,
-                                 @NotNull Component component2) {
-    JLabel label1 = createLabel(labelText1, tooltip1, component1);
-    JLabel label2 = createLabel(labelText2, tooltip2, component2);
-    JPanel panel;
-
-    switch (layout) {
-      case SEPARATE:
-        addLabelComponent(label1, myRow);
-        addValueComponent(component1, myRow++);
-        addLabelComponent(label2, myRow);
-        addValueComponent(component2, myRow++);
-        break;
-
-      case SINGLE_ROW:
-        panel = new JPanel(createLayoutManager(1, 4));
-        addToGridPanel(panel, label1, 0, 0, 1, ANCHOR_WEST, FILL_NONE);
-        addToGridPanel(panel, component1, 0, 1, 1, ANCHOR_EAST, FILL_HORIZONTAL);
-        addToGridPanel(panel, label2, 0, 2, 1, ANCHOR_WEST, FILL_NONE);
-        addToGridPanel(panel, component2, 0, 3, 1, ANCHOR_EAST, FILL_HORIZONTAL);
-        addLineComponent(panel, myRow++);
-        break;
-
-      case STACKED:
-        panel = new JPanel(createLayoutManager(2, 2));
-        addToGridPanel(panel, label1, 0, 0, 1, ANCHOR_WEST, FILL_NONE);
-        addToGridPanel(panel, label2, 0, 1, 1, ANCHOR_WEST, FILL_NONE);
-        addToGridPanel(panel, component1, 1, 0, 1, ANCHOR_EAST, FILL_HORIZONTAL);
-        addToGridPanel(panel, component2, 1, 1, 1, ANCHOR_EAST, FILL_HORIZONTAL);
-        addLineComponent(panel, myRow++);
-        break;
-    }
   }
 
   /**
