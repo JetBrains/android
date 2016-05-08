@@ -68,7 +68,7 @@ public class AnimatedHoverAnchor extends Animation {
         } else if (isNewConnection){
             text[0] = "Release to Create";
         } else {
-            text[0] = "Delete";
+            text[0] = "Click To Delete";
             if (mAnchor.getAnchor().getConnectionCreator() == ConstraintAnchor.AUTO_CONSTRAINT_CREATOR) {
                 text[0] += " Unlocked";
             }

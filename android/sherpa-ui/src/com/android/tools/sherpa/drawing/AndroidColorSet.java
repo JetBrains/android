@@ -82,7 +82,7 @@ public class AndroidColorSet extends ColorSet {
 
         // Tooltip
 
-        mTooltipBackground = Color.yellow.darker();
+        mTooltipBackground = new Color(255, 255, 204);
         mTootipText = Color.black;
 
         // Inspector colors
