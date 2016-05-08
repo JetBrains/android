@@ -191,11 +191,15 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
             myWasExpanded = false;
           }
 
-          if (resourceType.isPreferenceScreen()) {
-            updatePreferenceScreenHierarchy();
-          }
-          else {
-            updateLayoutHierarchy();
+          switch (resourceType) {
+            case MENU:
+            case PREFERENCE_SCREEN:
+              updateHierarchy();
+              break;
+            case LAYOUT:
+            default:
+              updateLayoutHierarchy();
+              break;
           }
 
           invalidateUI();
@@ -211,7 +215,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     });
   }
 
-  private void updatePreferenceScreenHierarchy() {
+  private void updateHierarchy() {
     List<NlComponent> components = myModel.getComponents();
 
     // TODO See if the layout code path can also use NlComponentTreeModel

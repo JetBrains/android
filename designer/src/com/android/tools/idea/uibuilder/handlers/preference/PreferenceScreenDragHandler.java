@@ -48,7 +48,7 @@ final class PreferenceScreenDragHandler extends PreferenceGroupDragHandler {
       drawBottom(graphics, getChild(count - 1));
     }
     else {
-      drawTop(graphics, getChild(myInsertIndex));
+      graphics.drawTop(getChild(myInsertIndex));
     }
   }
 
@@ -67,7 +67,7 @@ final class PreferenceScreenDragHandler extends PreferenceGroupDragHandler {
     graphics.useStyle(NlDrawingStyle.DROP_RECIPIENT);
 
     if (myInsertIndex != 0) {
-      drawTop(graphics, firstPreference);
+      graphics.drawTop(firstPreference);
     }
 
     graphics.drawLine(firstPreference.x, firstPreference.y, lastPreference.x, lastPreference.y + lastPreferenceHeight);
@@ -95,7 +95,7 @@ final class PreferenceScreenDragHandler extends PreferenceGroupDragHandler {
         continue;
       }
 
-      drawTop(graphics, getChild(i));
+      graphics.drawTop(getChild(i));
     }
   }
 }

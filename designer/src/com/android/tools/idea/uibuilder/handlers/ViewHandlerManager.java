@@ -28,6 +28,9 @@ import com.android.tools.idea.uibuilder.handlers.leanback.BrowseFragmentHandler;
 import com.android.tools.idea.uibuilder.handlers.leanback.DetailsFragmentHandler;
 import com.android.tools.idea.uibuilder.handlers.leanback.PlaybackOverlayFragmentHandler;
 import com.android.tools.idea.uibuilder.handlers.leanback.SearchFragmentHandler;
+import com.android.tools.idea.uibuilder.handlers.menu.GroupHandler;
+import com.android.tools.idea.uibuilder.handlers.menu.ItemHandler;
+import com.android.tools.idea.uibuilder.handlers.menu.MenuHandler;
 import com.android.tools.idea.uibuilder.handlers.preference.*;
 import com.android.tools.idea.uibuilder.handlers.relative.RelativeLayoutHandler;
 import com.android.tools.idea.uibuilder.model.NlComponent;
@@ -300,6 +303,12 @@ public class ViewHandlerManager implements ProjectComponent {
         return new TableRowHandler();
       case TAB_HOST:
         return new TabHostHandler();
+      case TAG_GROUP:
+        return new GroupHandler();
+      case TAG_ITEM:
+        return new ItemHandler();
+      case TAG_MENU:
+        return new MenuHandler();
       case TEXT_INPUT_LAYOUT:
         return new TextInputLayoutHandler();
       case TOGGLE_BUTTON:
@@ -310,14 +319,14 @@ public class ViewHandlerManager implements ProjectComponent {
         return new FragmentHandler();
       case VIEW_INCLUDE:
         return new IncludeHandler();
+      case VIEW_MERGE:
+        return new MergeHandler();
       case VIEW_PAGER:
         return new ViewPagerHandler();
       case VIEW_STUB:
         return new ViewStubHandler();
       case VIEW_TAG:
         return new ViewTagHandler();
-      case VIEW_MERGE:
-        return new MergeHandler();
       case ZOOM_BUTTON:
         return new ZoomButtonHandler();
     }
