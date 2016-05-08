@@ -34,6 +34,7 @@ import com.google.tnt.solver.widgets.ConstraintWidget;
 import com.google.tnt.solver.widgets.ConstraintWidgetContainer;
 
 import javax.imageio.ImageIO;
+import javax.swing.Timer;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -56,7 +57,7 @@ public class WidgetDecorator {
     private static boolean sShowAllConstraints = false;
     private static boolean sShowTextUI = false;
 
-    private static Font sFont = new Font("Helvetica", Font.PLAIN, 12);
+    private static final int ACTIONS_HIDE_TIMEOUT = 1500; // ms
 
     private boolean mIsVisible = true;
     private boolean mIsSelected = false;
@@ -70,7 +71,7 @@ public class WidgetDecorator {
     private AnimationProgress mShowBaseline = new AnimationProgress();
     private AnimationProgress mShowBias = new AnimationProgress();
 
-    public static Font sInfoFont = new Font("Helvetica", Font.PLAIN, 12);
+    private static Font sInfoFont = new Font("Helvetica", Font.PLAIN, 12);
     private MouseInteraction.LockTimer mLockTimer;
 
     private ArrayList<WidgetAction> mWidgetActions = new ArrayList<>();
@@ -78,17 +79,22 @@ public class WidgetDecorator {
     private EnumSet<WidgetDraw.ANCHORS_DISPLAY> mDisplayAnchorsPolicy =
             EnumSet.of(WidgetDraw.ANCHORS_DISPLAY.NONE);
 
-    private ColorTheme mBackgroundColor;
-    private ColorTheme mFrameColor;
-    protected ColorTheme mTextColor;
-    private ColorTheme mConstraintsColor;
+    ColorTheme mBackgroundColor;
+    ColorTheme mFrameColor;
+    ColorTheme mTextColor;
+    ColorTheme mConstraintsColor;
 
-    private ColorTheme.Look mLook;
+    ColorTheme.Look mLook;
 
     protected final ConstraintWidget mWidget;
     private int mStyle;
 
     private final static int ACTION_SIZE = 22;
+    private boolean mOver = false;
+    private final Timer mHideActions = new Timer(ACTIONS_HIDE_TIMEOUT, e -> {
+        mShowActions = false;
+        repaint();
+    });
 
     /**
      * Utility class encapsulating a simple animation timer
@@ -184,6 +190,7 @@ public class WidgetDecorator {
             mWidgetActions.add(new LockWidgetAction(mWidget));
             mWidgetActions.add(new DeleteConnectionsWidgetAction(mWidget));
         }
+        mHideActions.setRepeats(false);
     }
 
     public void setLockTimer(MouseInteraction.LockTimer lockTimer) {
@@ -192,9 +199,12 @@ public class WidgetDecorator {
 
     /**
      * Accessor for the actions on this widget
+     *
      * @return list of available actions
      */
-    public ArrayList<WidgetAction> getWidgetActions() { return mWidgetActions; }
+    public ArrayList<WidgetAction> getWidgetActions() {
+        return mWidgetActions;
+    }
 
     /**
      * Set a repaintable object
@@ -225,6 +235,7 @@ public class WidgetDecorator {
 
     /**
      * Return true if the baseline will be shown
+     *
      * @return
      */
     public boolean isShowBaseline() {
@@ -474,6 +485,19 @@ public class WidgetDecorator {
     }
 
     /**
+     * Called when the mouse is over the widget
+     *
+     * @param value true if the mouse is over the widget, false otherwise
+     */
+    public void over(boolean value) {
+        mOver = value;
+        if (mOver) {
+            mShowActions = true;
+            mHideActions.restart();
+        }
+    }
+
+    /**
      * Return the current background color
      *
      * @return current background color
@@ -514,7 +538,7 @@ public class WidgetDecorator {
 
         g.setColor(mFrameColor.getColor());
         WidgetDraw.drawWidgetFrame(transform, g, mWidget,
-                                   mDisplayAnchorsPolicy, mShowResizeHandles,
+                mDisplayAnchorsPolicy, mShowResizeHandles,
                 mShowSizeIndicator, mIsSelected);
 
         g.setColor(mConstraintsColor.getColor());
@@ -605,7 +629,6 @@ public class WidgetDecorator {
         }
 
         WidgetCompanion widgetCompanion = (WidgetCompanion) mWidget.getCompanionWidget();
-        WidgetDecorator decorator = widgetCompanion.getWidgetDecorator(mColorSet.getStyle());
         WidgetInteractionTargets interactionTargets = widgetCompanion.getWidgetInteractionTargets();
 
         // Let's draw all the anchors
@@ -680,11 +703,11 @@ public class WidgetDecorator {
             if (mWidget.getVisibility() == ConstraintWidget.INVISIBLE) {
                 g.setStroke(SnapDraw.sDashedStroke);
             }
-            ArrayList<ConstraintAnchor.Type> anchors = new ArrayList<ConstraintAnchor.Type>();
+            ArrayList<ConstraintAnchor.Type> anchors = new ArrayList<>();
             if ((mIsSelected || mLook == ColorTheme.Look.HIGHLIGHTED)
                     && mWidget.hasBaseline()
                     && (mShowBaseline.isDone()
-                        || mWidget.getAnchor(ConstraintAnchor.Type.BASELINE).isConnected())) {
+                    || mWidget.getAnchor(ConstraintAnchor.Type.BASELINE).isConnected())) {
                 anchors.add(ConstraintAnchor.Type.BASELINE);
             }
             anchors.add(ConstraintAnchor.Type.LEFT);
@@ -815,28 +838,23 @@ public class WidgetDecorator {
         ConstraintAnchor top = mWidget.getAnchor(ConstraintAnchor.Type.TOP);
         ConstraintAnchor bottom = mWidget.getAnchor(ConstraintAnchor.Type.BOTTOM);
         if (top != null && bottom != null
-                && top.isConnected() && bottom.isConnected()) {
-            if (mShowBias.isRunning()) {
-                float progress = 1 - mShowBias.getProgress();
-                int percent = (int) (mWidget.getVerticalBiasPercent() * 100);
-                int y = mWidget.getDrawY() - 32;
-                int x = (int) (mWidget.getDrawX() + mWidget.getDrawWidth() / 2f);
-                x = transform.getSwingFX(x);
-                y = transform.getSwingFY(y);
-                Color c = mConstraintsColor.getColor();
-                Color pre = g.getColor();
-                int alpha = (int) (progress * 255);
-                g.setColor(new Color(c.getRed(), c.getGreen(), c.getBlue(), alpha));
-                ConnectionDraw
-                        .drawCircledText(g, sInfoFont, formatPercent(percent, true),
-                                x, y);
-                y = mWidget.getDrawBottom() + 32;
-                y = transform.getSwingFY(y);
-                ConnectionDraw
-                        .drawCircledText(g, sInfoFont, formatPercent(percent, false),
-                                x, y);
-                g.setColor(pre);
-            }
+                && top.isConnected() && bottom.isConnected()
+                && mShowBias.isRunning()) {
+            float progress = 1 - mShowBias.getProgress();
+            int percent = (int) (mWidget.getVerticalBiasPercent() * 100);
+            int y = mWidget.getDrawY() - 32;
+            int x = (int) (mWidget.getDrawX() + mWidget.getDrawWidth() / 2f);
+            x = transform.getSwingFX(x);
+            y = transform.getSwingFY(y);
+            Color c = mConstraintsColor.getColor();
+            Color pre = g.getColor();
+            int alpha = (int) (progress * 255);
+            g.setColor(new Color(c.getRed(), c.getGreen(), c.getBlue(), alpha));
+            ConnectionDraw.drawCircledText(g, sInfoFont, formatPercent(percent, true), x, y);
+            y = mWidget.getDrawBottom() + 32;
+            y = transform.getSwingFY(y);
+            ConnectionDraw.drawCircledText(g, sInfoFont, formatPercent(percent, false), x, y);
+            g.setColor(pre);
         }
     }
 
@@ -1083,37 +1101,45 @@ public class WidgetDecorator {
      */
     public class WidgetAction {
 
-        protected AnimatedColor mAnimatedColor;
+        AnimatedColor mAnimatedColor;
         private int mX;
         private int mY;
         private boolean mOver = false;
         protected final ConstraintWidget mWidget;
         private long mStartVisible = 0;
 
-        public WidgetAction(ConstraintWidget widget) {
+        WidgetAction(ConstraintWidget widget) {
             mWidget = widget;
         }
 
         /**
          * Reimplement to draw a tooltip
-         * @return
+         *
+         * @return an array of strings to display (supporting multi-lines)
          */
-        String[] getText() { return null; }
+        String[] getText() {
+            return null;
+        }
 
         /**
          * Called before paint
          */
-        void update() {}
+        void update() {
+        }
 
         /**
          * Return true if the action is visible
-         * @return
+         *
+         * @return true if the action is visible
          */
-        public boolean isVisible() { return true; }
+        public boolean isVisible() {
+            return true;
+        }
 
         /**
          * Return true if the click modified the widget
-         * @return
+         *
+         * @return true if the click modified the widget
          */
         public boolean click() {
             return false;
@@ -1178,6 +1204,18 @@ public class WidgetDecorator {
             }
             int r = ACTION_SIZE;
             repaint(mX - r / 2, mY - r / 2, r, r);
+            // If we are over an action button, make sure we continue to show them!
+            if (mOver) {
+                mShowActions = true;
+                mHideActions.stop();
+            }
+            // If no action is marked as being over, restart the hide actions timer
+            for (WidgetAction action : mWidgetActions) {
+                if (action.mOver) {
+                    return;
+                }
+            }
+            mHideActions.restart();
         }
 
         public void addToPicker(ViewTransform transform, DrawPicker picker) {
@@ -1193,15 +1231,17 @@ public class WidgetDecorator {
     /**
      * Simple action implementing a lock / unlock of the widget constraints
      */
-    class LockWidgetAction extends WidgetAction {
+    private class LockWidgetAction extends WidgetAction {
 
         int mConstraintsCreator = -1;
-        String[] mLockConstraints = { "Lock Constraints",
+        String[] mLockConstraints = {
+                "Lock Constraints",
                 "(unlock constraints are broken",
-                "by dragging the widget)"};
+                "by dragging the widget)"
+        };
         String[] mUnlockConstraints = { "Unlock Constraints" };
 
-        public LockWidgetAction(ConstraintWidget widget) {
+        LockWidgetAction(ConstraintWidget widget) {
             super(widget);
         }
 
@@ -1211,7 +1251,9 @@ public class WidgetDecorator {
         }
 
         @Override
-        public boolean isVisible() { return mConstraintsCreator != -1; }
+        public boolean isVisible() {
+            return mConstraintsCreator != -1;
+        }
 
         @Override
         String[] getText() {
@@ -1286,16 +1328,18 @@ public class WidgetDecorator {
     /**
      * Action implementing a deletion of all constraints of the widget
      */
-    class DeleteConnectionsWidgetAction extends WidgetAction {
+    private class DeleteConnectionsWidgetAction extends WidgetAction {
         String[] mDeleteText = { "Delete All Constraints" };
         boolean mIsVisible = false;
 
-        public DeleteConnectionsWidgetAction(ConstraintWidget widget) {
+        DeleteConnectionsWidgetAction(ConstraintWidget widget) {
             super(widget);
         }
 
         @Override
-        String[] getText() { return mDeleteText; }
+        String[] getText() {
+            return mDeleteText;
+        }
 
         @Override
         void update() {
@@ -1309,7 +1353,9 @@ public class WidgetDecorator {
         }
 
         @Override
-        public boolean isVisible() { return mIsVisible; }
+        public boolean isVisible() {
+            return mIsVisible;
+        }
 
         @Override
         boolean onPaint(ViewTransform transform, Graphics2D g, int x, int y) {

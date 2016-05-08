@@ -38,7 +38,7 @@ public class SnapPlacement {
     private static final int SNAP_MARGIN_INCREMENT = 8; // in android coordinates
     private static final int SNAP_MARGIN_MAX = 56; // in android coordinates
     private static final int CONNECTION_SLOPE = 4; // in android coordinates
-    private static final int DEFAULT_MARGIN = 16; // in android coordinates
+    static final int DEFAULT_MARGIN = 16; // in android coordinates
 
     /**
      * Constraint a candidate position for a given widget.
