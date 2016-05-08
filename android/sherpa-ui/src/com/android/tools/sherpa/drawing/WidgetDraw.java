@@ -25,6 +25,9 @@ import com.google.tnt.solver.widgets.ConstraintWidgetContainer;
 import com.google.tnt.solver.widgets.Guideline;
 
 import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.awt.Rectangle;
@@ -33,6 +36,8 @@ import java.awt.Stroke;
 import java.awt.geom.Ellipse2D;
 import java.util.ArrayList;
 import java.util.EnumSet;
+
+import static com.android.tools.sherpa.drawing.ConnectionDraw.sFont;
 
 /**
  * Utility drawing class
@@ -44,6 +49,8 @@ public class WidgetDraw {
 
     static final int ZIGZAG = 3;
     static final int CENTER_ZIGZAG = 3;
+
+    public static final long TOOLTIP_DELAY = 800; // in ms
 
     private static final int GUIDELINE_ARROW_SIZE = 6;
     private static final int ARROW_SIDE = 10;
@@ -72,9 +79,9 @@ public class WidgetDraw {
      * @param isSelected        if the widget is currently selected
      */
     public static void drawWidgetFrame(ViewTransform transform, Graphics2D g,
-                                       ConstraintWidget widget,
-                                       EnumSet<ANCHORS_DISPLAY> showAnchors, boolean showResizeHandles,
-                                       boolean showSizeIndicator, boolean isSelected) {
+            ConstraintWidget widget,
+            EnumSet<ANCHORS_DISPLAY> showAnchors, boolean showResizeHandles,
+            boolean showSizeIndicator, boolean isSelected) {
         g.setStroke(SnapDraw.sNormalStroke);
         int l = transform.getSwingX(widget.getDrawX());
         int t = transform.getSwingY(widget.getDrawY());
@@ -126,9 +133,11 @@ public class WidgetDraw {
             g.fillRect(r - radiusRect, b - radiusRect, rectDimension, rectDimension);
             if (showSizeIndicator) {
                 ConnectionDraw
-                        .drawHorizontalMarginIndicator(g, String.valueOf(widget.getWidth()), l, r, t - 20);
+                        .drawHorizontalMarginIndicator(g, String.valueOf(widget.getWidth()), l, r,
+                                t - 20);
                 ConnectionDraw
-                        .drawVerticalMarginIndicator(g, String.valueOf(widget.getHeight()), l - 20, t, b);
+                        .drawVerticalMarginIndicator(g, String.valueOf(widget.getHeight()), l - 20,
+                                t, b);
             }
         }
 
@@ -162,7 +171,8 @@ public class WidgetDraw {
             showBaselineAnchor |= baselineAnchorIsConnected;
         }
 
-        if (showBaselineAnchor && !(widget instanceof ConstraintWidgetContainer) && widget.getBaselineDistance() > 0) {
+        if (showBaselineAnchor && !(widget instanceof ConstraintWidgetContainer) &&
+                widget.getBaselineDistance() > 0) {
             int baselineY = transform
                     .getSwingY(
                             WidgetInteractionTargets.constraintHandle(
@@ -309,7 +319,7 @@ public class WidgetDraw {
         g2.setStroke(new BasicStroke(1));
         int l = transform.getSwingX(table.getDrawX());
         int t = transform.getSwingY(table.getDrawY());
-        g2.setFont(ConnectionDraw.sFont);
+        g2.setFont(sFont);
         g2.drawRect(l, t - 20 - 4, 20, 20);
         int column = 0;
         String align = table.getColumnAlignmentRepresentation(column++);
@@ -340,7 +350,7 @@ public class WidgetDraw {
         int t = transform.getSwingY(root.getDrawY());
         int r = transform.getSwingX(root.getDrawX() + root.getWidth());
         int b = transform.getSwingY(root.getDrawY() + root.getHeight());
-        g.setFont(ConnectionDraw.sFont);
+        g.setFont(sFont);
         if (guideline.getOrientation() == Guideline.HORIZONTAL) {
             int x = transform.getSwingX(guideline.getX()) + l;
             g2.drawLine(x, t, x, b);
@@ -355,7 +365,7 @@ public class WidgetDraw {
                 g.drawString("%", x - 4, t - 4);
                 if (isSelected) {
                     int percent = (guideline.getX() * 100) / root.getWidth();
-                    ConnectionDraw.drawCircledText(g, ConnectionDraw.sFont, String.valueOf(percent), x, t + 20);
+                    ConnectionDraw.drawCircledText(g, sFont, String.valueOf(percent), x, t + 20);
                 }
             } else if (relative == Guideline.RELATIVE_BEGIN) {
                 Polygon arrow = ConnectionDraw.getLeftArrow();
@@ -365,7 +375,9 @@ public class WidgetDraw {
                 g.fill(arrow);
                 arrow.translate(-tx, -ty);
                 if (isSelected) {
-                    ConnectionDraw.drawHorizontalMarginIndicator(g, String.valueOf(guideline.getX()), l, x, ty + 20);
+                    ConnectionDraw
+                            .drawHorizontalMarginIndicator(g, String.valueOf(guideline.getX()), l,
+                                    x, ty + 20);
                 }
             } else if (relative == Guideline.RELATIVE_END) {
                 Polygon arrow = ConnectionDraw.getRightArrow();
@@ -376,7 +388,7 @@ public class WidgetDraw {
                 arrow.translate(-tx, -ty);
                 if (isSelected) {
                     ConnectionDraw.drawHorizontalMarginIndicator(
-                      g, String.valueOf(root.getWidth() - guideline.getX()), x, r, ty + 20);
+                            g, String.valueOf(root.getWidth() - guideline.getX()), x, r, ty + 20);
                 }
             }
         } else {
@@ -392,7 +404,7 @@ public class WidgetDraw {
                 g.drawString("%", l - 2 * circleSize + 1, y + 5);
                 if (isSelected) {
                     int percent = (guideline.getY() * 100) / root.getHeight();
-                    ConnectionDraw.drawCircledText(g, ConnectionDraw.sFont, String.valueOf(percent), l + 20, y);
+                    ConnectionDraw.drawCircledText(g, sFont, String.valueOf(percent), l + 20, y);
                 }
             } else if (relative == Guideline.RELATIVE_BEGIN) {
                 Polygon arrow = ConnectionDraw.getTopArrow();
@@ -402,7 +414,8 @@ public class WidgetDraw {
                 g.fill(arrow);
                 arrow.translate(-tx, -ty);
                 if (isSelected) {
-                    ConnectionDraw.drawVerticalMarginIndicator(g, String.valueOf(guideline.getY()), l + 20, t, ty);
+                    ConnectionDraw.drawVerticalMarginIndicator(g, String.valueOf(guideline.getY()),
+                            l + 20, t, ty);
                 }
             } else if (relative == Guideline.RELATIVE_END) {
                 Polygon arrow = ConnectionDraw.getBottomArrow();
@@ -413,7 +426,7 @@ public class WidgetDraw {
                 arrow.translate(-tx, -ty);
                 if (isSelected) {
                     ConnectionDraw.drawVerticalMarginIndicator(
-                      g, String.valueOf(root.getHeight() - guideline.getY()), l + 20, ty, b);
+                            g, String.valueOf(root.getHeight() - guideline.getY()), l + 20, ty, b);
                 }
             }
         }
@@ -579,4 +592,57 @@ public class WidgetDraw {
         }
         return sHorizontalGuidelineHandle;
     }
+
+    /**
+     * Utility function to draw a tooltip
+     *
+     * @param g        the graphics context
+     * @param colorSet the current colorset
+     * @param lines    the text we want to show
+     * @param x        the tooltip anchor point x coordinate
+     * @param y        the tooltip anchor point y coordinate
+     * @param above    the tooltip should be drawn above the anchor point if true, other it will be drawn below
+     */
+    public static void drawTooltip(Graphics2D g, ColorSet colorSet, String[] lines, int x, int y,
+            boolean above) {
+        if (lines == null) {
+            return;
+        }
+        Font prefont = g.getFont();
+        Color precolor = g.getColor();
+
+        g.setFont(sFont);
+        FontMetrics fm = g.getFontMetrics(sFont);
+
+        int textWidth = 0;
+        int textHeight = 0;
+        int margin = 4;
+        int padding = 10;
+        int th = fm.getMaxAscent() + fm.getMaxDescent();
+        for (int i = 0; i < lines.length; i++) {
+            textWidth = Math.max(textWidth, fm.stringWidth(lines[i]));
+            textHeight += th + margin;
+        }
+        int rectX = x - textWidth / 2 - padding;
+        int rectY = y - padding - textHeight - 2 * padding;
+        int rectWidth = textWidth + 2 * padding;
+        int rectHeight = textHeight + 2 * padding;
+
+        g.setColor(colorSet.getTooltipBackground());
+        g.fillRoundRect(rectX, rectY, rectWidth, rectHeight, 8, 8);
+
+        for (int i = 0; i < lines.length; i++) {
+            int tw = fm.stringWidth(lines[i]);
+            int tx = x - tw / 2;
+            int ty = y - (lines.length - i) * (th + margin) - padding;
+            g.setColor(Color.black);
+            g.drawString(lines[i], tx + 1, ty + 1);
+            g.setColor(colorSet.getAnchorCreationCircle());
+            g.drawString(lines[i], tx, ty);
+        }
+
+        g.setFont(prefont);
+        g.setColor(precolor);
+    }
+
 }
