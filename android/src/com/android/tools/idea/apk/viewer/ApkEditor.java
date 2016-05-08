@@ -16,6 +16,7 @@
 package com.android.tools.idea.apk.viewer;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.apk.viewer.arsc.ArscViewer;
 import com.android.tools.idea.apk.viewer.dex.DexFileViewer;
 import com.android.tools.idea.editors.NinePatchEditorProvider;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
@@ -32,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.beans.PropertyChangeListener;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -170,7 +172,14 @@ public class ApkEditor implements FileEditor, ApkViewPanel.Listener {
     }
 
     if (ApkFileSystem.getInstance().isArsc(file)) {
-      return new BinaryXmlViewer(myBaseFile, file);
+      byte[] arscContent;
+      try {
+        arscContent = file.contentsToByteArray();
+      }
+      catch (IOException e) {
+        return new EmptyPanel();
+      }
+      return new ArscViewer(arscContent);
     }
 
     if (SdkConstants.EXT_DEX.equals(file.getExtension())) {

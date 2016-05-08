@@ -24,6 +24,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -58,12 +59,13 @@ public class BinaryXmlParser {
     List<Chunk> contentChunks = sortByOffset(chunks);
 
     for (Chunk chunk : contentChunks) {
-      // skip past non xml node chunks (e.g. string pool and xml resource maps)
-      if (!(chunk instanceof XmlNodeChunk)) {
-        continue;
+      if (chunk instanceof StringPoolChunk) {
+        handler.stringPool((StringPoolChunk)chunk);
       }
-
-      if (chunk instanceof XmlNamespaceStartChunk) {
+      else if (chunk instanceof XmlResourceMapChunk) {
+        handler.xmlResourceMap((XmlResourceMapChunk)chunk);
+      }
+      else if (chunk instanceof XmlNamespaceStartChunk) {
         handler.startNamespace((XmlNamespaceStartChunk)chunk);
       }
       else if (chunk instanceof XmlNamespaceEndChunk) {
@@ -94,32 +96,35 @@ public class BinaryXmlParser {
   }
 
   private interface XmlChunkHandler {
-    void startNamespace(@NotNull XmlNamespaceStartChunk chunk);
+    default void stringPool(@NotNull StringPoolChunk chunk) {}
+    default void xmlResourceMap(@NotNull XmlResourceMapChunk chunk) {}
 
-    void endNamespace(@NotNull XmlNamespaceEndChunk chunk);
+    default void startNamespace(@NotNull XmlNamespaceStartChunk chunk) {}
+    default void endNamespace(@NotNull XmlNamespaceEndChunk chunk) {}
 
-    void startElement(@NotNull XmlStartElementChunk chunk);
-
-    void endElement(@NotNull XmlEndElementChunk chunk);
+    default void startElement(@NotNull XmlStartElementChunk chunk) {}
+    default void endElement(@NotNull XmlEndElementChunk chunk) {}
   }
 
   private static class XmlPrinter implements XmlChunkHandler {
     private final XmlBuilder myBuilder;
     private Map<String, String> myNamespaces = new HashMap<>();
     private boolean myNamespacesAdded;
+    private StringPoolChunk myStringPool;
 
     public XmlPrinter() {
       myBuilder = new XmlBuilder();
     }
 
     @Override
-    public void startNamespace(@NotNull XmlNamespaceStartChunk chunk) {
-      // collect all the namespaces in use, and print them out later when we the first tag is seen
-      myNamespaces.put(chunk.getUri(), chunk.getPrefix());
+    public void stringPool(@NotNull StringPoolChunk chunk) {
+      myStringPool = chunk;
     }
 
     @Override
-    public void endNamespace(@NotNull XmlNamespaceEndChunk chunk) {
+    public void startNamespace(@NotNull XmlNamespaceStartChunk chunk) {
+      // collect all the namespaces in use, and print them out later when we the first tag is seen
+      myNamespaces.put(chunk.getUri(), chunk.getPrefix());
     }
 
     @Override
@@ -149,45 +154,56 @@ public class BinaryXmlParser {
     public String getReconstructedXml() {
       return myBuilder.toString();
     }
+
+    @NotNull
+    private String getValue(@NotNull XmlAttribute attribute) {
+      String rawValue = attribute.rawValue();
+      if (!StringUtil.isEmpty(rawValue)) {
+        return rawValue;
+      }
+
+      ResourceValue resValue = attribute.typedValue();
+      return formatValue(resValue, myStringPool);
+    }
   }
 
-  @NotNull
-  private static String getValue(@NotNull XmlAttribute attribute) {
-    String rawValue = attribute.rawValue();
-    if (!StringUtil.isEmpty(rawValue)) {
-      return rawValue;
-    }
+  public static String formatValue(@NotNull ResourceValue resValue, @Nullable StringPoolChunk stringPool) {
+    int data = resValue.data();
 
-    ResourceValue resValue = attribute.typedValue();
     switch (resValue.type()) {
       case NULL:
         return "null";
       case DYNAMIC_REFERENCE:
+        return String.format(Locale.US, "@dref/0x%1$08x", data);
       case REFERENCE:
-        return String.format(Locale.US, "@ref/0x%1$08x", resValue.data());
+        return String.format(Locale.US, "@ref/0x%1$08x", data);
       case ATTRIBUTE:
-        return String.format(Locale.US, "@attr/0x%1$x", resValue.data());
+        return String.format(Locale.US, "@attr/0x%1$x", data);
       case STRING:
-        return String.format(Locale.US, "@string/0x%1$x", resValue.data());
-      case FLOAT:
-        return String.format(Locale.US, "%f", (float)resValue.data());
+        return stringPool != null && stringPool.getStringCount() < data
+               ? stringPool.getString(data) : String.format(Locale.US, "@string/0x%1$x", data);
       case DIMENSION:
-        return String.format(Locale.US, "dim %1$d", resValue.data());
+        return String.format(Locale.US, "dimension(%1$d)", data);
       case FRACTION:
-        return String.format(Locale.US, "fraction %1$d", resValue.data());
+        return String.format(Locale.US, "fraction(%1$d)", data);
+      case FLOAT:
+        return String.format(Locale.US, "%f", (float)data);
       case INT_DEC:
-        return Integer.toString(resValue.data());
+        return Integer.toString(data);
       case INT_HEX:
-        return "0x" + Integer.toHexString(resValue.data());
+        return "0x" + Integer.toHexString(data);
       case INT_BOOLEAN:
-        return Boolean.toString(resValue.data() != 0);
+        return Boolean.toString(data != 0);
       case INT_COLOR_ARGB8:
+        return String.format("argb8(0x%x)", data);
       case INT_COLOR_RGB8:
+        return String.format("rgb8(0x%x)", data);
       case INT_COLOR_ARGB4:
+        return String.format("argb4(0x%x)", data);
       case INT_COLOR_RGB4:
-        return String.format("color{0x%x}", resValue.data());
+        return String.format("rgb4(0x%x)", data);
     }
 
-    return String.format("@res/0x%x", resValue.data());
+    return String.format("@res/0x%x", data);
   }
 }
