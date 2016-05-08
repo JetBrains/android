@@ -28,12 +28,14 @@ public interface TutorialBundleData {
   @NotNull
   String getName();
 
+  /**
+   * @see #getLogo()
+   */
   @Nullable("Optionally rendered")
   Icon getIcon();
 
   /**
-   * Supersedes {@code getIcon} if non-null.
-   * @return
+   * Supersedes {@link #getIcon()} if non-null.
    */
   @Nullable("Optionally rendered")
   Icon getLogo();

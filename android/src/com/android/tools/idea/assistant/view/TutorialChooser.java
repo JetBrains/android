@@ -41,8 +41,6 @@ public class TutorialChooser extends CardViewPanel {
 
   public TutorialChooser(ActionListener listener, @NotNull TutorialBundleData bundle) {
     super(listener);
-    // TODO: Migrate this somewhere central.
-    String font = getFont().getFamily();
 
     JPanel header = new TutorialChooserHeader(bundle);
 
@@ -103,7 +101,6 @@ public class TutorialChooser extends CardViewPanel {
    * Creates an expandable summary for a given service. Acts as the entry point
    * to the associated tutorials.
    *
-   * @param service The service to summarize.
    * @return The component to render.
    */
   private FeatureEntryPoint createFeatureEntryPoint(FeatureData feature) {
@@ -116,7 +113,7 @@ public class TutorialChooser extends CardViewPanel {
    * TODO: Pull this out into a light-weight reusable class for this type of
    * scroll behavior.
    */
-  private class NaturalWidthScrollClient extends JPanel implements Scrollable {
+  private static class NaturalWidthScrollClient extends JPanel implements Scrollable {
 
     @Override
     public Dimension getPreferredScrollableViewportSize() {
@@ -148,7 +145,7 @@ public class TutorialChooser extends CardViewPanel {
     }
   }
 
-  private class TutorialChooserHeader extends JPanel {
+  private static class TutorialChooserHeader extends JPanel {
 
     TutorialChooserHeader(TutorialBundleData bundle) {
       super(new VerticalFlowLayout());
