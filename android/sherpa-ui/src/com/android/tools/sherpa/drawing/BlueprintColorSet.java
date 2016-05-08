@@ -82,6 +82,11 @@ public class BlueprintColorSet extends ColorSet {
         mWidgetActionBackground = mSelectedFrames;
         mWidgetActionSelectedBackground = Color.white;
 
+        // Tooltip
+
+        mTooltipBackground = Color.white;
+        mTootipText = Color.black;
+
         // Inspector colors
 
         mInspectorTrackBackgroundColor = new Color(228, 228, 238);

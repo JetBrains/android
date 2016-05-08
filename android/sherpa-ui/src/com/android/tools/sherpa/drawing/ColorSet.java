@@ -72,7 +72,9 @@ public class ColorSet {
     protected Color mShadow = new Color(0, 0, 0, 50);
     protected Stroke mShadowStroke = new BasicStroke(3);
 
-    protected Color mTooltipBackground = new Color(0, 0, 0, 160);
+    protected Color mTooltipBackground;
+
+    protected Color mTootipText;
 
     protected int mStyle;
 
@@ -188,6 +190,10 @@ public class ColorSet {
 
     public Color getTooltipBackground() {
         return mTooltipBackground;
+    }
+
+    public Color getTooltipText() {
+        return mTootipText;
     }
 
     public Color getCreatedConstraints() {
