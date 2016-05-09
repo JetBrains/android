@@ -16,11 +16,9 @@
 package com.android.tools.idea.debug;
 
 import com.android.SdkConstants;
-import com.android.tools.lint.checks.SupportAnnotationDetector;
+import com.android.tools.lint.detector.api.ResourceEvaluator;
 import com.google.common.util.concurrent.Atomics;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiAnnotation;
@@ -54,10 +52,10 @@ public class AnnotationsRenderer {
       return renderUnknown(null, value);
     }
 
-    if (SupportAnnotationDetector.COLOR_INT_ANNOTATION.equals(qualifiedName)) {
+    if (ResourceEvaluator.COLOR_INT_ANNOTATION.equals(qualifiedName)) {
       return renderColorInt(value);
     }
-    else if (qualifiedName.endsWith(SupportAnnotationDetector.RES_SUFFIX)) {
+    else if (qualifiedName.endsWith(ResourceEvaluator.RES_SUFFIX)) {
       return renderResourceRefAnnotation(resolver, value, qualifiedName);
     }
     else if (qualifiedName.equals(SdkConstants.INT_DEF_ANNOTATION)) {
