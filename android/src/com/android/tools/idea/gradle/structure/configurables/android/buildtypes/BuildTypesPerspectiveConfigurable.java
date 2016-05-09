@@ -20,8 +20,6 @@ import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.intellij.openapi.ui.NamedConfigurable;
-import com.intellij.openapi.util.ActionCallback;
-import com.intellij.ui.navigation.Place;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,14 +39,9 @@ public class BuildTypesPerspectiveConfigurable extends BasePerspectiveConfigurab
   }
 
   @Override
-  public ActionCallback navigateTo(@Nullable Place place, boolean requestFocus) {
-    // TODO implement.
-    return ActionCallback.DONE;
-  }
-
-  @Override
-  public void queryPlace(@NotNull Place place) {
-
+  @NotNull
+  protected String getNavigationPathName() {
+    return "buildTypes.place";
   }
 
   @Override

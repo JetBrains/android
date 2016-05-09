@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview;
+package com.android.tools.idea.gradle.structure.configurables.android.dependencies.resolved.treeview;
 
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseTreeStructure;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;

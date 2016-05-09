@@ -31,7 +31,10 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Collections;
 import java.util.List;
+
+import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.revalidateAndRepaint;
 
 public abstract class AbstractMainPanel extends JPanel implements Disposable, Place.Navigator {
   @NotNull private final PsProject myProject;
@@ -41,19 +44,22 @@ public abstract class AbstractMainPanel extends JPanel implements Disposable, Pl
   private JComponent myModulesToolbar;
   private History myHistory;
 
+  protected AbstractMainPanel(@NotNull PsContext context) {
+    this(context, Collections.emptyList());
+  }
+
   protected AbstractMainPanel(@NotNull PsContext context, @NotNull List<PsModule> extraTopModules) {
     super(new BorderLayout());
     myProject = context.getProject();
     myContext = context;
 
-    PsUISettings settings = PsUISettings.getInstance();
-    myShowModulesDropDown = settings.MODULES_LIST_MINIMIZE;
+    myShowModulesDropDown = PsUISettings.getInstance().MODULES_LIST_MINIMIZE;
     if (myShowModulesDropDown) {
       createAndAddModulesAction(extraTopModules);
     }
-    settings.addListener(settings1 -> {
-      if (settings1.MODULES_LIST_MINIMIZE != myShowModulesDropDown) {
-        myShowModulesDropDown = settings1.MODULES_LIST_MINIMIZE;
+    PsUISettings.getInstance().addListener(settings -> {
+      if (settings.MODULES_LIST_MINIMIZE != myShowModulesDropDown) {
+        myShowModulesDropDown = settings.MODULES_LIST_MINIMIZE;
         if (myShowModulesDropDown) {
           createAndAddModulesAction(extraTopModules);
         }
@@ -90,8 +96,7 @@ public abstract class AbstractMainPanel extends JPanel implements Disposable, Pl
     if (myModulesToolbar != null) {
       remove(myModulesToolbar);
       myModulesToolbar = null;
-      revalidate();
-      repaint();
+      revalidateAndRepaint(this);
     }
   }
 

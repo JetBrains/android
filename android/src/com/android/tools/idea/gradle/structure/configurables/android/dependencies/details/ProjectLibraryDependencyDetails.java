@@ -25,8 +25,9 @@ import javax.swing.*;
 
 public class ProjectLibraryDependencyDetails implements DependencyDetails<PsAndroidLibraryDependency> {
   private JPanel myMainPanel;
-  private JXLabel myGroupIdLabel;
+
   private JXLabel myArtifactNameLabel;
+  private JXLabel myGroupIdLabel;
 
   private PsAndroidLibraryDependency myDependency;
 
@@ -41,8 +42,8 @@ public class ProjectLibraryDependencyDetails implements DependencyDetails<PsAndr
     myDependency = dependency;
 
     PsArtifactDependencySpec resolvedSpec = dependency.getResolvedSpec();
-    myGroupIdLabel.setText(resolvedSpec.group);
     myArtifactNameLabel.setText(resolvedSpec.name);
+    myGroupIdLabel.setText(resolvedSpec.group);
   }
 
   @Override
