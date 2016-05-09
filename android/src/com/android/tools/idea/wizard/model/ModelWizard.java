@@ -89,6 +89,8 @@ public final class ModelWizard implements Disposable {
    * {@link WizardModel#handleFinished()} on each of their associated models.
    * <p/>
    * Note: You don't use this constructor directly - instead, use {@link Builder#build()}.
+   *
+   * @throws IllegalArgumentException if {@code steps} is empty or none of the steps are visible.
    */
   private ModelWizard(@NotNull Collection<ModelWizardStep> steps) {
     mySteps = Lists.newArrayListWithExpectedSize(steps.size());
@@ -124,7 +126,31 @@ public final class ModelWizard implements Disposable {
       seenModels.add(model);
     }
 
-    start();
+    // At this point, we're ready to go! Try to start the wizard, proceeding into the first step
+    // if we can.
+
+    for (ModelWizardStep step : mySteps) {
+      step.onWizardStarting(myFacade);
+    }
+
+    boolean atLeastOneVisibleStep = false;
+    for (ModelWizardStep step : mySteps) {
+      if (shouldShowStep(step)) {
+        atLeastOneVisibleStep = true;
+        break;
+      }
+    }
+
+    if (atLeastOneVisibleStep) {
+      goForward(); // Proceed to first step
+    }
+    else {
+      // Normally we'd leave it up to external code to dispose the wizard, but since we're throwing
+      // an exception in the constructor, it means the caller won't be able to get a reference to
+      // this wizard before the exception interrupts it. So we manually clean things up ourselves.
+      Disposer.dispose(this);
+      throw new IllegalStateException("Trying to create a wizard but no steps are visible");
+    }
   }
 
   /**
@@ -227,33 +253,6 @@ public final class ModelWizard implements Disposable {
   @NotNull
   public JPanel getContentPanel() {
     return myContentPanel;
-  }
-
-  /**
-   * Starts this wizard, after all steps have been added. Once started, the wizard will be pointed
-   * at the first step, and navigation can begin via {@link #goForward()} and {@link #goBack()}.
-   *
-   * If there are no steps, this wizard immediately progresses to a finished state.
-   */
-  private void start() {
-    for (ModelWizardStep step : mySteps) {
-      step.onWizardStarting(myFacade);
-    }
-
-    boolean atLeastOneVisibleStep = false;
-    for (ModelWizardStep step : mySteps) {
-      if (shouldShowStep(step)) {
-        atLeastOneVisibleStep = true;
-        break;
-      }
-    }
-
-    if (atLeastOneVisibleStep) {
-      goForward(); // Proceed to first step
-    }
-    else {
-      handleFinished(true);
-    }
   }
 
   /**
