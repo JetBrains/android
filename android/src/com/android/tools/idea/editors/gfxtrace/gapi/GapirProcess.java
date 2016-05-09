@@ -21,6 +21,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -28,6 +29,7 @@ import java.util.concurrent.TimeoutException;
 public final class GapirProcess extends ChildProcess {
   @NotNull private static final Logger LOG = Logger.getInstance(GapirProcess.class);
   private static final Object myInstanceLock = new Object();
+  private static String myAuthToken = null;
   private static GapirProcess myInstance;
 
   private static final int SERVER_LAUNCH_TIMEOUT_MS = 10000;
@@ -57,8 +59,28 @@ public final class GapirProcess extends ChildProcess {
       LOG.warn("Could not find gapir.");
       return false;
     }
-    pb.command(GapiPaths.gapir().getAbsolutePath(), "--log", new File(PathManager.getLogPath(), "gapir.log").getAbsolutePath());
+
+    ArrayList<String> args = new ArrayList<String>(8);
+    args.add(GapiPaths.gapir().getAbsolutePath());
+
+    args.add("--log");
+    args.add(new File(PathManager.getLogPath(), "gapir.log").getAbsolutePath());
+
+    args.add("--gapis-auth-token");
+    args.add(getAuthToken());
+
+    pb.command(args);
     return true;
+  }
+
+  /** @return the auth-token for the GAPIS process. */
+  public static String getAuthToken() {
+    synchronized (myInstanceLock) {
+      if (myAuthToken == null) {
+        myAuthToken = generateAuthToken();
+      }
+      return myAuthToken;
+    }
   }
 
   @Override
