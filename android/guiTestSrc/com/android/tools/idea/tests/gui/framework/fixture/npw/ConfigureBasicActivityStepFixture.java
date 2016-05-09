@@ -20,9 +20,13 @@ import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.AbstractWizardStepFixture;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
+import org.fest.swing.core.matcher.JTextComponentMatcher;
+import org.fest.swing.fixture.JTextComponentFixture;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.text.JTextComponent;
+
 
 public class ConfigureBasicActivityStepFixture extends AbstractWizardStepFixture<ConfigureBasicActivityStepFixture> {
 
@@ -34,7 +38,9 @@ public class ConfigureBasicActivityStepFixture extends AbstractWizardStepFixture
   public enum ActivityTextField {
     NAME("Activity Name:"),
     LAYOUT("Layout Name:"),
-    TITLE("Title:");
+    TITLE("Title:"),
+    HIERARCHICAL_PARENT("Hierarchical Parent:"),
+    PACKAGE_NAME("Package name:");
 
     private final String labelText;
 
@@ -65,8 +71,12 @@ public class ConfigureBasicActivityStepFixture extends AbstractWizardStepFixture
 
   @NotNull
   public ConfigureBasicActivityStepFixture enterTextFieldValue(@NotNull ActivityTextField activityField, @NotNull String text) {
-    JTextField textField = findTextFieldWithLabel(activityField.getLabelText());
-    replaceText(textField, text);
+    // The label text may reference the input directly (a subclass of JTextComponent), or it may reference the container of the input
+    // (for example ReferenceEditorComboWithBrowseButton (JPanel) or an EditorComboBox)
+    JComponent comp = robot().finder().findByLabel(target(), activityField.getLabelText(), JComponent.class, true);
+    JTextComponent textField = robot().finder().find(comp, JTextComponentMatcher.any());
+    new JTextComponentFixture(robot(), textField).setText("").enterText(text);
+
     return this;
   }
 
