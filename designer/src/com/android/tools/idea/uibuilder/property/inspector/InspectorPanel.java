@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.property.inspector;
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintInspectorProvider;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.property.NlDesignProperties;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.google.common.collect.ImmutableList;
@@ -26,6 +27,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Table;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
@@ -46,19 +48,10 @@ import java.util.Map;
 import static com.intellij.uiDesigner.core.GridConstraints.*;
 
 public class InspectorPanel extends JPanel {
-  public enum SplitLayout {SINGLE_ROW, STACKED, SEPARATE}
+  private static final int HORIZONTAL_SPACING = 4;
 
-  private static final InspectorProvider[] ourProviders = new InspectorProvider[]{
-    new ConstraintInspectorProvider(),
-    new IdInspectorProvider(),
-    // View type inspectors:
-    new FloatingActionButtonInspectorProvider(),
-    new ImageViewInspectorProvider(),
-    // General inspectors:
-    new TextInspectorProvider(),
-    new FontInspectorProvider(),
-  };
-
+  private final List<InspectorProvider> myProviders;
+  private final NlDesignProperties myDesignProperties;
   private final Font myBoldLabelFont = UIUtil.getLabelFont().deriveFont(Font.BOLD);
   private final Icon myExpandedIcon;
   private final Icon myCollapsedIcon;
@@ -69,13 +62,24 @@ public class InspectorPanel extends JPanel {
   private GridConstraints myConstraints = new GridConstraints();
   private int myRow;
 
-  public InspectorPanel() {
+  public InspectorPanel(@NotNull Project project) {
     super(new BorderLayout());
+    myProviders = createProviders(project);
+    myDesignProperties = new NlDesignProperties();
     myExpandedIcon = (Icon)UIManager.get("Tree.expandedIcon");
     myCollapsedIcon = (Icon)UIManager.get("Tree.collapsedIcon");
-    myInspector = new JPanel();
-    myInspector.setBorder(BorderFactory.createEmptyBorder(0, 6, 0, 6));
+    myInspector = new GridInspectorPanel();
+    myInspector.setBorder(BorderFactory.createEmptyBorder(0, HORIZONTAL_SPACING, 0, HORIZONTAL_SPACING));
     add(myInspector, BorderLayout.CENTER);
+  }
+
+  private static List<InspectorProvider> createProviders(@NotNull Project project) {
+    return ImmutableList.of(new ConstraintInspectorProvider(),
+                            new IdInspectorProvider(),
+                            new ViewInspectorProvider(project),
+                            new TextInspectorProvider(),
+                            new FontInspectorProvider()
+    );
   }
 
   private static GridLayoutManager createLayoutManager(int rows, int columns) {
@@ -87,8 +91,8 @@ public class InspectorPanel extends JPanel {
   public void setComponent(@NotNull List<NlComponent> components,
                            @NotNull Table<String, String, ? extends NlProperty> properties,
                            @NotNull NlPropertiesManager propertiesManager) {
+    myInspector.setLayout(null);
     myInspector.removeAll();
-    myInspector.repaint();
     myRow = 0;
 
     Map<String, NlProperty> propertiesByName = Maps.newHashMapWithExpectedSize(properties.size());
@@ -98,8 +102,16 @@ public class InspectorPanel extends JPanel {
     for (NlProperty property : properties.row(SdkConstants.AUTO_URI).values()) {
       propertiesByName.put(property.getName(), property);
     }
+    for (NlProperty property : properties.row("").values()) {
+      propertiesByName.put(property.getName(), property);
+    }
+    // Add access to known design properties
+    for (NlProperty property : myDesignProperties.getKnownProperties(components)) {
+      propertiesByName.put(property.getName(), property);
+    }
 
-    List<InspectorComponent> inspectors = createInspectorComponents(components, propertiesManager, propertiesByName, ourProviders);
+    List<InspectorComponent> inspectors = createInspectorComponents(components, propertiesManager, propertiesByName, myProviders);
+    myInspectors = inspectors;
 
     int rows = 1;  // 1 for the spacer below
     for (InspectorComponent inspector : inspectors) {
@@ -115,7 +127,9 @@ public class InspectorPanel extends JPanel {
     // Add a vertical spacer
     myInspector.add(new Spacer(), new GridConstraints(myRow++, 0, 1, 2, ANCHOR_CENTER, FILL_HORIZONTAL, SIZEPOLICY_CAN_GROW, SIZEPOLICY_CAN_GROW | SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
 
-    myInspectors = inspectors;
+    // These are both important to render the controls correctly the first time:
+    validate();
+    repaint();
   }
 
   public void refresh() {
@@ -126,8 +140,8 @@ public class InspectorPanel extends JPanel {
   private static List<InspectorComponent> createInspectorComponents(@NotNull List<NlComponent> components,
                                                                     @NotNull NlPropertiesManager propertiesManager,
                                                                     @NotNull Map<String, NlProperty> properties,
-                                                                    @NotNull InspectorProvider[] allProviders) {
-    List<InspectorComponent> inspectors = Lists.newArrayListWithExpectedSize(allProviders.length);
+                                                                    @NotNull List<InspectorProvider> allProviders) {
+    List<InspectorComponent> inspectors = Lists.newArrayListWithExpectedSize(allProviders.size());
 
     if (components.isEmpty()) {
       // create just the id inspector, which we know can handle a null component
@@ -177,45 +191,6 @@ public class InspectorPanel extends JPanel {
     return label;
   }
 
-  public void addSplitComponents(@NotNull SplitLayout layout,
-                                 @NotNull String labelText1,
-                                 @Nullable String tooltip1,
-                                 @NotNull Component component1,
-                                 @NotNull String labelText2,
-                                 @Nullable String tooltip2,
-                                 @NotNull Component component2) {
-    JLabel label1 = createLabel(labelText1, tooltip1, component1);
-    JLabel label2 = createLabel(labelText2, tooltip2, component2);
-    JPanel panel;
-
-    switch (layout) {
-      case SEPARATE:
-        addLabelComponent(label1, myRow);
-        addValueComponent(component1, myRow++);
-        addLabelComponent(label2, myRow);
-        addValueComponent(component2, myRow++);
-        break;
-
-      case SINGLE_ROW:
-        panel = new JPanel(createLayoutManager(1, 4));
-        addToGridPanel(panel, label1, 0, 0, 1, ANCHOR_WEST, FILL_NONE);
-        addToGridPanel(panel, component1, 0, 1, 1, ANCHOR_EAST, FILL_HORIZONTAL);
-        addToGridPanel(panel, label2, 0, 2, 1, ANCHOR_WEST, FILL_NONE);
-        addToGridPanel(panel, component2, 0, 3, 1, ANCHOR_EAST, FILL_HORIZONTAL);
-        addLineComponent(panel, myRow++);
-        break;
-
-      case STACKED:
-        panel = new JPanel(createLayoutManager(2, 2));
-        addToGridPanel(panel, label1, 0, 0, 1, ANCHOR_WEST, FILL_NONE);
-        addToGridPanel(panel, label2, 0, 1, 1, ANCHOR_WEST, FILL_NONE);
-        addToGridPanel(panel, component1, 1, 0, 1, ANCHOR_EAST, FILL_HORIZONTAL);
-        addToGridPanel(panel, component2, 1, 1, 1, ANCHOR_EAST, FILL_HORIZONTAL);
-        addLineComponent(panel, myRow++);
-        break;
-    }
-  }
-
   /**
    * Adds a custom panel that spans the entire width, just set the preferred height on the panel
    */
@@ -263,7 +238,6 @@ public class InspectorPanel extends JPanel {
     myConstraints.setColSpan(columnSpan);
     myConstraints.setAnchor(anchor);
     myConstraints.setFill(fill);
-
     panel.add(component, myConstraints);
   }
 
@@ -289,5 +263,52 @@ public class InspectorPanel extends JPanel {
 
   private void endGroup() {
     myGroup = null;
+  }
+
+  /**
+   * This is a hack to attempt to keep the column size fo the grid to 40% for the label and 60% for the editor.
+   * We want to update the constraints before <code>doLayout</code> is called on the panel.
+   */
+  private static class GridInspectorPanel extends JPanel {
+    private int myWidth;
+
+    @Override
+    public void setLayout(LayoutManager layoutManager) {
+      myWidth = -1;
+      super.setLayout(layoutManager);
+    }
+
+    @Override
+    public void doLayout() {
+      updateGridConstraints();
+      super.doLayout();
+    }
+
+    private void updateGridConstraints() {
+      LayoutManager layoutManager = getLayout();
+      if (layoutManager instanceof GridLayoutManager) {
+        GridLayoutManager gridLayoutManager = (GridLayoutManager)layoutManager;
+        if (getWidth() != myWidth) {
+          myWidth = getWidth();
+          for (Component component : getComponents()) {
+            GridConstraints constraints = gridLayoutManager.getConstraintsForComponent(component);
+            if (constraints != null) {
+              updateMinimumSize(constraints);
+            }
+          }
+        }
+      }
+    }
+
+    private void updateMinimumSize(@NotNull GridConstraints constraints) {
+      if (constraints.getColSpan() == 1) {
+        if (constraints.getColumn() == 0) {
+          constraints.myMinimumSize.setSize((myWidth - 2 * HORIZONTAL_SPACING) * .4, -1);
+        }
+        else if (constraints.getColumn() == 1) {
+          constraints.myMinimumSize.setSize((myWidth - 2 * HORIZONTAL_SPACING) * .6, -1);
+        }
+      }
+    }
   }
 }

@@ -31,7 +31,6 @@ import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.xml.NamespaceAwareXmlAttributeDescriptor;
 import com.intellij.xml.XmlAttributeDescriptor;
@@ -90,6 +89,17 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
     // that the component can provide that information by having a shadow copy that is consistent with the rendering
     myComponents = components;
     myName = descriptor.getName();
+    myNamespace = namespace;
+    myDefinition = attributeDefinition;
+  }
+
+  public NlPropertyItem(@NotNull List<NlComponent> components,
+                        @NotNull String namespace,
+                        @Nullable AttributeDefinition attributeDefinition) {
+    assert !components.isEmpty();
+    assert attributeDefinition != null;
+    myComponents = components;
+    myName = attributeDefinition.getName();
     myNamespace = namespace;
     myDefinition = attributeDefinition;
   }

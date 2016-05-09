@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,34 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.handlers;
+package com.android.tools.idea.uibuilder.api;
 
-import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
-import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 
+import java.util.Collections;
 import java.util.List;
 
-import static com.android.SdkConstants.*;
-
 /**
- * Handler for the {@code <RecyclerView>} layout
+ * Methods for handling of a component's properties.
  */
-public class RecyclerViewHandler extends ViewGroupHandler {
-  @Override
+public abstract class PropertyComponentHandler extends PaletteComponentHandler {
+  /**
+   * Return the properties that should be shown in the inspector for this component.
+   */
   @NotNull
   public List<String> getInspectorProperties() {
-    return ImmutableList.of(
-      ATTR_SCROLLBARS,
-      ATTR_LISTITEM,
-      ATTR_BACKGROUND,
-      ATTR_CLIP_TO_PADDING,
-      ATTR_CLIP_CHILDREN);
-  }
-
-  @Override
-  @NotNull
-  public String getGradleCoordinate(@NotNull String tagName) {
-    return RECYCLER_VIEW_LIB_ARTIFACT;
+    return Collections.emptyList();
   }
 }

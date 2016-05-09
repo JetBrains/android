@@ -52,6 +52,7 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
   private static final JBColor DIM_TEXT_COLOR = new JBColor(Gray._128, Gray._128);
   private static final List<String> AVAILABLE_TEXT_SIZES = ImmutableList.of("8sp", "10sp", "12sp", "14sp", "18sp", "24sp", "30sp", "36sp");
   private static final List<String> AVAILABLE_LINE_SPACINGS = AVAILABLE_TEXT_SIZES;
+  private static final List<String> AVAILABLE_TYPEFACES = ImmutableList.of("normal", "sans", "serif", "monospace");
   private static final Listener DEFAULT_LISTENER = new DefaultListener();
 
   private final JPanel myPanel;
@@ -168,6 +169,9 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
     switch (property.getName()) {
       case SdkConstants.ATTR_FONT_FAMILY:
         values = ValueWithDisplayString.create(AndroidDomUtil.AVAILABLE_FAMILIES);
+        break;
+      case SdkConstants.ATTR_TYPEFACE:
+        values = ValueWithDisplayString.create(AVAILABLE_TYPEFACES);
         break;
       case SdkConstants.ATTR_TEXT_SIZE:
         values = ValueWithDisplayString.create(AVAILABLE_TEXT_SIZES);

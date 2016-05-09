@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.intellij.openapi.util.text.StringUtil;
+
+import java.util.List;
 
 import static com.android.SdkConstants.*;
 
@@ -32,6 +35,17 @@ public class ProgressBarHandler extends ViewHandler {
   private static final String LARGE = "Large";
   private static final String SMALL = "Small";
   private static final String HORIZONTAL = "Horizontal";
+
+  @Override
+  @NotNull
+  public List<String> getInspectorProperties() {
+    return ImmutableList.of(
+      ATTR_CONTENT_DESCRIPTION,
+      ATTR_STYLE,
+      ATTR_MAXIMUM,
+      ATTR_PROGRESS,
+      ATTR_INDETERMINATE);
+  }
 
   @NotNull
   @Override

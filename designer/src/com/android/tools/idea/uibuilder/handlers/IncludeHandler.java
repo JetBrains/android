@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.android.resources.ResourceType;
@@ -29,13 +30,20 @@ import org.intellij.lang.annotations.Language;
 
 import javax.swing.*;
 import java.util.EnumSet;
+import java.util.List;
 
 import static com.android.SdkConstants.ATTR_LAYOUT;
+import static com.android.SdkConstants.ATTR_NAME;
 
 /**
  * Handler for the {@code <include>} tag
  */
 public final class IncludeHandler extends ViewHandler {
+  @Override
+  @NotNull
+  public List<String> getInspectorProperties() {
+    return ImmutableList.of(ATTR_LAYOUT);
+  }
 
   @Override
   @NotNull
