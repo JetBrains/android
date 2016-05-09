@@ -23,6 +23,17 @@ import java.awt.*;
  */
 public class ColorSet {
 
+    public static Stroke
+            sNormalStroke = new BasicStroke(1);
+
+    public static Stroke
+            sDashedStroke = new BasicStroke(1, BasicStroke.CAP_BUTT,
+            BasicStroke.JOIN_BEVEL, 0, new float[] { 2 }, 0);
+
+    public static Stroke
+            sLongDashedtroke = new BasicStroke(1, BasicStroke.CAP_BUTT,
+            BasicStroke.JOIN_BEVEL, 0, new float[] { 4 }, 0);
+
     protected boolean mDrawBackground = true;
     protected boolean mDrawWidgetInfos = true;
     protected boolean mUseTooltips = true;
@@ -31,11 +42,12 @@ public class ColorSet {
     protected Color mBackground;
     protected Color mFrames;
     protected Color mConstraints;
-    protected Color mWeakConstraintColor;
+    protected Color mSoftConstraintColor;
     protected Color mMargins;
     protected Color mText;
     protected Color mSnapGuides;
     protected Color mCreatedConstraints = new Color(250, 187, 32);
+    protected Stroke mSoftConstraintStroke = sNormalStroke;
 
     protected Color mSubduedText;
     protected Color mSubduedBackground;
@@ -106,7 +118,7 @@ public class ColorSet {
 
     public Color getConstraints() { return mConstraints; }
 
-    public Color getWeakConstraintColor() { return mWeakConstraintColor; }
+    public Color getSoftConstraintColor() { return mSoftConstraintColor; }
 
     public Color getMargins() { return mMargins; }
 
@@ -207,4 +219,8 @@ public class ColorSet {
     public Color getWidgetActionBackground() { return mWidgetActionBackground; }
 
     public Color getWidgetActionSelectedBackground() { return mWidgetActionSelectedBackground; }
+
+    public Stroke getSoftConstraintStroke() {
+        return mSoftConstraintStroke;
+    }
 }

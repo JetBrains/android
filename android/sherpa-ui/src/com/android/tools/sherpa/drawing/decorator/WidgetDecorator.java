@@ -16,7 +16,6 @@
 
 package com.android.tools.sherpa.drawing.decorator;
 
-import com.android.tools.sherpa.animation.AnimatedColor;
 import com.android.tools.sherpa.drawing.ColorSet;
 import com.android.tools.sherpa.drawing.ConnectionDraw;
 import com.android.tools.sherpa.drawing.SceneDraw;
@@ -57,13 +56,13 @@ public class WidgetDecorator {
     private static boolean sShowAllConstraints = false;
     private static boolean sShowTextUI = false;
 
-    private static final int ACTIONS_HIDE_TIMEOUT = 1500; // ms
+    private static final int ACTIONS_HIDE_TIMEOUT = 1000; // ms
 
     private boolean mIsVisible = true;
     private boolean mIsSelected = false;
     private boolean mShowResizeHandles = false;
     private boolean mShowSizeIndicator = false;
-    private boolean mShowActions = true;
+    private boolean mShowActions = false;
     protected ColorSet mColorSet;
 
     private SceneDraw.Repaintable mRepaintableSurface;
@@ -72,7 +71,6 @@ public class WidgetDecorator {
     private AnimationProgress mShowBias = new AnimationProgress();
 
     private static Font sInfoFont = new Font("Helvetica", Font.PLAIN, 12);
-    private MouseInteraction.LockTimer mLockTimer;
 
     private ArrayList<WidgetAction> mWidgetActions = new ArrayList<>();
 
@@ -91,10 +89,24 @@ public class WidgetDecorator {
 
     private final static int ACTION_SIZE = 22;
     private boolean mOver = false;
+
     private final Timer mHideActions = new Timer(ACTIONS_HIDE_TIMEOUT, e -> {
         mShowActions = false;
         repaint();
     });
+
+    /**
+     * Utility function to return a ConstraintHandle instance associated with the anchor
+     *
+     * @param anchor the given anchor
+     * @return returns the associated ConstraintHandle
+     */
+    public static ConstraintHandle getConstraintHandle(ConstraintAnchor anchor) {
+        ConstraintWidget widget = anchor.getOwner();
+        WidgetCompanion companion = (WidgetCompanion) widget.getCompanionWidget();
+        WidgetInteractionTargets interactionTargets = companion.getWidgetInteractionTargets();
+        return interactionTargets.getConstraintHandle(anchor);
+    }
 
     /**
      * Utility class encapsulating a simple animation timer
@@ -185,16 +197,8 @@ public class WidgetDecorator {
         mShowBias.setDuration(1000);
         mShowBaseline.setDelay(1000);
         mShowBaseline.setDuration(1000);
-        if (sLockImageIcon != null) {
-            // Temporary protection to not show in studio
-            mWidgetActions.add(new LockWidgetAction(mWidget));
-            mWidgetActions.add(new DeleteConnectionsWidgetAction(mWidget));
-        }
+        mWidgetActions.add(new DeleteConnectionsWidgetAction(mWidget));
         mHideActions.setRepeats(false);
-    }
-
-    public void setLockTimer(MouseInteraction.LockTimer lockTimer) {
-        mLockTimer = lockTimer;
     }
 
     /**
@@ -338,9 +342,6 @@ public class WidgetDecorator {
             return true;
         }
         if (mShowBias.isRunning()) {
-            return true;
-        }
-        if (mLockTimer != null) {
             return true;
         }
         return false;
@@ -493,8 +494,8 @@ public class WidgetDecorator {
         mOver = value;
         if (mOver) {
             mShowActions = true;
-            mHideActions.restart();
         }
+        mHideActions.restart();
     }
 
     /**
@@ -731,20 +732,21 @@ public class WidgetDecorator {
                     if (startHandle.getAnchor().isConnected()
                             && startHandle.getAnchor().getConnectionCreator()
                             == ConstraintAnchor.AUTO_CONSTRAINT_CREATOR) {
-                        g.setColor(mColorSet.getWeakConstraintColor());
-                        g.setStroke(ConnectionDraw.sDashedStroke);
+                        g.setColor(mColorSet.getSoftConstraintColor());
+                        g.setStroke(mColorSet.getSoftConstraintStroke());
                     } else {
                         g.setColor(currentColor);
                         g.setStroke(currentStroke);
                     }
                     boolean painted = false;
-                    if (mLockTimer != null) {
-                        float progress = mLockTimer.getProgress();
+                    if (startHandle.isLocking()) {
+                        float progress = startHandle.getLockingProgress();
                         if (progress > 0) {
                             startHandle
                                     .drawConnection(transform, g, mColorSet, mIsSelected, true,
-                                            mLockTimer.getOriginalCreator(), progress);
+                                            startHandle.getAnchor().getConnectionCreator(), progress);
                             painted = true;
+                            repaint();
                         }
                     }
                     if (!painted) {
@@ -1101,7 +1103,6 @@ public class WidgetDecorator {
      */
     public class WidgetAction {
 
-        AnimatedColor mAnimatedColor;
         private int mX;
         private int mY;
         private boolean mOver = false;
@@ -1146,11 +1147,6 @@ public class WidgetDecorator {
         }
 
         void show(int delay) {
-            mAnimatedColor = new AnimatedColor(new Color(0, 0, 0, 0),
-                    mColorSet.getWidgetActionBackground());
-            mAnimatedColor.setDuration(500);
-            mAnimatedColor.setDelay(delay);
-            mAnimatedColor.start();
             mStartVisible = System.currentTimeMillis();
         }
 
@@ -1160,31 +1156,19 @@ public class WidgetDecorator {
             mY = y;
             x += r / 2;
             y += r / 2;
-            if (mAnimatedColor == null) {
-                return false;
-            }
-            mAnimatedColor.step();
             Color pre = g.getColor();
             if (!mOver) {
-                if (mAnimatedColor.getProgress() == 0) {
-                    repaint(x - r / 2, y - r / 2, r, r);
-                    return false;
-                }
-                g.setColor(mAnimatedColor.getColor());
+                g.setColor(mColorSet.getWidgetActionBackground());
             } else {
                 g.setColor(mColorSet.getWidgetActionSelectedBackground());
             }
             int c = 8;
-            if (mAnimatedColor.getProgress() < 1) {
-                repaint(x - r / 2, y - r / 2, r, r);
-            } else {
-                // Draw an outline
-                Color prec = g.getColor();
-                g.setColor(mColorSet.getBackground());
-                g.fillRoundRect(x - r / 2 - 2, y - r / 2 - 2, r + 4, r + 4, c, c);
-                g.drawRoundRect(x - r / 2 - 2, y - r / 2 - 2, r + 4, r + 4, c, c);
-                g.setColor(prec);
-            }
+            // Draw an outline
+            Color prec = g.getColor();
+            g.setColor(mColorSet.getBackground());
+            g.fillRoundRect(x - r / 2 - 2, y - r / 2 - 2, r + 4, r + 4, c, c);
+            g.drawRoundRect(x - r / 2 - 2, y - r / 2 - 2, r + 4, r + 4, c, c);
+            g.setColor(prec);
             g.fillRoundRect(x - r / 2, y - r / 2, r, r, c, c);
             g.drawRoundRect(x - r / 2, y - r / 2, r, r, c, c);
             g.setColor(pre);
@@ -1209,13 +1193,6 @@ public class WidgetDecorator {
                 mShowActions = true;
                 mHideActions.stop();
             }
-            // If no action is marked as being over, restart the hide actions timer
-            for (WidgetAction action : mWidgetActions) {
-                if (action.mOver) {
-                    return;
-                }
-            }
-            mHideActions.restart();
         }
 
         public void addToPicker(ViewTransform transform, DrawPicker picker) {
@@ -1270,15 +1247,13 @@ public class WidgetDecorator {
             }
             int m = 4;
             int rect = ACTION_SIZE - 2 * m;
-            if (mAnimatedColor.getProgress() == 1) {
-                if (sLockImageIcon != null) {
-                    Image image = sUnlockImageIcon;
-                    if (mConstraintsCreator == ConstraintAnchor.AUTO_CONSTRAINT_CREATOR) {
-                        image = sLockImageIcon;
-                    }
-                    g.drawImage(image, x + m, y + m,
-                            rect, rect, null, null);
+            if (sLockImageIcon != null) {
+                Image image = sUnlockImageIcon;
+                if (mConstraintsCreator == ConstraintAnchor.AUTO_CONSTRAINT_CREATOR) {
+                    image = sLockImageIcon;
                 }
+                g.drawImage(image, x + m, y + m,
+                        rect, rect, null, null);
             }
             return true;
         }
@@ -1364,11 +1339,9 @@ public class WidgetDecorator {
             }
             int m = 4;
             int rect = ACTION_SIZE - 2 * m;
-            if (mAnimatedColor.getProgress() == 1) {
-                if (sDeleteConnectionsImageIcon != null) {
-                    g.drawImage(sDeleteConnectionsImageIcon, x + m, y + m,
-                            rect, rect, null, null);
-                }
+            if (sDeleteConnectionsImageIcon != null) {
+                g.drawImage(sDeleteConnectionsImageIcon, x + m, y + m,
+                        rect, rect, null, null);
             }
             return true;
         }

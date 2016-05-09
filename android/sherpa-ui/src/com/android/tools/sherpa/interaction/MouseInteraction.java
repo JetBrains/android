@@ -73,11 +73,11 @@ public class MouseInteraction {
 
     private long mPressTime = 0;
 
-    private final static int LONG_PRESS_THRESHOLD = 500;
-            // ms -- after that delay, prevent delete anchor
-    private final static int BASELINE_TIME_THRESHOLD = 800;
-            // ms -- after that delay, allow baseline selection
-    private final static int LOCK_TIME_THRESHOLD = 500; // ms -- after that delay, prevent dragging
+    // After that delay, prevent delete anchor
+    private final static int LONG_PRESS_THRESHOLD = 500; // ms
+
+    // After that delay, allow baseline selection
+    private final static int BASELINE_TIME_THRESHOLD = 800; // ms
 
     public static void setMargin(int margin) {
         sMargin = margin;
@@ -287,91 +287,6 @@ public class MouseInteraction {
     private HitListener mClickListener = new HitListener(HitListener.CLICK_MODE);
     private HitListener mDragListener = new HitListener(HitListener.DRAG_MODE);
 
-    private LockTimer mLockTimer = new LockTimer();
-
-    /**
-     * Helper class to lock / unlock the constraints on mouse down
-     */
-    public class LockTimer {
-        long mStart = 0;
-        int mDelay = 500;
-        int mDuration = 1000;
-        Timer mTimer = new Timer(mDuration + mDelay, new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                run();
-            }
-        });
-        int mOriginalCreator = -1;
-        ConstraintWidget mWidget;
-
-        public LockTimer() {
-            mTimer.setRepeats(false);
-        }
-
-        public void start(ConstraintWidget widget) {
-            mWidget = widget;
-            mTimer.start();
-            mStart = System.currentTimeMillis() + mDelay;
-            mOriginalCreator = mWidgetsScene.getMainConstraintsCreator(mWidget);
-        }
-
-        public void stop() {
-            mTimer.stop();
-            mStart = 0;
-            if (mWidget != null) {
-                WidgetCompanion companion = (WidgetCompanion) mWidget.getCompanionWidget();
-                WidgetDecorator decorator =
-                        companion.getWidgetDecorator(mSceneDraw.getCurrentStyle());
-                decorator.setLockTimer(null);
-                mWidget = null;
-            }
-            mOriginalCreator = -1;
-        }
-
-        private void run() {
-            if (mWidget == null) {
-                return;
-            }
-            if (mSelection.contains(mWidget)) {
-                mWidgetsScene.toggleLockConstraints(mWidget);
-                mSelection.addModifiedWidget(mWidget);
-                mSceneDraw.repaint();
-            }
-        }
-
-        public float getProgress() {
-            if (mStart == 0) {
-                return 0;
-            }
-            long delta = (System.currentTimeMillis() - mStart);
-            if (delta < 0) {
-                return 0;
-            }
-            float progress = delta / (float) mDuration;
-            if (progress > 1) {
-                progress = 1;
-            }
-            return progress;
-        }
-
-        public int getOriginalCreator() {
-            return mOriginalCreator;
-        }
-
-        public long getElapsedTime() {
-            if (mStart == 0) {
-                return 0;
-            }
-            long elapsed = System.currentTimeMillis() - mStart;
-            if (elapsed < 0) {
-                return 0;
-            }
-            return elapsed;
-        }
-
-    }
-
     private Timer mBaselineTimer = new Timer(BASELINE_TIME_THRESHOLD, new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -485,6 +400,15 @@ public class MouseInteraction {
             } else if (over instanceof ConstraintHandle) {
                 ConstraintHandle handle = (ConstraintHandle) over;
                 if ((mHitConstraintHandle == null) || (mHitConstraintHandleDistance > dist)) {
+                    if ((mHitConstraintHandle != null)
+                            && (mHitConstraintHandleDistance < 4
+                            && mSelection.contains(mHitConstraintHandle.getOwner()))
+                            && !mSelection.contains(handle.getOwner())) {
+                        // If we hit something that's closer to the current best hit,
+                        // but the current best hit belongs to a selected widget,
+                        // while the new hit doesn't, keep the current best hit.
+                        return;
+                    }
                     if (handle.getAnchor().getType() == ConstraintAnchor.Type.BASELINE) {
                         if (mEnableBaseline || mMode == DRAG_MODE) {
                             if (dist < 4) {
@@ -500,6 +424,14 @@ public class MouseInteraction {
             } else if (over instanceof ResizeHandle) {
                 ResizeHandle handle = (ResizeHandle) over;
                 if ((mHitConstraintHandle == null) || (mHitResizeHandleDistance > dist)) {
+                    if (mHitConstraintHandleDistance < 4
+                            && mSelection.contains(mHitConstraintHandle.getOwner())
+                            && !mSelection.contains(handle.getOwner())) {
+                        // If we hit something that's closer to the current best hit,
+                        // but the current best hit belongs to a selected widget,
+                        // while the new hit doesn't, keep the current best hit.
+                        return;
+                    }
                     mHitResizeHandle = handle;
                     mHitResizeHandleDistance = dist;
                 }
@@ -603,6 +535,9 @@ public class MouseInteraction {
             mMouseMode = MouseMode.INACTIVE;
             return;
         }
+        for (ConstraintWidget w : mWidgetsScene.getWidgets()) {
+            getDecorator(w).setShowActions(false);
+        }
         mPressTime = System.currentTimeMillis();
         Animator.setAnimationEnabled(true);
         mMouseDown = true;
@@ -628,11 +563,18 @@ public class MouseInteraction {
         ConstraintAnchor anchor = mClickListener.getConstraintAnchor();
         ResizeHandle resizeHandle = mClickListener.mHitResizeHandle;
 
-        WidgetDecorator.WidgetAction widgetAction = mClickListener.getWidgetAction();
-        if (anchor == null && widgetAction != null && widgetAction.isVisible()) {
-            if (widget == null) {
-                widget = widgetAction.getWidget();
+        // give a chance to widgets to respond to a mouse press even if out of bounds
+        for (ConstraintWidget w : mWidgetsScene.getWidgets()) {
+            ConstraintWidget widgetHit =
+                    getDecorator(w).mousePressed(x, y, mViewTransform, mSelection);
+            if (widgetHit != null && widget == null) {
+                widget = widgetHit;
             }
+        }
+
+        WidgetDecorator.WidgetAction widgetAction = mClickListener.getWidgetAction();
+        if (widgetAction != null && widgetAction.isVisible()) {
+            widget = widgetAction.getWidget();
             if (widgetAction.click()) {
                 mSelection.addModifiedWidget(widgetAction.getWidget());
             }
@@ -708,17 +650,6 @@ public class MouseInteraction {
         }
         ///////////////////////////////////////////////////////////////////////
 
-        // give a chance to widgets to respond to a mouse press even if out of bounds
-        for (ConstraintWidget w : mWidgetsScene.getWidgets()) {
-            WidgetCompanion widgetCompanion = (WidgetCompanion) w.getCompanionWidget();
-            WidgetDecorator decorator =
-                    widgetCompanion.getWidgetDecorator(WidgetDecorator.BLUEPRINT_STYLE);
-            ConstraintWidget widgetHit = decorator.mousePressed(x, y, mViewTransform, mSelection);
-            if (widgetHit != null && widget == null) {
-                widget = widgetHit;
-            }
-        }
-
         if (widget == null) {
             // clear the selection as no widget were found
             mSelection.clear();
@@ -744,20 +675,6 @@ public class MouseInteraction {
         mSceneDraw.onMousePress(mSelection.getSelectedAnchor());
 
         mBaselineTimer.stop();
-        if (widget != null && anchor == null && resizeHandle == null) {
-            mLockTimer.start(widget);
-            WidgetCompanion companion = (WidgetCompanion) widget.getCompanionWidget();
-            WidgetDecorator decorator = companion.getWidgetDecorator(mSceneDraw.getCurrentStyle());
-            decorator.setLockTimer(mLockTimer);
-        } else {
-            mLockTimer.stop();
-        }
-
-        for (ConstraintWidget w : mWidgetsScene.getWidgets()) {
-            WidgetCompanion companion = (WidgetCompanion) w.getCompanionWidget();
-            WidgetDecorator decorator = companion.getWidgetDecorator(mSceneDraw.getCurrentStyle());
-            decorator.setShowActions(false);
-        }
     }
 
     /**
@@ -768,15 +685,12 @@ public class MouseInteraction {
      */
     public void mouseReleased(int x, int y) {
         for (ConstraintWidget widget : mWidgetsScene.getWidgets()) {
-            WidgetCompanion companion = (WidgetCompanion) widget.getCompanionWidget();
-            WidgetDecorator decorator = companion.getWidgetDecorator(mSceneDraw.getCurrentStyle());
-            decorator.setShowActions(true);
+            getDecorator(widget).setShowActions(true);
         }
         boolean longPress = false;
         if (System.currentTimeMillis() - mPressTime > LONG_PRESS_THRESHOLD) {
             longPress = true;
         }
-        mLockTimer.stop();
         if (mMouseMode == MouseMode.INACTIVE) {
             return;
         }
@@ -791,10 +705,24 @@ public class MouseInteraction {
                     margin = candidate.padding;
                 }
                 margin = Math.abs(margin);
-                candidate.source.getOwner().connect(
-                        candidate.source, candidate.target, margin,
+                ConstraintWidget widget = candidate.source.getOwner();
+                widget.connect(candidate.source, candidate.target, margin,
                         ConstraintAnchor.AUTO_CONSTRAINT_CREATOR);
                 mSelection.addModifiedWidget(candidate.source.getOwner());
+            }
+            // For all modified widgets, start auto locking on the relevant anchors
+            // (note: as e.g. center anchors are connected via an indirect mechanism,
+            // it's safer to do it this way)
+            for (ConstraintWidget widget : mSelection.getModifiedWidgets()) {
+                for (ConstraintAnchor anchor : widget.getAnchors()) {
+                    if (!anchor.isConnected()) {
+                        continue;
+                    }
+                    if (anchor.getConnectionCreator() != ConstraintAnchor.AUTO_CONSTRAINT_CREATOR) {
+                        continue;
+                    }
+                    WidgetDecorator.getConstraintHandle(anchor).startLock();
+                }
             }
         }
 
@@ -870,11 +798,7 @@ public class MouseInteraction {
 
         // give a chance to widgets to respond to a mouse press
         for (Selection.Element selection : mSelection.getElements()) {
-            WidgetCompanion widgetCompanion =
-                    (WidgetCompanion) selection.widget.getCompanionWidget();
-            WidgetDecorator decorator =
-                    widgetCompanion.getWidgetDecorator(WidgetDecorator.BLUEPRINT_STYLE);
-            decorator.mouseRelease(x, y, mViewTransform, mSelection);
+            getDecorator(selection.widget).mouseRelease(x, y, mViewTransform, mSelection);
         }
 
         for (Selection.Element selection : mSelection.getElements()) {
@@ -903,11 +827,6 @@ public class MouseInteraction {
      */
     public int mouseDragged(int x, int y) {
         int directionLockedStatus = Selection.DIRECTION_UNLOCKED;
-        if (mLockTimer.getElapsedTime() > LOCK_TIME_THRESHOLD) {
-            // If we long press without starting to drag, let's finish the lock timer
-            return directionLockedStatus;
-        }
-        mLockTimer.stop();
         mLastMousePosition.setLocation(x, y);
         switch (mMouseMode) {
             case MOVE: {
@@ -920,6 +839,7 @@ public class MouseInteraction {
                                     && anchor.getConnectionCreator()
                                     == ConstraintAnchor.AUTO_CONSTRAINT_CREATOR) {
                                 anchor.getOwner().resetAnchor(anchor);
+                                WidgetDecorator.getConstraintHandle(anchor).stopLock();
                                 didResetAutoConnections = true;
                             }
                         }
@@ -1086,18 +1006,14 @@ public class MouseInteraction {
         ResizeHandle handle = mHoverListener.mHitResizeHandle;
         mMouseCursor = updateMouseCursor(handle);
         if (mPreviousHoverWidget != null) {
-            WidgetCompanion companion = (WidgetCompanion) mPreviousHoverWidget.getCompanionWidget();
-            WidgetDecorator decorator = companion.getWidgetDecorator(mSceneDraw.getCurrentStyle());
             if (!mSelection.contains(mPreviousHoverWidget)) {
-                decorator.setLook(ColorTheme.Look.NORMAL);
+                getDecorator(mPreviousHoverWidget).setLook(ColorTheme.Look.NORMAL);
             }
         }
 
         if (widget != null) {
-            WidgetCompanion companion = (WidgetCompanion) widget.getCompanionWidget();
-            WidgetDecorator decorator = companion.getWidgetDecorator(mSceneDraw.getCurrentStyle());
             if (!mSelection.contains(widget)) {
-                decorator.setLook(ColorTheme.Look.HIGHLIGHTED);
+                getDecorator(widget).setLook(ColorTheme.Look.HIGHLIGHTED);
             }
             mPreviousHoverWidget = widget;
         }
