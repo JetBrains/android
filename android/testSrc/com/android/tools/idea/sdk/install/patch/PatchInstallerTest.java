@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.sdk.install;
+package com.android.tools.idea.sdk.install.patch;
 
 import com.android.repository.api.*;
-import com.android.repository.impl.manager.RepoManagerImpl;
 import com.android.repository.impl.meta.SchemaModuleUtil;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.testframework.MockFileOp;
@@ -94,22 +93,6 @@ public class PatchInstallerTest extends TestCase {
     "    </remotePackage>\n" +
     "</sdk:repository>\n";
 
-  public void testGetPatcher() throws Exception {
-    FakeProgressIndicator progress = new FakeProgressIndicator();
-    ourFileOp.recordExistingFile("/sdk/pkg/package.xml", PKG_V2);
-    ourFileOp.recordExistingFile("/sdk/pkg/sourceFile");
-    ourFileOp.recordExistingFile("/sdk/patcher/v1/package.xml", PATCHER_V1);
-    ourFileOp.recordExistingFile("/sdk/patcher/v1/patcher.jar");
-    RepoManager repoManager = new RepoManagerImpl(ourFileOp);
-    repoManager.setLocalPath(new File("/sdk"));
-    repoManager.loadSynchronously(0, progress, null, null);
-    RemotePackage p = getRemotePackage(repoManager, progress);
-
-    File result = PatchInstallerFactory.getPatcherFile(p, repoManager, ourFileOp, progress);
-    progress.assertNoErrorsOrWarnings();
-    assertEquals("/sdk/patcher/v1/patcher.jar", PathUtil.toSystemIndependentName(result.getPath()));
-  }
-
   public void testRunInstaller() throws Exception {
     FakeProgressIndicator progress = new FakeProgressIndicator();
     File localPackageLocation = new File("/sdk/pkg");
@@ -117,9 +100,8 @@ public class PatchInstallerTest extends TestCase {
                            "the source to which the diff will be applied");
     File patchFile = new File("/patchfile");
     ourFileOp.recordExistingFile(ourFileOp.getAgnosticAbsPath(patchFile), "the patch contents");
-    boolean result = PatchInstallerFactory.runPatcher(
-      progress, localPackageLocation, patchFile, FakeRunner.class, FakeUIBase.class, FakeUI.class);
-
+    PatchRunner runner = new PatchRunner(new File("dummy"), FakeRunner.class, FakeUIBase.class, FakeUI.class, FakeGenerator.class);
+    boolean result = runner.run(localPackageLocation, patchFile, progress);
     progress.assertNoErrorsOrWarnings();
     assertTrue(result);
     assertTrue(FakeRunner.ourDidRun);
@@ -154,9 +136,9 @@ public class PatchInstallerTest extends TestCase {
     }
   }
 
-  private static class FakeUIBase {
+  private static class FakeUIBase {}
 
-  }
+  private static class FakeGenerator {}
 
   private static class FakeUI extends FakeUIBase {
     public FakeUI(Component c, ProgressIndicator progress) {}

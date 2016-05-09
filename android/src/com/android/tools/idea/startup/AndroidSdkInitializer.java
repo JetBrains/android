@@ -16,9 +16,11 @@
 package com.android.tools.idea.startup;
 
 import com.android.SdkConstants;
+import com.android.repository.io.FileOpUtils;
+import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.SystemInfoStatsMonitor;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.sdk.install.PatchInstallerFactory;
+import com.android.tools.idea.sdk.install.patch.PatchInstallingRestarter;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider;
 import com.intellij.openapi.application.ApplicationManager;
@@ -80,7 +82,8 @@ public class AndroidSdkInitializer implements Runnable {
     }
 
     if (androidSdkPath != null) {
-      PatchInstallerFactory.restartAndInstallIfNecessary(androidSdkPath);
+      AndroidSdkHandler handler = AndroidSdkHandler.getInstance(androidSdkPath);
+      new PatchInstallingRestarter(handler, FileOpUtils.create()).restartAndInstallIfNecessary();
       // We need to start the system info monitoring even in case when user never
       // runs a single emulator instance: e.g., incompatible hypervisor might be
       // the reason why emulator is never run, and that's exactly the data
