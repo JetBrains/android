@@ -19,7 +19,7 @@ import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.UiCallback;
 import com.android.tools.idea.editors.gfxtrace.controllers.AtomController;
 import com.android.tools.idea.editors.gfxtrace.renderers.Render;
-import com.android.tools.idea.editors.gfxtrace.service.path.FieldPath;
+import com.android.tools.idea.editors.gfxtrace.renderers.RenderUtils;
 import com.android.tools.idea.editors.gfxtrace.service.path.Path;
 import com.android.tools.idea.editors.gfxtrace.service.snippets.SnippetObject;
 import com.android.tools.rpclib.rpccore.Rpc;
@@ -27,8 +27,6 @@ import com.android.tools.rpclib.rpccore.RpcException;
 import com.android.tools.rpclib.schema.*;
 import com.android.tools.swing.util.FloatFilter;
 import com.google.common.collect.Lists;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.UndoConfirmationPolicy;
 import com.intellij.openapi.command.undo.DocumentReference;
@@ -39,7 +37,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.ui.GridBag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -48,6 +45,7 @@ import javax.swing.*;
 import javax.swing.text.AbstractDocument;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.math.BigInteger;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -104,7 +102,8 @@ public class EditAtomParametersAction extends AbstractAction {
       .setDefaultPaddingX(5);
 
     for (int i = 0; i < myEditors.length; i++) {
-      fields.add(new JBLabel(myNode.atom.getFieldInfo(myEditors[i].myFieldIndex).getName()), bag.nextLine().next());
+      String typeString = myEditors[i].myType instanceof Primitive ? " ("  + ((Primitive)myEditors[i].myType).getMethod() + ")" : "";
+      fields.add(new JBLabel(myNode.atom.getFieldInfo(myEditors[i].myFieldIndex).getName() + typeString), bag.nextLine().next());
       if (myEditors[i].hasEditComponent()) {
         fields.add(myEditors[i].myComponent, bag.next());
       }
@@ -229,22 +228,12 @@ public class EditAtomParametersAction extends AbstractAction {
           // unsigned
           if (method == Method.Uint8 || method == Method.Uint16 || method == Method.Uint32 || method == Method.Uint64) {
 
+            Number javaValue = RenderUtils.toJavaIntType(method, (Number)value);
             // we need the class of zero to match the class of the number
-            Comparable<? extends Number> zero;
-            if (value instanceof Long) {
-              zero = Long.valueOf(0);
-            }
-            else if (value instanceof Integer) {
-              zero = Integer.valueOf(0);
-            }
-            else if (value instanceof Short) {
-              zero = Short.valueOf((short)0);
-            }
-            else {
-              zero = Byte.valueOf((byte)0);
-            }
+            Comparable<? extends Number> zero = getZero(javaValue.getClass());
+            Comparable<? extends Number> max = getUnsignedMax(method);
 
-            spinner = new JSpinner(new SpinnerNumberModel((Number)value, zero, null, Integer.valueOf(1)));
+            spinner = new JSpinner(new SpinnerNumberModel(javaValue, zero, max, Integer.valueOf(1)));
           }
           else {
             // signed ints
@@ -255,6 +244,41 @@ public class EditAtomParametersAction extends AbstractAction {
         }
       }
       return new Editor(snippetObject, type, null, fieldIndex);
+    }
+
+    private static Comparable<? extends Number> getZero(Class<? extends Number> numberClass) {
+      if (numberClass == Byte.class) {
+        return Byte.valueOf((byte)0);
+      }
+      if (numberClass == Short.class) {
+        return Short.valueOf((short)0);
+      }
+      if (numberClass == Integer.class) {
+        return Integer.valueOf(0);
+      }
+      if (numberClass == Long.class) {
+        return Long.valueOf(0);
+      }
+      if (numberClass == BigInteger.class) {
+        return BigInteger.ZERO;
+      }
+      throw new IllegalArgumentException("unknown number class " + numberClass);
+    }
+
+    private static Comparable<? extends Number> getUnsignedMax(Method type) {
+      if (type == Method.Uint8) {
+        return (short)255;
+      }
+      if (type == Method.Uint16) {
+        return 65535;
+      }
+      if (type == Method.Uint32) {
+        return 4294967295L;
+      }
+      if (type == Method.Uint64) {
+        return new BigInteger("18446744073709551615");
+      }
+      throw new IllegalArgumentException("not unsigned type" + type);
     }
 
     public JComponent getReadOnlyComponent() {
@@ -272,6 +296,8 @@ public class EditAtomParametersAction extends AbstractAction {
     public Object getValue() {
       if (myComponent instanceof JSpinner) {
         // ints
+        // we don't need to convert it back to the overflown java type as the encoder will encode it correctly anyway
+        // {@link Primitive#encodeValue(Encoder, Object)}
         return ((JSpinner)myComponent).getValue();
       }
       if (myComponent instanceof JTextField) {
