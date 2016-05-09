@@ -21,7 +21,6 @@ import com.android.repository.io.FileOpUtils;
 import com.android.tools.idea.welcome.SdkLocationUtils;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
-import com.google.common.base.Supplier;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.util.text.StringUtil;
@@ -35,6 +34,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.TreeSet;
+import java.util.function.Supplier;
 
 /**
  * Provides an explanation of changes the wizard will perform.
@@ -113,6 +113,10 @@ public final class InstallSummaryStep extends FirstRunWizardStep {
 
   private void generateSummary() {
     Collection<RemotePackage> packages = myPackagesProvider.get();
+    if (packages == null) {
+      mySummaryText.setText("An error occurred while trying to compute required packages.");
+      return;
+    }
     Section[] sections = {getSetupTypeSection(), getSdkFolderSection(), getDownloadSizeSection(packages), getPackagesSection(packages)};
 
     StringBuilder builder = new StringBuilder("<html><head>");
