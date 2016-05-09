@@ -59,7 +59,6 @@ class ResolvedDependenciesPanel extends AbstractDependenciesPanel {
   @NotNull private final ResolvedDependenciesTreeBuilder myTreeBuilder;
   @NotNull private final PsContext myContext;
   @NotNull private final NodeHyperlinkSupport<ModuleDependencyNode> myHyperlinkSupport;
-  @NotNull private final IssuesViewer myIssuesViewer;
 
   ResolvedDependenciesPanel(@NotNull PsAndroidModule module, @NotNull PsContext context) {
     super("Resolved Dependencies", context, module);
@@ -67,8 +66,7 @@ class ResolvedDependenciesPanel extends AbstractDependenciesPanel {
 
     initializeDependencyDetails();
 
-    myIssuesViewer = new IssuesViewer(myContext, new SingleModuleIssuesRenderer());
-    setIssuesViewer(myIssuesViewer);
+    setIssuesViewer(new IssuesViewer(myContext, new SingleModuleIssuesRenderer()));
 
     DefaultTreeModel treeModel = new DefaultTreeModel(new DefaultMutableTreeNode());
     myTree = new Tree(treeModel) {
@@ -141,7 +139,7 @@ class ResolvedDependenciesPanel extends AbstractDependenciesPanel {
         issues.addAll(myContext.getAnalyzerDaemon().getIssues().findIssues(dependency, null));
       }
     }
-    myIssuesViewer.display(issues);
+    displayIssues(issues);
   }
 
   @Override
