@@ -31,7 +31,7 @@ class Configuration implements Comparable<Configuration> {
   Configuration(@NotNull String name, @NotNull Icon icon, boolean transitive) {
     myName = name;
     myIcon = icon;
-    addTransitive(transitive);
+    addType(transitive);
   }
 
   @NotNull
@@ -49,7 +49,7 @@ class Configuration implements Comparable<Configuration> {
     return myTypes;
   }
 
-  void addTransitive(boolean transitive) {
+  void addType(boolean transitive) {
     String type = transitive ? "transitive" : "declared";
     if (!myTypes.contains(type)) {
       myTypes.add(type);

@@ -13,29 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview;
+package com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview;
 
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode;
-import com.android.tools.idea.gradle.structure.model.PsProject;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidArtifact;
 import com.intellij.ui.treeStructure.SimpleNode;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collections;
-import java.util.List;
+import static com.android.builder.model.AndroidProject.*;
 
-class TargetModulesTreeRootNode extends AbstractPsModelNode<PsProject> {
-  @NotNull private List<TargetAndroidModuleNode> myChildren = Collections.emptyList();
-
-  TargetModulesTreeRootNode(@NotNull PsProject project) {
-    super(project);
+class TargetArtifactNode extends AbstractPsModelNode<PsAndroidArtifact> {
+  TargetArtifactNode(@NotNull PsAndroidArtifact artifact) {
+    super(artifact);
+    setAutoExpandNode(true);
   }
 
-  void setChildren(@NotNull List<TargetAndroidModuleNode> children) {
-    myChildren = children;
+  @Override
+  @NotNull
+  protected String nameOf(PsAndroidArtifact artifact) {
+    switch (artifact.getResolvedName()) {
+      case ARTIFACT_MAIN:
+        return "Main";
+      case ARTIFACT_ANDROID_TEST:
+        return "Android Test";
+      case ARTIFACT_UNIT_TEST:
+        return "Unit Test";
+      default:
+        return artifact.getName();
+    }
   }
 
   @Override
   public SimpleNode[] getChildren() {
-    return myChildren.isEmpty() ? NO_CHILDREN : myChildren.toArray(new TargetAndroidModuleNode[myChildren.size()]);
+    return NO_CHILDREN;
   }
 }

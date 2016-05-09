@@ -28,7 +28,7 @@ public abstract class AbstractPsModelNode<T extends PsModel> extends AbstractPsN
   @NotNull private final List<T> myModels;
 
   @SafeVarargs
-  protected AbstractPsModelNode(@NotNull AbstractPsModelNode<?> parent, @NotNull T...models) {
+  protected AbstractPsModelNode(@NotNull AbstractPsNode parent, @NotNull T...models) {
     super(parent);
     myModels = Lists.newArrayList(models);
     updateNameAndIcon();
@@ -40,7 +40,7 @@ public abstract class AbstractPsModelNode<T extends PsModel> extends AbstractPsN
     updateNameAndIcon();
   }
 
-  protected AbstractPsModelNode(@NotNull AbstractPsModelNode<?> parent, @NotNull List<T> models) {
+  protected AbstractPsModelNode(@NotNull AbstractPsNode parent, @NotNull List<T> models) {
     super(parent);
     myModels = models;
     updateNameAndIcon();
