@@ -18,8 +18,10 @@ package org.jetbrains.android.inspections;
 
 import com.android.annotations.NonNull;
 import com.android.resources.ResourceType;
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.DeclaredPermissionsLookup;
+import com.android.tools.lint.checks.ApiDetector;
 import com.android.tools.lint.checks.PermissionFinder;
 import com.android.tools.lint.checks.PermissionHolder;
 import com.android.tools.lint.checks.PermissionRequirement;
@@ -68,6 +70,7 @@ import lombok.ast.NullLiteral;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
+import org.jetbrains.android.inspections.lint.IntellijLintUtils;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -76,6 +79,8 @@ import javax.swing.*;
 import java.util.*;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.lint.checks.ApiDetector.REQUIRES_API_ANNOTATION;
+import static com.android.tools.lint.checks.ApiDetector.UNSUPPORTED;
 import static com.android.tools.lint.checks.PermissionFinder.Operation.*;
 import static com.android.tools.lint.checks.SupportAnnotationDetector.*;
 import static com.android.tools.lint.detector.api.ResourceEvaluator.*;
@@ -499,6 +504,8 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       } else if (qualifiedName.endsWith(THREAD_SUFFIX) && qualifiedName.startsWith(SUPPORT_ANNOTATIONS_PREFIX)) {
         checkThreadAnnotation(methodCall, holder, method, annotation, qualifiedName, methodAnnotations,
                               classAnnotations != null ? classAnnotations : PsiAnnotation.EMPTY_ARRAY);
+      } else if (REQUIRES_API_ANNOTATION.equals(qualifiedName)) {
+        checkApiLevel(methodCall, method, holder, annotation);
       }
     }
 
@@ -511,6 +518,8 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
 
         if (qualifiedName.endsWith(THREAD_SUFFIX) && qualifiedName.startsWith(SUPPORT_ANNOTATIONS_PREFIX)) {
           checkThreadAnnotation(methodCall, holder, method, annotation, qualifiedName, methodAnnotations, classAnnotations);
+        } else if (REQUIRES_API_ANNOTATION.equals(qualifiedName)) {
+          checkApiLevel(methodCall, method, holder, annotation);
         } else if (!qualifiedName.startsWith(DEFAULT_PACKAGE)) {
           // Look for annotation that itself is annotated; we allow this for the @RequiresPermission annotation
           PsiJavaCodeReferenceElement ref = annotation.getNameReferenceElement();
@@ -528,6 +537,40 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
         }
       }
     }
+  }
+
+  private static void checkApiLevel(@NotNull PsiCall methodCall,
+                                    @NotNull PsiMethod method,
+                                    @NotNull ProblemsHolder holder,
+                                    @NotNull PsiAnnotation annotation) {
+    AndroidFacet facet = AndroidFacet.getInstance(methodCall);
+    assert facet != null; // already checked early on in the inspection visitor
+    AndroidVersion minSdkVersion = AndroidModuleInfo.get(facet).getMinSdkVersion();
+
+    PsiAnnotationMemberValue apiValue = annotation.findAttributeValue(ATTR_VALUE);
+    int api = (int)getLongValue(apiValue, 1);
+    int minSdk = minSdkVersion.getFeatureLevel();
+    if (api <= minSdk) {
+      return;
+    }
+
+    int target = ApiDetector.getTargetApi(methodCall);
+    if (target != -1) {
+      if (api <= target) {
+        return;
+      }
+    }
+
+    if (IntellijLintUtils.isSuppressed(methodCall, methodCall.getContainingFile(), UNSUPPORTED)) {
+      return;
+    }
+
+    PsiClass containingClass = method.getContainingClass();
+    String fqcn = containingClass != null ? containingClass.getQualifiedName() : "";
+    // Keep in sync with guessLintIssue
+    String message = String.format("Call requires API level %1$d (current min is %2$d): %3$s", api, minSdk,
+                                     fqcn + '#' + method.getName());
+    registerProblem(holder, UNSUPPORTED, methodCall, message);
   }
 
   @Nullable
@@ -2748,6 +2791,8 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       return RESOURCE_TYPE;
     } else if (message.contains("must be called from ")) {
       return THREAD;
+    } else if (message.contains("Call requires API ")) {
+      return UNSUPPORTED;
     }
 
     if (ApplicationManager.getApplication().isUnitTestMode()) {
