@@ -70,7 +70,7 @@ public class PsLibraryDependencyNavigationPath extends PsPath {
     assert target != null;
 
     putPath(place, target);
-    target.putPath(place, myModuleName, myNavigationText);
+    target.putNavigationPath(place, myModuleName, myNavigationText);
 
     String href = GO_TO_PATH_TYPE + serialize(place);
     return String.format("<a href='%1$s'>%2$s</a> (%3$s)", href, myDependency, myModuleName);
