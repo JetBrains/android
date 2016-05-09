@@ -20,12 +20,14 @@ import com.android.tools.idea.gradle.structure.configurables.android.dependencie
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.DependencyDetails;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.ModuleDependencyDetails;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.ModuleLibraryDependencyDetails;
-import com.android.tools.idea.gradle.structure.configurables.issues.IssuesRenderer;
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesViewer;
 import com.android.tools.idea.gradle.structure.configurables.issues.SingleModuleIssuesRenderer;
 import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeEventDispatcher;
 import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeListener;
-import com.android.tools.idea.gradle.structure.model.*;
+import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
+import com.android.tools.idea.gradle.structure.model.PsDependency;
+import com.android.tools.idea.gradle.structure.model.PsIssue;
+import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.model.android.PsModuleDependency;
@@ -53,8 +55,6 @@ import java.util.List;
 
 import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.isMetaOrCtrlKeyPressed;
 import static com.android.tools.idea.gradle.structure.model.PsDependency.TextType.FOR_NAVIGATION;
-import static com.android.tools.idea.gradle.structure.model.PsPath.TexType.HTML;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.ui.IdeBorderFactory.createEmptyBorder;
 import static com.intellij.ui.ScrollPaneFactory.createScrollPane;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
@@ -74,7 +74,6 @@ class DeclaredDependenciesPanel extends AbstractDependenciesPanel {
 
   @NotNull private final DeclaredDependenciesTableModel myDependenciesTableModel;
   @NotNull private final TableView<PsAndroidDependency> myDependenciesTable;
-  @NotNull private final IssuesViewer myIssuesViewer;
   @NotNull private final String myPlaceName;
 
   @NotNull private final SelectionChangeEventDispatcher<PsAndroidDependency> myEventDispatcher = new SelectionChangeEventDispatcher<>();
@@ -96,8 +95,7 @@ class DeclaredDependenciesPanel extends AbstractDependenciesPanel {
     getContentsPanel().add(createActionsPanel(), BorderLayout.NORTH);
     initializeDependencyDetails();
 
-    myIssuesViewer = new IssuesViewer(myContext, new SingleModuleIssuesRenderer());
-    setIssuesViewer(myIssuesViewer);
+    setIssuesViewer(new IssuesViewer(myContext, new SingleModuleIssuesRenderer()));
 
     myDependenciesTableModel = new DeclaredDependenciesTableModel(module, myContext);
     myDependenciesTable = new TableView<PsAndroidDependency>(myDependenciesTableModel) {
@@ -306,7 +304,7 @@ class DeclaredDependenciesPanel extends AbstractDependenciesPanel {
     if (selected != null) {
       issues = myContext.getAnalyzerDaemon().getIssues().findIssues(selected, null);
     }
-    myIssuesViewer.display(issues);
+    displayIssues(issues);
   }
 
   @Override
