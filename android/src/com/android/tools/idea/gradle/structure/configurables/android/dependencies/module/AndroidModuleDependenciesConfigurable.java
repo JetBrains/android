@@ -32,29 +32,30 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class ModuleDependenciesConfigurable extends AbstractDependenciesConfigurable<PsAndroidModule> {
+public class AndroidModuleDependenciesConfigurable extends AbstractDependenciesConfigurable<PsAndroidModule> {
   @NotNull private final PsAndroidModule myModule;
 
-  private ModuleDependenciesPanel myDependenciesPanel;
+  private MainPanel myMainPanel;
 
-  public ModuleDependenciesConfigurable(@NotNull PsAndroidModule module,
-                                        @NotNull PsContext context,
-                                        @NotNull List<PsModule> extraTopModules) {
+  public AndroidModuleDependenciesConfigurable(@NotNull PsAndroidModule module,
+                                               @NotNull PsContext context,
+                                               @NotNull List<PsModule> extraTopModules) {
     super(module, context, extraTopModules);
     myModule = module;
   }
 
   @Override
-  public ModuleDependenciesPanel createOptionsPanel() {
-    if (myDependenciesPanel == null) {
-      myDependenciesPanel = new ModuleDependenciesPanel(getEditableObject(), getContext(), getExtraTopModules());
-      myDependenciesPanel.setHistory(getHistory());
+  public MainPanel createOptionsPanel() {
+    if (myMainPanel == null) {
+      myMainPanel = new MainPanel(myModule, getContext(), getExtraTopModules());
+      myMainPanel.setHistory(getHistory());
     }
-    return myDependenciesPanel;
+    return myMainPanel;
   }
 
-  public void putPath(@NotNull Place place, @NotNull String dependency) {
-    createOptionsPanel().putPath(place, dependency);
+  @Override
+  public void putNavigationPath(@NotNull Place place, @NotNull String value) {
+    createOptionsPanel().putPath(place, value);
   }
 
   @Override
@@ -70,8 +71,8 @@ public class ModuleDependenciesConfigurable extends AbstractDependenciesConfigur
   @Override
   public void setHistory(History history) {
     super.setHistory(history);
-    if (myDependenciesPanel != null) {
-      myDependenciesPanel.setHistory(history);
+    if (myMainPanel != null) {
+      myMainPanel.setHistory(history);
     }
   }
 
@@ -109,8 +110,8 @@ public class ModuleDependenciesConfigurable extends AbstractDependenciesConfigur
 
   @Override
   public void disposeUIResources() {
-    if (myDependenciesPanel != null) {
-      Disposer.dispose(myDependenciesPanel);
+    if (myMainPanel != null) {
+      Disposer.dispose(myMainPanel);
     }
   }
 }

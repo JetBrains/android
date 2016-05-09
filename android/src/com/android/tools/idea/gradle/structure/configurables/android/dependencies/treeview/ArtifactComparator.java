@@ -13,17 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview;
+package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview;
 
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidArtifact;
 import com.android.tools.idea.gradle.structure.model.android.PsVariant;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Comparator;
 
 import static com.android.builder.model.AndroidProject.ARTIFACT_MAIN;
 
-class ArtifactComparator implements Comparator<PsAndroidArtifact> {
-  static final ArtifactComparator INSTANCE = new ArtifactComparator();
+public class ArtifactComparator implements Comparator<PsAndroidArtifact> {
+  @NotNull public static final ArtifactComparator INSTANCE = new ArtifactComparator();
+
+  @NotNull private static ArtifactNameComparator ourByName = new ArtifactNameComparator();
 
   @Override
   public int compare(PsAndroidArtifact a1, PsAndroidArtifact a2) {
@@ -31,13 +34,19 @@ class ArtifactComparator implements Comparator<PsAndroidArtifact> {
     PsVariant v2 = a2.getParent();
     int compareVariantName = v1.getName().compareTo(v2.getName());
     if (compareVariantName == 0) {
-      return ArtifactNameComparator.INSTANCE.compare(a1.getName(), a2.getName());
+      return byName().compare(a1.getName(), a2.getName());
     }
     return compareVariantName;
   }
 
-  static class ArtifactNameComparator implements Comparator<String> {
-    static final ArtifactNameComparator INSTANCE = new ArtifactNameComparator();
+  @NotNull
+  public static ArtifactNameComparator byName() {
+    return ourByName;
+  }
+
+  public static class ArtifactNameComparator implements Comparator<String> {
+    private ArtifactNameComparator() {
+    }
 
     @Override
     public int compare(String s1, String s2) {

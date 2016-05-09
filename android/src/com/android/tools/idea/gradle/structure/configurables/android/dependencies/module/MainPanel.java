@@ -33,13 +33,13 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
-class ModuleDependenciesPanel extends AbstractMainDependenciesPanel {
+class MainPanel extends AbstractMainDependenciesPanel {
   @NotNull private final JBSplitter myVerticalSplitter;
   @NotNull private final DeclaredDependenciesPanel myDeclaredDependenciesPanel;
   @NotNull private final TargetArtifactsPanel myTargetArtifactsPanel;
   @NotNull private final JPanel myAltPanel;
 
-  ModuleDependenciesPanel(@NotNull PsAndroidModule module, @NotNull PsContext context, @NotNull List<PsModule> extraTopModules) {
+  MainPanel(@NotNull PsAndroidModule module, @NotNull PsContext context, @NotNull List<PsModule> extraTopModules) {
     super(context, extraTopModules);
 
     myDeclaredDependenciesPanel = new DeclaredDependenciesPanel(module, context);
