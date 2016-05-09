@@ -18,11 +18,11 @@ package com.android.tools.sherpa.interaction;
 
 import com.android.tools.sherpa.drawing.ViewTransform;
 import com.android.tools.sherpa.structure.WidgetCompanion;
-import com.google.tnt.solver.widgets.ConnectionCandidate;
-import com.google.tnt.solver.widgets.ConstraintAnchor;
-import com.google.tnt.solver.widgets.ConstraintWidget;
-import com.google.tnt.solver.widgets.ConstraintWidgetContainer;
-import com.google.tnt.solver.widgets.Guideline;
+import android.support.constraint.solver.widgets.ConnectionCandidate;
+import android.support.constraint.solver.widgets.ConstraintAnchor;
+import android.support.constraint.solver.widgets.ConstraintWidget;
+import android.support.constraint.solver.widgets.ConstraintWidgetContainer;
+import android.support.constraint.solver.widgets.Guideline;
 
 import java.util.ArrayList;
 

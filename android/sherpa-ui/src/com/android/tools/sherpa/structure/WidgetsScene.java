@@ -22,7 +22,7 @@ import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
 import com.android.tools.sherpa.interaction.ConstraintHandle;
 import com.android.tools.sherpa.interaction.ResizeHandle;
 import com.android.tools.sherpa.interaction.WidgetInteractionTargets;
-import com.google.tnt.solver.widgets.*;
+import android.support.constraint.solver.widgets.*;
 
 import java.awt.Rectangle;
 import java.util.ArrayList;
