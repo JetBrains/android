@@ -37,6 +37,7 @@ import java.util.regex.Pattern;
 public final class GapisProcess extends ChildProcess {
   @NotNull private static final Logger LOG = Logger.getInstance(GapisProcess.class);
   private static final Object myInstanceLock = new Object();
+  private static String myAuthToken = null;
   private static GapisProcess myInstance;
   private static final GapisConnection NOT_CONNECTED = new GapisConnection(null, null);
 
@@ -95,6 +96,13 @@ public final class GapisProcess extends ChildProcess {
       args.add(strings.getAbsolutePath());
     }
 
+    if (myVersion > 2) {
+      args.add("--gapis-auth-token");
+      args.add(getAuthToken());
+      args.add("--gapir-auth-token");
+      args.add(GapirProcess.getAuthToken());
+    }
+
     pb.command(args);
     return true;
   }
@@ -108,6 +116,16 @@ public final class GapisProcess extends ChildProcess {
       LOG.info("gapis exited cleanly");
     }
     shutdown();
+  }
+  
+  /** @return the auth-token for the GAPIS process. */
+  public static String getAuthToken() {
+    synchronized (myInstanceLock) {
+      if (myAuthToken == null) {
+        myAuthToken = generateAuthToken();
+      }
+      return myAuthToken;
+    }
   }
 
   /**
@@ -134,6 +152,7 @@ public final class GapisProcess extends ChildProcess {
     try {
       int port = myPortF.get(SERVER_LAUNCH_TIMEOUT_MS, TimeUnit.MILLISECONDS);
       GapisConnection connection = new GapisConnection(this, new Socket(SERVER_HOST, port));
+      connection.sendAuth(getAuthToken());
       LOG.info("Established a new client connection to " + port);
       synchronized (myConnections) {
         myConnections.add(connection);

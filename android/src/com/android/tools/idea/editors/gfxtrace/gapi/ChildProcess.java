@@ -17,16 +17,22 @@ package com.android.tools.idea.editors.gfxtrace.gapi;
 
 import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.util.Base64;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
 import java.nio.charset.Charset;
+import java.security.SecureRandom;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public abstract class ChildProcess {
   @NotNull private static final Logger LOG = Logger.getInstance(ChildProcess.class);
   @NotNull private static final Pattern PORT_PATTERN = Pattern.compile("^Bound on port '(\\d+)'$", 0);
+
+  /** The length in characters of an auth-token */
+  private static final int AUTH_TOKEN_LENGTH = 8;
+
   private final String myName;
   private Thread myServerThread;
   protected Process myProcess;
@@ -108,6 +114,15 @@ public abstract class ChildProcess {
   public void shutdown() {
     LOG.info("Shutting down " + myName);
     myServerThread.interrupt();
+  }
+
+  /** @return a randomly generated auth-token string. */
+  @NotNull
+  protected static String generateAuthToken() {
+    SecureRandom rnd = new SecureRandom();
+    byte[] bytes = new byte[AUTH_TOKEN_LENGTH * 3 / 4];
+    rnd.nextBytes(bytes);
+    return Base64.encode(bytes);
   }
 
   protected class OutputHandler extends Thread implements Closeable {
