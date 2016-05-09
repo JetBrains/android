@@ -66,7 +66,7 @@ public final class GapirProcess extends ChildProcess {
     args.add("--log");
     args.add(new File(PathManager.getLogPath(), "gapir.log").getAbsolutePath());
 
-    args.add("--gapis-auth-token");
+    args.add("--auth-token");
     args.add(getAuthToken());
 
     pb.command(args);
