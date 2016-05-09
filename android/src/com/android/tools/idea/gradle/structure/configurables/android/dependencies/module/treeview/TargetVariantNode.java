@@ -13,36 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview;
+package com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview;
 
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode;
-import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsNode;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidArtifact;
 import com.android.tools.idea.gradle.structure.model.android.PsVariant;
-import com.google.common.collect.Lists;
 import com.intellij.ui.treeStructure.SimpleNode;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collections;
 import java.util.List;
 
-public class AndroidArtifactNode extends AbstractPsModelNode<PsAndroidArtifact> {
-  @NotNull private List<AbstractPsModelNode<?>> myChildren = Lists.newArrayList();
+class TargetVariantNode extends AbstractPsModelNode<PsVariant> {
+  @NotNull private List<TargetArtifactNode> myChildren = Collections.emptyList();
 
-  public AndroidArtifactNode(@NotNull AbstractPsNode parent, @NotNull PsAndroidArtifact artifact) {
-    super(parent, artifact);
+  TargetVariantNode(@NotNull PsVariant variant) {
+    super(variant);
     setAutoExpandNode(true);
-  }
-
-  public AndroidArtifactNode(@NotNull AbstractPsNode parent, @NotNull List<PsAndroidArtifact> artifacts) {
-    super(parent, artifacts);
-    setAutoExpandNode(true);
-  }
-
-  @Override
-  @NotNull
-  protected String nameOf(PsAndroidArtifact artifact) {
-    PsVariant variant = artifact.getParent();
-    return variant.getName() + artifact.getName();
   }
 
   @Override
@@ -50,7 +36,7 @@ public class AndroidArtifactNode extends AbstractPsModelNode<PsAndroidArtifact> 
     return myChildren.toArray(new SimpleNode[myChildren.size()]);
   }
 
-  public void setChildren(@NotNull List<AbstractPsModelNode<?>> children) {
+  void setChildren(@NotNull List<TargetArtifactNode> children) {
     myChildren = children;
   }
 }

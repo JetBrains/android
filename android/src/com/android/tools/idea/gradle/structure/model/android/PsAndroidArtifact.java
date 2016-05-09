@@ -27,6 +27,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.Collection;
 import java.util.List;
 
 import static com.android.builder.model.AndroidProject.*;
@@ -60,7 +61,7 @@ public class PsAndroidArtifact extends PsChildModel implements PsAndroidModel {
         icon = AndroidTestRoot;
         break;
       case ARTIFACT_UNIT_TEST:
-        name = "Test";
+        name = "UnitTest";
         icon = TestRoot;
     }
 
@@ -106,6 +107,15 @@ public class PsAndroidArtifact extends PsChildModel implements PsAndroidModel {
 
   @Override
   public boolean isDeclared() {
+    return false;
+  }
+
+  public boolean containsAny(@NotNull Collection<DependencyModel> parsedDependencies) {
+    for (DependencyModel parsedDependency : parsedDependencies) {
+      if (contains(parsedDependency)) {
+        return true;
+      }
+    }
     return false;
   }
 

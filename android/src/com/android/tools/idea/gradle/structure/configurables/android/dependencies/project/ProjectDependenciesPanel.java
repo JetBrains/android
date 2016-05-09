@@ -35,12 +35,10 @@ class ProjectDependenciesPanel extends AbstractMainDependenciesPanel {
 
   ProjectDependenciesPanel(@NotNull PsModule module, @NotNull PsContext context, @NotNull List<PsModule> extraTopModules) {
     super(context, extraTopModules);
+    myTargetModulesPanel = new TargetModulesPanel(context);
 
     myDeclaredDependenciesPanel = new DeclaredDependenciesPanel(module, context);
     myDeclaredDependenciesPanel.setHistory(getHistory());
-
-    myTargetModulesPanel = new TargetModulesPanel(context);
-
     myDeclaredDependenciesPanel.add(myTargetModulesPanel::displayTargetModules);
 
     JBSplitter verticalSplitter = createMainVerticalSplitter();

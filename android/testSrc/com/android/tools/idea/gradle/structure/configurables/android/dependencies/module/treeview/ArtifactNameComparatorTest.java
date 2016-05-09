@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview;
 
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview.ResolvedDependenciesTreeRootNode.ArtifactNameComparator;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview.ArtifactComparator.ArtifactNameComparator;
 import com.google.common.collect.Lists;
 import org.junit.Test;
 

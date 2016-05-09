@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview;
 
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode;
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsNode;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
@@ -32,12 +33,12 @@ import static com.android.tools.idea.gradle.structure.model.PsDependency.TextTyp
 public class ModuleDependencyNode extends AbstractDependencyNode<PsModuleDependency> {
   private final List<AbstractPsModelNode<?>> myChildren = Lists.newArrayList();
 
-  public ModuleDependencyNode(@NotNull AbstractPsModelNode parent, @NotNull PsModuleDependency dependency) {
+  public ModuleDependencyNode(@NotNull AbstractPsNode parent, @NotNull PsModuleDependency dependency) {
     super(parent, dependency);
     setUp(dependency);
   }
 
-  public ModuleDependencyNode(@NotNull AbstractPsModelNode parent, @NotNull List<PsModuleDependency> dependencies) {
+  public ModuleDependencyNode(@NotNull AbstractPsNode parent, @NotNull List<PsModuleDependency> dependencies) {
     super(parent, dependencies);
     setUp(dependencies.get(0));
   }

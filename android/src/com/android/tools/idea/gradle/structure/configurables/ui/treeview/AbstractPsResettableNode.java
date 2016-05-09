@@ -13,20 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables.android.treeview;
+package com.android.tools.idea.gradle.structure.configurables.ui.treeview;
 
-import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode;
 import com.android.tools.idea.gradle.structure.model.PsModel;
-import com.google.common.collect.Lists;
 import com.intellij.ui.treeStructure.SimpleNode;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public abstract class AbstractRootNode<T extends PsModel> extends AbstractPsModelNode<T> {
-  private List<SimpleNode> myChildren;
+public abstract class AbstractPsResettableNode<T extends PsModel> extends AbstractPsModelNode<T> {
+  private List<? extends AbstractPsModelNode> myChildren;
 
-  public AbstractRootNode(@NotNull T model) {
+  public AbstractPsResettableNode(@NotNull T model) {
     super(model);
     setAutoExpandNode(true);
   }
@@ -34,8 +32,7 @@ public abstract class AbstractRootNode<T extends PsModel> extends AbstractPsMode
   @Override
   public SimpleNode[] getChildren() {
     if (myChildren == null) {
-      myChildren = Lists.newArrayList();
-      myChildren.addAll(createChildren());
+      myChildren = createChildren();
     }
     return myChildren.toArray(new SimpleNode[myChildren.size()]);
   }
