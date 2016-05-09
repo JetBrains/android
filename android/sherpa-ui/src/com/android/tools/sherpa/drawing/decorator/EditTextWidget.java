@@ -16,7 +16,7 @@
 
 package com.android.tools.sherpa.drawing.decorator;
 
-import com.google.tnt.solver.widgets.ConstraintWidget;
+import android.support.constraint.solver.widgets.ConstraintWidget;
 
 /**
  * EditText Widget widget decorator

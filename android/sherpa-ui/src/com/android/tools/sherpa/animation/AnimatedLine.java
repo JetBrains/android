@@ -18,7 +18,7 @@ package com.android.tools.sherpa.animation;
 
 import com.android.tools.sherpa.drawing.ViewTransform;
 import com.android.tools.sherpa.interaction.ConstraintHandle;
-import com.google.tnt.solver.widgets.ConstraintWidget;
+import android.support.constraint.solver.widgets.ConstraintWidget;
 
 import java.awt.Color;
 import java.awt.Graphics2D;

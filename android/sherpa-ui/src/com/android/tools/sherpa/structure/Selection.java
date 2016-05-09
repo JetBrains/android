@@ -18,9 +18,9 @@ package com.android.tools.sherpa.structure;
 
 import com.android.tools.sherpa.interaction.ResizeHandle;
 import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
-import com.google.tnt.solver.widgets.ConstraintAnchor;
-import com.google.tnt.solver.widgets.ConstraintWidget;
-import com.google.tnt.solver.widgets.Guideline;
+import android.support.constraint.solver.widgets.ConstraintAnchor;
+import android.support.constraint.solver.widgets.ConstraintWidget;
+import android.support.constraint.solver.widgets.Guideline;
 
 import java.awt.Point;
 import java.awt.Rectangle;
