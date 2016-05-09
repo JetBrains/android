@@ -78,6 +78,8 @@ import java.util.*;
 import static com.android.SdkConstants.*;
 import static com.android.tools.lint.checks.PermissionFinder.Operation.*;
 import static com.android.tools.lint.checks.SupportAnnotationDetector.*;
+import static com.android.tools.lint.detector.api.ResourceEvaluator.*;
+import static com.android.tools.lint.detector.api.ResourceEvaluator.RES_SUFFIX;
 import static com.intellij.psi.CommonClassNames.DEFAULT_PACKAGE;
 import static com.intellij.psi.CommonClassNames.JAVA_LANG_STRING;
 import static com.intellij.psi.util.PsiFormatUtilBase.SHOW_CONTAINING_CLASS;
@@ -915,10 +917,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
           // TODO: Resolve suggest attribute (e.g. prefix annotation class if it starts
           // with "#" etc)?
           if (!suggest.isEmpty()) {
-            String name = suggest;
-            if (name.startsWith("#")) {
-              name = name.substring(1);
-            }
+            String name = StringUtil.trimStart(suggest, "#");
             message = String.format("The result of '%1$s' is not used; did you mean to call '%2$s'?", method.getName(), name);
             if (suggest.startsWith("#") && methodCall instanceof PsiMethodCallExpression) {
               registerProblem(holder, CHECK_RESULT, methodCall, message, new ReplaceCallFix((PsiMethodCallExpression)methodCall, suggest));
@@ -1368,11 +1367,6 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     public boolean isCompatibleWith(@NotNull ResourceTypeAllowedValues other) {
       // Happy if *any* of the resource types on the annotation matches any of the
       // annotations allowed for this API
-      if (other.types.isEmpty() && types.isEmpty()) {
-        // Passing in a method call whose return value is @ColorInt
-        // to a parameter which is @ColorInt: OK
-        return true;
-      }
       for (ResourceType type : other.types) {
         if (isTypeAllowed(type)) {
           return true;
@@ -1891,7 +1885,10 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
           constraint = merge(new SizeConstraint(annotation), constraint);
         }
         else if (COLOR_INT_ANNOTATION.equals(qualifiedName)) {
-          constraint = merge(new ResourceTypeAllowedValues(Collections.<ResourceType>emptyList()), constraint);
+          constraint = merge(new ResourceTypeAllowedValues(Collections.singletonList(COLOR_INT_MARKER_TYPE)), constraint);
+        }
+        else if (PX_ANNOTATION.equals(qualifiedName)) {
+          constraint = merge(new ResourceTypeAllowedValues(Collections.singletonList(PX_MARKER_TYPE)), constraint);
         }
         else if (qualifiedName.startsWith(PERMISSION_ANNOTATION)) {
           // PERMISSION_ANNOTATION, PERMISSION_ANNOTATION_READ, PERMISSION_ANNOTATION_WRITE
@@ -1990,15 +1987,22 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       }
 
       String message;
-      if (types.isEmpty()) {
-        // Keep in sync with guessLintIssue
-        message = String.format("Should pass resolved color instead of resource id here: `getResources().getColor(%1$s)`",
-                                argument.getText());
-        issue = COLOR_USAGE;
-      }
-      else if (types.size() == 1) {
-        // Keep in sync with guessLintIssue
-        message = "Expected resource of type " + types.get(0);
+      if (types.size() == 1) {
+        if (types.contains(COLOR_INT_MARKER_TYPE)) {
+          // Keep in sync with guessLintIssue
+          message = String.format("Should pass resolved color instead of resource id here: `getResources().getColor(%1$s)`",
+                                  argument.getText());
+          issue = COLOR_USAGE;
+        }
+        else if (types.contains(PX_MARKER_TYPE)) {
+          // Keep in sync with guessLintIssue
+          message = String.format("Should pass resolved pixel dimension instead of resource id here: `getResources().getDimension*(%1$s)`",
+                                  argument.getText());
+        }
+        else {
+          // Keep in sync with guessLintIssue
+          message = "Expected resource of type " + types.get(0);
+        }
       }
       else {
         // Keep in sync with guessLintIssue
@@ -2309,8 +2313,11 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
           }
         }
 
-        if (allowedValues.types.isEmpty() && PsiType.INT.equals(expression.getType())) {
+        if (allowedValues.types.contains(COLOR_INT_MARKER_TYPE) && PsiType.INT.equals(expression.getType())) {
           // Passing literal integer to a color
+          return InspectionResult.valid();
+        } else if (allowedValues.types.contains(PX_MARKER_TYPE) && PsiType.INT.equals(expression.getType())) {
+          // Passing literal integer to a pixel call
           return InspectionResult.valid();
         }
       }
@@ -2727,6 +2734,8 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
   private static Issue guessLintIssue(@NotNull String message) {
     if (message.startsWith("Should pass resolved color ")) {
       return COLOR_USAGE;
+    } else if (message.startsWith("Should pass resolved pixel dimension ")) {
+      return RESOURCE_TYPE;
     } else if (message.startsWith("The result of ")) {
       return CHECK_RESULT;
     } else if (message.startsWith("Call requires permission ") || message.startsWith("Missing permissions ")) {
