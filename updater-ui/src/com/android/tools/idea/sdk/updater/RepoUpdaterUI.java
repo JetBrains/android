@@ -18,7 +18,8 @@ package com.android.tools.idea.sdk.updater;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.repository.api.ProgressIndicator;
-import com.android.tools.idea.sdk.install.PatchInstallerFactory;
+import com.android.tools.idea.sdk.install.patch.PatchInstallerUtil;
+import com.android.tools.idea.sdk.install.patch.PatchRunner;
 import com.intellij.updater.NativeFileManager;
 import com.intellij.updater.OperationCancelledException;
 import com.intellij.updater.SwingUpdaterUI;
@@ -26,8 +27,8 @@ import com.intellij.updater.ValidationResult;
 import com.sun.jna.platform.win32.Kernel32;
 
 import java.awt.*;
-import java.util.*;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Bridge between the Studio/IJ updater and Studio itself.
@@ -116,12 +117,12 @@ public class RepoUpdaterUI extends SwingUpdaterUI {
       for (ValidationResult result : validationResults) {
         for (NativeFileManager.Process process : NativeFileManager.getProcessesUsing(result.toFile)) {
           if (process.pid == pid) {
-            throw new PatchInstallerFactory.RestartRequiredException();
+            throw new PatchRunner.RestartRequiredException();
           }
         }
       }
     }
-    catch (PatchInstallerFactory.RestartRequiredException e) {
+    catch (PatchRunner.RestartRequiredException e) {
       throw e;
     }
     catch (Throwable e) {

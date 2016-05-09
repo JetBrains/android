@@ -262,7 +262,7 @@ class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements
     assert userSourceProvider != null;
     // TODO: we shouldn't have to specify the allowed sources here, since they're already specified in the provider.
     RepositorySource newSource = new SimpleRepositorySource(url, uiName, true, ImmutableList
-      .of(AndroidSdkHandler.getAddonModule(), AndroidSdkHandler.getSysImgModule(), AndroidSdkHandler.getRepositoryModule(), RepoManager.getCommonModule()), userSourceProvider);
+      .of(AndroidSdkHandler.getAddonModule(), AndroidSdkHandler.getSysImgModule(), RepoManager.getCommonModule()), userSourceProvider);
     userSourceProvider.addSource(newSource);
     refreshUi();
   }
