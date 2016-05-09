@@ -28,7 +28,7 @@ public class AndroidBuildConfigStateStorage extends AbstractStateStorage<String,
   @NonNls private static final String BUILD_CONFIG_STORAGE = "build_config";
 
   private AndroidBuildConfigStateStorage(@NotNull File dataStorageRoot) throws IOException {
-    super(AndroidJpsUtil.getStorageFile(dataStorageRoot, BUILD_CONFIG_STORAGE), new EnumeratorStringDescriptor(), new MyDataExternalizer());
+    super(AndroidJpsUtil.getStorageFile(dataStorageRoot, BUILD_CONFIG_STORAGE), EnumeratorStringDescriptor.INSTANCE, new MyDataExternalizer());
   }
 
   private static class MyDataExternalizer implements DataExternalizer<AndroidBuildConfigState> {
