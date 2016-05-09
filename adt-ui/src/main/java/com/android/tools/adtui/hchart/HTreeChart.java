@@ -30,6 +30,10 @@ import java.util.Stack;
 
 public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListener {
 
+  private Orientation mOrientation;
+
+  public enum Orientation {TOP_DOWN, BOTTOM_UP};
+
   @Nullable
   private HRenderer<T> mHRenderer;
 
@@ -62,6 +66,12 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
     mRect = new Rectangle2D.Float();
     mYRange = new Range();
     addMouseWheelListener(this);
+    mOrientation = HTreeChart.Orientation.TOP_DOWN;
+  }
+
+  public HTreeChart(Orientation orientation) {
+    this();
+    mOrientation = orientation;
   }
 
   @Override
@@ -122,6 +132,10 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
                       - getYRange().getMin());
     mRect.width = (float)width - BORDER_PLUS_PADDING;
     mRect.height = mFontMetrics.getHeight();
+
+    if (mOrientation == HTreeChart.Orientation.BOTTOM_UP) {
+      mRect.y = getHeight() - mRect.y;
+    }
 
     // 4. Render node
     mHRenderer.render(g, n.getData(), mRect);
