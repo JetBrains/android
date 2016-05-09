@@ -1216,6 +1216,37 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "}\n");
   }
 
+  public void testPx() {
+    // Test the @Px annotation
+    doCheck("\n" +
+            "package test.pkg;\n" +
+            "\n" +
+            "import android.support.annotation.Px;\n" +
+            "import android.support.annotation.DimenRes;\n" +
+            "\n" +
+            "public abstract class X {\n" +
+            "    @DimenRes\n" +
+            "    public abstract int getDimension1();\n" +
+            "    public abstract void setDimension1(@DimenRes int dimension);\n" +
+            "    @Px\n" +
+            "    public abstract int getDimension2();\n" +
+            "    public abstract void setDimension2(@Px int dimension);\n" +
+            "\n" +
+            "    public void test1() {\n" +
+            "        int actualSize = getDimension2();\n" +
+            //"        setDimension1(/*Expected a dimension resource id (R.color.) but received a pixel integer*/actualSize/**/); // ERROR\n" +
+            //"        setDimension1(/*Expected a dimension resource id (R.color.) but received a pixel integer*/getDimension2()/**/); // ERROR\n" +
+            "        setDimension1(getDimension1()); // OK\n" +
+            "    }\n" +
+            "    public void test2() {\n" +
+            "        int actualSize = getDimension1();\n" +
+            //"        setDimension2(/*Should pass resolved pixel dimension instead of resource id here: `getResources().getDimension*(actualSize)`*/actualSize/**/); // ERROR\n" +
+            "        setDimension2(/*Should pass resolved pixel dimension instead of resource id here: `getResources().getDimension*(getDimension1())`*/getDimension1()/**/); // ERROR\n" +
+            "        setDimension2(getDimension2()); // OK\n" +
+            "    }\n" +
+            "}\n");
+  }
+
   public void testCombinedIntDefAndIntRange() throws Exception {
     doCheck("package test.pkg;\n" +
             "\n" +
@@ -1651,6 +1682,13 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
                       "public @interface ColorInt {\n" +
                       "}";
     classes.add(header + colorInt);
+
+    @Language("JAVA")
+    String px = "@Retention(SOURCE)\n" +
+                "@Target({METHOD, PARAMETER, FIELD, LOCAL_VARIABLE})\n" +
+                "public @interface Px {\n" +
+                "}";
+    classes.add(header + px);
 
     @Language("JAVA")
     String intDef = "@Retention(SOURCE)\n" +
