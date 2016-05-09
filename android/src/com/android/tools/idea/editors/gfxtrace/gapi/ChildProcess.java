@@ -99,6 +99,9 @@ public abstract class ChildProcess {
     OutputHandler stderr = new OutputHandler(myProcess.getErrorStream(), true);
     try {
       onExit(myProcess.waitFor());
+      if (!portF.isDone()) {
+        portF.setException(new Exception(myName + " has exited"));
+      }
     }
     catch (InterruptedException e) {
       LOG.info("Killing " + myName);
