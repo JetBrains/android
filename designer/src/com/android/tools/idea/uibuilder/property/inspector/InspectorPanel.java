@@ -48,6 +48,8 @@ import java.util.Map;
 import static com.intellij.uiDesigner.core.GridConstraints.*;
 
 public class InspectorPanel extends JPanel {
+  private static final int HORIZONTAL_SPACING = 4;
+
   private final List<InspectorProvider> myProviders;
   private final NlDesignProperties myDesignProperties;
   private final Font myBoldLabelFont = UIUtil.getLabelFont().deriveFont(Font.BOLD);
@@ -66,8 +68,8 @@ public class InspectorPanel extends JPanel {
     myDesignProperties = new NlDesignProperties();
     myExpandedIcon = (Icon)UIManager.get("Tree.expandedIcon");
     myCollapsedIcon = (Icon)UIManager.get("Tree.collapsedIcon");
-    myInspector = new JPanel();
-    myInspector.setBorder(BorderFactory.createEmptyBorder(0, 6, 0, 6));
+    myInspector = new GridInspectorPanel();
+    myInspector.setBorder(BorderFactory.createEmptyBorder(0, HORIZONTAL_SPACING, 0, HORIZONTAL_SPACING));
     add(myInspector, BorderLayout.CENTER);
   }
 
@@ -115,8 +117,7 @@ public class InspectorPanel extends JPanel {
     for (InspectorComponent inspector : inspectors) {
       rows += inspector.getMaxNumberOfRows();
     }
-    GridLayoutManager layout = createLayoutManager(rows, 2);
-    myInspector.setLayout(layout);
+    myInspector.setLayout(createLayoutManager(rows, 2));
     for (InspectorComponent inspector : inspectors) {
       inspector.attachToInspector(this);
     }
@@ -125,9 +126,10 @@ public class InspectorPanel extends JPanel {
 
     // Add a vertical spacer
     myInspector.add(new Spacer(), new GridConstraints(myRow++, 0, 1, 2, ANCHOR_CENTER, FILL_HORIZONTAL, SIZEPOLICY_CAN_GROW, SIZEPOLICY_CAN_GROW | SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
-    layout.invalidateLayout(myInspector);
-    this.revalidate();
-    this.repaint();
+
+    // These are both important to render the controls correctly the first time:
+    validate();
+    repaint();
   }
 
   public void refresh() {
@@ -236,7 +238,6 @@ public class InspectorPanel extends JPanel {
     myConstraints.setColSpan(columnSpan);
     myConstraints.setAnchor(anchor);
     myConstraints.setFill(fill);
-
     panel.add(component, myConstraints);
   }
 
@@ -262,5 +263,52 @@ public class InspectorPanel extends JPanel {
 
   private void endGroup() {
     myGroup = null;
+  }
+
+  /**
+   * This is a hack to attempt to keep the column size fo the grid to 40% for the label and 60% for the editor.
+   * We want to update the constraints before <code>doLayout</code> is called on the panel.
+   */
+  private static class GridInspectorPanel extends JPanel {
+    private int myWidth;
+
+    @Override
+    public void setLayout(LayoutManager layoutManager) {
+      myWidth = -1;
+      super.setLayout(layoutManager);
+    }
+
+    @Override
+    public void doLayout() {
+      updateGridConstraints();
+      super.doLayout();
+    }
+
+    private void updateGridConstraints() {
+      LayoutManager layoutManager = getLayout();
+      if (layoutManager instanceof GridLayoutManager) {
+        GridLayoutManager gridLayoutManager = (GridLayoutManager)layoutManager;
+        if (getWidth() != myWidth) {
+          myWidth = getWidth();
+          for (Component component : getComponents()) {
+            GridConstraints constraints = gridLayoutManager.getConstraintsForComponent(component);
+            if (constraints != null) {
+              updateMinimumSize(constraints);
+            }
+          }
+        }
+      }
+    }
+
+    private void updateMinimumSize(@NotNull GridConstraints constraints) {
+      if (constraints.getColSpan() == 1) {
+        if (constraints.getColumn() == 0) {
+          constraints.myMinimumSize.setSize((myWidth - 2 * HORIZONTAL_SPACING) * .4, -1);
+        }
+        else if (constraints.getColumn() == 1) {
+          constraints.myMinimumSize.setSize((myWidth - 2 * HORIZONTAL_SPACING) * .6, -1);
+        }
+      }
+    }
   }
 }
