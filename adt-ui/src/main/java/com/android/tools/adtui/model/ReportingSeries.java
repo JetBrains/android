@@ -16,21 +16,43 @@
 
 package com.android.tools.adtui.model;
 
+import java.util.Collection;
+
 /**
  * Interface used by the some animation components to retrieve the latest value and range of a series
+ * TODO support generics to be used by multiple data series type.
  */
 public interface ReportingSeries {
+
+  class ReportingData {
+    public long timeStamp;
+    public String label;
+    public String formattedData;
+
+    ReportingData(long timeStamp, String label, String formattedData) {
+      this.timeStamp = timeStamp;
+      this.label = label;
+      this.formattedData = formattedData;
+    }
+  }
 
   /**
    * This function should return the newest added value in a series. Implementors of this should
    * handle if the series has no values and return 0.
+   *
    * @return The most recently added value to a series
    */
   double getLatestValue();
 
   /**
    * This function should return the length of the range corresponding to the latest value.
+   *
    * @return The length of the range that is used for the series values.
    */
   double getRangeLength();
+
+  /**
+   * @return A collection of ReportingData that needs to be displayed for the series at the value x.
+   */
+  Collection<ReportingData> getFullReportingData(long x);
 }
