@@ -21,8 +21,8 @@ import com.android.tools.idea.gradle.structure.configurables.android.dependencie
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.ModuleLibraryDependencyDetails;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.resolved.treeview.ResolvedDependenciesTreeBuilder;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.*;
-import com.android.tools.idea.gradle.structure.configurables.issues.IssuesRenderer;
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesViewer;
+import com.android.tools.idea.gradle.structure.configurables.issues.SingleModuleIssuesRenderer;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseCollapseAllAction;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseExpandAllAction;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.NodeHyperlinkSupport;
@@ -67,7 +67,7 @@ class ResolvedDependenciesPanel extends AbstractDependenciesPanel {
 
     initializeDependencyDetails();
 
-    myIssuesViewer = new IssuesViewer(myContext, new IssuesRenderer());
+    myIssuesViewer = new IssuesViewer(myContext, new SingleModuleIssuesRenderer());
     setIssuesViewer(myIssuesViewer);
 
     DefaultTreeModel treeModel = new DefaultTreeModel(new DefaultMutableTreeNode());
