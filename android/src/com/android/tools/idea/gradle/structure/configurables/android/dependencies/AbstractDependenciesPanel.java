@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.structure.configurables.issues.IssuesViewer
 import com.android.tools.idea.gradle.structure.configurables.ui.ChooseModuleDialog;
 import com.android.tools.idea.gradle.structure.configurables.ui.EmptyPanel;
 import com.android.tools.idea.gradle.structure.dependencies.AddLibraryDependencyDialog;
+import com.android.tools.idea.gradle.structure.model.PsIssue;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
@@ -49,6 +50,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -75,6 +77,7 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
   private List<AbstractPopupAction> myPopupActions;
   private DependencyDetails myCurrentDependencyDetails;
   private History myHistory;
+  private IssuesViewer myIssuesViewer;
 
   protected AbstractDependenciesPanel(@NotNull String title, @NotNull PsContext context, @Nullable PsAndroidModule module) {
     super(new BorderLayout());
@@ -108,7 +111,14 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
   }
 
   protected void setIssuesViewer(@NotNull IssuesViewer issuesViewer) {
-    myInfoPanel.setIssuesViewer(issuesViewer);
+    myIssuesViewer = issuesViewer;
+    myInfoPanel.setIssuesViewer(myIssuesViewer);
+  }
+
+  protected void displayIssues(@NotNull Collection<PsIssue> issues) {
+    assert myIssuesViewer != null;
+    myIssuesViewer.display(issues);
+    myInfoPanel.revalidateAndRepaintPanel();
   }
 
   protected void updateDetails(@Nullable PsAndroidDependency selected) {
