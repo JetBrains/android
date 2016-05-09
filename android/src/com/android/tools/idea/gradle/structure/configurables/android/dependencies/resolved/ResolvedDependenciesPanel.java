@@ -115,7 +115,7 @@ class ResolvedDependenciesPanel extends AbstractDependenciesPanel {
 
     myTreeBuilder.getInitialized().doWhenDone(this::doEnsureSelection);
 
-    myHyperlinkSupport = new NodeHyperlinkSupport<>(myTree, ModuleDependencyNode.class, myContext, false);
+    myHyperlinkSupport = new NodeHyperlinkSupport<>(myTree, ModuleDependencyNode.class, myContext, true);
   }
 
   private void initializeDependencyDetails() {
