@@ -70,7 +70,6 @@ class DeclaredDependenciesPanel extends AbstractDependenciesPanel {
   @NotNull private final Tree myTree;
   @NotNull private final DeclaredDependenciesTreeBuilder myTreeBuilder;
   @NotNull private final NodeHyperlinkSupport<ModuleDependencyNode> myHyperlinkSupport;
-  @NotNull private final IssuesViewer myIssuesViewer;
 
   @NotNull private final SelectionChangeEventDispatcher<List<AbstractDependencyNode<? extends PsAndroidDependency>>> myEventDispatcher =
     new SelectionChangeEventDispatcher<>();
@@ -83,8 +82,7 @@ class DeclaredDependenciesPanel extends AbstractDependenciesPanel {
 
     initializeDependencyDetails();
 
-    myIssuesViewer = new IssuesViewer(myContext, new IssuesRenderer());
-    setIssuesViewer(myIssuesViewer);
+    setIssuesViewer(new IssuesViewer(myContext, new IssuesRenderer()));
 
     DefaultTreeModel treeModel = new DefaultTreeModel(new DefaultMutableTreeNode());
     myTree = new Tree(treeModel) {
@@ -189,7 +187,7 @@ class DeclaredDependenciesPanel extends AbstractDependenciesPanel {
         issues.addAll(myContext.getAnalyzerDaemon().getIssues().findIssues(dependency, null));
       }
     }
-    myIssuesViewer.display(issues);
+    displayIssues(issues);
   }
 
   private void notifySelectionChanged(@NotNull List<AbstractDependencyNode<? extends PsAndroidDependency>> selected) {
