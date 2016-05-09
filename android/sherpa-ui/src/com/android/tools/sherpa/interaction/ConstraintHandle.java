@@ -25,6 +25,7 @@ import com.google.tnt.solver.widgets.ConstraintAnchor;
 import com.google.tnt.solver.widgets.ConstraintWidget;
 import com.google.tnt.solver.widgets.Guideline;
 
+import javax.swing.Timer;
 import java.awt.*;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.FlatteningPathIterator;
@@ -52,10 +53,18 @@ public class ConstraintHandle {
     static final Stroke sLineShadowStroke = new BasicStroke(5);
     static final Stroke sSimpleStroke = new BasicStroke(1);
 
-    public static Stroke
-            sAutoLongDashedtroke = new BasicStroke(1, BasicStroke.CAP_BUTT,
-            BasicStroke.JOIN_BEVEL, 0, new float[] { 4 }, 0);
+    // How long does the conversion from soft constraints to hard constraints takes
+    private final static int LOCK_CONNECTIONS_DURATION = 6000; // ms
 
+    private final Timer mLockTimer = new Timer(LOCK_CONNECTIONS_DURATION, e -> {
+        if (mAnchor.isConnected()) {
+            mAnchor.setConnectionCreator(ConstraintAnchor.USER_CREATOR);
+        }
+        stopLock();
+    });
+
+    private boolean mLocking = false;
+    private long mLockingStartTime = 0;
 
     static class ConnectionDrawing {
         ArrayList<Shape> mShapes = new ArrayList<>();
@@ -107,6 +116,7 @@ public class ConstraintHandle {
             ConstraintAnchor.Type type) {
         mOwner = owner;
         mType = type;
+        mLockTimer.setRepeats(false);
     }
 
     /**
@@ -576,16 +586,18 @@ public class ConstraintHandle {
             } else if ((mAnchor.getOpposite().getTarget().getOwner() ==
                     mAnchor.getTarget().getOwner())
                     && targetWidget != getOwner().getParent()) {
-                if (mAnchor.getConnectionCreator() == ConstraintAnchor.AUTO_CONSTRAINT_CREATOR) {
-                    g.setStroke(sAutoLongDashedtroke);
+                if (mAnchor.getConnectionCreator() ==
+                        ConstraintAnchor.AUTO_CONSTRAINT_CREATOR) {
+                    g.setStroke(colorSet.getSoftConstraintStroke());
                 }
                 // Center connection on same widget (save our parent)
                 addPathCenteredConnectionOnSameWidget(transform, g, isSelected, drawing, colorSet,
                         targetHandle,
                         targetWidget);
             } else {
-                if (mAnchor.getConnectionCreator() == ConstraintAnchor.AUTO_CONSTRAINT_CREATOR) {
-                    g.setStroke(sAutoLongDashedtroke);
+                if (mAnchor.getConnectionCreator() ==
+                        ConstraintAnchor.AUTO_CONSTRAINT_CREATOR) {
+                    g.setStroke(colorSet.getSoftConstraintStroke());
                 }
                 // Center connection on different widgets (or our parent)
                 addPathCenteredConnection(transform, g, isSelected, drawing, colorSet, targetHandle,
@@ -606,8 +618,8 @@ public class ConstraintHandle {
                 if (originalCreator == ConstraintAnchor.AUTO_CONSTRAINT_CREATOR
                         || originalCreator == ConstraintAnchor.SCOUT_CREATOR) {
                     if (originalCreator != ConstraintAnchor.SCOUT_CREATOR) {
-                        g.setColor(colorSet.getWeakConstraintColor());
-                        g.setStroke(sAutoLongDashedtroke);
+                        g.setColor(colorSet.getSoftConstraintColor());
+                        g.setStroke(colorSet.getSoftConstraintStroke());
                         drawing.draw(g);
                     }
                     Stroke progressStroke = new BasicStroke(2, BasicStroke.CAP_BUTT,
@@ -621,8 +633,8 @@ public class ConstraintHandle {
                     }
                     drawing.draw(g);
                 } else {
-                    g.setColor(colorSet.getWeakConstraintColor());
-                    g.setStroke(sAutoLongDashedtroke);
+                    g.setColor(colorSet.getSoftConstraintColor());
+                    g.setStroke(colorSet.getSoftConstraintStroke());
                     drawing.draw(g);
                     Stroke progressStroke = new BasicStroke(2, BasicStroke.CAP_BUTT,
                             BasicStroke.JOIN_BEVEL, 0, new float[] { dashEmpty, dashFull }, 0);
@@ -1742,6 +1754,37 @@ public class ConstraintHandle {
             y1 = y2;
         } while (!f.isDone());
         return (int) sum;
+    }
+
+    /*-----------------------------------------------------------------------*/
+    // Autoconnection behaviour
+    /*-----------------------------------------------------------------------*/
+
+    public void startLock() {
+        mLockTimer.start();
+        mLocking = true;
+        mLockingStartTime = System.currentTimeMillis();
+    }
+
+    public void stopLock() {
+        mLockTimer.stop();
+        mLocking = false;
+        mLockingStartTime = 0;
+    }
+
+    public boolean isLocking() {
+        return mLocking;
+    }
+
+    public float getLockingProgress() {
+        if (mLockingStartTime == 0) {
+            return 0;
+        }
+        long delta = System.currentTimeMillis() - mLockingStartTime;
+        if (delta > LOCK_CONNECTIONS_DURATION) {
+            return 1;
+        }
+        return (delta / (float) LOCK_CONNECTIONS_DURATION);
     }
 
 }
