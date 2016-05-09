@@ -18,12 +18,16 @@ package com.android.tools.idea.editors.gfxtrace.gapi;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceClientRPC;
 import com.google.common.util.concurrent.ListeningExecutorService;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.Socket;
 
 public class GapisConnection implements Closeable {
+  @NotNull private static final byte AUTH_HEADER[] = new byte[]{'A', 'U', 'T', 'H'};
+
   private final GapisProcess myParent;
   private final Socket myServerSocket;
   private final GapisFeatures myFeatures = new GapisFeatures();
@@ -64,5 +68,16 @@ public class GapisConnection implements Closeable {
         myParent.onClose(this);
       }
     }
+  }
+
+  /**
+   * Sends the auth-token to the GAPIS instance requiring authentication.
+   * Must be called before any calls to {@link #createServiceClient}.
+   */
+  public void sendAuth(String authToken) throws IOException {
+    OutputStream s = myServerSocket.getOutputStream();
+    s.write(AUTH_HEADER);
+    s.write(authToken.getBytes("UTF-8"));
+    s.write(new byte[]{ 0 });
   }
 }
