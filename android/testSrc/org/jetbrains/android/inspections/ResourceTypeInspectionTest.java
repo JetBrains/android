@@ -1428,6 +1428,36 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "}\n");
   }
 
+  @SuppressWarnings("all") // sample code
+  public void testRequiresApi() throws Exception {
+    doCheck("package test.pkg;\n" +
+            "\n" +
+            "import android.support.annotation.RequiresApi;\n" +
+            "\n" +
+            "@SuppressWarnings({\"WeakerAccess\", \"unused\"})\n" +
+            "public class X {\n" +
+            "    public void caller() {\n" +
+            "        /*Call requires API level 19 (current min is 17): test.pkg.X#requiresKitKat*/requiresKitKat()/**/; // ERROR - requires 19\n" +
+            "        LollipopClass lollipopClass = /*Call requires API level 21 (current min is 17): test.pkg.X.LollipopClass#LollipopClass*/new LollipopClass()/**/;\n" +
+            "        /*Call requires API level 21 (current min is 17): test.pkg.X.LollipopClass#requiresLollipop*/lollipopClass.requiresLollipop()/**/; // ERROR - requires 21\n" +
+            "    }\n" +
+            "\n" +
+            "    @RequiresApi(19)\n" +
+            "    public void requiresKitKat() {\n" +
+            "    }\n" +
+            "\n" +
+            "    @RequiresApi(21)\n" +
+            "    public class LollipopClass {\n" +
+            "        LollipopClass() {\n" +
+            "        }\n" +
+            "\n" +
+            "        public void requiresLollipop() {\n" +
+            "            requiresKitKat(); // OK\n" +
+            "        }\n" +
+            "    }\n" +
+            "}\n");
+  }
+
   public void testSuppressNames() throws Exception {
     doCheck("package test.pkg;\n" +
             "\n" +
@@ -1689,6 +1719,14 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
                 "public @interface Px {\n" +
                 "}";
     classes.add(header + px);
+
+    @Language("JAVA")
+    String requiresApi = "@Retention(SOURCE)\n" +
+                         "@Target({TYPE,METHOD,CONSTRUCTOR,FIELD})\n" +
+                         "public @interface RequiresApi {\n" +
+                         "    int value();\n" +
+                         "}";
+    classes.add(header + requiresApi);
 
     @Language("JAVA")
     String intDef = "@Retention(SOURCE)\n" +
