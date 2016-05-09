@@ -18,11 +18,11 @@ package com.android.tools.sherpa.drawing;
 
 import com.android.tools.sherpa.interaction.ResizeHandle;
 import com.android.tools.sherpa.interaction.WidgetInteractionTargets;
-import com.google.tnt.solver.widgets.ConstraintAnchor;
-import com.google.tnt.solver.widgets.ConstraintTableLayout;
-import com.google.tnt.solver.widgets.ConstraintWidget;
-import com.google.tnt.solver.widgets.ConstraintWidgetContainer;
-import com.google.tnt.solver.widgets.Guideline;
+import android.support.constraint.solver.widgets.ConstraintAnchor;
+import android.support.constraint.solver.widgets.ConstraintTableLayout;
+import android.support.constraint.solver.widgets.ConstraintWidget;
+import android.support.constraint.solver.widgets.ConstraintWidgetContainer;
+import android.support.constraint.solver.widgets.Guideline;
 
 import java.awt.BasicStroke;
 import java.awt.Color;

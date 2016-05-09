@@ -19,9 +19,9 @@ package com.android.tools.sherpa.interaction;
 import com.android.tools.sherpa.drawing.SceneDraw;
 import com.android.tools.sherpa.drawing.ViewTransform;
 import com.android.tools.sherpa.structure.WidgetCompanion;
-import com.google.tnt.solver.widgets.ConstraintAnchor;
-import com.google.tnt.solver.widgets.ConstraintWidget;
-import com.google.tnt.solver.widgets.Guideline;
+import android.support.constraint.solver.widgets.ConstraintAnchor;
+import android.support.constraint.solver.widgets.ConstraintWidget;
+import android.support.constraint.solver.widgets.Guideline;
 
 import java.awt.Point;
 import java.util.ArrayList;

@@ -19,8 +19,8 @@ import com.android.tools.sherpa.drawing.BlueprintColorSet;
 import com.android.tools.sherpa.drawing.ColorSet;
 import com.android.tools.sherpa.structure.WidgetCompanion;
 import com.android.tools.sherpa.structure.WidgetsScene;
-import com.google.tnt.solver.widgets.ConstraintWidget;
-import com.google.tnt.solver.widgets.ConstraintWidgetContainer;
+import android.support.constraint.solver.widgets.ConstraintWidget;
+import android.support.constraint.solver.widgets.ConstraintWidgetContainer;
 
 import javax.swing.*;
 import java.awt.*;

@@ -16,8 +16,8 @@
 package com.android.tools.sherpa.scout;
 
 import com.android.tools.sherpa.drawing.ViewTransform;
-import com.google.tnt.solver.widgets.ConstraintWidget;
-import com.google.tnt.solver.widgets.Guideline;
+import android.support.constraint.solver.widgets.ConstraintWidget;
+import android.support.constraint.solver.widgets.Guideline;
 
 import java.awt.Color;
 import java.awt.Graphics;

@@ -17,7 +17,7 @@
 package com.android.tools.sherpa.drawing.decorator;
 
 import com.android.tools.sherpa.drawing.ViewTransform;
-import com.google.tnt.solver.widgets.ConstraintWidget;
+import android.support.constraint.solver.widgets.ConstraintWidget;
 
 import java.awt.Color;
 import java.awt.FontMetrics;

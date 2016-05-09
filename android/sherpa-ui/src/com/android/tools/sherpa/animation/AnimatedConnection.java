@@ -4,7 +4,7 @@ import com.android.tools.sherpa.drawing.ColorSet;
 import com.android.tools.sherpa.drawing.ViewTransform;
 import com.android.tools.sherpa.interaction.ConstraintHandle;
 import com.android.tools.sherpa.interaction.WidgetInteractionTargets;
-import com.google.tnt.solver.widgets.ConstraintAnchor;
+import android.support.constraint.solver.widgets.ConstraintAnchor;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
