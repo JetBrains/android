@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
-import com.android.tools.sherpa.drawing.BlueprintColorSet;
 import com.android.tools.sherpa.drawing.ColorSet;
+import com.android.tools.sherpa.drawing.ConnectionDraw;
 import com.android.tools.sherpa.structure.WidgetCompanion;
 import com.android.tools.sherpa.structure.WidgetsScene;
 import android.support.constraint.solver.widgets.ConstraintWidget;
@@ -34,7 +34,6 @@ import java.util.ArrayList;
  */
 public class SingleWidgetView extends JPanel {
   WidgetConstraintPanel mWidgetConstraintPanel;
-  ColorSet mColorSet = new InspectorColorSet();
   public final static int SPRING = 1;
   public final static int WRAP_CONTENT = 2;
   public final static int FIXED = 0;
@@ -43,6 +42,7 @@ public class SingleWidgetView extends JPanel {
                     BasicStroke.CAP_BUTT,
                     BasicStroke.JOIN_MITER,
                     10.0f, new float[]{10.0f}, 0.0f);
+  private final ColorSet mColorSet;
   private String mCacheName;
   private int mCacheBottom;
   private int mCacheTop;
@@ -52,36 +52,46 @@ public class SingleWidgetView extends JPanel {
   private int mCacheWidth;
   private int mCacheHeight;
 
-  static class InspectorColorSet extends BlueprintColorSet {
-    public InspectorColorSet() {
-      mDrawBackground = false;
-      mDrawWidgetInfos = true;
-    }
-  }
-
   int mWidth;
   int mHeight;
   int mBoxSize;
 
   WidgetRender mWidgetRender = new WidgetRender();
   ArrayList<Graphic> mGraphicList = new ArrayList<>();
-  MarginWidget mTopMargin = new MarginWidget(SwingConstants.LEFT);
-  MarginWidget mLeftMargin = new MarginWidget(SwingConstants.CENTER);
-  MarginWidget mRightMargin = new MarginWidget(SwingConstants.CENTER);
-  MarginWidget mBottomMargin = new MarginWidget(SwingConstants.LEFT);
-  HConstraintDisplay mHbar1 = new HConstraintDisplay(mColorSet, true);
-  HConstraintDisplay mHbar2 = new HConstraintDisplay(mColorSet, false);
-  VConstraintDisplay mVbar1 = new VConstraintDisplay(mColorSet, true);
-  VConstraintDisplay mVbar2 = new VConstraintDisplay(mColorSet, false);
+  MarginWidget mTopMargin;
+  MarginWidget mLeftMargin;
+  MarginWidget mRightMargin;
+  MarginWidget mBottomMargin;
+  HConstraintDisplay mHbar1;
+  HConstraintDisplay mHbar2;
+  VConstraintDisplay mVbar1;
+  VConstraintDisplay mVbar2;
 
-  KillButton mTopKill = new KillButton(mColorSet);
-  KillButton mLeftKill = new KillButton(mColorSet);
-  KillButton mRightKill = new KillButton(mColorSet);
-  KillButton mBottomKill = new KillButton(mColorSet);
-  KillButton mBaselineKill = new KillButton(mColorSet);
+  KillButton mTopKill;
+  KillButton mLeftKill;
+  KillButton mRightKill;
+  KillButton mBottomKill;
+  KillButton mBaselineKill;
 
-  public SingleWidgetView(WidgetConstraintPanel constraintPanel) {
+  public SingleWidgetView(WidgetConstraintPanel constraintPanel, ColorSet colorSet) {
     super(null);
+    mColorSet = colorSet;
+
+    mTopMargin = new MarginWidget(SwingConstants.LEFT, mColorSet);
+    mLeftMargin = new MarginWidget(SwingConstants.LEFT, mColorSet);
+    mRightMargin = new MarginWidget(SwingConstants.LEFT, mColorSet);
+    mBottomMargin = new MarginWidget(SwingConstants.LEFT, mColorSet);
+    mHbar1 = new HConstraintDisplay(mColorSet, true);
+    mHbar2 = new HConstraintDisplay(mColorSet, false);
+    mVbar1 = new VConstraintDisplay(mColorSet, true);
+    mVbar2 = new VConstraintDisplay(mColorSet, false);
+
+    mTopKill = new KillButton(mColorSet);
+    mLeftKill = new KillButton(mColorSet);
+    mRightKill = new KillButton(mColorSet);
+    mBottomKill = new KillButton(mColorSet);
+    mBaselineKill = new KillButton(mColorSet);
+
     mHbar1.setSister(mHbar2);
     mHbar2.setSister(mHbar1);
     mVbar1.setSister(mVbar2);
@@ -131,13 +141,24 @@ public class SingleWidgetView extends JPanel {
     addMouseMotionListener(new MouseMotionAdapter() {
       @Override
       public void mouseMoved(MouseEvent e) {
-        mTopMargin.showUI(mTopMargin.getBounds().contains(e.getPoint()));
-        mLeftMargin.showUI(mLeftMargin.getBounds().contains(e.getPoint()));
-        mRightMargin.showUI(mRightMargin.getBounds().contains(e.getPoint()));
-        mBottomMargin.showUI(mBottomMargin.getBounds().contains(e.getPoint()));
+        mTopMargin.showUI(mTopMargin.getBounds().contains(e.getPoint()) ? MarginWidget.Show.IN_WIDGET : MarginWidget.Show.OUT_WIDGET);
+        mLeftMargin.showUI(mLeftMargin.getBounds().contains(e.getPoint()) ? MarginWidget.Show.IN_WIDGET : MarginWidget.Show.OUT_WIDGET);
+        mRightMargin.showUI(mRightMargin.getBounds().contains(e.getPoint()) ? MarginWidget.Show.IN_WIDGET : MarginWidget.Show.OUT_WIDGET);
+        mBottomMargin.showUI(mBottomMargin.getBounds().contains(e.getPoint()) ? MarginWidget.Show.IN_WIDGET : MarginWidget.Show.OUT_WIDGET);
       }
     });
-
+    addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseExited(MouseEvent e) {
+        if (getBounds().contains(e.getPoint())) {
+          return;
+        }
+        mTopMargin.showUI(MarginWidget.Show.OUT_PANEL);
+        mLeftMargin.showUI(MarginWidget.Show.OUT_PANEL);
+        mRightMargin.showUI(MarginWidget.Show.OUT_PANEL);
+        mBottomMargin.showUI(MarginWidget.Show.OUT_PANEL);
+      }
+    });
     mGraphicList.add(mWidgetRender);
   }
 
@@ -171,6 +192,10 @@ public class SingleWidgetView extends JPanel {
     update();
   }
 
+  final static int baselinePos(int height) {
+    return (9 * height) / 10;
+  }
+
   private void update() {
     configureUi(mCacheName, mCacheBottom, mCacheTop, mCacheLeft, mCacheRight, mCacheBaseline, mCacheWidth, mCacheHeight);
     mWidgetRender.build(getWidth(), getHeight());
@@ -189,13 +214,14 @@ public class SingleWidgetView extends JPanel {
 
     int vgap = 8;
     int hgap = 4;
-    int cw = 50;
+    int cw = 38;
     int ch = 30;
     int inset = 5 + mWidth / 100;
     int boxLeft = (mWidth - mBoxSize) / 2;
     int boxTop = (mHeight - mBoxSize) / 2;
     int vSpace = (mHeight - mBoxSize - inset * 2) / 2;
     int hSpace = (mWidth - mBoxSize - inset * 2) / 2;
+
     mTopMargin.setBounds(hgap + mWidth / 2, inset + (vSpace - ch) / 2, cw, ch);
     mLeftMargin.setBounds((boxLeft + inset - cw) / 2, vgap + (mHeight - ch) / 2, cw, ch);
     mRightMargin.setBounds(boxLeft + mBoxSize + (hSpace - cw) / 2, vgap + (mHeight - ch) / 2, cw, ch);
@@ -206,14 +232,22 @@ public class SingleWidgetView extends JPanel {
     mLeftKill.setBounds(boxLeft - rad, boxTop + mBoxSize / 2 - rad + 1, size + 2, size);
     mRightKill.setBounds(boxLeft + mBoxSize - rad, boxTop + mBoxSize / 2 - rad + 1, size + 2, size);
     mBottomKill.setBounds(boxLeft + mBoxSize / 2 - rad, boxTop + mBoxSize - rad, size + 2, size);
-    mBaselineKill.setBounds(boxLeft + mBoxSize - rad, boxTop + (3 * mBoxSize) / 4 - rad, size + 2, size);
+    mBaselineKill.setBounds(boxLeft + mBoxSize - rad, boxTop + baselinePos(mBoxSize) - rad, size + 2, size);
     int barSize = 10;
     int barLong = mBoxSize / 2 - barSize - 1;
 
     mHbar1.setBounds(1 + boxLeft, boxTop + mBoxSize / 2 - barSize / 2 + 1, barLong, barSize);
     mHbar2.setBounds(boxLeft + mBoxSize / 2 + barSize, boxTop + mBoxSize / 2 - barSize / 2 + 1, barLong, barSize);
     mVbar1.setBounds(boxLeft + mBoxSize / 2 - barSize / 2, 1 + boxTop, barSize, barLong);
-    mVbar2.setBounds(boxLeft + mBoxSize / 2 - barSize / 2, boxTop + mBoxSize / 2 + barSize, barSize, barLong);
+    if (mCacheBaseline == null) {
+      mVbar2.setBounds(boxLeft + mBoxSize / 2 - barSize / 2, boxTop + mBoxSize / 2 + barSize, barSize, barLong);
+    }
+    else {
+      int left = boxLeft + mBoxSize / 2 - barSize / 2;
+      int top = boxTop + mBoxSize / 2 + barSize;
+      int height = boxTop + baselinePos(mBoxSize) - top;
+      mVbar2.setBounds(left, top, barSize, height);
+    }
   }
 
 
@@ -227,7 +261,7 @@ public class SingleWidgetView extends JPanel {
 
     boolean redraw = false;
     for (Graphic graphic : mGraphicList) {
-      redraw |= graphic.paint(g2d);
+      redraw |= graphic.paint(g2d, mColorSet);
     }
     if (redraw) {
       repaint();
@@ -306,7 +340,7 @@ public class SingleWidgetView extends JPanel {
         Graphics2D g = (Graphics2D)g2.create();
         Ellipse2D.Float circle = new Ellipse2D.Float(x - radius, y - radius,
                                                      radius * 2, radius * 2);
-        g.setColor(mColorSet.getInspectorStroke());
+        g.setColor(mColorSet.getInspectorStrokeColor());
         g.draw(circle);
         g.fill(circle);
         radius -= 1;
@@ -319,7 +353,7 @@ public class SingleWidgetView extends JPanel {
           radius -= 2;
           Ellipse2D.Float innerCircle = new Ellipse2D.Float(x - radius, y - radius,
                                                             radius * 2, radius * 2);
-          g.setColor(mColorSet.getInspectorStroke());
+          g.setColor(mColorSet.getInspectorStrokeColor());
           g.fill(innerCircle);
           g.draw(innerCircle);
           g.setColor(mColorSet.getInspectorBackgroundColor());
@@ -395,25 +429,55 @@ public class SingleWidgetView extends JPanel {
    * Interface to widgets drawn on the screen
    */
   interface Graphic {
-    boolean paint(Graphics2D g);
+    boolean paint(Graphics2D g, ColorSet colorSet);
   }
 
   static class Box implements Graphic {
     int mX, mY, mWidth, mHeight;
+    int mEdges;
+    public final static int TOP = 1;
+    public final static int BOTTOM = 2;
+    public final static int LEFT = 4;
+    public final static int RIGHT = 8;
+    public final static int ALL = TOP | BOTTOM | LEFT | RIGHT;
 
-    Box(int x, int y, int w, int h) {
+
+    Box(int x, int y, int w, int h, int edges) {
       mX = x;
       mY = y;
       mHeight = h;
       mWidth = w;
+      mEdges = edges;
     }
 
     @Override
-    public boolean paint(Graphics2D g) {
-      g.drawRect(mX, mY, mWidth, mHeight);
+    public boolean paint(Graphics2D g, ColorSet colorSet) {
+      if (mEdges == 0) {
+        return false;
+      }
+      g.setColor(colorSet.getInspectorFillColor());
+      g.fillRect(mX, mY, mWidth + 1, mHeight + 1);
+      g.setColor(colorSet.getInspectorStrokeColor());
+      if (mEdges == ALL) {
+        g.drawRect(mX, mY, mWidth, mHeight);
+      }
+      else {
+        if ((mEdges & TOP) != 0) {
+          g.drawLine(mX, mY, mX + mWidth, mY);
+        }
+        if ((mEdges & BOTTOM) != 0) {
+          g.drawLine(mX, mY + mHeight, mX + mWidth, mY + mHeight);
+        }
+        if ((mEdges & LEFT) != 0) {
+          g.drawLine(mX, mY, mX, mY + mWidth);
+        }
+        if ((mEdges & RIGHT) != 0) {
+          g.drawLine(mX + mWidth, mY, mX + mWidth, mY + mHeight);
+        }
+
+      }
       return false;
     }
-
   }
 
   static class BaseLineBox extends Box {
@@ -422,23 +486,40 @@ public class SingleWidgetView extends JPanel {
     boolean mDisplay;
 
     BaseLineBox(String title, int x, int y, int w, int h, boolean baseline, boolean display) {
-      super(x, y, w, h);
+      super(x, y, w, h, display ? ALL : 0);
       mTitle = title;
       mBaseline = baseline;
       mDisplay = display;
     }
 
     @Override
-    public boolean paint(Graphics2D g) {
+    public boolean paint(Graphics2D g, ColorSet colorSet) {
+
       if (mDisplay) {
-        super.paint(g);
+        Stroke defaultStroke = g.getStroke();
+        g.setColor(colorSet.getInspectorFillColor());
+        g.fillRect(mX, mY, mWidth + 1, mHeight + 1);
+        g.setColor(colorSet.getInspectorStrokeColor());
+
+
         if (mBaseline) {
-          int y = mY + (3 * mHeight) / 4;
-          Stroke defaultStroke = g.getStroke();
-          g.setStroke(DASHED_STROKE);
-          g.drawLine(mX, y, mX + mWidth, y);
+          g.drawLine(mX, mY, mX, mY + mWidth);
+          g.drawLine(mX + mWidth, mY, mX + mWidth, mY + mHeight);
+          //g.setStroke(DASHED_STROKE);
+          //g.drawLine(mX,mY,mX+mWidth,mY);
+          //g.drawLine(mX,mY+mHeight,mX+mWidth,mY+mHeight);
+
+          int y = mY + baselinePos(mHeight);
+
           g.setStroke(defaultStroke);
+          g.drawLine(mX, y, mX + mWidth, y);
+
         }
+        else {
+          g.drawRect(mX, mY, mWidth, mHeight);
+        }
+
+
         if (mTitle != null) {
           int decent = g.getFontMetrics().getDescent();
           g.drawString(mTitle, mX + 2, mY + mHeight - decent);
@@ -449,11 +530,11 @@ public class SingleWidgetView extends JPanel {
 
   }
 
-  static class LineArrow implements Graphic {
+  static class Line implements Graphic {
     int mX1, mY1, mX2, mY2;
     boolean mDisplay;
 
-    LineArrow(int x1, int y1, int x2, int y2, boolean display) {
+    Line(int x1, int y1, int x2, int y2, boolean display) {
       mX1 = x1;
       mY1 = y1;
       mX2 = x2;
@@ -462,7 +543,7 @@ public class SingleWidgetView extends JPanel {
     }
 
     @Override
-    public boolean paint(Graphics2D g) {
+    public boolean paint(Graphics2D g, ColorSet colorSet) {
       if (mDisplay) {
         g.drawLine(mX1, mY1, mX2, mY2);
       }
@@ -470,6 +551,39 @@ public class SingleWidgetView extends JPanel {
     }
 
   }
+
+  static class LineArrow implements Graphic {
+    int mX1, mY1, mX2, mY2;
+    boolean mDisplay;
+    int[] mXArrow = new int[3];
+    int[] mYArrow = new int[3];
+
+    LineArrow(int x1, int y1, int x2, int y2, boolean display) {
+      mX1 = x1;
+      mY1 = y1;
+      mX2 = x2;
+      mY2 = y2;
+      mDisplay = display;
+      mXArrow[0] = x2;
+      mYArrow[0] = y2;
+      mXArrow[1] = x2 - ConnectionDraw.CONNECTION_ARROW_SIZE;
+      mYArrow[1] = y2 - ConnectionDraw.ARROW_SIDE;
+      mXArrow[2] = x2 + ConnectionDraw.CONNECTION_ARROW_SIZE;
+      mYArrow[2] = y2 - ConnectionDraw.ARROW_SIDE;
+
+    }
+
+    @Override
+    public boolean paint(Graphics2D g, ColorSet colorSet) {
+      if (mDisplay) {
+        g.drawLine(mX1, mY1, mX2, mY2 - 2);
+        g.fillPolygon(mXArrow, mYArrow, 3);
+      }
+      return false;
+    }
+
+  }
+
 
   static class SplineArrow implements Graphic {
     int mX1, mY1, mX2, mY2;
@@ -493,7 +607,7 @@ public class SingleWidgetView extends JPanel {
     }
 
     @Override
-    public boolean paint(Graphics2D g) {
+    public boolean paint(Graphics2D g, ColorSet colorSet) {
       if (mDisplay) {
         g.draw(mPath);
       }
@@ -518,12 +632,11 @@ public class SingleWidgetView extends JPanel {
     Box mWidgetRight;
     Box mWidgetTop;
     Box mWidgetBottom;
-    Box mWidgetBase;
-    LineArrow mTopArrow;
-    LineArrow mLeftArrow;
-    LineArrow mRightArrow;
-    LineArrow mBottomArrow;
-    SplineArrow mBaselineArrow;
+    Line mTopArrow;
+    Line mLeftArrow;
+    Line mRightArrow;
+    Line mBottomArrow;
+    LineArrow mBaselineArrow;
 
     void setConstraints(int left, int top, int right, int bottom) {
       mMarginTop = top;
@@ -557,45 +670,45 @@ public class SingleWidgetView extends JPanel {
       int boxTop = (height - mBoxSize) / 2;
 
       mWidgetCenter = new BaseLineBox(null, boxLeft, boxTop, mBoxSize, mBoxSize, mBaseline, true);
-
-      mWidgetRight = new Box(width - inset, boxTop, mBoxSize, mBoxSize);
-      mWidgetBottom = new Box(boxLeft, height - inset, mBoxSize, mBoxSize);
-      mWidgetLeft = new Box(inset - mBoxSize, boxTop, mBoxSize, mBoxSize);
-      mWidgetTop = new Box(boxLeft, inset - mBoxSize, mBoxSize, mBoxSize);
+      mWidgetBottom = new Box(boxLeft, height - inset, mBoxSize, mBoxSize, Box.TOP);
+      mWidgetRight = new Box(width - inset, boxTop, mBoxSize, mBoxSize, Box.LEFT);
+      mWidgetLeft = new Box(inset - mBoxSize, boxTop, mBoxSize, mBoxSize, Box.RIGHT);
+      mWidgetTop = new Box(boxLeft, inset - mBoxSize, mBoxSize, mBoxSize, Box.BOTTOM);
       // TODO support left vs right
       //  mWidgetBase = new BaseLineBox(null, inset - mBoxSize, boxTop + mBoxSize + 10, mBoxSize, mBoxSize / 2, true);
 
       int endPointY = boxTop + mBoxSize + 10;
       int baselineBox = mBoxSize / 2;
-      mWidgetBase = new BaseLineBox(null, width - inset, endPointY, baselineBox, baselineBox, mBaseline, mBaseline);
-      mBaselineArrow =
-        new SplineArrow(boxLeft + mBoxSize, boxTop + (3 * mBoxSize) / 4, width - inset, endPointY + 3 * baselineBox / 4, false, mBaseline);
 
-      mTopArrow = new LineArrow(width / 2, boxTop, width / 2, inset, (mMarginTop >= 0));
-      mLeftArrow = new LineArrow(boxLeft, height / 2, inset, height / 2, (mMarginLeft >= 0));
-      mRightArrow = new LineArrow(boxLeft + mBoxSize, height / 2, width - inset, height / 2, (mMarginRight >= 0));
-      mBottomArrow = new LineArrow(width / 2, boxTop + mBoxSize, width / 2, height - inset, (mMarginBottom >= 0));
+      int baseArrowX = boxLeft + mBoxSize / 2;
+      mBaselineArrow =
+        new LineArrow(baseArrowX, boxTop + baselinePos(mBoxSize), baseArrowX, height - inset, mBaseline);
+
+      mTopArrow = new Line(width / 2, boxTop, width / 2, inset, (mMarginTop >= 0));
+      mLeftArrow = new Line(boxLeft, height / 2, inset, height / 2, (mMarginLeft >= 0));
+      mRightArrow = new Line(boxLeft + mBoxSize, height / 2, width - inset, height / 2, (mMarginRight >= 0));
+      mBottomArrow = new Line(width / 2, boxTop + mBoxSize, width / 2, height - inset, (mMarginBottom >= 0));
 
     }
 
     @Override
-    public boolean paint(Graphics2D g) {
+    public boolean paint(Graphics2D g, ColorSet colorSet) {
       g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
       g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-      g.setColor(mColorSet.getBackground());
+      g.setColor(mColorSet.getInspectorBackgroundColor());
       g.fillRect(0, 0, getWidth(), getHeight());
-      g.setColor(mColorSet.getFrames());
-      mWidgetCenter.paint(g);
-      mWidgetLeft.paint(g);
-      mWidgetRight.paint(g);
-      mWidgetTop.paint(g);
-      mWidgetBottom.paint(g);
-      mWidgetBase.paint(g);
-      mTopArrow.paint(g);
-      mLeftArrow.paint(g);
-      mRightArrow.paint(g);
-      mBottomArrow.paint(g);
-      mBaselineArrow.paint(g);
+      g.setColor(mColorSet.getInspectorStrokeColor());
+      mWidgetCenter.paint(g, colorSet);
+      mWidgetLeft.paint(g, colorSet);
+      mWidgetRight.paint(g, colorSet);
+      mWidgetTop.paint(g, colorSet);
+      mWidgetBottom.paint(g, colorSet);
+
+      mTopArrow.paint(g, colorSet);
+      mLeftArrow.paint(g, colorSet);
+      mRightArrow.paint(g, colorSet);
+      mBottomArrow.paint(g, colorSet);
+      mBaselineArrow.paint(g, colorSet);
 
       return false;
     }
@@ -610,12 +723,16 @@ public class SingleWidgetView extends JPanel {
     int mState;
     Color mBackground;
     Color mLineColor;
+    Color mMouseOverColor;
     TriStateControl mSisterControl;
     public final static String STATE = "state";
 
     TriStateControl(ColorSet colorSet) {
-      mBackground = colorSet.getBackground();
-      mLineColor = colorSet.getConstraints();
+      mBackground = colorSet.getInspectorFillColor();
+      mLineColor = colorSet.getInspectorStrokeColor();
+      mMouseOverColor = colorSet.getInspectorHighlightsStrokeColor();
+
+
       setPreferredSize(new Dimension(200, 30));
 
       addMouseListener(new MouseAdapter() {
@@ -678,7 +795,7 @@ public class SingleWidgetView extends JPanel {
       g.setColor(mBackground);
       g.fillRect(0, 0, getWidth(), getHeight());
       ((Graphics2D)g).setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-      g.setColor(mMouseIn ? Color.WHITE : mLineColor);
+      g.setColor(mMouseIn ? mMouseOverColor : mLineColor);
       drawState(g, width, height);
     }
 

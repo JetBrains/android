@@ -64,9 +64,9 @@ public class ColorSet {
     protected Color mSelectedConstraints;
     protected Color mSelectedText;
 
+    protected Color mInspectorStrokeColor;
     protected Color mInspectorBackgroundColor;
     protected Color mInspectorFillColor;
-
     protected Color mInspectorTrackBackgroundColor;
     protected Color mInspectorTrackColor;
     protected Color mInspectorHighlightsStrokeColor;
@@ -130,8 +130,6 @@ public class ColorSet {
 
     public Color getHighlightedSnapGuides() { return mHighlightedSnapGuides; }
 
-    public Color getInspectorStroke() { return mFrames; }
-
     public Color getSubduedBackground() {
         return mSubduedBackground;
     }
@@ -149,6 +147,8 @@ public class ColorSet {
     public Color getSelectedConstraints() { return mSelectedConstraints; }
 
     public Color getInspectorBackgroundColor() { return mInspectorBackgroundColor; }
+
+    public Color getInspectorStrokeColor() { return mInspectorStrokeColor; }
 
     public Color getInspectorFillColor() { return mInspectorFillColor; }
 
