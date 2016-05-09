@@ -16,12 +16,14 @@ import com.android.tools.lint.checks.*;
 import com.android.tools.lint.detector.api.Issue;
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.intention.IntentionAction;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
@@ -40,6 +42,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.lint.checks.ApiDetector.REQUIRES_API_ANNOTATION;
 import static com.android.tools.lint.checks.FragmentDetector.ISSUE;
 import static com.android.tools.lint.checks.PluralsDetector.IMPLIED_QUANTITY;
 import static com.android.tools.lint.detector.api.TextFormat.RAW;
@@ -1343,7 +1346,9 @@ public class AndroidLintInspectionToolProvider {
     if (api != -1) {
       List<AndroidLintQuickFix> list = Lists.newArrayList();
       PsiFile file = startElement.getContainingFile();
+      boolean isXml = false;
       if (file instanceof XmlFile) {
+        isXml = true;
         ResourceFolderType folderType = ResourceHelper.getFolderType(file);
         if (folderType != null) {
           FolderConfiguration config = ResourceHelper.getFolderConfiguration(file);
@@ -1356,7 +1361,12 @@ public class AndroidLintInspectionToolProvider {
       }
 
       list.add(new AddTargetVersionCheckQuickFix(api));
-      list.add(new AddTargetApiQuickFix(api, startElement));
+      list.add(new AddTargetApiQuickFix(api, false, startElement));
+      ApplicationManager.getApplication().assertReadAccessAllowed();
+      if (!isXml && JavaPsiFacade.getInstance(startElement.getProject()).findClass(REQUIRES_API_ANNOTATION,
+                                                                       GlobalSearchScope.allScope(startElement.getProject())) != null) {
+        list.add(new AddTargetApiQuickFix(api, true, startElement));
+      }
 
       return list.toArray(new AndroidLintQuickFix[list.size()]);
     }
