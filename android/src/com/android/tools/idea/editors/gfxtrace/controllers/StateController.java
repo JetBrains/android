@@ -68,7 +68,7 @@ public class StateController extends TreeController implements GpuState.Listener
 
   private final @NotNull StateTreeModel myModel = new StateTreeModel(new Node(ROOT_TYPE, null));
 
-  private @Nullable Path myLastSelectedBreadcrumb;
+  private @Nullable TreePath myLastSelectedBreadcrumb;
 
   private StateController(@NotNull GfxTraceEditor editor) {
     super(editor, GfxTraceEditor.SELECT_ATOM);
@@ -139,31 +139,32 @@ public class StateController extends TreeController implements GpuState.Listener
     breadcrumb.addBreadcrumbsItemListener(new BreadcrumbsItemListener<PathBreadcrumbsItem>() {
       @Override
       public void itemSelected(@NotNull PathBreadcrumbsItem item, int modifiers) {
-        myLastSelectedBreadcrumb = item.getPath();
-        myEditor.activatePath(myLastSelectedBreadcrumb, StateController.this);
+        myLastSelectedBreadcrumb = item.getTreePath();
+        myEditor.activatePath(getPath(myLastSelectedBreadcrumb), StateController.this);
       }
 
       @Override
       public void itemHovered(@Nullable PathBreadcrumbsItem item) {
-        hoverHand(breadcrumb, myEditor.getGpuState().getPath(), item == null ? null : item.getPath());
+        hoverHand(breadcrumb, myEditor.getGpuState().getPath(), item == null ? null : getPath(item.getTreePath()));
       }
     });
     myPanel.add(breadcrumb, BorderLayout.NORTH);
 
     myTree.addTreeSelectionListener(e -> {
       if (e.isAddedPath()) {
-        TreePath treePath = e.getPath();
-        Path path = getPath(treePath);
+        TreePath path = e.getPath();
+
         // if we have just selected a item that was selected from the breadcrumb, we don't need to update them
         if (!path.equals(myLastSelectedBreadcrumb)) {
-          Path root = myEditor.getGpuState().getPath();
+          TreePath root = new TreePath(myTree.getModel().getRoot());
           List<PathBreadcrumbsItem> breadcrumbs = new ArrayList<>();
           while (path != null) {
-            if (path == root) {
+            if (path.equals(root)) {
+              // we have reached the root, we don't want to create a breadcrumb for it as it is hidden.
               break;
             }
             breadcrumbs.add(new PathBreadcrumbsItem(path));
-            path = path.getParent();
+            path = path.getParentPath();
           }
           Collections.reverse(breadcrumbs);
           breadcrumb.setItems(breadcrumbs);
@@ -186,31 +187,35 @@ public class StateController extends TreeController implements GpuState.Listener
     Path parent = null;
     Object[] nodePath = treePath.getPath();
     for (Object node : nodePath) {
-      Object obj = ((Node)node).key.value.getObject();
       if (node == nodePath[0]) {
         // the root
-        assert "state".equals(obj);
+        assert myTree.getModel().getRoot().equals(node);
+        assert "state".equals(((Node)node).key.value.getObject());
         parent = myEditor.getGpuState().getPath();
       }
-      else if (obj instanceof String) {
-        FieldPath path = new FieldPath();
-        path.setName((String)obj);
-        path.setStruct(parent);
-        parent = path;
-      }
-      else if (obj instanceof Long || obj instanceof Dynamic) {
-        MapIndexPath path = new MapIndexPath();
-        path.setKey(obj);
-        path.setMap(parent);
-        parent = path;
-      }
       else {
-        LOG.warn("unknown type: " + obj.getClass().getSimpleName());
-        break;
+        parent = getPathSegmentFor(parent, (Node)node);
       }
     }
     assert parent != null; // we should at least have a root in this path
     return parent;
+  }
+
+  private static @NotNull Path getPathSegmentFor(@Nullable Path parent, @NotNull Node node) {
+    Object obj = node.key.value.getObject();
+    if (obj instanceof String) {
+      FieldPath path = new FieldPath();
+      path.setName((String)obj);
+      path.setStruct(parent);
+      return path;
+    }
+    if (obj instanceof Number || obj instanceof Dynamic) {
+      MapIndexPath path = new MapIndexPath();
+      path.setKey(obj);
+      path.setMap(parent);
+      return path;
+    }
+    throw new IllegalArgumentException("unknown type: " + obj.getClass().getSimpleName());
   }
 
   @Override
@@ -311,20 +316,21 @@ public class StateController extends TreeController implements GpuState.Listener
     return result;
   }
 
-  static class PathBreadcrumbsItem extends BreadcrumbsItem {
-    private final @NotNull Path myPath;
+  private static class PathBreadcrumbsItem extends BreadcrumbsItem {
+    // we keep the TreePath and Not Path, as the capture ID may change, and a Path object will still have the old one.
+    private final @NotNull TreePath myPath;
 
-    public PathBreadcrumbsItem(@NotNull Path path) {
+    public PathBreadcrumbsItem(@NotNull TreePath path) {
       myPath = path;
     }
 
-    public @NotNull Path getPath() {
+    public @NotNull TreePath getTreePath() {
       return myPath;
     }
 
     @Override
     public @NotNull String getDisplayText() {
-      return myPath.getSegmentString();
+      return getPathSegmentFor(null, (Node)myPath.getLastPathComponent()).getSegmentString();
     }
   }
 
