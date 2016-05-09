@@ -17,8 +17,11 @@ package com.android.tools.idea.uibuilder.handlers;
 
 import com.android.tools.idea.uibuilder.api.XmlBuilder;
 import com.android.tools.idea.uibuilder.api.XmlType;
+import com.google.common.collect.ImmutableList;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 import static com.android.SdkConstants.*;
 
@@ -26,6 +29,17 @@ import static com.android.SdkConstants.*;
  * Handler for the {@code <CardView>} widget.
  */
 public class CardViewHandler extends FrameLayoutHandler {
+  @Override
+  @NotNull
+  public List<String> getInspectorProperties() {
+    return ImmutableList.of(
+      ATTR_CARD_BACKGROUND_COLOR,
+      ATTR_CARD_CORNER_RADIUS,
+      ATTR_CONTENT_PADDING,
+      ATTR_CARD_ELEVATION,
+      ATTR_PREVENT_CORNER_OVERLAP,
+      ATTR_USE_COMPAT_PADDING);
+  }
 
   @Override
   @NotNull

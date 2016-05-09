@@ -26,6 +26,7 @@ import com.google.common.collect.Table;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
+import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBCardLayout;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.components.JBLabel;
@@ -41,6 +42,7 @@ import java.util.List;
 import java.util.Map;
 
 public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Model {
+  private static final int HORIZONTAL_SPACING = 4;
   private static final String CARD_ADVANCED = "table";
   private static final String CARD_DEFAULT = "default";
 
@@ -54,7 +56,7 @@ public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Mo
   private List<NlPropertyItem> myProperties;
   private boolean myShowAdvancedProperties;
 
-  public NlPropertiesPanel() {
+  public NlPropertiesPanel(@NotNull Project project) {
     super(new BorderLayout());
     setOpaque(true);
     setFocusable(true);
@@ -65,7 +67,7 @@ public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Mo
 
     myTable = new PTable(myModel);
     myTable.getEmptyText().setText("No selected component");
-    myInspectorPanel = new InspectorPanel();
+    myInspectorPanel = new InspectorPanel(project);
 
     myCardPanel = new JPanel(new JBCardLayout());
 
@@ -84,6 +86,7 @@ public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Mo
   @NotNull
   private JPanel createHeaderPanel() {
     JBPanel panel = new JBPanel(new BorderLayout());
+    panel.setBorder(BorderFactory.createEmptyBorder(0, HORIZONTAL_SPACING, 0, 0));
 
     mySelectedComponentLabel = new JBLabel("");
     panel.add(mySelectedComponentLabel, BorderLayout.CENTER);
@@ -99,10 +102,9 @@ public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Mo
   public void setItems(@NotNull List<NlComponent> components,
                        @NotNull Table<String, String, NlPropertyItem> properties,
                        @NotNull NlPropertiesManager propertiesManager) {
-    String componentName = components.isEmpty() ? "" : (components.size() == 1 ? components.get(0).getTagName() : "Multiple");
     myComponents = components;
     myProperties = extractPropertiesForTable(properties);
-    mySelectedComponentLabel.setText(componentName);
+    mySelectedComponentLabel.setText(getComponentName(components));
 
     List<PTableItem> sortedProperties;
     if (components.isEmpty()) {
@@ -119,6 +121,18 @@ public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Mo
 
     updateDefaultProperties(propertiesManager);
     myInspectorPanel.setComponent(components, properties, propertiesManager);
+  }
+
+  @NotNull
+  private static String getComponentName(@NotNull List<NlComponent> components) {
+    if (components.isEmpty()) {
+      return "";
+    }
+    if (components.size() > 1) {
+      return "Multiple";
+    }
+    String tagName = components.get(0).getTagName();
+    return tagName.substring(tagName.lastIndexOf('.') + 1);
   }
 
   @NotNull
