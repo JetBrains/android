@@ -68,7 +68,7 @@ import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
 public class AttributeProcessingUtil {
 
   private static final String PREFERENCE_TAG_NAME = "Preference";
-  private static final String[] LAYOUT_ATTRIBUTES_SUFS = new String[]{"_Layout", "_MarginLayout", "_Cell"};
+
   private static final ImmutableSet<String> SIZE_NOT_REQUIRED_TAG_NAMES =
     ImmutableSet.of(VIEW_MERGE, TABLE_ROW, VIEW_INCLUDE, REQUEST_FOCUS, TAG_LAYOUT, TAG_DATA, TAG_IMPORT, TAG);
   private static final ImmutableSet<String> SIZE_NOT_REQUIRED_PARENT_TAG_NAMES =
@@ -201,16 +201,16 @@ public class AttributeProcessingUtil {
 
   private static void registerAttributes(AndroidFacet facet,
                                          DomElement element,
-                                         @NotNull String[] styleableNames,
+                                         @NotNull String styleableName,
                                          AttributeProcessor callback,
                                          Set<XmlName> skipNames) {
-    registerAttributes(facet, element, styleableNames, null, callback, skipNames);
-    registerAttributes(facet, element, styleableNames, SYSTEM_RESOURCE_PACKAGE, callback, skipNames);
+    registerAttributes(facet, element, styleableName, null, callback, skipNames);
+    registerAttributes(facet, element, styleableName, SYSTEM_RESOURCE_PACKAGE, callback, skipNames);
   }
 
   private static void registerAttributes(AndroidFacet facet,
                                          DomElement element,
-                                         @NotNull String[] styleableNames,
+                                         @NotNull String styleableName,
                                          @Nullable String resPackage,
                                          AttributeProcessor callback,
                                          Set<XmlName> skipNames) {
@@ -225,16 +225,14 @@ public class AttributeProcessingUtil {
     }
 
     String namespace = getNamespaceKeyByResourcePackage(facet, resPackage);
-    for (String name : styleableNames) {
-      StyleableDefinition styleable = attrDefs.getStyleableByName(name);
-      if (styleable != null) {
-        registerStyleableAttributes(element, styleable, namespace, callback, skipNames);
-      }
-      // It's a good idea to add a warning when styleable not found, to make sure that code doesn't
-      // try to use attributes that don't exist. However, current AndroidDomExtender code relies on
-      // a lot of "heuristics" that fail quite a lot (like adding a bunch of suffixes to short class names)
-      // TODO: add a warning when rest of the code of AndroidDomExtender is cleaned up
+    StyleableDefinition styleable = attrDefs.getStyleableByName(styleableName);
+    if (styleable != null) {
+      registerStyleableAttributes(element, styleable, namespace, callback, skipNames);
     }
+    // It's a good idea to add a warning when styleable not found, to make sure that code doesn't
+    // try to use attributes that don't exist. However, current AndroidDomExtender code relies on
+    // a lot of "heuristics" that fail quite a lot (like adding a bunch of suffixes to short class names)
+    // TODO: add a warning when rest of the code of AndroidDomExtender is cleaned up
   }
 
   private static void registerAttributesForClassAndSuperclasses(AndroidFacet facet,
@@ -245,7 +243,7 @@ public class AttributeProcessingUtil {
     while (c != null) {
       String styleableName = c.getName();
       if (styleableName != null) {
-        registerAttributes(facet, element, new String[]{styleableName}, callback, skipNames);
+        registerAttributes(facet, element, styleableName, callback, skipNames);
       }
       c = getSuperclass(c);
     }
@@ -278,7 +276,7 @@ public class AttributeProcessingUtil {
         newSkipAttrNames.add(new XmlName("action", NS_RESOURCES));
       }
 
-      registerAttributes(facet, element, new String[]{styleableName}, SYSTEM_RESOURCE_PACKAGE, callback, newSkipAttrNames);
+      registerAttributes(facet, element, styleableName, SYSTEM_RESOURCE_PACKAGE, callback, newSkipAttrNames);
     }
 
     // for preferences
@@ -309,39 +307,31 @@ public class AttributeProcessingUtil {
     return facet.getClassMap(AndroidUtils.VIEW_CLASS_NAME);
   }
 
-  /**
-   * Put all names of classes in passed collection to an array
-   */
-  private static String[] getClassNames(@NotNull Collection<PsiClass> classes) {
-    final String[] result = new String[classes.size()];
-
-    int i = 0;
-    for (PsiClass aClass : classes) {
-      result[i++] = aClass.getName();
-    }
-
-    return result;
-  }
-
-  /**
-   * This method tries to find styleable definitions for a given class by trying a bunch of suffixes
-   * ({@link #LAYOUT_ATTRIBUTES_SUFS}), yielding attributes from them through a callback.
-   *
-   * FIXME: this is a heuristic from old code and doesn't make sense - two of three suffixes appear only once.
-   */
   private static void registerAttributesFromSuffixedStyleables(@NotNull AndroidFacet facet,
                                                                @NotNull DomElement element,
                                                                @NotNull PsiClass psiClass,
                                                                @NotNull AttributeProcessor callback,
                                                                @NotNull Set<XmlName> skipAttrNames) {
-    String styleableName = psiClass.getName();
-    if (styleableName != null) {
-      String[] styleableNames = new String[LAYOUT_ATTRIBUTES_SUFS.length];
-      for (int i = 0; i < LAYOUT_ATTRIBUTES_SUFS.length; i++) {
-        styleableNames[i] = styleableName + LAYOUT_ATTRIBUTES_SUFS[i];
-      }
-      registerAttributes(facet, element, styleableNames, callback, skipAttrNames);
+    String viewName = psiClass.getName();
+    if (viewName == null) {
+      return;
     }
+
+    // Not using Map here for lookup by prefix for performance reasons - using switch instead of ImmutableMap makes
+    // attribute highlighting 20% faster as measured by AndroidLayoutDomTest#testCustomAttrsPerformance
+    final String styleableName;
+    switch (viewName) {
+      case "ViewGroup":
+        styleableName = "ViewGroup_MarginLayout";
+        break;
+      case "TableRow":
+        styleableName = "TableRow_Cell";
+        break;
+      default:
+        styleableName = viewName + "_Layout";
+    }
+
+    registerAttributes(facet, element, styleableName, callback, skipAttrNames);
   }
 
   /**
@@ -398,8 +388,13 @@ public class AttributeProcessingUtil {
       //
       // See LayoutInflater#createViewFromTag in Android framework for inflating code
 
-      String[] styleableNames = getClassNames(map.values());
-      registerAttributes(facet, element, styleableNames, callback, skipAttrNames);
+      for (PsiClass aClass : map.values()) {
+        final String name = aClass.getName();
+        if (name == null) {
+          continue;
+        }
+        registerAttributes(facet, element, name, callback, skipAttrNames);
+      }
     }
     else {
       PsiClass c = map.get(tagName);
