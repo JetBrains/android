@@ -13,20 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview;
+package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.resolved;
 
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractDependencyNode;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.DependencyNodeComparator;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.LibraryDependencyNode;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.ModuleDependencyNode;
-import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsResettableNode;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode;
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsResettableNode;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
+import com.android.tools.idea.gradle.structure.model.PsModel;
 import com.android.tools.idea.gradle.structure.model.PsModule;
-import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidLibraryDependency;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.model.android.PsModuleDependency;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
@@ -36,19 +36,21 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
-class DeclaredDependenciesTreeRootNode extends AbstractPsResettableNode<PsProject> {
-  DeclaredDependenciesTreeRootNode(@NotNull PsProject project) {
-    super(project);
+public class DependenciesTreeRootNode<T extends PsModel> extends AbstractPsResettableNode<T> {
+  @NotNull private final DependencyCollectorFunction<T> myDependencyCollectorFunction;
+
+  public DependenciesTreeRootNode(@NotNull T model, @NotNull DependencyCollectorFunction<T> dependencyCollectorFunction) {
+    super(model);
+    myDependencyCollectorFunction = dependencyCollectorFunction;
   }
 
   @Override
   @NotNull
   protected List<? extends AbstractPsModelNode> createChildren() {
-    DeclaredDependencyCollector collector = new DeclaredDependencyCollector();
-
-    PsProject project = getModels().get(0);
-    project.forEachModule(module -> collectDeclaredDependencies(module, collector));
+    T model = getModels().get(0);
+    DependencyCollector collector = myDependencyCollectorFunction.apply(model);
 
     List<AbstractDependencyNode> children = Lists.newArrayList();
     for (Map.Entry<LibraryDependencySpecs, List<PsAndroidLibraryDependency>> entry : collector.libraryDependenciesBySpec.entrySet()) {
@@ -65,14 +67,17 @@ class DeclaredDependenciesTreeRootNode extends AbstractPsResettableNode<PsProjec
     return children;
   }
 
-  private static void collectDeclaredDependencies(@NotNull PsModule module, @NotNull DeclaredDependencyCollector collector) {
-    if (module instanceof PsAndroidModule) {
-      PsAndroidModule androidModule = (PsAndroidModule)module;
-      androidModule.forEachDeclaredDependency(collector::add);
+
+  public static abstract class DependencyCollectorFunction<T extends PsModel> implements Function<T, DependencyCollector> {
+    protected void collectDeclaredDependencies(@NotNull PsModule module, @NotNull DependencyCollector collector) {
+      if (module instanceof PsAndroidModule) {
+        PsAndroidModule androidModule = (PsAndroidModule)module;
+        androidModule.forEachDeclaredDependency(collector::add);
+      }
     }
   }
 
-  private static class DeclaredDependencyCollector {
+  public static class DependencyCollector {
     @NotNull final Map<LibraryDependencySpecs, List<PsAndroidLibraryDependency>> libraryDependenciesBySpec = Maps.newHashMap();
     @NotNull final Map<String, List<PsModuleDependency>> moduleDependenciesByGradlePath = Maps.newHashMap();
 
