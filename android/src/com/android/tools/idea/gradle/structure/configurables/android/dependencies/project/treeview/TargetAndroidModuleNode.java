@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview;
 
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode;
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsNode;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.intellij.openapi.roots.ui.CellAppearanceEx;
 import com.intellij.ui.HtmlListCellRenderer;
@@ -35,7 +36,7 @@ public class TargetAndroidModuleNode extends AbstractPsModelNode<PsAndroidModule
 
   @NotNull private List<TargetConfigurationNode> myChildren = Collections.emptyList();
 
-  TargetAndroidModuleNode(@NotNull AbstractPsModelNode<?> parent, @NotNull PsAndroidModule module, @Nullable String version) {
+  TargetAndroidModuleNode(@NotNull AbstractPsNode parent, @NotNull PsAndroidModule module, @Nullable String version) {
     super(parent, module);
     myVersion = version;
     setAutoExpandNode(true);

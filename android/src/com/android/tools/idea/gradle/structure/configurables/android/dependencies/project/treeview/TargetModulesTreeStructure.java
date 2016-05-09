@@ -16,10 +16,10 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview;
 
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractDependencyNode;
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.PsRootNode;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseTreeStructure;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.SimpleNodeComparator;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
-import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.gradle.structure.model.android.*;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
@@ -36,12 +36,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class TargetModulesTreeStructure extends AbstractBaseTreeStructure {
-  @NotNull private final TargetModulesTreeRootNode myRootNode;
-
-  TargetModulesTreeStructure(@NotNull PsProject project) {
-    myRootNode = new TargetModulesTreeRootNode(project);
-  }
+class TargetModulesTreeStructure extends AbstractBaseTreeStructure {
+  @NotNull private final PsRootNode myRootNode = new PsRootNode();
 
   @Override
   @NotNull
@@ -107,7 +103,7 @@ public class TargetModulesTreeStructure extends AbstractBaseTreeStructure {
                 boolean found = false;
                 for (Configuration configuration : configurations) {
                   if (configuration.getName().equals(configurationName)) {
-                    configuration.addTransitive(transitive);
+                    configuration.addType(transitive);
                     found = true;
                     break;
                   }
