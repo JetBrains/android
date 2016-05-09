@@ -69,13 +69,13 @@ public class ThreadCallsVisualTest extends VisualTest implements ActionListener 
                                    new TimeAxisDomain(10, 50, 5));
     this.mSelectionRange = new Range();
 
-    this.mSelector = new SelectionComponent(mAxis, mSelectionRange, mDataRange, mDataRange);
-
     this.mChart = new HTreeChart<Method>();
     this.mChart.setHRenderer(new MethodHRenderer());
     this.mChart.setXRange(mSelectionRange);
 
     mLineChart = new LineChart();
+
+    this.mSelector = new SelectionComponent(mLineChart, mAxis, mSelectionRange, mDataRange, mDataRange);
   }
 
   @Override

@@ -20,15 +20,19 @@ import com.android.annotations.NonNull;
 import com.android.tools.adtui.config.LineConfig;
 import com.android.tools.adtui.model.ContinuousSeries;
 import com.android.tools.adtui.model.RangedContinuousSeries;
+import com.android.tools.adtui.model.ReportingSeries;
+import com.android.tools.adtui.model.ReportingSeriesRenderer;
+import gnu.trove.TLongHashSet;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Ellipse2D;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
 import java.util.*;
 import java.util.List;
 
-public class LineChart extends AnimatedComponent {
+public class LineChart extends AnimatedComponent implements ReportingSeriesRenderer {
 
   /**
    * Transparency value to be applied in filled line charts.
@@ -48,6 +52,8 @@ public class LineChart extends AnimatedComponent {
    */
   private static final float X_TO_Y_RATIO = 0.01f;
 
+  private static final int MARKER_RADIUS = 3;
+
   /**
    * Maps the series to their correspondent visual line configuration.
    * The keys insertion order is preserved.
@@ -58,21 +64,36 @@ public class LineChart extends AnimatedComponent {
   @NonNull
   private final ArrayList<Path2D.Float> mPaths;
 
+  @NonNull
+  private final ArrayList<Point2D.Float> mMarkerPositions;
+
   /**
    * The color of the next line to be inserted, if not specified, is picked from {@code COLORS}
    * array of {@link LineConfig}. This field holds the color index.
    */
   private int mNextLineColorIndex;
 
+  private String mName;
+
+  @NonNull
+  private final TLongHashSet mMarkedData;
+
   public LineChart() {
     mPaths = new ArrayList<>();
+    mMarkerPositions = new ArrayList<>();
+    mMarkedData = new TLongHashSet();
+  }
+
+  public LineChart(@NonNull String name) {
+    this();
+    mName = name;
   }
 
   /**
    * Initialize a {@code LineChart} with a list of lines.
    */
-  public LineChart(@NonNull List<RangedContinuousSeries> data) {
-    this();
+  public LineChart(@NonNull String name, @NonNull List<RangedContinuousSeries> data) {
+    this(name);
     addLines(data);
   }
 
@@ -109,6 +130,21 @@ public class LineChart extends AnimatedComponent {
   }
 
   @Override
+  public String getContainerName() {
+    return mName;
+  }
+
+  @Override
+  public List<ReportingSeries> getReportingSeries() {
+    return new ArrayList<>(mLinesConfig.keySet());
+  }
+
+  @Override
+  public void markData(long x) {
+    mMarkedData.add(x);
+  }
+
+  @Override
   protected void updateData() {
     Map<Range, Long> max = new HashMap<>();
     // Store the max of each range to make sure we're not going to set it to anything below its value
@@ -141,6 +177,9 @@ public class LineChart extends AnimatedComponent {
     // Store the last stacked path points to close the polygon of the current stacked line,
     // in case it is also filled
     List<Point2D.Float> lastStackedPath = null;
+
+    // Clear the previous markers.
+    mMarkerPositions.clear();
 
     for (RangedContinuousSeries ranged : mLinesConfig.keySet()) {
       // Stores the y coordinates of the current series in case it's used as a stacked series
@@ -220,6 +259,12 @@ public class LineChart extends AnimatedComponent {
           }
         }
 
+        if (mMarkedData.contains(currX)) {
+          // Cache the point as a percentage that will be used to place the markers in draw()
+          Point2D.Float point = new Point2D.Float((float)xd, (float)(1 - yd));
+          mMarkerPositions.add(point);
+        }
+
         prevX = currX;
         prevY = currY;
       }
@@ -251,6 +296,7 @@ public class LineChart extends AnimatedComponent {
       p++;
     }
     mPaths.subList(p, mPaths.size()).clear();
+    mMarkedData.clear();
     addDebugInfo("postAnimate time: %.2fms", (System.nanoTime() - duration) / 1000000.f);
   }
 
@@ -277,6 +323,16 @@ public class LineChart extends AnimatedComponent {
         g2d.draw(shape);
       }
       i++;
+    }
+
+    // Draw a circle marker around each data marker position.
+    g2d.setColor(TEXT_COLOR);
+    for (Point2D.Float point : mMarkerPositions) {
+      float x = point.x * dim.width - MARKER_RADIUS;
+      float y = point.y * dim.height - MARKER_RADIUS;
+      float diameter = MARKER_RADIUS * 2;
+      Ellipse2D.Float ellipse = new Ellipse2D.Float(x, y, diameter, diameter);
+      g2d.draw(ellipse);
     }
   }
 

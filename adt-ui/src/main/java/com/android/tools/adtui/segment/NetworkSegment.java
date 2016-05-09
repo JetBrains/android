@@ -70,7 +70,7 @@ public class NetworkSegment extends SegmentBase {
 
     mGrid = new GridComponent();
     mGrid.addAxis(mConnectionsAxis);
-    mLineChart = new LineChart(mData);
+    mLineChart = new LineChart(getName(), mData);
 
     // Note: the order below is important as some components depend on
     // others to be updated first. e.g. the ranges need to be updated before the axes.

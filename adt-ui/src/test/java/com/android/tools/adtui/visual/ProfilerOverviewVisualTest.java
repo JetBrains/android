@@ -86,14 +86,15 @@ public class ProfilerOverviewVisualTest extends VisualTest {
                                   false,
                                   new TimeAxisDomain(10, 5, 5));
 
-    mSelection = new SelectionComponent(mTimeAxis,
-                                        mXSelectionRange,
-                                        mXGlobalRange,
-                                        mXRange);
-
     mSegmentsContainer = new JPanel();
     mLayout = new AccordionLayout(mSegmentsContainer, AccordionLayout.Orientation.VERTICAL);
     mSegmentsContainer.setLayout(mLayout);
+
+    mSelection = new SelectionComponent(mSegmentsContainer,
+                                        mTimeAxis,
+                                        mXSelectionRange,
+                                        mXGlobalRange,
+                                        mXRange);
 
     List<Animatable> componentsList = new ArrayList<>();
     componentsList.add(mLayout);
@@ -184,14 +185,14 @@ public class ProfilerOverviewVisualTest extends VisualTest {
 
 
     // TODO replace with event timeline.
-    JComponent eventPanel = createMonitorPanel(EVENT_HEIGHT, EVENT_HEIGHT, EVENT_HEIGHT);
+    JComponent eventPanel = createMonitorPanel("Events", EVENT_HEIGHT, EVENT_HEIGHT, EVENT_HEIGHT);
     mSegmentsContainer.add(eventPanel);
 
     // Mock monitor segments.
-    JComponent networkPanel = createMonitorPanel(0, MONITOR_PREFERRED_HEIGHT, MONITOR_MAX_HEIGHT);
-    JComponent memoryPanel = createMonitorPanel(0, MONITOR_PREFERRED_HEIGHT, MONITOR_MAX_HEIGHT);
-    JComponent cpuPanel = createMonitorPanel(0, MONITOR_PREFERRED_HEIGHT, MONITOR_MAX_HEIGHT);
-    JComponent gpuPanel = createMonitorPanel(0, MONITOR_PREFERRED_HEIGHT, MONITOR_MAX_HEIGHT);
+    JComponent networkPanel = createMonitorPanel("Network", 0, MONITOR_PREFERRED_HEIGHT, MONITOR_MAX_HEIGHT);
+    JComponent memoryPanel = createMonitorPanel("Memory", 0, MONITOR_PREFERRED_HEIGHT, MONITOR_MAX_HEIGHT);
+    JComponent cpuPanel = createMonitorPanel("CPU", 0, MONITOR_PREFERRED_HEIGHT, MONITOR_MAX_HEIGHT);
+    JComponent gpuPanel = createMonitorPanel("GPU", 0, MONITOR_PREFERRED_HEIGHT, MONITOR_MAX_HEIGHT);
     mSegmentsContainer.add(networkPanel);
     mSegmentsContainer.add(memoryPanel);
     mSegmentsContainer.add(cpuPanel);
@@ -216,8 +217,8 @@ public class ProfilerOverviewVisualTest extends VisualTest {
   }
 
   // TODO switch to using Segments when they are ready.
-  private JComponent createMonitorPanel(int minHeight, int preferredHeight, int maxHeight) {
-    LineChart lineChart = new LineChart();
+  private JComponent createMonitorPanel(String name, int minHeight, int preferredHeight, int maxHeight) {
+    LineChart lineChart = new LineChart(name);
     lineChart.setMinimumSize(new Dimension(0, minHeight));
     lineChart.setPreferredSize(new Dimension(0, preferredHeight));
     lineChart.setMaximumSize(new Dimension(0, maxHeight));
@@ -230,7 +231,8 @@ public class ProfilerOverviewVisualTest extends VisualTest {
         mYRange = new Range();
         addToChoreographer(mYRange);
       }
-      RangedContinuousSeries ranged = new RangedContinuousSeries(mXRange, mYRange);
+      RangedContinuousSeries ranged = new RangedContinuousSeries(mXRange, mYRange,
+                                                                 TimeAxisDomain.DEFAULT, MemoryAxisDomain.DEFAULT);
       mData.add(ranged);
       lineChart.addLine(ranged);
     }
