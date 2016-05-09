@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.dom.manifest;
 
+import com.android.tools.idea.apk.viewer.ApkFileSystem;
 import com.android.xml.AndroidManifest;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
@@ -53,6 +54,14 @@ public class ManifestDomFileDescription extends DomFileDescription<Manifest> {
       if (facet != null) {
         return isManifestFile(file, facet);
       }
+    }
+
+    if (file.getVirtualFile() == null) { // happens while indexing
+      return false;
+    }
+
+    if (ApkFileSystem.getInstance().equals(file.getVirtualFile().getFileSystem())) {
+      return false;
     }
 
     return file.getName().equals(FN_ANDROID_MANIFEST_XML);
