@@ -62,8 +62,10 @@ public final class SdkQuickfixUtils {
    *                       is a package with the given path available.
    */
   @Nullable
-  public static ModelWizardDialog createDialogForPaths(@Nullable Component parent, @NotNull Collection<String> requestedPaths) {
-    return createDialog(null, parent, requestedPaths, null, getSdkHandler(), false);
+  public static ModelWizardDialog createDialogForPaths(@Nullable Component parent,
+                                                       @NotNull Collection<String> requestedPaths,
+                                                       boolean backgroundable) {
+    return createDialog(null, parent, requestedPaths, null, getSdkHandler(), backgroundable);
   }
 
   /**

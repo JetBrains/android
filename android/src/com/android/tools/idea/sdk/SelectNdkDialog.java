@@ -199,7 +199,7 @@ public class SelectNdkDialog extends DialogWrapper {
   protected void doOKAction() {
     if (myDownloadNdkRadioButton.isSelected()) {
       List<String> requested = ImmutableList.of(SdkConstants.FD_NDK);
-      ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(myPanel, requested);
+      ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(myPanel, requested, false);
       if (dialog != null && dialog.showAndGet()) {
         File ndk = IdeSdks.getAndroidNdkPath();
         if (ndk != null) {
