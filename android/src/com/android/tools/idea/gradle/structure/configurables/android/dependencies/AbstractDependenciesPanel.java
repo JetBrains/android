@@ -60,7 +60,7 @@ import static com.intellij.util.PlatformIcons.LIBRARY_ICON;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
-public abstract class AbstractDeclaredDependenciesPanel extends JPanel implements Place.Navigator, Disposable {
+public abstract class AbstractDependenciesPanel extends JPanel implements Place.Navigator, Disposable {
   @NotNull private final PsContext myContext;
   @NotNull private final EmptyPanel myEmptyDetailsPanel;
   @NotNull private final DependencyInfoPanel myInfoPanel;
@@ -76,7 +76,7 @@ public abstract class AbstractDeclaredDependenciesPanel extends JPanel implement
   private DependencyDetails myCurrentDependencyDetails;
   private History myHistory;
 
-  protected AbstractDeclaredDependenciesPanel(@NotNull String title, @NotNull PsContext context, @Nullable PsAndroidModule module) {
+  protected AbstractDependenciesPanel(@NotNull String title, @NotNull PsContext context, @Nullable PsAndroidModule module) {
     super(new BorderLayout());
     myContext = context;
     myModule = module;

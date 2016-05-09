@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview;
+package com.android.tools.idea.gradle.structure.configurables.android.treeview;
 
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview.ArtifactComparator.ArtifactNameComparator;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.ArtifactComparator;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.ArtifactComparator.ArtifactNameComparator;
 import com.google.common.collect.Lists;
 import org.junit.Test;
 
@@ -32,7 +33,7 @@ public class ArtifactNameComparatorTest {
   @Test
   public void testCompare() {
     List<String> names = Lists.newArrayList(ARTIFACT_UNIT_TEST, ARTIFACT_MAIN, ARTIFACT_ANDROID_TEST);
-    Collections.sort(names, ArtifactNameComparator.INSTANCE);
+    Collections.sort(names, ArtifactComparator.byName());
     assertThat(names).containsExactly(ARTIFACT_MAIN, ARTIFACT_ANDROID_TEST, ARTIFACT_UNIT_TEST).inOrder();
   }
 }

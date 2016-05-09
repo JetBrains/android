@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.structure.configurables;
 
-import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowHeader;
@@ -27,6 +26,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MasterDetailsComponent;
 import com.intellij.openapi.ui.NamedConfigurable;
 import com.intellij.openapi.ui.Splitter;
+import com.intellij.openapi.util.ActionCallback;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.ui.TreeSpeedSearch;
@@ -37,11 +37,15 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.util.Collections;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.revalidateAndRepaint;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+import static com.intellij.ui.navigation.Place.goFurther;
+import static com.intellij.ui.navigation.Place.queryFurther;
 import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 
 public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
@@ -55,18 +59,16 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
   private JBLoadingPanel myLoadingPanel;
   private JComponent myCenterComponent;
 
-  private boolean myTreeInitialized;
+  private boolean myTreeInitiated;
   private boolean myTreeMinimized;
 
-  protected BasePerspectiveConfigurable(@NotNull PsContext context) {
-    Project project = context.getProject().getResolvedModel();
+  // This flag prevents an infinite loop started when a module is selected.
+  // When a module is selected, the selected module is recorded in PsContext. PsContext then notifies every configurable about the module
+  // selection change. Each configurable adjusts its selected module, but if they notify PsContext about this change, the notification
+  // cycle will start all over again.
+  private volatile boolean mySelectModuleQuietly;
 
-    // Listening to 'project sync' events from the PSD is not that straightforward.
-    // The PSD is a modal dialog, which makes GradleSyncState#subscribe not work for listening to 'sync finished' events, because they will
-    // be fired *after* the PSD dialog is closed. The reason is that PostProjectSetupTaskExecutor is executed in the EDT, when a project is
-    // initialized.
-    // Because of this, to listen to 'sync finished' events we have to pass a GradleSyncListener as a parameter in the 'Gradle sync'
-    // request. It is currently the only way to get notified when a sync is finished.
+  protected BasePerspectiveConfigurable(@NotNull PsContext context) {
     context.add(new GradleSyncListener.Adapter() {
       @Override
       public void syncStarted(@NotNull Project project) {
@@ -85,18 +87,11 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
         stopSyncAnimation();
       }
     }, this);
-    GradleSyncState.subscribe(project, new GradleSyncListener.Adapter() {
-      @Override
-      public void syncStarted(@NotNull Project project) {
-        if (myLoadingPanel != null) {
-          myLoadingPanel.startLoading();
-        }
-      }
-    }, this);
 
     myContext = context;
     myContext.add((moduleName, source) -> {
       if (source != this) {
+        mySelectModuleQuietly = true;
         selectModule(moduleName);
       }
     }, this);
@@ -127,7 +122,7 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
     }
   }
 
-  protected void selectModule(@NotNull String moduleName) {
+  private void selectModule(@NotNull String moduleName) {
     PsModule module = findModule(moduleName);
     if (module != null) {
       MyNode node = findNodeByObject(myRoot, module);
@@ -158,7 +153,12 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
     if (configurable instanceof BaseNamedConfigurable) {
       BaseNamedConfigurable baseConfigurable = (BaseNamedConfigurable)configurable;
       PsModule module = baseConfigurable.getEditableObject();
-      myContext.setSelectedModule(module.getName(), this);
+      if (!mySelectModuleQuietly) {
+        myContext.setSelectedModule(module.getName(), this);
+      }
+      else {
+        mySelectModuleQuietly = false;
+      }
     }
     myHistory.pushQueryPlace();
   }
@@ -224,7 +224,7 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
   public void reset() {
     myUiDisposed = false;
 
-    if (!myTreeInitialized) {
+    if (!myTreeInitiated) {
       initTree();
       myTree.setShowsRootHandles(false);
       loadTree();
@@ -240,10 +240,10 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
 
   @Override
   protected void initTree() {
-    if (myTreeInitialized) {
+    if (myTreeInitiated) {
       return;
     }
-    myTreeInitialized = true;
+    myTreeInitiated = true;
     super.initTree();
     myTree.setRootVisible(false);
 
@@ -293,6 +293,70 @@ public abstract class BasePerspectiveConfigurable extends MasterDetailsComponent
   @NotNull
   protected PsContext getContext() {
     return myContext;
+  }
+
+  @Override
+  public ActionCallback navigateTo(@Nullable Place place, boolean requestFocus) {
+    if (place != null) {
+      Object path = place.getPath(getNavigationPathName());
+      if (path instanceof String) {
+        String moduleName = (String)path;
+        if (!isEmpty(moduleName)) {
+          ActionCallback callback = new ActionCallback();
+          getContext().setSelectedModule(moduleName, this);
+          selectModule(moduleName);
+          NamedConfigurable selectedConfigurable = getSelectedConfigurable();
+          if (selectedConfigurable != null) {
+            goFurther(selectedConfigurable, place, requestFocus).notifyWhenDone(callback);
+            return callback;
+          }
+        }
+      }
+    }
+    return ActionCallback.DONE;
+  }
+
+  @Override
+  public void queryPlace(@NotNull Place place) {
+    NamedConfigurable selectedConfigurable = getSelectedConfigurable();
+    if (selectedConfigurable instanceof BaseNamedConfigurable) {
+      PsModule module = ((BaseNamedConfigurable)selectedConfigurable).getEditableObject();
+      String moduleName = module.getName();
+      place.putPath(getNavigationPathName(), moduleName);
+      queryFurther(selectedConfigurable, place);
+      return;
+    }
+    place.putPath(getNavigationPathName(), "");
+  }
+
+  @NotNull
+  protected abstract String getNavigationPathName();
+
+  @Override
+  @Nullable
+  public NamedConfigurable getSelectedConfigurable() {
+    TreePath selectionPath = myTree.getSelectionPath();
+    if (selectionPath != null) {
+      MyNode node = (MyNode)selectionPath.getLastPathComponent();
+      return node.getConfigurable();
+    }
+    return null;
+  }
+
+  public void putNavigationPath(@NotNull Place place, @NotNull String moduleName, @NotNull String dependency) {
+    place.putPath(getNavigationPathName(), moduleName);
+
+    PsModule module = findModule(moduleName);
+    assert module != null;
+
+    MyNode node = findNodeByObject(myRoot, module);
+    assert node != null;
+
+    NamedConfigurable configurable = node.getConfigurable();
+    assert configurable instanceof BaseNamedConfigurable;
+
+    BaseNamedConfigurable dependenciesConfigurable = (BaseNamedConfigurable)configurable;
+    dependenciesConfigurable.putNavigationPath(place, dependency);
   }
 
   @Override

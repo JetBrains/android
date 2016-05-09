@@ -51,20 +51,23 @@ public class DeclaredDependenciesTreeBuilder extends AbstractPsNodeTreeBuilder {
   @Nullable
   public LibraryDependencyNode find(@NotNull PsArtifactDependencySpec spec) {
     DefaultMutableTreeNode rootNode = getRootNode();
-    if (rootNode != null) {
-      int childCount = rootNode.getChildCount();
-      for (int i = 0; i < childCount; i++) {
-        TreeNode child = rootNode.getChildAt(i);
-        if (child instanceof DefaultMutableTreeNode) {
-          Object userObject = ((DefaultMutableTreeNode)child).getUserObject();
-          if (userObject instanceof LibraryDependencyNode) {
-            LibraryDependencyNode node = (LibraryDependencyNode)userObject;
-            for (PsAndroidLibraryDependency dependency : node.getModels()) {
-              if (spec.equals(dependency.getDeclaredSpec())) {
-                return node;
-              }
-            }
-          }
+    if (rootNode == null) {
+      return null;
+    }
+    int childCount = rootNode.getChildCount();
+    for (int i = 0; i < childCount; i++) {
+      TreeNode child = rootNode.getChildAt(i);
+      if (!(child instanceof DefaultMutableTreeNode)) {
+        continue;
+      }
+      Object userObject = ((DefaultMutableTreeNode)child).getUserObject();
+      if (!(userObject instanceof LibraryDependencyNode)) {
+        continue;
+      }
+      LibraryDependencyNode node = (LibraryDependencyNode)userObject;
+      for (PsAndroidLibraryDependency dependency : node.getModels()) {
+        if (spec.equals(dependency.getDeclaredSpec())) {
+          return node;
         }
       }
     }

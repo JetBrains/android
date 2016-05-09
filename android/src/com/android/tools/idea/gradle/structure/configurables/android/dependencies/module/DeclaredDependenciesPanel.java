@@ -16,13 +16,13 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.module;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.AbstractDeclaredDependenciesPanel;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.AbstractDependenciesPanel;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.DependencyDetails;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.ModuleDependencyDetails;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.ModuleLibraryDependencyDetails;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview.DependencySelection;
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesRenderer;
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesViewer;
+import com.android.tools.idea.gradle.structure.configurables.issues.SingleModuleIssuesRenderer;
 import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeEventDispatcher;
 import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeListener;
 import com.android.tools.idea.gradle.structure.model.*;
@@ -69,7 +69,7 @@ import static javax.swing.SwingUtilities.convertPointFromScreen;
 /**
  * Panel that displays the table of "editable" dependencies.
  */
-class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implements DependencySelection {
+class DeclaredDependenciesPanel extends AbstractDependenciesPanel {
   @NotNull private final PsContext myContext;
 
   @NotNull private final DeclaredDependenciesTableModel myDependenciesTableModel;
@@ -80,7 +80,6 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
   @NotNull private final SelectionChangeEventDispatcher<PsAndroidDependency> myEventDispatcher = new SelectionChangeEventDispatcher<>();
 
   private KeyEventDispatcher myKeyEventDispatcher;
-  private boolean mySkipSelectionChangeNotification;
 
   DeclaredDependenciesPanel(@NotNull PsAndroidModule module, @NotNull PsContext context) {
     super("Declared Dependencies", context, module);
@@ -97,31 +96,7 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
     getContentsPanel().add(createActionsPanel(), BorderLayout.NORTH);
     initializeDependencyDetails();
 
-    myIssuesViewer = new IssuesViewer(myContext, new IssuesRenderer() {
-      @Override
-      @NotNull
-      public String render(@NotNull Collection<PsIssue> issues) {
-        StringBuilder buffer = new StringBuilder();
-        buffer.append("<html><body><ol>");
-
-        for (PsIssue issue : issues) {
-          buffer.append("<li>").append(issue.getText());
-          PsPath quickFixPath = issue.getQuickFixPath();
-          if (quickFixPath != null) {
-            buffer.append(" ").append(quickFixPath.toText(HTML));
-          }
-
-          String description = issue.getDescription();
-          if (isNotEmpty(description)) {
-            buffer.append("<br/><br/>").append(description);
-          }
-          buffer.append("</li>");
-        }
-
-        buffer.append("</ol></body></html>");
-        return buffer.toString();
-      }
-    });
+    myIssuesViewer = new IssuesViewer(myContext, new SingleModuleIssuesRenderer());
     setIssuesViewer(myIssuesViewer);
 
     myDependenciesTableModel = new DeclaredDependenciesTableModel(module, myContext);
@@ -189,7 +164,7 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
   }
 
   private void initializeDependencyDetails() {
-    addDetails(new ModuleLibraryDependencyDetails(getContext()));
+    addDetails(new ModuleLibraryDependencyDetails());
     addDetails(new ModuleDependencyDetails(getContext(), true));
   }
 
@@ -295,9 +270,8 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
     notifySelectionChanged();
   }
 
-  @Override
   @Nullable
-  public PsAndroidDependency getSelection() {
+  private PsAndroidDependency getSelection() {
     Collection<PsAndroidDependency> selection = myDependenciesTable.getSelection();
     if (selection.size() == 1) {
       PsAndroidDependency selected = getFirstItem(selection);
@@ -307,23 +281,8 @@ class DeclaredDependenciesPanel extends AbstractDeclaredDependenciesPanel implem
     return null;
   }
 
-  @Override
-  public void setSelection(@Nullable PsAndroidDependency selection) {
-    mySkipSelectionChangeNotification = true;
-    if (selection == null) {
-      myDependenciesTable.clearSelection();
-    }
-    else {
-      myDependenciesTable.setSelection(Collections.singleton(selection));
-    }
-    updateDetailsAndIssues();
-    mySkipSelectionChangeNotification = false;
-  }
-
   private void updateDetailsAndIssues() {
-    if (!mySkipSelectionChangeNotification) {
-      notifySelectionChanged();
-    }
+    notifySelectionChanged();
 
     PsAndroidDependency selected = getSelection();
     super.updateDetails(selected);
