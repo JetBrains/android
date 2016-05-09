@@ -81,6 +81,11 @@ public final class GapisProcess extends ChildProcess {
       LOG.info("GAPIS is version " + myVersion);
     }
 
+    int gapirPort = myGapir.getPort();
+    if (gapirPort <= 0) {
+      return false;
+    }
+
     ArrayList<String> args = new ArrayList<String>(8);
     args.add(GapiPaths.gapis().getAbsolutePath());
 
@@ -88,7 +93,7 @@ public final class GapisProcess extends ChildProcess {
     args.add(PathManager.getLogPath());
 
     args.add("--gapir");
-    args.add(Integer.toString(myGapir.getPort()));
+    args.add(Integer.toString(gapirPort));
 
     File strings = GapiPaths.strings();
     if (myVersion > 1 && strings.exists()) {
