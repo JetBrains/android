@@ -498,7 +498,8 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
    * @see FileEditor#selectNotify().
    */
   public void selectNotify() {
-    reload(myThemeName, mySubStyleName);
+    // The call to selectNotify might be holding the write lock. Call reload later to avoid rendering while holding the lock
+    ApplicationManager.getApplication().invokeLater(() -> reload(myThemeName, mySubStyleName));
   }
 
   /**
