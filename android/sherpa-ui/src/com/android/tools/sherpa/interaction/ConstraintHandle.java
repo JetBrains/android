@@ -1761,9 +1761,11 @@ public class ConstraintHandle {
     /*-----------------------------------------------------------------------*/
 
     public void startLock() {
-        mLockTimer.start();
-        mLocking = true;
-        mLockingStartTime = System.currentTimeMillis();
+        if (!mLocking) {
+            mLockTimer.start();
+            mLocking = true;
+            mLockingStartTime = System.currentTimeMillis();
+        }
     }
 
     public void stopLock() {

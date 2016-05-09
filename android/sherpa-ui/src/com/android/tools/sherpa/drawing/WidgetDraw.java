@@ -47,7 +47,7 @@ public class WidgetDraw {
 
     private static final boolean DEBUG = false;
 
-    static final int ZIGZAG = 3;
+    static final int ZIGZAG = 2;
     static final int CENTER_ZIGZAG = 3;
 
     public static final long TOOLTIP_DELAY = 800; // in ms
