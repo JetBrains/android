@@ -446,29 +446,8 @@ public final class Render {
       case Method.BoolValue:
         component.append(String.format("%b", (Boolean)value), attributes, tag);
         return;
-      case Method.Int8Value:
-        component.append(String.format("%d", ((Number)value).byteValue()), attributes, tag);
-        return;
-      case Method.Uint8Value:
-        component.append(String.format("%d", ((Number)value).intValue() & 0xff), attributes, tag);
-        return;
-      case Method.Int16Value:
-        component.append(String.format("%d", ((Number)value).shortValue()), attributes, tag);
-        return;
-      case Method.Uint16Value:
-        component.append(String.format("%d", ((Number)value).intValue() & 0xffff), attributes, tag);
-        return;
-      case Method.Int32Value:
-        component.append(String.format("%d", ((Number)value).intValue()), attributes, tag);
-        return;
-      case Method.Uint32Value:
-        component.append(String.format("%d", ((Number)value).longValue() & 0xffffffffL), attributes, tag);
-        return;
-      case Method.Int64Value:
-        component.append(String.format("%d", ((Number)value).longValue()), attributes, tag);
-        return;
-      case Method.Uint64Value:
-        component.append(String.format("0x%s", Long.toHexString(((Number)value).longValue())), attributes, tag);
+      case Method.StringValue:
+        component.append(String.valueOf(value), attributes, tag);
         return;
       case Method.Float32Value:
         component.append(String.format("%f", ((Number)value).floatValue()), attributes, tag);
@@ -476,11 +455,9 @@ public final class Render {
       case Method.Float64Value:
         component.append(String.format("%f", ((Number)value).doubleValue()), attributes, tag);
         return;
-      case Method.StringValue:
-        component.append(String.valueOf(value), attributes, tag);
-        return;
       default:
-        component.append(value.toString(), attributes, tag);
+        Number number = RenderUtils.toJavaIntType(type.getMethod(), (Number)value);
+        component.append(String.format("%d", number), attributes, tag);
         break;
     }
   }
