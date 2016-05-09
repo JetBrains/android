@@ -16,6 +16,7 @@
 package com.android.tools.idea.navigator.nodes;
 
 import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.NativeAndroidGradleModel;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
@@ -83,7 +84,13 @@ public class AndroidModuleNode extends ProjectViewModuleNode {
     AndroidGradleModel androidGradleModel = AndroidGradleModel.get(facet);
     HashMultimap<AndroidSourceType,VirtualFile> sourcesByType = getSourcesBySourceType(providers, androidGradleModel);
 
+    NativeAndroidGradleModel nativeAndroidGradleModel = NativeAndroidGradleModel.get(facet.getModule());
+
     for (AndroidSourceType sourceType : sourcesByType.keySet()) {
+      if (sourceType == AndroidSourceType.JNI && nativeAndroidGradleModel != null) {
+        // Native sources will be added separately from NativeAndroidGradleModel.
+        continue;
+      }
       if (sourceType == AndroidSourceType.MANIFEST) {
         result.add(new AndroidManifestsGroupNode(project, facet, settings, sourcesByType.get(sourceType)));
         continue;
@@ -98,6 +105,10 @@ public class AndroidModuleNode extends ProjectViewModuleNode {
         }
       }
       result.add(new AndroidSourceTypeNode(project, facet, settings, sourceType, sourcesByType.get(sourceType), pane));
+    }
+
+    if(nativeAndroidGradleModel != null) {
+      result.add(new AndroidJniFolderNode(project, nativeAndroidGradleModel, settings));
     }
 
     return result;
