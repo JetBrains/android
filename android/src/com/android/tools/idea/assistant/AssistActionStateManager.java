@@ -23,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Extension point to add state to action buttons. State should generally be based off of data available from a {@link DeveloperService}
- * instance or from an independent source. You _may_ get the containing project from the DeveloperService instance in order to instantate a
+ * instance or from an independent source. You _may_ get the containing project from the DeveloperService instance in order to instantiate a
  * project scoped service but this is generally discouraged. Please reach out to the Android Studio team about adding capabilities before
  * directly accessing the Project object.
  */
@@ -51,7 +51,7 @@ public interface AssistActionStateManager {
   void init(@NotNull DeveloperService developerService);
 
   /**
-   * Returns true if the action may still be completed. If false, {@link getStateDisplay} is called
+   * Returns true if the action may still be completed. If false, {@link #getStateDisplay(DeveloperService, String)} is called
    */
   boolean isCompletable(@NotNull DeveloperService developerService);
 

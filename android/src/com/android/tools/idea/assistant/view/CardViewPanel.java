@@ -31,15 +31,14 @@ public abstract class CardViewPanel extends JPanel {
 
   // Used by child classes for button handling.
   protected ActionListener myListener;
-  private BorderLayout myLayout;
 
   public CardViewPanel(@NotNull ActionListener listener) {
     super(new BorderLayout());
     setBorder(BorderFactory.createEmptyBorder());
     myListener = listener;
     setOpaque(false);
-    myLayout = (BorderLayout)getLayout();
-    myLayout.setVgap(0);
-    myLayout.setHgap(0);
+    BorderLayout layout = (BorderLayout)getLayout();
+    layout.setVgap(0);
+    layout.setHgap(0);
   }
 }
