@@ -1112,6 +1112,110 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "}");
   }
 
+  public void testAnyThread() {
+    // Tests support for the @AnyThread annotation as well as fixing bugs
+    // suppressing AndroidLintWrongThread and
+    // 207313: Class-level threading annotations are not overrideable
+    // 207302: @WorkerThread cannot call View.post
+
+    doCheck("package test.pkg;\n" +
+            "\n" +
+            "import android.support.annotation.BinderThread;\n" +
+            "import android.support.annotation.MainThread;\n" +
+            "import android.support.annotation.UiThread;\n" +
+            "import android.support.annotation.WorkerThread;\n" +
+            "\n" +
+            "@SuppressWarnings({\"WeakerAccess\", \"unused\"})\n" +
+            "public class X {\n" +
+            "    @UiThread\n" +
+            "    static class AnyThreadTest {\n" +
+            "        //    @AnyThread\n" +
+            "        static void threadSafe() {\n" +
+            "            /*Method worker must be called from the worker thread, currently inferred thread is UI*/worker()/**/; // ERROR\n" +
+            "        }\n" +
+            "\n" +
+            "        @WorkerThread\n" +
+            "        static void worker() {\n" +
+            "            /*Method threadSafe must be called from the UI thread, currently inferred thread is worker*/threadSafe()/**/; // OK\n" +
+            "        }\n" +
+            "\n" +
+            "        // Multi thread test\n" +
+            "        @UiThread\n" +
+            "        @WorkerThread\n" +
+            "        private static void calleee() {\n" +
+            "        }\n" +
+            "\n" +
+            "        @WorkerThread\n" +
+            "        private static void call1() {\n" +
+            "            calleee(); // OK - context is included in target\n" +
+            "        }\n" +
+            "\n" +
+            "        @BinderThread\n" +
+            "        @WorkerThread\n" +
+            "        private static void call2() {\n" +
+            "            /*Method calleee must be called from the UI or worker thread, currently inferred thread is binder and worker*/calleee()/**/; // Not ok: thread could be binder thread, not supported by target\n" +
+            "        }\n" +
+            "    }\n" +
+            "\n" +
+            "    public static AsyncTask testTask() {\n" +
+            "\n" +
+            "        return new AsyncTask() {\n" +
+            "            final CustomView view = new CustomView();\n" +
+            "\n" +
+            "            @Override\n" +
+            "            protected void doInBackground(Object... params) {\n" +
+            "                /*Method onPreExecute must be called from the main thread, currently inferred thread is worker*/onPreExecute()/**/; // ERROR\n" +
+            "                /*Method paint must be called from the UI thread, currently inferred thread is worker*/view.paint()/**/; // ERROR\n" +
+            "                publishProgress(); // OK\n" +
+            "            }\n" +
+            "\n" +
+            "            @Override\n" +
+            "            protected void onPreExecute() {\n" +
+            "                /*Method publishProgress must be called from the worker thread, currently inferred thread is main*/publishProgress()/**/; // ERROR\n" +
+            "                onProgressUpdate(); // OK\n" +
+            "                // Suppressed via older Android Studio inspection id:\n" +
+            "                //noinspection ResourceType\n" +
+            "                publishProgress(); // SUPPRESSED\n" +
+            "                // Suppressed via new lint id:\n" +
+            "                //noinspection WrongThread\n" +
+            "                publishProgress(); // SUPPRESSED\n" +
+            "                // Suppressed via Studio inspection id:\n" +
+            "                //noinspection AndroidLintWrongThread\n" +
+            "                publishProgress(); // SUPPRESSED\n" +
+            "            }\n" +
+            "        };\n" +
+            "    }\n" +
+            "\n" +
+            "    @UiThread\n" +
+            "    public static class View {\n" +
+            "        public void paint() {\n" +
+            "        }\n" +
+            "    }\n" +
+            "\n" +
+            "    public static class CustomView extends View {\n" +
+            "        @Override public void paint() {\n" +
+            "        }\n" +
+            "    }\n" +
+            "\n" +
+            "    public abstract static class AsyncTask {\n" +
+            "        @WorkerThread\n" +
+            "        protected abstract void doInBackground(Object... params);\n" +
+            "\n" +
+            "        @MainThread\n" +
+            "        protected void onPreExecute() {\n" +
+            "        }\n" +
+            "\n" +
+            "        @MainThread\n" +
+            "        protected void onProgressUpdate(Object... values) {\n" +
+            "        }\n" +
+            "\n" +
+            "        @WorkerThread\n" +
+            "        protected final void publishProgress(Object... values) {\n" +
+            "        }\n" +
+            "    }\n" +
+            "}\n");
+  }
+
   public void testCombinedIntDefAndIntRange() throws Exception {
     doCheck("package test.pkg;\n" +
             "\n" +
