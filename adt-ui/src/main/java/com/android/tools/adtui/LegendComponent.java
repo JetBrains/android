@@ -18,12 +18,10 @@ package com.android.tools.adtui;
 
 import com.android.annotations.NonNull;
 import com.android.tools.adtui.model.LegendRenderData;
-import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.ReportingSeries;
 
 import javax.swing.*;
 import java.awt.BasicStroke;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Stroke;
@@ -62,20 +60,20 @@ public class LegendComponent extends AnimatedComponent {
   private long mLastUpdate;
 
   @NonNull
-  private LegendRenderData[] mLegendRenderDatas;
+  private List<LegendRenderData> mLegendRenderDatas;
 
   private Orientation mOrientation;
 
   /**
    * Legend component that renders a label, and icon for each series in a chart.
    *
-   * @param legendRenderDatas An array of labels, icons, and colors to be used in the rendering of each label. If the series is null
+   * @param legendRenderDatas An list of labels, icons, and colors to be used in the rendering of each label. If the series is null
    *                          only the label will be rendered
    * @param orientation       Determines if we want the labels to be stacked horizontally or vertically
    * @param frequencyMillis   How frequently the labels get updated
    * @param domain            The conversion function to use for the data from the series to the label.
    */
-  public LegendComponent(LegendRenderData[] legendRenderDatas, Orientation orientation, int frequencyMillis, BaseAxisDomain domain) {
+  public LegendComponent(List<LegendRenderData> legendRenderDatas, Orientation orientation, int frequencyMillis, BaseAxisDomain domain) {
     mLegendRenderDatas = legendRenderDatas;
     mAxisDomain = domain;
     mFrequencyMillis = frequencyMillis;
@@ -85,7 +83,7 @@ public class LegendComponent extends AnimatedComponent {
   }
 
   private void initialize() {
-    mLabelsToDraw = new ArrayList<>(mLegendRenderDatas.length);
+    mLabelsToDraw = new ArrayList<>(mLegendRenderDatas.size());
     for (LegendRenderData data : mLegendRenderDatas) {
       JLabel label = new JLabel(data.getLabel());
       mLabelsToDraw.add(label);
@@ -97,8 +95,8 @@ public class LegendComponent extends AnimatedComponent {
     long now = System.currentTimeMillis();
     if (now - mLastUpdate > mFrequencyMillis) {
       mLastUpdate = now;
-      for (int i = 0; i < mLegendRenderDatas.length; ++i) {
-        LegendRenderData data = mLegendRenderDatas[i];
+      for (int i = 0; i < mLegendRenderDatas.size(); ++i) {
+        LegendRenderData data = mLegendRenderDatas.get(i);
         ReportingSeries series = data.getSeries();
         JLabel label = mLabelsToDraw.get(i);
         Dimension preferredSize = label.getPreferredSize();
@@ -119,8 +117,8 @@ public class LegendComponent extends AnimatedComponent {
 
   @Override
   protected void draw(Graphics2D g2d) {
-    for (int i = 0; i < mLegendRenderDatas.length; ++i) {
-      LegendRenderData data = mLegendRenderDatas[i];
+    for (int i = 0; i < mLegendRenderDatas.size(); ++i) {
+      LegendRenderData data = mLegendRenderDatas.get(i);
       JLabel label = mLabelsToDraw.get(i);
       Dimension preferredSize = label.getPreferredSize();
       int xOffset = 0;
