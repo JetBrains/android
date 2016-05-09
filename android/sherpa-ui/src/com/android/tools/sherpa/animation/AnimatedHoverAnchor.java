@@ -5,8 +5,8 @@ import com.android.tools.sherpa.drawing.SceneDraw;
 import com.android.tools.sherpa.drawing.ViewTransform;
 import com.android.tools.sherpa.drawing.WidgetDraw;
 import com.android.tools.sherpa.interaction.ConstraintHandle;
-import com.google.tnt.solver.widgets.ConstraintAnchor;
-import com.google.tnt.solver.widgets.ConstraintWidget;
+import android.support.constraint.solver.widgets.ConstraintAnchor;
+import android.support.constraint.solver.widgets.ConstraintWidget;
 
 import java.awt.BasicStroke;
 import java.awt.Canvas;
