@@ -19,7 +19,6 @@ import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.android.JavaArtifactStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
@@ -59,15 +58,10 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
   private AndroidProjectStub myAndroidProject;
   private String myRoot;
 
-  private boolean myOriginalLoadAllTestArtifactsValue;
-
   @Override
   public void setUp() throws Exception {
     super.setUp();
     setUpIdeaAndroidProject();
-
-    myOriginalLoadAllTestArtifactsValue = GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS;
-    GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS = false;
 
     myPatcher = new AndroidJunitPatcher();
     myJavaParameters = new JavaParameters();
@@ -88,12 +82,6 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
         }
       }
     });
-  }
-
-  @Override
-  public void tearDown() throws Exception {
-    super.tearDown();
-    GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS = myOriginalLoadAllTestArtifactsValue;
   }
 
   private List<String> getExampleClasspath() {
@@ -138,6 +126,7 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
                                                              myAndroidProject.getRootDir(), myAndroidProject, variant.getName(),
                                                              AndroidProject.ARTIFACT_UNIT_TEST);
     myFacet.setAndroidModel(androidModel);
+    TestArtifactSearchScopes.initializeScopes(getProject());
   }
 
   public void testPathChanges() throws Exception {
