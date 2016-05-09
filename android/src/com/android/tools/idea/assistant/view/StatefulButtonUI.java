@@ -106,10 +106,7 @@ public class StatefulButtonUI extends BasicButtonUI {
     ButtonModel model = button.getModel();
     Color fg = button.getForeground();
     if (fg instanceof UIResource && isDefaultButton(button)) {
-      final Color selectedFg = SELECTED_BUTTON_FOREGROUND;
-      if (selectedFg != null) {
-        fg = selectedFg;
-      }
+      fg = SELECTED_BUTTON_FOREGROUND;
     }
     g.setColor(fg);
 

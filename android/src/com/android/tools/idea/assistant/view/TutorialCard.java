@@ -46,9 +46,6 @@ public class TutorialCard extends CardViewPanel {
                @NotNull DeveloperService service) {
     super(listener);
 
-    // TODO: Migrate this somewhere central.
-    String font = getFont().getFamily();
-
     // TODO: Add a short label to the xml and use that here instead.
     add(new HeaderNav(featureTitle, myListener), BorderLayout.NORTH);
 
@@ -129,7 +126,7 @@ public class TutorialCard extends CardViewPanel {
     horizontalScrollBar.setValue(horizontalScrollBar.getMinimum());
   }
 
-  private class TutorialDescription extends JTextPane {
+  private static class TutorialDescription extends JTextPane {
     TutorialDescription() {
       super();
       setOpaque(false);
