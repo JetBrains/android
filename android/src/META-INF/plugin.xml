@@ -116,6 +116,13 @@
       <separator/>
     </group>
 
+    <group id="ExternalCppProject">
+      <action id="Android.LinkExternalCppProject" class="com.android.tools.idea.gradle.actions.LinkExternalCppProjectAction" />
+      <separator/>
+      <add-to-group group-id="ProjectViewPopupMenu" anchor="before" relative-to-action="CutCopyPasteGroup"/>
+      <add-to-group group-id="FileMenu" anchor="before" relative-to-action="FileMainSettingsGroup"/>
+    </group>
+
     <!-- Instant Run Actions, also see androidstudio.xml for Studio specific action registrations -->
     <action id="Android.RestartActivity" class="com.android.tools.idea.fd.actions.RestartActivityAction">
       <add-to-group group-id="DebugMainMenu" anchor="before" relative-to-action="StepOver"/>
