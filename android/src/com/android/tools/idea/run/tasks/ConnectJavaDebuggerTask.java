@@ -18,10 +18,16 @@ package com.android.tools.idea.run.tasks;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.NullOutputReceiver;
+import com.android.ddmlib.logcat.LogCatHeader;
+import com.android.ddmlib.logcat.LogCatMessage;
 import com.android.tools.idea.fd.InstantRunUtils;
+import com.android.tools.idea.logcat.AndroidLogcatFormatter;
+import com.android.tools.idea.logcat.AndroidLogcatService;
+import com.android.tools.idea.logcat.AndroidLogcatUtils;
 import com.android.tools.idea.run.*;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
+import com.google.common.base.Strings;
 import com.intellij.debugger.engine.RemoteDebugProcessHandler;
 import com.intellij.debugger.ui.DebuggerPanelsManager;
 import com.intellij.execution.ExecutionException;
@@ -35,7 +41,9 @@ import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
 import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Locale;
 import java.util.Set;
@@ -119,10 +127,28 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTask {
     final String pkgName = client.getClientData().getClientDescription();
     final IDevice device = client.getDevice();
 
+    final ApplicationLogListener logListener = new ApplicationLogListener(pkgName) {
+      private final String SIMPLE_FORMAT = AndroidLogcatFormatter.createCustomFormat(false, false, false, true);
+
+      @NotNull
+      @Override
+      public String formatLogLine(@NotNull LogCatMessage line) {
+        return AndroidLogcatFormatter.formatMessage(SIMPLE_FORMAT, line.getHeader(), line.getMessage());
+      }
+
+      @Override
+      public void notifyTextAvailable(@NotNull String message, @NotNull Key key) {
+        debugProcessHandler.notifyTextAvailable(message, key);
+      }
+    };
+    AndroidLogcatService.getInstance().addListener(device, logListener, true);
+
+
     // kill the process when the debugger is stopped
     debugProcessHandler.addProcessListener(new ProcessAdapter() {
       @Override
       public void processTerminated(ProcessEvent event) {
+        AndroidLogcatService.getInstance().removeListener(device, logListener);
         debugProcessHandler.removeProcessListener(this);
 
         Client currentClient = device.getClient(pkgName);
