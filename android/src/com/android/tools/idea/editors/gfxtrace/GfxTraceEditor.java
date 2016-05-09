@@ -338,6 +338,10 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
     return "GfxTraceView";
   }
 
+  public String getSessionName() {
+    return myFile.getName();
+  }
+
   public void activatePath(@NotNull final Path path, final Object source) {
     synchronized (myLastActivatadPath) {
       if (!myLastActivatadPath.update(path)) {
