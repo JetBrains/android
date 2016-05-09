@@ -26,6 +26,7 @@ import com.android.repository.io.FileOp;
 import com.android.repository.io.FileOpUtils;
 import com.android.repository.util.InstallerUtil;
 import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
@@ -134,14 +135,14 @@ public class PatchInstallerFactory extends AbstractInstallerFactory {
    * If they have already been installed (as indicated by the patch itself being missing, and the revision mentioned in source.properties
    * matching that in the pending XML, do the install complete actions (write package.xml and fire listeners) and clean up.
    */
-  public static void restartAndInstallIfNecessary(File androidSdkPath) {
+  public static void restartAndInstallIfNecessary(@NotNull File androidSdkPath) {
     File patchesDir = new File(androidSdkPath, PATCHES_DIR_NAME);
     AndroidSdkHandler handler = AndroidSdkHandler.getInstance(androidSdkPath);
     StudioLoggerProgressIndicator progress = new StudioLoggerProgressIndicator(PatchInstallerFactory.class);
     FileOp fop = FileOpUtils.create();
     if (patchesDir.exists()) {
       for (File patchDir : patchesDir.listFiles((File file) -> file.isDirectory() && file.getName().startsWith(PATCH_DIR_PREFIX))) {
-        processPatch(androidSdkPath, handler, progress, fop, patchDir);
+        processPatch(androidSdkPath, handler, patchDir, fop, progress);
       }
     }
   }
@@ -149,16 +150,16 @@ public class PatchInstallerFactory extends AbstractInstallerFactory {
   /**
    * Either restart and install the given patch or delete it (if it's already installed).
    */
-  private static void processPatch(File androidSdkPath,
-                                   AndroidSdkHandler handler,
-                                   StudioLoggerProgressIndicator progress,
-                                   FileOp fop,
-                                   File patchDir) {
+  private static void processPatch(@NotNull File androidSdkPath,
+                                   @NotNull AndroidSdkHandler handler,
+                                   @NotNull File patchDir,
+                                   @NotNull FileOp fop,
+                                   @NotNull ProgressIndicator progress) {
     RemotePackage pendingPackage = null;
     File installDir = null;
     try {
       RepoManager mgr = handler.getSdkManager(progress);
-      pendingPackage = InstallerUtil.readPendingPackageXml(patchDir, mgr, fop, progress);
+      pendingPackage = (RemotePackage)InstallerUtil.readPendingPackageXml(patchDir, mgr, fop, progress);
       if (pendingPackage != null) {
         File patch = new File(patchDir, PATCH_JAR_FN);
         installDir = pendingPackage.getInstallDir(mgr, progress);
@@ -179,8 +180,8 @@ public class PatchInstallerFactory extends AbstractInstallerFactory {
             // We need to make sure the listeners are fired, so create an installer that does nothing and invoke it.
             InstallerFactory dummyFactory = new DummyInstallerFactory(pendingPackage);
             dummyFactory.setListenerFactory(new StudioSdkInstallListenerFactory(handler));
-            Installer installer = dummyFactory.createInstaller(pendingPackage, mgr, fop);
-            installer.completeInstall(progress);
+            Installer installer = dummyFactory.createInstaller(pendingPackage, mgr, new StudioDownloader(), fop);
+            installer.complete(progress);
           }
           else {
             // something went wrong. Move the old package.xml back into place.
@@ -212,14 +213,17 @@ public class PatchInstallerFactory extends AbstractInstallerFactory {
 
   @NotNull
   @Override
-  protected Installer doCreateInstaller(@NotNull RemotePackage p, @NotNull RepoManager mgr, @NotNull FileOp fop) {
+  protected Installer doCreateInstaller(@NotNull RemotePackage p,
+                                        @NotNull RepoManager mgr,
+                                        @NotNull Downloader downloader,
+                                        @NotNull FileOp fop) {
     LocalPackage local = mgr.getPackages().getLocalPackages().get(p.getPath());
     Archive archive = p.getArchive();
     assert archive != null;
     if (local != null && archive.getPatch(local.getVersion()) != null) {
-      new PatchInstaller(local, p, mgr, fop);
+      new PatchInstaller(local, p, mgr, downloader, fop);
     }
-    return new FullInstaller(local, p, mgr, fop);
+    return new FullInstaller(local, p, mgr, downloader, fop);
   }
 
   @NotNull
@@ -419,20 +423,23 @@ public class PatchInstallerFactory extends AbstractInstallerFactory {
     return loader;
   }
 
-  @VisibleForTesting
   abstract static class PatchInstallerBase extends AbstractPackageOperation.AbstractInstaller {
 
     protected final LocalPackage myExisting;
 
-    public PatchInstallerBase(@Nullable LocalPackage existing, @NotNull RemotePackage p, @NotNull RepoManager mgr, @NotNull FileOp fop) {
-      super(p, mgr, fop);
+    public PatchInstallerBase(@Nullable LocalPackage existing,
+                              @NotNull RemotePackage p,
+                              @NotNull RepoManager mgr,
+                              @NotNull Downloader downloader,
+                              @NotNull FileOp fop) {
+      super(p, mgr, downloader, fop);
       myExisting = existing;
     }
 
     @Override
-    protected boolean doCompleteInstall(@Nullable File installTempPath,
-                                        @NotNull File destination,
-                                        @NotNull ProgressIndicator progress) {
+    protected boolean doComplete(@Nullable File installTempPath,
+                                 @NotNull File destination,
+                                 @NotNull ProgressIndicator progress) {
       if (installTempPath == null) {
         return false;
       }
@@ -532,7 +539,7 @@ public class PatchInstallerFactory extends AbstractInstallerFactory {
       }
       File completePatch = new File(patchDir, PATCH_JAR_FN);
       try (FileSystem completeFs = FileSystems.newFileSystem(URI.create("jar:" + completePatch.toURI()), new HashMap<>());
-           FileSystem patchFs = FileSystems.newFileSystem(URI.create("jar:" + patchFile.toURI().toString()), new HashMap<>());) {
+           FileSystem patchFs = FileSystems.newFileSystem(URI.create("jar:" + patchFile.toURI().toString()), new HashMap<>())) {
         mFop.copyFile(patcherFile, completePatch);
         Files.copy(patchFs.getPath(PATCH_ZIP_FN), completeFs.getPath(PATCH_ZIP_FN));
         InstallerUtil.writePendingPackageXml(getPackage(), patchDir, getRepoManager(), mFop, progress);
@@ -549,13 +556,17 @@ public class PatchInstallerFactory extends AbstractInstallerFactory {
 
     private static final String UNZIP_DIR_FN = "unzip";
 
-    protected FullInstaller(@Nullable LocalPackage existing, @NotNull RemotePackage p, @NotNull RepoManager mgr, @NotNull FileOp fop) {
-      super(existing, p, mgr, fop);
+    protected FullInstaller(@Nullable LocalPackage existing,
+                            @NotNull RemotePackage p,
+                            @NotNull RepoManager mgr,
+                            @NotNull Downloader downloader,
+                            @NotNull FileOp fop) {
+      super(existing, p, mgr, downloader, fop);
     }
 
     @Override
-    protected boolean doPrepareInstall(@NotNull File installTempPath, @NotNull Downloader downloader, @NotNull ProgressIndicator progress) {
-      if (!downloadAndUnzip(installTempPath, downloader, progress)) {
+    protected boolean doPrepare(@NotNull File installTempPath, @NotNull ProgressIndicator progress) {
+      if (!downloadAndUnzip(installTempPath, progress)) {
         return false;
       }
       File pkgRoot = new File(installTempPath, UNZIP_DIR_FN);
@@ -596,7 +607,7 @@ public class PatchInstallerFactory extends AbstractInstallerFactory {
       }
     }
 
-    private boolean downloadAndUnzip(@NotNull File installTempPath, @NotNull Downloader downloader, @NotNull ProgressIndicator progress) {
+    private boolean downloadAndUnzip(@NotNull File installTempPath, @NotNull ProgressIndicator progress) {
       URL url = InstallerUtil.resolveCompleteArchiveUrl(getPackage(), progress);
       if (url == null) {
         progress.logWarning("No compatible archive found!");
@@ -607,7 +618,7 @@ public class PatchInstallerFactory extends AbstractInstallerFactory {
       try {
         File downloadLocation = new File(installTempPath, url.getFile());
         String checksum = archive.getComplete().getChecksum();
-        downloader.downloadFully(url, downloadLocation, checksum, progress);
+        getDownloader().downloadFully(url, downloadLocation, checksum, progress);
         if (progress.isCanceled()) {
           return false;
         }
@@ -648,14 +659,17 @@ public class PatchInstallerFactory extends AbstractInstallerFactory {
    */
   public static class PatchInstaller extends PatchInstallerBase {
 
-    public PatchInstaller(@Nullable LocalPackage existing, @NotNull RemotePackage p, @NotNull RepoManager mgr, @NotNull FileOp fop) {
-      super(existing, p, mgr, fop);
+    public PatchInstaller(@Nullable LocalPackage existing,
+                          @NotNull RemotePackage p,
+                          @NotNull RepoManager mgr,
+                          @NotNull Downloader downloader,
+                          @NotNull FileOp fop) {
+      super(existing, p, mgr, downloader, fop);
     }
 
     @Override
-    protected boolean doPrepareInstall(@NotNull File tempDir,
-                                       @NotNull Downloader downloader,
-                                       @NotNull ProgressIndicator progress) {
+    protected boolean doPrepare(@NotNull File tempDir,
+                                @NotNull ProgressIndicator progress) {
       LocalPackage local = getRepoManager().getPackages().getLocalPackages().get(getPackage().getPath());
       Archive archive = getPackage().getArchive();
       assert archive != null;
@@ -664,7 +678,7 @@ public class PatchInstallerFactory extends AbstractInstallerFactory {
       Archive.PatchType patch = archive.getPatch(local.getVersion());
       assert patch != null;
 
-      File patchFile = downloadPatchFile(patch, p, tempDir, downloader, progress);
+      File patchFile = downloadPatchFile(patch, p, tempDir, getDownloader(), progress);
       if (patchFile == null) {
         progress.logWarning("Patch failed to download.");
         return false;
@@ -684,7 +698,12 @@ public class PatchInstallerFactory extends AbstractInstallerFactory {
     }
 
     @Override
-    protected boolean doUninstall(@NotNull ProgressIndicator progress) {
+    protected boolean doPrepare(@NotNull ProgressIndicator progress) {
+      return true;
+    }
+
+    @Override
+    protected boolean doComplete(@NotNull ProgressIndicator progress) {
       // TODO: use patch mechanism
       try {
         mFop.deleteFileOrFolder(getPackage().getLocation());
@@ -707,19 +726,21 @@ public class PatchInstallerFactory extends AbstractInstallerFactory {
 
     @NotNull
     @Override
-    protected Installer doCreateInstaller(@NotNull RemotePackage p, @NotNull RepoManager mgr, @NotNull FileOp fop) {
-      return new AbstractPackageOperation.AbstractInstaller(myPendingPackage, mgr, fop) {
+    protected Installer doCreateInstaller(@NotNull RemotePackage p,
+                                          @NotNull RepoManager mgr,
+                                          @NotNull Downloader downloader,
+                                          @NotNull FileOp fop) {
+      return new AbstractPackageOperation.AbstractInstaller(myPendingPackage, mgr, downloader, fop) {
         @Override
-        protected boolean doCompleteInstall(@com.android.annotations.Nullable File installTemp,
-                                            @NotNull File dest,
-                                            @NotNull ProgressIndicator progress) {
+        protected boolean doComplete(@Nullable File installTemp,
+                                     @NotNull File dest,
+                                     @NotNull ProgressIndicator progress) {
           return true;
         }
 
         @Override
-        protected boolean doPrepareInstall(@NotNull File installTempPath,
-                                           @NotNull Downloader downloader,
-                                           @NotNull ProgressIndicator progress) {
+        protected boolean doPrepare(@NotNull File installTempPath,
+                                    @NotNull ProgressIndicator progress) {
           return false;
         }
       };

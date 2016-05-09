@@ -26,10 +26,11 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SdkMerger;
-import com.android.tools.idea.sdk.progress.RepoProgressIndicatorAdapter;
 import com.android.tools.idea.sdk.StudioDownloader;
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.StudioSettingsController;
+import com.android.tools.idea.sdk.progress.RepoProgressIndicatorAdapter;
+import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
+import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.ui.ApplicationUtils;
 import com.android.tools.idea.welcome.SdkLocationUtils;
 import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData;
@@ -41,10 +42,10 @@ import com.android.tools.idea.wizard.dynamic.DynamicWizardPath;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStep;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.base.Function;
-import com.google.common.base.Supplier;
 import com.google.common.collect.Lists;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.util.ProgressWindow;
 import com.intellij.openapi.project.ProjectManager;
@@ -61,6 +62,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 
 /**
  * Wizard path that manages component installation flow. It will prompt the user
@@ -258,11 +260,14 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
       addStep(step);
     }
     if (myMode != FirstRunWizardMode.INSTALL_HANDOFF) {
-      Supplier<Collection<RemotePackage>> supplier = new Supplier<Collection<RemotePackage>>() {
-        @Override
-        public Collection<RemotePackage> get() {
-          Iterable<InstallableComponent> components = myComponentTree.getChildrenToInstall();
+      Supplier<Collection<RemotePackage>> supplier = () -> {
+        Iterable<InstallableComponent> components = myComponentTree.getChildrenToInstall();
+        try {
           return myComponentInstaller.getPackagesToInstall(components);
+        }
+        catch (SdkQuickfixUtils.PackageResolutionException e) {
+          Logger.getInstance(InstallComponentsPath.class).warn(e);
+          return null;
         }
       };
 
