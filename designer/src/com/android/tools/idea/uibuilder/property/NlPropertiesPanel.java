@@ -42,6 +42,7 @@ import java.util.List;
 import java.util.Map;
 
 public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Model {
+  private static final int HORIZONTAL_SPACING = 4;
   private static final String CARD_ADVANCED = "table";
   private static final String CARD_DEFAULT = "default";
 
@@ -85,6 +86,7 @@ public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Mo
   @NotNull
   private JPanel createHeaderPanel() {
     JBPanel panel = new JBPanel(new BorderLayout());
+    panel.setBorder(BorderFactory.createEmptyBorder(0, HORIZONTAL_SPACING, 0, 0));
 
     mySelectedComponentLabel = new JBLabel("");
     panel.add(mySelectedComponentLabel, BorderLayout.CENTER);
@@ -100,10 +102,9 @@ public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Mo
   public void setItems(@NotNull List<NlComponent> components,
                        @NotNull Table<String, String, NlPropertyItem> properties,
                        @NotNull NlPropertiesManager propertiesManager) {
-    String componentName = components.isEmpty() ? "" : (components.size() == 1 ? components.get(0).getTagName() : "Multiple");
     myComponents = components;
     myProperties = extractPropertiesForTable(properties);
-    mySelectedComponentLabel.setText(componentName);
+    mySelectedComponentLabel.setText(getComponentName(components));
 
     List<PTableItem> sortedProperties;
     if (components.isEmpty()) {
@@ -120,6 +121,18 @@ public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Mo
 
     updateDefaultProperties(propertiesManager);
     myInspectorPanel.setComponent(components, properties, propertiesManager);
+  }
+
+  @NotNull
+  private static String getComponentName(@NotNull List<NlComponent> components) {
+    if (components.isEmpty()) {
+      return "";
+    }
+    if (components.size() > 1) {
+      return "Multiple";
+    }
+    String tagName = components.get(0).getTagName();
+    return tagName.substring(tagName.lastIndexOf('.') + 1);
   }
 
   @NotNull
