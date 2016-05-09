@@ -27,10 +27,10 @@ import java.util.List;
 
 import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
 
-public class TargetConfigurationNode extends AbstractPsNode implements CellAppearanceEx {
+class TargetConfigurationNode extends AbstractPsNode implements CellAppearanceEx {
   private final List<String> myTypes;
 
-  public TargetConfigurationNode(Configuration configuration) {
+  TargetConfigurationNode(Configuration configuration) {
     myName = configuration.getName();
     setIcon(configuration.getIcon());
     myTypes = configuration.getTypes();
@@ -49,7 +49,6 @@ public class TargetConfigurationNode extends AbstractPsNode implements CellAppea
 
   @Override
   public void customize(@NotNull HtmlListCellRenderer renderer) {
-
   }
 
   @Override

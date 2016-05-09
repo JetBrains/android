@@ -19,7 +19,7 @@ import com.android.tools.idea.gradle.structure.configurables.android.dependencie
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.DependencyNodeComparator;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.LibraryDependencyNode;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.ModuleDependencyNode;
-import com.android.tools.idea.gradle.structure.configurables.android.treeview.AbstractRootNode;
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsResettableNode;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsModule;
@@ -37,7 +37,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-class DeclaredDependenciesTreeRootNode extends AbstractRootNode<PsProject> {
+class DeclaredDependenciesTreeRootNode extends AbstractPsResettableNode<PsProject> {
   DeclaredDependenciesTreeRootNode(@NotNull PsProject project) {
     super(project);
   }
