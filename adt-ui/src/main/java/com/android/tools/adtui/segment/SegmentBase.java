@@ -7,6 +7,7 @@ import com.android.tools.adtui.Range;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.util.List;
@@ -21,8 +22,11 @@ import javax.swing.border.MatteBorder;
 public abstract class SegmentBase extends JComponent {
 
   private static final int SPACER_WIDTH = 100;
+  //TODO Adjust this when the vertical label gets integrated.
+  private static final int TEXT_FIELD_WIDTH = 50;
   private static final Color BACKGROUND_COLOR = Color.white;
   private final CompoundBorder mCompoundBorder;
+  private JPanel mRightPanel;
 
   @NonNull
   protected final String myName;
@@ -35,12 +39,16 @@ public abstract class SegmentBase extends JComponent {
     return SPACER_WIDTH;
   }
 
+  public static int getTextFieldWidth() {
+    return TEXT_FIELD_WIDTH;
+  }
+
   public SegmentBase(@NonNull String name, @NonNull Range scopedRange) {
     myName = name;
     mScopedRange = scopedRange;
     //TODO Adjust borders according to neighbors
     mCompoundBorder = new CompoundBorder(new MatteBorder(1, 1, 1, 1, Color.lightGray),
-                                   new EmptyBorder(0, 0, 0, 0));
+                                         new EmptyBorder(0, 0, 0, 0));
   }
 
   public void initializeComponents() {
@@ -56,10 +64,7 @@ public abstract class SegmentBase extends JComponent {
     panels.setLayout(new GridBagLayout());
 
     //Setup the left panel, mostly filled with spacer, or AxisComponent
-    JPanel leftPanel = new JPanel();
-    leftPanel.setLayout(new BorderLayout());
-    leftPanel.setBackground(BACKGROUND_COLOR);
-    leftPanel.setBorder(mCompoundBorder);
+    JPanel leftPanel = createSpacerPanel();
     gbc.weightx = 0;
     gbc.gridx = 0;
     panels.add(leftPanel, gbc);
@@ -76,16 +81,31 @@ public abstract class SegmentBase extends JComponent {
     setCenterContent(centerPanel);
 
     //Setup the right panel, like the left mostly filled with an AxisComponent
-    JPanel rightPanel = new JPanel();
-    rightPanel.setLayout(new BorderLayout());
-    rightPanel.setBackground(BACKGROUND_COLOR);
-    rightPanel.setBorder(mCompoundBorder);
+    JPanel rightPanel = createSpacerPanel();
     gbc.weightx = 0;
     gbc.gridx = 2;
     panels.add(rightPanel, gbc);
     setRightContent(rightPanel);
 
     add(panels, BorderLayout.CENTER);
+  }
+
+  private JPanel createSpacerPanel() {
+    JPanel panel = new JPanel();
+    panel.setLayout(new BorderLayout());
+    panel.setBackground(BACKGROUND_COLOR);
+    panel.setBorder(mCompoundBorder);
+    panel.setPreferredSize(new Dimension(getSpacerWidth(), 0));
+    return panel;
+  }
+
+  /**
+   * This enables segments to toggle the visibilty of the right panel.
+   *
+   * @param isVisible True indicates the panel is visible, false hides it.
+   */
+  public void setRightSpacerVisible(boolean isVisible) {
+    mRightPanel.setVisible(isVisible);
   }
 
   protected abstract void setLeftContent(@NonNull JPanel panel);

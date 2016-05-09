@@ -104,10 +104,9 @@ public class AxisLineChartVisualTest extends VisualTest {
     RangedContinuousSeries ranged2 = new RangedContinuousSeries(xRange, yRange2Animatable);
     mData.add(ranged2);
     mLineChart.addLines(mData);
-    LegendRenderData[] legendRenderInfo = {
-      new LegendRenderData("Sending", LegendRenderData.IconType.BOX, LineConfig.COLORS[0], mData.get(0)),
-      new LegendRenderData("Receiving", LegendRenderData.IconType.LINE, LineConfig.COLORS[1], null)
-    };
+    List<LegendRenderData> legendRenderInfo = new ArrayList<>();
+    legendRenderInfo.add(new LegendRenderData("Sending", LegendRenderData.IconType.BOX, LineConfig.COLORS[0], mData.get(0)));
+    legendRenderInfo.add(new LegendRenderData("Receiving", LegendRenderData.IconType.LINE, LineConfig.COLORS[1], null));
     mLegendComponent = new LegendComponent(legendRenderInfo, LegendComponent.Orientation.VERTICAL, LABEL_UPDATE_MILLIS, new MemoryAxisDomain(4, 10, 5));
 
     mGrid = new GridComponent();

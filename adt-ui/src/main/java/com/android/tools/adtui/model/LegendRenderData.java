@@ -59,7 +59,7 @@ public class LegendRenderData {
   }
 
   /**
-   * Render data to be used when rendering the legend. The only optional paremeter is the series. If the series is null the legeond renders
+   * Render data to be used when rendering the legend. The only optional parameter is the series. If the series is null the legend renders
    * the icon, and the label without any additional processing. If the series is populated it is used to as a postfix to the label passed
    * in.
    * @param label The prefix, or label to be drawn.
