@@ -16,12 +16,16 @@
 package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.SdkConstants;
+import com.android.resources.Density;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 import com.android.tools.idea.ui.resourcechooser.ResourceGroup;
 import com.android.tools.idea.ui.resourcechooser.ResourceItem;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.renderer.NlDefaultRenderer;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.completion.PrefixMatcher;
 import com.intellij.codeInsight.completion.impl.CamelHumpMatcher;
@@ -49,6 +53,7 @@ import sun.awt.CausedFocusEvent;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
@@ -57,16 +62,19 @@ import java.util.stream.Collectors;
 public class NlReferenceEditor extends NlBaseComponentEditor implements NlComponentEditor {
   private static final int HORIZONTAL_SPACING = 4;
   private static final int VERTICAL_SPACING = 2;
+  private static final int MIN_TEXT_WIDTH = 50;
 
   private final NlEditingListener myListener;
   private final boolean myIncludeBrowseButton;
   private final JPanel myPanel;
   private final JLabel myIconLabel;
+  private final JSlider mySlider;
   private final TextFieldWithAutoCompletion myTextFieldWithAutoCompletion;
   private final CompletionProvider myCompletionProvider;
   private final FixedSizeButton myBrowseButton;
 
   private NlProperty myProperty;
+  private boolean myPropertyHasSlider;
   private String myLastReadValue;
   private String myLastWriteValue;
 
@@ -96,6 +104,13 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
       }
     });
 
+    mySlider = new JSlider();
+    myPanel.add(mySlider, BorderLayout.LINE_START);
+    mySlider.addChangeListener(event -> sliderChange());
+    Dimension size = mySlider.getMinimumSize();
+    size.setSize(size.width * 2, size.height);
+    mySlider.setPreferredSize(size);
+
     myCompletionProvider = new CompletionProvider();
     myTextFieldWithAutoCompletion = new TextFieldWithAutoCompletion<>(project, myCompletionProvider, true, null);
     myTextFieldWithAutoCompletion.setBorder(
@@ -105,6 +120,17 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
     myBrowseButton = new FixedSizeButton(new JBCheckBox());
     myBrowseButton.setToolTipText(UIBundle.message("component.with.browse.button.browse.button.tooltip.text"));
     myPanel.add(myBrowseButton, BorderLayout.LINE_END);
+
+    myPanel.addComponentListener(new ComponentAdapter() {
+      @Override
+      public void componentResized(ComponentEvent event) {
+        if (!myPropertyHasSlider) {
+          return;
+        }
+        int widthForEditor = myPanel.getWidth() - 2 * HORIZONTAL_SPACING - mySlider.getPreferredSize().width - myBrowseButton.getWidth();
+        mySlider.setVisible(widthForEditor >= MIN_TEXT_WIDTH);
+      }
+    });
 
     myTextFieldWithAutoCompletion.registerKeyboardAction(event -> stopEditing(getText()),
                                                          KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0),
@@ -167,15 +193,107 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
       myCompletionProvider.updateCompletions(myProperty);
     }
 
-    Icon icon = NlDefaultRenderer.getIcon(myProperty);
-    myIconLabel.setIcon(icon);
-    myIconLabel.setVisible(icon != null);
+    myPropertyHasSlider = configureSlider();
+    mySlider.setVisible(myPropertyHasSlider);
+    if (myPropertyHasSlider) {
+      myIconLabel.setVisible(false);
+    }
+    else {
+      Icon icon = NlDefaultRenderer.getIcon(myProperty);
+      myIconLabel.setIcon(icon);
+      myIconLabel.setVisible(icon != null);
+    }
 
     String propValue = StringUtil.notNullize(myProperty.getValue());
     if (!propValue.equals(myLastReadValue)) {
       myLastReadValue = propValue;
       myLastWriteValue = propValue;
       myTextFieldWithAutoCompletion.setText(propValue);
+    }
+  }
+
+  private boolean configureSlider() {
+    if (myProperty == null) {
+      return false;
+    }
+    AttributeDefinition definition = myProperty.getDefinition();
+    if (definition == null || Collections.disjoint(definition.getFormats(),
+                                                   ImmutableList.of(AttributeFormat.Dimension, AttributeFormat.Float))) {
+      return false;
+    }
+
+    int maximum;
+    int value;
+    switch (myProperty.getName()) {
+      case SdkConstants.ATTR_ELEVATION:
+      case SdkConstants.ATTR_CARD_ELEVATION:
+        // Range: [0, 24] integer (dp)
+        maximum = 24;
+        value = getValueInDp(0);
+        break;
+      case SdkConstants.ATTR_MIN_HEIGHT:
+        // Range: [0, 250] integer (dp)
+        maximum = 250;
+        value = getValueInDp(180);
+        break;
+      case SdkConstants.ATTR_COLLAPSE_PARALLAX_MULTIPLIER:
+        // Range: [0.0, 1.0] float (no unit)
+        maximum = 10;
+        value = (int)(getValueAsFloat(1.0) * 10 + 0.5);
+        break;
+      default:
+        return false;
+    }
+    mySlider.setMinimum(0);
+    mySlider.setMaximum(maximum);
+    mySlider.setValue(value);
+    return true;
+  }
+
+  private int getValueInDp(int defaultValue) {
+    String valueAsString = myProperty.getValue();
+    if (valueAsString == null) {
+      return defaultValue;
+    }
+    Configuration configuration = myProperty.getModel().getConfiguration();
+    Integer value = ResourceHelper.resolveDimensionPixelSize(myProperty.getResolver(), valueAsString, configuration);
+    if (value == null) {
+      return defaultValue;
+    }
+
+    return value * Density.DEFAULT_DENSITY / configuration.getDensity().getDpiValue();
+  }
+
+  private double getValueAsFloat(double defaultValue) {
+    String valueAsString = myProperty.getValue();
+    if (valueAsString == null) {
+      return defaultValue;
+    }
+    try {
+      return Float.parseFloat(valueAsString);
+    }
+    catch (NumberFormatException ignore) {
+      return defaultValue;
+    }
+  }
+
+  private String getSliderValue() {
+    int value = mySlider.getValue();
+    switch (myProperty.getName()) {
+      case SdkConstants.ATTR_COLLAPSE_PARALLAX_MULTIPLIER:
+        if (value == 10) {
+          return "1.0";
+        }
+        return "0." + value;
+      default:
+        return Quantity.addUnit(myProperty, String.valueOf(value));
+    }
+  }
+
+  private void sliderChange() {
+    myTextFieldWithAutoCompletion.setText(getSliderValue());
+    if (!mySlider.getValueIsAdjusting()) {
+      stopEditing(getText());
     }
   }
 
@@ -210,7 +328,9 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
   private void displayResourcePicker() {
     ChooseResourceDialog dialog = showResourceChooser(myProperty);
     if (dialog.showAndGet()) {
-      stopEditing(dialog.getResourceName());
+      String newValue = dialog.getResourceName();
+      myTextFieldWithAutoCompletion.setText(StringUtil.notNullize(newValue));
+      stopEditing(newValue);
     } else {
       cancelEditing();
     }
