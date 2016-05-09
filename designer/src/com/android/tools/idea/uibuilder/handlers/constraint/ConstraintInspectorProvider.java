@@ -20,7 +20,6 @@ import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.inspector.InspectorComponent;
 import com.android.tools.idea.uibuilder.property.inspector.InspectorProvider;
-import com.android.tools.idea.uibuilder.property.inspector.TextInspectorComponent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
