@@ -34,6 +34,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
+import com.intellij.ui.components.JBCheckBox;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -59,6 +60,7 @@ public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndD
   private JPanel myPanel;
   private JTextField myCompanyDomain;
   private LabelWithEditLink myPackageName;
+  private JBCheckBox myIncludeCppCheck;
 
   public ConfigureAndroidProjectStep(@NotNull Disposable disposable) {
     this("Configure your new project", disposable);
@@ -77,6 +79,7 @@ public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndD
     registerValueDeriver(WizardConstants.PACKAGE_NAME_KEY, PACKAGE_NAME_DERIVER);
     register(WizardConstants.PROJECT_LOCATION_KEY, myProjectLocation);
     registerValueDeriver(WizardConstants.PROJECT_LOCATION_KEY, myProjectLocationDeriver);
+    register(WizardConstants.INCLUDE_CPP_SUPPORT_KEY, myIncludeCppCheck);
 
     myProjectLocation.addActionListener(new ActionListener() {
       @Override
@@ -106,7 +109,7 @@ public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndD
     File parentPath = currentPath.getParentFile();
     if (parentPath == null) {
       String homePath = System.getProperty("user.home");
-      parentPath = homePath == null ? new File("/") : new File(homePath);
+      parentPath = new File(homePath == null ? "/" : homePath);
     }
     VirtualFile parent = LocalFileSystem.getInstance().findFileByIoFile(parentPath);
     String filename = currentPath.getName();

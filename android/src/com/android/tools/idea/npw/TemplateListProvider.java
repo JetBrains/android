@@ -17,6 +17,7 @@ package com.android.tools.idea.npw;
 
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
+import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.ScopedDataBinder;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.collect.ImmutableSet;
@@ -95,6 +96,21 @@ class TemplateListProvider extends ScopedDataBinder.ValueDeriver<TemplateEntry[]
   public TemplateEntry[] deriveValue(@NotNull ScopedStateStore state,
                                      ScopedStateStore.Key changedKey,
                                      @Nullable TemplateEntry[] currentValue) {
+    final boolean hasCppSupport = state.getNotNull(WizardConstants.INCLUDE_CPP_SUPPORT_KEY, false);
+    if (hasCppSupport) {
+      List<TemplateEntry> filtered = Lists.newArrayList();
+      for (TemplateEntry template : myTemplates) {
+        final String title = template.getTitle();
+        if ("Empty Activity".equals(title) || "Basic Activity".equals(title)) {
+          filtered.add(template);
+        }
+      }
+
+      if (!filtered.isEmpty()) {
+        return filtered.toArray(new TemplateEntry[filtered.size()]);
+      }
+    }
+
     Boolean isLauncher = state.get(AddAndroidActivityPath.KEY_IS_LAUNCHER);
     if (!Boolean.TRUE.equals(isLauncher)) {
       return myTemplates;

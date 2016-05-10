@@ -17,6 +17,8 @@ package com.android.tools.idea.wizard;
 
 import com.android.sdklib.repository.legacy.descriptors.IPkgDesc;
 import com.android.tools.idea.npw.ModuleTemplate;
+import com.android.tools.idea.npw.cpp.CppStandardType;
+import com.android.tools.idea.npw.cpp.RuntimeLibraryType;
 import com.android.tools.idea.ui.wizard.StudioWizardLayout;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.SetMultimap;
@@ -97,6 +99,15 @@ public class WizardConstants {
   // TODO: change this an IntProperty, see com.android.tools.idea.sdk.wizard.InstallSelectedPackagesStep#checkForUpgrades
   public static final Key<Integer> NEWLY_INSTALLED_API_KEY = createKey("newly.installed.api.level", WIZARD, Integer.class);
   public static final Key<Boolean> IS_LIBRARY_KEY = createKey(ATTR_IS_LIBRARY_MODULE, WIZARD, Boolean.class);
+
+  // Native support configuration in new project wizard, see ConfigureCppSupportStep for usages
+  public static final Key<Boolean> INCLUDE_CPP_SUPPORT_KEY = createKey("includeCppSupport", WIZARD, Boolean.class);
+  public static final Key<CppStandardType> CPP_STANDARD_TYPE_KEY = createKey("cppStandard", WIZARD, CppStandardType.class);
+  public static final Key<RuntimeLibraryType> CPP_RUNTIME_LIBRARY_TYPE_KEY = createKey("cppRuntimeLibrary", WIZARD, RuntimeLibraryType.class);
+  public static final Key<String> CPP_RUNTIME_LIBRARY_TYPE_STRING_KEY = createKey("cppRuntimeLibraryString", WIZARD, String.class);
+  public static final Key<Boolean> CPP_ENABLE_EXCEPTIONS_KEY = createKey("cppEnableExceptions", WIZARD, Boolean.class);
+  public static final Key<Boolean> CPP_ENABLE_RTTI_KEY = createKey("cppEnableRtti", WIZARD, Boolean.class);
+  public static final Key<String> CPP_FLAGS_KEY = createKey("cppFlags", WIZARD, String.class);
 
   /**
    * Files to open in the editor window after the Wizard is finished.
