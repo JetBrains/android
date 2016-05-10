@@ -19,13 +19,10 @@ import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.NullOutputReceiver;
-import com.android.ddmlib.logcat.LogCatHeader;
 import com.android.ddmlib.logcat.LogCatMessage;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.logcat.AndroidLogcatFormatter;
 import com.android.tools.idea.logcat.AndroidLogcatService;
-import com.android.tools.idea.logcat.AndroidLogcatUtils;
-import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.execution.process.ProcessOutputTypes;
@@ -87,34 +84,23 @@ public class AndroidProcessHandler extends DefaultDebugProcessHandler implements
   public void addTargetDevice(@NotNull final IDevice device) {
     myDevices.add(device.getSerialNumber());
 
-    AndroidLogcatService.LogLineListener logListener = new AndroidLogcatService.LogLineListener() {
+    AndroidLogcatService.LogLineListener logListener = new ApplicationLogListener(myApplicationId) {
       private final String SIMPLE_FORMAT = AndroidLogcatFormatter.createCustomFormat(false, false, false, true);
-      @Nullable private LogCatHeader myActiveHeader;
 
-      @NotNull
-      private String formatLogLine(@NotNull LogCatMessage line) {
-        assert myActiveHeader != null;
-        String message = AndroidLogcatFormatter.formatMessage(SIMPLE_FORMAT, myActiveHeader, line.getMessage());
-        return (myDevices.size() > 1 ? "[" + device.getName() + "] " : "") + message;
+      @Override
+      protected String formatLogLine(@NotNull LogCatMessage line) {
+        String message = AndroidLogcatFormatter.formatMessage(SIMPLE_FORMAT, line.getHeader(), line.getMessage());
+        if (myDevices.size() > 1) {
+          return String.format("[%1$s]: %2$s", device.getName(), message);
+        }
+        else {
+          return message;
+        }
       }
 
       @Override
-      public void receiveLogLine(@NotNull LogCatMessage line) {
-        if (!line.getHeader().getAppName().equals(myApplicationId)) {
-          myActiveHeader = null;
-          return;
-        }
-
-        String message;
-        if (!line.getHeader().equals(myActiveHeader)) {
-          myActiveHeader = line.getHeader();
-          message = formatLogLine(line);
-        } else {
-          message = Strings.repeat(" ", formatLogLine(line).indexOf(line.getMessage())) + line.getMessage();
-        }
-
-        Key key = AndroidLogcatUtils.getProcessOutputType(myActiveHeader.getLogLevel());
-        notifyTextAvailable(message + "\n", key);
+      protected void notifyTextAvailable(@NotNull String message, @NotNull Key key) {
+        AndroidProcessHandler.this.notifyTextAvailable(message, key);
       }
     };
     AndroidLogcatService.getInstance().addListener(device, logListener, true);
