@@ -114,7 +114,7 @@ public class AxisLineChartVisualTest extends VisualTest {
     mGrid.addAxis(mMemoryAxis1);
 
     final Range xSelectionRange = new Range(0, 0);
-    mSelection = new SelectionComponent(mTimeAxis, xSelectionRange, mXGlobalRange, xRange);
+    mSelection = new SelectionComponent(mLineChart, mTimeAxis, xSelectionRange, mXGlobalRange, xRange);
 
     // Note: the order below is important as some components depend on
     // others to be updated first. e.g. the ranges need to be updated before the axes.

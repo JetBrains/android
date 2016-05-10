@@ -16,7 +16,11 @@
 package com.android.tools.adtui;
 
 import com.android.annotations.NonNull;
+import com.android.tools.adtui.model.ReportingSeries;
+import com.android.tools.adtui.model.ReportingSeriesRenderer;
+import gnu.trove.TIntArrayList;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -25,6 +29,8 @@ import java.awt.event.MouseWheelListener;
 import java.awt.geom.Path2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.RoundRectangle2D;
+import java.util.ArrayList;
+
 
 /**
  * A component for performing/rendering selection and any overlay information (e.g. Tooltip).
@@ -44,6 +50,19 @@ public final class SelectionComponent extends AnimatedComponent {
   private static final Color SELECTION_FORECOLOR = new Color(0x88aae2);
   private static final Color SELECTION_BACKCOLOR = new Color(0x5588aae2, true);
 
+  /**
+   * Drawing parameters for the overlay info when user hovers over the charting components.
+   */
+  private static final Color OVERLAY_INFO_BACKGROUND = Color.WHITE;
+  private static final Color OVERLAY_INFO_HINT_COLOR = new Color(168, 168, 168);
+  private static final int OVERLAY_INFO_PADDING = 5;
+  private static final int OVERLAY_INFO_LINE_SPACING = 5;
+  private static final int OVERLAY_INFO_COLUMN_SPACING = 10;
+  private static final int OVERLAY_INFO_MIN_WIDTH = 200;
+  private static final int OVERLAY_INFO_OFFSET = 10;
+  private static final int OVERLAY_SHADOW_OFFSET = 2;
+  private static final String OVERLAY_DRILL_DOWN_MESSAGE = "Double click to drill down";
+
   private enum Mode {
     // There are currently no selection.
     NO_SELECTION,
@@ -62,6 +81,9 @@ public final class SelectionComponent extends AnimatedComponent {
   }
 
   private Mode mode;
+
+  @NonNull
+  private final Component mHost;
 
   @NonNull
   private final AxisComponent mAxis;
@@ -96,15 +118,26 @@ public final class SelectionComponent extends AnimatedComponent {
   private double mZoomMinTarget;
   private double mZoomMaxTarget;
 
-  public SelectionComponent(@NonNull AxisComponent axis,
+  /***
+   * The container with series data to report. This should be the currently hovered charting component.
+   */
+  private ReportingSeriesRenderer mReportingContainer;
+
+  @NonNull
+  private final ArrayList<ReportingSeries.ReportingData> mReportingData;
+
+  public SelectionComponent(@NonNull Component host,
+                            @NonNull AxisComponent axis,
                             @NonNull Range selectionRange,
                             @NonNull Range dataRange,
                             @NonNull Range viewRange) {
+    mHost = host;
     mAxis = axis;
     mDataRange = dataRange;
     mViewRange = viewRange;
     mode = Mode.NO_SELECTION;
     mSelectionRange = selectionRange;
+    mReportingData = new ArrayList<>();
 
     initListeners();
   }
@@ -113,7 +146,7 @@ public final class SelectionComponent extends AnimatedComponent {
   // e.g.1 When the user presses once, after having a range selection the selection should deselect.
   // e.g.2 When the user moves the mouse after a point selection, after X seconds the selection should deselect
   private void initListeners() {
-    addMouseListener(new MouseAdapter() {
+    mHost.addMouseListener(new MouseAdapter() {
       @Override
       public void mousePressed(MouseEvent e) {
         // Just capture events of the left mouse button.
@@ -152,7 +185,7 @@ public final class SelectionComponent extends AnimatedComponent {
       }
     });
 
-    addMouseWheelListener(new MouseWheelListener() {
+    mHost.addMouseWheelListener(new MouseWheelListener() {
       @Override
       public void mouseWheelMoved(MouseWheelEvent e) {
         double anchor = mAxis.getValueAtPosition(e.getPoint().x);
@@ -238,16 +271,29 @@ public final class SelectionComponent extends AnimatedComponent {
       mZoomRequested = false;
     }
 
+    Point mousePosition = getMouseLocation();
+    double valueAtCursor = mAxis.getValueAtPosition(mousePosition.x);
+    // Clamp to data range.
+    valueAtCursor = mDataRange.clamp(valueAtCursor);
+
+    // Gather any series data that need to be shown in the overlay.
+    mReportingContainer = null;
+    mReportingData.clear();
+    Component hoveredComponent = SwingUtilities.getDeepestComponentAt(mHost, mousePosition.x, mousePosition.y);
+    if (hoveredComponent instanceof ReportingSeriesRenderer) {
+      mReportingContainer = (ReportingSeriesRenderer)hoveredComponent;
+      for (ReportingSeries series : mReportingContainer.getReportingSeries()) {
+        for (ReportingSeries.ReportingData data : series.getFullReportingData((long)valueAtCursor)) {
+          mReportingData.add(data);
+          mReportingContainer.markData(data.timeStamp);
+        }
+      }
+    }
+
     // Early return if in observe mode and the selection has not changed.
     if (mode == Mode.OBSERVE || mode == Mode.NO_SELECTION) {
       return;
     }
-
-    Point mousePosition = getMouseLocation();
-    double valueAtCursor = mAxis.getValueAtPosition(mousePosition.x);
-
-    // Clamp to data range.
-    valueAtCursor = mDataRange.clamp(valueAtCursor);
 
     // Extend view range if necessary
     // If extended, lock range to force Scrollbar to quit STREAMING mode.
@@ -296,17 +342,16 @@ public final class SelectionComponent extends AnimatedComponent {
     }
   }
 
-  private void drawCursor() {
-    Point mMousePosition = getMouseLocation();
+  private void drawCursor(Point position) {
     int cursor = Cursor.DEFAULT_CURSOR;
 
-    if (getHandleAreaForValue(mSelectionRange.getMax()).contains(mMousePosition) ||
-        getHandleAreaForValue(mSelectionRange.getMin()).contains(mMousePosition)) {
+    if (getHandleAreaForValue(mSelectionRange.getMax()).contains(position) ||
+        getHandleAreaForValue(mSelectionRange.getMin()).contains(position)) {
       // Detect mouse over the handles.
       // TODO: Replace with appropriate cursor.
       cursor = Cursor.MOVE_CURSOR;
     }
-    else if (getBetweenHandlesArea().contains(mMousePosition)) {
+    else if (getBetweenHandlesArea().contains(position)) {
       // Detect mouse between handles
       cursor = Cursor.HAND_CURSOR;
     }
@@ -316,38 +361,112 @@ public final class SelectionComponent extends AnimatedComponent {
     }
   }
 
-  @Override
-  protected void draw(Graphics2D g) {
-    // Early return if there is no active selection.
-    if (mode == Mode.NO_SELECTION) {
+  /**
+   * Manually draws a overlaying rectangle displaying rows of data corresponding to where
+   * the user is currently pointing at.
+   */
+  private void drawOverlayInfo(Graphics2D g, Point position) {
+    if (mReportingContainer == null) {
       return;
     }
 
+    int ascent = mDefaultFontMetrics.getAscent();
+    int labelColumnWidth = 0;
+    int dataColumnWidth = 0;
+    int overlayHeight = OVERLAY_INFO_PADDING * 2 +  // top + bottom padding
+                        ascent + OVERLAY_INFO_LINE_SPACING;  // spacing for default double-click message.
+
+    String containerName = mReportingContainer.getContainerName();
+    if (containerName != null) {
+      labelColumnWidth = mDefaultFontMetrics.stringWidth(containerName);
+      overlayHeight += ascent + OVERLAY_INFO_LINE_SPACING;
+    }
+
+    // First pass through the data to measure the necessary width and height of the background rectangle.
+    TIntArrayList dataWidthArray = new TIntArrayList();
+    for (ReportingSeries.ReportingData data : mReportingData) {
+      int labelWidth = mDefaultFontMetrics.stringWidth(data.label);
+      int dataWidth = mDefaultFontMetrics.stringWidth(data.formattedData);
+      labelColumnWidth = Math.max(labelColumnWidth, labelWidth);
+      dataColumnWidth = Math.max(dataColumnWidth, dataWidth);
+      dataWidthArray.add(dataWidth);
+
+      overlayHeight += ascent + OVERLAY_INFO_LINE_SPACING;
+    }
+
+    int overlayWidth = Math.max(OVERLAY_INFO_MIN_WIDTH,
+                                // Account for padding on both sides and the spacing between the label and data columns.
+                                OVERLAY_INFO_PADDING * 2 + OVERLAY_INFO_COLUMN_SPACING + labelColumnWidth + dataColumnWidth);
+
+    // TODO adjust placement position if we are out of space to the right.
+    Rectangle2D.Float rect = new Rectangle2D.Float(0, 0, overlayWidth, overlayHeight);
+    g.translate(position.x + OVERLAY_INFO_OFFSET, position.y + OVERLAY_INFO_OFFSET);
+    g.translate(OVERLAY_SHADOW_OFFSET, OVERLAY_SHADOW_OFFSET);
+    g.setColor(TEXT_COLOR);
+    g.fill(rect); // drop shadow
+    g.translate(-OVERLAY_SHADOW_OFFSET, -OVERLAY_SHADOW_OFFSET);
+    g.setColor(OVERLAY_INFO_BACKGROUND);
+    g.fill(rect); // overlay window surface.
+
+    // Second pass through the data to draw the individual texts.
+    g.setColor(TEXT_COLOR);
+    int textHeight = OVERLAY_INFO_PADDING;
+    if (containerName != null) {
+      textHeight += ascent;
+      g.drawString(containerName, OVERLAY_INFO_PADDING, textHeight);
+      textHeight += OVERLAY_INFO_LINE_SPACING;
+    }
+
+    for (int i = 0; i < mReportingData.size(); i++) {
+      ReportingSeries.ReportingData data = mReportingData.get(i);
+      textHeight += ascent;
+      g.drawString(data.label, OVERLAY_INFO_PADDING, textHeight);
+      g.drawString(data.formattedData, overlayWidth - OVERLAY_INFO_PADDING - dataWidthArray.get(i), textHeight);
+      textHeight += OVERLAY_INFO_LINE_SPACING;
+    }
+
+    // Draw separator and double-click instruction message.
+    g.setColor(OVERLAY_INFO_HINT_COLOR);
+    g.drawLine(0, textHeight, overlayWidth, textHeight);
+    textHeight += OVERLAY_INFO_LINE_SPACING + ascent;
+    g.drawString(OVERLAY_DRILL_DOWN_MESSAGE, OVERLAY_INFO_PADDING, textHeight);
+
+    // Reset transform.
+    g.translate(-(position.x + OVERLAY_INFO_OFFSET), -(position.y + OVERLAY_INFO_OFFSET));
+  }
+
+  @Override
+  protected void draw(Graphics2D g) {
     Dimension dim = getSize();
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    Point mousePosition = getMouseLocation();
 
-    drawCursor();
+    // Draw selection indcators if a selection exists.
+    if (mode != Mode.NO_SELECTION) {
+      drawCursor(mousePosition);
 
-    // Draw selected area.
-    g.setColor(SELECTION_BACKCOLOR);
-    float startXPos = mAxis.getPositionAtValue(mSelectionRange.getMin());
-    float endXPos = mAxis.getPositionAtValue(mSelectionRange.getMax());
-    Rectangle2D.Float rect = new Rectangle2D.Float(startXPos, 0, endXPos - startXPos,
-                                                   dim.height);
-    g.fill(rect);
+      // Draw selected area.
+      g.setColor(SELECTION_BACKCOLOR);
+      float startXPos = mAxis.getPositionAtValue(mSelectionRange.getMin());
+      float endXPos = mAxis.getPositionAtValue(mSelectionRange.getMax());
+      Rectangle2D.Float rect = new Rectangle2D.Float(startXPos, 0, endXPos - startXPos, dim.height);
+      g.fill(rect);
 
-    // Draw vertical lines, one for each endsValue.
-    g.setColor(SELECTION_FORECOLOR);
-    Path2D.Float path = new Path2D.Float();
-    path.moveTo(startXPos, 0);
-    path.lineTo(startXPos, dim.height);
-    path.moveTo(endXPos, dim.height);
-    path.lineTo(endXPos, 0);
-    g.draw(path);
+      // Draw vertical lines, one for each endsValue.
+      g.setColor(SELECTION_FORECOLOR);
+      Path2D.Float path = new Path2D.Float();
+      path.moveTo(startXPos, 0);
+      path.lineTo(startXPos, dim.height);
+      path.moveTo(endXPos, dim.height);
+      path.lineTo(endXPos, 0);
+      g.draw(path);
 
-    // Draw handles
-    drawHandleAtValue(g, mSelectionRange.getMin());
-    drawHandleAtValue(g, mSelectionRange.getMax());
+      // Draw handles
+      drawHandleAtValue(g, mSelectionRange.getMin());
+      drawHandleAtValue(g, mSelectionRange.getMax());
+    }
+
+    drawOverlayInfo(g, mousePosition);
   }
 
   private void requestZoom(double minTarget, double maxTarget) {

@@ -36,8 +36,6 @@ public final class AxisComponent extends AnimatedComponent {
     TOP
   }
 
-  private static final Font DEFAULT_FONT = new Font("Sans", Font.PLAIN, 10);
-  private static final Color TEXT_COLOR = new Color(128, 128, 128);
   private static final int MAJOR_MARKER_LENGTH = 12;
   private static final int MINOR_MARKER_LENGTH = 3;
   private static final int MARKER_LABEL_MARGIN = 2;
