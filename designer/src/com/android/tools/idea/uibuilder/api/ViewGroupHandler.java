@@ -129,6 +129,12 @@ public class ViewGroupHandler extends ViewHandler {
     return null;
   }
 
+
+  @Nullable
+  public ScrollHandler createScrollHandler(@NotNull ViewEditor editor, @NotNull NlComponent component) {
+    return null;
+  }
+
   /**
    * Called when a child for this view has been created and is being inserted into the
    * view parent for which this {@linkplain ViewHandler} applies. Allows the parent to perform

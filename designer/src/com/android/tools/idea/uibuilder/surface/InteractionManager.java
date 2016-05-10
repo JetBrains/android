@@ -41,6 +41,7 @@ import java.util.List;
 
 import static com.android.tools.idea.uibuilder.model.SelectionHandle.PIXEL_MARGIN;
 import static com.android.tools.idea.uibuilder.model.SelectionHandle.PIXEL_RADIUS;
+import static java.awt.event.MouseWheelEvent.WHEEL_UNIT_SCROLL;
 
 /**
  * The {@linkplain InteractionManager} is is the central manager of interactions; it is responsible
@@ -50,6 +51,7 @@ import static com.android.tools.idea.uibuilder.model.SelectionHandle.PIXEL_RADIU
  */
 public class InteractionManager {
   private static final int HOVER_DELAY_MS = Registry.intValue("ide.tooltip.initialDelay");
+  private static final int SCROLL_END_TIME_MS = 500;
 
   /** The canvas which owns this {@linkplain InteractionManager}. */
   @NotNull
@@ -100,6 +102,13 @@ public class InteractionManager {
   private final Timer myHoverTimer;
 
   /**
+   * A timer used to decide when we can end the scroll motion.
+   */
+  private final Timer myScrollEndTimer;
+
+  private final ActionListener myScrollEndListener;
+
+  /**
    * Listener for mouse motion, click and keyboard events.
    */
   private Listener myListener;
@@ -118,6 +127,17 @@ public class InteractionManager {
 
     myHoverTimer = new Timer(HOVER_DELAY_MS, null);
     myHoverTimer.setRepeats(false);
+
+    myScrollEndTimer = new Timer(SCROLL_END_TIME_MS, null);
+    myScrollEndTimer.setRepeats(false);
+
+    myScrollEndListener = new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        myScrollEndTimer.removeActionListener(this);
+        finishInteraction(0, 0, 0, false);
+      }
+    };
   }
 
   /**
@@ -150,6 +170,7 @@ public class InteractionManager {
     myListener = new Listener();
     JComponent layeredPane = mySurface.getLayeredPane();
     layeredPane.addMouseMotionListener(myListener);
+    layeredPane.addMouseWheelListener(myListener);
     layeredPane.addMouseListener(myListener);
     layeredPane.addKeyListener(myListener);
 
@@ -323,7 +344,7 @@ public class InteractionManager {
    * Helper class which implements the {@link MouseMotionListener},
    * {@link MouseListener} and {@link KeyListener} interfaces.
    */
-  private class Listener implements MouseMotionListener, MouseListener, KeyListener, DropTargetListener, ActionListener {
+  private class Listener implements MouseMotionListener, MouseListener, KeyListener, DropTargetListener, ActionListener, MouseWheelListener {
 
     // --- Implements MouseListener ----
 
@@ -844,6 +865,47 @@ public class InteractionManager {
 
       // TODO: find the correct tooltip? to show
       mySurface.hover(x, y);
+    }
+
+    // --- Implements MouseWheelListener ----
+
+    @Override
+    public void mouseWheelMoved(MouseWheelEvent e) {
+      int x = e.getX();
+      int y = e.getY();
+
+      ScreenView screenView = mySurface.getScreenView(x, y);
+      if (screenView == null) {
+        return;
+      }
+
+      final NlComponent component = Coordinates.findComponent(screenView, x, y);
+      if (component == null) {
+        return;
+      }
+
+      int scrollAmount;
+      if (e.getScrollType() == WHEEL_UNIT_SCROLL) {
+        scrollAmount = e.getUnitsToScroll();
+      }
+      else {
+        scrollAmount = (e.getWheelRotation() < 0 ? -1 : 1);
+      }
+
+      boolean isScrollInteraction;
+      if (myCurrentInteraction == null) {
+        // Start a scroll interaction and a timer to bundle all the scroll events
+        startInteraction(x, y, new ScrollInteraction(screenView, component), 0);
+        isScrollInteraction = true;
+        myScrollEndTimer.addActionListener(myScrollEndListener);
+      } else {
+        isScrollInteraction = myCurrentInteraction instanceof ScrollInteraction;
+      }
+      myCurrentInteraction.scroll(e.getX(), e.getY(), scrollAmount);
+
+      if (isScrollInteraction) {
+        myScrollEndTimer.restart();
+      }
     }
   }
 
