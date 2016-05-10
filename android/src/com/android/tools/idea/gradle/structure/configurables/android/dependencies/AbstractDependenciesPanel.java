@@ -67,6 +67,7 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
   @NotNull private final EmptyPanel myEmptyDetailsPanel;
   @NotNull private final DependencyInfoPanel myInfoPanel;
   @NotNull private final JScrollPane myInfoScrollPane;
+  @NotNull private final Header myHeader;
   @NotNull private final JPanel myContentsPanel;
   @NotNull private final String myEmptyText;
 
@@ -92,8 +93,8 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
     myInfoScrollPane = createScrollPane(myEmptyDetailsPanel, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
     myInfoScrollPane.setBorder(createEmptyBorder());
 
-    Header header = new Header(title);
-    add(header, BorderLayout.NORTH);
+    myHeader = new Header(title);
+    add(myHeader, BorderLayout.NORTH);
 
     JBSplitter splitter = new JBSplitter(true, "psd.editable.dependencies.main.horizontal.splitter.proportion", 0.55f);
 
@@ -105,6 +106,9 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
 
     add(splitter, BorderLayout.CENTER);
   }
+
+  @NotNull
+  public abstract JComponent getPreferredFocusedComponent();
 
   protected void addDetails(@NotNull DependencyDetails<?> details) {
     myDependencyDetails.put(details.getSupportedModelType(), details);
@@ -216,6 +220,11 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
   }
 
   @NotNull
+  public Header getHeader() {
+    return myHeader;
+  }
+
+  @NotNull
   public String getEmptyText() {
     return myEmptyText;
   }
@@ -231,6 +240,9 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
   }
 
   protected void beforeAddingDependency() {
+  }
+
+  public void notifySelectionChanged() {
   }
 
   private class AddDependencyAction extends AbstractPopupAction {
