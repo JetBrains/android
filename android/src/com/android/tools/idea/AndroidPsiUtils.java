@@ -48,13 +48,8 @@ public class AndroidPsiUtils {
    */
   @Nullable
   public static PsiFile getPsiFileSafely(@NotNull final Project project, @NotNull final VirtualFile file) {
-    return ApplicationManager.getApplication().runReadAction(new Computable<PsiFile>() {
-      @Nullable
-      @Override
-      public PsiFile compute() {
-        return file.isValid() ? PsiManager.getInstance(project).findFile(file) : null;
-      }
-    });
+    return ApplicationManager.getApplication().runReadAction(
+      (Computable<PsiFile>)() -> file.isValid() ? PsiManager.getInstance(project).findFile(file) : null);
   }
 
   /**
@@ -66,13 +61,7 @@ public class AndroidPsiUtils {
    */
   @Nullable
   public static Module getModuleSafely(@NotNull final PsiElement element) {
-    return ApplicationManager.getApplication().runReadAction(new Computable<Module>() {
-      @Nullable
-      @Override
-      public Module compute() {
-        return ModuleUtilCore.findModuleForPsiElement(element);
-      }
-    });
+    return ApplicationManager.getApplication().runReadAction((Computable<Module>)() -> ModuleUtilCore.findModuleForPsiElement(element));
   }
 
   /**
@@ -85,13 +74,9 @@ public class AndroidPsiUtils {
    */
   @Nullable
   public static Module getModuleSafely(@NotNull final Project project, @NotNull final VirtualFile file) {
-    return ApplicationManager.getApplication().runReadAction(new Computable<Module>() {
-      @Nullable
-      @Override
-      public Module compute() {
-        PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
-        return psiFile == null ? null : ModuleUtilCore.findModuleForPsiElement(psiFile);
-      }
+    return ApplicationManager.getApplication().runReadAction((Computable<Module>)() -> {
+      PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
+      return psiFile == null ? null : ModuleUtilCore.findModuleForPsiElement(psiFile);
     });
   }
 
@@ -107,17 +92,11 @@ public class AndroidPsiUtils {
     if (ApplicationManager.getApplication().isReadAccessAllowed()) {
       return file.getRootTag();
     }
-    return ApplicationManager.getApplication().runReadAction(new Computable<XmlTag>() {
-      @Nullable
-      @Override
-      public XmlTag compute() {
-        return file.getRootTag();
-      }
-    });
+    return ApplicationManager.getApplication().runReadAction((Computable<XmlTag>)file::getRootTag);
   }
 
   /**
-   * Get the value of an attribute in the {@link com.intellij.psi.xml.XmlFile} safely (meaning it will acquire the read lock first).
+   * Get the value of an attribute in the {@link XmlFile} safely (meaning it will acquire the read lock first).
    */
   @Nullable
   public static String getRootTagAttributeSafely(@NotNull final XmlFile file,
@@ -125,13 +104,7 @@ public class AndroidPsiUtils {
                                                  @Nullable final String namespace) {
     Application application = ApplicationManager.getApplication();
     if (!application.isReadAccessAllowed()) {
-      return application.runReadAction(new Computable<String>() {
-        @Nullable
-        @Override
-        public String compute() {
-          return getRootTagAttributeSafely(file, attribute, namespace);
-        }
-      });
+      return application.runReadAction((Computable<String>)() -> getRootTagAttributeSafely(file, attribute, namespace));
     } else {
       XmlTag tag = file.getRootTag();
       if (tag != null) {
@@ -152,13 +125,7 @@ public class AndroidPsiUtils {
    */
   @Nullable
   public static PsiDirectory getPsiDirectorySafely(@NotNull final Project project, @NotNull final VirtualFile dir) {
-    return ApplicationManager.getApplication().runReadAction(new Computable<PsiDirectory>() {
-      @Nullable
-      @Override
-      public PsiDirectory compute() {
-        return PsiManager.getInstance(project).findDirectory(dir);
-      }
-    });
+    return ApplicationManager.getApplication().runReadAction((Computable<PsiDirectory>)() -> PsiManager.getInstance(project).findDirectory(dir));
   }
 
   /**
@@ -269,9 +236,10 @@ public class AndroidPsiUtils {
       return null;
     }
 
+    @SuppressWarnings("ConditionalExpressionWithIdenticalBranches")
     PsiReferenceExpression exp = resourceRefElement instanceof PsiReferenceExpression ?
                                  (PsiReferenceExpression)resourceRefElement :
-                                 (PsiReferenceExpression)resourceRefElement.getParent();
+                                 (PsiReferenceExpression)(resourceRefElement.getParent());
 
     PsiElement resolvedElement = exp.resolve();
     if (resolvedElement == null) {
@@ -328,7 +296,7 @@ public class AndroidPsiUtils {
   }
 
   /**
-   * Returns the {@link com.intellij.psi.PsiClass#getQualifiedName()} and acquires a read lock
+   * Returns the {@link PsiClass#getQualifiedName()} and acquires a read lock
    * if necessary
    *
    * @param psiClass the class to look up the qualified name for
@@ -339,13 +307,7 @@ public class AndroidPsiUtils {
     if (ApplicationManager.getApplication().isReadAccessAllowed()) {
       return psiClass.getQualifiedName();
     } else {
-      return ApplicationManager.getApplication().runReadAction(new Computable<String>() {
-        @Nullable
-        @Override
-        public String compute() {
-          return psiClass.getQualifiedName();
-        }
-      });
+      return ApplicationManager.getApplication().runReadAction((Computable<String>)psiClass::getQualifiedName);
     }
   }
 
@@ -375,13 +337,16 @@ public class AndroidPsiUtils {
     if (ApplicationManager.getApplication().isReadAccessAllowed()) {
       return tag.getAttributeValue(name, namespace);
     } else {
-      return ApplicationManager.getApplication().runReadAction(new Computable<String>() {
-        @Nullable
-        @Override
-        public String compute() {
-          return tag.getAttributeValue(name, namespace);
-        }
-      });
+      return ApplicationManager.getApplication().runReadAction((Computable<String>)() -> tag.getAttributeValue(name, namespace));
+    }
+  }
+
+  public static boolean isValid(@NotNull final XmlTag tag) {
+    if (ApplicationManager.getApplication().isReadAccessAllowed()) {
+      return tag.isValid();
+    }
+    else {
+      return ApplicationManager.getApplication().runReadAction((Computable<Boolean>)tag::isValid);
     }
   }
 }
