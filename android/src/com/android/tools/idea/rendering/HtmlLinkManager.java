@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.ide.common.repository.GradleCoordinate;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
@@ -62,6 +64,7 @@ import javax.swing.*;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -86,6 +89,7 @@ public class HtmlLinkManager {
   private static final String URL_REPLACE_ATTRIBUTE_VALUE = "replaceAttributeValue:";
   private static final String URL_DISABLE_SANDBOX = "disableSandbox:";
   private static final String URL_REFRESH_RENDER = "refreshRender";
+  private static final String URL_INSTALL_ARTIFACT = "installArtifact:";
   static final String URL_ACTION_CLOSE = "action:close";
 
   private SparseArray<Runnable> myLinkRunnables;
@@ -175,6 +179,11 @@ public class HtmlLinkManager {
       Runnable linkRunnable = getLinkRunnable(url);
       if (linkRunnable != null) {
         linkRunnable.run();
+      }
+    }
+    else if (url.startsWith(URL_INSTALL_ARTIFACT)) {
+      if (module != null) {
+        handleInstallArtifact(url, module);
       }
     }
     else if (url.startsWith(URL_COMMAND)) {
@@ -882,5 +891,17 @@ public class HtmlLinkManager {
         }
       }
     }
+  }
+
+  public String createInstallArtifactUrl(String artifact) {
+    return URL_INSTALL_ARTIFACT + artifact;
+  }
+
+  private static void handleInstallArtifact(@NotNull String url, @NotNull final Module module) {
+    assert url.startsWith(URL_INSTALL_ARTIFACT) : url;
+    String artifact = url.substring(URL_INSTALL_ARTIFACT.length());
+    GradleDependencyManager manager = GradleDependencyManager.getInstance(module.getProject());
+    GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(artifact + ":+");
+    manager.ensureLibraryIsIncluded(module, Collections.singletonList(coordinate), null);
   }
 }
