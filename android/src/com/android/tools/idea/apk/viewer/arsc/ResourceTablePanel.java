@@ -19,7 +19,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.devrel.gmscore.tools.apk.arsc.*;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.Splitter;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.*;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
@@ -40,7 +39,7 @@ public class ResourceTablePanel {
   private JBTable myResourceTypeTable;
   private SimpleColoredComponent myResourceTableHeader;
 
-  public ResourceTablePanel(@NotNull ResourceFile resourceFile) {
+  public ResourceTablePanel(@NotNull BinaryResourceFile resourceFile) {
     List<Chunk> chunks = resourceFile.getChunks();
     if (chunks.isEmpty()) {
       throw new IllegalArgumentException("no chunks");

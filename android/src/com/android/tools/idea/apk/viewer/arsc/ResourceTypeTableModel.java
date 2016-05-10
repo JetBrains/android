@@ -51,7 +51,7 @@ public class ResourceTypeTableModel extends AbstractTableModel {
   @Override
   public Object getValueAt(int row, int col) {
     if (col == 0) { // resource id
-      ResourceIdentifier id = ResourceIdentifier.create(myPackageChunk.getId(), myTypeSpec.getId(), row);
+      BinaryResourceIdentifier id = BinaryResourceIdentifier.create(myPackageChunk.getId(), myTypeSpec.getId(), row);
       return id.toString();
     }
     else if (col == 1) { // resource name
@@ -69,11 +69,11 @@ public class ResourceTypeTableModel extends AbstractTableModel {
       TypeChunk typeChunk = myTypes.get(col - 2);
       if (typeChunk.getEntries().containsKey(row)) {
         TypeChunk.Entry entry = typeChunk.getEntries().get(row);
-        ResourceValue value = entry.value();
+        BinaryResourceValue value = entry.value();
         if (value != null) {
           return formatValue(value);
         }
-        Map<Integer, ResourceValue> values = entry.values();
+        Map<Integer, BinaryResourceValue> values = entry.values();
         if (values != null) {
           return values.values().stream().map(this::formatValue).collect(Collectors.joining(", "));
         }
@@ -86,8 +86,8 @@ public class ResourceTypeTableModel extends AbstractTableModel {
   }
 
   @NotNull
-  private String formatValue(@NotNull ResourceValue value) {
-    if (value.type() == ResourceValue.Type.STRING) {
+  private String formatValue(@NotNull BinaryResourceValue value) {
+    if (value.type() == BinaryResourceValue.Type.STRING) {
       return myStringPool.getString(value.data());
     }
     return BinaryXmlParser.formatValue(value, myStringPool);
