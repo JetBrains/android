@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.property.inspector;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintInspectorProvider;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlDesignProperties;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
@@ -74,8 +73,7 @@ public class InspectorPanel extends JPanel {
   }
 
   private static List<InspectorProvider> createProviders(@NotNull Project project) {
-    return ImmutableList.of(new ConstraintInspectorProvider(),
-                            new IdInspectorProvider(),
+    return ImmutableList.of(new IdInspectorProvider(),
                             new ViewInspectorProvider(project),
                             new ProgressBarInspectorProvider(),
                             new TextInspectorProvider()
@@ -128,8 +126,10 @@ public class InspectorPanel extends JPanel {
     myInspector.add(new Spacer(), new GridConstraints(myRow++, 0, 1, 2, ANCHOR_CENTER, FILL_HORIZONTAL, SIZEPOLICY_CAN_GROW, SIZEPOLICY_CAN_GROW | SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
 
     // These are both important to render the controls correctly the first time:
-    validate();
-    repaint();
+    ApplicationManager.getApplication().invokeLater(() -> {
+      revalidate();
+      repaint();
+    });
   }
 
   public void refresh() {

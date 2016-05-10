@@ -15,21 +15,21 @@
  */
 package com.android.tools.idea.uibuilder.property.inspector;
 
+import com.android.tools.idea.uibuilder.handlers.constraint.WidgetConstraintPanel;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
-import com.android.tools.idea.uibuilder.property.editors.NlEditingListener;
-import com.android.tools.idea.uibuilder.property.editors.NlLayoutEditor;
 import com.android.tools.idea.uibuilder.property.editors.NlReferenceEditor;
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.List;
 import java.util.Map;
 
-import static com.android.SdkConstants.ATTR_ID;
+import static com.android.SdkConstants.*;
+import static com.android.tools.idea.uibuilder.property.editors.NlEditingListener.DEFAULT_LISTENER;
 
 public class IdInspectorProvider implements InspectorProvider {
   private IdInspectorComponent myComponent;
@@ -52,69 +52,80 @@ public class IdInspectorProvider implements InspectorProvider {
   }
 
   private static class IdInspectorComponent implements InspectorComponent {
-    private final NlReferenceEditor myIdField;
-    private final NlLayoutEditor myLayoutEditor;
+    private final NlReferenceEditor myIdEditor;
+    private final NlReferenceEditor myWidthEditor;
+    private final NlReferenceEditor myHeightEditor;
+    private final WidgetConstraintPanel myConstraintWidget;
 
     private NlProperty myIdAttr;
+    private NlProperty myLayoutWidth;
+    private NlProperty myLayoutHeight;
 
     public IdInspectorComponent(@NotNull NlPropertiesManager propertiesManager) {
-      myIdField = NlReferenceEditor.createForInspector(propertiesManager.getProject(), NlEditingListener.DEFAULT_LISTENER);
-      myLayoutEditor = new NlLayoutEditor(propertiesManager.getProject());
+      myIdEditor = NlReferenceEditor.createForInspector(propertiesManager.getProject(), DEFAULT_LISTENER);
+      myWidthEditor = NlReferenceEditor.createForInspectorWithBrowseButton(propertiesManager.getProject(), DEFAULT_LISTENER);
+      myHeightEditor = NlReferenceEditor.createForInspectorWithBrowseButton(propertiesManager.getProject(), DEFAULT_LISTENER);
+      myConstraintWidget = new WidgetConstraintPanel(ImmutableList.of());
     }
 
     @Override
     public void updateProperties(@NotNull List<NlComponent> components, @NotNull Map<String, NlProperty> properties) {
       myIdAttr = properties.get(ATTR_ID);
-      myLayoutEditor.setSelectedComponents(properties);
+      myLayoutWidth = properties.get(ATTR_LAYOUT_WIDTH);
+      myLayoutHeight = properties.get(ATTR_LAYOUT_HEIGHT);
+      myConstraintWidget.updateComponents(components);
+      myConstraintWidget.setVisible(hasParentConstraintLayout(components));
     }
 
     @Override
     public int getMaxNumberOfRows() {
-      return 6;
+      return 4;
     }
 
     @Override
     public void attachToInspector(@NotNull InspectorPanel inspector) {
-      if (myIdAttr != null) {
-        inspector.addComponent("ID", getTooltip(myIdAttr), myIdField.getComponent());
-      }
-      inspector.addPanel(myLayoutEditor);
-      addEditor(inspector, myLayoutEditor.getEnumPropertyEditor());
-      addEditor(inspector, myLayoutEditor.getReferencePropertyEditor());
-      addEditorWithLabelOnSeparateLine(inspector, myLayoutEditor.getGravityEditor());
+      myIdEditor.setLabel(inspector.addComponent("ID", null, myIdEditor.getComponent()));
+      inspector.addPanel(myConstraintWidget);
+      myWidthEditor.setLabel(inspector.addComponent(ATTR_LAYOUT_WIDTH, null, myWidthEditor.getComponent()));
+      myHeightEditor.setLabel(inspector.addComponent(ATTR_LAYOUT_HEIGHT, null, myHeightEditor.getComponent()));
       refresh();
-    }
-
-    private static void addEditor(@NotNull InspectorPanel inspector, @NotNull NlComponentEditor editor) {
-      JLabel label = inspector.addComponent("", null, editor.getComponent());
-      editor.setLabel(label);
-      editor.setVisible(false);
-    }
-
-    private static void addEditorWithLabelOnSeparateLine(@NotNull InspectorPanel inspector, @NotNull NlComponentEditor editor) {
-      JLabel label = inspector.addLabel("");
-      inspector.addPanel(editor.getComponent());
-      editor.setLabel(label);
-      editor.setVisible(false);
-    }
-
-    @Nullable
-    private static String getTooltip(@Nullable NlProperty property) {
-      if (property == null) {
-        return null;
-      }
-
-      return property.getTooltipText();
     }
 
     @Override
     public void refresh() {
-      boolean enabled = myIdAttr != null;
-      myIdField.setEnabled(enabled);
-      if (enabled) {
-        myIdField.setProperty(myIdAttr);
+      myIdEditor.setEnabled(myIdAttr != null);
+      if (myIdAttr != null) {
+        myIdEditor.setProperty(myIdAttr);
+        setToolTip(myIdEditor, myIdAttr);
       }
-      myLayoutEditor.refresh();
+      myWidthEditor.setEnabled(myLayoutWidth != null);
+      if (myLayoutWidth != null) {
+        myWidthEditor.setProperty(myLayoutWidth);
+        setToolTip(myWidthEditor, myLayoutWidth);
+      }
+      myHeightEditor.setEnabled(myLayoutHeight != null);
+      if (myLayoutHeight != null) {
+        myHeightEditor.setProperty(myLayoutHeight);
+        setToolTip(myHeightEditor, myLayoutHeight);
+      }
+      if (myIdAttr != null && !myIdAttr.getComponents().isEmpty()) {
+        myConstraintWidget.configureUI(myIdAttr.getComponents().get(0));
+      }
+    }
+
+    private static void setToolTip(@NotNull NlComponentEditor editor, @NotNull NlProperty property) {
+      JLabel label = editor.getLabel();
+      if (label != null) {
+        label.setToolTipText(property.getTooltipText());
+      }
+    }
+
+    private static boolean hasParentConstraintLayout(@NotNull List<NlComponent> components) {
+      if (components.isEmpty()) {
+        return false;
+      }
+      NlComponent parent = components.get(0).getParent();
+      return parent != null && parent.getTagName().equals(CONSTRAINT_LAYOUT);
     }
   }
 }
