@@ -62,6 +62,7 @@ public class GradleConsoleView implements Disposable {
     //Create runner UI layout
     RunnerLayoutUi.Factory factory = RunnerLayoutUi.Factory.getInstance(myProject);
     RunnerLayoutUi layoutUi = factory.create("", "", "session", myProject);
+    JComponent layoutComponent = layoutUi.getComponent();
 
     // Adding actions
     DefaultActionGroup group = new DefaultActionGroup();
@@ -76,7 +77,6 @@ public class GradleConsoleView implements Disposable {
     }
     layoutUi.addContent(console, 0, PlaceInGrid.right, false);
 
-    JComponent layoutComponent = layoutUi.getComponent();
     myConsolePanel.add(layoutComponent, BorderLayout.CENTER);
 
     //noinspection ConstantConditions
