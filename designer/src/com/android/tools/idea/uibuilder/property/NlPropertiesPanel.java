@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.property;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.PreferenceUtils;
 import com.android.tools.idea.uibuilder.property.inspector.InspectorPanel;
 import com.android.tools.idea.uibuilder.property.ptable.PTable;
 import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
@@ -51,7 +52,9 @@ public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Mo
   private final InspectorPanel myInspectorPanel;
 
   private JBLabel mySelectedComponentLabel;
-  private JPanel myCardPanel;
+  private Component myShowExpertPropertiesButton;
+  private final JPanel myCardPanel;
+
   private List<NlComponent> myComponents;
   private List<NlPropertyItem> myProperties;
   private boolean myShowAdvancedProperties;
@@ -92,9 +95,11 @@ public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Mo
     panel.add(mySelectedComponentLabel, BorderLayout.CENTER);
 
     ShowExpertProperties showExpertAction = new ShowExpertProperties(this);
-    ActionButton showExpertButton = new ActionButton(showExpertAction, showExpertAction.getTemplatePresentation(), ActionPlaces.UNKNOWN,
-                                                     ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE);
-    panel.add(showExpertButton, BorderLayout.LINE_END);
+
+    myShowExpertPropertiesButton = new ActionButton(showExpertAction, showExpertAction.getTemplatePresentation(), ActionPlaces.UNKNOWN,
+                                                    ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE);
+
+    panel.add(myShowExpertPropertiesButton, BorderLayout.LINE_END);
 
     return panel;
   }
@@ -121,6 +126,15 @@ public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Mo
 
     updateDefaultProperties(propertiesManager);
     myInspectorPanel.setComponent(components, properties, propertiesManager);
+
+    // TODO Default inspectors for preferences
+    if (myComponents.stream().anyMatch(component -> PreferenceUtils.VALUES.contains(component.getTagName()))) {
+      myShowExpertPropertiesButton.setEnabled(false);
+      setShowExpertProperties(true);
+    }
+    else {
+      myShowExpertPropertiesButton.setEnabled(true);
+    }
   }
 
   @NotNull

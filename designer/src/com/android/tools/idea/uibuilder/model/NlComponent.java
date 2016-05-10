@@ -60,20 +60,14 @@ import static com.android.SdkConstants.*;
  */
 public class NlComponent {
   // TODO Add a needsId method to the handler classes
-  private static final Collection<String> TAGS_THAT_DONT_NEED_DEFAULT_IDS = ImmutableSet.of(
-    PreferenceTags.CHECK_BOX_PREFERENCE,
-    PreferenceTags.EDIT_TEXT_PREFERENCE,
-    PreferenceTags.LIST_PREFERENCE,
-    PreferenceTags.MULTI_SELECT_LIST_PREFERENCE,
-    PreferenceTags.PREFERENCE_CATEGORY,
-    PreferenceTags.RINGTONE_PREFERENCE,
-    PreferenceTags.SWITCH_PREFERENCE,
-    REQUEST_FOCUS,
-    SPACE,
-    TAG_ITEM,
-    VIEW_INCLUDE,
-    VIEW_MERGE
-  );
+  private static final Collection<String> TAGS_THAT_DONT_NEED_DEFAULT_IDS = new ImmutableSet.Builder<String>()
+    .add(REQUEST_FOCUS)
+    .add(SPACE)
+    .add(TAG_ITEM)
+    .add(VIEW_INCLUDE)
+    .add(VIEW_MERGE)
+    .addAll(PreferenceUtils.VALUES)
+    .build();
 
   @Nullable public List<NlComponent> children;
   @Nullable public ViewInfo viewInfo;
@@ -549,7 +543,7 @@ public class NlComponent {
       return mySnapshot.getAttribute(attribute, namespace);
     }
     else if (myTag.isValid()) {
-      /* TODO: Grab readlock around isValid too (maybe move into getAttributeSafely)
+      /* TODO: Grab read lock around isValid too (maybe move into getAttributeSafely)
 com.intellij.openapi.application.impl.ApplicationImpl$NoReadAccessException
 	at com.intellij.openapi.application.impl.ApplicationImpl.assertReadAccessAllowed(ApplicationImpl.java:1056)
 	at com.intellij.psi.impl.source.tree.SharedImplUtil.findFileElement(SharedImplUtil.java:88)
