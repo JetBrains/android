@@ -16,34 +16,54 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.module;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.AbstractDependenciesPanel;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.AbstractMainDependenciesPanel;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractDependencyNode;
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowHeader;
 import com.android.tools.idea.gradle.structure.model.PsModule;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.intellij.openapi.util.ActionCallback;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.ui.HyperlinkAdapter;
+import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.navigation.History;
 import com.intellij.ui.navigation.Place;
+import com.intellij.ui.treeStructure.SimpleNode;
+import com.intellij.util.ui.UIUtil.FontSize;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.event.HyperlinkEvent;
 import java.awt.*;
 import java.util.List;
 
+import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.revalidateAndRepaint;
+import static com.intellij.util.ui.UIUtil.getLabelFont;
+
 class MainPanel extends AbstractMainDependenciesPanel {
   @NotNull private final JBSplitter myVerticalSplitter;
+
   @NotNull private final DeclaredDependenciesPanel myDeclaredDependenciesPanel;
+  @NotNull private final DependencyGraphPanel myDependencyGraphPanel;
+
   @NotNull private final TargetArtifactsPanel myTargetArtifactsPanel;
   @NotNull private final JPanel myAltPanel;
+
+  @NotNull private AbstractDependenciesPanel mySelectedView;
 
   MainPanel(@NotNull PsAndroidModule module, @NotNull PsContext context, @NotNull List<PsModule> extraTopModules) {
     super(context, extraTopModules);
 
     myDeclaredDependenciesPanel = new DeclaredDependenciesPanel(module, context);
     myDeclaredDependenciesPanel.setHistory(getHistory());
+    mySelectedView = myDeclaredDependenciesPanel;
+
+    myDependencyGraphPanel = new DependencyGraphPanel(module, context);
+    myDependencyGraphPanel.setHistory(getHistory());
 
     myTargetArtifactsPanel = new TargetArtifactsPanel(module, context);
 
@@ -53,8 +73,19 @@ class MainPanel extends AbstractMainDependenciesPanel {
 
     add(myVerticalSplitter, BorderLayout.CENTER);
 
+    addLabelToHeader(myDeclaredDependenciesPanel, createSwitchViewLabel("Show Dependency Graph", myDependencyGraphPanel));
+    addLabelToHeader(myDependencyGraphPanel, createSwitchViewLabel("Show Declared Dependencies", myDeclaredDependenciesPanel));
+
     myDeclaredDependenciesPanel.updateTableColumnSizes();
     myDeclaredDependenciesPanel.add(myTargetArtifactsPanel::displayTargetArtifacts);
+
+    myDependencyGraphPanel.add(newSelection -> {
+      AbstractDependencyNode<? extends PsAndroidDependency> node = newSelection;
+      if (node != null) {
+        node = findTopDependencyNode(node);
+      }
+      myTargetArtifactsPanel.displayTargetArtifacts(node != null ? node.getModels().get(0) : null);
+    });
 
     myAltPanel = new JPanel(new BorderLayout());
 
@@ -69,23 +100,61 @@ class MainPanel extends AbstractMainDependenciesPanel {
     myTargetArtifactsPanel.addRestoreListener(this::restoreTargetArtifactsPanel);
   }
 
+  @NotNull
+  private HyperlinkLabel createSwitchViewLabel(@NotNull String text, @NotNull AbstractDependenciesPanel view) {
+    HyperlinkLabel hyperlinkLabel = new HyperlinkLabel(text);
+    hyperlinkLabel.setFont(getLabelFont(FontSize.SMALL));
+    hyperlinkLabel.addHyperlinkListener(new HyperlinkAdapter() {
+      @Override
+      protected void hyperlinkActivated(HyperlinkEvent e) {
+        if (PsUISettings.getInstance().TARGET_ARTIFACTS_MINIMIZE) {
+          myAltPanel.remove(mySelectedView);
+          myAltPanel.add(view, BorderLayout.CENTER);
+        }
+        else {
+          myVerticalSplitter.setFirstComponent(view);
+        }
+        mySelectedView = view;
+        revalidateAndRepaint(MainPanel.this);
+
+        mySelectedView.notifySelectionChanged();
+        mySelectedView.getPreferredFocusedComponent().requestFocusInWindow();
+      }
+    });
+    return hyperlinkLabel;
+  }
+
+  private static void addLabelToHeader(@NotNull AbstractDependenciesPanel dependenciesPanel, @NotNull HyperlinkLabel label) {
+    dependenciesPanel.getHeader().add(label, BorderLayout.EAST);
+  }
+
+  @NotNull
+  private static AbstractDependencyNode<? extends PsAndroidDependency> findTopDependencyNode(@NotNull AbstractDependencyNode<? extends PsAndroidDependency> node) {
+    AbstractDependencyNode<? extends PsAndroidDependency> current = node;
+    while (true) {
+      SimpleNode parent = current.getParent();
+      if (!(parent instanceof AbstractDependencyNode)) {
+        return current;
+      }
+      current = (AbstractDependencyNode<? extends PsAndroidDependency>)parent;
+    }
+  }
+
   private void restoreTargetArtifactsPanel() {
     remove(myAltPanel);
-    myAltPanel.remove(myDeclaredDependenciesPanel);
-    myVerticalSplitter.setFirstComponent(myDeclaredDependenciesPanel);
+    myAltPanel.remove(mySelectedView);
+    myVerticalSplitter.setFirstComponent(mySelectedView);
     add(myVerticalSplitter, BorderLayout.CENTER);
-    revalidate();
-    repaint();
+    revalidateAndRepaint(this);
     saveMinimizedState(false);
   }
 
   private void minimizeTargetArtifactsPanel() {
     remove(myVerticalSplitter);
     myVerticalSplitter.setFirstComponent(null);
-    myAltPanel.add(myDeclaredDependenciesPanel, BorderLayout.CENTER);
+    myAltPanel.add(mySelectedView, BorderLayout.CENTER);
     add(myAltPanel, BorderLayout.CENTER);
-    revalidate();
-    repaint();
+    revalidateAndRepaint(this);
     saveMinimizedState(true);
   }
 
@@ -109,6 +178,7 @@ class MainPanel extends AbstractMainDependenciesPanel {
   public void setHistory(History history) {
     super.setHistory(history);
     myDeclaredDependenciesPanel.setHistory(history);
+    myDependencyGraphPanel.setHistory(history);
   }
 
   public void putPath(@NotNull Place place, @NotNull String dependency) {
@@ -128,6 +198,7 @@ class MainPanel extends AbstractMainDependenciesPanel {
   @Override
   public void dispose() {
     Disposer.dispose(myDeclaredDependenciesPanel);
+    Disposer.dispose(myDependencyGraphPanel);
     Disposer.dispose(myTargetArtifactsPanel);
   }
 }

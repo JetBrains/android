@@ -228,6 +228,12 @@ class DependenciesPanel extends AbstractDependenciesPanel {
     addDetails(new ModuleDependencyDetails(getContext(), false));
   }
 
+  @Override
+  @NotNull
+  public JComponent getPreferredFocusedComponent() {
+    return myTree;
+  }
+
   void add(@NotNull SelectionChangeListener<List<AbstractDependencyNode<? extends PsAndroidDependency>>> listener) {
     myEventDispatcher.addListener(listener, this);
   }

@@ -240,6 +240,12 @@ class DeclaredDependenciesPanel extends AbstractDependenciesPanel {
   }
 
   @Override
+  @NotNull
+  public JComponent getPreferredFocusedComponent() {
+    return myDependenciesTable;
+  }
+
+  @Override
   protected void beforeAddingDependency() {
     myDependenciesTable.clearSelection();
   }
@@ -292,7 +298,8 @@ class DeclaredDependenciesPanel extends AbstractDependenciesPanel {
     }
   }
 
-  private void notifySelectionChanged() {
+  @Override
+  public void notifySelectionChanged() {
     PsAndroidDependency selected = getSelection();
     if (selected != null) {
       myEventDispatcher.selectionChanged(selected);
@@ -359,7 +366,6 @@ class DeclaredDependenciesPanel extends AbstractDependenciesPanel {
 
     @Override
     public void actionPerformed(AnActionEvent e) {
-
     }
   }
 }
