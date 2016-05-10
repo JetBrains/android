@@ -221,21 +221,15 @@ public class AccordionVisualTest extends VisualTest {
       chart.setMaximumSize(new Dimension(maxSize, 0));
     }
     chart.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-    chart.setToolTipText("Double-click to expand/collapse.");
+    chart.setToolTipText("Double-click to maximize. Ctrl+Double-click to minimize.");
     chart.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseClicked(MouseEvent e) {
         if (e.getClickCount() == DOUBLE_CLICK) {
-          switch (layout.getState(chart)) {
-            case MINIMIZE:
-              layout.setState(chart, AccordionLayout.AccordionState.PREFERRED);
-              break;
-            case PREFERRED:
-              layout.setState(chart, AccordionLayout.AccordionState.MAXIMIZE);
-              break;
-            case MAXIMIZE:
-              layout.setState(chart, AccordionLayout.AccordionState.MINIMIZE);
-              break;
+          if (e.isControlDown()) {
+            layout.toggleMinimize(chart);
+          } else {
+            layout.toggleMaximize(chart);
           }
         }
       }

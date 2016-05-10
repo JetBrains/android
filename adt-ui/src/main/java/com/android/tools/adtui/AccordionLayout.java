@@ -129,18 +129,43 @@ public class AccordionLayout implements LayoutManager2, Animatable {
 
     ComponentInfo info = mComponentInfoMap.get(comp);
     if (info.state != state) {
-      // Remove/Re-add info into set to force a sort.
-      mComponentInfoSet.remove(info);
-      info.state = state;
-      // If minimized, ensure a smooth transition by getting the component's current size.
-      // MAXIMIZED/PREFERRED components use ratios to determine their size so their
-      // transition will be smooth no matter what the previous dimension is.
-      if (state == AccordionState.MINIMIZE) {
-        info.currentSize = mOrientation == Orientation.VERTICAL ? comp.getHeight() : comp.getWidth();
-      }
-      mComponentInfoSet.add(info);
+      setStateInternal(comp, info, state);
     }
+  }
 
+  private void setStateInternal(@NonNull Component comp, @NonNull ComponentInfo info, @NonNull AccordionState state) {
+    // Remove/Re-add info into set to force a sort.
+    mComponentInfoSet.remove(info);
+    info.state = state;
+    // If minimized, ensure a smooth transition by getting the component's current size.
+    // MAXIMIZED/PREFERRED components use ratios to determine their size so their
+    // transition will be smooth no matter what the previous dimension is.
+    if (state == AccordionState.MINIMIZE) {
+      info.currentSize = mOrientation == Orientation.VERTICAL ? comp.getHeight() : comp.getWidth();
+    }
+    mComponentInfoSet.add(info);
+  }
+
+  /**
+   * Toggle the component's maximized state.
+   * If the component is already maximized, it will switch back to the preferred state.
+   */
+  public void toggleMaximize(@NonNull Component comp) {
+    assert mComponentInfoMap.containsKey(comp);
+
+    ComponentInfo info = mComponentInfoMap.get(comp);
+    setStateInternal(comp, info, info.state == AccordionState.MAXIMIZE ? AccordionState.PREFERRED : AccordionState.MAXIMIZE);
+  }
+
+  /**
+   * Toggle the component's minimized state.
+   * If the component is already minimized, it will switch back to the preferred state.
+   */
+  public void toggleMinimize(@NonNull Component comp) {
+    assert mComponentInfoMap.containsKey(comp);
+
+    ComponentInfo info = mComponentInfoMap.get(comp);
+    setStateInternal(comp, info, info.state == AccordionState.MINIMIZE ? AccordionState.PREFERRED : AccordionState.MINIMIZE);
   }
 
   public void resetComponents() {
