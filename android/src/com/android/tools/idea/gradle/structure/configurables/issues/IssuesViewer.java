@@ -63,6 +63,8 @@ public class IssuesViewer {
   private JEditorPane myIssuesView3;
   private JEditorPane myIssuesView4;
 
+  private boolean myShowEmptyText;
+
   public IssuesViewer(@NotNull PsContext context, @NotNull IssuesRenderer renderer) {
     myContext = context;
     myRenderer = renderer;
@@ -70,7 +72,9 @@ public class IssuesViewer {
 
   public void display(@NotNull Collection<PsIssue> issues) {
     if (issues.isEmpty()) {
-      myEmptyIssuesLabel.setVisible(true);
+      if (myShowEmptyText) {
+        myEmptyIssuesLabel.setVisible(true);
+      }
       myIssuesPanel1.setVisible(false);
       myIssuesPanel2.setVisible(false);
       myIssuesPanel3.setVisible(false);
@@ -223,5 +227,9 @@ public class IssuesViewer {
         browse(target);
       }
     }
+  }
+
+  public void setShowEmptyText(boolean showEmptyText) {
+    myShowEmptyText = showEmptyText;
   }
 }

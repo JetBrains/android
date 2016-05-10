@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.AbstractMainDependenciesPanel;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.DependencyGraphPanel;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.TargetArtifactsPanel;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractDependencyNode;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
@@ -33,18 +34,18 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 
 class MainPanel extends AbstractMainDependenciesPanel {
-  @NotNull private final DependenciesPanel myDependenciesPanel;
+  @NotNull private final DependencyGraphPanel myDependencyGraphPanel;
   @NotNull private final TargetArtifactsPanel myTargetArtifactsPanel;
 
   MainPanel(@NotNull PsAndroidModule module, @NotNull PsContext context) {
     super(context);
 
-    myDependenciesPanel = new DependenciesPanel(module, context);
-    myDependenciesPanel.setHistory(getHistory());
+    myDependencyGraphPanel = new DependencyGraphPanel(module, context);
+    myDependencyGraphPanel.setHistory(getHistory());
 
     myTargetArtifactsPanel = new TargetArtifactsPanel(module, context);
 
-    myDependenciesPanel.add(newSelection -> {
+    myDependencyGraphPanel.add(newSelection -> {
       AbstractDependencyNode<? extends PsAndroidDependency> node = newSelection;
       if (node != null) {
         node = findTopDependencyNode(node);
@@ -53,7 +54,7 @@ class MainPanel extends AbstractMainDependenciesPanel {
     });
 
     JBSplitter verticalSplitter = createMainVerticalSplitter();
-    verticalSplitter.setFirstComponent(myDependenciesPanel);
+    verticalSplitter.setFirstComponent(myDependencyGraphPanel);
     verticalSplitter.setSecondComponent(myTargetArtifactsPanel);
 
     add(verticalSplitter, BorderLayout.CENTER);
@@ -74,22 +75,22 @@ class MainPanel extends AbstractMainDependenciesPanel {
   @Override
   public void setHistory(History history) {
     super.setHistory(history);
-    myDependenciesPanel.setHistory(history);
+    myDependencyGraphPanel.setHistory(history);
   }
 
   @Override
   public ActionCallback navigateTo(@Nullable Place place, boolean requestFocus) {
-    return myDependenciesPanel.navigateTo(place, requestFocus);
+    return myDependencyGraphPanel.navigateTo(place, requestFocus);
   }
 
   @Override
   public void queryPlace(@NotNull Place place) {
-    myDependenciesPanel.queryPlace(place);
+    myDependencyGraphPanel.queryPlace(place);
   }
 
   @Override
   public void dispose() {
-    Disposer.dispose(myDependenciesPanel);
+    Disposer.dispose(myDependencyGraphPanel);
     Disposer.dispose(myTargetArtifactsPanel);
   }
 }
