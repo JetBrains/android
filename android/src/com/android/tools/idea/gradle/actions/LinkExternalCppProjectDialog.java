@@ -71,7 +71,7 @@ public class LinkExternalCppProjectDialog extends DialogWrapper {
 
     init();
 
-    setTitle("Link External C++ Project");
+    setTitle("Link C++ Project with Gradle");
 
     myBuildSystemCombo.addItem(BuildSystem.CMAKE);
     myBuildSystemCombo.addItem(BuildSystem.NDK_BUILD);
@@ -184,7 +184,7 @@ public class LinkExternalCppProjectDialog extends DialogWrapper {
     }
 
     Project project = myModule.getProject();
-    new WriteCommandAction(project, "Add External C++ Project") {
+    new WriteCommandAction(project, "Link C++ Project with Gradle") {
       @Override
       protected void run(@NotNull Result result) throws Throwable {
         buildModel.applyChanges();
