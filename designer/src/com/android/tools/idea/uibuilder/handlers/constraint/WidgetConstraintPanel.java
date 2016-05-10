@@ -119,10 +119,10 @@ public class WidgetConstraintPanel extends JPanel {
     mComponent = component;
     if (component == null) return;
     String mWidgetName = component.getId();
-    int bottom = convert(component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_MARGIN));
-    int top = convert(component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_MARGIN));
-    int left = convert(component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_LEFT_MARGIN));
-    int right = convert(component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_RIGHT_MARGIN));
+    int bottom = convert(component.getAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_BOTTOM_MARGIN));
+    int top = convert(component.getAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_TOP_MARGIN));
+    int left = convert(component.getAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_LEFT_MARGIN));
+    int right = convert(component.getAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_RIGHT_MARGIN));
 
     String rl = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF);
     String rr = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF);
@@ -210,41 +210,41 @@ public class WidgetConstraintPanel extends JPanel {
   }
 
   public void setTopMargin(int margin) {
-    ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ATTR_LAYOUT_TOP_MARGIN, (margin < 0) ? null : (margin + "dp"));
+    ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_TOP_MARGIN, (margin < 0) ? null : (margin + "dp"));
   }
 
   public void setLeftMargin(int margin) {
-    ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ATTR_LAYOUT_LEFT_MARGIN, (margin < 0) ? null : (margin + "dp"));
+    ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_LEFT_MARGIN, (margin < 0) ? null : (margin + "dp"));
   }
 
   public void setRightMargin(int margin) {
-    ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ATTR_LAYOUT_RIGHT_MARGIN, (margin < 0) ? null : (margin + "dp"));
+    ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_RIGHT_MARGIN, (margin < 0) ? null : (margin + "dp"));
   }
 
   public void setBottomMargin(int margin) {
-    ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ATTR_LAYOUT_BOTTOM_MARGIN, (margin < 0) ? null : (margin + "dp"));
+    ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_BOTTOM_MARGIN, (margin < 0) ? null : (margin + "dp"));
   }
 
   public void killTopConstraint() {
-    ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ATTR_LAYOUT_TOP_MARGIN, null);
+    ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_TOP_MARGIN, null);
     ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF, null);
     ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF, null);
   }
 
   public void killLeftConstraint() {
-    ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ATTR_LAYOUT_LEFT_MARGIN, null);
+    ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_LEFT_MARGIN, null);
     ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF, null);
     ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF, null);
   }
 
   public void killRightConstraint() {
-    ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ATTR_LAYOUT_RIGHT_MARGIN, null);
+    ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_RIGHT_MARGIN, null);
     ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF, null);
     ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, null);
   }
 
   public void killBottomConstraint() {
-    ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ATTR_LAYOUT_BOTTOM_MARGIN, null);
+    ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_BOTTOM_MARGIN, null);
     ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, null);
     ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF, null);
   }
