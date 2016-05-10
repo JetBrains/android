@@ -21,7 +21,6 @@ import com.android.annotations.Nullable;
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.Range;
 
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
@@ -41,9 +40,6 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
   private HNode<T> mRoot;
 
   @NonNull
-  private Font mFont;
-
-  @NonNull
   private FontMetrics mFontMetrics;
 
   @Nullable
@@ -61,7 +57,6 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
   private static final int ZOOM_FACTOR = 20;
 
   public HTreeChart() {
-    this.mFont = UIManager.getDefaults().getFont("TabbedPane.font");
     mRoot = new HNode<>();
     mRect = new Rectangle2D.Float();
     mYRange = new Range();
@@ -82,7 +77,7 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
   protected void draw(Graphics2D g) {
 
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-    this.mFontMetrics = g.getFontMetrics(mFont);
+    this.mFontMetrics = g.getFontMetrics(DEFAULT_FONT);
 
     if (mRoot.getChildren().size() == 0) {
       g.drawString(NO_HTREE, getWidth() / 2 - mFontMetrics.stringWidth(NO_HTREE),
@@ -154,7 +149,7 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
 
   public void setHRenderer(HRenderer<T> r) {
     this.mHRenderer = r;
-    this.mHRenderer.setFont(mFont);
+    this.mHRenderer.setFont(DEFAULT_FONT);
   }
 
   public void setHTree(HNode<T> root) {
