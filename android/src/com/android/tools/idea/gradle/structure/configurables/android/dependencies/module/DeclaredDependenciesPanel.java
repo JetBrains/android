@@ -252,6 +252,12 @@ class DeclaredDependenciesPanel extends AbstractDependenciesPanel {
 
   @Override
   @NotNull
+  public String getPlaceName() {
+    return myPlaceName;
+  }
+
+  @Override
+  @NotNull
   protected List<AnAction> getExtraToolbarActions() {
     List<AnAction> actions = Lists.newArrayList();
     actions.add(new EditDependencyAction());
@@ -333,23 +339,6 @@ class DeclaredDependenciesPanel extends AbstractDependenciesPanel {
       }
     }
     return ActionCallback.DONE;
-  }
-
-  @Override
-  public void queryPlace(@NotNull Place place) {
-    String dependency = "";
-    DependencyDetails details = getCurrentDependencyDetails();
-    if (details != null) {
-      PsAndroidDependency model = details.getModel();
-      if (model != null) {
-        dependency = model.toText(FOR_NAVIGATION);
-      }
-    }
-    putPath(place, dependency);
-  }
-
-  public void putPath(@NotNull Place place, @NotNull String dependency) {
-    place.putPath(myPlaceName, dependency);
   }
 
   private class EditDependencyAction extends DumbAwareAction {

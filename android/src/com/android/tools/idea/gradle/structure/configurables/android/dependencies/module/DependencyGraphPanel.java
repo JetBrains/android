@@ -56,6 +56,7 @@ import java.awt.event.MouseEvent;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.setUp;
+import static com.android.tools.idea.gradle.structure.model.PsDependency.TextType.FOR_NAVIGATION;
 import static com.intellij.icons.AllIcons.Actions.Collapseall;
 import static com.intellij.icons.AllIcons.Actions.Expandall;
 import static java.awt.event.MouseEvent.MOUSE_PRESSED;
@@ -64,6 +65,7 @@ public class DependencyGraphPanel extends AbstractDependenciesPanel {
   @NotNull private final Tree myTree;
   @NotNull private final DependenciesTreeBuilder myTreeBuilder;
   @NotNull private final PsContext myContext;
+  @NotNull private final String myPlaceName;
   @NotNull private final NodeHyperlinkSupport<ModuleDependencyNode> myHyperlinkSupport;
 
   @NotNull private final SelectionChangeEventDispatcher<AbstractDependencyNode<? extends PsAndroidDependency>> myEventDispatcher =
@@ -73,6 +75,7 @@ public class DependencyGraphPanel extends AbstractDependenciesPanel {
     super("Dependency Graph", context, module);
     myContext = context;
 
+    myPlaceName = createPlaceName(module.getName());
     initializeDependencyDetails();
 
     setIssuesViewer(new IssuesViewer(myContext, new SingleModuleIssuesRenderer()));
@@ -126,6 +129,11 @@ public class DependencyGraphPanel extends AbstractDependenciesPanel {
     myTreeBuilder.getInitialized().doWhenDone(this::selectFirstNode);
 
     myHyperlinkSupport = new NodeHyperlinkSupport<>(myTree, ModuleDependencyNode.class, myContext, true);
+  }
+
+  @NotNull
+  private static String createPlaceName(@NotNull String moduleName) {
+    return "dependencies." + moduleName + ".place";
   }
 
   @NotNull
@@ -264,12 +272,40 @@ public class DependencyGraphPanel extends AbstractDependenciesPanel {
 
   @Override
   public ActionCallback navigateTo(@Nullable Place place, boolean requestFocus) {
-    // TODO implement
+    if (place != null) {
+      Object path = place.getPath(myPlaceName);
+      if (path instanceof String) {
+        String pathText = (String)path;
+        myTree.requestFocusInWindow();
+        if (!pathText.isEmpty()) {
+          Ref<AbstractDependencyNode> nodeRef = new Ref<>();
+          myTreeBuilder.accept(AbstractDependencyNode.class, new TreeVisitor<AbstractDependencyNode>() {
+            @Override
+            public boolean visit(@NotNull AbstractDependencyNode node) {
+              PsAndroidDependency dependency = (PsAndroidDependency)node.getModels().get(0);
+              if (!(node.getParent() instanceof AbstractDependencyNode)) {
+                // Only consider top-level dependencies (i.e. "declared" dependencies.
+                String dependencyAsText = dependency.toText(FOR_NAVIGATION);
+                if (pathText.equals(dependencyAsText)) {
+                  nodeRef.set(node);
+                  return true;
+                }
+              }
+              return false;
+            }
+          });
+          if (nodeRef.get() != null) {
+            myTreeBuilder.select(nodeRef.get());
+          }
+        }
+      }
+    }
     return ActionCallback.DONE;
   }
 
   @Override
-  public void queryPlace(@NotNull Place place) {
-    // TODO implement
+  @NotNull
+  public String getPlaceName() {
+    return myPlaceName;
   }
 }
