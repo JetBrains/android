@@ -89,6 +89,7 @@ public class BlueprintColorSet extends ColorSet {
 
         // Inspector colors
 
+        mInspectorStrokeColor = mFrames;
         mInspectorTrackBackgroundColor = new Color(228, 228, 238);
         mInspectorTrackColor = new Color(208, 208, 218);
         mInspectorHighlightsStrokeColor = new Color(160, 160, 180, 128);

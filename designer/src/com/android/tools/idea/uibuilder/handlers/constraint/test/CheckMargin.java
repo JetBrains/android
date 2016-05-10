@@ -21,6 +21,7 @@ import com.android.tools.sherpa.drawing.ColorSet;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 
@@ -28,11 +29,11 @@ import java.awt.event.MouseMotionAdapter;
  * Test for margin widget
  */
 public class CheckMargin extends JPanel {
-  MarginWidget top = new MarginWidget(JLabel.LEFT);
-  MarginWidget left = new MarginWidget(JLabel.LEFT);
-  MarginWidget right = new MarginWidget(JLabel.LEFT);
-  MarginWidget bottom = new MarginWidget(JLabel.LEFT);
   ColorSet mColorSet = new BlueprintColorSet();
+  MarginWidget top = new MarginWidget(JLabel.LEFT, mColorSet);
+  MarginWidget left = new MarginWidget(JLabel.LEFT, mColorSet);
+  MarginWidget right = new MarginWidget(JLabel.LEFT, mColorSet);
+  MarginWidget bottom = new MarginWidget(JLabel.LEFT, mColorSet);
 
   public CheckMargin() {
     super(new GridBagLayout());
@@ -56,10 +57,22 @@ public class CheckMargin extends JPanel {
     addMouseMotionListener(new MouseMotionAdapter() {
       @Override
       public void mouseMoved(MouseEvent e) {
-        top.showUI(top.getBounds().contains(e.getPoint()));
-        left.showUI(left.getBounds().contains(e.getPoint()));
-        right.showUI(right.getBounds().contains(e.getPoint()));
-        bottom.showUI(bottom.getBounds().contains(e.getPoint()));
+        top.showUI(top.getBounds().contains(e.getPoint()) ? MarginWidget.Show.IN_WIDGET : MarginWidget.Show.OUT_WIDGET);
+        left.showUI(left.getBounds().contains(e.getPoint()) ? MarginWidget.Show.IN_WIDGET : MarginWidget.Show.OUT_WIDGET);
+        right.showUI(right.getBounds().contains(e.getPoint()) ? MarginWidget.Show.IN_WIDGET : MarginWidget.Show.OUT_WIDGET);
+        bottom.showUI(bottom.getBounds().contains(e.getPoint()) ? MarginWidget.Show.IN_WIDGET : MarginWidget.Show.OUT_WIDGET);
+      }
+    });
+    addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseExited(MouseEvent e) {
+        if (getBounds().contains(e.getPoint())){
+          return;
+        }
+        top.showUI(MarginWidget.Show.OUT_PANEL);
+        left.showUI(MarginWidget.Show.OUT_PANEL);
+        right.showUI(MarginWidget.Show.OUT_PANEL);
+        bottom.showUI(MarginWidget.Show.OUT_PANEL);
       }
     });
   }

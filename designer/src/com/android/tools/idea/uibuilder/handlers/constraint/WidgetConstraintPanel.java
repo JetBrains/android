@@ -18,11 +18,14 @@ package com.android.tools.idea.uibuilder.handlers.constraint;
 import com.android.SdkConstants;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.sherpa.drawing.BlueprintColorSet;
 import com.android.tools.sherpa.drawing.ColorSet;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.plaf.BorderUIResource;
 import javax.swing.plaf.basic.BasicSliderUI;
 import java.awt.*;
 import java.awt.geom.Ellipse2D;
@@ -40,17 +43,30 @@ public class WidgetConstraintPanel extends JPanel {
   NlComponent mComponent;
   private String mWidgetWidthCache;
   private String mWidgetHeightCache;
-  ColorSet mColorSet = new SingleWidgetView.InspectorColorSet();
+
+  ColorSet mColorSet = new InspectorColorSet();
+
+  static class InspectorColorSet extends BlueprintColorSet {
+    public InspectorColorSet() {
+      mDrawBackground = false;
+      mDrawWidgetInfos = true;
+      mInspectorBackgroundColor = new Color(232, 232, 232);
+      mInspectorFillColor = new Color(220, 220, 220);
+      mInspectorHighlightsStrokeColor = new Color(3, 169, 244);
+      mInspectorStrokeColor = new Color(40, 40, 40);
+    }
+  }
 
   public WidgetConstraintPanel(@NotNull List<NlComponent> components) {
     super(new GridBagLayout());
-    setBackground(mColorSet.getBackground());
-    mMain = new SingleWidgetView(this);
+    super.setBorder(new EmptyBorder(4,0,0,0));
+    setBackground(mColorSet.getInspectorBackgroundColor());
+    mMain = new SingleWidgetView(this, mColorSet);
     setPreferredSize(new Dimension(200, 216));
     mVerticalSlider.setMajorTickSpacing(50);
     mHorizontalSlider.setMajorTickSpacing(50);
-    mVerticalSlider.setBackground(mColorSet.getBackground());
-    mHorizontalSlider.setBackground(mColorSet.getBackground());
+    mVerticalSlider.setBackground(mColorSet.getInspectorBackgroundColor());
+    mHorizontalSlider.setBackground(mColorSet.getInspectorBackgroundColor());
 
     mComponent = components.get(0);
     configureUI(mComponent);
@@ -297,12 +313,12 @@ public class WidgetConstraintPanel extends JPanel {
 
     @Override
     protected Color getShadowColor() {
-      return mColorSet.getInspectorStroke();
+      return mColorSet.getInspectorStrokeColor();
     }
 
     @Override
     protected Color getHighlightColor() {
-      return mColorSet.getInspectorStroke();
+      return mColorSet.getInspectorStrokeColor();
     }
 
     @Override
@@ -312,32 +328,25 @@ public class WidgetConstraintPanel extends JPanel {
 
     @Override
     public void paintThumb(Graphics g) {
-      Graphics2D g2d = (Graphics2D)g;
-
       String percentText = Integer.toString(slider.getValue());
-      if (slider.isEnabled()) {
-        g.setColor(mColorSet.getAnchorCircle());
+      if (!slider.isEnabled()) {
+        return;
       }
-      else {
-        g.setColor(mColorSet.getBackground());
-        percentText = "";
-      }
+      g.setColor(mColorSet.getInspectorFillColor());
       ((Graphics2D)g).setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
       g.fillRoundRect(thumbRect.x + 1, thumbRect.y + 1, thumbRect.width - 2, thumbRect.height - 2, thumbRect.width - 2,
                       thumbRect.height - 2);
-      int x = thumbRect.x + thumbRect.width / 2 - 1;
+      g.setColor(mColorSet.getInspectorStrokeColor());
+      g.drawRoundRect(thumbRect.x + 1, thumbRect.y + 1, thumbRect.width - 2, thumbRect.height - 2, thumbRect.width - 2,
+                      thumbRect.height - 2);
+      int x = thumbRect.x + thumbRect.width / 2;
       int y = thumbRect.y + thumbRect.height / 2 - 1;
       g.setFont(sSmallFont);
       FontMetrics fm = g.getFontMetrics();
-      int padding = 4;
       Rectangle2D bounds = fm.getStringBounds(percentText, g);
-      double th = bounds.getHeight();
       double tw = bounds.getWidth();
-      float radius = (float)(Math.max(th, tw) / 2f + padding);
-      Ellipse2D.Float circle =
-        new Ellipse2D.Float(x - radius, y - radius, 2 * radius + 1, 2 * radius + 1);
 
-      g.setColor(mColorSet.getBackground());
+      g.setColor(mColorSet.getInspectorStrokeColor());
       g.drawString(percentText, (int)(x - tw / 2), (y + fm.getAscent() / 2));
     }
   }
