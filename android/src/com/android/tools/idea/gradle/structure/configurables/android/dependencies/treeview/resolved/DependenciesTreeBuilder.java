@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview;
+package com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.resolved;
 
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractPsNodeTreeBuilder;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.LibraryDependencyNode;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
-import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidLibraryDependency;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
 import com.intellij.openapi.util.ActionCallback;
@@ -30,17 +29,17 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 
-public class DeclaredDependenciesTreeBuilder extends AbstractPsNodeTreeBuilder {
-  public DeclaredDependenciesTreeBuilder(@NotNull PsProject project,
-                                         @NotNull JTree tree,
-                                         @NotNull DefaultTreeModel treeModel) {
-    super(tree, treeModel, new DeclaredDependenciesTreeStructure(project));
+public class DependenciesTreeBuilder extends AbstractPsNodeTreeBuilder {
+  public DependenciesTreeBuilder(@NotNull JTree tree,
+                                 @NotNull DefaultTreeModel treeModel,
+                                 @NotNull DependenciesTreeStructure treeStructure) {
+    super(tree, treeModel, treeStructure);
   }
 
   public void reset(@Nullable Runnable onDone) {
     AbstractTreeStructure treeStructure = getTreeStructure();
-    if (treeStructure instanceof DeclaredDependenciesTreeStructure) {
-      ((DeclaredDependenciesTreeStructure)treeStructure).reset();
+    if (treeStructure instanceof DependenciesTreeStructure) {
+      ((DependenciesTreeStructure)treeStructure).reset();
       ActionCallback callback = queueUpdate();
       if (onDone != null) {
         callback.doWhenDone(onDone);
