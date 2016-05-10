@@ -23,7 +23,6 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.ui.search.SearchUtil;
-import com.intellij.openapi.fileTypes.FileTypeFactory;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.*;
@@ -61,10 +60,6 @@ public class ApkViewPanel implements TreeSelectionListener {
   }
 
   public ApkViewPanel(@NotNull ApkParser apkParser) {
-    mySizeComponent.setToolTipText(AndroidBundle.message("apk.viewer.size.types.tooltip"));
-
-    myContainer.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
-
     // construct the main tree along with the uncompressed sizes
     ListenableFuture<DefaultMutableTreeNode> treeStructureFuture = apkParser.constructTreeStructure();
     FutureCallBackAdapter<DefaultMutableTreeNode> setRootNode = new FutureCallBackAdapter<DefaultMutableTreeNode>() {
@@ -84,6 +79,9 @@ public class ApkViewPanel implements TreeSelectionListener {
       }
     };
     Futures.addCallback(compressedTreeFuture, refreshTree, EdtExecutor.INSTANCE);
+
+    mySizeComponent.setToolTipText(AndroidBundle.message("apk.viewer.size.types.tooltip"));
+    myContainer.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
 
     // identify and set the application name and version
     myNameAsyncIcon.setVisible(true);
@@ -135,8 +133,11 @@ public class ApkViewPanel implements TreeSelectionListener {
       if (entry == null || rootEntry == null) {
         return 0;
       }
+      else if (!entry.isCompressedSizeKnown()) {
+        return 0;
+      }
       else {
-        return (double)entry.size / rootEntry.size;
+        return (double)entry.getCompressedSize() / rootEntry.size;
       }
     };
 
@@ -147,17 +148,17 @@ public class ApkViewPanel implements TreeSelectionListener {
                    .setHeaderAlignment(SwingConstants.LEADING)
                    .setRenderer(new NameRenderer(treeSpeedSearch)))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
-                   .setName("Download Size")
-                   .setPreferredWidth(150)
-                   .setHeaderAlignment(SwingConstants.TRAILING)
-                   .setRenderer(new SizeRenderer(true)))
-      .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Raw File Size")
                    .setPreferredWidth(150)
                    .setHeaderAlignment(SwingConstants.TRAILING)
                    .setRenderer(new SizeRenderer(false)))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
-                   .setName("% of Total (raw file size)")
+                   .setName("Download Size")
+                   .setPreferredWidth(150)
+                   .setHeaderAlignment(SwingConstants.TRAILING)
+                   .setRenderer(new SizeRenderer(true)))
+      .addColumn(new ColumnTreeBuilder.ColumnBuilder()
+                   .setName("% of Total Download size")
                    .setPreferredWidth(150)
                    .setHeaderAlignment(SwingConstants.LEADING)
                    .setRenderer(new PercentRenderer(percentProvider))
