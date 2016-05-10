@@ -111,8 +111,7 @@ public class AndroidSdkSourcesBrowsingTest extends AndroidTestCase {
     doTestNavigationToResource(new LogicalPosition(21, 35), 1, XmlAttributeValue.class);
   }
 
-  // Failing on go/studio-builder bots (b.android.com/201548).
-  public void ignore_testNavigationToResources4() throws Exception {
+  public void testNavigationToResources4() throws Exception {
     doTestNavigationToResource(new LogicalPosition(22, 35), 1, XmlAttributeValue.class);
   }
 
