@@ -349,14 +349,16 @@ public class GradleTasksExecutor extends Task.Backgroundable {
           }
           output.attachTo(launcher, outputListener);
 
-          launcher.addProgressListener(new ProgressListener() {
-            @Override
-            public void statusChanged(ProgressEvent event) {
-              if (myContext.isActive(id)) {
-                myContext.getTaskNotificationListener().onStatusChange(GradleProgressEventConverter.convert(id, event));
+          if (myContext.getTaskNotificationListener() != null) {
+            launcher.addProgressListener(new ProgressListener() {
+              @Override
+              public void statusChanged(ProgressEvent event) {
+                if (myContext.isActive(id)) {
+                  myContext.getTaskNotificationListener().onStatusChange(GradleProgressEventConverter.convert(id, event));
+                }
               }
-            }
-          });
+            });
+          }
 
           launcher.run();
         }
