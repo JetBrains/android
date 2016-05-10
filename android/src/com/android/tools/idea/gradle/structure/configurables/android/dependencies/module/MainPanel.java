@@ -42,6 +42,7 @@ import java.awt.*;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.revalidateAndRepaint;
+import static com.android.tools.idea.gradle.structure.model.PsDependency.TextType.FOR_NAVIGATION;
 import static com.intellij.util.ui.UIUtil.getLabelFont;
 
 class MainPanel extends AbstractMainDependenciesPanel {
@@ -54,6 +55,7 @@ class MainPanel extends AbstractMainDependenciesPanel {
   @NotNull private final JPanel myAltPanel;
 
   @NotNull private AbstractDependenciesPanel mySelectedView;
+  private String mySelectedDependency;
 
   MainPanel(@NotNull PsAndroidModule module, @NotNull PsContext context, @NotNull List<PsModule> extraTopModules) {
     super(context, extraTopModules);
@@ -77,14 +79,19 @@ class MainPanel extends AbstractMainDependenciesPanel {
     addLabelToHeader(myDependencyGraphPanel, createSwitchViewLabel("Show Declared Dependencies Only", myDeclaredDependenciesPanel));
 
     myDeclaredDependenciesPanel.updateTableColumnSizes();
-    myDeclaredDependenciesPanel.add(myTargetArtifactsPanel::displayTargetArtifacts);
+    myDeclaredDependenciesPanel.add(newSelection -> {
+      setSelectedDependency(newSelection);
+      myTargetArtifactsPanel.displayTargetArtifacts(newSelection);
+    });
 
     myDependencyGraphPanel.add(newSelection -> {
       AbstractDependencyNode<? extends PsAndroidDependency> node = newSelection;
       if (node != null) {
         node = findTopDependencyNode(node);
       }
-      myTargetArtifactsPanel.displayTargetArtifacts(node != null ? node.getModels().get(0) : null);
+      PsAndroidDependency selection = node != null ? node.getModels().get(0) : null;
+      setSelectedDependency(selection);
+      myTargetArtifactsPanel.displayTargetArtifacts(selection);
     });
 
     myAltPanel = new JPanel(new BorderLayout());
@@ -98,6 +105,10 @@ class MainPanel extends AbstractMainDependenciesPanel {
     header.addMinimizeListener(this::minimizeTargetArtifactsPanel);
 
     myTargetArtifactsPanel.addRestoreListener(this::restoreTargetArtifactsPanel);
+  }
+
+  private void setSelectedDependency(@Nullable PsAndroidDependency selection) {
+    mySelectedDependency = selection != null ? selection.toText(FOR_NAVIGATION) : null;
   }
 
   @NotNull
@@ -117,7 +128,7 @@ class MainPanel extends AbstractMainDependenciesPanel {
         mySelectedView = view;
         revalidateAndRepaint(MainPanel.this);
 
-        mySelectedView.notifySelectionChanged();
+        mySelectedView.selectDependency(mySelectedDependency);
         mySelectedView.getPreferredFocusedComponent().requestFocusInWindow();
       }
     });

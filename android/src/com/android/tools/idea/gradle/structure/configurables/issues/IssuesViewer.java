@@ -231,5 +231,8 @@ public class IssuesViewer {
 
   public void setShowEmptyText(boolean showEmptyText) {
     myShowEmptyText = showEmptyText;
+    if (!myShowEmptyText) {
+      myEmptyIssuesLabel.setVisible(false);
+    }
   }
 }
