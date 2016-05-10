@@ -30,7 +30,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.google.common.base.Strings.nullToEmpty;
 
 /**
@@ -65,12 +64,6 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
     myDisplayName = displayName;
     myCompilerConfiguration = CompilerWorkspaceConfiguration.getInstance(project);
     myBuildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
-
-    if (!isAndroidStudio()) {
-      myUseInProcessBuildLabel.setVisible(false);
-      myUseInProcessBuildCheckBox.setVisible(false);
-      myUseInProcessBuildSpacing.setVisible(false);
-    }
   }
 
   @Override
