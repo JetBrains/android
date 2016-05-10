@@ -101,6 +101,9 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     if (!myLaunchOptions.isDebug() && myLaunchOptions.isOpenLogcatAutomatically()) {
       launchTasks.add(new ShowLogcatTask(myProject, packageName));
     }
+    if (SetFirebaseLogTagsTask.projectUsesFirebase(myFacet)) {
+      launchTasks.add(new SetFirebaseLogTagsTask());
+    }
 
     if (myRunConfig.getProfilerState().isGapidEnabled()) {
       launchTasks.add(new GapidTraceTask(myRunConfig, packageName));
