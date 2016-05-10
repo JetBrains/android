@@ -17,14 +17,14 @@ package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.SdkConstants;
 import com.android.tools.sherpa.structure.WidgetCompanion;
-import com.google.tnt.solver.widgets.ConstraintWidget;
-import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.api.DragHandler;
 import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import android.support.constraint.solver.widgets.ConstraintWidget;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
