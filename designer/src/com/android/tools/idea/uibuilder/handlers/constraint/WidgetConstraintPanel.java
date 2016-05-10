@@ -35,6 +35,8 @@ import java.util.List;
  * UI component for Constraint Inspector
  */
 public class WidgetConstraintPanel extends JPanel {
+  private static final String HORIZONTAL_TOOL_TIP_TEXT = "Horizontal Bias";
+  private static final String VERTICAL_TOOL_TIP_TEXT = "Vertical Bias";
   final SingleWidgetView mMain;
   final JSlider mVerticalSlider = new JSlider(SwingConstants.VERTICAL);
   final JSlider mHorizontalSlider = new JSlider(SwingConstants.HORIZONTAL);
@@ -65,7 +67,8 @@ public class WidgetConstraintPanel extends JPanel {
     mHorizontalSlider.setMajorTickSpacing(50);
     mVerticalSlider.setBackground(mColorSet.getInspectorBackgroundColor());
     mHorizontalSlider.setBackground(mColorSet.getInspectorBackgroundColor());
-
+    mHorizontalSlider.setToolTipText(HORIZONTAL_TOOL_TIP_TEXT);
+    mVerticalSlider.setToolTipText(VERTICAL_TOOL_TIP_TEXT);
     mComponent = components.get(0);
     configureUI(mComponent);
     GridBagConstraints gbc = new GridBagConstraints();
@@ -146,10 +149,15 @@ public class WidgetConstraintPanel extends JPanel {
     if (bb == null && bt == null) {
       bottom = -1;
     }
-    mVerticalSlider.setEnabled(bottom >= 0 && top >= 0);
-    mHorizontalSlider.setEnabled(left >= 0 && right >= 0);
+
+    boolean showVerticalSlider = bottom >= 0 && top >= 0;
+    boolean showHorizontalSlider = left >= 0 && right >= 0;
+    mVerticalSlider.setEnabled(showVerticalSlider);
+    mHorizontalSlider.setEnabled(showHorizontalSlider);
     mHorizontalSlider.invalidate();
     mVerticalSlider.invalidate();
+    mVerticalSlider.setToolTipText(showVerticalSlider ? VERTICAL_TOOL_TIP_TEXT : null);
+    mHorizontalSlider.setToolTipText(showHorizontalSlider ? HORIZONTAL_TOOL_TIP_TEXT : null);
 
     float horizBias = 0.5f;
     if (hbias != null && hbias.length() > 0) {

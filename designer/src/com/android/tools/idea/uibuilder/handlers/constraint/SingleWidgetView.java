@@ -67,6 +67,8 @@ public class SingleWidgetView extends JPanel {
   KillButton mBottomKill;
   KillButton mBaselineKill;
 
+  private String[] statusString = {"Fixed", "Any Size", "Wrap Content"};
+
   public SingleWidgetView(WidgetConstraintPanel constraintPanel, ColorSet colorSet) {
     super(null);
     mColorSet = colorSet;
@@ -75,6 +77,11 @@ public class SingleWidgetView extends JPanel {
     mLeftMargin = new MarginWidget(SwingConstants.LEFT, mColorSet);
     mRightMargin = new MarginWidget(SwingConstants.LEFT, mColorSet);
     mBottomMargin = new MarginWidget(SwingConstants.LEFT, mColorSet);
+    mTopMargin.setToolTipText("Top Margin");
+    mLeftMargin.setToolTipText("Left Margin");
+    mRightMargin.setToolTipText("Right Margin");
+    mBottomMargin.setToolTipText("Bottom Margin");
+
     mHbar1 = new HConstraintDisplay(mColorSet, true);
     mHbar2 = new HConstraintDisplay(mColorSet, false);
     mVbar1 = new VConstraintDisplay(mColorSet, true);
@@ -86,10 +93,17 @@ public class SingleWidgetView extends JPanel {
     mBottomKill = new KillButton(mColorSet);
     mBaselineKill = new KillButton(mColorSet);
 
+    mTopKill.setToolTipText("Kill Top Constraint");
+    mLeftKill.setToolTipText("Kill Left Constraint");
+    mRightKill.setToolTipText("Kill Right Constraint");
+    mBottomKill.setToolTipText("Kill Bottom Constraint");
+    mBaselineKill.setToolTipText("Kill Baseline Constraint");
+
     mHbar1.setSister(mHbar2);
     mHbar2.setSister(mHbar1);
     mVbar1.setSister(mVbar2);
     mVbar2.setSister(mVbar1);
+
     mWidgetConstraintPanel = constraintPanel;
     addComponentListener(new ComponentAdapter() {
       @Override
@@ -122,15 +136,10 @@ public class SingleWidgetView extends JPanel {
     mBottomKill.addActionListener(e -> bottomKill());
     mBaselineKill.addActionListener(e -> baselineKill());
 
-    mHbar1.addPropertyChangeListener(TriStateControl.STATE, e -> mHbar2.setState(mHbar1.getState()));
-    mHbar2.addPropertyChangeListener(TriStateControl.STATE, e -> mHbar1.setState(mHbar2.getState()));
-    mVbar1.addPropertyChangeListener(TriStateControl.STATE, e -> mVbar2.setState(mVbar1.getState()));
-    mVbar2.addPropertyChangeListener(TriStateControl.STATE, e -> mVbar1.setState(mVbar2.getState()));
-
-    mHbar1.addPropertyChangeListener(TriStateControl.STATE, e -> mWidgetConstraintPanel.setHorizontalConstraint(mHbar1.getState()));
-    mHbar2.addPropertyChangeListener(TriStateControl.STATE, e -> mWidgetConstraintPanel.setHorizontalConstraint(mHbar2.getState()));
-    mVbar1.addPropertyChangeListener(TriStateControl.STATE, e -> mWidgetConstraintPanel.setVerticalConstraint(mVbar1.getState()));
-    mVbar2.addPropertyChangeListener(TriStateControl.STATE, e -> mWidgetConstraintPanel.setVerticalConstraint(mVbar2.getState()));
+    mHbar1.addPropertyChangeListener(TriStateControl.STATE, e -> setHorizontalState(mHbar1));
+    mHbar2.addPropertyChangeListener(TriStateControl.STATE, e -> setHorizontalState(mHbar2));
+    mVbar1.addPropertyChangeListener(TriStateControl.STATE, e -> setVerticalState(mVbar1));
+    mVbar2.addPropertyChangeListener(TriStateControl.STATE, e -> setVerticalState(mVbar2));
 
     addMouseMotionListener(new MouseMotionAdapter() {
       @Override
@@ -141,6 +150,7 @@ public class SingleWidgetView extends JPanel {
         mBottomMargin.showUI(mBottomMargin.getBounds().contains(e.getPoint()) ? MarginWidget.Show.IN_WIDGET : MarginWidget.Show.OUT_WIDGET);
       }
     });
+
     addMouseListener(new MouseAdapter() {
       @Override
       public void mouseExited(MouseEvent e) {
@@ -154,6 +164,31 @@ public class SingleWidgetView extends JPanel {
       }
     });
     mGraphicList.add(mWidgetRender);
+  }
+
+  private void setHorizontalState(HConstraintDisplay state) {
+    if (state == mHbar1) {
+      mHbar2.setState(state.getState());
+    }
+    else {
+      mHbar1.setState(state.getState());
+    }
+    mHbar1.setToolTipText(statusString[state.getState()]);
+    mHbar2.setToolTipText(statusString[state.getState()]);
+    mWidgetConstraintPanel.setHorizontalConstraint(state.getState());
+  }
+
+  private void setVerticalState(VConstraintDisplay state) {
+    if (state == mVbar1) {
+      mVbar2.setState(state.getState());
+    }
+    else {
+      mVbar1.setState(state.getState());
+    }
+
+    mVbar1.setToolTipText(statusString[state.getState()]);
+    mVbar2.setToolTipText(statusString[state.getState()]);
+    mWidgetConstraintPanel.setVerticalConstraint(state.getState());
   }
 
   private void topKill() {
@@ -221,7 +256,7 @@ public class SingleWidgetView extends JPanel {
     mLeftKill.setBounds(boxLeft - rad, boxTop + mBoxSize / 2 - rad + 1, size + 2, size);
     mRightKill.setBounds(boxLeft + mBoxSize - rad, boxTop + mBoxSize / 2 - rad + 1, size + 2, size);
     mBottomKill.setBounds(boxLeft + mBoxSize / 2 - rad, boxTop + mBoxSize - rad, size + 2, size);
-    mBaselineKill.setBounds(boxLeft + mBoxSize - rad, boxTop + baselinePos(mBoxSize) - rad, size + 2, size);
+    mBaselineKill.setBounds(boxLeft + mBoxSize / 2 - rad, boxTop + baselinePos(mBoxSize) - rad, size + 2, size);
     int barSize = 10;
     int barLong = mBoxSize / 2 - barSize - 1;
 
@@ -238,7 +273,6 @@ public class SingleWidgetView extends JPanel {
       mVbar2.setBounds(left, top, barSize, height);
     }
   }
-
 
   @Override
   protected void paintComponent(Graphics g) {
@@ -412,6 +446,10 @@ public class SingleWidgetView extends JPanel {
     mHbar2.setState(width);
     mVbar1.setState(height);
     mVbar2.setState(height);
+    mVbar1.setToolTipText(statusString[height]);
+    mVbar2.setToolTipText(statusString[height]);
+    mHbar1.setToolTipText(statusString[width]);
+    mHbar2.setToolTipText(statusString[width]);
   }
 
   /**
@@ -429,7 +467,6 @@ public class SingleWidgetView extends JPanel {
     public final static int LEFT = 4;
     public final static int RIGHT = 8;
     public final static int ALL = TOP | BOTTOM | LEFT | RIGHT;
-
 
     Box(int x, int y, int w, int h, int edges) {
       mX = x;
@@ -490,7 +527,6 @@ public class SingleWidgetView extends JPanel {
         g.fillRect(mX, mY, mWidth + 1, mHeight + 1);
         g.setColor(colorSet.getInspectorStrokeColor());
 
-
         if (mBaseline) {
           g.drawLine(mX, mY, mX, mY + mWidth);
           g.drawLine(mX + mWidth, mY, mX + mWidth, mY + mHeight);
@@ -507,7 +543,6 @@ public class SingleWidgetView extends JPanel {
         else {
           g.drawRect(mX, mY, mWidth, mHeight);
         }
-
 
         if (mTitle != null) {
           int decent = g.getFontMetrics().getDescent();
@@ -572,7 +607,6 @@ public class SingleWidgetView extends JPanel {
     }
 
   }
-
 
   /**
    * This renders the basic graphic of a Scene
@@ -687,7 +721,6 @@ public class SingleWidgetView extends JPanel {
       mBackground = colorSet.getInspectorFillColor();
       mLineColor = colorSet.getInspectorStrokeColor();
       mMouseOverColor = colorSet.getInspectorHighlightsStrokeColor();
-
 
       setPreferredSize(new Dimension(200, 30));
 

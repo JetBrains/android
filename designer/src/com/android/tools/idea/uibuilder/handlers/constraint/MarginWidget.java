@@ -49,6 +49,11 @@ public class MarginWidget extends JPanel {
   CardLayout layout;
   JButton button;
 
+  @Override
+  public void setToolTipText(String text) {
+    combo.setToolTipText(text);
+  }
+
   public void showUI(Show show) {
     switch (show) {
       case IN_WIDGET:
