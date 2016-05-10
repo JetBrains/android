@@ -45,8 +45,7 @@ public class TestArtifactCustomScopeTest extends AndroidGradleArtifactsTestCase 
     assertTrue(packageSet.contains(file, getProject(), null));
   }
 
-  // Failing on go/studio-builder bots (b.android.com/201535).
-  public void ignore_testAndroidTestFileColor() throws Exception {
+  public void testAndroidTestFileColor() throws Exception {
     VirtualFile file = findRelativeFile("app/src/androidTest/java/google/simpleapplication/ApplicationTest.java",
                                         getProject().getBaseDir());
     assertNotNull(file);
