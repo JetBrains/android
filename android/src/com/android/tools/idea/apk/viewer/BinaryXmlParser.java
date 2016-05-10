@@ -31,7 +31,7 @@ import java.util.*;
 public class BinaryXmlParser {
   @NotNull
   public static byte[] decodeXml(@NotNull String fileName, @NotNull byte[] bytes) {
-    ResourceFile file = new ResourceFile(bytes);
+    BinaryResourceFile file = new BinaryResourceFile(bytes);
     List<Chunk> chunks = file.getChunks();
     if (chunks.size() != 1) {
       Logger.getInstance(BinaryXmlParser.class).warn("Expected 1, but got " + chunks.size() + " chunks while parsing " + fileName);
@@ -162,12 +162,12 @@ public class BinaryXmlParser {
         return rawValue;
       }
 
-      ResourceValue resValue = attribute.typedValue();
+      BinaryResourceValue resValue = attribute.typedValue();
       return formatValue(resValue, myStringPool);
     }
   }
 
-  public static String formatValue(@NotNull ResourceValue resValue, @Nullable StringPoolChunk stringPool) {
+  public static String formatValue(@NotNull BinaryResourceValue resValue, @Nullable StringPoolChunk stringPool) {
     int data = resValue.data();
 
     switch (resValue.type()) {
