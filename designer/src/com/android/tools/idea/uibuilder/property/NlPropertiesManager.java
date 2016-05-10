@@ -89,6 +89,10 @@ public class NlPropertiesManager implements DesignSurfaceListener, ModelListener
     }
   }
 
+  public @Nullable DesignSurface getDesignSurface() {
+    return mySurface;
+  }
+
   private void setScreenView(@Nullable ScreenView screenView) {
     if (screenView == myScreenView) {
       return;
