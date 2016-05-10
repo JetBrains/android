@@ -22,18 +22,15 @@ import java.util.List;
 
 import static com.android.SdkConstants.*;
 
-public class CheckBoxHandler extends TextViewHandler {
+public class RatingBarHandler extends ProgressBarHandler {
   @Override
   @NotNull
   public List<String> getInspectorProperties() {
     return ImmutableList.of(
-      ATTR_CONTENT_DESCRIPTION,
       ATTR_STYLE,
-      ATTR_BUTTON,
-      ATTR_BUTTON_TINT,
-      ATTR_CHECKED,
-      ATTR_FOCUSABLE,
-      ATTR_CLICKABLE,
-      ATTR_DUPLICATE_PARENT_STATE);
+      ATTR_NUM_STARS,
+      ATTR_RATING,
+      ATTR_STEP_SIZE,
+      ATTR_IS_INDICATOR);
   }
 }

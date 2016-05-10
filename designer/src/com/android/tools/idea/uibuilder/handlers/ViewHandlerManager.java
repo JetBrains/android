@@ -189,11 +189,11 @@ public class ViewHandlerManager implements ProjectComponent {
         return new AdViewHandler();
       case APP_BAR_LAYOUT:
         return new AppBarLayoutHandler();
+      case AUTO_COMPLETE_TEXT_VIEW:
+        return new AutoCompleteTextViewHandler();
       case EDIT_TEXT:
         return new EditTextHandler();
-      case AUTO_COMPLETE_TEXT_VIEW:
       case MULTI_AUTO_COMPLETE_TEXT_VIEW:
-      case SWITCH:
       case TEXT_VIEW:
         return TEXT_HANDLER;
       case BROWSE_FRAGMENT:
@@ -208,6 +208,7 @@ public class ViewHandlerManager implements ProjectComponent {
       case CHECKED_TEXT_VIEW:
         return new CheckedTextViewHandler();
       case CHRONOMETER:
+        return new ChronometerHandler();
       case QUICK_CONTACT_BADGE:
       case TEXT_CLOCK:
         return STANDARD_HANDLER;
@@ -235,8 +236,6 @@ public class ViewHandlerManager implements ProjectComponent {
         return new LinearLayoutHandler();
       case FRAME_LAYOUT:
       case GESTURE_OVERLAY_VIEW:
-      case IMAGE_SWITCHER:
-      case NESTED_SCROLL_VIEW:
       case TEXT_SWITCHER:
       case VIEW_ANIMATOR:
       case VIEW_FLIPPER:
@@ -252,12 +251,16 @@ public class ViewHandlerManager implements ProjectComponent {
         return new ImageButtonHandler();
       case IMAGE_VIEW:
         return new ImageViewHandler();
+      case IMAGE_SWITCHER:
+        return new ImageSwitcherHandler();
       case MAP_FRAGMENT:
         return new MapFragmentHandler();
       case MAP_VIEW:
         return new MapViewHandler();
       case NAVIGATION_VIEW:
         return new NavigationViewHandler();
+      case NESTED_SCROLL_VIEW:
+        return new NestedScrollViewHandler();
       case PLAYBACK_OVERLAY_FRAGMENT:
         return new PlaybackOverlayFragmentHandler();
       case PROGRESS_BAR:
@@ -278,6 +281,8 @@ public class ViewHandlerManager implements ProjectComponent {
         return new RingtonePreferenceHandler();
       case PreferenceTags.SWITCH_PREFERENCE:
         return new SwitchPreferenceHandler();
+      case RATING_BAR:
+        return new RatingBarHandler();
       case RECYCLER_VIEW:
         return new RecyclerViewHandler();
       case REQUEST_FOCUS:
@@ -286,12 +291,17 @@ public class ViewHandlerManager implements ProjectComponent {
         return new ScrollViewHandler();
       case SEARCH_FRAGMENT:
         return new SearchFragmentHandler();
+      case SEEK_BAR:
+        return new SeekBarHandler();
       case SPACE:
+        return new SpaceHandler();
       case SURFACE_VIEW:
       case TEXTURE_VIEW:
         return NO_PREVIEW_HANDLER;
       case SPINNER:
         return new SpinnerHandler();
+      case SWITCH:
+        return new SwitchHandler();
       case TABLE_CONSTRAINT_LAYOUT:
         return new ConstraintLayoutHandler();
       case TABLE_LAYOUT:

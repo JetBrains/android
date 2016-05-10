@@ -34,11 +34,13 @@ public class ListViewHandler extends ViewGroupHandler {
   @NotNull
   public List<String> getInspectorProperties() {
     return ImmutableList.of(
+      ATTR_ENTRIES,
+      ATTR_SCROLLBARS,
+      ATTR_STYLE,
+      ATTR_CACHE_COLOR_HINT,
       ATTR_BACKGROUND,
       ATTR_DIVIDER,
       ATTR_DIVIDER_HEIGHT,
-      ATTR_ENTRIES,
-      ATTR_SCROLLBARS,
       ATTR_FOOTER_DIVIDERS_ENABLED,
       ATTR_HEADER_DIVIDERS_ENABLED);
   }

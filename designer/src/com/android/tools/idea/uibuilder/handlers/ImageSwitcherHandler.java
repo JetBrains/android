@@ -20,20 +20,12 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-import static com.android.SdkConstants.*;
+import static com.android.SdkConstants.ATTR_STYLE;
 
-public class CheckBoxHandler extends TextViewHandler {
+public class ImageSwitcherHandler extends FrameLayoutHandler {
   @Override
   @NotNull
   public List<String> getInspectorProperties() {
-    return ImmutableList.of(
-      ATTR_CONTENT_DESCRIPTION,
-      ATTR_STYLE,
-      ATTR_BUTTON,
-      ATTR_BUTTON_TINT,
-      ATTR_CHECKED,
-      ATTR_FOCUSABLE,
-      ATTR_CLICKABLE,
-      ATTR_DUPLICATE_PARENT_STATE);
+    return ImmutableList.of(ATTR_STYLE);
   }
 }

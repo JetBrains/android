@@ -33,12 +33,14 @@ public class NlDesignProperties {
   private final AttributeDefinition myListItemDefinition;
   private final AttributeDefinition myShowInItemDefinition;
   private final AttributeDefinition myOpenDrawerItemDefinition;
+  private final AttributeDefinition myLayoutDefinition;
 
   public NlDesignProperties() {
     myContextDefinition = getDefinitionByName(ATTR_CONTEXT);
     myListItemDefinition = getDefinitionByName(ATTR_LISTITEM);
     myShowInItemDefinition = getDefinitionByName(ATTR_SHOW_IN);
     myOpenDrawerItemDefinition = getDefinitionByName(ATTR_OPEN_DRAWER);
+    myLayoutDefinition = getDefinitionByName(ATTR_LAYOUT);
   }
 
   @NotNull
@@ -47,7 +49,8 @@ public class NlDesignProperties {
       new NlPropertyItem(components, TOOLS_URI, myContextDefinition),
       new NlPropertyItem(components, TOOLS_URI, myListItemDefinition),
       new NlPropertyItem(components, TOOLS_URI, myShowInItemDefinition),
-      new NlPropertyItem(components, TOOLS_URI, myOpenDrawerItemDefinition));
+      new NlPropertyItem(components, TOOLS_URI, myOpenDrawerItemDefinition),
+      new NlPropertyItem(components, TOOLS_URI, myLayoutDefinition));
   }
 
   private static AttributeDefinition getDefinitionByName(@NotNull String name) {
