@@ -24,7 +24,7 @@ import java.util.List;
 public abstract class AbstractPsResettableNode<T extends PsModel> extends AbstractPsModelNode<T> {
   private List<? extends AbstractPsModelNode> myChildren;
 
-  public AbstractPsResettableNode(@NotNull T model) {
+  protected AbstractPsResettableNode(@NotNull T model) {
     super(model);
     setAutoExpandNode(true);
   }

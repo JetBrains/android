@@ -16,38 +16,80 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.resolved;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
-import com.android.tools.idea.gradle.structure.configurables.ui.AbstractMainPanel;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.AbstractMainDependenciesPanel;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.TargetArtifactsPanel;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractDependencyNode;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.intellij.openapi.util.ActionCallback;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.ui.JBSplitter;
+import com.intellij.ui.navigation.History;
 import com.intellij.ui.navigation.Place;
+import com.intellij.ui.treeStructure.SimpleNode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 
-class MainPanel extends AbstractMainPanel {
-  @NotNull private final ResolvedDependenciesPanel myDependenciesPanel;
+class MainPanel extends AbstractMainDependenciesPanel {
+  @NotNull private final DependenciesPanel myDependenciesPanel;
+  @NotNull private final TargetArtifactsPanel myTargetArtifactsPanel;
 
   MainPanel(@NotNull PsAndroidModule module, @NotNull PsContext context) {
     super(context);
 
-    myDependenciesPanel = new ResolvedDependenciesPanel(module, context);
-    add(myDependenciesPanel, BorderLayout.CENTER);
+    myDependenciesPanel = new DependenciesPanel(module, context);
+    myDependenciesPanel.setHistory(getHistory());
+
+    myTargetArtifactsPanel = new TargetArtifactsPanel(module, context);
+
+    myDependenciesPanel.add(newSelection -> {
+      AbstractDependencyNode<? extends PsAndroidDependency> node = newSelection;
+      if (node != null) {
+        node = findTopDependencyNode(node);
+      }
+      myTargetArtifactsPanel.displayTargetArtifacts(node != null ? node.getModels().get(0) : null);
+    });
+
+    JBSplitter verticalSplitter = createMainVerticalSplitter();
+    verticalSplitter.setFirstComponent(myDependenciesPanel);
+    verticalSplitter.setSecondComponent(myTargetArtifactsPanel);
+
+    add(verticalSplitter, BorderLayout.CENTER);
+  }
+
+  @NotNull
+  private static AbstractDependencyNode<? extends PsAndroidDependency> findTopDependencyNode(@NotNull AbstractDependencyNode<? extends PsAndroidDependency> node) {
+    AbstractDependencyNode<? extends PsAndroidDependency> current = node;
+    while (true) {
+      SimpleNode parent = current.getParent();
+      if (!(parent instanceof AbstractDependencyNode)) {
+        return current;
+      }
+      current = (AbstractDependencyNode<? extends PsAndroidDependency>)parent;
+    }
+  }
+
+  @Override
+  public void setHistory(History history) {
+    super.setHistory(history);
+    myDependenciesPanel.setHistory(history);
+  }
+
+  @Override
+  public ActionCallback navigateTo(@Nullable Place place, boolean requestFocus) {
+    return myDependenciesPanel.navigateTo(place, requestFocus);
+  }
+
+  @Override
+  public void queryPlace(@NotNull Place place) {
+    myDependenciesPanel.queryPlace(place);
   }
 
   @Override
   public void dispose() {
     Disposer.dispose(myDependenciesPanel);
-  }
-
-  @Override
-  public ActionCallback navigateTo(@Nullable Place place, boolean requestFocus) {
-    return null;
-  }
-
-  @Override
-  public void queryPlace(@NotNull Place place) {
-
+    Disposer.dispose(myTargetArtifactsPanel);
   }
 }
