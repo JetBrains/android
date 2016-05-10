@@ -127,6 +127,10 @@ public class NlActionManager {
     group.add(actionManager.getAction(IdeActions.ACTION_DELETE));
     group.addSeparator();
 
+    if (ConvertToConstraintLayoutAction.ENABLED) {
+      group.add(new ConvertToConstraintLayoutAction(mySurface));
+    }
+
     return group;
   }
 

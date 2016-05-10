@@ -935,7 +935,7 @@ public class EditorFixture {
           return null;
         }
 
-        return new NlEditorFixture(myFrame.robot(), (NlEditor)selected);
+        return new NlEditorFixture(myFrame.robot(), myFrame, (NlEditor)selected);
       }
     });
   }
@@ -978,7 +978,7 @@ public class EditorFixture {
         return toolWindowForm != null && toolWindowForm.getSurface().isShowing();
       });
 
-    return new NlPreviewFixture(myFrame.getProject(), myFrame.robot());
+    return new NlPreviewFixture(myFrame.getProject(), myFrame, myFrame.robot());
   }
 
   /**

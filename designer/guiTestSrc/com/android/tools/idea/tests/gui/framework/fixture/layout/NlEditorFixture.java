@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture.layout;
 
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.uibuilder.editor.NlEditor;
 import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
@@ -29,9 +30,9 @@ import java.util.List;
 public class NlEditorFixture extends ComponentFixture<NlEditorFixture, Component> {
   private final DesignSurfaceFixture myDesignSurfaceFixture;
 
-  public NlEditorFixture(@NotNull Robot robot, @NotNull NlEditor editor) {
+  public NlEditorFixture(@NotNull Robot robot, @NotNull IdeFrameFixture frame, @NotNull NlEditor editor) {
     super(NlEditorFixture.class, robot, editor.getComponent());
-    myDesignSurfaceFixture = new DesignSurfaceFixture(robot, editor.getComponent().getSurface());
+    myDesignSurfaceFixture = new DesignSurfaceFixture(robot, frame, editor.getComponent().getSurface());
   }
 
   public void waitForRenderToFinish() {
