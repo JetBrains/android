@@ -851,7 +851,7 @@ public class ConstraintUtilities {
         ConstraintModel model = ConstraintModel.getConstraintModel(nlModel);
         Collection<ConstraintWidget> widgets = model.getScene().getWidgets();
         for (ConstraintWidget widget : widgets) {
-          commitElement(widget, nlModel);
+          commitElement(widget);
         }
       }
     };
@@ -862,9 +862,8 @@ public class ConstraintUtilities {
    * Utility function to commit to the NlModel the current state of the given widget
    *
    * @param widget the widget we want to save to the model
-   * @param model  the model to save to
    */
-  static void commitElement(@NotNull ConstraintWidget widget, @NotNull NlModel model) {
+  static void commitElement(@NotNull ConstraintWidget widget) {
     WidgetCompanion companion = (WidgetCompanion)widget.getCompanionWidget();
     NlComponent component = (NlComponent)companion.getWidgetModel();
     setEditorPosition(component, widget.getX(), widget.getY());

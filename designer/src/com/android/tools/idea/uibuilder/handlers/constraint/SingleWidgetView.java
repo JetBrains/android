@@ -15,18 +15,17 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
+import android.support.constraint.solver.widgets.ConstraintWidget;
+import android.support.constraint.solver.widgets.ConstraintWidgetContainer;
 import com.android.tools.sherpa.drawing.ColorSet;
 import com.android.tools.sherpa.drawing.ConnectionDraw;
 import com.android.tools.sherpa.structure.WidgetCompanion;
 import com.android.tools.sherpa.structure.WidgetsScene;
-import android.support.constraint.solver.widgets.ConstraintWidget;
-import android.support.constraint.solver.widgets.ConstraintWidgetContainer;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.Ellipse2D;
-import java.awt.geom.Path2D;
 import java.util.ArrayList;
 
 /**
@@ -37,11 +36,6 @@ public class SingleWidgetView extends JPanel {
   public final static int SPRING = 1;
   public final static int WRAP_CONTENT = 2;
   public final static int FIXED = 0;
-  final static BasicStroke DASHED_STROKE =
-    new BasicStroke(1.0f,
-                    BasicStroke.CAP_BUTT,
-                    BasicStroke.JOIN_MITER,
-                    10.0f, new float[]{10.0f}, 0.0f);
   private final ColorSet mColorSet;
   private String mCacheName;
   private int mCacheBottom;
@@ -192,18 +186,13 @@ public class SingleWidgetView extends JPanel {
     update();
   }
 
-  final static int baselinePos(int height) {
+  static int baselinePos(int height) {
     return (9 * height) / 10;
   }
 
   private void update() {
     configureUi(mCacheName, mCacheBottom, mCacheTop, mCacheLeft, mCacheRight, mCacheBaseline, mCacheWidth, mCacheHeight);
     mWidgetRender.build(getWidth(), getHeight());
-  }
-
-  private void killTop() {
-    mWidgetConstraintPanel.killTopConstraint();
-    mTopKill.setVisible(false);
   }
 
   void resize() {
@@ -585,36 +574,6 @@ public class SingleWidgetView extends JPanel {
   }
 
 
-  static class SplineArrow implements Graphic {
-    int mX1, mY1, mX2, mY2;
-    boolean mDisplay;
-    Path2D.Float mPath;
-
-    SplineArrow(int x1, int y1, int x2, int y2, boolean vertical, boolean display) {
-      mX1 = x1;
-      mY1 = y1;
-      mX2 = x2;
-      mY2 = y2;
-      mPath = new Path2D.Float();
-      mPath.moveTo(x1, y1);
-      if (vertical) {
-        mPath.curveTo(x1, y2, x2, y1, x2, y2);
-      }
-      else {
-        mPath.curveTo(x2, y1, x1, y2, x2, y2);
-      }
-      mDisplay = display;
-    }
-
-    @Override
-    public boolean paint(Graphics2D g, ColorSet colorSet) {
-      if (mDisplay) {
-        g.draw(mPath);
-      }
-      return false;
-    }
-  }
-
   /**
    * This renders the basic graphic of a Scene
    */
@@ -676,9 +635,6 @@ public class SingleWidgetView extends JPanel {
       mWidgetTop = new Box(boxLeft, inset - mBoxSize, mBoxSize, mBoxSize, Box.BOTTOM);
       // TODO support left vs right
       //  mWidgetBase = new BaseLineBox(null, inset - mBoxSize, boxTop + mBoxSize + 10, mBoxSize, mBoxSize / 2, true);
-
-      int endPointY = boxTop + mBoxSize + 10;
-      int baselineBox = mBoxSize / 2;
 
       int baseArrowX = boxLeft + mBoxSize / 2;
       mBaselineArrow =

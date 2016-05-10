@@ -25,10 +25,8 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.plaf.BorderUIResource;
 import javax.swing.plaf.basic.BasicSliderUI;
 import java.awt.*;
-import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
 import java.util.Collections;
 import java.util.List;
@@ -37,9 +35,9 @@ import java.util.List;
  * UI component for Constraint Inspector
  */
 public class WidgetConstraintPanel extends JPanel {
-  SingleWidgetView mMain;
-  JSlider mVerticalSlider = new JSlider(SwingConstants.VERTICAL);
-  JSlider mHorizontalSlider = new JSlider(SwingConstants.HORIZONTAL);
+  final SingleWidgetView mMain;
+  final JSlider mVerticalSlider = new JSlider(SwingConstants.VERTICAL);
+  final JSlider mHorizontalSlider = new JSlider(SwingConstants.HORIZONTAL);
   NlComponent mComponent;
   private String mWidgetWidthCache;
   private String mWidgetHeightCache;
@@ -47,7 +45,7 @@ public class WidgetConstraintPanel extends JPanel {
   ColorSet mColorSet = new InspectorColorSet();
 
   static class InspectorColorSet extends BlueprintColorSet {
-    public InspectorColorSet() {
+    InspectorColorSet() {
       mDrawBackground = false;
       mDrawWidgetInfos = true;
       mInspectorBackgroundColor = new Color(232, 232, 232);
@@ -290,7 +288,7 @@ public class WidgetConstraintPanel extends JPanel {
    * Look and Feel for the sliders
    */
   static class WidgetSliderUI extends BasicSliderUI {
-    final int thumbSize = 22;
+    static final int thumbSize = 22;
     private static Font sSmallFont = new Font("Helvetica", Font.PLAIN, 10);
     ColorSet mColorSet;
 
