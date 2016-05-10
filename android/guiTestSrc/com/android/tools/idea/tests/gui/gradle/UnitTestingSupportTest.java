@@ -16,12 +16,10 @@
 package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.tools.idea.tests.gui.framework.*;
-import com.android.tools.idea.tests.gui.framework.fixture.BuildVariantsToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture.ContentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.UnitTestTreeFixture;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,13 +36,11 @@ public class UnitTestingSupportTest {
 
   private EditorFixture myEditor;
 
-  @Ignore("failed in http://go/aj/job/studio-ui-test/389 and from IDEA")
   @Test
   public void appModule_gradleAwareMake() throws Exception {
     doTest("app/src/test/java/com/android/tests", "UnitTest");
   }
 
-  @Ignore("failed in http://go/aj/job/studio-ui-test/389 and from IDEA")
   @Test
   public void libModule_gradleAwareMake() throws Exception {
     doTest("lib/src/test/java/com/android/tests/lib", "LibUnitTest");
@@ -62,10 +58,6 @@ public class UnitTestingSupportTest {
    */
   private void doTest(@NotNull String path, @NotNull String testClass) throws Exception {
     guiTest.importProjectAndWaitForProjectSyncToFinish("ProjectWithUnitTests");
-
-    BuildVariantsToolWindowFixture buildVariants = guiTest.ideFrame().getBuildVariantsWindow();
-    buildVariants.activate();
-    buildVariants.selectUnitTests();
 
     // Open the test file:
     myEditor = guiTest.ideFrame().getEditor();
