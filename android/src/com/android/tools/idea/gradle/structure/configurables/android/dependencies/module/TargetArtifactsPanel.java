@@ -45,13 +45,13 @@ import java.util.List;
 import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.setUp;
 import static java.awt.event.MouseEvent.MOUSE_PRESSED;
 
-class TargetArtifactsPanel extends ToolWindowPanel {
+public class TargetArtifactsPanel extends ToolWindowPanel {
   @NotNull private final Tree myTree;
   @NotNull private final TargetArtifactsTreeBuilder myTreeBuilder;
   @NotNull private final PsContext myContext;
   @NotNull private final NodeHyperlinkSupport<ModuleDependencyNode> myHyperlinkSupport;
 
-  TargetArtifactsPanel(@NotNull PsAndroidModule module, @NotNull PsContext context) {
+  public TargetArtifactsPanel(@NotNull PsAndroidModule module, @NotNull PsContext context) {
     super("Target Artifacts", AndroidIcons.Variant, ToolWindowAnchor.RIGHT);
     myContext = context;
 
@@ -105,7 +105,7 @@ class TargetArtifactsPanel extends ToolWindowPanel {
     getHeader().setAdditionalActions(additionalActions);
   }
 
-  void displayTargetArtifacts(@Nullable PsAndroidDependency dependency) {
+  public void displayTargetArtifacts(@Nullable PsAndroidDependency dependency) {
     myTreeBuilder.displayTargetArtifacts(dependency);
   }
 

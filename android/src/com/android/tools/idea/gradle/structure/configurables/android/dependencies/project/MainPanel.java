@@ -30,19 +30,19 @@ import java.awt.*;
 import java.util.List;
 
 class MainPanel extends AbstractMainDependenciesPanel {
-  @NotNull private final DeclaredDependenciesPanel myDeclaredDependenciesPanel;
+  @NotNull private final DependenciesPanel myDependenciesPanel;
   @NotNull private final TargetModulesPanel myTargetModulesPanel;
 
   MainPanel(@NotNull PsModule module, @NotNull PsContext context, @NotNull List<PsModule> extraTopModules) {
     super(context, extraTopModules);
     myTargetModulesPanel = new TargetModulesPanel(context);
 
-    myDeclaredDependenciesPanel = new DeclaredDependenciesPanel(module, context);
-    myDeclaredDependenciesPanel.setHistory(getHistory());
-    myDeclaredDependenciesPanel.add(myTargetModulesPanel::displayTargetModules);
+    myDependenciesPanel = new DependenciesPanel(module, context);
+    myDependenciesPanel.setHistory(getHistory());
+    myDependenciesPanel.add(myTargetModulesPanel::displayTargetModules);
 
     JBSplitter verticalSplitter = createMainVerticalSplitter();
-    verticalSplitter.setFirstComponent(myDeclaredDependenciesPanel);
+    verticalSplitter.setFirstComponent(myDependenciesPanel);
     verticalSplitter.setSecondComponent(myTargetModulesPanel);
 
     add(verticalSplitter, BorderLayout.CENTER);
@@ -51,22 +51,22 @@ class MainPanel extends AbstractMainDependenciesPanel {
   @Override
   public void setHistory(History history) {
     super.setHistory(history);
-    myDeclaredDependenciesPanel.setHistory(history);
+    myDependenciesPanel.setHistory(history);
   }
 
   @Override
   public ActionCallback navigateTo(@Nullable Place place, boolean requestFocus) {
-    return myDeclaredDependenciesPanel.navigateTo(place, requestFocus);
+    return myDependenciesPanel.navigateTo(place, requestFocus);
   }
 
   @Override
   public void queryPlace(@NotNull Place place) {
-    myDeclaredDependenciesPanel.queryPlace(place);
+    myDependenciesPanel.queryPlace(place);
   }
 
   @Override
   public void dispose() {
-    Disposer.dispose(myDeclaredDependenciesPanel);
+    Disposer.dispose(myDependenciesPanel);
     Disposer.dispose(myTargetModulesPanel);
   }
 }
