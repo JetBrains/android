@@ -17,6 +17,7 @@ package com.android.tools.idea.run;
 
 import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AndroidRunConfigContext {
   public static final Key<AndroidRunConfigContext> KEY = Key.create("android.run.config.context");
@@ -28,7 +29,7 @@ public class AndroidRunConfigContext {
   private boolean isSameExecutorAsPreviousSession;
   private boolean myCleanRerun;
 
-  @NotNull
+  @Nullable
   public DeviceFutures getTargetDevices() {
     return myTargetDevices;
   }
