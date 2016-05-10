@@ -166,6 +166,10 @@ public final class ModuleClassLoader extends RenderClassLoader {
       return null;
     }
 
+    if (module.isDisposed()) {
+      return null;
+    }
+
     Class<?> aClass = loadClassFromModule(module, name);
     if (aClass != null) {
       return aClass;
@@ -182,6 +186,10 @@ public final class ModuleClassLoader extends RenderClassLoader {
 
   @Nullable
   private Class<?> loadClassFromModule(Module module, String name) {
+    if (module.isDisposed()) {
+      return null;
+    }
+
     final CompilerModuleExtension extension = CompilerModuleExtension.getInstance(module);
     if (extension == null) {
       return null;
