@@ -240,8 +240,20 @@ class DeclaredDependenciesPanel extends AbstractDependenciesPanel {
   }
 
   @Override
+  @NotNull
+  public JComponent getPreferredFocusedComponent() {
+    return myDependenciesTable;
+  }
+
+  @Override
   protected void beforeAddingDependency() {
     myDependenciesTable.clearSelection();
+  }
+
+  @Override
+  @NotNull
+  public String getPlaceName() {
+    return myPlaceName;
   }
 
   @Override
@@ -292,7 +304,8 @@ class DeclaredDependenciesPanel extends AbstractDependenciesPanel {
     }
   }
 
-  private void notifySelectionChanged() {
+  @Override
+  public void notifySelectionChanged() {
     PsAndroidDependency selected = getSelection();
     if (selected != null) {
       myEventDispatcher.selectionChanged(selected);
@@ -328,23 +341,6 @@ class DeclaredDependenciesPanel extends AbstractDependenciesPanel {
     return ActionCallback.DONE;
   }
 
-  @Override
-  public void queryPlace(@NotNull Place place) {
-    String dependency = "";
-    DependencyDetails details = getCurrentDependencyDetails();
-    if (details != null) {
-      PsAndroidDependency model = details.getModel();
-      if (model != null) {
-        dependency = model.toText(FOR_NAVIGATION);
-      }
-    }
-    putPath(place, dependency);
-  }
-
-  public void putPath(@NotNull Place place, @NotNull String dependency) {
-    place.putPath(myPlaceName, dependency);
-  }
-
   private class EditDependencyAction extends DumbAwareAction {
     EditDependencyAction() {
       super("Edit Dependency...", "", AllIcons.Actions.Edit);
@@ -359,7 +355,6 @@ class DeclaredDependenciesPanel extends AbstractDependenciesPanel {
 
     @Override
     public void actionPerformed(AnActionEvent e) {
-
     }
   }
 }
