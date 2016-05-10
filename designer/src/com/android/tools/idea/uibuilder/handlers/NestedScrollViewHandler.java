@@ -22,18 +22,14 @@ import java.util.List;
 
 import static com.android.SdkConstants.*;
 
-public class CheckBoxHandler extends TextViewHandler {
+public class NestedScrollViewHandler extends FrameLayoutHandler {
   @Override
   @NotNull
   public List<String> getInspectorProperties() {
     return ImmutableList.of(
-      ATTR_CONTENT_DESCRIPTION,
-      ATTR_STYLE,
-      ATTR_BUTTON,
-      ATTR_BUTTON_TINT,
-      ATTR_CHECKED,
-      ATTR_FOCUSABLE,
-      ATTR_CLICKABLE,
-      ATTR_DUPLICATE_PARENT_STATE);
+      ATTR_CONTEXT,
+      ATTR_SHOW_IN,
+      ATTR_LAYOUT_BEHAVIOR,
+      ATTR_CLIP_TO_PADDING);
   }
 }

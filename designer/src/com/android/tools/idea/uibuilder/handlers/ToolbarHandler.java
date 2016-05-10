@@ -40,8 +40,7 @@ public class ToolbarHandler extends ViewHandler {
       ATTR_BACKGROUND,
       ATTR_POPUP_THEME,
       ATTR_MIN_HEIGHT,
-      ATTR_ELEVATION,
-      ATTR_ACTION_BAR);  // TODO: Make this work or remove
+      ATTR_ELEVATION);
   }
 
   @Override

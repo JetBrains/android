@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers;
 
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.api.*;
@@ -28,6 +29,12 @@ import static com.android.SdkConstants.*;
 
 /** Handler for the {@code <HorizontalScrollView>} widget */
 public class HorizontalScrollViewHandler extends ViewGroupHandler {
+  @Override
+  @NotNull
+  public List<String> getInspectorProperties() {
+    return ImmutableList.of(ATTR_FILL_VIEWPORT);
+  }
+
   @Override
   public void onChildInserted(@NotNull NlComponent parent, @NotNull NlComponent child,
                               @NotNull InsertType insertType) {

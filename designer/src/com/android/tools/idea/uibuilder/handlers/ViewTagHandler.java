@@ -37,7 +37,7 @@ public class ViewTagHandler extends ViewHandler {
   @Override
   @NotNull
   public List<String> getInspectorProperties() {
-    return ImmutableList.of(ATTR_BACKGROUND, ATTR_VISIBILITY);
+    return ImmutableList.of(ATTR_CLASS, ATTR_STYLE);
   }
 
   @Override

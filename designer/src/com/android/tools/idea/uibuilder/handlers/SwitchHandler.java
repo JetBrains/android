@@ -22,18 +22,22 @@ import java.util.List;
 
 import static com.android.SdkConstants.*;
 
-public class CheckBoxHandler extends TextViewHandler {
+public class SwitchHandler extends ButtonHandler {
   @Override
   @NotNull
   public List<String> getInspectorProperties() {
     return ImmutableList.of(
-      ATTR_CONTENT_DESCRIPTION,
       ATTR_STYLE,
-      ATTR_BUTTON,
-      ATTR_BUTTON_TINT,
-      ATTR_CHECKED,
-      ATTR_FOCUSABLE,
-      ATTR_CLICKABLE,
-      ATTR_DUPLICATE_PARENT_STATE);
+      ATTR_SWITCH_TEXT_APPEARANCE,
+      ATTR_SWITCH_MIN_WIDTH,
+      ATTR_SWITCH_PADDING,
+      ATTR_THUMB,
+      ATTR_THUMB_TINT,
+      ATTR_TRACK,
+      ATTR_TRACK_TINT,
+      ATTR_TEXT_ON,
+      ATTR_TEXT_OFF,
+      ATTR_SHOW_TEXT,
+      ATTR_SPLIT_TRACK);
   }
 }
