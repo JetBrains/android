@@ -27,9 +27,12 @@ public class ContinuousSeries {
   @NonNull
   private final TLongArrayList mY = new TLongArrayList();
 
+  private long mMaxX;
+
   private long mMaxY;
 
   public void add(long x, long y) {
+    mMaxX = Math.max(mMaxX, x);
     mMaxY = Math.max(mMaxY, y);
     mX.add(x);
     mY.add(y);
@@ -47,7 +50,23 @@ public class ContinuousSeries {
     return mY.get(index);
   }
 
+  public long getMaxX() {
+    return mMaxX;
+  }
+
   public long getMaxY() {
     return mMaxY;
+  }
+
+  public int getNearestXIndex(long x) {
+    int index = mX.binarySearch(x);
+
+    if (index < 0) {
+      // No exact match, returns position to the left of the insertion point.
+      // NOTE: binarySearch returns -(insertion point + 1) if not found.
+      index = -index - 2;
+    }
+
+    return index;
   }
 }

@@ -32,7 +32,9 @@ import java.util.List;
  */
 public abstract class AnimatedComponent extends JComponent implements Animatable {
 
-  protected static final Font DEFAULT_FONT = new Font("Sans", Font.PLAIN, 10);
+  // TODO switch to JBFont, JBColor. Pull into common constants.
+  protected static final Font DEFAULT_FONT = UIManager.getDefaults().getFont("TabbedPane.font");
+  protected static final Color TEXT_COLOR = new Color(128, 128, 128);
 
   /**
    * The cached length of the last frame in seconds.
@@ -47,6 +49,8 @@ public abstract class AnimatedComponent extends JComponent implements Animatable
 
   protected boolean mDrawDebugInfo;
 
+  protected final FontMetrics mDefaultFontMetrics;
+
   @NonNull
   private final List<String> mDebugInfo;
 
@@ -55,7 +59,8 @@ public abstract class AnimatedComponent extends JComponent implements Animatable
   private int mMultiDrawNumFrames;
 
   public AnimatedComponent() {
-    mDebugInfo = new LinkedList<String>();
+    mDebugInfo = new LinkedList<>();
+    mDefaultFontMetrics = getFontMetrics(DEFAULT_FONT);
   }
 
   public final boolean isDrawDebugInfo() {

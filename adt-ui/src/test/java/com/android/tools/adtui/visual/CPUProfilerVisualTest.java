@@ -97,7 +97,7 @@ public class CPUProfilerVisualTest extends VisualTest {
     mGrid.addAxis(mCPUUsageAxis);
 
     final Range xSelectionRange = new Range(0, 0);
-    mSelection = new SelectionComponent(mTimeAxis, xSelectionRange, xGlobalRange, xRange);
+    mSelection = new SelectionComponent(mLineChart, mTimeAxis, xSelectionRange, xGlobalRange, xRange);
 
     // Note: the order below is important as some components depend on
     // others to be updated first. e.g. the ranges need to be updated before the axes.
