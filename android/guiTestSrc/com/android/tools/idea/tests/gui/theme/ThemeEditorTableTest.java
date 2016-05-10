@@ -259,6 +259,7 @@ public class ThemeEditorTableTest {
   /**
    * Test the text completion for attribute values
    */
+  @Ignore("http://wpie20.hot.corp.google.com:8200/builders/ubuntu-studio-master-dev-uitests/builds/28/"
   @Test
   public void testResourceCompletion() throws IOException {
     guiTest.importSimpleApplication();
