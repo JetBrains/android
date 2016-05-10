@@ -327,6 +327,27 @@ public class AttributeProcessingUtil {
       case "TableRow":
         styleableName = "TableRow_Cell";
         break;
+      case "CollapsingToolbarLayout":
+        // Support library doesn't have particularly consistent naming
+        // Styleable definition: https://android.googlesource.com/platform/frameworks/support/+/master/design/res/values/attrs.xml
+        registerAttributes(facet, element, "CollapsingAppBarLayout_LayoutParams", callback, skipAttrNames);
+
+        styleableName = viewName + "_Layout";  // This is what it should be... (may be fixed in the future)
+        break;
+      case "CoordinatorLayout":
+        // Support library doesn't have particularly consistent naming
+        // Styleable definition: https://android.googlesource.com/platform/frameworks/support/+/master/design/res/values/attrs.xml
+        registerAttributes(facet, element, "CoordinatorLayout_LayoutParams", callback, skipAttrNames);
+
+        styleableName = viewName + "_Layout";  // This is what it should be... (may be fixed in the future)
+        break;
+      case "AppBarLayout":
+        // Support library doesn't have particularly consistent naming
+        // Styleable definition: https://android.googlesource.com/platform/frameworks/support/+/master/design/res/values/attrs.xml
+        registerAttributes(facet, element, "AppBarLayout_LayoutParams", callback, skipAttrNames);
+
+        styleableName = viewName + "_Layout";  // This is what it should be... (may be fixed in the future)
+        break;
       default:
         styleableName = viewName + "_Layout";
     }
