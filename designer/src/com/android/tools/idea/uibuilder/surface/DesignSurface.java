@@ -363,6 +363,36 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
     return null;
   }
 
+  /**
+   * Gives us a chance to change layers behaviour upon drag and drop interaction starting
+   */
+  public void startDragDropInteraction() {
+    for (Layer layer : myLayers) {
+      if (layer instanceof ConstraintsLayer) {
+        ConstraintsLayer constraintsLayer = (ConstraintsLayer)layer;
+        if (constraintsLayer.isShowOnHover() != true) {
+          constraintsLayer.setShowOnHover(true);
+          repaint();
+        }
+      }
+    }
+  }
+
+  /**
+   * Gives us a chance to change layers behaviour upon drag and drop interaction ending
+   */
+  public void stopDragDropInteraction() {
+    for (Layer layer : myLayers) {
+      if (layer instanceof ConstraintsLayer) {
+        ConstraintsLayer constraintsLayer = (ConstraintsLayer)layer;
+        if (constraintsLayer.isShowOnHover() != false) {
+          constraintsLayer.setShowOnHover(false);
+          repaint();
+        }
+      }
+    }
+  }
+
   public void hover(@SwingCoordinate int x, @SwingCoordinate int y) {
     // For constraint layer, set show on hover if they are above their screenview
     ScreenView current = getHoverScreenView(x, y);

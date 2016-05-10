@@ -108,6 +108,7 @@ public class DragDropInteraction extends Interaction {
   public void begin(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiers) {
     super.begin(x, y, modifiers);
     moveTo(x, y, modifiers, false);
+    myDesignSurface.startDragDropInteraction();
   }
 
   @Override
@@ -124,6 +125,10 @@ public class DragDropInteraction extends Interaction {
     if (myScreenView != null && !canceled) {
       myScreenView.getModel().notifyModified();
     }
+    if (canceled && myDragHandler != null) {
+      myDragHandler.cancel();
+    }
+    myDesignSurface.stopDragDropInteraction();
   }
 
   private void moveTo(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask final int modifiers, boolean commit) {
