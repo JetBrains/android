@@ -26,6 +26,7 @@ import com.intellij.openapi.fileEditor.ex.FileEditorProviderManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.JBSplitter;
 import org.jetbrains.annotations.NotNull;
@@ -37,7 +38,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Optional;
 
-public class ApkEditor implements FileEditor, ApkViewPanel.Listener {
+public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkViewPanel.Listener {
   private final Project myProject;
   private final VirtualFile myBaseFile;
   private final VirtualFile myRoot;
@@ -153,16 +154,6 @@ public class ApkEditor implements FileEditor, ApkViewPanel.Listener {
       Disposer.dispose(myCurrentEditor);
       myCurrentEditor = null;
     }
-  }
-
-  @Nullable
-  @Override
-  public <T> T getUserData(@NotNull Key<T> key) {
-    return null;
-  }
-
-  @Override
-  public <T> void putUserData(@NotNull Key<T> key, @Nullable T value) {
   }
 
   @NotNull
