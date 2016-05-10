@@ -22,6 +22,7 @@ import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.*;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.project.Project;
 import icons.AndroidIcons;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
@@ -35,6 +36,7 @@ import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.property.editors.NlEditingListener.DEFAULT_LISTENER;
 
 public class ViewInspectorProvider implements InspectorProvider {
+  private static final Set<String> TAG_EXCEPTIONS = ImmutableSet.of(TEXT_VIEW, PROGRESS_BAR);
   private final ViewHandlerManager myViewHandlerManager;
   private final Map<String, InspectorComponent> myInspectors;
 
@@ -49,6 +51,9 @@ public class ViewInspectorProvider implements InspectorProvider {
       return false;
     }
     String tagName = components.get(0).getTagName();
+    if (TAG_EXCEPTIONS.contains(tagName)) {
+      return false;
+    }
     if (myInspectors.containsKey(tagName)) {
       return true;
     }
