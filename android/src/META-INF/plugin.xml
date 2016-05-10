@@ -1037,6 +1037,7 @@
     <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.SdkBuildToolsTooLowErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.MissingPlatformErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.MissingBuildToolsErrorHandler"/>
+    <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.MissingCMakeErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.InternetConnectionErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.MissingDependencyErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.service.notification.errors.CachedDependencyNotFoundErrorHandler"/>
