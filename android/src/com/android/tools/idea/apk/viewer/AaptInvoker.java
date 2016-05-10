@@ -49,12 +49,6 @@ public class AaptInvoker {
     return ExecUtil.execAndGetOutput(commandLine);
   }
 
-  @NotNull
-  public ProcessOutput dumpResources(@NotNull File apk) throws ExecutionException {
-    GeneralCommandLine commandLine = new GeneralCommandLine(myAapt.toString(), "dump", "resources", apk.getAbsolutePath());
-    return ExecUtil.execAndGetOutput(commandLine);
-  }
-
   @Nullable
   public static synchronized AaptInvoker getInstance() {
     if (ourInstance != null) {
