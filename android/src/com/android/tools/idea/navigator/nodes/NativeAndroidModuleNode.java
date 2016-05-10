@@ -43,6 +43,27 @@ public class NativeAndroidModuleNode extends ProjectViewModuleNode {
   }
 
   @NotNull
+  public static Collection<AbstractTreeNode> getNativeSourceNodes(@NotNull Project project,
+                                                                  @NotNull NativeAndroidGradleModel nativeAndroidModel,
+                                                                  @NotNull ViewSettings viewSettings) {
+    NativeAndroidProject nativeAndroidProject = nativeAndroidModel.getNativeAndroidProject();
+
+    Collection<String> fileExtensions = Sets.newHashSet();
+    fileExtensions.add("h"); // add header files extension explicitly as the model only return the extensions of source file
+    fileExtensions.addAll(nativeAndroidProject.getFileExtensions().keySet());
+
+    NativeAndroidGradleModel.NativeVariant variant = nativeAndroidModel.getSelectedVariant();
+    if (GradleExperimentalSettings.getInstance().GROUP_NATIVE_SOURCES_BY_ARTIFACT) {
+      List<AbstractTreeNode> children = Lists.newArrayList();
+      for (NativeArtifact artifact : variant.getArtifacts()) {
+        children.add(new NativeAndroidArtifactNode(project, artifact, viewSettings, fileExtensions));
+      }
+      return children;
+    }
+    return getSourceDirectoryNodes(project, variant.getArtifacts(), viewSettings, fileExtensions);
+  }
+
+  @NotNull
   @Override
   public Collection<AbstractTreeNode> getChildren() {
     Module module = getValue();
@@ -55,22 +76,7 @@ public class NativeAndroidModuleNode extends ProjectViewModuleNode {
       return ImmutableList.of();
     }
 
-    NativeAndroidGradleModel nativeAndroidModel = facet.getNativeAndroidGradleModel();
-    NativeAndroidProject nativeAndroidProject = nativeAndroidModel.getNativeAndroidProject();
-
-    Collection<String> fileExtensions = Sets.newHashSet();
-    fileExtensions.add("h"); // add header files extension explicitly as the model only return the extensions of source file
-    fileExtensions.addAll(nativeAndroidProject.getFileExtensions().keySet());
-
-    NativeAndroidGradleModel.NativeVariant variant = nativeAndroidModel.getSelectedVariant();
-    if (GradleExperimentalSettings.getInstance().GROUP_NATIVE_SOURCES_BY_ARTIFACT) {
-      List<AbstractTreeNode> children = Lists.newArrayList();
-      for (NativeArtifact artifact : variant.getArtifacts()) {
-        children.add(new NativeAndroidArtifactNode(myProject, artifact, getSettings(), fileExtensions));
-      }
-      return children;
-    }
-    return getSourceDirectoryNodes(myProject, variant.getArtifacts(), getSettings(), fileExtensions);
+    return getNativeSourceNodes(myProject, facet.getNativeAndroidGradleModel(), getSettings());
   }
 
   @Nullable
