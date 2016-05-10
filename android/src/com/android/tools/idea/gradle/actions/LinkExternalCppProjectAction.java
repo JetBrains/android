@@ -33,7 +33,7 @@ import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRA
 public class LinkExternalCppProjectAction extends AndroidStudioGradleAction {
 
   public LinkExternalCppProjectAction() {
-    super("Link External C++ Project", "Link an external C/C++ project (cmake or ndk-build) with this module", null);
+    super("Link C++ Project with Gradle", "Link an external C/C++ project (cmake or ndk-build) with Gradle", null);
   }
 
   @Override
