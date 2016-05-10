@@ -34,6 +34,7 @@ import java.util.List;
 
 import static com.android.SdkConstants.ATTR_LAYOUT;
 import static com.android.SdkConstants.ATTR_NAME;
+import static com.android.SdkConstants.ATTR_VISIBILITY;
 
 /**
  * Handler for the {@code <include>} tag
@@ -42,7 +43,9 @@ public final class IncludeHandler extends ViewHandler {
   @Override
   @NotNull
   public List<String> getInspectorProperties() {
-    return ImmutableList.of(ATTR_LAYOUT);
+    return ImmutableList.of(
+      ATTR_LAYOUT,
+      ATTR_VISIBILITY);
   }
 
   @Override

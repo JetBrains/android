@@ -77,8 +77,7 @@ public class InspectorPanel extends JPanel {
     return ImmutableList.of(new ConstraintInspectorProvider(),
                             new IdInspectorProvider(),
                             new ViewInspectorProvider(project),
-                            new TextInspectorProvider(),
-                            new FontInspectorProvider()
+                            new TextInspectorProvider()
     );
   }
 
@@ -165,12 +164,6 @@ public class InspectorPanel extends JPanel {
     return label;
   }
 
-  public JLabel addExpandableTitle(@NotNull String title, @NotNull NlProperty groupStartProperty) {
-    JLabel label = addTitle(title);
-    startGroup(label, groupStartProperty);
-    return label;
-  }
-
   public void addSeparator() {
     endGroup();
     addLineComponent(new JSeparator(), myRow++);
@@ -179,6 +172,16 @@ public class InspectorPanel extends JPanel {
   public JLabel addLabel(@NotNull String title) {
     JLabel label = createLabel(title, null, null);
     addLineComponent(label, myRow++);
+    return label;
+  }
+
+  public JLabel addExpandableComponent(@NotNull String labelText,
+                                       @Nullable String tooltip,
+                                       @NotNull Component component) {
+    JLabel label = createLabel(labelText, tooltip, component);
+    addLabelComponent(label, myRow);
+    addValueComponent(component, myRow++);
+    startGroup(label);
     return label;
   }
 
@@ -196,12 +199,6 @@ public class InspectorPanel extends JPanel {
    */
   public void addPanel(@NotNull JComponent panel) {
     addLineComponent(panel, myRow++);
-  }
-
-  public void restartExpansionGroup() {
-    assert myGroup != null;
-    myGroup.stream().forEach(component -> component.setVisible(true));
-    myGroup.clear();
   }
 
   private static JLabel createLabel(@NotNull String labelText, @Nullable String tooltip, @Nullable Component component) {
@@ -241,10 +238,10 @@ public class InspectorPanel extends JPanel {
     panel.add(component, myConstraints);
   }
 
-  private void startGroup(@NotNull JLabel label, @NotNull NlProperty groupStartProperty) {
+  private void startGroup(@NotNull JLabel label) {
     assert myGroup == null;
     List<Component> group = new ArrayList<>();
-    String savedKey = "inspector.open." + groupStartProperty.getName();
+    String savedKey = "inspector.open." + label.getText();
     myGroupInitiallyOpen = PropertiesComponent.getInstance().getBoolean(savedKey);
 
     label.setIcon(myGroupInitiallyOpen ? myExpandedIcon : myCollapsedIcon);

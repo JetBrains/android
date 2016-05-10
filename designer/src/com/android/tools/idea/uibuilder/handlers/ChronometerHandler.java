@@ -15,25 +15,21 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-import static com.android.SdkConstants.*;
+import static com.android.SdkConstants.ATTR_FORMAT;
+import static com.android.SdkConstants.ATTR_VISIBILITY;
 
-public class CheckBoxHandler extends TextViewHandler {
+public class ChronometerHandler extends ViewHandler {
   @Override
   @NotNull
   public List<String> getInspectorProperties() {
     return ImmutableList.of(
-      ATTR_CONTENT_DESCRIPTION,
-      ATTR_STYLE,
-      ATTR_BUTTON,
-      ATTR_BUTTON_TINT,
-      ATTR_CHECKED,
-      ATTR_FOCUSABLE,
-      ATTR_CLICKABLE,
-      ATTR_DUPLICATE_PARENT_STATE);
+      ATTR_FORMAT,
+      ATTR_VISIBILITY);
   }
 }

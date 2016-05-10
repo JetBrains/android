@@ -41,7 +41,10 @@ public final class FragmentHandler extends ViewHandler {
   @Override
   @NotNull
   public List<String> getInspectorProperties() {
-    return ImmutableList.of(ATTR_NAME);
+    return ImmutableList.of(
+      ATTR_NAME,
+      ATTR_LAYOUT,
+      ATTR_CLASS);
   }
 
   @Override
