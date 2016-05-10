@@ -32,6 +32,7 @@ import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.AndroidRunConfigContext;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
+import com.android.tools.idea.run.DeviceFutures;
 import com.android.tools.idea.startup.AndroidStudioInitializer;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
@@ -73,9 +74,9 @@ import static com.android.tools.idea.startup.GradleSpecificInitializer.ENABLE_EX
 /**
  * Provides the "Gradle-aware Make" task for Run Configurations, which
  * <ul>
- *   <li>is only available in Android Studio</li>
- *   <li>delegates to the regular "Make" if the project is not an Android Gradle project</li>
- *   <li>otherwise, invokes Gradle directly, to build the project</li>
+ * <li>is only available in Android Studio</li>
+ * <li>delegates to the regular "Make" if the project is not an Android Gradle project</li>
+ * <li>otherwise, invokes Gradle directly, to build the project</li>
  * </ul>
  */
 public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeRunTask> {
@@ -232,12 +233,15 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       return false;
     }
 
+    // Note: this before run task provider may be invoked from a context such as Java unit tests, in which case it doesn't have
+    // the android run config context
     AndroidRunConfigContext runConfigContext = env.getCopyableUserData(AndroidRunConfigContext.KEY);
-    List<AndroidDevice> targetDevices = runConfigContext.getTargetDevices().getDevices();
+    DeviceFutures deviceFutures = runConfigContext == null ? null : runConfigContext.getTargetDevices();
+    List<AndroidDevice> targetDevices = deviceFutures == null ? Collections.emptyList() : deviceFutures.getDevices();
     List<String> cmdLineArgs = getCommonArguments(configuration, targetDevices);
 
     BeforeRunBuilder builder =
-      createBuilder(getModules(myProject, context, configuration), configuration, runConfigContext, env, task.getGoal());
+      createBuilder(env, getModules(myProject, context, configuration), configuration, runConfigContext, task.getGoal());
 
     try {
       boolean success = builder.build(GradleTaskRunner.newRunner(myProject), cmdLineArgs);
@@ -333,11 +337,11 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     }
   }
 
-  public static BeforeRunBuilder createBuilder(@NotNull Module[] modules,
-                                               @NotNull RunConfiguration configuration,
-                                               @NotNull AndroidRunConfigContext runConfigContext,
-                                               @NotNull ExecutionEnvironment env,
-                                               @Nullable String userGoal) {
+  private static BeforeRunBuilder createBuilder(@NotNull ExecutionEnvironment env,
+                                                @NotNull Module[] modules,
+                                                @NotNull RunConfiguration configuration,
+                                                @Nullable AndroidRunConfigContext runConfigContext,
+                                                @Nullable String userGoal) {
     if (modules.length == 0) {
       throw new IllegalStateException("Unable to determine list of modules to build");
     }
@@ -354,11 +358,12 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       return new DefaultGradleBuilder(gradleTasksProvider.getUnitTestTasks(buildMode), buildMode);
     }
 
-    List<AndroidDevice> targetDevices = runConfigContext.getTargetDevices().getDevices();
-    if (!canInstantRun(modules[0], configuration, env, testCompileType, targetDevices)) {
+    DeviceFutures deviceFutures = runConfigContext == null ? null : runConfigContext.getTargetDevices();
+    if (deviceFutures == null || !canInstantRun(modules[0], configuration, env, testCompileType, deviceFutures.getDevices())) {
       return new DefaultGradleBuilder(gradleTasksProvider.getTasksFor(BuildMode.ASSEMBLE, testCompileType), BuildMode.ASSEMBLE);
     }
 
+    List<AndroidDevice> targetDevices = deviceFutures.getDevices();
     assert targetDevices.size() == 1; // enforced by canInstantRun above
 
     Module mainModule = null;
