@@ -35,9 +35,7 @@ public class ConstraintInspectorProvider implements InspectorProvider {
 
   @Override
   public boolean isApplicable(@NotNull List<NlComponent> components, @NotNull Map<String, NlProperty> properties) {
-    return !components.isEmpty() &&
-           properties.containsKey(ATTR_LAYOUT_TOP_MARGIN) && properties.containsKey(ATTR_LAYOUT_BOTTOM_MARGIN) &&
-           properties.containsKey(ATTR_LAYOUT_LEFT_MARGIN) && properties.containsKey(ATTR_LAYOUT_RIGHT_MARGIN);
+    return !components.isEmpty();
   }
 
   @NotNull

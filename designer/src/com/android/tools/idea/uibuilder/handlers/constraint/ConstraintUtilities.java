@@ -56,16 +56,16 @@ public class ConstraintUtilities {
       //noinspection EnumSwitchStatementWhichMissesCases
       switch (anchor.getType()) {
         case LEFT: {
-          return SdkConstants.ATTR_LAYOUT_LEFT_MARGIN;
+          return SdkConstants.ATTR_LAYOUT_MARGIN_LEFT;
         }
         case TOP: {
-          return SdkConstants.ATTR_LAYOUT_TOP_MARGIN;
+          return SdkConstants.ATTR_LAYOUT_MARGIN_TOP;
         }
         case RIGHT: {
-          return SdkConstants.ATTR_LAYOUT_RIGHT_MARGIN;
+          return SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT;
         }
         case BOTTOM: {
-          return SdkConstants.ATTR_LAYOUT_BOTTOM_MARGIN;
+          return SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM;
         }
       }
     }
@@ -198,35 +198,35 @@ public class ConstraintUtilities {
     //noinspection EnumSwitchStatementWhichMissesCases
     switch (anchorType) {
       case LEFT: {
-        component.setAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_LEFT_MARGIN, null);
-        component.setAttribute(SdkConstants.SHERPA_URI,   SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF, null);
-        component.setAttribute(SdkConstants.SHERPA_URI,   SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF, null);
-        component.setAttribute(SdkConstants.SHERPA_URI,   SdkConstants.ATTR_LAYOUT_LEFT_CREATOR, null);
-        component.setAttribute(SdkConstants.SHERPA_URI,   SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, null);
+        component.setAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT, null);
+        component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF, null);
+        component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF, null);
+        component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_LEFT_CREATOR, null);
+        component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, null);
         break;
       }
       case TOP: {
-        component.setAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_TOP_MARGIN, null);
-        component.setAttribute(SdkConstants.SHERPA_URI,   SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF, null);
-        component.setAttribute(SdkConstants.SHERPA_URI,   SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF, null);
-        component.setAttribute(SdkConstants.SHERPA_URI,   SdkConstants.ATTR_LAYOUT_TOP_CREATOR, null);
-        component.setAttribute(SdkConstants.SHERPA_URI,   SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, null);
+        component.setAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_TOP, null);
+        component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF, null);
+        component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF, null);
+        component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_CREATOR, null);
+        component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, null);
         break;
       }
       case RIGHT: {
-        component.setAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_RIGHT_MARGIN, null);
-        component.setAttribute(SdkConstants.SHERPA_URI,   SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF, null);
-        component.setAttribute(SdkConstants.SHERPA_URI,   SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, null);
-        component.setAttribute(SdkConstants.SHERPA_URI,   SdkConstants.ATTR_LAYOUT_RIGHT_CREATOR, null);
-        component.setAttribute(SdkConstants.SHERPA_URI,   SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, null);
+        component.setAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT, null);
+        component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF, null);
+        component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, null);
+        component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_RIGHT_CREATOR, null);
+        component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, null);
         break;
       }
       case BOTTOM: {
-        component.setAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_BOTTOM_MARGIN, null);
-        component.setAttribute(SdkConstants.SHERPA_URI,   SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF, null);
-        component.setAttribute(SdkConstants.SHERPA_URI,   SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, null);
-        component.setAttribute(SdkConstants.SHERPA_URI,   SdkConstants.ATTR_LAYOUT_BOTTOM_CREATOR, null);
-        component.setAttribute(SdkConstants.SHERPA_URI,   SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, null);
+        component.setAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM, null);
+        component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF, null);
+        component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, null);
+        component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_CREATOR, null);
+        component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, null);
         break;
       }
       case BASELINE: {
@@ -380,7 +380,9 @@ public class ConstraintUtilities {
     String biasString = component.getAttribute(SdkConstants.SHERPA_URI, attribute);
     float bias = 0.5f;
     if (biasString != null && biasString.length() > 0) {
-      bias = Float.parseFloat(biasString);
+      try {
+        bias = Float.parseFloat(biasString);
+      } catch (NumberFormatException e) {}
     }
     if (attribute.equalsIgnoreCase(SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS)) {
       widget.setHorizontalBiasPercent(bias);
@@ -388,6 +390,38 @@ public class ConstraintUtilities {
     else {
       widget.setVerticalBiasPercent(bias);
     }
+  }
+
+  /**
+   * Set the dimension ratio of the widget
+   *
+   * @param attribute dimension ratio (xx:xx)
+   * @param component the component we are looking at
+   * @param widget    the constraint widget we set the bias on
+   */
+  static void setDimensionRatio(@NotNull String attribute, @NotNull NlComponent component, @NotNull ConstraintWidget widget) {
+    String dimensionRatioString = component.getAttribute(SdkConstants.SHERPA_URI, attribute);
+    float dimensionRatio = 0f;
+    if (dimensionRatioString == null || dimensionRatioString.length() == 0) {
+      widget.setDimensionRatio(dimensionRatio);
+      return;
+    }
+
+    int colonIndex = dimensionRatioString.indexOf(':');
+    if (colonIndex >= 0 && colonIndex < dimensionRatioString.length() - 1) {
+      String nominator = dimensionRatioString.substring(0, colonIndex);
+      String denominator = dimensionRatioString.substring(colonIndex + 1);
+      if (nominator.length() > 0 && denominator.length() > 0) {
+        try {
+          float nominatorValue = Float.parseFloat(nominator);
+          float denominatorValue = Float.parseFloat(denominator);
+          if (denominatorValue > 0) {
+            dimensionRatio = nominatorValue / denominatorValue;
+          }
+        } catch (NumberFormatException e) {}
+      }
+    }
+    widget.setDimensionRatio(dimensionRatio);
   }
 
   /**
@@ -399,7 +433,7 @@ public class ConstraintUtilities {
    */
   static void setLeftMargin(@Nullable String left, @NotNull NlComponent component, @NotNull ConstraintWidget widget) {
     if (left != null) {
-      int margin = getMargin(component, widget, SdkConstants.ATTR_LAYOUT_LEFT_MARGIN);
+      int margin = getMargin(component, widget, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT);
       widget.getAnchor(ConstraintAnchor.Type.LEFT).setMargin(margin);
     }
   }
@@ -413,7 +447,7 @@ public class ConstraintUtilities {
    */
   static void setRightMargin(@Nullable String right, @NotNull NlComponent component, @NotNull ConstraintWidget widget) {
     if (right != null) {
-      int margin = getMargin(component, widget, SdkConstants.ATTR_LAYOUT_RIGHT_MARGIN);
+      int margin = getMargin(component, widget, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT);
       widget.getAnchor(ConstraintAnchor.Type.RIGHT).setMargin(margin);
     }
   }
@@ -427,7 +461,7 @@ public class ConstraintUtilities {
    */
   static void setTopMargin(@Nullable String top, @NotNull NlComponent component, @NotNull ConstraintWidget widget) {
     if (top != null) {
-      int margin = getMargin(component, widget, SdkConstants.ATTR_LAYOUT_TOP_MARGIN);
+      int margin = getMargin(component, widget, SdkConstants.ATTR_LAYOUT_MARGIN_TOP);
       widget.getAnchor(ConstraintAnchor.Type.TOP).setMargin(margin);
     }
   }
@@ -441,7 +475,7 @@ public class ConstraintUtilities {
    */
   static void setBottomMargin(@Nullable String bottom, @NotNull NlComponent component, @NotNull ConstraintWidget widget) {
     if (bottom != null) {
-      int margin = getMargin(component, widget, SdkConstants.ATTR_LAYOUT_BOTTOM_MARGIN);
+      int margin = getMargin(component, widget, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM);
       widget.getAnchor(ConstraintAnchor.Type.BOTTOM).setMargin(margin);
     }
   }
@@ -662,6 +696,8 @@ public class ConstraintUtilities {
 
     setBias(SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, component, widget);
     setBias(SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, component, widget);
+
+    setDimensionRatio(SdkConstants.ATTR_LAYOUT_DIMENSION_RATIO, component, widget);
 
     // Update text decorator
     WidgetCompanion companion = (WidgetCompanion)widget.getCompanionWidget();
@@ -886,7 +922,8 @@ public class ConstraintUtilities {
         fieldWidth.set(layoutParams, newWidth);
         fieldHeight.set(layoutParams, newHeight);
       }
-    } catch (IllegalAccessException | NoSuchFieldException e) {
+    }
+    catch (IllegalAccessException | NoSuchFieldException e) {
       // Ignore
     }
   }
@@ -903,7 +940,8 @@ public class ConstraintUtilities {
       Field vertical_bias = layoutParams.getClass().getField("vertical_bias");
       horizontal_bias.set(layoutParams, widget.getHorizontalBiasPercent());
       vertical_bias.set(layoutParams, widget.getVerticalBiasPercent());
-    } catch (IllegalAccessException | NoSuchFieldException e) {
+    }
+    catch (IllegalAccessException | NoSuchFieldException e) {
       // Ignore
     }
   }
@@ -949,7 +987,8 @@ public class ConstraintUtilities {
           }
         }
       }
-    } catch (IllegalAccessException | NoSuchFieldException e) {
+    }
+    catch (IllegalAccessException | NoSuchFieldException e) {
       // Ignore
     }
   }

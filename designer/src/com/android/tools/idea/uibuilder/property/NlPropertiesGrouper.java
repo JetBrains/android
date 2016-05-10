@@ -43,7 +43,7 @@ public class NlPropertiesGrouper {
     }
 
     // group margin, padding and layout attributes together
-    NlPropertyAccumulator marginPropertiesAccumulator = new NlMarginPropertyAccumulator("Margin", ATTR_LAYOUT_LEFT_MARGIN, ATTR_LAYOUT_RIGHT_MARGIN, ATTR_LAYOUT_TOP_MARGIN, ATTR_LAYOUT_BOTTOM_MARGIN);
+    NlPropertyAccumulator marginPropertiesAccumulator = new NlMarginPropertyAccumulator("Margin", ATTR_LAYOUT_MARGIN_LEFT, ATTR_LAYOUT_MARGIN_RIGHT, ATTR_LAYOUT_MARGIN_TOP, ATTR_LAYOUT_MARGIN_BOTTOM);
     NlPropertyAccumulator paddingPropertiesAccumulator = new NlMarginPropertyAccumulator("Padding", ATTR_PADDING, ATTR_PADDING_LEFT, ATTR_PADDING_RIGHT, ATTR_PADDING_START, ATTR_PADDING_END, ATTR_PADDING_TOP, ATTR_PADDING_BOTTOM);
     NlPropertyAccumulator layoutViewPropertiesAccumulator = new NlMarginPropertyAccumulator("Layout", ATTR_LAYOUT_MARGIN, ATTR_LAYOUT_MARGIN_LEFT, ATTR_LAYOUT_MARGIN_RIGHT, ATTR_LAYOUT_MARGIN_START, ATTR_LAYOUT_MARGIN_END, ATTR_LAYOUT_MARGIN_TOP, ATTR_LAYOUT_MARGIN_BOTTOM);
 
@@ -51,7 +51,7 @@ public class NlPropertiesGrouper {
 
     List<NlPropertyAccumulator> accumulators = Lists.newArrayList(
       themePropertiesAccumulator,
-      marginPropertiesAccumulator,
+      marginPropertiesAccumulator, // FIXME: is it needed?..
       paddingPropertiesAccumulator,
       layoutViewPropertiesAccumulator,
       constraintPropertiesAccumulator);

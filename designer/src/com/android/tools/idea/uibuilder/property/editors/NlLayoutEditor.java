@@ -120,7 +120,8 @@ public class NlLayoutEditor extends JPanel {
       myLayoutGravityPanel.add(myLayoutMarginPanel, BorderLayout.CENTER);
       add(myLayoutGravityPanel, BorderLayout.CENTER);
     }
-    else if (hasProperties(ATTR_LAYOUT_TOP_MARGIN, ATTR_LAYOUT_BOTTOM_MARGIN, ATTR_LAYOUT_LEFT_MARGIN, ATTR_LAYOUT_RIGHT_MARGIN)) {
+    else {
+      // FIXME -- we should only show the constraint margin panel if the encompassing layout is a ConstraintLayout
       myConstraintMarginPanel.add(myLayoutPanel, BorderLayout.CENTER);
       add(myConstraintMarginPanel, BorderLayout.CENTER);
     }
@@ -493,22 +494,22 @@ public class NlLayoutEditor extends JPanel {
   }
 
   private static AttributeDependency createConstraintMarginTopAttributeDependency(@NotNull String title) {
-    return AttributeDependency.Builder.newBuilder(TOP_TITLE_PREFIX + title, ATTR_LAYOUT_TOP_MARGIN)
+    return AttributeDependency.Builder.newBuilder(TOP_TITLE_PREFIX + title, ATTR_LAYOUT_MARGIN_TOP)
       .build();
   }
 
   private static AttributeDependency createConstraintMarginBottomAttributeDependency(@NotNull String title) {
-    return AttributeDependency.Builder.newBuilder(BOTTOM_TITLE_PREFIX + title, ATTR_LAYOUT_BOTTOM_MARGIN)
+    return AttributeDependency.Builder.newBuilder(BOTTOM_TITLE_PREFIX + title, ATTR_LAYOUT_MARGIN_BOTTOM)
       .build();
   }
 
   private static AttributeDependency createConstraintMarginStartAttributeDependency(@NotNull String title) {
-    return AttributeDependency.Builder.newBuilder(LEFT_TITLE_PREFIX + title, ATTR_LAYOUT_LEFT_MARGIN)
+    return AttributeDependency.Builder.newBuilder(LEFT_TITLE_PREFIX + title, ATTR_LAYOUT_MARGIN_LEFT)
       .build();
   }
 
   private static AttributeDependency createConstraintMarginEndAttributeDependency(@NotNull String title) {
-    return AttributeDependency.Builder.newBuilder(RIGHT_TITLE_PREFIX + title, ATTR_LAYOUT_RIGHT_MARGIN)
+    return AttributeDependency.Builder.newBuilder(RIGHT_TITLE_PREFIX + title, ATTR_LAYOUT_MARGIN_RIGHT)
       .build();
   }
 
