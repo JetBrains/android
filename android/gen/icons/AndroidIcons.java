@@ -170,6 +170,7 @@ public class AndroidIcons {
      * TODO: Post wizard migration: delete constant and welcome_green.png
      */
     public static final Icon NewProjectMascotGreen = load("/icons/wizards/welcome_green.png"); // 60x60
+    public static final Icon CppConfiguration = load("/icons/wizards/cpp_configure.png"); // 256x256
   }
 
   public static class NeleIcons {
