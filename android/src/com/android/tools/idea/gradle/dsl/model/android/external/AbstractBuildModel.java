@@ -56,11 +56,9 @@ public abstract class AbstractBuildModel extends GradleDslBlockModel {
     GradleDslElement pathElement = myDslElement.getPropertyElement(PATH);
     if (pathElement == null) {
       // Only adding new path element is supported. Updating an existing path entry is not supported as there is no use case right now.
-      GradleDslMethodCall fileMethod = new GradleDslMethodCall(myDslElement, "file", PATH);
       GradleDslLiteral pathLiteral = new GradleDslLiteral(myDslElement, PATH);
       pathLiteral.setValue(toSystemIndependentName(path.getPath()));
-      fileMethod.addNewArgument(pathLiteral);
-      myDslElement.setNewElement(PATH, fileMethod);
+      myDslElement.setNewElement(PATH, pathLiteral);
     }
     return this;
   }
