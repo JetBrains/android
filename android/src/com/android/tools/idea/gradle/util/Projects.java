@@ -58,7 +58,6 @@ import java.util.Collection;
 
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.*;
 import static com.android.tools.idea.gradle.project.ProjectImportUtil.findImportTarget;
-import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.intellij.ide.impl.ProjectUtil.updateLastProjectLocation;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY;
@@ -308,10 +307,7 @@ public final class Projects {
    */
   public static void enforceExternalBuild(@NotNull Project project) {
     if (requiresAndroidModel(project)) {
-      // We only enforce JPS usage when the 'android' plug-in is not being used in Android Studio.
-      if (!isAndroidStudio()) {
-        AndroidGradleBuildConfiguration.getInstance(project).USE_EXPERIMENTAL_FASTER_BUILD = false;
-      }
+      // do nothing
     }
   }
 
