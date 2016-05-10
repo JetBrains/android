@@ -18,8 +18,11 @@ package com.android.tools.idea.uibuilder.handlers;
 import com.android.tools.idea.uibuilder.api.XmlBuilder;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.google.common.collect.ImmutableList;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 import static com.android.SdkConstants.*;
 
@@ -28,6 +31,12 @@ import static com.android.SdkConstants.*;
  */
 @SuppressWarnings("unused") // Loaded by reflection
 public class RadioGroupHandler extends LinearLayoutHandler {
+
+  @Override
+  @NotNull
+  public List<String> getInspectorProperties() {
+    return ImmutableList.of(ATTR_CHECKED_BUTTON);
+  }
 
   @NotNull
   @Override

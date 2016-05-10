@@ -22,18 +22,17 @@ import java.util.List;
 
 import static com.android.SdkConstants.*;
 
-public class CheckBoxHandler extends TextViewHandler {
+public class AutoCompleteTextViewHandler extends TextViewHandler {
   @Override
   @NotNull
   public List<String> getInspectorProperties() {
     return ImmutableList.of(
-      ATTR_CONTENT_DESCRIPTION,
+      ATTR_COMPLETION_HINT,
       ATTR_STYLE,
-      ATTR_BUTTON,
-      ATTR_BUTTON_TINT,
-      ATTR_CHECKED,
-      ATTR_FOCUSABLE,
-      ATTR_CLICKABLE,
-      ATTR_DUPLICATE_PARENT_STATE);
+      ATTR_BACKGROUND_TINT,
+      ATTR_POPUP_BACKGROUND,
+      ATTR_DROPDOWN_HEIGHT,
+      ATTR_DROPDOWN_WIDTH,
+      ATTR_IME_OPTIONS);
   }
 }

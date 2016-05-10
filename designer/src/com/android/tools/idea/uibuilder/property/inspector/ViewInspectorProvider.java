@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.property.inspector;
 
-import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.model.NlComponent;
@@ -32,9 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.util.*;
 
-import static com.android.SdkConstants.ATTR_COLLAPSE_PARALLAX_MULTIPLIER;
-import static com.android.SdkConstants.ATTR_LAYOUT_COLLAPSE_MODE;
-import static com.android.SdkConstants.ATTR_LAYOUT_SCROLL_FLAGS;
+import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.property.editors.NlEditingListener.DEFAULT_LISTENER;
 
 public class ViewInspectorProvider implements InspectorProvider {
@@ -128,7 +125,7 @@ public class ViewInspectorProvider implements InspectorProvider {
         if (myProperties.containsKey(propertyName)) {
           NlProperty property = myProperties.get(propertyName);
           JLabel label = inspector.addComponent(propertyName, property.getTooltipText(), myEditors.get(propertyName).getComponent());
-          if (SdkConstants.TOOLS_URI.equals(property.getNamespace())) {
+          if (TOOLS_URI.equals(property.getNamespace())) {
             label.setIcon(AndroidIcons.NeleIcons.DesignProperty);
           }
         }
