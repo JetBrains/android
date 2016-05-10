@@ -24,6 +24,7 @@ import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.uibuilder.editor.NlActionManager;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.palette.ScalableDesignSurface;
+import com.android.tools.idea.uibuilder.surface.ScreenView.ScreenViewType;
 import com.google.common.collect.Lists;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.Disposable;
@@ -70,12 +71,25 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
   private boolean myRenderHasProblems;
 
   public enum ScreenMode {
-    SCREEN_ONLY, BLUEPRINT_ONLY, BOTH;
+    SCREEN_ONLY(ScreenViewType.NORMAL),
+    BLUEPRINT_ONLY(ScreenViewType.BLUEPRINT),
+    BOTH(ScreenViewType.NORMAL);
+
+    private final ScreenViewType myScreenViewType;
+
+    private ScreenMode(@NotNull ScreenViewType screenViewType) {
+      myScreenViewType = screenViewType;
+    }
 
     @NotNull
     public ScreenMode next() {
       ScreenMode[] values = values();
       return values[(ordinal() + 1) % values.length];
+    }
+
+    @NotNull
+    private ScreenViewType getScreenViewType() {
+      return myScreenViewType;
     }
   }
 
@@ -98,7 +112,7 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
   private final RenderErrorPanel myErrorPanel;
   private List<DesignSurfaceListener> myListeners;
   private boolean myCentered;
-  private NlActionManager myActionManager = new NlActionManager(this);
+  private final NlActionManager myActionManager = new NlActionManager(this);
 
   public DesignSurface(@NotNull Project project) {
     super(new BorderLayout());
@@ -229,33 +243,19 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
       // If the model has already rendered, there may be errors to display,
       // so update the error panel to reflect that.
       updateErrorDisplay(myScreenView, myScreenView.getResult());
+      myLayeredPane.setPreferredSize(myScreenView.getPreferredSize());
 
-      Dimension screenSize = myScreenView.getPreferredSize();
-      myLayeredPane.setPreferredSize(screenSize);
+      NlLayoutType layoutType = myScreenView.getModel().getType();
 
-      switch (myScreenMode) {
-        case SCREEN_ONLY:
-          myScreenView.setType(ScreenView.ScreenViewType.NORMAL);
-          addScreenLayers();
-          break;
-        case BLUEPRINT_ONLY:
-          myScreenView.setType(ScreenView.ScreenViewType.BLUEPRINT);
-          addBlueprintLayers(myScreenView);
-          break;
-        case BOTH:
-          myScreenView.setType(ScreenView.ScreenViewType.NORMAL);
-          myBlueprintView = new ScreenView(this, ScreenView.ScreenViewType.BLUEPRINT, model);
-          myBlueprintView.setLocation(myScreenX + screenSize.width + 10, myScreenY);
-
-          addScreenLayers();
-          addBlueprintLayers(myBlueprintView);
-
-          break;
-        default:
-          assert false : myScreenMode;
+      if (layoutType.equals(NlLayoutType.MENU) || layoutType.equals(NlLayoutType.PREFERENCE_SCREEN)) {
+        myScreenMode = ScreenMode.SCREEN_ONLY;
       }
 
+      myScreenView.setType(myScreenMode.getScreenViewType());
+
+      addLayers(model);
       positionScreens();
+
       SelectionModel selectionModel = model.getSelectionModel();
       selectionModel.addListener(mySelectionListener);
       selectionAfter = selectionModel.getSelection();
@@ -270,6 +270,27 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
       notifySelectionListeners(selectionAfter);
     }
     notifyScreenViewChanged();
+  }
+
+  private void addLayers(@NotNull NlModel model) {
+    switch (myScreenMode) {
+      case SCREEN_ONLY:
+        addScreenLayers();
+        break;
+      case BLUEPRINT_ONLY:
+        addBlueprintLayers(myScreenView);
+        break;
+      case BOTH:
+        myBlueprintView = new ScreenView(this, ScreenViewType.BLUEPRINT, model);
+        myBlueprintView.setLocation(myScreenX + myScreenView.getPreferredSize().width + 10, myScreenY);
+
+        addScreenLayers();
+        addBlueprintLayers(myBlueprintView);
+
+        break;
+      default:
+        assert false : myScreenMode;
+    }
   }
 
   private void addScreenLayers() {
@@ -344,6 +365,7 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
 
   /**
    * Return the ScreenView under the given position
+   *
    * @param x
    * @param y
    * @return the ScreenView, or null if we are not above one.
