@@ -33,6 +33,9 @@ public class Range implements Animatable {
   private float mFraction;
 
   public Range(double min, double max) {
+    // TODO: Right now there's no guarantee that max is greater than, or equal to min. The flip() method even swap these values.
+    // That doesn't sound right, so we should come up with a way to either use a better naming than min/max or make sure that
+    // the invariant min <= max is always kept.
     mCurrentMin = mTargetMin = min;
     mCurrentMax = mTargetMax = max;
     mFraction = DEFAULT_INTERPOLATION_FRACTION;
@@ -102,6 +105,12 @@ public class Range implements Animatable {
     return true;
   }
 
+  /**
+   * Sets new values for both min and max.
+   * @param min New min value
+   * @param max New max value
+   * @return true if max and min were set successfully, false otherwise (e.g. the values have been locked).
+   */
   public boolean set(double min, double max) {
     if (mLock) {
       return false;
@@ -112,13 +121,19 @@ public class Range implements Animatable {
     return true;
   }
 
-  public boolean setTarget(double min, double max) {
+  /**
+   * Sets new values for both targetMin and targetMax.
+   * @param targetMin New targetMin value
+   * @param targetMax New targetMax value
+   * @return true if targetMax and targetMin were set successfully, false otherwise (e.g. the values have been locked).
+   */
+  public boolean setTarget(double targetMin, double targetMax) {
     if (mLock) {
       return false;
     }
 
-    setMinTarget(min);
-    setMaxTarget(max);
+    setMinTarget(targetMin);
+    setMaxTarget(targetMax);
     return true;
   }
 
@@ -164,34 +179,35 @@ public class Range implements Animatable {
   }
 
   public double getLength() {
-    return mCurrentMax - mCurrentMin;
+    return Math.abs(mCurrentMax - mCurrentMin);
   }
 
   public boolean isPoint() {
     return getMax() == getMin();
   }
 
+  /**
+   * Returns the closest value to a number that is within the Range or the number itself if it already is.
+   * @param value The number to be clamped
+   */
   public double clamp(double value) {
-    if (value < getMin()) {
-      value = getMin();
-    }
-    if (value > getMax()) {
-      value = getMax();
-    }
-    return value;
+    return Math.min(Math.max(getMin(), value), getMax());
   }
 
+  /**
+   * Flips the values of min and max.
+   * @return true if min and max were set successfully, false otherwise (e.g. the values have been locked).
+   */
   public boolean flip() {
     return set(getMax(), getMin());
   }
 
+  /**
+   * Shifts the values of min and max by a determined delta.
+   * @param delta Number to be added to min and max
+   * @return true if min and max were set successfully, false otherwise (e.g. the values have been locked).
+   */
   public boolean shift(double delta) {
-    if (mLock) {
-      return false;
-    }
-
-    setMax(getMax() + delta);
-    setMin(getMin() + delta);
-    return true;
+    return set(getMin() + delta, getMax() + delta);
   }
 }
