@@ -67,8 +67,8 @@ public class WidgetConstraintPanel extends JPanel {
     mHorizontalSlider.setBackground(mColorSet.getInspectorBackgroundColor());
     mHorizontalSlider.setToolTipText(HORIZONTAL_TOOL_TIP_TEXT);
     mVerticalSlider.setToolTipText(VERTICAL_TOOL_TIP_TEXT);
-    mComponent = components.get(0);
-    configureUI(mComponent);
+
+    updateComponents(components);
     GridBagConstraints gbc = new GridBagConstraints();
     gbc.gridy = 0;
     gbc.gridx = 0;
@@ -90,6 +90,13 @@ public class WidgetConstraintPanel extends JPanel {
       mComponent, SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, String.valueOf(mHorizontalSlider.getValue() / 100f)));
     mVerticalSlider.addChangeListener(e -> ConstraintUtilities.saveNlAttribute(
       mComponent, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, String.valueOf(1f - (mVerticalSlider.getValue() / 100f))));
+  }
+
+  public void updateComponents(@NotNull List<NlComponent> components) {
+    mComponent = components.isEmpty() ? null : components.get(0);
+    if (mComponent != null) {
+      configureUI(mComponent);
+    }
   }
 
   /**
