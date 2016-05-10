@@ -197,9 +197,9 @@ public class ApkViewPanel implements TreeSelectionListener {
     }
 
     mySizeComponent.setIcon(AllIcons.General.BalloonInformation);
-    mySizeComponent.append("Uncompressed APK Size: ");
+    mySizeComponent.append("Raw File Size: ");
     mySizeComponent.append(getHumanizedSize(uncompressed), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
-    mySizeComponent.append(", Estimated Download Size for new installs: ");
+    mySizeComponent.append(", Download Size: ");
     mySizeComponent.append(getHumanizedSize(compressedFullApk), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
   }
 
