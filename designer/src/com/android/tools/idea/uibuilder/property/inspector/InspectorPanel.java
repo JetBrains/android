@@ -45,9 +45,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static com.android.SdkConstants.ATTR_ID;
-import static com.android.SdkConstants.ATTR_SRC;
-import static com.android.SdkConstants.ATTR_TEXT;
+import static com.android.SdkConstants.*;
 import static com.intellij.uiDesigner.core.GridConstraints.*;
 
 public class InspectorPanel extends JPanel {
