@@ -684,7 +684,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     assertEquals(expectedTag + ".Icon", expectedIcon, item.getIcon());
     assertEquals(expectedTag + ".XML", formatXml(expectedXml), formatXml(item.getXml()));
     assertEquals(expectedTag + ".PreviewXML", formatXml(expectedPreviewXml), formatXml(item.getPreviewXml()));
-    assertEquals(expectedTag + ".DesignPreviewXML", formatXml(expectedDragPreviewXml), formatXml(item.getDragPreviewXml()));
+    assertEquals(expectedTag + ".DragPreviewXML", formatXml(expectedDragPreviewXml), formatXml(item.getDragPreviewXml()));
     assertEquals(expectedTag + ".GradleCoordinate", expectedGradleCoordinate, item.getGradleCoordinate());
     assertEquals(expectedTag + ".PreviewScale", expectedScale, item.getPreviewScale());
   }
