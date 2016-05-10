@@ -56,6 +56,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import static com.android.tools.idea.gradle.structure.model.PsDependency.TextType.FOR_NAVIGATION;
 import static com.intellij.ui.IdeBorderFactory.createEmptyBorder;
 import static com.intellij.ui.ScrollPaneFactory.createScrollPane;
 import static com.intellij.util.PlatformIcons.LIBRARY_ICON;
@@ -245,6 +246,26 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
 
   public void notifySelectionChanged() {
   }
+
+  @Override
+  public void queryPlace(@NotNull Place place) {
+    String dependency = "";
+    DependencyDetails details = getCurrentDependencyDetails();
+    if (details != null) {
+      PsAndroidDependency model = details.getModel();
+      if (model != null) {
+        dependency = model.toText(FOR_NAVIGATION);
+      }
+    }
+    putPath(place, dependency);
+  }
+
+  public void putPath(@NotNull Place place, @NotNull String dependency) {
+    place.putPath(getPlaceName(), dependency);
+  }
+
+  @NotNull
+  protected abstract String getPlaceName();
 
   private class AddDependencyAction extends AbstractPopupAction {
     AddDependencyAction() {

@@ -299,7 +299,8 @@ class DependenciesPanel extends AbstractDependenciesPanel {
   }
 
   @Override
-  public void queryPlace(@NotNull Place place) {
-    // TODO implement
+  @NotNull
+  protected String getPlaceName() {
+    return "dependencies.graph.project";
   }
 }

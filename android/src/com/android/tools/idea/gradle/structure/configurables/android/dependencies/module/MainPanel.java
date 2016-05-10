@@ -74,7 +74,7 @@ class MainPanel extends AbstractMainDependenciesPanel {
     add(myVerticalSplitter, BorderLayout.CENTER);
 
     addLabelToHeader(myDeclaredDependenciesPanel, createSwitchViewLabel("Show Dependency Graph", myDependencyGraphPanel));
-    addLabelToHeader(myDependencyGraphPanel, createSwitchViewLabel("Show Declared Dependencies", myDeclaredDependenciesPanel));
+    addLabelToHeader(myDependencyGraphPanel, createSwitchViewLabel("Show Declared Dependencies Only", myDeclaredDependenciesPanel));
 
     myDeclaredDependenciesPanel.updateTableColumnSizes();
     myDeclaredDependenciesPanel.add(myTargetArtifactsPanel::displayTargetArtifacts);
@@ -182,12 +182,12 @@ class MainPanel extends AbstractMainDependenciesPanel {
   }
 
   public void putPath(@NotNull Place place, @NotNull String dependency) {
-    myDeclaredDependenciesPanel.putPath(place, dependency);
+    mySelectedView.putPath(place, dependency);
   }
 
   @Override
   public ActionCallback navigateTo(@Nullable Place place, boolean requestFocus) {
-    return myDeclaredDependenciesPanel.navigateTo(place, requestFocus);
+    return mySelectedView.navigateTo(place, requestFocus);
   }
 
   @Override
