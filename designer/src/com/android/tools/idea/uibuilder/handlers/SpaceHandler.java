@@ -16,17 +16,24 @@
 package com.android.tools.idea.uibuilder.handlers;
 
 import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.api.XmlType;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-import static com.android.SdkConstants.*;
+import static com.android.SdkConstants.ATTR_STYLE;
 
 public class SpaceHandler extends ViewHandler {
   @Override
   @NotNull
   public List<String> getInspectorProperties() {
     return ImmutableList.of(ATTR_STYLE);
+  }
+
+  @NotNull
+  @Override
+  public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {
+    return xmlType.equals(XmlType.PREVIEW_ON_PALETTE) || xmlType.equals(XmlType.DRAG_PREVIEW) ? NO_PREVIEW : super.getXml(tagName, xmlType);
   }
 }
