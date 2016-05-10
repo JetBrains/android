@@ -141,10 +141,9 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
     String finishedText = "Please wait until the installation finishes to continue";
     myValidatorPanel.registerValidator(myInstallationFinished, new TrueValidator(Validator.Severity.INFO, finishedText));
 
-    String installError = "Install Failed. Please check your network connection and try again. " +
-                          "You may continue with creating your project, but it will not compile correctly " +
-                          "without the missing components.";
+    String installError = "Install failed. Please check the installation log and try again.";
     myValidatorPanel.registerValidator(myInstallFailed, new FalseValidator(installError));
+
     myBackgroundAction.setWizard(wizard);
   }
 
@@ -251,7 +250,9 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
           for (RepoPackage p : preparedPackages.keySet()) {
             PackageOperation installer = preparedPackages.get(p);
             // If we're not backgrounded, go on to the final part immediately.
-            installer.complete(myProgress);
+            if (!installer.complete(myProgress)) {
+              failures.add(p);
+            }
           }
         }
         else {
