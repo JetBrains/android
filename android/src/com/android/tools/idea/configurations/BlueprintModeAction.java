@@ -17,6 +17,7 @@ package com.android.tools.idea.configurations;
 
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.DesignSurface.ScreenMode;
+import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import icons.AndroidIcons;
@@ -30,6 +31,15 @@ public class BlueprintModeAction extends AnAction {
   public BlueprintModeAction(DesignSurface surface) {
     super(null, "Show Blueprint", AndroidIcons.NeleIcons.Blueprint);
     mySurface = surface;
+  }
+
+  @Override
+  public void update(AnActionEvent event) {
+    ScreenView screenView = mySurface.getCurrentScreenView();
+
+    if (screenView != null) {
+      event.getPresentation().setEnabled(screenView.getModel().getType().isLayout());
+    }
   }
 
   @Override
