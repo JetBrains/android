@@ -165,5 +165,6 @@
         </SOURCES>
       </library>
     </orderEntry>
+    <orderEntry type="module" module-name="binary-resources" />
   </component>
 </module>
