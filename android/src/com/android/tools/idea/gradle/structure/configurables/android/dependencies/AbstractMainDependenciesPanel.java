@@ -25,6 +25,10 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 public abstract class AbstractMainDependenciesPanel extends AbstractMainPanel {
+  protected AbstractMainDependenciesPanel(@NotNull PsContext context) {
+    super(context);
+  }
+
   protected AbstractMainDependenciesPanel(@NotNull PsContext context,
                                           @NotNull List<PsModule> extraTopModules) {
     super(context, extraTopModules);
