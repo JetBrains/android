@@ -208,7 +208,7 @@ public class AccordionVisualTest extends VisualTest {
   @NonNull
   private LineChart generateChart(AccordionLayout layout, AccordionLayout.Orientation direction,
                                   int minSize, int preferredSize, int maxSize) {
-    LineChart chart = new LineChart(mData);
+    LineChart chart = new LineChart(getName(), mData);
     if (direction == AccordionLayout.Orientation.VERTICAL) {
       chart.setMinimumSize(new Dimension(0, minSize));
       chart.setPreferredSize(new Dimension(0, preferredSize));
