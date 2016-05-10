@@ -98,6 +98,11 @@ public class AndroidViewProjectNode extends ProjectViewNode<Project> {
       children.add(new AndroidBuildScriptsGroupNode(project, settings));
     }
 
+    ExternalBuildFilesGroupNode externalBuildFilesNode = new ExternalBuildFilesGroupNode(project, settings);
+    if (!externalBuildFilesNode.getChildren().isEmpty()) {
+      children.add(externalBuildFilesNode);
+    }
+
     // TODO: What about files in the base project directory
 
     // TODO: Do we want to show the External Libraries Node or a Dependencies node
