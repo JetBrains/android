@@ -678,19 +678,4 @@ com.intellij.openapi.application.impl.ApplicationImpl$NoReadAccessException
     }
     return null;
   }
-
-
-  /**
-   * Returns the value if a String contains a dp value
-   */
-  public static int extractDp(@Nullable String str) {
-    if (str == null) {
-      return 0;
-    }
-    int index = str.lastIndexOf("dp");
-    if (index != -1) {
-      return Integer.parseInt(str.substring(0, index));
-    }
-    return 0;
-  }
 }
