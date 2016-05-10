@@ -89,7 +89,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     mControlIsPressed = key;
   }
 
-  private void loadWidgetDecoratorImages() {
+  private static void loadWidgetDecoratorImages() {
     if (WidgetDecorator.sLockImageIcon == null) {
       WidgetDecorator.sLockImageIcon = iconToImage(AndroidIcons.SherpaIcons.LockConstraints);
     }
@@ -308,6 +308,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                                          AndroidIcons.SherpaIcons.VerticalExpand, str));
     addToolbarActionsToMenu("Constraint Layout", actions);
 
+    myPopupActions.add(action);
   }
 
   interface Enableable {
@@ -347,7 +348,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
    */
   @Override
   public Interaction createInteraction(@NotNull ScreenView screenView, @NotNull NlComponent component) {
-    return new ConstraintInteraction(screenView, component);
+    return new ConstraintInteraction(screenView);
   }
 
   /**
@@ -731,7 +732,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     }
   }
 
-  private class MarginSelector extends DirectViewAction {
+  private static class MarginSelector extends DirectViewAction {
     private final String myToolTip;
     boolean mEnable = true;
     String[] mMargins = {"0", "8", "16"};

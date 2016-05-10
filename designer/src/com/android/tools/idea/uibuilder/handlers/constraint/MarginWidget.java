@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
-import com.android.tools.sherpa.drawing.BlueprintColorSet;
 import com.android.tools.sherpa.drawing.ColorSet;
-import com.intellij.openapi.ui.ComboBox;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -25,9 +23,7 @@ import javax.swing.border.LineBorder;
 import javax.swing.plaf.basic.BasicArrowButton;
 import javax.swing.plaf.basic.BasicComboBoxEditor;
 import javax.swing.plaf.basic.BasicComboBoxUI;
-import javax.swing.plaf.basic.ComboPopup;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 
