@@ -55,6 +55,7 @@ import java.util.List;
 
 import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.isMetaOrCtrlKeyPressed;
 import static com.android.tools.idea.gradle.structure.model.PsDependency.TextType.FOR_NAVIGATION;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.ui.IdeBorderFactory.createEmptyBorder;
 import static com.intellij.ui.ScrollPaneFactory.createScrollPane;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
@@ -304,8 +305,7 @@ class DeclaredDependenciesPanel extends AbstractDependenciesPanel {
     }
   }
 
-  @Override
-  public void notifySelectionChanged() {
+  private void notifySelectionChanged() {
     PsAndroidDependency selected = getSelection();
     if (selected != null) {
       myEventDispatcher.selectionChanged(selected);
@@ -321,24 +321,38 @@ class DeclaredDependenciesPanel extends AbstractDependenciesPanel {
   }
 
   @Override
+  public void selectDependency(@Nullable String dependency) {
+    if (isEmpty(dependency)) {
+      myDependenciesTable.requestFocusInWindow();
+      myDependenciesTable.clearSelection();
+      return;
+    }
+    doSelectDependency(dependency);
+  }
+
+  @Override
   public ActionCallback navigateTo(@Nullable Place place, boolean requestFocus) {
     if (place != null) {
       Object path = place.getPath(myPlaceName);
       if (path instanceof String) {
         String pathText = (String)path;
-        myDependenciesTable.requestFocusInWindow();
         if (!pathText.isEmpty()) {
-          for (PsAndroidDependency dependency : myDependenciesTable.getItems()) {
-            String dependencyAsText = dependency.toText(FOR_NAVIGATION);
-            if (pathText.equals(dependencyAsText)) {
-              myDependenciesTable.setSelection(Collections.singletonList(dependency));
-              break;
-            }
-          }
+          doSelectDependency(pathText);
         }
       }
     }
     return ActionCallback.DONE;
+  }
+
+  private void doSelectDependency(@NotNull String toSelect) {
+    myDependenciesTable.requestFocusInWindow();
+    for (PsAndroidDependency dependency : myDependenciesTable.getItems()) {
+      String dependencyAsText = dependency.toText(FOR_NAVIGATION);
+      if (toSelect.equals(dependencyAsText)) {
+        myDependenciesTable.setSelection(Collections.singletonList(dependency));
+        break;
+      }
+    }
   }
 
   private class EditDependencyAction extends DumbAwareAction {

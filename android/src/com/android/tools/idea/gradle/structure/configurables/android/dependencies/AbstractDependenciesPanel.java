@@ -244,9 +244,6 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
   protected void beforeAddingDependency() {
   }
 
-  public void notifySelectionChanged() {
-  }
-
   @Override
   public void queryPlace(@NotNull Place place) {
     String dependency = "";
@@ -266,6 +263,8 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
 
   @NotNull
   protected abstract String getPlaceName();
+
+  public abstract void selectDependency(@Nullable String dependency);
 
   private class AddDependencyAction extends AbstractPopupAction {
     AddDependencyAction() {
