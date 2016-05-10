@@ -56,6 +56,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import static com.android.tools.idea.gradle.structure.model.PsDependency.TextType.FOR_NAVIGATION;
 import static com.intellij.ui.IdeBorderFactory.createEmptyBorder;
 import static com.intellij.ui.ScrollPaneFactory.createScrollPane;
 import static com.intellij.util.PlatformIcons.LIBRARY_ICON;
@@ -67,6 +68,7 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
   @NotNull private final EmptyPanel myEmptyDetailsPanel;
   @NotNull private final DependencyInfoPanel myInfoPanel;
   @NotNull private final JScrollPane myInfoScrollPane;
+  @NotNull private final Header myHeader;
   @NotNull private final JPanel myContentsPanel;
   @NotNull private final String myEmptyText;
 
@@ -92,8 +94,8 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
     myInfoScrollPane = createScrollPane(myEmptyDetailsPanel, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
     myInfoScrollPane.setBorder(createEmptyBorder());
 
-    Header header = new Header(title);
-    add(header, BorderLayout.NORTH);
+    myHeader = new Header(title);
+    add(myHeader, BorderLayout.NORTH);
 
     JBSplitter splitter = new JBSplitter(true, "psd.editable.dependencies.main.horizontal.splitter.proportion", 0.55f);
 
@@ -106,12 +108,16 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
     add(splitter, BorderLayout.CENTER);
   }
 
+  @NotNull
+  public abstract JComponent getPreferredFocusedComponent();
+
   protected void addDetails(@NotNull DependencyDetails<?> details) {
     myDependencyDetails.put(details.getSupportedModelType(), details);
   }
 
   protected void setIssuesViewer(@NotNull IssuesViewer issuesViewer) {
     myIssuesViewer = issuesViewer;
+    myIssuesViewer.setShowEmptyText(false);
     myInfoPanel.setIssuesViewer(myIssuesViewer);
   }
 
@@ -216,6 +222,11 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
   }
 
   @NotNull
+  public Header getHeader() {
+    return myHeader;
+  }
+
+  @NotNull
   public String getEmptyText() {
     return myEmptyText;
   }
@@ -232,6 +243,29 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
 
   protected void beforeAddingDependency() {
   }
+
+  public void notifySelectionChanged() {
+  }
+
+  @Override
+  public void queryPlace(@NotNull Place place) {
+    String dependency = "";
+    DependencyDetails details = getCurrentDependencyDetails();
+    if (details != null) {
+      PsAndroidDependency model = details.getModel();
+      if (model != null) {
+        dependency = model.toText(FOR_NAVIGATION);
+      }
+    }
+    putPath(place, dependency);
+  }
+
+  public void putPath(@NotNull Place place, @NotNull String dependency) {
+    place.putPath(getPlaceName(), dependency);
+  }
+
+  @NotNull
+  protected abstract String getPlaceName();
 
   private class AddDependencyAction extends AbstractPopupAction {
     AddDependencyAction() {
