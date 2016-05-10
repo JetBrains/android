@@ -28,7 +28,9 @@ import icons.AndroidDesignerIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.awt.*;
 import java.util.List;
+import java.util.Map;
 
 import static com.android.SdkConstants.*;
 
@@ -67,6 +69,7 @@ public class ScrollViewHandler extends ViewGroupHandler {
     return true;
   }
 
+
   @Nullable
   @Override
   public DragHandler createDragHandler(@NotNull ViewEditor editor,
@@ -74,6 +77,25 @@ public class ScrollViewHandler extends ViewGroupHandler {
                                        @NotNull List<NlComponent> components,
                                        @NotNull DragType type) {
     return new OneChildDragHandler(editor, this, layout, components, type);
+  }
+
+  @Nullable
+  @Override
+  public ScrollHandler createScrollHandler(@NotNull ViewEditor editor, @NotNull NlComponent component) {
+    int maxScrollableHeight = 0;
+    Map<NlComponent, Dimension> childrenMeasure = editor.measureChildren(component, null);
+    if (childrenMeasure != null && !childrenMeasure.isEmpty()) {
+      for (Dimension dimension : childrenMeasure.values()) {
+        maxScrollableHeight += dimension.height - component.h;
+      }
+
+      if (maxScrollableHeight > 0) {
+        // There is something to scroll
+        return new ScrollHandler(component, maxScrollableHeight, 10);
+      }
+    }
+
+    return null;
   }
 
   static class OneChildDragHandler extends DragHandler {

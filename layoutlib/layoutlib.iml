@@ -8,7 +8,7 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="layoutlib" level="project" />
+    <orderEntry type="library" exported="" name="layoutlib" level="project" />
     <orderEntry type="module" module-name="sdk-common" />
     <orderEntry type="module" module-name="annotations" />
     <orderEntry type="module" module-name="android-common" />

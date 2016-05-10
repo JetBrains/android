@@ -116,6 +116,17 @@ public class Interaction {
   }
 
   /**
+   * Handles scrolling interactions.
+   * @param x         The most recent mouse x coordinate applicable to this
+   *                  interaction
+   * @param y         The most recent mouse y coordinate applicable to this
+   *                  interaction
+   * @param scrollAmount Number of units to scroll.
+   */
+  public void scroll(@SwingCoordinate int x, @SwingCoordinate int y, int scrollAmount) {
+  }
+
+  /**
    * Handles termination of the interaction. This method is called when the
    * interaction has terminated (either through successful completion, or because
    * it was canceled).
