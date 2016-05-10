@@ -29,6 +29,7 @@ import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeE
 import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeListener;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseCollapseAllAction;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseExpandAllAction;
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.NodeHyperlinkSupport;
 import com.android.tools.idea.gradle.structure.model.PsIssue;
 import com.android.tools.idea.gradle.structure.model.PsModule;
@@ -59,6 +60,8 @@ import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.se
 import static com.android.tools.idea.gradle.structure.model.PsDependency.TextType.FOR_NAVIGATION;
 import static com.intellij.icons.AllIcons.Actions.Collapseall;
 import static com.intellij.icons.AllIcons.Actions.Expandall;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static java.awt.event.MouseEvent.MOUSE_PRESSED;
 
 public class DependencyGraphPanel extends AbstractDependenciesPanel {
@@ -126,7 +129,12 @@ public class DependencyGraphPanel extends AbstractDependenciesPanel {
       }
     });
 
-    myTreeBuilder.getInitialized().doWhenDone(this::selectFirstNode);
+    myTreeBuilder.getInitialized().doWhenDone(() -> {
+      AbstractPsModelNode<?> selectedNode = myTreeBuilder.getSelectedNode();
+      if (selectedNode == null) {
+        selectFirstNode();
+      }
+    });
 
     myHyperlinkSupport = new NodeHyperlinkSupport<>(myTree, ModuleDependencyNode.class, myContext, true);
   }
@@ -182,18 +190,6 @@ public class DependencyGraphPanel extends AbstractDependenciesPanel {
 
   public void add(@NotNull SelectionChangeListener<AbstractDependencyNode<? extends PsAndroidDependency>> listener) {
     myEventDispatcher.addListener(listener, this);
-  }
-
-  @Override
-  public void notifySelectionChanged() {
-    myTreeBuilder.getInitialized().doWhenDone(() -> {
-      List<AbstractDependencyNode<? extends PsAndroidDependency>> selection = getMatchingSelection();
-      if (selection.isEmpty()) {
-        selectFirstNode();
-        selection = getMatchingSelection();
-      }
-      notifySelectionChanged(selection.size() == 1 ? selection.get(0) : null);
-    });
   }
 
   private void notifySelectionChanged(@Nullable AbstractDependencyNode<? extends PsAndroidDependency> selected) {
@@ -271,36 +267,51 @@ public class DependencyGraphPanel extends AbstractDependenciesPanel {
   }
 
   @Override
+  public void selectDependency(@Nullable String dependency) {
+    if (isEmpty(dependency)) {
+      myTreeBuilder.clearSelection();
+      myTree.requestFocusInWindow();
+      return;
+    }
+    doSelectDependency(dependency);
+  }
+
+  @Override
   public ActionCallback navigateTo(@Nullable Place place, boolean requestFocus) {
     if (place != null) {
       Object path = place.getPath(myPlaceName);
       if (path instanceof String) {
         String pathText = (String)path;
         myTree.requestFocusInWindow();
-        if (!pathText.isEmpty()) {
-          Ref<AbstractDependencyNode> nodeRef = new Ref<>();
-          myTreeBuilder.accept(AbstractDependencyNode.class, new TreeVisitor<AbstractDependencyNode>() {
-            @Override
-            public boolean visit(@NotNull AbstractDependencyNode node) {
-              PsAndroidDependency dependency = (PsAndroidDependency)node.getModels().get(0);
-              if (!(node.getParent() instanceof AbstractDependencyNode)) {
-                // Only consider top-level dependencies (i.e. "declared" dependencies.
-                String dependencyAsText = dependency.toText(FOR_NAVIGATION);
-                if (pathText.equals(dependencyAsText)) {
-                  nodeRef.set(node);
-                  return true;
-                }
-              }
-              return false;
-            }
-          });
-          if (nodeRef.get() != null) {
-            myTreeBuilder.select(nodeRef.get());
-          }
+        if (isNotEmpty(pathText)) {
+          doSelectDependency(pathText);
         }
       }
     }
     return ActionCallback.DONE;
+  }
+
+  private void doSelectDependency(@NotNull String toSelect) {
+    Ref<AbstractDependencyNode> nodeRef = new Ref<>();
+    myTreeBuilder.accept(AbstractDependencyNode.class, new TreeVisitor<AbstractDependencyNode>() {
+      @Override
+      public boolean visit(@NotNull AbstractDependencyNode node) {
+        PsAndroidDependency dependency = (PsAndroidDependency)node.getModels().get(0);
+        if (!(node.getParent() instanceof AbstractDependencyNode)) {
+          // Only consider top-level dependencies (i.e. "declared" dependencies.
+          String dependencyAsText = dependency.toText(FOR_NAVIGATION);
+          if (toSelect.equals(dependencyAsText)) {
+            nodeRef.set(node);
+            return true;
+          }
+        }
+        return false;
+      }
+    });
+    if (nodeRef.get() != null) {
+      myTreeBuilder.getInitialized().doWhenDone(() -> myTreeBuilder.select(nodeRef.get()));
+    }
+    myTree.requestFocusInWindow();
   }
 
   @Override
