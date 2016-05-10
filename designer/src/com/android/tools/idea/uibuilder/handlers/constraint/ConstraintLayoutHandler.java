@@ -348,7 +348,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
    */
   @Override
   public Interaction createInteraction(@NotNull ScreenView screenView, @NotNull NlComponent component) {
-    return new ConstraintInteraction(screenView);
+    return new ConstraintInteraction(screenView, component);
   }
 
   /**
