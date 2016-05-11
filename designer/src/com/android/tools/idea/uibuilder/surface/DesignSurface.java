@@ -1270,10 +1270,27 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
     }
   }
 
-  public void requestRender() {
+  /**
+   * Requests a new render of the layout.
+   * @param invalidateModel if true, the model will be invalidated and re-inflated. When false, this will only repaint the current model.
+   */
+  public void requestRender(boolean invalidateModel) {
     ScreenView screenView = getCurrentScreenView();
     if (screenView != null) {
-      screenView.getModel().requestRender();
+      if (invalidateModel) {
+        // Invalidate the current model and request a render
+        screenView.getModel().notifyModified();
+      }
+      else {
+        screenView.getModel().requestRender();
+      }
     }
+  }
+
+  /**
+   * Invalidates the current model and request a render of the layout. This will re-inflate the layout and render it.
+   */
+  public void requestRender() {
+    requestRender(true);
   }
 }
