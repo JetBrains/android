@@ -50,7 +50,7 @@ class MainPanel extends AbstractMainDependenciesPanel {
       if (node != null) {
         node = findTopDependencyNode(node);
       }
-      myTargetArtifactsPanel.displayTargetArtifacts(node != null ? node.getModels().get(0) : null);
+      myTargetArtifactsPanel.displayTargetArtifacts(node != null ? node.getFirstModel() : null);
     });
 
     JBSplitter verticalSplitter = createMainVerticalSplitter();
