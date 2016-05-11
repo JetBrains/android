@@ -193,25 +193,25 @@ public class SingleWidgetView extends JPanel {
 
   private void topKill() {
     mWidgetConstraintPanel.killTopConstraint();
-    mCacheTop = -1;
+    mCacheTop = UNCONNECTED;
     update();
   }
 
   private void leftKill() {
     mWidgetConstraintPanel.killLeftConstraint();
-    mCacheLeft = -1;
+    mCacheLeft = UNCONNECTED;
     update();
   }
 
   private void rightKill() {
     mWidgetConstraintPanel.killRightConstraint();
-    mCacheRight = -1;
+    mCacheRight = UNCONNECTED;
     update();
   }
 
   private void bottomKill() {
     mWidgetConstraintPanel.killBottomConstraint();
-    mCacheBottom = -1;
+    mCacheBottom = UNCONNECTED;
     update();
   }
 
@@ -227,7 +227,6 @@ public class SingleWidgetView extends JPanel {
 
   private void update() {
     configureUi(mCacheBottom, mCacheTop, mCacheLeft, mCacheRight, mCacheBaseline, mCacheWidth, mCacheHeight);
-    mWidgetRender.build(getWidth(), getHeight());
   }
 
   void resize() {
@@ -448,6 +447,8 @@ public class SingleWidgetView extends JPanel {
     mVbar2.setToolTipText(statusString[height]);
     mHbar1.setToolTipText(statusString[width]);
     mHbar2.setToolTipText(statusString[width]);
+    mWidgetRender.build(getWidth(), getHeight());
+    repaint();
   }
 
   /**
@@ -664,8 +665,6 @@ public class SingleWidgetView extends JPanel {
       mWidgetRight = new Box(width - inset, boxTop, mBoxSize, mBoxSize, Box.LEFT);
       mWidgetLeft = new Box(inset - mBoxSize, boxTop, mBoxSize, mBoxSize, Box.RIGHT);
       mWidgetTop = new Box(boxLeft, inset - mBoxSize, mBoxSize, mBoxSize, Box.BOTTOM);
-      // TODO support left vs right
-      //  mWidgetBase = new BaseLineBox(null, inset - mBoxSize, boxTop + mBoxSize + 10, mBoxSize, mBoxSize / 2, true);
 
       int baseArrowX = boxLeft + mBoxSize / 2;
       mBaselineArrow =

@@ -32,6 +32,7 @@ import java.util.ArrayList;
  */
 public class MarginWidget extends JPanel {
   String[] str = new String[]{"0", "8", "16", "24", "32"};
+  boolean mInternal;
   @SuppressWarnings("UndesirableClassUsage")
   JComboBox<String> combo = new JComboBox<>(str);
   private static final String COMBO = "combo";
@@ -88,6 +89,9 @@ public class MarginWidget extends JPanel {
     label.setForeground(mColorSet.getInspectorStrokeColor());
     combo.setAlignmentX(LEFT_ALIGNMENT);
     combo.addActionListener(e -> {
+      if (mInternal) {
+        return;
+      }
       label.setText((String)combo.getSelectedItem());
       for (ActionListener cb : mCallbacks) {
         cb.actionPerformed(e);
@@ -127,9 +131,11 @@ public class MarginWidget extends JPanel {
   };
 
   public void setMargin(int margin) {
+    mInternal = true;
     String marginText = String.valueOf(margin);
     combo.setSelectedItem(marginText);
     label.setText(marginText);
+    mInternal = false;
   }
 
   public int getMargin() {
