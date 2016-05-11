@@ -19,6 +19,7 @@ import com.android.tools.idea.rendering.RenderErrorPanel;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.tests.gui.framework.Wait;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
@@ -39,9 +40,11 @@ import static org.junit.Assert.assertTrue;
 public class DesignSurfaceFixture extends ComponentFixture<DesignSurfaceFixture, DesignSurface> {
   private final JPanel myProgressPanel;
   private final RenderErrorPanel myRenderErrorPanel;
+  private final IdeFrameFixture myIdeFrame;
 
-  public DesignSurfaceFixture(@NotNull Robot robot, @NotNull DesignSurface designSurface) {
+  public DesignSurfaceFixture(@NotNull Robot robot, @NotNull IdeFrameFixture frame, @NotNull DesignSurface designSurface) {
     super(DesignSurfaceFixture.class, robot, designSurface);
+    myIdeFrame = frame;
     myProgressPanel = robot.finder().findByName(target(), "Layout Editor Progress Panel", JPanel.class, false);
     myRenderErrorPanel = robot.finder().findByName(target(), "Layout Editor Error Panel", RenderErrorPanel.class, false);
   }
@@ -136,7 +139,7 @@ public class DesignSurfaceFixture extends ComponentFixture<DesignSurfaceFixture,
 
   @NotNull
   private NlComponentFixture createComponentFixture(@NotNull NlComponent component) {
-    return new NlComponentFixture(robot(), component, target());
+    return new NlComponentFixture(robot(), myIdeFrame, component, target());
   }
 
   private static void addComponents(@NotNull String tag, @NotNull NlComponent component, @NotNull List<NlComponent> components) {
