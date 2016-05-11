@@ -768,13 +768,12 @@ public class EditorFixture {
   }
 
   @NotNull
-  public EditorFixture requireHighlights(HighlightSeverity severity, String... highlights) {
+  public List<String> getHighlights(HighlightSeverity severity) {
     List<String> infos = Lists.newArrayList();
     for (HighlightInfo info : getCurrentFileFixture().getHighlightInfos(severity)) {
       infos.add(info.getDescription());
     }
-    assertThat(infos).containsExactly(highlights);
-    return this;
+    return infos;
   }
 
   /**

@@ -24,6 +24,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
+import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -41,7 +42,6 @@ import java.util.List;
 
 import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.EditorAction.GOTO_DECLARATION;
 import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 import static junit.framework.Assert.assertNotNull;
 import static org.junit.Assert.assertEquals;
 
@@ -95,16 +95,17 @@ public class GradleTestArtifactSyncTest {
       "testFree/java", "androidTestFree/java", "testDebug/java", "main/res", "main/java", "test/java", "androidTest/java");
 
     // Refer to the test source file for the reason of unresolved references
-    editor.open("app/src/androidTest/java/com/example/ApplicationTest.java")
-          .requireHighlights(ERROR, "Cannot resolve symbol 'Assert'", "Cannot resolve symbol 'ExampleUnitTest'",
-                             "Cannot resolve symbol 'Lib'")
-          .moveBetween("Test", "Util util")
+    editor.open("app/src/androidTest/java/com/example/ApplicationTest.java");
+    assertThat(editor.getHighlights(HighlightSeverity.ERROR)).containsExactly(
+      "Cannot resolve symbol 'Assert'", "Cannot resolve symbol 'ExampleUnitTest'", "Cannot resolve symbol 'Lib'");
+    editor.moveBetween("Test", "Util util")
           .invokeAction(GOTO_DECLARATION);
     requirePath(editor.getCurrentFile(), "androidTest/java/com/example/TestUtil.java");
 
-    editor.open("app/src/test/java/com/example/UnitTest.java")
-          .requireHighlights(ERROR, "Cannot resolve symbol 'Collections2'", "Cannot resolve symbol 'ApplicationTest'")
-          .moveBetween("Test", "Util util")
+    editor.open("app/src/test/java/com/example/UnitTest.java");
+    assertThat(editor.getHighlights(HighlightSeverity.ERROR)).containsExactly(
+      "Cannot resolve symbol 'Collections2'", "Cannot resolve symbol 'ApplicationTest'");
+    editor.moveBetween("Test", "Util util")
           .invokeAction(GOTO_DECLARATION);
     requirePath(editor.getCurrentFile(), "test/java/com/example/TestUtil.java");
   }
