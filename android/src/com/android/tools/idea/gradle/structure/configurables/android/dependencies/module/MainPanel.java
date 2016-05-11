@@ -31,7 +31,6 @@ import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.navigation.History;
 import com.intellij.ui.navigation.Place;
-import com.intellij.ui.treeStructure.SimpleNode;
 import com.intellij.util.ui.UIUtil.FontSize;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,6 +40,7 @@ import javax.swing.event.HyperlinkEvent;
 import java.awt.*;
 import java.util.List;
 
+import static com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.DependencyGraphPanel.findTopDependencyNode;
 import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.revalidateAndRepaint;
 import static com.android.tools.idea.gradle.structure.model.PsDependency.TextType.FOR_NAVIGATION;
 import static com.intellij.util.ui.UIUtil.getLabelFont;
@@ -89,7 +89,7 @@ class MainPanel extends AbstractMainDependenciesPanel {
       if (node != null) {
         node = findTopDependencyNode(node);
       }
-      PsAndroidDependency selection = node != null ? node.getModels().get(0) : null;
+      PsAndroidDependency selection = node != null ? node.getFirstModel() : null;
       setSelectedDependency(selection);
       myTargetArtifactsPanel.displayTargetArtifacts(selection);
     });
@@ -137,18 +137,6 @@ class MainPanel extends AbstractMainDependenciesPanel {
 
   private static void addLabelToHeader(@NotNull AbstractDependenciesPanel dependenciesPanel, @NotNull HyperlinkLabel label) {
     dependenciesPanel.getHeader().add(label, BorderLayout.EAST);
-  }
-
-  @NotNull
-  private static AbstractDependencyNode<? extends PsAndroidDependency> findTopDependencyNode(@NotNull AbstractDependencyNode<? extends PsAndroidDependency> node) {
-    AbstractDependencyNode<? extends PsAndroidDependency> current = node;
-    while (true) {
-      SimpleNode parent = current.getParent();
-      if (!(parent instanceof AbstractDependencyNode)) {
-        return current;
-      }
-      current = (AbstractDependencyNode<? extends PsAndroidDependency>)parent;
-    }
   }
 
   private void restoreTargetArtifactsPanel() {

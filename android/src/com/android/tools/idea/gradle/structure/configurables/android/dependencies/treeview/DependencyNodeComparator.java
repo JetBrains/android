@@ -29,8 +29,8 @@ public class DependencyNodeComparator implements Comparator<AbstractDependencyNo
 
   @Override
   public int compare(AbstractDependencyNode n1, AbstractDependencyNode n2) {
-    PsAndroidDependency d1 = (PsAndroidDependency)n1.getModels().get(0);
-    PsAndroidDependency d2 = (PsAndroidDependency)n2.getModels().get(0);
+    PsAndroidDependency d1 = (PsAndroidDependency)n1.getFirstModel();
+    PsAndroidDependency d2 = (PsAndroidDependency)n2.getFirstModel();
     return PsAndroidDependencyComparator.INSTANCE.compare(d1, d2);
   }
 }

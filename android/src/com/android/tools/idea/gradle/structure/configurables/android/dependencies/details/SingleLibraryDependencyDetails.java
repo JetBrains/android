@@ -16,20 +16,27 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.details;
 
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
+import com.android.tools.idea.gradle.structure.model.PsDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidLibraryDependency;
+import com.intellij.ui.components.JBLabel;
 import org.jdesktop.swingx.JXLabel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-public class ProjectLibraryDependencyDetails implements DependencyDetails<PsAndroidLibraryDependency> {
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+
+public class SingleLibraryDependencyDetails implements DependencyDetails {
   private JPanel myMainPanel;
 
-  private JXLabel myArtifactNameLabel;
   private JXLabel myGroupIdLabel;
+  private JXLabel myArtifactNameLabel;
+  private JBLabel myResolvedVersionLabel;
+  private JXLabel myScopeLabel;
+  private JBLabel myRequestedVersionLabel;
 
-  private PsAndroidLibraryDependency myDependency;
+  @Nullable private PsAndroidLibraryDependency myDependency;
 
   @Override
   @NotNull
@@ -38,12 +45,27 @@ public class ProjectLibraryDependencyDetails implements DependencyDetails<PsAndr
   }
 
   @Override
-  public void display(@NotNull PsAndroidLibraryDependency dependency) {
-    myDependency = dependency;
+  public void display(@NotNull PsDependency dependency) {
+    display(dependency, dependency.getJoinedConfigurationNames());
+  }
 
-    PsArtifactDependencySpec resolvedSpec = dependency.getResolvedSpec();
-    myArtifactNameLabel.setText(resolvedSpec.name);
-    myGroupIdLabel.setText(resolvedSpec.group);
+  @Override
+  public void display(@NotNull PsDependency dependency, @Nullable String configurationNames) {
+    myDependency = (PsAndroidLibraryDependency)dependency;
+
+    PsArtifactDependencySpec spec = myDependency.getDeclaredSpec();
+    if (spec == null) {
+      spec = myDependency.getResolvedSpec();
+    }
+
+    myGroupIdLabel.setText(spec.group);
+    myArtifactNameLabel.setText(spec.name);
+    myResolvedVersionLabel.setText(myDependency.getResolvedSpec().version);
+
+    myRequestedVersionLabel.setText(spec.version);
+
+    String scopeToDisplay = isNotEmpty(configurationNames) ? configurationNames : dependency.getJoinedConfigurationNames();
+    myScopeLabel.setText(scopeToDisplay);
   }
 
   @Override
