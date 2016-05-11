@@ -103,7 +103,7 @@ public final class RangeScrollbar extends JScrollBar implements Animatable {
     // Reset the global and current data range to start from the current point onwards.
     double now = mGlobalRange.getMax();
     mGlobalRange.setMin(now);
-    mRange.setMin(now);
+    mRange.set(now, now);
   }
 
   @Override
