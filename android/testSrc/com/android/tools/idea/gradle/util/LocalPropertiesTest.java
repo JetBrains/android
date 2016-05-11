@@ -19,12 +19,14 @@ import com.android.SdkConstants;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.io.Files;
+import com.intellij.idea.Bombed;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.IdeaTestCase;
 
 import java.io.*;
+import java.util.Calendar;
 import java.util.Properties;
 
 import static com.android.SdkConstants.NDK_DIR_PROPERTY;
@@ -174,10 +176,13 @@ public class LocalPropertiesTest extends IdeaTestCase {
     tempDir.delete();
   }
 
+  @Bombed(user = "Dmitry Avdeev", month = Calendar.AUGUST, day = 1)
   public void testOnlyChangesAreSavedToFile() throws IOException {
     myLocalProperties.setAndroidSdkPath("~/sdk");
     myLocalProperties.save();
+
     File localPropertiesFile = new File(myProject.getBasePath(), SdkConstants.FN_LOCAL_PROPERTIES);
+    assertTrue(localPropertiesFile.setLastModified(localPropertiesFile.lastModified() - 5000));
     long lastModified = localPropertiesFile.lastModified();
 
     // Set the value again. The "lastModified" value should not change.
