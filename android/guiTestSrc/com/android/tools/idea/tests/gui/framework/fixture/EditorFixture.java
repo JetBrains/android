@@ -60,8 +60,6 @@ import org.fest.swing.driver.ComponentDriver;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
-import org.fest.swing.finder.WindowFinder;
-import org.fest.swing.fixture.DialogFixture;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -632,121 +630,13 @@ public class EditorFixture {
     return open(relativePath, Tab.DEFAULT);
   }
 
-  /**
-   * Invokes the given action. This will look up the corresponding action's key bindings, if any, and invoke
-   * it. It will fail if the action is not enabled, or if it is interactive.
-   *
-   * @param action the action to invoke
-   */
-  public EditorFixture invokeAction(@NotNull EditorAction action) {
-    switch (action) {
-      case BACK_SPACE:
-        invokeActionViaKeystroke("EditorBackSpace");
-        break;
-      case ESCAPE:
-        invokeActionViaKeystroke("EditorEscape");
-        break;
-      case UNDO:
-        invokeActionViaKeystroke("$Undo");
-        break;
-      case REDO:
-        invokeActionViaKeystroke("$Redo");
-        break;
-      case CUT:
-        invokeActionViaKeystroke("$Cut");
-        break;
-      case COPY:
-        invokeActionViaKeystroke("$Copy");
-        break;
-      case PASTE:
-        invokeActionViaKeystroke("$Paste");
-        break;
-      case SELECT_ALL:
-        invokeActionViaKeystroke("$SelectAll");
-        break;
-      case FORMAT: {
-        // To format without showing dialog:
-        //  invokeActionViaKeystroke("ReformatCode");
-        // However, before we replace this, make sure the dialog isn't shown in some scenarios (e.g. first users)
-        invokeActionViaKeystroke("ShowReformatFileDialog");
-        DialogFixture dialogFixture = WindowFinder.findDialog(new GenericTypeMatcher<JDialog>(JDialog.class) {
-          @Override
-          protected boolean isMatching(@NotNull JDialog dialog) {
-            return dialog.isShowing() && dialog.getTitle().contains("Reformat");
-          }
-        }).using(robot);
-
-        // Find and click the Run button. We can't just invoke
-        //    dialogFixture.button("Run").click();
-        // because that searches by button name (which is null for the Run button), not the button *title*.
-        dialogFixture.button(new GenericTypeMatcher<JButton>(JButton.class) {
-          @Override
-          protected boolean isMatching(@NotNull JButton component) {
-            return component.getText().equals("Run");
-          }
-        }).click();
-
-        break;
-      }
-      case GOTO_DECLARATION:
-        invokeActionViaKeystroke("GotoDeclaration");
-        break;
-      case COMPLETE_CURRENT_STATEMENT:
-        invokeActionViaKeystroke("EditorCompleteStatement");
-        break;
-      case SAVE:
-        invokeActionViaKeystroke("SaveAll");
-        break;
-      case TOGGLE_COMMENT:
-        invokeActionViaKeystroke("CommentByLineComment");
-        break;
-      case DUPLICATE_LINES:
-        invokeActionViaKeystroke("EditorDuplicate");
-        break;
-      case DELETE_LINE:
-        invokeActionViaKeystroke("EditorDeleteLine");
-        break;
-      case NEXT_METHOD:
-        invokeActionViaKeystroke("MethodDown");
-        break;
-      case PREVIOUS_METHOD:
-        invokeActionViaKeystroke("MethodUp");
-        break;
-      case NEXT_ERROR:
-        invokeActionViaKeystroke("GotoNextError");
-        break;
-      case PREVIOUS_ERROR:
-        invokeActionViaKeystroke("GotoPreviousError");
-        break;
-      case JOIN_LINES:
-        invokeActionViaKeystroke("EditorJoinLines");
-        break;
-      case SHOW_INTENTION_ACTIONS:
-        invokeActionViaKeystroke("ShowIntentionActions");
-        break;
-      case RUN_FROM_CONTEXT:
-        invokeActionViaKeystroke("RunClass");
-        break;
-      case EXTEND_SELECTION:
-      case SHRINK_SELECTION:
-        // Need to find the right action id's for these; didn't see them in the default keymap
-      default:
-        fail("Not yet implemented");
-        break;
-    }
-    return this;
-  }
-
-  private void invokeActionViaKeystroke(@NotNull String actionId) {
-    AnAction action = ActionManager.getInstance().getAction(actionId);
-    assertNotNull(actionId, action);
-    assertTrue(actionId + " is not enabled", action.getTemplatePresentation().isEnabled());
+  /** Invokes {@code editorAction} via its (first) keyboard shortcut in the active keymap. */
+  public EditorFixture invokeAction(@NotNull EditorAction editorAction) {
+    AnAction anAction = ActionManager.getInstance().getAction(editorAction.id);
+    assertTrue(editorAction.id + " is not enabled", anAction.getTemplatePresentation().isEnabled());
 
     Keymap keymap = KeymapManager.getInstance().getActiveKeymap();
-    Shortcut[] shortcuts = keymap.getShortcuts(actionId);
-    assertNotNull(shortcuts);
-    assertThat(shortcuts).isNotEmpty();
-    Shortcut shortcut = shortcuts[0];
+    Shortcut shortcut = keymap.getShortcuts(editorAction.id)[0];
     if (shortcut instanceof KeyboardShortcut) {
       KeyboardShortcut cs = (KeyboardShortcut)shortcut;
       KeyStroke firstKeyStroke = cs.getFirstKeyStroke();
@@ -765,6 +655,7 @@ public class EditorFixture {
     else {
       fail("Unsupported shortcut type " + shortcut.getClass().getName());
     }
+    return this;
   }
 
   @NotNull
@@ -1045,30 +936,25 @@ public class EditorFixture {
    * Common editor actions, invokable via {@link #invokeAction(EditorAction)}
    */
   public enum EditorAction {
-    SHOW_INTENTION_ACTIONS,
-    FORMAT,
-    SAVE,
-    UNDO,
-    REDO,
-    COPY,
-    PASTE,
-    CUT,
-    BACK_SPACE,
-    COMPLETE_CURRENT_STATEMENT,
-    EXTEND_SELECTION,
-    SHRINK_SELECTION,
-    SELECT_ALL,
-    JOIN_LINES,
-    DUPLICATE_LINES,
-    DELETE_LINE,
-    TOGGLE_COMMENT,
-    GOTO_DECLARATION,
-    NEXT_ERROR,
-    PREVIOUS_ERROR,
-    NEXT_METHOD,
-    PREVIOUS_METHOD,
-    RUN_FROM_CONTEXT,
-    ESCAPE
+    SHOW_INTENTION_ACTIONS("ShowIntentionActions"),
+    FORMAT("ReformatCode"),
+    SAVE("SaveAll"),
+    UNDO("$Undo"),
+    BACK_SPACE("EditorBackSpace"),
+    COMPLETE_CURRENT_STATEMENT("EditorCompleteStatement"),
+    DELETE_LINE("EditorDeleteLine"),
+    TOGGLE_COMMENT("CommentByLineComment"),
+    GOTO_DECLARATION("GotoDeclaration"),
+    RUN_FROM_CONTEXT("RunClass"),
+    ESCAPE("EditorEscape"),
+    ;
+
+    /** The {@code id} of an action mapped to a keyboard shortcut in, for example, {@code Keymap_Default.xml}. */
+    @NotNull private final String id;
+
+    EditorAction(@NotNull String actionId) {
+      this.id = actionId;
+    }
   }
 
   /**
