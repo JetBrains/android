@@ -28,7 +28,11 @@ import org.jetbrains.annotations.NotNull;
  */
 public class SyncProjectAction extends AndroidStudioGradleAction {
   public SyncProjectAction() {
-    super("Sync Project with Gradle Files");
+    this("Sync Project with Gradle Files");
+  }
+
+  protected SyncProjectAction(@NotNull String text) {
+    super(text);
   }
 
   @Override

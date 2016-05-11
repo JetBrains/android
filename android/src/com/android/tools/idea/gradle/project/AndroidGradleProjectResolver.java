@@ -66,6 +66,7 @@ import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
 import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.gradle.AndroidProjectKeys.*;
+import static com.android.tools.idea.gradle.actions.RefreshLinkedCppProjects.REFRESH_EXTERNAL_NATIVE_MODELS_KEY;
 import static com.android.tools.idea.gradle.project.GradleModelVersionCheck.getModelVersion;
 import static com.android.tools.idea.gradle.project.GradleModelVersionCheck.isSupportedVersion;
 import static com.android.tools.idea.gradle.project.ProjectImportErrorHandler.trackSyncError;
@@ -321,6 +322,15 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
     // This property tells Gradle to compute the full dependency graph for projects using the Android plugin 2.2.0 or newer.
     args.add(createProjectProperty(PROPERTY_BUILD_MODEL_ONLY_VERSIONED, MODEL_LEVEL_2_DEP_GRAPH));
+
+    if (project != null) {
+      Boolean refreshExternalNativeModels = project.getUserData(REFRESH_EXTERNAL_NATIVE_MODELS_KEY);
+      if (refreshExternalNativeModels != null) {
+        project.putUserData(REFRESH_EXTERNAL_NATIVE_MODELS_KEY, null);
+        // TODO: Replace the hardcoded property string with the string constant in AndroidProject when available.
+        args.add(createProjectProperty("android.injected.refresh.external.native.model", refreshExternalNativeModels));
+      }
+    }
 
     if (isGuiTestingMode()) {
       // We store the command line args, the GUI test will later on verify that the correct values were passed to the sync process.
