@@ -97,7 +97,7 @@ public class NewProjectTest {
     EditorFixture editor = guiTest.ideFrame().getEditor();
     String buildGradlePath = "app/build.gradle";
     editor.open(buildGradlePath, EditorFixture.Tab.EDITOR);
-    editor.moveTo(editor.findOffset(null, "applicationId", true));
+    editor.moveBetween("", "applicationId");
     editor.enterText("resValue \"string\", \"foo\", \"Typpo Here\"\n");
 
     String inspectionResults = guiTest.ideFrame()

@@ -48,7 +48,7 @@ public class RefactoringFlowTest {
     guiTest.importSimpleApplication();
     EditorFixture editor = guiTest.ideFrame().getEditor();
     editor.open("app/src/main/res/values/strings.xml");
-    editor.moveTo(editor.findOffset("hello^_world"));
+    editor.moveBetween("hello", "_world");
     guiTest.ideFrame().invokeMenuPath("Refactor", "Rename...");
 
     // Rename as action_settings, which is already defined
@@ -75,7 +75,7 @@ public class RefactoringFlowTest {
     EditorFixture editor = guiTest.ideFrame().getEditor();
     editor.open("app/src/main/res/values/override.xml");
     // <string name="abc_searchview_description_submit">@string/abc_searchview_description_voice</string>
-    editor.moveTo(editor.findOffset("abc_searchview_^description_voice")); // only defined in appcompat
+    editor.moveBetween("abc_searchview_", "description_voice"); // only defined in appcompat
     guiTest.ideFrame().invokeMenuPath("Refactor", "Rename...");
 
     RenameRefactoringDialogFixture refactoringDialog = RenameRefactoringDialogFixture.find(guiTest.robot());
@@ -95,7 +95,7 @@ public class RefactoringFlowTest {
     refactoringDialog.clickCancel();
 
     // Now try to rename @string/abc_searchview_description_submit which is defined in *both* appcompat and locally
-    editor.moveTo(editor.findOffset("abc_searchview_^description_submit")); // only defined in appcompat
+    editor.moveBetween("abc_searchview_", "description_submit"); // only defined in appcompat
     guiTest.ideFrame().invokeMenuPath("Refactor", "Rename...");
 
     refactoringDialog = RenameRefactoringDialogFixture.find(guiTest.robot());

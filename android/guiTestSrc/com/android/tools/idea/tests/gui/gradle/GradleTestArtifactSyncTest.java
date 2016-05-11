@@ -98,13 +98,13 @@ public class GradleTestArtifactSyncTest {
     editor.open("app/src/androidTest/java/com/example/ApplicationTest.java")
           .requireHighlights(ERROR, "Cannot resolve symbol 'Assert'", "Cannot resolve symbol 'ExampleUnitTest'",
                              "Cannot resolve symbol 'Lib'")
-          .moveTo(editor.findOffset("Test^Util util"))
+          .moveBetween("Test", "Util util")
           .invokeAction(GOTO_DECLARATION);
     requirePath(editor.getCurrentFile(), "androidTest/java/com/example/TestUtil.java");
 
     editor.open("app/src/test/java/com/example/UnitTest.java")
           .requireHighlights(ERROR, "Cannot resolve symbol 'Collections2'", "Cannot resolve symbol 'ApplicationTest'")
-          .moveTo(editor.findOffset("Test^Util util"))
+          .moveBetween("Test", "Util util")
           .invokeAction(GOTO_DECLARATION);
     requirePath(editor.getCurrentFile(), "test/java/com/example/TestUtil.java");
   }

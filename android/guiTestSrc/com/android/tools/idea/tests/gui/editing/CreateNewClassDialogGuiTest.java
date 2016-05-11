@@ -91,7 +91,7 @@ public class CreateNewClassDialogGuiTest {
 
   private void assertPackageName(@NotNull String filePath, @NotNull String packageName) {
     myEditor.open(filePath);
-    myEditor.moveTo(0);
+    myEditor.moveToLine(1);
     String expectedPackage = "package " + packageName + ";";
     String actualPackage = myEditor.getCurrentLineContents(true, false, 0);
     assertEquals(expectedPackage, actualPackage);
@@ -99,14 +99,14 @@ public class CreateNewClassDialogGuiTest {
 
   private void assertDeclaration(@NotNull String filePath, @NotNull String expectedDeclaration, @NotNull Kind kind) {
     myEditor.open(filePath);
-    myEditor.moveTo(myEditor.findOffset(kind + " " + THING_NAME + "|"));
+    myEditor.moveBetween(kind + " " + THING_NAME, "");
     String declarationLine = myEditor.getCurrentLineContents(true, false, 0);
     assertEquals(String.format(expectedDeclaration, kind), declarationLine);
   }
 
   private void assertImport(@NotNull String filePath, @NotNull String expectedImport) {
     myEditor.open(filePath);
-    myEditor.moveTo(myEditor.findOffset(expectedImport + "|"));
+    myEditor.moveBetween(expectedImport, "");
     String actualImport = myEditor.getCurrentLineContents(true, false, 0);
     assertEquals(expectedImport, actualImport);
   }

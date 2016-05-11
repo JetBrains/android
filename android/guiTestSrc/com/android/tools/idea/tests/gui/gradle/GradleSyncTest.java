@@ -196,7 +196,7 @@ public class GradleSyncTest {
     guiTest.importMultiModule();
 
     EditorFixture editor = guiTest.ideFrame().getEditor();
-    editor.open("app/build.gradle").moveTo(editor.findOffset("^compile fileTree")).enterText("androidTestCompile project(':library3')\n");
+    editor.open("app/build.gradle").moveBetween("", "compile fileTree").enterText("androidTestCompile project(':library3')\n");
 
     guiTest.ideFrame().requestProjectSync().waitForGradleProjectSyncToFinish();
     Module appModule = guiTest.ideFrame().getModule("app");
@@ -1311,7 +1311,7 @@ public class GradleSyncTest {
 
     EditorFixture editor = guiTest.ideFrame().getEditor();
     editor.open("app/build.gradle");
-    editor.moveTo(editor.findOffset("android {", "\n", true));
+    editor.moveBetween("android {", "\n");
     editor.enterText("\nlatestDsl()");
 
     guiTest.ideFrame().requestProjectSyncAndExpectFailure();

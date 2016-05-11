@@ -41,11 +41,10 @@ public class SampleTest {
 
     assertEquals("strings.xml", editor.getCurrentFileName());
 
-    editor.moveTo(editor.findOffset(null, "app_name", true));
+    editor.moveBetween("", "app_name");
 
     assertEquals("<string name=\"^app_name\">Simple Application</string>", editor.getCurrentLineContents(true, true, 0));
-    int offset = editor.findOffset(null, "Simple Application", true);
-    editor.moveTo(offset);
+    editor.moveBetween("", "Simple Application");
     assertEquals("<string name=\"app_name\">^Simple Application</string>", editor.getCurrentLineContents(true, true, 0));
     editor.select("(Simple) Application");
     assertEquals("<string name=\"app_name\">|>^Simple<| Application</string>", editor.getCurrentLineContents(true, true, 0));
@@ -61,7 +60,7 @@ public class SampleTest {
     assertEquals("    <!--<string name=\"app_name\">Tester Application</string>-->\n" +
                  "    <string name=\"hello_world\">Hello w^orld!</string>\n" +
                  "    <string name=\"action_settings\">Settings</string>", editor.getCurrentLineContents(false, true, 1));
-    editor.moveTo(editor.findOffset(" ", "<string name=\"action", true));
+    editor.moveBetween(" ", "<string name=\"action");
     editor.enterText("    ");
     editor.invokeAction(EditorFixture.EditorAction.FORMAT);
 
