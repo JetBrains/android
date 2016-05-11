@@ -208,11 +208,13 @@ public class ProfilerOverviewVisualTest extends VisualTest {
     panel.setLayout(layout);
     panel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
 
-    JComboBox<String> box1 = new JComboBox<>(new String[] {"Test1", "Test2", "Test3"});
-    JComboBox<String> box2 = new JComboBox<>(new String[] {"Test1", "Test2", "Test3"});
+    JComboBox<String> deviceCb = new JComboBox(new String[]{"Device1", "Device2"});
+    deviceCb.addActionListener(e -> getChoreographer().reset());
+    JComboBox<String> processCb = new JComboBox(new String[]{"Process1", "Process2"});
+    processCb.addActionListener(e -> getChoreographer().reset());
 
-    panel.add(box1);
-    panel.add(box2);
+    panel.add(deviceCb);
+    panel.add(processCb);
     return panel;
   }
 

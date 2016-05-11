@@ -51,7 +51,7 @@ public abstract class VisualTest {
     return mPanel;
   }
 
-  public final Choreographer getChoreographer() {
+  protected final Choreographer getChoreographer() {
     return mChoreographer;
   }
 
