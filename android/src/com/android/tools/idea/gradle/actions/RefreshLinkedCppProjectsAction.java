@@ -26,10 +26,10 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Syncs project with Gradle, with an additional argument to refresh the linked C++ projects.
  */
-public class RefreshLinkedCppProjects extends SyncProjectAction {
+public class RefreshLinkedCppProjectsAction extends SyncProjectAction {
   public static final Key<Boolean> REFRESH_EXTERNAL_NATIVE_MODELS_KEY = Key.create("refresh.external.native.models");
 
-  public RefreshLinkedCppProjects() {
+  public RefreshLinkedCppProjectsAction() {
     super("Refresh Linked C++ Projects");
   }
 
