@@ -53,6 +53,10 @@ public class NlConstants {
   @SuppressWarnings("UseJBColor")
   public static final Color BLUEPRINT_GRID_COLOR = new Color(0x17397b);
   @SuppressWarnings("UseJBColor") public static final Color BLUEPRINT_FG_COLOR = new Color(0x6196c8);
+  @SuppressWarnings("UseJBColor")
+  public static final Color BLUEPRINT_COMPONENT_BG_COLOR = new Color(0, 0, 0, 0);
+  @SuppressWarnings("UseJBColor")
+  public static final Color BLUEPRINT_COMPONENT_FG_COLOR = new Color(81, 103, 163, 100);
   public static final Stroke BLUEPRINT_COMPONENT_STROKE = NlDrawingStyle.THIN_SOLID_STROKE;
 
 
