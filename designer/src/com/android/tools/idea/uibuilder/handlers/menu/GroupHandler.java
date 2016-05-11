@@ -17,15 +17,25 @@ package com.android.tools.idea.uibuilder.handlers.menu;
 
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
-import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
+import static com.android.SdkConstants.*;
 
 public final class GroupHandler extends ViewGroupHandler {
+  @Override
+  @NotNull
+  public List<String> getInspectorProperties() {
+    return ImmutableList.of(
+      ATTR_ID,
+      ATTR_CHECKABLE_BEHAVIOR,
+      ATTR_VISIBLE,
+      ATTR_ENABLED);
+  }
+
   @Nullable
   @Override
   public DragHandler createDragHandler(@NotNull ViewEditor editor,

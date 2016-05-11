@@ -117,16 +117,19 @@ public class InspectorPanel extends JPanel {
     }
     rows += inspectors.size(); // 1 row for each divider + 1 row with a spacer on the bottom
 
-    myInspector.setLayout(createLayoutManager(rows, 2));
-    for (InspectorComponent inspector : inspectors) {
-      addSeparator();
-      inspector.attachToInspector(this);
+    if (rows > 0) {
+      myInspector.setLayout(createLayoutManager(rows, 2));
+      for (InspectorComponent inspector : inspectors) {
+        addSeparator();
+        inspector.attachToInspector(this);
+      }
+
+      endGroup();
+
+      // Add a vertical spacer
+      myInspector.add(new Spacer(), new GridConstraints(myRow++, 0, 1, 2, ANCHOR_CENTER, FILL_HORIZONTAL, SIZEPOLICY_CAN_GROW,
+                                                        SIZEPOLICY_CAN_GROW | SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
     }
-
-    endGroup();
-
-    // Add a vertical spacer
-    myInspector.add(new Spacer(), new GridConstraints(myRow++, 0, 1, 2, ANCHOR_CENTER, FILL_HORIZONTAL, SIZEPOLICY_CAN_GROW, SIZEPOLICY_CAN_GROW | SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
 
     // These are both important to render the controls correctly the first time:
     ApplicationManager.getApplication().invokeLater(() -> {

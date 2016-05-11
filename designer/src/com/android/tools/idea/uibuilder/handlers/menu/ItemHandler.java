@@ -17,9 +17,12 @@ package com.android.tools.idea.uibuilder.handlers.menu;
 
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.google.common.collect.ImmutableList;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 import static com.android.SdkConstants.*;
 
@@ -45,5 +48,18 @@ public final class ItemHandler extends ViewHandler {
       .androidAttribute(ATTR_TITLE, "Item")
       .endTag(tagName)
       .toString();
+  }
+
+  @Override
+  @NotNull
+  public List<String> getInspectorProperties() {
+    return ImmutableList.of(
+      ATTR_ID,
+      ATTR_TITLE,
+      ATTR_ICON,
+      ATTR_SHOW_AS_ACTION,
+      ATTR_VISIBLE,
+      ATTR_ENABLED,
+      ATTR_CHECKABLE);
   }
 }

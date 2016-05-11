@@ -16,6 +16,9 @@
 package com.android.tools.idea.uibuilder.property.inspector;
 
 import com.android.tools.idea.uibuilder.handlers.constraint.WidgetConstraintPanel;
+import com.android.tools.idea.uibuilder.handlers.menu.GroupHandler;
+import com.android.tools.idea.uibuilder.handlers.menu.ItemHandler;
+import com.android.tools.idea.uibuilder.handlers.menu.MenuHandler;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
@@ -47,6 +50,9 @@ public class IdInspectorProvider implements InspectorProvider {
         case PREFERENCE_SCREEN:
         case RINGTONE_PREFERENCE:
         case SWITCH_PREFERENCE:
+        case TAG_GROUP:
+        case TAG_ITEM:
+        case TAG_MENU:
           return false;
       }
     }
