@@ -127,28 +127,21 @@ public class EditorFixture {
   }
 
   /**
-   * Returns the line number of the current caret position (1-based). Note that
-   * internal editor line numbers are 0-based.
+   * From the currently selected text editor, returns the line number where the primary caret is.
+   * <p>
+   * This line number is conventionally 1-based, unlike the 0-based line numbers in {@link Editor}.
    *
-   * @return the current 1-based line number, or -1 if there is no current file
+   * @throws IllegalStateException if there is no currently selected text editor
    */
   public int getCurrentLineNumber() {
     //noinspection ConstantConditions
     return execute(new GuiQuery<Integer>() {
       @Override
-      @Nullable
       protected Integer executeInEDT() throws Throwable {
-        FileEditorManager manager = FileEditorManager.getInstance(myFrame.getProject());
-        Editor editor = manager.getSelectedTextEditor();
-        if (editor != null) {
-          CaretModel caretModel = editor.getCaretModel();
-          Caret primaryCaret = caretModel.getPrimaryCaret();
-          int offset = primaryCaret.getOffset();
-          Document document = editor.getDocument();
-          return document.getLineNumber(offset) + 1;
-        }
-
-        return -1;
+        Editor editor = FileEditorManager.getInstance(myFrame.getProject()).getSelectedTextEditor();
+        checkState(editor != null, "no currently selected text editor");
+        int offset = editor.getCaretModel().getPrimaryCaret().getOffset();
+        return editor.getDocument().getLineNumber(offset) + 1;  // Editor uses 0-based line numbers.
       }
     });
   }
