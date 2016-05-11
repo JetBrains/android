@@ -33,16 +33,16 @@ import java.util.ArrayList;
  */
 public class SingleWidgetView extends JPanel {
   WidgetConstraintPanel mWidgetConstraintPanel;
-  public final static int SPRING = 1;
+  public final static int ANY = 1;
   public final static int WRAP_CONTENT = 2;
   public final static int FIXED = 0;
+  public static final int UNCONNECTED = -1;
   private final ColorSet mColorSet;
-  private String mCacheName;
   private int mCacheBottom;
   private int mCacheTop;
   private int mCacheLeft;
   private int mCacheRight;
-  private String mCacheBaseline;
+  private boolean mCacheBaseline;
   private int mCacheWidth;
   private int mCacheHeight;
 
@@ -217,7 +217,7 @@ public class SingleWidgetView extends JPanel {
 
   private void baselineKill() {
     mWidgetConstraintPanel.killBaselineConstraint();
-    mCacheBaseline = null;
+    mCacheBaseline = false;
     update();
   }
 
@@ -226,7 +226,7 @@ public class SingleWidgetView extends JPanel {
   }
 
   private void update() {
-    configureUi(mCacheName, mCacheBottom, mCacheTop, mCacheLeft, mCacheRight, mCacheBaseline, mCacheWidth, mCacheHeight);
+    configureUi(mCacheBottom, mCacheTop, mCacheLeft, mCacheRight, mCacheBaseline, mCacheWidth, mCacheHeight);
     mWidgetRender.build(getWidth(), getHeight());
   }
 
@@ -263,14 +263,14 @@ public class SingleWidgetView extends JPanel {
     mHbar1.setBounds(1 + boxLeft, boxTop + mBoxSize / 2 - barSize / 2 + 1, barLong, barSize);
     mHbar2.setBounds(boxLeft + mBoxSize / 2 + barSize, boxTop + mBoxSize / 2 - barSize / 2 + 1, barLong, barSize);
     mVbar1.setBounds(boxLeft + mBoxSize / 2 - barSize / 2, 1 + boxTop, barSize, barLong);
-    if (mCacheBaseline == null) {
-      mVbar2.setBounds(boxLeft + mBoxSize / 2 - barSize / 2, boxTop + mBoxSize / 2 + barSize, barSize, barLong);
-    }
-    else {
+    if (mCacheBaseline) {
       int left = boxLeft + mBoxSize / 2 - barSize / 2;
       int top = boxTop + mBoxSize / 2 + barSize;
       int height = boxTop + baselinePos(mBoxSize) - top;
       mVbar2.setBounds(left, top, barSize, height);
+    }
+    else {
+      mVbar2.setBounds(boxLeft + mBoxSize / 2 - barSize / 2, boxTop + mBoxSize / 2 + barSize, barSize, barLong);
     }
   }
 
@@ -414,8 +414,7 @@ public class SingleWidgetView extends JPanel {
    * @param width    the horizontal constraint state 0,1,2 = FIXED, SPRING, WRAP respectively
    * @param height   the vertical constraint state 0,1,2 = FIXED, SPRING, WRAP respectively
    */
-  public void configureUi(String name, int bottom, int top, int left, int right, String baseline, int width, int height) {
-    mCacheName = name;
+  public void configureUi(int bottom, int top, int left, int right, boolean baseline, int width, int height) {
     mCacheBottom = bottom;
     mCacheTop = top;
     mCacheLeft = left;
@@ -423,25 +422,24 @@ public class SingleWidgetView extends JPanel {
     mCacheBaseline = baseline;
     mCacheWidth = width;
     mCacheHeight = height;
-    mTopMargin.setVisible(top >= 0);
-    mLeftMargin.setVisible(left >= 0);
-    mRightMargin.setVisible(right >= 0);
-    mBottomMargin.setVisible(bottom >= 0);
+    mTopMargin.setVisible(top != UNCONNECTED);
+    mLeftMargin.setVisible(left != UNCONNECTED);
+    mRightMargin.setVisible(right != UNCONNECTED);
+    mBottomMargin.setVisible(bottom!= UNCONNECTED);
     mTopMargin.setMargin(top);
     mLeftMargin.setMargin(left);
     mRightMargin.setMargin(right);
     mBottomMargin.setMargin(bottom);
-    mWidgetRender.mWidgetName = name;
     mWidgetRender.mMarginBottom = bottom;
     mWidgetRender.mMarginTop = top;
     mWidgetRender.mMarginLeft = left;
     mWidgetRender.mMarginRight = right;
-    mWidgetRender.mBaseline = (baseline != null);
-    mTopKill.setVisible(top >= 0);
-    mLeftKill.setVisible(left >= 0);
-    mRightKill.setVisible(right >= 0);
-    mBottomKill.setVisible(bottom >= 0);
-    mBaselineKill.setVisible(baseline != null);
+    mWidgetRender.mBaseline = baseline;
+    mTopKill.setVisible(top != UNCONNECTED);
+    mLeftKill.setVisible(left != UNCONNECTED);
+    mRightKill.setVisible(right != UNCONNECTED);
+    mBottomKill.setVisible(bottom != UNCONNECTED);
+    mBaselineKill.setVisible(baseline);
     mHbar1.setState(width);
     mHbar2.setState(width);
     mVbar1.setState(height);
@@ -619,7 +617,6 @@ public class SingleWidgetView extends JPanel {
     int mMarginRight;
     int mMarginBottom;
     boolean mBaseline;
-    String mWidgetName = "";
     Box mWidgetCenter;
     Box mWidgetLeft;
     Box mWidgetRight;
@@ -820,7 +817,7 @@ public class SingleWidgetView extends JPanel {
         case FIXED:
           drawFixedHorizontalConstraint(g, start, pos, end);
           break;
-        case SPRING:
+        case ANY:
           drawSpringHorizontalConstraint(g, start, pos, end);
           break;
         case WRAP_CONTENT:
@@ -926,7 +923,7 @@ public class SingleWidgetView extends JPanel {
         case FIXED:
           drawFixedVerticalConstraint(g, start, pos, end);
           break;
-        case SPRING:
+        case ANY:
           drawSpringVerticalConstraint(g, start, pos, end);
           break;
         case WRAP_CONTENT:

@@ -15,12 +15,18 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
+import android.support.constraint.solver.widgets.ConstraintAnchor;
 import com.android.SdkConstants;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.sherpa.drawing.BlueprintColorSet;
 import com.android.tools.sherpa.drawing.ColorSet;
+import com.android.tools.sherpa.structure.WidgetsScene;
+import com.intellij.openapi.util.text.StringUtil;
+
 import org.jetbrains.annotations.NotNull;
+import android.support.constraint.solver.widgets.ConstraintWidget;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -35,14 +41,24 @@ import java.util.List;
 public class WidgetConstraintPanel extends JPanel {
   private static final String HORIZONTAL_TOOL_TIP_TEXT = "Horizontal Bias";
   private static final String VERTICAL_TOOL_TIP_TEXT = "Vertical Bias";
+  public static final String SIZE_ANY = "0dp";
   final SingleWidgetView mMain;
   final JSlider mVerticalSlider = new JSlider(SwingConstants.VERTICAL);
   final JSlider mHorizontalSlider = new JSlider(SwingConstants.HORIZONTAL);
+  private WidgetsScene mScene;
+  ConstraintModel mConstraintModel;
   NlComponent mComponent;
+  ConstraintWidget mWidget;
+  public static final int UNCONNECTED = -1;
+
   private String mWidgetWidthCache;
   private String mWidgetHeightCache;
 
   ColorSet mColorSet = new InspectorColorSet();
+
+  public void setProperty(NlProperty property) {
+    updateComponents(property.getComponents());
+  }
 
   static class InspectorColorSet extends BlueprintColorSet {
     InspectorColorSet() {
@@ -57,7 +73,7 @@ public class WidgetConstraintPanel extends JPanel {
 
   public WidgetConstraintPanel(@NotNull List<NlComponent> components) {
     super(new GridBagLayout());
-    super.setBorder(new EmptyBorder(4,0,0,0));
+    super.setBorder(new EmptyBorder(4, 0, 0, 0));
     setBackground(mColorSet.getInspectorBackgroundColor());
     mMain = new SingleWidgetView(this, mColorSet);
     setPreferredSize(new Dimension(200, 216));
@@ -67,8 +83,8 @@ public class WidgetConstraintPanel extends JPanel {
     mHorizontalSlider.setBackground(mColorSet.getInspectorBackgroundColor());
     mHorizontalSlider.setToolTipText(HORIZONTAL_TOOL_TIP_TEXT);
     mVerticalSlider.setToolTipText(VERTICAL_TOOL_TIP_TEXT);
-
     updateComponents(components);
+
     GridBagConstraints gbc = new GridBagConstraints();
     gbc.gridy = 0;
     gbc.gridx = 0;
@@ -86,18 +102,118 @@ public class WidgetConstraintPanel extends JPanel {
     add(mHorizontalSlider, gbc);
     mVerticalSlider.setUI(new WidgetSliderUI(mVerticalSlider, mColorSet));
     mHorizontalSlider.setUI(new WidgetSliderUI(mHorizontalSlider, mColorSet));
-    mHorizontalSlider.addChangeListener(e -> ConstraintUtilities.saveNlAttribute(
-      mComponent, SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, String.valueOf(mHorizontalSlider.getValue() / 100f)));
-    mVerticalSlider.addChangeListener(e -> ConstraintUtilities.saveNlAttribute(
-      mComponent, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, String.valueOf(1f - (mVerticalSlider.getValue() / 100f))));
+    mHorizontalSlider.addChangeListener(e -> setHorizontalBias());
+    mVerticalSlider.addChangeListener(e -> setVerticalBias());
+  }
+
+  /*-----------------------------------------------------------------------*/
+  // code for getting values from ConstraintWidget to UI
+  /*-----------------------------------------------------------------------*/
+
+  /**
+   * Called when mWidget is being changed
+   */
+  private void widgetChanged() {
+    configureUI();
+    repaint();
+  }
+
+  /**
+   * This loads the parameters form mWidget the ConstraintWidget
+   */
+  private void configureUI() {
+    int top = getMargin(ConstraintAnchor.Type.TOP);
+    int left = getMargin(ConstraintAnchor.Type.LEFT);
+    int right = getMargin(ConstraintAnchor.Type.RIGHT);
+    int bottom = getMargin(ConstraintAnchor.Type.BOTTOM);
+    boolean baseline = hasBaseline();
+    int width = mWidget.getWidth();
+    int height = mWidget.getHeight();
+
+    boolean showVerticalSlider = bottom != UNCONNECTED && top != UNCONNECTED;
+    boolean showHorizontalSlider = left != UNCONNECTED && right != UNCONNECTED;
+
+    if (showHorizontalSlider) {
+      float bias = mWidget.getHorizontalBiasPercent();
+      mHorizontalSlider.setValue((int)(bias * 100));
+    }
+
+    if (showVerticalSlider) {
+      float bias = mWidget.getVerticalBiasPercent();
+      mVerticalSlider.setValue(100 - (int)(bias * 100));
+    }
+
+    mVerticalSlider.setEnabled(showVerticalSlider);
+    mHorizontalSlider.setEnabled(showHorizontalSlider);
+    mHorizontalSlider.invalidate();
+    mVerticalSlider.invalidate();
+    mVerticalSlider.setToolTipText(showVerticalSlider ? VERTICAL_TOOL_TIP_TEXT : null);
+    mHorizontalSlider.setToolTipText(showHorizontalSlider ? HORIZONTAL_TOOL_TIP_TEXT : null);
+
+    int widthVal = convert(mWidget.getHorizontalDimensionBehaviour());
+    int heightValue = convert(mWidget.getVerticalDimensionBehaviour());
+    mMain.configureUi(bottom, top, left, right, baseline, widthVal, heightValue);
+  }
+
+  /**
+   * Convert Any to SingleWidgetView flags
+   *
+   * @param behaviour
+   * @return
+   */
+  private int convert(ConstraintWidget.DimensionBehaviour behaviour) {
+    switch (behaviour) {
+      case FIXED:
+        return SingleWidgetView.FIXED;
+      case WRAP_CONTENT:
+        return SingleWidgetView.WRAP_CONTENT;
+      case ANY:
+        return SingleWidgetView.ANY;
+    }
+    return SingleWidgetView.FIXED;
+  }
+
+  /**
+   * Returns true if mWidget has a baseline
+   *
+   * @return
+   */
+  private boolean hasBaseline() {
+    ConstraintAnchor anchor = mWidget.getAnchor(ConstraintAnchor.Type.BASELINE);
+    return anchor != null && anchor.isConnected();
   }
 
   public void updateComponents(@NotNull List<NlComponent> components) {
     mComponent = components.isEmpty() ? null : components.get(0);
     if (mComponent != null) {
-      configureUI(mComponent);
+      if (mComponent != null) {
+        mConstraintModel = ConstraintModel.getConstraintModel(mComponent.getModel());
+        mScene = mConstraintModel.getScene();
+        mConstraintModel.getSelection().setContinuousListener(e -> widgetChanged());
+        //TODO: improve the tear-down mechanism
+        mWidget = mScene.getWidget(mComponent.getTag());
+        configureUI();
+      }
     }
   }
+
+  /**
+   * Get the margin from connection return -1 if no connection
+   *
+   * @param type
+   * @return
+   */
+  private int getMargin(ConstraintAnchor.Type type) {
+    ConstraintAnchor anchor = mWidget.getAnchor(type);
+    if (anchor != null && anchor.isConnected()) {
+      return anchor.getMargin();
+    }
+    return UNCONNECTED;
+  }
+
+  /*-----------------------------------------------------------------------*/
+  // values from widget & NL component to ui
+  /*-----------------------------------------------------------------------*/
 
   /**
    * Read the values off of the NLcomponent and set up the UI
@@ -107,6 +223,7 @@ public class WidgetConstraintPanel extends JPanel {
   public void configureUI(NlComponent component) {
     mComponent = component;
     if (component == null) return;
+
     String mWidgetName = component.getId();
     int bottom = ConstraintUtilities.getMargin(component, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM);
     int top = ConstraintUtilities.getMargin(component, SdkConstants.ATTR_LAYOUT_MARGIN_TOP);
@@ -163,13 +280,19 @@ public class WidgetConstraintPanel extends JPanel {
     if (SdkConstants.VALUE_WRAP_CONTENT.equals(widthStr)) {
       widthVal = SingleWidgetView.WRAP_CONTENT;
     }
-    else if ("0dp".equals(widthStr)) {
-      widthVal = SingleWidgetView.SPRING;
+    else if (SIZE_ANY.equals(widthStr)) {
+      widthVal = SingleWidgetView.ANY;
     }
     else {
       mWidgetWidthCache = widthStr;
     }
 
+    updateCacheSize(heightStr, heightValue);
+
+    mMain.configureUi(bottom, top, left, right, basline != null, widthVal, heightValue);
+  }
+
+  private int updateCacheSize(String heightStr, int heightValue) {
     Configuration configuration = mComponent.getModel().getConfiguration();
     float scale = configuration.getDensity().getDpiValue() / 160.0f;
 
@@ -177,14 +300,14 @@ public class WidgetConstraintPanel extends JPanel {
     // created in spring or wrap_content mode, we can just use the current
     // widget model's width as a fallback
     if (mWidgetWidthCache == null) {
-      mWidgetWidthCache = String.valueOf((int) Math.max(mComponent.w / scale, 1.0)) + "dp";
+      mWidgetWidthCache = String.valueOf((int)Math.max(mComponent.w / scale, 1.0)) + "dp";
     }
 
     if (SdkConstants.VALUE_WRAP_CONTENT.equals(heightStr)) {
       heightValue = SingleWidgetView.WRAP_CONTENT;
     }
-    else if ("0dp".equals(heightStr)) {
-      heightValue = SingleWidgetView.SPRING;
+    else if (SIZE_ANY.equals(heightStr)) {
+      heightValue = SingleWidgetView.ANY;
     }
     else {
       mWidgetHeightCache = heightStr;
@@ -192,35 +315,76 @@ public class WidgetConstraintPanel extends JPanel {
 
     // See width above
     if (mWidgetHeightCache == null) {
-      mWidgetHeightCache = String.valueOf((int) Math.max(mComponent.h / scale, 1.0)) + "dp";
+      mWidgetHeightCache = String.valueOf((int)Math.max(mComponent.h / scale, 1.0)) + "dp";
     }
+    return heightValue;
+  }
 
-    mMain.configureUi(mWidgetName, bottom, top, left, right, basline, widthVal, heightValue);
+  /*-----------------------------------------------------------------------*/
+  // values from ui to widget & NL component
+  /*-----------------------------------------------------------------------*/
+
+  private void setMargin(ConstraintAnchor.Type type, int margin) {
+    ConstraintAnchor anchor = mWidget.getAnchor(type);
+    if (anchor != null) {
+      anchor.setMargin(margin);
+    }
+  }
+
+  private void killConstraint(ConstraintAnchor.Type type) {
+    ConstraintAnchor anchor = mWidget.getAnchor(type);
+    anchor.reset();
+  }
+
+  public void setHorizontalBias() {
+    float bias = (mHorizontalSlider.getValue() / 100f);
+    mConstraintModel.allowsUpdate(false);
+    mWidget.setHorizontalBiasPercent(bias);
+    mConstraintModel.allowsUpdate(true);
+    mConstraintModel.renderInLayoutLib();
+  }
+
+  public void setVerticalBias() {
+    float bias = 1f - (mVerticalSlider.getValue() / 100f);
+    mConstraintModel.allowsUpdate(false);
+    mWidget.setVerticalBiasPercent(bias);
+    mConstraintModel.allowsUpdate(true);
+    mConstraintModel.renderInLayoutLib();
   }
 
   public void setTopMargin(int margin) {
-    ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_TOP, (margin < 0) ? null : (margin + "dp"));
+    setMargin(ConstraintAnchor.Type.TOP, margin);
+    ConstraintUtilities
+      .saveNlAttribute(mComponent, SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_TOP, (margin < 0) ? null : (margin + "dp"));
   }
 
   public void setLeftMargin(int margin) {
-    ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_START, (margin < 0) ? null : (margin + "dp"));
+    setMargin(ConstraintAnchor.Type.LEFT, margin);
+    ConstraintUtilities
+      .saveNlAttribute(mComponent, SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_START, (margin < 0) ? null : (margin + "dp"));
   }
 
   public void setRightMargin(int margin) {
-    ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_END, (margin < 0) ? null : (margin + "dp"));
+    setMargin(ConstraintAnchor.Type.RIGHT, margin);
+    ConstraintUtilities
+      .saveNlAttribute(mComponent, SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_END, (margin < 0) ? null : (margin + "dp"));
   }
 
   public void setBottomMargin(int margin) {
-    ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM, (margin < 0) ? null : (margin + "dp"));
+    setMargin(ConstraintAnchor.Type.BOTTOM, margin);
+    ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM,
+                                        (margin < 0) ? null : (margin + "dp"));
   }
 
   public void killTopConstraint() {
+    killConstraint(ConstraintAnchor.Type.TOP);
     ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_TOP, null);
     ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF, null);
     ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF, null);
   }
 
   public void killLeftConstraint() {
+    killConstraint(ConstraintAnchor.Type.LEFT);
     ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_START, null);
     ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT, null);
     ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF, null);
@@ -228,24 +392,28 @@ public class WidgetConstraintPanel extends JPanel {
   }
 
   public void killRightConstraint() {
+    killConstraint(ConstraintAnchor.Type.RIGHT);
+    ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_END, null);
     ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT, null);
     ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF, null);
     ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, null);
   }
 
   public void killBottomConstraint() {
+    killConstraint(ConstraintAnchor.Type.BOTTOM);
     ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM, null);
     ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, null);
     ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF, null);
   }
 
   public void killBaselineConstraint() {
+    killConstraint(ConstraintAnchor.Type.BASELINE);
     ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF, null);
   }
 
   public void setHorizontalConstraint(int horizontalConstraint) {
     switch (horizontalConstraint) {
-      case SingleWidgetView.SPRING:
+      case SingleWidgetView.ANY:
         ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ANDROID_URI,
                                             SdkConstants.ATTR_LAYOUT_WIDTH, "0dp");
         break;
@@ -263,7 +431,7 @@ public class WidgetConstraintPanel extends JPanel {
   public void setVerticalConstraint(int verticalConstraint) {
 
     switch (verticalConstraint) {
-      case SingleWidgetView.SPRING:
+      case SingleWidgetView.ANY:
         ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ANDROID_URI,
                                             SdkConstants.ATTR_LAYOUT_HEIGHT, "0dp");
         break;
@@ -278,9 +446,10 @@ public class WidgetConstraintPanel extends JPanel {
     }
   }
 
-  /**
-   * Look and Feel for the sliders
-   */
+  /*-----------------------------------------------------------------------*/
+  //Look and Feel for the sliders
+  /*-----------------------------------------------------------------------*/
+
   static class WidgetSliderUI extends BasicSliderUI {
     static final int thumbSize = 22;
     private static Font sSmallFont = new Font("Helvetica", Font.PLAIN, 10);
