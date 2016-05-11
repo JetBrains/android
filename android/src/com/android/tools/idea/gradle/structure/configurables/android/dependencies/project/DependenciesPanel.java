@@ -21,11 +21,10 @@ import com.android.tools.idea.gradle.structure.configurables.android.dependencie
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.ProjectLibraryDependencyDetails;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.*;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractPsNodeTreeBuilder.MatchingNodeCollector;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.resolved.DependenciesTreeBuilder;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.resolved.DependenciesTreeRootNode;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.resolved.DependenciesTreeRootNode.DependencyCollectorFunction;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.resolved.DependenciesTreeStructure;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.resolved.NodeSelectionDetector;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.graph.DependenciesTreeBuilder;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.graph.DependenciesTreeRootNode;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.graph.DependenciesTreeRootNode.DependencyCollectorFunction;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.graph.DependenciesTreeStructure;
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesRenderer;
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesViewer;
 import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeEventDispatcher;
@@ -41,6 +40,7 @@ import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsModuleDependency;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.util.ActionCallback;
 import com.intellij.openapi.util.Disposer;
@@ -58,10 +58,13 @@ import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.setUp;
 import static com.intellij.icons.AllIcons.Actions.Collapseall;
 import static com.intellij.icons.AllIcons.Actions.Expandall;
+import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static com.intellij.util.ui.tree.TreeUtil.ensureSelection;
 import static java.awt.event.MouseEvent.MOUSE_PRESSED;
 
@@ -307,4 +310,35 @@ class DependenciesPanel extends AbstractDependenciesPanel {
   protected String getPlaceName() {
     return "dependencies.graph.project";
   }
-}
+
+  private static class NodeSelectionDetector {
+    @NotNull private final Map<String, List<AbstractDependencyNode<? extends PsAndroidDependency>>> mySelection = Maps.newHashMap();
+
+    void add(@NotNull AbstractPsModelNode node) {
+      String key = null;
+      if (node instanceof ModuleDependencyNode) {
+        key = ((ModuleDependencyNode)node).getModels().get(0).getGradlePath();
+      }
+      if (node instanceof LibraryDependencyNode) {
+        key = ((LibraryDependencyNode)node).getModels().get(0).getResolvedSpec().toString();
+      }
+      if (key != null) {
+        List<AbstractDependencyNode<? extends PsAndroidDependency>> nodes = mySelection.get(key);
+        if (nodes == null) {
+          nodes = Lists.newArrayList();
+          mySelection.put(key, nodes);
+        }
+        nodes.add(((AbstractDependencyNode<? extends PsAndroidDependency>)node));
+      }
+    }
+
+    @NotNull
+    List<AbstractDependencyNode<? extends PsAndroidDependency>> getSingleTypeSelection() {
+      Set<String> keys = mySelection.keySet();
+      if (keys.size() == 1) {
+        // Only notify selection if all the selected nodes refer to the same dependency.
+        return mySelection.get(getFirstItem(keys));
+      }
+      return Collections.emptyList();
+    }
+  }}
