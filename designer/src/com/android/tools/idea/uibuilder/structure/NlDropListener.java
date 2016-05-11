@@ -223,6 +223,7 @@ public class NlDropListener extends DropTargetAdapter {
   }
 
   private void performDrop(@NotNull final DropTargetDropEvent event, final InsertType insertType) {
+    myTree.skipNextUpdateDelay();
     NlModel model = myTree.getDesignerModel();
     assert model != null;
     try {
