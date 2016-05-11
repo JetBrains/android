@@ -19,6 +19,13 @@ package com.android.tools.adtui;
 public interface Animatable {
 
   /**
+   * Used for resetting any cached states from previous frames that an {@link Animatable}
+   * depends on.
+   */
+  default void reset() {
+  }
+
+  /**
    * Triggered by the {@link Choreographer} to give an {@link Animatable} a chance to
    * update/interpolate any components or data based on the current frame rate.
    */

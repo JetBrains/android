@@ -167,4 +167,9 @@ public abstract class AnimatedComponent extends JComponent implements Animatable
     this.updateData();
     mUpdateEndTime = System.nanoTime();
   }
+
+  @Override
+  public void reset() {
+    mMultiDrawNumFrames = 0;
+  }
 }
