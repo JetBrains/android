@@ -15,21 +15,25 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.details;
 
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
+import com.android.tools.idea.gradle.structure.model.PsDependency;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-public interface DependencyDetails<T extends PsAndroidDependency> {
+public interface DependencyDetails {
   @NotNull
   JPanel getPanel();
 
-  void display(@NotNull T model);
+  default void display(@NotNull PsDependency dependency, @Nullable String configurationNames) {
+    display(dependency);
+  }
+
+  void display(@NotNull PsDependency dependency);
 
   @NotNull
-  Class<T> getSupportedModelType();
+  Class<? extends PsDependency> getSupportedModelType();
 
   @Nullable
-  T getModel();
+  PsDependency getModel();
 }

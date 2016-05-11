@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.structure.configurables.issues.IssuesViewer
 import com.android.tools.idea.gradle.structure.configurables.ui.ChooseModuleDialog;
 import com.android.tools.idea.gradle.structure.configurables.ui.EmptyPanel;
 import com.android.tools.idea.gradle.structure.dependencies.AddLibraryDependencyDialog;
+import com.android.tools.idea.gradle.structure.model.PsDependency;
 import com.android.tools.idea.gradle.structure.model.PsIssue;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
@@ -111,7 +112,7 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
   @NotNull
   public abstract JComponent getPreferredFocusedComponent();
 
-  protected void addDetails(@NotNull DependencyDetails<?> details) {
+  protected void addDetails(@NotNull DependencyDetails details) {
     myDependencyDetails.put(details.getSupportedModelType(), details);
   }
 
@@ -128,13 +129,17 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
   }
 
   protected void updateDetails(@Nullable PsAndroidDependency selected) {
+    String scope = selected != null ? selected.getJoinedConfigurationNames() : null;
+    updateDetails(selected, scope);
+  }
+
+  protected void updateDetails(@Nullable PsAndroidDependency selected, @Nullable String configurationNames) {
     if (selected != null) {
       myCurrentDependencyDetails = myDependencyDetails.get(selected.getClass());
       if (myCurrentDependencyDetails != null) {
         myInfoPanel.setDependencyDetails(myCurrentDependencyDetails);
         myInfoScrollPane.setViewportView(myInfoPanel.getPanel());
-        //noinspection unchecked
-        myCurrentDependencyDetails.display(selected);
+        myCurrentDependencyDetails.display(selected, configurationNames);
         return;
       }
     }
@@ -241,15 +246,12 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
     return myHistory;
   }
 
-  protected void beforeAddingDependency() {
-  }
-
   @Override
   public void queryPlace(@NotNull Place place) {
     String dependency = "";
     DependencyDetails details = getCurrentDependencyDetails();
     if (details != null) {
-      PsAndroidDependency model = details.getModel();
+      PsDependency model = details.getModel();
       if (model != null) {
         dependency = model.toText(FOR_NAVIGATION);
       }
@@ -279,7 +281,6 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
         dialog.showAndGet();
         return;
       }
-      beforeAddingDependency();
       showAddLibraryDependencyDialog(myModule);
     }
 

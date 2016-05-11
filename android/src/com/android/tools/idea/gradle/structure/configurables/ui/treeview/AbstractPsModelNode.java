@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.structure.model.PsModel;
 import com.google.common.collect.Lists;
 import com.intellij.ide.projectView.PresentationData;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -81,6 +82,12 @@ public abstract class AbstractPsModelNode<T extends PsModel> extends AbstractPsN
   @NotNull
   public List<T> getModels() {
     return myModels;
+  }
+
+  @NotNull
+  public T getFirstModel() {
+    assert !myModels.isEmpty();
+    return myModels.get(0);
   }
 
   public boolean matches(@NotNull PsModel model) {
