@@ -22,18 +22,14 @@ import com.android.tools.idea.uibuilder.model.NlComponent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
-final class MenuDragHandler extends GroupDragHandlerBase {
-  MenuDragHandler(@NotNull ViewEditor editor,
-                  @NotNull ViewGroupHandler handler,
-                  @NotNull NlComponent menu,
-                  @NotNull List<NlComponent> items,
-                  @NotNull DragType type) {
-    super(editor, handler, menu, items, type);
-
-    myItems = menu.getChildren().stream()
-      .filter(item -> item.h != -1)
-      .collect(Collectors.toList());
+final class GroupDragHandler extends GroupDragHandlerBase {
+  GroupDragHandler(@NotNull ViewEditor editor,
+                   @NotNull ViewGroupHandler handler,
+                   @NotNull NlComponent group,
+                   @NotNull List<NlComponent> items,
+                   @NotNull DragType type) {
+    super(editor, handler, group, items, type);
+    myItems = group.getChildren();
   }
 }

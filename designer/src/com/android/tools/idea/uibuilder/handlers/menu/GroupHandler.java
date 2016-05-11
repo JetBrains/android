@@ -32,8 +32,7 @@ public final class GroupHandler extends ViewGroupHandler {
                                        @NotNull NlComponent group,
                                        @NotNull List<NlComponent> items,
                                        @NotNull DragType type) {
-    // TODO Implement drag handler
-    return null;
+    return new GroupDragHandler(editor, this, group, items, type);
   }
 
   @Override
