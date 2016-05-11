@@ -30,12 +30,26 @@ import java.util.Map;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.property.editors.NlEditingListener.DEFAULT_LISTENER;
+import static com.android.SdkConstants.PreferenceTags.*;
 
 public class IdInspectorProvider implements InspectorProvider {
   private IdInspectorComponent myComponent;
 
   @Override
   public boolean isApplicable(@NotNull List<NlComponent> components, @NotNull Map<String, NlProperty> properties) {
+    for (NlComponent component : components) {
+      switch (component.getTagName()) {
+        case CHECK_BOX_PREFERENCE:
+        case EDIT_TEXT_PREFERENCE:
+        case LIST_PREFERENCE:
+        case MULTI_SELECT_LIST_PREFERENCE:
+        case PREFERENCE_CATEGORY:
+        case PREFERENCE_SCREEN:
+        case RINGTONE_PREFERENCE:
+        case SWITCH_PREFERENCE:
+          return false;
+      }
+    }
     return true;
   }
 

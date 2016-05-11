@@ -20,13 +20,14 @@ import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.XmlBuilder;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.google.common.collect.ImmutableList;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.android.SdkConstants.ATTR_TITLE;
-import static com.android.SdkConstants.PreferenceAttributes.DEFAULT_VALUE;
-import static com.android.SdkConstants.PreferenceAttributes.KEY;
+import java.util.List;
+
+import static com.android.SdkConstants.PreferenceAttributes.*;
 import static com.android.SdkConstants.PreferenceTags.CHECK_BOX_PREFERENCE;
 
 public final class CheckBoxPreferenceHandler extends PreferenceHandler {
@@ -36,10 +37,26 @@ public final class CheckBoxPreferenceHandler extends PreferenceHandler {
   public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {
     return new XmlBuilder()
       .startTag(tagName)
-      .androidAttribute(DEFAULT_VALUE, false)
+      .androidAttribute(ATTR_DEFAULT_VALUE, false)
       .androidAttribute(ATTR_TITLE, "Check box preference")
       .endTag(tagName)
       .toString();
+  }
+
+  @Override
+  @NotNull
+  public List<String> getInspectorProperties() {
+    return ImmutableList.of(
+      ATTR_DEFAULT_VALUE,
+      ATTR_KEY,
+      ATTR_TITLE,
+      ATTR_SUMMARY,
+      ATTR_DEPENDENCY,
+      ATTR_ICON,
+      ATTR_SUMMARY_ON,
+      ATTR_SUMMARY_OFF,
+      ATTR_PERSISTENT,
+      ATTR_DISABLE_DEPENDENTS_STATE);
   }
 
   @Override
@@ -48,7 +65,7 @@ public final class CheckBoxPreferenceHandler extends PreferenceHandler {
                           @NotNull NlComponent newChild,
                           @NotNull InsertType type) {
     super.onCreate(editor, parent, newChild, type);
-    newChild.setAndroidAttribute(KEY, generateKey(newChild, CHECK_BOX_PREFERENCE, "check_box_preference_"));
+    newChild.setAndroidAttribute(ATTR_KEY, generateKey(newChild, CHECK_BOX_PREFERENCE, "check_box_preference_"));
 
     return true;
   }

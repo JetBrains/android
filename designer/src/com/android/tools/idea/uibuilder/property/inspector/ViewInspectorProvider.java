@@ -54,6 +54,7 @@ public class ViewInspectorProvider implements InspectorProvider {
     if (TAG_EXCEPTIONS.contains(tagName)) {
       return false;
     }
+    myInspectors.clear();
     if (myInspectors.containsKey(tagName)) {
       return true;
     }
@@ -119,12 +120,11 @@ public class ViewInspectorProvider implements InspectorProvider {
 
     @Override
     public int getMaxNumberOfRows() {
-      return 2 + myEditors.size();
+      return 1 + myEditors.size();
     }
 
     @Override
     public void attachToInspector(@NotNull InspectorPanel inspector) {
-      inspector.addSeparator();
       inspector.addTitle(myComponentName);
       for (String propertyName : myPropertyNames) {
         if (myProperties.containsKey(propertyName)) {
@@ -151,14 +151,34 @@ public class ViewInspectorProvider implements InspectorProvider {
     private static NlComponentEditor createEditor(@NotNull NlProperty property) {
       AttributeDefinition definition = property.getDefinition();
       Set<AttributeFormat> formats = definition != null ? definition.getFormats() : Collections.emptySet();
-      if (formats.contains(AttributeFormat.Boolean)) {
+      Boolean isBoolean = null;
+      for (AttributeFormat format : formats) {
+        switch (format) {
+          case Boolean:
+            if (isBoolean == null) {
+              isBoolean = Boolean.TRUE;
+            }
+            break;
+          case String:
+          case Color:
+          case Dimension:
+          case Integer:
+          case Float:
+          case Fraction:
+            if (isBoolean == null) {
+              isBoolean = Boolean.FALSE;
+            }
+            break;
+          case Enum:
+            return NlEnumEditor.createForInspector(NlEnumEditor.getDefaultListener());
+          case Flag:
+            return NlFlagsEditor.create();
+          default:
+            break;
+        }
+      }
+      if (isBoolean == Boolean.TRUE) {
         return NlBooleanEditor.createForInspector(DEFAULT_LISTENER);
-      }
-      else if (formats.contains(AttributeFormat.Enum)) {
-        return NlEnumEditor.createForInspector(NlEnumEditor.getDefaultListener());
-      }
-      else if (formats.contains(AttributeFormat.Flag)) {
-        return NlFlagsEditor.create();
       }
       else {
         return NlReferenceEditor.createForInspectorWithBrowseButton(property.getModel().getProject(), DEFAULT_LISTENER);
