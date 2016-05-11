@@ -34,12 +34,12 @@ public class EditorFixtureTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   @Test
-  public void moveToLine_scrollsWhenNeeded() throws Exception {
+  public void moveBetween_scrollsWhenNeeded() throws Exception {
     int lineNumber = guiTest.importSimpleApplication()
       .getEditor()
       .open("app/src/main/java/google/simpleapplication/MyActivity.java")
       .enterText(Strings.repeat("\n", 100))
-      .moveToLine(1)
+      .moveBetween("", "")  // before the first character on the first line
       .getCurrentLineNumber();
     assertThat(lineNumber).isEqualTo(1);
   }
@@ -50,7 +50,7 @@ public class EditorFixtureTest {
       .getEditor()
       .open("app/src/main/java/google/simpleapplication/MyActivity.java")
       .enterText(Strings.repeat("\n", 99))
-      .moveToLine(1)
+      .moveBetween("", "")  // before the first character on the first line
       .select("class (MyActivity) ")
       .getCurrentLineNumber();
     assertThat(lineNumber).isGreaterThan(100);
