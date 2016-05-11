@@ -23,7 +23,6 @@ import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.sherpa.drawing.BlueprintColorSet;
 import com.android.tools.sherpa.drawing.ColorSet;
 import com.android.tools.sherpa.structure.WidgetsScene;
-import com.intellij.openapi.util.text.StringUtil;
 
 import org.jetbrains.annotations.NotNull;
 import android.support.constraint.solver.widgets.ConstraintWidget;
@@ -49,6 +48,8 @@ public class WidgetConstraintPanel extends JPanel {
   ConstraintModel mConstraintModel;
   NlComponent mComponent;
   ConstraintWidget mWidget;
+  private boolean mWidgetModified;
+  private Timer mWidgetSaveTimer = new Timer(500, e -> saveWidget());
   public static final int UNCONNECTED = -1;
 
   private String mWidgetWidthCache;
@@ -191,7 +192,12 @@ public class WidgetConstraintPanel extends JPanel {
         mScene = mConstraintModel.getScene();
         mConstraintModel.getSelection().setContinuousListener(e -> widgetChanged());
         //TODO: improve the tear-down mechanism
-        mWidget = mScene.getWidget(mComponent.getTag());
+        ConstraintWidget widget = mScene.getWidget(mComponent.getTag());
+
+        if (mWidgetModified && mWidget != null && widget != mWidget) { // we are changing
+          saveWidget();
+        }
+        mWidget = widget;
         configureUI();
       }
     }
@@ -324,22 +330,47 @@ public class WidgetConstraintPanel extends JPanel {
   // values from ui to widget & NL component
   /*-----------------------------------------------------------------------*/
 
+  /**
+   * Method is called when ever we modify the widget
+   */
+  private void widgetModified() {
+    if (!mWidgetModified) {
+      mConstraintModel.getSelection().addModifiedWidget(mWidget);
+    }
+    mWidgetModified = true;
+    mWidgetSaveTimer.restart();
+  }
+
+  private void saveWidget() {
+    mConstraintModel.saveToXML();
+    mWidgetSaveTimer.stop();
+    mWidgetModified = false;
+  }
+
   private void setMargin(ConstraintAnchor.Type type, int margin) {
     ConstraintAnchor anchor = mWidget.getAnchor(type);
     if (anchor != null) {
-      anchor.setMargin(margin);
+      if (margin == -1) {
+        anchor.reset();
+      }
+      else {
+        anchor.setMargin(margin);
+      }
+      widgetModified();
     }
   }
 
   private void killConstraint(ConstraintAnchor.Type type) {
     ConstraintAnchor anchor = mWidget.getAnchor(type);
     anchor.reset();
+    widgetModified();
   }
 
   public void setHorizontalBias() {
     float bias = (mHorizontalSlider.getValue() / 100f);
     mConstraintModel.allowsUpdate(false);
     mWidget.setHorizontalBiasPercent(bias);
+    widgetModified();
     mConstraintModel.allowsUpdate(true);
     mConstraintModel.renderInLayoutLib();
   }
@@ -348,102 +379,103 @@ public class WidgetConstraintPanel extends JPanel {
     float bias = 1f - (mVerticalSlider.getValue() / 100f);
     mConstraintModel.allowsUpdate(false);
     mWidget.setVerticalBiasPercent(bias);
+    widgetModified();
     mConstraintModel.allowsUpdate(true);
     mConstraintModel.renderInLayoutLib();
   }
 
   public void setTopMargin(int margin) {
+    mConstraintModel.allowsUpdate(false);
     setMargin(ConstraintAnchor.Type.TOP, margin);
-    ConstraintUtilities
-      .saveNlAttribute(mComponent, SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_TOP, (margin < 0) ? null : (margin + "dp"));
+    mConstraintModel.allowsUpdate(true);
+    mConstraintModel.renderInLayoutLib();
   }
 
   public void setLeftMargin(int margin) {
+    mConstraintModel.allowsUpdate(false);
     setMargin(ConstraintAnchor.Type.LEFT, margin);
-    ConstraintUtilities
-      .saveNlAttribute(mComponent, SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_START, (margin < 0) ? null : (margin + "dp"));
+    mConstraintModel.allowsUpdate(true);
+    mConstraintModel.renderInLayoutLib();
   }
 
   public void setRightMargin(int margin) {
+    mConstraintModel.allowsUpdate(false);
     setMargin(ConstraintAnchor.Type.RIGHT, margin);
-    ConstraintUtilities
-      .saveNlAttribute(mComponent, SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_END, (margin < 0) ? null : (margin + "dp"));
+    mConstraintModel.allowsUpdate(true);
+    mConstraintModel.renderInLayoutLib();
   }
 
   public void setBottomMargin(int margin) {
+    mConstraintModel.allowsUpdate(false);
     setMargin(ConstraintAnchor.Type.BOTTOM, margin);
-    ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM,
-                                        (margin < 0) ? null : (margin + "dp"));
+    mConstraintModel.allowsUpdate(true);
+    mConstraintModel.renderInLayoutLib();
   }
 
   public void killTopConstraint() {
+    mConstraintModel.allowsUpdate(false);
     killConstraint(ConstraintAnchor.Type.TOP);
-    ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_TOP, null);
-    ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF, null);
-    ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF, null);
+    mConstraintModel.allowsUpdate(true);
+    mConstraintModel.renderInLayoutLib();
   }
 
   public void killLeftConstraint() {
+    mConstraintModel.allowsUpdate(false);
     killConstraint(ConstraintAnchor.Type.LEFT);
-    ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_START, null);
-    ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT, null);
-    ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF, null);
-    ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF, null);
+    mConstraintModel.allowsUpdate(true);
+    mConstraintModel.renderInLayoutLib();
   }
 
   public void killRightConstraint() {
+    mConstraintModel.allowsUpdate(false);
     killConstraint(ConstraintAnchor.Type.RIGHT);
-    ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_END, null);
-    ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT, null);
-    ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF, null);
-    ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, null);
+    mConstraintModel.allowsUpdate(true);
+    mConstraintModel.renderInLayoutLib();
   }
 
   public void killBottomConstraint() {
     killConstraint(ConstraintAnchor.Type.BOTTOM);
-    ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM, null);
-    ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, null);
-    ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF, null);
+
   }
 
   public void killBaselineConstraint() {
     killConstraint(ConstraintAnchor.Type.BASELINE);
-    ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF, null);
   }
 
   public void setHorizontalConstraint(int horizontalConstraint) {
+    mConstraintModel.allowsUpdate(false);
     switch (horizontalConstraint) {
       case SingleWidgetView.ANY:
-        ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ANDROID_URI,
-                                            SdkConstants.ATTR_LAYOUT_WIDTH, "0dp");
+        mWidget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.ANY);
         break;
       case SingleWidgetView.FIXED:
-        ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ANDROID_URI,
-                                            SdkConstants.ATTR_LAYOUT_WIDTH, mWidgetWidthCache);
+        mWidget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.FIXED);
         break;
       case SingleWidgetView.WRAP_CONTENT:
-        ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH,
-                                            SdkConstants.VALUE_WRAP_CONTENT);
+        mWidget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.WRAP_CONTENT);
         break;
     }
+    widgetModified();
+    mConstraintModel.allowsUpdate(true);
+    mConstraintModel.renderInLayoutLib();
   }
 
   public void setVerticalConstraint(int verticalConstraint) {
-
+    mConstraintModel.allowsUpdate(false);
     switch (verticalConstraint) {
       case SingleWidgetView.ANY:
-        ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ANDROID_URI,
-                                            SdkConstants.ATTR_LAYOUT_HEIGHT, "0dp");
+        mWidget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.ANY);
         break;
       case SingleWidgetView.FIXED:
-        ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ANDROID_URI,
-                                            SdkConstants.ATTR_LAYOUT_HEIGHT, mWidgetHeightCache);
+        mWidget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.FIXED);
         break;
       case SingleWidgetView.WRAP_CONTENT:
-        ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ANDROID_URI,
-                                            SdkConstants.ATTR_LAYOUT_HEIGHT, SdkConstants.VALUE_WRAP_CONTENT);
+        mWidget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.WRAP_CONTENT);
         break;
     }
+    widgetModified();
+    mConstraintModel.allowsUpdate(true);
+    mConstraintModel.renderInLayoutLib();
   }
 
   /*-----------------------------------------------------------------------*/
