@@ -467,16 +467,23 @@ public class ConstraintModel implements ModelListener {
   }
 
   /**
-   * Save the model to xml
+   * Save the model to xml if needed
    */
   public void saveToXML() {
+    saveToXML(false);
+  }
+
+  /**
+   * Always save the model to xml
+   */
+  public void saveToXML(boolean forceSave) {
     Selection selection = getSelection();
     ourLock.lock();
     // inflate will call updateHierarchy, then render will call it as well,
     // so let's increment our counter by 2
     myModificationCount = myNlModel.getModificationCount() + 2;
     ourLock.unlock();
-    if (!selection.getModifiedWidgets().isEmpty()) {
+    if (forceSave || !selection.getModifiedWidgets().isEmpty()) {
       if (DEBUG) {
         System.out.println("Model Saved to XML -> " + myModificationCount
                            + "(" + selection.getModifiedWidgets().size()
