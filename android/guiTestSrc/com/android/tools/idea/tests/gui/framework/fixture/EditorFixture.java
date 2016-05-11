@@ -1043,24 +1043,6 @@ public class EditorFixture {
   }
 
   /**
-   * Requires the source editor's current file to be in the given folder (or if null, for there
-   * to be no current file)
-   */
-  public void requireFolderName(@Nullable String name) {
-    VirtualFile currentFile = getCurrentFile();
-    if (name == null) {
-      assertNull("Expected editor to not have an open file, but is showing " + currentFile, currentFile);
-    } else if (currentFile == null) {
-      fail("Expected file " + name + " to be showing, but the editor is not showing anything");
-    } else {
-      VirtualFile parent = currentFile.getParent();
-      assertNotNull("File " + currentFile.getName() + " does not have a parent", parent);
-      assertEquals(name, parent.getName());
-    }
-  }
-
-
-  /**
    * Common editor actions, invokable via {@link #invokeAction(EditorAction)}
    */
   public enum EditorAction {

@@ -33,6 +33,7 @@ import org.junit.runner.RunWith;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_TEXT;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitForBackgroundTasks;
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 import static junit.framework.Assert.assertNotNull;
 import static org.junit.Assert.*;
@@ -59,18 +60,18 @@ public class NlPreviewTest {
     toolbar.chooseDevice("Nexus 5");
     preview.waitForRenderToFinish();
     toolbar.requireDevice("Nexus 5");
-    editor.requireFolderName("layout");
+    assertThat(editor.getCurrentFile().getParent().getName()).isEqualTo("layout");
     toolbar.requireOrientation("Portrait");
 
     toolbar.chooseDevice("Nexus 7");
     preview.waitForRenderToFinish();
     toolbar.requireDevice("Nexus 7 2013");
-    editor.requireFolderName("layout-sw600dp");
+    assertThat(editor.getCurrentFile().getParent().getName()).isEqualTo("layout-sw600dp");
 
     toolbar.chooseDevice("Nexus 10");
     preview.waitForRenderToFinish();
     toolbar.requireDevice("Nexus 10");
-    editor.requireFolderName("layout-sw600dp");
+    assertThat(editor.getCurrentFile().getParent().getName()).isEqualTo("layout-sw600dp");
     toolbar.requireOrientation("Landscape"); // Default orientation for Nexus 10
 
     editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR);
@@ -84,7 +85,7 @@ public class NlPreviewTest {
     preview.waitForRenderToFinish();
     editor.open("app/src/main/res/layout-sw600dp/layout2.xml", EditorFixture.Tab.EDITOR);
     preview.waitForRenderToFinish();
-    editor.requireFolderName("layout-sw600dp");
+    assertThat(editor.getCurrentFile().getParent().getName()).isEqualTo("layout-sw600dp");
     toolbar.requireDevice("Nexus 7 2013"); // because it's the most recently configured sw600-dp compatible device
     editor.open("app/src/main/res/layout/layout2.xml", EditorFixture.Tab.EDITOR);
     preview.waitForRenderToFinish();
