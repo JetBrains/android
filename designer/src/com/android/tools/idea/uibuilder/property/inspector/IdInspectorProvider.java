@@ -109,7 +109,7 @@ public class IdInspectorProvider implements InspectorProvider {
         setToolTip(myHeightEditor, myLayoutHeight);
       }
       if (myIdAttr != null && !myIdAttr.getComponents().isEmpty()) {
-        myConstraintWidget.configureUI(myIdAttr.getComponents().get(0));
+        myConstraintWidget.setProperty(myIdAttr);
       }
     }
 
