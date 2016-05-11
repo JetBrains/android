@@ -16,27 +16,21 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.details;
 
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
+import com.android.tools.idea.gradle.structure.model.PsDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidLibraryDependency;
-import com.intellij.ui.components.JBLabel;
 import org.jdesktop.swingx.JXLabel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-public class ModuleLibraryDependencyDetails implements DependencyDetails<PsAndroidLibraryDependency> {
+public class MultipleLibraryDependenciesDetails implements DependencyDetails {
   private JPanel myMainPanel;
 
-  private JXLabel myGroupIdLabel;
   private JXLabel myArtifactNameLabel;
-  private JBLabel myResolvedVersionLabel;
-  private JXLabel myScopeLabel;
-  private JBLabel myRequestedVersionLabel;
+  private JXLabel myGroupIdLabel;
 
-  @Nullable private PsAndroidLibraryDependency myDependency;
-
-  public ModuleLibraryDependencyDetails() {
-  }
+  private PsAndroidLibraryDependency myDependency;
 
   @Override
   @NotNull
@@ -45,20 +39,12 @@ public class ModuleLibraryDependencyDetails implements DependencyDetails<PsAndro
   }
 
   @Override
-  public void display(@NotNull PsAndroidLibraryDependency dependency) {
-    myDependency = dependency;
+  public void display(@NotNull PsDependency dependency) {
+    myDependency = (PsAndroidLibraryDependency)dependency;
 
-    PsArtifactDependencySpec spec = myDependency.getDeclaredSpec();
-    if (spec == null) {
-      spec = myDependency.getResolvedSpec();
-    }
-
-    myGroupIdLabel.setText(spec.group);
-    myArtifactNameLabel.setText(spec.name);
-    myResolvedVersionLabel.setText(myDependency.getResolvedSpec().version);
-
-    myRequestedVersionLabel.setText(spec.version);
-    myScopeLabel.setText(myDependency.getJoinedConfigurationNames());
+    PsArtifactDependencySpec resolvedSpec = myDependency.getResolvedSpec();
+    myArtifactNameLabel.setText(resolvedSpec.name);
+    myGroupIdLabel.setText(resolvedSpec.group);
   }
 
   @Override

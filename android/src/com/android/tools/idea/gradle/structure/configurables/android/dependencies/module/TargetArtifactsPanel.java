@@ -63,7 +63,7 @@ public class TargetArtifactsPanel extends ToolWindowPanel {
         if (id == MOUSE_PRESSED) {
           ModuleDependencyNode node = myHyperlinkSupport.getIfHyperlink(e);
           if (node != null) {
-            PsModuleDependency moduleDependency = node.getModels().get(0);
+            PsModuleDependency moduleDependency = node.getFirstModel();
             String name = moduleDependency.getName();
             myContext.setSelectedModule(name, TargetArtifactsPanel.this);
             // Do not call super, to avoid selecting the 'module' node when clicking a hyperlink.

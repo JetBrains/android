@@ -19,7 +19,7 @@ import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.AbstractDependenciesPanel;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.DependencyDetails;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.ModuleDependencyDetails;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.ModuleLibraryDependencyDetails;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.SingleLibraryDependencyDetails;
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesViewer;
 import com.android.tools.idea.gradle.structure.configurables.issues.SingleModuleIssuesRenderer;
 import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeEventDispatcher;
@@ -120,6 +120,7 @@ class DeclaredDependenciesPanel extends AbstractDependenciesPanel {
       myDependenciesTableModel.reset();
       PsAndroidDependency toSelect = null;
       if (event instanceof PsModule.LibraryDependencyAddedEvent) {
+        myDependenciesTable.clearSelection();
         PsArtifactDependencySpec spec = ((PsModule.LibraryDependencyAddedEvent)event).getSpec();
         toSelect = myDependenciesTableModel.findDependency(spec);
       }
@@ -163,7 +164,7 @@ class DeclaredDependenciesPanel extends AbstractDependenciesPanel {
   }
 
   private void initializeDependencyDetails() {
-    addDetails(new ModuleLibraryDependencyDetails());
+    addDetails(new SingleLibraryDependencyDetails());
     addDetails(new ModuleDependencyDetails(getContext(), true));
   }
 
@@ -245,11 +246,6 @@ class DeclaredDependenciesPanel extends AbstractDependenciesPanel {
   @NotNull
   public JComponent getPreferredFocusedComponent() {
     return myDependenciesTable;
-  }
-
-  @Override
-  protected void beforeAddingDependency() {
-    myDependenciesTable.clearSelection();
   }
 
   @Override
