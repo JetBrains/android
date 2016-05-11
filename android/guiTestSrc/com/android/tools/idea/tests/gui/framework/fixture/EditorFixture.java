@@ -268,14 +268,6 @@ public class EditorFixture {
   }
 
   /**
-   * Requests focus in the editor
-   */
-  public EditorFixture requestFocus() {
-    getFocusedEditor();
-    return this;
-  }
-
-  /**
    * Requests focus in the editor, waits and returns editor component
    */
   @Nullable
