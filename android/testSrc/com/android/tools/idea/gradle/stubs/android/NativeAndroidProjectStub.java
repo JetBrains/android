@@ -116,7 +116,7 @@ public class NativeAndroidProjectStub implements NativeAndroidProject {
 
   /**
    * Deletes this project's directory structure.
-   *
+   */
   public void dispose() {
     myFileStructure.dispose();
   }
