@@ -869,6 +869,8 @@ public class MouseInteraction {
                     for (Selection.Element selection : mSelection.getElements()) {
                         mSelection.addModifiedWidget(selection.widget);
                     }
+                    mSelection.fireContinuousChange();
+
                 }
             }
             break;
