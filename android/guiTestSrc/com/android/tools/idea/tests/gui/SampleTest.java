@@ -25,6 +25,7 @@ import org.junit.runner.RunWith;
 
 import java.io.IOException;
 
+import static com.google.common.truth.Truth.assertThat;
 import static junit.framework.Assert.assertEquals;
 
 @RunWith(GuiTestRunner.class)
@@ -41,32 +42,24 @@ public class SampleTest {
 
     assertEquals("strings.xml", editor.getCurrentFileName());
 
-    editor.moveBetween("", "app_name");
-
-    assertEquals("<string name=\"^app_name\">Simple Application</string>", editor.getCurrentLineContents(true, true, 0));
-    editor.moveBetween("", "Simple Application");
-    assertEquals("<string name=\"app_name\">^Simple Application</string>", editor.getCurrentLineContents(true, true, 0));
     editor.select("(Simple) Application");
-    assertEquals("<string name=\"app_name\">|>^Simple<| Application</string>", editor.getCurrentLineContents(true, true, 0));
     editor.enterText("Tester");
     editor.invokeAction(EditorFixture.EditorAction.BACK_SPACE);
     editor.enterText("d");
-    assertEquals("<string name=\"app_name\">Tested^ Application</string>", editor.getCurrentLineContents(true, true, 0));
+    assertThat(editor.getCurrentLine()).contains("Tested Application");
     editor.invokeAction(EditorFixture.EditorAction.UNDO);
     editor.invokeAction(EditorFixture.EditorAction.UNDO);
-    assertEquals("<string name=\"app_name\">Tester^ Application</string>", editor.getCurrentLineContents(true, true, 0));
+    assertThat(editor.getCurrentLine()).contains("Tester Application");
 
-    editor.invokeAction(EditorFixture.EditorAction.TOGGLE_COMMENT);
-    assertEquals("    <!--<string name=\"app_name\">Tester Application</string>-->\n" +
-                 "    <string name=\"hello_world\">Hello w^orld!</string>\n" +
-                 "    <string name=\"action_settings\">Settings</string>", editor.getCurrentLineContents(false, true, 1));
+    editor.invokeAction(EditorFixture.EditorAction.TOGGLE_COMMENT);  // also moves caret to next line
+    editor.moveBetween("Tester", " Application");
+    assertThat(editor.getCurrentLine().trim()).matches("^<!--.*-->$");
     editor.moveBetween(" ", "<string name=\"action");
     editor.enterText("    ");
     editor.invokeAction(EditorFixture.EditorAction.FORMAT);
 
     // Test IME
     editor.enterImeText("デバッグ");
-    assertEquals("    デバッグ^<string name=\"action_settings\">Settings</string>",
-                 editor.getCurrentLineContents(false, true, 0));
+    assertThat(editor.getCurrentLine()).contains("デバッグ");
   }
 }

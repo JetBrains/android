@@ -54,7 +54,7 @@ public class ManifestEditorTest {
     Color defaultBackgroundColor = mergedManifestFixture.getDefaultBackgroundColor();
     assertEquals(defaultBackgroundColor, mergedManifestFixture.getSelectedNodeColor());
     mergedManifestFixture.clickLinkText("app main manifest (this file), line 5");
-    assertEquals("^android:allowBackup=\"true\"", editor.getCurrentLineContents(true, true, 0));
+    assertThat(editor.getCurrentLine().trim()).isEqualTo("android:allowBackup=\"true\"");
   }
 
   @Test

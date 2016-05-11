@@ -86,8 +86,7 @@ public class ThemeSelectorTest {
     EditorFixture editor = ideFrame.getEditor();
     assertThat(editor.getCurrentFileContents()).doesNotContain("name=\"AppTheme");
     editor.moveBetween("", "name=\"NewAppTheme");
-    assertEquals("<style ^name=\"NewAppTheme\" parent=\"android:Theme.Holo.Light.DarkActionBar\">",
-                 editor.getCurrentLineContents(true, true, 0));
+    assertThat(editor.getCurrentLine().trim()).isEqualTo("<style name=\"NewAppTheme\" parent=\"android:Theme.Holo.Light.DarkActionBar\">");
 
     // Testing Undo
     ideFrame.invokeMenuPath("Window", "Editor Tabs", "Select Next Tab");
@@ -99,8 +98,7 @@ public class ThemeSelectorTest {
     ideFrame.invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
     assertThat(editor.getCurrentFileContents()).doesNotContain("name=\"NewAppTheme");
     editor.moveBetween("", "name=\"AppTheme");
-    assertEquals("<style ^name=\"AppTheme\" parent=\"android:Theme.Holo.Light.DarkActionBar\">",
-                 editor.getCurrentLineContents(true, true, 0));
+    assertThat(editor.getCurrentLine().trim()).isEqualTo("<style name=\"AppTheme\" parent=\"android:Theme.Holo.Light.DarkActionBar\">");
   }
 
   /**
@@ -210,8 +208,7 @@ public class ThemeSelectorTest {
     EditorFixture editor = guiTest.ideFrame().getEditor();
     assertThat(editor.getCurrentFileContents()).contains("name=\"AppTheme");
     editor.moveBetween("", "name=\"NewTheme");
-    assertEquals("<style ^name=\"NewTheme\" parent=\"android:Theme.Holo\" />",
-                 editor.getCurrentLineContents(true, true, 0));
+    assertThat(editor.getCurrentLine().trim()).isEqualTo("<style name=\"NewTheme\" parent=\"android:Theme.Holo\" />");
 
     // Tests Undo
     guiTest.ideFrame().invokeMenuPath("Window", "Editor Tabs", "Select Next Tab");

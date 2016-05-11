@@ -92,23 +92,19 @@ public class CreateNewClassDialogGuiTest {
   private void assertPackageName(@NotNull String filePath, @NotNull String packageName) {
     myEditor.open(filePath);
     myEditor.moveToLine(1);
-    String expectedPackage = "package " + packageName + ";";
-    String actualPackage = myEditor.getCurrentLineContents(true, false, 0);
-    assertEquals(expectedPackage, actualPackage);
+    assertThat(myEditor.getCurrentLine().trim()).isEqualTo("package " + packageName + ";");
   }
 
   private void assertDeclaration(@NotNull String filePath, @NotNull String expectedDeclaration, @NotNull Kind kind) {
     myEditor.open(filePath);
     myEditor.moveBetween(kind + " " + THING_NAME, "");
-    String declarationLine = myEditor.getCurrentLineContents(true, false, 0);
-    assertEquals(String.format(expectedDeclaration, kind), declarationLine);
+    assertThat(myEditor.getCurrentLine().trim()).isEqualTo(String.format(expectedDeclaration, kind));
   }
 
   private void assertImport(@NotNull String filePath, @NotNull String expectedImport) {
     myEditor.open(filePath);
     myEditor.moveBetween(expectedImport, "");
-    String actualImport = myEditor.getCurrentLineContents(true, false, 0);
-    assertEquals(expectedImport, actualImport);
+    assertThat(myEditor.getCurrentLine().trim()).isEqualTo(expectedImport);
   }
 
   private void createPackagePrivate(Kind kind) throws IOException {

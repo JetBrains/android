@@ -109,8 +109,7 @@ public class ThemeEditorTableTest {
     guiTest.ideFrame().invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
     EditorFixture editor = guiTest.ideFrame().getEditor();
     editor.moveBetween("", "AppTheme");
-    assertEquals("<style name=\"^AppTheme\" parent=\"Theme.AppCompat.NoActionBar\">",
-                        editor.getCurrentLineContents(true, true, 0));
+    assertThat(editor.getCurrentLine().trim()).isEqualTo("<style name=\"AppTheme\" parent=\"Theme.AppCompat.NoActionBar\">");
   }
 
   private static void testParentPopup(@NotNull JTableCellFixture cell, @NotNull final String parentName,
@@ -161,8 +160,8 @@ public class ThemeEditorTableTest {
     EditorFixture editor = guiTest.ideFrame().getEditor();
     editor.open("app/src/main/res/values/colors.xml");
     editor.moveBetween("", "holo");
-    assertEquals("<color name=\"^holo_light_primary\">" + ResourceHelper.colorToString(color) + "</color>",
-                 editor.getCurrentLineContents(true, true, 0));
+    assertThat(editor.getCurrentLine().trim())
+      .isEqualTo("<color name=\"holo_light_primary\">" + ResourceHelper.colorToString(color) + "</color>");
   }
 
   /**

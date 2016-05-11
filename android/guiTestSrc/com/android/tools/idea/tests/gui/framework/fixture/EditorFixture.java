@@ -92,9 +92,6 @@ import static org.junit.Assert.*;
  * a different file, etc.
  */
 public class EditorFixture {
-  public static final String CARET = "^";
-  public static final String SELECT_BEGIN = "|>";
-  public static final String SELECT_END = "<|";
 
   /**
    * Performs simulation of user events on <code>{@link #target}</code>
@@ -157,98 +154,20 @@ public class EditorFixture {
   }
 
   /**
-   * Returns the contents of the current line, or null if there is no
-   * file open. The caret position is indicated by {@code ^}, and
-   * the selection text range, if on the current line, is indicated by
-   * the text inside {@code |> <|}.
+   * From the currently selected text editor, returns the text of the line where the primary caret is.
    *
-   * @param trim            if true, trim whitespace around the line
-   * @param showPositions   if true, show the editor positions (carets, selection)
-   * @param additionalLines 0, or a count for additional number of lines to include on each side of the current line
-   * @return the text contents at the current caret position
+   * @throws IllegalStateException if there is no currently selected text editor
    */
-  @Nullable
-  public String getCurrentLineContents(boolean trim, boolean showPositions, int additionalLines) {
-    if (showPositions) {
-      return getCurrentLineContents(trim, CARET, SELECT_BEGIN, SELECT_END, additionalLines);
-    }
-    else {
-      return getCurrentLineContents(trim, null, null, null, additionalLines);
-    }
-  }
-
-  /**
-   * Returns the contents of the current line, or null if there is no
-   * file open.
-   *
-   * @param trim        if true, trim whitespace around the line
-   * @param caretString typically "^" which will insert "^" to indicate the
-   *                    caret position. If null, the caret position is not shown.
-   * @param selectBegin the text string to insert at the beginning of the selection boundary
-   * @param selectEnd   the text string to insert at the end of the selection boundary
-   * @return the text contents at the current caret position
-   */
-  @Nullable
-  public String getCurrentLineContents(final boolean trim,
-                                       @Nullable final String caret,
-                                       @Nullable final String selectBegin,
-                                       @Nullable final String selectEnd,
-                                       final int additionalLines) {
+  @NotNull
+  public String getCurrentLine() {
+    // noinspection ConstantConditions
     return execute(new GuiQuery<String>() {
       @Override
-      @Nullable
       protected String executeInEDT() throws Throwable {
-        FileEditorManager manager = FileEditorManager.getInstance(myFrame.getProject());
-        Editor editor = manager.getSelectedTextEditor();
-        if (editor != null) {
-          CaretModel caretModel = editor.getCaretModel();
-          Caret primaryCaret = caretModel.getPrimaryCaret();
-          int offset = primaryCaret.getOffset();
-          int start = primaryCaret.getSelectionStart();
-          int end = primaryCaret.getSelectionEnd();
-          if (start == end) {
-            start = -1;
-            end = -1;
-          }
-          Document document = editor.getDocument();
-          int lineNumber = document.getLineNumber(offset);
-          int lineStart = document.getLineStartOffset(lineNumber);
-          int lineEnd = document.getLineEndOffset(lineNumber);
-          int lineCount = document.getLineCount();
-          for (int i = 1; i <= additionalLines; i++) {
-            if (lineNumber - i >= 0) {
-              lineStart = document.getLineStartOffset(lineNumber - i);
-            }
-            if (lineNumber + i < lineCount) {
-              lineEnd = document.getLineEndOffset(lineNumber + i);
-            }
-          }
-
-          String line = document.getText(new TextRange(lineStart, lineEnd));
-          offset -= lineStart;
-          start -= lineStart;
-          end -= lineStart;
-          StringBuilder sb = new StringBuilder(line.length() + 10);
-          for (int i = 0, n = line.length(); i < n; i++) {
-            if (selectBegin != null && start == i) {
-              sb.append(selectBegin);
-            }
-            if (caret != null && offset == i) {
-              sb.append(caret);
-            }
-            sb.append(line.charAt(i));
-            if (selectEnd != null && end == i + 1) {
-              sb.append(selectEnd);
-            }
-          }
-          String result = sb.toString();
-          if (trim) {
-            result = result.trim();
-          }
-          return result;
-        }
-
-        return null;
+        Editor editor = FileEditorManager.getInstance(myFrame.getProject()).getSelectedTextEditor();
+        checkState(editor != null, "no currently selected text editor");
+        Caret primaryCaret = editor.getCaretModel().getPrimaryCaret();
+        return editor.getDocument().getText(new TextRange(primaryCaret.getVisualLineStart(), primaryCaret.getVisualLineEnd()));
       }
     });
   }
