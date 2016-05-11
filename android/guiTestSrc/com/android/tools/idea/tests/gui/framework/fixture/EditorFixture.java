@@ -395,18 +395,33 @@ public class EditorFixture {
     matcher.find();
     int start = matcher.start(1);
     int end = matcher.end(1);
-    execute(new GuiTask() {
+    SelectTarget target = execute(new GuiQuery<SelectTarget>() {
       @Override
-      protected void executeInEDT() throws Throwable {
-        // TODO: Do this via mouse drags!
+      protected SelectTarget executeInEDT() throws Throwable {
         Editor editor = FileEditorManager.getInstance(myFrame.getProject()).getSelectedTextEditor();
         checkState(editor != null, "no currently selected text editor");
-        editor.getCaretModel().getPrimaryCaret().setSelection(start, end);
-        editor.getScrollingModel().scrollToCaret(ScrollType.MAKE_VISIBLE);
+        LogicalPosition startPosition = editor.offsetToLogicalPosition(start);
+        LogicalPosition endPosition = editor.offsetToLogicalPosition(end);
+        // CENTER_DOWN tries to make endPosition visible; if that fails, write selectWithKeyboard and rename this method selectWithMouse?
+        editor.getScrollingModel().scrollTo(startPosition, ScrollType.CENTER_DOWN);
+
+        SelectTarget target = new SelectTarget();
+        target.component = editor.getContentComponent();
+        target.startPoint = editor.logicalPositionToXY(startPosition);
+        target.endPoint = editor.logicalPositionToXY(endPosition);
+        return target;
       }
     });
-
+    robot.pressMouse(target.component, target.startPoint);
+    robot.moveMouse(target.component, target.endPoint);
+    robot.releaseMouseButtons();
     return this;
+  }
+
+  private static class SelectTarget {
+    JComponent component;
+    Point startPoint;
+    Point endPoint;
   }
 
   /**
