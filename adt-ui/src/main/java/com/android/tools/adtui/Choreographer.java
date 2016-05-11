@@ -21,7 +21,6 @@ import com.android.annotations.NonNull;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.HierarchyEvent;
 import java.awt.event.HierarchyListener;
 import java.util.LinkedList;
 import java.util.List;
@@ -92,15 +91,12 @@ public class Choreographer implements ActionListener {
   public static void animate(final AnimatedComponent component) {
     final Choreographer choreographer = new Choreographer(30, component);
     choreographer.register(component);
-    HierarchyListener listener = new HierarchyListener() {
-      @Override
-      public void hierarchyChanged(HierarchyEvent ignored) {
-        if (choreographer.mTimer.isRunning() && !component.isShowing()) {
-          choreographer.mTimer.stop();
-        }
-        else if (!choreographer.mTimer.isRunning() && component.isShowing()) {
-          choreographer.mTimer.start();
-        }
+    HierarchyListener listener = event -> {
+      if (choreographer.mTimer.isRunning() && !component.isShowing()) {
+        choreographer.mTimer.stop();
+      }
+      else if (!choreographer.mTimer.isRunning() && component.isShowing()) {
+        choreographer.mTimer.start();
       }
     };
     listener.hierarchyChanged(null);
@@ -147,15 +143,34 @@ public class Choreographer implements ActionListener {
    * @param to          the target value.
    * @param fraction    the interpolation fraction.
    * @param frameLength the frame length in seconds.
+   * @param threshold   the difference threshold that will cause the method to jump to the target value without lerp.
    * @return the interpolated value.
    */
+  public static float lerp(float from, float to, float fraction, float frameLength, float threshold) {
+    if (Math.abs(to - from) < threshold) {
+      return to;
+    }
+    else {
+      float q = (float)Math.pow(1.0f - fraction, frameLength);
+      return from * q + to * (1.0f - q);
+    }
+  }
+
+  public static double lerp(double from, double to, float fraction, float frameLength, float threshold) {
+    if (Math.abs(to - from) < threshold) {
+      return to;
+    }
+    else {
+      double q = Math.pow(1.0f - fraction, frameLength);
+      return from * q + to * (1.0 - q);
+    }
+  }
+
   public static float lerp(float from, float to, float fraction, float frameLength) {
-    float q = (float)Math.pow(1.0f - fraction, frameLength);
-    return from * q + to * (1.0f - q);
+    return lerp(from, to, fraction, frameLength, 0);
   }
 
   public static double lerp(double from, double to, float fraction, float frameLength) {
-    double q = Math.pow(1.0f - fraction, frameLength);
-    return from * q + to * (1.0 - q);
+    return lerp(from, to, fraction, frameLength, 0);
   }
 }
