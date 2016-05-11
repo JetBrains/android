@@ -55,6 +55,7 @@ public class Selection {
 
     private Element mBounds;
     private Rectangle mOriginalWidgetBounds = new Rectangle();
+    private SelectionListener mContinuousListener;
 
     /*-----------------------------------------------------------------------*/
     // Initialization
@@ -272,8 +273,30 @@ public class Selection {
      * Function to call the listener when the selection has changed
      */
     public void selectionHasChanged() {
+        if (mContinuousListener != null) {
+            mContinuousListener.onSelectionChanged(this);
+        }
         for (SelectionListener selectionListener : mSelectionListeners) {
             selectionListener.onSelectionChanged(this);
+        }
+    }
+
+    /**
+     * This set a listener that will be called during dynamic changes
+     * This use a set convention to prevent more than one object from remaining attached
+     *
+     * @param continuousListener
+     */
+    public void setContinuousListener(SelectionListener continuousListener) {
+        mContinuousListener = continuousListener;
+    }
+
+    /**
+     * To be called during dynamic changes to UI
+     */
+    public void fireContinuousChange() {
+        if (mContinuousListener != null) {
+            mContinuousListener.onSelectionChanged(this);
         }
     }
 

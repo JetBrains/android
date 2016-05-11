@@ -31,7 +31,7 @@ import java.util.ArrayList;
  * Widget to support margin editing on the ui
  */
 public class MarginWidget extends JPanel {
-  String[] str = new String[]{"0", "8", "16", "24", "32", "64"};
+  String[] str = new String[]{"0", "8", "16", "24", "32"};
   @SuppressWarnings("UndesirableClassUsage")
   JComboBox<String> combo = new JComboBox<>(str);
   private static final String COMBO = "combo";
