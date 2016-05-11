@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.details;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
+import com.android.tools.idea.gradle.structure.model.PsDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsModuleDependency;
 import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.HyperlinkLabel;
@@ -27,7 +28,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 
-public class ModuleDependencyDetails implements DependencyDetails<PsModuleDependency> {
+public class ModuleDependencyDetails implements DependencyDetails {
   @NotNull private final PsContext myContext;
   private final boolean myShowScope;
 
@@ -63,12 +64,12 @@ public class ModuleDependencyDetails implements DependencyDetails<PsModuleDepend
   }
 
   @Override
-  public void display(@NotNull PsModuleDependency dependency) {
-    myDependency = dependency;
-    myNameLabel.setText(dependency.getName());
-    myGradlePathLabel.setText(dependency.getGradlePath());
+  public void display(@NotNull PsDependency dependency) {
+    myDependency = (PsModuleDependency)dependency;
+    myNameLabel.setText(myDependency.getName());
+    myGradlePathLabel.setText(myDependency.getGradlePath());
     if (myShowScope) {
-      myScopeLabel.setText(dependency.getJoinedConfigurationNames());
+      myScopeLabel.setText(myDependency.getJoinedConfigurationNames());
     }
   }
 

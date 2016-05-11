@@ -61,7 +61,7 @@ class TargetModulesPanel extends ToolWindowPanel {
         if (id == MOUSE_PRESSED) {
           TargetAndroidModuleNode node = myHyperlinkSupport.getIfHyperlink(e);
           if (node != null) {
-            PsAndroidModule module = node.getModels().get(0);
+            PsAndroidModule module = node.getFirstModel();
             String name = module.getName();
             myContext.setSelectedModule(name, TargetModulesPanel.this);
             // Do not call super, to avoid selecting the 'module' node when clicking a hyperlink.
@@ -115,7 +115,7 @@ class TargetModulesPanel extends ToolWindowPanel {
     TargetAndroidModuleNode node = myHyperlinkSupport.getNodeForLocation(x, y);
 
     if (node != null) {
-      PsAndroidModule module = node.getModels().get(0);
+      PsAndroidModule module = node.getFirstModel();
 
       DefaultActionGroup group = new DefaultActionGroup();
       group.add(new GoToModuleAction(module.getName(), myContext, myTree));

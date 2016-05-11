@@ -49,7 +49,7 @@ public class DependenciesTreeRootNode<T extends PsModel> extends AbstractPsReset
   @Override
   @NotNull
   protected List<? extends AbstractPsModelNode> createChildren() {
-    T model = getModels().get(0);
+    T model = getFirstModel();
     DependencyCollector collector = myDependencyCollectorFunction.apply(model);
 
     List<AbstractDependencyNode> children = Lists.newArrayList();
