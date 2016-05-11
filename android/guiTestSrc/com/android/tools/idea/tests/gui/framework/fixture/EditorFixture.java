@@ -94,13 +94,13 @@ public class EditorFixture {
   /**
    * Performs simulation of user events on <code>{@link #target}</code>
    */
-  public final Robot robot;
+  final Robot robot;
   private final IdeFrameFixture myFrame;
 
   /**
    * Constructs a new editor fixture, tied to the given project
    */
-  public EditorFixture(Robot robot, IdeFrameFixture frame) {
+  EditorFixture(Robot robot, IdeFrameFixture frame) {
     this.robot = robot;
     myFrame = frame;
   }
