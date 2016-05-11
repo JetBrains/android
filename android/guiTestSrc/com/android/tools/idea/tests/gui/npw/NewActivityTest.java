@@ -35,12 +35,6 @@ import java.io.IOException;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 
-/*
-  TODO: Missing Tests
-- Create a project that already has another activity. Make sure you can set it as the "Hierarchical Parent" in the new activity that we're
-  creating
-*/
-
 @RunIn(TestGroup.EDITING)
 @RunWith(GuiTestRunner.class)
 public class NewActivityTest {
@@ -119,6 +113,36 @@ public class NewActivityTest {
       "app/src/main/java/google/simpleapplication/MainActivity.java",
       "app/src/main/res/layout/fragment_main.xml"
     );
+  }
+
+  @Test
+  public void createActivityWithHierarchicalParent() throws Exception{
+    myConfigActivity.enterTextFieldValue(ActivityTextField.HIERARCHICAL_PARENT, "google.simpleapplication.MyActivity");
+    myDialog.clickFinish();
+
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
+
+    String text = myEditor.open(PROVIDED_MANIFEST).getCurrentFileContents();
+    assertEquals(StringUtil.getOccurrenceCount(text, "android:name=\".MainActivity\""), 1);
+    assertEquals(StringUtil.getOccurrenceCount(text, "android:parentActivityName=\".MyActivity\">"), 1);
+  }
+
+  @Test
+  public void createActivityWithInvalidHierarchicalParent() throws Exception {
+    myConfigActivity.enterTextFieldValue(ActivityTextField.HIERARCHICAL_PARENT, "google.simpleapplication.MyActivityWrong");
+    assertThat(myConfigActivity.getValidationText()).isEqualTo("Hierarchical Parent must already exist");
+    myDialog.clickCancel();
+  }
+
+  @Test
+  public void createActivityWithNonDefaultPackage() throws Exception{
+    myConfigActivity.enterTextFieldValue(ActivityTextField.PACKAGE_NAME, "google.test2");
+    myDialog.clickFinish();
+
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
+
+    String text = myEditor.open("app/src/main/java/google/test2/MainActivity.java").getCurrentFileContents();
+    assertThat(text).startsWith("package google.test2;");
   }
 
   @Test
