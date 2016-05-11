@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.actions;
 
-import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.structure.AndroidProjectStructureConfigurable;
@@ -25,12 +24,10 @@ import com.intellij.ide.actions.ShowStructureSettingsAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
-import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static com.android.tools.idea.gradle.project.GradleExperimentalSettings.ENABLE_NEW_PSD_SYSTEM_PROPERTY;
 import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
 import static com.android.tools.idea.gradle.util.Projects.requiresAndroidModel;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
@@ -66,8 +63,7 @@ public class AndroidShowStructureSettingsAction extends ShowStructureSettingsAct
   }
 
   private static void showAndroidProjectStructure(@NotNull Project project) {
-    if (GradleExperimentalSettings.getInstance().USE_NEW_PROJECT_STRUCTURE_DIALOG &&
-        SystemProperties.getBooleanProperty(ENABLE_NEW_PSD_SYSTEM_PROPERTY, false)) {
+    if (GradleExperimentalSettings.getInstance().USE_NEW_PROJECT_STRUCTURE_DIALOG) {
       ProjectStructureConfigurable projectStructure = ProjectStructureConfigurable.getInstance(project);
       AtomicBoolean needsSync = new AtomicBoolean();
       ProjectStructureChangeListener changeListener = () -> needsSync.set(true);
