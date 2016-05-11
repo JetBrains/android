@@ -542,16 +542,7 @@ public class NlComponent {
     if (mySnapshot != null) {
       return mySnapshot.getAttribute(attribute, namespace);
     }
-    else if (myTag.isValid()) {
-      /* TODO: Grab read lock around isValid too (maybe move into getAttributeSafely)
-com.intellij.openapi.application.impl.ApplicationImpl$NoReadAccessException
-	at com.intellij.openapi.application.impl.ApplicationImpl.assertReadAccessAllowed(ApplicationImpl.java:1056)
-	at com.intellij.psi.impl.source.tree.SharedImplUtil.findFileElement(SharedImplUtil.java:88)
-	at com.intellij.psi.impl.source.tree.SharedImplUtil.getContainingFile(SharedImplUtil.java:69)
-	at com.intellij.psi.impl.source.tree.SharedImplUtil.isValid(SharedImplUtil.java:77)
-	at com.intellij.psi.impl.source.tree.CompositePsiElement.isValid(CompositePsiElement.java:130)
-	at com.android.tools.idea.uibuilder.model.NlComponent.getAttribute(NlComponent.java:582)
-       */
+    else if (AndroidPsiUtils.isValid(myTag)) {
       return AndroidPsiUtils.getAttributeSafely(myTag, namespace, attribute);
     }
     else {
