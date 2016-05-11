@@ -20,8 +20,6 @@ import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.AbstractWizardStepFixture;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
-import org.fest.swing.core.matcher.JTextComponentMatcher;
-import org.fest.swing.fixture.JTextComponentFixture;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -71,11 +69,8 @@ public class ConfigureBasicActivityStepFixture extends AbstractWizardStepFixture
 
   @NotNull
   public ConfigureBasicActivityStepFixture enterTextFieldValue(@NotNull ActivityTextField activityField, @NotNull String text) {
-    // The label text may reference the input directly (a subclass of JTextComponent), or it may reference the container of the input
-    // (for example ReferenceEditorComboWithBrowseButton (JPanel) or an EditorComboBox)
-    JComponent comp = robot().finder().findByLabel(target(), activityField.getLabelText(), JComponent.class, true);
-    JTextComponent textField = robot().finder().find(comp, JTextComponentMatcher.any());
-    new JTextComponentFixture(robot(), textField).setText("").enterText(text);
+    JTextComponent textField = findTextFieldWithLabel(activityField.getLabelText());
+    replaceText(textField, text);
 
     return this;
   }
@@ -87,7 +82,7 @@ public class ConfigureBasicActivityStepFixture extends AbstractWizardStepFixture
 
   @NotNull
   public ConfigureBasicActivityStepFixture undoTextFieldValue(@NotNull ActivityTextField activityField) {
-    JTextField textField = findTextFieldWithLabel(activityField.getLabelText());
+    JTextComponent textField = findTextFieldWithLabel(activityField.getLabelText());
     robot().rightClick(textField);
 
     JMenuItem popup = GuiTests.waitUntilShowing(robot(), null, new GenericTypeMatcher<JMenuItem>(JMenuItem.class) {
