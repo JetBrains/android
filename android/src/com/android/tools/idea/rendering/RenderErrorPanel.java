@@ -346,7 +346,8 @@ public class RenderErrorPanel extends JPanel {
             RenderTask task = myResult.getRenderTask();
             DesignSurface surface = task != null ? task.getDesignSurface() : null;
             if (surface != null) {
-              surface.requestRender();
+              // Just request a repaint (no full model invalidation) since the model and the errors will still be valid
+              surface.requestRender(false);
             }
           }
         }));
