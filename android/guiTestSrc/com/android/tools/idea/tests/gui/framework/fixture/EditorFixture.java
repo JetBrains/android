@@ -224,50 +224,6 @@ public class EditorFixture {
   }
 
   /**
-   * Press and release the given key as indicated by the {@code VK_} codes in {@link java.awt.event.KeyEvent}.
-   * Used to transfer key presses to the editor which may have an effect but does not insert text into
-   * the editor (e.g. pressing an arrow key to move the caret)
-   *
-   * @param keyCode the key code to press
-   */
-  public EditorFixture typeKey(int keyCode) {
-    Component component = getFocusedEditor();
-    if (component != null) {
-      new ComponentDriver(robot).pressAndReleaseKeys(component, keyCode);
-    }
-    return this;
-  }
-
-  /**
-   * Press (but don't release yet) the given key as indicated by the {@code VK_} codes in {@link java.awt.event.KeyEvent}.
-   * Used to transfer key presses to the editor which may have an effect but does not insert text into
-   * the editor (e.g. pressing an arrow key to move the caret)
-   *
-   * @param keyCode the key code to press
-   */
-  public EditorFixture pressKey(int keyCode) {
-    Component component = getFocusedEditor();
-    if (component != null) {
-      new ComponentDriver(robot).pressKey(component, keyCode);
-    }
-    return this;
-  }
-
-  /**
-   * Release the given key (as indicated by the {@code VK_} codes in {@link java.awt.event.KeyEvent}) which
-   * must be currently pressed by a previous call to {@link #pressKey(int)}.
-   *
-   * @param keyCode the key code
-   */
-  public EditorFixture releaseKey(int keyCode) {
-    Component component = getFocusedEditor();
-    if (component != null) {
-      new ComponentDriver(robot).releaseKey(component, keyCode);
-    }
-    return this;
-  }
-
-  /**
    * Requests focus in the editor, waits and returns editor component
    */
   @Nullable
