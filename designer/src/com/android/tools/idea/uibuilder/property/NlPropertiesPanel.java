@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder.property;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.PreferenceUtils;
 import com.android.tools.idea.uibuilder.property.inspector.InspectorPanel;
 import com.android.tools.idea.uibuilder.property.ptable.PTable;
 import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
@@ -30,7 +29,6 @@ import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBCardLayout;
 import com.intellij.ui.ScrollPaneFactory;
-import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
@@ -51,8 +49,6 @@ public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Mo
   private final PTableModel myModel;
   private final InspectorPanel myInspectorPanel;
 
-  private JBLabel mySelectedComponentLabel;
-  private Component myShowExpertPropertiesButton;
   private final JPanel myCardPanel;
 
   private List<NlComponent> myComponents;
@@ -91,15 +87,12 @@ public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Mo
     JBPanel panel = new JBPanel(new BorderLayout());
     panel.setBorder(BorderFactory.createEmptyBorder(0, HORIZONTAL_SPACING, 0, 0));
 
-    mySelectedComponentLabel = new JBLabel("");
-    panel.add(mySelectedComponentLabel, BorderLayout.CENTER);
-
     ShowExpertProperties showExpertAction = new ShowExpertProperties(this);
 
-    myShowExpertPropertiesButton = new ActionButton(showExpertAction, showExpertAction.getTemplatePresentation(), ActionPlaces.UNKNOWN,
-                                                    ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE);
+    Component showExpertPropertiesButton = new ActionButton(
+      showExpertAction, showExpertAction.getTemplatePresentation(), ActionPlaces.UNKNOWN, ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE);
 
-    panel.add(myShowExpertPropertiesButton, BorderLayout.LINE_END);
+    panel.add(showExpertPropertiesButton, BorderLayout.LINE_END);
 
     return panel;
   }
@@ -109,7 +102,6 @@ public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Mo
                        @NotNull NlPropertiesManager propertiesManager) {
     myComponents = components;
     myProperties = extractPropertiesForTable(properties);
-    mySelectedComponentLabel.setText(getComponentName(components));
 
     List<PTableItem> sortedProperties;
     if (components.isEmpty()) {
@@ -126,27 +118,6 @@ public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Mo
 
     updateDefaultProperties(propertiesManager);
     myInspectorPanel.setComponent(components, properties, propertiesManager);
-
-    // TODO Default inspectors for preferences
-    if (myComponents.stream().anyMatch(component -> PreferenceUtils.VALUES.contains(component.getTagName()))) {
-      myShowExpertPropertiesButton.setEnabled(false);
-      setShowExpertProperties(true);
-    }
-    else {
-      myShowExpertPropertiesButton.setEnabled(true);
-    }
-  }
-
-  @NotNull
-  private static String getComponentName(@NotNull List<NlComponent> components) {
-    if (components.isEmpty()) {
-      return "";
-    }
-    if (components.size() > 1) {
-      return "Multiple";
-    }
-    String tagName = components.get(0).getTagName();
-    return tagName.substring(tagName.lastIndexOf('.') + 1);
   }
 
   @NotNull

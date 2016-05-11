@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,32 +22,18 @@ import java.util.List;
 
 import static com.android.SdkConstants.*;
 
-/**
- * Handler for the {@code <ImageButton>} widget
- */
-public class ImageButtonHandler extends ImageViewHandler {
-
+public class TabLayoutHandler extends HorizontalScrollViewHandler {
   @Override
   @NotNull
   public List<String> getInspectorProperties() {
     return ImmutableList.of(
-      ATTR_SRC,
-      ATTR_CONTENT_DESCRIPTION,
+      ATTR_TAB_MODE,
+      ATTR_TAB_GRAVITY,
+      ATTR_TAB_CONTENT_START,
+      ATTR_THEME,
       ATTR_BACKGROUND,
-      ATTR_SCALE_TYPE,
-      ATTR_ADJUST_VIEW_BOUNDS,
-      ATTR_CROP_TO_PADDING,
-      ATTR_STYLE,
-      ATTR_BACKGROUND_TINT,
-      ATTR_ELEVATION,
-      ATTR_VISIBILITY,
-      ATTR_ON_CLICK);
-  }
-
-  @Override
-  @NotNull
-  public String getSampleImageSrc() {
-    // Builtin graphics available since v1:
-    return "@android:drawable/btn_star"; //$NON-NLS-1$
+      ATTR_TAB_INDICATOR_COLOR,
+      ATTR_TAB_SELECTED_TEXT_COLOR,
+      ATTR_TAB_TEXT_APPEARANCE);
   }
 }

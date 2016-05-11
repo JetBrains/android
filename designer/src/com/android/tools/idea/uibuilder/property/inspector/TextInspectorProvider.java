@@ -153,12 +153,11 @@ public class TextInspectorProvider implements InspectorProvider {
 
     @Override
     public int getMaxNumberOfRows() {
-      return 14;
+      return 13;
     }
 
     @Override
     public void attachToInspector(@NotNull InspectorPanel inspector) {
-      inspector.addSeparator();
       inspector.addTitle("TextView");
       inspector.addComponent(ATTR_TEXT, myText.getTooltipText(), myTextEditor.getComponent());
       JLabel designText = inspector.addComponent(ATTR_TEXT, myDesignText.getTooltipText(), myDesignTextEditor.getComponent());

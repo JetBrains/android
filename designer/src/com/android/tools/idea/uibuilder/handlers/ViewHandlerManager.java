@@ -313,6 +313,8 @@ public class ViewHandlerManager implements ProjectComponent {
         return new TableRowHandler();
       case TAB_HOST:
         return new TabHostHandler();
+      case TAB_LAYOUT:
+        return new TabLayoutHandler();
       case TAG_GROUP:
         return new GroupHandler();
       case TAG_ITEM:

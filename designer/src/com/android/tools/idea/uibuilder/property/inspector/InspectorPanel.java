@@ -111,12 +111,15 @@ public class InspectorPanel extends JPanel {
     List<InspectorComponent> inspectors = createInspectorComponents(components, propertiesManager, propertiesByName, myProviders);
     myInspectors = inspectors;
 
-    int rows = 1;  // 1 for the spacer below
+    int rows = 0;
     for (InspectorComponent inspector : inspectors) {
       rows += inspector.getMaxNumberOfRows();
     }
+    rows += inspectors.size(); // 1 row for each divider + 1 row with a spacer on the bottom
+
     myInspector.setLayout(createLayoutManager(rows, 2));
     for (InspectorComponent inspector : inspectors) {
+      addSeparator();
       inspector.attachToInspector(this);
     }
 
@@ -167,7 +170,10 @@ public class InspectorPanel extends JPanel {
 
   public void addSeparator() {
     endGroup();
-    addLineComponent(new JSeparator(), myRow++);
+    if (myRow > 0) {
+      // Never add a separator as the first element.
+      addLineComponent(new JSeparator(), myRow++);
+    }
   }
 
   public JLabel addLabel(@NotNull String title) {

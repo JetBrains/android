@@ -28,7 +28,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Arrays;
 
 import static com.android.SdkConstants.*;
-import static com.android.SdkConstants.PreferenceAttributes.KEY;
+import static com.android.SdkConstants.PreferenceAttributes.ATTR_KEY;
 
 abstract class PreferenceHandler extends ViewHandler {
   @Language("XML")
@@ -70,7 +70,7 @@ abstract class PreferenceHandler extends ViewHandler {
 
   private static boolean anyPreferenceKeyEquals(@NotNull XmlTag[] preferences, @NotNull String key) {
     return Arrays.stream(preferences)
-      .map(preference -> preference.getAttributeValue(KEY, ANDROID_URI))
+      .map(preference -> preference.getAttributeValue(ATTR_KEY, ANDROID_URI))
       .anyMatch(key::equals);
   }
 }
