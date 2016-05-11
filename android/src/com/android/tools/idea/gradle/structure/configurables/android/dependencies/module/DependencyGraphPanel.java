@@ -20,9 +20,9 @@ import com.android.tools.idea.gradle.structure.configurables.android.dependencie
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.ModuleDependencyDetails;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.ModuleLibraryDependencyDetails;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.*;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.resolved.DependenciesTreeBuilder;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.resolved.DependenciesTreeRootNode;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.resolved.DependenciesTreeStructure;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.graph.DependenciesTreeBuilder;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.graph.DependenciesTreeRootNode;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.graph.DependenciesTreeStructure;
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesViewer;
 import com.android.tools.idea.gradle.structure.configurables.issues.SingleModuleIssuesRenderer;
 import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeEventDispatcher;
@@ -31,6 +31,7 @@ import com.android.tools.idea.gradle.structure.configurables.ui.treeview.Abstrac
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseExpandAllAction;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.NodeHyperlinkSupport;
+import com.android.tools.idea.gradle.structure.model.PsDependency;
 import com.android.tools.idea.gradle.structure.model.PsIssue;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
@@ -107,7 +108,20 @@ public class DependencyGraphPanel extends AbstractDependenciesPanel {
     DependenciesTreeStructure treeStructure = new DependenciesTreeStructure(createRootNode(module));
     myTreeBuilder = new DependenciesTreeBuilder(myTree, treeModel, treeStructure);
 
-    module.add(event -> myTreeBuilder.reset(null), this);
+    module.add(event -> {
+      myTreeBuilder.reset(null);
+      PsAndroidDependency toSelect = null;
+      if (event instanceof PsModule.DependencyModifiedEvent) {
+        PsDependency dependency = ((PsModule.DependencyModifiedEvent)event).getDependency();
+        if (dependency instanceof PsAndroidDependency) {
+          toSelect = (PsAndroidDependency)dependency;
+        }
+      }
+
+      if (toSelect != null) {
+        selectDependency(toSelect.toText(FOR_NAVIGATION));
+      }
+    }, this);
 
     JScrollPane scrollPane = setUp(myTreeBuilder);
     getContentsPanel().add(scrollPane, BorderLayout.CENTER);
