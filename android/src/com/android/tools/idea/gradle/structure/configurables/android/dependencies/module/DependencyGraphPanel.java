@@ -31,10 +31,12 @@ import com.android.tools.idea.gradle.structure.configurables.ui.treeview.Abstrac
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseExpandAllAction;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.NodeHyperlinkSupport;
+import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsDependency;
 import com.android.tools.idea.gradle.structure.model.PsIssue;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidLibraryDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.model.android.PsModuleDependency;
 import com.google.common.collect.Lists;
@@ -111,7 +113,11 @@ public class DependencyGraphPanel extends AbstractDependenciesPanel {
     module.add(event -> {
       myTreeBuilder.reset(null);
       PsAndroidDependency toSelect = null;
-      if (event instanceof PsModule.DependencyModifiedEvent) {
+      if (event instanceof PsModule.LibraryDependencyAddedEvent) {
+        PsArtifactDependencySpec spec = ((PsModule.LibraryDependencyAddedEvent)event).getSpec();
+        selectDependency(spec);
+      }
+      else if (event instanceof PsModule.DependencyModifiedEvent) {
         PsDependency dependency = ((PsModule.DependencyModifiedEvent)event).getDependency();
         if (dependency instanceof PsAndroidDependency) {
           toSelect = (PsAndroidDependency)dependency;
@@ -151,6 +157,25 @@ public class DependencyGraphPanel extends AbstractDependenciesPanel {
     });
 
     myHyperlinkSupport = new NodeHyperlinkSupport<>(myTree, ModuleDependencyNode.class, myContext, true);
+  }
+
+  private void selectDependency(@NotNull PsArtifactDependencySpec spec) {
+    Ref<AbstractDependencyNode> nodeRef = new Ref<>();
+    myTreeBuilder.accept(AbstractDependencyNode.class, new TreeVisitor<AbstractDependencyNode>() {
+      @Override
+      public boolean visit(@NotNull AbstractDependencyNode node) {
+        PsAndroidDependency dependency = (PsAndroidDependency)node.getModels().get(0);
+        if (isTopLevel(node) && dependency instanceof PsAndroidLibraryDependency) {
+          PsAndroidLibraryDependency libraryDependency = (PsAndroidLibraryDependency)dependency;
+          if (spec.equals(libraryDependency.getDeclaredSpec())) {
+            nodeRef.set(node);
+            return true;
+          }
+        }
+        return false;
+      }
+    });
+    select(nodeRef.get());
   }
 
   @NotNull
@@ -311,7 +336,7 @@ public class DependencyGraphPanel extends AbstractDependenciesPanel {
       @Override
       public boolean visit(@NotNull AbstractDependencyNode node) {
         PsAndroidDependency dependency = (PsAndroidDependency)node.getModels().get(0);
-        if (!(node.getParent() instanceof AbstractDependencyNode)) {
+        if (isTopLevel(node)) {
           // Only consider top-level dependencies (i.e. "declared" dependencies.
           String dependencyAsText = dependency.toText(FOR_NAVIGATION);
           if (toSelect.equals(dependencyAsText)) {
@@ -322,9 +347,15 @@ public class DependencyGraphPanel extends AbstractDependenciesPanel {
         return false;
       }
     });
-    if (nodeRef.get() != null) {
-      myTreeBuilder.getInitialized().doWhenDone(() -> myTreeBuilder.select(nodeRef.get()));
-    }
+    select(nodeRef.get());
+  }
+
+  private static boolean isTopLevel(@NotNull AbstractDependencyNode node) {
+    return !(node.getParent() instanceof AbstractDependencyNode);
+  }
+
+  private void select(@Nullable AbstractDependencyNode node) {
+    myTreeBuilder.getInitialized().doWhenDone(() -> myTreeBuilder.select(node));
     myTree.requestFocusInWindow();
   }
 
