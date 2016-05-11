@@ -25,6 +25,7 @@ import org.fest.swing.fixture.JComboBoxFixture;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.text.JTextComponent;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -68,20 +69,14 @@ public class ConfigureAvdOptionsStepFixture extends AbstractWizardStepFixture<Co
 
   @NotNull
   public ConfigureAvdOptionsStepFixture requireAvdName(@NotNull String name) {
-    String text = GuiActionRunner.execute(new GuiQuery<String>() {
-      @Override
-      protected String executeInEDT() throws Throwable {
-        JTextField textFieldWithLabel = findTextFieldWithLabel("AVD Name");
-        return textFieldWithLabel.getText();
-      }
-    });
+    String text = findTextFieldWithLabel("AVD Name").getText();
     assertThat(text).named("AVD name").isEqualTo(name);
     return this;
   }
 
   @NotNull
   public ConfigureAvdOptionsStepFixture setAvdName(@NotNull String name) {
-    JTextField textFieldWithLabel = findTextFieldWithLabel("AVD Name");
+    JTextComponent textFieldWithLabel = findTextFieldWithLabel("AVD Name");
     replaceText(textFieldWithLabel, name);
     return this;
   }
