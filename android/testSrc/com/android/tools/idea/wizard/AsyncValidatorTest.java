@@ -23,8 +23,8 @@ import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.Callable;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -51,14 +51,20 @@ public final class AsyncValidatorTest extends TestCase {
   public void setUp() throws Exception {
     super.setUp();
     // This should happen on some other thread - it will become the AWT event queue thread.
-    Future<IdeaTestApplication> application = Executors.newSingleThreadExecutor(ConcurrencyUtil.newNamedThreadFactory("async validator test")).
+    ThreadPoolExecutor executor = ConcurrencyUtil.newSingleThreadExecutor("async validator test");
+    Future<IdeaTestApplication> application = executor.
       submit(new Callable<IdeaTestApplication>() {
         @Override
         public IdeaTestApplication call() throws Exception {
           return IdeaTestApplication.getInstance();
         }
       });
-    application.get(100, TimeUnit.SECONDS); // Wait for the application instantiation
+    try {
+      application.get(100, TimeUnit.SECONDS); // Wait for the application instantiation
+    }
+    finally {
+      executor.shutdownNow();
+    }
   }
 
   public void testBasicValidation() throws InterruptedException {

@@ -57,7 +57,6 @@ import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static com.android.tools.idea.templates.RepositoryUrlManager.REVISION_ANY;
 
@@ -107,7 +106,7 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
   private JPanel myPanel;
   private JBList myResultList;
   private final List<Artifact> myShownItems = Lists.newArrayList();
-  private final ExecutorService mySearchWorker = Executors.newSingleThreadExecutor(ConcurrencyUtil.newNamedThreadFactory("Maven dependency lookup"));
+  private final ExecutorService mySearchWorker = ConcurrencyUtil.newSingleThreadExecutor("Maven dependency lookup");
   private final boolean myAndroidModule;
 
   private final List<String> myAndroidSdkLibraries = Lists.newArrayList();
