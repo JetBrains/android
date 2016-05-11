@@ -168,10 +168,11 @@ public final class SdkQuickfixUtils {
       }
       builder.endList().closeHtmlBody();
       Messages.showErrorDialog(builder.getHtml(), title);
-      // If everything was removed, don't continue.
-      if (resolvedPackages.isEmpty() && resolvedUninstalls.isEmpty()) {
-        return null;
-      }
+    }
+
+    // If everything was removed, don't continue.
+    if (resolvedPackages.isEmpty() && resolvedUninstalls.isEmpty()) {
+      return null;
     }
     List<RemotePackage> installRequests = resolvedPackages.stream().map(UpdatablePackage::getRemote).collect(Collectors.toList());
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
