@@ -501,7 +501,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       }
       WidgetsScene scene = model.getScene();
       scene.clearAllConstraints();
-      model.saveToXML();
+      model.saveToXML(true);
     }
 
     @Override
@@ -559,7 +559,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       }
       WidgetsScene scene = model.getScene();
       Scout.inferConstraints(scene);
-      model.saveToXML();
+      model.saveToXML(true);
       model.setNeedsAnimateConstraints(ConstraintAnchor.SCOUT_CREATOR);
     }
 
@@ -706,7 +706,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       }
 
       Scout.arrangeWidgets(myActionType, model.getSelection().getWidgets(), mControlIsPressed || model.isAutoConnect());
-      model.saveToXML();
+      model.saveToXML(true);
     }
 
     @Override
