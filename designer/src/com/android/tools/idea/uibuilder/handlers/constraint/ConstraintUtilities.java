@@ -426,7 +426,7 @@ public class ConstraintUtilities {
   }
 
   /**
-   * Set Left Margin on a constraint widget if defined
+   * Set start margin on a constraint widget if defined
    *
    * @param left      the left attribute (we'll only set the margin if the attribute exists)
    * @param component the component we are looking at
@@ -440,7 +440,7 @@ public class ConstraintUtilities {
   }
 
   /**
-   * Set Right Margin on a constraint widget if defined
+   * Set end margin on a constraint widget if defined
    *
    * @param right     the right attribute (we'll only set the margin if the attribute exists)
    * @param component the component we are looking at
