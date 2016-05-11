@@ -269,7 +269,7 @@ public class EditorFixture {
       protected String executeInEDT() throws Throwable {
         Editor editor = FileEditorManager.getInstance(myFrame.getProject()).getSelectedTextEditor();
         checkState(editor != null, "no currently selected text editor");
-        return editor.getDocument().getText();
+        return editor.getDocument().getImmutableCharSequence().toString();
       }
     });
   }
@@ -433,12 +433,17 @@ public class EditorFixture {
   }
 
   /**
-   * Moves the caret to the given caret offset (0-based).
+   * Moves the caret to the start of the first occurrence of {@code after} immediately following {@code before} in the selected text editor.
    *
-   * @param offset the character offset.
+   * @throws IllegalStateException if there is no selected text editor or if no match is found
    */
-  public EditorFixture moveTo(final int offset) {
-    assertThat(offset).isAtLeast(0);
+  @NotNull
+  public EditorFixture moveBetween(@NotNull String before, @NotNull String after) {
+    String regex = String.format("%s()%s", Pattern.quote(before), Pattern.quote(after));
+    Matcher matcher = Pattern.compile(regex).matcher(getCurrentFileContents());
+    matcher.find();
+    int offset = matcher.start(1);
+
     final Ref<Boolean> doneScrolling = new Ref<>(false);
 
     Point offsetPoint = execute(new GuiQuery<Point>() {
@@ -506,71 +511,6 @@ public class EditorFixture {
     });
 
     return this;
-  }
-
-  /**
-   * Finds the next position (or if {@code searchFromTop} is true, from the beginning) of
-   * the given string indicated by a prefix and a suffix. The offset returned will be the position exactly
-   * in the middle of the two. For example, if you have the text "The quick brown fox jumps over the lazy dog"
-   * and you search via {@code moveTo("The qui", "ck brown", true)} the returned offset will be at the 7th
-   * position in the string, between the "i" and "c".
-   * <p/>
-   * Note that on Windows, any {@code \r}'s are hidden from the editor, so they never count in offset
-   * computations.
-   *
-   * @param prefix        the target prefix which must immediately precede the returned position
-   * @param suffix        the target string, which must immediately follow the given prefix
-   * @param searchFromTop if true, search from the beginning of the file instead of from the current editor position
-   * @return the 0-based offset in the document, or -1 if not found.
-   */
-  public int findOffset(@Nullable final String prefix, @Nullable final String suffix, final boolean searchFromTop) {
-    assertTrue(prefix != null || suffix != null);
-    //noinspection ConstantConditions
-    return execute(new GuiQuery<Integer>() {
-      @Override
-      @Nullable
-      protected Integer executeInEDT() throws Throwable {
-        FileEditorManager manager = FileEditorManager.getInstance(myFrame.getProject());
-        Editor editor = manager.getSelectedTextEditor();
-        if (editor != null) {
-          CaretModel caretModel = editor.getCaretModel();
-          Caret primaryCaret = caretModel.getPrimaryCaret();
-          Document document = editor.getDocument();
-          String contents = document.getCharsSequence().toString();
-          String target = (prefix != null ? prefix : "") + (suffix != null ? suffix : "");
-          int targetIndex = contents.indexOf(target, searchFromTop ? 0 : primaryCaret.getOffset());
-          return targetIndex != -1 ? targetIndex + (prefix != null ? prefix.length() : 0) : -1;
-        }
-        return -1;
-      }
-    });
-  }
-
-  /**
-   * Finds the first position in the editor document indicated by the given text segment, where ^ (or if not defined, |) indicates
-   * the caret position.
-   *
-   * @param line the line segment to search for (with ^ or | indicating the caret position)
-   * @return the 0-based offset in the document, or -1 if not found.
-   */
-  public int findOffset(@NotNull final String line) {
-    int index = line.indexOf('^');
-    if (index == -1) {
-      // Also look for |. ^ has higher precedence since in many Android XML files we'll have | appearing as
-      // the XML value flag delimiter.
-      index = line.indexOf('|');
-    }
-    assertTrue("The text segment should contain a caret position indicated by ^ or |", index != -1);
-    String prefix = line.substring(0, index);
-    if (prefix.isEmpty()) {
-      prefix = null;
-    }
-    String suffix = line.substring(index + 1);
-    if (suffix.isEmpty()) {
-      suffix = null;
-    }
-    assertTrue("The text segment should have more text than just the caret position", prefix != null || suffix != null);
-    return findOffset(prefix, suffix, true);
   }
 
   /**

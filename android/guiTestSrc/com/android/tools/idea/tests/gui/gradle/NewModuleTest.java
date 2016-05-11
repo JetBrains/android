@@ -57,7 +57,7 @@ public class NewModuleTest {
 
     EditorFixture editor = guiTest.ideFrame().getEditor();
     editor.open("app/build.gradle");
-    editor.moveTo(editor.findOffset("use", "Library", false));
+    editor.moveBetween("use", "Library");
     editor.invokeAction(EditorFixture.EditorAction.DELETE_LINE);
 
     guiTest.ideFrame().requestProjectSync();

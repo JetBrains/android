@@ -73,7 +73,7 @@ public class ManifestEditorTest {
                                       "\n" +
                                       "library manifest", false);
     editor.selectEditorTab(EditorFixture.Tab.EDITOR);
-    editor.moveTo(editor.findOffset("<application", null, true));
+    editor.moveBetween("<application", "");
     editor.enterText(" android:isGame=\"true\"");
     editor.selectEditorTab(EditorFixture.Tab.MERGED_MANIFEST);
 
