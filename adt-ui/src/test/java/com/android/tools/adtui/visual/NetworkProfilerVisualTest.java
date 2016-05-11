@@ -47,7 +47,6 @@ public class NetworkProfilerVisualTest extends VisualTest {
     mSharedRange = new Range(0, 0);
     mAnimatedTimeRange = new AnimatedTimeRange(mSharedRange, mStartTimeMs);
     mData = new ArrayList<>();
-    simulateTestData();
   }
 
   @Override
@@ -86,13 +85,13 @@ public class NetworkProfilerVisualTest extends VisualTest {
     constraints.gridy = 1;
     mSegment2.initializeComponents();
     panel.add(mSegment2, constraints);
+    simulateTestData();
   }
 
   private void simulateTestData() {
-    Thread mUpdateDataThread = new Thread() {
+    mUpdateDataThread = new Thread() {
       @Override
       public void run() {
-        super.run();
         try {
           while (true) {
             //  Insert new data point at now.
