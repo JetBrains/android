@@ -18,17 +18,20 @@ package com.android.tools.idea.uibuilder.model;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.MergeCookie;
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.resources.ResourceFolderType;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Screen;
+import com.android.sdklib.devices.State;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.avdmanager.AvdScreenData;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationMatcher;
 import com.android.tools.idea.rendering.*;
-import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceVersion;
 import com.android.tools.idea.uibuilder.api.*;
+import com.android.tools.idea.uibuilder.editor.NlEditor;
+import com.android.tools.idea.uibuilder.editor.NlEditorProvider;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.lint.LintAnnotationsModel;
@@ -43,6 +46,10 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileEditor.FileEditor;
+import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.OpenFileDescriptor;
+import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.util.ProgressIndicatorBase;
 import com.intellij.openapi.project.DumbService;
@@ -51,6 +58,7 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.XmlElementFactory;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -480,6 +488,14 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     screen.setXDimension(xDimension);
     screen.setYDimension(yDimension);
 
+    double width = xDimension / screen.getXdpi();
+    double height = yDimension / screen.getYdpi();
+    double diagonalLength = Math.sqrt(width * width + height * height);
+    screen.setDiagonalLength(diagonalLength);
+    screen.setSize(AvdScreenData.getScreenSize(diagonalLength));
+
+    screen.setRatio(AvdScreenData.getScreenRatio(xDimension, yDimension));
+
     // If a custom device already exists, remove it before adding the latest one
     List<Device> devices = myConfiguration.getConfigurationManager().getDevices();
     for (int i = 0; i < devices.size(); i++) {
@@ -489,14 +505,41 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     }
     devices.add(device);
 
-    myConfiguration.setDevice(device, true);
-
+    VirtualFile better;
+    State newState;
     //Change the orientation of the device depending on the shape of the canvas
     if (xDimension > yDimension) {
-      myConfiguration.setDeviceState(device.getState("Landscape"));
+      better = ConfigurationMatcher.getBetterMatch(myConfiguration, device, "Landscape", null, null);
+      newState = device.getState("Landscape");
     }
     else {
-      myConfiguration.setDeviceState(device.getState("Portrait"));
+      better = ConfigurationMatcher.getBetterMatch(myConfiguration, device, "Portrait", null, null);
+      newState = device.getState("Portrait");
+    }
+
+    if (better != null) {
+      VirtualFile old = myConfiguration.getFile();
+      assert old != null;
+      Project project = mySurface.getProject();
+      OpenFileDescriptor descriptor = new OpenFileDescriptor(project, better, -1);
+      FileEditorManager manager = FileEditorManager.getInstance(project);
+      FileEditor selectedEditor = manager.getSelectedEditor(old);
+      manager.openEditor(descriptor, true);
+      // Switch to the same type of editor (XML or Layout Editor) in the target file
+      if (selectedEditor instanceof NlEditor) {
+        manager.setSelectedEditor(better, NlEditorProvider.DESIGNER_ID);
+      } else if (selectedEditor != null) {
+        manager.setSelectedEditor(better, TextEditorProvider.getInstance().getEditorTypeId());
+      }
+      AndroidFacet facet = AndroidFacet.getInstance(myConfiguration.getModule());
+      assert facet != null;
+      Configuration configuration = facet.getConfigurationManager().getConfiguration(better);
+      configuration.setDevice(device, false);
+      configuration.setDeviceState(newState);
+    }
+    else {
+      myConfiguration.setDevice(device, false);
+      myConfiguration.setDeviceState(newState);
     }
   }
 
