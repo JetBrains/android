@@ -49,20 +49,6 @@ public class ScreenView {
     myType = type;
     myModel = model;
 
-    myModel.addListener(new ModelListener() {
-      @Override
-      public void modelRendered(@NotNull NlModel model) {
-        ApplicationManager.getApplication().invokeLater(() -> {
-          mySurface.updateErrorDisplay(ScreenView.this, myModel.getRenderResult());
-          mySurface.repaint();
-        });
-      }
-
-      @Override
-      public void modelChanged(@NotNull NlModel model) {
-        model.render();
-      }
-    });
     myModel.getSelectionModel().addListener(new SelectionListener() {
       @Override
       public void selectionChanged(@NotNull SelectionModel model, @NotNull List<NlComponent> selection) {
