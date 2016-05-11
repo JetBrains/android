@@ -204,6 +204,7 @@ class DeclaredDependenciesPanel extends AbstractDependenciesPanel {
     return null;
   }
 
+  @Nullable
   private PsModuleDependency getDependencyUnderMousePointer() {
     PointerInfo pointerInfo = MouseInfo.getPointerInfo();
     if (pointerInfo != null) {
@@ -215,7 +216,7 @@ class DeclaredDependenciesPanel extends AbstractDependenciesPanel {
   }
 
   @Nullable
-  private PsModuleDependency getDependencyForLocation(Point location) {
+  private PsModuleDependency getDependencyForLocation(@NotNull Point location) {
     int column = myDependenciesTable.columnAtPoint(location);
     if (column == 0) {
       // "Dependency" column
