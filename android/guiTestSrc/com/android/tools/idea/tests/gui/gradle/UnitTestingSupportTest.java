@@ -73,7 +73,6 @@ public class UnitTestingSupportTest {
     assertEquals(1, unitTestTree.getAllTestsCount());
 
     // Run the test that is supposed to fail:
-    myEditor.requestFocus();
     myEditor.moveBetween("failing", "Test");
 
     runTestUnderCursor();
@@ -83,7 +82,6 @@ public class UnitTestingSupportTest {
     assertEquals(1, unitTestTree.getAllTestsCount());
 
     // Fix the failing test and re-run the tests.
-    myEditor.requestFocus();
     myEditor.moveBetween("(7", ",");
     myEditor.invokeAction(EditorFixture.EditorAction.BACK_SPACE);
     myEditor.enterText("6");
@@ -104,7 +102,6 @@ public class UnitTestingSupportTest {
     assertThat(unitTestTree.getAllTestsCount()).isGreaterThan(1);
 
     // Break the test again to check the re-run buttons.
-    myEditor.requestFocus();
     myEditor.moveBetween("(6", ",");
     myEditor.invokeAction(EditorFixture.EditorAction.BACK_SPACE);
     myEditor.enterText("8");
@@ -117,7 +114,6 @@ public class UnitTestingSupportTest {
     assertThat(unitTestTree.getAllTestsCount()).isGreaterThan(1);
 
     // Fix it again.
-    myEditor.requestFocus();
     myEditor.moveBetween("(8", ",");
     myEditor.invokeAction(EditorFixture.EditorAction.BACK_SPACE);
     myEditor.enterText("6");
@@ -133,7 +129,6 @@ public class UnitTestingSupportTest {
     guiTest.ideFrame().invokeMenuPath("Build", "Rebuild Project");
     guiTest.waitForBackgroundTasks();
 
-    myEditor.requestFocus();
     myEditor.moveBetween("class ", testClass);
     runTestUnderCursor();
     unitTestTree = getTestTree(testClass);
