@@ -185,16 +185,13 @@ public final class SelectionComponent extends AnimatedComponent {
       }
     });
 
-    mHost.addMouseWheelListener(new MouseWheelListener() {
-      @Override
-      public void mouseWheelMoved(MouseWheelEvent e) {
-        double anchor = mAxis.getValueAtPosition(e.getPoint().x);
-        float zoomPercentage = ZOOM_FACTOR * e.getWheelRotation();
-        double delta = zoomPercentage * mViewRange.getLength();
-        double minDelta = delta * (anchor - mViewRange.getMin()) / mViewRange.getLength();
-        double maxDelta = delta - minDelta;
-        requestZoom(mViewRange.getMin() - minDelta, mViewRange.getMax() + maxDelta);
-      }
+    mHost.addMouseWheelListener(e -> {
+      double anchor = mAxis.getValueAtPosition(e.getPoint().x);
+      float zoomPercentage = ZOOM_FACTOR * e.getWheelRotation();
+      double delta = zoomPercentage * mViewRange.getLength();
+      double minDelta = delta * (anchor - mViewRange.getMin()) / mViewRange.getLength();
+      double maxDelta = delta - minDelta;
+      requestZoom(mViewRange.getMin() - minDelta, mViewRange.getMax() + maxDelta);
     });
   }
 
@@ -256,6 +253,12 @@ public final class SelectionComponent extends AnimatedComponent {
   }
 
   @Override
+  public void reset() {
+    super.reset();
+    clear();
+  }
+
+  @Override
   protected void updateData() {
     // Early return if the component is hidden.
     // TODO probably abstract the isShowing check to somewhere across all AnimatedComponents
@@ -267,6 +270,7 @@ public final class SelectionComponent extends AnimatedComponent {
       // TODO clamp zooming if a min range is reached.
       if (mZoomMinTarget != mViewRange.getMin() || mZoomMaxTarget != mViewRange.getMax()) {
         mViewRange.setTarget(mZoomMinTarget, mZoomMaxTarget);
+        mViewRange.lockValues();
       }
       mZoomRequested = false;
     }
