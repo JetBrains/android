@@ -349,38 +349,7 @@ public class EditorFixture {
    */
   @NotNull
   public EditorFixture moveBetween(@NotNull String before, @NotNull String after) {
-    String regex = String.format("%s()%s", Pattern.quote(before), Pattern.quote(after));
-    Matcher matcher = Pattern.compile(regex).matcher(getCurrentFileContents());
-    matcher.find();
-    int offset = matcher.start(1);
-
-    final Ref<Boolean> doneScrolling = new Ref<>(false);
-
-    Point offsetPoint = execute(new GuiQuery<Point>() {
-      @Override
-      protected Point executeInEDT() throws Throwable {
-        FileEditorManager manager = FileEditorManager.getInstance(myFrame.getProject());
-        Editor editor = manager.getSelectedTextEditor();
-        if (editor != null) {
-          LogicalPosition position = editor.offsetToLogicalPosition(offset);
-          editor.getScrollingModel().scrollTo(position, ScrollType.MAKE_VISIBLE);
-          editor.getScrollingModel().runActionOnScrollingFinished(() -> doneScrolling.set(true));
-          return editor.logicalPositionToXY(position);
-        }
-        return null;
-      }
-    });
-
-    Wait.seconds(10).expecting("scrolling to finish").until(() -> doneScrolling.get());
-
-    JComponent focusedEditor = getFocusedEditor();
-    if (focusedEditor != null && offsetPoint != null) {
-      robot.click(focusedEditor, offsetPoint);
-    }
-    else {
-      fail("Could not move to offset " + offset + " in the editor");
-    }
-    return this;
+    return select(String.format("%s()%s", Pattern.quote(before), Pattern.quote(after)));
   }
 
   /**
