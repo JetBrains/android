@@ -256,6 +256,9 @@ public class ConstraintHandle {
         int y = widget.getDrawY();
         int w = widget.getDrawWidth();
         int h = widget.getDrawHeight();
+        if (mAnchor == null) {
+            return;
+        }
         switch (mAnchor.getType()) {
             case LEFT: {
                 mX = x;

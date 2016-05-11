@@ -351,8 +351,8 @@ public class WidgetDraw {
         int r = transform.getSwingX(root.getDrawX() + root.getWidth());
         int b = transform.getSwingY(root.getDrawY() + root.getHeight());
         g.setFont(sFont);
-        if (guideline.getOrientation() == Guideline.HORIZONTAL) {
-            int x = transform.getSwingX(guideline.getX()) + l;
+        if (guideline.getOrientation() == Guideline.VERTICAL) {
+            int x = transform.getSwingX(guideline.getDrawX());
             g2.drawLine(x, t, x, b);
             int offset = 2;
             int circleSize = ConnectionDraw.ARROW_SIDE - 1;
@@ -392,7 +392,7 @@ public class WidgetDraw {
                 }
             }
         } else {
-            int y = transform.getSwingY(guideline.getY()) + t;
+            int y = transform.getSwingY(guideline.getDrawY());
             g2.drawLine(l, y, r, y);
             int offset = 2;
             int circleSize = ConnectionDraw.ARROW_SIDE - 1;
