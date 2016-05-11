@@ -19,6 +19,10 @@ import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.intellij.ide.DeleteProvider;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.DataProvider;
+import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.ColoredTreeCellRenderer;
@@ -29,6 +33,7 @@ import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.tree.TreeUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -53,7 +58,8 @@ import static com.android.tools.idea.uibuilder.property.NlPropertiesManager.UPDA
 import static com.android.tools.idea.uibuilder.structure.NlComponentTree.InsertionPoint.INSERT_INTO;
 import static com.intellij.util.Alarm.ThreadToUse.SWING_THREAD;
 
-public class NlComponentTree extends Tree implements DesignSurfaceListener, ModelListener, SelectionListener {
+public class NlComponentTree extends Tree implements DesignSurfaceListener, ModelListener, SelectionListener, DataProvider,
+                                                     DeleteProvider {
   private static final Insets INSETS = new Insets(0, 6, 0, 6);
 
   private final StructureTreeDecorator myDecorator;
@@ -66,6 +72,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   private boolean myWasExpanded;
   private TreePath myInsertionPath;
   private InsertionPoint myInsertionPoint;
+  private boolean mySkipWait;
 
   public NlComponentTree(@NotNull DesignSurface designSurface) {
     myDecorator = new StructureTreeDecorator(designSurface.getProject());
@@ -213,6 +220,19 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
         }
       }
     });
+    if (mySkipWait) {
+      mySkipWait = false;
+      myUpdateQueue.flush();
+    }
+  }
+
+  /**
+   * Normally the outline pauses for a certain delay after a model change before updating itself
+   * to reflect the new hierarchy. This method can be called to skip (just) the next update delay.
+   * This is used to make operations performed <b>in</b> the outline feel more immediate.
+   */
+  void skipNextUpdateDelay() {
+    mySkipWait = true;
   }
 
   private void updateHierarchy() {
@@ -483,5 +503,30 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
       NlComponent component = toComponent(path.getLastPathComponent());
       return compare(component == null ? "" : myDecorator.getText(component), pattern);
     }
+  }
+
+  // ---- Implements DataProvider ----
+
+  @Override
+  public Object getData(@NonNls String dataId) {
+    if (PlatformDataKeys.DELETE_ELEMENT_PROVIDER.is(dataId)) {
+      return this;
+    }
+    return null;
+  }
+
+  // ---- Implements DeleteProvider ----
+
+  @Override
+  public boolean canDeleteElement(@NotNull DataContext dataContext) {
+    return true;
+  }
+
+  @Override
+  public void deleteElement(@NotNull DataContext dataContext) {
+    SelectionModel selectionModel = myScreenView.getSelectionModel();
+    NlModel model = myScreenView.getModel();
+    skipNextUpdateDelay();
+    model.delete(selectionModel.getSelection());
   }
 }
