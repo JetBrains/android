@@ -106,7 +106,7 @@
     <action id="CleanGradleProject" class="com.android.tools.idea.gradle.actions.CleanProjectAction">
       <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="CompileProject"/>
     </action>
-    <action id="RefreshLinkedCppProjects" class="com.android.tools.idea.gradle.actions.RefreshLinkedCppProjects">
+    <action id="RefreshLinkedCppProjects" class="com.android.tools.idea.gradle.actions.RefreshLinkedCppProjectsAction">
       <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="RebuildGradleProject"/>
     </action>
     <group id="GradleProjectStructureActions">
