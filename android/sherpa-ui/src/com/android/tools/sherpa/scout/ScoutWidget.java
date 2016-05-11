@@ -106,7 +106,7 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
     public boolean isVerticalGuideline() {
         if (mConstraintWidget instanceof Guideline) {
             Guideline g = (Guideline) mConstraintWidget;
-            return g.getOrientation() == Guideline.HORIZONTAL;
+            return g.getOrientation() == Guideline.VERTICAL;
         }
         return false;
     }
@@ -119,7 +119,7 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
     public boolean isHorizontalGuideline() {
         if (mConstraintWidget instanceof Guideline) {
             Guideline g = (Guideline) mConstraintWidget;
-            return g.getOrientation() == Guideline.VERTICAL;
+            return g.getOrientation() == Guideline.HORIZONTAL;
         }
         return false;
     }

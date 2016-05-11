@@ -371,7 +371,6 @@ public class ConstraintModel implements ModelListener {
       }
       else if (component.getTagName().equalsIgnoreCase(SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE)) {
         widget = new Guideline();
-        ((Guideline)widget).setOrientation(Guideline.VERTICAL);
       }
       else {
         if (component.children != null && component.children.size() > 0) {

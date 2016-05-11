@@ -16,12 +16,10 @@
 
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.api.actions.*;
-import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
-import com.android.tools.idea.uibuilder.model.Coordinates;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.SelectionModel;
+import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.Interaction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
@@ -309,6 +307,15 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     addToolbarActionsToMenu("Constraint Layout", actions);
 
     myPopupActions.add(action);
+
+    str = "Add Vertical Guideline";
+    actions.add(action = new AddElementAction(AddElementAction.VERTICAL_GUIDELINE, AndroidIcons.SherpaIcons.VerticalExpand, str));
+    myPopupActions.add(action);
+
+    str = "Add Horizontal Guideline";
+    actions.add(action = new AddElementAction(AddElementAction.HORIZONTAL_GUIDELINE, AndroidIcons.SherpaIcons.HorizontalExpand, str));
+    myPopupActions.add(action);
+
   }
 
   interface Enableable {
@@ -643,6 +650,57 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     @Override
     public int getIconHeight() {
       return mIcon.getIconHeight();
+    }
+  }
+
+  private class AddElementAction extends DirectViewAction {
+    public static final int HORIZONTAL_GUIDELINE = 0;
+    public static final int VERTICAL_GUIDELINE = 1;
+
+    final int myType;
+    final Icon myIcon;
+    final String myText;
+
+    public AddElementAction(int type, Icon icon, String text) {
+      myType = type;
+      myIcon = icon;
+      myText = text;
+    }
+
+    @Override
+    public void perform(@NotNull ViewEditor editor,
+                        @NotNull ViewHandler handler,
+                        @NotNull NlComponent component,
+                        @NotNull List<NlComponent> selectedChildren,
+                        @InputEventMask int modifiers) {
+
+      NlComponent parent = component;
+      while (parent != null && !parent.getTagName().equalsIgnoreCase(SdkConstants.CONSTRAINT_LAYOUT)) {
+        parent = parent.getParent();
+      }
+      if (parent != null) {
+        NlComponent guideline = parent.createChild(editor, SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE, null, InsertType.CREATE);
+        guideline.ensureId();
+        guideline.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_GUIDELINE_RELATIVE_BEGIN, "20dp");
+        if (myType == HORIZONTAL_GUIDELINE) {
+          guideline.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_GUIDELINE_ORIENTATION, SdkConstants.ATTR_GUIDELINE_ORIENTATION_HORIZONTAL);
+        } else {
+          guideline.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_GUIDELINE_ORIENTATION, SdkConstants.ATTR_GUIDELINE_ORIENTATION_VERTICAL);
+        }
+      }
+    }
+
+    @Override
+    public void updatePresentation(@NotNull ViewActionPresentation presentation,
+                                   @NotNull ViewEditor editor,
+                                   @NotNull ViewHandler handler,
+                                   @NotNull NlComponent component,
+                                   @NotNull List<NlComponent> selectedChildren,
+                                   @InputEventMask int modifiers) {
+      presentation.setVisible(true);
+      presentation.setEnabled(true);
+      presentation.setIcon(myIcon);
+      presentation.setLabel(myText);
     }
   }
 

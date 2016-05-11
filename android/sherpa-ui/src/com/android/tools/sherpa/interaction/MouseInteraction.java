@@ -409,6 +409,12 @@ public class MouseInteraction {
                         // while the new hit doesn't, keep the current best hit.
                         return;
                     }
+                    if (mMode != DRAG_MODE && handle.getOwner() instanceof Guideline) {
+                        // For now, we do not want to be able to drag the left or top anchor that
+                        // a Guideline has, as we do not allow connections of this anchor...
+                        // TODO: revisit in the future, it might be better to unify Guidelines connections
+                        return;
+                    }
                     if (handle.getAnchor().getType() == ConstraintAnchor.Type.BASELINE) {
                         if (mEnableBaseline || mMode == DRAG_MODE) {
                             if (dist < 4) {
@@ -457,6 +463,17 @@ public class MouseInteraction {
             int b = t + mViewTransform.getSwingDimension(widget.getDrawHeight());
             int widgetSelectionMargin = 8;
             int handleSelectionMargin = 8;
+            if (widget instanceof Guideline) {
+                Guideline guideline = (Guideline)widget;
+                if (guideline.getOrientation() == Guideline.HORIZONTAL) {
+                    picker.addLine(guideline, widgetSelectionMargin, l, t, r, t);
+                } else {
+                    picker.addLine(guideline, widgetSelectionMargin, l, t, l, b);
+                }
+                if (mSelection.contains(guideline) && mMode == DRAG_MODE) {
+                    return;
+                }
+            }
             picker.addRect(widget, widgetSelectionMargin, l, t, r, b);
             WidgetCompanion companion = (WidgetCompanion) widget.getCompanionWidget();
             WidgetInteractionTargets targets = companion.getWidgetInteractionTargets();
@@ -783,7 +800,7 @@ public class MouseInteraction {
                 Selection.Element element = mSelection.get(mSelection.getSelectedGuideline());
                 if (element != null) {
                     if (mSelection.getSelectedGuideline().getOrientation() ==
-                            Guideline.HORIZONTAL) {
+                            Guideline.VERTICAL) {
                         if (element.origin.x == mSelection.getSelectedGuideline().getDrawX()) {
                             mSelection.getSelectedGuideline().cyclePosition();
                         }
@@ -902,7 +919,6 @@ public class MouseInteraction {
                     mDragListener.find(mViewTransform.getSwingFX(getLastPoint().x),
                             mViewTransform.getSwingFY(getLastPoint().y));
                     ConstraintAnchor anchor = mDragListener.getConstraintAnchor();
-
                     if (anchor != null
                             && anchor != mSelection.getSelectedAnchor()
                             && mSelection.getSelectedAnchor().isValidConnection(anchor)

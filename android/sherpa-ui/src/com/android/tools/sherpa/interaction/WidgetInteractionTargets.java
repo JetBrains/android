@@ -47,7 +47,7 @@ public class WidgetInteractionTargets {
     protected ArrayList<ResizeHandle> mResizeHandles = new ArrayList<>();
 
     // The constraint handles available on the widget
-    // note: all constraint handles should be added to the mResizeHandles array (see addConstraintHandles())
+    // note: all constraint handles should be added to the mResizeHandles array (see resetConstraintHandles())
     private ConstraintHandle mLeftAnchor = new ConstraintHandle(this, ConstraintAnchor.Type.LEFT);
     private ConstraintHandle mTopAnchor = new ConstraintHandle(this, ConstraintAnchor.Type.TOP);
     private ConstraintHandle mRightAnchor = new ConstraintHandle(this, ConstraintAnchor.Type.RIGHT);
@@ -69,10 +69,7 @@ public class WidgetInteractionTargets {
     public WidgetInteractionTargets(ConstraintWidget widget) {
         mWidget = widget;
         addResizeHandles();
-        addConstraintHandles();
-        for (ConstraintHandle handle : mConstraintHandles) {
-            handle.updateAnchor();
-        }
+        resetConstraintHandles();
     }
 
     /**
@@ -106,7 +103,8 @@ public class WidgetInteractionTargets {
     /**
      * Add all constraint handles into a single array
      */
-    private void addConstraintHandles() {
+    public void resetConstraintHandles() {
+        mConstraintHandles.clear();
         for (ConstraintAnchor anchor : mWidget.getAnchors()) {
             switch (anchor.getType()) {
                 case LEFT: {
@@ -134,6 +132,9 @@ public class WidgetInteractionTargets {
                     mConstraintHandles.add(mCenterAnchor);
                 } break;
             }
+        }
+        for (ConstraintHandle handle : mConstraintHandles) {
+            handle.updateAnchor();
         }
     }
 
@@ -195,7 +196,7 @@ public class WidgetInteractionTargets {
         ResizeHandle candidate = null;
         if (mWidget instanceof Guideline) {
             Guideline guideline = (Guideline) mWidget;
-            if (guideline.getOrientation() == Guideline.HORIZONTAL) {
+            if (guideline.getOrientation() == Guideline.VERTICAL) {
                 if (mLeftSide.hit(x, y)) {
                     return mLeftSide;
                 }
@@ -332,7 +333,7 @@ public class WidgetInteractionTargets {
             if (handle == null) {
                 return;
             }
-            if (guideline.getOrientation() == Guideline.HORIZONTAL) {
+            if (guideline.getOrientation() == Guideline.VERTICAL) {
                 distance = (handle.getDrawX() - x) * (handle.getDrawX() - x);
             } else {
                 distance = (handle.getDrawY() - y) * (handle.getDrawY() - y);

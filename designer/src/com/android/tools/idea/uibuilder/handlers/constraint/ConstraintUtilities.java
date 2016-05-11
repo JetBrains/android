@@ -22,11 +22,13 @@ import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.sherpa.drawing.decorator.TextWidget;
 import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
+import com.android.tools.sherpa.interaction.WidgetInteractionTargets;
 import com.android.tools.sherpa.structure.WidgetCompanion;
 import com.android.tools.sherpa.structure.WidgetsScene;
 import android.support.constraint.solver.widgets.ConstraintAnchor;
 import android.support.constraint.solver.widgets.ConstraintWidget;
 import android.support.constraint.solver.widgets.ConstraintWidgetContainer;
+import android.support.constraint.solver.widgets.Guideline;
 import android.support.constraint.solver.widgets.WidgetContainer;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -352,6 +354,40 @@ public class ConstraintUtilities {
   }
 
   /**
+   * Update the component with the values from a Guideline widget
+   *
+   * @param component the component we work on
+   * @param guideline the widget we use as a model
+   */
+  static void commitGuideline(@NotNull NlComponent component, @NotNull Guideline guideline) {
+    int behaviour = guideline.getRelativeBehaviour();
+    component.setAttribute(SdkConstants.SHERPA_URI,
+                           SdkConstants.ATTR_GUIDELINE_RELATIVE_BEGIN, null);
+    component.setAttribute(SdkConstants.SHERPA_URI,
+                           SdkConstants.ATTR_GUIDELINE_RELATIVE_END, null);
+    component.setAttribute(SdkConstants.SHERPA_URI,
+                           SdkConstants.ATTR_GUIDELINE_RELATIVE_PERCENT, null);
+    if (behaviour == Guideline.RELATIVE_PERCENT) {
+      String value = String.valueOf(guideline.getRelativePercent());
+      component.setAttribute(SdkConstants.SHERPA_URI,
+                             SdkConstants.ATTR_GUIDELINE_RELATIVE_PERCENT,
+                             value);
+    }
+    else if (behaviour == Guideline.RELATIVE_BEGIN) {
+      String value = String.format(SdkConstants.VALUE_N_DP, guideline.getRelativeBegin());
+      component.setAttribute(SdkConstants.SHERPA_URI,
+                             SdkConstants.ATTR_GUIDELINE_RELATIVE_BEGIN,
+                             value);
+    }
+    else if (behaviour == Guideline.RELATIVE_END) {
+      String value = String.format(SdkConstants.VALUE_N_DP, guideline.getRelativeEnd());
+      component.setAttribute(SdkConstants.SHERPA_URI,
+                             SdkConstants.ATTR_GUIDELINE_RELATIVE_END,
+                             value);
+    }
+  }
+
+  /**
    * Set the constraint strength if defined
    *
    * @param component the component we are looking at
@@ -383,7 +419,9 @@ public class ConstraintUtilities {
     if (biasString != null && biasString.length() > 0) {
       try {
         bias = Float.parseFloat(biasString);
-      } catch (NumberFormatException e) {}
+      }
+      catch (NumberFormatException e) {
+      }
     }
     if (attribute.equalsIgnoreCase(SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS)) {
       widget.setHorizontalBiasPercent(bias);
@@ -419,7 +457,9 @@ public class ConstraintUtilities {
           if (denominatorValue > 0) {
             dimensionRatio = nominatorValue / denominatorValue;
           }
-        } catch (NumberFormatException e) {}
+        }
+        catch (NumberFormatException e) {
+        }
       }
     }
     widget.setDimensionRatio(dimensionRatio);
@@ -486,6 +526,7 @@ public class ConstraintUtilities {
    * SdkConstants.ATTR_LAYOUT_MARGIN_START or SdkConstants.ATTR_LAYOUT_MARGIN_END
    * and cannot be found, this method falls back to SdkConstants.ATTR_LAYOUT_MARGIN_LEFT
    * or SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT.
+   *
    * @param component the component we are looking at
    * @param widget    the margin attribute name
    * @return the margin in dp or 0 if it cannot be found
@@ -500,10 +541,24 @@ public class ConstraintUtilities {
       }
     }
     if (margin != null) {
+      return getDpValue(component, margin);
+    }
+    return 0;
+  }
+
+  /**
+   * Return a dp value correctly resolved
+   *
+   * @param component the component we are looking at
+   * @param value     the attribute value we want to parse
+   * @return the value of the attribute in Dp, or zero if impossible to resolve
+   */
+  private static int getDpValue(@NotNull NlComponent component, String value) {
+    if (value != null) {
       Configuration configuration = component.getModel().getConfiguration();
       ResourceResolver resourceResolver = configuration.getResourceResolver();
       if (resourceResolver != null) {
-        Integer dp = ResourceHelper.resolveDimensionPixelSize(resourceResolver, margin, configuration);
+        Integer dp = ResourceHelper.resolveDimensionPixelSize(resourceResolver, value, configuration);
         return dp == null ? 0 : (int)(dp / (configuration.getDensity().getDpiValue() / 160.0f));
       }
     }
@@ -716,6 +771,11 @@ public class ConstraintUtilities {
 
     setDimensionRatio(SdkConstants.ATTR_LAYOUT_DIMENSION_RATIO, component, widget);
 
+    if (widget instanceof Guideline) {
+      Guideline guideline = (Guideline)widget;
+      setGuideline(component, guideline);
+    }
+
     // Update text decorator
     WidgetCompanion companion = (WidgetCompanion)widget.getCompanionWidget();
     WidgetDecorator decorator = companion.getWidgetDecorator(WidgetDecorator.BLUEPRINT_STYLE);
@@ -744,6 +804,55 @@ public class ConstraintUtilities {
       // Cannot be null, see previous condition
       //noinspection ConstantConditions
       textWidget.setTextSize(constraintModel.pxToDp(size));
+    }
+  }
+
+  /**
+   * Update the given guideline with the attributes set in the NlComponent
+   *
+   * @param component the component we get the attributes from
+   * @param guideline the guideline widget we want to update with the values
+   */
+  private static void setGuideline(NlComponent component, Guideline guideline) {
+    String relativeBegin = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_GUIDELINE_RELATIVE_BEGIN);
+    String relativeEnd = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_GUIDELINE_RELATIVE_END);
+    String relativePercent = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_GUIDELINE_RELATIVE_PERCENT);
+    if (relativePercent != null && relativePercent.length() > 0) {
+      try {
+        int value = getDpValue(component, relativePercent);
+        guideline.setRelativePercent(value);
+      }
+      catch (NumberFormatException e) {
+      }
+    }
+    else if (relativeBegin != null && relativeBegin.length() > 0) {
+      try {
+        int value = getDpValue(component, relativeBegin);
+        guideline.setRelativeBegin(value);
+      }
+      catch (NumberFormatException e) {
+      }
+    }
+    else if (relativeEnd != null && relativeEnd.length() > 0) {
+      try {
+        int value = getDpValue(component, relativeEnd);
+        guideline.setRelativeEnd(value);
+      }
+      catch (NumberFormatException e) {
+      }
+    }
+    String orientation = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_GUIDELINE_ORIENTATION);
+    if (orientation != null) {
+      int newOrientation = Guideline.HORIZONTAL;
+      if (SdkConstants.ATTR_GUIDELINE_ORIENTATION_VERTICAL.equalsIgnoreCase(orientation)) {
+        newOrientation = Guideline.VERTICAL;
+      }
+      if (newOrientation != guideline.getOrientation()) {
+        guideline.setOrientation(newOrientation);
+        WidgetCompanion companion = (WidgetCompanion)guideline.getCompanionWidget();
+        WidgetInteractionTargets interactionTargets = companion.getWidgetInteractionTargets();
+        interactionTargets.resetConstraintHandles();
+      }
     }
   }
 
@@ -851,6 +960,9 @@ public class ConstraintUtilities {
     }
     setHorizontalBias(component, widget);
     setVerticalBias(component, widget);
+    if (widget instanceof Guideline) {
+      commitGuideline(component, (Guideline)widget);
+    }
   }
 
   /**
@@ -888,6 +1000,10 @@ public class ConstraintUtilities {
           saveConnection(model, anchor, layoutParams);
         }
         saveBiases(widget, layoutParams);
+
+        if (widget instanceof Guideline) {
+          saveGuideline((Guideline)widget, layoutParams);
+        }
 
         // Now trigger a relayout
         Class layoutParamsClass = layoutParams.getClass().getSuperclass();
@@ -957,6 +1073,33 @@ public class ConstraintUtilities {
       Field vertical_bias = layoutParams.getClass().getField("vertical_bias");
       horizontal_bias.set(layoutParams, widget.getHorizontalBiasPercent());
       vertical_bias.set(layoutParams, widget.getVerticalBiasPercent());
+    }
+    catch (IllegalAccessException | NoSuchFieldException e) {
+      // Ignore
+    }
+  }
+
+  /**
+   * Save the current guideline attributes to layoutParams
+   *
+   * @param guideline
+   * @param layoutParams
+   */
+  static void saveGuideline(@NotNull Guideline guideline, @NotNull Object layoutParams) {
+    try {
+      int behaviour = guideline.getRelativeBehaviour();
+      if (behaviour == Guideline.RELATIVE_BEGIN) {
+        Field relativeBegin = layoutParams.getClass().getField("relativeBegin");
+        relativeBegin.set(layoutParams, guideline.getRelativeBegin());
+      }
+      else if (behaviour == Guideline.RELATIVE_END) {
+        Field relativeEnd = layoutParams.getClass().getField("relativeEnd");
+        relativeEnd.set(layoutParams, guideline.getRelativeEnd());
+      }
+      else if (behaviour == Guideline.RELATIVE_PERCENT) {
+        Field relativePercent = layoutParams.getClass().getField("relativePercent");
+        relativePercent.set(layoutParams, guideline.getRelativeEnd());
+      }
     }
     catch (IllegalAccessException | NoSuchFieldException e) {
       // Ignore
