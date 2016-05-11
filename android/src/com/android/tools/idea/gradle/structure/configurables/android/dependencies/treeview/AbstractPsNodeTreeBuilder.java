@@ -47,7 +47,7 @@ public abstract class AbstractPsNodeTreeBuilder extends AbstractBaseTreeBuilder 
     if (!selection.isEmpty()) {
       T first = getFirstItem(selection);
       assert first != null;
-      PsModel model = first.getModels().get(0);
+      PsModel model = first.getFirstModel();
 
       List<T> matchingSelection = Lists.newArrayList();
       for (T node : selection) {

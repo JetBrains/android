@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.AbstractDependenciesPanel;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.ModuleDependencyDetails;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.ProjectLibraryDependencyDetails;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.MultipleLibraryDependenciesDetails;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.*;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractPsNodeTreeBuilder.MatchingNodeCollector;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.graph.DependenciesTreeBuilder;
@@ -96,7 +96,7 @@ class DependenciesPanel extends AbstractDependenciesPanel {
         if (id == MOUSE_PRESSED) {
           ModuleDependencyNode node = myHyperlinkSupport.getIfHyperlink(e);
           if (node != null) {
-            PsModuleDependency moduleDependency = node.getModels().get(0);
+            PsModuleDependency moduleDependency = node.getFirstModel();
             String name = moduleDependency.getName();
             myContext.setSelectedModule(name, DependenciesPanel.this);
             // Do not call super, to avoid selecting the 'module' node when clicking a hyperlink.
@@ -118,7 +118,7 @@ class DependenciesPanel extends AbstractDependenciesPanel {
     TreeSelectionListener treeSelectionListener = e -> {
       if (!myIgnoreTreeSelectionEvents) {
         List<AbstractDependencyNode<? extends PsAndroidDependency>> selection = getMatchingSelection();
-        PsAndroidDependency selected = !selection.isEmpty() ? selection.get(0).getModels().get(0) : null;
+        PsAndroidDependency selected = !selection.isEmpty() ? selection.get(0).getFirstModel() : null;
 
         if (selected == null) {
           notifySelectionChanged(Collections.emptyList());
@@ -215,7 +215,7 @@ class DependenciesPanel extends AbstractDependenciesPanel {
     ModuleDependencyNode node = myHyperlinkSupport.getNodeForLocation(x, y);
 
     if (node != null) {
-      PsModuleDependency moduleDependency = node.getModels().get(0);
+      PsModuleDependency moduleDependency = node.getFirstModel();
 
       String name = moduleDependency.getName();
       DefaultActionGroup group = new DefaultActionGroup();
@@ -227,7 +227,7 @@ class DependenciesPanel extends AbstractDependenciesPanel {
   }
 
   private void initializeDependencyDetails() {
-    addDetails(new ProjectLibraryDependencyDetails());
+    addDetails(new MultipleLibraryDependenciesDetails());
     addDetails(new ModuleDependencyDetails(getContext(), false));
   }
 
@@ -317,10 +317,10 @@ class DependenciesPanel extends AbstractDependenciesPanel {
     void add(@NotNull AbstractPsModelNode node) {
       String key = null;
       if (node instanceof ModuleDependencyNode) {
-        key = ((ModuleDependencyNode)node).getModels().get(0).getGradlePath();
+        key = ((ModuleDependencyNode)node).getFirstModel().getGradlePath();
       }
       if (node instanceof LibraryDependencyNode) {
-        key = ((LibraryDependencyNode)node).getModels().get(0).getResolvedSpec().toString();
+        key = ((LibraryDependencyNode)node).getFirstModel().getResolvedSpec().toString();
       }
       if (key != null) {
         List<AbstractDependencyNode<? extends PsAndroidDependency>> nodes = mySelection.get(key);
