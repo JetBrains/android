@@ -16,24 +16,26 @@
 package com.android.tools.idea.tests.gui.framework.fixture.layout;
 
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.base.Objects;
 import com.intellij.psi.xml.XmlTag;
+import org.fest.swing.core.GenericTypeMatcher;
+import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;
 import org.fest.swing.driver.ComponentDriver;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.awt.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 /**
  * Represents a view in the layout editor
@@ -42,11 +44,14 @@ public class NlComponentFixture {
   private final Robot myRobot;
   private final NlComponent myComponent;
   private final DesignSurface mySurface;
+  private final IdeFrameFixture myIdeFrame;
 
   public NlComponentFixture(@NotNull Robot robot,
+                            @NotNull IdeFrameFixture frame,
                             @NotNull NlComponent component,
                             @NotNull DesignSurface surface) {
     myRobot = robot;
+    myIdeFrame = frame;
     myComponent = component;
     mySurface = surface;
   }
@@ -99,6 +104,27 @@ public class NlComponentFixture {
   public void click() {
     new ComponentDriver(myRobot).click(mySurface, getMidPoint());
     myRobot.waitForIdle();
+  }
+
+  /** Right clicks s in the middle of the view */
+  public void rightClick() {
+    // Can't use ComponentDriver -- need to both set button and where
+    myRobot.click(mySurface, getMidPoint(), MouseButton.RIGHT_BUTTON, 1);
+    myRobot.waitForIdle();
+  }
+
+  public void invokeContextMenuAction(String actionLabel) {
+    rightClick();
+
+    Robot robot = myRobot;
+    JMenuItem found = robot.finder().find(myIdeFrame.target(), new GenericTypeMatcher<JMenuItem>(JMenuItem.class) {
+      @Override
+      protected boolean isMatching(@NotNull JMenuItem menuItem) {
+        return actionLabel.equals(menuItem.getText());
+      }
+    });
+    new ComponentDriver(robot).click(found);
+    robot.waitForIdle();
   }
 
   @Override

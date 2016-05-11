@@ -20,6 +20,7 @@ import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderedImage;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.Wait;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ToolWindowFixture;
 import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
 import com.android.tools.idea.uibuilder.editor.NlPreviewManager;
@@ -42,10 +43,10 @@ public class NlPreviewFixture extends ToolWindowFixture {
   private final Project myProject;
   private final DesignSurfaceFixture myDesignSurfaceFixture;
 
-  public NlPreviewFixture(@NotNull Project project, @NotNull Robot robot) {
+  public NlPreviewFixture(@NotNull Project project, @NotNull IdeFrameFixture frame, @NotNull Robot robot) {
     super("Preview", project, robot);
     myProject = project;
-    myDesignSurfaceFixture = new DesignSurfaceFixture(robot, getContent().getSurface());
+    myDesignSurfaceFixture = new DesignSurfaceFixture(robot, frame, getContent().getSurface());
   }
 
   @NotNull
