@@ -20,7 +20,6 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.sherpa.drawing.BlueprintColorSet;
 import com.android.tools.sherpa.drawing.ColorSet;
-import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -28,7 +27,6 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.plaf.basic.BasicSliderUI;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -95,22 +93,6 @@ public class WidgetConstraintPanel extends JPanel {
   }
 
   /**
-   * Convert the android style dp string into an integer
-   *
-   * @param str
-   * @return
-   */
-  private static int convert(String str) {
-    if (str == null) return 0;
-    try {
-      return Integer.parseInt(StringUtil.trimEnd(str, "dp"));
-    }
-    catch (NumberFormatException e) {
-      return 0;
-    }
-  }
-
-  /**
    * Read the values off of the NLcomponent and set up the UI
    *
    * @param component
@@ -119,10 +101,10 @@ public class WidgetConstraintPanel extends JPanel {
     mComponent = component;
     if (component == null) return;
     String mWidgetName = component.getId();
-    int bottom = convert(component.getAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM));
-    int top = convert(component.getAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_TOP));
-    int left = convert(component.getAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT));
-    int right = convert(component.getAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT));
+    int bottom = ConstraintUtilities.getMargin(component, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM);
+    int top = ConstraintUtilities.getMargin(component, SdkConstants.ATTR_LAYOUT_MARGIN_TOP);
+    int left = ConstraintUtilities.getMargin(component, SdkConstants.ATTR_LAYOUT_MARGIN_START);
+    int right = ConstraintUtilities.getMargin(component, SdkConstants.ATTR_LAYOUT_MARGIN_END);
 
     String rl = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF);
     String rr = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF);
@@ -214,11 +196,11 @@ public class WidgetConstraintPanel extends JPanel {
   }
 
   public void setLeftMargin(int margin) {
-    ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT, (margin < 0) ? null : (margin + "dp"));
+    ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_START, (margin < 0) ? null : (margin + "dp"));
   }
 
   public void setRightMargin(int margin) {
-    ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT, (margin < 0) ? null : (margin + "dp"));
+    ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_END, (margin < 0) ? null : (margin + "dp"));
   }
 
   public void setBottomMargin(int margin) {
@@ -232,6 +214,7 @@ public class WidgetConstraintPanel extends JPanel {
   }
 
   public void killLeftConstraint() {
+    ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_START, null);
     ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT, null);
     ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF, null);
     ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF, null);
@@ -251,10 +234,6 @@ public class WidgetConstraintPanel extends JPanel {
 
   public void killBaselineConstraint() {
     ConstraintUtilities.saveNlAttribute(mComponent, SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF, null);
-  }
-
-  public WidgetConstraintPanel() {
-    this(Collections.emptyList());
   }
 
   public void setHorizontalConstraint(int horizontalConstraint) {

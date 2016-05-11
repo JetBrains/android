@@ -53,16 +53,15 @@ public class ConstraintUtilities {
   @Nullable
   static String getConnectionAttributeMargin(@Nullable ConstraintAnchor anchor) {
     if (anchor != null) {
-      //noinspection EnumSwitchStatementWhichMissesCases
       switch (anchor.getType()) {
         case LEFT: {
-          return SdkConstants.ATTR_LAYOUT_MARGIN_LEFT;
+          return SdkConstants.ATTR_LAYOUT_MARGIN_START;
         }
         case TOP: {
           return SdkConstants.ATTR_LAYOUT_MARGIN_TOP;
         }
         case RIGHT: {
-          return SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT;
+          return SdkConstants.ATTR_LAYOUT_MARGIN_END;
         }
         case BOTTOM: {
           return SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM;
@@ -198,6 +197,7 @@ public class ConstraintUtilities {
     //noinspection EnumSwitchStatementWhichMissesCases
     switch (anchorType) {
       case LEFT: {
+        component.setAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_START, null);
         component.setAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT, null);
         component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF, null);
         component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF, null);
@@ -214,6 +214,7 @@ public class ConstraintUtilities {
         break;
       }
       case RIGHT: {
+        component.setAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_END, null);
         component.setAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT, null);
         component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF, null);
         component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, null);
@@ -273,7 +274,7 @@ public class ConstraintUtilities {
       component.setAttribute(SdkConstants.SHERPA_URI, attribute, targetId);
       if (marginAttribute != null && anchor.getMargin() > 0) {
         String margin = String.format(SdkConstants.VALUE_N_DP, anchor.getMargin());
-        component.setAttribute(SdkConstants.SHERPA_URI, marginAttribute, margin);
+        component.setAttribute(SdkConstants.NS_RESOURCES, marginAttribute, margin);
       }
       String attributeCreator = getConnectionAttributeCreator(anchor);
       component.setAttribute(SdkConstants.SHERPA_URI,
@@ -431,9 +432,9 @@ public class ConstraintUtilities {
    * @param component the component we are looking at
    * @param widget    the constraint widget we set the margin on
    */
-  static void setLeftMargin(@Nullable String left, @NotNull NlComponent component, @NotNull ConstraintWidget widget) {
+  static void setStartMargin(@Nullable String left, @NotNull NlComponent component, @NotNull ConstraintWidget widget) {
     if (left != null) {
-      int margin = getMargin(component, widget, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT);
+      int margin = getMargin(component, SdkConstants.ATTR_LAYOUT_MARGIN_START);
       widget.getAnchor(ConstraintAnchor.Type.LEFT).setMargin(margin);
     }
   }
@@ -445,9 +446,9 @@ public class ConstraintUtilities {
    * @param component the component we are looking at
    * @param widget    the constraint widget we set the margin on
    */
-  static void setRightMargin(@Nullable String right, @NotNull NlComponent component, @NotNull ConstraintWidget widget) {
+  static void setEndMargin(@Nullable String right, @NotNull NlComponent component, @NotNull ConstraintWidget widget) {
     if (right != null) {
-      int margin = getMargin(component, widget, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT);
+      int margin = getMargin(component, SdkConstants.ATTR_LAYOUT_MARGIN_END);
       widget.getAnchor(ConstraintAnchor.Type.RIGHT).setMargin(margin);
     }
   }
@@ -461,7 +462,7 @@ public class ConstraintUtilities {
    */
   static void setTopMargin(@Nullable String top, @NotNull NlComponent component, @NotNull ConstraintWidget widget) {
     if (top != null) {
-      int margin = getMargin(component, widget, SdkConstants.ATTR_LAYOUT_MARGIN_TOP);
+      int margin = getMargin(component, SdkConstants.ATTR_LAYOUT_MARGIN_TOP);
       widget.getAnchor(ConstraintAnchor.Type.TOP).setMargin(margin);
     }
   }
@@ -475,13 +476,29 @@ public class ConstraintUtilities {
    */
   static void setBottomMargin(@Nullable String bottom, @NotNull NlComponent component, @NotNull ConstraintWidget widget) {
     if (bottom != null) {
-      int margin = getMargin(component, widget, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM);
+      int margin = getMargin(component, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM);
       widget.getAnchor(ConstraintAnchor.Type.BOTTOM).setMargin(margin);
     }
   }
 
-  private static int getMargin(@NotNull NlComponent component, @NotNull ConstraintWidget widget, @NotNull String attr) {
+  /**
+   * Gets the specified margin value in dp. If the specified margin is
+   * SdkConstants.ATTR_LAYOUT_MARGIN_START or SdkConstants.ATTR_LAYOUT_MARGIN_END
+   * and cannot be found, this method falls back to SdkConstants.ATTR_LAYOUT_MARGIN_LEFT
+   * or SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT.
+   * @param component the component we are looking at
+   * @param widget    the margin attribute name
+   * @return the margin in dp or 0 if it cannot be found
+   */
+  static int getMargin(@NotNull NlComponent component, @NotNull String attr) {
     String margin = component.getAttribute(SdkConstants.NS_RESOURCES, attr);
+    if (margin == null) {
+      if (attr == SdkConstants.ATTR_LAYOUT_MARGIN_START) {
+        margin = component.getAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT);
+      } else if (attr == SdkConstants.ATTR_LAYOUT_MARGIN_END) {
+        margin = component.getAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT);
+      }
+    }
     if (margin != null) {
       Configuration configuration = component.getModel().getConfiguration();
       ResourceResolver resourceResolver = configuration.getResourceResolver();
@@ -670,16 +687,16 @@ public class ConstraintUtilities {
     String centerY = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_CENTER_Y_TO_CENTER_Y_OF);
 
     setTarget(model, scene, left1, widget, ConstraintAnchor.Type.LEFT, ConstraintAnchor.Type.LEFT);
-    setLeftMargin(left1, component, widget);
+    setStartMargin(left1, component, widget);
     setTarget(model, scene, left2, widget, ConstraintAnchor.Type.LEFT, ConstraintAnchor.Type.RIGHT);
-    setLeftMargin(left2, component, widget);
+    setStartMargin(left2, component, widget);
     setTarget(model, scene, right1, widget, ConstraintAnchor.Type.RIGHT, ConstraintAnchor.Type.LEFT);
-    setRightMargin(right1, component, widget);
+    setEndMargin(right1, component, widget);
     setTarget(model, scene, right2, widget, ConstraintAnchor.Type.RIGHT, ConstraintAnchor.Type.RIGHT);
-    setRightMargin(right2, component, widget);
+    setEndMargin(right2, component, widget);
     setTarget(model, scene, centerX, widget, ConstraintAnchor.Type.CENTER_X, ConstraintAnchor.Type.CENTER_X);
-    setLeftMargin(centerX, component, widget);
-    setRightMargin(centerX, component, widget);
+    setStartMargin(centerX, component, widget);
+    setEndMargin(centerX, component, widget);
 
     setTarget(model, scene, top1, widget, ConstraintAnchor.Type.TOP, ConstraintAnchor.Type.TOP);
     setTopMargin(top1, component, widget);
