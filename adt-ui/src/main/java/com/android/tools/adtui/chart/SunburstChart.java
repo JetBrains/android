@@ -173,8 +173,7 @@ public final class SunburstChart extends AnimatedComponent {
     updateArea();
     updateStructure(mSlice, mData, false);
 
-    mCurrentAngle = Math.abs(mCurrentAngle - mAngle) < 0.1f ?
-                    mAngle : Choreographer.lerp(mCurrentAngle, mAngle, 0.999f, mFrameLength);
+    mCurrentAngle = Choreographer.lerp(mCurrentAngle, mAngle, 0.999f, mFrameLength, 0.1f);
     if (mAutoSize) {
       float full = Math.min(mMaxDepth, mMaxSide) - mGap - 20;
       float none = mMaxDepth * 2 - mGap - 20;
