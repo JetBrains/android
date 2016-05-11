@@ -393,29 +393,15 @@ public class EditorFixture {
     Matcher matcher = Pattern.compile(regex).matcher(getCurrentFileContents());
     checkArgument(matcher.groupCount() == 1, "must have exactly one capturing group: %s", regex);
     matcher.find();
-    return select(matcher.start(1), matcher.end(1));
-  }
-
-  /**
-   * Selects the given range. If the first and second offsets are the same, it simply
-   * moves the caret to the given position. The caret is always placed at the second offset,
-   * <b>which is allowed to be smaller than the first offset</b>. Calling {@code select(10, 7)}
-   * would be the same as dragging the mouse from offset 10 to offset 7 and releasing the mouse
-   * button; the caret is now at the beginning of the selection.
-   *
-   * @param firstOffset  the character offset where we start the selection, or -1 to remove the selection
-   * @param secondOffset the character offset where we end the selection, which can be an earlier
-   *                     offset than the firstOffset
-   * @throws IllegalStateException if there is no currently selected text editor
-   */
-  private EditorFixture select(final int firstOffset, final int secondOffset) {
+    int start = matcher.start(1);
+    int end = matcher.end(1);
     execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
         // TODO: Do this via mouse drags!
         Editor editor = FileEditorManager.getInstance(myFrame.getProject()).getSelectedTextEditor();
         checkState(editor != null, "no currently selected text editor");
-        editor.getCaretModel().getPrimaryCaret().setSelection(firstOffset, secondOffset);
+        editor.getCaretModel().getPrimaryCaret().setSelection(start, end);
         editor.getScrollingModel().scrollToCaret(ScrollType.MAKE_VISIBLE);
       }
     });
