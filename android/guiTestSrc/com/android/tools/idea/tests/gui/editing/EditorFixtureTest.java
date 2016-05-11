@@ -45,6 +45,18 @@ public class EditorFixtureTest {
   }
 
   @Test
+  public void select_scrollsWhenNeeded() throws Exception {
+    int lineNumber = guiTest.importSimpleApplication()
+      .getEditor()
+      .open("app/src/main/java/google/simpleapplication/MyActivity.java")
+      .enterText(Strings.repeat("\n", 99))
+      .moveToLine(1)
+      .select("class (MyActivity) ")
+      .getCurrentLineNumber();
+    assertThat(lineNumber).isGreaterThan(100);
+  }
+
+  @Test
   public void open_selectsEditorTab() throws Exception {
     NlEditorFixture layoutEditor = guiTest.importSimpleApplication()
       .getEditor()
