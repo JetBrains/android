@@ -108,15 +108,9 @@ public class NativeAndroidProjectStub implements NativeAndroidProject {
     return ImmutableMap.of();
   }
 
-  @NotNull
-  @Override
-  public Collection<String> getBuildSystems() {
-    return ImmutableList.of();
-  }
-
   /**
    * Deletes this project's directory structure.
-   *
+   */
   public void dispose() {
     myFileStructure.dispose();
   }
