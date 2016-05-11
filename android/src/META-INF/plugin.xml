@@ -238,6 +238,9 @@
     <action class="com.android.tools.idea.actions.AndroidShowThemeEditor" id="Android.ShowThemeEditor">
       <add-to-group group-id="AndroidToolsGroup" anchor="last"/>
     </action>
+    <action id="InferAnnotations" text="Infer Annotations..." class="com.android.tools.idea.actions.annotations.InferSupportAnnotationsAction">
+      <add-to-group group-id="InspectCodeGroup" anchor="after" relative-to-action="InferNullity"/>
+    </action>
     <action
         id="SendFeedback"
         class="com.android.tools.idea.actions.SendFeedbackAction"
