@@ -31,6 +31,7 @@ import com.intellij.ui.awt.RelativePoint;
 import com.intellij.util.ui.GraphicsUtil;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.accessibility.ScreenReader;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -143,7 +144,7 @@ public abstract class FlatComboAction extends AnAction implements CustomComponen
       myPresentation = presentation;
       setModel(new MyButtonModel());
       setHorizontalAlignment(LEFT);
-      setFocusable(false);
+      setFocusable(ScreenReader.isActive());
       Insets margins = getMargin();
       setMargin(new Insets(margins.top, 2, margins.bottom, 2));
       setBorder(IdeBorderFactory.createEmptyBorder(0, 2, 0, 2));
