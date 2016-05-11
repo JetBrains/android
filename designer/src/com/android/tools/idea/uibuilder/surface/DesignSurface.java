@@ -242,7 +242,7 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
 
       // If the model has already rendered, there may be errors to display,
       // so update the error panel to reflect that.
-      updateErrorDisplay(myScreenView, myScreenView.getResult());
+      updateErrorDisplay(myScreenView.getResult());
       myLayeredPane.setPreferredSize(myScreenView.getPreferredSize());
 
       NlLayoutType layoutType = myScreenView.getModel().getType();
@@ -711,12 +711,17 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
   private final ModelListener myModelListener = new ModelListener() {
     @Override
     public void modelChanged(@NotNull NlModel model) {
+      model.render();
       positionScreens();
     }
 
     @Override
     public void modelRendered(@NotNull NlModel model) {
-      positionScreens();
+      if (myScreenView != null) {
+        updateErrorDisplay(myScreenView.getResult());
+        positionScreens();
+        repaint();
+      }
     }
   };
 
@@ -1034,17 +1039,15 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
    * Notifies the design surface that the given screenview (which must be showing in this design surface)
    * has been rendered (possibly with errors)
    */
-  public void updateErrorDisplay(@NotNull ScreenView view, @Nullable final RenderResult result) {
-    if (view == myScreenView) {
-      getErrorQueue().cancelAllUpdates();
-      myRenderHasProblems = result != null && result.getLogger().hasProblems();
-      if (myRenderHasProblems) {
-        updateErrors(result);
-      }
-      else {
-        myErrorPanel.setVisible(false);
-        repaint();
-      }
+  public void updateErrorDisplay(@Nullable final RenderResult result) {
+    getErrorQueue().cancelAllUpdates();
+    myRenderHasProblems = result != null && result.getLogger().hasProblems();
+    if (myRenderHasProblems) {
+      updateErrors(result);
+    }
+    else {
+      myErrorPanel.setVisible(false);
+      repaint();
     }
   }
 
