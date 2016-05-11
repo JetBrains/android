@@ -46,7 +46,6 @@ import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.keymap.Keymap;
 import com.intellij.openapi.keymap.KeymapManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
@@ -77,7 +76,6 @@ import java.util.regex.Pattern;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
-import static com.google.common.truth.Truth.assertThat;
 import static org.fest.reflect.core.Reflection.method;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.util.Strings.quote;
@@ -300,46 +298,6 @@ public class EditorFixture {
       fail("Expected to find editor to focus, but there is no current editor");
       return null;
     }
-  }
-
-  /**
-   * Moves the caret to the start of the given line number (1-based). Note that
-   * the internal editor lines are 0-based.
-   *
-   * @param lineNumber the line number.
-   */
-  @NotNull
-  public EditorFixture moveToLine(final int lineNumber) {
-    assertThat(lineNumber).isAtLeast(0);
-    final Ref<Boolean> doneScrolling = new Ref<>(false);
-
-    Point lineStartPoint = execute(new GuiQuery<Point>() {
-      @Override
-      protected Point executeInEDT() throws Throwable {
-        FileEditorManager manager = FileEditorManager.getInstance(myFrame.getProject());
-        Editor editor = manager.getSelectedTextEditor();
-        if (editor != null) {
-          Document document = editor.getDocument();
-          int offset = document.getLineStartOffset(lineNumber - 1);
-          LogicalPosition position = editor.offsetToLogicalPosition(offset);
-          editor.getScrollingModel().scrollTo(position, ScrollType.MAKE_VISIBLE);
-          editor.getScrollingModel().runActionOnScrollingFinished(() -> doneScrolling.set(true));
-          return editor.logicalPositionToXY(position);
-        }
-        return null;
-      }
-    });
-
-    Wait.seconds(10).expecting("scrolling to finish").until(() -> doneScrolling.get());
-
-    JComponent focusedEditor = getFocusedEditor();
-    if (focusedEditor != null && lineStartPoint != null) {
-      robot.click(focusedEditor, lineStartPoint);
-    }
-    else {
-      fail("Could not move to line " + lineNumber + " in the editor");
-    }
-    return this;
   }
 
   /**
@@ -829,6 +787,7 @@ public class EditorFixture {
     GOTO_DECLARATION("GotoDeclaration"),
     RUN_FROM_CONTEXT("RunClass"),
     ESCAPE("EditorEscape"),
+    DOWN("EditorDown")
     ;
 
     /** The {@code id} of an action mapped to a keyboard shortcut in, for example, {@code Keymap_Default.xml}. */

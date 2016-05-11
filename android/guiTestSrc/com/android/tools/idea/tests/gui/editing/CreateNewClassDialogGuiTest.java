@@ -91,7 +91,7 @@ public class CreateNewClassDialogGuiTest {
 
   private void assertPackageName(@NotNull String filePath, @NotNull String packageName) {
     myEditor.open(filePath);
-    myEditor.moveToLine(1);
+    myEditor.moveBetween("package ", packageName);
     assertThat(myEditor.getCurrentLine().trim()).isEqualTo("package " + packageName + ";");
   }
 
