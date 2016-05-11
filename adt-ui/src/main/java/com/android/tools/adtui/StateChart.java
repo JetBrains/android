@@ -66,10 +66,11 @@ public class StateChart extends AnimatedComponent {
   public StateChart(@NonNull StateChartData data, @NonNull Color[] colors) {
     mData = data;
     mColors = colors;
-    mPaths = new ArrayList<RoundRectangle2D.Float>();
+    mPaths = new ArrayList<>();
     mValues = new TIntArrayList();
     mMousePosition = new Point();
 
+    // TODO these logic should be moved to the Selection/Overlay Component.
     addMouseListener(new MouseAdapter() {
       @Override
       public void mouseEntered(MouseEvent e) {

@@ -97,6 +97,16 @@ public final class RangeScrollbar extends JScrollBar implements Animatable {
   }
 
   @Override
+  public void reset() {
+    mScrollingMode = ScrollingMode.STREAMING;
+
+    // Reset the global and current data range to start from the current point onwards.
+    double now = mGlobalRange.getMax();
+    mGlobalRange.setMin(now);
+    mRange.setMin(now);
+  }
+
+  @Override
   public void animate(float frameLength) {
     if (mScrollingMode == ScrollingMode.STREAMING) {
       if (!mRange.setMax(mGlobalRange.getMax())) {
@@ -121,7 +131,7 @@ public final class RangeScrollbar extends JScrollBar implements Animatable {
       case VIEWING:
         // User is viewing data in the past but not actively scrolling,
         // so keep the size and position up to date.
-        setValues((int)(scrollbarRange * mRange.getMin() / globalLength),
+        setValues((int)(scrollbarRange * (mRange.getMin() - mGlobalRange.getMin()) / globalLength),
                   scrollbarExtent, 0, scrollbarRange);
         break;
       case SCROLLING:

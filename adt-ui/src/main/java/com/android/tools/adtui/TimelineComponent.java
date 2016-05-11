@@ -307,7 +307,9 @@ public final class TimelineComponent extends AnimatedComponent {
     mUnits = units;
   }
 
+  @Override
   public void reset() {
+    super.reset();
     mCurrentMax = mInitialMax;
     mCurrentMin = 0.0f;
     mMarkerSeparation = mInitialMarkerSeparation;

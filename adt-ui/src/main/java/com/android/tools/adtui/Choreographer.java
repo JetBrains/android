@@ -40,6 +40,7 @@ public class Choreographer implements ActionListener {
   private final Timer mTimer;
   private boolean mUpdate;
   private long mFrameTime;
+  private boolean mReset;
 
   /**
    * At the end of each update loop, repaint is trigger on the parent container so that all its
@@ -114,7 +115,18 @@ public class Choreographer implements ActionListener {
     step(DEFAULT_FRAME_LENGTH);
   }
 
+  public void reset() {
+    mReset = true;
+  }
+
   private void step(float frameLength) {
+    if (mReset) {
+      for (Animatable component : mComponents) {
+        component.reset();
+      }
+      mReset = false;
+    }
+
     for (Animatable component : mComponents) {
       component.animate(frameLength);
     }
