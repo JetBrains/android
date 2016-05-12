@@ -13,10 +13,6 @@ public class AndroidIcons {
     return IconLoader.getIcon(path, AndroidIcons.class);
   }
 
-  private static ImageIcon loadImage(String path) {
-    return new ImageIcon(AndroidIcons.class.getClassLoader().getResource(path));
-  }
-
   public static final Icon Android = load("/icons/android.png"); // 16x16
   public static final Icon Android24 = load("/icons/android24.png"); // 24x24
   public static final Icon AndroidLarge = load("/icons/androidLarge.png"); // 64x64
@@ -246,13 +242,13 @@ public class AndroidIcons {
     public static final Icon ShowBlueprintBoth = load("/icons/sherpa/switch_blueprint_both.png");
     public static final Icon ShowInfoIdOn = load("/icons/sherpa/info_on.png");
     public static final Icon ShowInfoIdOff = load("/icons/sherpa/info_off.png");
-    public static final Icon Delete = loadImage("/icons/sherpa/delete.png");
-    public static final Icon LeftConstraintCursor = loadImage("/icons/sherpa/left_constraint_cursor.png");
-    public static final Icon TopConstraintCursor = loadImage("/icons/sherpa/top_constraint_cursor.png");
-    public static final Icon RightConstraintCursor = loadImage("/icons/sherpa/right_constraint_cursor.png");
-    public static final Icon BottomConstraintCursor = loadImage("/icons/sherpa/bottom_constraint_cursor.png");
-    public static final Icon BaselineConstraintCursor = loadImage("/icons/sherpa/baseline_constraint_cursor.png");
-    public static final Icon UnlinkConstraintCursor = loadImage("/icons/sherpa/unlink_constraint_cursor.png");
+    public static final Icon Delete = load("/icons/sherpa/delete.png");
+    public static final Icon LeftConstraintCursor = load("/icons/sherpa/left_constraint_cursor.png");
+    public static final Icon TopConstraintCursor = load("/icons/sherpa/top_constraint_cursor.png");
+    public static final Icon RightConstraintCursor = load("/icons/sherpa/right_constraint_cursor.png");
+    public static final Icon BottomConstraintCursor = load("/icons/sherpa/bottom_constraint_cursor.png");
+    public static final Icon BaselineConstraintCursor = load("/icons/sherpa/baseline_constraint_cursor.png");
+    public static final Icon UnlinkConstraintCursor = load("/icons/sherpa/unlink_constraint_cursor.png");
 
     public static final Icon AutoConnect = load("/icons/sherpa/auto_connect.png");
     public static final Icon AutoConnectOff = load("/icons/sherpa/auto_connect_off.png");
