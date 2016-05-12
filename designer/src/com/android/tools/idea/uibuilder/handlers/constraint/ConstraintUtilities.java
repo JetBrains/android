@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
-import android.support.constraint.solver.widgets.*;
+import android.constraint.solver.widgets.*;
 import com.android.SdkConstants;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.sdklib.AndroidVersion;

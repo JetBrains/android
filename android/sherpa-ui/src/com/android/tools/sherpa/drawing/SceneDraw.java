@@ -34,7 +34,7 @@ import com.android.tools.sherpa.interaction.WidgetResize;
 import com.android.tools.sherpa.structure.WidgetCompanion;
 import com.android.tools.sherpa.structure.WidgetsScene;
 import com.android.tools.sherpa.structure.Selection;
-import android.support.constraint.solver.widgets.*;
+import android.constraint.solver.widgets.*;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
