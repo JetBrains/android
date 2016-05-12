@@ -122,6 +122,9 @@ public class WidgetConstraintPanel extends JPanel {
    * This loads the parameters form mWidget the ConstraintWidget
    */
   private void configureUI() {
+    if (mWidget == null) {
+      return;
+    }
     int top = getMargin(ConstraintAnchor.Type.TOP);
     int left = getMargin(ConstraintAnchor.Type.LEFT);
     int right = getMargin(ConstraintAnchor.Type.RIGHT);
@@ -183,6 +186,7 @@ public class WidgetConstraintPanel extends JPanel {
 
   public void updateComponents(@NotNull List<NlComponent> components) {
     mComponent = components.isEmpty() ? null : components.get(0);
+    mWidget = null;
     if (mComponent != null) {
       mConstraintModel = ConstraintModel.getConstraintModel(mComponent.getModel());
       mScene = mConstraintModel.getScene();
@@ -329,6 +333,9 @@ public class WidgetConstraintPanel extends JPanel {
    * Method is called when ever we modify the widget
    */
   private void widgetModified() {
+    if (mWidget == null) {
+      return;
+    }
     if (!mWidgetModified) {
       mConstraintModel.getSelection().addModifiedWidget(mWidget);
     }
@@ -343,6 +350,9 @@ public class WidgetConstraintPanel extends JPanel {
   }
 
   private void setMargin(ConstraintAnchor.Type type, int margin) {
+    if (mWidget == null) {
+      return;
+    }
     ConstraintAnchor anchor = mWidget.getAnchor(type);
     if (anchor != null) {
       if (margin == -1) {
@@ -356,12 +366,18 @@ public class WidgetConstraintPanel extends JPanel {
   }
 
   private void killConstraint(ConstraintAnchor.Type type) {
+    if (mWidget == null) {
+      return;
+    }
     ConstraintAnchor anchor = mWidget.getAnchor(type);
     anchor.reset();
     widgetModified();
   }
 
   public void setHorizontalBias() {
+    if (mWidget == null) {
+      return;
+    }
     float bias = (mHorizontalSlider.getValue() / 100f);
     mConstraintModel.allowsUpdate(false);
     mWidget.setHorizontalBiasPercent(bias);
@@ -371,6 +387,9 @@ public class WidgetConstraintPanel extends JPanel {
   }
 
   public void setVerticalBias() {
+    if (mWidget == null) {
+      return;
+    }
     float bias = 1f - (mVerticalSlider.getValue() / 100f);
     mConstraintModel.allowsUpdate(false);
     mWidget.setVerticalBiasPercent(bias);
@@ -380,6 +399,9 @@ public class WidgetConstraintPanel extends JPanel {
   }
 
   public void setTopMargin(int margin) {
+    if (mWidget == null) {
+      return;
+    }
     mConstraintModel.allowsUpdate(false);
     setMargin(ConstraintAnchor.Type.TOP, margin);
     mConstraintModel.allowsUpdate(true);
@@ -387,6 +409,9 @@ public class WidgetConstraintPanel extends JPanel {
   }
 
   public void setLeftMargin(int margin) {
+    if (mWidget == null) {
+      return;
+    }
     mConstraintModel.allowsUpdate(false);
     setMargin(ConstraintAnchor.Type.LEFT, margin);
     mConstraintModel.allowsUpdate(true);
@@ -394,6 +419,9 @@ public class WidgetConstraintPanel extends JPanel {
   }
 
   public void setRightMargin(int margin) {
+    if (mWidget == null) {
+      return;
+    }
     mConstraintModel.allowsUpdate(false);
     setMargin(ConstraintAnchor.Type.RIGHT, margin);
     mConstraintModel.allowsUpdate(true);
@@ -401,6 +429,9 @@ public class WidgetConstraintPanel extends JPanel {
   }
 
   public void setBottomMargin(int margin) {
+    if (mWidget == null) {
+      return;
+    }
     mConstraintModel.allowsUpdate(false);
     setMargin(ConstraintAnchor.Type.BOTTOM, margin);
     mConstraintModel.allowsUpdate(true);
@@ -408,6 +439,9 @@ public class WidgetConstraintPanel extends JPanel {
   }
 
   public void killTopConstraint() {
+    if (mWidget == null) {
+      return;
+    }
     mConstraintModel.allowsUpdate(false);
     killConstraint(ConstraintAnchor.Type.TOP);
     mConstraintModel.allowsUpdate(true);
@@ -415,6 +449,9 @@ public class WidgetConstraintPanel extends JPanel {
   }
 
   public void killLeftConstraint() {
+    if (mWidget == null) {
+      return;
+    }
     mConstraintModel.allowsUpdate(false);
     killConstraint(ConstraintAnchor.Type.LEFT);
     mConstraintModel.allowsUpdate(true);
@@ -422,6 +459,9 @@ public class WidgetConstraintPanel extends JPanel {
   }
 
   public void killRightConstraint() {
+    if (mWidget == null) {
+      return;
+    }
     mConstraintModel.allowsUpdate(false);
     killConstraint(ConstraintAnchor.Type.RIGHT);
     mConstraintModel.allowsUpdate(true);
@@ -429,6 +469,9 @@ public class WidgetConstraintPanel extends JPanel {
   }
 
   public void killBottomConstraint() {
+    if (mWidget == null) {
+      return;
+    }
     killConstraint(ConstraintAnchor.Type.BOTTOM);
 
   }
@@ -438,6 +481,9 @@ public class WidgetConstraintPanel extends JPanel {
   }
 
   public void setHorizontalConstraint(int horizontalConstraint) {
+    if (mWidget == null) {
+      return;
+    }
     mConstraintModel.allowsUpdate(false);
     switch (horizontalConstraint) {
       case SingleWidgetView.ANY:
@@ -456,6 +502,9 @@ public class WidgetConstraintPanel extends JPanel {
   }
 
   public void setVerticalConstraint(int verticalConstraint) {
+    if (mWidget == null) {
+      return;
+    }
     mConstraintModel.allowsUpdate(false);
     switch (verticalConstraint) {
       case SingleWidgetView.ANY:
