@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.property.inspector;
 
 import com.android.assetstudiolib.AndroidVectorIcons;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.PreferenceUtils;
 import com.android.tools.idea.uibuilder.property.NlFlagPropertyItem;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
@@ -46,7 +47,16 @@ public class TextInspectorProvider implements InspectorProvider {
 
   @Override
   public boolean isApplicable(@NotNull List<NlComponent> components, @NotNull Map<String, NlProperty> properties) {
-    return properties.keySet().containsAll(TEXT_PROPERTIES);
+    if (!properties.keySet().containsAll(TEXT_PROPERTIES)) {
+      return false;
+    }
+    for (NlComponent component : components) {
+      // Do not show Text properties for preferences even though the component may have all the properties
+      if (PreferenceUtils.VALUES.contains(component.getTagName())) {
+        return false;
+      }
+    }
+    return true;
   }
 
   @NotNull
