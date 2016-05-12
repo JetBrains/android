@@ -28,6 +28,7 @@ public class EditTextHandler extends TextViewHandler {
   public List<String> getInspectorProperties() {
     return ImmutableList.of(
       ATTR_INPUT_TYPE,
+      ATTR_HINT,
       ATTR_STYLE,
       ATTR_SINGLE_LINE,
       ATTR_SELECT_ALL_ON_FOCUS);
