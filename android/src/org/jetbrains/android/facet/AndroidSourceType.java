@@ -29,7 +29,7 @@ public enum AndroidSourceType {
   // source roots
   MANIFEST("manifest", IdeaSourceProvider.MANIFEST_PROVIDER, AllIcons.Modules.SourceRoot),
   JAVA("java", IdeaSourceProvider.JAVA_PROVIDER, AllIcons.Modules.SourceRoot),
-  JNI("jni", IdeaSourceProvider.JNI_PROVIDER, AllIcons.Modules.SourceRoot),
+  CPP("cpp", IdeaSourceProvider.JNI_PROVIDER, AllIcons.Modules.SourceRoot),
   AIDL("aidl", IdeaSourceProvider.AIDL_PROVIDER, AllIcons.Modules.SourceRoot),
   RENDERSCRIPT("renderscript", IdeaSourceProvider.RENDERSCRIPT_PROVIDER, AllIcons.Modules.SourceRoot),
   SHADERS("shaders", IdeaSourceProvider.SHADERS_PROVIDER, AllIcons.Modules.SourceRoot),
