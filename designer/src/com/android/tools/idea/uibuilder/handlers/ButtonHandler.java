@@ -30,6 +30,7 @@ public class ButtonHandler extends TextViewHandler {
       ATTR_STYLE,
       ATTR_BACKGROUND,
       ATTR_BACKGROUND_TINT,
+      ATTR_STATE_LIST_ANIMATOR,
       ATTR_ELEVATION,
       ATTR_VISIBILITY,
       ATTR_ON_CLICK);

@@ -29,7 +29,6 @@ public class NestedScrollViewHandler extends FrameLayoutHandler {
     return ImmutableList.of(
       ATTR_CONTEXT,
       ATTR_SHOW_IN,
-      ATTR_LAYOUT_BEHAVIOR,
       ATTR_CLIP_TO_PADDING);
   }
 }
