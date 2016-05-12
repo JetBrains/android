@@ -41,7 +41,6 @@ public class GradleIncreaseLanguageLevelTest {
     GradleExperimentalSettings.getInstance().SKIP_SOURCE_GEN_ON_PROJECT_SYNC = true;
   }
 
-  @Ignore("http://wpie20.hot.corp.google.com:8200/builders/ubuntu-studio-master-dev-uitests/builds/28/")
   @Test
   public void testIncreaseLanguageLevelForJava() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("MultiModule");
@@ -52,7 +51,6 @@ public class GradleIncreaseLanguageLevelTest {
     useJava7FeatureAndIncreaseLanguageLevel(editor);
   }
 
-  @Ignore("http://wpie20.hot.corp.google.com:8200/builders/ubuntu-studio-master-dev-uitests/builds/28/")
   @Test
   public void testIncreaseLanguageLevelForAndroid() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("MultiModule");
