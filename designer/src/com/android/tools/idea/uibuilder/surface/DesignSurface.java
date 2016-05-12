@@ -718,9 +718,11 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
     @Override
     public void modelRendered(@NotNull NlModel model) {
       if (myScreenView != null) {
-        updateErrorDisplay(myScreenView.getResult());
+        ApplicationManager.getApplication().invokeLater(() -> {
+          updateErrorDisplay(myScreenView.getResult());
+          repaint();
+        });
         positionScreens();
-        repaint();
       }
     }
   };
