@@ -35,10 +35,8 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Model {
   private static final int HORIZONTAL_SPACING = 4;
@@ -103,18 +101,18 @@ public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Mo
     myComponents = components;
     myProperties = extractPropertiesForTable(properties);
 
-    List<PTableItem> sortedProperties;
+    List<PTableItem> groupedProperties;
     if (components.isEmpty()) {
-      sortedProperties = Collections.emptyList();
+      groupedProperties = Collections.emptyList();
     }
     else {
-      List<PTableItem> groupedProperties = new NlPropertiesGrouper().group(myProperties, components);
-      sortedProperties = new NlPropertiesSorter().sort(groupedProperties, components);
+      List<NlPropertyItem> sortedProperties = new NlPropertiesSorter().sort(myProperties, components);
+      groupedProperties = new NlPropertiesGrouper().group(sortedProperties, components);
     }
     if (myTable.isEditing()) {
       myTable.removeEditor();
     }
-    myModel.setItems(sortedProperties);
+    myModel.setItems(groupedProperties);
 
     updateDefaultProperties(propertiesManager);
     myInspectorPanel.setComponent(components, properties, propertiesManager);
