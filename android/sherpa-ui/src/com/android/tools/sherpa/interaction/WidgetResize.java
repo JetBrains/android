@@ -16,10 +16,10 @@
 
 package com.android.tools.sherpa.interaction;
 
-import android.support.constraint.solver.widgets.Animator;
-import android.support.constraint.solver.widgets.ConstraintAnchor;
-import android.support.constraint.solver.widgets.ConstraintWidget;
-import android.support.constraint.solver.widgets.Guideline;
+import android.constraint.solver.widgets.Animator;
+import android.constraint.solver.widgets.ConstraintAnchor;
+import android.constraint.solver.widgets.ConstraintWidget;
+import android.constraint.solver.widgets.Guideline;
 
 import java.awt.Rectangle;
 import java.util.ArrayList;

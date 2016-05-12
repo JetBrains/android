@@ -22,9 +22,9 @@ import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
 import com.android.tools.sherpa.structure.WidgetCompanion;
 import com.android.tools.sherpa.structure.WidgetsScene;
 import com.android.tools.sherpa.structure.Selection;
-import android.support.constraint.solver.widgets.Animator;
-import android.support.constraint.solver.widgets.ConstraintAnchor;
-import android.support.constraint.solver.widgets.ConstraintWidget;
+import android.constraint.solver.widgets.Animator;
+import android.constraint.solver.widgets.ConstraintAnchor;
+import android.constraint.solver.widgets.ConstraintWidget;
 
 import java.awt.Point;
 import java.awt.event.KeyEvent;
