@@ -78,24 +78,6 @@ public class NlBooleanEditor extends NlBaseComponentEditor implements NlComponen
   public void setProperty(@NotNull NlProperty property) {
     myProperty = property;
 
-    Color fg = UIUtil.getTableSelectionForeground();
-    Color bg = UIUtil.getTableSelectionBackground();
-
-    if (myPanel != null) {
-      myPanel.setForeground(fg);
-      myPanel.setBackground(bg);
-
-      for (int i = 0; i < myPanel.getComponentCount(); i++) {
-        Component comp = myPanel.getComponent(i);
-        comp.setForeground(fg);
-        comp.setBackground(bg);
-      }
-    }
-    else {
-      myCheckbox.setForeground(fg);
-      myCheckbox.setBackground(bg);
-    }
-
     String propValue = myProperty.getValue();
     myValue = propValue;
     ThreeStateCheckBox.State state = NlBooleanRenderer.getState(propValue);
