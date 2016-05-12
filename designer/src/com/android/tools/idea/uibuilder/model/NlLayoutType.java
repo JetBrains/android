@@ -54,10 +54,6 @@ public enum NlLayoutType {
     return this == LAYOUT;
   }
 
-  public boolean isPreferenceScreen() {
-    return this == PREFERENCE_SCREEN;
-  }
-
   public static boolean supports(@NotNull XmlFile file) {
     for (NlLayoutType type : values()) {
       if (type.isResourceTypeOf(file)) {
@@ -76,7 +72,7 @@ public enum NlLayoutType {
       }
     }
 
-    throw new IllegalArgumentException(file.toString());
+    return LAYOUT;
   }
 
   @NotNull
