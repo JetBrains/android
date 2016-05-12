@@ -16,8 +16,8 @@
 
 package com.android.tools.sherpa.scout;
 
-import android.constraint.solver.widgets.ConstraintTableLayout;
-import android.constraint.solver.widgets.ConstraintWidget;
+import android.support.constraint.solver.widgets.ConstraintTableLayout;
+import android.support.constraint.solver.widgets.ConstraintWidget;
 
 
 /**

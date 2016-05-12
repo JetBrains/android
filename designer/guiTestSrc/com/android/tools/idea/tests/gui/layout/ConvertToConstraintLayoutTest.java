@@ -81,7 +81,7 @@ public class ConvertToConstraintLayoutTest {
 
     @Language("XML")
     String xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                 "<android.constraint.ConstraintLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                 "<android.support.constraint.ConstraintLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
                  "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
                  "    android:layout_width=\"match_parent\"\n" +
                  "    android:layout_height=\"match_parent\">\n" +
@@ -137,7 +137,7 @@ public class ConvertToConstraintLayoutTest {
                  "        app:layout_editor_absoluteX=\"256dp\"\n" +
                  "        app:layout_editor_absoluteY=\"416dp\" />\n" +
                  "\n" +
-                 "</android.constraint.ConstraintLayout>\n" +
+                 "</android.support.constraint.ConstraintLayout>\n" +
                  "\n";
     assertThat(editor.getCurrentFileContents()).isEqualTo(xml);
   }
