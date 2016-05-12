@@ -25,7 +25,7 @@ import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
 import com.android.tools.sherpa.structure.Selection;
 import com.android.tools.sherpa.structure.WidgetCompanion;
 import com.android.tools.sherpa.structure.WidgetsScene;
-import android.support.constraint.solver.widgets.*;
+import android.constraint.solver.widgets.*;
 
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;

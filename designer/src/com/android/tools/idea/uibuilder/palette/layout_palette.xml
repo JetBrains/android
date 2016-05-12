@@ -362,7 +362,7 @@
   </group>
 
   <group name="Layouts">
-    <item tag="android.support.constraint.ConstraintLayout"/>
+    <item tag="android.constraint.ConstraintLayout"/>
     <item tag="GridLayout"/>
     <item tag="FrameLayout"/>
     <item tag="LinearLayout"
