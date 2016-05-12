@@ -53,8 +53,10 @@ public class ConstraintHandle {
     static final Stroke sLineShadowStroke = new BasicStroke(5);
     static final Stroke sSimpleStroke = new BasicStroke(1);
 
+    static final int sCountDownRadius = 10;
+
     // How long does the conversion from soft constraints to hard constraints takes
-    private final static int LOCK_CONNECTIONS_DURATION = 6000; // ms
+    private final static int LOCK_CONNECTIONS_DURATION = 3000; // ms
 
     private final Timer mLockTimer = new Timer(LOCK_CONNECTIONS_DURATION, e -> {
         if (mAnchor.isConnected()) {
@@ -613,11 +615,11 @@ public class ConstraintHandle {
 
         // If a lock timer is active, draw the path a second time
         if (progress <= 1 && progress >= 0.1) {
-            Stroke s = g.getStroke();
             int distance = lengthOfPath(drawing.mPath);
             int dashFull = (int) (distance * progress);
             int dashEmpty = (int) (distance * (1 - progress));
             if (dashFull > 0 || dashEmpty > 0) {
+                Stroke s = g.getStroke();
                 if (originalCreator == ConstraintAnchor.AUTO_CONSTRAINT_CREATOR
                         || originalCreator == ConstraintAnchor.SCOUT_CREATOR) {
                     if (originalCreator != ConstraintAnchor.SCOUT_CREATOR) {
@@ -648,6 +650,21 @@ public class ConstraintHandle {
                     }
                     drawing.draw(g);
                 }
+                int distanceCircle = (int)(2 * Math.PI * 10);
+                Color prev = g.getColor();
+                int solidCircle = (int)(distanceCircle * progress);
+                int emptyCircle = (int)(distanceCircle * (1 - progress));
+                Stroke circleProgressStrokeOuter = new BasicStroke(4, BasicStroke.CAP_BUTT,
+                                                                   BasicStroke.JOIN_BEVEL, 0, new float[]{solidCircle, emptyCircle}, 0);
+                g.setColor(colorSet.getBackground());
+                g.setStroke(circleProgressStrokeOuter);
+                int d = 2 * sCountDownRadius;
+                g.drawRoundRect(sx - sCountDownRadius, sy - sCountDownRadius, d, d, d, d);
+                Stroke circleProgressStroke = new BasicStroke(3, BasicStroke.CAP_BUTT,
+                                                              BasicStroke.JOIN_BEVEL, 0, new float[]{solidCircle, emptyCircle}, 0);
+                g.setColor(prev);
+                g.setStroke(circleProgressStroke);
+                g.drawRoundRect(sx - sCountDownRadius, sy - sCountDownRadius, d, d, d, d);
                 g.setStroke(s);
             }
         } else {
