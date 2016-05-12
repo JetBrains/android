@@ -87,7 +87,7 @@ public class AndroidModuleNode extends ProjectViewModuleNode {
     NativeAndroidGradleModel nativeAndroidGradleModel = NativeAndroidGradleModel.get(facet.getModule());
 
     for (AndroidSourceType sourceType : sourcesByType.keySet()) {
-      if (sourceType == AndroidSourceType.JNI && nativeAndroidGradleModel != null) {
+      if (sourceType == AndroidSourceType.CPP && nativeAndroidGradleModel != null) {
         // Native sources will be added separately from NativeAndroidGradleModel.
         continue;
       }

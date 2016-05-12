@@ -122,7 +122,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
       " lib (Android)\n" +
       "  manifests\n" +
       "   AndroidManifest.xml (main)\n" +
-      "  jni\n" +
+      "  cpp\n" +
       "   hello.c (main)\n" +
       "  jniLibs\n" +
       "   libc.so (main)\n" +

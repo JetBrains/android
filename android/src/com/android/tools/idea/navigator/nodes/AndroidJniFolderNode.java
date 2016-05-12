@@ -39,7 +39,7 @@ import java.util.List;
 
 import static com.android.tools.idea.navigator.nodes.NativeAndroidModuleNode.getNativeSourceNodes;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
-import static org.jetbrains.android.facet.AndroidSourceType.JNI;
+import static org.jetbrains.android.facet.AndroidSourceType.CPP;
 
 public class AndroidJniFolderNode extends ProjectViewNode<NativeAndroidGradleModel> implements DirectoryGroupNode {
 
@@ -101,31 +101,31 @@ public class AndroidJniFolderNode extends ProjectViewNode<NativeAndroidGradleMod
 
   @Override
   protected void update(PresentationData presentation) {
-    presentation.addText(JNI.getName(), SimpleTextAttributes.REGULAR_ATTRIBUTES);
+    presentation.addText(CPP.getName(), SimpleTextAttributes.REGULAR_ATTRIBUTES);
 
-    Icon icon = JNI.getIcon();
+    Icon icon = CPP.getIcon();
     if (icon != null) {
       presentation.setIcon(icon);
     }
-    presentation.setPresentableText(JNI.getName());
+    presentation.setPresentableText(CPP.getName());
   }
 
   @Nullable
   @Override
   public String toTestString(@Nullable Queryable.PrintInfo printInfo) {
-    return JNI.getName();
+    return CPP.getName();
   }
 
   @Nullable
   @Override
   public Comparable getSortKey() {
-    return JNI;
+    return CPP;
   }
 
   @Nullable
   @Override
   public Comparable getTypeSortKey() {
-    return JNI;
+    return CPP;
   }
 
   @Override
