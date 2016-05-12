@@ -21,6 +21,7 @@ import com.android.tools.idea.uibuilder.property.NlFlagPropertyItem;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.NlBooleanIconEditor;
+import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
 import com.android.tools.idea.uibuilder.property.editors.NlEnumEditor;
 import com.android.tools.idea.uibuilder.property.editors.NlReferenceEditor;
 import com.google.common.collect.ImmutableSet;
@@ -195,6 +196,17 @@ public class TextInspectorProvider implements InspectorProvider {
       myRightEditor.setProperty(myAlignment);
       myEndEditor.setProperty(myAlignment);
       myColorEditor.setProperty(myColor);
+    }
+
+    @Nullable
+    @Override
+    public NlComponentEditor getEditorForProperty(@NotNull String propertyName) {
+      switch (propertyName) {
+        case ATTR_TEXT:
+          return myTextEditor;
+        default:
+          return null;
+      }
     }
 
     private NlEnumEditor.Listener createEnumStyleListener() {

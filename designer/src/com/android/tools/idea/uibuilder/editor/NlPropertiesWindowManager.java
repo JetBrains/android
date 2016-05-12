@@ -78,6 +78,10 @@ public class NlPropertiesWindowManager extends NlAbstractWindowManager {
                          myPropertiesManager.getConfigurationPanel(), 320, null);
   }
 
+  public void activatePreferredEditor() {
+    myPropertiesManager.activatePreferredEditor();
+  }
+
   @Override
   public void disposeComponent() {
   }

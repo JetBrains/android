@@ -22,10 +22,12 @@ import com.android.tools.idea.ddms.screenshot.DeviceArtPainter;
 import com.android.tools.idea.rendering.RenderErrorPanel;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.uibuilder.editor.NlActionManager;
+import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.palette.ScalableDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView.ScreenViewType;
 import com.google.common.collect.Lists;
+import com.intellij.designer.DesignerEditorPanelFacade;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -68,6 +70,7 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
   public static final boolean SIZE_ERROR_PANEL_DYNAMICALLY = true;
   private static final Integer LAYER_PROGRESS = JLayeredPane.POPUP_LAYER + 100;
   private final Project myProject;
+  private final DesignerEditorPanelFacade myDesigner;
   private boolean myRenderHasProblems;
 
   public enum ScreenMode {
@@ -114,9 +117,10 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
   private boolean myCentered;
   private final NlActionManager myActionManager = new NlActionManager(this);
 
-  public DesignSurface(@NotNull Project project) {
+  public DesignSurface(@NotNull Project project, @NotNull DesignerEditorPanelFacade designer) {
     super(new BorderLayout());
     myProject = project;
+    myDesigner = designer;
 
     setOpaque(true);
     setFocusable(true);
@@ -179,6 +183,10 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
   @NotNull
   public Project getProject() {
     return myProject;
+  }
+
+  public boolean isPreviewSurface() {
+    return myDesigner instanceof NlPreviewForm;
   }
 
   @NotNull

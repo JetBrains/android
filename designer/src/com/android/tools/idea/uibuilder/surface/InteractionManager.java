@@ -20,6 +20,7 @@ import com.android.tools.idea.rendering.RefreshRenderAction;
 import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
+import com.android.tools.idea.uibuilder.editor.NlPropertiesWindowManager;
 import com.android.tools.idea.uibuilder.model.*;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
@@ -351,16 +352,22 @@ public class InteractionManager {
     @Override
     public void mouseClicked(@NotNull MouseEvent event) {
       if (event.getClickCount() == 2 && event.getButton() == MouseEvent.BUTTON1) {
-        // Warp to the text editor and show the corresponding XML for the
-        // double-clicked widget
-        int x = event.getX();
-        int y = event.getY();
-        ScreenView screenView = mySurface.getScreenView(x, y);
-        if (screenView != null) {
-          NlComponent component = Coordinates.findComponent(screenView, x, y);
-          if (component != null) {
-            PsiNavigateUtil.navigate(component.getTag());
+        if (mySurface.isPreviewSurface()) {
+          // Warp to the text editor and show the corresponding XML for the
+          // double-clicked widget
+          int x = event.getX();
+          int y = event.getY();
+          ScreenView screenView = mySurface.getScreenView(x, y);
+          if (screenView != null) {
+            NlComponent component = Coordinates.findComponent(screenView, x, y);
+            if (component != null) {
+              PsiNavigateUtil.navigate(component.getTag());
+            }
           }
+        }
+        else {
+          NlPropertiesWindowManager propertiesManager = NlPropertiesWindowManager.get(mySurface.getProject());
+          propertiesManager.activatePreferredEditor();
         }
       }
       else if (event.isPopupTrigger()) {
