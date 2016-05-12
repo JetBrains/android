@@ -67,7 +67,7 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
     myFile = (XmlFile)AndroidPsiUtils.getPsiFileSafely(project, file);
     assert myFile != null : file;
 
-    mySurface = new DesignSurface(project);
+    mySurface = new DesignSurface(project, this);
     NlModel model = NlModel.create(mySurface, editor, facet, myFile);
     mySurface.setModel(model);
 

@@ -310,6 +310,8 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
   @Override
   public void requestFocus() {
     myTextFieldWithAutoCompletion.requestFocus();
+    myTextFieldWithAutoCompletion.selectAll();
+    myTextFieldWithAutoCompletion.scrollRectToVisible(myTextFieldWithAutoCompletion.getBounds());
   }
 
   @NotNull

@@ -20,6 +20,7 @@ import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlDesignProperties;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -44,9 +45,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static com.android.SdkConstants.ATTR_ID;
+import static com.android.SdkConstants.ATTR_SRC;
+import static com.android.SdkConstants.ATTR_TEXT;
 import static com.intellij.uiDesigner.core.GridConstraints.*;
 
 public class InspectorPanel extends JPanel {
+  private static final List<String> PREFERRED_PROPERTY_NAMES = ImmutableList.of(ATTR_TEXT, ATTR_SRC, ATTR_ID);
   private static final int HORIZONTAL_SPACING = 4;
 
   private final List<InspectorProvider> myProviders;
@@ -60,6 +65,7 @@ public class InspectorPanel extends JPanel {
   private boolean myGroupInitiallyOpen;
   private GridConstraints myConstraints = new GridConstraints();
   private int myRow;
+  private boolean myActivateEditorAfterLoad;
 
   public InspectorPanel(@NotNull Project project) {
     super(new BorderLayout());
@@ -135,6 +141,9 @@ public class InspectorPanel extends JPanel {
     ApplicationManager.getApplication().invokeLater(() -> {
       revalidate();
       repaint();
+      if (myActivateEditorAfterLoad) {
+        activatePreferredEditor();
+      }
     });
   }
 
@@ -164,6 +173,28 @@ public class InspectorPanel extends JPanel {
     return inspectors;
   }
 
+  public void activatePreferredEditor(boolean activateAfterLoading) {
+    if (activateAfterLoading) {
+      myActivateEditorAfterLoad = true;
+    }
+    else {
+      activatePreferredEditor();
+    }
+  }
+
+  private void activatePreferredEditor() {
+    myActivateEditorAfterLoad = false;
+    for (String preferredPropertyName : PREFERRED_PROPERTY_NAMES) {
+      for (InspectorComponent component : myInspectors) {
+        NlComponentEditor editor = component.getEditorForProperty(preferredPropertyName);
+        if (editor != null) {
+          editor.requestFocus();
+          return;
+        }
+      }
+    }
+  }
+
   public JLabel addTitle(@NotNull String title) {
     JLabel label = createLabel(title, null, null);
     label.setFont(myBoldLabelFont);
@@ -177,12 +208,6 @@ public class InspectorPanel extends JPanel {
       // Never add a separator as the first element.
       addLineComponent(new JSeparator(), myRow++);
     }
-  }
-
-  public JLabel addLabel(@NotNull String title) {
-    JLabel label = createLabel(title, null, null);
-    addLineComponent(label, myRow++);
-    return label;
   }
 
   public JLabel addExpandableComponent(@NotNull String labelText,

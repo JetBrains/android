@@ -16,9 +16,6 @@
 package com.android.tools.idea.uibuilder.property.inspector;
 
 import com.android.tools.idea.uibuilder.handlers.constraint.WidgetConstraintPanel;
-import com.android.tools.idea.uibuilder.handlers.menu.GroupHandler;
-import com.android.tools.idea.uibuilder.handlers.menu.ItemHandler;
-import com.android.tools.idea.uibuilder.handlers.menu.MenuHandler;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
@@ -26,14 +23,15 @@ import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
 import com.android.tools.idea.uibuilder.property.editors.NlReferenceEditor;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.List;
 import java.util.Map;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.idea.uibuilder.property.editors.NlEditingListener.DEFAULT_LISTENER;
 import static com.android.SdkConstants.PreferenceTags.*;
+import static com.android.tools.idea.uibuilder.property.editors.NlEditingListener.DEFAULT_LISTENER;
 
 public class IdInspectorProvider implements InspectorProvider {
   private IdInspectorComponent myComponent;
@@ -130,6 +128,21 @@ public class IdInspectorProvider implements InspectorProvider {
       }
       if (myIdAttr != null && !myIdAttr.getComponents().isEmpty()) {
         myConstraintWidget.setProperty(myIdAttr);
+      }
+    }
+
+    @Nullable
+    @Override
+    public NlComponentEditor getEditorForProperty(@NotNull String propertyName) {
+      switch (propertyName) {
+        case ATTR_ID:
+          return myIdEditor;
+        case ATTR_LAYOUT_WIDTH:
+          return myWidthEditor;
+        case ATTR_LAYOUT_HEIGHT:
+          return myHeightEditor;
+        default:
+          return null;
       }
     }
 
