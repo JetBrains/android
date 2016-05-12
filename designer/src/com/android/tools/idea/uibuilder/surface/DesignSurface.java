@@ -718,10 +718,8 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
     @Override
     public void modelRendered(@NotNull NlModel model) {
       if (myScreenView != null) {
-        ApplicationManager.getApplication().invokeLater(() -> {
-          updateErrorDisplay(myScreenView.getResult());
-          repaint();
-        });
+        updateErrorDisplay(myScreenView.getResult());
+        repaint();
         positionScreens();
       }
     }
@@ -1042,14 +1040,19 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
    * has been rendered (possibly with errors)
    */
   public void updateErrorDisplay(@Nullable final RenderResult result) {
+    assert ApplicationManager.getApplication().isDispatchThread() ||
+           !ApplicationManager.getApplication().isReadAccessAllowed() : "Do not hold read lock when calling updateErrorDisplay!";
+
     getErrorQueue().cancelAllUpdates();
     myRenderHasProblems = result != null && result.getLogger().hasProblems();
     if (myRenderHasProblems) {
       updateErrors(result);
     }
     else {
-      myErrorPanel.setVisible(false);
-      repaint();
+      UIUtil.invokeLaterIfNeeded(() -> {
+        myErrorPanel.setVisible(false);
+        repaint();
+      });
     }
   }
 
@@ -1069,8 +1072,8 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
         if (result == null) {
           return;
         }
+        myErrorPanel.showErrors(result);
         ApplicationManager.getApplication().invokeLater(() -> {
-          myErrorPanel.showErrors(result);
           if (!myErrorPanel.isVisible()) {
             myErrorPanel.setVisible(true);
           }
