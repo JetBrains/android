@@ -53,6 +53,7 @@ public class NlPropertiesManager implements DesignSurfaceListener, ModelListener
 
   private MergingUpdateQueue myUpdateQueue;
   private boolean myFirstLoad = true;
+  private boolean myLoading;
 
   public NlPropertiesManager(@NotNull Project project, @NotNull DesignSurface designSurface) {
     myProject = project;
@@ -135,6 +136,7 @@ public class NlPropertiesManager implements DesignSurfaceListener, ModelListener
         }
         myPropertiesPanel.setItems(components, properties, this);
         if (postUpdateRunnable != null) {
+          myLoading = false;
           postUpdateRunnable.run();
         }
       });
@@ -189,6 +191,10 @@ public class NlPropertiesManager implements DesignSurfaceListener, ModelListener
     // TODO: refresh all custom inspectors
   }
 
+  public void activatePreferredEditor() {
+    myPropertiesPanel.activatePreferredEditor(myLoading);
+  }
+
   // ---- Implements DesignSurfaceListener ----
 
   @Override
@@ -210,6 +216,7 @@ public class NlPropertiesManager implements DesignSurfaceListener, ModelListener
       myFirstLoad = false;
       myLoadingPanel.startLoading();
     }
+    myLoading = true;
     queue.queue(new Update("updateProperties") {
       @Override
       public void run() {

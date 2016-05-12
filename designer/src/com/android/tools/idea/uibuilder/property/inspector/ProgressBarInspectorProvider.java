@@ -152,6 +152,12 @@ public class ProgressBarInspectorProvider implements InspectorProvider {
       myIndeterminateEditor.setProperty(myIndeterminate);
     }
 
+    @Nullable
+    @Override
+    public NlComponentEditor getEditorForProperty(@NotNull String propertyName) {
+      return null;
+    }
+
     private NlEditingListener createIndeterminateListener() {
       return new NlEditingListener() {
         @Override
