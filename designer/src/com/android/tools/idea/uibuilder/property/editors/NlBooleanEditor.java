@@ -22,7 +22,6 @@ import com.intellij.openapi.ui.FixedSizeButton;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.UIBundle;
 import com.intellij.util.ui.ThreeStateCheckBox;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,14 +32,15 @@ import java.awt.event.ActionEvent;
 public class NlBooleanEditor extends NlBaseComponentEditor implements NlComponentEditor {
   private final NlEditingListener myListener;
   private final JPanel myPanel;
-  private final FixedSizeButton myBrowseButton;
   private final ThreeStateCheckBox myCheckbox;
 
   private NlProperty myProperty;
   private Object myValue;
 
-  public static NlBooleanEditor createForTable(@NotNull NlEditingListener listener) {
-    return new NlBooleanEditor(listener, true);
+  public static NlTableCellEditor createForTable() {
+    NlTableCellEditor cellEditor = new NlTableCellEditor();
+    cellEditor.init(new NlBooleanEditor(cellEditor, true));
+    return cellEditor;
   }
 
   public static NlBooleanEditor createForInspector(@NotNull NlEditingListener listener) {
@@ -54,17 +54,16 @@ public class NlBooleanEditor extends NlBaseComponentEditor implements NlComponen
 
     if (!includeBrowseButton) {
       myPanel = null;
-      myBrowseButton = null;
     }
     else {
       myPanel = new JPanel(new BorderLayout(SystemInfo.isMac ? 0 : 2, 0));
       myPanel.add(myCheckbox, BorderLayout.LINE_START);
 
-      myBrowseButton = new FixedSizeButton(myCheckbox);
-      myBrowseButton.setToolTipText(UIBundle.message("component.with.browse.button.browse.button.tooltip.text"));
-      myPanel.add(myBrowseButton, BorderLayout.LINE_END);
+      FixedSizeButton browseButton = new FixedSizeButton(myCheckbox);
+      browseButton.setToolTipText(UIBundle.message("component.with.browse.button.browse.button.tooltip.text"));
+      myPanel.add(browseButton, BorderLayout.LINE_END);
 
-      myBrowseButton.addActionListener(this::browse);
+      browseButton.addActionListener(this::browse);
     }
   }
 
@@ -90,11 +89,14 @@ public class NlBooleanEditor extends NlBaseComponentEditor implements NlComponen
     return myPanel != null ? myPanel : myCheckbox;
   }
 
+  @Nullable
+  @Override
   public Object getValue() {
     return myValue;
   }
 
-  public void setNextState() {
+  @Override
+  public void activate() {
     myValue = NlBooleanRenderer.getNextState(myCheckbox.getState());
     myListener.stopEditing(this, myValue);
   }

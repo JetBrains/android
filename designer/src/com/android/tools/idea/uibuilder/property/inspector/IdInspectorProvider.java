@@ -84,8 +84,8 @@ public class IdInspectorProvider implements InspectorProvider {
 
     public IdInspectorComponent(@NotNull NlPropertiesManager propertiesManager) {
       myIdEditor = NlReferenceEditor.createForInspector(propertiesManager.getProject(), DEFAULT_LISTENER);
-      myWidthEditor = NlEnumEditor.createForInspector(NlEnumEditor.getDefaultListener());
-      myHeightEditor = NlEnumEditor.createForInspector(NlEnumEditor.getDefaultListener());
+      myWidthEditor = NlEnumEditor.createForInspector(DEFAULT_LISTENER);
+      myHeightEditor = NlEnumEditor.createForInspector(DEFAULT_LISTENER);
       myConstraintWidget = new WidgetConstraintPanel(ImmutableList.of());
     }
 

@@ -85,8 +85,10 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
   private boolean myUpdatingProperty;
   private boolean myCompletionsUpdated;
 
-  public static NlReferenceEditor createForTable(@NotNull Project project, @NotNull NlEditingListener listener) {
-    return new NlReferenceEditor(project, listener, true);
+  public static NlTableCellEditor createForTable(@NotNull Project project) {
+    NlTableCellEditor cellEditor = new NlTableCellEditor();
+    cellEditor.init(new NlReferenceEditor(project, cellEditor, true));
+    return cellEditor;
   }
 
   public static NlReferenceEditor createForInspector(@NotNull Project project, @NotNull NlEditingListener listener) {
@@ -337,6 +339,8 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
     return myPanel;
   }
 
+  @NotNull
+  @Override
   public Object getValue() {
     return getText();
   }

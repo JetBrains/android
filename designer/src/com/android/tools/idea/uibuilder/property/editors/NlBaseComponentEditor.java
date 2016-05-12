@@ -56,6 +56,16 @@ public abstract class NlBaseComponentEditor implements NlComponentEditor {
   }
 
   @Override
+  @Nullable
+  public Object getValue() {
+    return null;
+  }
+
+  @Override
+  public void activate() {
+  }
+
+  @Override
   public void setEnabled(boolean enabled) {
     getComponent().setEnabled(enabled);
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,53 +17,50 @@ package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.ptable.PTableCellEditor;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
 
-public class NlEnumTableCellEditor extends PTableCellEditor implements NlEnumEditor.Listener {
-  private final NlEnumEditor myEnumEditor;
+public class NlTableCellEditor extends PTableCellEditor implements NlEditingListener {
+  private NlComponentEditor myEditor;
 
-  private Object myValue;
-
-  public NlEnumTableCellEditor() {
-    myEnumEditor = NlEnumEditor.createForTable(this);
+  public void init(@NotNull NlComponentEditor editor) {
+    myEditor = editor;
   }
 
   @Override
   public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
     assert value instanceof NlProperty;
-    myEnumEditor.setProperty((NlProperty)value);
-    myValue = myEnumEditor.getValue();
-    return myEnumEditor.getComponent();
+
+    myEditor.setProperty((NlProperty)value);
+    return myEditor.getComponent();
   }
 
   @Override
   public Object getCellEditorValue() {
-    return myValue;
+    return myEditor.getValue();
+  }
+
+  @Override
+  public void stopEditing(@NotNull NlComponentEditor editor, @Nullable Object value) {
+    stopCellEditing();
+  }
+
+  @Override
+  public void cancelEditing(@NotNull NlComponentEditor editor) {
+    cancelCellEditing();
+  }
+
+  @Override
+  public boolean isBooleanEditor() {
+    return myEditor instanceof NlBooleanEditor;
   }
 
   @Override
   public void activate() {
-    myEnumEditor.showPopup();
-  }
-
-  @Override
-  public void itemPicked(@NotNull NlEnumEditor source, @Nullable String value) {
-    myValue = value;
-    stopCellEditing();
-  }
-
-  @Override
-  public void resourcePicked(@NotNull NlEnumEditor source, @NotNull String value) {
-    myValue = value;
-    stopCellEditing();
-  }
-
-  @Override
-  public void resourcePickerCancelled(@NotNull NlEnumEditor source) {
-    cancelCellEditing();
+    myEditor.activate();
   }
 }

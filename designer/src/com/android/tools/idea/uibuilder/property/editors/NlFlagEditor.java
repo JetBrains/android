@@ -39,8 +39,10 @@ public class NlFlagEditor extends NlBaseComponentEditor implements NlComponentEd
   private NlProperty myProperty;
   private String myValue;
 
-  public static NlFlagEditor createForTable(@NotNull NlEditingListener listener) {
-    return new NlFlagEditor(listener, false);
+  public static NlTableCellEditor createForTable() {
+    NlTableCellEditor cellEditor = new NlTableCellEditor();
+    cellEditor.init(new NlFlagEditor(cellEditor, false));
+    return cellEditor;
   }
 
   public static NlFlagEditor createForInspector(@NotNull NlEditingListener listener) {
@@ -63,6 +65,7 @@ public class NlFlagEditor extends NlBaseComponentEditor implements NlComponentEd
   }
 
   @Nullable
+  @Override
   public String getValue() {
     return myValue;
   }
@@ -87,7 +90,8 @@ public class NlFlagEditor extends NlBaseComponentEditor implements NlComponentEd
     myCheckbox.setSelected(SdkConstants.VALUE_TRUE.equalsIgnoreCase(myValue));
   }
 
-  public void toggle() {
+  @Override
+  public void activate() {
     myValue = SdkConstants.VALUE_TRUE.equalsIgnoreCase(myValue) ? SdkConstants.VALUE_FALSE : SdkConstants.VALUE_TRUE;
     myListener.stopEditing(this, myValue);
     refresh();
