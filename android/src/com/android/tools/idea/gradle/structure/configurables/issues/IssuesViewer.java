@@ -112,7 +112,7 @@ public class IssuesViewer {
     PsIssue.Severity severity = severities.get(currentIssueIndex);
     List<PsIssue> group = issuesBySeverity.get(severity);
     updateTitle(((CollapsiblePanel)myIssuesPanel4), severity, group);
-    myIssuesView4.setText(myRenderer.render(group));
+    renderIssues(group, myIssuesView4);
 
     currentIssueIndex--;
     if (currentIssueIndex < 0) {
@@ -126,7 +126,7 @@ public class IssuesViewer {
     severity = severities.get(currentIssueIndex);
     group = issuesBySeverity.get(severity);
     updateTitle(((CollapsiblePanel)myIssuesPanel3), severity, group);
-    myIssuesView3.setText(myRenderer.render(group));
+    renderIssues(group, myIssuesView3);
 
     currentIssueIndex--;
     if (currentIssueIndex < 0) {
@@ -139,7 +139,7 @@ public class IssuesViewer {
     severity = severities.get(currentIssueIndex);
     group = issuesBySeverity.get(severity);
     updateTitle(((CollapsiblePanel)myIssuesPanel2), severity, group);
-    myIssuesView2.setText(myRenderer.render(group));
+    renderIssues(group, myIssuesView2);
 
     currentIssueIndex--;
     if (currentIssueIndex < 0) {
@@ -151,9 +151,15 @@ public class IssuesViewer {
     severity = severities.get(currentIssueIndex);
     group = issuesBySeverity.get(severity);
     updateTitle(((CollapsiblePanel)myIssuesPanel1), severity, group);
-    myIssuesView1.setText(myRenderer.render(group));
+    renderIssues(group, myIssuesView1);
 
     revalidateAndRepaintPanels();
+  }
+
+  private void renderIssues(@NotNull List<PsIssue> group, @NotNull JEditorPane view) {
+    view.setCaretPosition(0);
+    view.setText(myRenderer.render(group));
+    view.setCaretPosition(0);
   }
 
   private void revalidateAndRepaintPanels() {
@@ -183,24 +189,28 @@ public class IssuesViewer {
 
     myIssuesPanel1 = new CollapsiblePanel();
     myIssuesView1 = new JEditorPane();
+    myIssuesView1.setFocusable(false);
     myIssuesView1.addHyperlinkListener(hyperlinkListener);
     setUpAsHtmlLabel(myIssuesView1, font);
     ((CollapsiblePanel)myIssuesPanel1).setContents(myIssuesView1);
 
     myIssuesPanel2 = new CollapsiblePanel();
     myIssuesView2 = new JEditorPane();
+    myIssuesView2.setFocusable(false);
     myIssuesView2.addHyperlinkListener(hyperlinkListener);
     setUpAsHtmlLabel(myIssuesView2, font);
     ((CollapsiblePanel)myIssuesPanel2).setContents(myIssuesView2);
 
     myIssuesPanel3 = new CollapsiblePanel();
     myIssuesView3 = new JEditorPane();
+    myIssuesView3.setFocusable(false);
     myIssuesView3.addHyperlinkListener(hyperlinkListener);
     setUpAsHtmlLabel(myIssuesView3, font);
     ((CollapsiblePanel)myIssuesPanel3).setContents(myIssuesView3);
 
     myIssuesPanel4 = new CollapsiblePanel();
     myIssuesView4 = new JEditorPane();
+    myIssuesView4.setFocusable(false);
     myIssuesView4.addHyperlinkListener(hyperlinkListener);
     setUpAsHtmlLabel(myIssuesView4, font);
     ((CollapsiblePanel)myIssuesPanel4).setContents(myIssuesView4);
