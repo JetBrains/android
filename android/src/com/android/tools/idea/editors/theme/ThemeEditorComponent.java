@@ -499,7 +499,12 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
    */
   public void selectNotify() {
     // The call to selectNotify might be holding the write lock. Call reload later to avoid rendering while holding the lock
-    ApplicationManager.getApplication().invokeLater(() -> reload(myThemeName, mySubStyleName));
+    ApplicationManager.getApplication().invokeLater(() -> {
+      // Since it is called inside an invokeLater, check first that the module has not been disposed before calling reload
+      if (!myThemeEditorContext.getCurrentContextModule().isDisposed()) {
+        reload(myThemeName, mySubStyleName);
+      }
+    });
   }
 
   /**
