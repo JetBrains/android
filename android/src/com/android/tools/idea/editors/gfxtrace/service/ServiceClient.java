@@ -60,7 +60,16 @@ public abstract class ServiceClient {
     return getAndCast(p);
   }
 
+  public ListenableFuture<ContextList> get(ContextsPath p) {
+    return getAndCast(p);
+  }
+
+  /** @deprecated use {@link #get(HierarchiesPath p)} instead */
   public ListenableFuture<AtomGroup> get(HierarchyPath p) {
+    return getAndCast(p);
+  }
+
+  public ListenableFuture<HierarchyList> get(HierarchiesPath p) {
     return getAndCast(p);
   }
 

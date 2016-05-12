@@ -42,8 +42,17 @@ public final class CapturePath extends Path {
     return (capture == null) ? null : capture.atoms();
   }
 
+  public ContextsPath contexts() {
+    return new ContextsPath().setCapture(this);
+  }
+
+  /** @deprecated use {@link #hierarchies} instead */
   public HierarchyPath hierarchy() {
     return new HierarchyPath().setCapture(this);
+  }
+
+  public HierarchiesPath hierarchies() {
+    return new HierarchiesPath().setCapture(this);
   }
 
   public ResourcesPath resources() {

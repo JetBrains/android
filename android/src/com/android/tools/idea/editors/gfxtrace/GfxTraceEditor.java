@@ -56,7 +56,6 @@ import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.HyperlinkLabel;
-import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -129,6 +128,11 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
     myMainUi = MainController.createUI(this);
 
     connect();
+  }
+
+  /** @return the list of features supported by GAPIS */
+  public GapisFeatures getFeatures() {
+    return myGapisConnection.getFeatures();
   }
 
   private void connect() {
