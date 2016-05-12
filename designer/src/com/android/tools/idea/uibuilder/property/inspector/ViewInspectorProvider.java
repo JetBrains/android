@@ -86,7 +86,8 @@ public class ViewInspectorProvider implements InspectorProvider {
     private static final List<String> LAYOUT_PROPERTIES = ImmutableList.of(
       ATTR_LAYOUT_SCROLL_FLAGS,
       ATTR_LAYOUT_COLLAPSE_MODE,
-      ATTR_COLLAPSE_PARALLAX_MULTIPLIER);
+      ATTR_COLLAPSE_PARALLAX_MULTIPLIER,
+      ATTR_LAYOUT_BEHAVIOR);
 
     private final String myComponentName;
     private final List<String> myPropertyNames;
