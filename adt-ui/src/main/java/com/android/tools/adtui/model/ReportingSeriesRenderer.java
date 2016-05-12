@@ -16,6 +16,7 @@
 
 package com.android.tools.adtui.model;
 
+import java.awt.Color;
 import java.util.List;
 
 /**
@@ -27,6 +28,8 @@ public interface ReportingSeriesRenderer {
   String getContainerName();
 
   List<ReportingSeries> getReportingSeries();
+
+  Color getReportingSeriesColor(ReportingSeries series);
 
   /**
    * Notifies the UI renderer to visually mark the data located at x.

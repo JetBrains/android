@@ -27,12 +27,14 @@ public interface ReportingSeries {
   class ReportingData {
     public long timeStamp;
     public String label;
-    public String formattedData;
+    public String formattedXData;
+    public String formattedYData;
 
-    ReportingData(long timeStamp, String label, String formattedData) {
+    ReportingData(long timeStamp, String label, String formattedXData, String formattedYData) {
       this.timeStamp = timeStamp;
       this.label = label;
-      this.formattedData = formattedData;
+      this.formattedXData = formattedXData;
+      this.formattedYData = formattedYData;
     }
   }
 
