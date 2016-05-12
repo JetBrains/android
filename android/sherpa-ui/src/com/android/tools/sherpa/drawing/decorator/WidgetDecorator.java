@@ -932,10 +932,12 @@ public class WidgetDecorator {
             if (mWidget.getParent() != null) {
                 // we should only show the constraints anchors if our parent doesn't handle
                 // the constraints already
-                ConstraintWidgetContainer container =
-                        (ConstraintWidgetContainer) mWidget.getParent();
-                if (!container.handlesInternalConstraints()) {
-                    mDisplayAnchorsPolicy.add(WidgetDraw.ANCHORS_DISPLAY.CONNECTED);
+                if (mWidget.getParent() instanceof ConstraintWidgetContainer) {
+                    ConstraintWidgetContainer container =
+                      (ConstraintWidgetContainer)mWidget.getParent();
+                    if (!container.handlesInternalConstraints()) {
+                        mDisplayAnchorsPolicy.add(WidgetDraw.ANCHORS_DISPLAY.CONNECTED);
+                    }
                 }
             } else {
                 mDisplayAnchorsPolicy.add(WidgetDraw.ANCHORS_DISPLAY.CONNECTED);
