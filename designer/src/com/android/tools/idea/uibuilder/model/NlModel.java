@@ -484,17 +484,19 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     deviceBuilder.setName("Custom");
     deviceBuilder.setId("Custom");
     Device device = deviceBuilder.build();
-    Screen screen = device.getDefaultHardware().getScreen();
-    screen.setXDimension(xDimension);
-    screen.setYDimension(yDimension);
+    for (State state : device.getAllStates()) {
+      Screen screen = state.getHardware().getScreen();
+      screen.setXDimension(xDimension);
+      screen.setYDimension(yDimension);
 
-    double width = xDimension / screen.getXdpi();
-    double height = yDimension / screen.getYdpi();
-    double diagonalLength = Math.sqrt(width * width + height * height);
-    screen.setDiagonalLength(diagonalLength);
-    screen.setSize(AvdScreenData.getScreenSize(diagonalLength));
+      double width = xDimension / screen.getXdpi();
+      double height = yDimension / screen.getYdpi();
+      double diagonalLength = Math.sqrt(width * width + height * height);
+      screen.setDiagonalLength(diagonalLength);
+      screen.setSize(AvdScreenData.getScreenSize(diagonalLength));
 
-    screen.setRatio(AvdScreenData.getScreenRatio(xDimension, yDimension));
+      screen.setRatio(AvdScreenData.getScreenRatio(xDimension, yDimension));
+    }
 
     // If a custom device already exists, remove it before adding the latest one
     List<Device> devices = myConfiguration.getConfigurationManager().getDevices();
