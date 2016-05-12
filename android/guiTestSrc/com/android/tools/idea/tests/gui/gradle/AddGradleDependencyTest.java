@@ -26,6 +26,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleBuildMode
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JListFixture;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,6 +46,7 @@ public class AddGradleDependencyTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
+  @Ignore("http://wpie20.hot.corp.google.com:8200/builders/ubuntu-studio-master-dev-uitests/builds/28/")
   @Test
   public void testAddProdModuleDependency() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("MultiModule");
