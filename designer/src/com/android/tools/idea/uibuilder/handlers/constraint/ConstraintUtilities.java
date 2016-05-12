@@ -1026,8 +1026,8 @@ public class ConstraintUtilities {
   static void saveEditorPosition(@NotNull Object layoutParams,
                                  @AndroidCoordinate int x, @AndroidCoordinate int y) {
     try {
-      Field editor_absolute_x = layoutParams.getClass().getField("editor_absolute_x");
-      Field editor_absolute_y = layoutParams.getClass().getField("editor_absolute_y");
+      Field editor_absolute_x = layoutParams.getClass().getField("editorAbsoluteX");
+      Field editor_absolute_y = layoutParams.getClass().getField("editorAbsoluteY");
       editor_absolute_x.set(layoutParams, x);
       editor_absolute_y.set(layoutParams, y);
     }
@@ -1069,8 +1069,8 @@ public class ConstraintUtilities {
    */
   static void saveBiases(@NotNull ConstraintWidget widget, @NotNull Object layoutParams) {
     try {
-      Field horizontal_bias = layoutParams.getClass().getField("horizontal_bias");
-      Field vertical_bias = layoutParams.getClass().getField("vertical_bias");
+      Field horizontal_bias = layoutParams.getClass().getField("horizontalBias");
+      Field vertical_bias = layoutParams.getClass().getField("verticalBias");
       horizontal_bias.set(layoutParams, widget.getHorizontalBiasPercent());
       vertical_bias.set(layoutParams, widget.getVerticalBiasPercent());
     }
@@ -1125,22 +1125,22 @@ public class ConstraintUtilities {
         if (anchor.getMargin() > 0) {
           switch (anchor.getType()) {
             case LEFT: {
-              Field field = layoutParams.getClass().getField("left_margin");
+              Field field = layoutParams.getClass().getField("leftMargin");
               field.set(layoutParams, model.dpToPx(anchor.getMargin()));
             }
             break;
             case TOP: {
-              Field field = layoutParams.getClass().getField("top_margin");
+              Field field = layoutParams.getClass().getField("topMargin");
               field.set(layoutParams, model.dpToPx(anchor.getMargin()));
             }
             break;
             case RIGHT: {
-              Field field = layoutParams.getClass().getField("right_margin");
+              Field field = layoutParams.getClass().getField("rightMargin");
               field.set(layoutParams, model.dpToPx(anchor.getMargin()));
             }
             break;
             case BOTTOM: {
-              Field field = layoutParams.getClass().getField("bottom_margin");
+              Field field = layoutParams.getClass().getField("bottomMargin");
               field.set(layoutParams, model.dpToPx(anchor.getMargin()));
             }
             break;
@@ -1166,41 +1166,41 @@ public class ConstraintUtilities {
     throws NoSuchFieldException, IllegalAccessException {
     switch (anchor.getType()) {
       case BASELINE: {
-        Field field = layoutParams.getClass().getField("baseline_to_baseline");
+        Field field = layoutParams.getClass().getField("baselineToBaseline");
         field.set(layoutParams, -1);
       }
       break;
       case LEFT: {
-        Field field = layoutParams.getClass().getField("left_to_left");
+        Field field = layoutParams.getClass().getField("lefToLeft");
         field.set(layoutParams, -1);
-        field = layoutParams.getClass().getField("left_to_right");
+        field = layoutParams.getClass().getField("leftToRight");
         field.set(layoutParams, -1);
         field = layoutParams.getClass().getField("left_margin");
         field.set(layoutParams, -1);
       }
       break;
       case RIGHT: {
-        Field field = layoutParams.getClass().getField("right_to_left");
+        Field field = layoutParams.getClass().getField("rightToLeft");
         field.set(layoutParams, -1);
-        field = layoutParams.getClass().getField("right_to_right");
+        field = layoutParams.getClass().getField("rightToRight");
         field.set(layoutParams, -1);
         field = layoutParams.getClass().getField("right_margin");
         field.set(layoutParams, -1);
       }
       break;
       case TOP: {
-        Field field = layoutParams.getClass().getField("top_to_top");
+        Field field = layoutParams.getClass().getField("topToTop");
         field.set(layoutParams, -1);
-        field = layoutParams.getClass().getField("top_to_bottom");
+        field = layoutParams.getClass().getField("topToBottom");
         field.set(layoutParams, -1);
         field = layoutParams.getClass().getField("top_margin");
         field.set(layoutParams, -1);
       }
       break;
       case BOTTOM: {
-        Field field = layoutParams.getClass().getField("bottom_to_top");
+        Field field = layoutParams.getClass().getField("bottomToTop");
         field.set(layoutParams, -1);
-        field = layoutParams.getClass().getField("bottom_to_bottom");
+        field = layoutParams.getClass().getField("bottomToBottom");
         field.set(layoutParams, -1);
         field = layoutParams.getClass().getField("bottom_margin");
         field.set(layoutParams, -1);
@@ -1226,17 +1226,17 @@ public class ConstraintUtilities {
       switch (anchor.getType()) {
         case BASELINE: {
           if (target.getType() == ConstraintAnchor.Type.BASELINE) {
-            return layoutParams.getClass().getField("baseline_to_baseline");
+            return layoutParams.getClass().getField("baselineToBaseline");
           }
           break;
         }
         case LEFT: {
           switch (target.getType()) {
             case LEFT: {
-              return layoutParams.getClass().getField("left_to_left");
+              return layoutParams.getClass().getField("lefToLeft");
             }
             case RIGHT: {
-              return layoutParams.getClass().getField("left_to_right");
+              return layoutParams.getClass().getField("leftToRight");
             }
           }
           break;
@@ -1244,10 +1244,10 @@ public class ConstraintUtilities {
         case RIGHT: {
           switch (target.getType()) {
             case LEFT: {
-              return layoutParams.getClass().getField("right_to_left");
+              return layoutParams.getClass().getField("rightToLeft");
             }
             case RIGHT: {
-              return layoutParams.getClass().getField("right_to_right");
+              return layoutParams.getClass().getField("rightToRight");
             }
           }
           break;
@@ -1255,10 +1255,10 @@ public class ConstraintUtilities {
         case TOP: {
           switch (target.getType()) {
             case TOP: {
-              return layoutParams.getClass().getField("top_to_top");
+              return layoutParams.getClass().getField("topToTop");
             }
             case BOTTOM: {
-              return layoutParams.getClass().getField("top_to_bottom");
+              return layoutParams.getClass().getField("topToBottom");
             }
           }
           break;
@@ -1266,10 +1266,10 @@ public class ConstraintUtilities {
         case BOTTOM: {
           switch (target.getType()) {
             case TOP: {
-              return layoutParams.getClass().getField("bottom_to_top");
+              return layoutParams.getClass().getField("bottomToTop");
             }
             case BOTTOM: {
-              return layoutParams.getClass().getField("bottom_to_bottom");
+              return layoutParams.getClass().getField("bottomToBottom");
             }
           }
           break;
