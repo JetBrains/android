@@ -51,42 +51,28 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
   private static final List<String> AVAILABLE_LINE_SPACINGS = AVAILABLE_TEXT_SIZES;
   private static final List<String> AVAILABLE_TYPEFACES = ImmutableList.of("normal", "sans", "serif", "monospace");
   private static final List<String> AVAILABLE_SIZES = ImmutableList.of("match_parent", "wrap_content");
-  private static final Listener DEFAULT_LISTENER = new DefaultListener();
 
   private final JPanel myPanel;
   private final JComboBox<ValueWithDisplayString> myCombo;
   private final FixedSizeButton myBrowseButton;
   private final boolean myIncludeBrowseButton;
-  private final Listener myListener;
+  private final NlEditingListener myListener;
 
   private NlProperty myProperty;
   private boolean myUpdatingProperty;
   private int myAddedValueIndex;
 
-  public interface Listener {
-    /** Invoked when one of the enums is selected. */
-    void itemPicked(@NotNull NlEnumEditor source, @Nullable String value);
-
-    /** Invoked when a resource was selected using the resource picker. */
-    void resourcePicked(@NotNull NlEnumEditor source, @NotNull String value);
-
-    /** Invoked when the resource picker was cancelled. */
-    void resourcePickerCancelled(@NotNull NlEnumEditor source);
+  public static NlTableCellEditor createForTable() {
+    NlTableCellEditor cellEditor = new NlTableCellEditor();
+    cellEditor.init(new NlEnumEditor(cellEditor, true, true));
+    return cellEditor;
   }
 
-  public static NlEnumEditor createForTable(@NotNull Listener listener) {
-    return new NlEnumEditor(listener, true, true);
-  }
-
-  public static NlEnumEditor createForInspector(@NotNull Listener listener) {
+  public static NlEnumEditor createForInspector(@NotNull NlEditingListener listener) {
     return new NlEnumEditor(listener, false, false);
   }
 
-  public static Listener getDefaultListener() {
-    return DEFAULT_LISTENER;
-  }
-
-  private NlEnumEditor(@NotNull Listener listener, boolean useDarculaUI, boolean includeBrowseButton) {
+  private NlEnumEditor(@NotNull NlEditingListener listener, boolean useDarculaUI, boolean includeBrowseButton) {
     myAddedValueIndex = -1; // nothing added
     myListener = listener;
     myIncludeBrowseButton = includeBrowseButton;
@@ -258,6 +244,7 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
     return model.getSize();
   }
 
+  @Override
   public Object getValue() {
     ValueWithDisplayString value = (ValueWithDisplayString)myCombo.getSelectedItem();
     return value.getValue();
@@ -274,7 +261,7 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
   }
 
   private void enter() {
-    myListener.itemPicked(this, getText());
+    myListener.stopEditing(this, getText());
     myCombo.hidePopup();
   }
 
@@ -291,9 +278,9 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
     if (dialog.showAndGet()) {
       String value = dialog.getResourceName();
       selectItem(ValueWithDisplayString.create(value, myProperty));
-      myListener.resourcePicked(this, value);
+      myListener.stopEditing(this, value);
     } else {
-      myListener.resourcePickerCancelled(this);
+      myListener.cancelEditing(this);
     }
   }
 
@@ -307,7 +294,7 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
     // only notify listener if a value has been picked from the combo box, not for every event from the combo
     // Note: these action names seem to be platform dependent?
     if (value != null && ("comboBoxEdited".equals(actionCommand) || "comboBoxChanged".equals(actionCommand))) {
-      myListener.itemPicked(this, value.getValue());
+      myListener.stopEditing(this, value.getValue());
     }
   }
 
@@ -332,24 +319,5 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
     ValueWithDisplayString[] array = new ValueWithDisplayString[list.size()];
     list.toArray(array);
     return array;
-  }
-
-  private static class DefaultListener implements Listener {
-    @Override
-    public void itemPicked(@NotNull NlEnumEditor source, @Nullable String value) {
-      if (source.getProperty() != null) {
-        source.getProperty().setValue(value);
-        source.refresh();
-      }
-    }
-
-    @Override
-    public void resourcePicked(@NotNull NlEnumEditor source, @NotNull String value) {
-      itemPicked(source, value);
-    }
-
-    @Override
-    public void resourcePickerCancelled(@NotNull NlEnumEditor source) {
-    }
   }
 }

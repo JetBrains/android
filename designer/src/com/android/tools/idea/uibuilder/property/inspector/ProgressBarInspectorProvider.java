@@ -88,8 +88,8 @@ public class ProgressBarInspectorProvider implements InspectorProvider {
       myTintEditor = NlReferenceEditor.createForInspectorWithBrowseButton(project, DEFAULT_LISTENER);
       myMaxEditor = NlReferenceEditor.createForInspectorWithBrowseButton(project, DEFAULT_LISTENER);
       myProgressEditor = NlReferenceEditor.createForInspectorWithBrowseButton(project, DEFAULT_LISTENER);
-      myVisibilityEditor = NlEnumEditor.createForInspector(NlEnumEditor.getDefaultListener());
-      myDesignVisibilityEditor = NlEnumEditor.createForInspector(NlEnumEditor.getDefaultListener());
+      myVisibilityEditor = NlEnumEditor.createForInspector(DEFAULT_LISTENER);
+      myDesignVisibilityEditor = NlEnumEditor.createForInspector(DEFAULT_LISTENER);
       myIndeterminateEditor = NlBooleanEditor.createForInspector(createIndeterminateListener());
     }
 

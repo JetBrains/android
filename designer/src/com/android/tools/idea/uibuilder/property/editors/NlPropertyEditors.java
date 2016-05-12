@@ -30,10 +30,10 @@ import static com.android.tools.idea.uibuilder.property.editors.NlEditingListene
 
 public class NlPropertyEditors {
   private Project myProject;
-  private NlBooleanTableCellEditor myBooleanEditor;
-  private NlFlagTableCellEditor myFlagEditor;
-  private NlEnumTableCellEditor myComboEditor;
-  private NlReferenceTableCellEditor myDefaultEditor;
+  private NlTableCellEditor myBooleanEditor;
+  private NlTableCellEditor myFlagEditor;
+  private NlTableCellEditor myComboEditor;
+  private NlTableCellEditor myDefaultEditor;
 
   public enum EditorType {DEFAULT, BOOLEAN, FLAG, COMBO}
 
@@ -68,7 +68,7 @@ public class NlPropertyEditors {
       case FLAG:
         return NlFlagsEditor.create();
       case COMBO:
-        return NlEnumEditor.createForInspector(NlEnumEditor.getDefaultListener());
+        return NlEnumEditor.createForInspector(DEFAULT_LISTENER);
       default:
         return NlReferenceEditor.createForInspectorWithBrowseButton(property.getModel().getProject(), DEFAULT_LISTENER);
     }
@@ -114,7 +114,7 @@ public class NlPropertyEditors {
 
   private PTableCellEditor getBooleanEditor() {
     if (myBooleanEditor == null) {
-      myBooleanEditor = new NlBooleanTableCellEditor();
+      myBooleanEditor = NlBooleanEditor.createForTable();
     }
 
     return myBooleanEditor;
@@ -122,7 +122,7 @@ public class NlPropertyEditors {
 
   public PTableCellEditor getMyFlagEditor() {
     if (myFlagEditor == null) {
-      myFlagEditor = new NlFlagTableCellEditor();
+      myFlagEditor = NlFlagEditor.createForTable();
     }
 
     return myFlagEditor;
@@ -130,7 +130,7 @@ public class NlPropertyEditors {
 
   private PTableCellEditor getMyComboEditor() {
     if (myComboEditor == null) {
-      myComboEditor = new NlEnumTableCellEditor();
+      myComboEditor = NlEnumEditor.createForTable();
     }
 
     return myComboEditor;
@@ -138,7 +138,7 @@ public class NlPropertyEditors {
 
   private PTableCellEditor getDefaultEditor() {
     if (myDefaultEditor == null) {
-      myDefaultEditor = new NlReferenceTableCellEditor(myProject);
+      myDefaultEditor = NlReferenceEditor.createForTable(myProject);
     }
 
     return myDefaultEditor;

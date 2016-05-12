@@ -377,25 +377,20 @@ public class NlLayoutEditor extends JPanel {
     };
   }
 
-  private NlEnumEditor.Listener createEnumListener() {
-    return new NlEnumEditor.Listener() {
+  private NlEditingListener createEnumListener() {
+    return new NlEditingListener() {
       @Override
-      public void itemPicked(@NotNull NlEnumEditor source, @Nullable String value) {
-        NlProperty property = source.getProperty();
+      public void stopEditing(@NotNull NlComponentEditor editor, @Nullable Object value) {
+        NlProperty property = editor.getProperty();
         if (property != null) {
           property.setValue(value);
-          closeEditor(source);
+          closeEditor(editor);
           refresh();
         }
       }
 
       @Override
-      public void resourcePicked(@NotNull NlEnumEditor source, @NotNull String value) {
-        itemPicked(source, value);
-      }
-
-      @Override
-      public void resourcePickerCancelled(@NotNull NlEnumEditor source) {
+      public void cancelEditing(@NotNull NlComponentEditor editor) {
       }
     };
   }

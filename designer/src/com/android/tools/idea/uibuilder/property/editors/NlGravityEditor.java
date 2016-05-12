@@ -33,7 +33,7 @@ import java.util.Set;
 import static com.android.SdkConstants.*;
 import static java.awt.GridBagConstraints.*;
 
-public class NlGravityEditor implements NlComponentEditor {
+public class NlGravityEditor extends NlBaseComponentEditor implements NlComponentEditor {
   private static final int SMALL_WIDTH = 65;
   private static final List<String> ALL_VERTICAL_ITEMS = ImmutableList.of(
     GRAVITY_VALUE_TOP, GRAVITY_VALUE_BOTTOM, GRAVITY_VALUE_CENTER_VERTICAL, GRAVITY_VALUE_CENTER, GRAVITY_VALUE_FILL_VERTICAL,
