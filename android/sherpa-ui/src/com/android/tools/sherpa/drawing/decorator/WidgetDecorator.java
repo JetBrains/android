@@ -27,9 +27,9 @@ import com.android.tools.sherpa.interaction.WidgetInteractionTargets;
 import com.android.tools.sherpa.structure.Selection;
 import com.android.tools.sherpa.drawing.WidgetDraw;
 import com.android.tools.sherpa.structure.WidgetCompanion;
-import android.constraint.solver.widgets.ConstraintAnchor;
-import android.constraint.solver.widgets.ConstraintWidget;
-import android.constraint.solver.widgets.ConstraintWidgetContainer;
+import android.support.constraint.solver.widgets.ConstraintAnchor;
+import android.support.constraint.solver.widgets.ConstraintWidget;
+import android.support.constraint.solver.widgets.ConstraintWidgetContainer;
 
 import javax.imageio.ImageIO;
 import javax.swing.Timer;
