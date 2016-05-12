@@ -23,7 +23,6 @@ import com.android.tools.sherpa.drawing.SnapDraw;
 import com.android.tools.sherpa.drawing.ViewTransform;
 import com.android.tools.sherpa.interaction.ConstraintHandle;
 import com.android.tools.sherpa.interaction.DrawPicker;
-import com.android.tools.sherpa.interaction.MouseInteraction;
 import com.android.tools.sherpa.interaction.WidgetInteractionTargets;
 import com.android.tools.sherpa.structure.Selection;
 import com.android.tools.sherpa.drawing.WidgetDraw;
@@ -803,6 +802,10 @@ public class WidgetDecorator {
         }
     }
 
+    static ConstraintHandle getTargetHandle(ConstraintAnchor anchor) {
+        return getConstraintHandle(anchor.getTarget());
+    }
+
     /**
      * Paint the horizontal and vertical informations of this widget, if appropriate
      *
@@ -818,44 +821,67 @@ public class WidgetDecorator {
             if (mShowBias.isRunning()) {
                 float progress = 1 - mShowBias.getProgress();
                 int percent = (int) (mWidget.getHorizontalBiasPercent() * 100);
-                int x = mWidget.getDrawX() - 32;
+                int x = mWidget.getDrawX();
                 int y = (int) (mWidget.getDrawY() + mWidget.getDrawHeight() / 2f);
+                Color c = mColorSet.getTooltipBackground();
+                Color pre = g.getColor();
+                int alpha = (int)(progress * 255);
+                int tx, ty;
+
+                // Draw left
                 x = transform.getSwingFX(x);
                 y = transform.getSwingFY(y);
-                Color c = mConstraintsColor.getColor();
-                Color pre = g.getColor();
-                int alpha = (int) (progress * 255);
+
+                tx = transform.getSwingFX(getTargetHandle(left).getDrawX());
                 g.setColor(new Color(c.getRed(), c.getGreen(), c.getBlue(), alpha));
-                ConnectionDraw
-                        .drawCircledText(g, sInfoFont, formatPercent(percent, true),
-                                x, y);
-                x = mWidget.getDrawRight() + 32;
+                Color textColor =
+                  new Color(mColorSet.getTooltipText().getRed(),
+                            mColorSet.getTooltipText().getGreen(),
+                            mColorSet.getTooltipText().getBlue(),
+                            alpha);
+
+                ConnectionDraw.drawRoundRectText(g, sInfoFont, textColor, formatPercent(percent, true), (x + tx) / 2, y);
+
+                // Draw right
+                tx = transform.getSwingFX(getTargetHandle(right).getDrawX());
+                x = mWidget.getDrawRight();
                 x = transform.getSwingFX(x);
-                ConnectionDraw
-                        .drawCircledText(g, sInfoFont, formatPercent(percent, false),
-                                x, y);
+
+                ConnectionDraw.drawRoundRectText(g, sInfoFont, textColor, formatPercent(percent, false), (x + tx) / 2, y);
                 g.setColor(pre);
             }
         }
         ConstraintAnchor top = mWidget.getAnchor(ConstraintAnchor.Type.TOP);
         ConstraintAnchor bottom = mWidget.getAnchor(ConstraintAnchor.Type.BOTTOM);
         if (top != null && bottom != null
-                && top.isConnected() && bottom.isConnected()
-                && mShowBias.isRunning()) {
+            && top.isConnected() && bottom.isConnected()
+            && mShowBias.isRunning()) {
             float progress = 1 - mShowBias.getProgress();
-            int percent = (int) (mWidget.getVerticalBiasPercent() * 100);
-            int y = mWidget.getDrawY() - 32;
-            int x = (int) (mWidget.getDrawX() + mWidget.getDrawWidth() / 2f);
+            int percent = (int)(mWidget.getVerticalBiasPercent() * 100);
+            int y = mWidget.getDrawY();
+            int x = (int)(mWidget.getDrawX() + mWidget.getDrawWidth() / 2f);
+            Color c = mColorSet.getTooltipBackground();
+            Color pre = g.getColor();
+            int alpha = (int)(progress * 255);
+            int tx, ty;
+
+            // draw top
+            ty = transform.getSwingFY(getTargetHandle(top).getDrawY());
             x = transform.getSwingFX(x);
             y = transform.getSwingFY(y);
-            Color c = mConstraintsColor.getColor();
-            Color pre = g.getColor();
-            int alpha = (int) (progress * 255);
             g.setColor(new Color(c.getRed(), c.getGreen(), c.getBlue(), alpha));
-            ConnectionDraw.drawCircledText(g, sInfoFont, formatPercent(percent, true), x, y);
-            y = mWidget.getDrawBottom() + 32;
+            Color textColor =
+              new Color(mColorSet.getTooltipText().getRed(),
+                        mColorSet.getTooltipText().getGreen(),
+                        mColorSet.getTooltipText().getBlue(),
+                        alpha);
+            ConnectionDraw.drawRoundRectText(g, sInfoFont, textColor, formatPercent(percent, true), x, (y + ty) / 2);
+
+            // draw bottom
+            ty = transform.getSwingFY(getTargetHandle(bottom).getDrawY());
+            y = mWidget.getDrawBottom();
             y = transform.getSwingFY(y);
-            ConnectionDraw.drawCircledText(g, sInfoFont, formatPercent(percent, false), x, y);
+            ConnectionDraw.drawRoundRectText(g, sInfoFont, textColor, formatPercent(percent, false), x, (y + ty) / 2);
             g.setColor(pre);
         }
     }
