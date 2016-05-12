@@ -22,10 +22,7 @@ import com.android.tools.idea.rendering.AttributeSnapshot;
 import com.android.tools.idea.rendering.TagSnapshot;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
-import com.android.tools.idea.uibuilder.api.InsertType;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
-import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.google.common.base.Objects;
@@ -251,6 +248,14 @@ public class NlComponent {
     }
 
     return (x <= px && y <= py && x + w >= px && y + h >= py) ? this : null;
+  }
+
+  public boolean containsY(@AndroidCoordinate int y) {
+    return Ranges.contains(this.y, this.y + h, y);
+  }
+
+  public int getMidpointY() {
+    return y + h / 2;
   }
 
   public boolean isRoot() {
@@ -608,7 +613,7 @@ public class NlComponent {
    * Creates a new child of the given type, and inserts it before the given sibling (or null to append at the end).
    * Note: This operation can only be called when the caller is already holding a write lock. This will be the
    * case from {@link ViewHandler} callbacks such as {@link ViewHandler#onCreate(ViewEditor, NlComponent, NlComponent, InsertType)}
-   * and {@link com.android.tools.idea.uibuilder.api.DragHandler#commit(int, int, int)}.
+   * and {@link DragHandler#commit(int, int, int)}.
    *
    * @param editor     The editor showing the component
    * @param fqcn       The fully qualified name of the widget to insert, such as {@code android.widget.LinearLayout}
