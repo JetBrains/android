@@ -51,6 +51,7 @@ public class NewProjectTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
+  @Ignore("http://wpie20.hot.corp.google.com:8200/builders/ubuntu-studio-master-dev-uitests/builds/28/")
   @Test
   public void testCreateNewMobileProject() {
     newProject("Test Application").create();
@@ -137,6 +138,7 @@ public class NewProjectTest {
     return sb.toString();
   }
 
+  @Ignore("http://wpie20.hot.corp.google.com:8200/builders/ubuntu-studio-master-dev-uitests/builds/28/")
   @Test
   public void testRenderResourceInitialization() throws IOException {
     // Regression test for https://code.google.com/p/android/issues/detail?id=76966
@@ -156,6 +158,7 @@ public class NewProjectTest {
     guiTest.waitForBackgroundTasks();
   }
 
+  @Ignore("http://wpie20.hot.corp.google.com:8200/builders/ubuntu-studio-master-dev-uitests/builds/28/")
   @Test
   public void testLanguageLevelForApi21() {
     newProject("Test Application").withBriefNames().withMinSdk("21").create();
@@ -174,6 +177,7 @@ public class NewProjectTest {
     }
   }
 
+  @Ignore("http://wpie20.hot.corp.google.com:8200/builders/ubuntu-studio-master-dev-uitests/builds/28/")
   @Test
   public void testStillBuildingMessage() throws Exception {
     // Creates a new project with minSdk 15, which should use appcompat.
