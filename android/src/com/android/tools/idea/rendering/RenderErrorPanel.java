@@ -218,6 +218,11 @@ public class RenderErrorPanel extends JPanel {
                          @Nullable String html,
                          @Nullable RenderResult result,
                          @Nullable HtmlLinkManager linkManager) {
+    if (!ApplicationManager.getApplication().isDispatchThread()) {
+      ApplicationManager.getApplication().invokeLater(() -> showErrors(severity, html, result, linkManager));
+      return;
+    }
+
     mySeverity = severity;
     if (html == null) {
       myResult = null;
@@ -1250,12 +1255,14 @@ public class RenderErrorPanel extends JPanel {
 
   @SuppressWarnings({"HardCodedStringLiteral"})
   private void showEmpty() {
-    try {
-      myHTMLViewer.read(new StringReader("<html><body></body></html>"), null);
-    }
-    catch (IOException e) {
-      // can't be
-    }
+    UIUtil.invokeLaterIfNeeded(() -> {
+      try {
+        myHTMLViewer.read(new StringReader("<html><body></body></html>"), null);
+      }
+      catch (IOException e) {
+        // can't be
+      }
+    });
   }
 
   private void reportInstantiationProblems(@NotNull final RenderLogger logger, @NotNull HtmlBuilder builder) {
