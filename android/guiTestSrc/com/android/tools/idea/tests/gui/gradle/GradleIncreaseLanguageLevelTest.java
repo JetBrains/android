@@ -20,6 +20,7 @@ import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -41,6 +42,7 @@ public class GradleIncreaseLanguageLevelTest {
     GradleExperimentalSettings.getInstance().SKIP_SOURCE_GEN_ON_PROJECT_SYNC = true;
   }
 
+  @Ignore("http://wpie20.hot.corp.google.com:8200/builders/ubuntu-studio-master-dev-uitests/builds/28/")
   @Test
   public void testIncreaseLanguageLevelForJava() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("MultiModule");
@@ -51,6 +53,7 @@ public class GradleIncreaseLanguageLevelTest {
     useJava7FeatureAndIncreaseLanguageLevel(editor);
   }
 
+  @Ignore("http://wpie20.hot.corp.google.com:8200/builders/ubuntu-studio-master-dev-uitests/builds/28/")
   @Test
   public void testIncreaseLanguageLevelForAndroid() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("MultiModule");

@@ -25,6 +25,7 @@ import org.fest.swing.data.TableCell;
 import org.fest.swing.fixture.*;
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -259,6 +260,7 @@ public class ThemeEditorTableTest {
   /**
    * Test the text completion for attribute values
    */
+  @Ignore("http://wpie20.hot.corp.google.com:8200/builders/ubuntu-studio-master-dev-uitests/builds/28/")
   @Test
   public void testResourceCompletion() throws IOException {
     guiTest.importSimpleApplication();
