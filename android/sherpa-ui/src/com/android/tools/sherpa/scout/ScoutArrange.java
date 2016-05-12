@@ -103,6 +103,8 @@ public class ScoutArrange {
                             dir = ConstraintAnchor.Type.RIGHT;
                         }
                         widget.connect(ConstraintAnchor.Type.RIGHT, eastConnect, dir, 0);
+                        widget.setHorizontalBiasPercent(.5f);
+
                     } else {
                         widget.setX(x + (eastDistance - westDistance) / 2);
                     }
@@ -140,6 +142,7 @@ public class ScoutArrange {
                             dir = ConstraintAnchor.Type.BOTTOM;
                         }
                         widget.connect(ConstraintAnchor.Type.BOTTOM, southConnect, dir, 0);
+                        widget.setVerticalBiasPercent(.5f);
                     } else {
                         widget.setY(Y + (southDistance - northDistance) / 2);
                     }
@@ -153,7 +156,8 @@ public class ScoutArrange {
                     widget.setX((parentWidth - width) / 2);
                     if (applyConstraints) {
                         widget.connect(ConstraintAnchor.Type.CENTER_X, widget.getParent(),
-                                ConstraintAnchor.Type.CENTER_X, 0);
+                                       ConstraintAnchor.Type.CENTER_X, 0);
+                        widget.setHorizontalBiasPercent(.5f);
                     }
                 }
             }
@@ -164,8 +168,9 @@ public class ScoutArrange {
                     int height = widget.getHeight();
                     widget.setY((parentHeight - height) / 2);
                     if (applyConstraints) {
-                            widget.connect(ConstraintAnchor.Type.CENTER_Y, widget.getParent(),
-                                    ConstraintAnchor.Type.CENTER_Y, 0);
+                        widget.connect(ConstraintAnchor.Type.CENTER_Y, widget.getParent(),
+                                       ConstraintAnchor.Type.CENTER_Y, 0);
+                        widget.setVerticalBiasPercent(.5f);
                     }
                 }
             }
@@ -182,11 +187,11 @@ public class ScoutArrange {
                 ConstraintWidget previousWidget = null;
                 for (ConstraintWidget widget : widgets) {
                     float current = widget.getWidth() / 2.0f;
-                    widget.setX((int) (avg - current));
+                    widget.setX((int)(avg - current));
                     if (applyConstraints) {
                         if (previousWidget != null) {
                             widget.connect(ConstraintAnchor.Type.CENTER_X, previousWidget,
-                                    ConstraintAnchor.Type.CENTER_X, 0);
+                                           ConstraintAnchor.Type.CENTER_X, 0);
                         }
                     }
                     previousWidget = widget;
