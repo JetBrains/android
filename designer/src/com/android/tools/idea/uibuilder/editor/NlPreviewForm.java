@@ -38,6 +38,7 @@ import com.intellij.openapi.editor.ScrollType;
 import com.intellij.openapi.editor.event.CaretEvent;
 import com.intellij.openapi.editor.event.CaretListener;
 import com.intellij.openapi.fileEditor.TextEditor;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.registry.Registry;
@@ -313,7 +314,13 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
       myManager.setDesignSurface(mySurface);
       myActionsToolbar.setModel(model);
 
-      NlPaletteManager.get(myManager.getProject()).bind(this);
+      final Project project = myManager.getProject();
+      DumbService.getInstance(project).runWhenSmart(() -> {
+        // While we wait for the index to be ready, the preview might become inactive so we need to check first
+        if (isActive && myFile != null) {
+          NlPaletteManager.get(project).bind(this);
+        }
+      });
     }
   }
 
