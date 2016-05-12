@@ -327,8 +327,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       Boolean refreshExternalNativeModels = project.getUserData(REFRESH_EXTERNAL_NATIVE_MODELS_KEY);
       if (refreshExternalNativeModels != null) {
         project.putUserData(REFRESH_EXTERNAL_NATIVE_MODELS_KEY, null);
-        // TODO: Replace the hardcoded property string with the string constant in AndroidProject when available.
-        args.add(createProjectProperty("android.injected.refresh.external.native.model", refreshExternalNativeModels));
+        args.add(createProjectProperty(PROPERTY_REFRESH_EXTERNAL_NATIVE_MODEL, refreshExternalNativeModels));
       }
     }
 
