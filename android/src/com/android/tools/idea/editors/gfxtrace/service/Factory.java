@@ -33,10 +33,14 @@ public final class Factory {
     AtomRangeTimer.register();
     AtomTimer.register();
     Capture.register();
+    Context.register();
+    ContextList.register();
     Device.register();
     ErrDataUnavailable.register();
     ErrInvalidArgument.register();
     ErrInvalidPath.register();
+    Hierarchy.register();
+    HierarchyList.register();
     MemoryInfo.register();
     RenderSettings.register();
     ReportItem.register();

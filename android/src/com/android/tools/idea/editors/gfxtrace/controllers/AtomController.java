@@ -19,8 +19,7 @@ import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.actions.EditAtomParametersAction;
 import com.android.tools.idea.editors.gfxtrace.models.AtomStream;
 import com.android.tools.idea.editors.gfxtrace.renderers.Render;
-import com.android.tools.idea.editors.gfxtrace.service.RenderSettings;
-import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
+import com.android.tools.idea.editors.gfxtrace.service.*;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.WireframeMode;
 import com.android.tools.idea.editors.gfxtrace.service.atom.Atom;
 import com.android.tools.idea.editors.gfxtrace.service.atom.AtomGroup;
@@ -32,6 +31,7 @@ import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.android.tools.idea.editors.gfxtrace.widgets.LoadableIcon;
 import com.android.tools.idea.logcat.RegexFilterComponent;
 import com.google.common.base.Objects;
+import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -62,6 +62,7 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -246,6 +247,8 @@ public class AtomController extends TreeController implements AtomStream.Listene
   }
 
   @NotNull private RegexFilterComponent mySearchField = new RegexFilterComponent(AtomController.class.getName(), 10);
+  @NotNull private Map<ContextID, Hierarchy> mySelectedHierarchies = Maps.newHashMap();
+  @NotNull private Context mySelectedContext = Context.ALL;
 
   private AtomController(@NotNull GfxTraceEditor editor) {
     super(editor, GfxTraceEditor.LOADING_CAPTURE);
@@ -611,8 +614,39 @@ public class AtomController extends TreeController implements AtomStream.Listene
     return group.lastLeaf.isEndOfFrame() || group.lastLeaf.isDrawCall();
   }
 
+  private void updateTree(AtomStream atoms) {
+    final DefaultMutableTreeNode root = new DefaultMutableTreeNode("Stream", true);
+    Hierarchy hierarchy = mySelectedHierarchies.get(mySelectedContext);
+    if (hierarchy == null) {
+      // No hierarchy selection made for this context yet, select the first one.
+      hierarchy = atoms.getHierarchies().firstWithContext(mySelectedContext.getID());
+      mySelectedHierarchies.put(mySelectedContext.getID(), hierarchy);
+    }
+    hierarchy.getRoot().addChildren(root, atoms.getAtoms(), mySelectedContext);
+    Enumeration<TreePath> treeState = myTree.getExpandedDescendants(new TreePath(myTree.getModel().getRoot()));
+    setRoot(root);
+    if (treeState != null) {
+      while (treeState.hasMoreElements()) {
+        myTree.expandPath(getTreePathInTree(treeState.nextElement(), myTree));
+      }
+    }
+  }
+
+  private void selectContext(@NotNull ContextID id) {
+    AtomStream atoms = myEditor.getAtomStream();
+    Context context = atoms.getContexts().find(id, Context.ALL);
+    if (!context.equals(mySelectedContext)) {
+      mySelectedContext = context;
+      updateTree(atoms);
+    }
+  }
+
   @Override
   public void notifyPath(PathEvent event) {
+    ContextPath contextPath = event.findContextPath();
+    if (contextPath != null) {
+      selectContext(contextPath.getID());
+    }
     if (myRenderDevice.updateIfNotNull(event.findDevicePath())) {
       // Only the icons would need to be changed.
       myTree.repaint();
@@ -628,18 +662,10 @@ public class AtomController extends TreeController implements AtomStream.Listene
   @Override
   public void onAtomLoadingComplete(AtomStream atoms) {
     myLoadingPanel.stopLoading();
-    if (atoms.isLoaded()) {
-      final DefaultMutableTreeNode root = new DefaultMutableTreeNode("Stream", true);
-      atoms.getHierarchy().addChildren(root, atoms.getAtoms());
-
-      Enumeration<TreePath> treeState = myTree.getExpandedDescendants(new TreePath(myTree.getModel().getRoot()));
-      setRoot(root);
-      if (treeState != null) {
-        while (treeState.hasMoreElements()) {
-          myTree.expandPath(getTreePathInTree(treeState.nextElement(), myTree));
-        }
-      }
-    }
+    // Map all hierarchy selections into something equivalent.
+    Maps.transformValues(mySelectedHierarchies,
+                         hierarchy -> atoms.getHierarchies().findSimilar(hierarchy));
+    updateTree(atoms);
   }
 
   @Nullable("if this path can not be found in this tree")

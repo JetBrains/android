@@ -17,10 +17,10 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.models.AtomStream;
+import com.android.tools.idea.editors.gfxtrace.service.Context;
 import com.android.tools.idea.editors.gfxtrace.service.RenderSettings;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.WireframeMode;
-import com.android.tools.idea.editors.gfxtrace.service.atom.Atom;
 import com.android.tools.idea.editors.gfxtrace.service.atom.AtomList;
 import com.android.tools.idea.editors.gfxtrace.service.atom.Range;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
@@ -28,7 +28,6 @@ import com.android.tools.idea.editors.gfxtrace.widgets.CellList;
 import com.android.tools.idea.editors.gfxtrace.widgets.ImageCellList;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
@@ -38,6 +37,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
 public class ScrubberController extends ImageCellController<ScrubberController.Data> implements AtomStream.Listener {
@@ -61,6 +61,7 @@ public class ScrubberController extends ImageCellController<ScrubberController.D
   @NotNull private static final Logger LOG = Logger.getInstance(ScrubberController.class);
   @NotNull private final PathStore<DevicePath> myRenderDevice = new PathStore<DevicePath>();
   @NotNull private final RenderSettings myRenderSettings = new RenderSettings();
+  @NotNull private Context mySelectedContext = Context.ALL;
 
   private ScrubberController(@NotNull final GfxTraceEditor editor) {
     super(editor);
@@ -96,19 +97,21 @@ public class ScrubberController extends ImageCellController<ScrubberController.D
 
 
   @Nullable
-  public List<Data> prepareData(@NotNull AtomsPath path, @NotNull AtomList atoms) {
-    List<Data> generatedList = new ArrayList<Data>();
+  public List<Data> prepareData(@NotNull AtomsPath path, @NotNull AtomList atoms, @NotNull Context context) {
+    List<Data> generatedList = new ArrayList<>();
     int frameCount = 0;
-    Range range = new Range();
-    range.setStart(0);
-    for (int index = 0; index < atoms.getAtoms().length; ++index) {
-      Atom atom = atoms.get(index);
-      if (atom.isEndOfFrame()) {
-        range.setEnd(index + 1);
-        Data frameData = new Data(path.index(index), range, Integer.toString(frameCount++));
-        generatedList.add(frameData);
-        range = new Range();
-        range.setStart(index + 1);
+    long frameStart = -1;
+    for (Range contextRange : context.getRanges(atoms)) {
+      for (long index = contextRange.getStart(); index < contextRange.getEnd(); index++) {
+        if (frameStart < 0) {
+          frameStart = index;
+        }
+        if (atoms.get(index).isEndOfFrame()) {
+          Range frameRange = new Range().setStart(frameStart).setEnd(index + 1);
+          Data frameData = new Data(path.index(index), frameRange, Integer.toString(frameCount++));
+          generatedList.add(frameData);
+          frameStart = -1;
+        }
       }
     }
     return generatedList;
@@ -116,9 +119,23 @@ public class ScrubberController extends ImageCellController<ScrubberController.D
 
   @Override
   public void notifyPath(PathEvent event) {
+    AtomStream atoms = myEditor.getAtomStream();
+
+    boolean doUpdate = false;
+
+    ContextPath contextPath = event.findContextPath();
+    if (contextPath != null) {
+      Context context = atoms.getContexts().find(contextPath.getID(), Context.ALL);
+      doUpdate = !Objects.equals(context, mySelectedContext);
+      mySelectedContext = context;
+    }
+
     if (myRenderDevice.updateIfNotNull(event.findDevicePath())) {
-      // Update the list as though the atoms just loaded to update the thumbnails.
-      onAtomLoadingComplete(myEditor.getAtomStream());
+      doUpdate = true; // Update the thumbnails.
+    }
+
+    if (doUpdate) {
+      update(atoms);
     }
   }
 
@@ -128,10 +145,7 @@ public class ScrubberController extends ImageCellController<ScrubberController.D
 
   @Override
   public void onAtomLoadingComplete(AtomStream atoms) {
-    if (atoms.isLoaded()) {
-      final List<Data> cells = prepareData(atoms.getPath(), atoms.getAtoms());
-      myList.setData(cells);
-    }
+    update(atoms);
   }
 
   @Override
@@ -143,6 +157,13 @@ public class ScrubberController extends ImageCellController<ScrubberController.D
         break;
       }
       index++;
+    }
+  }
+
+  private void update(AtomStream atoms) {
+    if (atoms.isLoaded()) {
+      final List<Data> cells = prepareData(atoms.getPath(), atoms.getAtoms(), mySelectedContext);
+      myList.setData(cells);
     }
   }
 }
