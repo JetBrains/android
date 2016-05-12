@@ -17,7 +17,7 @@
 package com.android.tools.sherpa.drawing.decorator;
 
 import com.android.tools.sherpa.drawing.ViewTransform;
-import android.support.constraint.solver.widgets.ConstraintWidget;
+import android.constraint.solver.widgets.ConstraintWidget;
 
 import java.awt.*;
 

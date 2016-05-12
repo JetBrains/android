@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.actions;
 
-import android.support.constraint.solver.widgets.ConstraintAnchor;
+import android.constraint.solver.widgets.ConstraintAnchor;
 import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
