@@ -77,6 +77,7 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
   private boolean myPropertyHasSlider;
   private String myLastReadValue;
   private String myLastWriteValue;
+  private boolean myUpdatingProperty;
 
   public static NlReferenceEditor createForTable(@NotNull Project project, @NotNull NlEditingListener listener) {
     return new NlReferenceEditor(project, listener, true);
@@ -193,22 +194,28 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
       myCompletionProvider.updateCompletions(myProperty);
     }
 
-    myPropertyHasSlider = configureSlider();
-    mySlider.setVisible(myPropertyHasSlider);
-    if (myPropertyHasSlider) {
-      myIconLabel.setVisible(false);
-    }
-    else {
-      Icon icon = NlDefaultRenderer.getIcon(myProperty);
-      myIconLabel.setIcon(icon);
-      myIconLabel.setVisible(icon != null);
-    }
+    myUpdatingProperty = true;
+    try {
+      myPropertyHasSlider = configureSlider();
+      mySlider.setVisible(myPropertyHasSlider);
+      if (myPropertyHasSlider) {
+        myIconLabel.setVisible(false);
+      }
+      else {
+        Icon icon = NlDefaultRenderer.getIcon(myProperty);
+        myIconLabel.setIcon(icon);
+        myIconLabel.setVisible(icon != null);
+      }
 
-    String propValue = StringUtil.notNullize(myProperty.getValue());
-    if (!propValue.equals(myLastReadValue)) {
-      myLastReadValue = propValue;
-      myLastWriteValue = propValue;
-      myTextFieldWithAutoCompletion.setText(propValue);
+      String propValue = StringUtil.notNullize(myProperty.getValue());
+      if (!propValue.equals(myLastReadValue)) {
+        myLastReadValue = propValue;
+        myLastWriteValue = propValue;
+        myTextFieldWithAutoCompletion.setText(propValue);
+      }
+    }
+    finally {
+      myUpdatingProperty = false;
     }
   }
 
@@ -291,6 +298,9 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
   }
 
   private void sliderChange() {
+    if (myUpdatingProperty) {
+      return;
+    }
     myTextFieldWithAutoCompletion.setText(getSliderValue());
     if (!mySlider.getValueIsAdjusting()) {
       stopEditing(getText());
