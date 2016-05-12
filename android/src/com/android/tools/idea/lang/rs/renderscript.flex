@@ -30,8 +30,6 @@ import com.intellij.psi.tree.IElementType;
 
 %function advance
 %type IElementType
-%eof{  return;
-%eof}
 
 %{
   StringBuilder stringBuilder = new StringBuilder(30);
@@ -464,5 +462,5 @@ RSVectorType = {RSPrimeType}{VectorDigit}
   {StringLiteral}     { return RenderscriptTokenType.STRING; }
 }
 
-.                     { return TokenType.BAD_CHARACTER; }
+[^]                   { return TokenType.BAD_CHARACTER; }
 <<EOF>>               { return null; }
