@@ -269,10 +269,10 @@ public class AndroidIcons {
     public static final Icon HorizontalCenter = load("/icons/sherpa/center-constraint-horizontally_b.png");
     public static final Icon HorizontalCenterParentB = load("/icons/sherpa/center-horizontally-in-parent.png");
     public static final Icon HorizontalCenterParent = load("/icons/sherpa/center-horizontally-in-parent_b.png");
-    public static final Icon HorizontalDistributeB = load("/icons/sherpa/distribute horizontally_b.png");
-    public static final Icon HorizontalDistribute = load("/icons/sherpa/distribute horizontally.png");
+    public static final Icon HorizontalDistributeB = load("/icons/sherpa/distribute-horizontally.png");
+    public static final Icon HorizontalDistribute = load("/icons/sherpa/distribute-horizontally_b.png");
     public static final Icon HorizontalExpandB = load("/icons/sherpa/expand-horizontally.png");
-    public static final Icon HorizontalExpand = load("/icons/sherpa/expand-horizontally.png");
+    public static final Icon HorizontalExpand = load("/icons/sherpa/expand-horizontally_b.png");
     public static final Icon Inference = load("/icons/sherpa/inference.png");
     public static final Icon InferIntoTable = load("/icons/sherpa/infer_into_table.png");
     public static final Icon LeftAlignedB = load("/icons/sherpa/left_aligned.png");
