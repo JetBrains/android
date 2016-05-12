@@ -214,4 +214,46 @@ public final class ProxyUtil {
     }
     return ImmutableMap.of();
   }
+
+  public static boolean isValidProxyObject(@NotNull Object obj) {
+    if (!isAndroidModelProxyObject(obj)) {
+      if (obj instanceof Collection && (!((Collection)obj).isEmpty())) {
+        for (Object valueObj : (Collection)obj) {
+          if (valueObj != null && !isValidProxyObject(valueObj)) {
+            return false;
+          }
+        }
+      }
+      else if (obj instanceof Map && (!((Map)obj).isEmpty())) {
+        Map map = (Map)obj;
+        for (Object valueObj : map.values()) {
+          if (valueObj != null && !isValidProxyObject(valueObj)) {
+            return false;
+          }
+        }
+      }
+      return true; // It's not our proxy object and we won't be able to verify it's validity, so lets assume it's valid.
+    }
+
+    Class<?>[] interfaces = obj.getClass().getInterfaces();
+    if (interfaces.length != 1) {
+      return false; // This should never happen because we support only proxying classes with a single interface.
+    }
+    Class<?> clazz = interfaces[0];
+
+    Map<String, Object> androidModelProxyValues = getAndroidModelProxyValues(obj);
+    for (Method m : clazz.getMethods()) {
+      if (Modifier.isPublic(m.getModifiers()) && !androidModelProxyValues.containsKey(m.toGenericString())) {
+        return false;
+      }
+    }
+
+    for (Object valueObj : androidModelProxyValues.values()) {
+      if (valueObj != null && !isValidProxyObject(valueObj)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
 }

@@ -30,6 +30,7 @@ import java.io.File;
 import java.lang.reflect.*;
 import java.util.*;
 
+import static com.android.tools.idea.gradle.util.ProxyUtil.isValidProxyObject;
 import static com.android.tools.idea.gradle.util.ProxyUtil.reproxy;
 
 /**
@@ -111,6 +112,25 @@ public class ProxyUtilTest extends TestCase {
     } catch (UnsupportedMethodException e) {
       // Expected.
     }
+  }
+
+  public void testValidityPositive() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    MyInterface reproxy = reproxy(MyInterface.class, myProxy);
+    assertNotNull(reproxy);
+
+    assertTrue(isValidProxyObject(reproxy));
+  }
+
+  public void testValidityNegative() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    MyInterface reproxy = reproxy(MyInterface.class, myProxy);
+    assertNotNull(reproxy);
+    InvocationHandler handler = Proxy.getInvocationHandler(reproxy);
+    assertTrue(handler instanceof WrapperInvocationHandler);
+    WrapperInvocationHandler wrapper = (WrapperInvocationHandler)handler;
+    Method m = MyInterface.class.getMethod("getString");
+    wrapper.values.remove(m.toGenericString());
+
+    assertFalse(isValidProxyObject(reproxy)); // Removed method should result in validity check failure
   }
 
   private static MyInterface createProxyInstance(boolean recurse) {
