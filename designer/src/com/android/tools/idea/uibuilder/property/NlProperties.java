@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
-import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.ImmutableTable;
@@ -28,6 +27,7 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.xml.NamespaceAwareXmlAttributeDescriptor;
 import com.intellij.xml.XmlAttributeDescriptor;
 import com.intellij.xml.XmlElementDescriptor;
+import org.jetbrains.android.dom.AndroidAnyAttributeDescriptor;
 import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
@@ -39,6 +39,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import static com.android.SdkConstants.*;
 
 public class NlProperties {
   private static NlProperties ourInstance = null;
@@ -99,14 +101,33 @@ public class NlProperties {
 
       for (XmlAttributeDescriptor desc : descriptors) {
         String namespace = getNamespace(desc, tag);
-        AttributeDefinitions attrDefs = SdkConstants.NS_RESOURCES.equals(namespace) ? systemAttrDefs : localAttrDefs;
+        AttributeDefinitions attrDefs = NS_RESOURCES.equals(namespace) ? systemAttrDefs : localAttrDefs;
         AttributeDefinition attrDef = attrDefs == null ? null : attrDefs.getAttrDefByName(desc.getName());
-        NlPropertyItem property = NlPropertyItem.create(components, desc, attrDef);
+        NlPropertyItem property = NlPropertyItem.create(components, desc, namespace, attrDef);
         properties.put(StringUtil.notNullize(namespace), property.getName(), property);
+      }
+
+      // Exceptions:
+      switch (tag.getName()) {
+        case AUTO_COMPLETE_TEXT_VIEW:
+          // An AutoCompleteTextView has a popup that is created at runtime.
+          // Properties for this popup can be added to the AutoCompleteTextView tag.
+          properties.put(ANDROID_URI, ATTR_POPUP_BACKGROUND, NlPropertyItem.create(
+            components,
+            new AndroidAnyAttributeDescriptor(ATTR_POPUP_BACKGROUND),
+            ANDROID_URI,
+            systemAttrDefs != null ? systemAttrDefs.getAttrDefByName(ATTR_POPUP_BACKGROUND) : null));
+          break;
       }
 
       combinedProperties = combine(properties, combinedProperties);
     }
+
+    // The following properties are deprecated in the support library and can be ignored by tools:
+    assert combinedProperties != null;
+    combinedProperties.remove(AUTO_URI, ATTR_PADDING_START);
+    combinedProperties.remove(AUTO_URI, ATTR_PADDING_END);
+    combinedProperties.remove(AUTO_URI, ATTR_THEME);
 
     //noinspection ConstantConditions
     return combinedProperties;
@@ -141,7 +162,7 @@ public class NlProperties {
       }
     }
     // Never include the ID attribute when looking at multiple components:
-    combinedProperties.remove(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ID);
+    combinedProperties.remove(ANDROID_URI, ATTR_ID);
     return combinedProperties;
   }
 }

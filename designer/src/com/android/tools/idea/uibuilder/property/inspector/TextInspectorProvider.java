@@ -41,7 +41,7 @@ import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.property.editors.NlEditingListener.DEFAULT_LISTENER;
 
 public class TextInspectorProvider implements InspectorProvider {
-  private static final Set<String> TEXT_PROPERTIES = ImmutableSet.of(ATTR_TEXT, ATTR_HINT, ATTR_CONTENT_DESCRIPTION);
+  private static final Set<String> TEXT_PROPERTIES = ImmutableSet.of(ATTR_TEXT, ATTR_CONTENT_DESCRIPTION);
 
   private TextInspectorComponent myComponent;
 
@@ -77,7 +77,6 @@ public class TextInspectorProvider implements InspectorProvider {
   private static class TextInspectorComponent implements InspectorComponent {
     private final NlReferenceEditor myTextEditor;
     private final NlReferenceEditor myDesignTextEditor;
-    private final NlReferenceEditor myHintEditor;
     private final NlReferenceEditor myDescriptionEditor;
     private final NlEnumEditor myStyleEditor;
     private final NlEnumEditor myFontFamilyEditor;
@@ -98,7 +97,6 @@ public class TextInspectorProvider implements InspectorProvider {
 
     private NlProperty myText;
     private NlProperty myDesignText;
-    private NlProperty myHint;
     private NlProperty myDescription;
     private NlProperty myStyle;
     private NlProperty myFontFamily;
@@ -114,7 +112,6 @@ public class TextInspectorProvider implements InspectorProvider {
       Project project = propertiesManager.getProject();
       myTextEditor = NlReferenceEditor.createForInspectorWithBrowseButton(project, DEFAULT_LISTENER);
       myDesignTextEditor = NlReferenceEditor.createForInspectorWithBrowseButton(project, DEFAULT_LISTENER);
-      myHintEditor = NlReferenceEditor.createForInspectorWithBrowseButton(project, DEFAULT_LISTENER);
       myDescriptionEditor = NlReferenceEditor.createForInspectorWithBrowseButton(project, DEFAULT_LISTENER);
 
       myStyleEditor = NlEnumEditor.createForInspector(createEnumStyleListener());
@@ -149,7 +146,6 @@ public class TextInspectorProvider implements InspectorProvider {
     public void updateProperties(@NotNull List<NlComponent> components, @NotNull Map<String, NlProperty> properties) {
       myText = properties.get(ATTR_TEXT);
       myDesignText = myText.getDesignTimeProperty();
-      myHint = properties.get(ATTR_HINT);
       myDescription = properties.get(ATTR_CONTENT_DESCRIPTION);
       myStyle = properties.get(ATTR_TEXT_APPEARANCE);
       myFontFamily = properties.get(ATTR_FONT_FAMILY);
@@ -164,7 +160,7 @@ public class TextInspectorProvider implements InspectorProvider {
 
     @Override
     public int getMaxNumberOfRows() {
-      return 13;
+      return 12;
     }
 
     @Override
@@ -173,7 +169,6 @@ public class TextInspectorProvider implements InspectorProvider {
       inspector.addComponent(ATTR_TEXT, myText.getTooltipText(), myTextEditor.getComponent());
       JLabel designText = inspector.addComponent(ATTR_TEXT, myDesignText.getTooltipText(), myDesignTextEditor.getComponent());
       designText.setIcon(AndroidIcons.NeleIcons.DesignProperty);
-      inspector.addComponent(ATTR_HINT, myHint.getTooltipText(), myHintEditor.getComponent());
       inspector.addComponent(ATTR_CONTENT_DESCRIPTION, myDescription.getTooltipText(), myDescriptionEditor.getComponent());
 
       inspector.addExpandableComponent(ATTR_TEXT_APPEARANCE, myStyle.getTooltipText(), myStyleEditor.getComponent());
@@ -191,7 +186,6 @@ public class TextInspectorProvider implements InspectorProvider {
     public void refresh() {
       myTextEditor.setProperty(myText);
       myDesignTextEditor.setProperty(myDesignText);
-      myHintEditor.setProperty(myHint);
       myDescriptionEditor.setProperty(myDescription);
       myStyleEditor.setProperty(myStyle);
       myFontFamilyEditor.setProperty(myFontFamily);
