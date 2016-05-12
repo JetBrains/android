@@ -60,24 +60,28 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
 
   public static NlPropertyItem create(@NotNull List<NlComponent> components,
                                       @NotNull XmlAttributeDescriptor descriptor,
+                                      @Nullable String namespace,
                                       @Nullable AttributeDefinition attributeDefinition) {
     if (attributeDefinition != null && attributeDefinition.getFormats().contains(AttributeFormat.Flag)) {
-      return new NlFlagPropertyItem(components, descriptor, attributeDefinition);
+      return new NlFlagPropertyItem(components, descriptor, namespace, attributeDefinition);
     }
     else if (descriptor.getName().equals(SdkConstants.ATTR_ID)) {
       return new NlIdPropertyItem(components, descriptor, attributeDefinition);
     }
     else {
-      return new NlPropertyItem(components, descriptor, attributeDefinition);
+      return new NlPropertyItem(components, descriptor, namespace, attributeDefinition);
     }
   }
 
   protected NlPropertyItem(@NotNull List<NlComponent> components,
                            @NotNull XmlAttributeDescriptor descriptor,
+                           @Nullable String namespace,
                            @Nullable AttributeDefinition attributeDefinition) {
     assert !components.isEmpty();
-    String namespace = descriptor instanceof NamespaceAwareXmlAttributeDescriptor ?
-                       ((NamespaceAwareXmlAttributeDescriptor)descriptor).getNamespace(components.get(0).getTag()) : null;
+    if (namespace == null) {
+      namespace = descriptor instanceof NamespaceAwareXmlAttributeDescriptor ?
+                  ((NamespaceAwareXmlAttributeDescriptor)descriptor).getNamespace(components.get(0).getTag()) : null;
+    }
     if (attributeDefinition == null &&
         !ATTRS_WITHOUT_DEFINITIONS.contains(descriptor.getName()) &&
         !SdkConstants.TOOLS_URI.equals(namespace)) {
