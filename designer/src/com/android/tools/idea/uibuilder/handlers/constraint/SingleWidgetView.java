@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
-import android.constraint.solver.widgets.ConstraintWidget;
-import android.constraint.solver.widgets.ConstraintWidgetContainer;
+import android.support.constraint.solver.widgets.ConstraintWidget;
+import android.support.constraint.solver.widgets.ConstraintWidgetContainer;
 import com.android.tools.sherpa.drawing.ColorSet;
 import com.android.tools.sherpa.drawing.ConnectionDraw;
 import com.android.tools.sherpa.structure.WidgetCompanion;

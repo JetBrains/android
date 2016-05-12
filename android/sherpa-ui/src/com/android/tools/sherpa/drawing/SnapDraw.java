@@ -19,8 +19,8 @@ package com.android.tools.sherpa.drawing;
 import com.android.tools.sherpa.interaction.ConstraintHandle;
 import com.android.tools.sherpa.interaction.SnapCandidate;
 import com.android.tools.sherpa.interaction.WidgetInteractionTargets;
-import android.constraint.solver.widgets.ConstraintAnchor;
-import android.constraint.solver.widgets.Guideline;
+import android.support.constraint.solver.widgets.ConstraintAnchor;
+import android.support.constraint.solver.widgets.Guideline;
 
 import java.awt.BasicStroke;
 import java.awt.Canvas;

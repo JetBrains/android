@@ -230,7 +230,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
   }
 
   final void assertConstraintLayout(@NotNull Palette.BaseItem item) {
-    assertStandardLayout(item, "android.constraint.ConstraintLayout", CONSTRAINT_LAYOUT_LIB_ARTIFACT);
+    assertStandardLayout(item, "android.support.constraint.ConstraintLayout", CONSTRAINT_LAYOUT_LIB_ARTIFACT);
   }
 
   public void assertGridLayout(@NotNull Palette.BaseItem item) {

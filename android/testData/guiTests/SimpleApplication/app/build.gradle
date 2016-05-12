@@ -27,5 +27,5 @@ dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.android.support:appcompat-v7:23.1.1'
     compile 'com.google.guava:guava:18.0'
-    compile 'com.android.constraint:constraint-layout:+'
+    compile 'com.android.support.constraint:constraint-layout:+'
 }

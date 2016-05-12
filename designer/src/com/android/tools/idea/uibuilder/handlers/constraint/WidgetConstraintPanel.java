@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
-import android.constraint.solver.widgets.ConstraintAnchor;
-import android.constraint.solver.widgets.ConstraintWidget;
+import android.support.constraint.solver.widgets.ConstraintAnchor;
+import android.support.constraint.solver.widgets.ConstraintWidget;
 import com.android.SdkConstants;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.model.NlComponent;

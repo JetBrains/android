@@ -17,7 +17,7 @@
 package com.android.tools.sherpa.animation;
 
 import com.android.tools.sherpa.drawing.ViewTransform;
-import android.constraint.solver.widgets.Animator;
+import android.support.constraint.solver.widgets.Animator;
 
 import java.awt.Graphics2D;
 
