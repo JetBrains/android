@@ -85,6 +85,7 @@ import java.awt.dnd.InvalidDnDOperationException;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static com.android.SdkConstants.*;
 import static com.intellij.util.ui.update.Update.HIGH_PRIORITY;
@@ -111,7 +112,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   private final Disposable myParent;
   private boolean myActive;
   private ResourceVersion myRenderedVersion;
-  private long myModificationCount;
+  private ModelVersion myModelVersion = new ModelVersion();
   private AndroidPreviewProgressIndicator myCurrentIndicator;
   private static final Object PROGRESS_LOCK = new Object();
   private RenderTask myRenderTask;
@@ -319,7 +320,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       rootViews = myType == NlLayoutType.MENU ? result.getSystemRootViews() : result.getRootViews();
       updateHierarchy(rootTag, rootViews);
     }
-    myModificationCount++;
+    myModelVersion.increase(ChangeType.UPDATE_HIERARCHY);
   }
 
   @VisibleForTesting
@@ -699,7 +700,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       // Note: We can't use XmlTag#getAttribute on the old component hierarchy;
       // those elements may not be valid and PSI will throw exceptions if we
       // attempt to access them.
-      Map<String,NlComponent> oldIds = Maps.newHashMap();
+      Map<String, NlComponent> oldIds = Maps.newHashMap();
       for (Map.Entry<TagSnapshot, NlComponent> entry : mySnapshotToComponent.entrySet()) {
         TagSnapshot snapshot = entry.getKey();
         if (snapshot != null) {
@@ -1043,7 +1044,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     List<NlComponent> remaining = Lists.newArrayList(mySelectionModel.getSelection());
     remaining.removeAll(components);
     mySelectionModel.setSelection(remaining);
-    notifyModified();
+    notifyModified(ChangeType.DELETE);
   }
 
   private void handleDeletion(@NotNull Collection<NlComponent> components) {
@@ -1274,7 +1275,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       }
     };
     action.execute();
-    notifyModified();
+    notifyModified(ChangeType.ADD_COMPONENTS);
   }
 
   private void handleAddition(@NotNull List<NlComponent> added,
@@ -1535,19 +1536,79 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   @Override
   public void resourcesChanged(@NotNull Set<ResourceNotificationManager.Reason> reason) {
-    myModificationCount += reason.size();
-    requestModelUpdate();
+    for (ResourceNotificationManager.Reason r : reason) {
+      switch (r) {
+        case RESOURCE_EDIT: {
+          notifyModified(ChangeType.RESOURCE_EDIT);
+        } break;
+        case EDIT: {
+          notifyModified(ChangeType.EDIT);
+        } break;
+        default:
+          notifyModified(ChangeType.RESOURCE_CHANGED);
+      }
+    }
   }
 
   // ---- Implements ModificationTracker ----
 
-  @Override
-  public long getModificationCount() {
-    return myModificationCount;
+  public enum ChangeType {
+    RESOURCE_EDIT,
+    EDIT,
+    RESOURCE_CHANGED,
+    ADD_COMPONENTS,
+    DELETE,
+    DND_COMMIT,
+    DND_END,
+    DROP,
+    RESIZE_END, RESIZE_COMMIT,
+    REQUEST_RENDER,
+    UPDATE_HIERARCHY
   }
 
-  public void notifyModified() {
-    myModificationCount++;
+  /**
+   * Maintains multiple counter depending on what did change in the model
+   */
+  class ModelVersion {
+    private AtomicLong myVersion = new AtomicLong();
+    private AtomicLong myResourceVersion = new AtomicLong();
+    private AtomicLong myHierarchyVersion = new AtomicLong();
+    ChangeType mLastReason;
+
+    public void increase(ChangeType reason) {
+      myVersion.incrementAndGet();
+      mLastReason = reason;
+      switch (reason) {
+        case RESOURCE_EDIT:
+        case EDIT:
+        case RESOURCE_CHANGED: {
+          myResourceVersion.incrementAndGet();
+        } break;
+        default:
+          myHierarchyVersion.incrementAndGet();
+      }
+    }
+
+    public long getVersion() {
+      return myVersion.get();
+    }
+    public long getResourceVersion() { return myResourceVersion.get(); }
+    public long getHierarchyVersion() { return myHierarchyVersion.get(); }
+  }
+
+  @Override
+  public long getModificationCount() {
+    return myModelVersion.getVersion();
+  }
+
+  public long getResourceVersion() {
+    return myModelVersion.getResourceVersion();
+  }
+
+  public ModelVersion getModelVersion() { return myModelVersion; }
+
+  public void notifyModified(ChangeType reason) {
+    myModelVersion.increase(reason);
     requestModelUpdate();
   }
 

@@ -123,7 +123,7 @@ public class DragDropInteraction extends Interaction {
     moveTo(x, y, modifiers, !canceled);
     myScreenView = myDesignSurface.getScreenView(x, y);
     if (myScreenView != null && !canceled) {
-      myScreenView.getModel().notifyModified();
+      myScreenView.getModel().notifyModified(NlModel.ChangeType.DND_END);
     }
     if (canceled && myDragHandler != null) {
       myDragHandler.cancel();
@@ -201,7 +201,7 @@ public class DragDropInteraction extends Interaction {
           }
         };
         action.execute();
-        model.notifyModified();
+        model.notifyModified(NlModel.ChangeType.DND_COMMIT);
         // Select newly dropped components
         model.getSelectionModel().setSelection(added);
       }

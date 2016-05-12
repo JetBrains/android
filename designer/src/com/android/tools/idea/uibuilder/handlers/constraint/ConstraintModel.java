@@ -166,16 +166,16 @@ public class ConstraintModel implements ModelListener {
   public void modelChanged(@NotNull NlModel model) {
     ourLock.lock();
     if (DEBUG) {
-      System.out.println("*** Model Changed " + model.getModificationCount()
+      System.out.println("*** Model Changed " + model.getResourceVersion()
                          + " vs our " + myModificationCount);
     }
-    if (model.getModificationCount() > myModificationCount) {
+    if (model.getResourceVersion() > myModificationCount) {
       if (mAllowsUpdate) {
         int dpi = model.getConfiguration().getDensity().getDpiValue();
         setDpiValue(dpi);
         updateNlModel(model.getComponents());
       }
-      myModificationCount = model.getModificationCount();
+      myModificationCount = model.getResourceVersion();
       if (DEBUG) {
         System.out.println("-> updated [" + mAllowsUpdate + "] to " + myModificationCount);
       }
@@ -191,7 +191,7 @@ public class ConstraintModel implements ModelListener {
   public void modelRendered(@NotNull NlModel model) {
     if (DEBUG) {
       ourLock.lock();
-      System.out.println("Model rendered " + model.getModificationCount()
+      System.out.println("Model rendered " + model.getResourceVersion()
                          + " vs our " + myModificationCount);
       ourLock.unlock();
     }
@@ -478,9 +478,7 @@ public class ConstraintModel implements ModelListener {
   public void saveToXML(boolean forceSave) {
     Selection selection = getSelection();
     ourLock.lock();
-    // inflate will call updateHierarchy, then render will call it as well,
-    // so let's increment our counter by 2
-    myModificationCount = myNlModel.getModificationCount() + 2;
+    myModificationCount = myNlModel.getResourceVersion() + 1;
     ourLock.unlock();
     if (forceSave || !selection.getModifiedWidgets().isEmpty()) {
       if (DEBUG) {
@@ -498,13 +496,10 @@ public class ConstraintModel implements ModelListener {
    */
   public void renderInLayoutLib() {
     ourLock.lock();
-    // render will trigger updateHierarchy, so le'ts increment our
-    // counter by 1
-    myModificationCount = myNlModel.getModificationCount() + 1;
     if (DEBUG) {
       System.out.println("### Model rendered to layoutlib -> "
                          + myModificationCount + " vs "
-                          + myNlModel.getModificationCount());
+                          + myNlModel.getResourceVersion());
     }
     ourLock.unlock();
 
