@@ -214,6 +214,13 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
         DumbService.getInstance(myFacet.getModule().getProject()).waitForSmartMode();
         if (!myFacet.getModule().getProject().isDisposed()) {
           try {
+            if (myFacet.requiresAndroidModel() && myFacet.getAndroidModel() == null) {
+              // Try again later - model hasn't been synced yet (and for example we won't
+              // be able to resolve custom views coming from libraries like appcompat,
+              // resulting in a broken render)
+              ApplicationManager.getApplication().invokeLater(() -> requestModelUpdate());
+              return;
+            }
             updateModel();
           }
           catch (Throwable e) {
