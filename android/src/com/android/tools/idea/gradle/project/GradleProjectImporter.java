@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.*;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
@@ -23,6 +24,7 @@ import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.invoker.GradleTasksExecutor;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.util.LocalProperties;
+import com.android.tools.idea.gradle.util.ProxyUtil;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -67,6 +69,9 @@ import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.Map;
 
@@ -78,6 +83,7 @@ import static com.android.tools.idea.gradle.project.SdkSync.syncIdeAndProjectAnd
 import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.gradle.util.Projects.*;
+import static com.android.tools.idea.gradle.util.ProxyUtil.isValidProxyObject;
 import static com.android.tools.idea.project.NewProjects.*;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.google.common.base.Strings.nullToEmpty;
@@ -593,7 +599,7 @@ public class GradleProjectImporter {
       AndroidFacet androidFacet = AndroidFacet.getInstance(module);
       if (androidFacet != null) {
         DataNode<AndroidGradleModel> androidDataNode = find(cache, ANDROID_MODEL);
-        if (androidDataNode == null) {
+        if (androidDataNode == null || !isValidProxyObject(androidDataNode.getData().getAndroidProject())) {
           return true;
         }
       }
@@ -610,7 +616,7 @@ public class GradleProjectImporter {
     NativeAndroidGradleFacet nativeAndroidFacet = NativeAndroidGradleFacet.getInstance(module);
     if (nativeAndroidFacet != null) {
       DataNode<NativeAndroidGradleModel> nativeAndroidGradleDataNode = find(cache, NATIVE_ANDROID_MODEL);
-      if (nativeAndroidGradleDataNode == null) {
+      if (nativeAndroidGradleDataNode == null || !isValidProxyObject(nativeAndroidGradleDataNode.getData().getNativeAndroidProject())) {
         return true;
       }
     }
