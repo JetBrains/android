@@ -37,19 +37,23 @@ public class RangedContinuousSeries implements ReportingSeries {
   @NonNull
   private final ContinuousSeries mSeries;
 
+  @NonNull
+  private final String mLabel;
+
   private BaseAxisDomain mXDomain;
 
   private BaseAxisDomain mYDomain;
 
-  public RangedContinuousSeries(@NonNull Range xRange, @NonNull Range yRange) {
+  public RangedContinuousSeries(@NonNull String label, @NonNull Range xRange, @NonNull Range yRange) {
+    mLabel = label;
     mXRange = xRange;
     mYRange = yRange;
     mSeries = new ContinuousSeries();
   }
 
-  public RangedContinuousSeries(@NonNull Range xRange, @NonNull Range yRange,
+  public RangedContinuousSeries(@NonNull String label, @NonNull Range xRange, @NonNull Range yRange,
                                 @NonNull BaseAxisDomain xDomain, @NonNull BaseAxisDomain yDomain) {
-    this(xRange, yRange);
+    this(label, xRange, yRange);
     mXDomain = xDomain;
     mYDomain = yDomain;
   }
@@ -97,7 +101,7 @@ public class RangedContinuousSeries implements ReportingSeries {
       // TODO support named series.
       String formattedY = mYDomain == null ? Long.toString(nearestY) : mYDomain.getFormattedString(maxY, nearestY);
       String formattedX = mXDomain == null ? Long.toString(nearestX) : mXDomain.getFormattedString(maxX, nearestX);
-      dataList.add(new ReportingData(nearestX, formattedX, formattedY));
+      dataList.add(new ReportingData(nearestX, mLabel, formattedX, formattedY));
     }
 
     return dataList;

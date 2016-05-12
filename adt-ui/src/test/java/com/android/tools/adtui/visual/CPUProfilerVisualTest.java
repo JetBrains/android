@@ -72,7 +72,7 @@ public class CPUProfilerVisualTest extends VisualTest {
                                   new TimeAxisDomain(5, 5, 5));
 
     Range myProcessYRange = new Range(0, 100);
-    RangedContinuousSeries myProcessSeries = new RangedContinuousSeries(xRange, myProcessYRange);
+    RangedContinuousSeries myProcessSeries = new RangedContinuousSeries("MyProcess", xRange, myProcessYRange);
     mSeriesMaxValues.put(myProcessSeries, 60);
     LineConfig myProcessLineConfig = new LineConfig(new Color(0x85c490));
     myProcessLineConfig.setStacked(true);
@@ -81,7 +81,7 @@ public class CPUProfilerVisualTest extends VisualTest {
     mLineChart.addLine(myProcessSeries, myProcessLineConfig);
 
     Range otherProcessesYRange = new Range(0, 100);
-    RangedContinuousSeries otherProcessesSeries = new RangedContinuousSeries(xRange, otherProcessesYRange);
+    RangedContinuousSeries otherProcessesSeries = new RangedContinuousSeries("OtherProcess", xRange, otherProcessesYRange);
     mSeriesMaxValues.put(otherProcessesSeries, 20);
     LineConfig otherProcessesLineConfig = new LineConfig(new Color(0xc9d8e1));
     otherProcessesLineConfig.setStacked(true);

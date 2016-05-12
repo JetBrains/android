@@ -25,6 +25,7 @@ import java.awt.*;
  */
 public class LineConfig {
 
+  //TODO Move colors out of LineConfig
   public static final Color[] COLORS = {
     new Color(0x6baed6),
     new Color(0xff0000),
