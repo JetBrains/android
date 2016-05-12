@@ -126,6 +126,7 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
     assert myIssuesViewer != null;
     myIssuesViewer.display(issues);
     myInfoPanel.revalidateAndRepaintPanel();
+    myInfoScrollPane.getVerticalScrollBar().setValue(0);
   }
 
   protected void updateDetails(@Nullable PsAndroidDependency selected) {

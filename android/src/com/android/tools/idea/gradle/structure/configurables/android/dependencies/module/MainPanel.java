@@ -39,8 +39,7 @@ class MainPanel extends AbstractMainDependenciesPanel {
   @NotNull private final JBSplitter myVerticalSplitter;
 
   @NotNull private final DeclaredDependenciesPanel myDeclaredDependenciesPanel;
-
-  @NotNull private final TargetArtifactsPanel myTargetArtifactsPanel;
+  @NotNull private final ResolvedDependenciesPanel myResolvedDependenciesPanel;
   @NotNull private final JPanel myAltPanel;
 
   MainPanel(@NotNull PsAndroidModule module, @NotNull PsContext context, @NotNull List<PsModule> extraTopModules) {
@@ -49,31 +48,33 @@ class MainPanel extends AbstractMainDependenciesPanel {
     myDeclaredDependenciesPanel = new DeclaredDependenciesPanel(module, context);
     myDeclaredDependenciesPanel.setHistory(getHistory());
 
-    myTargetArtifactsPanel = new TargetArtifactsPanel(module, context);
+    myResolvedDependenciesPanel = new ResolvedDependenciesPanel(module, context, myDeclaredDependenciesPanel);
 
     myVerticalSplitter = createMainVerticalSplitter();
     myVerticalSplitter.setFirstComponent(myDeclaredDependenciesPanel);
-    myVerticalSplitter.setSecondComponent(myTargetArtifactsPanel);
+    myVerticalSplitter.setSecondComponent(myResolvedDependenciesPanel);
 
     add(myVerticalSplitter, BorderLayout.CENTER);
 
     myDeclaredDependenciesPanel.updateTableColumnSizes();
-    myDeclaredDependenciesPanel.add(myTargetArtifactsPanel::displayTargetArtifacts);
+    myDeclaredDependenciesPanel.add(myResolvedDependenciesPanel::setSelection);
+
+    myResolvedDependenciesPanel.add(myDeclaredDependenciesPanel::setSelection);
 
     myAltPanel = new JPanel(new BorderLayout());
 
-    ToolWindowHeader header = myTargetArtifactsPanel.getHeader();
+    ToolWindowHeader header = myResolvedDependenciesPanel.getHeader();
 
-    JPanel minimizedContainerPanel = myTargetArtifactsPanel.getMinimizedPanel();
+    JPanel minimizedContainerPanel = myResolvedDependenciesPanel.getMinimizedPanel();
     assert minimizedContainerPanel != null;
     myAltPanel.add(minimizedContainerPanel, BorderLayout.EAST);
 
-    header.addMinimizeListener(this::minimizeTargetArtifactsPanel);
+    header.addMinimizeListener(this::minimizeResolvedDependenciesPanel);
 
-    myTargetArtifactsPanel.addRestoreListener(this::restoreTargetArtifactsPanel);
+    myResolvedDependenciesPanel.addRestoreListener(this::restoreResolvedDependenciesPanel);
   }
 
-  private void restoreTargetArtifactsPanel() {
+  private void restoreResolvedDependenciesPanel() {
     remove(myAltPanel);
     myAltPanel.remove(myDeclaredDependenciesPanel);
     myVerticalSplitter.setFirstComponent(myDeclaredDependenciesPanel);
@@ -82,7 +83,7 @@ class MainPanel extends AbstractMainDependenciesPanel {
     saveMinimizedState(false);
   }
 
-  private void minimizeTargetArtifactsPanel() {
+  private void minimizeResolvedDependenciesPanel() {
     remove(myVerticalSplitter);
     myVerticalSplitter.setFirstComponent(null);
     myAltPanel.add(myDeclaredDependenciesPanel, BorderLayout.CENTER);
@@ -92,18 +93,18 @@ class MainPanel extends AbstractMainDependenciesPanel {
   }
 
   private static void saveMinimizedState(boolean minimize) {
-    PsUISettings.getInstance().TARGET_ARTIFACTS_MINIMIZE = minimize;
+    PsUISettings.getInstance().RESOLVED_DEPENDENCIES_MINIMIZE = minimize;
   }
 
   @Override
   public void addNotify() {
     super.addNotify();
-    boolean minimize = PsUISettings.getInstance().TARGET_ARTIFACTS_MINIMIZE;
+    boolean minimize = PsUISettings.getInstance().RESOLVED_DEPENDENCIES_MINIMIZE;
     if (minimize) {
-      minimizeTargetArtifactsPanel();
+      minimizeResolvedDependenciesPanel();
     }
     else {
-      restoreTargetArtifactsPanel();
+      restoreResolvedDependenciesPanel();
     }
   }
 
@@ -130,6 +131,6 @@ class MainPanel extends AbstractMainDependenciesPanel {
   @Override
   public void dispose() {
     Disposer.dispose(myDeclaredDependenciesPanel);
-    Disposer.dispose(myTargetArtifactsPanel);
+    Disposer.dispose(myResolvedDependenciesPanel);
   }
 }
