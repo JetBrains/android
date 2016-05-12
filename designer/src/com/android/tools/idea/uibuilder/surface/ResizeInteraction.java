@@ -91,7 +91,7 @@ public class ResizeInteraction extends Interaction {
     super.end(x, y, modifiers, canceled);
     moveTo(x, y, modifiers, !canceled);
     if (!canceled) {
-      myScreenView.getModel().notifyModified();
+      myScreenView.getModel().notifyModified(NlModel.ChangeType.RESIZE_END);
     }
   }
 
@@ -119,7 +119,7 @@ public class ResizeInteraction extends Interaction {
         }
       };
       action.execute();
-      model.notifyModified();
+      model.notifyModified(NlModel.ChangeType.RESIZE_COMMIT);
     }
     myScreenView.getSurface().repaint();
   }
