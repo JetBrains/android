@@ -30,7 +30,6 @@ public class AvdListDialogTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
-  @Ignore("http://wpie20.hot.corp.google.com:8200/builders/ubuntu-studio-master-dev-uitests/builds/28/")
   @Test
   public void testCreateAvd() throws Exception {
     guiTest.importSimpleApplication();
@@ -62,7 +61,6 @@ public class AvdListDialogTest {
     avdManagerDialog.close();
   }
 
-  @Ignore("http://wpie20.hot.corp.google.com:8200/builders/ubuntu-studio-master-dev-uitests/builds/28/")
   @Test
   public void testEditAvd() throws Exception {
     guiTest.importSimpleApplication();
