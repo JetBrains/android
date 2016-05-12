@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import android.support.constraint.solver.widgets.ConstraintAnchor;
+import android.support.constraint.solver.widgets.ConstraintWidget;
 import com.android.SdkConstants;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.model.NlComponent;
@@ -23,9 +24,7 @@ import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.sherpa.drawing.BlueprintColorSet;
 import com.android.tools.sherpa.drawing.ColorSet;
 import com.android.tools.sherpa.structure.WidgetsScene;
-
 import org.jetbrains.annotations.NotNull;
-import android.support.constraint.solver.widgets.ConstraintWidget;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -128,8 +127,6 @@ public class WidgetConstraintPanel extends JPanel {
     int right = getMargin(ConstraintAnchor.Type.RIGHT);
     int bottom = getMargin(ConstraintAnchor.Type.BOTTOM);
     boolean baseline = hasBaseline();
-    int width = mWidget.getWidth();
-    int height = mWidget.getHeight();
 
     boolean showVerticalSlider = bottom != UNCONNECTED && top != UNCONNECTED;
     boolean showHorizontalSlider = left != UNCONNECTED && right != UNCONNECTED;
@@ -162,7 +159,7 @@ public class WidgetConstraintPanel extends JPanel {
    * @param behaviour
    * @return
    */
-  private int convert(ConstraintWidget.DimensionBehaviour behaviour) {
+  private static int convert(ConstraintWidget.DimensionBehaviour behaviour) {
     switch (behaviour) {
       case FIXED:
         return SingleWidgetView.FIXED;
@@ -187,19 +184,17 @@ public class WidgetConstraintPanel extends JPanel {
   public void updateComponents(@NotNull List<NlComponent> components) {
     mComponent = components.isEmpty() ? null : components.get(0);
     if (mComponent != null) {
-      if (mComponent != null) {
-        mConstraintModel = ConstraintModel.getConstraintModel(mComponent.getModel());
-        mScene = mConstraintModel.getScene();
-        mConstraintModel.getSelection().setContinuousListener(e -> widgetChanged());
-        //TODO: improve the tear-down mechanism
-        ConstraintWidget widget = mScene.getWidget(mComponent.getTag());
-
-        if (mWidgetModified && mWidget != null && widget != mWidget) { // we are changing
-          saveWidget();
-        }
-        mWidget = widget;
-        configureUI();
+      mConstraintModel = ConstraintModel.getConstraintModel(mComponent.getModel());
+      mScene = mConstraintModel.getScene();
+      mConstraintModel.getSelection().setContinuousListener(e -> widgetChanged());
+      //TODO: improve the tear-down mechanism
+      ConstraintWidget widget = mScene.getWidget(mComponent.getTag());
+      if (widget == null) return;
+      if (mWidgetModified && mWidget != null && widget != mWidget) { // we are changing
+        saveWidget();
       }
+      mWidget = widget;
+      configureUI();
     }
   }
 
