@@ -26,7 +26,7 @@ import com.intellij.util.containers.WeakHashMap;
 import org.jetbrains.annotations.NotNull;
 import com.android.tools.sherpa.structure.Selection;
 import com.android.tools.sherpa.structure.WidgetsScene;
-import android.support.constraint.solver.widgets.*;
+import android.constraint.solver.widgets.*;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;

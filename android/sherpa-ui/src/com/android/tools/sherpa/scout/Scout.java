@@ -16,9 +16,9 @@
 package com.android.tools.sherpa.scout;
 
 import com.android.tools.sherpa.structure.WidgetsScene;
-import android.support.constraint.solver.widgets.ConstraintTableLayout;
-import android.support.constraint.solver.widgets.ConstraintWidget;
-import android.support.constraint.solver.widgets.ConstraintWidgetContainer;
+import android.constraint.solver.widgets.ConstraintTableLayout;
+import android.constraint.solver.widgets.ConstraintWidget;
+import android.constraint.solver.widgets.ConstraintWidgetContainer;
 
 import java.awt.Rectangle;
 import java.util.ArrayList;

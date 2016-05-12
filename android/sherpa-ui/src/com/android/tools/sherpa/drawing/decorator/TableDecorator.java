@@ -19,9 +19,9 @@ package com.android.tools.sherpa.drawing.decorator;
 import com.android.tools.sherpa.structure.Selection;
 import com.android.tools.sherpa.drawing.ViewTransform;
 import com.android.tools.sherpa.drawing.WidgetDraw;
-import android.support.constraint.solver.widgets.ConstraintTableLayout;
-import android.support.constraint.solver.widgets.ConstraintWidget;
-import android.support.constraint.solver.widgets.Guideline;
+import android.constraint.solver.widgets.ConstraintTableLayout;
+import android.constraint.solver.widgets.ConstraintWidget;
+import android.constraint.solver.widgets.Guideline;
 
 import java.awt.Graphics2D;
 import java.awt.Rectangle;

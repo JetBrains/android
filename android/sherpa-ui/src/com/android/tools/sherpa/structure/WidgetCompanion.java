@@ -18,7 +18,7 @@ package com.android.tools.sherpa.structure;
 
 import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
 import com.android.tools.sherpa.interaction.WidgetInteractionTargets;
-import android.support.constraint.solver.widgets.ConstraintWidget;
+import android.constraint.solver.widgets.ConstraintWidget;
 
 import java.util.ArrayList;
 
