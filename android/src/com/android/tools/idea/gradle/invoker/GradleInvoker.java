@@ -50,7 +50,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static com.android.builder.model.AndroidProject.PROPERTY_GENERATE_SOURCES_ONLY;
 import static com.android.tools.idea.gradle.AndroidGradleModel.getIdeSetupTasks;
+import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.Projects.lastGradleSyncFailed;
 import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.EXECUTE_TASK;
@@ -106,7 +108,7 @@ public class GradleInvoker {
     // "Clean" also generates sources.
     List<String> tasks = findTasksToExecute(moduleManager.getModules(), BuildMode.SOURCE_GEN, TestCompileType.NONE);
     tasks.add(0, GradleBuilds.CLEAN_TASK_NAME);
-    executeTasks(tasks);
+    executeTasks(tasks, Collections.singletonList(createGenerateSourcesOnlyProperty()));
   }
 
   public void assembleTranslate() {
@@ -123,7 +125,12 @@ public class GradleInvoker {
     if (cleanProject) {
       tasks.add(0, GradleBuilds.CLEAN_TASK_NAME);
     }
-    executeTasks(tasks);
+    executeTasks(tasks, Collections.singletonList(createGenerateSourcesOnlyProperty()));
+  }
+
+  @NotNull
+  private static String createGenerateSourcesOnlyProperty() {
+    return createProjectProperty(PROPERTY_GENERATE_SOURCES_ONLY, true);
   }
 
   /**
@@ -141,7 +148,7 @@ public class GradleInvoker {
   }
 
   public void assemble(@NotNull Module[] modules, @NotNull TestCompileType testCompileType) {
-    assemble(modules, testCompileType, Collections.<String>emptyList());
+    assemble(modules, testCompileType, Collections.emptyList());
   }
 
   public void assemble(@NotNull Module[] modules, @NotNull TestCompileType testCompileType, @NotNull List<String> arguments) {
@@ -211,7 +218,7 @@ public class GradleInvoker {
   }
 
   public void executeTasks(@NotNull final List<String> gradleTasks) {
-    executeTasks(gradleTasks, Collections.<String>emptyList());
+    executeTasks(gradleTasks, Collections.emptyList());
   }
 
   public void executeTasks(@NotNull List<String> tasks, @Nullable BuildMode buildMode, @NotNull List<String> commandLineArguments) {
@@ -223,7 +230,7 @@ public class GradleInvoker {
 
   public void executeTasks(@NotNull final List<String> gradleTasks, @NotNull final List<String> commandLineArguments) {
     ExternalSystemTaskId id = ExternalSystemTaskId.create(GRADLE_SYSTEM_ID, EXECUTE_TASK, myProject);
-    executeTasks(gradleTasks, Collections.<String>emptyList(), commandLineArguments, id, null, false);
+    executeTasks(gradleTasks, Collections.emptyList(), commandLineArguments, id, null, false);
   }
 
   /**
@@ -270,12 +277,7 @@ public class GradleInvoker {
       executor.queueAndWaitForCompletion();
     }
     else {
-      invokeAndWaitIfNeeded(new Runnable() {
-        @Override
-        public void run() {
-          executor.queue();
-        }
-      });
+      invokeAndWaitIfNeeded((Runnable)executor::queue);
     }
   }
 
@@ -283,12 +285,7 @@ public class GradleInvoker {
    * Saves all edited documents. This method can be called from any thread.
    */
   public static void saveAllFilesSafely() {
-    invokeAndWaitIfNeeded(new Runnable() {
-      @Override
-      public void run() {
-        FileDocumentManager.getInstance().saveAllDocuments();
-      }
-    });
+    invokeAndWaitIfNeeded((Runnable)() -> FileDocumentManager.getInstance().saveAllDocuments());
   }
 
   public void clearConsoleAndBuildMessages() {
@@ -411,7 +408,7 @@ public class GradleInvoker {
       case JAVA_TESTS:
         testArtifact = androidGradleModel.getUnitTestArtifactInSelectedVariant();
     }
-    return testArtifact != null ? ImmutableList.of(testArtifact) : Collections.<BaseArtifact>emptyList();
+    return testArtifact != null ? ImmutableList.of(testArtifact) : Collections.emptyList();
   }
 
   private static void addAfterSyncTasks(@NotNull List<String> tasks,
