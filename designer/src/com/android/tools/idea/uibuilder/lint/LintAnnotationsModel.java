@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.lint;
 
+import com.android.tools.lint.checks.RtlDetector;
+import com.android.tools.lint.detector.api.Issue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.model.NlComponent;
@@ -70,9 +72,14 @@ public class LintAnnotationsModel {
   }
 
   public void addIssue(@NotNull NlComponent component,
+                       @NotNull Issue issue,
                        @NotNull String message,
                        @NotNull AndroidLintInspectionBase inspection,
                        @NotNull HighlightDisplayLevel level) {
+    // Constraint layout doesn't handle RTL issues yet; don't highlight these
+    if (issue == RtlDetector.COMPAT) {
+      return;
+    }
     if (myIssues == null) {
       myIssues = ArrayListMultimap.create();
     }
