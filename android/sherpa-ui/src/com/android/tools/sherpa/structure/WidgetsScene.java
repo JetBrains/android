@@ -19,7 +19,6 @@ package com.android.tools.sherpa.structure;
 import com.android.tools.sherpa.drawing.ConnectionDraw;
 import com.android.tools.sherpa.drawing.ViewTransform;
 import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
-import com.android.tools.sherpa.interaction.ConstraintHandle;
 import com.android.tools.sherpa.interaction.ResizeHandle;
 import com.android.tools.sherpa.interaction.WidgetInteractionTargets;
 import android.support.constraint.solver.widgets.*;
@@ -28,7 +27,6 @@ import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 
 /**
@@ -288,7 +286,7 @@ public class WidgetsScene {
      */
     public ArrayList<ConstraintWidget> findWidgets(ConstraintWidgetContainer container,
             int x, int y, int width, int height) {
-        ArrayList<ConstraintWidget> found = new ArrayList<ConstraintWidget>();
+        ArrayList<ConstraintWidget> found = new ArrayList<>();
         Rectangle area = new Rectangle(x, y, width, height);
         for (ConstraintWidget widget : container.getChildren()) {
             WidgetCompanion companion = (WidgetCompanion) widget.getCompanionWidget();
@@ -314,7 +312,7 @@ public class WidgetsScene {
      * @param y      y coordinate
      * @return the ResizeHandle close to (x, y), or null if none are close enough
      */
-    private ResizeHandle findResizeHandleInWidget(ConstraintWidget widget,
+    private static ResizeHandle findResizeHandleInWidget(ConstraintWidget widget,
             float x, float y, ViewTransform transform) {
         WidgetCompanion companion = (WidgetCompanion) widget.getCompanionWidget();
         WidgetDecorator decorator = companion.getWidgetDecorator(WidgetDecorator.BLUEPRINT_STYLE);
@@ -493,8 +491,7 @@ public class WidgetsScene {
      */
     private static ArrayList<ConstraintWidgetContainer> gatherContainers(
             ConstraintWidgetContainer container) {
-        ArrayList<ConstraintWidgetContainer> containers =
-                new ArrayList<ConstraintWidgetContainer>();
+        ArrayList<ConstraintWidgetContainer> containers = new ArrayList<>();
         for (ConstraintWidget widget : container.getChildren()) {
             if (widget instanceof ConstraintWidgetContainer) {
                 containers.add((ConstraintWidgetContainer) widget);
@@ -521,7 +518,7 @@ public class WidgetsScene {
                 .setHorizontalDimensionBehaviour(oldContainer.getHorizontalDimensionBehaviour());
         newContainer.setVerticalDimensionBehaviour(oldContainer.getVerticalDimensionBehaviour());
         ArrayList<ConstraintWidget> children =
-                new ArrayList<ConstraintWidget>(oldContainer.getChildren());
+          new ArrayList<>(oldContainer.getChildren());
         for (ConstraintWidget child : children) {
             newContainer.add(child);
         }
@@ -540,7 +537,7 @@ public class WidgetsScene {
         parent.add(newContainer);
         mWidgets.remove(getTag(oldContainer));
         setWidget(newContainer);
-        boolean previousAnimationState = Animator.isAnimationEnabled();
+        boolean previousAnimationState = Animator.doAnimation();
         Animator.setAnimationEnabled(false);
         mRoot.layout();
         Animator.setAnimationEnabled(previousAnimationState);
@@ -556,18 +553,14 @@ public class WidgetsScene {
      */
     public void createContainerFromWidgets(ArrayList<ConstraintWidget> widgets,
             ConstraintWidgetContainer containerInstance, String name) {
-        Collections.sort(widgets, new Comparator<ConstraintWidget>() {
-            @Override
-            public int compare(ConstraintWidget o1, ConstraintWidget o2) {
-                if (o1.getY() + o1.getHeight() < o2.getY()) {
-                    return -1;
-                }
-                if (o2.getY() + o2.getHeight() < o1.getY()) {
-                    return 1;
-                }
-                // TODO when JDK 1.6 is no longer used, replace with: Integer.compare(o1.getX(), o2.getX());
-                return o1.getX() - o2.getX();
+        Collections.sort(widgets, (o1, o2) -> {
+            if (o1.getY() + o1.getHeight() < o2.getY()) {
+                return -1;
             }
+            if (o2.getY() + o2.getHeight() < o1.getY()) {
+                return 1;
+            }
+            return Integer.compare(o1.getX(), o2.getX());
         });
 
         if (widgets.size() == 0) {
@@ -593,7 +586,7 @@ public class WidgetsScene {
             }
             parent.add(container);
             setWidget(container);
-            boolean previousAnimationState = Animator.isAnimationEnabled();
+            boolean previousAnimationState = Animator.doAnimation();
             Animator.setAnimationEnabled(false);
             mRoot.layout();
             Animator.setAnimationEnabled(previousAnimationState);
@@ -701,8 +694,7 @@ public class WidgetsScene {
         }
         int min = Integer.MAX_VALUE;
         ConstraintWidget found = null;
-        for (int i = 0; i < children.size(); i++) {
-            ConstraintWidget child = children.get(i);
+        for (ConstraintWidget child : children) {
             // check if it intersects
             int maxTop = Math.max(child.getDrawY(), widget.getDrawY());
             int minBottom = Math.min(child.getDrawBottom(), widget.getDrawBottom());

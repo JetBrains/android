@@ -653,7 +653,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     }
   }
 
-  private class AddElementAction extends DirectViewAction {
+  private static class AddElementAction extends DirectViewAction {
     public static final int HORIZONTAL_GUIDELINE = 0;
     public static final int VERTICAL_GUIDELINE = 1;
 
