@@ -22,6 +22,7 @@ import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
@@ -30,10 +31,9 @@ public class NlPropertiesSorter {
     id,
     layout_width,
     layout_height,
-    constraints,
-    layout,
+    layout_constraint,
+    layout_margin,
     padding,
-    margin,
     opacity,
     elevation,
     modified,
@@ -58,15 +58,15 @@ public class NlPropertiesSorter {
     }
   }
 
-  public List<PTableItem> sort(@NotNull List<PTableItem> groupedProperties, @NotNull List<NlComponent> components) {
+  public List<NlPropertyItem> sort(@NotNull List<NlPropertyItem> groupedProperties, @NotNull List<NlComponent> components) {
     final String tagName = NlPropertiesGrouper.getCommonTagName(components);
     final Set<String> modifiedAttributeNames = getModifiedAttributes(components);
 
-    Collections.sort(groupedProperties, (p1, p2) -> {
-      SortOrder s1 = SortOrder.of(p1.getName(), p1.getName().equalsIgnoreCase(tagName), modifiedAttributeNames.contains(p1.getName()));
-      SortOrder s2 = SortOrder.of(p2.getName(), p2.getName().equalsIgnoreCase(tagName), modifiedAttributeNames.contains(p2.getName()));
-      return s1.ordinal() - s2.ordinal();
-    });
+    Collections.sort(groupedProperties, Comparator
+      .comparing((PTableItem p) -> SortOrder.of(p.getName(),
+                                                p.getName().equalsIgnoreCase(tagName),
+                                                modifiedAttributeNames.contains(p.getName())))
+      .thenComparing(PTableItem::getName));
     return groupedProperties;
   }
 
