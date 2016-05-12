@@ -645,6 +645,13 @@ public class ResourceNotificationManager implements ProjectComponent {
         return true;
       }
 
+      PsiFile file = event.getFile();
+      if (file != null && (file.getParent() == null || !file.getViewProvider().isPhysical())) {
+        // Spurious events from the IDE doing internal things, such as the formatter using a light virtual
+        // filesystem to process text formatting chunks etc
+        return true;
+      }
+
       return false;
     }
 
