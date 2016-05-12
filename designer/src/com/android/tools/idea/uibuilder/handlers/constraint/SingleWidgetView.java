@@ -265,7 +265,7 @@ public class SingleWidgetView extends JPanel {
     if (mCacheBaseline) {
       int left = boxLeft + mBoxSize / 2 - barSize / 2;
       int top = boxTop + mBoxSize / 2 + barSize;
-      int height = boxTop + baselinePos(mBoxSize) - top;
+      int height = boxTop + baselinePos(mBoxSize) - top - 2;
       mVbar2.setBounds(left, top, barSize, height);
     }
     else {
