@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package com.android.tools.adtui;
+package com.android.tools.adtui.chart.linechart;
 
 import com.android.annotations.NonNull;
-import com.android.tools.adtui.config.LineConfig;
+import com.android.tools.adtui.AnimatedComponent;
+import com.android.tools.adtui.Range;
 import com.android.tools.adtui.model.ContinuousSeries;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.ReportingSeries;

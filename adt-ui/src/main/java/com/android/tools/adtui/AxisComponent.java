@@ -16,6 +16,7 @@
 package com.android.tools.adtui;
 
 import com.android.annotations.NonNull;
+import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
 import gnu.trove.TFloatArrayList;
 
 import java.awt.*;
@@ -93,10 +94,10 @@ public final class AxisComponent extends AnimatedComponent {
   private boolean mShowMinMax;
 
   /**
-   * Domain object for the axis.
+   * Axis formatter.
    */
   @NonNull
-  private final BaseAxisDomain mDomain;
+  private final BaseAxisFormatter mFormatter;
 
   /**
    * Interpolated/Animated max value.
@@ -160,13 +161,13 @@ public final class AxisComponent extends AnimatedComponent {
    */
   public AxisComponent(@NonNull Range range, @NonNull Range globalRange,
                        @NonNull String label, @NonNull AxisOrientation orientation,
-                       int startMargin, int endMargin, boolean showMinMax, @NonNull BaseAxisDomain domain) {
+                       int startMargin, int endMargin, boolean showMinMax, @NonNull BaseAxisFormatter formatter) {
     mRange = range;
     mGlobalRange = globalRange;
     mLabel = label;
     mOrientation = orientation;
     mShowMinMax = showMinMax;
-    mDomain = domain;
+    mFormatter = formatter;
     mMajorMarkerPositions = new TFloatArrayList();
     mMinorMarkerPositions = new TFloatArrayList();
 
@@ -241,14 +242,14 @@ public final class AxisComponent extends AnimatedComponent {
 
   /**
    * Returns the formatted value corresponding to a pixel position on the axis.
-   * The formatting depends on the {@link BaseAxisDomain} object associated
+   * The formatting depends on the {@link BaseAxisFormatter} object associated
    * with this axis.
    *
    * e.g. For a value of 1500 in milliseconds, this will return "1.5s".
    */
   @NonNull
   public String getFormattedValueAtPosition(int position) {
-    return mDomain.getFormattedString(mGlobalRange.getLength(), getValueAtPosition(position));
+    return mFormatter.getFormattedString(mGlobalRange.getLength(), getValueAtPosition(position));
   }
 
   @Override
@@ -264,9 +265,9 @@ public final class AxisComponent extends AnimatedComponent {
       mMajorInterval = mMinorInterval = (float)range * mMajorScale;
     }
     else {
-      mMajorInterval = mDomain.getMajorInterval(range);
+      mMajorInterval = mFormatter.getMajorInterval(range);
       mMajorScale = (float)(mMajorInterval / range);
-      mMinorInterval = mDomain.getMinorInterval(mMajorInterval);
+      mMinorInterval = mFormatter.getMinorInterval(mMajorInterval);
       mMinorScale = (float)(mMinorInterval / range);
     }
 
@@ -400,7 +401,7 @@ public final class AxisComponent extends AnimatedComponent {
 
   private void drawMarkerLabel(Graphics2D g2d, float markerOffset, Point origin,
                                double markerValue, boolean isMinMax) {
-    String formattedValue = mDomain.getFormattedString(mGlobalRange.getLength(), markerValue);
+    String formattedValue = mFormatter.getFormattedString(mGlobalRange.getLength(), markerValue);
     int stringAscent = mMetrics.getAscent();
     int stringLength = mMetrics.stringWidth(formattedValue);
 

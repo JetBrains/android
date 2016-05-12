@@ -2,19 +2,15 @@ package com.android.tools.adtui.segment;
 
 import com.android.annotations.NonNull;
 import com.android.tools.adtui.*;
-import com.android.tools.adtui.config.LineConfig;
+import com.android.tools.adtui.common.formatter.MemoryAxisFormatter;
 import com.android.tools.adtui.model.LegendRenderData;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.ReportingSeries;
 import com.android.tools.adtui.model.ReportingSeriesRenderer;
 
 import java.awt.*;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
 import java.util.ArrayList;
 import java.util.List;
-import javax.swing.JLayeredPane;
-import javax.swing.JPanel;
 
 public class NetworkSegment extends BasicTwoAxisSegment {
 
@@ -23,7 +19,7 @@ public class NetworkSegment extends BasicTwoAxisSegment {
   private static final String RECEIVING_NAME = "Receiving";
 
   public NetworkSegment(@NonNull Range scopedRange, @NonNull List<RangedContinuousSeries> data) {
-    super(SEGMENT_NAME, scopedRange, data, MemoryAxisDomain.DEFAULT, MemoryAxisDomain.DEFAULT);
+    super(SEGMENT_NAME, scopedRange, data, MemoryAxisFormatter.DEFAULT, MemoryAxisFormatter.DEFAULT);
   }
 
   @Override

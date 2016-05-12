@@ -19,7 +19,7 @@ package com.android.tools.adtui.visual;
 import com.android.annotations.NonNull;
 import com.android.tools.adtui.Animatable;
 import com.android.tools.adtui.AnimatedComponent;
-import com.android.tools.adtui.SunburstComponent;
+import com.android.tools.adtui.chart.SunburstChart;
 import com.android.tools.adtui.ValuedTreeNode;
 
 import javax.accessibility.Accessible;
@@ -36,7 +36,7 @@ import java.util.Random;
 
 public class SunburstVisualTest extends VisualTest {
 
-  private SunburstComponent mSunburst;
+  private SunburstChart mSunburst;
 
   @Override
   protected void registerComponents(List<AnimatedComponent> components) {
@@ -47,7 +47,7 @@ public class SunburstVisualTest extends VisualTest {
   protected List<Animatable> createComponentsList() {
     final DataNode data = new DataNode();
     data.addDataNode(new DataNode(1, 10));
-    mSunburst = new SunburstComponent(data);
+    mSunburst = new SunburstChart(data);
     return Collections.singletonList(mSunburst);
   }
 
@@ -188,9 +188,9 @@ public class SunburstVisualTest extends VisualTest {
       new Box.Filler(new Dimension(0, 0), new Dimension(300, Integer.MAX_VALUE),
                      new Dimension(300, Integer.MAX_VALUE)));
 
-    mSunburst.addSelectionListener(new SunburstComponent.SliceSelectionListener() {
+    mSunburst.addSelectionListener(new SunburstChart.SliceSelectionListener() {
       @Override
-      public void valueChanged(SunburstComponent.SliceSelectionEvent e) {
+      public void valueChanged(SunburstChart.SliceSelectionEvent e) {
         ValuedTreeNode node = e.getNode();
         info.setText(node == null ? "<No selection>" : String.format("Value %d Count %d",
                                                                      node.getValue(), node.getCount()));

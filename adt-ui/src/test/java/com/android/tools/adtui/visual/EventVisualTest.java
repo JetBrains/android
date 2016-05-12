@@ -18,6 +18,7 @@ package com.android.tools.adtui.visual;
 
 import com.android.annotations.NonNull;
 import com.android.tools.adtui.*;
+import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.EventAction;
 import com.android.tools.adtui.model.RangedSimpleSeries;
 
@@ -143,7 +144,7 @@ public class EventVisualTest extends VisualTest {
     // add horizontal time axis
     mTimeAxis = new AxisComponent(xTimelineRange, xTimelineRange, "TIME",
                                   AxisComponent.AxisOrientation.BOTTOM,
-                                  AXIS_SIZE, AXIS_SIZE, false, new TimeAxisDomain(10, 50, 5));
+                                  AXIS_SIZE, AXIS_SIZE, false, new TimeAxisFormatter(10, 50, 5));
     List<Animatable> componentsList = new ArrayList<>();
     // Add the scene components to the list
     componentsList.add(xRange);
