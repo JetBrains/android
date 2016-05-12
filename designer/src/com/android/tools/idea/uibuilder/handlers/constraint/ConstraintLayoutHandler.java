@@ -27,7 +27,7 @@ import com.android.tools.sherpa.interaction.MouseInteraction;
 import com.android.tools.sherpa.scout.Scout;
 import com.android.tools.sherpa.structure.Selection;
 import com.android.tools.sherpa.structure.WidgetsScene;
-import android.constraint.solver.widgets.ConstraintAnchor;
+import android.support.constraint.solver.widgets.ConstraintAnchor;
 import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
 import org.intellij.lang.annotations.JdkConstants.InputEventMask;

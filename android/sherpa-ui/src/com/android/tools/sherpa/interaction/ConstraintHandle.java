@@ -21,9 +21,9 @@ import com.android.tools.sherpa.drawing.ConnectionDraw;
 import com.android.tools.sherpa.drawing.ViewTransform;
 import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
 import com.android.tools.sherpa.structure.WidgetCompanion;
-import android.constraint.solver.widgets.ConstraintAnchor;
-import android.constraint.solver.widgets.ConstraintWidget;
-import android.constraint.solver.widgets.Guideline;
+import android.support.constraint.solver.widgets.ConstraintAnchor;
+import android.support.constraint.solver.widgets.ConstraintWidget;
+import android.support.constraint.solver.widgets.Guideline;
 
 import javax.swing.Timer;
 import java.awt.*;
