@@ -133,7 +133,7 @@ public class LayoutTestUtilities {
 
   public static NlModel createModel(DesignSurface surface, AndroidFacet facet, XmlFile xmlFile) {
     NlModel model = SyncNlModel.create(surface, xmlFile.getProject(), facet, xmlFile);
-    model.notifyModified();
+    model.notifyModified(NlModel.ChangeType.UPDATE_HIERARCHY);
     return model;
   }
 

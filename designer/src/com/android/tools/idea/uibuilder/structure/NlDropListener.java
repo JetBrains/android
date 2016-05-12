@@ -236,7 +236,7 @@ public class NlDropListener extends DropTargetAdapter {
       event.acceptDrop(insertType == InsertType.COPY ? event.getDropAction() : DnDConstants.ACTION_COPY);
 
       event.dropComplete(true);
-      model.notifyModified();
+      model.notifyModified(NlModel.ChangeType.DROP);
     }
     catch (Exception exception) {
       Logger.getInstance(NlDropListener.class).warn(exception);
