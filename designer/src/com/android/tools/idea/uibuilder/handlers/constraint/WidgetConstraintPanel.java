@@ -24,6 +24,7 @@ import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.sherpa.drawing.BlueprintColorSet;
 import com.android.tools.sherpa.drawing.ColorSet;
 import com.android.tools.sherpa.structure.WidgetsScene;
+import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -64,10 +65,10 @@ public class WidgetConstraintPanel extends JPanel {
     InspectorColorSet() {
       mDrawBackground = false;
       mDrawWidgetInfos = true;
-      mInspectorBackgroundColor = new Color(232, 232, 232);
-      mInspectorFillColor = new Color(220, 220, 220);
-      mInspectorHighlightsStrokeColor = new Color(3, 169, 244);
-      mInspectorStrokeColor = new Color(40, 40, 40);
+      mInspectorBackgroundColor = new JBColor(0xe8e8e8, 0x3c3f41);
+      mInspectorFillColor = new JBColor(0xdcdcdc, 0x45494a);
+      mInspectorHighlightsStrokeColor = JBColor.border();
+      mInspectorStrokeColor = JBColor.foreground();
     }
   }
 

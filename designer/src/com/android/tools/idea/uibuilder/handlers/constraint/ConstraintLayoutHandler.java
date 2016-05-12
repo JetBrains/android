@@ -112,7 +112,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     myControlActions.clear();
 
     actions.add(new ToggleConstraintModeAction());
-    actions.add(new ViewActionSeparator());
     actions.add(new ToggleAutoConnectAction());
     actions.add(new ViewActionSeparator());
     actions.add(new ClearConstraintsAction());
