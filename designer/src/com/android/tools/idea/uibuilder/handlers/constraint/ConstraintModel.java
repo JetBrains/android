@@ -477,10 +477,10 @@ public class ConstraintModel implements ModelListener {
    */
   public void saveToXML(boolean forceSave) {
     Selection selection = getSelection();
-    ourLock.lock();
-    myModificationCount = myNlModel.getResourceVersion() + 1;
-    ourLock.unlock();
     if (forceSave || !selection.getModifiedWidgets().isEmpty()) {
+      ourLock.lock();
+      myModificationCount++;
+      ourLock.unlock();
       if (DEBUG) {
         System.out.println("Model Saved to XML -> " + myModificationCount
                            + "(" + selection.getModifiedWidgets().size()
