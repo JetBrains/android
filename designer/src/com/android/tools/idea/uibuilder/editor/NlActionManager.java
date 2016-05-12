@@ -217,7 +217,7 @@ public class NlActionManager {
       }
 
       group.add(action);
-      lastWasSeparator = true;
+      lastWasSeparator = isSeparator;
     }
   }
 
