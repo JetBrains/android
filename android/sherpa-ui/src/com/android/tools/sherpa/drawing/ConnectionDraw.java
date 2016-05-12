@@ -89,6 +89,35 @@ public class ConnectionDraw {
         }
         g2.dispose();
     }
+    /**
+     * Utility function to draw a circle text centered at coordinates (x, y)
+     *  @param g    graphics context
+     * @param font the font we use to draw the text
+     * @param textColor
+     * @param text the text to display
+     * @param x    x coordinate
+     * @param y    y coordinate
+     */
+    public static void drawRoundRectText(Graphics2D g, Font font, Color textColor, String text, int x, int y) {
+        Graphics2D g2 = (Graphics2D)g.create();
+        g2.setFont(font);
+        FontMetrics fm = g2.getFontMetrics();
+        int padding = 2;
+        Rectangle2D bounds = fm.getStringBounds(text, g2);
+        double th = bounds.getHeight() + padding * 2;
+        double tw = bounds.getWidth() + padding * 2;
+        int radius = (int)(Math.min(th, tw) / 3);
+
+        g2.fillRoundRect((int)(x - tw / 2), (int)(y - th / 2), (int)tw, (int)th, radius, radius);
+        g2.setColor(textColor);
+        g2.drawString(text, (int)(x - tw / 2 + padding), (int)(y - th / 2 + fm.getAscent()));
+        if (DEBUG) {
+            g2.setColor(Color.RED);
+            g2.drawLine(x - 50, y, x + 50, y);
+            g2.drawLine(x, y - 50, x, y + 50);
+        }
+        g2.dispose();
+    }
 
     /**
      * Utility function to draw a circle text centered at coordinates (x, y)
