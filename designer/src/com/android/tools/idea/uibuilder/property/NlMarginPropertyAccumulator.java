@@ -40,22 +40,6 @@ public class NlMarginPropertyAccumulator extends NlPropertyAccumulator {
   private final Set<String> myPropertyNames;
 
   public NlMarginPropertyAccumulator(@NotNull String groupName,
-                                     @NotNull String leftMargin,
-                                     @NotNull String rightMargin,
-                                     @NotNull String topMargin,
-                                     @NotNull String bottomMargin) {
-    super(groupName);
-    myAllMargin = null;
-    myLeftMargin = leftMargin;
-    myRightMargin = rightMargin;
-    myStartMargin = null;
-    myEndMargin = null;
-    myTopMargin = topMargin;
-    myBottomMargin = bottomMargin;
-    myPropertyNames = ImmutableSet.of(leftMargin, rightMargin, topMargin, bottomMargin);
-  }
-
-  public NlMarginPropertyAccumulator(@NotNull String groupName,
                                      @NotNull String allMargin,
                                      @NotNull String leftMargin,
                                      @NotNull String rightMargin,
@@ -93,10 +77,8 @@ public class NlMarginPropertyAccumulator extends NlPropertyAccumulator {
         MarginGroupNode node = (MarginGroupNode)value;
         NlMarginPropertyAccumulator accumulator = node.getAccumulator();
         append("[");
-        if (accumulator.myAllMargin != null) {
-          append(node, accumulator.myAllMargin, null);
-          append(", ");
-        }
+        append(node, accumulator.myAllMargin, null);
+        append(", ");
         append(node, accumulator.myLeftMargin, accumulator.myStartMargin);
         append(", ");
         append(node, accumulator.myTopMargin, null);

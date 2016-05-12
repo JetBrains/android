@@ -67,8 +67,8 @@ public class NlPropertyOrderingTest extends LayoutTestCase {
     NlComponent component = getFirstComponent(source);
     Table<String, String, NlPropertyItem> properties = NlProperties.getInstance().getProperties(ImmutableList.of(component));
     List<NlPropertyItem> propertyList = new ArrayList<>(properties.values());
-    List<PTableItem> items = new NlPropertiesGrouper().group(propertyList, ImmutableList.of(component));
-    items = new NlPropertiesSorter().sort(items, ImmutableList.of(component));
+    List<NlPropertyItem> sortedList = new NlPropertiesSorter().sort(propertyList, ImmutableList.of(component));
+    List<PTableItem> items = new NlPropertiesGrouper().group(sortedList, ImmutableList.of(component));
 
     assertEquals("id attribute is not the first item", "id", items.get(0).getName());
     assertEquals("Layout_width attribute is not the second item", "layout_width", items.get(1).getName());
