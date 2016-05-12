@@ -676,13 +676,23 @@ public class ConstraintUtilities {
 
   /**
    * Update the constraint widget with the component information (coming from XML)
-   *
+   * 
    * @param constraintModel
    * @param widget          constraint widget
    * @param component       the model component
+   * @param deepUpdate      do a thorough update or not
    */
-  static void updateWidget(@NotNull ConstraintModel constraintModel, @Nullable ConstraintWidget widget, @Nullable NlComponent component) {
+  static void updateWidget(@NotNull ConstraintModel constraintModel,
+                           @Nullable ConstraintWidget widget,
+                           @Nullable NlComponent component,
+                           boolean deepUpdate) {
     if (component == null || widget == null) {
+      return;
+    }
+    // We only want to update if it's a deep update or if our component's parent ISN'T a ConstraintLayout
+    // If our parent is a ConstraintLayout, it is authoritative, so no need to update anything but a deep update...
+    boolean update = deepUpdate || !(widget.getParent() instanceof ConstraintWidgetContainer);
+    if (!update) {
       return;
     }
     widget.setDebugName(component.getId());
@@ -740,8 +750,7 @@ public class ConstraintUtilities {
     if (widget instanceof ConstraintWidgetContainer) {
       x += constraintModel.pxToDp(padding.left);
       y += constraintModel.pxToDp(padding.top);
-    }
-    if (widget.getParent() instanceof WidgetContainer) {
+    } else if (widget.getParent() instanceof WidgetContainer) {
       WidgetContainer parentContainer = (WidgetContainer)widget.getParent();
       x -= parentContainer.getDrawX();
       y -= parentContainer.getDrawY();
