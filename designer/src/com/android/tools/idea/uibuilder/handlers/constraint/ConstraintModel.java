@@ -173,7 +173,7 @@ public class ConstraintModel implements ModelListener {
       if (mAllowsUpdate) {
         int dpi = model.getConfiguration().getDensity().getDpiValue();
         setDpiValue(dpi);
-        updateNlModel(model.getComponents());
+        updateNlModel(model.getComponents(), true);
       }
       myModificationCount = model.getResourceVersion();
       if (DEBUG) {
@@ -195,6 +195,9 @@ public class ConstraintModel implements ModelListener {
                          + " vs our " + myModificationCount);
       ourLock.unlock();
     }
+    ourLock.lock();
+    updateNlModel(model.getComponents(), false);
+    ourLock.unlock();
     mSaveXmlTimer.reset();
   }
 
@@ -300,8 +303,9 @@ public class ConstraintModel implements ModelListener {
    * Use the new components in our model
    *
    * @param components list of components in NlModel
+   * @param deepUpdate do a thorough update or not
    */
-  private void updateNlModel(@NotNull List<NlComponent> components) {
+  private void updateNlModel(@NotNull List<NlComponent> components, boolean deepUpdate) {
     // Initialize a list of widgets to potentially removed from the current list of widgets
     ArrayList<ConstraintWidget> widgets = new ArrayList<>(myWidgetsScene.getWidgets());
     if (widgets.size() > 0) {
@@ -326,7 +330,7 @@ public class ConstraintModel implements ModelListener {
 
     // Now update our widget from the list of components...
     for (NlComponent component : components) {
-      updateSolverWidgetFromComponent(component);
+      updateSolverWidgetFromComponent(component, deepUpdate);
     }
 
     // Finally, layout using our model.
@@ -442,13 +446,14 @@ public class ConstraintModel implements ModelListener {
   /**
    * Update the widget associated to a component with the current component attributes.
    *
-   * @param component the component we want to update from
+   * @param component  the component we want to update from
+   * @param deepUpdate do a thorough update or not
    */
-  private void updateSolverWidgetFromComponent(@NotNull NlComponent component) {
+  private void updateSolverWidgetFromComponent(@NotNull NlComponent component, boolean deepUpdate) {
     ConstraintWidget widget = myWidgetsScene.getWidget(component.getTag());
-    ConstraintUtilities.updateWidget(this, widget, component);
+    ConstraintUtilities.updateWidget(this, widget, component, deepUpdate);
     for (NlComponent child : component.getChildren()) {
-      updateSolverWidgetFromComponent(child);
+      updateSolverWidgetFromComponent(child, deepUpdate);
     }
   }
 
