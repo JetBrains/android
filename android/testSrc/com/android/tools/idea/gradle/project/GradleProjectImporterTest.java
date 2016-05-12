@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.SdkConstants;
+import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.GradleModel;
 import com.android.tools.idea.gradle.JavaProject;
@@ -45,7 +46,9 @@ import java.io.File;
 
 import static com.android.tools.idea.gradle.AndroidProjectKeys.*;
 import static com.intellij.openapi.module.StdModuleTypes.JAVA;
+import static org.easymock.EasyMock.expect;
 import static org.easymock.classextension.EasyMock.createMock;
+import static org.easymock.classextension.EasyMock.replay;
 
 /**
  * Tests for {@link GradleProjectImporter}.
@@ -128,7 +131,12 @@ public class GradleProjectImporterTest extends IdeaTestCase {
     }
 
     myCachedModule.createChild(GRADLE_MODEL, createMock(GradleModel.class));
-    myCachedModule.createChild(ANDROID_MODEL, createMock(AndroidGradleModel.class));
+
+    AndroidGradleModel mockAndroidModel = createMock(AndroidGradleModel.class);
+    expect(mockAndroidModel.getAndroidProject()).andReturn(createMock(AndroidProject.class));
+    replay(mockAndroidModel);
+    myCachedModule.createChild(ANDROID_MODEL, mockAndroidModel);
+
     assertFalse(GradleProjectImporter.isCacheMissingModels(myCachedProject, myProject));
   }
 
@@ -177,17 +185,7 @@ public class GradleProjectImporterTest extends IdeaTestCase {
 
   private static void commitModelChanges(final ModifiableFacetModel model) {
     // Committing the model in a write action as the test is not running in a write action.
-    UIUtil.invokeAndWaitIfNeeded(new Runnable() {
-      @Override
-      public void run() {
-        ApplicationManager.getApplication().runWriteAction(new Runnable() {
-          @Override
-          public void run() {
-            model.commit();
-          }
-        });
-      }
-    });
+    UIUtil.invokeAndWaitIfNeeded((Runnable)() -> ApplicationManager.getApplication().runWriteAction(model::commit));
   }
 
   private class MyGradleSyncListener extends GradleSyncListener.Adapter {
