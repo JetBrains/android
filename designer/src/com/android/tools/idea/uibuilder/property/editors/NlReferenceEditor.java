@@ -78,6 +78,7 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
   private String myLastReadValue;
   private String myLastWriteValue;
   private boolean myUpdatingProperty;
+  private boolean myCompletionsUpdated;
 
   public static NlReferenceEditor createForTable(@NotNull Project project, @NotNull NlEditingListener listener) {
     return new NlReferenceEditor(project, listener, true);
@@ -143,6 +144,10 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
     myTextFieldWithAutoCompletion.addFocusListener(new FocusAdapter() {
       @Override
       public void focusGained(FocusEvent focusEvent) {
+        if (!myCompletionsUpdated) {
+          myCompletionProvider.updateCompletions(myProperty);
+          myCompletionsUpdated = true;
+        }
         selectTextOnFocusGain(focusEvent);
       }
 
@@ -191,7 +196,7 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
       myLastReadValue = null;
 
       myBrowseButton.setVisible(myIncludeBrowseButton && hasResourceChooser(myProperty));
-      myCompletionProvider.updateCompletions(myProperty);
+      myCompletionsUpdated = false;
     }
 
     myUpdatingProperty = true;
