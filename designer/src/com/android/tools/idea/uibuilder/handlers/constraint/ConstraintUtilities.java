@@ -15,9 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
+import android.support.constraint.solver.widgets.*;
 import com.android.SdkConstants;
 import com.android.ide.common.resources.ResourceResolver;
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.refactoring.rtl.RtlSupportProcessor;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.sherpa.drawing.decorator.TextWidget;
@@ -25,11 +29,6 @@ import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
 import com.android.tools.sherpa.interaction.WidgetInteractionTargets;
 import com.android.tools.sherpa.structure.WidgetCompanion;
 import com.android.tools.sherpa.structure.WidgetsScene;
-import android.support.constraint.solver.widgets.ConstraintAnchor;
-import android.support.constraint.solver.widgets.ConstraintWidget;
-import android.support.constraint.solver.widgets.ConstraintWidgetContainer;
-import android.support.constraint.solver.widgets.Guideline;
-import android.support.constraint.solver.widgets.WidgetContainer;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
@@ -57,13 +56,13 @@ public class ConstraintUtilities {
     if (anchor != null) {
       switch (anchor.getType()) {
         case LEFT: {
-          return SdkConstants.ATTR_LAYOUT_MARGIN_START;
+          return SdkConstants.ATTR_LAYOUT_MARGIN_LEFT;
         }
         case TOP: {
           return SdkConstants.ATTR_LAYOUT_MARGIN_TOP;
         }
         case RIGHT: {
-          return SdkConstants.ATTR_LAYOUT_MARGIN_END;
+          return SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT;
         }
         case BOTTOM: {
           return SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM;
@@ -199,6 +198,7 @@ public class ConstraintUtilities {
     //noinspection EnumSwitchStatementWhichMissesCases
     switch (anchorType) {
       case LEFT: {
+        // TODO: don't reset start, reset the correct margin
         component.setAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_START, null);
         component.setAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT, null);
         component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF, null);
@@ -216,6 +216,7 @@ public class ConstraintUtilities {
         break;
       }
       case RIGHT: {
+        // TODO: don't reset end, reset the correct margin
         component.setAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_END, null);
         component.setAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT, null);
         component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF, null);
@@ -266,22 +267,48 @@ public class ConstraintUtilities {
    */
   static void setConnection(@NotNull NlComponent component, @NotNull ConstraintAnchor anchor) {
     resetAnchor(component, anchor.getType());
+
     String attribute = getConnectionAttribute(anchor, anchor.getTarget());
     String marginAttribute = getConnectionAttributeMargin(anchor);
+
     if (anchor.isConnected() && attribute != null) {
       ConstraintWidget target = anchor.getTarget().getOwner();
       WidgetCompanion companion = (WidgetCompanion)target.getCompanionWidget();
       NlComponent targetComponent = (NlComponent)companion.getWidgetModel();
       String targetId = SdkConstants.NEW_ID_PREFIX + targetComponent.ensureId();
+
       component.setAttribute(SdkConstants.SHERPA_URI, attribute, targetId);
+
       if (marginAttribute != null && anchor.getMargin() > 0) {
+        NlModel model = targetComponent.getModel();
         String margin = String.format(SdkConstants.VALUE_N_DP, anchor.getMargin());
-        component.setAttribute(SdkConstants.NS_RESOURCES, marginAttribute, margin);
+
+        if (supportsStartEnd(model)) {
+          if (requiresRightLeft(model)) {
+            component.setAttribute(SdkConstants.NS_RESOURCES, marginAttribute, margin);
+          }
+          TextDirection direction = TextDirection.fromConfiguration(model.getConfiguration());
+          String rtlAttribute = getRtlMarginAttribute(marginAttribute, direction);
+          component.setAttribute(SdkConstants.NS_RESOURCES, rtlAttribute, margin);
+        } else {
+          component.setAttribute(SdkConstants.NS_RESOURCES, marginAttribute, margin);
+        }
       }
+
       String attributeCreator = getConnectionAttributeCreator(anchor);
       component.setAttribute(SdkConstants.SHERPA_URI,
                              attributeCreator, String.valueOf(anchor.getConnectionCreator()));
     }
+  }
+
+  @NotNull
+  static String getRtlMarginAttribute(String attribute, TextDirection direction) {
+    if (SdkConstants.ATTR_LAYOUT_MARGIN_LEFT.equals(attribute)) {
+      return direction.getAttrMarginLeft();
+    } else if (SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT.equals(attribute)) {
+      return direction.getAttrMarginRight();
+    }
+    return direction.getAttrMarginLeft();
   }
 
   /**
@@ -1283,4 +1310,26 @@ public class ConstraintUtilities {
     return null;
   }
 
+  static AndroidVersion getCompileSdkVersion(@NotNull NlModel model) {
+    return AndroidModuleInfo.get(model.getFacet()).getBuildSdkVersion();
+  }
+
+  static AndroidVersion getMinSdkVersion(@NotNull NlModel model) {
+    return AndroidModuleInfo.get(model.getFacet()).getMinSdkVersion();
+  }
+
+  static AndroidVersion getTargetSdkVersion(@NotNull NlModel model) {
+    return AndroidModuleInfo.get(model.getFacet()).getTargetSdkVersion();
+  }
+
+  static boolean supportsStartEnd(@NotNull NlModel model) {
+    AndroidVersion compileSdkVersion = getCompileSdkVersion(model);
+    return (compileSdkVersion == null ||
+            compileSdkVersion.isGreaterOrEqualThan(RtlSupportProcessor.RTL_TARGET_SDK_START)
+                && getTargetSdkVersion(model).isGreaterOrEqualThan(RtlSupportProcessor.RTL_TARGET_SDK_START));
+  }
+
+  static boolean requiresRightLeft(@NotNull NlModel model) {
+    return getMinSdkVersion(model).getApiLevel() < RtlSupportProcessor.RTL_TARGET_SDK_START;
+  }
 }
