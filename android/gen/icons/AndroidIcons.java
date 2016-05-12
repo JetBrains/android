@@ -213,6 +213,7 @@ public class AndroidIcons {
   }
 
   public static class Alignment {
+    // TODO: provide icons for these actions:
     public static final Icon Start = load("/icons/nele/language.png");
     public static final Icon StartActive = load("/icons/nele/api.png");
     public static final Icon Left = load("/icons/nele/wear.png");
