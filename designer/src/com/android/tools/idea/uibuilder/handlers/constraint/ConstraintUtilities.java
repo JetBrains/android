@@ -1006,7 +1006,7 @@ public class ConstraintUtilities {
         }
 
         // Now trigger a relayout
-        Class layoutParamsClass = layoutParams.getClass().getSuperclass();
+        Class layoutParamsClass = layoutParams.getClass().getSuperclass().getSuperclass();
         viewObject.getClass().getMethod("setLayoutParams", layoutParamsClass)
           .invoke(viewObject, layoutParams);
       }

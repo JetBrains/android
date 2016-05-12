@@ -1284,7 +1284,7 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
     if (screenView != null) {
       if (invalidateModel) {
         // Invalidate the current model and request a render
-        screenView.getModel().notifyModified();
+        screenView.getModel().notifyModified(NlModel.ChangeType.REQUEST_RENDER);
       }
       else {
         screenView.getModel().requestRender();

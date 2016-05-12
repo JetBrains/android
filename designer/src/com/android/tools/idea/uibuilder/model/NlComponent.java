@@ -525,7 +525,11 @@ public class NlComponent {
     if (namespace != null && !ANDROID_URI.equals(namespace)) {
       prefix = AndroidResourceUtil.ensureNamespaceImported((XmlFile)myTag.getContainingFile(), namespace, null);
     }
-
+    String previous = getAttribute(namespace, attribute);
+    if ((previous != null && previous.equalsIgnoreCase(value))
+        || (previous == null && value == null)) {
+      return;
+    }
     // Handle validity
     myTag.setAttribute(attribute, namespace, value);
     if (mySnapshot != null) {
