@@ -28,6 +28,7 @@ import icons.AndroidIcons;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.*;
@@ -145,6 +146,12 @@ public class ViewInspectorProvider implements InspectorProvider {
           myEditors.get(propertyName).setProperty(myProperties.get(propertyName));
         }
       }
+    }
+
+    @Nullable
+    @Override
+    public NlComponentEditor getEditorForProperty(@NotNull String propertyName) {
+      return myEditors.get(propertyName);
     }
 
     @NotNull

@@ -17,7 +17,9 @@ package com.android.tools.idea.uibuilder.property.inspector;
 
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
@@ -48,4 +50,11 @@ public interface InspectorComponent {
    * Refresh the values shown in this inspector.
    */
   void refresh();
+
+  /**
+   * Get the editor for a given attribute.
+   * Return <code>null</code> if this component is not displaying this attribute.
+   */
+  @Nullable
+  NlComponentEditor getEditorForProperty(@NotNull String propertyName);
 }

@@ -167,4 +167,16 @@ public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Mo
     String name = en ? CARD_ADVANCED : CARD_DEFAULT;
     cardLayout.swipe(myCardPanel, name, JBCardLayout.SwipeDirection.AUTO);
   }
+
+  public void activatePreferredEditor(boolean afterload) {
+    if (!isShowingExpertProperties()) {
+      myInspectorPanel.activatePreferredEditor(afterload);
+      return;
+    }
+    activatePreferredEditor();
+  }
+
+  private void activatePreferredEditor() {
+    // TODO: find the cell in the table for the preferred property and activate the editor
+  }
 }
