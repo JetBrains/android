@@ -15,10 +15,10 @@
  */
 package com.android.tools.sherpa.scout;
 
-import android.support.constraint.solver.widgets.ConstraintAnchor;
-import android.support.constraint.solver.widgets.ConstraintWidget;
-import android.support.constraint.solver.widgets.Guideline;
-import android.support.constraint.solver.widgets.WidgetContainer;
+import android.constraint.solver.widgets.ConstraintAnchor;
+import android.constraint.solver.widgets.ConstraintWidget;
+import android.constraint.solver.widgets.Guideline;
+import android.constraint.solver.widgets.WidgetContainer;
 
 import java.awt.Rectangle;
 import java.util.ArrayList;

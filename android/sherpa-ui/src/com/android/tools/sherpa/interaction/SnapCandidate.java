@@ -16,7 +16,7 @@
 
 package com.android.tools.sherpa.interaction;
 
-import android.support.constraint.solver.widgets.ConstraintAnchor;
+import android.constraint.solver.widgets.ConstraintAnchor;
 
 /**
  * Structure used to represent a potential snap candidate anchor
