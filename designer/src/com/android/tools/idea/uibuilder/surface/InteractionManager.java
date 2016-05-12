@@ -404,7 +404,7 @@ public class InteractionManager {
       // TODO: use constants for those numbers
       Rectangle resizeIcon = new Rectangle(screenView.getX() + size.width + 3, screenView.getY() + size.height + 3, 12, 12);
       if (resizeIcon.contains(myLastMouseX, myLastMouseY)) {
-        startInteraction(myLastMouseX, myLastMouseY, new CanvasResizeInteraction(screenView), ourLastStateMask);
+        startInteraction(myLastMouseX, myLastMouseY, new CanvasResizeInteraction(mySurface), ourLastStateMask);
         return;
       }
       NlComponent component = Coordinates.findComponent(screenView, myLastMouseX, myLastMouseY);
@@ -914,6 +914,13 @@ public class InteractionManager {
         myScrollEndTimer.restart();
       }
     }
+  }
+
+  /**
+   * Cancels the current running interaction
+   */
+  public void cancelInteraction() {
+    finishInteraction(myLastMouseX, myLastMouseY, ourLastStateMask, true);
   }
 
   @VisibleForTesting
