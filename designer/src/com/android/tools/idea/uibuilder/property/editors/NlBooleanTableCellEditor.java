@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.ptable.PTableCellEditor;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,6 +34,19 @@ public class NlBooleanTableCellEditor extends PTableCellEditor implements NlEdit
   @Override
   public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
     assert value instanceof NlProperty;
+    Color fg = UIUtil.getTableSelectionForeground();
+    Color bg = UIUtil.getTableSelectionBackground();
+
+    Container panel = myEditor.getComponent();
+    panel.setForeground(fg);
+    panel.setBackground(bg);
+
+    for (int i = 0; i < panel.getComponentCount(); i++) {
+      Component comp = panel.getComponent(i);
+      comp.setForeground(fg);
+      comp.setBackground(bg);
+    }
+
     myEditor.setProperty((NlProperty)value);
     return myEditor.getComponent();
   }
