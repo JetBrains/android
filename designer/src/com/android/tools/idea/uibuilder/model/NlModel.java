@@ -117,6 +117,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   private static final Object PROGRESS_LOCK = new Object();
   private RenderTask myRenderTask;
   private NlLayoutType myType;
+  private long myConfigurationModificationCount;
 
   @NotNull
   public static NlModel create(@NotNull DesignSurface surface,
@@ -133,6 +134,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     myFacet = facet;
     myFile = file;
     myConfiguration = facet.getConfigurationManager().getConfiguration(myFile.getVirtualFile());
+    myConfigurationModificationCount = myConfiguration.getModificationCount();
     mySelectionModel = new SelectionModel();
     myId = System.nanoTime() ^ file.getName().hashCode();
     if (parent != null) {
@@ -150,7 +152,9 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
       ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myFile.getProject());
       ResourceVersion version = manager.addListener(this, myFacet, myFile, myConfiguration);
-      if (!version.equals(myRenderedVersion)) {
+
+      // If the resources have changed or the configuration has been modified, request a model update
+      if (!version.equals(myRenderedVersion) || (myConfiguration.getModificationCount() != myConfigurationModificationCount)) {
         requestModelUpdate();
         myModelVersion.myResourceVersion.incrementAndGet();
       }
@@ -165,6 +169,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       getRenderingQueue().cancelAllUpdates();
       ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myFile.getProject());
       manager.removeListener(this, myFacet, myFile, myConfiguration);
+      myConfigurationModificationCount = myConfiguration.getModificationCount();
       myActive = false;
     }
   }
@@ -250,6 +255,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       if (myRenderingQueue == null) {
         myRenderingQueue = new MergingUpdateQueue("android.layout.rendering", RENDER_DELAY_MS, true, null, myParent, null,
                                                   Alarm.ThreadToUse.OWN_THREAD);
+        myRenderingQueue.setRestartTimerOnAdd(true);
       }
       return myRenderingQueue;
     }
@@ -488,7 +494,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   /**
    * Changes the configuration to use a custom device with screen size defined by xDimension and yDimension.
    */
-  public void overrideConfigurationScreenSize(int xDimension, int yDimension) {
+  public void overrideConfigurationScreenSize(@AndroidCoordinate int xDimension, @AndroidCoordinate int yDimension) {
     Device.Builder deviceBuilder = new Device.Builder(myConfiguration.getDevice());
     deviceBuilder.setName("Custom");
     deviceBuilder.setId("Custom");
@@ -509,12 +515,18 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
     // If a custom device already exists, remove it before adding the latest one
     List<Device> devices = myConfiguration.getConfigurationManager().getDevices();
+    boolean customDeviceReplaced = false;
     for (int i = 0; i < devices.size(); i++) {
       if ("Custom".equals(devices.get(i).getId())) {
-        devices.remove(i);
+        devices.set(i, device);
+        customDeviceReplaced = true;
+        break;
       }
     }
-    devices.add(device);
+
+    if (!customDeviceReplaced) {
+      devices.add(device);
+    }
 
     VirtualFile better;
     State newState;
@@ -542,15 +554,20 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       } else if (selectedEditor != null) {
         manager.setSelectedEditor(better, TextEditorProvider.getInstance().getEditorTypeId());
       }
+
       AndroidFacet facet = AndroidFacet.getInstance(myConfiguration.getModule());
       assert facet != null;
       Configuration configuration = facet.getConfigurationManager().getConfiguration(better);
+      configuration.startBulkEditing();
       configuration.setDevice(device, false);
       configuration.setDeviceState(newState);
+      configuration.finishBulkEditing();
     }
     else {
+      myConfiguration.startBulkEditing();
       myConfiguration.setDevice(device, false);
       myConfiguration.setDeviceState(newState);
+      myConfiguration.finishBulkEditing();
     }
   }
 
@@ -1632,6 +1649,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       requestModelUpdate();
       myModelVersion.myResourceVersion.incrementAndGet();
     }
+    myConfigurationModificationCount = myConfiguration.getModificationCount();
   }
 
   private class AndroidPreviewProgressIndicator extends ProgressIndicatorBase {

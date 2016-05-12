@@ -16,7 +16,10 @@
 package com.android.tools.idea.uibuilder.surface;
 
 import com.android.tools.idea.uibuilder.model.Coordinates;
+import com.android.tools.idea.uibuilder.model.ModelListener;
+import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.model.SwingCoordinate;
+import com.intellij.openapi.application.ApplicationManager;
 import org.intellij.lang.annotations.JdkConstants.InputEventMask;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,12 +31,36 @@ import static com.android.tools.idea.uibuilder.graphics.NlConstants.BOUNDS_RECT_
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.DASHED_STROKE;
 
 public class CanvasResizeInteraction extends Interaction {
-  private final ScreenView myScreenView;
+  private final DesignSurface myDesignSurface;
+  private final boolean isPreviewSurface;
   private int myCurrentX;
   private int myCurrentY;
 
-  public CanvasResizeInteraction(ScreenView screenView) {
-    myScreenView = screenView;
+  public CanvasResizeInteraction(DesignSurface designSurface) {
+    myDesignSurface = designSurface;
+    isPreviewSurface = designSurface.isPreviewSurface();
+  }
+
+
+  @Override
+  public void begin(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int startMask) {
+    super.begin(x, y, startMask);
+
+    ScreenView screenView = myDesignSurface.getCurrentScreenView();
+    if (screenView == null) {
+      return;
+    }
+    screenView.getSurface().setResizeMode(true);
+  }
+
+  public void updatePosition(int x, int y) {
+    ScreenView screenView = myDesignSurface.getCurrentScreenView();
+    if (screenView == null) {
+      return;
+    }
+
+    screenView.getModel().overrideConfigurationScreenSize(Coordinates.getAndroidX(screenView, x),
+                                                          Coordinates.getAndroidY(screenView, y));
   }
 
   @Override
@@ -41,17 +68,40 @@ public class CanvasResizeInteraction extends Interaction {
     super.update(x, y, modifiers);
     myCurrentX = x;
     myCurrentY = y;
-    if (myScreenView.getScreenViewType() == ScreenView.ScreenViewType.BLUEPRINT) {
-      myScreenView.getModel().overrideConfigurationScreenSize(Coordinates.getAndroidX(myScreenView, x),
-                                                              Coordinates.getAndroidY(myScreenView, y));
+
+    // Only do live updating of the file if we are in preview mode
+    if (isPreviewSurface) {
+      updatePosition(x, y);
     }
   }
 
   @Override
   public void end(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiers, boolean canceled) {
     super.end(x, y, modifiers, canceled);
-    myScreenView.getModel().overrideConfigurationScreenSize(Coordinates.getAndroidX(myScreenView, x),
-                                                            Coordinates.getAndroidY(myScreenView, y));
+
+    ScreenView screenView = myDesignSurface.getCurrentScreenView();
+    if (screenView == null) {
+      return;
+    }
+
+    // Set the surface in resize mode so it doesn't try to re-center the screen views all the time
+    screenView.getSurface().setResizeMode(false);
+
+    // When disabling the resize mode, add a render handler to call zoomToFit
+    screenView.getModel().addListener(new ModelListener() {
+      @Override
+      public void modelChanged(@NotNull NlModel model) {
+      }
+
+      @Override
+      public void modelRendered(@NotNull NlModel model) {
+        model.removeListener(this);
+
+        ApplicationManager.getApplication().invokeLater(myDesignSurface::zoomToFit);
+      }
+    });
+
+    updatePosition(x, y);
   }
 
   @Override
@@ -77,8 +127,13 @@ public class CanvasResizeInteraction extends Interaction {
 
     @Override
     public void paint(@NotNull Graphics2D g2d) {
-      int x = myScreenView.getX();
-      int y = myScreenView.getY();
+      ScreenView screenView = myDesignSurface.getCurrentScreenView();
+      if (screenView == null) {
+        return;
+      }
+
+      int x = screenView.getX();
+      int y = screenView.getY();
 
       if (myCurrentX > x && myCurrentY > y) {
         Stroke prevStroke = g2d.getStroke();
