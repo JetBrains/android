@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2014 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,22 @@
 package com.android.tools.adtui;
 
 import com.android.annotations.NonNull;
+import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
 import gnu.trove.TIntArrayList;
 
-public final class MemoryAxisDomain extends BaseAxisDomain {
+/**
+ * A mock {@link BaseAxisFormatter} that works with length units.
+ * e.g. mm, cm, m, km
+ */
+public class MockAxisFormatter extends BaseAxisFormatter {
 
-  private static final int MULTIPLIER = 1024;
-  private static final int BASE = 2;
-  private static final int[] MIN_INTERVALS = new int[]{4, 1, 1};    // 4KB, 1MB, 1GB
-  private static String[] UNITS = new String[]{"KB", "MB", "GB"};
-  private static final TIntArrayList BASE_FACTORS = new TIntArrayList(new int[]{2, 1});
-  public static final MemoryAxisDomain DEFAULT = new MemoryAxisDomain(10, 50, 5);
+  private static final int[] MULTIPLIERS = new int[]{10, 100, 1000};   //
+  private static final int BASE = 10;
+  private static final int MIN_INTERVAL = 1;
+  private static final String[] UNITS = new String[]{"mm", "cm", "m"};
+  private static final TIntArrayList BASE_FACTORS = new TIntArrayList(new int[]{10, 5, 1});
 
-  public MemoryAxisDomain(int maxMinorTicks, int maxMajorTicks, int switchThreshold) {
+  public MockAxisFormatter(int maxMinorTicks, int maxMajorTicks, int switchThreshold) {
     super(maxMinorTicks, maxMajorTicks, switchThreshold);
   }
 
@@ -49,17 +53,27 @@ public final class MemoryAxisDomain extends BaseAxisDomain {
 
   @Override
   protected int getUnitMultiplier(int index) {
-    return MULTIPLIER;
+    return MULTIPLIERS[index];
+  }
+
+  @Override
+  protected int getMultiplierIndex(double value, int threshold) {
+    return super.getMultiplierIndex(value, threshold);
   }
 
   @Override
   protected int getUnitMinimalInterval(int index) {
-    return MIN_INTERVALS[index];
+    return MIN_INTERVAL;
   }
 
   @Override
   @NonNull
   protected TIntArrayList getUnitBaseFactors(int index) {
     return BASE_FACTORS;
+  }
+
+  @Override
+  protected int getMultiplier() {
+    return super.getMultiplier();
   }
 }

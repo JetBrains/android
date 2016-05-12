@@ -13,19 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.adtui;
+package com.android.tools.adtui.common.formatter;
 
 import com.android.annotations.NonNull;
 
-public class PercentageAxisDomain extends AbstractSingleUnitAxisDomain {
+public class PercentageAxisFormatter extends SingleUnitAxisFormatter {
 
   private static final int UNIT_MINIMAL_INTERVAL = 10;
 
   private static final String PERCENTAGE_UNIT = "%";
 
-  private static final PercentageAxisDomain DEFAULT = new PercentageAxisDomain(10, 10, 1 /* No larger scale, so we can set anything */);
+  private static final PercentageAxisFormatter DEFAULT = new PercentageAxisFormatter(10, 10, 1 /* No larger scale, so we can set anything */);
 
-  public PercentageAxisDomain(int maxMinorTicks, int maxMajorTicks, int switchThreshold) {
+  public PercentageAxisFormatter(int maxMinorTicks, int maxMajorTicks, int switchThreshold) {
     super(maxMinorTicks, maxMajorTicks, switchThreshold);
   }
 
@@ -43,11 +43,11 @@ public class PercentageAxisDomain extends AbstractSingleUnitAxisDomain {
   @NonNull
   @Override
   public String getFormattedString(double globalRange, double value) {
-    return String.format("%d%s", Math.round(value / mMultiplier), PERCENTAGE_UNIT);
+    return String.format("%d%s", Math.round(value / getMultiplier()), PERCENTAGE_UNIT);
   }
 
   @NonNull
-  public static PercentageAxisDomain getDefault() {
+  public static PercentageAxisFormatter getDefault() {
     return DEFAULT;
   }
 }

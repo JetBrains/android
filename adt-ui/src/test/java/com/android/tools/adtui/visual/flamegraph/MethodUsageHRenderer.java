@@ -17,8 +17,7 @@
 package com.android.tools.adtui.visual.flamegraph;
 
 import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
-import com.android.tools.adtui.hchart.HRenderer;
+import com.android.tools.adtui.chart.hchart.HRenderer;
 
 import java.awt.Color;
 import java.awt.Font;

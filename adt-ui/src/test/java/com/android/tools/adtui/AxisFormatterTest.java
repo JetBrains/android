@@ -17,16 +17,16 @@ package com.android.tools.adtui;
 
 import junit.framework.TestCase;
 
-public class BaseAxisDomainTest extends TestCase {
+public class AxisFormatterTest extends TestCase {
 
-  private BaseAxisDomain domain;
+  private MockAxisFormatter domain;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
 
     // maxMajorTicks = 5, maxMajorTicks = 10, switchThreshold = 5;
-    domain = new MockAxisDomain(5, 10, 5);
+    domain = new MockAxisFormatter(5, 10, 5);
   }
 
   @Override
@@ -52,21 +52,21 @@ public class BaseAxisDomainTest extends TestCase {
     // so we are still in "mm" scale
     int index = domain.getMultiplierIndex(50, 5);
     assertEquals(0, index);
-    assertEquals(1, domain.mMultiplier);
+    assertEquals(1, domain.getMultiplier());
     assertEquals("mm", domain.getUnit(index));
 
     // value is greater than the first multiplier * threshold
     // jumps to "cm"
     index = domain.getMultiplierIndex(51, 5);
     assertEquals(1, index);
-    assertEquals(10, domain.mMultiplier);
+    assertEquals(10, domain.getMultiplier());
     assertEquals("cm", domain.getUnit(index));
 
     // value is greater than the second multiplier * threshold
     // jumps to "m"
     index = domain.getMultiplierIndex(5001, 5);
     assertEquals(2, index);
-    assertEquals(1000, domain.mMultiplier);
+    assertEquals(1000, domain.getMultiplier());
     assertEquals("m", domain.getUnit(index));
   }
 }

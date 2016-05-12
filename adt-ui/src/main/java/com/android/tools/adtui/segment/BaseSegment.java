@@ -5,21 +5,14 @@ import com.android.tools.adtui.Animatable;
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.Range;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.util.List;
-
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
+import javax.swing.*;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
+import java.awt.*;
+import java.util.List;
 
-public abstract class SegmentBase extends JComponent {
+public abstract class BaseSegment extends JComponent {
 
   private static final int SPACER_WIDTH = 100;
   //TODO Adjust this when the vertical label gets integrated.
@@ -43,7 +36,7 @@ public abstract class SegmentBase extends JComponent {
     return TEXT_FIELD_WIDTH;
   }
 
-  public SegmentBase(@NonNull String name, @NonNull Range scopedRange) {
+  public BaseSegment(@NonNull String name, @NonNull Range scopedRange) {
     myName = name;
     mScopedRange = scopedRange;
     //TODO Adjust borders according to neighbors
@@ -116,7 +109,7 @@ public abstract class SegmentBase extends JComponent {
 
   protected abstract void createComponentsList(@NonNull List<Animatable> animatables);
 
-  //TODO Refactor out of SegmentBase as this is a VisualTest specific function.
+  //TODO Refactor out of BaseSegment as this is a VisualTest specific function.
   protected abstract void registerComponents(@NonNull List<AnimatedComponent> components);
 
 }

@@ -18,6 +18,7 @@ package com.android.tools.adtui.visual;
 
 import com.android.annotations.NonNull;
 import com.android.tools.adtui.*;
+import com.android.tools.adtui.chart.StateChart;
 import com.android.tools.adtui.model.RangedDiscreteSeries;
 import com.android.tools.adtui.model.StateChartData;
 
