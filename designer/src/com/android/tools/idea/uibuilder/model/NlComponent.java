@@ -542,6 +542,11 @@ public class NlComponent {
   }
 
   @Nullable
+  public String getAndroidAttribute(@NotNull String name) {
+    return getAttribute(ANDROID_URI, name);
+  }
+
+  @Nullable
   public String getAttribute(@Nullable String namespace, @NotNull String attribute) {
     if (mySnapshot != null) {
       return mySnapshot.getAttribute(attribute, namespace);
