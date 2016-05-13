@@ -164,41 +164,46 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
    */
   @Override
   public void modelChanged(@NotNull NlModel model) {
-    ourLock.lock();
-    if (DEBUG) {
-      System.out.println("*** Model Changed " + model.getResourceVersion()
-                         + " vs our " + myModificationCount);
-    }
-    if (model.getResourceVersion() > myModificationCount) {
-      if (mAllowsUpdate) {
-        int dpi = model.getConfiguration().getDensity().getDpiValue();
-        setDpiValue(dpi);
-        updateNlModel(model.getComponents(), true);
-      }
-      myModificationCount = model.getResourceVersion();
+    SwingUtilities.invokeLater(() -> {
+      ourLock.lock();
       if (DEBUG) {
-        System.out.println("-> updated [" + mAllowsUpdate + "] to " + myModificationCount);
+        System.out.println("*** Model Changed " + model.getResourceVersion()
+                           + " vs our " + myModificationCount);
       }
-    } else {
-      if (DEBUG) {
-        System.out.println("-> no update");
+      if (model.getResourceVersion() > myModificationCount) {
+        if (mAllowsUpdate) {
+          int dpi = model.getConfiguration().getDensity().getDpiValue();
+          setDpiValue(dpi);
+          updateNlModel(model.getComponents(), true);
+        }
+        myModificationCount = model.getResourceVersion();
+        if (DEBUG) {
+          System.out.println("-> updated [" + mAllowsUpdate + "] to " + myModificationCount);
+        }
       }
-    }
-    ourLock.unlock();
+      else {
+        if (DEBUG) {
+          System.out.println("-> no update");
+        }
+      }
+      ourLock.unlock();
+    });
   }
 
   @Override
   public void modelRendered(@NotNull NlModel model) {
-    if (DEBUG) {
+    SwingUtilities.invokeLater(() -> {
+      if (DEBUG) {
+        ourLock.lock();
+        System.out.println("Model rendered " + model.getResourceVersion()
+                           + " vs our " + myModificationCount);
+        ourLock.unlock();
+      }
       ourLock.lock();
-      System.out.println("Model rendered " + model.getResourceVersion()
-                         + " vs our " + myModificationCount);
+      updateNlModel(model.getComponents(), false);
       ourLock.unlock();
-    }
-    ourLock.lock();
-    updateNlModel(model.getComponents(), false);
-    ourLock.unlock();
-    mSaveXmlTimer.reset();
+      mSaveXmlTimer.reset();
+    });
   }
 
   /**
