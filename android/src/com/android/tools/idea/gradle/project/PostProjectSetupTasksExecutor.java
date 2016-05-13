@@ -506,7 +506,7 @@ public class PostProjectSetupTasksExecutor {
     File androidHome = IdeSdks.getAndroidSdkPath();
     if (androidHome != null && !VersionCheck.isCompatibleVersion(androidHome)) {
       InstallSdkToolsHyperlink hyperlink = new InstallSdkToolsHyperlink(VersionCheck.MIN_TOOLS_REV);
-      String message = "Version " + VersionCheck.MIN_TOOLS_REV + " is available.";
+      String message = "Version " + VersionCheck.MIN_TOOLS_REV + " or later is required.";
       AndroidGradleNotification.getInstance(project).showBalloon("Android SDK Tools", message, INFORMATION, hyperlink);
       ourNewSdkVersionToolsInfoAlreadyShown = true;
     }
@@ -753,7 +753,7 @@ public class PostProjectSetupTasksExecutor {
     @NotNull private final Revision myVersion;
 
     InstallSdkToolsHyperlink(@NotNull Revision version) {
-      super("install.build.tools", "Install Tools " + version);
+      super("install.sdk.tools", "Install latest SDK Tools");
       myVersion = version;
     }
 
