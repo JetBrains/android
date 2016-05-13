@@ -273,9 +273,9 @@ public class OverrideResourceAction extends AbstractIntentionAction {
   }
 
   /**
-   * Create a variation (copy) of a given layout file
+   * Create a variation (copy) of a given resource file
    *
-   * @param surface   the design surface for the layout file to fork
+   * @param surface   the design surface for the resource file to fork
    * @param newFolder the resource folder to create, or null to ask the user
    * @param open      if true, open the file after creating it
    */
@@ -296,7 +296,11 @@ public class OverrideResourceAction extends AbstractIntentionAction {
       return; // Should not happen
     }
     XmlFile xmlFile = (XmlFile)configuration.getPsiFile();
-    forkResourceFile(module.getProject(), ResourceFolderType.LAYOUT, file, xmlFile, newFolder, configuration, open);
+    ResourceFolderType folderType = ResourceHelper.getFolderType(xmlFile);
+    if (folderType == null) {
+      folderType = ResourceFolderType.LAYOUT;
+    }
+    forkResourceFile(module.getProject(), folderType, file, xmlFile, newFolder, configuration, open);
   }
 
   /**
@@ -320,11 +324,9 @@ public class OverrideResourceAction extends AbstractIntentionAction {
       return;
     }
     Configuration configuration = null;
-    if (folderType == ResourceFolderType.LAYOUT) {
-      AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null) {
-        configuration = facet.getConfigurationManager().getConfiguration(file);
-      }
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet != null) {
+      configuration = facet.getConfigurationManager().getConfiguration(file);
     }
 
     forkResourceFile(module.getProject(), folderType, file, xmlFile, myNewFolder, configuration, open);
