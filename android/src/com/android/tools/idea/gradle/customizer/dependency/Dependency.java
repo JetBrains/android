@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.customizer.dependency;
 import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.roots.DependencyScope;
@@ -99,15 +98,8 @@ public abstract class Dependency {
     DependencySet dependencies = new DependencySet();
     GradleVersion modelVersion = androidModel.getModelVersion();
 
-    if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
-      for (BaseArtifact testArtifact : androidModel.getTestArtifactsInSelectedVariant()) {
-        populate(dependencies, testArtifact, TEST, modelVersion);
-      }
-    } else {
-      BaseArtifact testArtifact = androidModel.findSelectedTestArtifactInSelectedVariant();
-      if (testArtifact != null) {
-        populate(dependencies, testArtifact, TEST, modelVersion);
-      }
+    for (BaseArtifact testArtifact : androidModel.getTestArtifactsInSelectedVariant()) {
+      populate(dependencies, testArtifact, TEST, modelVersion);
     }
 
     AndroidArtifact mainArtifact = androidModel.getMainArtifact();

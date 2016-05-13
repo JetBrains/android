@@ -20,7 +20,6 @@ import com.android.builder.model.ProductFlavorContainer;
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.AndroidGradleModelTest;
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.module.Module;
@@ -43,8 +42,6 @@ import java.util.Set;
  * This test uses the Gradle model as source data to test the implementation.
  */
 public class IdeaSourceProviderTest extends AndroidGradleTestCase {
-  private boolean myOriginalLoadAllTestArtifactsValue;
-
   private Module myAppModule;
   private Module myLibModule;
   private AndroidFacet myAppFacet;
@@ -53,8 +50,6 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-
-    myOriginalLoadAllTestArtifactsValue = GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS;
 
     loadProject("projects/projectWithAppandLib");
     assertNotNull(myAndroidFacet);
@@ -83,16 +78,6 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
 
     assertNotNull(AndroidPlatform.getInstance(myAppModule));
     assertNotNull(AndroidPlatform.getInstance(myLibModule));
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS = myOriginalLoadAllTestArtifactsValue;
-    }
-    finally {
-      super.tearDown();
-    }
   }
 
   /** TODO: Move this test to {@link AndroidGradleModelTest}. */
@@ -148,47 +133,6 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
                  "Jni Directories: []\n" +
                  "Resources Directories: []\n" +
                  "Manifest File: null\n" +
-                 "Java Directories: []\n" +
-                 "Res Directories: []\n" +
-                 "Assets Directories: []\n" +
-                 "AIDL Directories: []\n" +
-                 "Renderscript Directories: []\n" +
-                 "Jni Directories: []\n" +
-                 "Resources Directories: []\n", sb.toString());
-  }
-
-  /** TODO: Move this test to {@link AndroidGradleModelTest} */
-  public void testGetCurrentTestSourceProviders() throws Exception {
-    GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS = false;
-
-    StringBuilder sb = new StringBuilder();
-    VirtualFile baseDir = getProject().getBaseDir();
-    for (IdeaSourceProvider provider : IdeaSourceProvider.getCurrentTestSourceProviders(myAppFacet)) {
-      sb.append(getStringRepresentation(provider, baseDir));
-    }
-
-    assertEquals("Manifest File: null\n" +
-                 "Java Directories: []\n" +
-                 "Res Directories: []\n" +
-                 "Assets Directories: []\n" +
-                 "AIDL Directories: []\n" +
-                 "Renderscript Directories: []\n" +
-                 "Jni Directories: []\n" +
-                 "Resources Directories: []\n" +
-                 "Manifest File: null\n" +
-                 "Java Directories: []\n" +
-                 "Res Directories: []\n" +
-                 "Assets Directories: []\n" +
-                 "AIDL Directories: []\n" +
-                 "Renderscript Directories: []\n" +
-                 "Jni Directories: []\n" +
-                 "Resources Directories: []\n", sb.toString());
-
-    sb = new StringBuilder();
-    for (IdeaSourceProvider provider : IdeaSourceProvider.getCurrentTestSourceProviders(myLibFacet)) {
-      sb.append(getStringRepresentation(provider, baseDir));
-    }
-    assertEquals("Manifest File: null\n" +
                  "Java Directories: []\n" +
                  "Res Directories: []\n" +
                  "Assets Directories: []\n" +

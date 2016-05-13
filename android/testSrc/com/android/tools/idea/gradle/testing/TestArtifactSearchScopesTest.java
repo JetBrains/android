@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.testing;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
-import com.android.tools.idea.templates.AndroidGradleArtifactsTestCase;
+import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -43,11 +43,7 @@ import static com.intellij.openapi.util.io.FileUtil.appendToFile;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
-public class TestArtifactSearchScopesTest extends AndroidGradleArtifactsTestCase {
-  @Override
-  protected boolean loadAllTestArtifacts() {
-    return true;
-  }
+public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
 
   public void testSrcFolderIncluding() throws Exception {
     TestArtifactSearchScopes scopes = loadMultiProjectAndTestScopes();
@@ -133,11 +129,8 @@ public class TestArtifactSearchScopesTest extends AndroidGradleArtifactsTestCase
     };
     GradleSyncState.subscribe(getProject(), postSetupListener);
 
-    runWriteCommandAction(getProject(), new Runnable() {
-      @Override
-      public void run() {
-        GradleProjectImporter.getInstance().requestProjectSync(getProject(), false, null);
-      }
+    runWriteCommandAction(getProject(), () -> {
+      GradleProjectImporter.getInstance().requestProjectSync(getProject(), false, null);
     });
 
     latch.await();
