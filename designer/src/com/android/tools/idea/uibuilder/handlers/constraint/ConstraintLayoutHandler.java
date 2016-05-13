@@ -758,8 +758,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       if (model == null) {
         return;
       }
-
-      Scout.arrangeWidgets(myActionType, model.getSelection().getWidgets(), mControlIsPressed || model.isAutoConnect());
+      modifiers &= InputEvent.CTRL_MASK;
+      Scout.arrangeWidgets(myActionType, model.getSelection().getWidgets(), modifiers != 0 || model.isAutoConnect());
       model.saveToXML(true);
     }
 
