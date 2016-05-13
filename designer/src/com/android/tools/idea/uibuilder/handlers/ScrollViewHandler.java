@@ -86,8 +86,11 @@ public class ScrollViewHandler extends ViewGroupHandler {
     Map<NlComponent, Dimension> childrenMeasure = editor.measureChildren(component, null);
     if (childrenMeasure != null && !childrenMeasure.isEmpty()) {
       for (Dimension dimension : childrenMeasure.values()) {
-        maxScrollableHeight += dimension.height - component.h;
+        maxScrollableHeight += dimension.height;
       }
+
+      // Substract the viewport form the scrollable size
+      maxScrollableHeight -=  component.h;
 
       if (maxScrollableHeight > 0) {
         // There is something to scroll
