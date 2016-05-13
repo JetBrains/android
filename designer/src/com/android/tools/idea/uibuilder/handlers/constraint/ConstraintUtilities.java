@@ -283,7 +283,7 @@ public class ConstraintUtilities {
         NlModel model = targetComponent.getModel();
         String margin = String.format(SdkConstants.VALUE_N_DP, anchor.getMargin());
 
-        if (supportsStartEnd(model)) {
+        if (isRtlMargin(marginAttribute) && supportsStartEnd(model)) {
           if (requiresRightLeft(model)) {
             component.setAttribute(SdkConstants.NS_RESOURCES, marginAttribute, margin);
           }
@@ -299,6 +299,20 @@ public class ConstraintUtilities {
       component.setAttribute(SdkConstants.SHERPA_URI,
                              attributeCreator, String.valueOf(anchor.getConnectionCreator()));
     }
+  }
+
+  /**
+   * Returns true if the given attribute is an RTL-affected one
+   *
+   * @param attribute
+   * @return
+   */
+  static boolean isRtlMargin(String attribute) {
+    if (SdkConstants.ATTR_LAYOUT_MARGIN_LEFT.equals(attribute)
+        || SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT.equals(attribute)) {
+      return true;
+    }
+    return false;
   }
 
   @NotNull
