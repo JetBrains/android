@@ -32,6 +32,38 @@ public class WidgetResize {
 
     private ArrayList<SnapCandidate> mSnapCandidates = new ArrayList<>();
 
+  /**
+   * Clamp to the bounds of the base panel
+   * @param x in dp
+   * @param base
+   * @return x restricted to the base
+   */
+    private static int clampX(int x, ConstraintWidget base) {
+        if (x < base.getX()) {
+            x = base.getX();
+        }
+        else if (x > base.getRight()) {
+            x = base.getRight();
+        }
+        return x;
+    }
+
+  /**
+   * Clamp to the bounds of the base panel
+   * @param y in dp
+   * @param base
+   * @return y restricted to the base
+   */
+    private static int clampY(int y, ConstraintWidget base) {
+        if (y < base.getY()) {
+            y = base.getY();
+        }
+        else if (y > base.getBottom()) {
+            y = base.getBottom();
+        }
+        return y;
+    }
+
     /**
      * Resize the widget given the current mouse position
      *
@@ -106,13 +138,16 @@ public class WidgetResize {
                 } break;
             }
         }
+        ConstraintWidget base = widget.getParent();
         switch (resize) {
             case LEFT_TOP: {
                 int newX = Math.min(originalBounds.x + originalBounds.width
                         - widget.getMinWidth(), posX);
+                newX = clampX(newX, base);
                 newX = snapLeft(widgets, widget, newX, mSnapCandidates);
                 int newY = Math.min(originalBounds.y + originalBounds.height
                         - widget.getMinHeight(), posY);
+                newY = clampY(newY, base);
                 newY = snapTop(widgets, widget, newY, mSnapCandidates);
                 int newWidth = originalBounds.x + originalBounds.width - newX;
                 int newHeight = originalBounds.y + originalBounds.height - newY;
@@ -122,6 +157,7 @@ public class WidgetResize {
             case LEFT_BOTTOM: {
                 int newX = Math.min(originalBounds.x + originalBounds.width
                         - widget.getMinWidth(), posX);
+                newX = clampX(newX, base);
                 newX = snapLeft(widgets, widget, newX, mSnapCandidates);
                 int newWidth = originalBounds.x + originalBounds.width - newX;
                 int newHeight = posY - originalBounds.y;
@@ -132,6 +168,7 @@ public class WidgetResize {
             case RIGHT_TOP: {
                 int newY = Math.min(originalBounds.y + originalBounds.height
                         - widget.getMinHeight(), posY);
+                newY = clampY(newY, base);
                 newY = snapTop(widgets, widget, newY, mSnapCandidates);
                 int newWidth = posX - originalBounds.x;
                 newWidth = snapWidth(widgets, widget, newWidth, mSnapCandidates);
@@ -153,6 +190,7 @@ public class WidgetResize {
                 if (widget instanceof Guideline) {
                     newX = posX;
                 }
+                newX = clampX(newX, base);
                 newX = snapLeft(widgets, widget, newX, mSnapCandidates);
                 int newWidth = originalBounds.x + originalBounds.width - newX;
                 setNewFrame(widget, newX, y, newWidth, h);
@@ -170,6 +208,7 @@ public class WidgetResize {
                 if (widget instanceof Guideline) {
                     newY = posY;
                 }
+                newY = clampY(newY, base);
                 newY = snapTop(widgets, widget, newY, mSnapCandidates);
                 int newHeight = originalBounds.y + originalBounds.height - newY;
                 setNewFrame(widget, x, newY, w, newHeight);
