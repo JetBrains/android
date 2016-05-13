@@ -16,6 +16,7 @@
 package com.android.tools.adtui;
 
 import com.android.annotations.NonNull;
+import com.android.tools.adtui.common.AdtUIUtils;
 import com.android.tools.adtui.model.ReportingSeries;
 import com.android.tools.adtui.model.ReportingSeriesRenderer;
 import gnu.trove.TIntArrayList;
@@ -24,8 +25,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.MouseWheelListener;
 import java.awt.geom.Path2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.RoundRectangle2D;
@@ -406,14 +405,14 @@ public final class SelectionComponent extends AnimatedComponent {
     Rectangle2D.Float rect = new Rectangle2D.Float(0, 0, overlayWidth, overlayHeight);
     g.translate(position.x + OVERLAY_INFO_OFFSET, position.y + OVERLAY_INFO_OFFSET);
     g.translate(OVERLAY_SHADOW_OFFSET, OVERLAY_SHADOW_OFFSET);
-    g.setColor(TEXT_COLOR);
+    g.setColor(AdtUIUtils.DEFAULT_FONT_COLOR);
     g.fill(rect); // drop shadow
     g.translate(-OVERLAY_SHADOW_OFFSET, -OVERLAY_SHADOW_OFFSET);
     g.setColor(OVERLAY_INFO_BACKGROUND);
     g.fill(rect); // overlay window surface.
 
     // Second pass through the data to draw the individual texts.
-    g.setColor(TEXT_COLOR);
+    g.setColor(AdtUIUtils.DEFAULT_FONT_COLOR);
     int textHeight = OVERLAY_INFO_PADDING;
     if (containerName != null) {
       textHeight += ascent;

@@ -20,6 +20,7 @@ import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.Range;
+import com.android.tools.adtui.common.AdtUIUtils;
 
 import java.awt.*;
 import java.awt.event.MouseWheelEvent;
@@ -77,7 +78,7 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
   protected void draw(Graphics2D g) {
 
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-    this.mFontMetrics = g.getFontMetrics(DEFAULT_FONT);
+    this.mFontMetrics = g.getFontMetrics(AdtUIUtils.DEFAULT_FONT);
 
     if (mRoot.getChildren().size() == 0) {
       g.drawString(NO_HTREE, getWidth() / 2 - mFontMetrics.stringWidth(NO_HTREE),
@@ -149,7 +150,7 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
 
   public void setHRenderer(HRenderer<T> r) {
     this.mHRenderer = r;
-    this.mHRenderer.setFont(DEFAULT_FONT);
+    this.mHRenderer.setFont(AdtUIUtils.DEFAULT_FONT);
   }
 
   public void setHTree(HNode<T> root) {
