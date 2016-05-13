@@ -106,6 +106,7 @@ public class ConstraintDragHandler extends DragHandler {
       model.getScene().removeWidget(myDragWidget);
     }
     if (myComponent != null) {
+      myComponent = components.get(0);
       myComponent.x = x;
       myComponent.y = y;
       NlComponent root = myComponent.getRoot();
