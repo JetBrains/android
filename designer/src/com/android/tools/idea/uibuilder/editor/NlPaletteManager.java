@@ -54,7 +54,7 @@ public class NlPaletteManager extends NlAbstractWindowManager {
     }
     else {
       if (myPalette == null) {
-        myPalette = new NlPalettePanel(myProject, designer, getDesignSurface(designer));
+        myPalette = new NlPalettePanel(myProject, getDesignSurface(designer));
         createWindowContent(myPalette, myPalette.getFocusedComponent(), myPalette.getActions());
       }
       myPalette.setDesignSurface(getDesignSurface(designer));
@@ -85,7 +85,7 @@ public class NlPaletteManager extends NlAbstractWindowManager {
       return toolWindow;
     }
 
-    NlPalettePanel palette = new NlPalettePanel(myProject, designer, getDesignSurface(designer));
+    NlPalettePanel palette = new NlPalettePanel(myProject, getDesignSurface(designer));
     palette.setDesignSurface(getDesignSurface(designer));
 
     PropertiesComponent propertiesComponent = PropertiesComponent.getInstance(myProject);

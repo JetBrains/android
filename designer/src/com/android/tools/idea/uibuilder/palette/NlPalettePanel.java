@@ -30,17 +30,13 @@ import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.res.ResourceNotificationManager.Reason;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener;
-import com.android.tools.idea.uibuilder.editor.NlEditorPanel;
-import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
 import com.android.tools.idea.uibuilder.model.DnDTransferComponent;
 import com.android.tools.idea.uibuilder.model.DnDTransferItem;
 import com.android.tools.idea.uibuilder.model.ItemTransferable;
-import com.android.tools.idea.uibuilder.model.NlLayoutType;
 import com.android.tools.idea.uibuilder.structure.NlComponentTree;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Lists;
-import com.intellij.designer.DesignerEditorPanelFacade;
 import com.intellij.designer.LightToolWindowContent;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.CopyProvider;
@@ -69,7 +65,6 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.wm.impl.content.ToolWindowContentUi;
-import com.intellij.psi.xml.XmlFile;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.ScrollPaneFactory;
@@ -109,8 +104,6 @@ public class NlPalettePanel extends JPanel
   private final NlPaletteModel myModel;
   private final Set<String> myMissingLibraries;
   private final Disposable myDisposable;
-  private final DesignerEditorPanelFacade myDesigner;
-  private final NlLayoutType myLayoutType;
   private final DnDManager myDndManager;
   private final DnDSource myDndSource;
 
@@ -121,17 +114,12 @@ public class NlPalettePanel extends JPanel
   private BufferedImage myLastDragImage;
   private Configuration myConfiguration;
 
-  public NlPalettePanel(@NotNull Project project, @NotNull DesignerEditorPanelFacade designer, @NotNull DesignSurface designSurface) {
+  public NlPalettePanel(@NotNull Project project, @NotNull DesignSurface designSurface) {
     myPaletteTree = new PaletteTree();
     myIconFactory = IconPreviewFactory.get();
     myModel = NlPaletteModel.get(project);
-    myMissingLibraries = new HashSet<String>();
+    myMissingLibraries = new HashSet<>();
     myDisposable = Disposer.newDisposable();
-    myDesigner = designer;
-    // TODO: This cannot be done statically; the type can change over time.
-    // (Open preference file, open palette, then switch to layout file; palette still reflects preference items.)
-    myLayoutType = initLayoutType();
-
     myMode = Mode.ICON_AND_TEXT;
 
     myDndManager = DnDManager.getInstance();
@@ -158,25 +146,6 @@ public class NlPalettePanel extends JPanel
     panel.add(label, BorderLayout.NORTH);
     panel.add(ScrollPaneFactory.createScrollPane(structureTree, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER));
     return panel;
-  }
-
-  @NotNull
-  private NlLayoutType initLayoutType() {
-    XmlFile file;
-
-    if (myDesigner instanceof NlEditorPanel) {
-      file = ((NlEditorPanel)myDesigner).getFile();
-    }
-    else if (myDesigner instanceof NlPreviewForm) {
-      // TODO Will this ever happen?
-      file = ((NlPreviewForm)myDesigner).getFile();
-      assert file != null;
-    }
-    else {
-      throw new IllegalStateException(myDesigner.toString());
-    }
-
-    return NlLayoutType.typeOf(file);
   }
 
   @NotNull
@@ -416,14 +385,11 @@ public class NlPalettePanel extends JPanel
     new PaletteSpeedSearch(myPaletteTree);
     updateColorsAfterColorThemeChange(true);
     enableClickToLoadMissingDependency();
-    DumbService.getInstance(project).smartInvokeLater(new Runnable() {
-      @Override
-      public void run() {
-        DefaultMutableTreeNode root = (DefaultMutableTreeNode)myPaletteTree.getModel().getRoot();
-        addItems(myModel.getPalette(myLayoutType).getItems(), root);
-        checkForNewMissingDependencies();
-        expandAll(myPaletteTree, root);
-      }
+    DumbService.getInstance(project).smartInvokeLater(() -> {
+      DefaultMutableTreeNode root = (DefaultMutableTreeNode)myPaletteTree.getModel().getRoot();
+      addItems(myModel.getPalette(myDesignSurface.getLayoutType()).getItems(), root);
+      checkForNewMissingDependencies();
+      expandAll(myPaletteTree, root);
     });
   }
 
@@ -539,18 +505,14 @@ public class NlPalettePanel extends JPanel
         }
       }
     });
-    ApplicationManager.getApplication().getMessageBus().connect(myDisposable)
-      .subscribe(ProjectEx.ProjectSaved.TOPIC, new ProjectEx.ProjectSaved() {
-        @Override
-        public void saved(@NotNull final Project project) {
-          Module module = getModule();
-          if (module != null && module.getProject().equals(project)) {
-            if (checkForNewMissingDependencies()) {
-              repaint();
-            }
-          }
+    ApplicationManager.getApplication().getMessageBus().connect(myDisposable).subscribe(ProjectEx.ProjectSaved.TOPIC, project -> {
+      Module module = getModule();
+      if (module != null && module.getProject().equals(project)) {
+        if (checkForNewMissingDependencies()) {
+          repaint();
         }
-      });
+      }
+    });
   }
 
   private boolean checkForNewMissingDependencies() {
@@ -558,7 +520,8 @@ public class NlPalettePanel extends JPanel
     List<String> missing = Collections.emptyList();
     if (module != null) {
       GradleDependencyManager manager = GradleDependencyManager.getInstance(module.getProject());
-      missing = fromGradleCoordinates(manager.findMissingDependencies(module, myModel.getPalette(myLayoutType).getGradleCoordinates()));
+      missing = fromGradleCoordinates(
+        manager.findMissingDependencies(module, myModel.getPalette(myDesignSurface.getLayoutType()).getGradleCoordinates()));
       if (missing.size() == myMissingLibraries.size() && myMissingLibraries.containsAll(missing)) {
         return false;
       }
@@ -668,7 +631,7 @@ public class NlPalettePanel extends JPanel
         if (myConfiguration != null) {
           // We want to delay the generation of the preview images as much as possible because it is time consuming.
           // Do this just before the images are needed for painting.
-          if (myIconFactory.load(myConfiguration, myModel.getPalette(myLayoutType), false)) {
+          if (myIconFactory.load(myConfiguration, myModel.getPalette(myDesignSurface.getLayoutType()), false)) {
             // If we just generated the preview images, we must invalidate the row heights that the tree is
             // caching internally. Then invalidate and wait for the next paint.
             // Otherwise some images may be cropped.
@@ -712,14 +675,7 @@ public class NlPalettePanel extends JPanel
           size.setSize(size.getWidth() / scale, size.getHeight() / scale);
         }
       }
-      if (myDesigner instanceof NlPreviewForm) {
-        ApplicationManager.getApplication().invokeLater(new Runnable() {
-          @Override
-          public void run() {
-            ((NlPreviewForm)myDesigner).minimizePalette();
-          }
-        });
-      }
+      myDesignSurface.minimizePaletteOnPreview();
       DnDTransferComponent component = new DnDTransferComponent(item.getTagName(), item.getXml(), size.width, size.height);
       return new DnDDragStartBean(new ItemTransferable(new DnDTransferItem(component)));
     }
@@ -752,7 +708,7 @@ public class NlPalettePanel extends JPanel
         comp.paint(g2);
         g2.dispose();
       }
-      return Pair.<Image, Point>pair(image, new Point(-image.getWidth() / 2, -image.getHeight() / 2));
+      return Pair.pair(image, new Point(-image.getWidth() / 2, -image.getHeight() / 2));
     }
 
     @Override
