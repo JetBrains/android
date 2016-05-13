@@ -753,12 +753,15 @@ public class ConstraintUtilities {
       x += constraintModel.pxToDp(padding.left);
       y += constraintModel.pxToDp(padding.top);
     }
-    if ((widget.getParent() != null
-         && (widget.getParent() instanceof WidgetContainer)
-         && !(widget.getParent() instanceof ConstraintWidgetContainer))) {
-      WidgetContainer parentContainer = (WidgetContainer)widget.getParent();
-      x -= parentContainer.getDrawX();
-      y -= parentContainer.getDrawY();
+    WidgetContainer parentContainer = (WidgetContainer)widget.getParent();
+    if (parentContainer != null && parentContainer instanceof WidgetContainer) {
+      if (widget instanceof ConstraintWidgetContainer
+          || parentContainer instanceof ConstraintWidgetContainer
+          || (!(widget instanceof ConstraintWidgetContainer)
+                && !(parentContainer instanceof ConstraintWidgetContainer))) {
+        x -= parentContainer.getDrawX();
+        y -= parentContainer.getDrawY();
+      }
     }
 
     if (widget.getX() != x || widget.getY() != y) {
