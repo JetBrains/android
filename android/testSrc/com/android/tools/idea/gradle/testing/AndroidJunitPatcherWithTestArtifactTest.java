@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.testing;
 
-import com.android.tools.idea.templates.AndroidGradleArtifactsTestCase;
+import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.intellij.execution.JUnitPatcher;
 import com.intellij.execution.configurations.JavaParameters;
 import com.intellij.openapi.module.Module;
@@ -23,11 +23,7 @@ import com.intellij.openapi.module.ModuleManager;
 
 import static com.google.common.truth.Truth.assertThat;
 
-public class AndroidJunitPatcherWithTestArtifactTest extends AndroidGradleArtifactsTestCase {
-  @Override
-  protected boolean loadAllTestArtifacts() {
-    return true;
-  }
+public class AndroidJunitPatcherWithTestArtifactTest extends AndroidGradleTestCase {
 
   public void testRemoveAndroidTestClasspath() throws Exception {
     loadProject("projects/sync/multiproject", false);

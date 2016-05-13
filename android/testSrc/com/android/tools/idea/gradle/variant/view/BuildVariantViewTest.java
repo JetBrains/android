@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.gradle.variant.view;
 
-import com.android.builder.model.AndroidProject;
-import com.android.ide.common.repository.GradleVersion;
 import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.annotations.NotNull;
 
 import static org.easymock.classextension.EasyMock.*;
 
@@ -60,41 +57,6 @@ public class BuildVariantViewTest extends AndroidTestCase {
     assertFalse(myListener.myWasCalled);
 
     verify(myUpdater);
-  }
-
-  public void testSupportsUnitTestWithUnsupportedVersion() {
-    AndroidProject project = createMock(AndroidProject.class);
-    expect(project.getModelVersion()).andStubReturn("1.0.1");
-    replay(project);
-
-    assertFalse(BuildVariantView.supportsUnitTests(project, getModelVersionSupportingUnitTests()));
-
-    verify(project);
-  }
-
-  public void testSupportsUnitTestWithSupportedReleaseCandidateVersion() {
-    AndroidProject project = createMock(AndroidProject.class);
-    expect(project.getModelVersion()).andStubReturn("1.1.0-rc1");
-    replay(project);
-
-    assertTrue(BuildVariantView.supportsUnitTests(project, getModelVersionSupportingUnitTests()));
-
-    verify(project);
-  }
-
-  public void testSupportsUnitTestWithSupportedVersion() {
-    AndroidProject project = createMock(AndroidProject.class);
-    expect(project.getModelVersion()).andStubReturn("1.1.0");
-    replay(project);
-
-    assertTrue(BuildVariantView.supportsUnitTests(project, getModelVersionSupportingUnitTests()));
-
-    verify(project);
-  }
-
-  @NotNull
-  private static GradleVersion getModelVersionSupportingUnitTests() {
-    return new GradleVersion(1, 1, 0);
   }
 
   private static class Listener implements BuildVariantView.BuildVariantSelectionChangeListener {

@@ -53,22 +53,9 @@ public class GradleTestArtifactSyncTest {
 
   private static final char VIRTUAL_FILE_PATH_SEPARATOR = '/';
 
-  private boolean myOriginalLoadAllTestArtifactsValue;
-
   @Before
   public void skipSourceGenerationOnSync() {
     GradleExperimentalSettings.getInstance().SKIP_SOURCE_GEN_ON_PROJECT_SYNC = true;
-  }
-
-  @Before
-  public void enableTestArtifacts() throws Exception {
-    myOriginalLoadAllTestArtifactsValue = GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS;
-    GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS = true;
-  }
-
-  @After
-  public void recoverTestArtifactsSetting() {
-    GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS = myOriginalLoadAllTestArtifactsValue;
   }
 
   @Test

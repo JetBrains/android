@@ -203,13 +203,11 @@ public class PostProjectSetupTasksExecutor {
     checkSdkToolsVersion(myProject);
     addSdkLinkIfNecessary();
 
-    if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
-      TestArtifactSearchScopes.initializeScopes(myProject);
-      //FileColorConfigurationUtil.createAndroidTestFileColorConfigurationIfNotExist(myProject);
-      // Before sync, android test files are just considered as normal test file which has different FileColor configuration.
-      // If there is any opening tab for android test file, the tab color will not change unless we refresh it.
-      //UISettings.getInstance().fireUISettingsChanged();
-    }
+    TestArtifactSearchScopes.initializeScopes(myProject);
+    //FileColorConfigurationUtil.createAndroidTestFileColorConfigurationIfNotExist(myProject);
+    // Before sync, android test files are just considered as normal test file which has different FileColor configuration.
+    // If there is any opening tab for android test file, the tab color will not change unless we refresh it.
+    //UISettings.getInstance().fireUISettingsChanged();
 
     // For Android Studio, use "Gradle-Aware Make" to run JUnit tests.
     // For IDEA, use regular "Make".

@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.testing;
 import com.android.builder.model.JavaArtifact;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.intellij.execution.JUnitPatcher;
 import com.intellij.execution.configurations.JavaParameters;
 import com.intellij.openapi.compiler.CompileScope;
@@ -65,20 +64,18 @@ public class AndroidJunitPatcher extends JUnitPatcher {
 
     PathsList classPath = javaParameters.getClassPath();
 
-    if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
-      TestArtifactSearchScopes testScopes = TestArtifactSearchScopes.get(module);
-      if (testScopes == null) {
-        return;
-      }
+    TestArtifactSearchScopes testScopes = TestArtifactSearchScopes.get(module);
+    if (testScopes == null) {
+      return;
+    }
 
-      // Filter the library / module dependencies that are in android test
-      FileRootSearchScope excludeScope = testScopes.getUnitTestExcludeScope();
-      // There is potential performance if we just call remove for all excluded items because every random remove operation has linear
-      // complexity. TODO change the {@code PathList} API.
-      for (String path : classPath.getPathList()) {
-        if (excludeScope.accept(new File(path))) {
-          classPath.remove(path);
-        }
+    // Filter the library / module dependencies that are in android test
+    FileRootSearchScope excludeScope = testScopes.getUnitTestExcludeScope();
+    // There is potential performance if we just call remove for all excluded items because every random remove operation has linear
+    // complexity. TODO change the {@code PathList} API.
+    for (String path : classPath.getPathList()) {
+      if (excludeScope.accept(new File(path))) {
+        classPath.remove(path);
       }
     }
 
@@ -183,11 +180,9 @@ public class AndroidJunitPatcher extends JUnitPatcher {
       }
     }
     FileRootSearchScope excludeScope = null;
-    if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
-      TestArtifactSearchScopes testScopes = TestArtifactSearchScopes.get(module);
-      if (testScopes != null) {
-        excludeScope = testScopes.getUnitTestExcludeScope();
-      }
+    TestArtifactSearchScopes testScopes = TestArtifactSearchScopes.get(module);
+    if (testScopes != null) {
+      excludeScope = testScopes.getUnitTestExcludeScope();
     }
 
     for (Module affectedModule : scope.getAffectedModules()) {
