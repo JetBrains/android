@@ -71,9 +71,12 @@ import static com.android.tools.idea.uibuilder.graphics.NlConstants.*;
 public class DesignSurface extends JPanel implements Disposable, ScalableDesignSurface {
   public static final boolean SIZE_ERROR_PANEL_DYNAMICALLY = true;
   private static final Integer LAYER_PROGRESS = JLayeredPane.POPUP_LAYER + 100;
+
   private final Project myProject;
   private final DesignerEditorPanelFacade myDesigner;
   private boolean myRenderHasProblems;
+
+  private boolean myIsCanvasResizing = false;
 
   public enum ScreenMode {
     SCREEN_ONLY(ScreenViewType.NORMAL),
@@ -225,6 +228,22 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
     myCentered = centered;
   }
 
+  /**
+   * Tells this surface to resize mode. While on resizing mode, the views won't be auto positioned.
+   * This can be disabled to avoid moving the screens around when the user is resizing the canvas. See {@link CanvasResizeInteraction}
+   * @param isResizing true to enable the resize mode
+   */
+  public void setResizeMode(boolean isResizing) {
+    myIsCanvasResizing = isResizing;
+  }
+
+  /**
+   * Returns whether this surface is currently in resize mode or not. See {@link #setResizeMode(boolean)}
+   */
+  public boolean isCanvasResizing() {
+    return myIsCanvasResizing;
+  }
+
   @NotNull
   public ScreenMode getScreenMode() {
     return myScreenMode;
@@ -261,6 +280,7 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
     List<NlComponent> selectionBefore = Collections.emptyList();
     List<NlComponent> selectionAfter = Collections.emptyList();
 
+    ScreenView previousScreenView = myScreenView;
     if (myScreenView != null) {
       myScreenView.getModel().removeListener(myModelListener);
 
@@ -290,6 +310,7 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
 
       addLayers(model);
       positionScreens();
+
 
       SelectionModel selectionModel = model.getSelectionModel();
       selectionModel.addListener(mySelectionListener);
@@ -627,44 +648,46 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
     Dimension screenViewSize = myScreenView.getSize();
 
     // Position primary screen
-
     int availableWidth = myScrollPane.getWidth();
     int availableHeight = myScrollPane.getHeight();
     boolean stackVertically = isVerticalScreenConfig(availableWidth, availableHeight, screenViewSize);
 
-    if (myCentered && availableWidth > 10 && availableHeight > 10) {
-      int requiredWidth = screenViewSize.width;
-      if (myScreenMode == ScreenMode.BOTH && !stackVertically) {
-        requiredWidth += SCREEN_DELTA;
-        requiredWidth += screenViewSize.width;
-      }
-      if (requiredWidth < availableWidth) {
-        myScreenX = (availableWidth - requiredWidth) / 2;
-      }
-      else {
-        myScreenX = 0;
-      }
+    // If we are resizing the canvas, do not relocate the primary screen
+    if (!myIsCanvasResizing) {
+      if (myCentered && availableWidth > 10 && availableHeight > 10) {
+        int requiredWidth = screenViewSize.width;
+        if (myScreenMode == ScreenMode.BOTH && !stackVertically) {
+          requiredWidth += SCREEN_DELTA;
+          requiredWidth += screenViewSize.width;
+        }
+        if (requiredWidth < availableWidth) {
+          myScreenX = (availableWidth - requiredWidth) / 2;
+        }
+        else {
+          myScreenX = 0;
+        }
 
-      int requiredHeight = screenViewSize.height;
-      if (myScreenMode == ScreenMode.BOTH && stackVertically) {
-        requiredHeight += SCREEN_DELTA;
-        requiredHeight += screenViewSize.height;
-      }
-      if (requiredHeight < availableHeight) {
-        myScreenY = (availableHeight - requiredHeight) / 2;
-      }
-      else {
-        myScreenY = 0;
-      }
-    }
-    else {
-      if (myDeviceFrames) {
-        myScreenX = RULER_SIZE_PX + 2 * DEFAULT_SCREEN_OFFSET_X;
-        myScreenY = RULER_SIZE_PX + 2 * DEFAULT_SCREEN_OFFSET_Y;
+        int requiredHeight = screenViewSize.height;
+        if (myScreenMode == ScreenMode.BOTH && stackVertically) {
+          requiredHeight += SCREEN_DELTA;
+          requiredHeight += screenViewSize.height;
+        }
+        if (requiredHeight < availableHeight) {
+          myScreenY = (availableHeight - requiredHeight) / 2;
+        }
+        else {
+          myScreenY = 0;
+        }
       }
       else {
-        myScreenX = RULER_SIZE_PX + DEFAULT_SCREEN_OFFSET_X;
-        myScreenY = RULER_SIZE_PX + DEFAULT_SCREEN_OFFSET_Y;
+        if (myDeviceFrames) {
+          myScreenX = RULER_SIZE_PX + 2 * DEFAULT_SCREEN_OFFSET_X;
+          myScreenY = RULER_SIZE_PX + 2 * DEFAULT_SCREEN_OFFSET_Y;
+        }
+        else {
+          myScreenX = RULER_SIZE_PX + DEFAULT_SCREEN_OFFSET_X;
+          myScreenY = RULER_SIZE_PX + DEFAULT_SCREEN_OFFSET_Y;
+        }
       }
     }
     myScreenView.setLocation(myScreenX, myScreenY);
@@ -747,7 +770,6 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
     @Override
     public void modelChanged(@NotNull NlModel model) {
       model.render();
-      positionScreens();
     }
 
     @Override
@@ -773,6 +795,8 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
     if (myScreenView != null) {
       myScreenView.getModel().deactivate();
     }
+
+    myInteractionManager.cancelInteraction();
   }
 
   private void positionErrorPanel() {
