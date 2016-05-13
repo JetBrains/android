@@ -33,15 +33,16 @@ public class ImageButtonHandler extends ImageViewHandler {
     return ImmutableList.of(
       ATTR_SRC,
       ATTR_CONTENT_DESCRIPTION,
+      ATTR_STYLE,
+      ATTR_TINT,
       ATTR_BACKGROUND,
+      ATTR_BACKGROUND_TINT,
       ATTR_SCALE_TYPE,
+      ATTR_ELEVATION,
+      ATTR_ON_CLICK,
       ATTR_ADJUST_VIEW_BOUNDS,
       ATTR_CROP_TO_PADDING,
-      ATTR_STYLE,
-      ATTR_BACKGROUND_TINT,
-      ATTR_ELEVATION,
-      ATTR_VISIBILITY,
-      ATTR_ON_CLICK);
+      ATTR_VISIBILITY);
   }
 
   @Override
