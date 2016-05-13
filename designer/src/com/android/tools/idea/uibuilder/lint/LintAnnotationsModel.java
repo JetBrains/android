@@ -43,6 +43,9 @@ public class LintAnnotationsModel {
 
   @Nullable
   public Icon getIssueIcon(@NotNull NlComponent component) {
+    if (myIssues == null) {
+      return null;
+    }
     List<IssueData> issueData = myIssues.get(component);
     if (issueData == null || issueData.isEmpty()) {
       return null;
@@ -53,6 +56,9 @@ public class LintAnnotationsModel {
   }
 
   public String getIssueMessage(@NotNull NlComponent component) {
+    if (myIssues == null) {
+      return null;
+    }
     List<IssueData> issueData = myIssues.get(component);
     if (issueData == null || issueData.isEmpty()) {
       return null;
