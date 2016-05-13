@@ -20,6 +20,7 @@ import com.android.ide.common.rendering.api.Features;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.ScreenOrientationQualifier;
 import com.android.ide.common.resources.configuration.ScreenSizeQualifier;
+import com.android.resources.ResourceFolderType;
 import com.android.resources.ScreenOrientation;
 import com.android.resources.ScreenSize;
 import com.android.sdklib.IAndroidTarget;
@@ -93,42 +94,47 @@ public class ConfigurationMenuAction extends FlatComboAction {
         group.addSeparator();
       }
 
-      boolean haveLandscape = false;
-      boolean haveLarge = false;
-      for (VirtualFile file : variations) {
-        String name = file.getParent().getName();
-        if (name.startsWith(FD_RES_LAYOUT)) {
-          FolderConfiguration config = FolderConfiguration.getConfigForFolder(name);
-          if (config != null) {
-            ScreenOrientationQualifier orientation = config.getScreenOrientationQualifier();
-            if (orientation != null && orientation.getValue() == ScreenOrientation.LANDSCAPE) {
-              haveLandscape = true;
-              if (haveLarge) {
-                break;
+      ResourceFolderType folderType = ResourceHelper.getFolderType(configuration.getFile());
+      if (folderType == ResourceFolderType.LAYOUT) {
+        boolean haveLandscape = false;
+        boolean haveLarge = false;
+        for (VirtualFile file : variations) {
+          String name = file.getParent().getName();
+          if (name.startsWith(FD_RES_LAYOUT)) {
+            FolderConfiguration config = FolderConfiguration.getConfigForFolder(name);
+            if (config != null) {
+              ScreenOrientationQualifier orientation = config.getScreenOrientationQualifier();
+              if (orientation != null && orientation.getValue() == ScreenOrientation.LANDSCAPE) {
+                haveLandscape = true;
+                if (haveLarge) {
+                  break;
+                }
               }
-            }
-            ScreenSizeQualifier size = config.getScreenSizeQualifier();
-            if (size != null && size.getValue() == ScreenSize.XLARGE) {
-              haveLarge = true;
-              if (haveLandscape) {
-                break;
+              ScreenSizeQualifier size = config.getScreenSizeQualifier();
+              if (size != null && size.getValue() == ScreenSize.XLARGE) {
+                haveLarge = true;
+                if (haveLandscape) {
+                  break;
+                }
               }
             }
           }
         }
-      }
 
-      // Create actions for creating "common" versions of a layout (that don't exist),
-      // e.g. Create Landscape Version, Create RTL Version, Create XLarge version
-      // Do statistics on what is needed!
-      if (!haveLandscape) {
-        group.add(new CreateVariationAction(mySurface, "Create Landscape Variation", "layout-land"));
+        // Create actions for creating "common" versions of a layout (that don't exist),
+        // e.g. Create Landscape Version, Create RTL Version, Create XLarge version
+        // Do statistics on what is needed!
+        if (!haveLandscape) {
+          group.add(new CreateVariationAction(mySurface, "Create Landscape Variation", "layout-land"));
+        }
+        if (!haveLarge) {
+          group.add(new CreateVariationAction(mySurface, "Create layout-xlarge Variation", "layout-xlarge"));
+          //group.add(new CreateVariationAction(mySurface, "Create layout-sw600dp Variation...", "layout-sw600dp"));
+        }
+        group.add(new CreateVariationAction(mySurface, "Create Other...", null));
+      } else {
+        group.add(new CreateVariationAction(mySurface, "Create Alternative...", null));
       }
-      if (!haveLarge) {
-        group.add(new CreateVariationAction(mySurface, "Create layout-xlarge Variation", "layout-xlarge"));
-        //group.add(new CreateVariationAction(mySurface, "Create layout-sw600dp Variation...", "layout-sw600dp"));
-      }
-      group.add(new CreateVariationAction(mySurface, "Create Other...", null));
 
       /* TODO: Restore multi-configuration editing
       if (mySurface.supportsPreviews()) {
