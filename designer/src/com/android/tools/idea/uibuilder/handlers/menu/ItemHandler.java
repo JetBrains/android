@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.handlers.menu;
 
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
@@ -39,19 +40,14 @@ public final class ItemHandler extends ViewHandler {
     return true;
   }
 
-  @Language("XML")
   @NotNull
   @Override
-  public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {
-    return new XmlBuilder()
-      .startTag(tagName)
-      .androidAttribute(ATTR_TITLE, "Item")
-      .endTag(tagName)
-      .toString();
+  public String getTitle(@NotNull NlComponent item) {
+    return Strings.nullToEmpty(item.getAndroidAttribute(ATTR_TITLE));
   }
 
-  @Override
   @NotNull
+  @Override
   public List<String> getInspectorProperties() {
     return ImmutableList.of(
       ATTR_ID,
@@ -61,5 +57,16 @@ public final class ItemHandler extends ViewHandler {
       ATTR_VISIBLE,
       ATTR_ENABLED,
       ATTR_CHECKABLE);
+  }
+
+  @Language("XML")
+  @NotNull
+  @Override
+  public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {
+    return new XmlBuilder()
+      .startTag(tagName)
+      .androidAttribute(ATTR_TITLE, "Item")
+      .endTag(tagName)
+      .toString();
   }
 }

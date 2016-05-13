@@ -16,85 +16,94 @@
 package com.android.tools.idea.uibuilder.structure;
 
 import com.android.tools.idea.uibuilder.api.StructurePaneComponentHandler;
-import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
-import com.android.tools.idea.uibuilder.model.EmptyXmlTag;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.lint.detector.api.LintUtils;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.ui.SimpleColoredComponent;
+import com.intellij.ui.ColoredTextContainer;
 import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
 
 /**
  * Decorator for the structure pane tree control.
  */
 public class StructureTreeDecorator {
-  private final ViewHandlerManager myViewHandlerManager;
-
-  public StructureTreeDecorator(@NotNull Project project) {
-    myViewHandlerManager = ViewHandlerManager.get(project);
+  private StructureTreeDecorator() {
   }
 
   /**
    * Decorate a tree node with ID, title, and attributes of the current component.
-   * Any changes made to this method should be duplicated in {@link #getText}.
    */
-  public void decorate(@NotNull NlComponent component, @NotNull SimpleColoredComponent renderer, boolean full) {
-    String id = component.getId();
-    id = LintUtils.stripIdPrefix(id);
-    id = StringUtil.nullize(id);
+  static void decorate(@NotNull ColoredTextContainer container, @NotNull NlComponent component) {
+    append(container, component);
+    container.setIcon(getViewHandler(component).getIcon(component));
+  }
 
-    StructurePaneComponentHandler handler = component.getViewHandler();
+  @NotNull
+  static String toString(@NotNull NlComponent component) {
+    ColoredTextContainer container = new StringBuilderContainer();
+    append(container, component);
 
-    if (handler == null) {
-      handler = ViewHandlerManager.NONE;
+    return container.toString();
+  }
+
+  private static final class StringBuilderContainer implements ColoredTextContainer {
+    private final StringBuilder myBuilder = new StringBuilder();
+
+    @Override
+    public void append(@NotNull String fragment, @NotNull SimpleTextAttributes attributes) {
+      myBuilder.append(fragment);
     }
 
-    String title = handler.getTitle(component);
-    String attrs = handler.getTitleAttributes(component);
-
-    if (id != null) {
-      renderer.append(id, SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
+    @Override
+    public void append(@NotNull String fragment, @NotNull SimpleTextAttributes attributes, @NotNull Object tag) {
+      throw new UnsupportedOperationException();
     }
 
-    // Don't display the type title if it's obvious from the id (e.g.
-    // if the id is button1, don't display (Button) as the type)
-    if (id == null || !StringUtil.startsWithIgnoreCase(id, title)) {
-      renderer.append(id != null ? " (" + title + ")" : title, SimpleTextAttributes.REGULAR_ATTRIBUTES);
+    @Override
+    public void setIcon(@Nullable Icon icon) {
+      throw new UnsupportedOperationException();
     }
 
-    if (!StringUtil.isEmpty(attrs)) {
-      renderer.append(String.format(" %1$s", attrs), SimpleTextAttributes.GRAYED_ATTRIBUTES);
+    @Override
+    public void setToolTipText(@Nullable String text) {
+      throw new UnsupportedOperationException();
     }
 
-    if (full) {
-      renderer.setIcon(handler.getIcon(component));
+    @NotNull
+    @Override
+    public String toString() {
+      return myBuilder.toString();
     }
   }
 
-  /**
-   * Generate the string shown by {@link #decorate} that can be used for searches.
-   * Any changes made to this method should be duplicated in {@link #decorate}.
-   */
-  @NotNull
-  public String getText(@NotNull NlComponent component) {
-    if (component.getTag().equals(EmptyXmlTag.INSTANCE)) {
-      return "";
-    }
-    String id = component.getId();
-    id = LintUtils.stripIdPrefix(id);
-    id = StringUtil.nullize(id);
+  private static void append(@NotNull ColoredTextContainer container, @NotNull NlComponent component) {
+    String id = LintUtils.stripIdPrefix(component.getId());
 
-    ViewHandler handler = myViewHandlerManager.getHandlerOrDefault(component);
+    if (!id.isEmpty()) {
+      container.append(id, SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
+    }
+
+    StructurePaneComponentHandler handler = getViewHandler(component);
     String title = handler.getTitle(component);
-    String attrs = handler.getTitleAttributes(component);
 
-    String text = id != null ? id + "(" + title + ")" : title;
-    if (!StringUtil.isEmpty(attrs)) {
-      text += " " + attrs;
+    if (!StringUtil.startsWithIgnoreCase(id, title)) {
+      container.append(id.isEmpty() ? title : " (" + title + ')', SimpleTextAttributes.REGULAR_ATTRIBUTES);
     }
-    return text;
+
+    String attributes = handler.getTitleAttributes(component);
+
+    if (!attributes.isEmpty()) {
+      container.append(' ' + attributes, SimpleTextAttributes.GRAYED_ATTRIBUTES);
+    }
+  }
+
+  @NotNull
+  private static StructurePaneComponentHandler getViewHandler(@NotNull NlComponent component) {
+    StructurePaneComponentHandler handler = component.getViewHandler();
+    return handler == null ? ViewHandlerManager.NONE : handler;
   }
 }

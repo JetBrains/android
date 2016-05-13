@@ -20,6 +20,7 @@ import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.google.common.base.Strings;
 import com.intellij.psi.xml.XmlTag;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
@@ -72,5 +73,11 @@ abstract class PreferenceHandler extends ViewHandler {
     return Arrays.stream(preferences)
       .map(preference -> preference.getAttributeValue(ATTR_KEY, ANDROID_URI))
       .anyMatch(key::equals);
+  }
+
+  @NotNull
+  @Override
+  public String getTitle(@NotNull NlComponent component) {
+    return Strings.nullToEmpty(component.getAndroidAttribute(ATTR_TITLE));
   }
 }

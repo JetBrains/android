@@ -62,7 +62,6 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
                                                      DeleteProvider {
   private static final Insets INSETS = new Insets(0, 6, 0, 6);
 
-  private final StructureTreeDecorator myDecorator;
   private final Map<NlComponent, DefaultMutableTreeNode> myComponent2Node;
   private final AtomicBoolean mySelectionIsUpdating;
   private final MergingUpdateQueue myUpdateQueue;
@@ -75,7 +74,6 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   private boolean mySkipWait;
 
   public NlComponentTree(@NotNull DesignSurface designSurface) {
-    myDecorator = new StructureTreeDecorator(designSurface.getProject());
     myComponent2Node = new IdentityHashMap<>();
     mySelectionIsUpdating = new AtomicBoolean(false);
     myUpdateQueue = new MergingUpdateQueue(
@@ -167,7 +165,8 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
         if (component == null) {
           return;
         }
-        myDecorator.decorate(component, this, true);
+
+        StructureTreeDecorator.decorate(this, component);
       }
     };
     renderer.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
@@ -487,11 +486,8 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   }
 
   private static final class StructureSpeedSearch extends TreeSpeedSearch {
-    private final StructureTreeDecorator myDecorator;
-
     StructureSpeedSearch(@NotNull NlComponentTree tree) {
       super(tree);
-      myDecorator = tree.myDecorator;
     }
 
     @Override
@@ -501,7 +497,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
       }
       TreePath path = (TreePath)element;
       NlComponent component = toComponent(path.getLastPathComponent());
-      return compare(component == null ? "" : myDecorator.getText(component), pattern);
+      return compare(component == null ? "" : StructureTreeDecorator.toString(component), pattern);
     }
   }
 
