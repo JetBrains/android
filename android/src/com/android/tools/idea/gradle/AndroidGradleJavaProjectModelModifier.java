@@ -23,7 +23,6 @@ import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySp
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.model.java.JavaModel;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.testing.TestArtifactSearchScopes;
@@ -47,7 +46,6 @@ import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.concurrency.AsyncPromise;
@@ -58,7 +56,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import static com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST;
 import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.*;
 import static com.android.tools.idea.gradle.util.GradleUtil.getDependencies;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
@@ -70,32 +67,27 @@ import static com.intellij.openapi.util.io.FileUtil.splitPath;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModifier {
-  @NotNull private final Project myProject;
-
-  public AndroidGradleJavaProjectModelModifier(@NotNull Project project) {
-    myProject = project;
-  }
-
   @Nullable
   @Override
   public Promise<Void> addModuleDependency(@NotNull Module from, @NotNull Module to, @NotNull DependencyScope scope) {
+    Project project = from.getProject();
     VirtualFile openedFile = FileEditorManagerEx.getInstanceEx(from.getProject()).getCurrentFile();
     String gradlePath = getGradlePath(to);
-    final GradleBuildModel buildModel = GradleBuildModel.get(from);
+    GradleBuildModel buildModel = GradleBuildModel.get(from);
 
     if (buildModel != null && gradlePath != null) {
       DependenciesModel dependencies = buildModel.dependencies();
       String configurationName = getConfigurationName(from, scope, openedFile);
       dependencies.addModule(configurationName, gradlePath, null);
 
-      new WriteCommandAction(myProject, "Add Gradle Module Dependency") {
+      new WriteCommandAction(project, "Add Gradle Module Dependency") {
         @Override
         protected void run(@NotNull Result result) throws Throwable {
           buildModel.applyChanges();
-          registerUndoAction(myProject);
+          registerUndoAction(project);
         }
       }.execute();
-      return requestProjectSync(myProject);
+      return requestProjectSync(project);
     }
 
     if ((buildModel == null) ^ (gradlePath == null)) {
@@ -121,7 +113,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
     if (!isBuildWithGradle(from)) {
       return null;
     }
-    ArtifactDependencySpec dependencySpec = findNewExternalDependency(library);
+    ArtifactDependencySpec dependencySpec = findNewExternalDependency(from.getProject(), library);
     if (dependencySpec == null) {
       return Promise.REJECTED;
     }
@@ -129,17 +121,18 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
   }
 
   @Nullable
-  private Promise<Void> addExternalLibraryDependency(@NotNull Collection<Module> modules,
-                                                     @NotNull ArtifactDependencySpec dependencySpec,
-                                                     @NotNull DependencyScope scope) {
+  private static Promise<Void> addExternalLibraryDependency(@NotNull Collection<Module> modules,
+                                                            @NotNull ArtifactDependencySpec dependencySpec,
+                                                            @NotNull DependencyScope scope) {
     Module firstModule = Iterables.getFirst(modules, null);
     if (firstModule == null) {
       return null;
     }
+    Project project = firstModule.getProject();
 
     VirtualFile openedFile = FileEditorManagerEx.getInstanceEx(firstModule.getProject()).getCurrentFile();
 
-    final List<GradleBuildModel> buildModelsToUpdate = Lists.newArrayList();
+    List<GradleBuildModel> buildModelsToUpdate = Lists.newArrayList();
     for (Module module : modules) {
       GradleBuildModel buildModel = GradleBuildModel.get(module);
       if (buildModel == null) {
@@ -151,27 +144,28 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
       buildModelsToUpdate.add(buildModel);
     }
 
-    new WriteCommandAction(myProject, "Add Gradle Library Dependency") {
+    new WriteCommandAction(project, "Add Gradle Library Dependency") {
       @Override
       protected void run(@NotNull Result result) throws Throwable {
         for (GradleBuildModel buildModel : buildModelsToUpdate) {
           buildModel.applyChanges();
         }
-        registerUndoAction(myProject);
+        registerUndoAction(project);
       }
     }.execute();
 
-    return requestProjectSync(myProject);
+    return requestProjectSync(project);
   }
 
   @Nullable
   @Override
   public Promise<Void> changeLanguageLevel(@NotNull Module module, @NotNull LanguageLevel level) {
+    Project project = module.getProject();
     if (!isBuildWithGradle(module)) {
       return null;
     }
 
-    final GradleBuildModel buildModel = GradleBuildModel.get(module);
+    GradleBuildModel buildModel = GradleBuildModel.get(module);
     if (buildModel == null) {
       return null;
     }
@@ -191,51 +185,38 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
       javaModel.setTargetCompatibility(level);
     }
 
-    new WriteCommandAction(myProject, "Change Gradle Language Level") {
+    new WriteCommandAction(project, "Change Gradle Language Level") {
       @Override
       protected void run(@NotNull Result result) throws Throwable {
         buildModel.applyChanges();
-        registerUndoAction(myProject);
+        registerUndoAction(project);
       }
     }.execute();
 
-    return requestProjectSync(myProject);
+    return requestProjectSync(project);
   }
 
   @NotNull
   private static String getConfigurationName(@NotNull Module module, @NotNull  DependencyScope scope, @Nullable VirtualFile openedFile) {
     if (!scope.isForProductionCompile()) {
-      if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
-        TestArtifactSearchScopes testScopes = TestArtifactSearchScopes.get(module);
+      TestArtifactSearchScopes testScopes = TestArtifactSearchScopes.get(module);
 
-        if (testScopes != null && openedFile != null) {
-          if (testScopes.isAndroidTestSource(openedFile)) {
-            return ANDROID_TEST_COMPILE;
-          } else {
-            return TEST_COMPILE;
-          }
-        }
-        return COMPILE;
-      } else {
-        AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-        if (androidFacet != null) {
-          AndroidGradleModel androidModel = AndroidGradleModel.get(androidFacet);
-          if (androidModel != null && ARTIFACT_ANDROID_TEST.equals(androidModel.getSelectedTestArtifactName())) {
-            return ANDROID_TEST_COMPILE;
-          }
+      if (testScopes != null && openedFile != null) {
+        if (testScopes.isAndroidTestSource(openedFile)) {
+          return ANDROID_TEST_COMPILE;
         }
         return TEST_COMPILE;
       }
+      return COMPILE;
     }
     return COMPILE;
   }
 
-  private static Map<String, String> externalLibraryVersions = ImmutableMap
-    .of("net.jcip:jcip-annotations", "1.0",
-        "org.jetbrains:annotations-java5", "15.0",
-        "org.jetbrains:annotations", "15.0",
-        "junit:junit", "4.12",
-        "org.testng:testng", "6.9.6");
+  private final static Map<String, String> externalLibraryVersions = ImmutableMap.of("net.jcip:jcip-annotations", "1.0",
+                                                                                     "org.jetbrains:annotations-java5", "15.0",
+                                                                                     "org.jetbrains:annotations", "15.0",
+                                                                                     "junit:junit", "4.12",
+                                                                                     "org.testng:testng", "6.9.6");
 
   @Nullable
   private static String selectVersion(@NotNull ExternalLibraryDescriptor descriptor) {
@@ -244,7 +225,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
   }
 
   private static Promise<Void> requestProjectSync(@NotNull Project project) {
-    final AsyncPromise<Void> promise = new AsyncPromise<>();
+    AsyncPromise<Void> promise = new AsyncPromise<>();
     GradleProjectImporter.getInstance().requestProjectSync(project, false, new GradleSyncListener.Adapter() {
       @Override
       public void syncSucceeded(@NotNull Project project) {
@@ -260,7 +241,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
     return promise;
   }
 
-  private static void registerUndoAction(@NotNull final Project project) {
+  private static void registerUndoAction(@NotNull Project project) {
     UndoManager.getInstance(project).undoableActionPerformed(new BasicUndoableAction() {
       @Override
       public void undo() throws UnexpectedUndoException {
@@ -278,12 +259,12 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
    * Given a library entry, find out its corresponded gradle dependency entry like 'group:name:version".
    */
   @Nullable
-  private ArtifactDependencySpec findNewExternalDependency(@NotNull Library library) {
+  private static ArtifactDependencySpec findNewExternalDependency(@NotNull Project project, @NotNull Library library) {
     if (library.getName() == null) {
       return null;
     }
     ArtifactDependencySpec result = null;
-    for (Module module : ModuleManager.getInstance(myProject).getModules()) {
+    for (Module module : ModuleManager.getInstance(project).getModules()) {
       AndroidGradleModel androidGradleModel = AndroidGradleModel.get(module);
       if (androidGradleModel != null && findLibrary(module, library.getName()) != null) {
         result = findNewExternalDependency(library, androidGradleModel);
@@ -298,7 +279,8 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
   }
 
   @Nullable
-  private static ArtifactDependencySpec findNewExternalDependency(@NotNull Library library, @NotNull AndroidGradleModel androidModel) {
+  private static ArtifactDependencySpec findNewExternalDependency(@NotNull Library library,
+                                                                  @NotNull AndroidGradleModel androidModel) {
     GradleVersion modelVersion = androidModel.getModelVersion();
 
     BaseArtifact testArtifact = androidModel.findSelectedTestArtifactInSelectedVariant();

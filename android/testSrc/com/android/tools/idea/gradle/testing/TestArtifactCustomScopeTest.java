@@ -17,17 +17,13 @@ package com.android.tools.idea.gradle.testing;
 
 import com.android.tools.idea.gradle.testing.TestArtifactCustomScopeProvider.AndroidTestsScope;
 import com.android.tools.idea.gradle.testing.TestArtifactCustomScopeProvider.UnitTestsScope;
-import com.android.tools.idea.templates.AndroidGradleArtifactsTestCase;
+import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.search.scope.packageSet.PackageSetBase;
 
 import static com.intellij.openapi.vfs.VfsUtilCore.findRelativeFile;
 
-public class TestArtifactCustomScopeTest extends AndroidGradleArtifactsTestCase {
-  @Override
-  protected boolean loadAllTestArtifacts() {
-    return true;
-  }
+public class TestArtifactCustomScopeTest extends AndroidGradleTestCase {
 
   @Override
   public void setUp() throws Exception {

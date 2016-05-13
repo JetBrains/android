@@ -15,20 +15,14 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.annotations.NonNull;
 import com.android.ddmlib.IDevice;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.templates.AndroidGradleArtifactsTestCase;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TestName;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import com.android.tools.idea.templates.AndroidGradleTestCase;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
@@ -37,43 +31,7 @@ import static org.mockito.Mockito.mock;
 /**
  * Tests for {@link GradleApkProvider}.
  */
-@RunWith(Parameterized.class)
-public class GradleApkProviderTest extends AndroidGradleArtifactsTestCase {
-  @Parameterized.Parameter
-  public boolean myLoadAllTestArtifacts;
-
-  @Parameterized.Parameters
-  public static Collection<Object[]> data() {
-    return Arrays.asList(new Object[][] {
-      { false }, { true }
-    });
-  }
-
-  @Rule public TestName testName = new TestName();
-
-  @Override
-  protected boolean loadAllTestArtifacts() {
-    return myLoadAllTestArtifacts;
-  }
-
-  @Override
-  public String getName() {
-    return testName.getMethodName();
-  }
-
-  @Before
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
-  }
-
-  @After
-  @Override
-  public void tearDown() throws Exception {
-    super.tearDown();
-  }
-
-  @Test
+public class GradleApkProviderTest extends AndroidGradleTestCase {
   public void testGetApks() throws Exception {
     loadProject("projects/runConfig/activity");
     GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, new GradleApplicationIdProvider(myAndroidFacet), false);
@@ -87,7 +45,6 @@ public class GradleApkProviderTest extends AndroidGradleArtifactsTestCase {
     assertThat(path).endsWith(getName() + "-debug.apk");
   }
 
-  @Test
   public void testGetApksForTest() throws Exception {
     loadProject("projects/runConfig/activity");
     GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, new GradleApplicationIdProvider(myAndroidFacet), true);
@@ -119,7 +76,6 @@ public class GradleApkProviderTest extends AndroidGradleArtifactsTestCase {
     }
   }
 
-  @Test
   public void testGetApksForTestOnlyModule() throws Exception {
     loadProject("projects/testOnlyModule", "test");
     GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, new GradleApplicationIdProvider(myAndroidFacet), true);
