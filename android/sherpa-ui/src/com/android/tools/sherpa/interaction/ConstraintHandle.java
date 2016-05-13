@@ -610,7 +610,7 @@ public class ConstraintHandle {
             }
         } else {
             addPathConnection(transform, g, isSelected, showMargin, drawing, colorSet,
-                    targetHandle.getDrawX(), targetHandle.getDrawY());
+                    targetHandle.getDrawX(), targetHandle.getDrawY(), targetHandle.getAnchor().isConnected());
         }
 
         // If a lock timer is active, draw the path a second time
@@ -687,7 +687,7 @@ public class ConstraintHandle {
 
         ConnectionDrawing drawing = new ConnectionDrawing();
         addPathConnection(transform, g, isSelected, false, drawing, colorSet,
-                (int) target.getX(), (int) target.getY());
+                (int) target.getX(), (int) target.getY(), false);
 
         boolean drawShadow = isSelected
                 && mAnchor.getConnectionCreator() != ConstraintAnchor.AUTO_CONSTRAINT_CREATOR;
@@ -716,7 +716,7 @@ public class ConstraintHandle {
     private void addPathConnection(ViewTransform transform, Graphics2D g,
             boolean isSelected,
             boolean showMargin, ConnectionDrawing drawing, ColorSet colorSet, int targetX,
-            int targetY) {
+            int targetY, boolean isConnected) {
 
         int radius = 4;
         int sradius = transform.getSwingDimension(radius);
@@ -737,10 +737,13 @@ public class ConstraintHandle {
         int controlDistance = transform.getSwingDimension(maxDistance);
 
         int delta = ConnectionDraw.CONNECTION_ANCHOR_SIZE;
-        if (isVertical) {
-            x1 = x0 < x1 ? x1 - delta : x1 + delta;
-        } else {
-            y1 = y0 < y1 ? y1 - delta : y1 + delta;
+        if (isConnected) {
+            if (isVertical) {
+                x1 = x0 < x1 ? x1 - delta : x1 + delta;
+            }
+            else {
+                y1 = y0 < y1 ? y1 - delta : y1 + delta;
+            }
         }
 
         // If the connection points to our parent, draw the connection in a straight line
@@ -761,7 +764,7 @@ public class ConstraintHandle {
             if (isTopConnection) {
                 controlDistance = -controlDistance;
             }
-            if (mAnchor.getTarget() != null
+            if (isConnected && mAnchor.getTarget() != null
                     && mAnchor.getType() == mAnchor.getTarget().getType()
                     && !isBaseline
                     && mAnchor.getMargin() == 0) {
@@ -874,7 +877,7 @@ public class ConstraintHandle {
             if (isLeftConnection) {
                 controlDistance = -controlDistance;
             }
-            if (mAnchor.getTarget() != null
+            if (isConnected && mAnchor.getTarget() != null
                     && mAnchor.getType() == mAnchor.getTarget().getType()
                     & mAnchor.getMargin() == 0) {
                 int base = x0 - sradius - ConnectionDraw.ARROW_SIDE;
@@ -979,10 +982,13 @@ public class ConstraintHandle {
         int x1 = transform.getSwingFX(targetHandle.getDrawX());
         int y1 = transform.getSwingFY(targetHandle.getDrawY());
         int delta = ConnectionDraw.CONNECTION_ANCHOR_SIZE;
-        if (isVertical) {
-            x1 = x0 < x1 ? x1 - delta : x1 + delta;
-        } else {
-            y1 = y0 < y1 ? y1 - delta : y1 + delta;
+        if (targetHandle.getAnchor().isConnected()) {
+            if (isVertical) {
+                x1 = x0 < x1 ? x1 - delta : x1 + delta;
+            }
+            else {
+                y1 = y0 < y1 ? y1 - delta : y1 + delta;
+            }
         }
         drawing.mPath.moveTo(x0, y0);
         if (isVertical) {
@@ -1201,7 +1207,9 @@ public class ConstraintHandle {
 
             int sxt = transform.getSwingFX(xt);
             int syt = transform.getSwingFY(yt);
-            syt = t < yt ? syt - delta : syt + delta;
+            if (targetHandle.getAnchor().isConnected()) {
+                syt = t < yt ? syt - delta : syt + delta;
+            }
 
             if (rightConnection) {
                 addQuarterArc(drawing.mPath, transform.getSwingFX(connectionX),
@@ -1300,8 +1308,9 @@ public class ConstraintHandle {
 
             int sxt = transform.getSwingFX(xt);
             int syt = transform.getSwingFY(yt);
-            sxt = l < xt ? sxt - delta : sxt + delta;
-
+            if (targetHandle.getAnchor().isConnected()) {
+                sxt = l < xt ? sxt - delta : sxt + delta;
+            }
             if (bottomConnection) {
                 addQuarterArc(drawing.mPath,
                         transform.getSwingFX(x6),
@@ -1355,10 +1364,13 @@ public class ConstraintHandle {
 
         int xdelta = 0;
         int ydelta = 0;
-        if (isVerticalConnection) {
-            xdelta = x0 > xt ? - delta : delta;
-        } else {
-            ydelta = y0 < yt ? - delta : delta;
+        if (targetHandle.getAnchor().isConnected()) {
+            if (isVerticalConnection) {
+                xdelta = x0 > xt ? -delta : delta;
+            }
+            else {
+                ydelta = y0 < yt ? -delta : delta;
+            }
         }
 
         if (isVerticalConnection) {
