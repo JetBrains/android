@@ -25,6 +25,7 @@ import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.xdebugger.breakpoints.XBreakpointType;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.Set;
@@ -46,6 +47,7 @@ public interface AndroidDebugger<S extends AndroidDebuggerState> {
 
   @NotNull
   DebugConnectorTask getConnectDebuggerTask(@NotNull ExecutionEnvironment env,
+                                            @Nullable AndroidVersion version,
                                             @NotNull Set<String> applicationIds,
                                             @NotNull AndroidFacet facet,
                                             @NotNull S state,
@@ -56,7 +58,21 @@ public interface AndroidDebugger<S extends AndroidDebuggerState> {
   void attachToClient(@NotNull Project project, @NotNull Client client);
 
   @NotNull
-  Set<XBreakpointType<?, ?>> getSupportedBreakpointTypes(@NotNull AndroidVersion version);
+  Set<XBreakpointType<?, ?>> getSupportedBreakpointTypes(@NotNull Project project, @NotNull AndroidVersion version);
+
+  /**
+   * Indicates whether this debugger works with the given gradle plugin generation.
+   * @param generation A generation from {@linkAndroidProject}.
+   * @return true if it works with that generation.
+   */
+  boolean supportsPluginGeneration(int generation);
+
+  /**
+   * Indicates whether this debugger should be the default for the given gradle plugin generation.
+   * @param generation A generation from {@linkAndroidProject}.
+   * @return true if it should be the default for that generation.
+   */
+  boolean shouldBeDefault(int generation);
 
   class Renderer extends ColoredListCellRenderer<AndroidDebugger> {
     @Override
@@ -66,5 +82,5 @@ public interface AndroidDebugger<S extends AndroidDebuggerState> {
   }
 
   @NotNull
-  String getAmStartOptions(@NotNull S state, @NotNull AndroidVersion version);
+  String getAmStartOptions(@NotNull S state, @NotNull Project project, @NotNull AndroidVersion version);
 }

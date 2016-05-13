@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.run.editor;
 
+import com.android.builder.model.AndroidProject;
 import com.android.ddmlib.Client;
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.tasks.ConnectJavaDebuggerTask;
 import com.android.tools.idea.run.tasks.DebugConnectorTask;
 import com.google.common.collect.ImmutableSet;
@@ -23,7 +25,10 @@ import com.intellij.debugger.impl.DebuggerSession;
 import com.intellij.debugger.ui.breakpoints.JavaFieldBreakpointType;
 import com.intellij.debugger.ui.breakpoints.JavaLineBreakpointType;
 import com.intellij.debugger.ui.breakpoints.JavaMethodBreakpointType;
-import com.intellij.execution.*;
+import com.intellij.execution.ExecutionHelper;
+import com.intellij.execution.ProgramRunnerUtil;
+import com.intellij.execution.RunManager;
+import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.remote.RemoteConfiguration;
@@ -37,6 +42,7 @@ import com.intellij.xdebugger.XDebugSession;
 import com.intellij.xdebugger.breakpoints.XBreakpointType;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -86,6 +92,7 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
   @NotNull
   @Override
   public DebugConnectorTask getConnectDebuggerTask(@NotNull ExecutionEnvironment env,
+                                                   @Nullable AndroidVersion version,
                                                    @NotNull Set<String> applicationIds,
                                                    @NotNull AndroidFacet facet,
                                                    @NotNull AndroidDebuggerState state,
@@ -163,5 +170,10 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
       return activateDebugSessionWindow(project, descriptors.iterator().next());
     }
     return false;
+  }
+
+  @Override
+  public boolean shouldBeDefault(int generation) {
+    return generation != AndroidProject.GENERATION_COMPONENT;
   }
 }
