@@ -233,6 +233,7 @@ public class AccordionLayout implements LayoutManager2, Animatable {
     Insets insets = parent.getInsets();
     int maxWidth = parent.getWidth() - (insets.left + insets.right);
     int maxHeight = parent.getHeight() - (insets.top + insets.bottom);
+    int remainingSpace = mOrientation == Orientation.VERTICAL ? maxHeight : maxWidth;
 
     // Temp cache to track components that have been clamped to their getMinSize(), so they can
     // be taken out of the fluid size calculations.
@@ -240,7 +241,7 @@ public class AccordionLayout implements LayoutManager2, Animatable {
 
     // Based on whether components are clamped, we might need to reiterate the loop. Saving
     // the dimension info until the loop is done so setBounds is only called once.
-    HashMap<Component, Rectangle2D.Float> layoutInfos = new HashMap<>();
+    HashMap<Component, Point> layoutInfos = new HashMap<>();
 
     float totalUsedSpace = 0;
     float otherStatesPreoccupiedSpace = 0;
@@ -249,6 +250,9 @@ public class AccordionLayout implements LayoutManager2, Animatable {
     float currentStateFluidSpace = 0;
     int currentStateStartIndex = -1;
     AccordionState currentState = null;
+
+    // Caching the first component that has not been clamped and assign the remaining pixels to it.
+    Component componentToFill = null;
 
     // The mComponentInfos list is sorted based on the Accordion.State enum order. So first we
     // determine the bounds for the MAXIMIZED components, followed by MINIMIZED then PREFERRED.
@@ -306,17 +310,33 @@ public class AccordionLayout implements LayoutManager2, Animatable {
             currentStateUsedSpace = 0;
             i = currentStateStartIndex - 1;
             continue;
+          } else if (componentToFill == null) {
+            // Cache only the first unclamped component.
+            componentToFill = info.component;
           }
         }
+      } else if (info.component == componentToFill) {
+        // If the cached first unclamped component has been clamped, reset the cache.
+        componentToFill = null;
       }
 
       currentStateUsedSpace += size;
       switch (mOrientation) {
         case HORIZONTAL:
-          layoutInfos.put(info.component, new Rectangle2D.Float(0, 0, size, maxHeight));
+          if (layoutInfos.containsKey(info.component)) {
+            remainingSpace += layoutInfos.get(info.component).x;
+          }
+          int width = Math.round(size);
+          layoutInfos.put(info.component, new Point(width, maxHeight));
+          remainingSpace -= width;
           break;
         case VERTICAL:
-          layoutInfos.put(info.component, new Rectangle2D.Float(0, 0, maxWidth, size));
+          if (layoutInfos.containsKey(info.component)) {
+            remainingSpace += layoutInfos.get(info.component).y;
+          }
+          int height = Math.round(size);
+          layoutInfos.put(info.component, new Point(maxWidth, height));
+          remainingSpace -= height;
           break;
       }
     }
@@ -325,18 +345,27 @@ public class AccordionLayout implements LayoutManager2, Animatable {
     int currY = insets.top;
     synchronized (parent.getTreeLock()) {
       for (Component comp : parent.getComponents()) {
-        // TODO the integer API of setBounds causing rounding errors in the layout.
-        Rectangle2D.Float rect = layoutInfos.get(comp);
-        int width = Math.round(rect.width);
-        int height = Math.round(rect.height);
-        comp.setBounds(currX, currY, width, height);
+        // Assign remaining space to the last component that has not been clamped.
+        Point size = layoutInfos.get(comp);
+        if (componentToFill == comp) {
+          switch (mOrientation) {
+            case HORIZONTAL:
+              size.x += remainingSpace;
+              break;
+            case VERTICAL:
+              size.y += remainingSpace;
+              break;
+          }
+        }
+
+        comp.setBounds(currX, currY, size.x, size.y);
 
         switch (mOrientation) {
           case HORIZONTAL:
-            currX += width;
+            currX += size.x;
             break;
           case VERTICAL:
-            currY += height;
+            currY += size.y;
             break;
         }
       }
