@@ -260,6 +260,7 @@ public class AndroidIcons {
     public static final Icon CenterAligned = load("/icons/sherpa/center-aligned_b.png");
     public static final Icon ConstraintInfo = load("/icons/sherpa/question.png");
     public static final Icon DeleteConstraint = load("/icons/sherpa/delete-constraints.png");
+    public static final Icon DeleteConstraintB = load("/icons/sherpa/delete-constraints_b.png");
     public static final Icon Hide = load("/icons/sherpa/hide.png");
     public static final Icon HorizontalCenterB = load("/icons/sherpa/center-constraint-horizontally.png");
     public static final Icon HorizontalCenter = load("/icons/sherpa/center-constraint-horizontally_b.png");
