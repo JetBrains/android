@@ -26,7 +26,7 @@ import com.intellij.psi.TokenType;
 
 %class _ProguardLexer
 %implements FlexLexer
-%unicode
+%unicode 2.0
 %function advance
 %type IElementType
 

@@ -16,7 +16,7 @@ import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.*;
 %implements FlexLexer
 %function advance
 %type IElementType
-%unicode
+%unicode 2.0
 
 EOL="\r"|"\n"|"\r\n"
 LINE_WS=[\ \t\f]
