@@ -210,10 +210,12 @@ public class LineChart extends AnimatedComponent implements ReportingSeriesRende
       double yMax = ranged.getYRange().getMax();
       long prevX = 0;
       long prevY = 0;
+
       // Amount in percentage the dash pattern has been drawn.
       float currentDashPercentage = 1f;
 
-      double firstXd = 0f; // X coordinate of the first destination point
+      // X coordinate of the first destination point
+      double firstXd = 0f;
       // TODO optimize to not draw anything before or after min and max.
       int size = ranged.getSeries().size();
       for (int i = 0; i < size; i++) {
@@ -232,13 +234,14 @@ public class LineChart extends AnimatedComponent implements ReportingSeriesRende
           yd += lastStackedSeriesY.get(i);
         }
         currentSeriesY.add(yd);
+        // Swing's (0, 0) coordinate is in top-left. As we use bottom-left (0, 0), we need to adjust the y coordinate.
+        float adjustedYd = 1 - (float) yd;
 
         if (i == 0) {
-          path.moveTo(xd, 1.0f);
-          currentPath.add(new Point2D.Float((float)xd, 1f));
+          path.moveTo(xd, adjustedYd);
+          currentPath.add(new Point2D.Float((float) xd, adjustedYd));
           firstXd = xd;
-        }
-        else {
+        } else {
           // Dashing only applies if we are not in fill mode.
           if (config.isDashed() && !config.isFilled()) {
             if (config.isStepped()) {
@@ -248,9 +251,8 @@ public class LineChart extends AnimatedComponent implements ReportingSeriesRende
               prevX = currX;
             }
             currentDashPercentage = drawDash(path, currentDashPercentage,
-                                             prevX, prevY, currX, currY, xd, 1.0f - yd);
-          }
-          else {
+                                             prevX, prevY, currX, currY, xd, adjustedYd);
+          } else {
             // If the chart is stepped, a horizontal line should be drawn from the current
             // point (e.g. (x0, y0)) to the destination's X value (e.g. (x1, y0)) before
             // drawing a line to the destination point itself (e.g. (x1, y1)).
@@ -259,15 +261,14 @@ public class LineChart extends AnimatedComponent implements ReportingSeriesRende
               path.lineTo(xd, y);
               currentPath.add(new Point2D.Float((float)xd, y));
             }
-            float y = (float)(1.0 - yd);
-            path.lineTo(xd, y);
-            currentPath.add(new Point2D.Float((float)xd, y));
+            path.lineTo(xd, adjustedYd);
+            currentPath.add(new Point2D.Float((float)xd, adjustedYd));
           }
         }
 
         if (mMarkedData.contains(currX)) {
           // Cache the point as a percentage that will be used to place the markers in draw()
-          Point2D.Float point = new Point2D.Float((float)xd, (float)(1 - yd));
+          Point2D.Float point = new Point2D.Float((float)xd, adjustedYd);
           mMarkerPositions.add(point);
         }
 
@@ -285,8 +286,7 @@ public class LineChart extends AnimatedComponent implements ReportingSeriesRende
           while (j-- > 0) {
             path.lineTo(lastStackedPath.get(j).getX(), lastStackedPath.get(j).getY());
           }
-        }
-        else {
+        } else {
           // If the chart is filled, but not stacked, draw a line from the last point to X
           // axis and another one from this new point to the first destination point.
           path.lineTo(path.getCurrentPoint().getX(), 1f);
@@ -324,8 +324,7 @@ public class LineChart extends AnimatedComponent implements ReportingSeriesRende
         newColorRGBA |= ALPHA_MASK; // set new alpha
         g2d.setColor(new Color(newColorRGBA, true));
         g2d.fill(shape);
-      }
-      else {
+      } else {
         g2d.draw(shape);
       }
       i++;
@@ -429,8 +428,7 @@ public class LineChart extends AnimatedComponent implements ReportingSeriesRende
 
         currentDashPosition -= pathLengthToDraw;
         pathLength -= pathLengthToDraw;
-      }
-      else {
+      } else {
         // Treats the last half of dashLength as space, skip forward.
         float pathLengthToDraw = pathLength > currentDashPosition ?
                                  currentDashPosition : pathLength;
