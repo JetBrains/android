@@ -423,14 +423,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     ConstraintModel constraintModel = ConstraintModel.getConstraintModel(screenView.getModel());
     DrawConstraintModel drawConstraintModel = ConstraintModel.getDrawConstraintModel(screenView);
     updateActions(constraintModel.getSelection());
-    if (false) {
-      // TODO: fix the selection coming from the model
-      SelectionModel selectionModel = screenView.getSelectionModel();
-      for (NlComponent selection : selectionModel.getSelection()) {
-        constraintModel.selectComponent(selection);
-      }
-    }
-
     return drawConstraintModel.paint(gc, Coordinates.getSwingDimension(screenView, component.w),
                                      Coordinates.getSwingDimension(screenView, component.h),
                                      myShowAllConstraints);

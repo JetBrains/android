@@ -109,16 +109,6 @@ public class ConstraintInteraction extends Interaction {
     model.updateModifiers(modifiers);
     model.mouseReleased(ax, ay);
 
-    SelectionModel selectionModel = myScreenView.getSelectionModel();
-    selectionModel.clear();
-    ArrayList<NlComponent> components = new ArrayList<>();
-    Selection selection = model.getConstraintModel().getSelection();
-    for (Selection.Element selectedElement : selection.getElements()) {
-      WidgetCompanion companion = (WidgetCompanion)selectedElement.widget.getCompanionWidget();
-      NlComponent component = (NlComponent)companion.getWidgetModel();
-      components.add(component);
-    }
-    selectionModel.setSelection(components);
     myScreenView.getSurface().repaint();
   }
 

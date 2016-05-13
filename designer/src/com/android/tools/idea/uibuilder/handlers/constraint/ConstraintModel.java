@@ -40,7 +40,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * Maintains a constraint model shadowing the current NlModel
  * and handles the user interactions on it
  */
-public class ConstraintModel implements ModelListener {
+public class ConstraintModel implements ModelListener, SelectionListener, Selection.SelectionListener {
 
   public static final int DEFAULT_DENSITY = 160;
   private static final boolean DEBUG = false;
@@ -219,6 +219,59 @@ public class ConstraintModel implements ModelListener {
   }
 
   /**
+   * Something has changed on the selection of NlModel
+   *
+   * @param model the NlModel selection model
+   * @param selection the list of selected NlComponents
+   */
+  @Override
+  public void selectionChanged(@NotNull SelectionModel model, @NotNull List<NlComponent> selection) {
+    if (selection.isEmpty()) {
+      return;
+    }
+    boolean different = selection.size() != mySelection.size();
+    if (!different) {
+      for (NlComponent component : model.getSelection()) {
+        if (!mySelection.contains(myWidgetsScene.getWidget(component))) {
+          different = true;
+          break;
+        }
+      }
+    }
+    if (!different) {
+      return;
+    }
+    mySelection.silentClear();
+    for (NlComponent component : model.getSelection()) {
+      ConstraintWidget widget = myWidgetsScene.getWidget(component.getTag());
+      if (widget != null && !widget.isRoot()) {
+        mySelection.silentAdd(widget);
+      }
+    }
+  }
+
+  /**
+   * Something has changed in our selection
+   *
+   * @param selection our internal selection object
+   */
+  @Override
+  public void onSelectionChanged(Selection selection) {
+    SelectionModel selectionModel = myNlModel.getSelectionModel();
+    if (selection.isEmpty()) {
+      selectionModel.clear();
+      return;
+    }
+    List<NlComponent> components = new ArrayList<>();
+    for (Selection.Element selectedElement : mySelection.getElements()) {
+      WidgetCompanion companion = (WidgetCompanion)selectedElement.widget.getCompanionWidget();
+      NlComponent component = (NlComponent)companion.getWidgetModel();
+      components.add(component);
+    }
+    selectionModel.setSelection(components);
+  }
+
+  /**
    * Timer class managing the xml save behaviour
    * We only want to save if we are not doing something else...
    */
@@ -273,6 +326,8 @@ public class ConstraintModel implements ModelListener {
     myNlModel = model;
     mySelection.setSelectedAnchor(null);
     myWidgetsScene.setSelection(mySelection);
+    model.getSelectionModel().addListener(this);
+    mySelection.addSelectionListener(this);
   }
 
   /**
@@ -454,19 +509,6 @@ public class ConstraintModel implements ModelListener {
     ConstraintUtilities.updateWidget(this, widget, component, deepUpdate);
     for (NlComponent child : component.getChildren()) {
       updateSolverWidgetFromComponent(child, deepUpdate);
-    }
-  }
-
-  /**
-   * Mark the given component as being selected
-   *
-   * @param component
-   */
-  public void selectComponent(@NotNull NlComponent component) {
-    // TODO: move to NlModel's selection system
-    ConstraintWidget widget = myWidgetsScene.getWidget(component.getTag());
-    if (widget != null && !widget.isRoot()) {
-      mySelection.add(widget);
     }
   }
 
