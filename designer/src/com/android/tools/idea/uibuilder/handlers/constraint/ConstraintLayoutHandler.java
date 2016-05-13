@@ -28,6 +28,7 @@ import com.android.tools.sherpa.scout.Scout;
 import com.android.tools.sherpa.structure.Selection;
 import com.android.tools.sherpa.structure.WidgetsScene;
 import android.support.constraint.solver.widgets.ConstraintAnchor;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
 import org.intellij.lang.annotations.JdkConstants.InputEventMask;
@@ -560,8 +561,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       }
       catch (Exception e) {
         // TODO show dialog the inference failed
-        System.err.println("Error in inferring constraints");
-        e.printStackTrace();
+        Logger.getInstance(ConstraintLayoutHandler.class).warn("Error in inferring constraints", e);
       }
       model.saveToXML(true);
       model.setNeedsAnimateConstraints(ConstraintAnchor.SCOUT_CREATOR);
