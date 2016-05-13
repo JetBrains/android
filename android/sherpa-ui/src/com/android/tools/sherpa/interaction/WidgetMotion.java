@@ -26,7 +26,7 @@ import android.support.constraint.solver.widgets.Animator;
 import android.support.constraint.solver.widgets.ConstraintAnchor;
 import android.support.constraint.solver.widgets.ConstraintWidget;
 
-import java.awt.Point;
+import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 
@@ -50,7 +50,7 @@ public class WidgetMotion {
 
     private static final int GRID_SPACING = 8; // Material Design 8dp grid
     private SceneDraw mSceneDraw;
-
+    private Point candidatePoint = new Point();
     private enum Direction {
         LEFT,
         UP,
@@ -114,12 +114,19 @@ public class WidgetMotion {
         } else {
             widget.directionLocked = Selection.DIRECTION_UNLOCKED;
         }
-        Point candidatePoint = new Point(x - dX, y - dY);
-        if (candidatePoint.x < 0) {
-            candidatePoint.x = 0;
-        }
-        if (candidatePoint.y < 0) {
-            candidatePoint.y = 0;
+        candidatePoint.setLocation(x - dX, y - dY);
+        ConstraintWidget base = widget.widget.getParent();
+        if (base != null) { // limit motion to inside base
+            if (candidatePoint.x < base.getX()) {
+                candidatePoint.x = base.getX();
+            } else if (candidatePoint.x > base.getRight()){
+                candidatePoint.x = base.getRight();
+            }
+            if (candidatePoint.y < base.getY()) {
+                candidatePoint.y = base.getY();
+            }else if (candidatePoint.y > base.getBottom()){
+                candidatePoint.y = base.getBottom();
+            }
         }
         mSnapCandidates.clear();
         ArrayList<ConstraintWidget> widgetsToCheck = new ArrayList<>();
