@@ -69,7 +69,6 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
 
   private ScreenView myScreenView;
   private NlModel myModel;
-  private boolean myWasExpanded;
   private TreePath myInsertionPath;
   private InsertionPoint myInsertionPoint;
   private boolean mySkipWait;
@@ -194,9 +193,6 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
 
         try {
           mySelectionIsUpdating.set(true);
-          if (firstLoad) {
-            myWasExpanded = false;
-          }
 
           switch (resourceType) {
             case MENU:
@@ -248,9 +244,9 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   }
 
   private void updateLayoutHierarchy() {
-    new HierarchyUpdater(this).execute();
+    boolean newRootNodeAdded = new HierarchyUpdater(this).execute();
 
-    if (myWasExpanded) {
+    if (!newRootNodeAdded) {
       return;
     }
     final DefaultMutableTreeNode rootNode = (DefaultMutableTreeNode)getModel().getRoot();
@@ -272,7 +268,6 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
         path = path.getParentPath();
         expandPath(path);
       }
-      myWasExpanded = true;
     });
   }
 
