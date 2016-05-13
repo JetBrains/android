@@ -27,6 +27,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
+import static com.android.SdkConstants.ATTR_TITLE;
 import static com.android.SdkConstants.PreferenceAttributes.*;
 import static com.android.SdkConstants.PreferenceTags.LIST_PREFERENCE;
 
