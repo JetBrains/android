@@ -95,7 +95,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       WidgetDecorator.sUnlockImageIcon = iconToImage(AndroidIcons.SherpaIcons.UnlockConstraints);
     }
     if (WidgetDecorator.sDeleteConnectionsImageIcon == null) {
-      WidgetDecorator.sDeleteConnectionsImageIcon = iconToImage(AndroidIcons.SherpaIcons.DeleteConstraint);
+      WidgetDecorator.sDeleteConnectionsImageIcon = iconToImage(AndroidIcons.SherpaIcons.DeleteConstraintB);
     }
   }
 
