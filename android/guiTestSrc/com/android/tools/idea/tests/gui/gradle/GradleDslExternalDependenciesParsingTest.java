@@ -55,13 +55,16 @@ public class GradleDslExternalDependenciesParsingTest {
 
     DependenciesModel dependenciesModel = buildModel.getTarget().dependencies();
     List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
-    assertThat(dependencies).hasSize(2);
+    assertThat(dependencies).hasSize(3);
 
     ExpectedArtifactDependency expected = new ExpectedArtifactDependency(COMPILE, "appcompat-v7", "com.android.support", "23.1.1");
     expected.assertMatches(dependencies.get(0));
 
     expected = new ExpectedArtifactDependency(COMPILE, "guava", "com.google.guava", "18.0");
     expected.assertMatches(dependencies.get(1));
+
+    expected = new ExpectedArtifactDependency(COMPILE, "constraint-layout", "com.android.support.constraint", "+");
+    expected.assertMatches(dependencies.get(2));
   }
 
   @Test
@@ -72,7 +75,7 @@ public class GradleDslExternalDependenciesParsingTest {
     DependenciesModel dependenciesModel = buildModel.getTarget().dependencies();
     assertNotNull(dependenciesModel);
     List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
-    assertThat(dependencies).hasSize(2);
+    assertThat(dependencies).hasSize(3);
 
     final ArtifactDependencyModel appCompat = dependencies.get(0);
 
@@ -83,7 +86,7 @@ public class GradleDslExternalDependenciesParsingTest {
     buildModel.applyChanges();
 
     dependencies = dependenciesModel.artifacts();
-    assertThat(dependencies).hasSize(2);
+    assertThat(dependencies).hasSize(3);
 
     expected.configurationName = "compile";
     expected.group = "com.android.support";
