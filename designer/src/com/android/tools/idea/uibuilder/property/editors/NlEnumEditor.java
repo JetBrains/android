@@ -27,8 +27,6 @@ import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.FixedSizeButton;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.ColoredListCellRenderer;
-import com.intellij.ui.Gray;
-import com.intellij.ui.JBColor;
 import com.intellij.ui.UIBundle;
 import com.intellij.ui.components.JBCheckBox;
 import org.jetbrains.android.dom.AndroidDomUtil;
@@ -49,7 +47,6 @@ import java.util.Objects;
 
 public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEditor {
   private static final int SMALL_WIDTH = 65;
-  private static final JBColor DIM_TEXT_COLOR = new JBColor(Gray._128, Gray._128);
   private static final List<String> AVAILABLE_TEXT_SIZES = ImmutableList.of("8sp", "10sp", "12sp", "14sp", "18sp", "24sp", "30sp", "36sp");
   private static final List<String> AVAILABLE_LINE_SPACINGS = AVAILABLE_TEXT_SIZES;
   private static final List<String> AVAILABLE_TYPEFACES = ImmutableList.of("normal", "sans", "serif", "monospace");
@@ -123,11 +120,12 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
       @Override
       protected void customizeCellRenderer(JList list, ValueWithDisplayString value, int index, boolean selected, boolean hasFocus) {
         if (value != null) {
-          if (!selected && !myProperty.isDefaultValue(value.getValue()) && Objects.equals(value.getValue(), getValue())) {
-            myForeground = JBColor.BLUE;
+          boolean isDefaultValue = myProperty.isDefaultValue(value.getValue());
+          if (!selected && !isDefaultValue && Objects.equals(value.getValue(), getValue())) {
+            myForeground = CHANGED_VALUE_TEXT_COLOR;
           }
-          else if (index == 0 || index == myAddedValueIndex) {
-            myForeground = DIM_TEXT_COLOR;
+          else if (index == 0 || isDefaultValue) {
+            myForeground = DEFAULT_VALUE_TEXT_COLOR;
           }
           append(value.toString());
         }
@@ -227,10 +225,10 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
       model.setSelectedItem(value);
     }
     if (!myProperty.isDefaultValue(value.getValue())) {
-      myCombo.getEditor().getEditorComponent().setForeground(JBColor.BLUE);
+      myCombo.getEditor().getEditorComponent().setForeground(CHANGED_VALUE_TEXT_COLOR);
     }
     else {
-      myCombo.getEditor().getEditorComponent().setForeground(UIManager.getColor("ComboBox.foreground"));
+      myCombo.getEditor().getEditorComponent().setForeground(DEFAULT_VALUE_TEXT_COLOR);
     }
   }
 

@@ -30,7 +30,12 @@ import com.google.common.collect.Lists;
 import com.intellij.codeInsight.completion.PrefixMatcher;
 import com.intellij.codeInsight.completion.impl.CamelHumpMatcher;
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.editor.HighlighterColors;
+import com.intellij.openapi.editor.colors.EditorColorsScheme;
+import com.intellij.openapi.editor.ex.EditorEx;
+import com.intellij.openapi.editor.ex.util.EmptyEditorHighlighter;
 import com.intellij.openapi.editor.impl.EditorComponentImpl;
+import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.FixedSizeButton;
@@ -114,7 +119,7 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
     mySlider.setPreferredSize(size);
 
     myCompletionProvider = new CompletionProvider();
-    myTextFieldWithAutoCompletion = new TextFieldWithAutoCompletion<>(project, myCompletionProvider, true, null);
+    myTextFieldWithAutoCompletion = new TextEditor(project, myCompletionProvider);
     myTextFieldWithAutoCompletion.setBorder(
       BorderFactory.createEmptyBorder(VERTICAL_SPACING, HORIZONTAL_SPACING, VERTICAL_SPACING, HORIZONTAL_SPACING));
     myPanel.add(myTextFieldWithAutoCompletion, BorderLayout.CENTER);
@@ -202,11 +207,13 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
     myUpdatingProperty = true;
     try {
       myPropertyHasSlider = configureSlider();
-      mySlider.setVisible(myPropertyHasSlider);
       if (myPropertyHasSlider) {
-        myIconLabel.setVisible(false);
+        myPanel.remove(myIconLabel);
+        myPanel.add(mySlider, BorderLayout.LINE_START);
       }
       else {
+        myPanel.remove(mySlider);
+        myPanel.add(myIconLabel, BorderLayout.LINE_START);
         Icon icon = NlDefaultRenderer.getIcon(myProperty);
         myIconLabel.setIcon(icon);
         myIconLabel.setVisible(icon != null);
@@ -218,6 +225,8 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
         myLastWriteValue = propValue;
         myTextFieldWithAutoCompletion.setText(propValue);
       }
+      Color color = myProperty.isDefaultValue(myLastReadValue) ? DEFAULT_VALUE_TEXT_COLOR : CHANGED_VALUE_TEXT_COLOR;
+      myTextFieldWithAutoCompletion.setForeground(color);
     }
     finally {
       myUpdatingProperty = false;
@@ -370,6 +379,34 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
     // for some special known properties, we can narrow down the possible types (rather than the all encompassing reference type)
     ResourceType type = definition != null ? AndroidDomUtil.SPECIAL_RESOURCE_TYPES.get(definition.getName()) : null;
     return type == null ? AttributeFormat.convertTypes(formats) : new ResourceType[]{type};
+  }
+
+  private static class TextEditor extends TextFieldWithAutoCompletion<String> {
+
+    public TextEditor(@NotNull Project project, @NotNull CompletionProvider provider) {
+      super(project, provider, true, null);
+    }
+
+    @Override
+    public void addNotify() {
+      super.addNotify();
+      EditorEx editor = (EditorEx)getEditor();
+      assert editor != null;
+      EditorColorsScheme scheme = editor.getColorsScheme();
+      TextAttributes attributes = scheme.getAttributes(HighlighterColors.TEXT).clone();
+      attributes.setForegroundColor(getForeground());
+      scheme.setAttributes(HighlighterColors.TEXT, attributes);
+      editor.setHighlighter(new EmptyEditorHighlighter(attributes));
+    }
+
+    @Override
+    public void setForeground(@NotNull Color color) {
+      super.setForeground(color);
+      EditorEx editor = (EditorEx)getEditor();
+      if (editor != null) {
+        editor.getColorsScheme().getAttributes(HighlighterColors.TEXT).setForegroundColor(color);
+      }
+    }
   }
 
   private static class CompletionProvider extends TextFieldWithAutoCompletionListProvider<String> {

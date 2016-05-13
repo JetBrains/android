@@ -16,12 +16,17 @@
 package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.intellij.ui.Gray;
+import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
 public abstract class NlBaseComponentEditor implements NlComponentEditor {
+  protected static final JBColor DEFAULT_VALUE_TEXT_COLOR = new JBColor(Gray._128, Gray._128);
+  protected static final JBColor CHANGED_VALUE_TEXT_COLOR = JBColor.BLUE;
+
   private JLabel myLabel;
 
   @Nullable
