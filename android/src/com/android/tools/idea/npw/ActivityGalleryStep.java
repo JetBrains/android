@@ -51,6 +51,7 @@ public class ActivityGalleryStep extends DynamicWizardStepWithDescription {
   private static final Key<TemplateEntry[]> KEY_TEMPLATES =
     ScopedStateStore.createKey("template.list", ScopedStateStore.Scope.STEP, TemplateEntry[].class);
 
+  @NotNull
   private final FormFactor myFormFactor;
   private final Key<TemplateEntry> myCurrentSelectionKey;
   private final boolean myShowSkipEntry;
@@ -178,8 +179,7 @@ public class ActivityGalleryStep extends DynamicWizardStepWithDescription {
   @Override
   public void init() {
     super.init();
-    String formFactorName = myFormFactor.id;
-    TemplateListProvider templateListProvider = new TemplateListProvider(formFactorName, NewAndroidComponentAction.NEW_WIZARD_CATEGORIES,
+    TemplateListProvider templateListProvider = new TemplateListProvider(myFormFactor, NewAndroidComponentAction.NEW_WIZARD_CATEGORIES,
                                                                          TemplateManager.EXCLUDED_TEMPLATES);
     TemplateEntry[] list = templateListProvider.deriveValue(myState, AddAndroidActivityPath.KEY_IS_LAUNCHER, null);
     myGallery.setModel(JBList.createDefaultListModel((Object[])wrapInOptionals(list)));
