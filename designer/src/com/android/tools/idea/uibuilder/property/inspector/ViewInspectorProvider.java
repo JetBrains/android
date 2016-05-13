@@ -55,7 +55,6 @@ public class ViewInspectorProvider implements InspectorProvider {
     if (TAG_EXCEPTIONS.contains(tagName)) {
       return false;
     }
-    myInspectors.clear();
     if (myInspectors.containsKey(tagName)) {
       return true;
     }

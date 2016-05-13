@@ -121,7 +121,10 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
 
     myBrowseButton = new FixedSizeButton(new JBCheckBox());
     myBrowseButton.setToolTipText(UIBundle.message("component.with.browse.button.browse.button.tooltip.text"));
-    myPanel.add(myBrowseButton, BorderLayout.LINE_END);
+    JPanel browsePanel = new JPanel();
+    browsePanel.setLayout(new BoxLayout(browsePanel, BoxLayout.X_AXIS));
+    browsePanel.add(myBrowseButton);
+    myPanel.add(browsePanel, BorderLayout.LINE_END);
 
     myPanel.addComponentListener(new ComponentAdapter() {
       @Override
