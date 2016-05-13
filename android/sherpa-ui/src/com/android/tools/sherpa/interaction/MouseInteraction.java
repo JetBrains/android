@@ -387,9 +387,16 @@ public class MouseInteraction {
         public void over(Object over, double dist) {
             if (over instanceof ConstraintWidget) {
                 ConstraintWidget widget = (ConstraintWidget) over;
-                if ((mHitWidget == null) || (mHitWidgetDistance > dist)) {
+                if ((mHitWidget == null) || (mHitWidgetDistance >= dist)) {
                     if (mHitWidget != null) {
                         getDecorator(mHitWidget).over(false);
+                    }
+                    if (dist == 0) {
+                        // we should select children preferably
+                        if (mHitWidget != null && !widget.hasAncestor(mHitWidget)) {
+                            // not a children, keep the current one
+                            return;
+                        }
                     }
                     mHitWidget = widget;
                     mHitWidgetDistance = dist;
@@ -399,7 +406,7 @@ public class MouseInteraction {
                 }
             } else if (over instanceof ConstraintHandle) {
                 ConstraintHandle handle = (ConstraintHandle) over;
-                if ((mHitConstraintHandle == null) || (mHitConstraintHandleDistance > dist)) {
+                if ((mHitConstraintHandle == null) || (mHitConstraintHandleDistance >= dist)) {
                     if ((mHitConstraintHandle != null)
                             && (mHitConstraintHandleDistance < 4
                             && mSelection.contains(mHitConstraintHandle.getOwner()))
@@ -414,6 +421,15 @@ public class MouseInteraction {
                         // a Guideline has, as we do not allow connections of this anchor...
                         // TODO: revisit in the future, it might be better to unify Guidelines connections
                         return;
+                    }
+                    if (dist == 0 && mHitConstraintHandle != null) {
+                        // we should select children preferably
+                        ConstraintWidget currentWidget = mHitConstraintHandle.getOwner();
+                        ConstraintWidget candidateWidget = handle.getOwner();
+                        if (!candidateWidget.hasAncestor(currentWidget)) {
+                            // not a children, keep the current one
+                            return;
+                        }
                     }
                     if (handle.getAnchor().getType() == ConstraintAnchor.Type.BASELINE) {
                         if (mEnableBaseline || mMode == DRAG_MODE) {
