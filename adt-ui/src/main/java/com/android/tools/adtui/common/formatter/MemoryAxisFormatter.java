@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,24 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.adtui;
+package com.android.tools.adtui.common.formatter;
 
 import com.android.annotations.NonNull;
 import gnu.trove.TIntArrayList;
 
-/**
- * A mock {@link BaseAxisDomain} that works with length units.
- * e.g. mm, cm, m, km
- */
-public class MockAxisDomain extends BaseAxisDomain {
+public final class MemoryAxisFormatter extends BaseAxisFormatter {
 
-  private static final int[] MULTIPLIERS = new int[]{10, 100, 1000};   //
-  private static final int BASE = 10;
-  private static final int MIN_INTERVAL = 1;
-  private static final String[] UNITS = new String[]{"mm", "cm", "m"};
-  private static final TIntArrayList BASE_FACTORS = new TIntArrayList(new int[]{10, 5, 1});
+  private static final int MULTIPLIER = 1024;
+  private static final int BASE = 2;
+  private static final int[] MIN_INTERVALS = new int[]{4, 1, 1};    // 4KB, 1MB, 1GB
+  private static String[] UNITS = new String[]{"KB", "MB", "GB"};
+  private static final TIntArrayList BASE_FACTORS = new TIntArrayList(new int[]{2, 1});
+  public static final MemoryAxisFormatter DEFAULT = new MemoryAxisFormatter(10, 50, 5);
 
-  public MockAxisDomain(int maxMinorTicks, int maxMajorTicks, int switchThreshold) {
+  public MemoryAxisFormatter(int maxMinorTicks, int maxMajorTicks, int switchThreshold) {
     super(maxMinorTicks, maxMajorTicks, switchThreshold);
   }
 
@@ -52,12 +49,12 @@ public class MockAxisDomain extends BaseAxisDomain {
 
   @Override
   protected int getUnitMultiplier(int index) {
-    return MULTIPLIERS[index];
+    return MULTIPLIER;
   }
 
   @Override
   protected int getUnitMinimalInterval(int index) {
-    return MIN_INTERVAL;
+    return MIN_INTERVALS[index];
   }
 
   @Override

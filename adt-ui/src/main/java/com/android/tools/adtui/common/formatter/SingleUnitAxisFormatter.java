@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.adtui;
+package com.android.tools.adtui.common.formatter;
 
 import com.android.annotations.NonNull;
 import gnu.trove.TIntArrayList;
@@ -22,7 +22,7 @@ import gnu.trove.TIntArrayList;
  * Axis domain to be used by axis components with only one unit.
  * E.g. Number of threads or usage of CPU (%).
  */
-public abstract class AbstractSingleUnitAxisDomain extends BaseAxisDomain {
+public abstract class SingleUnitAxisFormatter extends BaseAxisFormatter {
 
   private static final int MULTIPLIER = 1;
 
@@ -32,7 +32,7 @@ public abstract class AbstractSingleUnitAxisDomain extends BaseAxisDomain {
 
   private static final TIntArrayList BASE_FACTORS = new TIntArrayList(new int[]{1});
 
-  protected AbstractSingleUnitAxisDomain(int maxMinorTicks, int maxMajorTicks, int switchThreshold) {
+  protected SingleUnitAxisFormatter(int maxMinorTicks, int maxMajorTicks, int switchThreshold) {
     super(maxMinorTicks, maxMajorTicks, switchThreshold);
   }
 

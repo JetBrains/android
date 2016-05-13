@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package com.android.tools.adtui;
+package com.android.tools.adtui.chart;
 
 import com.android.annotations.NonNull;
+import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.model.RangedDiscreteSeries;
 import com.android.tools.adtui.model.StateChartData;
 import gnu.trove.TIntArrayList;

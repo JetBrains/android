@@ -2,21 +2,20 @@ package com.android.tools.adtui.segment;
 
 import com.android.annotations.NonNull;
 import com.android.tools.adtui.*;
+import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
+import com.android.tools.adtui.common.formatter.MemoryAxisFormatter;
+import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.model.LegendRenderData;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.ReportingSeriesRenderer;
 
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.Dimension;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.util.ArrayList;
 import java.util.List;
-import javax.swing.JLayeredPane;
-import javax.swing.JPanel;
 
-public abstract class BasicTwoAxisSegment extends SegmentBase {
+public abstract class BasicTwoAxisSegment extends BaseSegment {
 
   @NonNull
   private AxisComponent mRightAxis;
@@ -37,20 +36,20 @@ public abstract class BasicTwoAxisSegment extends SegmentBase {
   private final List<RangedContinuousSeries> mData;
 
   @NonNull
-  private final BaseAxisDomain mLeftAxisDomain;
+  private final BaseAxisFormatter mLeftAxisFormatter;
 
   @NonNull
-  private final BaseAxisDomain mRightAxisDomain;
+  private final BaseAxisFormatter mRightAxisFormatter;
 
   public BasicTwoAxisSegment(@NonNull String name,
                              @NonNull Range scopedRange,
                              @NonNull List<RangedContinuousSeries> data,
-                             @NonNull BaseAxisDomain leftAxisDomain,
-                             @NonNull BaseAxisDomain rightAxisDomain) {
+                             @NonNull BaseAxisFormatter leftAxisFormatter,
+                             @NonNull BaseAxisFormatter rightAxisFormatter) {
     super(name, scopedRange);
     mData = data;
-    mLeftAxisDomain = leftAxisDomain;
-    mRightAxisDomain = rightAxisDomain;
+    mLeftAxisFormatter = leftAxisFormatter;
+    mRightAxisFormatter = rightAxisFormatter;
   }
 
   @Override
@@ -60,13 +59,13 @@ public abstract class BasicTwoAxisSegment extends SegmentBase {
     Range leftAxisRange = new Range();
     mLeftAxis = new AxisComponent(leftAxisRange, leftAxisRange, "",
                                   AxisComponent.AxisOrientation.LEFT, 0, 0, true,
-                                  mLeftAxisDomain);
+                                  mLeftAxisFormatter);
 
     // right axis
     Range rightAxisRange = new Range();
     mRightAxis = new AxisComponent(rightAxisRange, rightAxisRange, "",
                                    AxisComponent.AxisOrientation.RIGHT, 0, 0, true,
-                                   mRightAxisDomain);
+                                   mRightAxisFormatter);
 
     //TODO Associate the grid with both AxisComponents.
     mLineChart = new LineChart();
@@ -82,7 +81,7 @@ public abstract class BasicTwoAxisSegment extends SegmentBase {
     }
 
     List<LegendRenderData> legendRenderData = createLegendData(mLineChart);
-    mLegendComponent = new LegendComponent(legendRenderData, LegendComponent.Orientation.HORIZONTAL, 100, MemoryAxisDomain.DEFAULT);
+    mLegendComponent = new LegendComponent(legendRenderData, LegendComponent.Orientation.HORIZONTAL, 100, MemoryAxisFormatter.DEFAULT);
 
 
     // Note: the order below is important as some components depend on

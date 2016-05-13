@@ -3,18 +3,14 @@ package com.android.tools.adtui.segment;
 import com.android.annotations.NonNull;
 import com.android.tools.adtui.*;
 import com.android.tools.adtui.model.EventAction;
-import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.RangedSimpleSeries;
 
+import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
 import java.awt.image.BufferedImage;
 import java.util.List;
-import javax.swing.JLayeredPane;
-import javax.swing.JPanel;
 
-public class EventSegment<E extends Enum<E>> extends SegmentBase {
+public class EventSegment<E extends Enum<E>> extends BaseSegment {
 
   private static final String SEGMENT_NAME = "Events";
   private static final int ACTIVITY_GRAPH_SIZE = 25;

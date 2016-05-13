@@ -18,6 +18,9 @@ package com.android.tools.adtui.visual;
 
 import com.android.annotations.NonNull;
 import com.android.tools.adtui.*;
+import com.android.tools.adtui.common.formatter.MemoryAxisFormatter;
+import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
+import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.model.EventAction;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.RangedSimpleSeries;
@@ -126,7 +129,7 @@ public class ProfilerOverviewVisualTest extends VisualTest {
                                   0,
                                   0,
                                   false,
-                                  new TimeAxisDomain(10, 5, 5));
+                                  new TimeAxisFormatter(10, 5, 5));
 
     mSegmentsContainer = new JPanel();
     mLayout = new AccordionLayout(mSegmentsContainer, AccordionLayout.Orientation.VERTICAL);
@@ -283,7 +286,7 @@ public class ProfilerOverviewVisualTest extends VisualTest {
         addToChoreographer(mYRange);
       }
       RangedContinuousSeries ranged = new RangedContinuousSeries("Widgets", mXRange, mYRange,
-                                                                 TimeAxisDomain.DEFAULT, MemoryAxisDomain.DEFAULT);
+                                                                 TimeAxisFormatter.DEFAULT, MemoryAxisFormatter.DEFAULT);
       mData.add(ranged);
       lineChart.addLine(ranged);
     }

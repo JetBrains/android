@@ -17,7 +17,7 @@ package com.android.tools.idea.editors.allocations;
 
 import com.android.ddmlib.AllocationInfo;
 import com.android.tools.adtui.Choreographer;
-import com.android.tools.adtui.SunburstComponent;
+import com.android.tools.adtui.chart.SunburstChart;
 import com.android.tools.adtui.ValuedTreeNode;
 import com.android.tools.idea.actions.EditMultipleSourcesAction;
 import com.android.tools.idea.actions.PsiFileAndLineNavigation;
@@ -52,7 +52,7 @@ import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.util.Comparator;
 
-public class AllocationsView implements SunburstComponent.SliceSelectionListener {
+public class AllocationsView implements SunburstChart.SliceSelectionListener {
   @NotNull private final Project myProject;
 
   @NotNull private final AllocationInfo[] myAllocations;
@@ -72,7 +72,7 @@ public class AllocationsView implements SunburstComponent.SliceSelectionListener
   @NotNull private final Component myComponent;
 
   private GroupBy myGroupBy;
-  private final SunburstComponent myLayout;
+  private final SunburstChart myLayout;
   private String myChartOrientation;
   private String myChartUnit;
   private final JLabel myInfoLabel;
@@ -232,7 +232,7 @@ public class AllocationsView implements SunburstComponent.SliceSelectionListener
     mySplitter.setFirstComponent(panel);
 
     myChartPane = new JPanel(new BorderLayout());
-    myLayout = new SunburstComponent(myTreeNode);
+    myLayout = new SunburstChart(myTreeNode);
     myLayout.setAngle(360.0f);
     myLayout.setAutoSize(true);
     myLayout.setSeparator(1.0f);
@@ -426,7 +426,7 @@ public class AllocationsView implements SunburstComponent.SliceSelectionListener
   }
 
   @Override
-  public void valueChanged(SunburstComponent.SliceSelectionEvent e) {
+  public void valueChanged(SunburstChart.SliceSelectionEvent e) {
     ValuedTreeNode node = e == null ? null : e.getNode();
     HtmlBuilder builder = new HtmlBuilder();
     builder.openHtmlBody();

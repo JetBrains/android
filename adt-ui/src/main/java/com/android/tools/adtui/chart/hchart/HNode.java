@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.tools.adtui.hchart;
+package com.android.tools.adtui.chart.hchart;
 
 import java.util.ArrayList;
 import java.util.List;
