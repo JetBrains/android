@@ -182,12 +182,13 @@ final class ManifestInfo {
             assert libManifests.contains(vFile); // if it's a different module, it must be one of the lib manifests
             MergedManifest manifest = MergedManifest.get(fileModule);
             Document document = manifest.getDocument();
-            assert document != null;
-            // This is not very efficient. Consider enhancing the manifest merger API
-            // such that I can pass back a fully merged DOM document instead of
-            // an XML string since it will need to turn around and parse it anyway.
-            String text = XmlUtils.toXml(document);
-            return new ByteArrayInputStream(text.getBytes(Charsets.UTF_8));
+            if (document != null) { // normally the case, but can fail on merge fail
+              // This is not very efficient. Consider enhancing the manifest merger API
+              // such that I can pass back a fully merged DOM document instead of
+              // an XML string since it will need to turn around and parse it anyway.
+              String text = XmlUtils.toXml(document);
+              return new ByteArrayInputStream(text.getBytes(Charsets.UTF_8));
+            }
           }
         }
 
