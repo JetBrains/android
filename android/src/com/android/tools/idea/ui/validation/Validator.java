@@ -81,5 +81,17 @@ public interface Validator<T> {
     public String getMessage() {
       return myMessage;
     }
+
+    /**
+     * Returns an error result, if given an error message, or an OK result if given a null message.
+     *
+     * There are a plenty of legacy validation methods that return error message or null if the validation succeeded.
+     * Instead of migrating all these methods this helper function allows to convert result of such a validation method
+     * to return proper {@link Result}.
+     */
+    @NotNull
+    public static Result fromNullableMessage(@Nullable("if no error") String errorMessage) {
+      return (errorMessage == null) ? OK : new Result(Severity.ERROR, errorMessage);
+    }
   }
 }
