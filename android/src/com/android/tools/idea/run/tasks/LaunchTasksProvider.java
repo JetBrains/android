@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
 import org.jetbrains.annotations.NotNull;
@@ -28,7 +29,7 @@ public interface LaunchTasksProvider {
   List<LaunchTask> getTasks(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter consolePrinter);
 
   @Nullable
-  DebugConnectorTask getConnectDebuggerTask(@NotNull LaunchStatus launchStatus);
+  DebugConnectorTask getConnectDebuggerTask(@NotNull LaunchStatus launchStatus, @Nullable AndroidVersion version);
 
   /** Returns whether this launch will start a new process on the device. Usually, this is true unless you are hot swapping.. */
   boolean createsNewProcess();

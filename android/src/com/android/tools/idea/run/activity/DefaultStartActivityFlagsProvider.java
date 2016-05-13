@@ -19,6 +19,7 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.editor.AndroidDebuggerState;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -31,15 +32,18 @@ public class DefaultStartActivityFlagsProvider implements StartActivityFlagsProv
   @Nullable private final AndroidDebuggerState myAndroidDebuggerState;
   private final boolean myWaitForDebugger;
   @NotNull private final String myExtraFlags;
+  private final Project myProject;
 
   public DefaultStartActivityFlagsProvider(@Nullable AndroidDebugger androidDebugger,
                                            @Nullable AndroidDebuggerState androidDebuggerState,
+                                           @NotNull Project project,
                                            boolean waitForDebugger,
                                            @NotNull String extraFlags) {
     myAndroidDebugger = androidDebugger;
     myAndroidDebuggerState = androidDebuggerState;
     myWaitForDebugger = waitForDebugger;
     myExtraFlags = extraFlags;
+    myProject = project;
   }
 
   @Override
@@ -53,7 +57,7 @@ public class DefaultStartActivityFlagsProvider implements StartActivityFlagsProv
       flags.add(myExtraFlags);
     }
     if (myWaitForDebugger && myAndroidDebugger != null) {
-      String extraOptions = myAndroidDebugger.getAmStartOptions(myAndroidDebuggerState, device.getVersion());
+      String extraOptions = myAndroidDebugger.getAmStartOptions(myAndroidDebuggerState, myProject, device.getVersion());
       if (!extraOptions.isEmpty()) {
         flags.add(extraOptions);
       }
