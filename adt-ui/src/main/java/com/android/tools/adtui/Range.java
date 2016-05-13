@@ -18,7 +18,8 @@ package com.android.tools.adtui;
 
 public class Range implements Animatable {
 
-  private static final float DEFAULT_INTERPOLATION_FRACTION = 0.95f;
+  private static final float DEFAULT_LERP_FRACTION = 0.95f;
+  private static final float DEFAULT_LERP_THRESHOLD = 0.001f;
 
   private boolean mLock;
 
@@ -30,7 +31,9 @@ public class Range implements Animatable {
 
   private double mCurrentMax;
 
-  private float mFraction;
+  private float mLerpFraction;
+
+  private float mLerpThreshold;
 
   public Range(double min, double max) {
     // TODO: Right now there's no guarantee that max is greater than, or equal to min. The flip() method even swap these values.
@@ -38,7 +41,8 @@ public class Range implements Animatable {
     // the invariant min <= max is always kept.
     mCurrentMin = mTargetMin = min;
     mCurrentMax = mTargetMax = max;
-    mFraction = DEFAULT_INTERPOLATION_FRACTION;
+    mLerpFraction = DEFAULT_LERP_FRACTION;
+    mLerpThreshold = DEFAULT_LERP_THRESHOLD;
   }
 
   public Range() {
@@ -50,7 +54,16 @@ public class Range implements Animatable {
    * applied. See {@link Choreographer#lerp(double, double, float, float)} for details.
    */
   public void setInterpolationFraction(float fraction) {
-    mFraction = fraction;
+    mLerpFraction = fraction;
+  }
+
+  /**
+   * Sets the threshold at which the min/max would snap to their target values when animating.
+   * See {@link Choreographer#lerp(float, float, float, float, float)} for details.
+   * @param threshold
+   */
+  public void setInterpolationThreshold(float threshold) {
+    mLerpThreshold = threshold;
   }
 
   /**
@@ -140,11 +153,11 @@ public class Range implements Animatable {
   @Override
   public void animate(float frameLength) {
     if (mCurrentMin != mTargetMin) {
-      mCurrentMin = Choreographer.lerp(mCurrentMin, mTargetMin, mFraction, frameLength);
+      mCurrentMin = Choreographer.lerp(mCurrentMin, mTargetMin, mLerpFraction, frameLength, mLerpThreshold);
     }
 
     if (mCurrentMax != mTargetMax) {
-      mCurrentMax = Choreographer.lerp(mCurrentMax, mTargetMax, mFraction, frameLength);
+      mCurrentMax = Choreographer.lerp(mCurrentMax, mTargetMax, mLerpFraction, frameLength, mLerpThreshold);
     }
   }
 

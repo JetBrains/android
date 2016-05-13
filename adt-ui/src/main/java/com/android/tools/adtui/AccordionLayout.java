@@ -45,6 +45,7 @@ import java.util.TreeSet;
 public class AccordionLayout implements LayoutManager2, Animatable {
 
   private static final float LERP_RATIO = 0.9999f;
+  private static final float LERP_THRESHOLD_PIXEL = 1;
 
   public enum Orientation {
     HORIZONTAL,
@@ -354,11 +355,11 @@ public class AccordionLayout implements LayoutManager2, Animatable {
       }
 
       if (info.currentSize != targetSize) {
-        info.currentSize = Choreographer.lerp(info.currentSize, targetSize, LERP_RATIO, frameLength);
+        info.currentSize = Choreographer.lerp(info.currentSize, targetSize, LERP_RATIO, frameLength, LERP_THRESHOLD_PIXEL);
       }
 
       if (currentSize != minSize) {
-        currentSize = Choreographer.lerp(currentSize, minSize, LERP_RATIO, frameLength);
+        currentSize = Choreographer.lerp(currentSize, minSize, LERP_RATIO, frameLength, LERP_THRESHOLD_PIXEL);
       }
 
       switch (info.state) {
