@@ -20,6 +20,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture.ContentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.UnitTestTreeFixture;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -41,11 +42,12 @@ public class UnitTestingSupportTest {
     doTest("app/src/test/java/com/android/tests", "UnitTest");
   }
 
+  @Ignore("go/studio-builder/builders/ubuntu-studio-master-dev-uitests/builds/69")
   @Test
   public void libModule_gradleAwareMake() throws Exception {
     doTest("lib/src/test/java/com/android/tests/lib", "LibUnitTest");
   }
-  
+
   /**
    * This covers all functionality that we expect from AS when it comes to unit tests:
    *

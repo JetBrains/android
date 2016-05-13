@@ -23,6 +23,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixtu
 import com.intellij.notification.EventLog;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -91,6 +92,7 @@ public class ThemeEditorTest {
     checkNoErrors();
   }
 
+  @Ignore("go/studio-builder/builders/ubuntu-studio-master-dev-uitests/builds/71")
   @Test
   public void testConfigurationToolbar() throws IOException {
     guiTest.importSimpleApplication();
