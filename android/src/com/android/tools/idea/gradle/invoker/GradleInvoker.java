@@ -71,8 +71,8 @@ public class GradleInvoker {
 
   @NotNull private final Project myProject;
 
-  @NotNull private Collection<BeforeGradleInvocationTask> myBeforeTasks = Sets.newLinkedHashSet();
-  @NotNull private Collection<AfterGradleInvocationTask> myAfterTasks = Sets.newLinkedHashSet();
+  @NotNull private final Collection<BeforeGradleInvocationTask> myBeforeTasks = Sets.newLinkedHashSet();
+  @NotNull private final Collection<AfterGradleInvocationTask> myAfterTasks = Sets.newLinkedHashSet();
   @NotNull private final Map<ExternalSystemTaskId, CancellationTokenSource> myCancellationMap = Maps.newConcurrentMap();
 
   public static GradleInvoker getInstance(@NotNull Project project) {
@@ -217,7 +217,7 @@ public class GradleInvoker {
     return tasks;
   }
 
-  public void executeTasks(@NotNull final List<String> gradleTasks) {
+  public void executeTasks(@NotNull List<String> gradleTasks) {
     executeTasks(gradleTasks, Collections.emptyList());
   }
 
@@ -228,7 +228,7 @@ public class GradleInvoker {
     executeTasks(tasks, commandLineArguments);
   }
 
-  public void executeTasks(@NotNull final List<String> gradleTasks, @NotNull final List<String> commandLineArguments) {
+  public void executeTasks(@NotNull List<String> gradleTasks, @NotNull List<String> commandLineArguments) {
     ExternalSystemTaskId id = ExternalSystemTaskId.create(GRADLE_SYSTEM_ID, EXECUTE_TASK, myProject);
     executeTasks(gradleTasks, Collections.emptyList(), commandLineArguments, id, null, false);
   }
@@ -245,12 +245,12 @@ public class GradleInvoker {
    * @param taskListener         a listener interested in target tasks processing
    * @param waitForCompletion    a flag which hints whether current method should return control flow before target tasks are executed
    */
-  public void executeTasks(@NotNull final List<String> gradleTasks,
-                           @NotNull final List<String> jvmArguments,
+  public void executeTasks(@NotNull List<String> gradleTasks,
+                           @NotNull List<String> jvmArguments,
                            @NotNull List<String> commandLineArguments,
-                           @NotNull final ExternalSystemTaskId taskId,
-                           @Nullable final ExternalSystemTaskNotificationListener taskListener,
-                           final boolean waitForCompletion) {
+                           @NotNull ExternalSystemTaskId taskId,
+                           @Nullable ExternalSystemTaskNotificationListener taskListener,
+                           boolean waitForCompletion) {
     LOG.info("About to execute Gradle tasks: " + gradleTasks);
     if (gradleTasks.isEmpty()) {
       return;
@@ -266,7 +266,7 @@ public class GradleInvoker {
     GradleTaskExecutionContext context =
       new GradleTaskExecutionContext(this, myProject, gradleTasks, jvmArguments, commandLineArguments, myCancellationMap, taskId,
                                      taskListener);
-    final GradleTasksExecutor executor = new GradleTasksExecutor(context);
+    GradleTasksExecutor executor = new GradleTasksExecutor(context);
 
     saveAllFilesSafely();
 
