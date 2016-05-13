@@ -20,6 +20,7 @@ import com.android.tools.sherpa.drawing.ColorSet;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
+import javax.swing.border.MatteBorder;
 import javax.swing.plaf.basic.BasicArrowButton;
 import javax.swing.plaf.basic.BasicComboBoxEditor;
 import javax.swing.plaf.basic.BasicComboBoxUI;
@@ -84,7 +85,8 @@ public class MarginWidget extends JPanel {
     label.setBackground(null);
     label.setOpaque(false);
     label.setHorizontalAlignment(alignment);
-    combo.setBorder(new EmptyBorder(2,0,0,0));
+    combo.setBorder(new LineBorder(mColorSet.getInspectorStrokeColor()));
+
 
     label.setForeground(mColorSet.getInspectorStrokeColor());
     combo.setAlignmentX(LEFT_ALIGNMENT);
@@ -124,8 +126,7 @@ public class MarginWidget extends JPanel {
     @Override
     protected JButton createArrowButton() {
       button = new BasicArrowButton(SwingConstants.SOUTH);
-      button.setBackground(mColorSet.getInspectorStrokeColor());
-      button.setBorder(new EmptyBorder(0, 0, 0, 0));
+      button.setBorder(new MatteBorder(0, 1, 0, 0, mColorSet.getInspectorStrokeColor()));
       return button;
     }
   };
