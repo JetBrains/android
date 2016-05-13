@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
+import com.android.tools.idea.uibuilder.model.NlLayoutType;
+import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
@@ -26,4 +28,6 @@ public interface ScalableDesignSurface {
   @Nullable Configuration getConfiguration();
   @Nullable ScreenView getCurrentScreenView();
   double getScale();
+  NlLayoutType getLayoutType();
+  void minimizePaletteOnPreview();
 }
