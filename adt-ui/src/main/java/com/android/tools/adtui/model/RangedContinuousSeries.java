@@ -87,23 +87,32 @@ public class RangedContinuousSeries implements ReportingSeries {
     return value;
   }
 
+  private ReportingData getReportingDataForIndex(int index) {
+    assert index >= 0 && index < mSeries.size();
+    long nearestX = mSeries.getX(index);
+    long nearestY = mSeries.getY(index);
+    long maxX = mSeries.getMaxX();
+    long maxY = mSeries.getMaxY();
+
+    String formattedY = mYAxisFormatter == null ? Long.toString(nearestY) : mYAxisFormatter.getFormattedString(maxY, nearestY);
+    String formattedX = mXAxisFormatter == null ? Long.toString(nearestX) : mXAxisFormatter.getFormattedString(maxX, nearestX);
+    return new ReportingData(nearestX, mLabel, formattedX, formattedY);
+  }
+
+  @Override
+  @NonNull
+  public ReportingData getLatestReportingData() {
+    return getReportingDataForIndex(mSeries.size()-1);
+  }
+
   @Override
   public Collection<ReportingData> getFullReportingData(long x) {
     ArrayList<ReportingData> dataList = new ArrayList<>();
 
     int nearestIndex = mSeries.getNearestXIndex(x);
     if (nearestIndex >= 0) {
-      long nearestX = mSeries.getX(nearestIndex);
-      long nearestY = mSeries.getY(nearestIndex);
-      long maxX = mSeries.getMaxX();
-      long maxY = mSeries.getMaxY();
-
-      // TODO support named series.
-      String formattedY = mYAxisFormatter == null ? Long.toString(nearestY) : mYAxisFormatter.getFormattedString(maxY, nearestY);
-      String formattedX = mXAxisFormatter == null ? Long.toString(nearestX) : mXAxisFormatter.getFormattedString(maxX, nearestX);
-      dataList.add(new ReportingData(nearestX, mLabel, formattedX, formattedY));
+      dataList.add(getReportingDataForIndex(nearestIndex));
     }
-
     return dataList;
   }
 }

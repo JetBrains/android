@@ -16,6 +16,8 @@
 
 package com.android.tools.adtui.model;
 
+import com.android.annotations.NonNull;
+
 import java.util.Collection;
 
 /**
@@ -52,6 +54,12 @@ public interface ReportingSeries {
    * @return The length of the range that is used for the series values.
    */
   double getRangeLength();
+
+  /**
+   * @return A ReportingData structure to be displayed for the latest value in the series.
+   */
+  @NonNull
+  ReportingData getLatestReportingData();
 
   /**
    * @return A collection of ReportingData that needs to be displayed for the series at the value x.
