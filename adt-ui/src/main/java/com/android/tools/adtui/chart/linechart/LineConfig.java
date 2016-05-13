@@ -40,17 +40,6 @@ public class LineConfig {
   };
 
   /**
-   * Stroke style to be used in dashed lines.
-   */
-  public static final Stroke DASHED_STROKE = new BasicStroke(1, BasicStroke.CAP_BUTT,
-                                                             BasicStroke.JOIN_MITER, 10, new float[]{10}, 0);
-
-  /**
-   * Stroke style to be used in continuous lines.
-   */
-  public static final Stroke BASIC_STROKE = new BasicStroke();
-
-  /**
    * Whether the series should be represented by dashed lines.
    */
   private boolean mIsDashed = false;
