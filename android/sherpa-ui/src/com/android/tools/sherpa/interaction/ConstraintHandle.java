@@ -610,7 +610,8 @@ public class ConstraintHandle {
             }
         } else {
             addPathConnection(transform, g, isSelected, showMargin, drawing, colorSet,
-                    targetHandle.getDrawX(), targetHandle.getDrawY(), targetHandle.getAnchor().isConnected());
+                    targetHandle.getDrawX(), targetHandle.getDrawY(),
+                    mAnchor.isConnected(), targetHandle.getAnchor().isConnected());
         }
 
         // If a lock timer is active, draw the path a second time
@@ -687,7 +688,7 @@ public class ConstraintHandle {
 
         ConnectionDrawing drawing = new ConnectionDrawing();
         addPathConnection(transform, g, isSelected, false, drawing, colorSet,
-                (int) target.getX(), (int) target.getY(), false);
+                (int) target.getX(), (int) target.getY(), false, false);
 
         boolean drawShadow = isSelected
                 && mAnchor.getConnectionCreator() != ConstraintAnchor.AUTO_CONSTRAINT_CREATOR;
@@ -716,7 +717,7 @@ public class ConstraintHandle {
     private void addPathConnection(ViewTransform transform, Graphics2D g,
             boolean isSelected,
             boolean showMargin, ConnectionDrawing drawing, ColorSet colorSet, int targetX,
-            int targetY, boolean isConnected) {
+            int targetY, boolean isConnected, boolean isTargetConnected) {
 
         int radius = 4;
         int sradius = transform.getSwingDimension(radius);
@@ -737,7 +738,7 @@ public class ConstraintHandle {
         int controlDistance = transform.getSwingDimension(maxDistance);
 
         int delta = ConnectionDraw.CONNECTION_ANCHOR_SIZE;
-        if (isConnected) {
+        if (isTargetConnected) {
             if (isVertical) {
                 x1 = x0 < x1 ? x1 - delta : x1 + delta;
             }
