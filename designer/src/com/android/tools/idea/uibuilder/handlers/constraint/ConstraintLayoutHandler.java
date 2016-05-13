@@ -556,7 +556,14 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
         return;
       }
       WidgetsScene scene = model.getScene();
-      Scout.inferConstraints(scene);
+      try {
+        Scout.inferConstraints(scene);
+      }
+      catch (Exception e) {
+        // TODO show dialog the inference failed
+        System.err.println("Error in inferring constraints");
+        e.printStackTrace();
+      }
       model.saveToXML(true);
       model.setNeedsAnimateConstraints(ConstraintAnchor.SCOUT_CREATOR);
     }
