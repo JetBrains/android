@@ -27,7 +27,6 @@ public class CheckBoxHandler extends TextViewHandler {
   @NotNull
   public List<String> getInspectorProperties() {
     return ImmutableList.of(
-      ATTR_CONTENT_DESCRIPTION,
       ATTR_STYLE,
       ATTR_BUTTON,
       ATTR_BUTTON_TINT,
