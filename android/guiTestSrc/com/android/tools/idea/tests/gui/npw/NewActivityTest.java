@@ -149,7 +149,7 @@ public class NewActivityTest {
   public void changeActivityName() {
     // Changing "Activity Name" causes "Title" and "Layout Name" to change
     myConfigActivity.enterTextFieldValue(ActivityTextField.NAME, "MainActivityTest");
-    assertTextFieldValues("MainActivityTest", "activity_main_activity_test", "MainActivityTest");
+    assertTextFieldValues("MainActivityTest", "activity_main_test", "MainActivityTest");
 
     myDialog.clickFinish();
 
@@ -157,7 +157,7 @@ public class NewActivityTest {
 
     guiTest.ideFrame().getProjectView().assertFilesExist(
       "app/src/main/java/google/simpleapplication/MainActivityTest.java",
-      "app/src/main/res/layout/activity_main_activity_test.xml"
+      "app/src/main/res/layout/activity_main_test.xml"
     );
   }
 
@@ -165,7 +165,7 @@ public class NewActivityTest {
   public void changeActivityNameUndo() throws Exception {
     // Changing "Activity Name" causes "Title" and "Layout Name" to change
     myConfigActivity.enterTextFieldValue(ActivityTextField.NAME, "MainActivityTest");
-    assertTextFieldValues("MainActivityTest", "activity_main_activity_test", "MainActivityTest");
+    assertTextFieldValues("MainActivityTest", "activity_main_test", "MainActivityTest");
 
     // Undo "Activity Name" (Right-click and choose "Restore default value") should revert all changes
     myConfigActivity.undoTextFieldValue(ActivityTextField.NAME);
@@ -210,7 +210,7 @@ public class NewActivityTest {
 
     // Undo "Layout Name" should only undo that field
     myConfigActivity.undoTextFieldValue(ActivityTextField.LAYOUT);
-    assertTextFieldValues("MainActivityTest1", "activity_main_activity_test1", "MainActivityTest1");
+    assertTextFieldValues("MainActivityTest1", "activity_main_test1", "MainActivityTest1");
 
     // Undo "Activity Name" should revert all changes
     myConfigActivity.undoTextFieldValue(ActivityTextField.NAME);
@@ -225,7 +225,7 @@ public class NewActivityTest {
     myConfigActivity.enterTextFieldValue(ActivityTextField.NAME, "MainActivityTest1");
     myConfigActivity.enterTextFieldValue(ActivityTextField.TITLE, "Main Activity Test3");
     myConfigActivity.enterTextFieldValue(ActivityTextField.NAME, "MainActivityTest123");
-    assertTextFieldValues("MainActivityTest123", "activity_main_activity_test123", "Main Activity Test3");
+    assertTextFieldValues("MainActivityTest123", "activity_main_test123", "Main Activity Test3");
 
     // Undo "Activity Name", should update "Activity Name" and LAYOUT, but not the title
     myConfigActivity.undoTextFieldValue(ActivityTextField.NAME);
