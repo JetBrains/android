@@ -17,7 +17,7 @@
 package com.android.tools.adtui.model;
 
 import com.android.annotations.NonNull;
-import com.android.tools.adtui.BaseAxisDomain;
+import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.Range;
 
 import java.util.ArrayList;
@@ -40,9 +40,9 @@ public class RangedContinuousSeries implements ReportingSeries {
   @NonNull
   private final String mLabel;
 
-  private BaseAxisDomain mXDomain;
+  private BaseAxisFormatter mXAxisFormatter;
 
-  private BaseAxisDomain mYDomain;
+  private BaseAxisFormatter mYAxisFormatter;
 
   public RangedContinuousSeries(@NonNull String label, @NonNull Range xRange, @NonNull Range yRange) {
     mLabel = label;
@@ -52,10 +52,10 @@ public class RangedContinuousSeries implements ReportingSeries {
   }
 
   public RangedContinuousSeries(@NonNull String label, @NonNull Range xRange, @NonNull Range yRange,
-                                @NonNull BaseAxisDomain xDomain, @NonNull BaseAxisDomain yDomain) {
+                                @NonNull BaseAxisFormatter xAxisFormatter, @NonNull BaseAxisFormatter yAxisFormatter) {
     this(label, xRange, yRange);
-    mXDomain = xDomain;
-    mYDomain = yDomain;
+    mXAxisFormatter = xAxisFormatter;
+    mYAxisFormatter = yAxisFormatter;
   }
 
   @NonNull
@@ -99,8 +99,8 @@ public class RangedContinuousSeries implements ReportingSeries {
       long maxY = mSeries.getMaxY();
 
       // TODO support named series.
-      String formattedY = mYDomain == null ? Long.toString(nearestY) : mYDomain.getFormattedString(maxY, nearestY);
-      String formattedX = mXDomain == null ? Long.toString(nearestX) : mXDomain.getFormattedString(maxX, nearestX);
+      String formattedY = mYAxisFormatter == null ? Long.toString(nearestY) : mYAxisFormatter.getFormattedString(maxY, nearestY);
+      String formattedX = mXAxisFormatter == null ? Long.toString(nearestX) : mXAxisFormatter.getFormattedString(maxX, nearestX);
       dataList.add(new ReportingData(nearestX, mLabel, formattedX, formattedY));
     }
 

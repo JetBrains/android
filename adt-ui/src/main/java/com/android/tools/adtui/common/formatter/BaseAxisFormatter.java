@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.adtui;
+package com.android.tools.adtui.common.formatter;
 
 import com.android.annotations.NonNull;
 import gnu.trove.TIntArrayList;
@@ -21,11 +21,10 @@ import gnu.trove.TIntArrayList;
 /**
  * An auxiliary object that formats the axis by determining the marker placement positions and their
  * corresponding labels.
- * TODO: move this class and its subclasses to a submodule
  */
-public abstract class BaseAxisDomain {
+public abstract class BaseAxisFormatter {
 
-  protected int mMultiplier;
+  private int mMultiplier;
 
   private final int mMaxMinorTicks;
 
@@ -45,7 +44,7 @@ public abstract class BaseAxisDomain {
    *                        the axis will return millisecond intervals up to 5000ms before
    *                        transitioning to second intervals.
    */
-  protected BaseAxisDomain(int maxMinorTicks, int maxMajorTicks, int switchThreshold) {
+  protected BaseAxisFormatter(int maxMinorTicks, int maxMajorTicks, int switchThreshold) {
     mMaxMinorTicks = Math.max(1, maxMinorTicks);
     mMaxMajorTicks = Math.max(1, maxMajorTicks);
     mSwitchThreshold = switchThreshold;
@@ -133,7 +132,7 @@ public abstract class BaseAxisDomain {
   /**
    * @return Given a value, returns the index of the unit that should be used.
    */
-  protected final int getMultiplierIndex(double value, int threshold) {
+  protected int getMultiplierIndex(double value, int threshold) {
     mMultiplier = 1;
     int count = getNumUnits();
     for (int i = 0; i < count; i++) {
@@ -211,10 +210,14 @@ public abstract class BaseAxisDomain {
       }
 
       factors.add(base);
-      base = base / divider;
+      base /= divider;
     }
     factors.add(1); // Smallest possible factor of base.
 
     return factors;
   }
+
+  protected int getMultiplier() {
+    return mMultiplier;
+  };
 }

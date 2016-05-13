@@ -17,6 +17,7 @@
 package com.android.tools.adtui;
 
 import com.android.annotations.NonNull;
+import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.model.LegendRenderData;
 import com.android.tools.adtui.model.ReportingSeries;
 
@@ -48,7 +49,7 @@ public class LegendComponent extends AnimatedComponent {
   private List<LegendRenderData> mLabels;
 
   @NonNull
-  private BaseAxisDomain mAxisDomain;
+  private BaseAxisFormatter mAxisFormatter;
 
   @NonNull
   private int mFrequencyMillis;
@@ -73,9 +74,10 @@ public class LegendComponent extends AnimatedComponent {
    * @param frequencyMillis   How frequently the labels get updated
    * @param domain            The conversion function to use for the data from the series to the label.
    */
-  public LegendComponent(List<LegendRenderData> legendRenderDatas, Orientation orientation, int frequencyMillis, BaseAxisDomain domain) {
+  public LegendComponent(List<LegendRenderData> legendRenderDatas,
+                         Orientation orientation, int frequencyMillis, BaseAxisFormatter formatter) {
     mLegendRenderDatas = legendRenderDatas;
-    mAxisDomain = domain;
+    mAxisFormatter = formatter;
     mFrequencyMillis = frequencyMillis;
     mOrientation = orientation;
     mLastUpdate = 0;

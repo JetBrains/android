@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.tools.adtui.hchart;
+package com.android.tools.adtui.chart.hchart;
 
 import java.awt.*;
 import java.awt.geom.Rectangle2D;

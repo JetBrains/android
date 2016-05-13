@@ -18,7 +18,10 @@ package com.android.tools.adtui.visual;
 
 import com.android.annotations.NonNull;
 import com.android.tools.adtui.*;
-import com.android.tools.adtui.config.LineConfig;
+import com.android.tools.adtui.common.formatter.PercentageAxisFormatter;
+import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
+import com.android.tools.adtui.chart.linechart.LineChart;
+import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 
 import javax.swing.*;
@@ -69,7 +72,7 @@ public class CPUProfilerVisualTest extends VisualTest {
 
     // add horizontal time axis
     mTimeAxis = new AxisComponent(xRange, xGlobalRange, "TIME", AxisComponent.AxisOrientation.BOTTOM, AXIS_SIZE, AXIS_SIZE, false,
-                                  new TimeAxisDomain(5, 5, 5));
+                                  new TimeAxisFormatter(5, 5, 5));
 
     Range myProcessYRange = new Range(0, 100);
     RangedContinuousSeries myProcessSeries = new RangedContinuousSeries("MyProcess", xRange, myProcessYRange);
@@ -90,7 +93,7 @@ public class CPUProfilerVisualTest extends VisualTest {
     mLineChart.addLine(otherProcessesSeries, otherProcessesLineConfig);
 
     mCPUUsageAxis = new AxisComponent(myProcessYRange, myProcessYRange, "CPU", AxisComponent.AxisOrientation.LEFT, AXIS_SIZE, AXIS_SIZE,
-                                      true, PercentageAxisDomain.getDefault());
+                                      true, PercentageAxisFormatter.getDefault());
 
     mGrid = new GridComponent();
     mGrid.addAxis(mTimeAxis);

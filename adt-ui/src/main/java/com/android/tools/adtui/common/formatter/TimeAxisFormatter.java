@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.adtui;
+package com.android.tools.adtui.common.formatter;
 
 import com.android.annotations.NonNull;
 import gnu.trove.TIntArrayList;
 
-public final class TimeAxisDomain extends BaseAxisDomain {
+public final class TimeAxisFormatter extends BaseAxisFormatter {
 
   private static final int[] MULTIPLIERS = new int[]{1000, 60, 60, 24};   // 1s, 1m, 1h, 1d
   private static final int[] BASES = new int[]{10, 60, 60, 24};
@@ -26,7 +26,7 @@ public final class TimeAxisDomain extends BaseAxisDomain {
   private static final String[] UNITS = new String[]{"ms", "s", "m", "h"};
   private static final TIntArrayList[] BASE_FACTORS;
 
-  public static final TimeAxisDomain DEFAULT = new TimeAxisDomain(5, 5, 5);
+  public static final TimeAxisFormatter DEFAULT = new TimeAxisFormatter(5, 5, 5);
 
   static {
     int size = BASES.length;
@@ -36,7 +36,7 @@ public final class TimeAxisDomain extends BaseAxisDomain {
     }
   }
 
-  public TimeAxisDomain(int maxMinorTicks, int maxMajorTicks, int switchThreshold) {
+  public TimeAxisFormatter(int maxMinorTicks, int maxMajorTicks, int switchThreshold) {
     super(maxMinorTicks, maxMajorTicks, switchThreshold);
   }
 
@@ -50,7 +50,7 @@ public final class TimeAxisDomain extends BaseAxisDomain {
   @NonNull
   public String getFormattedString(double globalRange, double value) {
     int index1 = getMultiplierIndex(globalRange, 1);
-    int scale1 = mMultiplier;
+    int scale1 = getMultiplier();
     String unit1 = getUnit(index1);
     if (index1 > 1) {
       int index2 = index1 - 1;

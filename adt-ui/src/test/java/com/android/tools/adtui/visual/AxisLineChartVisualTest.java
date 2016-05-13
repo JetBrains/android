@@ -18,7 +18,10 @@ package com.android.tools.adtui.visual;
 
 import com.android.annotations.NonNull;
 import com.android.tools.adtui.*;
-import com.android.tools.adtui.config.LineConfig;
+import com.android.tools.adtui.common.formatter.MemoryAxisFormatter;
+import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
+import com.android.tools.adtui.chart.linechart.LineChart;
+import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.model.LegendRenderData;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 
@@ -89,13 +92,13 @@ public class AxisLineChartVisualTest extends VisualTest {
     // add horizontal time axis
     mTimeAxis = new AxisComponent(xRange, mXGlobalRange, "TIME",
                                   AxisComponent.AxisOrientation.BOTTOM,
-                                  AXIS_SIZE, AXIS_SIZE, false, new TimeAxisDomain(5, 5, 5));
+                                  AXIS_SIZE, AXIS_SIZE, false, new TimeAxisFormatter(5, 5, 5));
 
     // left memory data + axis
     Range yRange1Animatable = new Range(0, 100);
     mMemoryAxis1 = new AxisComponent(yRange1Animatable, yRange1Animatable, SERIES1_LABEL,
                                      AxisComponent.AxisOrientation.LEFT, AXIS_SIZE, AXIS_SIZE, true,
-                                     new MemoryAxisDomain(4, 10, 5));
+                                     new MemoryAxisFormatter(4, 10, 5));
     RangedContinuousSeries ranged1 = new RangedContinuousSeries(SERIES1_LABEL, xRange, yRange1Animatable);
     mData.add(ranged1);
 
@@ -103,7 +106,7 @@ public class AxisLineChartVisualTest extends VisualTest {
     Range yRange2Animatable = new Range(0, 100);
     mMemoryAxis2 = new AxisComponent(yRange2Animatable, yRange2Animatable, SERIES2_LABEL,
                                      AxisComponent.AxisOrientation.RIGHT, AXIS_SIZE, AXIS_SIZE, true,
-                                     new MemoryAxisDomain(4, 10, 5));
+                                     new MemoryAxisFormatter(4, 10, 5));
     RangedContinuousSeries ranged2 = new RangedContinuousSeries(SERIES2_LABEL, xRange, yRange2Animatable);
     mData.add(ranged2);
     mLineChart.addLines(mData);
@@ -114,7 +117,7 @@ public class AxisLineChartVisualTest extends VisualTest {
     //Test the null series case
     legendRenderInfo.add(new LegendRenderData(LegendRenderData.IconType.LINE, LineConfig.COLORS[1], null));
 
-    mLegendComponent = new LegendComponent(legendRenderInfo, LegendComponent.Orientation.VERTICAL, LABEL_UPDATE_MILLIS, new MemoryAxisDomain(4, 10, 5));
+    mLegendComponent = new LegendComponent(legendRenderInfo, LegendComponent.Orientation.VERTICAL, LABEL_UPDATE_MILLIS, new MemoryAxisFormatter(4, 10, 5));
 
     mGrid = new GridComponent();
     mGrid.addAxis(mTimeAxis);

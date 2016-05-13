@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.adtui;
+package com.android.tools.adtui.chart;
 
 import com.android.annotations.NonNull;
+import com.android.tools.adtui.AnimatedComponent;
+import com.android.tools.adtui.Choreographer;
+import com.android.tools.adtui.ValuedTreeNode;
 
 import javax.swing.tree.TreeNode;
 import java.awt.*;
@@ -32,7 +35,7 @@ import java.util.List;
  * <a href="https://en.wikipedia.org/wiki/Pie_chart#Ring_chart_.2F_Sunburst_chart_.2F_Multilevel_pie_chart">
  * sunburst chart</a> that can be unrolled by setting its angle.
  */
-public final class SunburstComponent extends AnimatedComponent {
+public final class SunburstChart extends AnimatedComponent {
 
   private static final Color[] COLORS = {
     new Color(0x6baed6),
@@ -113,7 +116,7 @@ public final class SunburstComponent extends AnimatedComponent {
 
   private Map<Color, Path2D.Float> mPaths;
 
-  public SunburstComponent(@NonNull ValuedTreeNode data) {
+  public SunburstChart(@NonNull ValuedTreeNode data) {
     mData = data;
     mSlice = new Slice(0.0f);
     mSliceWidth = 50;

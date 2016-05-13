@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.tools.adtui.config;
+package com.android.tools.adtui.chart.linechart;
 
 import com.android.annotations.NonNull;
 

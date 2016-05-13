@@ -17,7 +17,7 @@
 package com.android.tools.adtui.visual.threadgraph;
 
 import com.android.annotations.NonNull;
-import com.android.tools.adtui.hchart.HRenderer;
+import com.android.tools.adtui.chart.hchart.HRenderer;
 
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
