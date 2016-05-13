@@ -190,6 +190,9 @@
     <action id="Android.BuildApk" class="com.android.tools.idea.gradle.actions.BuildApkAction">
       <add-to-group group-id="BuildMenu" relative-to-action="Android.GenerateSignedApk" anchor="before"/>
     </action>
+    <action id="Android.AnalyzeApk" class="com.android.tools.idea.apk.viewer.AnalyzeApkAction">
+      <add-to-group group-id="BuildMenu" relative-to-action="Android.GenerateSignedApk" anchor="after"/>
+    </action>
     <action id="AndroidConnectDebuggerAction"
             class="org.jetbrains.android.actions.AndroidConnectDebuggerAction"
             text="Attach debugger to Android process"
