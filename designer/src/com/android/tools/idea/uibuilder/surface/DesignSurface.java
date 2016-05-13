@@ -22,6 +22,7 @@ import com.android.tools.idea.ddms.screenshot.DeviceArtPainter;
 import com.android.tools.idea.rendering.RenderErrorPanel;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.uibuilder.editor.NlActionManager;
+import com.android.tools.idea.uibuilder.editor.NlEditorPanel;
 import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.palette.ScalableDesignSurface;
@@ -36,6 +37,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.wm.IdeGlassPane;
+import com.intellij.psi.xml.XmlFile;
 import com.intellij.ui.components.JBScrollBar;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.Magnificator;
@@ -187,6 +189,31 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
 
   public boolean isPreviewSurface() {
     return myDesigner instanceof NlPreviewForm;
+  }
+
+  @NotNull
+  @Override
+  public NlLayoutType getLayoutType() {
+    XmlFile file;
+    if (myDesigner instanceof NlEditorPanel) {
+      file = ((NlEditorPanel)myDesigner).getFile();
+    }
+    else if (myDesigner instanceof NlPreviewForm) {
+      // TODO Will this ever happen?
+      file = ((NlPreviewForm)myDesigner).getFile();
+      assert file != null;
+    }
+    else {
+      throw new IllegalStateException(myDesigner.toString());
+    }
+    return NlLayoutType.typeOf(file);
+  }
+
+  @Override
+  public void minimizePaletteOnPreview() {
+    if (isPreviewSurface()) {
+      ApplicationManager.getApplication().invokeLater(((NlPreviewForm)myDesigner)::minimizePalette);
+    }
   }
 
   @NotNull
