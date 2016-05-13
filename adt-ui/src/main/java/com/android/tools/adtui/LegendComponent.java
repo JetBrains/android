@@ -104,11 +104,8 @@ public class LegendComponent extends AnimatedComponent {
         Dimension preferredSize = label.getPreferredSize();
         label.setBounds(0, 0, preferredSize.width, preferredSize.height);
         if (series != null) {
-          Collection<ReportingSeries.ReportingData> latestDataList = series.getFullReportingData((long)series.getLatestValue());
-          //TODO change getFullReportingData to return a single instance.
-          for (ReportingSeries.ReportingData latestData : latestDataList) {
-            label.setText(String.format("%s: %s", latestData.label, latestData.formattedXData));
-          }
+          ReportingSeries.ReportingData report = series.getLatestReportingData();
+          label.setText(String.format("%s: %s", report.label, report.formattedYData));
         }
       }
 
