@@ -52,7 +52,7 @@ public class GradleExperimentalSettingsConfigurable implements SearchableConfigu
 
   public GradleExperimentalSettingsConfigurable() {
     mySettings = GradleExperimentalSettings.getInstance();
-    myUseNewProjectStructureCheckBox.setVisible(SystemProperties.getBooleanProperty(ENABLE_NEW_PSD_SYSTEM_PROPERTY, false));
+    //myUseNewProjectStructureCheckBox.setVisible(SystemProperties.getBooleanProperty(ENABLE_NEW_PSD_SYSTEM_PROPERTY, false));
   }
 
   @Override
