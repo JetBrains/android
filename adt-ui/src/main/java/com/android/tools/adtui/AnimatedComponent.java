@@ -16,6 +16,7 @@
 package com.android.tools.adtui;
 
 import com.android.annotations.NonNull;
+import com.android.tools.adtui.common.AdtUIUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -31,10 +32,6 @@ import java.util.List;
  * the behavior of timed animations.
  */
 public abstract class AnimatedComponent extends JComponent implements Animatable {
-
-  // TODO switch to JBFont, JBColor. Pull into common constants.
-  protected static final Font DEFAULT_FONT = UIManager.getDefaults().getFont("TabbedPane.font");
-  protected static final Color TEXT_COLOR = new Color(128, 128, 128);
 
   /**
    * The cached length of the last frame in seconds.
@@ -60,7 +57,7 @@ public abstract class AnimatedComponent extends JComponent implements Animatable
 
   public AnimatedComponent() {
     mDebugInfo = new LinkedList<>();
-    mDefaultFontMetrics = getFontMetrics(DEFAULT_FONT);
+    mDefaultFontMetrics = getFontMetrics(AdtUIUtils.DEFAULT_FONT);
   }
 
   public final boolean isDrawDebugInfo() {
@@ -100,7 +97,7 @@ public abstract class AnimatedComponent extends JComponent implements Animatable
     addDebugInfo("Update time: %.2fms", (mUpdateEndTime - mUpdateStartTime) / 1000000.f);
     addDebugInfo("Render time: %.2fms", (System.nanoTime() - mLastRenderTime) / 1000000.f);
     addDebugInfo("FPS: %.2f", (1.0f / mFrameLength));
-    g.setFont(DEFAULT_FONT);
+    g.setFont(AdtUIUtils.DEFAULT_FONT);
     g.setColor(Color.BLACK);
     int i = 0;
     for (String s : mDebugInfo) {

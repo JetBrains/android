@@ -16,6 +16,7 @@
 package com.android.tools.adtui;
 
 import com.android.annotations.NonNull;
+import com.android.tools.adtui.common.AdtUIUtils;
 import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
 import gnu.trove.TFloatArrayList;
 
@@ -177,7 +178,7 @@ public final class AxisComponent extends AnimatedComponent {
     mStartMargin = startMargin;
     mEndMargin = endMargin;
 
-    mMetrics = getFontMetrics(DEFAULT_FONT);
+    mMetrics = getFontMetrics(AdtUIUtils.DEFAULT_FONT);
   }
 
   /**
@@ -337,8 +338,8 @@ public final class AxisComponent extends AnimatedComponent {
   }
 
   private void drawMarkers(Graphics2D g2d, Point origin) {
-    g2d.setFont(DEFAULT_FONT);
-    g2d.setColor(TEXT_COLOR);
+    g2d.setFont(AdtUIUtils.DEFAULT_FONT);
+    g2d.setColor(AdtUIUtils.DEFAULT_FONT_COLOR);
 
     if (mShowMinMax) {
       drawMarkerLabel(g2d, LABEL_BOUNDS_OFFSET, origin, mCurrentMinValue, true);
