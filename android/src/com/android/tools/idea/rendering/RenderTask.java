@@ -965,31 +965,6 @@ public class RenderTask implements IImageFactory {
   }
 
   /**
-   * Measure the children of the given parent element.
-   *
-   * @param parent the parent element whose children should be measured
-   * @return a list of root view infos
-   */
-  @Nullable
-  public List<ViewInfo> measure(Element parent) {
-    ILayoutPullParser modelParser = new DomPullParser(parent);
-    RenderSession session = measure(modelParser);
-    if (session != null) {
-      try {
-        Result result = session.getResult();
-        if (result != null && result.isSuccess()) {
-          assert session.getRootViews().size() == 1;
-          return session.getRootViews();
-        }
-      } finally {
-        session.dispose();
-      }
-    }
-
-    return null;
-  }
-
-  /**
    * Measure the children of the given parent tag, applying the given filter to the
    * pull parser's attribute values.
    *
@@ -1066,7 +1041,7 @@ public class RenderTask implements IImageFactory {
     Module module = myRenderService.getModule();
     final SessionParams params = new SessionParams(
       parser,
-      RenderingMode.FULL_EXPAND,
+      RenderingMode.NORMAL,
       module /* projectKey */,
       hardwareConfig,
       resolver,
