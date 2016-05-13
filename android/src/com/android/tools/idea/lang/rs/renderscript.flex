@@ -26,7 +26,7 @@ import com.intellij.psi.tree.IElementType;
 %class _RenderscriptLexer
 %implements FlexLexer
 
-%unicode
+%unicode 2.0
 
 %function advance
 %type IElementType
