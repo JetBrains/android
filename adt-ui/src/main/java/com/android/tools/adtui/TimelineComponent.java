@@ -18,6 +18,7 @@ package com.android.tools.adtui;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.adtui.common.AdtUIUtils;
 import gnu.trove.TIntObjectHashMap;
 
 import javax.swing.*;
@@ -35,8 +36,6 @@ import java.util.List;
  * from different threads.
  */
 public final class TimelineComponent extends AnimatedComponent {
-
-  private static final Color TEXT_COLOR = new Color(128, 128, 128);
 
   private static final int LEFT_MARGIN = 120;
 
@@ -325,7 +324,7 @@ public final class TimelineComponent extends AnimatedComponent {
     mRight = Math.max(LEFT_MARGIN, dim.width - RIGHT_MARGIN);
 
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-    g2d.setFont(DEFAULT_FONT);
+    g2d.setFont(AdtUIUtils.DEFAULT_FONT);
     g2d.setClip(0, 0, dim.width, dim.height);
     g2d.setColor(getBackground());
     g2d.fillRect(0, 0, dim.width, dim.height);
@@ -345,7 +344,7 @@ public final class TimelineComponent extends AnimatedComponent {
   @Override
   protected void debugDraw(Graphics2D g2d) {
     int drawn = 0;
-    g2d.setFont(DEFAULT_FONT.deriveFont(5.0f));
+    g2d.setFont(AdtUIUtils.DEFAULT_FONT.deriveFont(5.0f));
     for (int i = 0; i < mSize; ++i) {
       if (mTimes[i] > mBeginTime && mTimes[i] < mEndTime) {
         for (int j = 0; j < mStreamComponents.size(); ++j) {
@@ -355,7 +354,7 @@ public final class TimelineComponent extends AnimatedComponent {
                                  (71 * mTypes[i]) % 255));
           g2d.drawLine(x, y - 2, x, y + 2);
           g2d.drawLine(x - 2, y, x + 2, y);
-          g2d.setColor(TEXT_COLOR);
+          g2d.setColor(AdtUIUtils.DEFAULT_FONT_COLOR);
         }
         drawn++;
       }
@@ -544,7 +543,7 @@ public final class TimelineComponent extends AnimatedComponent {
   }
 
   private void drawLabels(Graphics2D g2d) {
-    g2d.setFont(DEFAULT_FONT);
+    g2d.setFont(AdtUIUtils.DEFAULT_FONT);
     FontMetrics metrics = g2d.getFontMetrics();
     int y = TOP_MARGIN + 15;
     for (int i = mLabelRows.size() - 1; i >= 0 && mSize > 0; i--, y += 20) {
@@ -553,7 +552,7 @@ public final class TimelineComponent extends AnimatedComponent {
       if (labelRow.stream2 == null) {
         g2d.setColor(stream1.color);
         g2d.fillRect(mRight + 20, y, 15, 15);
-        g2d.setColor(TEXT_COLOR);
+        g2d.setColor(AdtUIUtils.DEFAULT_FONT_COLOR);
         g2d.drawString(String.format("%s [%.2f %s]", stream1.name, stream1.currentValue, mUnits), mRight + 40,
                        y + 7 + metrics.getAscent() * .5f);
       }
@@ -561,7 +560,7 @@ public final class TimelineComponent extends AnimatedComponent {
         StreamComponent stream2 = labelRow.stream2;
         fillTriangle(new Point(mRight + 20, y), new Point(mRight + 35, y), new Point(mRight + 20, y + 15), stream2.color, g2d);
         fillTriangle(new Point(mRight + 35, y), new Point(mRight + 35, y + 15), new Point(mRight + 20, y + 15), stream1.color, g2d);
-        g2d.setColor(TEXT_COLOR);
+        g2d.setColor(AdtUIUtils.DEFAULT_FONT_COLOR);
         g2d.drawString(String
                          .format("%1$s, %2$s [%3$.2f %4$s, %5$.2f %6$s]", stream1.name, stream2.name, stream1.currentValue,
                                  mUnits, stream2.currentValue, mUnits), mRight + 40, y + 7 + metrics.getAscent() * .5f);
@@ -580,8 +579,8 @@ public final class TimelineComponent extends AnimatedComponent {
   }
 
   private void drawTimeMarkers(Graphics2D g2d) {
-    g2d.setFont(DEFAULT_FONT);
-    g2d.setColor(TEXT_COLOR);
+    g2d.setFont(AdtUIUtils.DEFAULT_FONT);
+    g2d.setColor(AdtUIUtils.DEFAULT_FONT_COLOR);
     FontMetrics metrics = g2d.getFontMetrics();
     float offset = metrics.stringWidth("000") * 0.5f;
     Path2D.Float lines = new Path2D.Float();
@@ -626,7 +625,7 @@ public final class TimelineComponent extends AnimatedComponent {
     drawMarkers(g2d, -1.0f, mCurrentMin);
     if (mCurrentMin < 0) {
       int zeroY = (int)valueToY(0);
-      int minimumGap = getFontMetrics(DEFAULT_FONT).getAscent();
+      int minimumGap = getFontMetrics(AdtUIUtils.DEFAULT_FONT).getAscent();
       // Draw the zero marker if it is not overlapped by other markers.
       if (mBottom - zeroY > minimumGap && zeroY - TOP_MARGIN > minimumGap) {
         drawValueMarker(0, zeroY, g2d);
@@ -653,11 +652,11 @@ public final class TimelineComponent extends AnimatedComponent {
       }
       if (i < markers && i % 2 == 0 && mEvenMarkersAlpha < 1.0f) {
         g2d.setColor(
-          new Color(TEXT_COLOR.getColorSpace(), TEXT_COLOR.getColorComponents(null),
+          new Color(AdtUIUtils.DEFAULT_FONT_COLOR.getColorSpace(), AdtUIUtils.DEFAULT_FONT_COLOR.getColorComponents(null),
                     mEvenMarkersAlpha));
       }
       else {
-        g2d.setColor(TEXT_COLOR);
+        g2d.setColor(AdtUIUtils.DEFAULT_FONT_COLOR);
       }
       g2d.drawLine(LEFT_MARGIN - 2, y, LEFT_MARGIN, y);
       drawValueMarker(drawNegativeMarkersAsPositive ? Math.abs(markerValue) : markerValue, y, g2d);
@@ -665,7 +664,7 @@ public final class TimelineComponent extends AnimatedComponent {
   }
 
   private void drawValueMarker(float value, int y, Graphics2D g2d) {
-    FontMetrics metrics = getFontMetrics(DEFAULT_FONT);
+    FontMetrics metrics = getFontMetrics(AdtUIUtils.DEFAULT_FONT);
     String marker = String.format("%.2f %s", value, mUnits);
     g2d.drawString(marker, LEFT_MARGIN - 10 - metrics.stringWidth(marker), y + metrics.getAscent() * 0.5f);
   }
@@ -694,7 +693,7 @@ public final class TimelineComponent extends AnimatedComponent {
   }
 
   private void drawGuides(Graphics2D g2d) {
-    g2d.setColor(TEXT_COLOR);
+    g2d.setColor(AdtUIUtils.DEFAULT_FONT_COLOR);
     int zeroY = (int)valueToY(0.0f);
     g2d.drawLine(LEFT_MARGIN - 10, zeroY, mRight + 10, zeroY);
     if (mYScale > 0) {
@@ -820,7 +819,7 @@ public final class TimelineComponent extends AnimatedComponent {
       }
 
       // Animate the fade in/out of markers.
-      FontMetrics metrics = getFontMetrics(DEFAULT_FONT);
+      FontMetrics metrics = getFontMetrics(AdtUIUtils.DEFAULT_FONT);
       int ascent = metrics.getAscent();
       float distance = mMarkerSeparation * mYScale;
       float evenMarkersTarget = 1.0f;
