@@ -1800,6 +1800,12 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintMissingConstraintsInspection extends AndroidLintInspectionBase {
+    public AndroidLintMissingConstraintsInspection() {
+      super(AndroidBundle.message("android.lint.inspections.missing.constraints"), ConstraintLayoutDetector.ISSUE);
+    }
+  }
+
   public static class AndroidLintMissingIdInspection extends AndroidLintInspectionBase {
     public AndroidLintMissingIdInspection() {
       super(AndroidBundle.message("android.lint.inspections.missing.id"), MissingIdDetector.ISSUE);
