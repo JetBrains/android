@@ -83,9 +83,9 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
     if (chooseName) {
       setChangeNameVisible(true);
       resourceName = ResourceHelper.prependResourcePrefix(module, resourceName);
-      if (!StringUtil.isEmpty(resourceName)) {
-        myNameField.setText(resourceName);
-      }
+    }
+    if (!StringUtil.isEmpty(resourceName)) {
+      myNameField.setText(resourceName);
     }
 
     if (chooseValue) {
