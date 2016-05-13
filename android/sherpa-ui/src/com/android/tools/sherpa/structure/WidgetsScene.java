@@ -636,7 +636,7 @@ public class WidgetsScene {
     public ConstraintWidgetContainer getRoot() {
         if (mRoot == null) {
             for (ConstraintWidget widget : mWidgets.values()) {
-                if (widget instanceof ConstraintWidgetContainer && widget.isRoot()) {
+                if (widget instanceof ConstraintWidgetContainer) {
                     ConstraintWidgetContainer lastRoot = (ConstraintWidgetContainer) widget;
                     WidgetContainer root = lastRoot;
                     while (root.getParent() != null) {
