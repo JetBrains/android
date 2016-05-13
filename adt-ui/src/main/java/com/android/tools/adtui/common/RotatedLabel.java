@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.handlers.ui;
+package com.android.tools.adtui.common;
 
 import javax.accessibility.Accessible;
 import javax.swing.*;
@@ -28,6 +28,11 @@ import java.awt.geom.AffineTransform;
  */
 public class RotatedLabel extends JLabel {
   private boolean myPainting;
+
+  /**
+   * Flag to control if this label is rendered rotated right 90 degrees if true, or left 90 degree if false
+   */
+  private boolean mIsMirrored;
 
   @Override
   public void setUI(LabelUI newUI) {
@@ -53,6 +58,14 @@ public class RotatedLabel extends JLabel {
 
     public RotatedLabelUI(ComponentUI delegate) {
       myUI = delegate;
+    }
+
+    /**
+     * Sets if the label is mirrored. This causes the label to render as if it were rotated right by 90 degrees.
+     * @param isMirrored
+     */
+    public void setMirrored(boolean isMirrored) {
+      mIsMirrored = isMirrored;
     }
 
     @Override
@@ -93,8 +106,9 @@ public class RotatedLabel extends JLabel {
       Graphics2D g2d = (Graphics2D)g;
       Dimension text = component.getPreferredSize();
       Dimension box = component.getSize();
-      g2d.translate((text.width - box.height) / 2, (text.height + box.height) / 2);
-      g2d.transform(AffineTransform.getQuadrantRotateInstance(-1));
+      int numQuadrants = mIsMirrored ? 1 : -1;
+      g2d.translate((text.width + (numQuadrants * box.height)) / 2, (box.height - (numQuadrants * text.height)) / 2);
+      g2d.transform(AffineTransform.getQuadrantRotateInstance(numQuadrants));
     }
 
     @Override
