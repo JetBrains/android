@@ -48,7 +48,7 @@ public class NlIdPropertyItem extends NlPropertyItem {
   protected NlIdPropertyItem(@NotNull List<NlComponent> components,
                              @NotNull XmlAttributeDescriptor descriptor,
                              @Nullable AttributeDefinition attributeDefinition) {
-    super(components, descriptor, attributeDefinition);
+    super(components, descriptor, SdkConstants.ANDROID_URI, attributeDefinition);
   }
 
   @Override
