@@ -17,7 +17,6 @@
 package com.android.tools.sherpa.structure;
 
 import com.android.tools.sherpa.interaction.ResizeHandle;
-import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
 import android.support.constraint.solver.widgets.ConstraintAnchor;
 import android.support.constraint.solver.widgets.ConstraintWidget;
 import android.support.constraint.solver.widgets.Guideline;
@@ -25,13 +24,16 @@ import android.support.constraint.solver.widgets.Guideline;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * This class keeps track of the current selection of widgets and helps us manipulate it
  */
 public class Selection {
 
-    private ArrayList<Element> mSelectedWidgets = new ArrayList<>();
+    private Set<Element> mSelectedWidgets = new HashSet<>();
     private ArrayList<ConstraintWidget> mModifiedWidgets = new ArrayList<>();
     private ArrayList<SelectionListener> mSelectionListeners = new ArrayList<>();
 
@@ -124,7 +126,7 @@ public class Selection {
      * @return true if the selection is empty
      */
     public boolean isEmpty() {
-        return mSelectedWidgets.size() == 0;
+        return mSelectedWidgets.isEmpty();
     }
 
     /**
@@ -142,10 +144,10 @@ public class Selection {
      * @return return the first element, or null if the selection is empty
      */
     public Element getFirstElement() {
-        if (mSelectedWidgets.size() == 0) {
+        if (mSelectedWidgets.isEmpty()) {
             return null;
         }
-        return mSelectedWidgets.get(0);
+        return mSelectedWidgets.iterator().next();
     }
 
     /**
@@ -153,7 +155,7 @@ public class Selection {
      *
      * @return the list of selected elements
      */
-    public ArrayList<Element> getElements() {
+    public Collection<Element> getElements() {
         return mSelectedWidgets;
     }
 
@@ -210,6 +212,23 @@ public class Selection {
     public void add(ConstraintWidget widget) {
         mSelectedWidgets.add(new Element(widget));
         selectionHasChanged();
+    }
+
+    /**
+     * Add a widget to the current selection without warning the listeners
+     *
+     * @param widget widget to add to the selection
+     */
+    public void silentAdd(ConstraintWidget widget) {
+        mSelectedWidgets.add(new Element(widget));
+    }
+
+    /**
+     * Clear the selection without warning listeners
+     */
+    public void silentClear() {
+        mSelectedWidgets.clear();
+        mModifiedWidgets.clear();
     }
 
     /**
