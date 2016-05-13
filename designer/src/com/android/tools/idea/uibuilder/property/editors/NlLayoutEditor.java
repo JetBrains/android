@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.editors;
 
-import com.android.tools.idea.uibuilder.handlers.ui.RotatedLabel;
+import com.android.tools.adtui.common.RotatedLabel;
 import com.android.tools.idea.uibuilder.property.NlFlagPropertyItem;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.google.common.collect.ImmutableList;
