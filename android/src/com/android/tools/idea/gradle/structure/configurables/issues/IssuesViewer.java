@@ -157,7 +157,6 @@ public class IssuesViewer {
   }
 
   private void renderIssues(@NotNull List<PsIssue> group, @NotNull JEditorPane view) {
-    view.setCaretPosition(0);
     view.setText(myRenderer.render(group));
     view.setCaretPosition(0);
   }

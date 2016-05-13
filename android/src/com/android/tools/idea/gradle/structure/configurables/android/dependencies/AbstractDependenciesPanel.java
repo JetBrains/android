@@ -31,6 +31,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.ui.OnePixelDivider;
 import com.intellij.openapi.ui.popup.JBPopup;
@@ -126,7 +127,7 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
     assert myIssuesViewer != null;
     myIssuesViewer.display(issues);
     myInfoPanel.revalidateAndRepaintPanel();
-    myInfoScrollPane.getVerticalScrollBar().setValue(0);
+    ApplicationManager.getApplication().invokeLater(() -> myInfoScrollPane.getVerticalScrollBar().setValue(0));
   }
 
   protected void updateDetails(@Nullable PsAndroidDependency selected) {
