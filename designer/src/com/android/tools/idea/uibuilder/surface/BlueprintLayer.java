@@ -106,7 +106,9 @@ public class BlueprintLayer extends Layer {
     if (handler != null && handler instanceof ViewGroupHandler) {
       ViewGroupHandler viewGroupHandler = (ViewGroupHandler)handler;
       if (viewGroupHandler.handlesPainting()) {
-        return;
+        if (handler.paintConstraints(myScreenView, gc, component)) {
+          return;
+        }
       }
     }
 
