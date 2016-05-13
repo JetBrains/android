@@ -1376,7 +1376,7 @@ public class WidgetDecorator {
 
         @Override
         public boolean click() {
-            mWidget.resetAnchors();
+            mWidget.resetAllConstraints();
             repaint();
             return true;
         }

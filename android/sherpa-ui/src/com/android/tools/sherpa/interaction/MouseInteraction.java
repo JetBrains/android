@@ -760,9 +760,14 @@ public class MouseInteraction {
             if (mSelection.getSelectedAnchor().isConnected()
                     && mSelection.getSelectedAnchor().getTarget()
                     == mSelection.getSelectedAnchorInitialTarget()) {
-                mSelection.getSelectedAnchor().getOwner().resetAnchor(
-                        mSelection.getSelectedAnchor());
+                ConstraintWidget widget = mSelection.getSelectedAnchor().getOwner();
                 ConstraintAnchor selectedAnchor = mSelection.getSelectedAnchor();
+                if (selectedAnchor.isVerticalAnchor()) {
+                    widget.setVerticalBiasPercent(0.5f);
+                } else {
+                    widget.setHorizontalBiasPercent(0.5f);
+                }
+                widget.resetAnchor(selectedAnchor);
                 ConstraintHandle selectedHandle =
                         WidgetInteractionTargets.constraintHandle(selectedAnchor);
                 if (mSelection.getSelectedAnchor().getType() == ConstraintAnchor.Type.BASELINE) {
@@ -772,8 +777,7 @@ public class MouseInteraction {
                     mSceneDraw.getChoreographer().addAnimation(
                             new AnimatedDestroyCircle(selectedHandle));
                 }
-                mSelection.addModifiedWidget(
-                        mSelection.getSelectedAnchor().getOwner());
+                mSelection.addModifiedWidget(widget);
             }
         }
 
