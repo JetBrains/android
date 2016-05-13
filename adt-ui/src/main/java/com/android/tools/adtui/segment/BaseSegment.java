@@ -4,6 +4,7 @@ import com.android.annotations.NonNull;
 import com.android.tools.adtui.Animatable;
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.Range;
+import com.android.tools.adtui.common.RotatedLabel;
 
 import javax.swing.*;
 import javax.swing.border.CompoundBorder;
@@ -46,7 +47,7 @@ public abstract class BaseSegment extends JComponent {
 
   public void initializeComponents() {
     setLayout(new BorderLayout());
-    JLabel name = new JLabel();
+    RotatedLabel name = new RotatedLabel();
     name.setText(myName);
     name.setBorder(mCompoundBorder);
     this.add(name, BorderLayout.WEST);
