@@ -461,7 +461,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       ConstraintModel model = ConstraintModel.getConstraintModel(editor.getModel());
       if (model != null) {
         model.setAutoConnect(selected);
-        setIcon(selected ? getSelectedIcon() : getUnselectedIcon());
       }
     }
 
@@ -475,7 +474,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                                    boolean selected) {
       ConstraintModel model = ConstraintModel.getConstraintModel(editor.getModel());
       if (model != null) {
-        presentation.setIcon(model.isAutoConnect() ? getSelectedIcon() : getUnselectedIcon());
+        presentation.setIcon(model.isAutoConnect() ? AndroidIcons.SherpaIcons.AutoConnect : AndroidIcons.SherpaIcons.AutoConnectOff);
       }
     }
 
@@ -603,7 +602,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                             @NotNull List<NlComponent> selectedChildren,
                             boolean selected) {
       myShowAllConstraints = selected;
-      setIcon(myShowAllConstraints ? getSelectedIcon() : getUnselectedIcon());
     }
 
     @Override
@@ -614,7 +612,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                                    @NotNull List<NlComponent> selectedChildren,
                                    @InputEventMask int modifiers,
                                    boolean selected) {
-      presentation.setIcon(myShowAllConstraints ? getSelectedIcon() : getUnselectedIcon());
+      presentation.setIcon(myShowAllConstraints ? AndroidIcons.SherpaIcons.Unhide : AndroidIcons.SherpaIcons.Hide);
     }
   }
 
