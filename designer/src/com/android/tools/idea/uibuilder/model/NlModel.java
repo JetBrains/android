@@ -152,6 +152,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       ResourceVersion version = manager.addListener(this, myFacet, myFile, myConfiguration);
       if (!version.equals(myRenderedVersion)) {
         requestModelUpdate();
+        myModelVersion.myResourceVersion.incrementAndGet();
       }
     }
   }
@@ -1629,6 +1630,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     ResourceVersion version = manager.addListener(this, myFacet, myFile, myConfiguration);
     if (!version.equals(myRenderedVersion)) {
       requestModelUpdate();
+      myModelVersion.myResourceVersion.incrementAndGet();
     }
   }
 
