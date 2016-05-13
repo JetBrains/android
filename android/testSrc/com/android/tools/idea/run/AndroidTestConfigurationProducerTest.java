@@ -16,7 +16,7 @@
 package com.android.tools.idea.run;
 
 import com.android.tools.idea.run.testing.AndroidTestRunConfiguration;
-import com.android.tools.idea.templates.AndroidGradleArtifactsTestCase;
+import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.intellij.execution.Location;
 import com.intellij.execution.PsiLocation;
 import com.intellij.execution.RunnerAndConfigurationSettings;
@@ -40,16 +40,11 @@ import static com.intellij.openapi.vfs.VfsUtilCore.findRelativeFile;
 /**
  * Test for {@link com.android.tools.idea.run.testing.AndroidTestConfigurationProducer}
  */
-public class AndroidTestConfigurationProducerTest extends AndroidGradleArtifactsTestCase {
+public class AndroidTestConfigurationProducerTest extends AndroidGradleTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
     loadProject("guiTests/SimpleApplication", false);
-  }
-
-  @Override
-  protected boolean loadAllTestArtifacts() {
-    return true;
   }
 
   public void /*test*/CanCreateConfigurationFromFromAndroidTestClass() throws Exception {

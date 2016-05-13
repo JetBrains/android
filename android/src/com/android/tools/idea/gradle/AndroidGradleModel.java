@@ -20,7 +20,6 @@ import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.ClassJarProvider;
@@ -254,19 +253,13 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
 
   @NotNull
   public Collection<SourceProvider> getTestSourceProviders(@NotNull Iterable<SourceProviderContainer> containers) {
-    if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
-      return getSourceProvidersForArtifacts(containers, TEST_ARTIFACT_NAMES);
-    }
-    return getSourceProvidersForArtifacts(containers, mySelectedTestArtifactName);
+    return getSourceProvidersForArtifacts(containers, TEST_ARTIFACT_NAMES);
   }
 
   @Override
   @NotNull
   public List<SourceProvider> getTestSourceProviders() {
-    if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
-      return getTestSourceProviders(mySelectedVariantName, TEST_ARTIFACT_NAMES);
-    }
-    return getTestSourceProviders(mySelectedTestArtifactName);
+    return getTestSourceProviders(mySelectedVariantName, TEST_ARTIFACT_NAMES);
   }
 
   @NotNull
@@ -331,30 +324,20 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
 
   @Nullable
   public AndroidArtifact getAndroidTestArtifactInSelectedVariant() {
-    if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
-      for (AndroidArtifact artifact : getSelectedVariant().getExtraAndroidArtifacts()) {
-        if (isTestArtifact(artifact)) {
-          return artifact;
-        }
+    for (AndroidArtifact artifact : getSelectedVariant().getExtraAndroidArtifacts()) {
+      if (isTestArtifact(artifact)) {
+        return artifact;
       }
-    }
-    else if (ARTIFACT_ANDROID_TEST.equals(getSelectedTestArtifactName())) {
-      return (AndroidArtifact)findSelectedTestArtifactInSelectedVariant();
     }
     return null;
   }
 
   @Nullable
   public JavaArtifact getUnitTestArtifactInSelectedVariant() {
-    if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
-      for (JavaArtifact artifact : getSelectedVariant().getExtraJavaArtifacts()) {
-        if (isTestArtifact(artifact)) {
-          return artifact;
-        }
+    for (JavaArtifact artifact : getSelectedVariant().getExtraJavaArtifacts()) {
+      if (isTestArtifact(artifact)) {
+        return artifact;
       }
-    }
-    else if (ARTIFACT_UNIT_TEST.equals(getSelectedTestArtifactName())) {
-      return (JavaArtifact)findSelectedTestArtifactInSelectedVariant();
     }
     return null;
   }
@@ -1048,12 +1031,8 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
 
     AndroidArtifact mainArtifact = variant.getMainArtifact();
 
-    if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
-      // When multi test artifacts are enabled, test tasks are computed dynamically.
-      updateGradleTaskNames(state, mainArtifact, null);
-    } else {
-      updateGradleTaskNames(state, mainArtifact, findSelectedTestArtifactInSelectedVariant());
-    }
+    // When multi test artifacts are enabled, test tasks are computed dynamically.
+    updateGradleTaskNames(state, mainArtifact, null);
   }
 
   @VisibleForTesting
