@@ -32,7 +32,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerD
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleBuildModelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleProjectEventListener;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleToolWindowFixture;
-import com.android.tools.idea.tests.gui.framework.ndk.MiscUtils;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.codeInspection.ui.InspectionTree;
@@ -87,7 +86,6 @@ import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Enumeration;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -909,124 +907,5 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       }
     });
     Wait.seconds(30).expecting("a component to have the focus").until(() -> target().getFocusOwner() != null);
-  }
-
-  /////////////////////////////////////////////////////////////////
-  ////     Methods to help control debugging under a test.  ///////
-  /////////////////////////////////////////////////////////////////
-
-  public void resumeProgram() {
-    MiscUtils.invokeMenuPathOnRobotIdle(this, "Run", "Resume Program");
-  }
-
-  public void stepOver() {
-    MiscUtils.invokeMenuPathOnRobotIdle(this, "Run", "Step Over");
-  }
-
-  public void stepInto() {
-    MiscUtils.invokeMenuPathOnRobotIdle(this, "Run", "Step Into");
-  }
-
-  public void stepOut() {
-    MiscUtils.invokeMenuPathOnRobotIdle(this, "Run", "Step Out");
-  }
-
-  /**
-   * Toggles breakpoints at the line numbers in {@code lines} of the source file {@code fileName}.
-   */
-  public void openAndToggleBreakPoints(String fileName, int[] lines) {
-    EditorFixture editor = getEditor().open(fileName);
-    for (int line : lines) {
-      editor.moveToLine(line);
-      invokeMenuPath("Run", "Toggle Line Breakpoint"); // TODO: Use editor.invokeAction instead and provide the mnemonic.
-    }
-  }
-
-  // Recursively prints out the debugger tree rooted at {@code node} into {@code builder} with an indent of
-  // "{@code level} * {@code numIndentSpaces}" whitespaces. Each node is printed on a separate line. The indent level for every child node
-  // is 1 more than their parent.
-  private static void printNode(XDebuggerTreeNode node, StringBuilder builder, int level, int numIndentSpaces) {
-    if (builder.length() > 0) {
-      builder.append(System.getProperty("line.separator"));
-    }
-    for (int i = 0; i < level * numIndentSpaces; ++i) {
-      builder.append(' ');
-    }
-    builder.append(node.getText().toString());
-    Enumeration<XDebuggerTreeNode> children = node.children();
-    while (children.hasMoreElements()) {
-      printNode(children.nextElement(), builder, level + 1, numIndentSpaces);
-    }
-  }
-
-  /**
-   * Prints out the debugger tree rooted at {@code root}.
-   */
-  @NotNull
-  public static String printDebuggerTree(XDebuggerTreeNode root) {
-    StringBuilder builder = new StringBuilder();
-    printNode(root, builder, 0, 2);
-    return builder.toString();
-  }
-
-  @NotNull
-  private static String[] debuggerTreeRootToChildrenTexts(XDebuggerTreeNode treeRoot) {
-    List<? extends TreeNode> children = treeRoot.getChildren();
-    String[] childrenTexts = new String[children.size()];
-    int i = 0;
-    for (TreeNode child : children) {
-      childrenTexts[i] = ((XDebuggerTreeNode)child).getText().toString();
-      ++i;
-    }
-    return childrenTexts;
-  }
-
-  /**
-   * Returns the subset of {@code expectedPatterns} which do not match any of the children (just the first level children, not recursive) of
-   * {@code treeRoot} .
-   */
-  @NotNull
-  public static List<String> getUnmatchedTerminalVariableValues(String[] expectedPatterns, XDebuggerTreeNode treeRoot) {
-    String[] childrenTexts = debuggerTreeRootToChildrenTexts(treeRoot);
-    List<String> unmatchedPatterns = Lists.newArrayList();
-    for (String expectedPattern : expectedPatterns) {
-      boolean matched = false;
-      for (String childText : childrenTexts) {
-        if (childText.matches(expectedPattern)) {
-          matched = true;
-          break;
-        }
-      }
-      if (!matched) {
-        unmatchedPatterns.add(expectedPattern);
-      }
-    }
-    return unmatchedPatterns;
-  }
-
-  /**
-   * Returns the appropriate pattern to look for a variable named {@code name} with the type {@code type} and value {@code value} appearing
-   * in the Variables window in Android Studio.
-   */
-  @NotNull
-  public static String variableToSearchPattern(String name, String type, String value) {
-    return String.format("%s = \\{%s\\} %s", name, type, value);
-  }
-
-  public boolean verifyVariablesAtBreakpoint(String[] expectedVariablePatterns, String debugConfigName) {
-    DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(this);
-    final ExecutionToolWindowFixture.ContentFixture contentFixture = debugToolWindowFixture.findContent(debugConfigName);
-
-    contentFixture.clickDebuggerTreeRoot();
-    Wait.seconds(15).expecting("debugger tree to appear").until(() -> contentFixture.getDebuggerTreeRoot() != null);
-
-    // Get the debugger tree and print it.
-    XDebuggerTreeNode debuggerTreeRoot = contentFixture.getDebuggerTreeRoot();
-    if (debuggerTreeRoot == null) {
-      return false;
-    }
-
-    List<String> unmatchedPatterns = getUnmatchedTerminalVariableValues(expectedVariablePatterns, debuggerTreeRoot);
-    return unmatchedPatterns.isEmpty();
   }
 }
