@@ -53,6 +53,7 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
   private static final List<String> AVAILABLE_TEXT_SIZES = ImmutableList.of("8sp", "10sp", "12sp", "14sp", "18sp", "24sp", "30sp", "36sp");
   private static final List<String> AVAILABLE_LINE_SPACINGS = AVAILABLE_TEXT_SIZES;
   private static final List<String> AVAILABLE_TYPEFACES = ImmutableList.of("normal", "sans", "serif", "monospace");
+  private static final List<String> AVAILABLE_SIZES = ImmutableList.of("match_parent", "wrap_content");
   private static final Listener DEFAULT_LISTENER = new DefaultListener();
 
   private final JPanel myPanel;
@@ -181,6 +182,12 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
         break;
       case SdkConstants.ATTR_TEXT_APPEARANCE:
         values = createTextAttributeList(property);
+        break;
+      case SdkConstants.ATTR_LAYOUT_HEIGHT:
+      case SdkConstants.ATTR_LAYOUT_WIDTH:
+      case SdkConstants.ATTR_DROPDOWN_HEIGHT:
+      case SdkConstants.ATTR_DROPDOWN_WIDTH:
+        values = ValueWithDisplayString.create(AVAILABLE_SIZES);
         break;
       default:
         values = definition == null ? ValueWithDisplayString.EMPTY_ARRAY : ValueWithDisplayString.create(definition.getValues());

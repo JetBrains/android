@@ -20,6 +20,7 @@ import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
+import com.android.tools.idea.uibuilder.property.editors.NlEnumEditor;
 import com.android.tools.idea.uibuilder.property.editors.NlReferenceEditor;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
@@ -71,8 +72,8 @@ public class IdInspectorProvider implements InspectorProvider {
 
   private static class IdInspectorComponent implements InspectorComponent {
     private final NlReferenceEditor myIdEditor;
-    private final NlReferenceEditor myWidthEditor;
-    private final NlReferenceEditor myHeightEditor;
+    private final NlEnumEditor myWidthEditor;
+    private final NlEnumEditor myHeightEditor;
     private final WidgetConstraintPanel myConstraintWidget;
 
     private NlProperty myIdAttr;
@@ -81,8 +82,8 @@ public class IdInspectorProvider implements InspectorProvider {
 
     public IdInspectorComponent(@NotNull NlPropertiesManager propertiesManager) {
       myIdEditor = NlReferenceEditor.createForInspector(propertiesManager.getProject(), DEFAULT_LISTENER);
-      myWidthEditor = NlReferenceEditor.createForInspectorWithBrowseButton(propertiesManager.getProject(), DEFAULT_LISTENER);
-      myHeightEditor = NlReferenceEditor.createForInspectorWithBrowseButton(propertiesManager.getProject(), DEFAULT_LISTENER);
+      myWidthEditor = NlEnumEditor.createForInspector(NlEnumEditor.getDefaultListener());
+      myHeightEditor = NlEnumEditor.createForInspector(NlEnumEditor.getDefaultListener());
       myConstraintWidget = new WidgetConstraintPanel(ImmutableList.of());
     }
 

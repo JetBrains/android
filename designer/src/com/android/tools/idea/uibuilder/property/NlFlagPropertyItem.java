@@ -44,8 +44,9 @@ public class NlFlagPropertyItem extends NlPropertyItem implements NlProperty {
 
   protected NlFlagPropertyItem(@NotNull List<NlComponent> components,
                                @NotNull XmlAttributeDescriptor descriptor,
+                               @Nullable String namespace,
                                @Nullable AttributeDefinition attributeDefinition) {
-    super(components, descriptor, attributeDefinition);
+    super(components, descriptor, namespace, attributeDefinition);
     assert attributeDefinition != null;
   }
 
