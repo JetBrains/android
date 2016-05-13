@@ -690,8 +690,10 @@ public class ConstraintUtilities {
       return;
     }
     // We only want to update if it's a deep update or if our component's parent ISN'T a ConstraintLayout
-    // If our parent is a ConstraintLayout, it is authoritative, so no need to update anything but a deep update...
-    boolean update = deepUpdate || !(widget.getParent() instanceof ConstraintWidgetContainer);
+    // If our parent is a ConstraintLayout (or we are), it is authoritative, so no need to update anything but a deep update...
+    boolean update = deepUpdate
+                     || (!(widget.getParent() instanceof ConstraintWidgetContainer)
+                          && !(widget instanceof ConstraintWidgetContainer));
     if (!update) {
       return;
     }
@@ -750,7 +752,10 @@ public class ConstraintUtilities {
     if (widget instanceof ConstraintWidgetContainer) {
       x += constraintModel.pxToDp(padding.left);
       y += constraintModel.pxToDp(padding.top);
-    } else if (widget.getParent() instanceof WidgetContainer) {
+    }
+    if ((widget.getParent() != null
+         && (widget.getParent() instanceof WidgetContainer)
+         && !(widget.getParent() instanceof ConstraintWidgetContainer))) {
       WidgetContainer parentContainer = (WidgetContainer)widget.getParent();
       x -= parentContainer.getDrawX();
       y -= parentContainer.getDrawY();
@@ -1025,7 +1030,9 @@ public class ConstraintUtilities {
       if (!widget.isRoot()) {
         WidgetCompanion companion = (WidgetCompanion)widget.getCompanionWidget();
         NlComponent component = (NlComponent)companion.getWidgetModel();
-
+        if (component == null || component.viewInfo == null) {
+          return;
+        }
         Object viewObject = component.viewInfo.getViewObject();
         Object layoutParams = component.viewInfo.getLayoutParamsObject();
 
