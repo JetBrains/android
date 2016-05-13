@@ -32,6 +32,7 @@ import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -149,8 +150,20 @@ public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Mo
       return;
     }
     for (NlPropertyItem property : myProperties) {
-      property.setDefaultValue(defaultValues.get(property.getName()));
+      property.setDefaultValue(getDefaultProperty(defaultValues, property));
     }
+  }
+
+  @Nullable
+  private static PropertiesMap.Property getDefaultProperty(@NotNull PropertiesMap defaultValues, @NotNull NlProperty property) {
+    if (SdkConstants.ANDROID_URI.equals(property.getNamespace())) {
+      PropertiesMap.Property defaultValue = defaultValues.get(SdkConstants.PREFIX_ANDROID + property.getName());
+      if (defaultValue != null) {
+        return defaultValue;
+      }
+      return defaultValues.get(SdkConstants.ANDROID_PREFIX + property.getName());
+    }
+    return defaultValues.get(property.getName());
   }
 
   @Override
