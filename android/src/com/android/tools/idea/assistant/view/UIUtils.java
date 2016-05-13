@@ -192,10 +192,11 @@ public class UIUtils {
     // * Use standard label font family so this is more in sync with labels and text based panels.
     // * Defeat default list item treatment. It's hard coded in ListView as a poorly rendered 8px disc + large margins.
     // * Add bottom margins to list items for legibility.
-    // * Colorizes <code>.
+    // * Colorizes <code>, resets the font size and uses a more legible monospace if available.
     String text = "<html><head><style>body { font-family: " + defaultFont.getFamily() + "; margin: 0px; } " +
                   "ol {margin: 0 0 0 20px; } ul {list-style-type: circle; margin: 0 0 0 20px; } " +
-                  "li {margin: 0 0 10px 10px; } code { color: " + getCssColor(CODE_COLOR) + "; }" +
+                  "li {margin: 0 0 10px 10px; } " +
+                  "code { font-family: 'Roboto Mono', 'Courier New', monospace; color: " + getCssColor(CODE_COLOR) + "; font-size: 1em; }" +
                   "a, a:visited, a:active { color: " + getCssColor(OFFSITE_LINK_COLOR) + "; }" +
                   // In some scenario, containers render contents at 0 height on theme change. Override this class to have 1px of top margin
                   // in that event and accommodate the size change in your document.
