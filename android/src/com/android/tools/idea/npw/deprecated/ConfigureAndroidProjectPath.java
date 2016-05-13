@@ -21,6 +21,7 @@ import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.npw.ConfigureFormFactorStep;
+import com.android.tools.idea.npw.project.NewProjectModel;
 import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.sdk.wizard.legacy.LicenseAgreementStep;
 import com.android.tools.idea.sdk.wizard.legacy.SmwOldApiDirectInstall;
@@ -46,6 +47,7 @@ import java.io.IOException;
 
 /**
  * A path to configure global details of a new Android project
+ * @deprecated Replaced by {@link NewProjectModel}
  */
 public class ConfigureAndroidProjectPath extends DynamicWizardPath {
   private static final Logger LOG = Logger.getInstance(ConfigureAndroidProjectPath.class);
