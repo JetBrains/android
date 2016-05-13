@@ -158,7 +158,7 @@ public class NlPropertiesManager implements DesignSurfaceListener, ModelListener
     Map<Object, PropertiesMap> map = view.getModel().getDefaultProperties();
     List<PropertiesMap> propertiesMaps = new ArrayList<>(components.size());
     for (NlComponent component : components) {
-      PropertiesMap propertiesMap = map.get(component.getTag());
+      PropertiesMap propertiesMap = map.get(component.getSnapshot());
       if (propertiesMap == null) {
         return PropertiesMap.EMPTY_MAP;
       }
