@@ -44,11 +44,18 @@ public class ConstraintDragHandler extends DragHandler {
     super(editor, constraintLayoutHandler, layout, components, type);
     if (components.size() == 1) {
       myComponent = components.get(0);
-      myDragWidget = new ConstraintWidget();
-      WidgetCompanion companion = WidgetCompanion.create(myDragWidget);
-      companion.setWidgetModel(myComponent);
-      companion.setWidgetTag(myComponent.getTag());
-      myDragWidget.setCompanionWidget(companion);
+      ConstraintModel model = ConstraintModel.getConstraintModel(editor.getModel());
+      if (model.getScene().getWidget(myComponent.getTag()) == null) {
+        myDragWidget = new ConstraintWidget();
+        WidgetCompanion companion = WidgetCompanion.create(myDragWidget);
+        companion.setWidgetModel(myComponent);
+        companion.setWidgetTag(myComponent.getTag());
+        myDragWidget.setCompanionWidget(companion);
+      } else {
+        // For now, only deal with drag handler on ConstraintLayout here if it's an external DND
+        // (ConstraintInteraction will handle the rest)
+        myComponent = null;
+      }
     }
   }
 
@@ -94,24 +101,22 @@ public class ConstraintDragHandler extends DragHandler {
 
   @Override
   public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers) {
-    if (this.components.size() == 1) {
-      NlComponent component = this.components.get(0);
-
-      component.x = x;
-      component.y = y;
-      NlComponent root = component.getRoot();
+    if (myDragWidget != null) {
+      ConstraintModel model = ConstraintModel.getConstraintModel(editor.getModel());
+      model.getScene().removeWidget(myDragWidget);
+    }
+    if (myComponent != null) {
+      myComponent.x = x;
+      myComponent.y = y;
+      NlComponent root = myComponent.getRoot();
       root.ensureNamespace(SdkConstants.SHERPA_PREFIX, SdkConstants.AUTO_URI);
 
       ConstraintModel model = ConstraintModel.getConstraintModel(editor.getModel());
       if (model != null) {
-        int ax = model.pxToDp(x - this.layout.x - this.layout.getPadding().left - component.w / 2);
-        int ay = model.pxToDp(y - this.layout.y - this.layout.getPadding().top - component.h / 2);
-        ConstraintUtilities.setEditorPosition(component, ax, ay);
+        int ax = model.pxToDp(x - this.layout.x - this.layout.getPadding().left - myComponent.w / 2);
+        int ay = model.pxToDp(y - this.layout.y - this.layout.getPadding().top - myComponent.h / 2);
+        ConstraintUtilities.setEditorPosition(myComponent, ax, ay);
       }
-    }
-    if (myDragWidget != null) {
-      ConstraintModel model = ConstraintModel.getConstraintModel(editor.getModel());
-      model.getScene().removeWidget(myDragWidget);
     }
   }
 
