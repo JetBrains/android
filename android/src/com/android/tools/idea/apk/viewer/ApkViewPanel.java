@@ -100,8 +100,8 @@ public class ApkViewPanel implements TreeSelectionListener {
                         new FutureCallBackAdapter<List<Long>>() {
                           @Override
                           public void onSuccess(List<Long> result) {
-                            Long uncompressed = result.get(0);
-                            Long compressed = result.get(1);
+                            long uncompressed = !result.isEmpty() ? result.get(0) : 0;
+                            long compressed = result.size() > 1 ? result.get(1) : 0;
                             setApkSizes(uncompressed, compressed);
                           }
                         }, EdtExecutor.INSTANCE);
