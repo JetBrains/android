@@ -54,6 +54,7 @@ public class ConstraintHandle {
     static final Stroke sSimpleStroke = new BasicStroke(1);
 
     static final int sCountDownRadius = 10;
+    private static final int sConnectionOffset = 6;
 
     // How long does the conversion from soft constraints to hard constraints takes
     private final static int LOCK_CONNECTIONS_DURATION = 3000; // ms
@@ -737,13 +738,12 @@ public class ConstraintHandle {
         maxDistance = distance > maxDistance ? maxDistance : distance;
         int controlDistance = transform.getSwingDimension(maxDistance);
 
-        int delta = ConnectionDraw.CONNECTION_ANCHOR_SIZE;
         if (isTargetConnected) {
             if (isVertical) {
-                x1 = x0 < x1 ? x1 - delta : x1 + delta;
+                x1 = x0 < x1 ? x1 - sConnectionOffset : x1 + sConnectionOffset;
             }
             else {
-                y1 = y0 < y1 ? y1 - delta : y1 + delta;
+                y1 = y0 < y1 ? y1 - sConnectionOffset : y1 + sConnectionOffset;
             }
         }
 
@@ -982,13 +982,12 @@ public class ConstraintHandle {
         int y0 = transform.getSwingFY(mY);
         int x1 = transform.getSwingFX(targetHandle.getDrawX());
         int y1 = transform.getSwingFY(targetHandle.getDrawY());
-        int delta = ConnectionDraw.CONNECTION_ANCHOR_SIZE;
         if (targetHandle.getAnchor().isConnected()) {
             if (isVertical) {
-                x1 = x0 < x1 ? x1 - delta : x1 + delta;
+                x1 = x0 < x1 ? x1 - sConnectionOffset : x1 + sConnectionOffset;
             }
             else {
-                y1 = y0 < y1 ? y1 - delta : y1 + delta;
+                y1 = y0 < y1 ? y1 - sConnectionOffset : y1 + sConnectionOffset;
             }
         }
         drawing.mPath.moveTo(x0, y0);
@@ -1128,7 +1127,6 @@ public class ConstraintHandle {
 
         float xt = targetHandle.getDrawX();
         float yt = targetHandle.getDrawY();
-        int delta = ConnectionDraw.CONNECTION_ANCHOR_SIZE;
 
         // TODO: handle cases when w is too small to have the current values for connection
 
@@ -1209,7 +1207,7 @@ public class ConstraintHandle {
             int sxt = transform.getSwingFX(xt);
             int syt = transform.getSwingFY(yt);
             if (targetHandle.getAnchor().isConnected()) {
-                syt = t < yt ? syt - delta : syt + delta;
+                syt = t < yt ? syt - sConnectionOffset : syt + sConnectionOffset;
             }
 
             if (rightConnection) {
@@ -1310,7 +1308,7 @@ public class ConstraintHandle {
             int sxt = transform.getSwingFX(xt);
             int syt = transform.getSwingFY(yt);
             if (targetHandle.getAnchor().isConnected()) {
-                sxt = l < xt ? sxt - delta : sxt + delta;
+                sxt = l < xt ? sxt - sConnectionOffset : sxt + sConnectionOffset;
             }
             if (bottomConnection) {
                 addQuarterArc(drawing.mPath,
@@ -1350,13 +1348,12 @@ public class ConstraintHandle {
             ConstraintHandle targetHandle,
             ConstraintWidget targetWidget) {
 
-        int radius = 8;
+        int radius = 4;
 
         float x0 = mX;
         float y0 = mY;
         float xt = targetHandle.getDrawX();
         float yt = targetHandle.getDrawY();
-        int delta = ConnectionDraw.CONNECTION_ANCHOR_SIZE;
 
         boolean isTopConnection = mAnchor.getType() == ConstraintAnchor.Type.TOP;
         boolean isLeftConnection = targetHandle.getDrawX() < getDrawX();
@@ -1367,10 +1364,10 @@ public class ConstraintHandle {
         int ydelta = 0;
         if (targetHandle.getAnchor().isConnected()) {
             if (isVerticalConnection) {
-                xdelta = x0 > xt ? -delta : delta;
+                xdelta = x0 > xt ? -sConnectionOffset : sConnectionOffset;
             }
             else {
-                ydelta = y0 < yt ? -delta : delta;
+                ydelta = y0 < yt ? -sConnectionOffset : sConnectionOffset;
             }
         }
 
