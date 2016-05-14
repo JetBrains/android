@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.tests.gui.layout;
 
-import com.android.tools.idea.tests.gui.framework.*;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.NlEditorFixture;
 import org.fest.swing.core.GenericTypeMatcher;
-import org.fest.swing.core.Robot;
-import org.fest.swing.core.matcher.JButtonMatcher;
-import org.fest.swing.driver.ComponentDriver;
 import org.fest.swing.finder.WindowFinder;
 import org.fest.swing.fixture.DialogFixture;
 import org.fest.swing.fixture.JButtonFixture;
@@ -31,8 +31,6 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import javax.swing.*;
 
 import java.awt.*;
 import java.util.concurrent.TimeUnit;
@@ -65,7 +63,7 @@ public class ConvertToConstraintLayoutTest {
     DialogFixture quickFixDialog = WindowFinder.findDialog(new GenericTypeMatcher<Dialog>(Dialog.class) {
       @Override
       protected boolean isMatching(@NotNull Dialog dialog) {
-        return "Convert to ConstraintLayout".equals(dialog.getTitle());
+        return dialog.isShowing() && "Convert to ConstraintLayout".equals(dialog.getTitle());
       }
     }).withTimeout(TimeUnit.MINUTES.toMillis(2)).using(guiTest.robot());
 
@@ -139,6 +137,104 @@ public class ConvertToConstraintLayoutTest {
                  "\n" +
                  "</android.support.constraint.ConstraintLayout>\n" +
                  "\n";
+    assertThat(editor.getCurrentFileContents()).isEqualTo(xml);
+  }
+
+  @Test
+  public void testConvert2() throws Exception {
+    guiTest.importSimpleApplication();
+
+    EditorFixture editor = guiTest.ideFrame().getEditor();
+    editor.open("app/src/main/res/layout/frames.xml", EditorFixture.Tab.DESIGN);
+
+    NlEditorFixture layout = editor.getLayoutEditor(false);
+    assertNotNull(layout);
+    layout.waitForRenderToFinish();
+
+    // Find and click the first text View
+    NlComponentFixture button = layout.findView("TextView", 0);
+    button.invokeContextMenuAction("Convert LinearLayout to ConstraintLayout");
+
+    // Confirm dialog
+    DialogFixture quickFixDialog = WindowFinder.findDialog(new GenericTypeMatcher<Dialog>(Dialog.class) {
+      @Override
+      protected boolean isMatching(@NotNull Dialog dialog) {
+        return dialog.isShowing() && "Convert to ConstraintLayout".equals(dialog.getTitle());
+      }
+    }).withTimeout(TimeUnit.MINUTES.toMillis(2)).using(guiTest.robot());
+
+    // Press OK
+    JButtonFixture finish = quickFixDialog.button(withText("OK"));
+    finish.click();
+
+    // Check that we've converted to what we expected
+    layout.waitForRenderToFinish();
+    editor.selectEditorTab(EditorFixture.Tab.EDITOR);
+
+    // TODO: Get test fixture to wait for Scout call
+
+    @Language("XML")
+    String xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                 "<android.support.constraint.ConstraintLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                 "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
+                 "    xmlns:tools=\"http://schemas.android.com/tools\"\n" +
+                 "    android:layout_width=\"match_parent\"\n" +
+                 "    android:layout_height=\"wrap_content\"\n" +
+                 "    android:orientation=\"vertical\">\n" +
+                 "\n" +
+                 "    <TextView\n" +
+                 "        android:id=\"@+id/title\"\n" +
+                 "        android:layout_width=\"wrap_content\"\n" +
+                 "        android:layout_height=\"wrap_content\"\n" +
+                 "        android:text=\"Welcome\"\n" +
+                 "        app:layout_editor_absoluteX=\"0dp\"\n" +
+                 "        app:layout_editor_absoluteY=\"0dp\" />\n" +
+                 "\n" +
+                 "    <FrameLayout\n" +
+                 "        android:id=\"@+id/attending_remotely\"\n" +
+                 "        android:layout_width=\"match_parent\"\n" +
+                 "        android:layout_height=\"wrap_content\"\n" +
+                 "        android:foreground=\"?android:selectableItemBackground\"\n" +
+                 "        app:layout_editor_absoluteX=\"0dp\"\n" +
+                 "        app:layout_editor_absoluteY=\"16dp\">\n" +
+                 "\n" +
+                 "        <ImageView\n" +
+                 "            android:layout_width=\"100dp\"\n" +
+                 "            android:layout_height=\"100dp\"\n" +
+                 "            android:adjustViewBounds=\"true\"\n" +
+                 "            android:scaleType=\"centerInside\" />\n" +
+                 "\n" +
+                 "        <TextView\n" +
+                 "            android:layout_width=\"wrap_content\"\n" +
+                 "            android:layout_height=\"wrap_content\"\n" +
+                 "            android:layout_gravity=\"bottom|end|right\"\n" +
+                 "            android:text=\"Remotely\" />\n" +
+                 "\n" +
+                 "    </FrameLayout>\n" +
+                 "\n" +
+                 "    <FrameLayout\n" +
+                 "        android:id=\"@+id/attending_in_person\"\n" +
+                 "        android:layout_width=\"match_parent\"\n" +
+                 "        android:layout_height=\"wrap_content\"\n" +
+                 "        android:foreground=\"?android:selectableItemBackground\"\n" +
+                 "        app:layout_editor_absoluteX=\"0dp\"\n" +
+                 "        app:layout_editor_absoluteY=\"116dp\">\n" +
+                 "\n" +
+                 "        <ImageView\n" +
+                 "            android:layout_width=\"100dp\"\n" +
+                 "            android:layout_height=\"100dp\"\n" +
+                 "            android:adjustViewBounds=\"true\"\n" +
+                 "            android:scaleType=\"centerInside\" />\n" +
+                 "\n" +
+                 "        <TextView\n" +
+                 "            android:layout_width=\"wrap_content\"\n" +
+                 "            android:layout_height=\"wrap_content\"\n" +
+                 "            android:layout_gravity=\"bottom|end|right\"\n" +
+                 "            android:text=\"In Person\" />\n" +
+                 "\n" +
+                 "    </FrameLayout>\n" +
+                 "\n" +
+                 "</android.support.constraint.ConstraintLayout>\n";
     assertThat(editor.getCurrentFileContents()).isEqualTo(xml);
   }
 }
