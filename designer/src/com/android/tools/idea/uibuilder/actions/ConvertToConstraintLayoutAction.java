@@ -37,6 +37,7 @@ import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
@@ -180,7 +181,11 @@ public class ConvertToConstraintLayoutAction extends AnAction implements ModelLi
         ConstraintModel constraintModel = ConstraintModel.getConstraintModel(model);
         if (constraintModel != null) {
           WidgetsScene scene = constraintModel.getScene();
-          Scout.inferConstraints(scene);
+          try {
+            Scout.inferConstraints(scene);
+          } catch (Throwable t) {
+            Logger.getInstance(ConvertToConstraintLayoutAction.class).warn(t);
+          }
           constraintModel.saveToXML();
           constraintModel.setNeedsAnimateConstraints(ConstraintAnchor.SCOUT_CREATOR);
         }
@@ -227,6 +232,9 @@ public class ConvertToConstraintLayoutAction extends AnAction implements ModelLi
       myToBeFlattened = Lists.newArrayList();
       processComponent(myLayout);
 
+      // TODO: If the old layout had attributes that don't apply anymore (such as "android:orientation" when converting
+      // from a LinearLayout), remove these
+
       // We should also remove padding attributes on the root element - these confuse the constraint layout handler (issue #209905)
       myLayout.setAttribute(ANDROID_URI, ATTR_PADDING, null);
       myLayout.setAttribute(ANDROID_URI, ATTR_PADDING_LEFT, null);
@@ -245,30 +253,15 @@ public class ConvertToConstraintLayoutAction extends AnAction implements ModelLi
     private void processComponent(NlComponent component) {
       // Work bottom up to ensure the children aren't invalidated when processing the parent
       for (NlComponent child : component.getChildren()) {
-        if (isLayout(child)) {
-          if (myFlatten) {
-            if (shouldFlatten(child)) {
-              myToBeFlattened.add(child);
-            } else {
-              continue;
-            }
-          } else {
-            continue;
-          }
-        }
-        processComponent(child);
-      }
+        int dpx = myEditor.pxToDp(child.x - myRoot.x);
+        int dpy = myEditor.pxToDp(child.y - myRoot.y);
 
-      if (component != myLayout) {
-        int dpx = myEditor.pxToDp(component.x - myRoot.x);
-        int dpy = myEditor.pxToDp(component.y - myRoot.y);
-
-        component.setAttribute(SHERPA_URI, "layout_editor_absoluteX", String.format(ROOT, VALUE_N_DP, dpx));
-        component.setAttribute(SHERPA_URI, "layout_editor_absoluteY", String.format(ROOT, VALUE_N_DP, dpy));
+        child.setAttribute(SHERPA_URI, "layout_editor_absoluteX", String.format(ROOT, VALUE_N_DP, dpx));
+        child.setAttribute(SHERPA_URI, "layout_editor_absoluteY", String.format(ROOT, VALUE_N_DP, dpy));
 
         // First gather attributes to delete; can delete during iteration (concurrent modification exceptions will ensure)
         List<String> toDelete = null;
-        for (AttributeSnapshot attribute : component.getAttributes()) {
+        for (AttributeSnapshot attribute : child.getAttributes()) {
           String name = attribute.name;
           if (!name.startsWith(ATTR_LAYOUT_RESOURCE_PREFIX) ||
               !ANDROID_URI.equals(attribute.namespace) ||
@@ -283,15 +276,23 @@ public class ConvertToConstraintLayoutAction extends AnAction implements ModelLi
         }
         if (toDelete != null) {
           for (String name : toDelete) {
-            component.setAttribute(ANDROID_URI, name, null);
+            child.setAttribute(ANDROID_URI, name, null);
           }
         }
-      } else {
-        // If the old attribute had layouts that don't apply anymore (such as "android:orientation" when converting
-        // from a LinearLayout), remove these
-      }
 
-      // Remove attributes that don't apply anymore
+        if (isLayout(child)) {
+          if (myFlatten) {
+            if (shouldFlatten(child)) {
+              myToBeFlattened.add(child);
+            } else {
+              continue;
+            }
+          } else {
+            continue;
+          }
+        }
+        processComponent(child);
+      }
     }
 
     /**
@@ -400,7 +401,8 @@ public class ConvertToConstraintLayoutAction extends AnAction implements ModelLi
     private boolean shouldFlatten(@NotNull NlComponent component) {
       // See if the component seems to have a visual purpose - e.g. sets background or other styles
       if (component.getAttribute(ANDROID_URI, ATTR_BACKGROUND) != null
-        || component.getAttribute(null, ATTR_ID) != null) {
+          || component.getAttribute(ANDROID_URI, ATTR_FOREGROUND) != null // such as ?android:selectableItemBackground
+          || component.getAttribute(null, ATTR_ID) != null) {
         return false;
       }
 
