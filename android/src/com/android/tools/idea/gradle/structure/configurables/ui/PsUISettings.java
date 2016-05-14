@@ -29,7 +29,7 @@ import java.util.EventListener;
 )
 public class PsUISettings implements PersistentStateComponent<PsUISettings> {
   public boolean DECLARED_DEPENDENCIES_SHOW_GROUP_ID;
-  public boolean RESOLVED_DEPENDENCIES_GROUP_VARIANTS = true;
+  public boolean RESOLVED_DEPENDENCIES_GROUP_VARIANTS;
   public boolean RESOLVED_DEPENDENCIES_MINIMIZE = true;
   public boolean MODULES_LIST_MINIMIZE;
 
