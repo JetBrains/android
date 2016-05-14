@@ -44,7 +44,13 @@ public class PsIssueCollectionTest {
       myIssueCollection.add(new PsIssue("Issue " + (i + 1), EMPTY_PATH, PROJECT_ANALYSIS, WARNING));
     }
     List<PsIssue> issues = myIssueCollection.getValues();
-    String expected = "<html><body>Issue 1<br>Issue 2<br>Issue 3<br>Issue 4<br>Issue 5<br></body></html>";
+    String expected = "<html><body><ul>" +
+                      "<li>Issue 1</li>" +
+                      "<li>Issue 2</li>" +
+                      "<li>Issue 3</li>" +
+                      "<li>Issue 4</li>" +
+                      "<li>Issue 5</li>" +
+                      "</ul></body></html>";
     assertEquals(expected, PsIssueCollection.getTooltipText(issues, true));
 
     myIssueCollection.clear();
@@ -55,8 +61,19 @@ public class PsIssueCollectionTest {
       myIssueCollection.add(new PsIssue(text, EMPTY_PATH, PROJECT_ANALYSIS, WARNING));
     }
     issues = myIssueCollection.getValues();
-    expected = "<html><body>Issue 01<br>Issue 02<br>Issue 03<br>Issue 04<br>Issue 05<br>Issue 06<br>Issue 07<br>Issue 08<br>Issue 09<br>" +
-               "Issue 10<br>Issue 11<br>5 more problems...<br></body></html>";
+    expected = "<html><body><ul>" +
+               "<li>Issue 01</li>" +
+               "<li>Issue 02</li>" +
+               "<li>Issue 03</li>" +
+               "<li>Issue 04</li>" +
+               "<li>Issue 05</li>" +
+               "<li>Issue 06</li>" +
+               "<li>Issue 07</li>" +
+               "<li>Issue 08</li>" +
+               "<li>Issue 09</li>" +
+               "<li>Issue 10</li>" +
+               "<li>Issue 11</li>" +
+               "</ul>5 more messages...<br></body></html>";
     assertEquals(expected, PsIssueCollection.getTooltipText(issues, true));
   }
 }
