@@ -25,6 +25,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
+import com.intellij.openapi.application.ApplicationManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,16 +51,18 @@ public class PsParsedDependencies {
     myParsedArtifactDependencies.clear();
     myParsedModuleDependencies.clear();
     if (parsedModel != null) {
-      for (DependencyModel parsedDependency : parsedModel.dependencies().all()) {
-        if (parsedDependency instanceof ArtifactDependencyModel) {
-          ArtifactDependencyModel artifact = (ArtifactDependencyModel)parsedDependency;
-          myParsedArtifactDependencies.put(createIdFrom(artifact), artifact);
+      ApplicationManager.getApplication().runReadAction(() -> {
+        for (DependencyModel parsedDependency : parsedModel.dependencies().all()) {
+          if (parsedDependency instanceof ArtifactDependencyModel) {
+            ArtifactDependencyModel artifact = (ArtifactDependencyModel)parsedDependency;
+            myParsedArtifactDependencies.put(createIdFrom(artifact), artifact);
+          }
+          else if (parsedDependency instanceof ModuleDependencyModel) {
+            ModuleDependencyModel module = (ModuleDependencyModel)parsedDependency;
+            myParsedModuleDependencies.put(module.path(), module);
+          }
         }
-        else if (parsedDependency instanceof ModuleDependencyModel) {
-          ModuleDependencyModel module = (ModuleDependencyModel)parsedDependency;
-          myParsedModuleDependencies.put(module.path(), module);
-        }
-      }
+      });
     }
   }
 
