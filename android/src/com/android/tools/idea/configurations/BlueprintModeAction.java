@@ -44,12 +44,13 @@ public class BlueprintModeAction extends AnAction {
 
   @Override
   public void actionPerformed(AnActionEvent e) {
+    // If we're already in blueprint mode, go to both-mode, otherwise go to blueprint only
     ScreenMode mode;
     switch (mySurface.getScreenMode()) {
-      case SCREEN_ONLY:
       case BLUEPRINT_ONLY:
         mode = ScreenMode.BOTH;
         break;
+      case SCREEN_ONLY:
       case BOTH:
       default:
         mode = ScreenMode.BLUEPRINT_ONLY;
