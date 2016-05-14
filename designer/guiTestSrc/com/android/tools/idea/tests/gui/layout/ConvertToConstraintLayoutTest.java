@@ -91,16 +91,16 @@ public class ConvertToConstraintLayoutTest {
                  "        android:layout_width=\"wrap_content\"\n" +
                  "        android:layout_height=\"wrap_content\"\n" +
                  "        android:id=\"@+id/button\"\n" +
-                 "        app:layout_editor_absoluteX=\"3dp\"\n" +
-                 "        app:layout_editor_absoluteY=\"2dp\" />\n" +
+                 "        app:layout_editor_absoluteX=\"19dp\"\n" +
+                 "        app:layout_editor_absoluteY=\"18dp\" />\n" +
                  "\n" +
                  "    <Button\n" +
                  "        android:text=\"Button\"\n" +
                  "        android:layout_width=\"wrap_content\"\n" +
                  "        android:layout_height=\"wrap_content\"\n" +
                  "        android:id=\"@+id/button2\"\n" +
-                 "        app:layout_editor_absoluteX=\"6dp\"\n" +
-                 "        app:layout_editor_absoluteY=\"50dp\" />\n" +
+                 "        app:layout_editor_absoluteX=\"22dp\"\n" +
+                 "        app:layout_editor_absoluteY=\"66dp\" />\n" +
                  "\n" +
                  "    <EditText\n" +
                  "        android:layout_width=\"wrap_content\"\n" +
@@ -109,8 +109,8 @@ public class ConvertToConstraintLayoutTest {
                  "        android:text=\"Name\"\n" +
                  "        android:ems=\"10\"\n" +
                  "        android:id=\"@+id/editText\"\n" +
-                 "        app:layout_editor_absoluteX=\"108dp\"\n" +
-                 "        app:layout_editor_absoluteY=\"206dp\" />\n" +
+                 "        app:layout_editor_absoluteX=\"124dp\"\n" +
+                 "        app:layout_editor_absoluteY=\"222dp\" />\n" +
                  "\n" +
                  "\n" +
                  "    <Button\n" +
@@ -118,24 +118,24 @@ public class ConvertToConstraintLayoutTest {
                  "        android:layout_width=\"wrap_content\"\n" +
                  "        android:layout_height=\"wrap_content\"\n" +
                  "        android:id=\"@+id/button3\"\n" +
-                 "        app:layout_editor_absoluteX=\"17dp\"\n" +
-                 "        app:layout_editor_absoluteY=\"416dp\" />\n" +
+                 "        app:layout_editor_absoluteX=\"33dp\"\n" +
+                 "        app:layout_editor_absoluteY=\"432dp\" />\n" +
                  "\n" +
                  "    <Button\n" +
                  "        android:text=\"Button\"\n" +
                  "        android:layout_width=\"wrap_content\"\n" +
                  "        android:layout_height=\"wrap_content\"\n" +
                  "        android:id=\"@+id/button5\"\n" +
-                 "        app:layout_editor_absoluteX=\"136dp\"\n" +
-                 "        app:layout_editor_absoluteY=\"416dp\" />\n" +
+                 "        app:layout_editor_absoluteX=\"152dp\"\n" +
+                 "        app:layout_editor_absoluteY=\"432dp\" />\n" +
                  "\n" +
                  "    <Button\n" +
                  "        android:text=\"Button\"\n" +
                  "        android:layout_width=\"wrap_content\"\n" +
                  "        android:layout_height=\"wrap_content\"\n" +
                  "        android:id=\"@+id/button6\"\n" +
-                 "        app:layout_editor_absoluteX=\"256dp\"\n" +
-                 "        app:layout_editor_absoluteY=\"416dp\" />\n" +
+                 "        app:layout_editor_absoluteX=\"272dp\"\n" +
+                 "        app:layout_editor_absoluteY=\"432dp\" />\n" +
                  "\n" +
                  "</android.support.constraint.ConstraintLayout>\n" +
                  "\n";

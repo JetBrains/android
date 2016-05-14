@@ -226,6 +226,16 @@ public class ConvertToConstraintLayoutAction extends AnAction implements ModelLi
 
       myToBeFlattened = Lists.newArrayList();
       processComponent(myLayout);
+
+      // We should also remove padding attributes on the root element - these confuse the constraint layout handler (issue #209905)
+      myLayout.setAttribute(ANDROID_URI, ATTR_PADDING, null);
+      myLayout.setAttribute(ANDROID_URI, ATTR_PADDING_LEFT, null);
+      myLayout.setAttribute(ANDROID_URI, ATTR_PADDING_RIGHT, null);
+      myLayout.setAttribute(ANDROID_URI, ATTR_PADDING_START, null);
+      myLayout.setAttribute(ANDROID_URI, ATTR_PADDING_END, null);
+      myLayout.setAttribute(ANDROID_URI, ATTR_PADDING_TOP, null);
+      myLayout.setAttribute(ANDROID_URI, ATTR_PADDING_BOTTOM, null);
+
       flatten();
       PsiElement tag = myLayout.getTag().setName(CLASS_CONSTRAINT_LAYOUT);
       CodeStyleManager.getInstance(getProject()).reformat(tag);
