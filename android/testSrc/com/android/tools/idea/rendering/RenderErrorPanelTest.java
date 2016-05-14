@@ -618,6 +618,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
         "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)<BR/>" +
         "&nbsp;&nbsp;at android.view.View.draw(View.java:14436)<BR/>" +
         "<A HREF=\"runnable:1\">Copy stack to clipboard</A><BR/>" +
+        "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/>" +
         "</body></html>", html);
     }
   }
