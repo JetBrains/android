@@ -223,6 +223,7 @@ public class ApkParser {
                              PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-------")));
     }
     catch (IOException e) {
+      Logger.getInstance(ApkParser.class).warn(e);
       return apk;
     }
 
@@ -238,6 +239,7 @@ public class ApkParser {
       zos.flush();
     }
     catch (IOException e) {
+      Logger.getInstance(ApkParser.class).warn(e);
       return apk;
     }
 
