@@ -145,7 +145,7 @@ class DeclaredDependenciesTableModel extends ListTableModel<PsAndroidDependency>
       PsIssueCollection issueCollection = myContext.getAnalyzerDaemon().getIssues();
       List<PsIssue> issues = issueCollection.findIssues(myDependency, IssuesByTypeAndTextComparator.INSTANCE);
 
-      setToolTipText(getTooltipText(issues));
+      setToolTipText(getTooltipText(issues, false));
 
       SimpleTextAttributes textAttributes;
       if (myIsHovered) {
