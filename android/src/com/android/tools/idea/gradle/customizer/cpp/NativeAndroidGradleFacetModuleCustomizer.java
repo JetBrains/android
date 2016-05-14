@@ -29,6 +29,7 @@ import org.jetbrains.annotations.Nullable;
 
 import static com.android.tools.idea.gradle.util.Facets.findFacet;
 import static com.android.tools.idea.gradle.util.Facets.removeAllFacetsOfType;
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Adds the Native Android Gradle facet to modules imported from {@link NativeAndroidProject}s.
@@ -59,6 +60,11 @@ public class NativeAndroidGradleFacetModuleCustomizer implements ModuleCustomize
   }
 
   private static void configureFacet(@NotNull NativeAndroidGradleFacet facet, @NotNull NativeAndroidGradleModel nativeAndroidModel) {
+    String selectedVariant = facet.getConfiguration().SELECTED_BUILD_VARIANT;
+    if (!isNullOrEmpty(selectedVariant)) {
+      nativeAndroidModel.setSelectedVariantName(selectedVariant);
+    }
+
     facet.setNativeAndroidGradleModel(nativeAndroidModel);
   }
 }
