@@ -66,7 +66,7 @@ public class PsModuleCellRenderer extends ColoredTreeCellRenderer {
       else if (namedConfigurable instanceof BaseNamedConfigurable) {
         PsModule module = ((BaseNamedConfigurable)namedConfigurable).getEditableObject();
         List<PsIssue> issues = myContext.getAnalyzerDaemon().getIssues().findIssues(module, IssuesByTypeAndTextComparator.INSTANCE);
-        setToolTipText(getTooltipText(issues));
+        setToolTipText(getTooltipText(issues, true));
 
         if (!issues.isEmpty()) {
           PsIssue issue = issues.get(0);

@@ -96,7 +96,7 @@ public class PsIssueCollection {
   }
 
   @Nullable
-  public static String getTooltipText(@NotNull List<PsIssue> issues) {
+  public static String getTooltipText(@NotNull List<PsIssue> issues, boolean includePath) {
     if (issues.isEmpty()) {
       return null;
     }
@@ -104,31 +104,54 @@ public class PsIssueCollection {
     List<PsIssue> sorted = Lists.newArrayList(issues);
     Collections.sort(sorted, IssuesByTypeAndTextComparator.INSTANCE);
 
+    boolean useBullets = issues.size() > 1;
+
     // Removed duplicated lines.
     Set<String> lines = Sets.newLinkedHashSet();
     for (PsIssue issue : sorted) {
       String line = issue.getText();
-      String path = issue.getPath().toText(PLAIN_TEXT);
-      if (!path.isEmpty()) {
-        line = path + ": " + line;
+      if (includePath) {
+        String path = issue.getPath().toText(PLAIN_TEXT);
+        if (!path.isEmpty()) {
+          line = path + ": " + line;
+        }
+      }
+      if (useBullets) {
+        line = "<li>" + line + "</li>";
       }
       lines.add(line);
     }
 
     StringBuilder buffer = new StringBuilder();
     buffer.append("<html><body>");
+    if (useBullets) {
+      buffer.append("<ul>");
+    }
     int issueCount = lines.size();
     int problems = 0;
 
     int count = 0;
+
+    boolean tooManyMessages = false;
+
     for (String line : lines) {
-      buffer.append(line).append("<br>");
+      buffer.append(line);
+      if (!useBullets) {
+        buffer.append("<br>");
+      }
       problems++;
 
       if (count++ > 9 && issueCount > 12) {
-        buffer.append(issueCount - problems).append(" more problems...<br>");
+        if (useBullets) {
+          buffer.append("</ul>");
+        }
+        buffer.append(issueCount - problems).append(" more messages...<br>");
+        tooManyMessages = true;
         break;
       }
+    }
+    if (useBullets && !tooManyMessages) {
+      buffer.append("</ul>");
     }
     buffer.append("</body></html>");
     return buffer.toString();
