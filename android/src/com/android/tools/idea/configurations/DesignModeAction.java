@@ -34,12 +34,13 @@ public class DesignModeAction extends AnAction {
 
   @Override
   public void actionPerformed(AnActionEvent e) {
+    // If we're already in design mode, go to both-mode, otherwise go to design only
     ScreenMode mode;
     switch (mySurface.getScreenMode()) {
       case SCREEN_ONLY:
-      case BLUEPRINT_ONLY:
         mode = ScreenMode.BOTH;
         break;
+      case BLUEPRINT_ONLY:
       case BOTH:
       default:
         mode = ScreenMode.SCREEN_ONLY;
