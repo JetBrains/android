@@ -52,12 +52,12 @@ final class HierarchyUpdater {
     myOldComponent2Node = myTree.getComponentToNode();
   }
 
-  public void execute() {
+  public boolean execute() {
     TreePath rootPath = new TreePath(myTree.getModel().getRoot());
 
     NlModel model = myTree.getDesignerModel();
     List<NlComponent> components = model != null ? model.getComponents() : null;
-    replaceChildNodes(rootPath, components);
+    boolean newRootNodeAdded = replaceChildNodes(rootPath, components);
     if (components != null && !components.isEmpty()) {
       NlComponent deviceScreen = new FakeComponent(model, EmptyXmlTag.INSTANCE, new DeviceScreenViewHandler());
       components.forEach(deviceScreen::addChild);
@@ -68,26 +68,32 @@ final class HierarchyUpdater {
     myTree.expandPath(rootPath);
     myOldComponent2Node.clear();
     myOldComponent2Node.putAll(myComponent2Node);
+    return newRootNodeAdded;
   }
 
-  private void replaceChildNodes(@NotNull TreePath path, @Nullable List<NlComponent> subComponents) {
+  private boolean replaceChildNodes(@NotNull TreePath path, @Nullable List<NlComponent> subComponents) {
+    boolean newRootNodeAdded = false;
     DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
     node.removeAllChildren();
     if (subComponents != null) {
       for (NlComponent child : subComponents) {
-        addChildNode(path, child);
+        newRootNodeAdded |= addChildNode(path, child);
       }
     }
+    return newRootNodeAdded;
   }
 
-  private void addChildNode(@NotNull TreePath path, @NotNull NlComponent component) {
+  private boolean addChildNode(@NotNull TreePath path, @NotNull NlComponent component) {
+    boolean newNodeAdded = false;
     DefaultMutableTreeNode node = myOldComponent2Node.get(component);
     if (node == null) {
       node = new DefaultMutableTreeNode(component);
+      newNodeAdded = true;
     }
     myComponent2Node.put(component, node);
     node.removeAllChildren();
     ((DefaultMutableTreeNode)path.getLastPathComponent()).add(node);
     replaceChildNodes(path.pathByAddingChild(node), component.children);
+    return newNodeAdded;
   }
 }
