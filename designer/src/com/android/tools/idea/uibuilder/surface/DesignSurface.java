@@ -29,6 +29,7 @@ import com.android.tools.idea.uibuilder.palette.ScalableDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView.ScreenViewType;
 import com.google.common.collect.Lists;
 import com.intellij.designer.DesignerEditorPanelFacade;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -99,10 +100,27 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
     private ScreenViewType getScreenViewType() {
       return myScreenViewType;
     }
+
+    private static final String SCREEN_MODE_PROPERTY = "NlScreenMode";
+
+    @NotNull
+    public static ScreenMode loadDefault() {
+      String modeName = PropertiesComponent.getInstance().getValue(SCREEN_MODE_PROPERTY);
+      for (ScreenMode mode : values()) {
+        if (mode.name().equals(modeName)) {
+          return mode;
+        }
+      }
+
+      return ScreenMode.BOTH;
+    }
+
+    public static void saveDefault(@NotNull ScreenMode mode) {
+      PropertiesComponent.getInstance().setValue(SCREEN_MODE_PROPERTY, mode.name());
+    }
   }
 
-  // TODO: Persist screen mode across IDE sessions
-  @NotNull private static ScreenMode ourDefaultScreenMode = ScreenMode.BOTH;
+  @NotNull private static ScreenMode ourDefaultScreenMode = ScreenMode.loadDefault();
 
   @NotNull private ScreenMode myScreenMode = ourDefaultScreenMode;
   @Nullable private ScreenView myScreenView;
@@ -251,8 +269,12 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
 
   public void setScreenMode(@NotNull ScreenMode screenMode, boolean setAsDefault) {
     if (setAsDefault) {
-      //noinspection AssignmentToStaticFieldFromInstanceMethod
-      ourDefaultScreenMode = screenMode;
+      if (ourDefaultScreenMode != screenMode) {
+        //noinspection AssignmentToStaticFieldFromInstanceMethod
+        ourDefaultScreenMode = screenMode;
+
+        ScreenMode.saveDefault(screenMode);
+      }
     }
 
     if (screenMode != myScreenMode) {
