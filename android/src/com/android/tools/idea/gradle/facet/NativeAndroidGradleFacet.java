@@ -35,7 +35,7 @@ public class NativeAndroidGradleFacet extends Facet<NativeAndroidGradleFacetConf
   private static final Logger LOG = Logger.getInstance(NativeAndroidGradleFacet.class);
 
   @NotNull public static final FacetTypeId<NativeAndroidGradleFacet> TYPE_ID =
-    new FacetTypeId<NativeAndroidGradleFacet>("native-android-gradle");
+    new FacetTypeId<>("native-android-gradle");
 
   @NonNls public static final String ID = "native-android-gradle";
   @NonNls public static final String NAME = "Native-Android-Gradle";
@@ -67,13 +67,10 @@ public class NativeAndroidGradleFacet extends Facet<NativeAndroidGradleFacetConf
     connection.subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootAdapter() {
       @Override
       public void rootsChanged(ModuleRootEvent event) {
-        ApplicationManager.getApplication().invokeLater(new Runnable() {
-          @Override
-          public void run() {
-            if (!isDisposed()) {
-              PsiDocumentManager.getInstance(getModule().getProject()).commitAllDocuments();
-              updateConfiguration();
-            }
+        ApplicationManager.getApplication().invokeLater(() -> {
+          if (!isDisposed()) {
+            PsiDocumentManager.getInstance(getModule().getProject()).commitAllDocuments();
+            updateConfiguration();
           }
         });
       }
@@ -98,5 +95,7 @@ public class NativeAndroidGradleFacet extends Facet<NativeAndroidGradleFacetConf
 
   public void setNativeAndroidGradleModel(@NotNull NativeAndroidGradleModel nativeAndroidGradleModel) {
     myNativeAndroidGradleModel = nativeAndroidGradleModel;
+
+    getConfiguration().SELECTED_BUILD_VARIANT = myNativeAndroidGradleModel.getSelectedVariant().getName();
   }
 }

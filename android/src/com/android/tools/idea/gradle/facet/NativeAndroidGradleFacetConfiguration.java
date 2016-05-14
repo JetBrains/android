@@ -23,9 +23,12 @@ import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.WriteExternalException;
 import com.intellij.util.xmlb.XmlSerializer;
 import org.jdom.Element;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 public class NativeAndroidGradleFacetConfiguration implements FacetConfiguration {
+  @NonNls public String SELECTED_BUILD_VARIANT = "";
+
   @NotNull
   @Override
   public FacetEditorTab[] createEditorTabs(FacetEditorContext editorContext,

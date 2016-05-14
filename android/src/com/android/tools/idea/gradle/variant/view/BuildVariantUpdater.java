@@ -66,17 +66,14 @@ class BuildVariantUpdater {
                                 @NotNull final String buildVariantName) {
     final List<AndroidFacet> affectedAndroidFacets = Lists.newArrayList();
     final List<NativeAndroidGradleFacet> affectedNativeAndroidFacets = Lists.newArrayList();
-    executeProjectChanges(project, new Runnable() {
-      @Override
-      public void run() {
-        Module updatedModule = doUpdate(project, moduleName, buildVariantName, affectedAndroidFacets, affectedNativeAndroidFacets);
-        if (updatedModule != null) {
-          ConflictSet conflicts = findConflicts(project);
-          conflicts.showSelectionConflicts();
-        }
-
-        generateSourcesIfNeeded(affectedAndroidFacets);
+    executeProjectChanges(project, () -> {
+      Module updatedModule = doUpdate(project, moduleName, buildVariantName, affectedAndroidFacets, affectedNativeAndroidFacets);
+      if (updatedModule != null) {
+        ConflictSet conflicts = findConflicts(project);
+        conflicts.showSelectionConflicts();
       }
+
+      generateSourcesIfNeeded(affectedAndroidFacets);
     });
     return !affectedAndroidFacets.isEmpty() || !affectedNativeAndroidFacets.isEmpty();
   }
@@ -92,28 +89,25 @@ class BuildVariantUpdater {
                                    @NotNull final Iterable<Module> modules,
                                    @NotNull final String testArtifactName) {
     final List<AndroidFacet> affectedFacets = Lists.newArrayList();
-    executeProjectChanges(project, new Runnable() {
-      @Override
-      public void run() {
-        for (Module module : modules) {
-          AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-          if (androidFacet == null) {
-            continue;
-          }
-
-          AndroidGradleModel androidModel = AndroidGradleModel.get(androidFacet);
-          assert androidModel != null;
-
-          if (!androidModel.getSelectedTestArtifactName().equals(testArtifactName)) {
-            androidModel.setSelectedTestArtifactName(testArtifactName);
-            androidModel.syncSelectedVariantAndTestArtifact(androidFacet);
-            invokeCustomizers(androidFacet.getModule(), androidModel);
-            affectedFacets.add(androidFacet);
-          }
+    executeProjectChanges(project, () -> {
+      for (Module module : modules) {
+        AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+        if (androidFacet == null) {
+          continue;
         }
 
-        generateSourcesIfNeeded(affectedFacets);
+        AndroidGradleModel androidModel = AndroidGradleModel.get(androidFacet);
+        assert androidModel != null;
+
+        if (!androidModel.getSelectedTestArtifactName().equals(testArtifactName)) {
+          androidModel.setSelectedTestArtifactName(testArtifactName);
+          androidModel.syncSelectedVariantAndTestArtifact(androidFacet);
+          invokeCustomizers(androidFacet.getModule(), androidModel);
+          affectedFacets.add(androidFacet);
+        }
       }
+
+      generateSourcesIfNeeded(affectedFacets);
     });
     return !affectedFacets.isEmpty();
   }
@@ -201,6 +195,7 @@ class BuildVariantUpdater {
       return false;
     }
     nativeAndroidModel.setSelectedVariantName(variantToSelect);
+    nativeAndroidFacet.getConfiguration().SELECTED_BUILD_VARIANT = nativeAndroidModel.getSelectedVariant().getName();
     invokeCustomizers(nativeAndroidFacet.getModule(), nativeAndroidModel);
 
     // TODO: Also update the dependent modules variants.
