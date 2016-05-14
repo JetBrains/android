@@ -572,7 +572,7 @@ public class WidgetDecorator {
             }
 
             Color bg = new Color(0, 0, 0, 0);
-            Color fg = ColorTheme.updateBrightness(mBackgroundColor.getColor(), 1.2f);
+            Color fg = ColorTheme.updateBrightness(mBackgroundColor.getColor(), 1.6f);
             Graphics2D gfill = (Graphics2D) g.create();
             gfill.setPaint(new LinearGradientPaint(l, t, (l + 2), (t + 2),
                     new float[] { 0, .1f, .1001f }, new Color[] { fg, fg, bg },
