@@ -445,12 +445,21 @@ public class RenderErrorPanel extends JPanel {
       builder.addIcon(HtmlBuilderHelper.getTipIconPath());
       builder.addLink("Tip: Try to ", "build", " the project.",
                       myLinkManager.createCompileModuleUrl());
+      addRefreshAction(builder);
       if (foundCustomView) {
         builder.newline();
         builder.add("One or more missing custom views were found in the project, but does not appear to have been compiled yet.");
       }
       builder.newline().newline();
     }
+  }
+
+  private void addRefreshAction(HtmlBuilder builder) {
+    builder.newlineIfNecessary();
+    builder.addIcon(HtmlBuilderHelper.getRefreshIconPath());
+    builder.addLink("Tip: Try to ", "refresh", " the layout.",
+                    myLinkManager.createRefreshRenderUrl()).newline();
+
   }
 
   private boolean addTypoSuggestions(@NotNull HtmlBuilder builder,
@@ -1011,6 +1020,8 @@ public class RenderErrorPanel extends JPanel {
 
         builder.newline();
       }
+
+      addRefreshAction(builder);
     }
   }
 
@@ -1494,6 +1505,11 @@ public class RenderErrorPanel extends JPanel {
     @Nullable
     public static String getErrorIconPath() {
       return getIconPath("/general/error.png");
+    }
+
+    @Nullable
+    public static String getRefreshIconPath() {
+      return getIconPath("/actions/refresh.png");
     }
 
     public static String getHeaderFontColor() {

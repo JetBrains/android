@@ -133,6 +133,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
       "<DD>-&NBSP;LinerLayout (<A HREF=\"action:classpath\">Fix Build Path</A>" +
       ", <A HREF=\"showTag:LinerLayout\">Edit XML</A>)" +
       "</DL>Tip: Try to <A HREF=\"action:build\">build</A> the project.<BR/>" +
+      "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/><BR/>" +
       "<BR/>" +
       "</body></html>", html);
   }
@@ -156,6 +157,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
       "<DD>-&NBSP;LinerLayout (<A HREF=\"action:classpath\">Fix Build Path</A>" +
       ", <A HREF=\"showTag:LinerLayout\">Edit XML</A>)" +
       "</DL>Tip: Try to <A HREF=\"action:build\">build</A> the project.<BR/>" +
+      "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/><BR/>" +
       "<BR/>" +
       "</body></html>", html);
   }
@@ -168,6 +170,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
       "<DD>-&NBSP;Bitton (<A HREF=\"action:classpath\">Fix Build Path</A>" +
       ", <A HREF=\"showTag:Bitton\">Edit XML</A>)" +
       "</DL>Tip: Try to <A HREF=\"action:build\">build</A> the project.<BR/>" +
+      "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/><BR/>" +
       "<BR/>" +
       "</body></html>", html);
   }
@@ -253,6 +256,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
       "&lt;CalendarView> and &lt;DatePicker> are broken in this version of the rendering library. " +
       "Try updating your SDK in the SDK Manager when issue 59732 is fixed. " +
       "(<A HREF=\"http://b.android.com/59732\">Open Issue 59732</A>, <A HREF=\"runnable:0\">Show Exception</A>)<BR/><BR/>" +
+      "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/>" +
       "</body></html>", html);
   }
 
@@ -334,6 +338,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
         "&nbsp;&nbsp;at android.view.LayoutInflater.inflate(<A HREF=\"file://$SDK_HOME/sources/android-18/android/view/LayoutInflater.java:492\">LayoutInflater.java:492</A>)<BR/>" +
         "&nbsp;&nbsp;at android.view.LayoutInflater.inflate(<A HREF=\"file://$SDK_HOME/sources/android-18/android/view/LayoutInflater.java:373\">LayoutInflater.java:373</A>)<BR/>" +
         "<A HREF=\"runnable:1\">Copy stack to clipboard</A><BR/>" +
+        "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/>" +
         "</body></html>", html);
     } else {
       assertHtmlEquals(
@@ -347,6 +352,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
         "&nbsp;&nbsp;at android.view.LayoutInflater.inflate(LayoutInflater.java:492)<BR/>" +
         "&nbsp;&nbsp;at android.view.LayoutInflater.inflate(LayoutInflater.java:373)<BR/>" +
         "<A HREF=\"runnable:1\">Copy stack to clipboard</A><BR/>" +
+        "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/>" +
         "</body></html>", html);
     }
   }
@@ -437,6 +443,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
       "<BR/>" +
       "Widgets possibly involved: Button, TextView<BR/>" +
       "<BR/>" +
+      "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/>" +
       "</body></html>", html);
   }
 
@@ -582,6 +589,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
         "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(<A HREF=\"file://$SDK_HOME/sources/android-18/android/view/ViewGroup.java:2940\">ViewGroup.java:2940</A>)<BR/>" +
         "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-18/android/view/View.java:14436\">View.java:14436</A>)<BR/>" +
         "<A HREF=\"runnable:1\">Copy stack to clipboard</A><BR/>" +
+        "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/>" +
         "</body></html>", html);
     } else {
       assertHtmlEquals(
@@ -626,7 +634,9 @@ public class RenderErrorPanelTest extends AndroidTestCase {
     html = getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation);
     // When there is an error, the fidelity warnings should not be collapsed
     assertHtmlEquals("<html><body><A HREF=\"action:close\"></A>&nbsp;<font style=\"font-weight:bold; color:#005555;\">" +
-                     "Rendering Problems</font><BR/>An error<BR/><BR/>The graphics preview in the layout editor may not" +
+                     "Rendering Problems</font><BR/>An error<BR/><BR/>" +
+                     "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/>" +
+                     "The graphics preview in the layout editor may not" +
                      " be accurate:<BR/><DL><DD>-&NBSP;Fidelity issue <A HREF=\"runnable:0\">(Ignore for this session)</A><BR/>" +
                      "</DL><A HREF=\"runnable:1\">Ignore all fidelity warnings for this session</A><BR/>" +
                      "</body></html>", html);
