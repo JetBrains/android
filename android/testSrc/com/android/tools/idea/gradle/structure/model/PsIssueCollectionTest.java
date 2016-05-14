@@ -45,7 +45,7 @@ public class PsIssueCollectionTest {
     }
     List<PsIssue> issues = myIssueCollection.getValues();
     String expected = "<html><body>Issue 1<br>Issue 2<br>Issue 3<br>Issue 4<br>Issue 5<br></body></html>";
-    assertEquals(expected, PsIssueCollection.getTooltipText(issues));
+    assertEquals(expected, PsIssueCollection.getTooltipText(issues, true));
 
     myIssueCollection.clear();
 
@@ -57,6 +57,6 @@ public class PsIssueCollectionTest {
     issues = myIssueCollection.getValues();
     expected = "<html><body>Issue 01<br>Issue 02<br>Issue 03<br>Issue 04<br>Issue 05<br>Issue 06<br>Issue 07<br>Issue 08<br>Issue 09<br>" +
                "Issue 10<br>Issue 11<br>5 more problems...<br></body></html>";
-    assertEquals(expected, PsIssueCollection.getTooltipText(issues));
+    assertEquals(expected, PsIssueCollection.getTooltipText(issues, true));
   }
 }

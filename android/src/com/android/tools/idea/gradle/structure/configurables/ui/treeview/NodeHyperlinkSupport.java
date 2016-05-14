@@ -77,7 +77,7 @@ public class NodeHyperlinkSupport<T extends SimpleNode> implements Disposable {
         if (myShowIssues && node instanceof AbstractPsModelNode) {
           AbstractPsModelNode<? extends PsModel> modelNode = (AbstractPsModelNode<? extends PsModel>)node;
           issues = findIssues(modelNode, IssuesByTypeAndTextComparator.INSTANCE);
-          node.getPresentation().setTooltip(getTooltipText(issues));
+          node.getPresentation().setTooltip(getTooltipText(issues, false));
         }
 
         if (myHoveredNode != null && myHoveredNode == node) {
