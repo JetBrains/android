@@ -124,6 +124,14 @@ public class MouseInteraction {
     /*-----------------------------------------------------------------------*/
 
     /**
+     * Return the current snap candidates from widget motion
+     * @return current list of snap candidates
+     */
+    public ArrayList<SnapCandidate> getSnapCandidates() {
+        return mWidgetMotion.getSnapCandidates();
+    }
+
+    /**
      * Accessor for the start mouse point
      *
      * @return start point
@@ -1012,6 +1020,19 @@ public class MouseInteraction {
             break;
         }
         return directionLockedStatus;
+    }
+
+    /**
+     * Mouse dragged handling
+     *
+     * @param x mouse x coordinate
+     * @param y mouse y coordinate
+     * @return the type of direction (locked in x/y or not)
+     */
+    public void dragAndDrop(ConstraintWidget widget, int x, int y) {
+        mMouseMode = MouseMode.MOVE;
+        mWidgetMotion.dragWidget(new Point(x, y), new Selection.Element(widget), x, y,
+                                 true, isShiftDown(), mViewTransform);
     }
 
     /**
