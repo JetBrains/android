@@ -16,7 +16,7 @@ import static com.android.tools.idea.lang.aidl.lexer.AidlTokenTypes.*;
 %implements FlexLexer
 %function advance
 %type IElementType
-%unicode 2.0
+%unicode
 
 EOL="\r"|"\n"|"\r\n"
 LINE_WS=[\ \t\f]
