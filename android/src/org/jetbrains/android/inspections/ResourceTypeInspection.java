@@ -87,6 +87,7 @@ import static com.intellij.psi.CommonClassNames.DEFAULT_PACKAGE;
 import static com.intellij.psi.CommonClassNames.JAVA_LANG_STRING;
 import static com.intellij.psi.util.PsiFormatUtilBase.SHOW_CONTAINING_CLASS;
 import static com.intellij.psi.util.PsiFormatUtilBase.SHOW_NAME;
+import static org.jetbrains.android.inspections.lint.AndroidLintInspectionBase.LINT_INSPECTION_PREFIX;
 
 /**
  * A custom version of the IntelliJ
@@ -2840,7 +2841,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     // Look for aliases
     SuppressManager suppressManager = SuppressManager.getInstance();
     String id = lintIssue.getId();
-    if (suppressManager.isSuppressedFor(psiElement, id) || suppressManager.isSuppressedFor(psiElement, "AndroidLint" + id)) {
+    if (suppressManager.isSuppressedFor(psiElement, id) || suppressManager.isSuppressedFor(psiElement, LINT_INSPECTION_PREFIX + id)) {
       return;
     }
 
