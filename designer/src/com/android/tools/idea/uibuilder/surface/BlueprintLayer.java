@@ -94,13 +94,7 @@ public class BlueprintLayer extends Layer {
       return;
     }
 
-    String className = component.viewInfo.getClassName();
-    ViewHandler handler = viewHandlerManager.getHandler(className);
-
-    className = className.substring(className.lastIndexOf('.') + 1);
-    if (handler == null) {
-      handler = viewHandlerManager.getHandler(className);
-    }
+    ViewHandler handler = component.getViewHandler();
 
     // Check if the view handler handles the painting
     if (handler != null && handler instanceof ViewGroupHandler) {
@@ -121,6 +115,8 @@ public class BlueprintLayer extends Layer {
     int h = getSwingDimension(myScreenView, component.h);
 
     drawComponentBackground(g, component);
+    String name = component.getTagName();
+    name = name.substring(name.lastIndexOf('.') + 1);
 
     Font font = BLUEPRINT_TEXT_FONT;
     g.setFont(font);
@@ -129,7 +125,7 @@ public class BlueprintLayer extends Layer {
     FontRenderContext fontRenderContext = g.getFontRenderContext();
     if (id != null && h > lineHeight * 2) {
       // Can fit both
-      Rectangle2D classBounds = font.getStringBounds(className, fontRenderContext);
+      Rectangle2D classBounds = font.getStringBounds(name, fontRenderContext);
       Rectangle2D idBounds = font.getStringBounds(id, fontRenderContext);
       int textY = y + h / 2;
       int textX = x + w / 2 - ((int)classBounds.getWidth()) / 2;
@@ -137,7 +133,7 @@ public class BlueprintLayer extends Layer {
         textX = x + lineHeight;
         textY = y - (int)(classBounds.getHeight() + idBounds.getHeight());
       }
-      g.drawString(className, textX, textY);
+      g.drawString(name, textX, textY);
 
       if (component.isRoot()) {
         textX = x + lineHeight;
@@ -151,7 +147,7 @@ public class BlueprintLayer extends Layer {
     }
     else {
       // Only room for a single line: prioritize the id if it's available, otherwise the class name
-      String text = id != null ? id : className;
+      String text = id != null ? id : name;
       Rectangle2D stringBounds = font.getStringBounds(text, fontRenderContext);
       int textX = x + w / 2 - ((int)stringBounds.getWidth()) / 2;
       int textY = y + h / 2 + ((int)stringBounds.getHeight()) / 2;
