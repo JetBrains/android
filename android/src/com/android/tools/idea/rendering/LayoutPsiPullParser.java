@@ -450,6 +450,8 @@ public class LayoutPsiPullParser extends LayoutPullParser {
           }
           myLogger.warning(RenderLogger.TAG_MISSING_FRAGMENT, "Missing fragment association", fragmentId);
         }
+      } else if (name.endsWith("Compat") && name.indexOf('.') == -1) {
+        return name.substring(0, name.length() - "Compat".length());
       }
 
       return name;
