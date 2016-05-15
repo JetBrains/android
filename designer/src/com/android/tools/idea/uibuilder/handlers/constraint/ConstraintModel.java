@@ -20,6 +20,7 @@ import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.sherpa.drawing.*;
 import com.android.tools.sherpa.drawing.decorator.*;
+import com.android.tools.sherpa.drawing.decorator.WidgetDecorator.StateModel;
 import com.android.tools.sherpa.interaction.WidgetInteractionTargets;
 import com.android.tools.sherpa.structure.WidgetCompanion;
 import com.intellij.util.containers.WeakHashMap;
@@ -40,7 +41,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * Maintains a constraint model shadowing the current NlModel
  * and handles the user interactions on it
  */
-public class ConstraintModel implements ModelListener, SelectionListener, Selection.SelectionListener {
+public class ConstraintModel implements ModelListener, SelectionListener, Selection.SelectionListener, StateModel {
 
   public static final int DEFAULT_DENSITY = 160;
   private static final boolean DEBUG = false;
@@ -276,6 +277,11 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
     selectionModel.setSelection(components);
   }
 
+  @Override
+  public void save(WidgetDecorator decorator) {
+    saveToXML(true);
+  }
+
   /**
    * Timer class managing the xml save behaviour
    * We only want to save if we are not doing something else...
@@ -446,6 +452,8 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
       }
       WidgetDecorator blueprintDecorator = createDecorator(component, widget);
       WidgetDecorator androidDecorator = createDecorator(component, widget);
+      blueprintDecorator.setStateModel(this);
+      androidDecorator.setStateModel(this);
       blueprintDecorator.setStyle(WidgetDecorator.BLUEPRINT_STYLE);
       androidDecorator.setStyle(WidgetDecorator.ANDROID_STYLE);
       WidgetCompanion companion = new WidgetCompanion();

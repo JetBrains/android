@@ -203,7 +203,7 @@ public class ConstraintUtilities {
         component.setAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT, null);
         component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF, null);
         component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF, null);
-        component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_LEFT_CREATOR, null);
+        component.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_LEFT_CREATOR, null);
         component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, null);
         break;
       }
@@ -211,7 +211,7 @@ public class ConstraintUtilities {
         component.setAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_TOP, null);
         component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF, null);
         component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF, null);
-        component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_CREATOR, null);
+        component.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_TOP_CREATOR, null);
         component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, null);
         break;
       }
@@ -221,7 +221,7 @@ public class ConstraintUtilities {
         component.setAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT, null);
         component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF, null);
         component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, null);
-        component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_RIGHT_CREATOR, null);
+        component.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_RIGHT_CREATOR, null);
         component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, null);
         break;
       }
@@ -229,13 +229,13 @@ public class ConstraintUtilities {
         component.setAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM, null);
         component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF, null);
         component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, null);
-        component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_CREATOR, null);
+        component.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_CREATOR, null);
         component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, null);
         break;
       }
       case BASELINE: {
         component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF, null);
-        component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BASELINE_CREATOR, null);
+        component.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_BASELINE_CREATOR, null);
         component.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, null);
       }
       break;
@@ -296,7 +296,7 @@ public class ConstraintUtilities {
       }
 
       String attributeCreator = getConnectionAttributeCreator(anchor);
-      component.setAttribute(SdkConstants.SHERPA_URI,
+      component.setAttribute(SdkConstants.TOOLS_URI,
                              attributeCreator, String.valueOf(anchor.getConnectionCreator()));
     }
   }
@@ -644,7 +644,7 @@ public class ConstraintUtilities {
         WidgetCompanion companion = (WidgetCompanion)widgetSrc.getCompanionWidget();
         NlComponent component = (NlComponent)companion.getWidgetModel();
         String creatorAttribute = getConnectionAttributeCreator(widgetSrc.getAnchor(constraintA));
-        String creatorValue = component.getAttribute(SdkConstants.SHERPA_URI, creatorAttribute);
+        String creatorValue = component.getAttribute(SdkConstants.TOOLS_URI, creatorAttribute);
         if (creatorValue != null) {
           connectionCreator = Integer.parseInt(creatorValue);
         }

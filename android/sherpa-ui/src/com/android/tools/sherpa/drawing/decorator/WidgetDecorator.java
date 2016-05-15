@@ -76,6 +76,8 @@ public class WidgetDecorator {
     private EnumSet<WidgetDraw.ANCHORS_DISPLAY> mDisplayAnchorsPolicy =
             EnumSet.of(WidgetDraw.ANCHORS_DISPLAY.NONE);
 
+    private StateModel mStateModel;
+
     ColorTheme mBackgroundColor;
     ColorTheme mFrameColor;
     ColorTheme mTextColor;
@@ -88,6 +90,10 @@ public class WidgetDecorator {
 
     private final static int ACTION_SIZE = 22;
     private boolean mOver = false;
+
+    public interface StateModel {
+        void save(WidgetDecorator decorator);
+    }
 
     private final Timer mHideActions = new Timer(ACTIONS_HIDE_TIMEOUT, e -> {
         mShowActions = false;
@@ -199,6 +205,16 @@ public class WidgetDecorator {
         mWidgetActions.add(new DeleteConnectionsWidgetAction(mWidget));
         mHideActions.setRepeats(false);
     }
+
+    /**
+     * Set the state model
+     */
+    public void setStateModel(StateModel model) { mStateModel = model; }
+
+    /**
+     * Getter for the state model object
+     * */
+    public StateModel getStateModel() { return mStateModel; }
 
     /**
      * Accessor for the actions on this widget
