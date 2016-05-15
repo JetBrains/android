@@ -62,6 +62,12 @@ public class ConstraintHandle {
     private final Timer mLockTimer = new Timer(LOCK_CONNECTIONS_DURATION, e -> {
         if (mAnchor.isConnected()) {
             mAnchor.setConnectionCreator(ConstraintAnchor.USER_CREATOR);
+            // We need to warn the StateModel that we need to save our new state
+            WidgetCompanion companion = (WidgetCompanion)mAnchor.getOwner().getCompanionWidget();
+            WidgetDecorator decorator = companion.getWidgetDecorator(WidgetDecorator.BLUEPRINT_STYLE);
+            if (decorator.getStateModel() != null) {
+                decorator.getStateModel().save(decorator);
+            }
         }
         stopLock();
     });
@@ -537,7 +543,9 @@ public class ConstraintHandle {
         if (!mAnchor.isConnected()) {
             return;
         }
-
+        if (mAnchor != null && mAnchor.getConnectionCreator() == ConstraintAnchor.AUTO_CONSTRAINT_CREATOR) {
+            startLock();
+        }
         ConnectionDrawing drawing = new ConnectionDrawing();
 
         ConstraintWidget targetWidget = mAnchor.getTarget().getOwner();
