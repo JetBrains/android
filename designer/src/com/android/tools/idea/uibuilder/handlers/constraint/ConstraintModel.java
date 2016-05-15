@@ -596,6 +596,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
       if (USE_GUIDELINES_DURING_DND) {
         if (dropWidget) {
           connectDroppedWidget();
+          mySelection.add(myDragDropWidget);
         }
       }
     }

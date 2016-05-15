@@ -150,7 +150,7 @@ public class WidgetsScene {
      * @param widget the widget we are removing
      */
     public void removeWidget(ConstraintWidget widget) {
-        if (widget.isRoot()) {
+        if (widget == null || (widget.isRoot() && (widget instanceof ConstraintWidgetContainer))) {
             return;
         }
         if (widget instanceof ConstraintWidgetContainer) {
@@ -164,7 +164,9 @@ public class WidgetsScene {
             w.disconnectWidget(widget);
         }
         WidgetContainer parent = (WidgetContainer) widget.getParent();
-        parent.remove(widget);
+        if (parent != null) {
+            parent.remove(widget);
+        }
         mWidgets.remove(getTag(widget));
     }
 
@@ -510,7 +512,7 @@ public class WidgetsScene {
             ConstraintWidgetContainer newContainer) {
         ConstraintWidgetContainer parent = (ConstraintWidgetContainer) oldContainer.getParent();
         if (newContainer.getCompanionWidget() == null) {
-            newContainer.setCompanionWidget(WidgetCompanion.create(newContainer));
+            newContainer.setCompanionWidget(oldContainer.getCompanionWidget());
         }
         newContainer.setOrigin(oldContainer.getX(), oldContainer.getY());
         newContainer.setDimension(oldContainer.getWidth(), oldContainer.getHeight());
@@ -533,14 +535,20 @@ public class WidgetsScene {
             // make sure the child anchors are reset
             child.resetAnchors();
         }
-        parent.remove(oldContainer);
-        parent.add(newContainer);
+        if (parent != null) {
+            parent.remove(oldContainer);
+            parent.add(newContainer);
+        } else {
+            removeWidget(oldContainer);
+        }
         mWidgets.remove(getTag(oldContainer));
         setWidget(newContainer);
-        boolean previousAnimationState = Animator.doAnimation();
-        Animator.setAnimationEnabled(false);
-        mRoot.layout();
-        Animator.setAnimationEnabled(previousAnimationState);
+        if (mRoot != null) {
+            boolean previousAnimationState = Animator.doAnimation();
+            Animator.setAnimationEnabled(false);
+            mRoot.layout();
+            Animator.setAnimationEnabled(previousAnimationState);
+        }
     }
 
     /**
