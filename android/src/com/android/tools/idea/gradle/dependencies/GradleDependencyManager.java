@@ -74,10 +74,11 @@ public class GradleDependencyManager {
    * If the user agrees the dependencies are added. The caller may supply a callback to determine when the requested dependencies
    * have been added (this make take several seconds).
    *
-   * @param module the module to add dependencies to
+   * @param module       the module to add dependencies to
    * @param dependencies the dependencies of interest.
-   * @param callback an optional callback to signal to completion of the added dependencies
-   * @return true if the dependencies were already present in the module, false otherwise
+   * @param callback     an optional callback to signal to completion of the added dependencies
+   * @return true if the dependencies were already present in the module or if the user requested adding them, and
+   * false if the dependency was missing and the user declined adding them
    */
   public boolean ensureLibraryIsIncluded(@NotNull Module module,
                                          @NotNull Iterable<GradleCoordinate> dependencies,
@@ -90,6 +91,7 @@ public class GradleDependencyManager {
     }
     if (userWantToAddDependencies(module, missing)) {
       addDependenciesInTransaction(buildModel, module, missing, callback);
+      return true;
     }
     return false;
   }

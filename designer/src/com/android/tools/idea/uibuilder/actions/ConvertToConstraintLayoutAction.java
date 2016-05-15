@@ -146,7 +146,9 @@ public class ConvertToConstraintLayoutAction extends AnAction implements ModelLi
     // Step #2: Ensure ConstraintLayout is available in the project
     GradleDependencyManager manager = GradleDependencyManager.getInstance(project);
     GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT + ":+");
-    manager.ensureLibraryIsIncluded(screenView.getModel().getModule(), Collections.singletonList(coordinate), null);
+    if (!manager.ensureLibraryIsIncluded(screenView.getModel().getModule(), Collections.singletonList(coordinate), null)) {
+      return;
+    }
 
     // Step #3: Migrate
 
