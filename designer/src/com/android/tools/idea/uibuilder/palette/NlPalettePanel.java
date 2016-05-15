@@ -386,6 +386,9 @@ public class NlPalettePanel extends JPanel
     updateColorsAfterColorThemeChange(true);
     enableClickToLoadMissingDependency();
     DumbService.getInstance(project).smartInvokeLater(() -> {
+      if (myDesignSurface == null) {
+        return;
+      }
       DefaultMutableTreeNode root = (DefaultMutableTreeNode)myPaletteTree.getModel().getRoot();
       addItems(myModel.getPalette(myDesignSurface.getLayoutType()).getItems(), root);
       checkForNewMissingDependencies();
