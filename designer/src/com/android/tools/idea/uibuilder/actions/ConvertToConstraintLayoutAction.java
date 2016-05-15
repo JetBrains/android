@@ -256,8 +256,8 @@ public class ConvertToConstraintLayoutAction extends AnAction implements ModelLi
         int dpx = myEditor.pxToDp(child.x - myRoot.x);
         int dpy = myEditor.pxToDp(child.y - myRoot.y);
 
-        child.setAttribute(SHERPA_URI, "layout_editor_absoluteX", String.format(ROOT, VALUE_N_DP, dpx));
-        child.setAttribute(SHERPA_URI, "layout_editor_absoluteY", String.format(ROOT, VALUE_N_DP, dpy));
+        child.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X, String.format(ROOT, VALUE_N_DP, dpx));
+        child.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, String.format(ROOT, VALUE_N_DP, dpy));
 
         // First gather attributes to delete; can delete during iteration (concurrent modification exceptions will ensure)
         List<String> toDelete = null;
