@@ -21,6 +21,7 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.fd.*;
 import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.run.editor.*;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTasksProviderFactory;
@@ -699,22 +700,11 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   }
 
   private int determinePluginGeneration() {
-    AndroidProject androidProject;
     Module module = getConfigurationModule().getModule();
-    if (module != null) {
-      AndroidGradleModel androidGradleModel = AndroidGradleModel.get(module);
-      if (androidGradleModel != null) {
-        androidProject = androidGradleModel.getAndroidProject();
-        try {
-          return androidProject.getPluginGeneration();
-        }
-        catch (Throwable t) {
-          return AndroidProject.GENERATION_COMPONENT;
-        }
-      }
+    if (module != null && GradleUtil.isUsingExperimentalPlugin(module)) {
+      return AndroidProject.GENERATION_COMPONENT;
     }
-
-    return AndroidProject.GENERATION_COMPONENT;
+    return AndroidProject.GENERATION_ORIGINAL;
   }
 
   private static class MyDoNotPromptOption implements DialogWrapper.DoNotAskOption {

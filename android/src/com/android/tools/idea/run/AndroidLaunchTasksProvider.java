@@ -189,6 +189,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     if (!myLaunchOptions.isDebug()) {
       return null;
     }
+    Logger logger = Logger.getInstance(AndroidLaunchTasksProvider.class);
 
     Set<String> packageIds = Sets.newHashSet();
     try {
@@ -196,7 +197,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       packageIds.add(packageName);
     }
     catch (ApkProvisionException e) {
-      Logger.getInstance(AndroidLaunchTasksProvider.class).error(e);
+      logger.error(e);
     }
 
     try {
@@ -207,13 +208,19 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     }
     catch (ApkProvisionException e) {
       // not as severe as failing to obtain package id for main application
-      Logger.getInstance(AndroidLaunchTasksProvider.class)
+      logger
         .warn("Unable to obtain test package name, will not connect debugger if tests don't instantiate main application");
     }
 
     AndroidDebugger debugger = myRunConfig.getAndroidDebugger();
+    if (debugger == null) {
+      logger.warn("Unable to determine debugger to use for this launch");
+      return null;
+    }
+    logger.info("Using debugger: " + debugger.getId());
+
     AndroidDebuggerState androidDebuggerState = myRunConfig.getAndroidDebuggerState();
-    if (debugger != null && androidDebuggerState != null) {
+    if (androidDebuggerState != null) {
       //noinspection unchecked
       return debugger.getConnectDebuggerTask(myEnv, version, packageIds, myFacet, androidDebuggerState, myRunConfig.getType().getId());
     }
