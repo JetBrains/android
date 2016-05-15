@@ -720,10 +720,9 @@ public class WidgetDecorator {
                 g.setStroke(SnapDraw.sDashedStroke);
             }
             ArrayList<ConstraintAnchor.Type> anchors = new ArrayList<>();
-            if ((mIsSelected || mLook == ColorTheme.Look.HIGHLIGHTED)
-                    && mWidget.hasBaseline()
+            if (mWidget.hasBaseline()
                     && (mShowBaseline.isDone()
-                    || mWidget.getAnchor(ConstraintAnchor.Type.BASELINE).isConnected())) {
+                        || mWidget.getAnchor(ConstraintAnchor.Type.BASELINE).isConnected())) {
                 anchors.add(ConstraintAnchor.Type.BASELINE);
             }
             anchors.add(ConstraintAnchor.Type.LEFT);
