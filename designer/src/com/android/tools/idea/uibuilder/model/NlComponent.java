@@ -333,7 +333,9 @@ public class NlComponent {
   }
 
   public static String assignId(@NotNull NlComponent component, @NotNull Collection<String> idList) {
-    String idValue = StringUtil.decapitalize(component.getTagName());
+    String tagName = component.getTagName();
+    tagName = tagName.substring(tagName.lastIndexOf('.') + 1);
+    String idValue = StringUtil.decapitalize(tagName);
 
     Module module = component.getModel().getModule();
     Project project = module.getProject();
