@@ -506,7 +506,7 @@ public class WidgetsScene {
      * @param oldContainer
      * @param newContainer
      */
-    public void transformContainerToContainer(ConstraintWidgetContainer oldContainer,
+    public void transformContainerToContainer(WidgetContainer oldContainer,
             ConstraintWidgetContainer newContainer) {
         ConstraintWidgetContainer parent = (ConstraintWidgetContainer) oldContainer.getParent();
         if (newContainer.getCompanionWidget() == null) {

@@ -90,6 +90,9 @@ public class Scout {
      * @param base
      */
     private static void inferConstraints(ConstraintWidgetContainer base) {
+        if (base == null) {
+            return;
+        }
         if (base.handlesInternalConstraints()) {
             return;
         }

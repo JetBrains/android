@@ -435,6 +435,19 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
    */
   private void createSolverWidgetFromComponent(@NotNull NlComponent component) {
     ConstraintWidget widget = myWidgetsScene.getWidget(component.getTag());
+    if (widget != null && component.getTagName().equalsIgnoreCase(SdkConstants.CONSTRAINT_LAYOUT)) {
+      if (!(widget instanceof ConstraintWidgetContainer)) {
+        if (widget instanceof WidgetContainer) {
+          ConstraintWidgetContainer container = new ConstraintWidgetContainer();
+          myWidgetsScene.transformContainerToContainer((WidgetContainer) widget, container);
+          setupConstraintWidget(component, container);
+          widget = container;
+        } else {
+          myWidgetsScene.removeWidget(widget);
+          widget = null;
+        }
+      }
+    }
     if (widget == null) {
       if (component.getTagName().equalsIgnoreCase(SdkConstants.CONSTRAINT_LAYOUT)) {
         widget = new ConstraintWidgetContainer();
@@ -450,26 +463,36 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
           widget = new ConstraintWidget();
         }
       }
-      WidgetDecorator blueprintDecorator = createDecorator(component, widget);
-      WidgetDecorator androidDecorator = createDecorator(component, widget);
-      blueprintDecorator.setStateModel(this);
-      androidDecorator.setStateModel(this);
-      blueprintDecorator.setStyle(WidgetDecorator.BLUEPRINT_STYLE);
-      androidDecorator.setStyle(WidgetDecorator.ANDROID_STYLE);
-      WidgetCompanion companion = new WidgetCompanion();
-      companion.addDecorator(blueprintDecorator);
-      companion.addDecorator(androidDecorator);
-      companion.setWidgetInteractionTargets(new WidgetInteractionTargets(widget));
-      companion.setWidgetModel(component);
-      companion.setWidgetTag(component.getTag());
-      widget.setCompanionWidget(companion);
-      widget.setDebugName(component.getId());
+      setupConstraintWidget(component, widget);
       myWidgetsScene.setWidget(widget);
     }
 
     for (NlComponent child : component.getChildren()) {
       createSolverWidgetFromComponent(child);
     }
+  }
+
+  /**
+   * Set up a ConstraintWidget from a component
+   *
+   * @param component
+   * @param widget
+   */
+  private void setupConstraintWidget(@NotNull NlComponent component, ConstraintWidget widget) {
+    WidgetDecorator blueprintDecorator = createDecorator(component, widget);
+    WidgetDecorator androidDecorator = createDecorator(component, widget);
+    blueprintDecorator.setStateModel(this);
+    androidDecorator.setStateModel(this);
+    blueprintDecorator.setStyle(WidgetDecorator.BLUEPRINT_STYLE);
+    androidDecorator.setStyle(WidgetDecorator.ANDROID_STYLE);
+    WidgetCompanion companion = new WidgetCompanion();
+    companion.addDecorator(blueprintDecorator);
+    companion.addDecorator(androidDecorator);
+    companion.setWidgetInteractionTargets(new WidgetInteractionTargets(widget));
+    companion.setWidgetModel(component);
+    companion.setWidgetTag(component.getTag());
+    widget.setCompanionWidget(companion);
+    widget.setDebugName(component.getId());
   }
 
   /**
