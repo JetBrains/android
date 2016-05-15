@@ -878,6 +878,17 @@ public class InteractionManager {
 
     @Override
     public void mouseWheelMoved(MouseWheelEvent e) {
+      // If the design surface is zoomed in we should be panning it rather than the
+      // designed view
+      JScrollPane scrollPane = mySurface.getScrollPane();
+      JViewport viewport = scrollPane.getViewport();
+      Dimension extentSize = viewport.getExtentSize();
+      Dimension viewSize = viewport.getViewSize();
+      if (viewSize.width > extentSize.width || viewSize.height > extentSize.height) {
+        scrollPane.dispatchEvent(e);
+        return;
+      }
+
       int x = e.getX();
       int y = e.getY();
 

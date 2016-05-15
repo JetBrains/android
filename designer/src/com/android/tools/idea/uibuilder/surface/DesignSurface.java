@@ -1376,6 +1376,11 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
     }
   }
 
+  @NotNull
+  public JScrollPane getScrollPane() {
+    return myScrollPane;
+  }
+
   /**
    * Invalidates the current model and request a render of the layout. This will re-inflate the layout and render it.
    */
