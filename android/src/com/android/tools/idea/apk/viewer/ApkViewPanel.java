@@ -291,7 +291,7 @@ public class ApkViewPanel implements TreeSelectionListener {
       setIcon(getIconFor(file));
 
       SimpleTextAttributes attr = SimpleTextAttributes.REGULAR_ATTRIBUTES;
-      SearchUtil.appendFragments(mySpeedSearch.getEnteredPrefix(), file.getName(), attr.getStyle(), attr.getFgColor(),
+      SearchUtil.appendFragments(mySpeedSearch.getEnteredPrefix(), entry.getName(), attr.getStyle(), attr.getFgColor(),
                                  attr.getBgColor(), this);
     }
 

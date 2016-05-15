@@ -26,13 +26,13 @@ import com.intellij.execution.ExecutionException;
 import com.intellij.execution.process.ProcessOutput;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.ide.PooledThreadExecutor;
 
 import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.TreeNode;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -40,7 +40,6 @@ import java.nio.file.attribute.PosixFilePermissions;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.zip.*;
 
 public class ApkParser {
@@ -121,9 +120,18 @@ public class ApkParser {
   @VisibleForTesting
   @NotNull
   static DefaultMutableTreeNode createTreeNode(@NotNull VirtualFile file) {
+    String originalName = null;
     DefaultMutableTreeNode node = new DefaultMutableTreeNode();
 
     long size = 0;
+
+    if (StringUtil.equals(file.getExtension(), SdkConstants.EXT_ZIP)) {
+      VirtualFile zipRoot = ApkFileSystem.getInstance().extractAndGetContentRoot(file);
+      if (zipRoot != null) {
+        originalName = file.getName();
+        file = zipRoot;
+      }
+    }
 
     if (file.isDirectory()) {
       //noinspection UnsafeVfsRecursion (no symlinks inside an APK)
@@ -138,7 +146,7 @@ public class ApkParser {
       size = file.getLength();
     }
 
-    node.setUserObject(new ApkEntry(file, size));
+    node.setUserObject(new ApkEntry(file, originalName, size));
 
     sort(node);
 
