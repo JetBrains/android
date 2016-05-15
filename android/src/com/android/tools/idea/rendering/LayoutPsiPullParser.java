@@ -374,6 +374,13 @@ public class LayoutPsiPullParser extends LayoutPullParser {
           value = tag.getAttribute(localName, namespace);
         }
       } else {
+        // Temporary conversion: ConstraintLayout 1.0 is looking in the app namespace for attributes stored
+        // in tools namespace in the XML
+        if ((ATTR_LAYOUT_EDITOR_ABSOLUTE_X.equals(localName) || ATTR_LAYOUT_EDITOR_ABSOLUTE_Y.equals(localName)) &&
+            AUTO_URI.equals(namespace)) {
+          return getAttributeValue(TOOLS_URI, localName);
+        }
+
         // Auto-convert http://schemas.android.com/apk/res-auto resources. The lookup
         // will be for the current application's resource package, e.g.
         // http://schemas.android.com/apk/res/foo.bar, but the XML document will

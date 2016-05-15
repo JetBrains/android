@@ -80,7 +80,7 @@ public class ConvertToConstraintLayoutTest {
     @Language("XML")
     String xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                  "<android.support.constraint.ConstraintLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                 "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
+                 "    xmlns:tools=\"http://schemas.android.com/tools\"\n" +
                  "    android:layout_width=\"match_parent\"\n" +
                  "    android:layout_height=\"match_parent\">\n" +
                  "\n" +
@@ -89,16 +89,16 @@ public class ConvertToConstraintLayoutTest {
                  "        android:layout_width=\"wrap_content\"\n" +
                  "        android:layout_height=\"wrap_content\"\n" +
                  "        android:id=\"@+id/button\"\n" +
-                 "        app:layout_editor_absoluteX=\"19dp\"\n" +
-                 "        app:layout_editor_absoluteY=\"18dp\" />\n" +
+                 "        tools:layout_editor_absoluteX=\"19dp\"\n" +
+                 "        tools:layout_editor_absoluteY=\"18dp\" />\n" +
                  "\n" +
                  "    <Button\n" +
                  "        android:text=\"Button\"\n" +
                  "        android:layout_width=\"wrap_content\"\n" +
                  "        android:layout_height=\"wrap_content\"\n" +
                  "        android:id=\"@+id/button2\"\n" +
-                 "        app:layout_editor_absoluteX=\"22dp\"\n" +
-                 "        app:layout_editor_absoluteY=\"66dp\" />\n" +
+                 "        tools:layout_editor_absoluteX=\"22dp\"\n" +
+                 "        tools:layout_editor_absoluteY=\"66dp\" />\n" +
                  "\n" +
                  "    <EditText\n" +
                  "        android:layout_width=\"wrap_content\"\n" +
@@ -107,8 +107,8 @@ public class ConvertToConstraintLayoutTest {
                  "        android:text=\"Name\"\n" +
                  "        android:ems=\"10\"\n" +
                  "        android:id=\"@+id/editText\"\n" +
-                 "        app:layout_editor_absoluteX=\"124dp\"\n" +
-                 "        app:layout_editor_absoluteY=\"222dp\" />\n" +
+                 "        tools:layout_editor_absoluteX=\"124dp\"\n" +
+                 "        tools:layout_editor_absoluteY=\"222dp\" />\n" +
                  "\n" +
                  "\n" +
                  "    <Button\n" +
@@ -116,24 +116,24 @@ public class ConvertToConstraintLayoutTest {
                  "        android:layout_width=\"wrap_content\"\n" +
                  "        android:layout_height=\"wrap_content\"\n" +
                  "        android:id=\"@+id/button3\"\n" +
-                 "        app:layout_editor_absoluteX=\"33dp\"\n" +
-                 "        app:layout_editor_absoluteY=\"432dp\" />\n" +
+                 "        tools:layout_editor_absoluteX=\"33dp\"\n" +
+                 "        tools:layout_editor_absoluteY=\"432dp\" />\n" +
                  "\n" +
                  "    <Button\n" +
                  "        android:text=\"Button\"\n" +
                  "        android:layout_width=\"wrap_content\"\n" +
                  "        android:layout_height=\"wrap_content\"\n" +
                  "        android:id=\"@+id/button5\"\n" +
-                 "        app:layout_editor_absoluteX=\"152dp\"\n" +
-                 "        app:layout_editor_absoluteY=\"432dp\" />\n" +
+                 "        tools:layout_editor_absoluteX=\"152dp\"\n" +
+                 "        tools:layout_editor_absoluteY=\"432dp\" />\n" +
                  "\n" +
                  "    <Button\n" +
                  "        android:text=\"Button\"\n" +
                  "        android:layout_width=\"wrap_content\"\n" +
                  "        android:layout_height=\"wrap_content\"\n" +
                  "        android:id=\"@+id/button6\"\n" +
-                 "        app:layout_editor_absoluteX=\"272dp\"\n" +
-                 "        app:layout_editor_absoluteY=\"432dp\" />\n" +
+                 "        tools:layout_editor_absoluteX=\"272dp\"\n" +
+                 "        tools:layout_editor_absoluteY=\"432dp\" />\n" +
                  "\n" +
                  "</android.support.constraint.ConstraintLayout>\n" +
                  "\n";
@@ -187,16 +187,16 @@ public class ConvertToConstraintLayoutTest {
                  "        android:layout_width=\"wrap_content\"\n" +
                  "        android:layout_height=\"wrap_content\"\n" +
                  "        android:text=\"Welcome\"\n" +
-                 "        app:layout_editor_absoluteX=\"0dp\"\n" +
-                 "        app:layout_editor_absoluteY=\"0dp\" />\n" +
+                 "        tools:layout_editor_absoluteX=\"0dp\"\n" +
+                 "        tools:layout_editor_absoluteY=\"0dp\" />\n" +
                  "\n" +
                  "    <FrameLayout\n" +
                  "        android:id=\"@+id/attending_remotely\"\n" +
                  "        android:layout_width=\"match_parent\"\n" +
                  "        android:layout_height=\"wrap_content\"\n" +
                  "        android:foreground=\"?android:selectableItemBackground\"\n" +
-                 "        app:layout_editor_absoluteX=\"0dp\"\n" +
-                 "        app:layout_editor_absoluteY=\"16dp\">\n" +
+                 "        tools:layout_editor_absoluteX=\"0dp\"\n" +
+                 "        tools:layout_editor_absoluteY=\"16dp\">\n" +
                  "\n" +
                  "        <ImageView\n" +
                  "            android:layout_width=\"100dp\"\n" +
@@ -217,8 +217,8 @@ public class ConvertToConstraintLayoutTest {
                  "        android:layout_width=\"match_parent\"\n" +
                  "        android:layout_height=\"wrap_content\"\n" +
                  "        android:foreground=\"?android:selectableItemBackground\"\n" +
-                 "        app:layout_editor_absoluteX=\"0dp\"\n" +
-                 "        app:layout_editor_absoluteY=\"116dp\">\n" +
+                 "        tools:layout_editor_absoluteX=\"0dp\"\n" +
+                 "        tools:layout_editor_absoluteY=\"116dp\">\n" +
                  "\n" +
                  "        <ImageView\n" +
                  "            android:layout_width=\"100dp\"\n" +
