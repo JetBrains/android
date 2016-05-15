@@ -58,6 +58,23 @@ public class ApkParserTest extends AndroidTestCase {
     assertEquals(compressedTree, uncompressedTree);
   }
 
+  public void testApkWithZip() throws IOException {
+    VirtualFile virtualFile = myFixture.copyFileToProject("apk/2.apk");
+    VirtualFile apkRoot = ApkFileSystem.getInstance().getRootByLocal(virtualFile);
+    assertNotNull(apkRoot);
+
+    DefaultMutableTreeNode treeNode = ApkParser.createTreeNode(apkRoot);
+    assertEquals("2.apk 21\n" +
+                 "  AndroidManifest.xml 13\n" +
+                 "  res 6\n" +
+                 "    anim 6\n" +
+                 "      fade.xml 6\n" +
+                 "  instant-run.zip 2\n" +
+                 "    instant-run 2\n" +
+                 "      classes1.dex 2\n",
+                 dumpTree(treeNode));
+  }
+
   private static String dumpTree(@NotNull DefaultMutableTreeNode treeNode) {
     StringBuilder sb = new StringBuilder(30);
     dumpTree(sb, treeNode, 0);
@@ -70,7 +87,7 @@ public class ApkParserTest extends AndroidTestCase {
     }
     ApkEntry entry = ApkEntry.fromNode(treeNode);
     assertNotNull(entry);
-    sb.append(entry.file.getName());
+    sb.append(entry.getName());
     sb.append(' ');
     sb.append(entry.size);
     sb.append('\n');
