@@ -22,6 +22,7 @@ import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.SwingCoordinate;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * An {@link Interaction} that provides support for scrollable components like ScrollView
@@ -40,12 +41,21 @@ public class ScrollInteraction extends Interaction {
   private int myScrollMultiplier = 1;
   private ScreenView myScreenView;
 
-  public ScrollInteraction(@NonNull ScreenView screenView, @NonNull NlComponent component) {
+  private ScrollInteraction(@NonNull ScreenView screenView, @NonNull ScrollHandler scrollHandler) {
+    myScreenView = screenView;
+    myHandler = scrollHandler;
+  }
+
+  /**
+   * Creates a new {@link ScrollInteraction} if any of the components in the component hierarchy can handle scrolling.
+   * @return the {@link ScrollInteraction} or null if none of the components handle the scrolling
+   */
+  @Nullable
+  public static ScrollInteraction createScrollInteraction(@NonNull ScreenView screenView, @NonNull NlComponent component) {
     NlComponent currentComponent = component;
     ScrollHandler scrollHandler = null;
     ViewEditor editor = new ViewEditorImpl(screenView);
-    myScreenView = screenView;
-
+    
     // Find the component that is the lowest in the hierarchy and can take the scrolling events
     while (currentComponent != null) {
       ViewGroupHandler viewGroupHandler = currentComponent.getViewGroupHandler();
@@ -57,7 +67,10 @@ public class ScrollInteraction extends Interaction {
       currentComponent = currentComponent.getParent();
     }
 
-    myHandler = scrollHandler;
+    if (scrollHandler == null) {
+      return null;
+    }
+    return new ScrollInteraction(screenView, scrollHandler);
   }
 
   @Override
@@ -74,33 +87,26 @@ public class ScrollInteraction extends Interaction {
     }
 
     int newScrolledAmount = myScrolledAmount + scrollAmount * myScrollMultiplier;
+    int scrolled = myHandler.update(newScrolledAmount);
 
-    if (myHandler != null) {
-      int scrolled = myHandler.update(newScrolledAmount);
-
-      if (scrolled != 0) {
-        myScrolledAmount += scrollAmount;
-        myScreenView.getModel().requestRender();
-      }
+    if (scrolled != 0) {
+      myScrolledAmount += scrollAmount;
+      myScreenView.getModel().requestRender();
     }
   }
 
   @Override
   public void end(@SwingCoordinate int x, @SwingCoordinate int y, int modifiers, boolean canceled) {
     if (canceled) {
-      if (myHandler != null) {
-        // Make sure we reset the scroll to where it was
-        myHandler.update(0);
-        myScreenView.getModel().requestRender();
-      }
+      // Make sure we reset the scroll to where it was
+      myHandler.update(0);
+      myScreenView.getModel().requestRender();
       return;
     }
 
     // Reset scroll multiplier back to 1
     myScrollMultiplier = 1;
-    if (myHandler != null) {
-      myHandler.commit(myScrolledAmount);
-    }
+    myHandler.commit(myScrolledAmount);
     myScrolledAmount = 0;
   }
 }

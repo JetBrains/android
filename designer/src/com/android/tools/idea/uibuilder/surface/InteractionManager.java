@@ -878,17 +878,6 @@ public class InteractionManager {
 
     @Override
     public void mouseWheelMoved(MouseWheelEvent e) {
-      // If the design surface is zoomed in we should be panning it rather than the
-      // designed view
-      JScrollPane scrollPane = mySurface.getScrollPane();
-      JViewport viewport = scrollPane.getViewport();
-      Dimension extentSize = viewport.getExtentSize();
-      Dimension viewSize = viewport.getViewSize();
-      if (viewSize.width > extentSize.width || viewSize.height > extentSize.height) {
-        scrollPane.dispatchEvent(e);
-        return;
-      }
-
       int x = e.getX();
       int y = e.getY();
 
@@ -912,8 +901,26 @@ public class InteractionManager {
 
       boolean isScrollInteraction;
       if (myCurrentInteraction == null) {
+        ScrollInteraction scrollInteraction = ScrollInteraction.createScrollInteraction(screenView, component);
+        if (scrollInteraction == null) {
+          // There is no component consuming the scroll
+          e.getComponent().getParent().dispatchEvent(e);
+          return;
+        } else {
+          // If the design surface is zoomed in we should be panning it rather than the
+          // designed view
+          JScrollPane scrollPane = mySurface.getScrollPane();
+          JViewport viewport = scrollPane.getViewport();
+          Dimension extentSize = viewport.getExtentSize();
+          Dimension viewSize = viewport.getViewSize();
+          if (viewSize.width > extentSize.width || viewSize.height > extentSize.height) {
+            e.getComponent().getParent().dispatchEvent(e);
+            return;
+          }
+        }
+
         // Start a scroll interaction and a timer to bundle all the scroll events
-        startInteraction(x, y, new ScrollInteraction(screenView, component), 0);
+        startInteraction(x, y, scrollInteraction, 0);
         isScrollInteraction = true;
         myScrollEndTimer.addActionListener(myScrollEndListener);
       } else {
