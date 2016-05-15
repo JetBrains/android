@@ -186,7 +186,7 @@ public class ConvertToConstraintLayoutAction extends AnAction implements ModelLi
           } catch (Throwable t) {
             Logger.getInstance(ConvertToConstraintLayoutAction.class).warn(t);
           }
-          constraintModel.saveToXML();
+          constraintModel.saveToXML(true);
           constraintModel.setNeedsAnimateConstraints(ConstraintAnchor.SCOUT_CREATOR);
         }
       }
