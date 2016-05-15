@@ -25,12 +25,14 @@ final class ApkEntry {
   private static final long UNKNOWN = -1;
 
   public final VirtualFile file;
+  @Nullable private final String originalName; // original name if different from file.getName()
   public final long size;
 
   private long myCompressedSize = UNKNOWN;
 
-  ApkEntry(@NotNull VirtualFile file, long size) {
+  ApkEntry(@NotNull VirtualFile file, @Nullable String originalName, long size) {
     this.file = file;
+    this.originalName = originalName;
     this.size = size;
   }
 
@@ -59,5 +61,10 @@ final class ApkEntry {
 
   public void setCompressedSize(long compressedSize) {
     myCompressedSize = compressedSize;
+  }
+
+  @NotNull
+  public String getName() {
+    return originalName != null ? originalName : file.getName();
   }
 }
