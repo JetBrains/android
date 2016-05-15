@@ -19,7 +19,6 @@ import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.ModelListener;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.model.SwingCoordinate;
-import com.intellij.openapi.application.ApplicationManager;
 import org.intellij.lang.annotations.JdkConstants.InputEventMask;
 import org.jetbrains.annotations.NotNull;
 
@@ -96,8 +95,6 @@ public class CanvasResizeInteraction extends Interaction {
       @Override
       public void modelRendered(@NotNull NlModel model) {
         model.removeListener(this);
-
-        ApplicationManager.getApplication().invokeLater(myDesignSurface::zoomToFit);
       }
     });
 
