@@ -21,6 +21,7 @@ import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.sherpa.drawing.*;
 import com.android.tools.sherpa.drawing.decorator.*;
 import com.android.tools.sherpa.drawing.decorator.WidgetDecorator.StateModel;
+import com.android.tools.sherpa.interaction.SnapCandidate;
 import com.android.tools.sherpa.interaction.WidgetInteractionTargets;
 import com.android.tools.sherpa.structure.WidgetCompanion;
 import com.intellij.util.containers.WeakHashMap;
@@ -45,6 +46,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
 
   public static final int DEFAULT_DENSITY = 160;
   private static final boolean DEBUG = false;
+  private static final boolean USE_GUIDELINES_DURING_DND = true;
 
   private WidgetsScene myWidgetsScene = new WidgetsScene();
   private Selection mySelection = new Selection(null);
@@ -53,6 +55,8 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
   private int mNeedsAnimateConstraints = -1;
   private final NlModel myNlModel;
   private boolean mAllowsUpdate = true;
+  private ConstraintWidget myDragDropWidget;
+  private ArrayList<DrawConstraintModel> myDrawConstraintModels = new ArrayList<>();
 
   public void setAutoConnect(boolean autoConnect) {
     if (autoConnect != mAutoConnect) {
@@ -119,11 +123,10 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
     ConstraintModel constraintModel = getConstraintModel(screenView.getModel());
     ourLock.lock();
     DrawConstraintModel drawConstraintModel = ourDrawModelCache.get(screenView);
-    if (drawConstraintModel == null) {
-      if (constraintModel != null) {
-        drawConstraintModel = new DrawConstraintModel(screenView, constraintModel);
-        ourDrawModelCache.put(screenView, drawConstraintModel);
-      }
+    if (drawConstraintModel == null && constraintModel != null) {
+      drawConstraintModel = new DrawConstraintModel(screenView, constraintModel);
+      ourDrawModelCache.put(screenView, drawConstraintModel);
+      constraintModel.myDrawConstraintModels.add(drawConstraintModel);
     }
     if (drawConstraintModel != null) {
       int dpi = screenView.getConfiguration().getDensity().getDpiValue();
@@ -223,6 +226,110 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
       mSaveXmlTimer.cancel();
     }
   }
+
+  //////////////////////////////////////////////////////////////////////////////
+  // Drag and Drop handling
+  //////////////////////////////////////////////////////////////////////////////
+
+  /**
+   * Accessor to the list of DrawConstraintModel representing this ConstraintModel
+   * @return the list of DrawConstraintModel associated to this ConstraintModel
+   */
+  public ArrayList<DrawConstraintModel> getDrawConstraintModels() {
+    return myDrawConstraintModels;
+  }
+
+  /**
+   * Set a drop widget
+   * @param droppedWidget
+   */
+  public void setDragDropWidget(ConstraintWidget droppedWidget) {
+    myDragDropWidget = droppedWidget;
+  }
+
+  /**
+   * Remove a drop widget
+   */
+  public void removeDragComponent() {
+    if (myDragDropWidget != null) {
+      myWidgetsScene.removeWidget(myDragDropWidget);
+      myDragDropWidget = null;
+    }
+  }
+
+  /**
+   * Commit the drop widget
+   *
+   * We remove it from the scene and set its companion object to point to the newly created NlComponent.
+   *
+   * @param component the dropped NlComponent
+   */
+  public void commitDragComponent(NlComponent component) {
+    if (USE_GUIDELINES_DURING_DND) {
+      if (myDragDropWidget != null) {
+        myWidgetsScene.removeWidget(myDragDropWidget);
+        WidgetCompanion companion = (WidgetCompanion)myDragDropWidget.getCompanionWidget();
+        companion.setWidgetModel(component);
+        companion.setWidgetTag(component.getTag());
+      }
+    } else {
+      removeDragComponent();
+    }
+  }
+
+  /**
+   * Do a pass at enabling connections from the existing snap candidates (used for the drag and drop),
+   * if auto-connect is on.
+   */
+  private void connectDroppedWidget() {
+    if (!mAutoConnect) {
+      return;
+    }
+    ArrayList<DrawConstraintModel> drawConstraintModels = getDrawConstraintModels();
+    if (drawConstraintModels.size() < 1) {
+      return;
+    }
+    for (DrawConstraintModel drawConstraintModel : drawConstraintModels) {
+      // Start the autoconnection
+      for (SnapCandidate candidate : drawConstraintModel.getMouseInteraction().getSnapCandidates()) {
+        if (!candidate.source.isConnectionAllowed(candidate.target.getOwner())) {
+          continue;
+        }
+        int margin = candidate.margin;
+        if (candidate.padding != 0) {
+          margin = candidate.padding;
+        }
+        margin = Math.abs(margin);
+        ConstraintWidget widget = candidate.source.getOwner();
+        widget.connect(candidate.source, candidate.target, margin,
+                       ConstraintAnchor.AUTO_CONSTRAINT_CREATOR);
+      }
+      drawConstraintModel.getMouseInteraction().getSnapCandidates().clear();
+    }
+  }
+
+  /**
+   * Drag the current drag'n drop widget
+   * @param x
+   * @param y
+   */
+  public void dragComponent(@AndroidCoordinate int x, @AndroidCoordinate int y) {
+    if (myDragDropWidget == null) {
+      return;
+    }
+    int ax = pxToDp(x);
+    int ay = pxToDp(y);
+    myDragDropWidget.setX(ax);
+    myDragDropWidget.setY(ay);
+    myDragDropWidget.forceUpdateDrawPosition();
+    for (DrawConstraintModel drawConstraintModel : getDrawConstraintModels()) {
+      drawConstraintModel.getMouseInteraction().dragAndDrop(myDragDropWidget, ax, ay);
+    }
+  }
+
+  //////////////////////////////////////////////////////////////////////////////
+  // Selection handling
+  //////////////////////////////////////////////////////////////////////////////
 
   /**
    * Something has changed on the selection of NlModel
@@ -399,6 +506,14 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
       updateSolverWidgetFromComponent(component, deepUpdate);
     }
 
+    if (USE_GUIDELINES_DURING_DND) {
+      // Sanity check to remove the drop widget if it has been committed already but not used.
+      if (myDragDropWidget != null
+          && !myWidgetsScene.getWidgets().contains(myDragDropWidget)) {
+        myDragDropWidget = null;
+      }
+    }
+
     // Finally, layout using our model.
     WidgetContainer root = myWidgetsScene.getRoot();
     if (root != null) {
@@ -449,22 +564,40 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
       }
     }
     if (widget == null) {
-      if (component.getTagName().equalsIgnoreCase(SdkConstants.CONSTRAINT_LAYOUT)) {
-        widget = new ConstraintWidgetContainer();
+      boolean dropWidget = false;
+      if (USE_GUIDELINES_DURING_DND){
+        if (myDragDropWidget != null) {
+          WidgetCompanion companion = (WidgetCompanion)myDragDropWidget.getCompanionWidget();
+          if (companion.getWidgetModel() == component) {
+            widget = myDragDropWidget;
+            widget.setCompanionWidget(null);
+            dropWidget = true;
+          }
+        }
       }
-      else if (component.getTagName().equalsIgnoreCase(SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE)) {
-        widget = new Guideline();
-      }
-      else {
-        if (component.children != null && component.children.size() > 0) {
-          widget = new WidgetContainer();
+      if (widget == null) {
+        if (component.getTagName().equalsIgnoreCase(SdkConstants.CONSTRAINT_LAYOUT)) {
+          widget = new ConstraintWidgetContainer();
+        }
+        else if (component.getTagName().equalsIgnoreCase(SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE)) {
+          widget = new Guideline();
         }
         else {
-          widget = new ConstraintWidget();
+          if (component.children != null && component.children.size() > 0) {
+            widget = new WidgetContainer();
+          }
+          else {
+            widget = new ConstraintWidget();
+          }
         }
       }
       setupConstraintWidget(component, widget);
       myWidgetsScene.setWidget(widget);
+      if (USE_GUIDELINES_DURING_DND) {
+        if (dropWidget) {
+          connectDroppedWidget();
+        }
+      }
     }
 
     for (NlComponent child : component.getChildren()) {
@@ -542,6 +675,17 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
    */
   private void updateSolverWidgetFromComponent(@NotNull NlComponent component, boolean deepUpdate) {
     ConstraintWidget widget = myWidgetsScene.getWidget(component.getTag());
+    if (USE_GUIDELINES_DURING_DND) {
+      if (myDragDropWidget != null) {
+        // If we have a drag and drop widget candidate, let's not update from the NlComponent just yet
+        WidgetCompanion companion = (WidgetCompanion)myDragDropWidget.getCompanionWidget();
+        if (companion.getWidgetModel() == component) {
+          saveToXML(true); // will retrigger an update
+          myDragDropWidget = null;
+          return;
+        }
+      }
+    }
     ConstraintUtilities.updateWidget(this, widget, component, deepUpdate);
     for (NlComponent child : component.getChildren()) {
       updateSolverWidgetFromComponent(child, deepUpdate);
