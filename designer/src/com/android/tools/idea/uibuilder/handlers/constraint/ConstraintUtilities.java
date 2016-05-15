@@ -255,8 +255,8 @@ public class ConstraintUtilities {
     String sY = String.format(SdkConstants.VALUE_N_DP, y);
     String attributeX = SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X;
     String attributeY = SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y;
-    component.setAttribute(SdkConstants.SHERPA_URI, attributeX, sX);
-    component.setAttribute(SdkConstants.SHERPA_URI, attributeY, sY);
+    component.setAttribute(SdkConstants.TOOLS_URI, attributeX, sX);
+    component.setAttribute(SdkConstants.TOOLS_URI, attributeY, sY);
   }
 
   /**
