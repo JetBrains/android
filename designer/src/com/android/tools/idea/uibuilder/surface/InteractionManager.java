@@ -648,6 +648,11 @@ public class InteractionManager {
         }
       }
 
+      // The below shortcuts only apply without modifier keys
+      if (event.isAltDown() || event.isMetaDown() || event.isShiftDown() || event.isControlDown()) {
+        return;
+      }
+
       // Fall back to canvas actions for the key press
       //mySurface.handleKeyPressed(e);
 

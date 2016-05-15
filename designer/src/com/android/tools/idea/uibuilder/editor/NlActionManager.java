@@ -54,6 +54,7 @@ public class NlActionManager {
   private final DesignSurface mySurface;
   private AnAction mySelectAllAction;
   private AnAction mySelectParent;
+  private GotoComponentAction myGotoComponentAction;
 
   public NlActionManager(@NotNull DesignSurface surface) {
     mySurface = surface;
@@ -63,6 +64,9 @@ public class NlActionManager {
     assert mySelectAllAction == null; // should only be called once!
     mySelectAllAction = new SelectAllAction(mySurface);
     registerAction(mySelectAllAction, "$SelectAll", component);
+
+    myGotoComponentAction = new GotoComponentAction(mySurface);
+    registerAction(myGotoComponentAction, IdeActions.ACTION_GOTO_DECLARATION, component);
 
     mySelectParent = new SelectParentAction(mySurface);
     mySelectParent.registerCustomShortcutSet(KeyEvent.VK_ESCAPE, 0, null);
@@ -126,8 +130,10 @@ public class NlActionManager {
     group.addSeparator();
     group.add(actionManager.getAction(IdeActions.ACTION_DELETE));
     group.addSeparator();
+    group.add(myGotoComponentAction);
 
     if (ConvertToConstraintLayoutAction.ENABLED) {
+      group.addSeparator();
       group.add(new ConvertToConstraintLayoutAction(mySurface));
     }
 
