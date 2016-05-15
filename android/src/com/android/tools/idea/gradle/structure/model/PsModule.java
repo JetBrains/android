@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.model.repositories.JCenterDefaultRepositoryModel;
 import com.android.tools.idea.gradle.dsl.model.repositories.MavenCentralRepositoryModel;
 import com.android.tools.idea.gradle.dsl.model.repositories.RepositoryModel;
-import com.android.tools.idea.gradle.structure.daemon.PsAnalyzerDaemon;
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository;
 import com.android.tools.idea.gradle.structure.model.repositories.search.JCenterRepository;
 import com.android.tools.idea.gradle.structure.model.repositories.search.MavenCentralRepository;
@@ -35,8 +34,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.util.EventListener;
 import java.util.List;
-
-import static com.android.tools.idea.gradle.structure.model.PsIssueType.PROJECT_ANALYSIS;
 
 public abstract class PsModule extends PsChildModel {
   @Nullable private String myGradlePath;
@@ -53,10 +50,10 @@ public abstract class PsModule extends PsChildModel {
 
   protected PsModule(@NotNull PsProject parent,
                      @NotNull Module resolvedModel,
-                     @NotNull String moduleGradlePath) {
+                     @NotNull String gradlePath) {
     super(parent);
     myResolvedModel = resolvedModel;
-    myGradlePath = moduleGradlePath;
+    myGradlePath = gradlePath;
     myModuleName = resolvedModel.getName();
     myParsedModel = GradleBuildModel.get(myResolvedModel);
   }
