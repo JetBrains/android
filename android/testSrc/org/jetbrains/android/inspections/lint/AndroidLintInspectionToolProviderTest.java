@@ -34,6 +34,7 @@ import java.lang.reflect.Modifier;
 import java.util.*;
 
 import static com.android.utils.SdkUtils.escapePropertyValue;
+import static org.jetbrains.android.inspections.lint.AndroidLintInspectionBase.LINT_INSPECTION_PREFIX;
 
 /** Ensures that all relevant lint checks are available and registered */
 public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
@@ -168,7 +169,8 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
         .append(allIssues.size()).append(")");
       sb.append("\nAdd to plugin.xml (and please try to preserve the case insensitive alphabetical order):\n");
       for (Issue issue : missing) {
-        sb.append("    <globalInspection hasStaticDescription=\"true\" shortName=\"AndroidLint");
+        sb.append("    <globalInspection hasStaticDescription=\"true\" shortName=\"");
+        sb.append(LINT_INSPECTION_PREFIX);
         String id = issue.getId();
         sb.append(id);
         sb.append("\" displayName=\"");

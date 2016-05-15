@@ -29,6 +29,7 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Iconable;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
@@ -47,6 +48,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
+import static org.jetbrains.android.inspections.lint.AndroidLintInspectionBase.LINT_INSPECTION_PREFIX;
 
 /** Intention for adding a {@code @SuppressLint} annotation on the given element for the given id */
 public class SuppressLintIntentionAction implements IntentionAction, Iconable {
@@ -153,9 +155,7 @@ public class SuppressLintIntentionAction implements IntentionAction, Iconable {
 
   static String getLintId(String intentionId) {
     String lintId = intentionId;
-    if (lintId.startsWith("AndroidLint")) {
-      lintId = lintId.substring("AndroidLint".length());
-    }
+    lintId = StringUtil.trimStart(lintId, LINT_INSPECTION_PREFIX);
 
     return lintId;
   }
