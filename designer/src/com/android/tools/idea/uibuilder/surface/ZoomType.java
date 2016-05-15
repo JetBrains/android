@@ -26,7 +26,7 @@ public enum ZoomType {
   /**
    * Zoom to fit (the screen view port)
    */
-  FIT("Zoom to Fit Screen", AndroidIcons.NeleIcons.ExpandToFit),
+  FIT("Zoom to Fit Screen (0)", AndroidIcons.NeleIcons.ExpandToFit),
 
   /**
    * Zoom to fit, but do not zoom more than 100%
@@ -36,17 +36,17 @@ public enum ZoomType {
   /**
    * Zoom to actual size (100%)
    */
-  ACTUAL("100%", null),
+  ACTUAL("100% (1)", null),
 
   /**
    * Zoom in
    */
-  IN("Zoom In", AndroidIcons.NeleIcons.ZoomIn),
+  IN("Zoom In (+)", AndroidIcons.NeleIcons.ZoomIn),
 
   /**
    * Zoom out
    */
-  OUT("Zoom Out", AndroidIcons.NeleIcons.ZoomOut),
+  OUT("Zoom Out (-)", AndroidIcons.NeleIcons.ZoomOut),
 
   /**
    * Zoom to match the exact device size (depends on the monitor dpi)
