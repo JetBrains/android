@@ -29,6 +29,7 @@ import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.treeStructure.Tree;
 import org.jetbrains.annotations.NotNull;
@@ -50,7 +51,7 @@ class TargetModulesPanel extends ToolWindowPanel {
   @NotNull private final NodeHyperlinkSupport<TargetAndroidModuleNode> myHyperlinkSupport;
 
   TargetModulesPanel(@NotNull PsContext context) {
-    super("Target Modules", AllIcons.Nodes.ModuleGroup, null);
+    super("Target Modules", AllIcons.Nodes.ModuleGroup, ToolWindowAnchor.RIGHT);
     myContext = context;
 
     DefaultTreeModel treeModel = new DefaultTreeModel(new DefaultMutableTreeNode());

@@ -172,7 +172,7 @@ class AddLibraryDependencyPanel extends JPanel implements Disposable {
       setUpAsHtmlLabel(instructionsPane, getTreeFont());
       instructionsPane.setText("<html><body><b>Step 1.</b><br/>" +
                                "Use the form below to find the library to add. This form uses the repositories specified in " +
-                               "the project's build files (e.g. Maven Central, JCenter, etc.)</body></html>");
+                               "the project's build files (e.g. JCenter, Maven Central, etc.)</body></html>");
       instructionsPane.setBorder(createEmptyBorder(8, 5, 0, 5));
       add(instructionsPane, BorderLayout.CENTER);
 
