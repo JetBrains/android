@@ -16,6 +16,7 @@
 package com.android.tools.idea.apk.viewer.dex;
 
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
@@ -23,13 +24,16 @@ import com.intellij.debugger.impl.DebuggerUtilsEx;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jf.dexlib2.Opcodes;
+import org.jf.dexlib2.dexbacked.DexBackedClassDef;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.dexbacked.reference.DexBackedMethodReference;
 import org.jf.dexlib2.iface.reference.MethodReference;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Set;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 public class DexParser {
   private final ListeningExecutorService myExecutor;
@@ -65,11 +69,16 @@ public class DexParser {
   static PackageTreeNode constructMethodRefTreeForDex(@NotNull DexBackedDexFile dexFile) {
     PackageTreeNode root = new PackageTreeNode("", "root", PackageTreeNode.NodeType.PACKAGE, null);
 
+    Set<String> classesWithDefinition = dexFile.getClasses()
+      .stream()
+      .map(DexBackedClassDef::getType)
+      .collect(Collectors.toSet());
+
     Multimap<String, MethodReference> methodsByClassName = getMethodsByClassName(dexFile);
     for (String className : methodsByClassName.keySet()) {
       Collection<MethodReference> methods = methodsByClassName.get(className);
       for (MethodReference ref : methods) {
-        root.insert("", DebuggerUtilsEx.signatureToName(className), ref);
+        root.insert("", DebuggerUtilsEx.signatureToName(className), ref, classesWithDefinition.contains(className));
       }
     }
 
@@ -95,10 +104,16 @@ public class DexParser {
       dexFile = myDexFileFuture.get();
     }
     catch (Exception e) {
-      return new DexFileStats(-1);
+      return new DexFileStats(-1, -1, -1);
     }
 
-    return new DexFileStats(dexFile.getMethodCount());
+    int definedMethodCount = 0;
+    Set<? extends DexBackedClassDef> classes = dexFile.getClasses();
+    for (DexBackedClassDef dexBackedClassDef : classes) {
+      definedMethodCount += Iterables.size(dexBackedClassDef.getMethods());
+    }
+
+    return new DexFileStats(classes.size(), definedMethodCount, dexFile.getMethodCount());
   }
 
   @NotNull
@@ -113,9 +128,13 @@ public class DexParser {
   }
 
   public static class DexFileStats {
+    public final int classCount;
+    public final int definedMethodCount;
     public final int referencedMethodCount;
 
-    private DexFileStats(int referencedMethodCount) {
+    private DexFileStats(int classCount, int definedMethodCount, int referencedMethodCount) {
+      this.classCount = classCount;
+      this.definedMethodCount = definedMethodCount;
       this.referencedMethodCount = referencedMethodCount;
     }
   }

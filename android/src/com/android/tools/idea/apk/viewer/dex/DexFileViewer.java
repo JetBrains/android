@@ -77,10 +77,15 @@ public class DexFileViewer implements ApkFileEditorComponent {
                    .setHeaderAlignment(SwingConstants.LEFT)
                    .setRenderer(new PackageTreeNodeRenderer()))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
+                   .setName("Defined Methods")
+                   .setPreferredWidth(100)
+                   .setHeaderAlignment(SwingConstants.LEFT)
+                   .setRenderer(new MethodCountRenderer(true)))
+      .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Referenced Methods")
                    .setPreferredWidth(100)
                    .setHeaderAlignment(SwingConstants.LEFT)
-                   .setRenderer(new MethodCountRenderer()));
+                   .setRenderer(new MethodCountRenderer(false)));
     JComponent columnTree = builder.build();
     myLoadingPanel.add(columnTree, BorderLayout.CENTER);
 
@@ -104,9 +109,13 @@ public class DexFileViewer implements ApkFileEditorComponent {
       @Override
       public void onSuccess(DexParser.DexFileStats result) {
         titleComponent.setIcon(AllIcons.General.Information);
-        titleComponent.append("This dex file references ");
+        titleComponent.append("This dex file defines ");
+        titleComponent.append(Integer.toString(result.classCount), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
+        titleComponent.append(" classes with ");
+        titleComponent.append(Integer.toString(result.definedMethodCount), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
+        titleComponent.append(" methods, and references ");
         titleComponent.append(Integer.toString(result.referencedMethodCount), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
-        titleComponent.append(" methods");
+        titleComponent.append(" methods.");
       }
 
       @Override
@@ -157,6 +166,12 @@ public class DexFileViewer implements ApkFileEditorComponent {
   }
 
   private static class MethodCountRenderer extends ColoredTreeCellRenderer {
+    private final boolean myShowDefinedCount;
+
+    public MethodCountRenderer(boolean showDefinedCount) {
+      myShowDefinedCount = showDefinedCount;
+    }
+
     @Override
     public void customizeCellRenderer(@NotNull JTree tree,
                                       Object value,
@@ -167,7 +182,8 @@ public class DexFileViewer implements ApkFileEditorComponent {
                                       boolean hasFocus) {
       if (value instanceof PackageTreeNode) {
         PackageTreeNode node = (PackageTreeNode)value;
-        append(Integer.toString(node.getMethodRefCount()));
+        int count = myShowDefinedCount ? node.getDefinedMethodsCount() : node.getMethodRefCount();
+        append(Integer.toString(count));
       }
     }
   }
