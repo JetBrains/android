@@ -19,9 +19,11 @@ import com.android.tools.idea.gradle.structure.configurables.android.dependencie
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsAllModulesFakeModule;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.AndroidModuleDependenciesConfigurable;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.ProjectDependenciesConfigurable;
+import com.android.tools.idea.gradle.structure.configurables.java.dependencies.JavaModuleDependenciesConfigurable;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
+import com.android.tools.idea.gradle.structure.model.java.PsJavaModule;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.ui.NamedConfigurable;
@@ -64,6 +66,11 @@ public class DependenciesPerspectiveConfigurable extends BasePerspectiveConfigur
           configurable = new AndroidModuleDependenciesConfigurable(androidModule, getContext(), getExtraTopModules());
           configurable.setHistory(myHistory);
           myConfigurablesByGradlePath.put(gradlePath, configurable);
+        }
+        else if (module instanceof PsJavaModule) {
+          PsJavaModule javaModule = (PsJavaModule)module;
+          configurable = new JavaModuleDependenciesConfigurable(javaModule, getContext(), getExtraTopModules());
+
         }
       }
     }

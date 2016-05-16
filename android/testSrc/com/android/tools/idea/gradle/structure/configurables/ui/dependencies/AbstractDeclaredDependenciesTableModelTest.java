@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables.android.dependencies.module;
+package com.android.tools.idea.gradle.structure.configurables.ui.dependencies;
 
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.DeclaredDependenciesTableModel.DependencyCellRenderer;
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
+import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.AbstractDeclaredDependenciesTableModel.DependencyCellRenderer;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidLibraryDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
+import com.android.tools.idea.gradle.structure.model.android.PsLibraryAndroidDependency;
 import com.google.common.collect.Lists;
 import com.intellij.testFramework.IdeaTestCase;
 import com.intellij.util.ui.ColumnInfo;
@@ -37,23 +37,24 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * Tests for {@link DeclaredDependenciesTableModel}.
+ * Tests for {@link AbstractDeclaredDependenciesTableModel}.
  */
-public class DeclaredDependenciesTableModelTest extends IdeaTestCase {
+public class AbstractDeclaredDependenciesTableModelTest extends IdeaTestCase {
   private boolean myOriginalShowGroupId;
-  private PsAndroidLibraryDependency myLibraryDependency;
+  private PsLibraryAndroidDependency myLibraryDependency;
 
-  private DeclaredDependenciesTableModel myTableModel;
+  private AbstractDeclaredDependenciesTableModel<PsAndroidDependency> myTableModel;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     myOriginalShowGroupId = PsUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID;
-    myLibraryDependency = mock(PsAndroidLibraryDependency.class);
+    myLibraryDependency = mock(PsLibraryAndroidDependency.class);
 
     List<PsAndroidDependency> dependencies = Lists.newArrayList();
     dependencies.add(myLibraryDependency);
-    myTableModel = new DeclaredDependenciesTableModel(new PsAndroidModuleStub(dependencies), mock(PsContext.class));
+    PsAndroidModuleStub module = new PsAndroidModuleStub(dependencies);
+    myTableModel = new AbstractDeclaredDependenciesTableModel<PsAndroidDependency>(module, mock(PsContext.class)) {};
   }
 
   @Override

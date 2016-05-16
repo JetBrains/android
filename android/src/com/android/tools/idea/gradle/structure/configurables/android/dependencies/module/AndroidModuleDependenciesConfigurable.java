@@ -15,14 +15,10 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.module;
 
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.AbstractDependenciesConfigurable;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
-import com.intellij.openapi.application.Result;
-import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.util.ActionCallback;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.navigation.History;
@@ -33,21 +29,18 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public class AndroidModuleDependenciesConfigurable extends AbstractDependenciesConfigurable<PsAndroidModule> {
-  @NotNull private final PsAndroidModule myModule;
-
   private MainPanel myMainPanel;
 
   public AndroidModuleDependenciesConfigurable(@NotNull PsAndroidModule module,
                                                @NotNull PsContext context,
                                                @NotNull List<PsModule> extraTopModules) {
     super(module, context, extraTopModules);
-    myModule = module;
   }
 
   @Override
   public MainPanel createOptionsPanel() {
     if (myMainPanel == null) {
-      myMainPanel = new MainPanel(myModule, getContext(), getExtraTopModules());
+      myMainPanel = new MainPanel(getModule(), getContext(), getExtraTopModules());
       myMainPanel.setHistory(getHistory());
     }
     return myMainPanel;
@@ -74,38 +67,6 @@ public class AndroidModuleDependenciesConfigurable extends AbstractDependenciesC
     if (myMainPanel != null) {
       myMainPanel.setHistory(history);
     }
-  }
-
-  @Override
-  @NotNull
-  public String getId() {
-    return "module.dependencies." + getDisplayName();
-  }
-
-  @Override
-  public boolean isModified() {
-    return myModule.isModified();
-  }
-
-  @Override
-  public void apply() throws ConfigurationException {
-    if (myModule.isModified()) {
-      GradleBuildModel parsedModel = myModule.getParsedModel();
-      if (parsedModel != null && parsedModel.isModified()) {
-        String name = String.format("Applying changes to module '%1$s'", myModule.getName());
-        new WriteCommandAction(myModule.getParent().getResolvedModel(), name) {
-          @Override
-          protected void run(@NotNull Result result) throws Throwable {
-            parsedModel.applyChanges();
-            myModule.setModified(false);
-          }
-        }.execute();
-      }
-    }
-  }
-
-  @Override
-  public void reset() {
   }
 
   @Override

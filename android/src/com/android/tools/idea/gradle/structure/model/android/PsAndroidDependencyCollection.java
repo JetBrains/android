@@ -47,8 +47,8 @@ import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDependency> {
   @NotNull private final PsAndroidModule myParent;
 
-  @NotNull private final Map<String, PsModuleDependency> myModuleDependenciesByGradlePath = Maps.newHashMap();
-  @NotNull private final Map<String, PsAndroidLibraryDependency> myLibraryDependenciesBySpec = Maps.newHashMap();
+  @NotNull private final Map<String, PsModuleAndroidDependency> myModuleDependenciesByGradlePath = Maps.newHashMap();
+  @NotNull private final Map<String, PsLibraryAndroidDependency> myLibraryDependenciesBySpec = Maps.newHashMap();
 
   PsAndroidDependencyCollection(@NotNull PsAndroidModule parent) {
     myParent = parent;
@@ -94,9 +94,9 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
     if (module != null) {
       resolvedModule = module.getResolvedModel();
     }
-    PsModuleDependency dependency = findElement(gradlePath, PsModuleDependency.class);
+    PsModuleAndroidDependency dependency = findElement(gradlePath, PsModuleAndroidDependency.class);
     if (dependency == null) {
-      dependency = new PsModuleDependency(myParent, gradlePath, artifact, projectVariant, resolvedModule, matchingParsedDependency);
+      dependency = new PsModuleAndroidDependency(myParent, gradlePath, artifact, projectVariant, resolvedModule, matchingParsedDependency);
       myModuleDependenciesByGradlePath.put(gradlePath, dependency);
     }
     updateDependency(dependency, artifact, matchingParsedDependency);
@@ -138,8 +138,8 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
             // androidTestCompile 'com.android.support.test.espresso:espresso-core:2.2.1'
             //
             // Here 'espresso' brings junit 4.12, but there is no mismatch with junit 4.11, because they are in different artifacts.
-            PsAndroidLibraryDependency potentialDuplicate = null;
-            for (PsAndroidLibraryDependency dependency : myLibraryDependenciesBySpec.values()) {
+            PsLibraryAndroidDependency potentialDuplicate = null;
+            for (PsLibraryAndroidDependency dependency : myLibraryDependenciesBySpec.values()) {
               if (dependency.getParsedModels().contains(matchingParsedDependency)) {
                 potentialDuplicate = dependency;
                 break;
@@ -221,8 +221,8 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
                              @NotNull PsAndroidArtifact artifact,
                              @NotNull PsAndroidDependency dependency) {
     PsAndroidDependency transitive = addLibrary(transitiveDependency, artifact);
-    if (transitive != null && dependency instanceof PsAndroidLibraryDependency) {
-      PsAndroidLibraryDependency libraryDependency = (PsAndroidLibraryDependency)dependency;
+    if (transitive != null && dependency instanceof PsLibraryAndroidDependency) {
+      PsLibraryAndroidDependency libraryDependency = (PsLibraryAndroidDependency)dependency;
       libraryDependency.addTransitiveDependency(transitive.toText(PLAIN_TEXT));
     }
   }
@@ -258,9 +258,9 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
                                                     @NotNull PsAndroidArtifact artifact,
                                                     @Nullable ArtifactDependencyModel parsedModel) {
     String compactNotation = resolvedSpec.toString();
-    PsAndroidLibraryDependency dependency = myLibraryDependenciesBySpec.get(compactNotation);
+    PsLibraryAndroidDependency dependency = myLibraryDependenciesBySpec.get(compactNotation);
     if (dependency == null) {
-      dependency = new PsAndroidLibraryDependency(myParent, resolvedSpec, artifact, library, parsedModel);
+      dependency = new PsLibraryAndroidDependency(myParent, resolvedSpec, artifact, library, parsedModel);
       myLibraryDependenciesBySpec.put(compactNotation, dependency);
 
       File libraryPath = null;
@@ -289,8 +289,8 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
   }
 
   @Nullable
-  public PsAndroidLibraryDependency findElement(PsArtifactDependencySpec spec) {
-    PsAndroidLibraryDependency dependency = findElement(spec.toString(), PsAndroidLibraryDependency.class);
+  PsLibraryAndroidDependency findElement(PsArtifactDependencySpec spec) {
+    PsLibraryAndroidDependency dependency = findElement(spec.toString(), PsLibraryAndroidDependency.class);
     if (dependency != null) {
       return dependency;
     }
@@ -315,10 +315,10 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
   @Override
   @Nullable
   public <S extends PsAndroidDependency> S findElement(@NotNull String name, @Nullable Class<S> type) {
-    if (PsModuleDependency.class.equals(type)) {
+    if (PsModuleAndroidDependency.class.equals(type)) {
       return type.cast(myModuleDependenciesByGradlePath.get(name));
     }
-    if (PsAndroidLibraryDependency.class.equals(type)) {
+    if (PsLibraryAndroidDependency.class.equals(type)) {
       return type.cast(myLibraryDependenciesBySpec.get(name));
     }
     return null;
@@ -335,7 +335,7 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
     dependenciesBySpec.values().forEach(consumer);
   }
 
-  public void forEachDeclaredDependency(@NotNull Consumer<PsAndroidDependency> consumer) {
+  void forEachDeclaredDependency(@NotNull Consumer<PsAndroidDependency> consumer) {
     forEachDeclaredDependency(myLibraryDependenciesBySpec, consumer);
     forEachDeclaredDependency(myModuleDependenciesByGradlePath, consumer);
   }
@@ -345,16 +345,16 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
     dependenciesBySpec.values().stream().filter(PsAndroidDependency::isDeclared).forEach(consumer);
   }
 
-  public void forEachModuleDependency(@NotNull Consumer<PsModuleDependency> consumer) {
+  void forEachModuleDependency(@NotNull Consumer<PsModuleAndroidDependency> consumer) {
     myModuleDependenciesByGradlePath.values().forEach(consumer);
   }
 
   void addLibraryDependency(@NotNull PsArtifactDependencySpec spec,
                             @NotNull PsAndroidArtifact artifact,
                             @Nullable ArtifactDependencyModel parsedModel) {
-    PsAndroidLibraryDependency dependency = myLibraryDependenciesBySpec.get(spec.toString());
+    PsLibraryAndroidDependency dependency = myLibraryDependenciesBySpec.get(spec.toString());
     if (dependency == null) {
-      dependency = new PsAndroidLibraryDependency(myParent, spec, artifact, null, parsedModel);
+      dependency = new PsLibraryAndroidDependency(myParent, spec, artifact, null, parsedModel);
       myLibraryDependenciesBySpec.put(spec.toString(), dependency);
     }
     else {

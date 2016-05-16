@@ -32,6 +32,12 @@ public abstract class AbstractDependenciesConfigurable<T extends PsModule> exten
     myExtraTopModules = extraTopModules;
   }
 
+  @Override
+  @NotNull
+  public String getId() {
+    return "module.dependencies." + getDisplayName();
+  }
+
   @NotNull
   protected PsContext getContext() {
     return myContext;

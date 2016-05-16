@@ -27,7 +27,7 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public abstract class PsAndroidDependency extends PsDependency {
+public abstract class PsAndroidDependency extends PsDependency implements PsAndroidModel {
   @NotNull private final Set<PsDependencyContainer> myContainers = Sets.newHashSet();
 
   PsAndroidDependency(@NotNull PsAndroidModule parent,
