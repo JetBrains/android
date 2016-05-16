@@ -180,6 +180,10 @@ public class ArtifactRepositorySearchForm {
         foundArtifacts.addAll(result.getArtifacts());
       }
 
+      if (foundArtifacts.size() > 1) {
+        Collections.sort(foundArtifacts);
+      }
+
       myResultsTable.getListTableModel().setItems(foundArtifacts);
       myResultsTable.updateColumnSizes();
       showSearchStopped();
