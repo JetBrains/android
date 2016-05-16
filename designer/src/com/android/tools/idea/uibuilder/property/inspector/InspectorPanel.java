@@ -165,7 +165,7 @@ public class InspectorPanel extends JPanel {
     }
 
     for (InspectorProvider provider : allProviders) {
-      if (provider.isApplicable(components, properties)) {
+      if (provider.isApplicable(components, properties, propertiesManager)) {
         inspectors.add(provider.createCustomInspector(components, properties, propertiesManager));
       }
     }

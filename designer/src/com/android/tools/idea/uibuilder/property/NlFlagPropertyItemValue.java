@@ -137,6 +137,6 @@ public class NlFlagPropertyItemValue extends PTableItem implements NlProperty {
 
   @Override
   public PTableCellEditor getCellEditor() {
-    return NlPropertyEditors.getFlagEditor();
+    return NlPropertyEditors.get(this);
   }
 }

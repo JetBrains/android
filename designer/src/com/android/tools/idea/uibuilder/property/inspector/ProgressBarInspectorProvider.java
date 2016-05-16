@@ -35,7 +35,9 @@ public class ProgressBarInspectorProvider implements InspectorProvider {
   private InspectorComponent myComponent;
 
   @Override
-  public boolean isApplicable(@NotNull List<NlComponent> components, @NotNull Map<String, NlProperty> properties) {
+  public boolean isApplicable(@NotNull List<NlComponent> components,
+                              @NotNull Map<String, NlProperty> properties,
+                              @NotNull NlPropertiesManager propertiesManager) {
     return components.size() == 1 && components.get(0).getTagName().equals(PROGRESS_BAR);
   }
 
@@ -47,7 +49,7 @@ public class ProgressBarInspectorProvider implements InspectorProvider {
     if (myComponent == null) {
       myComponent = new ProgressBarInspectorComponent(propertiesManager);
     }
-    myComponent.updateProperties(components, properties);
+    myComponent.updateProperties(components, properties, propertiesManager);
     return myComponent;
   }
 
@@ -92,7 +94,9 @@ public class ProgressBarInspectorProvider implements InspectorProvider {
     }
 
     @Override
-    public void updateProperties(@NotNull List<NlComponent> components, @NotNull Map<String, NlProperty> properties) {
+    public void updateProperties(@NotNull List<NlComponent> components,
+                                 @NotNull Map<String, NlProperty> properties,
+                                 @NotNull NlPropertiesManager propertiesManager) {
       myStyle = properties.get(ATTR_STYLE);
       myProgressDrawable = properties.get(ATTR_PROGRESS_DRAWABLE);
       myIndeterminateDrawable = properties.get(ATTR_INDETERMINATE_DRAWABLE);
