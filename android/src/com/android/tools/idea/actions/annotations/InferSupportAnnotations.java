@@ -22,6 +22,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.codeInsight.intention.AddAnnotationFix;
 import com.intellij.openapi.application.ApplicationManager;
@@ -202,6 +203,18 @@ public class InferSupportAnnotations {
         added++;
       }
 
+      if (other.inferences != null) {
+        if (inferences == null) {
+          inferences = other.inferences;
+        } else {
+          for (String inference : other.inferences) {
+            if (!inferences.contains(inference)) {
+              inferences.add(inference);
+            }
+          }
+        }
+      }
+
       return added;
     }
 
@@ -338,6 +351,7 @@ public class InferSupportAnnotations {
 
       return "";
     }
+
     //public boolean callSuper;
     //public boolean checkResult;
     // TODO ranges and sizes
@@ -455,11 +469,11 @@ public class InferSupportAnnotations {
     });
   }
 
-  public void collect(List<UsageInfo> usages) {
+  public void collect(List<UsageInfo> usages, AnalysisScope scope) {
     for (Map.Entry<SmartPsiElementPointer<? extends PsiModifierListOwner>, Constraints> entry : myConstraints.entrySet()) {
       SmartPsiElementPointer<? extends PsiModifierListOwner> pointer = entry.getKey();
       PsiModifierListOwner element = pointer.getElement();
-      if (element != null && !shouldIgnore(element)) {
+      if (element != null && scope.contains(element) && !shouldIgnore(element)) {
         Constraints constraints = entry.getValue();
         usages.add(new ConstraintUsageInfo(element, constraints));
       }
