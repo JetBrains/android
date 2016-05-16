@@ -17,6 +17,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.path;
 
+import com.android.tools.idea.editors.gfxtrace.service.atom.Range;
 import org.jetbrains.annotations.NotNull;
 
 import com.android.tools.rpclib.binary.*;
@@ -38,6 +39,22 @@ public final class AtomRangePath extends Path {
   @Override
   public AtomsPath getParent() {
     return myAtoms;
+  }
+
+  public long getLast() {
+    return myFirst + myCount - 1;
+  }
+
+  public AtomPath getPathToFirst() {
+    return myAtoms.index(getFirst());
+  }
+
+  public AtomPath getPathToLast() {
+    return myAtoms.index(getLast());
+  }
+
+  public Range getRange() {
+    return new Range().setStart(myFirst).setEnd(myFirst + myCount);
   }
 
   //<<<Start:Java.ClassBody:1>>>
