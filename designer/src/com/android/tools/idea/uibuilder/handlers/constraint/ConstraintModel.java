@@ -283,6 +283,14 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
    */
   private void connectDroppedWidget() {
     if (!mAutoConnect) {
+      // Clear the indicators
+      ArrayList<DrawConstraintModel> drawConstraintModels = getDrawConstraintModels();
+      if (drawConstraintModels.size() < 1) {
+        return;
+      }
+      for (DrawConstraintModel drawConstraintModel : drawConstraintModels) {
+        drawConstraintModel.getMouseInteraction().clearIndicators();
+      }
       return;
     }
     ArrayList<DrawConstraintModel> drawConstraintModels = getDrawConstraintModels();
@@ -304,7 +312,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
         widget.connect(candidate.source, candidate.target, margin,
                        ConstraintAnchor.AUTO_CONSTRAINT_CREATOR);
       }
-      drawConstraintModel.getMouseInteraction().getSnapCandidates().clear();
+      drawConstraintModel.getMouseInteraction().clearIndicators();
     }
   }
 

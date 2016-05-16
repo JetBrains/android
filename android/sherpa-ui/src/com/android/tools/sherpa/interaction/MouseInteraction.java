@@ -287,6 +287,14 @@ public class MouseInteraction {
         return mMouseCursor;
     }
 
+    /**
+     * Clear indicators (snap guidelines, similar margins...)
+     */
+    public void clearIndicators() {
+        mWidgetMotion.getSnapCandidates().clear();
+        mWidgetMotion.getSimilarMargins().clear();
+    }
+
     /*-----------------------------------------------------------------------*/
     // Mouse handling
     /*-----------------------------------------------------------------------*/
