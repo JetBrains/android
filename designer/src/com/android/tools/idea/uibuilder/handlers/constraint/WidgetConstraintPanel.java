@@ -193,7 +193,7 @@ public class WidgetConstraintPanel extends JPanel {
       mScene = mConstraintModel.getScene();
       mConstraintModel.getSelection().setContinuousListener(e -> widgetChanged());
       //TODO: improve the tear-down mechanism
-      ConstraintWidget widget = mScene.getWidget(mComponent.getTag());
+      ConstraintWidget widget = mScene.getWidget(mComponent);
       if (widget == null) return;
       if (mWidgetModified && mWidget != null && widget != mWidget) { // we are changing
         saveWidget();
