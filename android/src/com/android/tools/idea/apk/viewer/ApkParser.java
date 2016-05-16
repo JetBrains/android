@@ -35,8 +35,6 @@ import org.jetbrains.ide.PooledThreadExecutor;
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.io.*;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.attribute.PosixFilePermissions;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -230,11 +228,10 @@ public class ApkParser {
    * @return the input file compressed using "gzip -9" and saved in a temporary location
    */
   private static File getApkServedByPlay(@NotNull File apk) {
-    Path tempFile;
+    File compressedFile;
     try {
-      tempFile =
-        Files.createTempFile("compressed", SdkConstants.DOT_ANDROID_PACKAGE,
-                             PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-------")));
+      compressedFile =
+        FileUtil.createTempFile("compressed", SdkConstants.DOT_ANDROID_PACKAGE, true);
     }
     catch (IOException e) {
       Logger.getInstance(ApkParser.class).warn(e);
@@ -244,9 +241,6 @@ public class ApkParser {
     // There is a difference between uncompressing the apk, and then compressing again using gzip -9, versus just compressing the apk
     // itself using gzip -9. But the difference seems to be negligible, and we are only aiming at an estimate of what Play provides, so
     // this should suffice. This also seems to be the same approach taken by https://github.com/googlesamples/apk-patch-size-estimator
-
-    File compressedFile = tempFile.toFile();
-    compressedFile.deleteOnExit();
 
     try (GZIPOutputStream zos = new MaxGzipOutputStream(new FileOutputStream(compressedFile))) {
       Files.copy(apk.toPath(), zos);
@@ -268,18 +262,14 @@ public class ApkParser {
    * @return the input file compressed using "zip -9" and saved in a temporary location.
    */
   static File getZipCompressedApk(@NotNull File apk) {
-    Path tempFile;
+    File compressedFile;
     try {
-      tempFile =
-        Files.createTempFile(FileUtil.getNameWithoutExtension(apk), SdkConstants.DOT_ANDROID_PACKAGE,
-                             PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-------")));
+      compressedFile =
+        FileUtil.createTempFile(FileUtil.getNameWithoutExtension(apk), SdkConstants.DOT_ANDROID_PACKAGE, true);
     }
     catch (IOException e) {
       return apk;
     }
-
-    File compressedFile = tempFile.toFile();
-    compressedFile.deleteOnExit();
 
     // copy entire contents of one zip file to another, where the destination zip is written to with the maximum compression level
     try (
