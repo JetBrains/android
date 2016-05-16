@@ -65,7 +65,7 @@ public class StorageField extends JPanel {
 
     myUnitsCombo.setRenderer(new ColoredListCellRenderer<Unit>() {
       @Override
-      protected void customizeCellRenderer(JList list, Unit value, int index, boolean selected, boolean hasFocus) {
+      protected void customizeCellRenderer(@NotNull JList list, Unit value, int index, boolean selected, boolean hasFocus) {
         append(value.getDisplayValue());
       }
     });

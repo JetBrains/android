@@ -37,7 +37,7 @@ import javax.swing.*;
  */
 public abstract class ComponentRenderer extends ColoredListCellRenderer implements PropertyRenderer {
   @Override
-  protected void customizeCellRenderer(JList list, Object value, int index, boolean selected, boolean hasFocus) {
+  protected void customizeCellRenderer(@NotNull JList list, Object value, int index, boolean selected, boolean hasFocus) {
     clear();
     PropertyTable.updateRenderer(this, selected);
 

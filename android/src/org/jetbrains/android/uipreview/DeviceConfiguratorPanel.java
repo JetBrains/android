@@ -167,7 +167,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
 
     myAvailableQualifiersList.setCellRenderer(new ColoredListCellRenderer() {
       @Override
-      protected void customizeCellRenderer(JList list, Object value, int index, boolean selected, boolean hasFocus) {
+      protected void customizeCellRenderer(@NotNull JList list, Object value, int index, boolean selected, boolean hasFocus) {
         if (value instanceof ResourceQualifier) {
           ResourceQualifier qualifier = (ResourceQualifier)value;
           append(qualifier.getShortName());
@@ -178,7 +178,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
 
     myChosenQualifiersList.setCellRenderer(new ColoredListCellRenderer() {
       @Override
-      protected void customizeCellRenderer(JList list, Object value, int index, boolean selected, boolean hasFocus) {
+      protected void customizeCellRenderer(@NotNull JList list, Object value, int index, boolean selected, boolean hasFocus) {
         if (value instanceof ResourceQualifier) {
           final ResourceQualifier qualifier = getActualQualifier((ResourceQualifier)value);
           final String shortDisplayValue = qualifier.getShortDisplayValue();

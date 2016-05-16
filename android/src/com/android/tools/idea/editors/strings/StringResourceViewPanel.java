@@ -172,7 +172,7 @@ public class StringResourceViewPanel implements HyperlinkListener {
         list.setFixedCellHeight(20);
         list.setCellRenderer(new ColoredListCellRenderer<Locale>() {
           @Override
-          protected void customizeCellRenderer(JList list, Locale value, int index, boolean selected, boolean hasFocus) {
+          protected void customizeCellRenderer(@NotNull JList list, Locale value, int index, boolean selected, boolean hasFocus) {
             append(LocaleMenuAction.getLocaleLabel(value, false));
             setIcon(value.getFlagImage());
           }

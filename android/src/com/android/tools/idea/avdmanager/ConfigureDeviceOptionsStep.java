@@ -191,7 +191,7 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
       public ListCellRenderer getRenderer() {
         return new ColoredListCellRenderer() {
           @Override
-          protected void customizeCellRenderer(JList list, Object value, int index, boolean selected, boolean hasFocus) {
+          protected void customizeCellRenderer(@NotNull JList list, Object value, int index, boolean selected, boolean hasFocus) {
             append(((Navigation)value).getShortDisplayValue());
           }
         };

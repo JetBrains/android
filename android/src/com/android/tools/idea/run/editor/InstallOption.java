@@ -33,7 +33,7 @@ public enum InstallOption {
 
   public static class Renderer extends ColoredListCellRenderer<InstallOption> {
     @Override
-    protected void customizeCellRenderer(JList list, InstallOption option, int index, boolean selected, boolean hasFocus) {
+    protected void customizeCellRenderer(@NotNull JList list, InstallOption option, int index, boolean selected, boolean hasFocus) {
       append(option.displayName);
     }
   }

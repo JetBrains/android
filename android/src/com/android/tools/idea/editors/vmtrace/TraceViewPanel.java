@@ -49,8 +49,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
-import javax.swing.table.TableModel;
-import javax.swing.table.TableRowSorter;
 import javax.swing.text.BadLocationException;
 import java.awt.*;
 import java.awt.event.*;
@@ -205,7 +203,7 @@ public class TraceViewPanel {
     myThreadCombo.setSelectedItem(defaultThread);
     myThreadCombo.setRenderer(new ColoredListCellRenderer() {
       @Override
-      protected void customizeCellRenderer(JList list, Object value, int index, boolean selected, boolean hasFocus) {
+      protected void customizeCellRenderer(@NotNull JList list, Object value, int index, boolean selected, boolean hasFocus) {
         String name = value instanceof ThreadInfo ? ((ThreadInfo)value).getName() : value.toString();
         append(name);
       }

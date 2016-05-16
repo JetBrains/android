@@ -79,7 +79,7 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
 
     myDeviceComboBox.setRenderer(new DeviceRenderer.DeviceComboBoxRenderer() {
       @Override
-      protected void customizeCellRenderer(JList list, Object value, int index, boolean selected, boolean hasFocus) {
+      protected void customizeCellRenderer(@NotNull JList list, Object value, int index, boolean selected, boolean hasFocus) {
         if (value instanceof String) {
           append(AndroidDbUtil.getPresentableNameFromDeviceId((String)value));
         }

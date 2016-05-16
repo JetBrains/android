@@ -92,7 +92,7 @@ public abstract class DeployTargetProvider<S extends DeployTargetState> {
 
   public static class Renderer extends ColoredListCellRenderer<DeployTargetProvider> {
     @Override
-    protected void customizeCellRenderer(JList list, DeployTargetProvider value, int index, boolean selected, boolean hasFocus) {
+    protected void customizeCellRenderer(@NotNull JList list, DeployTargetProvider value, int index, boolean selected, boolean hasFocus) {
       append(value.getDisplayName());
     }
   }

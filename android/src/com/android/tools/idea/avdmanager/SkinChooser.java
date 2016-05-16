@@ -57,7 +57,7 @@ public class SkinChooser extends ComboboxWithBrowseButton implements ItemListene
     setItems(getSkins());
     getComboBox().setRenderer(new ColoredListCellRenderer() {
       @Override
-      protected void customizeCellRenderer(JList list, Object value, int index, boolean selected, boolean hasFocus) {
+      protected void customizeCellRenderer(@NotNull JList list, Object value, int index, boolean selected, boolean hasFocus) {
         File skinFile = ((value) == null) ? NO_SKIN : (File)value;
         String skinPath = skinFile.getPath();
         if (FileUtil.filesEqual(skinFile, NO_SKIN)) {
