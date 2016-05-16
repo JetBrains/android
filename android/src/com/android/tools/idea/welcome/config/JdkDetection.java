@@ -87,7 +87,6 @@ public class JdkDetection {
     private static final String WINDOWS_JDKS_DIR = "C:\\Program Files\\Java";
     private static final String LINUX_SDK_DIR = "/usr/lib/jvm";
 
-    private final AtomicBoolean myCancelled = new AtomicBoolean(false);
     private final JdkDetectionResult myResult;
     private final boolean myHeadless;
 
@@ -104,7 +103,7 @@ public class JdkDetection {
       indicator.setIndeterminate(true);
       if (myJdkDetectionInProgress.compareAndSet(false, true)) {
         try {
-          myPath = detectJdkPath(myCancelled);
+          myPath = detectJdkPath(indicator);
         }
         finally {
           myJdkDetectionInProgress.set(false);
@@ -136,18 +135,15 @@ public class JdkDetection {
 
     @Override
     public void onCancel() {
-      myCancelled.set(true);
       myResult.onCancel();
     }
 
     @Nullable
-    private static String detectJdkPath(@Nullable AtomicBoolean cancellationFlag) {
+    private static String detectJdkPath(@NotNull ProgressIndicator indicator) {
       String topVersion = null;
       String chosenPath = null;
       for (String path : getCandidatePaths()) {
-        if (cancellationFlag != null && cancellationFlag.get()) {
-          return null;
-        }
+        indicator.checkCanceled();
         if (StringUtil.isEmpty(validateJdkLocation(new File(path)))) {
           String version = JavaSdk.getInstance().getVersionString(path);
           if (topVersion == null || version == null || topVersion.compareTo(version) < 0) {
