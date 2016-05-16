@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.*;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
@@ -24,7 +23,6 @@ import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.invoker.GradleTasksExecutor;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.util.LocalProperties;
-import com.android.tools.idea.gradle.util.ProxyUtil;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -69,9 +67,6 @@ import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.Map;
 
