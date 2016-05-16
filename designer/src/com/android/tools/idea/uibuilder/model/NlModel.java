@@ -280,17 +280,16 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   /**
    * Synchronously inflates the model and updates the view hierarchy
+   * @param force forces the model to be re-inflated even if a previous version was already inflated
+   * @returns whether the model was inflated in this call or not
    */
-  private void inflate() {
+  private boolean inflate(boolean force) {
     Configuration configuration = myConfiguration;
     if (configuration == null) {
-      return;
+      return false;
     }
 
-    // Record the current version we're rendering from; we'll use that in #activate to make sure we're picking up any
-    // external changes
     ResourceNotificationManager resourceNotificationManager = ResourceNotificationManager.getInstance(myFile.getProject());
-    myRenderedVersion = resourceNotificationManager.getCurrentVersion(myFacet, myFile, myConfiguration);
 
     // Some types of files must be saved to disk first, because layoutlib doesn't
     // delegate XML parsers for non-layout files (meaning layoutlib will read the
@@ -299,6 +298,15 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
     RenderResult result = null;
     synchronized (RENDERING_LOCK) {
+      if (myRenderTask != null && !force) {
+        // No need to inflate
+        return false;
+      }
+
+      // Record the current version we're rendering from; we'll use that in #activate to make sure we're picking up any
+      // external changes
+      myRenderedVersion = resourceNotificationManager.getCurrentVersion(myFacet, myFile, myConfiguration);
+
       RenderService renderService = RenderService.get(myFacet);
       RenderLogger logger = renderService.createLogger();
       if (myRenderTask != null) {
@@ -322,6 +330,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
       myRenderResult = result;
       updateHierarchy(result);
+
+      return myRenderTask != null;
     }
   }
 
@@ -348,7 +358,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * {@link ModelListener#modelChanged(NlModel)}.
    */
   protected void updateModel() {
-    inflate();
+    inflate(true);
     notifyListenersModelUpdateComplete();
   }
 
@@ -359,13 +369,9 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * If the layout hasn't been inflated before, this call will inflate the layout before rendering.
    */
   public void render() {
+    boolean inflated = inflate(false);
+
     synchronized (RENDERING_LOCK) {
-      boolean inflated = false;
-      if (myRenderTask == null) {
-        // Only in case that the layout hasn't been inflated before
-        inflate();
-        inflated = true;
-      }
       if (myRenderTask != null) {
         myRenderResult = myRenderTask.render();
         // When the layout was inflated in this same call, we do not have to update the hierarchy again
