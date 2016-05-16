@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run.editor;
 
-import com.android.builder.model.AndroidProject;
 import com.android.ddmlib.Client;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.tasks.ConnectJavaDebuggerTask;
@@ -59,7 +58,7 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
       JavaLineBreakpointType.class,
       JavaMethodBreakpointType.class,
       JavaFieldBreakpointType.class
-  );
+    );
 
   public AndroidJavaDebugger() {
     super(JAVA_BREAKPOINT_TYPES);
@@ -129,7 +128,9 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
     ProgramRunnerUtil.executeConfiguration(project, runSettings, DefaultDebugExecutor.getDebugExecutorInstance());
   }
 
-  private static boolean hasExistingDebugSession(@NotNull Project project, @NotNull final String debugPort, @NotNull final String runConfigName) {
+  private static boolean hasExistingDebugSession(@NotNull Project project,
+                                                 @NotNull final String debugPort,
+                                                 @NotNull final String runConfigName) {
     Collection<RunContentDescriptor> descriptors = null;
     Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
     Project targetProject = null;
@@ -154,7 +155,8 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
           XDebugSession session = debuggerSession.getXDebugSession();
           if (session != null) {
             descriptors = Collections.singletonList(session.getRunContentDescriptor());
-          } else {
+          }
+          else {
             // Detach existing session.
             debuggerSession.getProcess().stop(false);
           }
@@ -170,10 +172,5 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
       return activateDebugSessionWindow(project, descriptors.iterator().next());
     }
     return false;
-  }
-
-  @Override
-  public boolean shouldBeDefault(int generation) {
-    return generation != AndroidProject.GENERATION_COMPONENT;
   }
 }
