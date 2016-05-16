@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.structure.dependencies.AddLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsDependency;
 import com.android.tools.idea.gradle.structure.model.PsIssue;
 import com.android.tools.idea.gradle.structure.model.PsModule;
+import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.structure.dialog.Header;
@@ -38,6 +39,7 @@ import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.ui.popup.PopupStep;
 import com.intellij.openapi.ui.popup.util.BaseListPopupStep;
+import com.intellij.openapi.util.Ref;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.SideBorder;
@@ -278,8 +280,20 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
     @Override
     void execute() {
       if (myModule == null) {
+        PsProject project = myContext.getProject();
+        int modelCount = project.getModelCount();
+        if (modelCount == 1) {
+          // If there is only one module, select that one.
+          Ref<PsModule> moduleRef = new Ref<>();
+          project.forEachModule(moduleRef::set);
+          PsModule module = moduleRef.get();
+          assert module != null;
+
+          showAddLibraryDependencyDialog(module);
+          return;
+        }
         Consumer<PsModule> onOkTask = this::showAddLibraryDependencyDialog;
-        ChooseModuleDialog dialog = new ChooseModuleDialog(myContext.getProject(), onOkTask, "Add Library Dependency");
+        ChooseModuleDialog dialog = new ChooseModuleDialog(project, onOkTask, "Add Library Dependency");
         dialog.showAndGet();
         return;
       }

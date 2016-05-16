@@ -17,6 +17,8 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.AbstractMainDependenciesPanel;
+import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
+import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowHeader;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.intellij.openapi.util.ActionCallback;
 import com.intellij.openapi.util.Disposer;
@@ -26,47 +28,97 @@ import com.intellij.ui.navigation.Place;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
+import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.revalidateAndRepaint;
+
 class MainPanel extends AbstractMainDependenciesPanel {
-  @NotNull private final DependenciesPanel myDependenciesPanel;
+  @NotNull private final JBSplitter myVerticalSplitter;
+
+  @NotNull private final DependencyGraphPanel myDependencyGraphPanel;
   @NotNull private final TargetModulesPanel myTargetModulesPanel;
+  @NotNull private final JPanel myAltPanel;
 
   MainPanel(@NotNull PsModule module, @NotNull PsContext context, @NotNull List<PsModule> extraTopModules) {
     super(context, extraTopModules);
     myTargetModulesPanel = new TargetModulesPanel(context);
 
-    myDependenciesPanel = new DependenciesPanel(module, context);
-    myDependenciesPanel.setHistory(getHistory());
-    myDependenciesPanel.add(myTargetModulesPanel::displayTargetModules);
+    myDependencyGraphPanel = new DependencyGraphPanel(module, context);
+    myDependencyGraphPanel.setHistory(getHistory());
+    myDependencyGraphPanel.add(myTargetModulesPanel::displayTargetModules);
 
-    JBSplitter verticalSplitter = createMainVerticalSplitter();
-    verticalSplitter.setFirstComponent(myDependenciesPanel);
-    verticalSplitter.setSecondComponent(myTargetModulesPanel);
+    myVerticalSplitter = createMainVerticalSplitter();
+    myVerticalSplitter.setFirstComponent(myDependencyGraphPanel);
+    myVerticalSplitter.setSecondComponent(myTargetModulesPanel);
 
-    add(verticalSplitter, BorderLayout.CENTER);
+    add(myVerticalSplitter, BorderLayout.CENTER);
+
+    JPanel minimizedContainerPanel = myTargetModulesPanel.getMinimizedPanel();
+    assert minimizedContainerPanel != null;
+    myAltPanel = new JPanel(new BorderLayout());
+    myAltPanel.add(minimizedContainerPanel, BorderLayout.EAST);
+
+    ToolWindowHeader header = myTargetModulesPanel.getHeader();
+    header.addMinimizeListener(this::minimizeResolvedDependenciesPanel);
+
+    myTargetModulesPanel.addRestoreListener(this::restoreResolvedDependenciesPanel);
+  }
+
+  private void restoreResolvedDependenciesPanel() {
+    remove(myAltPanel);
+    myAltPanel.remove(myDependencyGraphPanel);
+    myVerticalSplitter.setFirstComponent(myDependencyGraphPanel);
+    add(myVerticalSplitter, BorderLayout.CENTER);
+    revalidateAndRepaint(this);
+    saveMinimizedState(false);
+  }
+
+  private void minimizeResolvedDependenciesPanel() {
+    remove(myVerticalSplitter);
+    myVerticalSplitter.setFirstComponent(null);
+    myAltPanel.add(myDependencyGraphPanel, BorderLayout.CENTER);
+    add(myAltPanel, BorderLayout.CENTER);
+    revalidateAndRepaint(this);
+    saveMinimizedState(true);
+  }
+
+  private static void saveMinimizedState(boolean minimize) {
+    PsUISettings.getInstance().TARGET_MODULES_MINIMIZE = minimize;
+  }
+
+  @Override
+  public void addNotify() {
+    super.addNotify();
+    boolean minimize = PsUISettings.getInstance().TARGET_MODULES_MINIMIZE;
+    if (minimize) {
+      minimizeResolvedDependenciesPanel();
+    }
+    else {
+      restoreResolvedDependenciesPanel();
+    }
   }
 
   @Override
   public void setHistory(History history) {
     super.setHistory(history);
-    myDependenciesPanel.setHistory(history);
+    myDependencyGraphPanel.setHistory(history);
   }
 
   @Override
   public ActionCallback navigateTo(@Nullable Place place, boolean requestFocus) {
-    return myDependenciesPanel.navigateTo(place, requestFocus);
+    return myDependencyGraphPanel.navigateTo(place, requestFocus);
   }
 
   @Override
   public void queryPlace(@NotNull Place place) {
-    myDependenciesPanel.queryPlace(place);
+    myDependencyGraphPanel.queryPlace(place);
   }
 
   @Override
   public void dispose() {
-    Disposer.dispose(myDependenciesPanel);
+    Disposer.dispose(myDependencyGraphPanel);
     Disposer.dispose(myTargetModulesPanel);
   }
 }

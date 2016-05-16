@@ -68,7 +68,7 @@ import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static com.intellij.util.ui.tree.TreeUtil.ensureSelection;
 import static java.awt.event.MouseEvent.MOUSE_PRESSED;
 
-class DependenciesPanel extends AbstractDependenciesPanel {
+class DependencyGraphPanel extends AbstractDependenciesPanel {
   @NotNull private final PsContext myContext;
 
   @NotNull private final Tree myTree;
@@ -80,7 +80,7 @@ class DependenciesPanel extends AbstractDependenciesPanel {
 
   private boolean myIgnoreTreeSelectionEvents;
 
-  DependenciesPanel(@NotNull PsModule fakeModule, @NotNull PsContext context) {
+  DependencyGraphPanel(@NotNull PsModule fakeModule, @NotNull PsContext context) {
     super("All Dependencies", context, null);
     myContext = context;
 
@@ -98,7 +98,7 @@ class DependenciesPanel extends AbstractDependenciesPanel {
           if (node != null) {
             PsModuleDependency moduleDependency = node.getFirstModel();
             String name = moduleDependency.getName();
-            myContext.setSelectedModule(name, DependenciesPanel.this);
+            myContext.setSelectedModule(name, DependencyGraphPanel.this);
             // Do not call super, to avoid selecting the 'module' node when clicking a hyperlink.
             return;
           }

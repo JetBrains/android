@@ -120,4 +120,8 @@ public class PsProject extends PsModel {
   public Icon getIcon() {
     return null;
   }
+
+  public int getModelCount() {
+    return myModules.size();
+  }
 }
