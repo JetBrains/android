@@ -59,7 +59,7 @@ public interface AndroidDebugger<S extends AndroidDebuggerState> {
 
   class Renderer extends ColoredListCellRenderer<AndroidDebugger> {
     @Override
-    protected void customizeCellRenderer(JList list, AndroidDebugger debugger, int index, boolean selected, boolean hasFocus) {
+    protected void customizeCellRenderer(@NotNull JList list, AndroidDebugger debugger, int index, boolean selected, boolean hasFocus) {
       append(debugger.getDisplayName());
     }
   }

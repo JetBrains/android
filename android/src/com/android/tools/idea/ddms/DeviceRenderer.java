@@ -91,7 +91,7 @@ public class DeviceRenderer {
     }
 
     @Override
-    protected void customizeCellRenderer(JList list, Object value, int index, boolean selected, boolean hasFocus) {
+    protected void customizeCellRenderer(@NotNull JList list, Object value, int index, boolean selected, boolean hasFocus) {
       if (value instanceof String) {
         append((String)value, SimpleTextAttributes.ERROR_ATTRIBUTES);
       }

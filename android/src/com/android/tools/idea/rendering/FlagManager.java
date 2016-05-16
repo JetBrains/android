@@ -229,7 +229,7 @@ public class FlagManager {
     final Function<Object, String> nameMapper = getLanguageNameMapper();
     return new ColoredListCellRenderer() {
       @Override
-      protected void customizeCellRenderer(JList list, Object value, int index, boolean selected, boolean hasFocus) {
+      protected void customizeCellRenderer(@NotNull JList list, Object value, int index, boolean selected, boolean hasFocus) {
         append(nameMapper.fun(value));
         setIcon(getFlag((String)value, null));
       }
@@ -242,7 +242,7 @@ public class FlagManager {
     final Function<Object, String> nameMapper = getRegionNameMapper();
     return new ColoredListCellRenderer() {
       @Override
-      protected void customizeCellRenderer(JList list, Object value, int index, boolean selected, boolean hasFocus) {
+      protected void customizeCellRenderer(@NotNull JList list, Object value, int index, boolean selected, boolean hasFocus) {
         append(nameMapper.fun(value));
         setIcon(getFlag(null, (String)value));
       }

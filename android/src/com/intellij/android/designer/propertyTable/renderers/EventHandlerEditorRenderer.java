@@ -22,6 +22,7 @@ import com.intellij.openapi.util.Iconable;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
 import com.intellij.ui.ColoredListCellRenderer;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
@@ -30,7 +31,7 @@ import javax.swing.*;
  */
 public class EventHandlerEditorRenderer extends ColoredListCellRenderer {
   @Override
-  protected void customizeCellRenderer(JList list, Object value, int index, boolean selected, boolean hasFocus) {
+  protected void customizeCellRenderer(@NotNull JList list, Object value, int index, boolean selected, boolean hasFocus) {
     clear();
     PropertyTable.updateRenderer(this, selected);
 

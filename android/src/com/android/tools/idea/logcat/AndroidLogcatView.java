@@ -279,7 +279,7 @@ public abstract class AndroidLogcatView implements Disposable {
 
     editFiltersCombo.setRenderer(new ColoredListCellRenderer<Object>() {
       @Override
-      protected void customizeCellRenderer(JList list, Object value, int index, boolean selected, boolean hasFocus) {
+      protected void customizeCellRenderer(@NotNull JList list, Object value, int index, boolean selected, boolean hasFocus) {
         if (value instanceof ConfiguredFilter) {
           setBorder(null);
           append(((ConfiguredFilter)value).getName());
