@@ -36,20 +36,20 @@ public class DexParserTest {
 
     StringBuffer sb = new StringBuffer(100);
     dumpTree(sb, packageTreeNode, 0);
-    assertEquals("root: 6\n" +
-                 "  Test: 3\n" +
-                 "    void <init>(): 1\n" +
-                 "    java.lang.Integer get(): 1\n" +
-                 "    java.util.List getList(): 1\n" +
-                 "  java: 3\n" +
-                 "    lang: 2\n" +
-                 "      Integer: 1\n" +
-                 "        java.lang.Integer valueOf(int): 1\n" +
-                 "      Object: 1\n" +
-                 "        void <init>(): 1\n" +
-                 "    util: 1\n" +
-                 "      Collections: 1\n" +
-                 "        java.util.List emptyList(): 1\n", sb.toString());
+    assertEquals("root: 3,6\n" +
+                 "  Test: 3,3\n" +
+                 "    void <init>(): 1,1\n" +
+                 "    java.lang.Integer get(): 1,1\n" +
+                 "    java.util.List getList(): 1,1\n" +
+                 "  java: 0,3\n" +
+                 "    lang: 0,2\n" +
+                 "      Integer: 0,1\n" +
+                 "        java.lang.Integer valueOf(int): 0,1\n" +
+                 "      Object: 0,1\n" +
+                 "        void <init>(): 0,1\n" +
+                 "    util: 0,1\n" +
+                 "      Collections: 0,1\n" +
+                 "        java.util.List emptyList(): 0,1\n", sb.toString());
     assertEquals(6, dexFile.getMethodCount());
   }
 
@@ -64,6 +64,8 @@ public class DexParserTest {
     sb.append(StringUtil.repeatSymbol(' ', depth * 2));
     sb.append(node.getName());
     sb.append(": ");
+    sb.append(node.getDefinedMethodsCount());
+    sb.append(',');
     sb.append(node.getMethodRefCount());
     sb.append('\n');
 
