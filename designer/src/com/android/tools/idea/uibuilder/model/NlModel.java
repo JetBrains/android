@@ -98,6 +98,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   private static final Logger LOG = Logger.getInstance(NlModel.class);
   @AndroidCoordinate private static final int VISUAL_EMPTY_COMPONENT_SIZE = 14;
   private static final int RENDER_DELAY_MS = 10;
+  private Set<String> myPendingIds = Sets.newHashSet();
 
   @NotNull private final DesignSurface mySurface;
   @NotNull private final AndroidFacet myFacet;
@@ -323,6 +324,11 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       myRenderResult = result;
       updateHierarchy(result);
     }
+  }
+
+  @NotNull
+  Set<String> getPendingIds() {
+    return myPendingIds;
   }
 
   private void updateHierarchy(@Nullable RenderResult result) {
@@ -1309,7 +1315,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
                               @NotNull NlComponent receiver,
                               @Nullable NlComponent before,
                               @NotNull InsertType insertType) {
-    Set<String> ids = Sets.newHashSet(NlComponent.getIds(myFacet));
+    Set<String> ids = Sets.newHashSet(NlComponent.getIds(this));
 
     ViewGroupHandler groupHandler = (ViewGroupHandler)receiver.getViewHandler();
     assert groupHandler != null;
