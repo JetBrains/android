@@ -39,6 +39,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ProjectComponent;
+import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.JavaPsiFacade;
@@ -181,7 +182,13 @@ public class ViewHandlerManager implements ProjectComponent {
   private ViewHandler createHandler(@NotNull String viewTag) {
     // Builtin view. Don't bother with reflection for the common cases.
     switch (viewTag) {
+      case ABS_LIST_VIEW:
+      case ADAPTER_VIEW_FLIPPER:
+      case ADAPTER_VIEW_ANIMATOR:
+      case GRID_VIEW:
+        return new ViewGroupHandler();
       case ABSOLUTE_LAYOUT:
+      case WEB_VIEW:
         return new AbsoluteLayoutHandler();
       case ACTION_MENU_VIEW:
         return new ActionMenuViewHandler();
@@ -214,6 +221,7 @@ public class ViewHandlerManager implements ProjectComponent {
         return new ChronometerHandler();
       case QUICK_CONTACT_BADGE:
       case TEXT_CLOCK:
+      case VIDEO_VIEW:
         return STANDARD_HANDLER;
       case COLLAPSING_TOOLBAR_LAYOUT:
         return new CollapsingToolbarLayoutHandler();
@@ -236,6 +244,7 @@ public class ViewHandlerManager implements ProjectComponent {
         return new FloatingActionButtonHandler();
       case FQCN_LINEAR_LAYOUT:
       case LINEAR_LAYOUT:
+      case SEARCH_VIEW:
         return new LinearLayoutHandler();
       case FRAME_LAYOUT:
       case GESTURE_OVERLAY_VIEW:
@@ -356,33 +365,39 @@ public class ViewHandlerManager implements ProjectComponent {
     return ApplicationManager.getApplication().runReadAction((Computable<ViewHandler>)() -> {
       String qualifiedClassName = getFullyQualifiedClassName(viewTag);
       if (qualifiedClassName != null) {
-        String handlerName = viewTag + HANDLER_CLASS_SUFFIX;
-        JavaPsiFacade facade = JavaPsiFacade.getInstance(myProject);
-        PsiClass[] classes = facade.findClasses(handlerName, GlobalSearchScope.allScope(myProject));
+        try {
+          String handlerName = viewTag + HANDLER_CLASS_SUFFIX;
+          JavaPsiFacade facade = JavaPsiFacade.getInstance(myProject);
+          PsiClass[] classes = facade.findClasses(handlerName, GlobalSearchScope.allScope(myProject));
 
-        if (classes.length == 0) {
-          // No view handler found for this class; look up the custom view and get the handler for its
-          // parent view instead. For example, if you've customized a LinearLayout by subclassing it, then
-          // if you don't provide a ViewHandler for the subclass, we dall back to the LinearLayout's
-          // ViewHandler instead.
-          classes = facade.findClasses(qualifiedClassName, GlobalSearchScope.allScope(myProject));
-          for (PsiClass cls : classes) {
-            PsiClass superClass = cls.getSuperClass();
-            if (superClass != null) {
-              String fqn = superClass.getQualifiedName();
-              if (fqn != null) {
-                return getHandler(NlComponent.viewClassToTag(fqn));
+          if (classes.length == 0) {
+            // No view handler found for this class; look up the custom view and get the handler for its
+            // parent view instead. For example, if you've customized a LinearLayout by subclassing it, then
+            // if you don't provide a ViewHandler for the subclass, we dall back to the LinearLayout's
+            // ViewHandler instead.
+            classes = facade.findClasses(qualifiedClassName, GlobalSearchScope.allScope(myProject));
+            for (PsiClass cls : classes) {
+              PsiClass superClass = cls.getSuperClass();
+              if (superClass != null) {
+                String fqn = superClass.getQualifiedName();
+                if (fqn != null) {
+                  return getHandler(NlComponent.viewClassToTag(fqn));
+                }
               }
             }
           }
-        }
-        else {
-          for (PsiClass cls : classes) {
-            // Look for bytecode and instantiate if possible, then return
-            // TODO: Instantiate
-            // noinspection UseOfSystemOutOrSystemErr
-            System.out.println("Find view handler " + cls.getQualifiedName() + " of type " + cls.getClass().getName());
+          else {
+            for (PsiClass cls : classes) {
+              // Look for bytecode and instantiate if possible, then return
+              // TODO: Instantiate
+              // noinspection UseOfSystemOutOrSystemErr
+              System.out.println("Find view handler " + cls.getQualifiedName() + " of type " + cls.getClass().getName());
+            }
           }
+        }
+        catch (IndexNotReadyException ignore) {
+          // TODO: Fix the bug: b.android.com/210064
+          return NONE;
         }
       }
       return NONE;
