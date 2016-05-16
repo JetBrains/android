@@ -16,12 +16,10 @@
 
 package com.android.tools.idea.run;
 
-import com.android.builder.model.AndroidProject;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.fd.*;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.run.editor.*;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTasksProviderFactory;
@@ -643,13 +641,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
   @NotNull
   protected String getDefaultAndroidDebuggerType() {
-    int pluginGeneration = determinePluginGeneration();
-    if (pluginGeneration == AndroidProject.GENERATION_ORIGINAL) {
-      return AndroidJavaDebugger.ID;
-    }
-
     for (AndroidDebugger androidDebugger : getAndroidDebuggers()) {
-      if (androidDebugger.shouldBeDefault(pluginGeneration)) {
+      if (androidDebugger.shouldBeDefault()) {
         return androidDebugger.getId();
       }
     }
@@ -659,16 +652,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
   @NotNull
   public List<AndroidDebugger> getAndroidDebuggers() {
-    AndroidDebugger[] debuggerArray = AndroidDebugger.EP_NAME.getExtensions();
-    List<AndroidDebugger> debuggerList = Lists.newArrayListWithCapacity(debuggerArray.length);
-    int pluginGeneration = determinePluginGeneration();
-    for (AndroidDebugger debugger : debuggerArray) {
-      if (debugger.supportsPluginGeneration(pluginGeneration)) {
-        debuggerList.add(debugger);
-      }
-    }
-
-    return debuggerList;
+    return Lists.newArrayList(AndroidDebugger.EP_NAME.getExtensions());
   }
 
   @Nullable
@@ -697,14 +681,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
    */
   public ProfilerState getProfilerState() {
     return myProfilerState;
-  }
-
-  private int determinePluginGeneration() {
-    Module module = getConfigurationModule().getModule();
-    if (module != null && GradleUtil.isUsingExperimentalPlugin(module)) {
-      return AndroidProject.GENERATION_COMPONENT;
-    }
-    return AndroidProject.GENERATION_ORIGINAL;
   }
 
   private static class MyDoNotPromptOption implements DialogWrapper.DoNotAskOption {
