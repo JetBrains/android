@@ -100,9 +100,9 @@ public class ApkViewPanel implements TreeSelectionListener {
                         new FutureCallBackAdapter<List<Long>>() {
                           @Override
                           public void onSuccess(List<Long> result) {
-                            long uncompressed = !result.isEmpty() ? result.get(0) : 0;
-                            long compressed = result.size() > 1 ? result.get(1) : 0;
-                            setApkSizes(uncompressed, compressed);
+                            long uncompressed = result.get(0);
+                            Long compressed = result.get(1);
+                            setApkSizes(uncompressed, compressed == null ? 0 : compressed.longValue());
                           }
                         }, EdtExecutor.INSTANCE);
   }
@@ -133,11 +133,11 @@ public class ApkViewPanel implements TreeSelectionListener {
       if (entry == null || rootEntry == null) {
         return 0;
       }
-      else if (!entry.isCompressedSizeKnown()) {
+      else if (!entry.isCompressedSizeKnown() || !rootEntry.isCompressedSizeKnown()) {
         return 0;
       }
       else {
-        return (double)entry.getCompressedSize() / rootEntry.size;
+        return (double)entry.getCompressedSize() / rootEntry.getCompressedSize();
       }
     };
 
