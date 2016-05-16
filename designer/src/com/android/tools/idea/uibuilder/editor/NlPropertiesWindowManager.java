@@ -30,11 +30,17 @@ public class NlPropertiesWindowManager extends NlAbstractWindowManager {
 
   public NlPropertiesWindowManager(@NotNull Project project, @NotNull FileEditorManager fileEditorManager) {
     super(project, fileEditorManager);
+    myPropertiesManager = new NlPropertiesManager(myProject, null);
   }
 
   @NotNull
   public static NlPropertiesWindowManager get(@NotNull Project project) {
     return project.getComponent(NlPropertiesWindowManager.class);
+  }
+
+  @NotNull
+  public NlPropertiesManager getPropertiesManager() {
+    return myPropertiesManager;
   }
 
   @Override
@@ -46,15 +52,10 @@ public class NlPropertiesWindowManager extends NlAbstractWindowManager {
   protected void updateToolWindow(@Nullable DesignerEditorPanelFacade designer) {
     if (designer == null) {
       myToolWindow.setAvailable(false, null);
-      if (myPropertiesManager != null) {
-        myPropertiesManager.setDesignSurface(null);
-      }
+      myPropertiesManager.setDesignSurface(null);
     }
     else {
-      if (myPropertiesManager == null) {
-        myPropertiesManager = new NlPropertiesManager(myProject, getDesignSurface(designer));
-        createWindowContent(myPropertiesManager.getConfigurationPanel(), myPropertiesManager.getConfigurationPanel(), null);
-      }
+      createWindowContent(myPropertiesManager.getConfigurationPanel(), myPropertiesManager.getConfigurationPanel(), null);
       myPropertiesManager.setDesignSurface(getDesignSurface(designer));
       myToolWindow.setAvailable(true, null);
       myToolWindow.show(null);

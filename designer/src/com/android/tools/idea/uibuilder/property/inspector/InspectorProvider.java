@@ -24,7 +24,9 @@ import java.util.List;
 import java.util.Map;
 
 public interface InspectorProvider {
-  boolean isApplicable(@NotNull List<NlComponent> components, @NotNull Map<String, NlProperty> properties);
+  boolean isApplicable(@NotNull List<NlComponent> components,
+                       @NotNull Map<String, NlProperty> properties,
+                       @NotNull NlPropertiesManager propertiesManager);
 
   @NotNull
   InspectorComponent createCustomInspector(@NotNull List<NlComponent> components,

@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.property.inspector;
 
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
 import org.jetbrains.annotations.NotNull;
@@ -32,8 +33,11 @@ public interface InspectorComponent {
    * Update the properties used
    * @param components the components selected
    * @param properties that are now available
+   * @param propertiesManager the current properties manager
    */
-  void updateProperties(@NotNull List<NlComponent> components, @NotNull Map<String, NlProperty> properties);
+  void updateProperties(@NotNull List<NlComponent> components,
+                        @NotNull Map<String, NlProperty> properties,
+                        @NotNull NlPropertiesManager propertiesManager);
 
   /**
    * Return the maximum number of rows that attachToInspector may generate.

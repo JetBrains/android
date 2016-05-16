@@ -21,7 +21,6 @@ import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
-import com.android.tools.idea.uibuilder.property.editors.NlPropertyEditors;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.project.Project;
@@ -45,7 +44,9 @@ public class ViewInspectorProvider implements InspectorProvider {
   }
 
   @Override
-  public boolean isApplicable(@NotNull List<NlComponent> components, @NotNull Map<String, NlProperty> properties) {
+  public boolean isApplicable(@NotNull List<NlComponent> components,
+                              @NotNull Map<String, NlProperty> properties,
+                              @NotNull NlPropertiesManager propertiesManager) {
     if (components.size() != 1) {
       return false;
     }
@@ -60,7 +61,7 @@ public class ViewInspectorProvider implements InspectorProvider {
     if (handler == null || handler.getInspectorProperties().isEmpty()) {
       return false;
     }
-    myInspectors.put(tagName, new ViewInspectorComponent(tagName, properties, handler.getInspectorProperties()));
+    myInspectors.put(tagName, new ViewInspectorComponent(tagName, properties, propertiesManager, handler.getInspectorProperties()));
     return true;
   }
 
@@ -73,7 +74,7 @@ public class ViewInspectorProvider implements InspectorProvider {
     String tagName = components.get(0).getTagName();
     InspectorComponent inspector = myInspectors.get(tagName);
     assert inspector != null;
-    inspector.updateProperties(components, properties);
+    inspector.updateProperties(components, properties, propertiesManager);
     return inspector;
   }
 
@@ -93,6 +94,7 @@ public class ViewInspectorProvider implements InspectorProvider {
 
     public ViewInspectorComponent(@NotNull String tagName,
                                   @NotNull Map<String, NlProperty> properties,
+                                  @NotNull NlPropertiesManager propertiesManager,
                                   @NotNull List<String> propertyNames) {
       myComponentName = tagName.substring(tagName.lastIndexOf('.') + 1);
       myPropertyNames = combineLists(propertyNames, LAYOUT_PROPERTIES);
@@ -101,18 +103,20 @@ public class ViewInspectorProvider implements InspectorProvider {
       for (String propertyName : propertyNames) {
         NlProperty property = properties.get(propertyName);
         if (property != null) {
-          myEditors.put(propertyName, NlPropertyEditors.create(property));
+          myEditors.put(propertyName, propertiesManager.getPropertyEditors().create(property));
         }
       }
     }
 
     @Override
-    public void updateProperties(@NotNull List<NlComponent> components, @NotNull Map<String, NlProperty> properties) {
+    public void updateProperties(@NotNull List<NlComponent> components,
+                                 @NotNull Map<String, NlProperty> properties,
+                                 @NotNull NlPropertiesManager propertiesManager) {
       myProperties = properties;
       for (String propertyName : myPropertyNames) {
         NlProperty property = properties.get(propertyName);
         if (property != null && !myEditors.containsKey(propertyName)) {
-          myEditors.put(propertyName, NlPropertyEditors.create(property));
+          myEditors.put(propertyName, propertiesManager.getPropertyEditors().create(property));
         }
       }
     }

@@ -38,7 +38,9 @@ public class IdInspectorProvider implements InspectorProvider {
   private IdInspectorComponent myComponent;
 
   @Override
-  public boolean isApplicable(@NotNull List<NlComponent> components, @NotNull Map<String, NlProperty> properties) {
+  public boolean isApplicable(@NotNull List<NlComponent> components,
+                              @NotNull Map<String, NlProperty> properties,
+                              @NotNull NlPropertiesManager propertiesManager) {
     for (NlComponent component : components) {
       switch (component.getTagName()) {
         case CHECK_BOX_PREFERENCE:
@@ -66,7 +68,7 @@ public class IdInspectorProvider implements InspectorProvider {
     if (myComponent == null) {
       myComponent = new IdInspectorComponent(propertiesManager);
     }
-    myComponent.updateProperties(components, properties);
+    myComponent.updateProperties(components, properties, propertiesManager);
     return myComponent;
   }
 
@@ -88,7 +90,9 @@ public class IdInspectorProvider implements InspectorProvider {
     }
 
     @Override
-    public void updateProperties(@NotNull List<NlComponent> components, @NotNull Map<String, NlProperty> properties) {
+    public void updateProperties(@NotNull List<NlComponent> components,
+                                 @NotNull Map<String, NlProperty> properties,
+                                 @NotNull NlPropertiesManager propertiesManager) {
       myIdAttr = properties.get(ATTR_ID);
       myLayoutWidth = properties.get(ATTR_LAYOUT_WIDTH);
       myLayoutHeight = properties.get(ATTR_LAYOUT_HEIGHT);

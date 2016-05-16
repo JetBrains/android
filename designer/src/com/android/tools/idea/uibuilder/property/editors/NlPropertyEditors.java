@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.editors;
 
+import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.ptable.PTableCellEditor;
 import com.intellij.openapi.project.Project;
@@ -28,15 +29,53 @@ import java.util.Set;
 import static com.android.tools.idea.uibuilder.property.editors.NlEditingListener.DEFAULT_LISTENER;
 
 public class NlPropertyEditors {
-  private static NlBooleanTableCellEditor ourBooleanEditor;
-  private static NlFlagTableCellEditor ourFlagEditor;
-  private static NlEnumTableCellEditor ourComboEditor;
-  private static NlReferenceTableCellEditor ourDefaultEditor;
+  private Project myProject;
+  private NlBooleanTableCellEditor myBooleanEditor;
+  private NlFlagTableCellEditor myFlagEditor;
+  private NlEnumTableCellEditor myComboEditor;
+  private NlReferenceTableCellEditor myDefaultEditor;
 
   public enum EditorType {DEFAULT, BOOLEAN, FLAG, COMBO}
 
+  public NlPropertyEditors(@NotNull Project project) {
+    myProject = project;
+  }
+
+  public static PTableCellEditor get(@NotNull NlProperty property) {
+    NlPropertiesManager manager = NlPropertiesManager.get(property.getModel().getProject());
+    NlPropertyEditors editors = manager.getPropertyEditors();
+    return editors.getCellEditor(property);
+  }
+
   @NotNull
-  public static EditorType getEditorType(@NotNull NlProperty property) {
+  public PTableCellEditor getCellEditor(@NotNull NlProperty property) {
+    switch (getEditorType(property)) {
+      case BOOLEAN:
+        return getBooleanEditor();
+      case FLAG:
+        return getMyFlagEditor();
+      case COMBO:
+        return getMyComboEditor();
+      default:
+        return getDefaultEditor();
+    }
+  }
+
+  public NlComponentEditor create(@NotNull NlProperty property) {
+    switch (getEditorType(property)) {
+      case BOOLEAN:
+        return NlBooleanEditor.createForInspector(DEFAULT_LISTENER);
+      case FLAG:
+        return NlFlagsEditor.create();
+      case COMBO:
+        return NlEnumEditor.createForInspector(NlEnumEditor.getDefaultListener());
+      default:
+        return NlReferenceEditor.createForInspectorWithBrowseButton(property.getModel().getProject(), DEFAULT_LISTENER);
+    }
+  }
+
+  @NotNull
+  private static EditorType getEditorType(@NotNull NlProperty property) {
     AttributeDefinition definition = property.getDefinition();
     Set<AttributeFormat> formats = definition != null ? definition.getFormats() : Collections.emptySet();
     Boolean isBoolean = null;
@@ -73,61 +112,35 @@ public class NlPropertyEditors {
     }
   }
 
-  public static PTableCellEditor get(@NotNull NlProperty property) {
-    switch (getEditorType(property)) {
-      case BOOLEAN:
-        return getBooleanEditor();
-      case FLAG:
-        return getFlagEditor();
-      case COMBO:
-        return getComboEditor();
-      default:
-        return getDefaultEditor(property.getModel().getProject());
+  private PTableCellEditor getBooleanEditor() {
+    if (myBooleanEditor == null) {
+      myBooleanEditor = new NlBooleanTableCellEditor();
     }
+
+    return myBooleanEditor;
   }
 
-  public static NlComponentEditor create(@NotNull NlProperty property) {
-    switch (getEditorType(property)) {
-      case BOOLEAN:
-        return NlBooleanEditor.createForInspector(DEFAULT_LISTENER);
-      case FLAG:
-        return NlFlagsEditor.create();
-      case COMBO:
-        return NlEnumEditor.createForInspector(NlEnumEditor.getDefaultListener());
-      default:
-        return NlReferenceEditor.createForInspectorWithBrowseButton(property.getModel().getProject(), DEFAULT_LISTENER);
+  public PTableCellEditor getMyFlagEditor() {
+    if (myFlagEditor == null) {
+      myFlagEditor = new NlFlagTableCellEditor();
     }
+
+    return myFlagEditor;
   }
 
-  private static PTableCellEditor getBooleanEditor() {
-    if (ourBooleanEditor == null) {
-      ourBooleanEditor = new NlBooleanTableCellEditor();
+  private PTableCellEditor getMyComboEditor() {
+    if (myComboEditor == null) {
+      myComboEditor = new NlEnumTableCellEditor();
     }
 
-    return ourBooleanEditor;
+    return myComboEditor;
   }
 
-  public static PTableCellEditor getFlagEditor() {
-    if (ourFlagEditor == null) {
-      ourFlagEditor = new NlFlagTableCellEditor();
+  private PTableCellEditor getDefaultEditor() {
+    if (myDefaultEditor == null) {
+      myDefaultEditor = new NlReferenceTableCellEditor(myProject);
     }
 
-    return ourFlagEditor;
-  }
-
-  private static PTableCellEditor getComboEditor() {
-    if (ourComboEditor == null) {
-      ourComboEditor = new NlEnumTableCellEditor();
-    }
-
-    return ourComboEditor;
-  }
-
-  private static PTableCellEditor getDefaultEditor(Project project) {
-    if (ourDefaultEditor == null) {
-      ourDefaultEditor = new NlReferenceTableCellEditor(project);
-    }
-
-    return ourDefaultEditor;
+    return myDefaultEditor;
   }
 }
