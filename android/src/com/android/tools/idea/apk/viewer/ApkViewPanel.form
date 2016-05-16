@@ -55,6 +55,14 @@
           </component>
         </children>
       </grid>
+      <component id="72f6f" class="javax.swing.JButton" binding="myCompareWithButton" default-binding="true">
+        <constraints>
+          <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text value="Compare with..."/>
+        </properties>
+      </component>
     </children>
   </grid>
 </form>

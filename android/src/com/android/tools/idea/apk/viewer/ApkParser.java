@@ -102,7 +102,7 @@ public class ApkParser {
       ApkEntry entry = ApkEntry.fromNode(input);
       assert entry != null;
 
-      return entry.size;
+      return entry.getSize();
     });
   }
 
@@ -137,14 +137,19 @@ public class ApkParser {
         DefaultMutableTreeNode childNode = createTreeNode(child);
         node.add(childNode);
 
-        size += ((ApkEntry)childNode.getUserObject()).size;
+        size += ((ApkEntry)childNode.getUserObject()).getSize();
+      }
+
+      if (file.getLength() > 0) {
+        // This is probably a zip inside the apk, and we should use it's size
+        size = file.getLength();
       }
     }
     else {
       size = file.getLength();
     }
 
-    node.setUserObject(new ApkEntry(file, originalName, size));
+    node.setUserObject(new ApkEntryImpl(file, originalName, size));
 
     sort(node);
 
@@ -168,7 +173,7 @@ public class ApkParser {
       }
     }
     else {
-      ZipEntry ze = compressedApk.getEntry(ApkFileSystem.getInstance().getRelativePath(entry.file));
+      ZipEntry ze = compressedApk.getEntry(ApkFileSystem.getInstance().getRelativePath(entry.getFile()));
       if (ze == null) {
         // happens if such a relative path is not present inside the apk (e.g. zip files such as instant-run.zip are unzipped to a tempfile)
         compressedSize = -1;
@@ -182,7 +187,7 @@ public class ApkParser {
     return treeNode;
   }
 
-  private static void sort(@NotNull DefaultMutableTreeNode node) {
+  public static void sort(@NotNull DefaultMutableTreeNode node) {
     if (node.getChildCount() == 0) {
       return;
     }
@@ -198,7 +203,7 @@ public class ApkParser {
       if (entry1 == null || entry2 == null) {
         return 0;
       }
-      return Long.compare(entry2.size, entry1.size);
+      return Long.compare(entry2.getSize(), entry1.getSize());
     });
 
     node.removeAllChildren();

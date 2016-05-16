@@ -32,7 +32,7 @@ public class ApkParserTest extends AndroidTestCase {
     assertNotNull(apkRoot);
 
     DefaultMutableTreeNode treeNode = ApkParser.createTreeNode(apkRoot);
-    assertEquals("1.apk 19\n" +
+    assertEquals("1.apk 649\n" +
                  "  AndroidManifest.xml 13\n" +
                  "  res 6\n" +
                  "    anim 6\n" +
@@ -64,14 +64,14 @@ public class ApkParserTest extends AndroidTestCase {
     assertNotNull(apkRoot);
 
     DefaultMutableTreeNode treeNode = ApkParser.createTreeNode(apkRoot);
-    assertEquals("2.apk 21\n" +
+    assertEquals("2.apk 960\n" +
+                 "  instant-run.zip 352\n" +
+                 "    instant-run 2\n" +
+                 "      classes1.dex 2\n" +
                  "  AndroidManifest.xml 13\n" +
                  "  res 6\n" +
                  "    anim 6\n" +
-                 "      fade.xml 6\n" +
-                 "  instant-run.zip 2\n" +
-                 "    instant-run 2\n" +
-                 "      classes1.dex 2\n",
+                 "      fade.xml 6\n",
                  dumpTree(treeNode));
   }
 
@@ -89,7 +89,7 @@ public class ApkParserTest extends AndroidTestCase {
     assertNotNull(entry);
     sb.append(entry.getName());
     sb.append(' ');
-    sb.append(entry.size);
+    sb.append(entry.getSize());
     sb.append('\n');
 
     for (int i = 0; i < treeNode.getChildCount(); i++) {
