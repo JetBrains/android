@@ -138,6 +138,12 @@ public class JdkDetection {
       myResult.onCancel();
     }
 
+    @Override
+    public void onError(@NotNull Exception error) {
+      super.onError(error);
+      myResult.onCancel();
+    }
+
     @Nullable
     private static String detectJdkPath(@NotNull ProgressIndicator indicator) {
       String topVersion = null;
