@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.structure.model.android;
 
-import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
@@ -23,7 +22,7 @@ import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsParsedDependencies;
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.gradle.structure.model.android.dependency.PsNewDependencyScopes;
-import com.android.tools.idea.gradle.structure.model.repositories.search.AndroidSdkRepository;
+import com.android.tools.idea.gradle.structure.model.repositories.search.AndroidSdkRepositories;
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
@@ -152,9 +151,14 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
   public List<ArtifactRepository> getArtifactRepositories() {
     List<ArtifactRepository> repositories = Lists.newArrayList();
     populateRepositories(repositories);
-    AndroidProject androidProject = getGradleModel().getAndroidProject();
-    repositories.add(new AndroidSdkRepository(androidProject));
-
+    ArtifactRepository repository = AndroidSdkRepositories.getAndroidRepository();
+    if (repository != null) {
+      repositories.add(repository);
+    }
+    repository = AndroidSdkRepositories.getGoogleRepository();
+    if (repository != null) {
+      repositories.add(repository);
+    }
     return repositories;
   }
 
