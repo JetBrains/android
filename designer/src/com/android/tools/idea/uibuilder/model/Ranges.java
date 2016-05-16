@@ -13,24 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.handlers;
+package com.android.tools.idea.uibuilder.model;
 
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import org.jetbrains.annotations.NotNull;
-
-public final class Utils {
-  private Utils() {
+public final class Ranges {
+  private Ranges() {
   }
 
-  public static boolean contains(int lowerBound, int upperBound, int i) {
-    return lowerBound <= i && i < upperBound;
-  }
-
-  public static boolean containsY(@NotNull NlComponent component, int y) {
-    return contains(component.y, component.y + component.h, y);
-  }
-
-  public static int getMidpointY(@NotNull NlComponent component) {
-    return component.y + component.h / 2;
+  public static boolean contains(int lowerBoundInclusive, int upperBoundExclusive, int i) {
+    return lowerBoundInclusive <= i && i < upperBoundExclusive;
   }
 }

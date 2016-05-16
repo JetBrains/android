@@ -21,7 +21,6 @@ import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
-import com.android.tools.idea.uibuilder.handlers.Utils;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import org.jetbrains.annotations.NotNull;
@@ -73,7 +72,7 @@ class GroupDragHandlerBase extends DragHandler {
     }
 
     for (NlComponent item : myItems) {
-      if (Utils.containsY(item, y)) {
+      if (item.containsY(y)) {
         myActiveItem = item;
         return null;
       }
@@ -98,7 +97,7 @@ class GroupDragHandlerBase extends DragHandler {
     if (myActiveItem == null) {
       graphics.drawBottom(myGroup);
     }
-    else if (lastY < Utils.getMidpointY(myActiveItem)) {
+    else if (lastY < myActiveItem.getMidpointY()) {
       graphics.drawTop(myActiveItem);
     }
     else {
@@ -109,20 +108,20 @@ class GroupDragHandlerBase extends DragHandler {
   private void drawDropRecipientLines(@NotNull NlGraphics graphics) {
     graphics.useStyle(NlDrawingStyle.DROP_RECIPIENT);
 
-    if (lastY >= Utils.getMidpointY(myItems.get(0))) {
+    if (lastY >= myItems.get(0).getMidpointY()) {
       graphics.drawTop(myGroup);
     }
 
     graphics.drawLeft(myGroup);
     graphics.drawRight(myGroup);
 
-    if (lastY < Utils.getMidpointY(myItems.get(myItems.size() - 1))) {
+    if (lastY < myItems.get(myItems.size() - 1).getMidpointY()) {
       graphics.drawBottom(myGroup);
     }
   }
 
   private void drawDropZoneLines(@NotNull NlGraphics graphics) {
-    int midpoint = Utils.getMidpointY(myActiveItem);
+    int midpoint = myActiveItem.getMidpointY();
     graphics.useStyle(NlDrawingStyle.DROP_ZONE);
 
     for (int i = 1, count = myItems.size(); i < count; i++) {
@@ -152,7 +151,7 @@ class GroupDragHandlerBase extends DragHandler {
 
     int index = myGroup.getChildren().indexOf(myActiveItem);
 
-    if (lastY < Utils.getMidpointY(myActiveItem)) {
+    if (lastY < myActiveItem.getMidpointY()) {
       return index;
     }
     else if (index + 1 != myGroup.getChildCount()) {

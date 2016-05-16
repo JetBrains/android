@@ -21,9 +21,9 @@ import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
-import com.android.tools.idea.uibuilder.handlers.Utils;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.Ranges;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -65,7 +65,7 @@ abstract class PreferenceGroupDragHandler extends DragHandler {
     NlComponent lastPreference = getChild(count - 1);
     int lastPreferenceMidpoint = getMidpoint(lastPreference);
 
-    if (Utils.contains(lastPreference.y, lastPreferenceMidpoint, y)) {
+    if (Ranges.contains(lastPreference.y, lastPreferenceMidpoint, y)) {
       myInsertIndex = count - 1;
       return null;
     }
@@ -79,11 +79,11 @@ abstract class PreferenceGroupDragHandler extends DragHandler {
       NlComponent nextPreference = getChild(i + 1);
       int midpoint = getMidpoint(preference, nextPreference);
 
-      if (Utils.contains(preference.y, midpoint, y)) {
+      if (Ranges.contains(preference.y, midpoint, y)) {
         myInsertIndex = i;
         break;
       }
-      else if (Utils.contains(midpoint, nextPreference.y, y)) {
+      else if (Ranges.contains(midpoint, nextPreference.y, y)) {
         myInsertIndex = i + 1;
         break;
       }
