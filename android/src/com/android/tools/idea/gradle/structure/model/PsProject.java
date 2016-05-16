@@ -16,7 +16,10 @@
 package com.android.tools.idea.gradle.structure.model;
 
 import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.JavaProject;
+import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
+import com.android.tools.idea.gradle.structure.model.java.PsJavaModule;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -51,6 +54,17 @@ public class PsProject extends PsModel {
         if (gradleModel != null) {
           module = new PsAndroidModule(this, resolvedModel, gradlePath, gradleModel);
         }
+        // TODO enable when Java module support is complete.
+        //else {
+        //  JavaGradleFacet facet = JavaGradleFacet.getInstance(resolvedModel);
+        //  if (facet != null) {
+        //    JavaProject javaProject = facet.getJavaProject();
+        //    if (javaProject != null) {
+        //      module = new PsJavaModule(this, resolvedModel, gradlePath, javaProject);
+        //    }
+        //  }
+        //}
+
         if (module != null) {
           myModules.add(module);
         }

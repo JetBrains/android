@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview;
 
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsAndroidDependencyComparator;
+import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.PsDependencyComparator;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AndroidArtifactNode;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.ArtifactComparator;
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsResettableNode;
+import com.android.tools.idea.gradle.structure.model.PsDependency;
 import com.android.tools.idea.gradle.structure.model.android.*;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
@@ -74,7 +75,7 @@ class ResolvedDependenciesTreeRootNode extends AbstractPsResettableNode<PsAndroi
                                                                     @NotNull Map<String, PsVariant> variantsByName) {
     Map<String, List<PsDependencyContainer>> containersWithMainArtifactByVariant = Maps.newHashMap();
 
-    Map<List<PsDependencyContainer>, List<PsAndroidDependency>> groupedDependencies = groupDependencies(module);
+    Map<List<PsDependencyContainer>, List<PsDependency>> groupedDependencies = groupDependencies(module);
     for (List<PsDependencyContainer> containers : groupedDependencies.keySet()) {
       for (PsDependencyContainer container : containers) {
         if (container.getArtifact().endsWith(ARTIFACT_MAIN)) {
@@ -102,7 +103,7 @@ class ResolvedDependenciesTreeRootNode extends AbstractPsResettableNode<PsAndroi
           if (mainArtifact != null) {
             List<PsDependencyContainer> mainArtifactContainers = containersWithMainArtifactByVariant.get(variantName);
             if (mainArtifactContainers != null) {
-              List<PsAndroidDependency> mainArtifactDependencies = groupedDependencies.get(mainArtifactContainers);
+              List<PsDependency> mainArtifactDependencies = groupedDependencies.get(mainArtifactContainers);
               mainArtifactNode = createArtifactNode(mainArtifact, mainArtifactDependencies, null);
             }
           }
@@ -133,8 +134,8 @@ class ResolvedDependenciesTreeRootNode extends AbstractPsResettableNode<PsAndroi
 
   @VisibleForTesting
   @NotNull
-  static Map<List<PsDependencyContainer>, List<PsAndroidDependency>> groupDependencies(@NotNull PsAndroidModule module) {
-    Map<PsDependencyContainer, List<PsAndroidDependency>> dependenciesByContainer = Maps.newHashMap();
+  static Map<List<PsDependencyContainer>, List<PsDependency>> groupDependencies(@NotNull PsAndroidModule module) {
+    Map<PsDependencyContainer, List<PsDependency>> dependenciesByContainer = Maps.newHashMap();
 
     // Key: variant name
     Map<String, PsDependencyContainer> containerWithMainArtifact = Maps.newHashMap();
@@ -145,9 +146,9 @@ class ResolvedDependenciesTreeRootNode extends AbstractPsResettableNode<PsAndroi
         if (container.getArtifact().equals(ARTIFACT_MAIN)) {
           containerWithMainArtifact.put(container.getVariant(), container);
         }
-        List<PsAndroidDependency> containerDependencies = dependenciesByContainer.get(container);
+        List<PsDependency> containerDependencies = dependenciesByContainer.get(container);
         if (containerDependencies == null) {
-          containerDependencies = new SortedList<>(PsAndroidDependencyComparator.INSTANCE);
+          containerDependencies = new SortedList<>(PsDependencyComparator.INSTANCE);
           dependenciesByContainer.put(container, containerDependencies);
         }
         containerDependencies.add(dependency);
@@ -193,7 +194,7 @@ class ResolvedDependenciesTreeRootNode extends AbstractPsResettableNode<PsAndroi
       currentGroup = Lists.newArrayList();
     }
 
-    Map<List<PsDependencyContainer>, List<PsAndroidDependency>> dependenciesByContainers = Maps.newHashMap();
+    Map<List<PsDependencyContainer>, List<PsDependency>> dependenciesByContainers = Maps.newHashMap();
     for (List<PsDependencyContainer> group : containerGroups) {
       PsDependencyContainer container = group.get(0);
       dependenciesByContainers.put(group, dependenciesByContainer.get(container));
@@ -203,10 +204,10 @@ class ResolvedDependenciesTreeRootNode extends AbstractPsResettableNode<PsAndroi
 
   private static boolean haveSameDependencies(@NotNull PsDependencyContainer c1,
                                               @NotNull PsDependencyContainer c2,
-                                              @NotNull Map<PsDependencyContainer, List<PsAndroidDependency>> dependenciesByContainer) {
+                                              @NotNull Map<PsDependencyContainer, List<PsDependency>> dependenciesByContainer) {
     if (c1.getArtifact().equals(c2.getArtifact())) {
-      List<PsAndroidDependency> d1 = dependenciesByContainer.get(c1);
-      List<PsAndroidDependency> d2 = dependenciesByContainer.get(c2);
+      List<PsDependency> d1 = dependenciesByContainer.get(c1);
+      List<PsDependency> d2 = dependenciesByContainer.get(c2);
       return d1.equals(d2);
     }
     return false;
@@ -235,7 +236,7 @@ class ResolvedDependenciesTreeRootNode extends AbstractPsResettableNode<PsAndroi
 
   @Nullable
   private AndroidArtifactNode createArtifactNode(@NotNull List<PsAndroidArtifact> artifacts,
-                                                 @NotNull List<PsAndroidDependency> dependencies,
+                                                 @NotNull List<PsDependency> dependencies,
                                                  @Nullable AndroidArtifactNode mainArtifactNode) {
     if (!dependencies.isEmpty() || mainArtifactNode != null) {
       AndroidArtifactNode artifactNode = new AndroidArtifactNode(this, artifacts);
@@ -252,14 +253,14 @@ class ResolvedDependenciesTreeRootNode extends AbstractPsResettableNode<PsAndroi
 
     // [Outer map] key: variant name, value: dependencies by artifact
     // [Inner map] key: artifact name, value: dependencies
-    Map<String, Map<String, List<PsAndroidDependency>>> dependenciesByVariantAndArtifact = Maps.newHashMap();
+    Map<String, Map<String, List<PsDependency>>> dependenciesByVariantAndArtifact = Maps.newHashMap();
 
     module.forEachDependency(dependency -> {
       if (!dependency.isDeclared()) {
         return; // Only show "declared" dependencies as top-level dependencies.
       }
       for (PsDependencyContainer container : dependency.getContainers()) {
-        Map<String, List<PsAndroidDependency>> dependenciesByArtifact =
+        Map<String, List<PsDependency>> dependenciesByArtifact =
           dependenciesByVariantAndArtifact.get(container.getVariant());
 
         if (dependenciesByArtifact == null) {
@@ -267,7 +268,7 @@ class ResolvedDependenciesTreeRootNode extends AbstractPsResettableNode<PsAndroi
           dependenciesByVariantAndArtifact.put(container.getVariant(), dependenciesByArtifact);
         }
 
-        List<PsAndroidDependency> artifactDependencies = dependenciesByArtifact.get(container.getArtifact());
+        List<PsDependency> artifactDependencies = dependenciesByArtifact.get(container.getArtifact());
         if (artifactDependencies == null) {
           artifactDependencies = Lists.newArrayList();
           dependenciesByArtifact.put(container.getArtifact(), artifactDependencies);
@@ -283,7 +284,7 @@ class ResolvedDependenciesTreeRootNode extends AbstractPsResettableNode<PsAndroi
     for (String variantName : variantNames) {
       PsVariant variant = variantsByName.get(variantName);
 
-      Map<String, List<PsAndroidDependency>> dependenciesByArtifact = dependenciesByVariantAndArtifact.get(variantName);
+      Map<String, List<PsDependency>> dependenciesByArtifact = dependenciesByVariantAndArtifact.get(variantName);
 
       if (dependenciesByArtifact != null) {
         List<String> artifactNames = Lists.newArrayList(dependenciesByArtifact.keySet());
@@ -300,7 +301,7 @@ class ResolvedDependenciesTreeRootNode extends AbstractPsResettableNode<PsAndroi
             // Add "main" artifact as a dependency of "unit test" or "android test" artifact.
             PsAndroidArtifact mainArtifact = variant.findArtifact(mainArtifactName);
             if (mainArtifact != null) {
-              List<PsAndroidDependency> artifactDependencies = dependenciesByArtifact.get(mainArtifactName);
+              List<PsDependency> artifactDependencies = dependenciesByArtifact.get(mainArtifactName);
               if (artifactDependencies == null) {
                 artifactDependencies = Collections.emptyList();
               }
@@ -321,7 +322,7 @@ class ResolvedDependenciesTreeRootNode extends AbstractPsResettableNode<PsAndroi
 
   @Nullable
   private AndroidArtifactNode createArtifactNode(@NotNull PsAndroidArtifact artifact,
-                                                 @NotNull List<PsAndroidDependency> dependencies,
+                                                 @NotNull List<PsDependency> dependencies,
                                                  @Nullable AndroidArtifactNode mainArtifactNode) {
     if (!dependencies.isEmpty() || mainArtifactNode != null) {
       AndroidArtifactNode artifactNode = new AndroidArtifactNode(this, artifact);
@@ -332,7 +333,7 @@ class ResolvedDependenciesTreeRootNode extends AbstractPsResettableNode<PsAndroi
   }
 
   private static void populate(@NotNull AndroidArtifactNode artifactNode,
-                               @NotNull List<PsAndroidDependency> dependencies,
+                               @NotNull List<PsDependency> dependencies,
                                @Nullable AndroidArtifactNode mainArtifactNode) {
     List<AbstractPsModelNode<?>> children = createNodesFor(artifactNode, dependencies);
     if (mainArtifactNode != null) {

@@ -19,7 +19,7 @@ import com.android.tools.idea.gradle.structure.dependencies.android.AndroidDepen
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidLibraryDependency;
+import com.android.tools.idea.gradle.structure.model.android.PsLibraryAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.dependency.PsNewDependencyScopes;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.OnePixelDivider;
@@ -109,8 +109,8 @@ class AddLibraryDependencyPanel extends JPanel implements Disposable {
       PsAndroidModule androidModule = (PsAndroidModule)myModule;
       Ref<Boolean> found = new Ref<>(false);
       androidModule.forEachDeclaredDependency(dependency -> {
-        if (dependency instanceof PsAndroidLibraryDependency) {
-          PsAndroidLibraryDependency libraryDependency = (PsAndroidLibraryDependency)dependency;
+        if (dependency instanceof PsLibraryAndroidDependency) {
+          PsLibraryAndroidDependency libraryDependency = (PsLibraryAndroidDependency)dependency;
           PsArtifactDependencySpec resolvedSpec = libraryDependency.getResolvedSpec();
           if (Objects.equals(spec.group, resolvedSpec.group) && Objects.equals(spec.name, resolvedSpec.name)) {
             found.set(true);

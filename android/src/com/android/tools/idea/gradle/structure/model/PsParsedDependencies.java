@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.model;
 
 
 import com.android.builder.model.MavenCoordinates;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
@@ -24,17 +25,23 @@ import com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyMode
 import com.google.common.base.Joiner;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.intellij.openapi.application.ApplicationManager;
+import org.gradle.tooling.model.GradleModuleVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
+import static com.google.common.base.Strings.nullToEmpty;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 
 public class PsParsedDependencies {
   // Key: module's Gradle path
@@ -101,6 +108,52 @@ public class PsParsedDependencies {
   @NotNull
   private static String createIdFrom(@NotNull MavenCoordinates coordinates) {
     List<String> segments = Lists.newArrayList(coordinates.getGroupId(), coordinates.getArtifactId());
+    return joinAsGradlePath(segments);
+  }
+
+  @Nullable
+  public ArtifactDependencyModel findLibraryDependency(@NotNull GradleModuleVersion moduleVersion) {
+    Collection<ArtifactDependencyModel> potentialMatches = myParsedArtifactDependencies.get(createIdFrom(moduleVersion));
+    if (potentialMatches.size() == 1) {
+      // Only one found. Just use it.
+      return getFirstItem(potentialMatches);
+    }
+
+    String version = nullToEmpty(moduleVersion.getVersion());
+
+    Map<GradleVersion, ArtifactDependencyModel> dependenciesByVersion = Maps.newHashMap();
+    for (ArtifactDependencyModel potentialMatch : potentialMatches) {
+      String potentialVersion = nullToEmpty(potentialMatch.version().value());
+      if (version.equals(potentialVersion)) {
+        // Perfect version match. Use it.
+        return potentialMatch;
+      }
+      if (isNotEmpty(potentialVersion)) {
+        // Collect all the "parsed" dependencies with same group and name, to make a best guess later.
+        GradleVersion parsedVersion = GradleVersion.tryParse(potentialVersion);
+        if (parsedVersion != null) {
+          dependenciesByVersion.put(parsedVersion, potentialMatch);
+        }
+      }
+    }
+
+    if (isNotEmpty(version) && !dependenciesByVersion.isEmpty()) {
+      GradleVersion parsedVersion = GradleVersion.tryParse(version);
+      if (parsedVersion != null) {
+        for (GradleVersion potentialVersion : dependenciesByVersion.keySet()) {
+          if (parsedVersion.compareTo(potentialVersion) > 0) {
+            return dependenciesByVersion.get(potentialVersion);
+          }
+        }
+      }
+    }
+
+    return null;
+  }
+
+  @NotNull
+  private static String createIdFrom(@NotNull GradleModuleVersion moduleVersion) {
+    List<String> segments = Lists.newArrayList(moduleVersion.getGroup(), moduleVersion.getName());
     return joinAsGradlePath(segments);
   }
 

@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.module;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.AbstractDependenciesPanel;
+import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.AbstractDependenciesPanel;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.ModuleDependencyDetails;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.SingleLibraryDependencyDetails;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.*;
@@ -36,9 +36,9 @@ import com.android.tools.idea.gradle.structure.model.PsDependency;
 import com.android.tools.idea.gradle.structure.model.PsIssue;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidLibraryDependency;
+import com.android.tools.idea.gradle.structure.model.android.PsLibraryAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
-import com.android.tools.idea.gradle.structure.model.android.PsModuleDependency;
+import com.android.tools.idea.gradle.structure.model.android.PsModuleAndroidDependency;
 import com.google.common.collect.Lists;
 import com.intellij.ide.util.treeView.TreeVisitor;
 import com.intellij.openapi.actionSystem.*;
@@ -95,7 +95,7 @@ public class DependencyGraphPanel extends AbstractDependenciesPanel {
         if (id == MOUSE_PRESSED) {
           ModuleDependencyNode node = myHyperlinkSupport.getIfHyperlink(e);
           if (node != null) {
-            PsModuleDependency moduleDependency = node.getFirstModel();
+            PsModuleAndroidDependency moduleDependency = node.getFirstModel();
             String name = moduleDependency.getName();
             myContext.setSelectedModule(name, DependencyGraphPanel.this);
             // Do not call super, to avoid selecting the 'module' node when clicking a hyperlink.
@@ -187,8 +187,8 @@ public class DependencyGraphPanel extends AbstractDependenciesPanel {
       @Override
       public boolean visit(@NotNull AbstractDependencyNode node) {
         PsAndroidDependency dependency = (PsAndroidDependency)node.getFirstModel();
-        if (isTopLevel(node) && dependency instanceof PsAndroidLibraryDependency) {
-          PsAndroidLibraryDependency libraryDependency = (PsAndroidLibraryDependency)dependency;
+        if (isTopLevel(node) && dependency instanceof PsLibraryAndroidDependency) {
+          PsLibraryAndroidDependency libraryDependency = (PsLibraryAndroidDependency)dependency;
           if (spec.equals(libraryDependency.getDeclaredSpec())) {
             nodeRef.set(node);
             return true;
@@ -310,7 +310,7 @@ public class DependencyGraphPanel extends AbstractDependenciesPanel {
     ModuleDependencyNode node = myHyperlinkSupport.getNodeForLocation(x, y);
 
     if (node != null) {
-      PsModuleDependency moduleDependency = node.getFirstModel();
+      PsModuleAndroidDependency moduleDependency = node.getFirstModel();
 
       String name = moduleDependency.getName();
       DefaultActionGroup group = new DefaultActionGroup();

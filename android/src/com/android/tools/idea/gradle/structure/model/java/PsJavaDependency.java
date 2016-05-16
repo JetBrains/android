@@ -13,26 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.model;
+package com.android.tools.idea.gradle.structure.model.java;
 
-import com.google.common.collect.ImmutableCollection;
+import com.android.tools.idea.gradle.JavaProject;
+import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
+import com.android.tools.idea.gradle.structure.model.PsDependency;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public interface PsLibraryDependency extends PsBaseDependency {
-  @NotNull
-  PsModule getParent();
-
-  @Nullable
-  PsArtifactDependencySpec getDeclaredSpec();
-
-  @NotNull
-  PsArtifactDependencySpec getResolvedSpec();
-
-  boolean hasPromotedVersion();
+public abstract class PsJavaDependency extends PsDependency {
+  protected PsJavaDependency(@NotNull PsJavaModule parent,
+                             @Nullable DependencyModel parsedModel) {
+    super(parent, parsedModel);
+  }
 
   @NotNull
-  ImmutableCollection<PsDependency> getTransitiveDependencies();
+  public JavaProject getGradleModel() {
+    return getParent().getGradleModel();
+  }
 
-  void setVersion(@NotNull String version);
+  @Override
+  @NotNull
+  public PsJavaModule getParent() {
+    return (PsJavaModule)super.getParent();
+  }
 }
