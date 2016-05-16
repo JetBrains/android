@@ -219,9 +219,9 @@ public class MemoryController extends Controller {
     else {
       // As it is hard to select a memory path in the atom view without also selecting an atom we ignore any
       // atom event for the current atom, otherwise you can get flicked back to the empty panel unexpectedly.
-      AtomPath atomPath = event.findAtomPath();
-      if (myAtomPath == null || atomPath == null || !myAtomPath.equals(atomPath)) {
-        myAtomPath = atomPath;
+      AtomRangePath atomPath = event.findAtomPath();
+      if (myAtomPath == null || atomPath == null || !myAtomPath.equals(atomPath.getPathToLast())) {
+        myAtomPath = (atomPath == null) ? null : atomPath.getPathToLast();
         myEmptyPanel.resetText();
         myScrollPane.setViewportView(myEmptyPanel);
       }

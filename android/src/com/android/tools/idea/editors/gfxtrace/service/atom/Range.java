@@ -36,6 +36,20 @@ public final class Range implements BinaryObject {
     return atomImdex >= myStart && atomImdex < myEnd;
   }
 
+  /** @return whether this range completely contains the given range */
+  public boolean contains(Range range) {
+    return myStart <= range.getStart() && myEnd >= range.getEnd();
+  }
+
+  /** @return whether this range has any overlap with the given range */
+  public boolean overlaps(Range range) {
+    return myStart < range.getEnd() && range.getStart() < myEnd;
+  }
+
+  public long getCount() {
+    return myEnd - myStart;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;

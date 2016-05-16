@@ -263,10 +263,10 @@ public class AtomController extends TreeController implements AtomStream.Listene
         if (node == null || node.getUserObject() == null) return;
         Object object = node.getUserObject();
         if (object instanceof Group) {
-          atoms.selectAtom(((Group)object).group.getRange().getLast(), AtomController.this);
+          atoms.selectAtoms(((Group)object).group.getRange(), AtomController.this);
         }
         else if (object instanceof Node) {
-          atoms.selectAtom(((Node)object).index, AtomController.this);
+          atoms.selectAtoms(((Node)object).index, 1, AtomController.this);
         }
         else if (object instanceof Memory) {
           Memory memory = (Memory)object;
@@ -566,9 +566,7 @@ public class AtomController extends TreeController implements AtomStream.Listene
       change = findMatchingChild((DefaultMutableTreeNode)myTree.getModel().getRoot(), pattern);
     }
     if (change != null) {
-      TreePath path = new TreePath(change.getPath());
-      myTree.setSelectionPath(path);
-      myTree.scrollPathToVisible(path);
+      myTree.setSelectionPath(new TreePath(change.getPath()));
     }
   }
 
@@ -611,36 +609,6 @@ public class AtomController extends TreeController implements AtomStream.Listene
 
   private static boolean shouldShowPreview(Group group) {
     return group.lastLeaf.isEndOfFrame() || group.lastLeaf.isDrawCall();
-  }
-
-  private void selectDeepestVisibleNode(AtomPath atomPath) {
-    Object object = myTree.getModel().getRoot();
-    assert (object instanceof DefaultMutableTreeNode);
-    DefaultMutableTreeNode root = (DefaultMutableTreeNode)object;
-    selectDeepestVisibleNode(root, new TreePath(root), atomPath.getIndex());
-  }
-
-  private void selectDeepestVisibleNode(DefaultMutableTreeNode node, TreePath path, long atomIndex) {
-    if (node.isLeaf() || !myTree.isExpanded(path)) {
-      myTree.setSelectionPath(path, false);
-      myTree.scrollPathToVisible(path);
-      return;
-    }
-    // Search through the list for now.
-    for (Enumeration it = node.children(); it.hasMoreElements(); ) {
-      Object obj = it.nextElement();
-      assert (obj instanceof DefaultMutableTreeNode);
-      DefaultMutableTreeNode child = (DefaultMutableTreeNode)obj;
-      Object object = child.getUserObject();
-      boolean matches = false;
-      if ((object instanceof Group) && (((Group)object).group.getRange().contains(atomIndex)) ||
-          (object instanceof Node) && ((((Node)object).index == atomIndex))) {
-        matches = true;
-      }
-      if (matches) {
-        selectDeepestVisibleNode(child, path.pathByAddingChild(child), atomIndex);
-      }
-    }
   }
 
   @Override
@@ -716,11 +684,56 @@ public class AtomController extends TreeController implements AtomStream.Listene
   }
 
   @Override
-  public void onAtomSelected(AtomPath path, Object source) {
-    // Only update the selection if the event came from outside the tree. This is to allow the user
-    // to select a group and have the selection stay on the group rather than jump to the last atom.
-    if (source != this) {
-      selectDeepestVisibleNode(path);
+  public void onAtomsSelected(AtomRangePath path) {
+    DefaultMutableTreeNode root = (DefaultMutableTreeNode)myTree.getModel().getRoot();
+    updateSelectionRange(root, new TreePath(root), path.getRange());
+  }
+
+  /**
+   * Attempts to select the highest possible node that represents the given range. If no such node exists,
+   * the last atom in the range is selected. This does not fire an event, but simply updates the UI.
+   */
+  private void updateSelectionRange(DefaultMutableTreeNode node, TreePath path, Range range) {
+    if (node.isLeaf()) {
+      updateSelection(path);
+      return;
+    }
+
+    // TODO: Searching through the list for now. Change to binary search.
+    for (Enumeration it = node.children(); it.hasMoreElements(); ) {
+      DefaultMutableTreeNode child = (DefaultMutableTreeNode)it.nextElement();
+      Object object = child.getUserObject();
+      if (object instanceof Node && range.getLast() == (((Node)object).index)) {
+        updateSelection(path.pathByAddingChild(child));
+        return;
+      }
+      else if (object instanceof Group) {
+        Range groupRange = ((Group)object).group.getRange();
+        if (groupRange.equals(range)) {
+          updateSelection(path.pathByAddingChild(child));
+          return;
+        }
+        else if (groupRange.contains(range.getLast())) {
+          updateSelectionRange(child, path.pathByAddingChild(child), range);
+          return;
+        }
+      }
+    }
+  }
+
+  /**
+   * Selects the given path and makes sure it's visible. This does not fire an event, but simply updates the UI.
+   */
+  private void updateSelection(TreePath path) {
+    myTree.expandPath(path.getParentPath());
+    myTree.setSelectionPath(path, false);
+
+    // Only scroll vertically. JTree's scrollPathToVisible also scrolls horizontally, which is annoying.
+    Rectangle bounds = myTree.getPathBounds(path);
+    if (bounds != null) {
+      bounds.width += bounds.x;
+      bounds.x = 0;
+      myTree.scrollRectToVisible(bounds);
     }
   }
 }
