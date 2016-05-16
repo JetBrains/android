@@ -45,11 +45,11 @@ public class ConstraintDragHandler extends DragHandler {
     if (components.size() == 1) {
       myComponent = components.get(0);
       ConstraintModel model = ConstraintModel.getConstraintModel(editor.getModel());
-      if (model.getScene().getWidget(myComponent.getTag()) == null) {
+      if (model.getScene().getWidget(myComponent) == null) {
         myDragWidget = new ConstraintWidget();
         WidgetCompanion companion = WidgetCompanion.create(myDragWidget);
         companion.setWidgetModel(myComponent);
-        companion.setWidgetTag(myComponent.getTag());
+        companion.setWidgetTag(myComponent);
         myDragWidget.setCompanionWidget(companion);
       } else {
         // For now, only deal with drag handler on ConstraintLayout here if it's an external DND
