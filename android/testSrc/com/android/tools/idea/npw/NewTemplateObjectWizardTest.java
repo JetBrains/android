@@ -88,11 +88,6 @@ public class NewTemplateObjectWizardTest extends AndroidGradleTestCase {
     assertNotNull(AndroidPlatform.getInstance(myLibModule));
   }
 
-  @Override
-  protected boolean requireRecentSdk() {
-    return true;
-  }
-
   public void testInit() throws Exception {
     // Test with invocation target = module directory (so we should default to app package)
     assertNotNull(myAppFacet.getAndroidModel());

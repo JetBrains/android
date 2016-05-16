@@ -46,11 +46,6 @@ public class GradleEditorParserTest extends LightPlatformCodeInsightFixtureTestC
 
   public static final String GRADLE_EDITOR_TEST_DATA_ROOT = "editor";
 
-  @Override
-  protected void setUp() throws Exception {
-    super.setUp();
-  }
-
   public void testSingleFile_hardCodedProperties() throws Exception {
     prepare("singleFileHardCodedProperties");
     List<GradleEditorEntityGroup> parsed = parse("build.gradle");
