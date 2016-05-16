@@ -44,8 +44,8 @@ public final class GapiPaths {
     .build();
 
   private static final Map<String, String> ABI_TARGET = ImmutableMap.<String, String>builder()
-    .put("armeabi-v7a", "android-arm")
-    .put("arm64-v8a", "android-arm64")
+    .put("armeabi-v7a", "android-armv7a")
+    .put("arm64-v8a", "android-armv8a")
     .put("x86", "android-x86")
     .build();
 
