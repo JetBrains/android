@@ -36,7 +36,8 @@ public class PackageTreeNode implements TreeNode {
   @Nullable private final PackageTreeNode myParent;
   @NotNull private final List<PackageTreeNode> myNodes;
 
-  private int myCount = 0;
+  private int myMethodReferencesCount = 0;
+  private int myDefinedMethodsCount = 0;
 
   public PackageTreeNode(@NotNull String packageName, @NotNull String name, @NotNull NodeType type, @Nullable PackageTreeNode parent) {
     myPackageName = packageName;
@@ -54,17 +55,20 @@ public class PackageTreeNode implements TreeNode {
     Collections.sort(myNodes, (o1, o2) -> o2.getMethodRefCount() - o1.getMethodRefCount());
   }
 
-  public void insert(@NotNull String parentPackage, @NotNull String qcn, @NotNull MethodReference ref) {
+  public void insert(@NotNull String parentPackage, @NotNull String qcn, @NotNull MethodReference ref, boolean hasClassDefinition) {
     int i = qcn.indexOf(".");
     if (i < 0) {
-      insertClass(parentPackage, qcn, ref);
+      insertClass(parentPackage, qcn, ref, hasClassDefinition);
     }
     else {
       String segment = qcn.substring(0, i);
       String nextSegment = qcn.substring(i + 1);
       PackageTreeNode node = getOrCreateChild(parentPackage, segment, NodeType.PACKAGE);
-      node.insert(combine(parentPackage, segment), nextSegment, ref);
-      myCount++;
+      node.insert(combine(parentPackage, segment), nextSegment, ref, hasClassDefinition);
+      myMethodReferencesCount++;
+      if (hasClassDefinition) {
+        myDefinedMethodsCount++;
+      }
     }
   }
 
@@ -72,16 +76,30 @@ public class PackageTreeNode implements TreeNode {
     return parentPackage.isEmpty() ? childName : parentPackage + "." + childName;
   }
 
-  private void insertClass(@NotNull String parentPackage, @NotNull String className, @NotNull MethodReference ref) {
-    myCount++;
+  private void insertClass(@NotNull String parentPackage,
+                           @NotNull String className,
+                           @NotNull MethodReference ref,
+                           boolean hasClassDefinition) {
+    myMethodReferencesCount++;
+    if (hasClassDefinition) {
+      myDefinedMethodsCount++;
+    }
+
     PackageTreeNode classNode = getOrCreateChild(parentPackage, className, NodeType.CLASS);
-    classNode.insertMethod(ref);
+    classNode.insertMethod(ref, hasClassDefinition);
   }
 
-  private void insertMethod(@NotNull MethodReference ref) {
-    myCount++;
+  private void insertMethod(@NotNull MethodReference ref, boolean hasClassDefinition) {
+    myMethodReferencesCount++;
+    if (hasClassDefinition) {
+      myDefinedMethodsCount++;
+    }
+
     PackageTreeNode methodNode = new PackageTreeNode(ref.getDefiningClass(), formatMethod(ref), NodeType.METHOD, this);
-    methodNode.myCount++;
+    methodNode.myMethodReferencesCount++;
+    if (hasClassDefinition) {
+      methodNode.myDefinedMethodsCount++;
+    }
     myNodes.add(methodNode);
   }
 
@@ -171,6 +189,10 @@ public class PackageTreeNode implements TreeNode {
   }
 
   public int getMethodRefCount() {
-    return myCount;
+    return myMethodReferencesCount;
+  }
+
+  public int getDefinedMethodsCount() {
+    return myDefinedMethodsCount;
   }
 }
