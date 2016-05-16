@@ -25,8 +25,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
+import static com.android.tools.idea.gradle.structure.model.repositories.search.AndroidSdkRepositories.ANDROID_REPOSITORY_NAME;
+import static com.android.tools.idea.gradle.structure.model.repositories.search.AndroidSdkRepositories.GOOGLE_REPOSITORY_NAME;
 
-public class FoundArtifact {
+public class FoundArtifact implements Comparable<FoundArtifact> {
   @NotNull private final String myRepositoryName;
   @NotNull private final String myGroupId;
   @NotNull private final String myName;
@@ -75,6 +77,59 @@ public class FoundArtifact {
   @NotNull
   public List<GradleVersion> getVersions() {
     return myVersions;
+  }
+
+  @Override
+  public int compareTo(FoundArtifact other) {
+    int compare = compareRepositoryNames(myRepositoryName, other.myRepositoryName);
+    if (compare != 0) {
+      return compare;
+    }
+
+    compare = compareGroupIds(myGroupId, other.myGroupId);
+    if (compare != 0) {
+      return compare;
+    }
+
+    return myName.compareTo(other.myName);
+  }
+
+  private static int compareRepositoryNames(@NotNull String s1, @NotNull String s2) {
+    if (s1.equals(s2)) {
+      return 0;
+    }
+    if (s1.equals(ANDROID_REPOSITORY_NAME)) {
+      return -1;
+    }
+    if (s1.equals(GOOGLE_REPOSITORY_NAME) && !s2.equals(ANDROID_REPOSITORY_NAME)) {
+      return -1;
+    }
+    return s1.compareTo(s2);
+  }
+
+  private static int compareGroupIds(@NotNull String s1, @NotNull String s2) {
+    if (s1.equals(s2)) {
+      return 0;
+    }
+    // Give preference to package 'com.android' an 'com.google'
+    String androidPackage = "com.android";
+    if (s1.startsWith(androidPackage)) {
+      if (s2.startsWith(androidPackage)) {
+        return s1.compareTo(s2);
+      }
+      return -1;
+    }
+    String googlePackage = "com.google";
+    if (s1.startsWith(googlePackage)) {
+      if (s2.startsWith(googlePackage)) {
+        return s1.compareTo(s2);
+      }
+      if (!s2.startsWith(androidPackage)) {
+        return -1;
+      }
+    }
+
+    return s1.compareTo(s2);
   }
 
   @TestOnly
