@@ -872,12 +872,13 @@ public class ConstraintUtilities {
     String relativeEnd = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_GUIDELINE_RELATIVE_END);
     String relativePercent = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_GUIDELINE_RELATIVE_PERCENT);
     if (relativePercent != null && relativePercent.length() > 0) {
+      int value = 0;
       try {
-        int value = getDpValue(component, relativePercent);
-        guideline.setRelativePercent(value);
+        value = Integer.parseInt(relativePercent);
+      } catch (NumberFormatException e) {
+        // ignore
       }
-      catch (NumberFormatException e) {
-      }
+      guideline.setRelativePercent(value);
     }
     else if (relativeBegin != null && relativeBegin.length() > 0) {
       try {
