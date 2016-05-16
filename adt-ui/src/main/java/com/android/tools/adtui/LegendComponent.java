@@ -105,7 +105,9 @@ public class LegendComponent extends AnimatedComponent {
         label.setBounds(0, 0, preferredSize.width, preferredSize.height);
         if (series != null) {
           ReportingSeries.ReportingData report = series.getLatestReportingData();
-          label.setText(String.format("%s: %s", report.label, report.formattedYData));
+          if (report != null) {
+            label.setText(String.format("%s: %s", report.label, report.formattedYData));
+          }
         }
       }
 
