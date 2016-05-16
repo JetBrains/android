@@ -22,7 +22,7 @@ import gnu.trove.TIntArrayList;
  * Axis domain to be used by axis components with only one unit.
  * E.g. Number of threads or usage of CPU (%).
  */
-public abstract class SingleUnitAxisFormatter extends BaseAxisFormatter {
+public class SingleUnitAxisFormatter extends BaseAxisFormatter {
 
   private static final int MULTIPLIER = 1;
 
@@ -32,8 +32,14 @@ public abstract class SingleUnitAxisFormatter extends BaseAxisFormatter {
 
   private static final TIntArrayList BASE_FACTORS = new TIntArrayList(new int[]{1});
 
-  protected SingleUnitAxisFormatter(int maxMinorTicks, int maxMajorTicks, int switchThreshold) {
-    super(maxMinorTicks, maxMajorTicks, switchThreshold);
+  private final int mUnitMinimalInterval;
+
+  private final String mUnit;
+
+  public SingleUnitAxisFormatter(int maxMinorTicks, int maxMajorTicks, int unitMinimalInterval, String unit) {
+    super(maxMinorTicks, maxMajorTicks, 1 /* No larger scale, so we can set anything */);
+    mUnitMinimalInterval = unitMinimalInterval;
+    mUnit = unit;
   }
 
   @Override
@@ -55,5 +61,22 @@ public abstract class SingleUnitAxisFormatter extends BaseAxisFormatter {
   @NonNull
   protected TIntArrayList getUnitBaseFactors(int index) {
     return BASE_FACTORS;
+  }
+
+  @NonNull
+  @Override
+  protected String getUnit(int index) {
+    return mUnit;
+  }
+
+  @Override
+  protected int getUnitMinimalInterval(int index) {
+    return mUnitMinimalInterval;
+  }
+
+  @NonNull
+  @Override
+  public String getFormattedString(double globalRange, double value) {
+    return String.format("%d%s", Math.round(value / getMultiplier()), mUnit);
   }
 }

@@ -18,10 +18,10 @@ package com.android.tools.adtui.visual;
 
 import com.android.annotations.NonNull;
 import com.android.tools.adtui.*;
-import com.android.tools.adtui.common.formatter.PercentageAxisFormatter;
-import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
+import com.android.tools.adtui.common.formatter.SingleUnitAxisFormatter;
+import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 
 import javax.swing.*;
@@ -30,21 +30,59 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.util.*;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class CPUProfilerVisualTest extends VisualTest {
 
   private static final String CPU_PROFILER_NAME = "CPU Profiler";
 
+  private static final String CPU_USAGE_AXIS_LABEL = "CPU";
+
+  private static final String TIME_AXIS_LABEL = "TIME";
+
+  private static final int MY_PROCESS_MAX_VALUE = 60;
+
+  private static final Color MY_PROCESS_LINE_COLOR = new Color(0x85c490);
+
+  private static final String MY_PROCESS_SERIES_LABEL = "My Process";
+
+  private static final int OTHER_PROCESSES_MAX_VALUE = 20;
+
+  private static final Color OTHER_PROCESSES_LINE_COLOR = new Color(0xc9d8e1);
+
+  private static final String OTHER_PROCESSES_SERIES_LABEL = "Other Processes";
+
+  private static final String THREADS_SERIES_LABEL = "Threads";
+
+  private static final Color THREADS_LINE_COLOR = new Color(0x5a9240);
+
   private static final int AXIS_SIZE = 100;
+
+  private static final int THREADS_SLEEP_TIME_MS = 5000;
+
+  private static final int UPDATE_THREAD_SLEEP_DELAY_MS = 10;
+
+  private static final int PROCESSES_LINE_CHART_VARIANCE = 10;
+
+  /**
+   * The active threads should be copied into this array when getThreadGroup().enumerate() is called.
+   * It is initialized with a safe size.
+   */
+  private static final Thread[] ACTIVE_THREADS = new Thread[1000];
 
   private long mStartTimeMs;
 
   private LineChart mLineChart;
 
-  private List<RangedContinuousSeries> mData;
+  /**
+   * Series that represent processes share some properties, so they can grouped in a list.
+   */
+  private List<RangedContinuousSeries> mProcessesSeries;
+
+  private RangedContinuousSeries mNumberOfThreadsSeries;
 
   private AxisComponent mCPUUsageAxis;
+
+  private AxisComponent mThreadsAxis;
 
   private AxisComponent mTimeAxis;
 
@@ -54,6 +92,10 @@ public class CPUProfilerVisualTest extends VisualTest {
 
   private RangeScrollbar mScrollbar;
 
+  private Range mXRange;
+
+  private Range mCPUUsageRange;
+
   /**
    * Max y value of each series.
    */
@@ -61,46 +103,46 @@ public class CPUProfilerVisualTest extends VisualTest {
 
   @Override
   protected List<Animatable> createComponentsList() {
-    mData = new ArrayList<>();
+    mProcessesSeries = new ArrayList<>();
     mLineChart = new LineChart();
 
     mStartTimeMs = System.currentTimeMillis();
-    final Range xRange = new Range(0, 0);
-    final Range xGlobalRange = new Range(0, 0);
+    mXRange = new Range();
+    final Range xGlobalRange = new Range();
     final AnimatedTimeRange animatedTimeRange = new AnimatedTimeRange(xGlobalRange, mStartTimeMs);
-    mScrollbar = new RangeScrollbar(xGlobalRange, xRange);
+    mScrollbar = new RangeScrollbar(xGlobalRange, mXRange);
 
     // add horizontal time axis
-    mTimeAxis = new AxisComponent(xRange, xGlobalRange, "TIME", AxisComponent.AxisOrientation.BOTTOM, AXIS_SIZE, AXIS_SIZE, false,
+    mTimeAxis = new AxisComponent(mXRange, xGlobalRange, TIME_AXIS_LABEL, AxisComponent.AxisOrientation.BOTTOM, AXIS_SIZE, AXIS_SIZE, false,
                                   new TimeAxisFormatter(5, 5, 5));
 
-    Range myProcessYRange = new Range(0, 100);
-    RangedContinuousSeries myProcessSeries = new RangedContinuousSeries("MyProcess", xRange, myProcessYRange);
-    mSeriesMaxValues.put(myProcessSeries, 60);
-    LineConfig myProcessLineConfig = new LineConfig(new Color(0x85c490));
-    myProcessLineConfig.setStacked(true);
-    myProcessLineConfig.setFilled(true);
-    mData.add(myProcessSeries);
-    mLineChart.addLine(myProcessSeries, myProcessLineConfig);
+    mCPUUsageRange = new Range(0, 100);
+    createProcessLine(MY_PROCESS_MAX_VALUE, MY_PROCESS_LINE_COLOR, MY_PROCESS_SERIES_LABEL);
 
-    Range otherProcessesYRange = new Range(0, 100);
-    RangedContinuousSeries otherProcessesSeries = new RangedContinuousSeries("OtherProcess", xRange, otherProcessesYRange);
-    mSeriesMaxValues.put(otherProcessesSeries, 20);
-    LineConfig otherProcessesLineConfig = new LineConfig(new Color(0xc9d8e1));
-    otherProcessesLineConfig.setStacked(true);
-    otherProcessesLineConfig.setFilled(true);
-    mData.add(otherProcessesSeries);
-    mLineChart.addLine(otherProcessesSeries, otherProcessesLineConfig);
+    //Range otherProcessesYRange = new Range(0, 100);
+    createProcessLine(OTHER_PROCESSES_MAX_VALUE, OTHER_PROCESSES_LINE_COLOR, OTHER_PROCESSES_SERIES_LABEL);
 
-    mCPUUsageAxis = new AxisComponent(myProcessYRange, myProcessYRange, "CPU", AxisComponent.AxisOrientation.LEFT, AXIS_SIZE, AXIS_SIZE,
-                                      true, PercentageAxisFormatter.getDefault());
+    int maxNumberOfThreads = Runtime.getRuntime().availableProcessors();
+    Range numThreadsYRange = new Range(0, maxNumberOfThreads + 1 /* Using +1 to get some extra space. */);
+    mNumberOfThreadsSeries = new RangedContinuousSeries(THREADS_SERIES_LABEL, mXRange, numThreadsYRange);
+    mSeriesMaxValues.put(mNumberOfThreadsSeries, maxNumberOfThreads);
+    LineConfig numberOfThreadsLineConfig = new LineConfig(THREADS_LINE_COLOR);
+    numberOfThreadsLineConfig.setStepped(true);
+    numberOfThreadsLineConfig.setDashed(true);
+    mLineChart.addLine(mNumberOfThreadsSeries, numberOfThreadsLineConfig);
+
+    mCPUUsageAxis = new AxisComponent(mCPUUsageRange, mCPUUsageRange, CPU_USAGE_AXIS_LABEL, AxisComponent.AxisOrientation.LEFT, AXIS_SIZE,
+                                      AXIS_SIZE, true, new SingleUnitAxisFormatter(10, 10, 10, "%"));
+    mThreadsAxis = new AxisComponent(numThreadsYRange, numThreadsYRange, THREADS_SERIES_LABEL, AxisComponent.AxisOrientation.RIGHT,
+                                     AXIS_SIZE, AXIS_SIZE, true, new SingleUnitAxisFormatter(1, maxNumberOfThreads, 1, ""));
 
     mGrid = new GridComponent();
     mGrid.addAxis(mTimeAxis);
     mGrid.addAxis(mCPUUsageAxis);
+    mGrid.addAxis(mThreadsAxis);
 
-    final Range xSelectionRange = new Range(0, 0);
-    mSelection = new SelectionComponent(mLineChart, mTimeAxis, xSelectionRange, xGlobalRange, xRange);
+    final Range xSelectionRange = new Range();
+    mSelection = new SelectionComponent(mLineChart, mTimeAxis, xSelectionRange, xGlobalRange, mXRange);
 
     // Note: the order below is important as some components depend on
     // others to be updated first. e.g. the ranges need to be updated before the axes.
@@ -109,12 +151,13 @@ public class CPUProfilerVisualTest extends VisualTest {
                          mSelection, // Update selection range immediate.
                          mScrollbar, // Update current range immediate.
                          mLineChart, // Set y's interpolation values.
-                         myProcessYRange, // Interpolate y1.
-                         otherProcessesYRange, // Interpolate y2.
+                         mCPUUsageRange, // Interpolate CPUUsage y.
+                         numThreadsYRange, // Interpolate numThreads y.
                          mTimeAxis, // Read ranges.
                          mCPUUsageAxis, // Read ranges.
+                         mThreadsAxis, // Read ranges.
                          mGrid, // No-op.
-                         xRange, // Reset flags.
+                         mXRange, // Reset flags.
                          xGlobalRange, // Reset flags.
                          xSelectionRange); // Reset flags.
   }
@@ -125,6 +168,7 @@ public class CPUProfilerVisualTest extends VisualTest {
     components.add(mSelection);
     components.add(mTimeAxis);
     components.add(mCPUUsageAxis);
+    components.add(mThreadsAxis);
     components.add(mGrid);
   }
 
@@ -141,34 +185,55 @@ public class CPUProfilerVisualTest extends VisualTest {
     panel.add(mockTimelinePane, BorderLayout.CENTER);
 
     final JPanel controls = new JPanel();
+    final JButton addThreadButton = VisualTests.createButton("Add Thread");
     LayoutManager manager = new BoxLayout(controls, BoxLayout.Y_AXIS);
     controls.setLayout(manager);
+    controls.add(addThreadButton);
     panel.add(controls, BorderLayout.WEST);
 
-    final AtomicInteger variance = new AtomicInteger(10);
-    final AtomicInteger delay = new AtomicInteger(10);
     mUpdateDataThread = new Thread() {
       @Override
       public void run() {
-        super.run();
         try {
+          // Add a thread and let and terminate it after a few seconds.
+          addThreadButton.addActionListener(e -> {
+            Thread t = new Thread(mUpdateDataThread.getThreadGroup(), () -> {
+              try {
+                sleep(THREADS_SLEEP_TIME_MS);
+              }
+              catch (InterruptedException e1) {
+                // Nothing to to here.
+              }
+            });
+
+            t.start();
+          });
           while (true) {
             //  Insert new data point at now.
             long now = System.currentTimeMillis() - mStartTimeMs;
-            int v = variance.get();
-            for (RangedContinuousSeries rangedSeries : mData) {
+            for (RangedContinuousSeries rangedSeries : mProcessesSeries) {
               int size = rangedSeries.getSeries().size();
               long last = size > 0 ? rangedSeries.getSeries().getY(size - 1) : 0;
               // Difference between current and new values is going to be variance times a number in the interval [-0.5, 0.5)
-              float delta = v * ((float) Math.random() - 0.5f);
+              float delta = PROCESSES_LINE_CHART_VARIANCE * ((float) Math.random() - 0.5f);
               long current = last + (long) delta;
-              int seriesMax = mSeriesMaxValues.containsKey(rangedSeries) ? mSeriesMaxValues.get(rangedSeries) : 50;
-
-              current = Math.min(seriesMax, Math.max(current, 0));
+              assert mSeriesMaxValues.containsKey(rangedSeries);
+              current = Math.min(mSeriesMaxValues.get(rangedSeries), Math.max(current, 0));
               rangedSeries.getSeries().add(now, current);
             }
 
-            Thread.sleep(delay.get());
+            // Copy active threads into ACTIVE_THREADS array
+            int numActiveThreads = getThreadGroup().enumerate(ACTIVE_THREADS);
+            int targetThreads = 0;
+            for (int i = 0; i < numActiveThreads; i++) {
+              // We're only interested in threads that are alive
+              if (ACTIVE_THREADS[i].isAlive()) {
+                targetThreads++;
+              }
+            }
+            mNumberOfThreadsSeries.getSeries().add(now, targetThreads);
+
+            Thread.sleep(UPDATE_THREAD_SLEEP_DELAY_MS);
           }
         } catch (InterruptedException e) {
         }
@@ -181,6 +246,7 @@ public class CPUProfilerVisualTest extends VisualTest {
     JLayeredPane timelinePane = new JLayeredPane();
 
     timelinePane.add(mCPUUsageAxis);
+    timelinePane.add(mThreadsAxis);
     timelinePane.add(mTimeAxis);
     timelinePane.add(mLineChart);
     timelinePane.add(mSelection);
@@ -222,5 +288,18 @@ public class CPUProfilerVisualTest extends VisualTest {
     });
 
     return timelinePane;
+  }
+
+  /**
+   * Given a series, add a filled, stacked line to a line chart to represent the data.
+   */
+  private void createProcessLine(int maxSeriesValue, Color lineColor, String seriesLabel) {
+    RangedContinuousSeries series = new RangedContinuousSeries(seriesLabel, mXRange, mCPUUsageRange);
+    mSeriesMaxValues.put(series, maxSeriesValue);
+    LineConfig lineConfig = new LineConfig(lineColor);
+    lineConfig.setStacked(true);
+    lineConfig.setFilled(true);
+    mProcessesSeries.add(series);
+    mLineChart.addLine(series, lineConfig);
   }
 }
