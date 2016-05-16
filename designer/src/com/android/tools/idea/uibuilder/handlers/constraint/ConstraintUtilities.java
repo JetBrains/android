@@ -638,7 +638,7 @@ public class ConstraintUtilities {
       }
     }
     if (componentFound != null) {
-      ConstraintWidget widget = widgetsScene.getWidget(componentFound.getTag());
+      ConstraintWidget widget = widgetsScene.getWidget(componentFound);
       if (widgetSrc != null && widget != null) {
         int connectionCreator = 0;
         WidgetCompanion companion = (WidgetCompanion)widgetSrc.getCompanionWidget();
@@ -728,7 +728,7 @@ public class ConstraintUtilities {
     NlComponent parent = component.getParent();
     NlModel model = component.getModel();
     if (parent != null) {
-      ConstraintWidget parentWidget = scene.getWidget(parent.getTag());
+      ConstraintWidget parentWidget = scene.getWidget(parent);
       if (parentWidget instanceof WidgetContainer) {
         WidgetContainer parentContainerWidget = (WidgetContainer)parentWidget;
         if (widget.getParent() != parentContainerWidget) {
