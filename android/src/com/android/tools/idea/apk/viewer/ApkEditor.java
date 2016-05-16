@@ -18,14 +18,18 @@ package com.android.tools.idea.apk.viewer;
 import com.android.SdkConstants;
 import com.android.tools.idea.apk.viewer.arsc.ArscViewer;
 import com.android.tools.idea.apk.viewer.dex.DexFileViewer;
+import com.android.tools.idea.apk.viewer.diff.ApkDiffPanel;
+import com.android.tools.idea.apk.viewer.diff.ApkDiffParser;
 import com.android.tools.idea.editors.NinePatchEditorProvider;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
+import com.intellij.openapi.fileChooser.FileChooser;
+import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileEditor.*;
 import com.intellij.openapi.fileEditor.ex.FileEditorProviderManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.DialogBuilder;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.JBSplitter;
@@ -70,10 +74,31 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
       Disposer.dispose(myCurrentEditor);
     }
 
-    VirtualFile file = entry == null ? null : entry.file;
+    VirtualFile file = entry == null ? null : entry.getFile();
 
     myCurrentEditor = getEditor(file);
     mySplitter.setSecondComponent(myCurrentEditor.getComponent());
+  }
+
+  @Override
+  public void selectApkAndCompare() {
+    FileChooserDescriptor desc = new FileChooserDescriptor(true, false, false, false, false, false);
+    desc.withFileFilter(file -> SdkConstants.EXT_ANDROID_PACKAGE.equals(file.getExtension()));
+    VirtualFile file = FileChooser.chooseFile(desc, myProject, null);
+    if(file == null) {
+      // user canceled
+      return;
+    }
+    VirtualFile newApk = ApkFileSystem.getInstance().getRootByLocal(file);
+    assert newApk != null;
+
+    DialogBuilder builder = new DialogBuilder(myProject);
+    builder.setTitle(myRoot.getName() + " vs " + newApk.getName());
+    ApkDiffParser parser = new ApkDiffParser(myRoot, newApk);
+    ApkDiffPanel panel = new ApkDiffPanel(parser);
+    builder.setCenterPanel(panel.getContainer());
+    builder.setPreferredFocusComponent(panel.getPreferredFocusedComponent());
+    builder.show();
   }
 
   @NotNull

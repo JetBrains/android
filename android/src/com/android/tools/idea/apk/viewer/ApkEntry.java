@@ -21,21 +21,10 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 
-final class ApkEntry {
-  public final VirtualFile file;
-  @Nullable private final String originalName; // original name if different from file.getName()
-  public final long size;
-
-  private long myCompressedSize = -1;
-
-  ApkEntry(@NotNull VirtualFile file, @Nullable String originalName, long size) {
-    this.file = file;
-    this.originalName = originalName;
-    this.size = size;
-  }
+public interface ApkEntry {
 
   @Nullable
-  public static ApkEntry fromNode(@Nullable Object value) {
+  static ApkEntry fromNode(@Nullable Object value) {
     if (!(value instanceof DefaultMutableTreeNode)) {
       return null;
     }
@@ -49,20 +38,20 @@ final class ApkEntry {
     return (ApkEntry)userObject;
   }
 
-  public boolean isCompressedSizeKnown() {
-    return myCompressedSize >= 0;
-  }
+  boolean isCompressedSizeKnown();
 
-  public long getCompressedSize() {
-    return myCompressedSize;
-  }
+  long getCompressedSize();
 
-  public void setCompressedSize(long compressedSize) {
-    myCompressedSize = compressedSize;
-  }
+  void setCompressedSize(long compressedSize);
 
   @NotNull
-  public String getName() {
-    return originalName != null ? originalName : file.getName();
-  }
+  String getName();
+
+  @NotNull
+  VirtualFile getFile();
+
+  @NotNull
+  String getPath();
+
+  long getSize();
 }

@@ -27,6 +27,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.*;
 import com.intellij.ui.treeStructure.Tree;
+import com.intellij.util.Function;
 import com.intellij.util.ui.AnimatedIcon;
 import com.intellij.util.ui.AsyncProcessIcon;
 import icons.AndroidIcons;
@@ -50,6 +51,7 @@ public class ApkViewPanel implements TreeSelectionListener {
   private SimpleColoredComponent mySizeComponent;
   private AnimatedIcon myNameAsyncIcon;
   private AnimatedIcon mySizeAsyncIcon;
+  private JButton myCompareWithButton;
   private Tree myTree;
 
   private DefaultTreeModel myTreeModel;
@@ -57,6 +59,8 @@ public class ApkViewPanel implements TreeSelectionListener {
 
   public interface Listener {
     void selectionChanged(@Nullable ApkEntry entry);
+
+    void selectApkAndCompare();
   }
 
   public ApkViewPanel(@NotNull ApkParser apkParser) {
@@ -82,6 +86,12 @@ public class ApkViewPanel implements TreeSelectionListener {
 
     mySizeComponent.setToolTipText(AndroidBundle.message("apk.viewer.size.types.tooltip"));
     myContainer.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
+
+    myCompareWithButton.addActionListener(e -> {
+      if(myListener != null) {
+        myListener.selectApkAndCompare();
+      }
+    });
 
     // identify and set the application name and version
     myNameAsyncIcon.setVisible(true);
@@ -123,7 +133,7 @@ public class ApkViewPanel implements TreeSelectionListener {
         return null;
       }
 
-      return e.file.getPath();
+      return e.getPath();
     }, true);
 
     // Provides the percentage of the node size to the total size of the APK
@@ -237,34 +247,38 @@ public class ApkViewPanel implements TreeSelectionListener {
     }
   }
 
-  private static String getHumanizedSize(long sizeInBytes) {
+  public static String getHumanizedSize(long sizeInBytes) {
     long kilo = 1024;
     long mega = kilo * kilo;
 
     DecimalFormat formatter = new DecimalFormat("#.#");
 
+    int sign = sizeInBytes < 0 ? -1 : 1;
+
+    sizeInBytes = Math.abs(sizeInBytes);
+
     if (sizeInBytes > mega) {
-      return formatter.format((double)sizeInBytes / mega) + " MB";
+      return formatter.format((sign * sizeInBytes) / (double) mega) + " MB";
     }
     else if (sizeInBytes > kilo) {
-      return formatter.format((double)sizeInBytes / kilo) + " KB";
+      return formatter.format((sign * sizeInBytes) / (double) kilo) + " KB";
     }
     else {
-      return sizeInBytes + " B";
+      return (sign * sizeInBytes) + " B";
     }
   }
 
-  private static class FutureCallBackAdapter<V> implements FutureCallback<V> {
+  public static class FutureCallBackAdapter<V> implements FutureCallback<V> {
     @Override
     public void onSuccess(V result) {
     }
 
     @Override
-    public void onFailure(Throwable t) {
+    public void onFailure(@NotNull Throwable t) {
     }
   }
 
-  private static class NameRenderer extends ColoredTreeCellRenderer {
+  public static class NameRenderer extends ColoredTreeCellRenderer {
     private final TreeSpeedSearch mySpeedSearch;
 
     public NameRenderer(@NotNull TreeSpeedSearch speedSearch) {
@@ -287,7 +301,7 @@ public class ApkViewPanel implements TreeSelectionListener {
         return;
       }
 
-      VirtualFile file = entry.file;
+      VirtualFile file = entry.getFile();
       setIcon(getIconFor(file));
 
       SimpleTextAttributes attr = SimpleTextAttributes.REGULAR_ATTRIBUTES;
@@ -318,11 +332,28 @@ public class ApkViewPanel implements TreeSelectionListener {
     }
   }
 
-  private static class SizeRenderer extends ColoredTreeCellRenderer {
-    private final boolean myUseCompressedSize;
+  public static class SizeRenderer extends ColoredTreeCellRenderer {
+    private Function<ApkEntry, Long> mySizeMapper;
 
     public SizeRenderer(boolean useCompressedSize) {
-      myUseCompressedSize = useCompressedSize;
+      this(entry -> {
+        if (useCompressedSize) {
+          if (entry.isCompressedSizeKnown()) {
+            return entry.getCompressedSize();
+          }
+          else {
+            return 0L;
+          }
+        }
+        else {
+          return entry.getSize();
+        }
+      });
+    }
+
+
+    public SizeRenderer(Function<ApkEntry, Long> sizeMapper) {
+      mySizeMapper = sizeMapper;
     }
 
     @Override
@@ -342,14 +373,7 @@ public class ApkViewPanel implements TreeSelectionListener {
 
       setTextAlign(SwingConstants.RIGHT);
 
-      if (myUseCompressedSize) {
-        if (entry.isCompressedSizeKnown()) {
-          append(getHumanizedSize(entry.getCompressedSize()));
-        }
-      }
-      else {
-        append(getHumanizedSize(entry.size));
-      }
+      append(getHumanizedSize(mySizeMapper.fun(entry)));
     }
   }
 }
