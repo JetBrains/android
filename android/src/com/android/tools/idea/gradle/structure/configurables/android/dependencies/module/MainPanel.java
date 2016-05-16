@@ -61,14 +61,12 @@ class MainPanel extends AbstractMainDependenciesPanel {
 
     myResolvedDependenciesPanel.add(myDeclaredDependenciesPanel::setSelection);
 
-    myAltPanel = new JPanel(new BorderLayout());
-
-    ToolWindowHeader header = myResolvedDependenciesPanel.getHeader();
-
     JPanel minimizedContainerPanel = myResolvedDependenciesPanel.getMinimizedPanel();
     assert minimizedContainerPanel != null;
+    myAltPanel = new JPanel(new BorderLayout());
     myAltPanel.add(minimizedContainerPanel, BorderLayout.EAST);
 
+    ToolWindowHeader header = myResolvedDependenciesPanel.getHeader();
     header.addMinimizeListener(this::minimizeResolvedDependenciesPanel);
 
     myResolvedDependenciesPanel.addRestoreListener(this::restoreResolvedDependenciesPanel);
