@@ -20,13 +20,12 @@ import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
-import com.android.tools.idea.uibuilder.property.editors.*;
+import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
+import com.android.tools.idea.uibuilder.property.editors.NlPropertyEditors;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.project.Project;
 import icons.AndroidIcons;
-import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,7 +33,6 @@ import javax.swing.*;
 import java.util.*;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.idea.uibuilder.property.editors.NlEditingListener.DEFAULT_LISTENER;
 
 public class ViewInspectorProvider implements InspectorProvider {
   private static final Set<String> TAG_EXCEPTIONS = ImmutableSet.of(TEXT_VIEW, PROGRESS_BAR);
@@ -103,7 +101,7 @@ public class ViewInspectorProvider implements InspectorProvider {
       for (String propertyName : propertyNames) {
         NlProperty property = properties.get(propertyName);
         if (property != null) {
-          myEditors.put(propertyName, createEditor(property));
+          myEditors.put(propertyName, NlPropertyEditors.create(property));
         }
       }
     }
@@ -114,7 +112,7 @@ public class ViewInspectorProvider implements InspectorProvider {
       for (String propertyName : myPropertyNames) {
         NlProperty property = properties.get(propertyName);
         if (property != null && !myEditors.containsKey(propertyName)) {
-          myEditors.put(propertyName, createEditor(property));
+          myEditors.put(propertyName, NlPropertyEditors.create(property));
         }
       }
     }
@@ -152,44 +150,6 @@ public class ViewInspectorProvider implements InspectorProvider {
     @Override
     public NlComponentEditor getEditorForProperty(@NotNull String propertyName) {
       return myEditors.get(propertyName);
-    }
-
-    @NotNull
-    private static NlComponentEditor createEditor(@NotNull NlProperty property) {
-      AttributeDefinition definition = property.getDefinition();
-      Set<AttributeFormat> formats = definition != null ? definition.getFormats() : Collections.emptySet();
-      Boolean isBoolean = null;
-      for (AttributeFormat format : formats) {
-        switch (format) {
-          case Boolean:
-            if (isBoolean == null) {
-              isBoolean = Boolean.TRUE;
-            }
-            break;
-          case String:
-          case Color:
-          case Dimension:
-          case Integer:
-          case Float:
-          case Fraction:
-            if (isBoolean == null) {
-              isBoolean = Boolean.FALSE;
-            }
-            break;
-          case Enum:
-            return NlEnumEditor.createForInspector(NlEnumEditor.getDefaultListener());
-          case Flag:
-            return NlFlagsEditor.create();
-          default:
-            break;
-        }
-      }
-      if (isBoolean == Boolean.TRUE) {
-        return NlBooleanEditor.createForInspector(DEFAULT_LISTENER);
-      }
-      else {
-        return NlReferenceEditor.createForInspectorWithBrowseButton(property.getModel().getProject(), DEFAULT_LISTENER);
-      }
     }
 
     @NotNull
