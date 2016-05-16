@@ -95,12 +95,7 @@ public abstract class AndroidDebuggerImplBase<S extends AndroidDebuggerState> im
   }
 
   @Override
-  public boolean supportsPluginGeneration(int generation) {
-    return true;
-  }
-
-  @Override
-  public boolean shouldBeDefault(int generation) {
+  public boolean shouldBeDefault() {
     return false;
   }
 
