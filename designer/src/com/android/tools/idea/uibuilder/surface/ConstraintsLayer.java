@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder.surface;
 
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
-import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import org.jetbrains.annotations.NotNull;
@@ -84,8 +83,7 @@ public class ConstraintsLayer extends Layer {
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
 
     // Draw the components
-    ViewHandlerManager viewHandlerManager = ViewHandlerManager.get(myModel.getFacet());
-    if (drawComponent(g, component, viewHandlerManager)) {
+    if (drawComponent(g, component)) {
       Dimension size = myScreenView.getSize();
       if (size.width != 0 && size.height != 0) {
         myDesignSurface.repaint(myScreenView.getX(), myScreenView.getY(), size.width, size.height);
@@ -102,23 +100,15 @@ public class ConstraintsLayer extends Layer {
    *
    * @param gc the graphics context
    * @param component the component we want to draw
-   * @param viewHandlerManager the view handler
    *
    * @return true if the component needs a repaint (for example when running an application)
    */
-  private boolean drawComponent(@NotNull Graphics2D gc, @NotNull NlComponent component,
-                                @NotNull ViewHandlerManager viewHandlerManager) {
+  private boolean drawComponent(@NotNull Graphics2D gc, @NotNull NlComponent component) {
     if (component.viewInfo == null) {
       return false;
     }
 
-    String className = component.viewInfo.getClassName();
-    ViewHandler handler = viewHandlerManager.getHandler(className);
-
-    className = className.substring(className.lastIndexOf('.') + 1);
-    if (handler == null) {
-      handler = viewHandlerManager.getHandler(className);
-    }
+    ViewHandler handler = component.getViewHandler();
 
     // Check if the view handler handles the painting
     if (handler != null && handler instanceof ViewGroupHandler) {
@@ -137,7 +127,7 @@ public class ConstraintsLayer extends Layer {
     boolean needsRepaint = false;
     // Draw the children of the component...
     for (NlComponent child : component.getChildren()) {
-      needsRepaint |= drawComponent(gc, child, viewHandlerManager);
+      needsRepaint |= drawComponent(gc, child);
     }
     return needsRepaint;
   }
