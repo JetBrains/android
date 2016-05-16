@@ -207,7 +207,7 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
     }
 
     final List<UsageInfo> usages = new ArrayList<>();
-    inferrer.collect(usages);
+    inferrer.collect(usages, scope);
     return usages.toArray(new UsageInfo[usages.size()]);
   }
 

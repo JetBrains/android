@@ -16,6 +16,7 @@
 package com.android.tools.idea.actions.annotations;
 
 import com.google.common.collect.Lists;
+import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeInsight.CodeInsightTestCase;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.util.Comparing;
@@ -27,6 +28,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.usageView.UsageInfo;
 import org.jetbrains.android.AndroidTestBase;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class InferSupportAnnotationsTest extends CodeInsightTestCase {
@@ -139,8 +141,10 @@ public class InferSupportAnnotationsTest extends CodeInsightTestCase {
     }
 
     InferSupportAnnotations inference = new InferSupportAnnotations(annotateLocalVariables, getProject());
+    AnalysisScope scope;
     if (files.length > 0) {
       configureByFiles(null, files);
+      scope = new AnalysisScope(getProject(), Arrays.asList(files));
 
       for (int i = 0; i < InferSupportAnnotationsAction.MAX_PASSES; i++) {
         for (VirtualFile virtualFile : files) {
@@ -152,11 +156,12 @@ public class InferSupportAnnotationsTest extends CodeInsightTestCase {
     } else {
       configureByFile(INFER_PATH + "before" + getTestName(false) + ".java");
       inference.collect(getFile());
+      scope = new AnalysisScope(getFile());
     }
 
     if (summary != null) {
       List<UsageInfo> infos = Lists.newArrayList();
-      inference.collect(infos);
+      inference.collect(infos, scope);
       String s = InferSupportAnnotations.generateReport(infos.toArray(UsageInfo.EMPTY_ARRAY));
       s = StringUtil.trimStart(s, "INFER SUPPORT ANNOTATIONS REPORT\n" +
                                   "================================\n" +
