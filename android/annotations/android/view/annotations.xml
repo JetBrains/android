@@ -389,6 +389,48 @@
   <item name="android.view.View void setOnLongClickListener(android.view.View.OnLongClickListener) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.view.View void setElevation(float) 0">
+    <annotation name="android.support.annotation.Px" />
+  </item>
+  <item name="android.view.View void setLeft(int) 0">
+    <annotation name="android.support.annotation.Px" />
+  </item>
+  <item name="android.view.View void setPadding(int, int, int, int) 0">
+    <annotation name="android.support.annotation.Px" />
+  </item>
+  <item name="android.view.View void setPadding(int, int, int, int) 1">
+    <annotation name="android.support.annotation.Px" />
+  </item>
+  <item name="android.view.View void setPadding(int, int, int, int) 2">
+    <annotation name="android.support.annotation.Px" />
+  </item>
+  <item name="android.view.View void setPadding(int, int, int, int) 3">
+    <annotation name="android.support.annotation.Px" />
+  </item>
+  <item name="android.view.View void setPaddingRelative(int, int, int, int) 0">
+    <annotation name="android.support.annotation.Px" />
+  </item>
+  <item name="android.view.View void setPaddingRelative(int, int, int, int) 1">
+    <annotation name="android.support.annotation.Px" />
+  </item>
+  <item name="android.view.View void setPaddingRelative(int, int, int, int) 2">
+    <annotation name="android.support.annotation.Px" />
+  </item>
+  <item name="android.view.View void setPaddingRelative(int, int, int, int) 3">
+    <annotation name="android.support.annotation.Px" />
+  </item>
+  <item name="android.view.View void setRight(int) 0">
+    <annotation name="android.support.annotation.Px" />
+  </item>
+  <item name="android.view.View void setX(float) 0">
+    <annotation name="android.support.annotation.Px" />
+  </item>
+  <item name="android.view.View void setY(float) 0">
+    <annotation name="android.support.annotation.Px" />
+  </item>
+  <item name="android.view.View void setZ(float) 0">
+    <annotation name="android.support.annotation.Px" />
+  </item>
   <item name="android.view.View void setScrollBarStyle(int) 0">
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.view.View.SCROLLBARS_INSIDE_OVERLAY, android.view.View.SCROLLBARS_INSIDE_INSET, android.view.View.SCROLLBARS_OUTSIDE_OVERLAY, android.view.View.SCROLLBARS_OUTSIDE_INSET}" />
