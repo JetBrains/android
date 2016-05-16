@@ -27,19 +27,26 @@ import static com.android.ide.common.repository.SdkMavenRepository.ANDROID;
 import static com.android.ide.common.repository.SdkMavenRepository.GOOGLE;
 
 public final class AndroidSdkRepositories {
+  public static final String ANDROID_REPOSITORY_NAME = "Android Repository";
+  public static final String GOOGLE_REPOSITORY_NAME = "Google Repository";
+
   private AndroidSdkRepositories() {
   }
 
   @Nullable
   public static ArtifactRepository getAndroidRepository() {
-    File location = getRepositoryLocation(ANDROID);
-    return location != null ? new LocalMavenRepository(location, "Android Repository") : null;
+    return getMavenRepository(ANDROID, ANDROID_REPOSITORY_NAME);
   }
 
   @Nullable
   public static ArtifactRepository getGoogleRepository() {
-    File location = getRepositoryLocation(GOOGLE);
-    return location != null ? new LocalMavenRepository(location, "Google Repository") : null;
+    return getMavenRepository(GOOGLE, GOOGLE_REPOSITORY_NAME);
+  }
+
+  @Nullable
+  private static ArtifactRepository getMavenRepository(@NotNull SdkMavenRepository repository, @NotNull String name) {
+    File location = getRepositoryLocation(repository);
+    return location != null ? new LocalMavenRepository(location, name) : null;
   }
 
   @Nullable
