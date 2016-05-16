@@ -270,7 +270,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
         myWidgetsScene.removeWidget(myDragDropWidget);
         WidgetCompanion companion = (WidgetCompanion)myDragDropWidget.getCompanionWidget();
         companion.setWidgetModel(component);
-        companion.setWidgetTag(component.getTag());
+        companion.setWidgetTag(component);
       }
     } else {
       removeDragComponent();
@@ -364,7 +364,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
     }
     mySelection.silentClear();
     for (NlComponent component : model.getSelection()) {
-      ConstraintWidget widget = myWidgetsScene.getWidget(component.getTag());
+      ConstraintWidget widget = myWidgetsScene.getWidget(component);
       if (widget != null && !widget.isRoot()) {
         mySelection.silentAdd(widget);
       }
@@ -540,7 +540,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
    * @param widgets   a list of widgets to remove from the scene
    */
   private void findComponent(@NotNull NlComponent component, @NotNull ArrayList<ConstraintWidget> widgets) {
-    ConstraintWidget widget = myWidgetsScene.getWidget(component.getTag());
+    ConstraintWidget widget = myWidgetsScene.getWidget(component);
     if (widget != null) {
       widgets.remove(widget);
     }
@@ -557,7 +557,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
    * @param component the component we want to represent
    */
   private void createSolverWidgetFromComponent(@NotNull NlComponent component) {
-    ConstraintWidget widget = myWidgetsScene.getWidget(component.getTag());
+    ConstraintWidget widget = myWidgetsScene.getWidget(component);
     if (widget != null && component.getTagName().equalsIgnoreCase(SdkConstants.CONSTRAINT_LAYOUT)) {
       if (!(widget instanceof ConstraintWidgetContainer)) {
         if (widget instanceof WidgetContainer) {
@@ -632,7 +632,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
     companion.addDecorator(androidDecorator);
     companion.setWidgetInteractionTargets(new WidgetInteractionTargets(widget));
     companion.setWidgetModel(component);
-    companion.setWidgetTag(component.getTag());
+    companion.setWidgetTag(component);
     widget.setCompanionWidget(companion);
     widget.setDebugName(component.getId());
   }
@@ -683,7 +683,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
    * @param deepUpdate do a thorough update or not
    */
   private void updateSolverWidgetFromComponent(@NotNull NlComponent component, boolean deepUpdate) {
-    ConstraintWidget widget = myWidgetsScene.getWidget(component.getTag());
+    ConstraintWidget widget = myWidgetsScene.getWidget(component);
     if (USE_GUIDELINES_DURING_DND) {
       if (myDragDropWidget != null) {
         // If we have a drag and drop widget candidate, let's not update from the NlComponent just yet
