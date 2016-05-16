@@ -15,24 +15,12 @@
  */
 package com.android.tools.idea.gradle.structure.model;
 
-import com.google.common.collect.ImmutableCollection;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public interface PsLibraryDependency extends PsBaseDependency {
+public interface PsBaseDependency {
   @NotNull
-  PsModule getParent();
-
-  @Nullable
-  PsArtifactDependencySpec getDeclaredSpec();
+  String toText(@NotNull PsDependency.TextType type);
 
   @NotNull
-  PsArtifactDependencySpec getResolvedSpec();
-
-  boolean hasPromotedVersion();
-
-  @NotNull
-  ImmutableCollection<PsDependency> getTransitiveDependencies();
-
-  void setVersion(@NotNull String version);
+  String getJoinedConfigurationNames();
 }

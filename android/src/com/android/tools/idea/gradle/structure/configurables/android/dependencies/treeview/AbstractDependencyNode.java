@@ -17,9 +17,10 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsNode;
+import com.android.tools.idea.gradle.structure.model.PsDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidLibraryDependency;
-import com.android.tools.idea.gradle.structure.model.android.PsModuleDependency;
+import com.android.tools.idea.gradle.structure.model.android.PsLibraryAndroidDependency;
+import com.android.tools.idea.gradle.structure.model.android.PsModuleAndroidDependency;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,13 +28,13 @@ import java.util.List;
 
 public abstract class AbstractDependencyNode<T extends PsAndroidDependency> extends AbstractPsModelNode<T> {
   @Nullable
-  public static AbstractDependencyNode<?> createNode(@NotNull AbstractPsNode parent, @NotNull PsAndroidDependency dependency) {
-    if (dependency instanceof PsAndroidLibraryDependency) {
-      PsAndroidLibraryDependency libraryDependency = (PsAndroidLibraryDependency)dependency;
+  public static AbstractDependencyNode<?> createNode(@NotNull AbstractPsNode parent, @NotNull PsDependency dependency) {
+    if (dependency instanceof PsLibraryAndroidDependency) {
+      PsLibraryAndroidDependency libraryDependency = (PsLibraryAndroidDependency)dependency;
       return new LibraryDependencyNode(parent, libraryDependency);
     }
-    else if (dependency instanceof PsModuleDependency) {
-      PsModuleDependency moduleDependency = (PsModuleDependency)dependency;
+    else if (dependency instanceof PsModuleAndroidDependency) {
+      PsModuleAndroidDependency moduleDependency = (PsModuleAndroidDependency)dependency;
       return new ModuleDependencyNode(parent, moduleDependency);
     }
     return null;

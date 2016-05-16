@@ -100,17 +100,17 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
     getOrCreateDependencyCollection().forEach(consumer);
   }
 
-  public void forEachModuleDependency(@NotNull Consumer<PsModuleDependency> consumer) {
+  public void forEachModuleDependency(@NotNull Consumer<PsModuleAndroidDependency> consumer) {
     getOrCreateDependencyCollection().forEachModuleDependency(consumer);
   }
 
   @Nullable
-  public PsAndroidLibraryDependency findLibraryDependency(@NotNull String compactNotation) {
-    return getOrCreateDependencyCollection().findElement(compactNotation, PsAndroidLibraryDependency.class);
+  public PsLibraryAndroidDependency findLibraryDependency(@NotNull String compactNotation) {
+    return getOrCreateDependencyCollection().findElement(compactNotation, PsLibraryAndroidDependency.class);
   }
 
   @Nullable
-  public PsAndroidLibraryDependency findLibraryDependency(@NotNull PsArtifactDependencySpec spec) {
+  public PsLibraryAndroidDependency findLibraryDependency(@NotNull PsArtifactDependencySpec spec) {
     return getOrCreateDependencyCollection().findElement(spec);
   }
 
