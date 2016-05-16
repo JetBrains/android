@@ -22,7 +22,10 @@ import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collections;
 import java.util.Set;
+
+import static com.android.tools.idea.uibuilder.property.editors.NlEditingListener.DEFAULT_LISTENER;
 
 public class NlPropertyEditors {
   private static NlBooleanTableCellEditor ourBooleanEditor;
@@ -30,28 +33,70 @@ public class NlPropertyEditors {
   private static NlEnumTableCellEditor ourComboEditor;
   private static NlReferenceTableCellEditor ourDefaultEditor;
 
-  public static PTableCellEditor get(@NotNull NlProperty property) {
+  public enum EditorType {DEFAULT, BOOLEAN, FLAG, COMBO}
+
+  @NotNull
+  public static EditorType getEditorType(@NotNull NlProperty property) {
     AttributeDefinition definition = property.getDefinition();
-    if (definition == null) {
-      // TODO: default to text editor
-      return null;
+    Set<AttributeFormat> formats = definition != null ? definition.getFormats() : Collections.emptySet();
+    Boolean isBoolean = null;
+    for (AttributeFormat format : formats) {
+      switch (format) {
+        case Boolean:
+          if (isBoolean == null) {
+            isBoolean = Boolean.TRUE;
+          }
+          break;
+        case String:
+        case Color:
+        case Dimension:
+        case Integer:
+        case Float:
+        case Fraction:
+          if (isBoolean == null) {
+            isBoolean = Boolean.FALSE;
+          }
+          break;
+        case Enum:
+          return EditorType.COMBO;
+        case Flag:
+          return EditorType.FLAG;
+        default:
+          break;
+      }
     }
-
-    Set<AttributeFormat> formats = definition.getFormats();
-    if (formats.isEmpty()) {
-      // either we don't know the format or we support multiple formats
-      // TODO: default to text editor
-      return null;
+    if (isBoolean == Boolean.TRUE) {
+      return EditorType.BOOLEAN;
     }
-
-    // TODO: there can be more than one format, we need to make this more customizable
-    if (formats.contains(AttributeFormat.Boolean)) {
-      return getBooleanEditor();
-    } else if (formats.contains(AttributeFormat.Enum)) {
-      return getComboEditor();
+    else {
+      return EditorType.DEFAULT;
     }
+  }
 
-    return getDefaultEditor(property.getModel().getProject());
+  public static PTableCellEditor get(@NotNull NlProperty property) {
+    switch (getEditorType(property)) {
+      case BOOLEAN:
+        return getBooleanEditor();
+      case FLAG:
+        return getFlagEditor();
+      case COMBO:
+        return getComboEditor();
+      default:
+        return getDefaultEditor(property.getModel().getProject());
+    }
+  }
+
+  public static NlComponentEditor create(@NotNull NlProperty property) {
+    switch (getEditorType(property)) {
+      case BOOLEAN:
+        return NlBooleanEditor.createForInspector(DEFAULT_LISTENER);
+      case FLAG:
+        return NlFlagsEditor.create();
+      case COMBO:
+        return NlEnumEditor.createForInspector(NlEnumEditor.getDefaultListener());
+      default:
+        return NlReferenceEditor.createForInspectorWithBrowseButton(property.getModel().getProject(), DEFAULT_LISTENER);
+    }
   }
 
   private static PTableCellEditor getBooleanEditor() {
