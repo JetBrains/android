@@ -13,65 +13,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables.android.dependencies.resolved;
+package com.android.tools.idea.gradle.structure.configurables.java.dependencies;
 
-import com.android.tools.idea.gradle.structure.configurables.BaseNamedConfigurable;
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
-import com.intellij.openapi.options.ConfigurationException;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.AbstractDependenciesConfigurable;
+import com.android.tools.idea.gradle.structure.model.PsModule;
+import com.android.tools.idea.gradle.structure.model.java.PsJavaModule;
 import com.intellij.openapi.util.ActionCallback;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.ui.navigation.History;
 import com.intellij.ui.navigation.Place;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ResolvedDependenciesConfigurable extends BaseNamedConfigurable<PsAndroidModule> {
-  @NotNull private final PsAndroidModule myModule;
-  @NotNull private final PsContext myContext;
+import javax.swing.*;
+import java.util.List;
 
+public class JavaModuleDependenciesConfigurable extends AbstractDependenciesConfigurable<PsJavaModule> {
   private MainPanel myMainPanel;
 
-  public ResolvedDependenciesConfigurable(@NotNull PsAndroidModule module, @NotNull PsContext context) {
-    super(module);
-    myModule = module;
-    myContext = context;
+  public JavaModuleDependenciesConfigurable(@NotNull PsJavaModule module,
+                                            @NotNull PsContext context,
+                                            @NotNull List<PsModule> extraTopModules) {
+    super(module, context, extraTopModules);
   }
 
   @Override
   @NotNull
   public String getId() {
-    return "module.ResolvedDependencies." + getDisplayName();
+    return "module.dependencies." + getDisplayName();
   }
 
   @Override
-  public MainPanel createOptionsPanel() {
+  public JComponent createOptionsPanel() {
     if (myMainPanel == null) {
-      myMainPanel = new MainPanel(myModule, myContext);
+      myMainPanel = new MainPanel(getModule(), getContext());
       myMainPanel.setHistory(getHistory());
     }
     return myMainPanel;
-  }
-
-  @Override
-  public void setHistory(History history) {
-    super.setHistory(history);
-    if (myMainPanel != null) {
-      myMainPanel.setHistory(history);
-    }
-  }
-
-  @Override
-  public boolean isModified() {
-    return myModule.isModified();
-  }
-
-  @Override
-  public void apply() throws ConfigurationException {
-  }
-
-  @Override
-  public void reset() {
   }
 
   @Override
@@ -83,11 +61,11 @@ public class ResolvedDependenciesConfigurable extends BaseNamedConfigurable<PsAn
 
   @Override
   public ActionCallback navigateTo(@Nullable Place place, boolean requestFocus) {
-    return createOptionsPanel().navigateTo(place, requestFocus);
+    return null;
   }
 
   @Override
   public void queryPlace(@NotNull Place place) {
-    createOptionsPanel().queryPlace(place);
+
   }
 }

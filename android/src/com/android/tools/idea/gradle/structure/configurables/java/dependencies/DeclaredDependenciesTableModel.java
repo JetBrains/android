@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables.android.dependencies.module;
+package com.android.tools.idea.gradle.structure.configurables.java.dependencies;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
-import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.PsDependencyComparator;
 import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.AbstractDeclaredDependenciesTableModel;
+import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.PsDependencyComparator;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsLibraryDependency;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
-import com.android.tools.idea.gradle.structure.model.android.PsLibraryAndroidDependency;
+import com.android.tools.idea.gradle.structure.model.java.PsJavaDependency;
+import com.android.tools.idea.gradle.structure.model.java.PsJavaModule;
+import com.android.tools.idea.gradle.structure.model.java.PsLibraryJavaDependency;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,20 +33,20 @@ import java.util.List;
 /**
  * Model for the table displaying the "editable" dependencies of a module.
  */
-class DeclaredDependenciesTableModel extends AbstractDeclaredDependenciesTableModel<PsAndroidDependency> {
-  DeclaredDependenciesTableModel(@NotNull PsAndroidModule module, @NotNull PsContext context) {
+class DeclaredDependenciesTableModel extends AbstractDeclaredDependenciesTableModel<PsJavaDependency> {
+  DeclaredDependenciesTableModel(@NotNull PsJavaModule module, @NotNull PsContext context) {
     super(module, context);
   }
 
   @Override
   @NotNull
-  protected PsAndroidModule getModule() {
-    return (PsAndroidModule)super.getModule();
+  protected PsJavaModule getModule() {
+    return (PsJavaModule)super.getModule();
   }
 
   @Override
   public void reset() {
-    List<PsAndroidDependency> dependencies = Lists.newArrayList();
+    List<PsJavaDependency> dependencies = Lists.newArrayList();
     getModule().forEachDeclaredDependency(dependencies::add);
     Collections.sort(dependencies, PsDependencyComparator.INSTANCE);
     setItems(dependencies);
@@ -54,8 +54,8 @@ class DeclaredDependenciesTableModel extends AbstractDeclaredDependenciesTableMo
 
   @Override
   @Nullable
-  public PsLibraryAndroidDependency findDependency(@NotNull PsArtifactDependencySpec spec) {
+  public PsLibraryJavaDependency findDependency(@NotNull PsArtifactDependencySpec spec) {
     PsLibraryDependency found = super.findDependency(spec);
-    return found instanceof PsLibraryAndroidDependency ? (PsLibraryAndroidDependency)found : null;
+    return found instanceof PsLibraryJavaDependency ? (PsLibraryJavaDependency)found : null;
   }
 }

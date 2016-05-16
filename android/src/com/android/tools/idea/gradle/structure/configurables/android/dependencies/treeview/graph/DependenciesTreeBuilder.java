@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractPsNodeTreeBuilder;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.LibraryDependencyNode;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidLibraryDependency;
+import com.android.tools.idea.gradle.structure.model.android.PsLibraryAndroidDependency;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
 import com.intellij.openapi.util.ActionCallback;
 import org.jetbrains.annotations.NotNull;
@@ -64,7 +64,7 @@ public class DependenciesTreeBuilder extends AbstractPsNodeTreeBuilder {
         continue;
       }
       LibraryDependencyNode node = (LibraryDependencyNode)userObject;
-      for (PsAndroidLibraryDependency dependency : node.getModels()) {
+      for (PsLibraryAndroidDependency dependency : node.getModels()) {
         if (spec.equals(dependency.getDeclaredSpec())) {
           return node;
         }

@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.structure.model;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesByTypeAndTextComparator;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidLibraryDependency;
+import com.android.tools.idea.gradle.structure.model.android.PsLibraryAndroidDependency;
 import com.android.tools.idea.gradle.structure.navigation.PsLibraryDependencyNavigationPath;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -56,8 +56,8 @@ public class PsIssueCollection {
       path = new PsModulePath(module);
     }
 
-    if (model instanceof PsAndroidLibraryDependency) {
-      PsAndroidLibraryDependency dependency = (PsAndroidLibraryDependency)model;
+    if (model instanceof PsLibraryAndroidDependency) {
+      PsLibraryAndroidDependency dependency = (PsLibraryAndroidDependency)model;
       path = new PsLibraryDependencyNavigationPath(myContext, dependency);
     }
 

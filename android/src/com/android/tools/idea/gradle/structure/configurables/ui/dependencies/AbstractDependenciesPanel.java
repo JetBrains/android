@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables.android.dependencies;
+package com.android.tools.idea.gradle.structure.configurables.ui.dependencies;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.DependencyDetails;
@@ -21,15 +21,9 @@ import com.android.tools.idea.gradle.structure.configurables.issues.IssuesViewer
 import com.android.tools.idea.gradle.structure.configurables.ui.ChooseModuleDialog;
 import com.android.tools.idea.gradle.structure.configurables.ui.EmptyPanel;
 import com.android.tools.idea.gradle.structure.dependencies.AddLibraryDependencyDialog;
-import com.android.tools.idea.gradle.structure.model.PsDependency;
-import com.android.tools.idea.gradle.structure.model.PsIssue;
-import com.android.tools.idea.gradle.structure.model.PsModule;
-import com.android.tools.idea.gradle.structure.model.PsProject;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
+import com.android.tools.idea.gradle.structure.model.*;
 import com.android.tools.idea.structure.dialog.Header;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
@@ -57,7 +51,6 @@ import java.awt.event.ActionListener;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
 
 import static com.android.tools.idea.gradle.structure.model.PsDependency.TextType.FOR_NAVIGATION;
@@ -76,16 +69,16 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
   @NotNull private final JPanel myContentsPanel;
   @NotNull private final String myEmptyText;
 
-  @NotNull private final Map<Class<?>, DependencyDetails> myDependencyDetails = Maps.newHashMap();
+  @NotNull private final List<DependencyDetails> myDependencyDetails = Lists.newArrayList();
 
-  @Nullable private final PsAndroidModule myModule;
+  @Nullable private final PsModule myModule;
 
   private List<AbstractPopupAction> myPopupActions;
   private DependencyDetails myCurrentDependencyDetails;
   private History myHistory;
   private IssuesViewer myIssuesViewer;
 
-  protected AbstractDependenciesPanel(@NotNull String title, @NotNull PsContext context, @Nullable PsAndroidModule module) {
+  protected AbstractDependenciesPanel(@NotNull String title, @NotNull PsContext context, @Nullable PsModule module) {
     super(new BorderLayout());
     myContext = context;
     myModule = module;
@@ -116,7 +109,7 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
   public abstract JComponent getPreferredFocusedComponent();
 
   protected void addDetails(@NotNull DependencyDetails details) {
-    myDependencyDetails.put(details.getSupportedModelType(), details);
+    myDependencyDetails.add(details);
   }
 
   protected void setIssuesViewer(@NotNull IssuesViewer issuesViewer) {
@@ -132,14 +125,14 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
     ApplicationManager.getApplication().invokeLater(() -> myInfoScrollPane.getVerticalScrollBar().setValue(0));
   }
 
-  protected void updateDetails(@Nullable PsAndroidDependency selected) {
+  protected void updateDetails(@Nullable PsDependency selected) {
     String scope = selected != null ? selected.getJoinedConfigurationNames() : null;
     updateDetails(selected, scope);
   }
 
-  protected void updateDetails(@Nullable PsAndroidDependency selected, @Nullable String configurationNames) {
+  protected void updateDetails(@Nullable PsDependency selected, @Nullable String configurationNames) {
     if (selected != null) {
-      myCurrentDependencyDetails = myDependencyDetails.get(selected.getClass());
+      myCurrentDependencyDetails = findDetails(selected);
       if (myCurrentDependencyDetails != null) {
         myInfoPanel.setDependencyDetails(myCurrentDependencyDetails);
         myInfoScrollPane.setViewportView(myInfoPanel.getPanel());
@@ -149,6 +142,16 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
     }
     myCurrentDependencyDetails = null;
     myInfoScrollPane.setViewportView(myEmptyDetailsPanel);
+  }
+
+  @Nullable
+  private DependencyDetails findDetails(@NotNull PsDependency selected) {
+    for (DependencyDetails details : myDependencyDetails) {
+      if (details.getSupportedModelType().isInstance(selected)) {
+        return details;
+      }
+    }
+    return null;
   }
 
   @Nullable
@@ -255,7 +258,7 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
     String dependency = "";
     DependencyDetails details = getCurrentDependencyDetails();
     if (details != null) {
-      PsDependency model = details.getModel();
+      PsBaseDependency model = details.getModel();
       if (model != null) {
         dependency = model.toText(FOR_NAVIGATION);
       }

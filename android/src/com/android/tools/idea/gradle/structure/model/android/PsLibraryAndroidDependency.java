@@ -20,9 +20,8 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
+import com.android.tools.idea.gradle.structure.model.PsDependency;
 import com.android.tools.idea.gradle.structure.model.PsLibraryDependency;
-import com.android.tools.idea.gradle.structure.model.PsModule;
-import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -31,13 +30,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.*;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 import static com.android.tools.idea.gradle.structure.model.PsDependency.TextType.PLAIN_TEXT;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.intellij.util.PlatformIcons.LIBRARY_ICON;
 
-public class PsAndroidLibraryDependency extends PsAndroidDependency implements PsLibraryDependency {
+public class PsLibraryAndroidDependency extends PsAndroidDependency implements PsLibraryDependency {
   @NotNull private final List<PsArtifactDependencySpec> myPomDependencies = Lists.newArrayList();
   @NotNull private final Set<String> myTransitiveDependencies = Sets.newHashSet();
   @NotNull private PsArtifactDependencySpec myResolvedSpec;
@@ -45,7 +46,7 @@ public class PsAndroidLibraryDependency extends PsAndroidDependency implements P
   @Nullable private final Library myResolvedModel;
   @Nullable private PsArtifactDependencySpec myDeclaredSpec;
 
-  PsAndroidLibraryDependency(@NotNull PsAndroidModule parent,
+  PsLibraryAndroidDependency(@NotNull PsAndroidModule parent,
                              @NotNull PsArtifactDependencySpec resolvedSpec,
                              @NotNull PsAndroidArtifact container,
                              @Nullable Library resolvedModel,
@@ -66,8 +67,7 @@ public class PsAndroidLibraryDependency extends PsAndroidDependency implements P
     myTransitiveDependencies.add(dependency);
   }
 
-  @Override
-  public void setDependenciesFromPomFile(@NotNull List<PsArtifactDependencySpec> pomDependencies) {
+  void setDependenciesFromPomFile(@NotNull List<PsArtifactDependencySpec> pomDependencies) {
     myPomDependencies.clear();
     myPomDependencies.addAll(pomDependencies);
   }
@@ -81,11 +81,12 @@ public class PsAndroidLibraryDependency extends PsAndroidDependency implements P
     return null;
   }
 
+  @Override
   @NotNull
-  public ImmutableCollection<PsAndroidDependency> getTransitiveDependencies() {
+  public ImmutableCollection<PsDependency> getTransitiveDependencies() {
     PsAndroidModule module = getParent();
 
-    ImmutableSet.Builder<PsAndroidDependency> transitive = ImmutableSet.builder();
+    ImmutableSet.Builder<PsDependency> transitive = ImmutableSet.builder();
     for (String dependency : myTransitiveDependencies) {
       PsAndroidDependency found = module.findLibraryDependency(dependency);
       if (found != null) {
@@ -93,43 +94,13 @@ public class PsAndroidLibraryDependency extends PsAndroidDependency implements P
       }
     }
     for (PsArtifactDependencySpec dependency : myPomDependencies) {
-      PsAndroidLibraryDependency found = module.findLibraryDependency(dependency);
+      PsLibraryAndroidDependency found = module.findLibraryDependency(dependency);
       if (found != null) {
         transitive.add(found);
       }
     }
 
     return transitive.build();
-  }
-
-  @NotNull
-  public List<String> findRequestingModuleDependencies() {
-    Set<String> moduleNames = Sets.newHashSet();
-    findRequestingModuleDependencies(getParent(), moduleNames);
-    if (moduleNames.isEmpty()) {
-      return Collections.emptyList();
-    }
-    List<String> sorted = Lists.newArrayList(moduleNames);
-    Collections.sort(sorted);
-    return sorted;
-  }
-
-  private void findRequestingModuleDependencies(@NotNull PsAndroidModule module, @NotNull Collection<String> found) {
-    PsProject project = module.getParent();
-    module.forEachModuleDependency(moduleDependency -> {
-      String gradlePath = moduleDependency.getGradlePath();
-      PsModule foundModule = project.findModuleByGradlePath(gradlePath);
-      if (foundModule instanceof PsAndroidModule) {
-        PsAndroidModule androidModule = (PsAndroidModule)foundModule;
-
-        PsAndroidLibraryDependency libraryDependency = androidModule.findLibraryDependency(myResolvedSpec);
-        if (libraryDependency != null && libraryDependency.isDeclared()) {
-          found.add(androidModule.getName());
-        }
-
-        findRequestingModuleDependencies(androidModule, found);
-      }
-    });
   }
 
   @Override
@@ -230,7 +201,7 @@ public class PsAndroidLibraryDependency extends PsAndroidDependency implements P
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    PsAndroidLibraryDependency that = (PsAndroidLibraryDependency)o;
+    PsLibraryAndroidDependency that = (PsLibraryAndroidDependency)o;
     return Objects.equals(myResolvedSpec, that.myResolvedSpec);
   }
 

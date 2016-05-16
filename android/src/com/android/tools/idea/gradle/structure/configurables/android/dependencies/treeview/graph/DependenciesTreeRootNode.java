@@ -25,9 +25,9 @@ import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsModel;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidLibraryDependency;
+import com.android.tools.idea.gradle.structure.model.android.PsLibraryAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
-import com.android.tools.idea.gradle.structure.model.android.PsModuleDependency;
+import com.android.tools.idea.gradle.structure.model.android.PsModuleAndroidDependency;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -53,12 +53,12 @@ public class DependenciesTreeRootNode<T extends PsModel> extends AbstractPsReset
     DependencyCollector collector = myDependencyCollectorFunction.apply(model);
 
     List<AbstractDependencyNode> children = Lists.newArrayList();
-    for (Map.Entry<LibraryDependencySpecs, List<PsAndroidLibraryDependency>> entry : collector.libraryDependenciesBySpec.entrySet()) {
+    for (Map.Entry<LibraryDependencySpecs, List<PsLibraryAndroidDependency>> entry : collector.libraryDependenciesBySpec.entrySet()) {
       LibraryDependencyNode child = new LibraryDependencyNode(this, entry.getValue());
       children.add(child);
     }
 
-    for (Map.Entry<String, List<PsModuleDependency>> entry : collector.moduleDependenciesByGradlePath.entrySet()) {
+    for (Map.Entry<String, List<PsModuleAndroidDependency>> entry : collector.moduleDependenciesByGradlePath.entrySet()) {
       ModuleDependencyNode child = new ModuleDependencyNode(this, entry.getValue());
       children.add(child);
     }
@@ -78,21 +78,21 @@ public class DependenciesTreeRootNode<T extends PsModel> extends AbstractPsReset
   }
 
   public static class DependencyCollector {
-    @NotNull final Map<LibraryDependencySpecs, List<PsAndroidLibraryDependency>> libraryDependenciesBySpec = Maps.newHashMap();
-    @NotNull final Map<String, List<PsModuleDependency>> moduleDependenciesByGradlePath = Maps.newHashMap();
+    @NotNull final Map<LibraryDependencySpecs, List<PsLibraryAndroidDependency>> libraryDependenciesBySpec = Maps.newHashMap();
+    @NotNull final Map<String, List<PsModuleAndroidDependency>> moduleDependenciesByGradlePath = Maps.newHashMap();
 
     void add(@NotNull PsAndroidDependency dependency) {
-      if (dependency instanceof PsAndroidLibraryDependency) {
-        add((PsAndroidLibraryDependency)dependency);
+      if (dependency instanceof PsLibraryAndroidDependency) {
+        add((PsLibraryAndroidDependency)dependency);
       }
-      else if (dependency instanceof PsModuleDependency) {
-        add((PsModuleDependency)dependency);
+      else if (dependency instanceof PsModuleAndroidDependency) {
+        add((PsModuleAndroidDependency)dependency);
       }
     }
 
-    private void add(@NotNull PsAndroidLibraryDependency dependency) {
+    private void add(@NotNull PsLibraryAndroidDependency dependency) {
       LibraryDependencySpecs specs = new LibraryDependencySpecs(dependency);
-      List<PsAndroidLibraryDependency> dependencies = libraryDependenciesBySpec.get(specs);
+      List<PsLibraryAndroidDependency> dependencies = libraryDependenciesBySpec.get(specs);
       if (dependencies == null) {
         dependencies = Lists.newArrayList();
         libraryDependenciesBySpec.put(specs, dependencies);
@@ -100,9 +100,9 @@ public class DependenciesTreeRootNode<T extends PsModel> extends AbstractPsReset
       dependencies.add(dependency);
     }
 
-    private void add(@NotNull PsModuleDependency dependency) {
+    private void add(@NotNull PsModuleAndroidDependency dependency) {
       String key = dependency.getGradlePath();
-      List<PsModuleDependency> dependencies = moduleDependenciesByGradlePath.get(key);
+      List<PsModuleAndroidDependency> dependencies = moduleDependenciesByGradlePath.get(key);
       if (dependencies == null) {
         dependencies = Lists.newArrayList();
         moduleDependenciesByGradlePath.put(key, dependencies);
@@ -115,7 +115,7 @@ public class DependenciesTreeRootNode<T extends PsModel> extends AbstractPsReset
     @NotNull final PsArtifactDependencySpec declaredSpec;
     @NotNull final PsArtifactDependencySpec resolvedSpec;
 
-    LibraryDependencySpecs(@NotNull PsAndroidLibraryDependency dependency) {
+    LibraryDependencySpecs(@NotNull PsLibraryAndroidDependency dependency) {
       PsArtifactDependencySpec declaredSpec = dependency.getDeclaredSpec();
       assert declaredSpec != null;
       this.declaredSpec = declaredSpec;

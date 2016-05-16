@@ -22,6 +22,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
+import org.gradle.tooling.model.GradleModuleVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -100,6 +101,11 @@ public class PsArtifactDependencySpec {
   @NotNull
   public static PsArtifactDependencySpec create(@NotNull MavenCoordinates coordinates) {
     return new PsArtifactDependencySpec(coordinates.getArtifactId(), coordinates.getGroupId(), coordinates.getVersion());
+  }
+
+  @NotNull
+  public static PsArtifactDependencySpec create(@NotNull GradleModuleVersion moduleVersion) {
+    return new PsArtifactDependencySpec(moduleVersion.getName(), moduleVersion.getGroup(), moduleVersion.getVersion());
   }
 
   public PsArtifactDependencySpec(@NotNull String name, @Nullable String group, @Nullable String version) {

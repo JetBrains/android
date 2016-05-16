@@ -42,7 +42,7 @@ import static java.util.Collections.emptyList;
 
 public class JavaProject implements Serializable {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 2L;
 
   @NotNull private String myModuleName;
   @NotNull private Collection<JavaModuleContentRoot> myContentRoots = Lists.newArrayList();
@@ -78,7 +78,7 @@ public class JavaProject implements Serializable {
     }
 
     return new JavaProject(ideaModule.getName(), contentRoots, getDependencies(ideaModule), artifactsByConfiguration, compilerOutput,
-                               buildFolderPath, languageLevel, buildable, androidProjectWithoutVariants);
+                           buildFolderPath, languageLevel, buildable, androidProjectWithoutVariants);
   }
 
   @NotNull

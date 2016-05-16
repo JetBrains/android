@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.model.java;
 
+import org.gradle.tooling.model.GradleModuleVersion;
 import org.gradle.tooling.model.idea.IdeaDependencyScope;
 import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency;
 import org.jetbrains.annotations.NonNls;
@@ -37,10 +38,13 @@ public class JarLibraryDependency implements Serializable {
   @NotNull @NonNls private static final String UNRESOLVED_DEPENDENCY_PREFIX = "unresolved dependency - ";
 
   @NotNull private final String myName;
+
   @Nullable private final File myBinaryPath;
   @Nullable private final File mySourcePath;
   @Nullable private final File myJavadocPath;
   @Nullable private final String myScope;
+
+  @Nullable private final GradleModuleVersion myModuleVersion;
   private final boolean myResolved;
 
   @Nullable
@@ -64,7 +68,8 @@ public class JarLibraryDependency implements Serializable {
           return null;
         }
       }
-      return new JarLibraryDependency(name, binaryPath, original.getSource(), original.getJavadoc(), scope, resolved);
+      return new JarLibraryDependency(name, binaryPath, original.getSource(), original.getJavadoc(), scope,
+                                      original.getGradleModuleVersion(), resolved);
     }
     return null;
   }
@@ -96,12 +101,14 @@ public class JarLibraryDependency implements Serializable {
                               @Nullable File sourcePath,
                               @Nullable File javadocPath,
                               @Nullable String scope,
+                              @Nullable GradleModuleVersion moduleVersion,
                               boolean resolved) {
     myName = name;
     myBinaryPath = binaryPath;
     mySourcePath = sourcePath;
     myJavadocPath = javadocPath;
     myScope = scope;
+    myModuleVersion = moduleVersion;
     myResolved = resolved;
   }
 
@@ -128,6 +135,11 @@ public class JarLibraryDependency implements Serializable {
   @Nullable
   public String getScope() {
     return myScope;
+  }
+
+  @Nullable
+  public GradleModuleVersion getModuleVersion() {
+    return myModuleVersion;
   }
 
   public boolean isResolved() {
