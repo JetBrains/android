@@ -22,12 +22,10 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 final class ApkEntry {
-  private static final long UNKNOWN = -1;
-
   public final VirtualFile file;
   public final long size;
 
-  private long myCompressedSize = UNKNOWN;
+  private long myCompressedSize = -1;
 
   ApkEntry(@NotNull VirtualFile file, long size) {
     this.file = file;
@@ -50,7 +48,7 @@ final class ApkEntry {
   }
 
   public boolean isCompressedSizeKnown() {
-    return myCompressedSize != UNKNOWN;
+    return myCompressedSize >= 0;
   }
 
   public long getCompressedSize() {

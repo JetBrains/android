@@ -163,7 +163,13 @@ public class ApkParser {
     }
     else {
       ZipEntry ze = compressedApk.getEntry(ApkFileSystem.getInstance().getRelativePath(entry.file));
-      compressedSize = ze.getCompressedSize();
+      if (ze == null) {
+        // happens if such a relative path is not present inside the apk (e.g. zip files such as instant-run.zip are unzipped to a tempfile)
+        compressedSize = -1;
+      }
+      else {
+        compressedSize = ze.getCompressedSize();
+      }
     }
 
     entry.setCompressedSize(compressedSize);
