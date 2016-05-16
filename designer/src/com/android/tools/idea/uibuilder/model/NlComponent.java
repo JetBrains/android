@@ -51,6 +51,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import static com.android.SdkConstants.*;
 
@@ -328,10 +329,11 @@ public class NlComponent {
   }
 
   private String assignId() {
-    Collection<String> idList = getIds(myModel.getFacet());
+    Collection<String> idList = getIds(myModel);
     return assignId(this, idList);
   }
 
+  @NotNull
   public static String assignId(@NotNull NlComponent component, @NotNull Collection<String> idList) {
     String tagName = component.getTagName();
     tagName = tagName.substring(tagName.lastIndexOf('.') + 1);
@@ -360,15 +362,25 @@ public class NlComponent {
 
     String newId = idValue + (index == 0 ? "" : Integer.toString(index));
     component.setAttribute(ANDROID_URI, ATTR_ID, NEW_ID_PREFIX + newId);
+    component.myModel.getPendingIds().add(newId); // TODO clear the pending ids
     return newId;
   }
 
   /**
    * Looks up the existing set of id's reachable from the given module
    */
-  public static Collection<String> getIds(@NotNull AndroidFacet facet) {
+  public static Collection<String> getIds(@NotNull NlModel model) {
+    AndroidFacet facet = model.getFacet();
     AppResourceRepository resources = AppResourceRepository.getAppResources(facet, true);
-    return resources.getItemsOfType(ResourceType.ID);
+    Collection<String> ids = resources.getItemsOfType(ResourceType.ID);
+    Set<String> pendingIds = model.getPendingIds();
+    if (!pendingIds.isEmpty()) {
+      List<String> all = Lists.newArrayListWithCapacity(pendingIds.size() + ids.size());
+      all.addAll(ids);
+      all.addAll(pendingIds);
+      ids = all;
+    }
+    return ids;
   }
 
   public int getBaseline() {
