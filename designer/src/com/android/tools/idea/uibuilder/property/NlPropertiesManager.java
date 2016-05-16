@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
+import com.android.tools.idea.uibuilder.editor.NlPropertiesWindowManager;
 import com.android.tools.idea.uibuilder.model.ModelListener;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.property.editors.NlPropertyEditors;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
@@ -47,6 +49,7 @@ public class NlPropertiesManager implements DesignSurfaceListener, ModelListener
   private final Project myProject;
   private final JBLoadingPanel myLoadingPanel;
   private final NlPropertiesPanel myPropertiesPanel;
+  private final NlPropertyEditors myEditors;
 
   @Nullable private DesignSurface mySurface;
   @Nullable private ScreenView myScreenView;
@@ -55,9 +58,15 @@ public class NlPropertiesManager implements DesignSurfaceListener, ModelListener
   private boolean myFirstLoad = true;
   private boolean myLoading;
 
-  public NlPropertiesManager(@NotNull Project project, @NotNull DesignSurface designSurface) {
+  public static NlPropertiesManager get(@NotNull Project project) {
+    NlPropertiesWindowManager windowManager = NlPropertiesWindowManager.get(project);
+    return windowManager.getPropertiesManager();
+  }
+
+  public NlPropertiesManager(@NotNull Project project, @Nullable DesignSurface designSurface) {
     myProject = project;
     myLoadingPanel = new JBLoadingPanel(new BorderLayout(), project, 20);
+    myEditors = new NlPropertyEditors(project);
     myPropertiesPanel = new NlPropertiesPanel(project);
     myLoadingPanel.add(myPropertiesPanel);
     setDesignSurface(designSurface);
@@ -104,6 +113,11 @@ public class NlPropertiesManager implements DesignSurfaceListener, ModelListener
   @NotNull
   public Project getProject() {
     return myProject;
+  }
+
+  @NotNull
+  public NlPropertyEditors getPropertyEditors() {
+    return myEditors;
   }
 
   @NotNull

@@ -46,7 +46,9 @@ public class TextInspectorProvider implements InspectorProvider {
   private TextInspectorComponent myComponent;
 
   @Override
-  public boolean isApplicable(@NotNull List<NlComponent> components, @NotNull Map<String, NlProperty> properties) {
+  public boolean isApplicable(@NotNull List<NlComponent> components,
+                              @NotNull Map<String, NlProperty> properties,
+                              @NotNull NlPropertiesManager propertiesManager) {
     if (!properties.keySet().containsAll(TEXT_PROPERTIES)) {
       return false;
     }
@@ -67,7 +69,7 @@ public class TextInspectorProvider implements InspectorProvider {
     if (myComponent == null) {
       myComponent = new TextInspectorComponent(propertiesManager);
     }
-    myComponent.updateProperties(components, properties);
+    myComponent.updateProperties(components, properties, propertiesManager);
     return myComponent;
   }
 
@@ -143,7 +145,9 @@ public class TextInspectorProvider implements InspectorProvider {
     }
 
     @Override
-    public void updateProperties(@NotNull List<NlComponent> components, @NotNull Map<String, NlProperty> properties) {
+    public void updateProperties(@NotNull List<NlComponent> components,
+                                 @NotNull Map<String, NlProperty> properties,
+                                 @NotNull NlPropertiesManager propertiesManager) {
       myText = properties.get(ATTR_TEXT);
       myDesignText = myText.getDesignTimeProperty();
       myDescription = properties.get(ATTR_CONTENT_DESCRIPTION);

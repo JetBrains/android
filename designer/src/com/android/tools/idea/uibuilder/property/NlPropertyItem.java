@@ -283,6 +283,9 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
   public void setValue(Object value) {
     // TODO: Consider making getApplication() a field to avoid statics
     assert ApplicationManager.getApplication().isDispatchThread();
+    if (getModel().getProject().isDisposed()) {
+      return;
+    }
     String strValue = value == null ? null : value.toString();
     if (StringUtil.isEmpty(strValue) || isDefaultValue(strValue)) {
       strValue = null;
@@ -321,7 +324,7 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
 
   @Override
   public boolean isEditable(int col) {
-    return NlPropertyEditors.get(this) != null;
+    return true;
   }
 
   @Override
