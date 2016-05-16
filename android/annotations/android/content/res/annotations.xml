@@ -102,6 +102,9 @@
   <item name="android.content.res.Resources boolean getBoolean(int) 0">
     <annotation name="android.support.annotation.BoolRes" />
   </item>
+  <item name="android.content.res.Resources float getDimension(int)">
+    <annotation name="android.support.annotation.Px" />
+  </item>
   <item name="android.content.res.Resources float getDimension(int) 0">
     <annotation name="android.support.annotation.DimenRes" />
   </item>
@@ -123,8 +126,14 @@
   <item name="android.content.res.Resources int getColor(int, android.content.res.Resources.Theme) 1">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.content.res.Resources int getDimensionPixelOffset(int)">
+    <annotation name="android.support.annotation.Px" />
+  </item>
   <item name="android.content.res.Resources int getDimensionPixelOffset(int) 0">
     <annotation name="android.support.annotation.DimenRes" />
+  </item>
+  <item name="android.content.res.Resources int getDimensionPixelSize(int)">
+    <annotation name="android.support.annotation.Px" />
   </item>
   <item name="android.content.res.Resources int getDimensionPixelSize(int) 0">
     <annotation name="android.support.annotation.DimenRes" />
@@ -240,6 +249,9 @@
   <item name="android.content.res.TypedArray boolean hasValueOrEmpty(int) 0">
     <annotation name="android.support.annotation.StyleableRes" />
   </item>
+  <item name="android.content.res.TypedArray float getDimension(int, float)">
+    <annotation name="android.support.annotation.Px" />
+  </item>
   <item name="android.content.res.TypedArray float getDimension(int, float) 0">
     <annotation name="android.support.annotation.StyleableRes" />
   </item>
@@ -258,8 +270,14 @@
   <item name="android.content.res.TypedArray int getColor(int, int) 1">
     <annotation name="android.support.annotation.ColorInt" />
   </item>
+  <item name="android.content.res.TypedArray int getDimensionPixelOffset(int, int)">
+    <annotation name="android.support.annotation.Px" />
+  </item>
   <item name="android.content.res.TypedArray int getDimensionPixelOffset(int, int) 0">
     <annotation name="android.support.annotation.StyleableRes" />
+  </item>
+  <item name="android.content.res.TypedArray int getDimensionPixelSize(int, int)">
+    <annotation name="android.support.annotation.Px" />
   </item>
   <item name="android.content.res.TypedArray int getDimensionPixelSize(int, int) 0">
     <annotation name="android.support.annotation.StyleableRes" />
@@ -272,6 +290,9 @@
   </item>
   <item name="android.content.res.TypedArray int getLayoutDimension(int, int) 0">
     <annotation name="android.support.annotation.StyleableRes" />
+  </item>
+  <item name="android.content.res.TypedArray int getLayoutDimension(int, java.lang.String)">
+    <annotation name="android.support.annotation.Px" />
   </item>
   <item name="android.content.res.TypedArray int getLayoutDimension(int, java.lang.String) 0">
     <annotation name="android.support.annotation.StyleableRes" />
