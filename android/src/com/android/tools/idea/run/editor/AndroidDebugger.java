@@ -61,18 +61,10 @@ public interface AndroidDebugger<S extends AndroidDebuggerState> {
   Set<XBreakpointType<?, ?>> getSupportedBreakpointTypes(@NotNull Project project, @NotNull AndroidVersion version);
 
   /**
-   * Indicates whether this debugger works with the given gradle plugin generation.
-   * @param generation A generation from {@linkAndroidProject}.
-   * @return true if it works with that generation.
+   * Indicates whether this debugger should be the default.
+   * @return true if it should be the default.
    */
-  boolean supportsPluginGeneration(int generation);
-
-  /**
-   * Indicates whether this debugger should be the default for the given gradle plugin generation.
-   * @param generation A generation from {@linkAndroidProject}.
-   * @return true if it should be the default for that generation.
-   */
-  boolean shouldBeDefault(int generation);
+  boolean shouldBeDefault();
 
   class Renderer extends ColoredListCellRenderer<AndroidDebugger> {
     @Override
