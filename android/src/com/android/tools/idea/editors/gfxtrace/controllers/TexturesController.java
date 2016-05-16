@@ -165,7 +165,7 @@ public class TexturesController extends ImagePanelController {
     }
 
     protected void update(boolean resourcesChanged) {
-      if (myEditor.getAtomStream().getSelectedAtomPath() != null && myResources != null) {
+      if (myEditor.getAtomStream().getSelectedAtomsPath() != null && myResources != null) {
         List<Data> cells = new ArrayList<Data>();
         addTextures(cells, myResources.getTextures1D(), "1D");
         addTextures(cells, myResources.getTextures2D(), "2D");
@@ -185,7 +185,7 @@ public class TexturesController extends ImagePanelController {
     }
 
     private void addTextures(List<Data> cells, ResourceInfo[] textures, String typeLabel) {
-      AtomPath atomPath = myEditor.getAtomStream().getSelectedAtomPath();
+      AtomPath atomPath = myEditor.getAtomStream().getSelectedAtomsPath().getPathToLast();
       for (ResourceInfo info : textures) {
         if (info.getFirstAccess() <= atomPath.getIndex()) {
           cells.add(new Data(info, typeLabel, atomPath.resourceAfter(info.getID())));
@@ -234,7 +234,7 @@ public class TexturesController extends ImagePanelController {
     }
 
     @Override
-    public void onAtomSelected(AtomPath path, Object source) {
+    public void onAtomsSelected(AtomRangePath path) {
       update(false);
     }
   }

@@ -59,7 +59,7 @@ public class AtomComboAction extends FlatComboAction {
         @Override
         public void actionPerformed(AnActionEvent e) {
           if (atomIndex != null) {
-            myGfxTraceEditor.getAtomStream().selectAtom(atomIndex, this);
+            myGfxTraceEditor.getAtomStream().selectAtoms(atomIndex, 1, this);
           }
         }
       };

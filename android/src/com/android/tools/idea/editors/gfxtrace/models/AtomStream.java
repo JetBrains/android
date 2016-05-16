@@ -20,6 +20,7 @@ import com.android.tools.idea.editors.gfxtrace.UiErrorCallback;
 import com.android.tools.idea.editors.gfxtrace.service.atom.Atom;
 import com.android.tools.idea.editors.gfxtrace.service.atom.AtomGroup;
 import com.android.tools.idea.editors.gfxtrace.service.atom.AtomList;
+import com.android.tools.idea.editors.gfxtrace.service.atom.Range;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.android.tools.rpclib.binary.BinaryObject;
 import com.android.tools.rpclib.rpccore.Rpc;
@@ -38,7 +39,7 @@ public class AtomStream implements PathListener {
 
   private final GfxTraceEditor myEditor;
   private final PathStore<AtomsPath> myAtomsPath = new PathStore<AtomsPath>();
-  private final PathStore<AtomPath> myAtomPath = new PathStore<AtomPath>();
+  private final PathStore<AtomRangePath> myAtomPath = new PathStore<AtomRangePath>();
   private final Listeners myListeners = new Listeners();
 
   private AtomList myAtomList;
@@ -84,7 +85,7 @@ public class AtomStream implements PathListener {
     }
 
     if (myAtomPath.updateIfNotNull(event.findAtomPath())) {
-      myListeners.onAtomSelected(myAtomPath.getPath(), event.source);
+      myListeners.onAtomsSelected(myAtomPath.getPath());
     }
   }
 
@@ -138,25 +139,29 @@ public class AtomStream implements PathListener {
     return myAtomGroup;
   }
 
-  public AtomPath getSelectedAtomPath() {
+  public AtomRangePath getSelectedAtomsPath() {
     return myAtomPath.getPath();
   }
 
-  public int getSelectedAtomIndex() {
-    AtomPath path = myAtomPath.getPath();
-    return (path == null) ? -1 : (int)path.getIndex();
-  }
-
-  public Atom getSelectedAtom() {
-    AtomPath path = myAtomPath.getPath();
-    return (path == null || myAtomList == null) ? null : myAtomList.get(path.getIndex());
-  }
-
-  public void selectAtom(long index, Object source) {
+  public void selectAtoms(long from, long count, Object source) {
     AtomsPath path = myAtomsPath.getPath();
     if (path != null) {
-      myEditor.activatePath(path.index(index), source);
+      myEditor.activatePath(path.range(from, count), source);
     }
+  }
+
+  public void selectAtoms(Range range, Object source) {
+    selectAtoms(range.getStart(), range.getCount(), source);
+  }
+
+  public Atom getFirstSelectedAtom() {
+    AtomRangePath path = myAtomPath.getPath();
+    return (path == null || myAtomList == null) ? null : myAtomList.get(path.getFirst());
+  }
+
+  public Atom getLastSelectedAtom() {
+    AtomRangePath path = myAtomPath.getPath();
+    return (path == null || myAtomList == null) ? null : myAtomList.get(path.getLast());
   }
 
   public void addListener(Listener listener) {
@@ -172,7 +177,7 @@ public class AtomStream implements PathListener {
 
     void onAtomLoadingComplete(AtomStream atoms);
 
-    void onAtomSelected(AtomPath path, Object source);
+    void onAtomsSelected(AtomRangePath path);
   }
 
   private static class Listeners extends ArrayList<Listener> implements Listener {
@@ -194,9 +199,9 @@ public class AtomStream implements PathListener {
     }
 
     @Override
-    public void onAtomSelected(AtomPath path, Object source) {
+    public void onAtomsSelected(AtomRangePath path) {
       for (Listener listener : toArray(new Listener[size()])) {
-        listener.onAtomSelected(path, source);
+        listener.onAtomsSelected(path);
       }
     }
 
