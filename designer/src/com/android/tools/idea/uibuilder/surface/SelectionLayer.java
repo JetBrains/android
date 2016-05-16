@@ -20,7 +20,6 @@ import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
-import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.model.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -38,13 +37,11 @@ public class SelectionLayer extends Layer {
   @Override
   public void paint(@NotNull Graphics2D gc) {
     SelectionModel model = myScreenView.getSelectionModel();
-    ViewHandlerManager viewHandlerManager = ViewHandlerManager.get(
-      myScreenView.getModel().getFacet());
     for (NlComponent component : model.getSelection()) {
       if (component.isRoot() || !component.isShowing()) {
         continue;
       }
-      if (parentHandlingSelection(component, viewHandlerManager)) {
+      if (parentHandlingSelection(component)) {
         continue;
       }
       int x = Coordinates.getSwingX(myScreenView, component.x);
@@ -68,11 +65,9 @@ public class SelectionLayer extends Layer {
    * handles painting
    *
    * @param component          the component we are looking at
-   * @param viewHandlerManager the current view handler manager
    * @return true if the parent container handles painting
    */
-  private static boolean parentHandlingSelection(@NotNull NlComponent component,
-                                                 @NotNull ViewHandlerManager viewHandlerManager) {
+  private static boolean parentHandlingSelection(@NotNull NlComponent component) {
     NlComponent parent = component.getParent();
 
     if (parent == null) {
@@ -85,8 +80,7 @@ public class SelectionLayer extends Layer {
       return false;
     }
 
-    String className = view.getClassName();
-    ViewHandler handler = viewHandlerManager.getHandler(className);
+    ViewHandler handler = parent.getViewHandler();
     if (handler != null && handler instanceof ViewGroupHandler) {
       ViewGroupHandler viewGroupHandler = (ViewGroupHandler)handler;
       if (viewGroupHandler.handlesPainting()) {
