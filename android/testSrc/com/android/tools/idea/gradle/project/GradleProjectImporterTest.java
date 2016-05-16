@@ -213,11 +213,4 @@ public class GradleProjectImporterTest extends IdeaTestCase {
       fail(errorMessage);
     }
   }
-
-  @Override
-  protected boolean isRunInWriteAction() {
-    return false;
-    // Android Studio: Tests that perform project setup are failing due to CLion indexing in
-    // OCSymbolTablesBuildingActivity#buildSymbolsInternal is triggered in write action.
-  }
 }

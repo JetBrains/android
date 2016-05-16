@@ -64,11 +64,6 @@ public class AndroidGradleProjectImportingTest extends GradleImportingTestCase {
     assertNotNull(JavaGradleFacet.getInstance(getModule("lib")));
   }
 
-  @Override
-  protected void collectAllowedRoots(List<String> roots) throws IOException {
-    super.collectAllowedRoots(roots);
-  }
-
   @SuppressWarnings("MethodOverridesStaticMethodOfSuperclass")
   @Parameterized.Parameters(name = "with Gradle-{0}")
   public static Collection<Object[]> data() throws Throwable {

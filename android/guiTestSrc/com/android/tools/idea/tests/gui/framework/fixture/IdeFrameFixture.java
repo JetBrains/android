@@ -355,10 +355,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       public void compilationFinished(boolean aborted, int errors, int warnings, CompileContext compileContext) {
         contextRef.set(compileContext);
       }
-
-      @Override
-      public void fileGenerated(String outputRoot, String relativePath) {
-      }
     }, disposable);
 
     try {
