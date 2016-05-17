@@ -150,7 +150,7 @@ public class WidgetsScene {
      * @param widget the widget we are removing
      */
     public void removeWidget(ConstraintWidget widget) {
-        if (widget == null || (widget.isRoot() && (widget instanceof ConstraintWidgetContainer))) {
+        if (widget == null) {
             return;
         }
         if (widget instanceof ConstraintWidgetContainer) {
@@ -168,6 +168,9 @@ public class WidgetsScene {
             parent.remove(widget);
         }
         mWidgets.remove(getTag(widget));
+        if (mRoot == widget) {
+            mRoot = null;
+        }
     }
 
     /**
