@@ -219,7 +219,6 @@ public class ViewHandlerManager implements ProjectComponent {
         return new CheckedTextViewHandler();
       case CHRONOMETER:
         return new ChronometerHandler();
-      case QUICK_CONTACT_BADGE:
       case TEXT_CLOCK:
         return STANDARD_HANDLER;
       case COLLAPSING_TOOLBAR_LAYOUT:
@@ -261,6 +260,7 @@ public class ViewHandlerManager implements ProjectComponent {
       case IMAGE_BUTTON:
         return new ImageButtonHandler();
       case IMAGE_VIEW:
+      case QUICK_CONTACT_BADGE:
         return new ImageViewHandler();
       case IMAGE_SWITCHER:
         return new ImageSwitcherHandler();
