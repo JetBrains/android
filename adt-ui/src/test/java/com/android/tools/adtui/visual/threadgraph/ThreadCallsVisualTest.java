@@ -24,6 +24,8 @@ import com.android.tools.adtui.chart.hchart.HTreeChart;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.visual.VisualTest;
+import com.intellij.ui.components.JBLayeredPane;
+import com.intellij.ui.components.JBPanel;
 
 import javax.swing.*;
 import java.awt.*;
@@ -68,7 +70,7 @@ public class ThreadCallsVisualTest extends VisualTest implements ActionListener 
     this.mDataRange = new Range();
     this.mAxis = new AxisComponent(mDataRange, mDataRange, "TIME",
                                    AxisComponent.AxisOrientation.BOTTOM, AXIS_SIZE, AXIS_SIZE, false,
-                                   new TimeAxisFormatter(10, 50, 5));
+                                   TimeAxisFormatter.DEFAULT);
     this.mSelectionRange = new Range();
 
     this.mChart = new HTreeChart<Method>();
@@ -108,10 +110,10 @@ public class ThreadCallsVisualTest extends VisualTest implements ActionListener 
   protected void populateUi(@NonNull JPanel mainPanel) {
     mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
 
-    JPanel controlPanel = new JPanel();
+    JBPanel controlPanel = new JBPanel();
     controlPanel.setLayout(new BoxLayout(controlPanel, BoxLayout.X_AXIS));
 
-    JPanel buttonsPanel = new JPanel();
+    JBPanel buttonsPanel = new JBPanel();
     buttonsPanel.setLayout(new BoxLayout(buttonsPanel, BoxLayout.Y_AXIS));
     mRecordButton = new JButton("Record");
     mRecordButton.setActionCommand(ACTION_START_RECORDING);
@@ -139,7 +141,7 @@ public class ThreadCallsVisualTest extends VisualTest implements ActionListener 
     mComboBox.addActionListener(this);
     mComboBox.setActionCommand(ACTION_THREAD_SELECTED);
 
-    JPanel viewControlPanel = new JPanel();
+    JBPanel viewControlPanel = new JBPanel();
     viewControlPanel.setLayout(new BoxLayout(viewControlPanel, BoxLayout.Y_AXIS));
     JLayeredPane mockTimelinePane = createMockTimeline();
     viewControlPanel.add(mockTimelinePane);
@@ -150,7 +152,7 @@ public class ThreadCallsVisualTest extends VisualTest implements ActionListener 
 
     mainPanel.add(controlPanel);
 
-    JPanel viewPanel = new JPanel();
+    JBPanel viewPanel = new JBPanel();
     viewPanel.setLayout(new BoxLayout(viewPanel, BoxLayout.X_AXIS));
     viewPanel.add(mChart);
     mScrollBar = new JScrollBar(JScrollBar.VERTICAL);
@@ -230,7 +232,7 @@ public class ThreadCallsVisualTest extends VisualTest implements ActionListener 
   }
 
   private JLayeredPane createMockTimeline() {
-    JLayeredPane timelinePane = new JLayeredPane() {
+    JBLayeredPane timelinePane = new JBLayeredPane() {
       @Override
       public Dimension getMaximumSize() {
         Dimension max = super.getMaximumSize();

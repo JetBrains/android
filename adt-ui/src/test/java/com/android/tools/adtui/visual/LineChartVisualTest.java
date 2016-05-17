@@ -19,6 +19,7 @@ package com.android.tools.adtui.visual;
 import com.android.annotations.NonNull;
 import com.android.tools.adtui.*;
 import com.android.tools.adtui.chart.linechart.LineChart;
+import com.android.tools.adtui.common.AdtUIUtils;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 
 import javax.swing.*;
@@ -82,7 +83,7 @@ public class LineChartVisualTest extends VisualTest {
   @Override
   protected void populateUi(@NonNull JPanel panel) {
     JPanel controls = VisualTests.createControlledPane(panel, mLineChart);
-    mLineChart.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
+    mLineChart.setBorder(BorderFactory.createLineBorder(AdtUIUtils.DEFAULT_BORDER_COLOR));
 
     final AtomicInteger variance = new AtomicInteger(10);
     final AtomicInteger delay = new AtomicInteger(100);

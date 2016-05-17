@@ -21,6 +21,7 @@ import com.android.tools.adtui.*;
 import com.android.tools.adtui.chart.StateChart;
 import com.android.tools.adtui.model.RangedDiscreteSeries;
 import com.android.tools.adtui.model.StateChartData;
+import com.intellij.ui.JBColor;
 
 import javax.swing.*;
 import java.awt.*;
@@ -32,17 +33,17 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class StateChartVisualTest extends VisualTest {
 
   private static final Color[] MOCK_COLORS_1 = {
-    new Color(0, 0, 0, 0),
-    new Color(0x993333),
-    new Color(0xcc33cc),
-    new Color(0xcc6600),
-    new Color(0xcccc33),
+    new JBColor(new Color(0, 0, 0, 0), new Color(0, 0, 0, 0)),
+    JBColor.RED,
+    JBColor.MAGENTA,
+    JBColor.ORANGE,
+    JBColor.YELLOW,
   };
 
   private static final Color[] MOCK_COLORS_2 = {
-    new Color(0, 0, 0, 0),
-    new Color(0xc6dbef),
-    new Color(0x6baed6)
+    new JBColor(new Color(0, 0, 0, 0), new Color(0, 0, 0, 0)),
+    JBColor.CYAN,
+    JBColor.BLUE
   };
 
   public enum MockFruitState {

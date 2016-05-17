@@ -17,17 +17,15 @@
 package com.android.tools.adtui;
 
 import com.android.annotations.NonNull;
+import com.android.tools.adtui.common.AdtUIUtils;
 import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.model.LegendRenderData;
 import com.android.tools.adtui.model.ReportingSeries;
+import com.intellij.ui.components.JBLabel;
 
 import javax.swing.*;
-import java.awt.BasicStroke;
-import java.awt.Dimension;
-import java.awt.Graphics2D;
-import java.awt.Stroke;
+import java.awt.*;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -44,9 +42,6 @@ public class LegendComponent extends AnimatedComponent {
   private static final int ICON_WIDTH = 16;
   private static final int ICON_PADDING = 2;
   private static final int LABEL_PADDING = 8;
-
-  @NonNull
-  private List<LegendRenderData> mLabels;
 
   @NonNull
   private BaseAxisFormatter mAxisFormatter;
@@ -87,7 +82,8 @@ public class LegendComponent extends AnimatedComponent {
   private void initialize() {
     mLabelsToDraw = new ArrayList<>(mLegendRenderDatas.size());
     for (LegendRenderData data : mLegendRenderDatas) {
-      JLabel label = new JLabel();
+      JBLabel label = new JBLabel();
+      label.setFont(AdtUIUtils.DEFAULT_FONT);
       mLabelsToDraw.add(label);
     }
   }

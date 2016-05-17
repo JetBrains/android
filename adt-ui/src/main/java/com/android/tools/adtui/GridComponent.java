@@ -16,6 +16,7 @@
 package com.android.tools.adtui;
 
 import com.android.annotations.NonNull;
+import com.android.tools.adtui.common.AdtUIUtils;
 import gnu.trove.TFloatArrayList;
 
 import java.awt.*;
@@ -29,13 +30,11 @@ import java.util.List;
  */
 public final class GridComponent extends AnimatedComponent {
 
-  private static final Color GRID_COLOR = new Color(224, 224, 224);
-
   @NonNull
   private List<AxisComponent> mAxes;
 
   public GridComponent() {
-    mAxes = new ArrayList<AxisComponent>();
+    mAxes = new ArrayList<>();
   }
 
   public void addAxis(AxisComponent axis) {
@@ -49,7 +48,7 @@ public final class GridComponent extends AnimatedComponent {
   @Override
   protected void draw(Graphics2D g) {
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-    g.setColor(GRID_COLOR);
+    g.setColor(AdtUIUtils.GRID_COLOR);
 
     Dimension dim = getSize();
     Line2D.Float line = new Line2D.Float();

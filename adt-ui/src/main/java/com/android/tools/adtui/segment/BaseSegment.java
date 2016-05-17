@@ -5,7 +5,9 @@ import com.android.tools.adtui.AccordionLayout;
 import com.android.tools.adtui.Animatable;
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.Range;
+import com.android.tools.adtui.common.AdtUIUtils;
 import com.android.tools.adtui.common.RotatedLabel;
+import com.intellij.ui.components.JBPanel;
 
 import javax.swing.*;
 import javax.swing.border.CompoundBorder;
@@ -31,7 +33,6 @@ public abstract class BaseSegment extends JComponent {
   private static final int SPACER_WIDTH = 100;
   //TODO Adjust this when the vertical label gets integrated.
   private static final int TEXT_FIELD_WIDTH = 50;
-  private static final Color BACKGROUND_COLOR = Color.white;
 
   /**
    * TODO consider getting OS/system specific double-click intervals.
@@ -81,7 +82,7 @@ public abstract class BaseSegment extends JComponent {
     mDelayedEvents = new ArrayDeque<>();
 
     //TODO Adjust borders according to neighbors
-    mCompoundBorder = new CompoundBorder(new MatteBorder(1, 1, 1, 1, Color.lightGray),
+    mCompoundBorder = new CompoundBorder(new MatteBorder(1, 1, 1, 1, AdtUIUtils.DEFAULT_BORDER_COLOR),
                                          new EmptyBorder(0, 0, 0, 0));
 
     initializeListeners();
@@ -89,7 +90,9 @@ public abstract class BaseSegment extends JComponent {
 
   public void initializeComponents() {
     setLayout(new BorderLayout());
+
     RotatedLabel name = new RotatedLabel();
+    name.setFont(AdtUIUtils.DEFAULT_FONT);
     name.setText(myName);
     name.setBorder(mCompoundBorder);
     this.add(name, BorderLayout.WEST);
@@ -108,7 +111,7 @@ public abstract class BaseSegment extends JComponent {
 
     //Setup the center panel, the primary component.
     //This component should consume all available space.
-    JPanel centerPanel = new JPanel();
+    JBPanel centerPanel = new JBPanel();
     centerPanel.setLayout(new BorderLayout());
     centerPanel.setBorder(mCompoundBorder);
     gbc.weightx = 1;
@@ -127,9 +130,8 @@ public abstract class BaseSegment extends JComponent {
   }
 
   private JPanel createSpacerPanel() {
-    JPanel panel = new JPanel();
+    JBPanel panel = new JBPanel();
     panel.setLayout(new BorderLayout());
-    panel.setBackground(BACKGROUND_COLOR);
     panel.setBorder(mCompoundBorder);
     panel.setPreferredSize(new Dimension(getSpacerWidth(), 0));
     return panel;

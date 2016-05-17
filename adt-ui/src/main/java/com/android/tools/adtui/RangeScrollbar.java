@@ -16,6 +16,7 @@
 package com.android.tools.adtui;
 
 import com.android.annotations.NonNull;
+import com.intellij.ui.components.JBScrollBar;
 
 import javax.swing.*;
 import java.awt.event.MouseAdapter;
@@ -37,7 +38,7 @@ import java.awt.event.MouseEvent;
  * C. {@link Range#mCurrentMax} -> BoundedRangeModel's min + extent
  * D. Range data's global maximum -> BoundedRangeModel's max
  */
-public final class RangeScrollbar extends JScrollBar implements Animatable {
+public final class RangeScrollbar extends JBScrollBar implements Animatable {
 
   /**
    * Different states to control the behavior of the scrollbar:

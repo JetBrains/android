@@ -19,6 +19,8 @@ package com.android.tools.adtui.visual;
 import com.android.annotations.NonNull;
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.Choreographer;
+import com.intellij.ide.ui.laf.darcula.DarculaLaf;
+import com.intellij.ui.JBColor;
 
 import javax.swing.*;
 import java.awt.*;
@@ -30,10 +32,6 @@ import java.util.List;
  * Dialog containing a series of tabs, which in turn contain a set of {@code VisualTest}.
  */
 public class VisualTestsDialog extends JDialog {
-
-  private static final Color DARCULA_COLOR = new Color(60, 63, 65);
-
-  private static final Color DEFAULT_COLOR = new Color(244, 244, 244);
 
   private List<Choreographer> mChoreographers = new LinkedList<>();
 
@@ -58,6 +56,10 @@ public class VisualTestsDialog extends JDialog {
    * Checkbox for activating/deactivating continuous charts update.
    */
   private JCheckBox updateCheckbox;
+  /**
+   * Button for advancing the Choreographer by single steps.
+   */
+  private JButton stepButton;
 
   protected VisualTestsDialog() {
     final JPanel contentPane = new JPanel(new BorderLayout());
@@ -86,31 +88,22 @@ public class VisualTestsDialog extends JDialog {
     controls.add(Box.createRigidArea(new Dimension(100, 20)));
 
     debugCheckbox = new JCheckBox("Debug");
-    debugCheckbox.addActionListener(actionEvent -> {
-      for (AnimatedComponent component : mComponents) {
-        component.setDrawDebugInfo(debugCheckbox.isSelected());
-      }
-    });
+    debugCheckbox.addActionListener(actionEvent -> setDebugMode(debugCheckbox.isSelected()));
 
     darculaCheckbox = new JCheckBox("Darcula");
-    darculaCheckbox.addActionListener(
-      actionEvent -> setDarculaMode(darculaCheckbox.isSelected()));
+    darculaCheckbox.addActionListener(actionEvent -> setDarculaMode(darculaCheckbox.isSelected()));
 
-    final JButton step = createButton("Step",
-                                      actionEvent -> mChoreographers.forEach(Choreographer::step));
+    stepButton = createButton("Step", actionEvent -> mChoreographers.forEach(Choreographer::step));
 
     updateCheckbox = new JCheckBox("Update");
-    updateCheckbox.addActionListener(actionEvent -> {
-      mChoreographers.forEach(c -> c.setUpdate(updateCheckbox.isSelected()));
-      step.setEnabled(!updateCheckbox.isSelected());
-    });
+    updateCheckbox.addActionListener(actionEvent -> setUpdateMode(updateCheckbox.isSelected()));
     updateCheckbox.setSelected(true);
 
-    step.setEnabled(false);
+    stepButton.setEnabled(false);
     controls.add(debugCheckbox);
     controls.add(darculaCheckbox);
     controls.add(updateCheckbox);
-    controls.add(step);
+    controls.add(stepButton);
     contentPane.add(controls, BorderLayout.WEST);
 
     setContentPane(contentPane);
@@ -153,11 +146,29 @@ public class VisualTestsDialog extends JDialog {
   }
 
   private void setDarculaMode(boolean isDarcula) {
-    for (VisualTest c : mTests) {
-      if (c.getPanel() != null) {
-        c.getPanel().setBackground(isDarcula ? DARCULA_COLOR : DEFAULT_COLOR);
+    try {
+      if (isDarcula) {
+        UIManager.setLookAndFeel(new DarculaLaf());
+      } else {
+        UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
       }
+      JBColor.setDark(isDarcula);
+      resetTabs();
+
+      setUpdateMode(updateCheckbox.isSelected());
+      setDebugMode(debugCheckbox.isSelected());
+    } catch (Exception ignored) {}
+  }
+
+  private void setDebugMode(boolean isDebug) {
+    for (AnimatedComponent component : mComponents) {
+      component.setDrawDebugInfo(isDebug);
     }
+  }
+
+  private void setUpdateMode(boolean continuousUpdate) {
+    mChoreographers.forEach(c -> c.setUpdate(continuousUpdate));
+    stepButton.setEnabled(!continuousUpdate);
   }
 
   @Override

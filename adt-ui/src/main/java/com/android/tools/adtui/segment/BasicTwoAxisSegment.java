@@ -2,12 +2,13 @@ package com.android.tools.adtui.segment;
 
 import com.android.annotations.NonNull;
 import com.android.tools.adtui.*;
+import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.common.formatter.MemoryAxisFormatter;
-import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.model.LegendRenderData;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.ReportingSeriesRenderer;
+import com.intellij.ui.components.JBLayeredPane;
 
 import javax.swing.*;
 import java.awt.*;
@@ -118,7 +119,7 @@ public abstract class BasicTwoAxisSegment extends BaseSegment {
 
   @Override
   protected void setCenterContent(@NonNull JPanel panel) {
-    JLayeredPane layeredPane = new JLayeredPane();
+    JBLayeredPane layeredPane = new JBLayeredPane();
     layeredPane.add(mLegendComponent);
     layeredPane.add(mLineChart);
     layeredPane.add(mGrid);

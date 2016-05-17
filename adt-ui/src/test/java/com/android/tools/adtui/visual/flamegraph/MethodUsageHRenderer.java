@@ -18,6 +18,8 @@ package com.android.tools.adtui.visual.flamegraph;
 
 import com.android.annotations.NonNull;
 import com.android.tools.adtui.chart.hchart.HRenderer;
+import com.android.tools.adtui.common.AdtUIUtils;
+import com.intellij.ui.JBColor;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -31,8 +33,8 @@ public class MethodUsageHRenderer implements HRenderer<MethodUsage> {
 
     Font mFont;
 
-    private static final Color END_COLOR = new Color(0xFF9F00);
-    private static final Color START_COLOR = new Color(0xF0CB35);
+    private static final Color END_COLOR = new JBColor(new Color(0xFF9F00), new Color(0xFF9F00));
+    private static final Color START_COLOR = new JBColor(new Color(0xF0CB35), new Color(0xF0CB35));
     private final int mRedDelta;
     private final int mGreenDelta;
     private final int mBlueDelta;
@@ -78,8 +80,12 @@ public class MethodUsageHRenderer implements HRenderer<MethodUsage> {
         long middle = (long) drawingArea.getCenterX();
         long textPositionX = middle - textWidth / 2;
         int textPositionY = (int) (drawingArea.getY() + fontMetrics.getAscent());
-        g.setPaint(Color.black);
+
+        Font prevFont = g.getFont();
+        g.setFont(mFont);
+        g.setPaint(AdtUIUtils.DEFAULT_FONT_COLOR);
         g.drawString(text, textPositionX, textPositionY);
+        g.setFont(prevFont);
     }
 
     Color getColor(MethodUsage method) {

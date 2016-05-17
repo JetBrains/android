@@ -18,12 +18,15 @@ package com.android.tools.adtui.visual;
 
 import com.android.annotations.NonNull;
 import com.android.tools.adtui.*;
+import com.android.tools.adtui.common.AdtUIUtils;
 import com.android.tools.adtui.common.formatter.MemoryAxisFormatter;
 import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.model.LegendRenderData;
 import com.android.tools.adtui.model.RangedContinuousSeries;
+import com.intellij.ui.components.JBLayeredPane;
+import com.intellij.ui.components.JBPanel;
 
 import javax.swing.*;
 import java.awt.*;
@@ -92,13 +95,13 @@ public class AxisLineChartVisualTest extends VisualTest {
     // add horizontal time axis
     mTimeAxis = new AxisComponent(xRange, mXGlobalRange, "TIME",
                                   AxisComponent.AxisOrientation.BOTTOM,
-                                  AXIS_SIZE, AXIS_SIZE, false, new TimeAxisFormatter(5, 5, 5));
+                                  AXIS_SIZE, AXIS_SIZE, false, TimeAxisFormatter.DEFAULT);
 
     // left memory data + axis
     Range yRange1Animatable = new Range(0, 100);
     mMemoryAxis1 = new AxisComponent(yRange1Animatable, yRange1Animatable, SERIES1_LABEL,
                                      AxisComponent.AxisOrientation.LEFT, AXIS_SIZE, AXIS_SIZE, true,
-                                     new MemoryAxisFormatter(4, 10, 5));
+                                     MemoryAxisFormatter.DEFAULT);
     RangedContinuousSeries ranged1 = new RangedContinuousSeries(SERIES1_LABEL, xRange, yRange1Animatable);
     mData.add(ranged1);
 
@@ -106,7 +109,7 @@ public class AxisLineChartVisualTest extends VisualTest {
     Range yRange2Animatable = new Range(0, 100);
     mMemoryAxis2 = new AxisComponent(yRange2Animatable, yRange2Animatable, SERIES2_LABEL,
                                      AxisComponent.AxisOrientation.RIGHT, AXIS_SIZE, AXIS_SIZE, true,
-                                     new MemoryAxisFormatter(4, 10, 5));
+                                     MemoryAxisFormatter.DEFAULT);
     RangedContinuousSeries ranged2 = new RangedContinuousSeries(SERIES2_LABEL, xRange, yRange2Animatable);
     mData.add(ranged2);
     mLineChart.addLines(mData);
@@ -168,7 +171,7 @@ public class AxisLineChartVisualTest extends VisualTest {
     JLayeredPane mockTimelinePane = createMockTimeline();
     panel.add(mockTimelinePane, BorderLayout.CENTER);
 
-    final JPanel controls = new JPanel();
+    final JBPanel controls = new JBPanel();
     LayoutManager manager = new BoxLayout(controls, BoxLayout.Y_AXIS);
     controls.setLayout(manager);
     panel.add(controls, BorderLayout.WEST);
@@ -266,7 +269,7 @@ public class AxisLineChartVisualTest extends VisualTest {
   }
 
   private JLayeredPane createMockTimeline() {
-    JLayeredPane timelinePane = new JLayeredPane();
+    JBLayeredPane timelinePane = new JBLayeredPane();
 
     timelinePane.add(mMemoryAxis1);
     timelinePane.add(mMemoryAxis2);
@@ -275,7 +278,7 @@ public class AxisLineChartVisualTest extends VisualTest {
     timelinePane.add(mSelection);
     timelinePane.add(mGrid);
     timelinePane.add(mScrollbar);
-    JPanel labelPanel = new JPanel();
+    JBPanel labelPanel = new JBPanel(); // TODO move to ProfilerOverviewVisualTest.
     labelPanel.setLayout(new FlowLayout());
     labelPanel.add(mLegendComponent);
     timelinePane.add(labelPanel);

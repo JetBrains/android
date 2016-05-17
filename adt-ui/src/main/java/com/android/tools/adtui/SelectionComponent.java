@@ -46,14 +46,10 @@ public final class SelectionComponent extends AnimatedComponent {
    */
   private static final Dimension HANDLE_DIM = new Dimension(12, 40);
   private static final int DIM_ROUNDING_CORNER = 5;
-  private static final Color SELECTION_FORECOLOR = new Color(0x88aae2);
-  private static final Color SELECTION_BACKCOLOR = new Color(0x5588aae2, true);
 
   /**
    * Drawing parameters for the overlay info when user hovers over the charting components.
    */
-  private static final Color OVERLAY_INFO_BACKGROUND = Color.WHITE;
-  private static final Color OVERLAY_INFO_HINT_COLOR = new Color(168, 168, 168);
   private static final int OVERLAY_INFO_PADDING = 5;
   private static final int OVERLAY_INFO_LINE_SPACING = 5;
   private static final int OVERLAY_INFO_COLUMN_SPACING = 10;
@@ -408,11 +404,12 @@ public final class SelectionComponent extends AnimatedComponent {
     g.setColor(AdtUIUtils.DEFAULT_FONT_COLOR);
     g.fill(rect); // drop shadow
     g.translate(-OVERLAY_SHADOW_OFFSET, -OVERLAY_SHADOW_OFFSET);
-    g.setColor(OVERLAY_INFO_BACKGROUND);
+    g.setColor(AdtUIUtils.OVERLAY_INFO_BACKGROUND);
     g.fill(rect); // overlay window surface.
 
     // Second pass through the data to draw the individual texts.
     g.setColor(AdtUIUtils.DEFAULT_FONT_COLOR);
+    g.setFont(AdtUIUtils.DEFAULT_FONT);
     int textHeight = OVERLAY_INFO_PADDING;
     if (containerName != null) {
       textHeight += ascent;
@@ -429,7 +426,6 @@ public final class SelectionComponent extends AnimatedComponent {
     }
 
     // Draw separator and double-click instruction message.
-    g.setColor(OVERLAY_INFO_HINT_COLOR);
     g.drawLine(0, textHeight, overlayWidth, textHeight);
     textHeight += OVERLAY_INFO_LINE_SPACING + ascent;
     g.drawString(OVERLAY_DRILL_DOWN_MESSAGE, OVERLAY_INFO_PADDING, textHeight);
@@ -449,14 +445,14 @@ public final class SelectionComponent extends AnimatedComponent {
       drawCursor(mousePosition);
 
       // Draw selected area.
-      g.setColor(SELECTION_BACKCOLOR);
+      g.setColor(AdtUIUtils.SELECTION_BACKGROUND);
       float startXPos = mAxis.getPositionAtValue(mSelectionRange.getMin());
       float endXPos = mAxis.getPositionAtValue(mSelectionRange.getMax());
       Rectangle2D.Float rect = new Rectangle2D.Float(startXPos, 0, endXPos - startXPos, dim.height);
       g.fill(rect);
 
       // Draw vertical lines, one for each endsValue.
-      g.setColor(SELECTION_FORECOLOR);
+      g.setColor(AdtUIUtils.SELECTION_FOREGROUND);
       Path2D.Float path = new Path2D.Float();
       path.moveTo(startXPos, 0);
       path.lineTo(startXPos, dim.height);
@@ -479,7 +475,7 @@ public final class SelectionComponent extends AnimatedComponent {
   }
 
   private void drawHandleAtValue(Graphics2D g, double value) {
-    g.setPaint(Color.gray);
+    g.setPaint(AdtUIUtils.SELECTION_HANDLE);
     RoundRectangle2D.Double handle = getHandleAreaForValue(value);
     g.fill(handle);
   }

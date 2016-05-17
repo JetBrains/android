@@ -40,9 +40,6 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
   @NonNull
   private HNode<T> mRoot;
 
-  @NonNull
-  private FontMetrics mFontMetrics;
-
   @Nullable
   private Range mXRange;
 
@@ -78,16 +75,15 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
   protected void draw(Graphics2D g) {
 
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-    this.mFontMetrics = g.getFontMetrics(AdtUIUtils.DEFAULT_FONT);
 
     if (mRoot.getChildren().size() == 0) {
-      g.drawString(NO_HTREE, getWidth() / 2 - mFontMetrics.stringWidth(NO_HTREE),
+      g.drawString(NO_HTREE, getWidth() / 2 - mDefaultFontMetrics.stringWidth(NO_HTREE),
                    getHeight() / 2);
       return;
     }
 
     if (getXRange().getLength() == 0) {
-      g.drawString(NO_RANGE, getWidth() / 2 - mFontMetrics.stringWidth(NO_RANGE),
+      g.drawString(NO_RANGE, getWidth() / 2 - mDefaultFontMetrics.stringWidth(NO_RANGE),
                    getHeight() / 2);
       return;
     }
@@ -124,10 +120,10 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
 
     // 3. Calculate node position and dimension.
     mRect.x = (float)leftEdge;
-    mRect.y = (float)((mFontMetrics.getHeight() + BORDER_PLUS_PADDING) * n.getDepth()
+    mRect.y = (float)((mDefaultFontMetrics.getHeight() + BORDER_PLUS_PADDING) * n.getDepth()
                       - getYRange().getMin());
     mRect.width = (float)width - BORDER_PLUS_PADDING;
-    mRect.height = mFontMetrics.getHeight();
+    mRect.height = mDefaultFontMetrics.getHeight();
 
     if (mOrientation == HTreeChart.Orientation.BOTTOM_UP) {
       mRect.y = getHeight() - mRect.y;
@@ -183,7 +179,7 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
       stack.addAll(n.getChildren());
     }
     maxDepth += 1;
-    return (mFontMetrics.getHeight() + BORDER_PLUS_PADDING) * maxDepth;
+    return (mDefaultFontMetrics.getHeight() + BORDER_PLUS_PADDING) * maxDepth;
   }
 
   // TODO we probably want to extract/abstract this logic out later so the zooming behavior
