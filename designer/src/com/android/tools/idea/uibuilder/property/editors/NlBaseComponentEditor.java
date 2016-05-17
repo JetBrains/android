@@ -15,46 +15,25 @@
  */
 package com.android.tools.idea.uibuilder.property.editors;
 
-import com.android.resources.ResourceType;
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 import com.android.tools.idea.uibuilder.property.NlProperty;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.ui.FixedSizeButton;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
-import com.intellij.ui.UIBundle;
-import com.intellij.ui.components.JBCheckBox;
-import org.jetbrains.android.dom.AndroidDomUtil;
-import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.EnumSet;
-import java.util.Set;
 
-public abstract class NlBaseComponentEditor implements NlComponentEditor {
+public abstract class NlBaseComponentEditor implements NlComponentEditor, BrowsePanel.Context {
   protected static final JBColor DEFAULT_VALUE_TEXT_COLOR = new JBColor(Gray._128, Gray._128);
   protected static final JBColor CHANGED_VALUE_TEXT_COLOR = JBColor.BLUE;
 
   private final NlEditingListener myListener;
 
   private JLabel myLabel;
-  private JButton myBrowseButton;
 
   public NlBaseComponentEditor(@NotNull NlEditingListener listener) {
     myListener = listener;
-  }
-
-  protected JComponent createBrowsePanel() {
-    myBrowseButton = new FixedSizeButton(new JBCheckBox());
-    myBrowseButton.setToolTipText(UIBundle.message("component.with.browse.button.browse.button.tooltip.text"));
-    JPanel browsePanel = new JPanel();
-    browsePanel.setLayout(new BoxLayout(browsePanel, BoxLayout.X_AXIS));
-    browsePanel.add(myBrowseButton);
-    myBrowseButton.addActionListener(event -> displayResourcePicker());
-    return browsePanel;
   }
 
   @Nullable
@@ -67,6 +46,7 @@ public abstract class NlBaseComponentEditor implements NlComponentEditor {
   public void setLabel(@NotNull JLabel label) {
     myLabel = label;
   }
+
   @Override
   public void setVisible(boolean visible) {
     getComponent().setVisible(visible);
@@ -80,13 +60,6 @@ public abstract class NlBaseComponentEditor implements NlComponentEditor {
     NlProperty property = getProperty();
     if (property != null) {
       setProperty(property);
-    }
-  }
-
-  @Override
-  public void setProperty(@NotNull NlProperty property) {
-    if (myBrowseButton != null) {
-      myBrowseButton.setVisible(hasResourceChooser(property));
     }
   }
 
@@ -110,7 +83,8 @@ public abstract class NlBaseComponentEditor implements NlComponentEditor {
     getComponent().requestFocus();
   }
 
-  protected void cancelEditing() {
+  @Override
+  public void cancelEditing() {
     myListener.cancelEditing(this);
   }
 
@@ -124,30 +98,12 @@ public abstract class NlBaseComponentEditor implements NlComponentEditor {
     if (property == null) {
       return;
     }
-    ChooseResourceDialog dialog = showResourceChooser(property);
+    ChooseResourceDialog dialog = BrowsePanel.showResourceChooser(property);
     if (dialog.showAndGet()) {
       stopEditing(dialog.getResourceName());
-    } else {
+    }
+    else {
       cancelEditing();
     }
-  }
-
-  private static ChooseResourceDialog showResourceChooser(@NotNull NlProperty property) {
-    Module module = property.getModel().getModule();
-    AttributeDefinition definition = property.getDefinition();
-    ResourceType[] types = getResourceTypes(definition);
-    return new ChooseResourceDialog(module, types, property.getValue(), property.getTag());
-  }
-
-  public static boolean hasResourceChooser(@NotNull NlProperty property) {
-    return getResourceTypes(property.getDefinition()).length > 0;
-  }
-
-  @NotNull
-  protected static ResourceType[] getResourceTypes(@Nullable AttributeDefinition definition) {
-    Set<AttributeFormat> formats = definition != null ? definition.getFormats() : EnumSet.allOf(AttributeFormat.class);
-    // for some special known properties, we can narrow down the possible types (rather than the all encompassing reference type)
-    ResourceType type = definition != null ? AndroidDomUtil.SPECIAL_RESOURCE_TYPES.get(definition.getName()) : null;
-    return type == null ? AttributeFormat.convertTypes(formats) : new ResourceType[]{type};
   }
 }

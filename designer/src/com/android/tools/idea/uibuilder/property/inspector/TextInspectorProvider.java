@@ -166,6 +166,7 @@ public class TextInspectorProvider implements InspectorProvider {
 
     @Override
     public void attachToInspector(@NotNull InspectorPanel inspector) {
+      refresh();
       inspector.addTitle("TextView");
       inspector.addComponent(ATTR_TEXT, myText.getTooltipText(), myTextEditor.getComponent());
       JLabel designText = inspector.addComponent(ATTR_TEXT, myDesignText.getTooltipText(), myDesignTextEditor.getComponent());
@@ -180,7 +181,6 @@ public class TextInspectorProvider implements InspectorProvider {
       inspector.addComponent(ATTR_TEXT_COLOR, myColor.getTooltipText(), myColorEditor.getComponent());
       inspector.addComponent(ATTR_TEXT_STYLE, myTextStyle.getTooltipText(), myTextStylePanel);
       inspector.addComponent(ATTR_TEXT_ALIGNMENT, myAlignment.getTooltipText(), myAlignmentPanel);
-      refresh();
     }
 
     @Override

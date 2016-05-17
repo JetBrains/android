@@ -24,15 +24,12 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.GutterIconCache;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.uibuilder.property.NlProperty;
-import com.android.tools.idea.uibuilder.property.editors.NlReferenceEditor;
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.ui.ColorIcon;
 import org.jetbrains.android.AndroidColorAnnotator;
-import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -57,20 +54,6 @@ public class NlDefaultRenderer extends NlAttributeRenderer {
   public void customizeRenderContent(@NotNull JTable table, @NotNull NlProperty p, boolean selected, boolean hasFocus, int row, int col) {
     myLabel.clear();
     customize(p, col);
-  }
-
-  @Override
-  public Icon getHoverIcon(@NotNull NlProperty property) {
-    AttributeDefinition definition = property.getDefinition();
-    if (NlReferenceEditor.hasResourceChooser(property)) {
-      return AllIcons.General.Ellipsis;
-    }
-    else if (definition != null && definition.getFormats().contains(AttributeFormat.Enum)) {
-      return AllIcons.General.ComboArrowDown;
-    }
-    else {
-      return AllIcons.General.EditItemInSection;
-    }
   }
 
   @VisibleForTesting

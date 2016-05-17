@@ -116,6 +116,7 @@ public class ProgressBarInspectorProvider implements InspectorProvider {
 
     @Override
     public void attachToInspector(@NotNull InspectorPanel inspector) {
+      refresh();
       inspector.addTitle("ProgressBar");
       inspector.addComponent(ATTR_STYLE, myStyle.getTooltipText(), myStyleEditor.getComponent());
       myDrawableLabel = inspector.addComponent(ATTR_PROGRESS_DRAWABLE, myProgressDrawable.getTooltipText(), myDrawableEditor.getComponent());
@@ -126,7 +127,6 @@ public class ProgressBarInspectorProvider implements InspectorProvider {
       JLabel designVisibility = inspector.addComponent(ATTR_VISIBILITY, myDesignVisibility.getTooltipText(), myDesignVisibilityEditor.getComponent());
       designVisibility.setIcon(AndroidIcons.NeleIcons.DesignProperty);
       inspector.addComponent(ATTR_INDETERMINATE, myIndeterminate.getTooltipText(), myIndeterminateEditor.getComponent());
-      refresh();
     }
 
     @Override

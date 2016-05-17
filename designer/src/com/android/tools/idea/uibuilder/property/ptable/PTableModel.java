@@ -33,6 +33,16 @@ public class PTableModel extends AbstractTableModel {
     fireTableDataChanged();
   }
 
+  public void insertRow(int row, @NotNull PTableItem item) {
+    myItems.add(row, item);
+    fireTableRowsInserted(row, row);
+  }
+
+  public void deleteRow(int row) {
+    myItems.remove(row);
+    fireTableRowsDeleted(row, row);
+  }
+
   @Override
   public int getRowCount() {
     return myItems.size();

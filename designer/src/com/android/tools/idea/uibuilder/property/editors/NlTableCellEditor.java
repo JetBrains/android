@@ -16,16 +16,22 @@
 package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.uibuilder.property.NlPropertyItem;
+import com.android.tools.idea.uibuilder.property.ptable.PTable;
 import com.android.tools.idea.uibuilder.property.ptable.PTableCellEditor;
-import com.intellij.util.ui.UIUtil;
+import com.android.tools.idea.uibuilder.property.ptable.PTableModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
 
-public class NlTableCellEditor extends PTableCellEditor implements NlEditingListener {
+import static com.android.SdkConstants.TOOLS_URI;
+
+public class NlTableCellEditor extends PTableCellEditor implements NlEditingListener, BrowsePanel.Context {
   private NlComponentEditor myEditor;
+  private JTable myTable;
+  private int myRow;
 
   public void init(@NotNull NlComponentEditor editor) {
     myEditor = editor;
@@ -36,7 +42,19 @@ public class NlTableCellEditor extends PTableCellEditor implements NlEditingList
     assert value instanceof NlProperty;
 
     myEditor.setProperty((NlProperty)value);
+    myTable = table;
+    myRow = row;
     return myEditor.getComponent();
+  }
+
+  @Override
+  public boolean isBooleanEditor() {
+    return myEditor instanceof NlBooleanEditor;
+  }
+
+  @Override
+  public void activate() {
+    myEditor.activate();
   }
 
   @Override
@@ -54,13 +72,55 @@ public class NlTableCellEditor extends PTableCellEditor implements NlEditingList
     cancelCellEditing();
   }
 
+  @Nullable
   @Override
-  public boolean isBooleanEditor() {
-    return myEditor instanceof NlBooleanEditor;
+  public NlProperty getProperty() {
+    return getPropertyAt(myTable, myRow);
+  }
+
+  @Nullable
+  @Override
+  public NlProperty getDesignProperty() {
+    return getPropertyAt(myTable, myRow + 1);
   }
 
   @Override
-  public void activate() {
-    myEditor.activate();
+  public void cancelEditing() {
+    cancelCellEditing();
+  }
+
+  @Override
+  public void addDesignProperty() {
+    NlPropertyItem property = getPropertyAt(myTable, myRow);
+    assert property != null && !TOOLS_URI.equals(property.getNamespace());
+    cancelEditing();
+    PTableModel model = (PTableModel)myTable.getModel();
+    model.insertRow(myRow + 1, property.getDesignTimeProperty());
+    //noinspection SSBasedInspection
+    SwingUtilities.invokeLater(() -> myTable.editCellAt(myRow + 1, 1));
+  }
+
+  @Override
+  public void removeDesignProperty() {
+    NlPropertyItem designProperty = getPropertyAt(myTable, myRow);
+    assert designProperty != null && TOOLS_URI.equals(designProperty.getNamespace());
+    PTableModel model = (PTableModel)myTable.getModel();
+    cancelEditing();
+    designProperty.setValue(null);
+    model.deleteRow(myRow);
+    //noinspection SSBasedInspection
+    SwingUtilities.invokeLater(() -> myTable.editCellAt(myRow - 1, 1));
+  }
+
+  @Nullable
+  public static NlPropertyItem getPropertyAt(@NotNull JTable table, int row) {
+    if (!(table instanceof PTable && row < table.getRowCount())) {
+      return null;
+    }
+    Object value = table.getValueAt(row, 1);
+    if (value instanceof NlPropertyItem) {
+      return (NlPropertyItem)value;
+    }
+    return null;
   }
 }

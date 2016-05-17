@@ -35,26 +35,26 @@ public class NlBooleanEditor extends NlBaseComponentEditor implements NlComponen
 
   public static NlTableCellEditor createForTable() {
     NlTableCellEditor cellEditor = new NlTableCellEditor();
-    cellEditor.init(new NlBooleanEditor(cellEditor, true));
+    cellEditor.init(new NlBooleanEditor(cellEditor, cellEditor));
     return cellEditor;
   }
 
   public static NlBooleanEditor createForInspector(@NotNull NlEditingListener listener) {
-    return new NlBooleanEditor(listener, false);
+    return new NlBooleanEditor(listener, null);
   }
 
-  private NlBooleanEditor(@NotNull NlEditingListener listener, boolean includeBrowseButton) {
+  private NlBooleanEditor(@NotNull NlEditingListener listener, @Nullable BrowsePanel.Context context) {
     super(listener);
     myCheckbox = new ThreeStateCheckBox();
     myCheckbox.addActionListener(this::checkboxChanged);
 
-    if (!includeBrowseButton) {
+    if (context == null) {
       myPanel = null;
     }
     else {
       myPanel = new JPanel(new BorderLayout(SystemInfo.isMac ? 0 : 2, 0));
       myPanel.add(myCheckbox, BorderLayout.LINE_START);
-      myPanel.add(createBrowsePanel(), BorderLayout.LINE_END);
+      myPanel.add(new BrowsePanel(context, true), BorderLayout.LINE_END);
     }
   }
 
