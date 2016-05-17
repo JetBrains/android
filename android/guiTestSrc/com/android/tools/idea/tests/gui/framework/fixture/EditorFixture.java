@@ -458,6 +458,12 @@ public class EditorFixture {
   }
 
   @NotNull
+  public EditorFixture checkNoNotification() {
+    checkState(robot.finder().findAll(GuiTests.matcherForType(EditorNotificationPanel.class)).isEmpty());
+    return this;
+  }
+
+  @NotNull
   public List<String> getHighlights(HighlightSeverity severity) {
     List<String> infos = Lists.newArrayList();
     for (HighlightInfo info : getCurrentFileFixture().getHighlightInfos(severity)) {

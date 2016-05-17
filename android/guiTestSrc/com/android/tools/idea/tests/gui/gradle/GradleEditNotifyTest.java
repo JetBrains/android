@@ -19,7 +19,6 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
-import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,22 +39,19 @@ public class GradleEditNotifyTest {
     // the build.gradle model is out of date
     // Regression test for https://code.google.com/p/android/issues/detail?id=75983
 
-    guiTest.importSimpleApplication();
-    EditorFixture editor = guiTest.ideFrame().getEditor();
-    editor.open("app/build.gradle").waitUntilErrorAnalysisFinishes();
-
-    // When done and a successful gradle sync there should not be any messages
-    guiTest.ideFrame().requireNoEditorNotification();
-
-    // Insert:
-    editor.moveBetween("versionCode ", "")
+    guiTest.importSimpleApplication()
+      .getEditor()
+      .open("app/build.gradle").waitUntilErrorAnalysisFinishes()
+      .checkNoNotification()
+      .moveBetween("versionCode ", "")
       .enterText("1")
       .awaitNotification(
         "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
       .performAction("Sync Now")
       .waitForGradleProjectSyncToFinish()
-      .requireNoEditorNotification();
-    editor.invokeAction(BACK_SPACE)
+      .getEditor()
+      .checkNoNotification()
+      .invokeAction(BACK_SPACE)
       .awaitNotification(
         "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.");
   }
