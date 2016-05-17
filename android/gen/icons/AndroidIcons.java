@@ -250,6 +250,10 @@ public class AndroidIcons {
     public static final Icon BaselineConstraintCursor = load("/icons/sherpa/baseline_constraint_cursor.png");
     public static final Icon UnlinkConstraintCursor = load("/icons/sherpa/unlink_constraint_cursor.png");
 
+    public static final Icon ArrowDown = load("/icons/sherpa/arrow_down.png");
+    public static final Icon ArrowLeft = load("/icons/sherpa/arrow_left.png");
+    public static final Icon ArrowRight = load("/icons/sherpa/arrow_right.png");
+    public static final Icon ArrowUp = load("/icons/sherpa/arrow_up.png");
     public static final Icon AutoConnect = load("/icons/sherpa/auto_connect.png");
     public static final Icon AutoConnectOff = load("/icons/sherpa/auto_connect_off.png");
     public static final Icon BaselineAlignB = load("/icons/sherpa/baseline-aligned.png");
@@ -281,6 +285,7 @@ public class AndroidIcons {
     public static final Icon PackSelectionHorizontally = load("/icons/sherpa/pack-horizontally_b.png");
     public static final Icon PackSelectionVerticallyB = load("/icons/sherpa/pack-vertically.png");
     public static final Icon PackSelectionVertically = load("/icons/sherpa/pack-vertically_b.png");
+    public static final Icon Percent = load("/icons/sherpa/percent.png");
     public static final Icon RightAlignedB = load("/icons/sherpa/right-aligned.png");
     public static final Icon RightAligned = load("/icons/sherpa/right-aligned_b.png");
     public static final Icon TopAlignB = load("/icons/sherpa/top-aligned.png");
