@@ -93,11 +93,11 @@ public class SingleWidgetView extends JPanel {
     mBottomKill = new KillButton(mColorSet);
     mBaselineKill = new KillButton(mColorSet);
 
-    mTopKill.setToolTipText("Kill Top Constraint");
-    mLeftKill.setToolTipText("Kill Left Constraint");
-    mRightKill.setToolTipText("Kill Right Constraint");
-    mBottomKill.setToolTipText("Kill Bottom Constraint");
-    mBaselineKill.setToolTipText("Kill Baseline Constraint");
+    mTopKill.setToolTipText("Delete Top Constraint");
+    mLeftKill.setToolTipText("Delete Left Constraint");
+    mRightKill.setToolTipText("Delete Right Constraint");
+    mBottomKill.setToolTipText("Delete Bottom Constraint");
+    mBaselineKill.setToolTipText("Delete Baseline Constraint");
 
     mHbar1.setSister(mHbar2);
     mHbar2.setSister(mHbar1);
