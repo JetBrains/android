@@ -17,7 +17,6 @@ package com.android.tools.idea.tests.gui.theme;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.EditorNotificationPanelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture;
 import com.intellij.codeInsight.lookup.LookupElement;
@@ -38,13 +37,12 @@ public class ThemeEditorGuiTestUtils {
 
   @NotNull
   public static ThemeEditorFixture openThemeEditor(@NotNull IdeFrameFixture projectFrame) {
-    EditorFixture editor = projectFrame.getEditor();
-    editor.open("app/src/main/res/values/styles.xml", EditorFixture.Tab.EDITOR);
-    EditorNotificationPanelFixture notificationPanel =
-      projectFrame.requireEditorNotification("Edit all themes in the project in the theme editor.");
-    notificationPanel.performAction("Open editor");
-
-    ThemeEditorFixture themeEditor = editor.getThemeEditor();
+    ThemeEditorFixture themeEditor = projectFrame.getEditor()
+      .open("app/src/main/res/values/styles.xml", EditorFixture.Tab.EDITOR)
+      .awaitNotification("Edit all themes in the project in the theme editor.")
+      .performAction("Open editor")
+      .getEditor()
+      .getThemeEditor();
 
     themeEditor.getPreviewComponent().getThemePreviewPanel().getPreviewPanel().waitForRender();
 

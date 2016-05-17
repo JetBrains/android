@@ -1192,13 +1192,13 @@ public class GradleSyncTest {
   // See https://code.google.com/p/android/issues/detail?id=171370
   @Test
   public void testEditorNotificationsWhenSyncNeededAfterProjectImport() throws IOException {
-    guiTest.importSimpleApplication();
-
-    EditorFixture editor = guiTest.ideFrame().getEditor();
-    editor.open("app/build.gradle").waitUntilErrorAnalysisFinishes().enterText("Hello World");
-
-    guiTest.ideFrame().requireEditorNotification(
-      "Gradle files have changed since last project sync. " + "A project sync may be necessary for the IDE to work properly.");
+    guiTest.importSimpleApplication()
+      .getEditor()
+      .open("app/build.gradle")
+      .waitUntilErrorAnalysisFinishes()
+      .enterText("Hello World")
+      .awaitNotification(
+        "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.");
   }
 
   // Verifies that sync does not fail and user is warned when a project contains an Android module without variants.

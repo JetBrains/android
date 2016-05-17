@@ -205,12 +205,13 @@ public class NlPreviewTest {
     FileFixture file = guiTest.ideFrame().findExistingFileByRelativePath(layoutFilePath);
     file.waitForCodeAnalysisHighlightCount(ERROR, 0);
 
-    String buildGradlePath = "app/build.gradle";
-    editor.open(buildGradlePath, EditorFixture.Tab.EDITOR);
-    editor.moveBetween("String 1 defined only by ", "defaultConfig");
-    editor.enterText("edited ");
-    guiTest.ideFrame().requireEditorNotification("Gradle files have changed since last project sync").performAction("Sync Now");
-    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
+    editor.open("app/build.gradle", EditorFixture.Tab.EDITOR)
+      .moveBetween("String 1 defined only by ", "defaultConfig")
+      .enterText("edited ")
+      .awaitNotification(
+        "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
+      .performAction("Sync Now")
+      .waitForGradleProjectSyncToFinish();
 
     editor.open(layoutFilePath, EditorFixture.Tab.EDITOR);
     preview.waitForRenderToFinish();
