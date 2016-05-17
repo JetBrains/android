@@ -241,7 +241,7 @@ public class ASGallery<E> extends JBList {
    */
   protected Dimension computeCellSize() {
     int preferredWidth = myThumbnailSize.width + myCellMargin.left + myCellMargin.right;
-    int listWidth = getSize().width;
+    int listWidth = getSize().width - getInsets().left - getInsets().right;
     int columnCount = listWidth / preferredWidth;
     int width = (columnCount == 0 ? preferredWidth : (listWidth / columnCount) - 1);
     int textHeight = getFont().getSize();
