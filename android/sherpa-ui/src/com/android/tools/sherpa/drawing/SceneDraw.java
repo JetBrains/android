@@ -498,7 +498,6 @@ public class SceneDraw {
         }
         mViewWidth = width;
         mViewHeight = height;
-        root = root.getRootConstraintContainer();
         if (mApplyConstraints) {
             root.layout();
         }
