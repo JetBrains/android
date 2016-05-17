@@ -75,12 +75,7 @@ public class StatefulButton extends JPanel {
       // Listen for notifications that the state has been updated.
       Module module = myDeveloperService.getModule();
       MessageBusConnection connection = module.getMessageBus().connect(module);
-      connection.subscribe(StatefulButtonNotifier.BUTTON_STATE_TOPIC, new StatefulButtonNotifier() {
-        @Override
-        public void stateUpdated() {
-          updateButtonState();
-        }
-      });
+      connection.subscribe(StatefulButtonNotifier.BUTTON_STATE_TOPIC, () -> updateButtonState());
     }
 
     // Initialize the button state. This includes making the proper element visible.
@@ -98,6 +93,11 @@ public class StatefulButton extends JPanel {
    * TODO: Determine how to update the state on card view change at minimum.
    */
   public void updateButtonState() {
+    // Ensure we're on the AWT event dispatch thread
+    if (!SwingUtilities.isEventDispatchThread()) {
+      SwingUtilities.invokeLater(() -> updateButtonState());
+      return;
+    }
     // There may be cases where the action is not stateful such as triggering a debug event which can occur any number of times.
     if (myStateManager == null) {
       myButton.setVisible(true);
