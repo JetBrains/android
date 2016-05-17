@@ -19,7 +19,9 @@ package com.android.tools.adtui.visual;
 import com.android.annotations.NonNull;
 import com.android.tools.adtui.*;
 import com.android.tools.adtui.chart.linechart.LineChart;
+import com.android.tools.adtui.common.AdtUIUtils;
 import com.android.tools.adtui.model.RangedContinuousSeries;
+import com.intellij.ui.components.JBPanel;
 
 import javax.swing.*;
 import java.awt.*;
@@ -50,10 +52,10 @@ public class AccordionVisualTest extends VisualTest {
   private AccordionLayout mAccordionY;
 
   @NonNull
-  private JPanel mPanelX;
+  private JBPanel mPanelX;
 
   @NonNull
-  private JPanel mPanelY;
+  private JBPanel mPanelY;
 
   @NonNull
   private AnimatedTimeRange mAnimatedTimeRange;
@@ -66,8 +68,8 @@ public class AccordionVisualTest extends VisualTest {
     Range xRange = new Range();
     mAnimatedTimeRange = new AnimatedTimeRange(xRange, mStartTimeMs);
 
-    mPanelX = new JPanel();
-    mPanelY = new JPanel();
+    mPanelX = new JBPanel();
+    mPanelY = new JBPanel();
     mAccordionX = new AccordionLayout(mPanelX, AccordionLayout.Orientation.HORIZONTAL);
     mAccordionY = new AccordionLayout(mPanelY, AccordionLayout.Orientation.VERTICAL);
     mPanelX.setLayout(mAccordionX);
@@ -137,9 +139,9 @@ public class AccordionVisualTest extends VisualTest {
     mUpdateDataThread.start();
 
     // Creates the vertical accordion at the top half.
-    JPanel yPanel = new JPanel();
+    JBPanel yPanel = new JBPanel();
     panel.add(yPanel);
-    yPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+    yPanel.setBorder(BorderFactory.createLineBorder(AdtUIUtils.DEFAULT_BORDER_COLOR));
     final JPanel controlsY = VisualTests.createControlledPane(yPanel, mPanelY);
 
     controlsY.add(VisualTests.createButton("Reset Weights", listener -> {
@@ -172,9 +174,9 @@ public class AccordionVisualTest extends VisualTest {
                      new Dimension(300, Integer.MAX_VALUE)));
 
     // Creates the horizontal accordion at the bottom half.
-    JPanel xPanel = new JPanel();
+    JBPanel xPanel = new JBPanel();
     panel.add(xPanel);
-    xPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+    xPanel.setBorder(BorderFactory.createLineBorder(AdtUIUtils.DEFAULT_BORDER_COLOR));
     final JPanel controlsX = VisualTests.createControlledPane(xPanel, mPanelX);
     controlsX.add(VisualTests.createButton("Reset Weights", listener -> {
       mAccordionX.resetComponents();

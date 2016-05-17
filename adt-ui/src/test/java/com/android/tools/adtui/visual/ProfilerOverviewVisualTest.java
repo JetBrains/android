@@ -26,6 +26,7 @@ import com.android.tools.adtui.model.RangedSimpleSeries;
 import com.android.tools.adtui.segment.BaseSegment;
 import com.android.tools.adtui.segment.EventSegment;
 import com.android.tools.adtui.segment.NetworkSegment;
+import com.intellij.ui.components.JBPanel;
 
 import javax.swing.*;
 import java.awt.*;
@@ -127,9 +128,9 @@ public class ProfilerOverviewVisualTest extends VisualTest {
                                   0,
                                   0,
                                   false,
-                                  new TimeAxisFormatter(10, 5, 5));
+                                  TimeAxisFormatter.DEFAULT);
 
-    mSegmentsContainer = new JPanel();
+    mSegmentsContainer = new JBPanel();
     mLayout = new AccordionLayout(mSegmentsContainer, AccordionLayout.Orientation.VERTICAL);
     mSegmentsContainer.setLayout(mLayout);
 
@@ -195,7 +196,7 @@ public class ProfilerOverviewVisualTest extends VisualTest {
 
     GridBagLayout gbl = new GridBagLayout();
     GridBagConstraints gbc = new GridBagConstraints();
-    JPanel gridBagPanel = new JPanel();
+    JBPanel gridBagPanel = new JBPanel();
     gridBagPanel.setLayout(gbl);
 
     // TODO create some controls.
@@ -250,7 +251,7 @@ public class ProfilerOverviewVisualTest extends VisualTest {
   }
 
   private JComponent createToolbarPanel() {
-    JPanel panel = new JPanel();
+    JBPanel panel = new JBPanel();
     BoxLayout layout = new BoxLayout(panel, BoxLayout.X_AXIS);
     panel.setLayout(layout);
     panel.setBorder(BorderFactory.createLineBorder(Color.GRAY));

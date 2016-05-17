@@ -20,6 +20,8 @@ import com.android.annotations.NonNull;
 import com.android.tools.adtui.Animatable;
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.Choreographer;
+import com.android.tools.adtui.common.AdtUIUtils;
+import com.intellij.ui.components.JBPanel;
 
 import javax.swing.*;
 import java.util.List;
@@ -36,7 +38,7 @@ public abstract class VisualTest {
   /**
    * Main panel of the VisualTest, which contains all the other elements.
    */
-  private JPanel mPanel;
+  private JBPanel mPanel;
 
   private Choreographer mChoreographer;
 
@@ -83,7 +85,7 @@ public abstract class VisualTest {
   protected abstract void registerComponents(List<AnimatedComponent> components);
 
   private void initialize() {
-    mPanel = new JPanel();
+    mPanel = new JBPanel();
     mChoreographer = new Choreographer(CHOREOGRAPHER_FPS, mPanel);
     mChoreographer.register(createComponentsList());
     populateUi(mPanel);

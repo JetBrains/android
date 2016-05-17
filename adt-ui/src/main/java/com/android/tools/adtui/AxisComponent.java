@@ -328,6 +328,7 @@ public final class AxisComponent extends AnimatedComponent {
       g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
       // Draw axis.
+      g.setColor(AdtUIUtils.DEFAULT_BORDER_COLOR);
       g.drawLine(startPoint.x, startPoint.y, endPoint.x, endPoint.y);
 
       // TODO account for pixel spacing so we can skip ticks if the length is too narrow.
@@ -339,7 +340,6 @@ public final class AxisComponent extends AnimatedComponent {
 
   private void drawMarkers(Graphics2D g2d, Point origin) {
     g2d.setFont(AdtUIUtils.DEFAULT_FONT);
-    g2d.setColor(AdtUIUtils.DEFAULT_FONT_COLOR);
 
     if (mShowMinMax) {
       drawMarkerLabel(g2d, LABEL_BOUNDS_OFFSET, origin, mCurrentMinValue, true);
@@ -397,6 +397,7 @@ public final class AxisComponent extends AnimatedComponent {
     }
 
     line.setLine(markerStartX, markerStartY, markerEndX, markerEndY);
+    g2d.setColor(AdtUIUtils.DEFAULT_BORDER_COLOR);
     g2d.draw(line);
   }
 
@@ -434,6 +435,7 @@ public final class AxisComponent extends AnimatedComponent {
     }
 
     if (isMinMax || (markerOffset - reserved > 0 && markerOffset + reserved < mAxisLength)) {
+      g2d.setColor(AdtUIUtils.DEFAULT_FONT_COLOR);
       g2d.drawString(formattedValue, labelX, labelY);
     }
   }

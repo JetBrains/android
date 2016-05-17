@@ -18,6 +18,8 @@ package com.android.tools.adtui.visual.threadgraph;
 
 import com.android.annotations.NonNull;
 import com.android.tools.adtui.chart.hchart.HRenderer;
+import com.android.tools.adtui.common.AdtUIUtils;
+import com.intellij.ui.JBColor;
 
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
@@ -28,11 +30,11 @@ public class MethodHRenderer implements HRenderer<Method> {
   Font mFont;
 
   // TODO Use a colorScheme object to retrieve colors. Hard-coded for now.
-  private static final Color fillJavaColor = new Color(146, 215, 248);
-  private static final Color bordJavaColor = new Color(115, 190, 233);
+  private static final JBColor fillJavaColor = new JBColor(new Color(146, 215, 248), new Color(146, 215, 248));
+  private static final JBColor bordJavaColor = new JBColor(new Color(115, 190, 233), new Color(115, 190, 233));
 
-  private static final Color fillAppColor = new Color(190, 225, 154);
-  private static final Color bordAppColor = new Color(159, 208, 110);
+  private static final JBColor fillAppColor = new JBColor(new Color(190, 225, 154), new Color(190, 225, 154));
+  private static final JBColor bordAppColor = new JBColor(new Color(159, 208, 110), new Color(159, 208, 110));
 
   // To limit the number of object allocation we reuse the same Rectangle.
   // RoundRectangle kills performance (from 60fps to 6fps) when many nodes are displayed
@@ -89,8 +91,12 @@ public class MethodHRenderer implements HRenderer<Method> {
     long middle = (long)drawingArea.getCenterX();
     long textPositionX = middle - textWidth / 2;
     int textPositionY = (int)(drawingArea.getY() + fontMetrics.getAscent());
-    g.setPaint(Color.black);
+
+    Font prevFont = g.getFont();
+    g.setFont(mFont);
+    g.setPaint(AdtUIUtils.DEFAULT_FONT_COLOR);
     g.drawString(text, textPositionX, textPositionY);
+    g.setFont(prevFont);
   }
 
   /**

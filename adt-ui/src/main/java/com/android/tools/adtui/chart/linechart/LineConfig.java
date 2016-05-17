@@ -17,6 +17,7 @@
 package com.android.tools.adtui.chart.linechart;
 
 import com.android.annotations.NonNull;
+import com.intellij.ui.JBColor;
 
 import java.awt.*;
 
@@ -27,16 +28,16 @@ public class LineConfig {
 
   //TODO Move colors out of LineConfig
   public static final Color[] COLORS = {
-    new Color(0x6baed6),
-    new Color(0xff0000),
-    new Color(0xfd8d3c),
-    new Color(0x00ffa2),
-    new Color(0x000ff0),
-    new Color(0xc7e9c0),
-    new Color(0x9e9ac8),
-    new Color(0xdadaeb),
-    new Color(0x969696),
-    new Color(0xd9d9d9),
+    new JBColor(0x6baed6, 0x6baed6),
+    new JBColor(0xff0000, 0xff0000),
+    new JBColor(0xfd8d3c, 0xfd8d3c),
+    new JBColor(0x00ffa2, 0x00ffa2),
+    new JBColor(0x000ff0, 0x000ff0),
+    new JBColor(0xc7e9c0, 0xc7e9c0),
+    new JBColor(0x9e9ac8, 0x9e9ac8),
+    new JBColor(0xdadaeb, 0xdadaeb),
+    new JBColor(0x969696, 0x969696),
+    new JBColor(0xd9d9d9, 0xd9d9d9),
   };
 
   /**

@@ -15,6 +15,11 @@
  */
 package com.android.tools.adtui.common;
 
+import com.intellij.ui.Gray;
+import com.intellij.ui.JBColor;
+import com.intellij.util.ui.JBFont;
+import com.intellij.util.ui.UIUtil;
+
 import javax.swing.UIManager;
 import java.awt.Color;
 import java.awt.Font;
@@ -27,12 +32,27 @@ public final class AdtUIUtils {
   /**
    * Default font to be used in the profiler UI.
    */
-  public static final Font DEFAULT_FONT = UIManager.getDefaults().getFont("TabbedPane.font");
+  public static final JBFont DEFAULT_FONT = JBFont.create(new Font(null, Font.PLAIN, 10));
 
   /**
    * Default font color of charts, and component labels.
    */
-  public static final Color DEFAULT_FONT_COLOR = new Color(128, 128, 128);
+  public static final Color DEFAULT_FONT_COLOR = JBColor.foreground();
+
+  public static final Color DEFAULT_BORDER_COLOR = new JBColor(Gray._96, Gray._192);
+
+  public static final Color GRID_COLOR = new JBColor(Gray._192, Gray._96);
+
+  public static final Color SELECTION_HANDLE = JBColor.GRAY;
+
+  // TODO need Darcula color.
+  public static final Color SELECTION_FOREGROUND = new JBColor(new Color(0x88aae2), new Color(0x88aae2));
+
+  // TODO need Darcula color.
+  public static final Color SELECTION_BACKGROUND = new JBColor(new Color(0x5588aae2, true), new Color(0x5588aae2, true));
+
+  public static final Color OVERLAY_INFO_BACKGROUND = JBColor.WHITE;
+
 
   private AdtUIUtils() {
   }

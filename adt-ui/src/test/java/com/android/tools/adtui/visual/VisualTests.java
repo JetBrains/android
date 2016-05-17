@@ -16,7 +16,6 @@
 
 package com.android.tools.adtui.visual;
 
-import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.visual.flamegraph.FlameGraphVisualTest;
 import com.android.tools.adtui.visual.threadgraph.ThreadCallsVisualTest;
 

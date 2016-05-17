@@ -98,7 +98,7 @@ public abstract class AnimatedComponent extends JComponent implements Animatable
     addDebugInfo("Render time: %.2fms", (System.nanoTime() - mLastRenderTime) / 1000000.f);
     addDebugInfo("FPS: %.2f", (1.0f / mFrameLength));
     g.setFont(AdtUIUtils.DEFAULT_FONT);
-    g.setColor(Color.BLACK);
+    g.setColor(AdtUIUtils.DEFAULT_FONT_COLOR);
     int i = 0;
     for (String s : mDebugInfo) {
       g.drawString(s, getSize().width - 150, getSize().height - 10 * i++ - 5);

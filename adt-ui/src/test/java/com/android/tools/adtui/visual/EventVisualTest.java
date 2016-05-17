@@ -144,7 +144,7 @@ public class EventVisualTest extends VisualTest {
     // add horizontal time axis
     mTimeAxis = new AxisComponent(xTimelineRange, xTimelineRange, "TIME",
                                   AxisComponent.AxisOrientation.BOTTOM,
-                                  AXIS_SIZE, AXIS_SIZE, false, new TimeAxisFormatter(10, 50, 5));
+                                  AXIS_SIZE, AXIS_SIZE, false, TimeAxisFormatter.DEFAULT);
     List<Animatable> componentsList = new ArrayList<>();
     // Add the scene components to the list
     componentsList.add(xRange);

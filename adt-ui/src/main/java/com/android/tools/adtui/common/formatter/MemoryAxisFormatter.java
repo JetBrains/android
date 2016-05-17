@@ -25,7 +25,8 @@ public final class MemoryAxisFormatter extends BaseAxisFormatter {
   private static final int[] MIN_INTERVALS = new int[]{4, 1, 1};    // 4KB, 1MB, 1GB
   private static String[] UNITS = new String[]{"KB", "MB", "GB"};
   private static final TIntArrayList BASE_FACTORS = new TIntArrayList(new int[]{2, 1});
-  public static final MemoryAxisFormatter DEFAULT = new MemoryAxisFormatter(10, 50, 5);
+
+  public static final MemoryAxisFormatter DEFAULT = new MemoryAxisFormatter(4, 10, 5);
 
   public MemoryAxisFormatter(int maxMinorTicks, int maxMajorTicks, int switchThreshold) {
     super(maxMinorTicks, maxMajorTicks, switchThreshold);
