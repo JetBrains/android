@@ -47,14 +47,6 @@ public final class ValidatorPanel extends JPanel implements Disposable {
    */
   private static final String BLANK = " ";
 
-  // @formatter:off
-  private static ImmutableMap<Validator.Severity, Icon> ICONS = ImmutableMap.of(
-    Validator.Severity.INFO, AllIcons.General.BalloonInformation,
-    Validator.Severity.WARNING, AllIcons.General.BalloonWarning,
-    Validator.Severity.ERROR, AllIcons.General.BalloonError
-  );
-  // @formatter:on
-
   private final ListenerManager myListeners = new ListenerManager();
   private final Table<Validator.Severity, ObservableValue<?>, String> myMessages = HashBasedTable.create();
   private final BoolProperty myHasErrors = new BoolValueProperty();
@@ -141,7 +133,7 @@ public final class ValidatorPanel extends JPanel implements Disposable {
       Iterator<String> messages = myMessages.row(severity).values().iterator();
       if (messages.hasNext()) {
         myValidationLabel.setText(messages.next());
-        myValidationLabel.setIcon(ICONS.get(severity));
+        myValidationLabel.setIcon(severity.getIcon());
 
         if (severity == Validator.Severity.ERROR) {
           myHasErrors.set(true);
