@@ -69,6 +69,7 @@ public class Configuration implements Disposable, ModificationTracker {
 
   /** Min API version that supports preferences API rendering. */
   public static final int PREFERENCES_MIN_API = 22;
+  public static final String CUSTOM_DEVICE_ID = "Custom";
 
   /** The associated file */
   @Nullable final VirtualFile myFile;
@@ -1203,7 +1204,12 @@ public class Configuration implements Disposable, ModificationTracker {
   public ResourceResolver getResourceResolver() {
     String theme = getTheme();
     if (theme != null) {
-      return myManager.getResolverCache().getResourceResolver(getTarget(), theme, getFullConfig());
+      Device device = getDevice();
+      ResourceResolverCache resolverCache = myManager.getResolverCache();
+      if (device != null && CUSTOM_DEVICE_ID.equals(device.getId())) {
+        resolverCache.replaceCustomConfig(theme, getFullConfig());
+      }
+      return resolverCache.getResourceResolver(getTarget(), theme, getFullConfig());
     }
 
     return null;
