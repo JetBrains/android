@@ -159,8 +159,10 @@ public final class GradleUtil {
   }
 
   public static boolean androidModelSupportsDependencyGraph(@NotNull String modelVersion) {
-    GradleVersion parsedVersion = GradleVersion.tryParse(modelVersion);
-    return parsedVersion != null && androidModelSupportsDependencyGraph(parsedVersion);
+    return false;
+    // TODO enable once we figure out why transitive dependencies in Java library modules are not being included in the graph.
+    //GradleVersion parsedVersion = GradleVersion.tryParse(modelVersion);
+    //return parsedVersion != null && androidModelSupportsDependencyGraph(parsedVersion);
   }
 
   public static boolean androidModelSupportsDependencyGraph(@NotNull GradleVersion modelVersion) {

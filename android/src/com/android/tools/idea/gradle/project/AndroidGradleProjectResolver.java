@@ -321,7 +321,8 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     args.add(createProjectProperty(PROPERTY_INVOKED_FROM_IDE, true));
 
     // This property tells Gradle to compute the full dependency graph for projects using the Android plugin 2.2.0 or newer.
-    args.add(createProjectProperty(PROPERTY_BUILD_MODEL_ONLY_VERSIONED, MODEL_LEVEL_2_DEP_GRAPH));
+    // TODO enable once we figure out why transitive dependencies in Java library modules are not being included in the graph.
+    // args.add(createProjectProperty(PROPERTY_BUILD_MODEL_ONLY_VERSIONED, MODEL_LEVEL_2_DEP_GRAPH));
 
     if (project != null) {
       Boolean refreshExternalNativeModels = project.getUserData(REFRESH_EXTERNAL_NATIVE_MODELS_KEY);
