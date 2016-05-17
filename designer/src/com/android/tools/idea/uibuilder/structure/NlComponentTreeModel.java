@@ -16,63 +16,65 @@
 package com.android.tools.idea.uibuilder.structure;
 
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlModel;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
+import java.util.List;
 
 final class NlComponentTreeModel implements TreeModel {
   private final NlComponent myRoot;
 
   NlComponentTreeModel() {
-    this(null);
+    myRoot = null;
   }
 
-  NlComponentTreeModel(NlComponent root) {
-    myRoot = root;
+  NlComponentTreeModel(@NotNull NlModel model) {
+    List<NlComponent> components = model.getComponents();
+    myRoot = components.isEmpty() ? null : components.get(0);
   }
 
+  @Nullable
   @Override
   public Object getRoot() {
     return myRoot;
   }
 
+  @Nullable
   @Override
-  public Object getChild(Object parent, int i) {
+  public Object getChild(@NotNull Object parent, int i) {
     return ((NlComponent)parent).getChild(i);
   }
 
   @Override
-  public int getChildCount(Object parent) {
+  public int getChildCount(@NotNull Object parent) {
     return ((NlComponent)parent).getChildCount();
   }
 
   @Override
-  public boolean isLeaf(Object node) {
+  public boolean isLeaf(@NotNull Object node) {
     return getChildCount(node) == 0;
   }
 
   @Override
-  public void valueForPathChanged(TreePath path, Object newValue) {
+  public void valueForPathChanged(@Nullable TreePath path, @Nullable Object newValue) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public int getIndexOfChild(Object parent, Object child) {
-    for (int i = 0, count = getChildCount(parent); i < count; i++) {
-      if (getChild(parent, i).equals(child)) {
-        return i;
-      }
-    }
-
-    return -1;
+  public int getIndexOfChild(@NotNull Object parent, @NotNull Object child) {
+    // noinspection SuspiciousMethodCalls
+    return ((NlComponent)parent).getChildren().indexOf(child);
   }
 
   @Override
-  public void addTreeModelListener(TreeModelListener listener) {
+  public void addTreeModelListener(@Nullable TreeModelListener listener) {
   }
 
   @Override
-  public void removeTreeModelListener(TreeModelListener listener) {
+  public void removeTreeModelListener(@Nullable TreeModelListener listener) {
   }
 }

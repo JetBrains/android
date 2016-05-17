@@ -35,7 +35,6 @@ import com.android.tools.idea.uibuilder.editor.NlEditorProvider;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.lint.LintAnnotationsModel;
-import com.android.tools.idea.uibuilder.structure.FakeComponent;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.util.PropertiesMap;
@@ -1095,7 +1094,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     // Notify parent components about children getting deleted
     for (Map.Entry<NlComponent, List<NlComponent>> entry : siblingLists.entrySet()) {
       NlComponent parent = entry.getKey();
-      if (parent == null || parent instanceof FakeComponent) {
+      if (parent == null) {
         continue;
       }
       List<NlComponent> children = entry.getValue();
