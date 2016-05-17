@@ -184,7 +184,9 @@ public final class SdkQuickfixUtils {
 
     String title = "SDK Quickfix Installation";
 
-    return new StudioWizardDialogBuilder(wizard, title, parent).setProject(project).setModalityType(DialogWrapper.IdeModalityType.IDE)
+    return new StudioWizardDialogBuilder(wizard, title, parent).setProject(project)
+      .setModalityType(DialogWrapper.IdeModalityType.IDE)
+      .setCancellationPolicy(ModelWizardDialog.CancellationPolicy.CAN_CANCEL_UNTIL_CAN_FINISH)
       .build();
   }
 

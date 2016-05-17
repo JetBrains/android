@@ -49,6 +49,7 @@ public final class StudioWizardDialogBuilder {
   @Nullable URL myHelpUrl;
   @NotNull DialogWrapper.IdeModalityType myModalityType = DialogWrapper.IdeModalityType.IDE;
   @NotNull Dimension myMinimumSize = DEFAULT_MIN_SIZE;
+  @NotNull ModelWizardDialog.CancellationPolicy myCancellationPolicy = ModelWizardDialog.CancellationPolicy.ALWAYS_CAN_CANCEL;
 
   public StudioWizardDialogBuilder(@NotNull ModelWizard wizard, @NotNull String title) {
     myWizard = wizard;
@@ -128,15 +129,30 @@ public final class StudioWizardDialogBuilder {
     return this;
   }
 
+  /**
+   * Set the dialog cancellation policy to provide more fine-grained user experience
+   * by making it clearer when clicking Cancel is likely to incur some actual cancellation action
+   *
+   * If {@code null}, this call will be ignored, although it is allowed as an argument to work well
+   * with {@code Nullable} APIs.
+   */
+  @NotNull
+  public StudioWizardDialogBuilder setCancellationPolicy(@Nullable ModelWizardDialog.CancellationPolicy cancellationPolicy) {
+    if (cancellationPolicy != null) {
+      myCancellationPolicy = cancellationPolicy;
+    }
+    return this;
+  }
+
   @NotNull
   public ModelWizardDialog build() {
     StudioWizardLayout customLayout = new StudioWizardLayout();
     ModelWizardDialog dialog;
     if (myParent != null) {
-      dialog = new ModelWizardDialog(myWizard, myTitle, myParent, customLayout, myHelpUrl);
+      dialog = new ModelWizardDialog(myWizard, myTitle, myParent, customLayout, myHelpUrl, myCancellationPolicy);
     }
     else {
-      dialog = new ModelWizardDialog(myWizard, myTitle, customLayout, myProject, myHelpUrl, myModalityType);
+      dialog = new ModelWizardDialog(myWizard, myTitle, customLayout, myProject, myHelpUrl, myModalityType, myCancellationPolicy);
     }
 
     Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
