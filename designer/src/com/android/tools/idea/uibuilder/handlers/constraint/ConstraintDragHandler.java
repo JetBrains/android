@@ -83,8 +83,8 @@ public class ConstraintDragHandler extends DragHandler {
     String result = super.update(x, y, modifiers);
     if (myComponent != null && myDragWidget != null) {
       ConstraintModel model = ConstraintModel.getConstraintModel(editor.getModel());
-      int ax = x - this.layout.x - myComponent.w / 2;
-      int ay = y - this.layout.y - myComponent.h / 2;
+      int ax = x - this.layout.x - this.layout.getPadding().left - myComponent.w / 2;
+      int ay = y - this.layout.y - this.layout.getPadding().top - myComponent.h / 2;
       model.dragComponent(ax, ay);
     }
     return result;

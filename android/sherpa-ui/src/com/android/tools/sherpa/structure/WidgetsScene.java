@@ -35,7 +35,7 @@ import java.util.HashMap;
 public class WidgetsScene {
 
     private HashMap<Object, ConstraintWidget> mWidgets = new HashMap<>();
-    private ConstraintWidgetContainer mRoot;
+    private WidgetContainer mRoot;
     private Selection mSelection;
 
     /**
@@ -78,7 +78,7 @@ public class WidgetsScene {
         mWidgets = widgets;
         for (ConstraintWidget widget : mWidgets.values()) {
             if (widget.isRoot()) {
-                mRoot = (ConstraintWidgetContainer) widget;
+                mRoot = (WidgetContainer) widget;
             }
         }
     }
@@ -286,7 +286,7 @@ public class WidgetsScene {
      * @param height height of the selection area
      * @return an array containing the widgets inside the selection area
      */
-    public ArrayList<ConstraintWidget> findWidgets(ConstraintWidgetContainer container,
+    public ArrayList<ConstraintWidget> findWidgets(WidgetContainer container,
             int x, int y, int width, int height) {
         ArrayList<ConstraintWidget> found = new ArrayList<>();
         Rectangle area = new Rectangle(x, y, width, height);
@@ -641,16 +641,16 @@ public class WidgetsScene {
         mRoot = root;
     }
 
-    public ConstraintWidgetContainer getRoot() {
+    public WidgetContainer getRoot() {
         if (mRoot == null) {
             for (ConstraintWidget widget : mWidgets.values()) {
-                if (widget instanceof ConstraintWidgetContainer) {
-                    ConstraintWidgetContainer lastRoot = (ConstraintWidgetContainer) widget;
+                if (widget instanceof WidgetContainer) {
+                    WidgetContainer lastRoot = (WidgetContainer) widget;
                     WidgetContainer root = lastRoot;
                     while (root.getParent() != null) {
                         root = (WidgetContainer) root.getParent();
-                        if (root instanceof ConstraintWidgetContainer) {
-                            lastRoot = (ConstraintWidgetContainer) root;
+                        if (root instanceof WidgetContainer) {
+                            lastRoot = root;
                         }
                     }
                     mRoot = lastRoot;
@@ -672,7 +672,7 @@ public class WidgetsScene {
 
     public void addWidget(ConstraintWidget widget) {
         if (widget instanceof ConstraintWidgetContainer && widget.getParent() == null) {
-            mRoot = (ConstraintWidgetContainer) widget;
+            mRoot = (WidgetContainer) widget;
         }
         setWidget(widget);
     }
