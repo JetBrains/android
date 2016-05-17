@@ -98,6 +98,7 @@ public class ViewInspectorProvider implements InspectorProvider {
                                   @NotNull List<String> propertyNames) {
       myComponentName = tagName.substring(tagName.lastIndexOf('.') + 1);
       myPropertyNames = combineLists(propertyNames, LAYOUT_PROPERTIES);
+      useSrcCompatIfExist(properties);
       myEditors = new HashMap<>(propertyNames.size());
       myProperties = properties;
       for (String propertyName : propertyNames) {
@@ -162,6 +163,15 @@ public class ViewInspectorProvider implements InspectorProvider {
       combined.addAll(list1);
       combined.addAll(list2);
       return combined;
+    }
+
+    private void useSrcCompatIfExist(@NotNull Map<String, NlProperty> properties) {
+      if (properties.containsKey(ATTR_SRC_COMPAT)) {
+        int index = myPropertyNames.indexOf(ATTR_SRC);
+        if (index >= 0) {
+          myPropertyNames.set(index, ATTR_SRC_COMPAT);
+        }
+      }
     }
   }
 }
