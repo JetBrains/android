@@ -78,12 +78,7 @@ public final class ListenerManager {
    * Like {@link #listen(ObservableValue, InvalidationListener)} but with a typed listener.
    */
   public <T> void listen(@NotNull final ObservableValue<T> src, @NotNull final Consumer<T> listener) {
-    InvalidationListener listenerWrapper = new InvalidationListener() {
-      @Override
-      public void onInvalidated(@NotNull ObservableValue<?> sender) {
-        listener.consume(src.get());
-      }
-    };
+    InvalidationListener listenerWrapper = sender -> listener.consume(src.get());
     myConsumerMapping.put(listener, listenerWrapper);
 
     listen(src, listenerWrapper);
