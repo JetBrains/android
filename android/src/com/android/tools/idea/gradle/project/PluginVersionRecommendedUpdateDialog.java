@@ -159,7 +159,10 @@ public class PluginVersionRecommendedUpdateDialog extends DialogWrapper {
     if (PropertiesComponent.getInstance(myProject).getBoolean(SHOW_DO_NOT_ASK_TO_UPGRADE_PLUGIN_PROPERTY_NAME, true)) {
       super.show();
     }
-    // By default the exit code is CANCEL_EXIT_CODE
+    else {
+      // By default the exit code is CANCEL_EXIT_CODE
+      close(CANCEL_EXIT_CODE);
+    }
   }
 
   @Override
