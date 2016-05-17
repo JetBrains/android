@@ -57,15 +57,17 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
 
   public static NlTableCellEditor createForTable() {
     NlTableCellEditor cellEditor = new NlTableCellEditor();
-    cellEditor.init(new NlEnumEditor(cellEditor, true, true));
+    cellEditor.init(new NlEnumEditor(cellEditor, cellEditor, true));
     return cellEditor;
   }
 
   public static NlEnumEditor createForInspector(@NotNull NlEditingListener listener) {
-    return new NlEnumEditor(listener, false, false);
+    return new NlEnumEditor(listener, null, false);
   }
 
-  private NlEnumEditor(@NotNull NlEditingListener listener, boolean useDarculaUI, boolean includeBrowseButton) {
+  private NlEnumEditor(@NotNull NlEditingListener listener,
+                       @Nullable BrowsePanel.Context context,
+                       boolean useDarculaUI) {
     super(listener);
     myAddedValueIndex = -1; // nothing added
     myPanel = new JPanel(new BorderLayout(SystemInfo.isMac ? 0 : 2, 0));
@@ -79,8 +81,8 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
     }
     myCombo.setEditable(true);
     myPanel.add(myCombo, BorderLayout.CENTER);
-    if (includeBrowseButton) {
-      myPanel.add(createBrowsePanel(), BorderLayout.LINE_END);
+    if (context != null) {
+      myPanel.add(new BrowsePanel(context, true), BorderLayout.LINE_END);
       myCombo.registerKeyboardAction(event -> displayResourcePicker(),
                                      KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.ALT_MASK),
                                      JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
@@ -115,7 +117,6 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
 
   @Override
   public void setProperty(@NotNull NlProperty property) {
-    super.setProperty(property);
     if (property != myProperty) {
       setModel(property);
     }

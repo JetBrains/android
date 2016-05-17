@@ -20,7 +20,6 @@ import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.intellij.ui.components.JBLabel;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -49,12 +48,6 @@ public class NlFlagRenderer extends NlAttributeRenderer {
       return;
     }
     myLabel.setText(property.getFormattedValue());
-  }
-
-  @Nullable
-  @Override
-  public Icon getHoverIcon(@NotNull NlProperty p) {
-    return null;
   }
 
   @Override

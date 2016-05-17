@@ -36,8 +36,12 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+
+import static com.android.SdkConstants.TOOLS_URI;
 
 public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Model {
   private static final int HORIZONTAL_SPACING = 4;
@@ -123,9 +127,9 @@ public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Mo
   private static List<NlPropertyItem> extractPropertiesForTable(@NotNull Table<String, String, NlPropertyItem> properties) {
     Map<String, NlPropertyItem> androidProperties = properties.row(SdkConstants.ANDROID_URI);
     Map<String, NlPropertyItem> autoProperties = properties.row(SdkConstants.AUTO_URI);
+    Map<String, NlPropertyItem> designProperties = properties.row(TOOLS_URI);
 
     // Include all auto (app) properties and all android properties that are not also auto properties.
-    // TODO: Include design properties here.
     List<NlPropertyItem> result = new ArrayList<>(properties.size());
     result.addAll(autoProperties.values());
     for (Map.Entry<String, NlPropertyItem> entry : androidProperties.entrySet()) {
@@ -133,6 +137,7 @@ public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Mo
         result.add(entry.getValue());
       }
     }
+    result.addAll(designProperties.values());
     return result;
   }
 

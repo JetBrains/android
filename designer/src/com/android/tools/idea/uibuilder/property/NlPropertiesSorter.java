@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder.property;
 
 import com.android.tools.idea.rendering.AttributeSnapshot;
 import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 
@@ -63,10 +62,11 @@ public class NlPropertiesSorter {
     final Set<String> modifiedAttributeNames = getModifiedAttributes(components);
 
     Collections.sort(groupedProperties, Comparator
-      .comparing((PTableItem p) -> SortOrder.of(p.getName(),
-                                                p.getName().equalsIgnoreCase(tagName),
-                                                modifiedAttributeNames.contains(p.getName())))
-      .thenComparing(PTableItem::getName));
+      .comparing((NlPropertyItem property) -> SortOrder.of(property.getName(),
+                                                           property.getName().equalsIgnoreCase(tagName),
+                                                           modifiedAttributeNames.contains(property.getName())))
+      .thenComparing(NlPropertyItem::getName)
+      .thenComparing(NlPropertyItem::getNamespace));
     return groupedProperties;
   }
 

@@ -18,11 +18,9 @@ package com.android.tools.idea.uibuilder.property.renderer;
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.property.NlFlagPropertyItemValue;
 import com.android.tools.idea.uibuilder.property.NlProperty;
-import com.intellij.icons.AllIcons;
 import com.intellij.ui.SimpleColoredComponent;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -53,12 +51,6 @@ public class NlFlagItemRenderer extends NlAttributeRenderer {
     } else {
       myCheckbox.setEnabled(false);
     }
-  }
-
-  @Nullable
-  @Override
-  public Icon getHoverIcon(@NotNull NlProperty p) {
-    return AllIcons.General.EditItemInSection;
   }
 
   @Override

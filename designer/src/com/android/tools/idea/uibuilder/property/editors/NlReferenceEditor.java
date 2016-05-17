@@ -80,19 +80,22 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
 
   public static NlTableCellEditor createForTable(@NotNull Project project) {
     NlTableCellEditor cellEditor = new NlTableCellEditor();
-    cellEditor.init(new NlReferenceEditor(project, cellEditor, true));
+    cellEditor.init(new NlReferenceEditor(project, cellEditor, cellEditor, true));
     return cellEditor;
   }
 
   public static NlReferenceEditor createForInspector(@NotNull Project project, @NotNull NlEditingListener listener) {
-    return new NlReferenceEditor(project, listener, false);
+    return new NlReferenceEditor(project, listener, null, false);
   }
 
   public static NlReferenceEditor createForInspectorWithBrowseButton(@NotNull Project project, @NotNull NlEditingListener listener) {
-    return new NlReferenceEditor(project, listener, true);
+    return new NlReferenceEditor(project, listener, null, true);
   }
 
-  private NlReferenceEditor(@NotNull Project project, @NotNull NlEditingListener listener, boolean includeBrowseButton) {
+  private NlReferenceEditor(@NotNull Project project,
+                            @NotNull NlEditingListener listener,
+                            @Nullable BrowsePanel.Context context,
+                            boolean includeBrowseButton) {
     super(listener);
     myIncludeBrowseButton = includeBrowseButton;
     myPanel = new JPanel(new BorderLayout(SystemInfo.isMac ? 0 : 2, 0));
@@ -119,17 +122,17 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
       BorderFactory.createEmptyBorder(VERTICAL_SPACING, HORIZONTAL_SPACING, VERTICAL_SPACING, HORIZONTAL_SPACING));
     myPanel.add(myTextFieldWithAutoCompletion, BorderLayout.CENTER);
 
-    myBrowsePanel = createBrowsePanel();
+    boolean showDesignButton = context != null;
+    if (!showDesignButton) {
+      context = this;
+    }
+    myBrowsePanel = new BrowsePanel(context, showDesignButton);
     myPanel.add(myBrowsePanel, BorderLayout.LINE_END);
 
     myPanel.addComponentListener(new ComponentAdapter() {
       @Override
       public void componentResized(ComponentEvent event) {
-        if (!myPropertyHasSlider) {
-          return;
-        }
-        int widthForEditor = myPanel.getWidth() - 2 * HORIZONTAL_SPACING - mySlider.getPreferredSize().width - myBrowsePanel.getWidth();
-        mySlider.setVisible(widthForEditor >= MIN_TEXT_WIDTH);
+        updateSliderVisibility();
       }
     });
 
@@ -188,12 +191,11 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
 
   @Override
   public void setProperty(@NotNull NlProperty property) {
-    super.setProperty(property);
     if (myProperty != property) {
       myProperty = property;
       myLastReadValue = null;
 
-      myBrowsePanel.setVisible(myIncludeBrowseButton && hasResourceChooser(myProperty));
+      myBrowsePanel.setVisible(myIncludeBrowseButton && BrowsePanel.hasResourceChooser(myProperty));
       myCompletionsUpdated = false;
     }
 
@@ -223,6 +225,14 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
     }
     finally {
       myUpdatingProperty = false;
+    }
+  }
+
+  private void updateSliderVisibility() {
+    if (myPropertyHasSlider) {
+      int widthForEditor =
+        myPanel.getWidth() - 2 * HORIZONTAL_SPACING - mySlider.getPreferredSize().width - myBrowsePanel.getPreferredSize().width;
+      mySlider.setVisible(widthForEditor >= MIN_TEXT_WIDTH);
     }
   }
 
@@ -417,7 +427,7 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
         return;
       }
 
-      ResourceType[] types = getResourceTypes(definition);
+      ResourceType[] types = BrowsePanel.getResourceTypes(definition);
       List<String> items = Lists.newArrayList();
 
       AndroidFacet facet = p.getModel().getFacet();
