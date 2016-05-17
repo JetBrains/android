@@ -56,9 +56,8 @@ public interface ReportingSeries {
   double getRangeLength();
 
   /**
-   * @return A ReportingData structure to be displayed for the latest value in the series.
+   * @return A ReportingData structure to be displayed for the latest value in the series. Null if the series contains no data.
    */
-  @NonNull
   ReportingData getLatestReportingData();
 
   /**

@@ -100,9 +100,8 @@ public class RangedContinuousSeries implements ReportingSeries {
   }
 
   @Override
-  @NonNull
   public ReportingData getLatestReportingData() {
-    return getReportingDataForIndex(mSeries.size()-1);
+    return mSeries.size() == 0 ? null : getReportingDataForIndex(mSeries.size()-1);
   }
 
   @Override
