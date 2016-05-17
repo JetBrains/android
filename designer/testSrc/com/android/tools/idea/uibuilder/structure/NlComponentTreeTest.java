@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
-import com.android.tools.idea.uibuilder.LayoutTestUtilities;
-import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
+import com.android.tools.idea.uibuilder.LayoutTestUtilities;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
@@ -25,11 +24,10 @@ import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ui.UIUtil;
+import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
-import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
-import java.util.Collections;
 import java.util.Iterator;
 
 import static com.android.SdkConstants.*;
@@ -59,7 +57,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
   public void testTreeStructure() {
     UIUtil.dispatchAllInvocationEvents();
     assertEquals("<RelativeLayout>  [expanded]\n" +
-                 "    <LinearLayout>\n" +
+                 "    <LinearLayout>  [expanded]\n" +
                  "        <Button>\n" +
                  "    <TextView>\n" +
                  "    <AbsoluteLayout>\n", toTree());
@@ -72,8 +70,8 @@ public class NlComponentTreeTest extends LayoutTestCase {
     myTree.setDesignSurface(mySurface);
     UIUtil.dispatchAllInvocationEvents();
     assertEquals("<android.support.design.widget.CoordinatorLayout>  [expanded]\n" +
-                 "    <android.support.design.widget.AppBarLayout>\n" +
-                 "        <android.support.design.widget.CollapsingToolbarLayout>\n" +
+                 "    <android.support.design.widget.AppBarLayout>  [expanded]\n" +
+                 "        <android.support.design.widget.CollapsingToolbarLayout>  [expanded]\n" +
                  "            <ImageView>\n" +
                  "            <android.support.v7.widget.Toolbar>\n" +
                  "    <android.support.v4.widget.NestedScrollView>  [expanded]\n" +
@@ -84,16 +82,15 @@ public class NlComponentTreeTest extends LayoutTestCase {
     assertNull(myTree.getSelectionPaths());
     assertFalse(myModel.getSelectionModel().getSelection().iterator().hasNext());
 
-    DefaultMutableTreeNode hidden = (DefaultMutableTreeNode)myTree.getModel().getRoot();
-    DefaultMutableTreeNode root = (DefaultMutableTreeNode)hidden.getFirstChild();
-    DefaultMutableTreeNode node1 = (DefaultMutableTreeNode)root.getChildAt(1);
-    DefaultMutableTreeNode node2 = (DefaultMutableTreeNode)root.getChildAt(2);
-    myTree.addSelectionPath(new TreePath(node1.getPath()));
-    myTree.addSelectionPath(new TreePath(node2.getPath()));
+    NlComponent root = (NlComponent)myTree.getModel().getRoot();
+    NlComponent node1 = root.getChild(1);
+    NlComponent node2 = root.getChild(2);
+    myTree.addSelectionPath(new TreePath(new Object[]{root, node1}));
+    myTree.addSelectionPath(new TreePath(new Object[]{root, node2}));
 
     Iterator<NlComponent> selected = myModel.getSelectionModel().getSelection().iterator();
-    assertEquals(node1.getUserObject(), selected.next());
-    assertEquals(node2.getUserObject(), selected.next());
+    assertEquals(node1, selected.next());
+    assertEquals(node2, selected.next());
     assertFalse(selected.hasNext());
   }
 
@@ -110,18 +107,28 @@ public class NlComponentTreeTest extends LayoutTestCase {
     myModel.getSelectionModel().toggle(button);
 
     TreePath[] selection = myTree.getSelectionPaths();
+    assert selection != null;
+
     assertEquals(2, selection.length);
-    assertEquals(text, ((DefaultMutableTreeNode)selection[0].getLastPathComponent()).getUserObject());
-    assertEquals(button, ((DefaultMutableTreeNode)selection[1].getLastPathComponent()).getUserObject());
+    assertEquals(text, selection[0].getLastPathComponent());
+    assertEquals(button, selection[1].getLastPathComponent());
   }
 
+  @SuppressWarnings("UnnecessaryLocalVariable")
   public void testHierarchyUpdate() {
     // Extract each of the components
     NlComponent oldRelativeLayout = myModel.getComponents().get(0);
+
     NlComponent oldLinearLayout = oldRelativeLayout.getChild(0);
+    assert oldLinearLayout != null;
+
     NlComponent oldButton = oldLinearLayout.getChild(0);
+
     NlComponent oldTextView = oldRelativeLayout.getChild(1);
+    assert oldTextView != null;
+
     NlComponent oldAbsoluteLayout = oldRelativeLayout.getChild(2);
+    assert oldAbsoluteLayout != null;
 
     // Extract xml
     XmlTag tagLinearLayout = oldLinearLayout.getTag();
@@ -148,6 +155,8 @@ public class NlComponentTreeTest extends LayoutTestCase {
     newRelativeLayout.addChild(newLinearLayout);
     newRelativeLayout.addChild(newTextView);
     newRelativeLayout.addChild(newAbsoluteLayout);
+
+    assert newButton != null;
     newLinearLayout.addChild(newButton);
 
     myTree.modelChanged(myModel);
@@ -161,12 +170,8 @@ public class NlComponentTreeTest extends LayoutTestCase {
 
   private String toTree() {
     StringBuilder sb = new StringBuilder();
-    DefaultMutableTreeNode root = (DefaultMutableTreeNode)myTree.getModel().getRoot();
-    TreePath rootPath = new TreePath(myTree.getModel().getRoot());
-    if (root.getChildCount() > 0) {
-      TreePath path = rootPath.pathByAddingChild(root.getChildAt(0));
-      describe(sb, path, 0);
-    }
+    describe(sb, new TreePath(myTree.getModel().getRoot()), 0);
+
     return sb.toString();
   }
 
@@ -174,8 +179,8 @@ public class NlComponentTreeTest extends LayoutTestCase {
     for (int i = 0; i < depth; i++) {
       sb.append("    ");
     }
-    DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
-    NlComponent component = (NlComponent)node.getUserObject();
+
+    NlComponent component = (NlComponent)path.getLastPathComponent();
     sb.append("<").append(component.getTagName())
       .append(">");
     if (myTree.isExpanded(path)) {
@@ -185,7 +190,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
       sb.append("  [selected]");
     }
     sb.append("\n");
-    for (Object subNodeAsObject : Collections.list(node.children())) {
+    for (Object subNodeAsObject : component.getChildren()) {
       TreePath subPath = path.pathByAddingChild(subNodeAsObject);
       describe(sb, subPath, depth + 1);
     }
