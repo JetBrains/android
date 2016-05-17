@@ -50,11 +50,13 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.RowIcon;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.tabs.impl.TabLabel;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
+import org.fest.swing.core.matcher.JLabelMatcher;
 import org.fest.swing.driver.ComponentDriver;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
@@ -444,6 +446,15 @@ public class EditorFixture {
       fail("Unsupported shortcut type " + shortcut.getClass().getName());
     }
     return this;
+  }
+
+  @NotNull
+  public EditorNotificationPanelFixture awaitNotification(@NotNull String text) {
+    // 2016-05-17: Under some circumstances, notifications might flutter and the first found may be replaced before the test tries to click
+    // its hyperlink. If this recurs, see commit 2dfac5d for a possible workaround, but at least leave a TODO to fix the implementation.
+    JLabel label = GuiTests.waitUntilShowing(robot, JLabelMatcher.withText(text));
+    EditorNotificationPanel notificationPanel = (EditorNotificationPanel)label.getParent().getParent();
+    return new EditorNotificationPanelFixture(myFrame, notificationPanel);
   }
 
   @NotNull

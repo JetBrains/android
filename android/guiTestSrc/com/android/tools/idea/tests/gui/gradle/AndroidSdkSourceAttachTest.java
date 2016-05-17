@@ -23,7 +23,6 @@ import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.Wait;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.EditorNotificationPanelFixture;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
@@ -103,7 +102,8 @@ public class AndroidSdkSourceAttachTest {
     acceptLegalNoticeIfNeeded();
 
     // Download the source.
-    findNotificationPanel().performAction("Download");
+    editor.awaitNotification("Sources for '" + mySdk.getName() + "' not found.")
+      .performAction("Download");
 
     DialogFixture downloadDialog = findDialog(withTitle("SDK Quickfix Installation")).withTimeout(TimeUnit.MINUTES.toMillis(2)).using(
       guiTest.robot());
@@ -139,7 +139,8 @@ public class AndroidSdkSourceAttachTest {
     acceptLegalNoticeIfNeeded();
 
     // Refresh the source.
-    findNotificationPanel().performAction("Refresh (if already downloaded)");
+    editor.awaitNotification("Sources for '" + mySdk.getName() + "' not found.")
+      .performAction("Refresh (if already downloaded)");
 
     Wait.minutes(2).expecting("source file to be opened").until(() -> !classFile.equals(editor.getCurrentFile()));
 
@@ -158,12 +159,6 @@ public class AndroidSdkSourceAttachTest {
         guiTest.robot());
       acceptTermDialog.button(withText("Accept")).click();
     }
-  }
-
-  @NotNull
-  private EditorNotificationPanelFixture findNotificationPanel() {
-    return guiTest.ideFrame().requireEditorNotification(
-      "Sources for '" + mySdk.getName() + "' not found.");
   }
 
   @NotNull

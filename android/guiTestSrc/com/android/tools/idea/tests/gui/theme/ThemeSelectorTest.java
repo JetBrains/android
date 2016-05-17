@@ -229,19 +229,17 @@ public class ThemeSelectorTest {
     List<String> themeList = themeEditor.getThemesList();
     assertThat(themeList).contains("Theme.AppCompat.Light.NoActionBar");
 
-    EditorFixture editor = guiTest.ideFrame().getEditor();
-
-    // TODO: Make the test work without having to close the theme editor
-    editor.close();
-
-    editor.open("app/build.gradle");
-
-    editor.moveBetween("compile 'com.android.support:app", "");
-    editor.invokeAction(EditorFixture.EditorAction.DELETE_LINE);
-    editor.invokeAction(EditorFixture.EditorAction.SAVE);
-
-    guiTest.ideFrame().requireEditorNotification("Gradle files have changed since last project sync").performAction("Sync Now");
-    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
+    guiTest.ideFrame()
+      .getEditor()
+      .close()  // TODO: Make the test work without having to close the theme editor
+      .open("app/build.gradle")
+      .moveBetween("compile 'com.android.support:app", "")
+      .invokeAction(EditorFixture.EditorAction.DELETE_LINE)
+      .invokeAction(EditorFixture.EditorAction.SAVE)
+      .awaitNotification(
+        "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
+      .performAction("Sync Now")
+      .waitForGradleProjectSyncToFinish();
 
     // Check AppCompat themes are gone
     themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(guiTest.ideFrame());

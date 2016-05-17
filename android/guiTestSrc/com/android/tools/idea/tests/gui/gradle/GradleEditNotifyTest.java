@@ -49,14 +49,14 @@ public class GradleEditNotifyTest {
 
     // Insert:
     editor.moveBetween("versionCode ", "")
-          .enterText("1");
-
-    // Sync:
-    guiTest.ideFrame().requireEditorNotification("Gradle files have changed since last project sync").performAction("Sync Now");
-    guiTest.ideFrame().waitForGradleProjectSyncToFinish()
-                  .requireNoEditorNotification();
-
-    editor.invokeAction(BACK_SPACE);
-    guiTest.ideFrame().requireEditorNotification("Gradle files have changed since last project sync");
+      .enterText("1")
+      .awaitNotification(
+        "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
+      .performAction("Sync Now")
+      .waitForGradleProjectSyncToFinish()
+      .requireNoEditorNotification();
+    editor.invokeAction(BACK_SPACE)
+      .awaitNotification(
+        "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.");
   }
 }

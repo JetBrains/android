@@ -19,7 +19,6 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.EditorNotificationPanelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.TranslationsEditorFixture;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.data.TableCell;
@@ -48,15 +47,10 @@ public class TranslationsEditorTest {
   public void testBasics() throws IOException {
     guiTest.importSimpleApplication();
 
-    // open editor on a strings file
-    String stringsXmlPath = "app/src/main/res/values/strings.xml";
     EditorFixture editor = guiTest.ideFrame().getEditor();
-    editor.open(stringsXmlPath, EDITOR);
-
-    // make sure the notification is visible, and click on Open Editor to open the translations editor
-    EditorNotificationPanelFixture notificationPanel =
-      guiTest.ideFrame().requireEditorNotification("Edit translations for all locales in the translations editor.");
-    notificationPanel.performAction("Open editor");
+    editor.open("app/src/main/res/values/strings.xml", EDITOR)
+      .awaitNotification("Edit translations for all locales in the translations editor.")
+      .performAction("Open editor");
 
     // Wait for the translations editor table to show up, and the table to be initialized
     GuiTests.waitUntilShowing(guiTest.robot(), new GenericTypeMatcher<JTable>(JTable.class) {
