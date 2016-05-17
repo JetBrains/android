@@ -38,7 +38,7 @@ public abstract class OptionalProperty<T> extends AbstractProperty<Optional<T>> 
 
   public final void clear() {
     if (get().isPresent()) {
-      set(Optional.<T>absent());
+      set(Optional.absent());
     }
   }
 
