@@ -309,10 +309,15 @@ public class LineChart extends AnimatedComponent implements ReportingSeriesRende
 
   @Override
   protected void draw(Graphics2D g2d) {
+    if (mPaths.size() != mLinesConfig.size()) {
+      // Early return if the cached paths have not been sync'd with the line configs.
+      // e.g. updateData/postAnimate has not been invoked before this draw call.
+      return;
+    }
+
     Dimension dim = getSize();
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
     AffineTransform scale = AffineTransform.getScaleInstance(dim.getWidth(), dim.getHeight());
-    assert mPaths.size() == mLinesConfig.size();
     int i = 0;
     for (RangedContinuousSeries ranged : mLinesConfig.keySet()) {
       LineConfig config = mLinesConfig.get(ranged);
