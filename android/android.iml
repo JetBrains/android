@@ -166,5 +166,6 @@
       </library>
     </orderEntry>
     <orderEntry type="module" module-name="binary-resources" />
+    <orderEntry type="module" module-name="pixelprobe" />
   </component>
 </module>
