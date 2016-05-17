@@ -21,7 +21,7 @@ import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsIssue;
 import com.android.tools.idea.gradle.structure.model.PsIssueCollection;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidLibraryDependency;
+import com.android.tools.idea.gradle.structure.model.android.PsLibraryAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.navigation.PsLibraryDependencyNavigationPath;
 import com.android.tools.idea.gradle.structure.model.PsModulePath;
@@ -66,8 +66,8 @@ public class PsAndroidModuleAnalyzer extends PsModelAnalyzer<PsAndroidModule> {
 
     PsModulePath modulePath = new PsModulePath(module);
     module.forEachDependency(dependency -> {
-      if (dependency instanceof PsAndroidLibraryDependency && dependency.isDeclared()) {
-        PsAndroidLibraryDependency libraryDependency = (PsAndroidLibraryDependency)dependency;
+      if (dependency instanceof PsLibraryAndroidDependency && dependency.isDeclared()) {
+        PsLibraryAndroidDependency libraryDependency = (PsLibraryAndroidDependency)dependency;
         PsPath path = new PsLibraryDependencyNavigationPath(myContext, libraryDependency);
 
         PsArtifactDependencySpec resolvedSpec = libraryDependency.getResolvedSpec();

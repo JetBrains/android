@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.project;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.AbstractDependenciesPanel;
+import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.AbstractDependenciesPanel;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.ModuleDependencyDetails;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.MultipleLibraryDependenciesDetails;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.*;
@@ -38,7 +38,7 @@ import com.android.tools.idea.gradle.structure.model.PsIssue;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
-import com.android.tools.idea.gradle.structure.model.android.PsModuleDependency;
+import com.android.tools.idea.gradle.structure.model.android.PsModuleAndroidDependency;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.actionSystem.*;
@@ -96,7 +96,7 @@ class DependencyGraphPanel extends AbstractDependenciesPanel {
         if (id == MOUSE_PRESSED) {
           ModuleDependencyNode node = myHyperlinkSupport.getIfHyperlink(e);
           if (node != null) {
-            PsModuleDependency moduleDependency = node.getFirstModel();
+            PsModuleAndroidDependency moduleDependency = node.getFirstModel();
             String name = moduleDependency.getName();
             myContext.setSelectedModule(name, DependencyGraphPanel.this);
             // Do not call super, to avoid selecting the 'module' node when clicking a hyperlink.
@@ -215,7 +215,7 @@ class DependencyGraphPanel extends AbstractDependenciesPanel {
     ModuleDependencyNode node = myHyperlinkSupport.getNodeForLocation(x, y);
 
     if (node != null) {
-      PsModuleDependency moduleDependency = node.getFirstModel();
+      PsModuleAndroidDependency moduleDependency = node.getFirstModel();
 
       String name = moduleDependency.getName();
       DefaultActionGroup group = new DefaultActionGroup();

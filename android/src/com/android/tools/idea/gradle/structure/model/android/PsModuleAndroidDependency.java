@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.model.android;
 
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyModel;
+import com.android.tools.idea.gradle.structure.model.PsModuleDependency;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
@@ -24,22 +25,22 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-public class PsModuleDependency extends PsAndroidDependency {
+public class PsModuleAndroidDependency extends PsAndroidDependency implements PsModuleDependency {
   @NotNull private final String myGradlePath;
   @NotNull private final String myName;
 
-  @Nullable private final String myVariant;
+  @Nullable private final String myConfigurationName;
   @Nullable private final Module myResolvedModel;
 
-  PsModuleDependency(@NotNull PsAndroidModule parent,
-                     @NotNull String gradlePath,
-                     @NotNull PsAndroidArtifact artifact,
-                     @Nullable String variant,
-                     @Nullable Module resolvedModel,
-                     @Nullable ModuleDependencyModel parsedModel) {
+  PsModuleAndroidDependency(@NotNull PsAndroidModule parent,
+                            @NotNull String gradlePath,
+                            @NotNull PsAndroidArtifact artifact,
+                            @Nullable String configurationName,
+                            @Nullable Module resolvedModel,
+                            @Nullable ModuleDependencyModel parsedModel) {
     super(parent, artifact, parsedModel);
     myGradlePath = gradlePath;
-    myVariant = variant;
+    myConfigurationName = configurationName;
     myResolvedModel = resolvedModel;
     String name = null;
     if (resolvedModel != null) {
@@ -52,14 +53,16 @@ public class PsModuleDependency extends PsAndroidDependency {
     myName = name;
   }
 
+  @Override
   @NotNull
   public String getGradlePath() {
     return myGradlePath;
   }
 
+  @Override
   @Nullable
-  public String getModuleVariant() {
-    return myVariant;
+  public String getConfigurationName() {
+    return myConfigurationName;
   }
 
   @Override

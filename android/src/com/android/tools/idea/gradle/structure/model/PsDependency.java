@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.structure.model;
 
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidModel;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableSet;
@@ -30,7 +29,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public abstract class PsDependency extends PsChildModel implements PsAndroidModel {
+public abstract class PsDependency extends PsChildModel implements PsBaseDependency {
   @NotNull private final Set<DependencyModel> myParsedModels = Sets.newHashSet();
 
   protected PsDependency(@NotNull PsModule parent, @Nullable DependencyModel parsedModel) {
@@ -40,6 +39,7 @@ public abstract class PsDependency extends PsChildModel implements PsAndroidMode
     }
   }
 
+  @Override
   @NotNull
   public String getJoinedConfigurationNames() {
     List<String> configurationNames = getConfigurationNames();
@@ -76,9 +76,6 @@ public abstract class PsDependency extends PsChildModel implements PsAndroidMode
   public ImmutableCollection<DependencyModel> getParsedModels() {
     return myParsedModels.isEmpty() ? ImmutableSet.of() : ImmutableSet.copyOf(myParsedModels);
   }
-
-  @NotNull
-  public abstract String toText(@NotNull TextType type);
 
   public enum TextType {
     PLAIN_TEXT, FOR_NAVIGATION

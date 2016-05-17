@@ -13,29 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables.android.dependencies;
+package com.android.tools.idea.gradle.structure.configurables.ui.dependencies;
 
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidLibraryDependency;
-import com.android.tools.idea.gradle.structure.model.android.PsModuleDependency;
+import com.android.tools.idea.gradle.structure.model.PsDependency;
+import com.android.tools.idea.gradle.structure.model.PsLibraryDependency;
+import com.android.tools.idea.gradle.structure.model.PsModuleDependency;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Comparator;
 
 import static com.android.tools.idea.gradle.structure.model.PsDependency.TextType.PLAIN_TEXT;
 
-public class PsAndroidDependencyComparator implements Comparator<PsAndroidDependency> {
-  @NotNull public static final PsAndroidDependencyComparator INSTANCE = new PsAndroidDependencyComparator();
+public class PsDependencyComparator implements Comparator<PsDependency> {
+  @NotNull public static final PsDependencyComparator INSTANCE = new PsDependencyComparator();
 
-  private PsAndroidDependencyComparator() {
+  private PsDependencyComparator() {
   }
 
   @Override
-  public int compare(PsAndroidDependency d1, PsAndroidDependency d2) {
-    if (d1 instanceof PsAndroidLibraryDependency) {
-      if (d2 instanceof PsAndroidLibraryDependency) {
-        String s1 = ((PsAndroidLibraryDependency)d1).getResolvedSpec().getDisplayText();
-        String s2 = ((PsAndroidLibraryDependency)d2).getResolvedSpec().getDisplayText();
+  public int compare(PsDependency d1, PsDependency d2) {
+    if (d1 instanceof PsLibraryDependency) {
+      if (d2 instanceof PsLibraryDependency) {
+        String s1 = ((PsLibraryDependency)d1).getResolvedSpec().getDisplayText();
+        String s2 = ((PsLibraryDependency)d2).getResolvedSpec().getDisplayText();
         return s1.compareTo(s2);
       }
     }
@@ -43,7 +43,7 @@ public class PsAndroidDependencyComparator implements Comparator<PsAndroidDepend
       if (d2 instanceof PsModuleDependency) {
         return d1.toText(PLAIN_TEXT).compareTo(d2.toText(PLAIN_TEXT));
       }
-      else if (d2 instanceof PsAndroidLibraryDependency) {
+      else if (d2 instanceof PsLibraryDependency) {
         return 1;
       }
     }

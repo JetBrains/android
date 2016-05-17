@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.model.java;
 
+import org.gradle.tooling.model.GradleModuleVersion;
 import org.gradle.tooling.model.idea.IdeaDependencyScope;
 import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency;
 import org.jetbrains.annotations.NotNull;
@@ -23,8 +24,9 @@ import org.junit.Test;
 
 import java.io.File;
 
-import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Tests for {@link JarLibraryDependency}.
@@ -34,15 +36,13 @@ public class JarLibraryDependencyTest {
 
   @Before
   public void setUp() {
-    myOriginalDependency = createMock(IdeaSingleEntryLibraryDependency.class);
+    myOriginalDependency = mock(IdeaSingleEntryLibraryDependency.class);
   }
 
   @Test
   public void testCopyWithNullBinaryPath() {
-    expect(myOriginalDependency.getFile()).andStubReturn(null);
-    replay(myOriginalDependency);
+    when(myOriginalDependency.getFile()).thenReturn(null);
     assertNull(JarLibraryDependency.copy(myOriginalDependency));
-    verify(myOriginalDependency);
   }
 
   @Test
@@ -51,14 +51,15 @@ public class JarLibraryDependencyTest {
     FileStub sourcePath = new FileStub("fake-src.jar", true);
     FileStub javadocPath = new FileStub("fake-javadoc.jar", true);
 
-    IdeaDependencyScope scope = createMock(IdeaDependencyScope.class);
+    IdeaDependencyScope scope = mock(IdeaDependencyScope.class);
+    GradleModuleVersion moduleVersion = mock(GradleModuleVersion.class);
 
-    expect(myOriginalDependency.getFile()).andStubReturn(binaryPath);
-    expect(myOriginalDependency.getSource()).andStubReturn(sourcePath);
-    expect(myOriginalDependency.getJavadoc()).andStubReturn(javadocPath);
-    expect(myOriginalDependency.getScope()).andStubReturn(scope);
-    expect(scope.getScope()).andStubReturn("compile");
-    replay(myOriginalDependency, scope);
+    when(myOriginalDependency.getFile()).thenReturn(binaryPath);
+    when(myOriginalDependency.getSource()).thenReturn(sourcePath);
+    when(myOriginalDependency.getJavadoc()).thenReturn(javadocPath);
+    when(myOriginalDependency.getScope()).thenReturn(scope);
+    when(myOriginalDependency.getGradleModuleVersion()).thenReturn(moduleVersion);
+    when(scope.getScope()).thenReturn("compile");
 
     JarLibraryDependency dependency = JarLibraryDependency.copy(myOriginalDependency);
     assertNotNull(dependency);
@@ -67,18 +68,20 @@ public class JarLibraryDependencyTest {
     assertSame(binaryPath, dependency.getBinaryPath());
     assertSame(sourcePath, dependency.getSourcePath());
     assertSame(javadocPath, dependency.getJavadocPath());
+    assertSame(moduleVersion, dependency.getModuleVersion());
     assertTrue(dependency.isResolved());
   }
 
   @Test
   public void testCopyWithUnesolvedDependency() {
     FileStub binaryPath = new FileStub("unresolved dependency - fake", true);
+    GradleModuleVersion moduleVersion = mock(GradleModuleVersion.class);
 
-    expect(myOriginalDependency.getFile()).andStubReturn(binaryPath);
-    expect(myOriginalDependency.getSource()).andStubReturn(null);
-    expect(myOriginalDependency.getJavadoc()).andStubReturn(null);
-    expect(myOriginalDependency.getScope()).andStubReturn(null);
-    replay(myOriginalDependency);
+    when(myOriginalDependency.getFile()).thenReturn(binaryPath);
+    when(myOriginalDependency.getSource()).thenReturn(null);
+    when(myOriginalDependency.getJavadoc()).thenReturn(null);
+    when(myOriginalDependency.getScope()).thenReturn(null);
+    when(myOriginalDependency.getGradleModuleVersion()).thenReturn(moduleVersion);
 
     JarLibraryDependency dependency = JarLibraryDependency.copy(myOriginalDependency);
     assertNotNull(dependency);
@@ -87,6 +90,7 @@ public class JarLibraryDependencyTest {
     assertSame(binaryPath, dependency.getBinaryPath());
     assertNull(dependency.getSourcePath());
     assertNull(dependency.getJavadocPath());
+    assertSame(moduleVersion, dependency.getModuleVersion());
     assertFalse(dependency.isResolved());
   }
 

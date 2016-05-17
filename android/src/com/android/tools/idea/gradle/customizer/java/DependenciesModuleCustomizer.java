@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.customizer.java;
 
-import com.android.tools.idea.gradle.JavaModel;
 import com.android.tools.idea.gradle.JavaProject;
 import com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.dependency.DependencySetupErrors;
@@ -79,8 +78,7 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
     if (gradleFacet != null) {
       // This is an actual Gradle module, because it has the AndroidGradleFacet. Top-level modules in a multi-module project usually don't
       // have this facet.
-      JavaModel javaModel = new JavaModel(unresolved, buildFolderPath);
-      facet.setJavaModel(javaModel);
+      facet.setJavaProject(javaProject);
     }
     JavaGradleFacetConfiguration facetProperties = facet.getConfiguration();
     facetProperties.BUILD_FOLDER_PATH = buildFolderPath != null ? toSystemIndependentName(buildFolderPath.getPath()) : "";
@@ -135,7 +133,7 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
 
   @NotNull
   private static List<String> asPaths(@Nullable File file) {
-    return file == null ? Collections.<String>emptyList() : singletonList(file.getPath());
+    return file == null ? Collections.emptyList() : singletonList(file.getPath());
   }
 
   @NotNull

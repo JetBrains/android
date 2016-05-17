@@ -28,7 +28,7 @@ import com.android.tools.idea.gradle.structure.configurables.ui.treeview.Abstrac
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.NodeHyperlinkSupport;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
-import com.android.tools.idea.gradle.structure.model.android.PsModuleDependency;
+import com.android.tools.idea.gradle.structure.model.android.PsModuleAndroidDependency;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.util.Disposer;
@@ -84,7 +84,7 @@ public class ResolvedDependenciesPanel extends ToolWindowPanel implements Depend
         if (id == MOUSE_PRESSED) {
           ModuleDependencyNode node = myHyperlinkSupport.getIfHyperlink(e);
           if (node != null) {
-            PsModuleDependency moduleDependency = node.getModels().get(0);
+            PsModuleAndroidDependency moduleDependency = node.getModels().get(0);
             String name = moduleDependency.getName();
             myContext.setSelectedModule(name, ResolvedDependenciesPanel.this);
             // Do not call super, to avoid selecting the 'module' node when clicking a hyperlink.
@@ -217,7 +217,7 @@ public class ResolvedDependenciesPanel extends ToolWindowPanel implements Depend
     ModuleDependencyNode node = myHyperlinkSupport.getNodeForLocation(x, y);
 
     if (node != null) {
-      PsModuleDependency moduleDependency = node.getModels().get(0);
+      PsModuleAndroidDependency moduleDependency = node.getModels().get(0);
 
       String name = moduleDependency.getName();
       DefaultActionGroup group = new DefaultActionGroup();
@@ -235,7 +235,7 @@ public class ResolvedDependenciesPanel extends ToolWindowPanel implements Depend
     }
     else {
       myIgnoreTreeSelectionEvents = true;
-      myTreeBuilder.selectMatchingNodes(selection, false);
+      myTreeBuilder.selectMatchingNodes(selection, true);
       myIgnoreTreeSelectionEvents = false;
     }
   }

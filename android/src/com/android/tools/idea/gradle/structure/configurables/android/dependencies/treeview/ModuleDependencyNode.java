@@ -20,7 +20,7 @@ import com.android.tools.idea.gradle.structure.configurables.ui.treeview.Abstrac
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
-import com.android.tools.idea.gradle.structure.model.android.PsModuleDependency;
+import com.android.tools.idea.gradle.structure.model.android.PsModuleAndroidDependency;
 import com.google.common.collect.Lists;
 import com.intellij.ui.treeStructure.SimpleNode;
 import org.jetbrains.annotations.NotNull;
@@ -30,20 +30,20 @@ import java.util.List;
 import static com.android.builder.model.AndroidProject.ARTIFACT_MAIN;
 import static com.android.tools.idea.gradle.structure.model.PsDependency.TextType.PLAIN_TEXT;
 
-public class ModuleDependencyNode extends AbstractDependencyNode<PsModuleDependency> {
+public class ModuleDependencyNode extends AbstractDependencyNode<PsModuleAndroidDependency> {
   private final List<AbstractPsModelNode<?>> myChildren = Lists.newArrayList();
 
-  public ModuleDependencyNode(@NotNull AbstractPsNode parent, @NotNull PsModuleDependency dependency) {
+  public ModuleDependencyNode(@NotNull AbstractPsNode parent, @NotNull PsModuleAndroidDependency dependency) {
     super(parent, dependency);
     setUp(dependency);
   }
 
-  public ModuleDependencyNode(@NotNull AbstractPsNode parent, @NotNull List<PsModuleDependency> dependencies) {
+  public ModuleDependencyNode(@NotNull AbstractPsNode parent, @NotNull List<PsModuleAndroidDependency> dependencies) {
     super(parent, dependencies);
     setUp(dependencies.get(0));
   }
 
-  private void setUp(@NotNull PsModuleDependency moduleDependency) {
+  private void setUp(@NotNull PsModuleAndroidDependency moduleDependency) {
     myName = moduleDependency.toText(PLAIN_TEXT);
 
     PsAndroidModule dependentModule = moduleDependency.getParent();
@@ -56,7 +56,7 @@ public class ModuleDependencyNode extends AbstractDependencyNode<PsModuleDepende
         if (!dependency.isDeclared()) {
           return; // Only show "declared" dependencies as top-level dependencies.
         }
-        String moduleVariant = moduleDependency.getModuleVariant();
+        String moduleVariant = moduleDependency.getConfigurationName();
         if (!dependency.isIn(ARTIFACT_MAIN, moduleVariant)) {
           return; // Only show the dependencies in the main artifact.
         }
