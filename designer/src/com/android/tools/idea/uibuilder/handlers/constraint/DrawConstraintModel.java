@@ -161,9 +161,12 @@ class DrawConstraintModel {
    * @param modifiers new mask
    */
   public void updateModifiers(int modifiers) {
-    myMouseInteraction.setIsControlDown((modifiers & InputEvent.CTRL_DOWN_MASK) != 0);
-    myMouseInteraction.setIsShiftDown((modifiers & InputEvent.SHIFT_DOWN_MASK) != 0);
-    myMouseInteraction.setIsAltDown((modifiers & InputEvent.ALT_DOWN_MASK) != 0);
+    myMouseInteraction.setIsControlDown(((modifiers & InputEvent.CTRL_DOWN_MASK) != 0)
+                                      || ((modifiers & InputEvent.CTRL_MASK) != 0));
+    myMouseInteraction.setIsShiftDown(((modifiers & InputEvent.SHIFT_DOWN_MASK) != 0)
+                                      || ((modifiers & InputEvent.SHIFT_MASK) != 0));
+    myMouseInteraction.setIsAltDown(((modifiers & InputEvent.ALT_DOWN_MASK) != 0)
+                                      || ((modifiers & InputEvent.ALT_MASK) != 0));
   }
 
   public MouseInteraction getMouseInteraction() {
