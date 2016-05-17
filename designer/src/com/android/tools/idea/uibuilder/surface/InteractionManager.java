@@ -329,12 +329,16 @@ public class InteractionManager {
           }
         }
       }
-      Dimension size = screenView.getSize();
-      // TODO: use constants for those numbers
-      Rectangle resizeIcon = new Rectangle(screenView.getX() + size.width + 3, screenView.getY() + size.height + 3, 12, 12);
-      if (resizeIcon.contains(x, y)) {
-        mySurface.setCursor(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR));
-        return;
+
+      // Set cursor for the canvas resizing interaction. If both screen views are present, only set it next to the normal one.
+      if (mySurface.getScreenMode() != DesignSurface.ScreenMode.BOTH || screenView.getScreenViewType() == ScreenView.ScreenViewType.NORMAL) {
+        Dimension size = screenView.getSize();
+        // TODO: use constants for those numbers
+        Rectangle resizeIcon = new Rectangle(screenView.getX() + size.width + 3, screenView.getY() + size.height + 3, 12, 12);
+        if (resizeIcon.contains(x, y)) {
+          mySurface.setCursor(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR));
+          return;
+        }
       }
     }
 
@@ -400,13 +404,19 @@ public class InteractionManager {
       if (screenView == null) {
         return;
       }
-      Dimension size = screenView.getSize();
-      // TODO: use constants for those numbers
-      Rectangle resizeIcon = new Rectangle(screenView.getX() + size.width + 3, screenView.getY() + size.height + 3, 12, 12);
-      if (resizeIcon.contains(myLastMouseX, myLastMouseY)) {
-        startInteraction(myLastMouseX, myLastMouseY, new CanvasResizeInteraction(mySurface), ourLastStateMask);
-        return;
+
+      // Deal with the canvas resizing interaction at the bottom right of the screen view.
+      // If both screen views are present, only enable it next to the normal one.
+      if (mySurface.getScreenMode() != DesignSurface.ScreenMode.BOTH || screenView.getScreenViewType() == ScreenView.ScreenViewType.NORMAL) {
+        Dimension size = screenView.getSize();
+        // TODO: use constants for those numbers
+        Rectangle resizeIcon = new Rectangle(screenView.getX() + size.width + 3, screenView.getY() + size.height + 3, 12, 12);
+        if (resizeIcon.contains(myLastMouseX, myLastMouseY)) {
+          startInteraction(myLastMouseX, myLastMouseY, new CanvasResizeInteraction(mySurface), ourLastStateMask);
+          return;
+        }
       }
+
       NlComponent component = Coordinates.findComponent(screenView, myLastMouseX, myLastMouseY);
       if (component == null) {
         // If we cannot find an element where we clicked, try to use the first element currently selected
