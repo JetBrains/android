@@ -28,11 +28,13 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
+import static com.intellij.util.ui.tree.TreeUtil.showRowCentered;
 
 public abstract class AbstractPsNodeTreeBuilder extends AbstractBaseTreeBuilder {
   public AbstractPsNodeTreeBuilder(@NotNull JTree tree,
@@ -146,8 +148,22 @@ public abstract class AbstractPsNodeTreeBuilder extends AbstractBaseTreeBuilder 
         if (collector != null) {
           collector.done(collector.matchingNodes);
         }
+        if (scroll) {
+          JTree tree = getTree();
+          if (tree != null) {
+            // Scroll to the first selected row in the tree.
+            int[] selectionRows = tree.getSelectionRows();
+            if (selectionRows != null && selectionRows.length > 0) {
+              if (selectionRows.length > 1) {
+                Arrays.sort(selectionRows);
+              }
+              int firstRow = selectionRows[0];
+              showRowCentered(tree, firstRow, false, true);
+            }
+          }
+        }
       };
-      getUi().userSelect(toSelect.toArray(), new UserRunnable(onDone), false, scroll);
+      getUi().userSelect(toSelect.toArray(), new UserRunnable(onDone), false, false);
     });
   }
 
