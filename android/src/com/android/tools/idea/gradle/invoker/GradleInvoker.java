@@ -354,7 +354,7 @@ public class GradleInvoker {
     }
     else {
       JavaGradleFacet javaFacet = JavaGradleFacet.getInstance(module);
-      if (javaFacet != null) {
+      if (javaFacet != null && javaFacet.getConfiguration().BUILDABLE) {
         String gradleTaskName = javaFacet.getGradleTaskName(buildMode);
         if (gradleTaskName != null) {
           tasks.add(createBuildTask(gradlePath, gradleTaskName));
