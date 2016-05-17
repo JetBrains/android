@@ -136,15 +136,23 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
       }
     });
 
+    AndroidDebugger selectedDebugger = null;
     List<AndroidDebugger> androidDebuggers = Lists.newLinkedList();
     for (AndroidDebugger androidDebugger: AndroidDebugger.EP_NAME.getExtensions()) {
       if (androidDebugger.supportsProject(myProject)) {
         androidDebuggers.add(androidDebugger);
+        if (androidDebugger.shouldBeDefault()) {
+          selectedDebugger = androidDebugger;
+        }
       }
     }
 
+    androidDebuggers.sort((left, right) -> left.getId().compareTo(right.getId()));
     myDebuggerTypeCombo.setModel(new CollectionComboBoxModel(androidDebuggers));
     myDebuggerTypeCombo.setRenderer(new AndroidDebugger.Renderer());
+    if (selectedDebugger != null) {
+      myDebuggerTypeCombo.setSelectedItem(selectedDebugger);
+    }
 
     myProcessTree.addTreeSelectionListener(new TreeSelectionListener() {
       @Override
