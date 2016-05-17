@@ -24,7 +24,7 @@ import com.android.tools.idea.gradle.structure.configurables.ui.treeview.Abstrac
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.NodeHyperlinkSupport;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
-import com.android.tools.idea.gradle.structure.model.android.PsModuleDependency;
+import com.android.tools.idea.gradle.structure.model.android.PsModuleAndroidDependency;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -63,7 +63,7 @@ public class TargetArtifactsPanel extends ToolWindowPanel {
         if (id == MOUSE_PRESSED) {
           ModuleDependencyNode node = myHyperlinkSupport.getIfHyperlink(e);
           if (node != null) {
-            PsModuleDependency moduleDependency = node.getFirstModel();
+            PsModuleAndroidDependency moduleDependency = node.getFirstModel();
             String name = moduleDependency.getName();
             myContext.setSelectedModule(name, TargetArtifactsPanel.this);
             // Do not call super, to avoid selecting the 'module' node when clicking a hyperlink.

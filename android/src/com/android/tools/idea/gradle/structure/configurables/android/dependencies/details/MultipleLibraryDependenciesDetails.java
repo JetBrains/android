@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsDependency;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidLibraryDependency;
+import com.android.tools.idea.gradle.structure.model.PsLibraryDependency;
 import org.jdesktop.swingx.JXLabel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,7 +30,7 @@ public class MultipleLibraryDependenciesDetails implements DependencyDetails {
   private JXLabel myArtifactNameLabel;
   private JXLabel myGroupIdLabel;
 
-  private PsAndroidLibraryDependency myDependency;
+  private PsLibraryDependency myDependency;
 
   @Override
   @NotNull
@@ -40,7 +40,7 @@ public class MultipleLibraryDependenciesDetails implements DependencyDetails {
 
   @Override
   public void display(@NotNull PsDependency dependency) {
-    myDependency = (PsAndroidLibraryDependency)dependency;
+    myDependency = (PsLibraryDependency)dependency;
 
     PsArtifactDependencySpec resolvedSpec = myDependency.getResolvedSpec();
     myArtifactNameLabel.setText(resolvedSpec.name);
@@ -49,13 +49,13 @@ public class MultipleLibraryDependenciesDetails implements DependencyDetails {
 
   @Override
   @NotNull
-  public Class<PsAndroidLibraryDependency> getSupportedModelType() {
-    return PsAndroidLibraryDependency.class;
+  public Class<PsLibraryDependency> getSupportedModelType() {
+    return PsLibraryDependency.class;
   }
 
   @Override
   @Nullable
-  public PsAndroidLibraryDependency getModel() {
+  public PsLibraryDependency getModel() {
     return myDependency;
   }
 }

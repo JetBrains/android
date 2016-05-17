@@ -18,9 +18,9 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsNode;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
+import com.android.tools.idea.gradle.structure.model.PsDependency;
 import com.android.tools.idea.gradle.structure.model.PsModel;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidLibraryDependency;
+import com.android.tools.idea.gradle.structure.model.android.PsLibraryAndroidDependency;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.Lists;
 import com.intellij.ui.treeStructure.SimpleNode;
@@ -33,28 +33,28 @@ import java.util.List;
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
-public class LibraryDependencyNode extends AbstractDependencyNode<PsAndroidLibraryDependency> {
+public class LibraryDependencyNode extends AbstractDependencyNode<PsLibraryAndroidDependency> {
   @NotNull private final List<AbstractDependencyNode> myChildren = Lists.newArrayList();
 
-  public LibraryDependencyNode(@NotNull AbstractPsNode parent, @NotNull PsAndroidLibraryDependency dependency) {
+  public LibraryDependencyNode(@NotNull AbstractPsNode parent, @NotNull PsLibraryAndroidDependency dependency) {
     super(parent, dependency);
     setUp(dependency);
   }
 
-  public LibraryDependencyNode(@NotNull AbstractPsNode parent, @NotNull List<PsAndroidLibraryDependency> dependencies) {
+  public LibraryDependencyNode(@NotNull AbstractPsNode parent, @NotNull List<PsLibraryAndroidDependency> dependencies) {
     super(parent, dependencies);
     assert !dependencies.isEmpty();
     setUp(dependencies.get(0));
   }
 
-  private void setUp(@NotNull PsAndroidLibraryDependency dependency) {
+  private void setUp(@NotNull PsLibraryAndroidDependency dependency) {
     myName = getText(dependency);
 
-    ImmutableCollection<PsAndroidDependency> transitiveDependencies = dependency.getTransitiveDependencies();
+    ImmutableCollection<PsDependency> transitiveDependencies = dependency.getTransitiveDependencies();
 
-    transitiveDependencies.stream().filter(transitive -> transitive instanceof PsAndroidLibraryDependency)
+    transitiveDependencies.stream().filter(transitive -> transitive instanceof PsLibraryAndroidDependency)
                                    .forEach(transitive -> {
-      PsAndroidLibraryDependency transitiveLibrary = (PsAndroidLibraryDependency)transitive;
+      PsLibraryAndroidDependency transitiveLibrary = (PsLibraryAndroidDependency)transitive;
       LibraryDependencyNode child = new LibraryDependencyNode(this, transitiveLibrary);
       myChildren.add(child);
     });
@@ -63,7 +63,7 @@ public class LibraryDependencyNode extends AbstractDependencyNode<PsAndroidLibra
   }
 
   @NotNull
-  private String getText(@NotNull PsAndroidLibraryDependency dependency) {
+  private String getText(@NotNull PsLibraryAndroidDependency dependency) {
     PsArtifactDependencySpec resolvedSpec = dependency.getResolvedSpec();
     if (dependency.hasPromotedVersion() && !(getParent() instanceof LibraryDependencyNode)) {
       // Show only "promoted" version for declared nodes.
@@ -93,11 +93,11 @@ public class LibraryDependencyNode extends AbstractDependencyNode<PsAndroidLibra
 
   @Override
   public boolean matches(@NotNull PsModel model) {
-    if (model instanceof PsAndroidLibraryDependency) {
-      PsAndroidLibraryDependency other = (PsAndroidLibraryDependency)model;
+    if (model instanceof PsLibraryAndroidDependency) {
+      PsLibraryAndroidDependency other = (PsLibraryAndroidDependency)model;
 
-      List<PsAndroidLibraryDependency> models = getModels();
-      for (PsAndroidLibraryDependency dependency : models) {
+      List<PsLibraryAndroidDependency> models = getModels();
+      for (PsLibraryAndroidDependency dependency : models) {
         if (dependency.getResolvedSpec().equals(other.getResolvedSpec())) {
           return true;
         }

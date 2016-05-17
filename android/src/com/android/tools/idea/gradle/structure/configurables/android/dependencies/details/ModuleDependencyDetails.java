@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.model.PsDependency;
-import com.android.tools.idea.gradle.structure.model.android.PsModuleDependency;
+import com.android.tools.idea.gradle.structure.model.PsModuleDependency;
 import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.JBLabel;

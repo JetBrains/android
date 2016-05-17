@@ -70,7 +70,7 @@ import static com.intellij.openapi.util.io.FileUtil.splitPath;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModifier {
-  @NotNull private Project myProject;
+  @NotNull private final Project myProject;
 
   public AndroidGradleJavaProjectModelModifier(@NotNull Project project) {
     myProject = project;
@@ -183,7 +183,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
     }
     else {
       JavaGradleFacet javaGradleFacet = JavaGradleFacet.getInstance(module);
-      if (javaGradleFacet == null || javaGradleFacet.getJavaModel() == null) {
+      if (javaGradleFacet == null || javaGradleFacet.getJavaProject() == null) {
         return null;
       }
       JavaModel javaModel = buildModel.java();
@@ -244,7 +244,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
   }
 
   private static Promise<Void> requestProjectSync(@NotNull Project project) {
-    final AsyncPromise<Void> promise = new AsyncPromise<Void>();
+    final AsyncPromise<Void> promise = new AsyncPromise<>();
     GradleProjectImporter.getInstance().requestProjectSync(project, false, new GradleSyncListener.Adapter() {
       @Override
       public void syncSucceeded(@NotNull Project project) {

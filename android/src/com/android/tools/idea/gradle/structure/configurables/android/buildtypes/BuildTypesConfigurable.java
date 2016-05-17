@@ -59,12 +59,6 @@ public class BuildTypesConfigurable extends BaseNamedConfigurable<PsAndroidModul
 
   @Override
   public void apply() throws ConfigurationException {
-
-  }
-
-  @Override
-  public void reset() {
-
   }
 
   @Override

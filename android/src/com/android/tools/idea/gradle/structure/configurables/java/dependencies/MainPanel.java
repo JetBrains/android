@@ -13,31 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables.android.dependencies.module;
+package com.android.tools.idea.gradle.structure.configurables.java.dependencies;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.DependencyDetails;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.ModuleDependencyDetails;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.SingleLibraryDependencyDetails;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.treeview.DependencySelection;
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesViewer;
 import com.android.tools.idea.gradle.structure.configurables.issues.SingleModuleIssuesRenderer;
-import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeEventDispatcher;
-import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeListener;
 import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.AbstractDependenciesPanel;
 import com.android.tools.idea.gradle.structure.configurables.ui.dependencies.DeclaredDependenciesTableView;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsDependency;
 import com.android.tools.idea.gradle.structure.model.PsIssue;
 import com.android.tools.idea.gradle.structure.model.PsModule;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
-import com.google.common.collect.Lists;
-import com.intellij.icons.AllIcons;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.CommonShortcuts;
-import com.intellij.openapi.project.DumbAwareAction;
+import com.android.tools.idea.gradle.structure.model.java.PsJavaDependency;
+import com.android.tools.idea.gradle.structure.model.java.PsJavaModule;
 import com.intellij.openapi.util.ActionCallback;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.navigation.History;
@@ -56,21 +46,14 @@ import static com.intellij.ui.IdeBorderFactory.createEmptyBorder;
 import static com.intellij.ui.ScrollPaneFactory.createScrollPane;
 import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 
-/**
- * Panel that displays the table of "editable" dependencies.
- */
-class DeclaredDependenciesPanel extends AbstractDependenciesPanel implements DependencySelection {
+class MainPanel extends AbstractDependenciesPanel {
   @NotNull private final PsContext myContext;
 
   @NotNull private final DeclaredDependenciesTableModel myDependenciesTableModel;
-  @NotNull private final DeclaredDependenciesTableView<PsAndroidDependency> myDependenciesTable;
+  @NotNull private final DeclaredDependenciesTableView<PsJavaDependency> myDependenciesTable;
   @NotNull private final String myPlaceName;
 
-  @NotNull private final SelectionChangeEventDispatcher<PsAndroidDependency> myEventDispatcher = new SelectionChangeEventDispatcher<>();
-
-  private boolean mySkipSelectionChangeNotification;
-
-  DeclaredDependenciesPanel(@NotNull PsAndroidModule module, @NotNull PsContext context) {
+  MainPanel(@NotNull PsJavaModule module, @NotNull PsContext context) {
     super("Declared Dependencies", context, module);
 
     myContext = context;
@@ -92,7 +75,7 @@ class DeclaredDependenciesPanel extends AbstractDependenciesPanel implements Dep
 
     module.add(event -> {
       myDependenciesTableModel.reset();
-      PsAndroidDependency toSelect = null;
+      PsJavaDependency toSelect = null;
       if (event instanceof PsModule.LibraryDependencyAddedEvent) {
         myDependenciesTable.clearSelection();
         PsArtifactDependencySpec spec = ((PsModule.LibraryDependencyAddedEvent)event).getSpec();
@@ -100,8 +83,8 @@ class DeclaredDependenciesPanel extends AbstractDependenciesPanel implements Dep
       }
       else if (event instanceof PsModule.DependencyModifiedEvent) {
         PsDependency dependency = ((PsModule.DependencyModifiedEvent)event).getDependency();
-        if (dependency instanceof PsAndroidDependency) {
-          toSelect = (PsAndroidDependency)dependency;
+        if (dependency instanceof PsJavaDependency) {
+          toSelect = (PsJavaDependency)dependency;
         }
       }
       if (toSelect != null) {
@@ -117,7 +100,7 @@ class DeclaredDependenciesPanel extends AbstractDependenciesPanel implements Dep
     scrollPane.setBorder(createEmptyBorder());
     getContentsPanel().add(scrollPane, BorderLayout.CENTER);
 
-    updateTableColumnSizes();
+    myDependenciesTable.updateColumnSizes();
   }
 
   @NotNull
@@ -138,57 +121,12 @@ class DeclaredDependenciesPanel extends AbstractDependenciesPanel implements Dep
 
   @Override
   @NotNull
-  public String getPlaceName() {
+  protected String getPlaceName() {
     return myPlaceName;
   }
 
-  @Override
-  @NotNull
-  protected List<AnAction> getExtraToolbarActions() {
-    List<AnAction> actions = Lists.newArrayList();
-    actions.add(new EditDependencyAction());
-    return actions;
-  }
-
-  void updateTableColumnSizes() {
-    myDependenciesTable.updateColumnSizes();
-  }
-
-  @Override
-  public void dispose() {
-    Disposer.dispose(myDependenciesTable);
-  }
-
-  void add(@NotNull SelectionChangeListener<PsAndroidDependency> listener) {
-    myEventDispatcher.addListener(listener, this);
-    notifySelectionChanged();
-  }
-
-  @Override
-  @Nullable
-  public PsAndroidDependency getSelection() {
-    return myDependenciesTable.getSelectionIfSingle();
-  }
-
-  @Override
-  public void setSelection(@Nullable PsAndroidDependency selection) {
-    mySkipSelectionChangeNotification = true;
-    if (selection == null) {
-      myDependenciesTable.clearSelection();
-    }
-    else {
-      myDependenciesTable.setSelection(Collections.singleton(selection));
-    }
-    updateDetailsAndIssues();
-    mySkipSelectionChangeNotification = false;
-  }
-
   private void updateDetailsAndIssues() {
-    if (!mySkipSelectionChangeNotification) {
-      notifySelectionChanged();
-    }
-
-    PsAndroidDependency selected = getSelection();
+    PsJavaDependency selected = myDependenciesTable.getSelectionIfSingle();
     super.updateDetails(selected);
     updateIssues(selected);
 
@@ -198,14 +136,7 @@ class DeclaredDependenciesPanel extends AbstractDependenciesPanel implements Dep
     }
   }
 
-  private void notifySelectionChanged() {
-    PsAndroidDependency selected = getSelection();
-    if (selected != null) {
-      myEventDispatcher.selectionChanged(selected);
-    }
-  }
-
-  private void updateIssues(@Nullable PsAndroidDependency selected) {
+  private void updateIssues(@Nullable PsJavaDependency selected) {
     List<PsIssue> issues = Collections.emptyList();
     if (selected != null) {
       issues = myContext.getAnalyzerDaemon().getIssues().findIssues(selected, null);
@@ -241,20 +172,8 @@ class DeclaredDependenciesPanel extends AbstractDependenciesPanel implements Dep
     myDependenciesTable.selectDependency(toSelect);
   }
 
-  private class EditDependencyAction extends DumbAwareAction {
-    EditDependencyAction() {
-      super("Edit Dependency...", "", AllIcons.Actions.Edit);
-      registerCustomShortcutSet(CommonShortcuts.ENTER, myDependenciesTable);
-    }
-
-    @Override
-    public void update(AnActionEvent e) {
-      DependencyDetails details = getCurrentDependencyDetails();
-      e.getPresentation().setEnabled(details != null);
-    }
-
-    @Override
-    public void actionPerformed(AnActionEvent e) {
-    }
+  @Override
+  public void dispose() {
+    Disposer.dispose(myDependenciesTable);
   }
 }
