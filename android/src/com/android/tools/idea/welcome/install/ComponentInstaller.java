@@ -19,6 +19,7 @@ import com.android.repository.api.*;
 import com.android.repository.impl.installer.BasicInstallerFactory;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.StudioDownloader;
+import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.google.common.collect.Lists;
@@ -44,6 +45,10 @@ public final class ComponentInstaller {
     Set<UpdatablePackage> requests = Sets.newHashSet();
     StudioLoggerProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
     RepoManager sdkManager = mySdkHandler.getSdkManager(progress);
+    // reload the remotes if needed, so we can compute dependencies.
+    // TODO: ideally we'd somehow not have to reload the remotes when the local path changes.
+    sdkManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, progress, new StudioDownloader(),
+                                 StudioSettingsController.getInstance());
     for (InstallableComponent component : components) {
       requests.addAll(component.getPackagesToInstall());
     }
