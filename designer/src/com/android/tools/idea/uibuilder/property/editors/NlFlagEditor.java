@@ -31,7 +31,6 @@ import java.awt.event.ActionEvent;
  * a single checkbox for a single flag value.
  */
 public class NlFlagEditor extends NlBaseComponentEditor implements NlComponentEditor {
-  private final NlEditingListener myListener;
   private final JPanel myPanel;
   private final JCheckBox myCheckbox;
   private final boolean myIncludeLabel;
@@ -50,8 +49,8 @@ public class NlFlagEditor extends NlBaseComponentEditor implements NlComponentEd
   }
 
   private NlFlagEditor(@NotNull NlEditingListener listener, boolean includeLabel) {
+    super(listener);
     myIncludeLabel = includeLabel;
-    myListener = listener;
     myPanel = new JPanel(new BorderLayout(SystemInfo.isMac ? 0 : 2, 0));
     myCheckbox = new JCheckBox();
     myPanel.add(myCheckbox, BorderLayout.LINE_START);
@@ -93,13 +92,11 @@ public class NlFlagEditor extends NlBaseComponentEditor implements NlComponentEd
   @Override
   public void activate() {
     myValue = SdkConstants.VALUE_TRUE.equalsIgnoreCase(myValue) ? SdkConstants.VALUE_FALSE : SdkConstants.VALUE_TRUE;
-    myListener.stopEditing(this, myValue);
-    refresh();
+    stopEditing(myValue);
   }
 
   private void actionPerformed(ActionEvent e) {
     myValue = myCheckbox.isSelected() ? SdkConstants.VALUE_TRUE : SdkConstants.VALUE_FALSE;
-    myListener.stopEditing(this, myValue);
-    refresh();
+    stopEditing(myValue);
   }
 }

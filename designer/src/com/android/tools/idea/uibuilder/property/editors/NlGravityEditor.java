@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Set;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.uibuilder.property.editors.NlEditingListener.DEFAULT_LISTENER;
 import static java.awt.GridBagConstraints.*;
 
 public class NlGravityEditor extends NlBaseComponentEditor implements NlComponentEditor {
@@ -57,6 +58,7 @@ public class NlGravityEditor extends NlBaseComponentEditor implements NlComponen
   }
 
   public NlGravityEditor() {
+    super(DEFAULT_LISTENER);
     myPanel = new JPanel(new GridBagLayout());
     myHorizontalClipButton = new NlBooleanIconEditor(AndroidVectorIcons.LayoutEditorIcons.Clip);
     myVerticalClipButton = new NlBooleanIconEditor(AndroidVectorIcons.LayoutEditorIcons.Clip);
