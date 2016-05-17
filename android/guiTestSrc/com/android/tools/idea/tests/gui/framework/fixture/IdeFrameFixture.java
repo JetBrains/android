@@ -62,13 +62,11 @@ import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
-import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.util.PathUtil;
 import com.intellij.util.ThreeState;
 import com.intellij.xdebugger.impl.ui.tree.nodes.XDebuggerTreeNode;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
-import org.fest.swing.core.matcher.JLabelMatcher;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -79,7 +77,6 @@ import org.jetbrains.jps.model.module.JpsModuleSourceRootType;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
-import javax.swing.*;
 import javax.swing.tree.TreeNode;
 import java.awt.*;
 import java.awt.event.KeyEvent;
@@ -103,7 +100,6 @@ import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.ide.impl.ProjectUtil.closeAndDispose;
 import static com.intellij.openapi.util.io.FileUtil.*;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.fail;
@@ -614,66 +610,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   @NotNull
   public GradleToolWindowFixture getGradleToolWindow() {
     return new GradleToolWindowFixture(getProject(), robot());
-  }
-
-  public void requireNoEditorNotification() {
-    assertNull(findNotificationPanel(null));
-  }
-
-  /**
-   * Locates an editor notification with the given main message (unless the message is {@code null}, in which case we assert that there are
-   * no visible editor notifications. Will fail if the given notification is not found.
-   */
-  @Nullable
-  private EditorNotificationPanel findNotificationPanel(@Nullable String message) {
-    Collection<EditorNotificationPanel> panels = robot().finder().findAll(target(), new GenericTypeMatcher<EditorNotificationPanel>(
-      EditorNotificationPanel.class, true) {
-      @Override
-      protected boolean isMatching(@NotNull EditorNotificationPanel panel) {
-        return panel.isShowing();
-      }
-    });
-
-    if (message == null) {
-      if (!panels.isEmpty()) {
-        List<String> labels = Lists.newArrayList();
-        for (EditorNotificationPanel panel : panels) {
-          labels.addAll(getEditorNotificationLabels(panel));
-        }
-        fail("Found editor notifications when none were expected" + labels);
-      }
-      return null;
-    }
-
-    for (EditorNotificationPanel panel : panels) {
-      List<String> found = getEditorNotificationLabels(panel);
-      for (String label : found) {
-        if (label.contains(message)) {
-          return panel;
-        }
-      }
-    }
-
-    return null;
-  }
-
-  /** Looks up the main label for a given editor notification panel */
-  private List<String> getEditorNotificationLabels(@NotNull EditorNotificationPanel panel) {
-    final List<String> allText = Lists.newArrayList();
-    final Collection<JLabel> labels = robot().finder().findAll(panel, JLabelMatcher.any().andShowing());
-    for (final JLabel label : labels) {
-      String text = execute(new GuiQuery<String>() {
-        @Override
-        @Nullable
-        protected String executeInEDT() throws Throwable {
-          return label.getText();
-        }
-      });
-      if (isNotEmpty(text)) {
-        allText.add(text);
-      }
-    }
-    return allText;
   }
 
   @NotNull
