@@ -516,9 +516,11 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       screen.setXDimension(xDimension);
       screen.setYDimension(yDimension);
 
-      double width = xDimension / screen.getXdpi();
-      double height = yDimension / screen.getYdpi();
+      double dpi = screen.getPixelDensity().getDpiValue();
+      double width = xDimension / dpi;
+      double height = yDimension / dpi;
       double diagonalLength = Math.sqrt(width * width + height * height);
+
       screen.setDiagonalLength(diagonalLength);
       screen.setSize(AvdScreenData.getScreenSize(diagonalLength));
 

@@ -58,6 +58,8 @@ public class NlConstants {
   @SuppressWarnings("UseJBColor")
   public static final Color BLUEPRINT_COMPONENT_FG_COLOR = new Color(81, 103, 163, 100);
   public static final Stroke BLUEPRINT_COMPONENT_STROKE = NlDrawingStyle.THIN_SOLID_STROKE;
+  @SuppressWarnings("UseJBColor")
+  public static final Color UNAVAILABLE_ZONE_COLOR = new Color(0, 0, 0, 100);
 
 
   public static final JBColor DESIGN_SURFACE_BG = new JBColor(0xf2f2f2, UIUtil.getListBackground().getRGB());
