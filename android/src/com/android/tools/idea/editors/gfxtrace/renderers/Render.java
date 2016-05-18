@@ -26,6 +26,8 @@ import com.android.tools.idea.editors.gfxtrace.service.snippets.CanFollow;
 import com.android.tools.idea.editors.gfxtrace.service.snippets.Labels;
 import com.android.tools.idea.editors.gfxtrace.service.snippets.SnippetObject;
 import com.android.tools.rpclib.schema.*;
+import com.android.tools.rpclib.schema.Map;
+import com.google.common.collect.*;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.SimpleColoredComponent;
@@ -34,7 +36,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public final class Render {
 
@@ -362,7 +365,7 @@ public final class Render {
     render(value, component, attributes, tag);
   }
 
-  private static Constant pickShortestName(List<Constant> constants) {
+  private static Constant pickShortestName(@NotNull Collection<Constant> constants) {
     int len = Integer.MAX_VALUE;
     Constant shortest = null;
     for (Constant constant : constants) {
@@ -388,45 +391,111 @@ public final class Render {
                                           @NotNull Primitive type,
                                           @NotNull SimpleColoredComponent component,
                                           @NotNull SimpleTextAttributes attributes) {
-    Constant value = findConstant(obj, type);
-    if (value != null) {
-      component.append(value.getName(), attributes);
+    Collection<Constant> value = findConstant(obj, type);
+    if (!value.isEmpty()) {
+      component.append(value.stream().map(Constant::getName).collect(Collectors.joining(" | ")), attributes);
       return true;
     }
     return false;
   }
 
-  @Nullable("can't find a matching constant")
-  public static Constant findConstant(@NotNull SnippetObject obj, @NotNull Primitive type) {
+  /**
+   * @return empty list if not a constant, single value for constants, more values, for bitfileds.
+   */
+  @NotNull
+  public static Collection<Constant> findConstant(@NotNull SnippetObject obj, @NotNull Primitive type) {
     final ConstantSet constants = ConstantSet.lookup(type);
-    if (constants != null && constants.getEntries().length != 0) {
-      List<Constant> byValue = constants.getByValue(obj.getObject());
-      if (byValue != null && byValue.size() != 0) {
-        if (byValue.size() == 1) {
-          return byValue.get(0);
-        }
-        Labels labels = Labels.fromSnippets(obj.getSnippets());
-        List<Constant> preferred;
-        if (labels != null) {
-          // There are label snippets, use them to disambiguate.
-          preferred = labels.preferred(byValue);
-          if (preferred.size() == 1) {
-            return preferred.get(0);
-          } else if (preferred.size() == 0) {
-            // No matches, continue with the unfiltered constants.
-            preferred = byValue;
-          }
-        } else {
-          preferred = byValue;
-        }
-        // labels wasn't enough, try the heuristic.
-        // Using an ambiguity threshold of 8. This side steps the most egregious misinterpretations.
-        if (preferred.size() < 8) {
-          return pickShortestName(preferred);
-        }
-        // Nothing worked we will show a numeric value.
+    if (constants == null || constants.getEntries().length == 0) {
+      return Collections.emptyList();
+    }
+
+    // first, try and find exact match
+    List<Constant> byValue = constants.getByValue(obj.getObject());
+    if (byValue != null && byValue.size() != 0) {
+      if (byValue.size() == 1) {
+        // perfect, we have just 1 match
+        return byValue;
+      }
+      // try and find the best match
+      Labels labels = Labels.fromSnippets(obj.getSnippets());
+      Constant result = disambiguate(byValue, labels);
+      return result == null ? Collections.emptyList() : ImmutableList.of(result);
+    }
+
+    // we can not find any exact match,
+    // but for a number, maybe we can find a combination of constants that match (bit flags)
+    Object value = obj.getObject();
+    if (!(value instanceof Number)) {
+      return Collections.emptyList();
+    }
+
+    long valueNumber = ((Number)value).longValue();
+    long leftToFind = valueNumber;
+    Multimap<Number, Constant> resultMap = ArrayListMultimap.create();
+
+    for (Constant constant : constants.getEntries()) {
+      long constantValue = ((Number)constant.getValue()).longValue();
+      if (Long.bitCount(constantValue) == 1 && (valueNumber & constantValue) != 0) {
+        resultMap.put(constantValue, constant);
+        leftToFind &= ~constantValue; // remove bit
       }
     }
+
+    // we did not find enough flags to cover this constant
+    if (leftToFind != 0) {
+      return Collections.emptyList();
+    }
+
+    // we found exactly 1 of each constant to cover the whole value
+    if (resultMap.keySet().size() == resultMap.size()) {
+      return resultMap.values();
+    }
+
+    // we have more than 1 matching constant per flag to we need to disambiguate
+    Labels labels = Labels.fromSnippets(obj.getSnippets());
+    for (Number key : resultMap.keySet()) {
+      Collection<Constant> flagConstants = resultMap.get(key);
+      if (flagConstants.size() == 1) {
+        // perfect, we only have 1 value for this
+        continue;
+      }
+
+      Constant con = disambiguate(flagConstants, labels);
+      if (con != null) {
+        // we have several values, but we found 1 to use
+        resultMap.replaceValues(key, ImmutableList.of(con));
+      }
+      else {
+        // we have several values and we don't know what one to use
+        return Collections.emptyList();
+      }
+    }
+    // assert all constants are disambiguated now
+    assert resultMap.keySet().size() == resultMap.size();
+    return resultMap.values();
+  }
+
+  @Nullable("can not disambiguate")
+  private static Constant disambiguate(@NotNull Collection<Constant> constants, @Nullable Labels labels) {
+    Collection<Constant> preferred;
+    if (labels != null) {
+      // There are label snippets, use them to disambiguate.
+      preferred = labels.preferred(constants);
+      if (preferred.size() == 1) {
+        return Iterators.get(preferred.iterator(), 0);
+      } else if (preferred.size() == 0) {
+        // No matches, continue with the unfiltered constants.
+        preferred = constants;
+      }
+    } else {
+      preferred = constants;
+    }
+    // labels wasn't enough, try the heuristic.
+    // Using an ambiguity threshold of 8. This side steps the most egregious misinterpretations.
+    if (preferred.size() < 8) {
+      return pickShortestName(preferred);
+    }
+    // Nothing worked we will show a numeric value.
     return null;
   }
 

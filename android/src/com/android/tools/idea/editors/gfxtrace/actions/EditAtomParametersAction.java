@@ -21,11 +21,13 @@ import com.android.tools.idea.editors.gfxtrace.controllers.AtomController;
 import com.android.tools.idea.editors.gfxtrace.renderers.Render;
 import com.android.tools.idea.editors.gfxtrace.renderers.RenderUtils;
 import com.android.tools.idea.editors.gfxtrace.service.path.Path;
+import com.android.tools.idea.editors.gfxtrace.service.snippets.Labels;
 import com.android.tools.idea.editors.gfxtrace.service.snippets.SnippetObject;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
 import com.android.tools.rpclib.schema.*;
 import com.android.tools.swing.util.FloatFilter;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.UndoConfirmationPolicy;
@@ -34,6 +36,7 @@ import com.intellij.openapi.command.undo.UndoManager;
 import com.intellij.openapi.command.undo.UndoableAction;
 import com.intellij.openapi.command.undo.UnexpectedUndoException;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBLabel;
@@ -46,6 +49,8 @@ import javax.swing.text.AbstractDocument;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.math.BigInteger;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -151,7 +156,8 @@ public class EditAtomParametersAction extends AbstractAction {
     }
 
     @Override
-    public @Nullable DocumentReference[] getAffectedDocuments() {
+    @Nullable
+    public DocumentReference[] getAffectedDocuments() {
       return null;
     }
 
@@ -163,7 +169,7 @@ public class EditAtomParametersAction extends AbstractAction {
   }
 
   @Nullable
-  public static EditAtomParametersAction getEditActionFor(AtomController.Node node, GfxTraceEditor traceEditor) {
+  public static EditAtomParametersAction getEditActionFor(@NotNull AtomController.Node node, @NotNull GfxTraceEditor traceEditor) {
     List<Editor> editors = Lists.newArrayList();
     int resultIndex = node.atom.getResultIndex();
     int extrasIndex = node.atom.getExtrasIndex();
@@ -193,19 +199,32 @@ public class EditAtomParametersAction extends AbstractAction {
     }
 
     @NotNull
-    public static Editor getFor(@NotNull Type type, Object value, @NotNull SnippetObject snippetObject, int fieldIndex) {
+    public static Editor getFor(@NotNull Type type, @Nullable Object value, @NotNull SnippetObject snippetObject, int fieldIndex) {
       if (type instanceof Primitive) {
         final Primitive primitive = (Primitive)type;
-        if (snippetObject != null) {
-          Constant constant = Render.findConstant(snippetObject, primitive);
-          if (constant != null) {
-            // handle enum
-            ConstantSet constants = ConstantSet.lookup(type);
-            JComboBox combo = new JComboBox(constants.getEntries());
-            combo.setSelectedItem(constant);
-            return new Editor(snippetObject, type, combo, fieldIndex);
+
+        Collection<Constant> constant = Render.findConstant(snippetObject, primitive);
+        if (constant.size() == 1) {
+          // handle enum
+          List<Constant> constants = Arrays.asList(ConstantSet.lookup(type).getEntries());
+          // if we have a set of preferred constants, use them.
+          Labels labels = Labels.fromSnippets(snippetObject.getSnippets());
+          if (labels != null) {
+            List<Constant> preferred = labels.preferred(constants);
+            if (preferred.containsAll(constant)) {
+              constants = preferred;
+            }
           }
+
+          JComboBox combo = new ComboBox(new DefaultComboBoxModel<>(constants.toArray()));
+          combo.setSelectedItem(Iterables.get(constant, 0));
+          return new Editor(snippetObject, type, combo, fieldIndex);
         }
+        if (constant.size() >= 1) {
+          // TODO add editing of bit flags
+          return new Editor(snippetObject, type, null, fieldIndex);
+        }
+
         Method method = primitive.getMethod();
         if (method == Method.Bool) {
           // handle boolean
@@ -246,7 +265,8 @@ public class EditAtomParametersAction extends AbstractAction {
       return new Editor(snippetObject, type, null, fieldIndex);
     }
 
-    private static Comparable<? extends Number> getZero(Class<? extends Number> numberClass) {
+    @NotNull
+    private static Comparable<? extends Number> getZero(@NotNull Class<? extends Number> numberClass) {
       if (numberClass == Byte.class) {
         return Byte.valueOf((byte)0);
       }
@@ -265,7 +285,8 @@ public class EditAtomParametersAction extends AbstractAction {
       throw new IllegalArgumentException("unknown number class " + numberClass);
     }
 
-    private static Comparable<? extends Number> getUnsignedMax(Method type) {
+    @NotNull
+    private static Comparable<? extends Number> getUnsignedMax(@NotNull Method type) {
       if (type == Method.Uint8) {
         return (short)255;
       }
@@ -281,6 +302,7 @@ public class EditAtomParametersAction extends AbstractAction {
       throw new IllegalArgumentException("not unsigned type" + type);
     }
 
+    @NotNull
     public JComponent getReadOnlyComponent() {
       SimpleColoredComponent result = new SimpleColoredComponent();
       Render.render(myCurrentValue, myType, result, SimpleTextAttributes.REGULAR_ATTRIBUTES, -1);

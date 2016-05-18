@@ -18,12 +18,14 @@
 package com.android.tools.idea.editors.gfxtrace.service.snippets;
 
 import org.jetbrains.annotations.NotNull;
-
+import org.jetbrains.annotations.Nullable;
 import com.android.tools.rpclib.binary.*;
 import com.android.tools.rpclib.schema.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 public final class Labels extends KindredSnippets implements BinaryObject {
@@ -69,11 +71,18 @@ public final class Labels extends KindredSnippets implements BinaryObject {
   public static void register() {}
   //<<<End:Java.ClassBody:1>>>
 
+
+  @Override
+  public String toString() {
+    return myPath + " = " + Arrays.asList(myLabels).toString();
+  }
+
   /**
    * find the labels in the snippets.
    * @param snippets any kind of snippets.
    * @return the labels maybe null.
    */
+  @Nullable
   public static Labels fromSnippets(KindredSnippets[] snippets) {
     for (KindredSnippets obj : snippets) {
       if (obj instanceof Labels) {
@@ -88,7 +97,8 @@ public final class Labels extends KindredSnippets implements BinaryObject {
    * @param constants a list of constants to filter.
    * @return the constants to prefer.
    */
-  public List<Constant> preferred(List<Constant> constants) {
+  @NotNull
+  public List<Constant> preferred(@NotNull Collection<Constant> constants) {
     List<Constant> preferred = new ArrayList<Constant>();
     for (Constant c : constants) {
       for (int i = 0; i < myLabels.length; i++) {
