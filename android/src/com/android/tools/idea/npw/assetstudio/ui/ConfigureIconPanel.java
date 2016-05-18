@@ -302,14 +302,8 @@ public final class ConfigureIconPanel extends JPanel implements Disposable {
     ObservableBool isLauncherIcon = new BoolValueProperty(myIconType.equals(AndroidIconType.LAUNCHER));
     ObservableBool isActionBarIcon = new BoolValueProperty(myIconType.equals(AndroidIconType.ACTIONBAR));
     ObservableBool isCustomTheme = myTheme.isEqualTo(ActionBarIconGenerator.Theme.CUSTOM);
-    ObservableBool isClipartOrText = new BooleanExpression(myActiveAsset) {
-      @NotNull
-      @Override
-      public Boolean get() {
-        BaseAsset asset = myActiveAsset.get();
-        return myClipartAssetButton.getAsset() == asset || myTextAssetEditor.getAsset() == asset;
-      }
-    };
+    ObservableValue<Boolean> isClipartOrText =
+      myActiveAsset.transform(asset -> myClipartAssetButton.getAsset() == asset || myTextAssetEditor.getAsset() == asset);
     ObservableBool supportsEffects = new BooleanExpression(myShape) {
       @NotNull
       @Override
