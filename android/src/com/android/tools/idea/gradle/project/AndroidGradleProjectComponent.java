@@ -126,7 +126,7 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
     if (isGradleProject) {
       configureGradleProject();
     }
-    else if (myProject.getBaseDir() != null && canImportAsGradleProject(myProject.getBaseDir())) {
+    else if (isAndroidStudio() && myProject.getBaseDir() != null && canImportAsGradleProject(myProject.getBaseDir())) {
       GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
     }
   }
