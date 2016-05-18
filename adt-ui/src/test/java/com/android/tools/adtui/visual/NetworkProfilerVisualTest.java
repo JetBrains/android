@@ -34,20 +34,18 @@ import javax.swing.JPanel;
 public class NetworkProfilerVisualTest extends VisualTest {
 
   private static final String NETWORK_PROFILER_NAME = "Network Profiler";
-  private NetworkSegment mSegment;
-  private NetworkSegment mSegment2;
-  private Range mSharedRange;
-  private long mStartTimeMs;
-  private AnimatedTimeRange mAnimatedTimeRange;
-  private List<RangedContinuousSeries> mData;
 
-  public NetworkProfilerVisualTest() {
-    // TODO: implement constructor
-    mStartTimeMs = System.currentTimeMillis();
-    mSharedRange = new Range(0, 0);
-    mAnimatedTimeRange = new AnimatedTimeRange(mSharedRange, mStartTimeMs);
-    mData = new ArrayList<>();
-  }
+  private NetworkSegment mSegment;
+
+  private NetworkSegment mSegment2;
+
+  private Range mSharedRange;
+
+  private long mStartTimeMs;
+
+  private AnimatedTimeRange mAnimatedTimeRange;
+
+  private List<RangedContinuousSeries> mData;
 
   @Override
   protected void registerComponents(List<AnimatedComponent> components) {
@@ -62,6 +60,10 @@ public class NetworkProfilerVisualTest extends VisualTest {
 
   @Override
   protected List<Animatable> createComponentsList() {
+    mStartTimeMs = System.currentTimeMillis();
+    mSharedRange = new Range(0, 0);
+    mAnimatedTimeRange = new AnimatedTimeRange(mSharedRange, mStartTimeMs);
+    mData = new ArrayList<>();
     mSegment = new NetworkSegment(mSharedRange, mData);
     mSegment2 = new NetworkSegment(mSharedRange, mData);
 
