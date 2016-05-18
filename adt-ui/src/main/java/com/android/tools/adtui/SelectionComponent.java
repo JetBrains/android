@@ -149,13 +149,13 @@ public final class SelectionComponent extends AnimatedComponent {
           return;
         }
 
-        Point mMousePosition = getMouseLocation();
-        mode = getModeForMousePosition(mMousePosition);
+        Point mousePosition = getMouseLocation();
+        mode = getModeForMousePosition(mousePosition);
         switch (mode) {
           case NO_SELECTION:
           case CREATE:
             // TODO add delay before changing selection from a point to a range.
-            double value = mAxis.getValueAtPosition(e.getX());
+            double value = mAxis.getValueAtPosition(mousePosition.x);
             mSelectionRange.set(value, value);
             mode = Mode.ADJUST_MIN;
             break;
@@ -278,6 +278,8 @@ public final class SelectionComponent extends AnimatedComponent {
     // Gather any series data that need to be shown in the overlay.
     mReportingContainer = null;
     mReportingData.clear();
+    // Convert mouse coordinates to mHost's coordinate space.
+    mousePosition = SwingUtilities.convertPoint(this, mousePosition, mHost);
     Component hoveredComponent = SwingUtilities.getDeepestComponentAt(mHost, mousePosition.x, mousePosition.y);
     if (hoveredComponent instanceof ReportingSeriesRenderer) {
       mReportingContainer = (ReportingSeriesRenderer)hoveredComponent;
@@ -440,7 +442,7 @@ public final class SelectionComponent extends AnimatedComponent {
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
     Point mousePosition = getMouseLocation();
 
-    // Draw selection indcators if a selection exists.
+    // Draw selection indicators if a selection exists.
     if (mode != Mode.NO_SELECTION) {
       drawCursor(mousePosition);
 
