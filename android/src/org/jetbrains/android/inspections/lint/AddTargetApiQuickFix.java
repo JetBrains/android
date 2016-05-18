@@ -33,12 +33,12 @@ import static com.android.SdkConstants.*;
 import static com.android.tools.lint.checks.ApiDetector.REQUIRES_API_ANNOTATION;
 
 /** Fix which adds a {@code @TargetApi} annotation at the nearest surrounding method or class */
-class AddTargetApiQuickFix implements AndroidLintQuickFix {
+public class AddTargetApiQuickFix implements AndroidLintQuickFix {
   private final boolean myRequiresApi;
   private int myApi;
   private PsiElement myElement;
 
-  AddTargetApiQuickFix(int api, boolean requiresApi, PsiElement element) {
+  public AddTargetApiQuickFix(int api, boolean requiresApi, PsiElement element) {
     myApi = api;
     myRequiresApi = requiresApi;
     myElement = element;
@@ -118,7 +118,12 @@ class AddTargetApiQuickFix implements AndroidLintQuickFix {
       Project project = startElement.getProject();
       PsiElementFactory elementFactory = JavaPsiFacade.getInstance(project).getElementFactory();
       String fqcn = myRequiresApi ? REQUIRES_API_ANNOTATION : FQCN_TARGET_API;
-      String annotationText = "@" + fqcn + "(" + getAnnotationValue(true) + ")";
+      String annotationText;
+      if (myRequiresApi) {
+        annotationText = "@" + fqcn + "(api=" + getAnnotationValue(true) + ")";
+      } else {
+        annotationText = "@" + fqcn + "(" + getAnnotationValue(true) + ")";
+      }
       PsiAnnotation newAnnotation = elementFactory.createAnnotationFromText(annotationText, container);
       PsiAnnotation annotation = AnnotationUtil.findAnnotation(container, FQCN_TARGET_API);
       if (annotation != null && annotation.isPhysical()) {

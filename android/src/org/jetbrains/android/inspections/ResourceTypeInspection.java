@@ -70,6 +70,9 @@ import lombok.ast.NullLiteral;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
+import org.jetbrains.android.inspections.lint.AddTargetApiQuickFix;
+import org.jetbrains.android.inspections.lint.AddTargetVersionCheckQuickFix;
+import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.inspections.lint.IntellijLintUtils;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
@@ -548,7 +551,14 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     AndroidVersion minSdkVersion = AndroidModuleInfo.get(facet).getMinSdkVersion();
 
     PsiAnnotationMemberValue apiValue = annotation.findAttributeValue(ATTR_VALUE);
+    if (apiValue == null || (int)getLongValue(apiValue, 1) == 1) {
+      // Look for both value= and api= (they are aliases, though  value of 1 is meaningless)
+      apiValue = annotation.findAttributeValue("api");
+    }
     int api = (int)getLongValue(apiValue, 1);
+    if (api <= 1) {
+      return;
+    }
     int minSdk = minSdkVersion.getFeatureLevel();
     if (api <= minSdk) {
       return;
@@ -570,7 +580,14 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     // Keep in sync with guessLintIssue
     String message = String.format("Call requires API level %1$d (current min is %2$d): %3$s", api, minSdk,
                                      fqcn + '#' + method.getName());
-    registerProblem(holder, UNSUPPORTED, methodCall, message);
+
+    LocalQuickFix versionCheck = new AndroidLintQuickFix.LocalFixWrapper(new AddTargetVersionCheckQuickFix(api), methodCall, methodCall);
+    LocalQuickFix addTargetApiQuickFix = new AndroidLintQuickFix.LocalFixWrapper(new AddTargetApiQuickFix(api, false, methodCall),
+                                                                                 methodCall, methodCall);
+    LocalQuickFix addRequiresApiQuickFix = new AndroidLintQuickFix.LocalFixWrapper(new AddTargetApiQuickFix(api, true, methodCall),
+                                                                                   methodCall, methodCall);
+
+    registerProblem(holder, UNSUPPORTED, methodCall, message, versionCheck, addRequiresApiQuickFix, addTargetApiQuickFix);
   }
 
   @Nullable
