@@ -16,6 +16,7 @@
 package com.android.tools.idea.ui.properties;
 
 import com.android.tools.idea.ui.properties.core.*;
+import com.android.tools.idea.ui.properties.expressions.Expression;
 import org.junit.Test;
 
 import java.util.List;
@@ -57,6 +58,16 @@ public class AbstractPropertyTest {
     ObjectWithNoObservableProperties object = new ObjectWithNoObservableProperties(false, 42, 42.0, "test");
     List<AbstractProperty<?>> properties = AbstractProperty.getAll(object);
     assert properties.isEmpty();
+  }
+
+  @Test
+  public void testTransformMethod() {
+    IntProperty source = new IntValueProperty(10);
+    Expression<String> transformed = source.transform(Object::toString);
+
+    assertThat(transformed.get()).isEqualTo("10");
+    source.set(20);
+    assertThat(transformed.get()).isEqualTo("20");
   }
 
   private static class ObjectWithObservableProperties {
