@@ -1624,6 +1624,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
         case EDIT:
         case RESOURCE_CHANGED:
         case DELETE:
+        case RESIZE_END:
+        case RESIZE_COMMIT:
         case ADD_COMPONENTS: {
           myResourceVersion.incrementAndGet();
         } break;
