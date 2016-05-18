@@ -45,10 +45,6 @@ public final class ComponentInstaller {
     Set<UpdatablePackage> requests = Sets.newHashSet();
     StudioLoggerProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
     RepoManager sdkManager = mySdkHandler.getSdkManager(progress);
-    // reload the remotes if needed, so we can compute dependencies.
-    // TODO: ideally we'd somehow not have to reload the remotes when the local path changes.
-    sdkManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, progress, new StudioDownloader(),
-                                 StudioSettingsController.getInstance());
     for (InstallableComponent component : components) {
       requests.addAll(component.getPackagesToInstall());
     }

@@ -50,7 +50,7 @@ public final class AndroidSdk extends InstallableComponent {
   @Nullable
   private Revision getLatestCompatibleBuildToolsRevision() {
     Revision revision = null;
-    for (RemotePackage p : myRepositoryPackages.getRemotePackages().values()) {
+    for (RemotePackage p : getRepositoryPackages().getRemotePackages().values()) {
       if (!p.getPath().startsWith(SdkConstants.FD_BUILD_TOOLS)) {
         continue;
       }
