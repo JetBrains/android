@@ -22,19 +22,16 @@ import com.android.tools.idea.gradle.structure.model.PsModel;
 import com.google.common.collect.Lists;
 import com.intellij.ide.util.treeView.AbstractTreeUi;
 import com.intellij.ide.util.treeView.TreeVisitor;
-import com.intellij.ui.treeStructure.SimpleNode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
-import static com.intellij.util.ui.tree.TreeUtil.showRowCentered;
 
 public abstract class AbstractPsNodeTreeBuilder extends AbstractBaseTreeBuilder {
   public AbstractPsNodeTreeBuilder(@NotNull JTree tree,
@@ -137,30 +134,12 @@ public abstract class AbstractPsNodeTreeBuilder extends AbstractBaseTreeBuilder 
       }
       // Expand the parents of all selected nodes, so they can be visible to the user.
       Runnable onDone = () -> {
-        List<SimpleNode> toExpand = Lists.newArrayList();
-        for (AbstractPsModelNode node : toSelect) {
-          SimpleNode parent = node.getParent();
-          if (parent != null) {
-            toExpand.add(parent);
-          }
-        }
-        expand(toExpand.toArray(), null);
+        expandParents(toSelect);
         if (collector != null) {
           collector.done(collector.matchingNodes);
         }
         if (scroll) {
-          JTree tree = getTree();
-          if (tree != null) {
-            // Scroll to the first selected row in the tree.
-            int[] selectionRows = tree.getSelectionRows();
-            if (selectionRows != null && selectionRows.length > 0) {
-              if (selectionRows.length > 1) {
-                Arrays.sort(selectionRows);
-              }
-              int firstRow = selectionRows[0];
-              showRowCentered(tree, firstRow, false, true);
-            }
-          }
+          scrollToFirstSelectedRow();
         }
       };
       getUi().userSelect(toSelect.toArray(), new UserRunnable(onDone), false, false);
