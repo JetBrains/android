@@ -221,7 +221,6 @@ public class ViewHandlerManager implements ProjectComponent {
         return new ChronometerHandler();
       case QUICK_CONTACT_BADGE:
       case TEXT_CLOCK:
-      case VIDEO_VIEW:
         return STANDARD_HANDLER;
       case COLLAPSING_TOOLBAR_LAYOUT:
         return new CollapsingToolbarLayoutHandler();
@@ -309,6 +308,7 @@ public class ViewHandlerManager implements ProjectComponent {
         return new SpaceHandler();
       case SURFACE_VIEW:
       case TEXTURE_VIEW:
+      case VIDEO_VIEW:
         return NO_PREVIEW_HANDLER;
       case SPINNER:
         return new SpinnerHandler();
