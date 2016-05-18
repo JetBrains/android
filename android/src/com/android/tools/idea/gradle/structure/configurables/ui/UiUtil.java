@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui;
 
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseTreeBuilder;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.TreeBuilderSpeedSearch;
-import com.intellij.ide.util.treeView.AbstractTreeBuilder;
 import com.intellij.ui.IdeBorderFactory;
 import org.jetbrains.annotations.NotNull;
 
@@ -45,7 +45,7 @@ public final class UiUtil {
   }
 
   @NotNull
-  public static JScrollPane setUp(@NotNull AbstractTreeBuilder treeBuilder) {
+  public static JScrollPane setUp(@NotNull AbstractBaseTreeBuilder treeBuilder) {
     JTree tree = treeBuilder.getUi().getTree();
 
     tree.setExpandsSelectedPaths(true);
