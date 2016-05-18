@@ -157,16 +157,20 @@ public abstract class AbstractDeclaredDependenciesTableModel<T extends PsDepende
     @Override
     @NotNull
     protected String getText() {
-      PsDependency dependency = getModel();
-      String text = dependency.toText(PLAIN_TEXT);
-
-      if (dependency instanceof PsLibraryDependency) {
-        PsLibraryDependency library = (PsLibraryDependency)dependency;
-        PsArtifactDependencySpec spec = library.getDeclaredSpec();
-        assert spec != null;
-        text = spec.getDisplayText();
-      }
-      return text;
+      return displayTextOf(getModel());
     }
+  }
+
+  @NotNull
+  static String displayTextOf(@NotNull PsDependency dependency) {
+    String text = dependency.toText(PLAIN_TEXT);
+
+    if (dependency instanceof PsLibraryDependency) {
+      PsLibraryDependency library = (PsLibraryDependency)dependency;
+      PsArtifactDependencySpec spec = library.getDeclaredSpec();
+      assert spec != null;
+      text = spec.getDisplayText();
+    }
+    return text;
   }
 }
