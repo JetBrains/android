@@ -16,6 +16,7 @@
 package com.android.tools.adtui;
 
 import com.intellij.ui.components.JBScrollBar;
+import com.intellij.util.ui.ButtonlessScrollBarUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -39,7 +40,6 @@ import java.awt.event.MouseEvent;
  * D. Range data's global maximum -> BoundedRangeModel's max
  */
 public final class RangeScrollbar extends JBScrollBar implements Animatable {
-
   /**
    * Different states to control the behavior of the scrollbar:
    * STREAMING - Sticks to the end of the range to allow users to see the most recent data.
@@ -95,6 +95,11 @@ public final class RangeScrollbar extends JBScrollBar implements Animatable {
    */
   public void setStableScrolling(boolean fixedScrolling) {
     mStableScrolling = fixedScrolling;
+  }
+
+  @Override
+  public void updateUI() {
+    setUI(new RangeScrollBarUI());
   }
 
   @Override
@@ -181,5 +186,18 @@ public final class RangeScrollbar extends JBScrollBar implements Animatable {
     BoundedRangeModel model = getModel();
     return model.getMaximum() - (model.getValue() + model.getExtent()) <
            STREAMING_POSITION_THRESHOLD * model.getExtent();
+  }
+
+  /**
+   * The default ButtonlessScrollBarUI contains logic to overlay the scrollbar
+   * and fade in/out on top of a JScrollPane. Because we are using the scrollbar
+   * without a scroll pane, it can fade in and out unexpectedly. This subclass
+   * simply disables the overlay feature.
+   */
+  private static class RangeScrollBarUI extends ButtonlessScrollBarUI {
+    @Override
+    protected boolean isMacOverlayScrollbar() {
+      return false;
+    }
   }
 }

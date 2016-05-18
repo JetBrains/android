@@ -17,9 +17,6 @@ public class EventSegment<E extends Enum<E>> extends BaseSegment {
   private static final int FRAGMENT_GRAPH_SIZE = 25;
 
   @NotNull
-  private Range mTimeGlobalRange;
-
-  @NotNull
   private SimpleEventComponent mSystemEvents;
 
   @NotNull
@@ -70,16 +67,6 @@ public class EventSegment<E extends Enum<E>> extends BaseSegment {
     components.add(mSystemEvents);
     components.add(mFragmentEvents);
     components.add(mActivityEvents);
-  }
-
-  @Override
-  protected void setLeftContent(@NotNull JPanel panel) {
-    //The Events Segment, shows no Axis components and the spacing is taken care of by our base.
-  }
-
-  @Override
-  protected void setRightContent(@NotNull JPanel panel) {
-    //The Events Segment, shows no Axis components and the spacing is taken care of by our base.
   }
 
   @Override

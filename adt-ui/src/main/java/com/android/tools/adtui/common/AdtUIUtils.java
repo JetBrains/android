@@ -18,11 +18,9 @@ package com.android.tools.adtui.common;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBFont;
-import com.intellij.util.ui.UIUtil;
 
-import javax.swing.UIManager;
-import java.awt.Color;
 import java.awt.Font;
+import java.awt.Color;
 
 /**
  * ADT-UI utility class to hold constants and function used across the ADT-UI framework.
