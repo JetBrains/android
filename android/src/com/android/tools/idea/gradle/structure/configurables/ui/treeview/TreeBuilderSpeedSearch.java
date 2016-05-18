@@ -16,17 +16,14 @@
 package com.android.tools.idea.gradle.structure.configurables.ui.treeview;
 
 import com.google.common.collect.Lists;
-import com.intellij.ide.util.treeView.AbstractTreeBuilder;
 import com.intellij.ide.util.treeView.AbstractTreeUi;
 import com.intellij.ide.util.treeView.TreeVisitor;
 import com.intellij.openapi.util.ActionCallback;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SpeedSearchComparator;
 import com.intellij.ui.speedSearch.SpeedSearchSupply;
-import com.intellij.ui.treeStructure.SimpleNode;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,6 +41,7 @@ import java.util.List;
 
 import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.revalidateAndRepaint;
 import static com.google.common.base.Strings.nullToEmpty;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.ui.UIUtil.*;
 import static java.awt.Font.BOLD;
 import static java.awt.event.KeyEvent.*;
@@ -54,7 +52,7 @@ public class TreeBuilderSpeedSearch extends SpeedSearchSupply {
   private static final TreePath[] EMPTY_TREE_PATH = new TreePath[0];
   @NonNls private static final String ENTERED_PREFIX_PROPERTY_NAME = "enteredPrefix";
 
-  @NotNull private final AbstractTreeBuilder myTreeBuilder;
+  @NotNull private final AbstractBaseTreeBuilder myTreeBuilder;
   @NotNull private final JTree myTree;
   @NotNull private final PropertyChangeSupport myChangeSupport = new PropertyChangeSupport(this);
   @NotNull private final SpeedSearchComparator myComparator = new SpeedSearchComparator(false);
@@ -63,11 +61,11 @@ public class TreeBuilderSpeedSearch extends SpeedSearchSupply {
   private SearchPopup mySearchPopup;
   private JLayeredPane myPopupLayeredPane;
 
-  public static void installTo(@NotNull AbstractTreeBuilder treeBuilder) {
+  public static void installTo(@NotNull AbstractBaseTreeBuilder treeBuilder) {
     new TreeBuilderSpeedSearch(treeBuilder);
   }
 
-  private TreeBuilderSpeedSearch(@NotNull AbstractTreeBuilder treeBuilder) {
+  private TreeBuilderSpeedSearch(@NotNull AbstractBaseTreeBuilder treeBuilder) {
     myTreeBuilder = treeBuilder;
     myTree = myTreeBuilder.getUi().getTree();
 
@@ -211,7 +209,7 @@ public class TreeBuilderSpeedSearch extends SpeedSearchSupply {
   @Nullable
   public Iterable<TextRange> matchingFragments(@NotNull String text) {
     String recentSearchText = myComparator.getRecentSearchText();
-    return StringUtil.isNotEmpty(recentSearchText) ? myComparator.matchingFragments(recentSearchText, text) : null;
+    return isNotEmpty(recentSearchText) ? myComparator.matchingFragments(recentSearchText, text) : null;
   }
 
   @Override
@@ -274,14 +272,8 @@ public class TreeBuilderSpeedSearch extends SpeedSearchSupply {
       }
 
       Runnable onDone = () -> {
-        List<SimpleNode> toExpand = Lists.newArrayList();
-        for (AbstractPsModelNode node : nodes) {
-          SimpleNode parent = node.getParent();
-          if (parent != null) {
-            toExpand.add(parent);
-          }
-        }
-        myTreeBuilder.expand(toExpand.toArray(), null);
+        myTreeBuilder.expandParents(nodes);
+        myTreeBuilder.scrollToFirstSelectedRow();
       };
       myTreeBuilder.getUi().userSelect(nodes.toArray(), () -> {
         AbstractTreeUi ui = myTreeBuilder.getUi();
