@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.treeview;
 
+import com.google.common.collect.Lists;
 import com.intellij.ide.util.treeView.AbstractTreeBuilder;
 import com.intellij.ide.util.treeView.IndexComparator;
 import com.intellij.ide.util.treeView.NodeDescriptor;
+import com.intellij.ui.treeStructure.SimpleNode;
 import com.intellij.util.ui.tree.TreeUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,7 +27,11 @@ import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 
+import java.util.Arrays;
+import java.util.List;
+
 import static com.intellij.util.ui.tree.TreeUtil.collapseAll;
+import static com.intellij.util.ui.tree.TreeUtil.showRowCentered;
 
 public abstract class AbstractBaseTreeBuilder extends AbstractTreeBuilder {
   private static final TreePath[] EMPTY_TREE_PATH = new TreePath[0];
@@ -78,6 +84,32 @@ public abstract class AbstractBaseTreeBuilder extends AbstractTreeBuilder {
     JTree tree = getTree();
     if (tree != null) {
       clearSelection(tree);
+    }
+  }
+
+  public void expandParents(@NotNull List<? extends SimpleNode> nodes) {
+    List<SimpleNode> toExpand = Lists.newArrayList();
+    for (SimpleNode node : nodes) {
+      SimpleNode parent = node.getParent();
+      if (parent != null) {
+        toExpand.add(parent);
+      }
+    }
+    expand(toExpand.toArray(), null);
+  }
+
+  public void scrollToFirstSelectedRow() {
+    JTree tree = getTree();
+    if (tree != null) {
+      // Scroll to the first selected row in the tree.
+      int[] selectionRows = tree.getSelectionRows();
+      if (selectionRows != null && selectionRows.length > 0) {
+        if (selectionRows.length > 1) {
+          Arrays.sort(selectionRows);
+        }
+        int firstRow = selectionRows[0];
+        showRowCentered(tree, firstRow, false, true);
+      }
     }
   }
 
