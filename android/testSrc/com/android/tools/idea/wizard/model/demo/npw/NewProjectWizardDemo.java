@@ -94,7 +94,8 @@ public final class NewProjectWizardDemo {
   }
 
   private void runWizard(ModelWizard wizard, String title) {
-    ModelWizardDialog dialog = new ModelWizardDialog(wizard, title, myRootPanel, new DemoWizardLayout(), null);
+    ModelWizardDialog dialog = new ModelWizardDialog(wizard, title, myRootPanel, new DemoWizardLayout(), null,
+                                                     ModelWizardDialog.CancellationPolicy.ALWAYS_CAN_CANCEL);
     dialog.setSize(-1, 300);
     dialog.show();
   }

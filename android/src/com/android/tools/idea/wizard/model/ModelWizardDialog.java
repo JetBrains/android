@@ -53,6 +53,12 @@ import static com.android.tools.idea.ui.properties.expressions.bool.BooleanExpre
  * first, this dialog will throw an exception on {@link #show()}.
  */
 public final class ModelWizardDialog extends DialogWrapper implements ModelWizard.ResultListener {
+  public enum CancellationPolicy {
+    ALWAYS_CAN_CANCEL,
+    CAN_CANCEL_UNTIL_CAN_FINISH
+  }
+
+  private CancellationPolicy myCancellationPolicy = CancellationPolicy.ALWAYS_CAN_CANCEL;
 
   @SuppressWarnings("NullableProblems") // Always NotNull but initialized indirectly in constructor
   @NotNull
@@ -75,26 +81,29 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
                            @Nullable CustomLayout customLayout,
                            @Nullable Project project,
                            @Nullable URL helpUrl,
-                           @NotNull IdeModalityType modalityType) {
+                           @NotNull IdeModalityType modalityType,
+                           @NotNull CancellationPolicy cancellationPolicy) {
     super(project, true, modalityType);
-    init(wizard, title, customLayout, helpUrl);
+    init(wizard, title, customLayout, helpUrl, cancellationPolicy);
   }
 
   public ModelWizardDialog(@NotNull ModelWizard wizard,
                            @NotNull String title,
                            @NotNull Component parent,
                            @Nullable CustomLayout customLayout,
-                           @Nullable URL helpUrl) {
+                           @Nullable URL helpUrl,
+                           @NotNull CancellationPolicy cancellationPolicy) {
     super(parent, true);
-    init(wizard, title, customLayout, helpUrl);
+    init(wizard, title, customLayout, helpUrl, cancellationPolicy);
   }
 
-  private void init(@NotNull ModelWizard wizard, @NotNull String title, @Nullable CustomLayout customLayout, @Nullable URL helpUrl) {
+  private void init(@NotNull ModelWizard wizard, @NotNull String title, @Nullable CustomLayout customLayout, @Nullable URL helpUrl, @NotNull CancellationPolicy cancellationPolicy) {
     Disposer.register(getDisposable(), wizard);
     myWizard = wizard;
     myWizard.addResultListener(this);
     myCustomLayout = customLayout;
     myHelpUrl = helpUrl;
+    myCancellationPolicy = cancellationPolicy;
     setTitle(title);
 
     init();
@@ -168,18 +177,19 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
     NextAction nextAction = new NextAction();
     PreviousAction prevAction = new PreviousAction();
     FinishAction finishAction = new FinishAction();
+    CancelAction cancelAction = new CancelAction(myCancellationPolicy);
     if (myHelpUrl == null) {
       if (SystemInfo.isMac) {
-        return new Action[]{getCancelAction(), prevAction, nextAction, finishAction};
+        return new Action[]{cancelAction, prevAction, nextAction, finishAction};
       }
 
-      return new Action[]{prevAction, nextAction, getCancelAction(), finishAction};
+      return new Action[]{prevAction, nextAction, cancelAction, finishAction};
     }
     else {
       if (SystemInfo.isMac) {
-        return new Action[]{getHelpAction(), getCancelAction(), prevAction, nextAction, finishAction};
+        return new Action[]{getHelpAction(), cancelAction, prevAction, nextAction, finishAction};
       }
-      return new Action[]{prevAction, nextAction, getCancelAction(), finishAction, getHelpAction()};
+      return new Action[]{prevAction, nextAction, cancelAction, finishAction, getHelpAction()};
     }
   }
 
@@ -306,6 +316,32 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
     @Override
     public ObservableBool shouldBeDefault() {
       return myWizard.onLastStep();
+    }
+  }
+
+  private final class CancelAction extends ModelWizardDialogAction {
+    private final CancellationPolicy myCancellationPolicy;
+
+    private CancelAction(@NotNull CancellationPolicy cancellationPolicy) {
+      super(IdeBundle.message("button.cancel"));
+      myCancellationPolicy = cancellationPolicy;
+    }
+
+    @Override
+    protected void doAction(ActionEvent e) {
+      doCancelAction();
+    }
+
+    @Override
+    @NotNull
+    public ObservableBool shouldBeEnabled() {
+      switch (myCancellationPolicy) {
+        case CAN_CANCEL_UNTIL_CAN_FINISH:
+          return not(myWizard.onLastStep().and(myWizard.canGoForward()));
+        case ALWAYS_CAN_CANCEL:
+        default:
+          return BooleanExpressions.alwaysTrue();
+      }
     }
   }
 
