@@ -15,16 +15,17 @@
  */
 package com.android.tools.idea.rendering;
 
-import com.android.ide.common.rendering.api.*;
+import com.android.ide.common.rendering.api.Features;
+import com.android.ide.common.rendering.api.HardwareConfig;
+import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.ide.common.rendering.legacy.ILegacyPullParser;
-import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.xml.XmlPrettyPrinter;
 import com.android.resources.ResourceFolderType;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.res.ResourceHelper;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -80,7 +81,9 @@ public class LayoutPullParserFactory {
     }
   }
 
-  /** Returns if a target capable of rendering preferences file is found. */
+  /**
+   * Returns if a target capable of rendering preferences file is found.
+   */
   private static boolean prefCapableTargetInstalled(@NotNull PsiFile file) {
     Module module = ModuleUtilCore.findModuleForPsiElement(file);
     if (module != null) {
@@ -111,13 +114,7 @@ public class LayoutPullParserFactory {
 
     if ((folderType == ResourceFolderType.DRAWABLE || folderType == ResourceFolderType.MENU || folderType == ResourceFolderType.XML)
         && !ApplicationManager.getApplication().isReadAccessAllowed()) {
-      return ApplicationManager.getApplication().runReadAction(new Computable<ILayoutPullParser>() {
-        @Nullable
-        @Override
-        public ILayoutPullParser compute() {
-          return create(renderTask);
-        }
-      });
+      return ApplicationManager.getApplication().runReadAction((Computable<ILayoutPullParser>)() -> create(renderTask));
     }
 
     XmlFile file = renderTask.getPsiFile();
@@ -137,11 +134,6 @@ public class LayoutPullParserFactory {
         return createDrawableParser(file);
       case MENU:
         if (renderTask.supportsCapability(Features.ACTION_BAR)) {
-          Configuration configuration = renderTask.getConfiguration();
-          String theme = findFrameworkTheme(configuration.getTheme(), renderTask.getResourceResolver());
-          if (theme != null) {
-            configuration.setTheme(theme);
-          }
           return new MenuLayoutParserFactory(renderTask).render();
         }
         renderTask.setRenderingMode(V_SCROLL);
@@ -156,7 +148,8 @@ public class LayoutPullParserFactory {
             // Widget
             renderTask.setDecorations(false);
             return createWidgetParser(rootTag);
-          } else if (tag.equals(TAG_PREFERENCE_SCREEN)) {
+          }
+          else if (tag.equals(TAG_PREFERENCE_SCREEN)) {
             RenderLogger logger = renderTask.getLogger();
             Set<XmlTag> expandNodes = renderTask.getExpandNodes();
             HardwareConfig hardwareConfig = renderTask.getHardwareConfigHelper().getConfig();
@@ -171,23 +164,6 @@ public class LayoutPullParserFactory {
         assert false : folderType;
         return null;
     }
-  }
-
-  /** Finds nearest theme in the framework that the given theme reference inherits from, or null if not found */
-  @Nullable
-  private static String findFrameworkTheme(String theme, ResourceResolver resourceResolver) {
-    if (theme.startsWith(ANDROID_STYLE_RESOURCE_PREFIX)) {
-      return theme;
-    }
-    ResourceValue resValue = resourceResolver.findResValue(theme, false);
-    while (resValue instanceof StyleResourceValue) {
-      StyleResourceValue srv = (StyleResourceValue)resValue;
-      if (srv.isFramework()) {
-        return ANDROID_STYLE_RESOURCE_PREFIX + srv.getName();
-      }
-      resValue = resourceResolver.getParent(srv);
-    }
-    return null;
   }
 
   private static ILegacyPullParser createDrawableParser(XmlFile file) {
@@ -244,7 +220,8 @@ public class LayoutPullParserFactory {
       root.setAttribute(ATTR_LAYOUT, layout);
       setAndroidAttr(root, ATTR_LAYOUT_WIDTH, VALUE_FILL_PARENT);
       setAndroidAttr(root, ATTR_LAYOUT_HEIGHT, VALUE_FILL_PARENT);
-    } else {
+    }
+    else {
       root.setAttribute(ATTR_SRC, preview);
       setAndroidAttr(root, ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT);
       setAndroidAttr(root, ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT);
@@ -286,17 +263,8 @@ public class LayoutPullParserFactory {
       return;
     }
 
-    ApplicationManager.getApplication().invokeAndWait(new Runnable() {
-      @Override
-      public void run() {
-        ApplicationManager.getApplication().runWriteAction(new Runnable() {
-          @Override
-          public void run() {
-            fileManager.saveDocument(document);
-          }
-        });
-      }
-    }, ModalityState.any());
+    Application application = ApplicationManager.getApplication();
+    application.invokeAndWait(() -> application.runWriteAction(() -> fileManager.saveDocument(document)), ModalityState.any());
   }
 
   protected static Element addRootElement(@NotNull Document document, @NotNull String tag) {
