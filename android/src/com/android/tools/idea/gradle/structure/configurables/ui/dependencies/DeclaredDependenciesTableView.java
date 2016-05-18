@@ -18,9 +18,9 @@ package com.android.tools.idea.gradle.structure.configurables.ui.dependencies;
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.model.PsDependency;
 import com.android.tools.idea.gradle.structure.model.PsModuleDependency;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsModuleAndroidDependency;
 import com.intellij.openapi.Disposable;
+import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.table.TableView;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,6 +32,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.isMetaOrCtrlKeyPressed;
+import static com.android.tools.idea.gradle.structure.configurables.ui.dependencies.AbstractDeclaredDependenciesTableModel.displayTextOf;
 import static com.android.tools.idea.gradle.structure.model.PsDependency.TextType.FOR_NAVIGATION;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static java.awt.Cursor.*;
@@ -57,6 +58,14 @@ public class DeclaredDependenciesTableView<T extends PsDependency> extends Table
     setDragEnabled(false);
     setIntercellSpacing(new Dimension(0, 0));
     setShowGrid(false);
+
+    new TableSpeedSearch(this, (o, cell) -> {
+      T dependency = model.getItem(cell.getRow());
+      if (dependency != null) {
+        return displayTextOf(dependency);
+      }
+      return o == null || o instanceof Boolean ? "" : o.toString();
+    });
   }
 
   @Override
