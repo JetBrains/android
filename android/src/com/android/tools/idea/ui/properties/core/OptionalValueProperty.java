@@ -36,7 +36,7 @@ public final class OptionalValueProperty<T> extends OptionalProperty<T> {
   }
 
   public static <T> OptionalValueProperty<T> of(@NotNull T value) {
-    return new OptionalValueProperty<T>(value);
+    return new OptionalValueProperty<>(value);
   }
 
   public static <T> OptionalValueProperty<T> fromNullable(@Nullable T value) {
@@ -49,7 +49,7 @@ public final class OptionalValueProperty<T> extends OptionalProperty<T> {
   }
 
   public static <T> OptionalValueProperty<T> absent() {
-    return new OptionalValueProperty<T>();
+    return new OptionalValueProperty<>();
   }
 
   @NotNull

@@ -28,7 +28,7 @@ import java.util.List;
  */
 public abstract class AbstractObservableValue<T> implements ObservableValue<T> {
   private final List<InvalidationListener> myListeners = Lists.newArrayListWithCapacity(0);
-  private final UnsafeWeakList<InvalidationListener> myWeakListeners = new UnsafeWeakList<InvalidationListener>(0);
+  private final UnsafeWeakList<InvalidationListener> myWeakListeners = new UnsafeWeakList<>(0);
   private boolean myNotificationsEnabled = true;
 
   @Override
@@ -68,7 +68,7 @@ public abstract class AbstractObservableValue<T> implements ObservableValue<T> {
   @NotNull
   @Override
   public final ObservableBool isEqualTo(@NotNull T value) {
-    return new IsEqualToExpression<T>(this, value);
+    return new IsEqualToExpression<>(this, value);
   }
 
   /**
