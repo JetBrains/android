@@ -22,6 +22,8 @@ import android.support.constraint.solver.widgets.ConstraintWidget;
 import java.awt.*;
 
 public class CheckboxWidget extends TextWidget {
+    int[] xp = new int[3];
+    int[] yp = new int[3];
 
     /**
      * Base constructor
@@ -76,8 +78,13 @@ public class CheckboxWidget extends TextWidget {
         x += margin;
         y += margin;
         h -= margin * 2;
-        g.drawLine(x, y + h / 2, x + h / 3, y + h);
-        g.drawLine(x + h / 3, y + h, x + h, y);
+        xp[0] = x;
+        xp[1] = x + h / 3;
+        xp[2] = x + h;
+        yp[0] = y + h / 2;
+        yp[1] = y + h;
+        yp[2] = y;
+        g.drawPolyline(xp, yp, 3);
         g.setStroke(stroke);
     }
 
