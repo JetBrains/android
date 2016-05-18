@@ -42,6 +42,8 @@ public final class DeveloperServiceMetadata {
   @NotNull private final Icon myIcon;
 
   @NotNull private final List<String> myDependencies = Lists.newArrayList();
+  @NotNull private final List<String> myClasspathEntries = Lists.newArrayList();
+  @NotNull private final List<String> myPlugins = Lists.newArrayList();
   @NotNull private final List<String> myPermissions = Lists.newArrayList();
   @NotNull private final List<String> myModifiedFiles = Lists.newArrayList();
 
@@ -57,6 +59,14 @@ public final class DeveloperServiceMetadata {
 
   public void addDependency(@NotNull String dependency) {
     myDependencies.add(dependency);
+  }
+
+  public void addClasspathEntry(@NotNull String classpathEntry) {
+    myClasspathEntries.add(classpathEntry);
+  }
+
+  public void addPlugin(@NotNull String plugin) {
+    myPlugins.add(plugin);
   }
 
   public void addPermission(@NotNull String permission) {
@@ -108,6 +118,16 @@ public final class DeveloperServiceMetadata {
   @NotNull
   public List<String> getDependencies() {
     return myDependencies;
+  }
+
+  @NotNull
+  public List<String> getClasspathEntries() {
+    return myClasspathEntries;
+  }
+
+  @NotNull
+  public List<String> getPlugins() {
+    return myPlugins;
   }
 
   @NotNull
