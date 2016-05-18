@@ -16,7 +16,6 @@
 package com.android.tools.idea.ui.properties;
 
 import com.android.tools.idea.ui.properties.core.ObservableBool;
-import com.android.tools.idea.ui.properties.expressions.bool.IsEqualToExpression;
 import org.jetbrains.annotations.NotNull;
 
 /**

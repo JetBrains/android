@@ -44,7 +44,7 @@ public abstract class AbstractProperty<T> extends AbstractObservableValue<T> imp
    */
   @NotNull
   public static List<AbstractProperty<?>> getAll(Object object) {
-    ArrayList<AbstractProperty<?>> properties = new ArrayList<AbstractProperty<?>>();
+    ArrayList<AbstractProperty<?>> properties = new ArrayList<>();
     for (Field field : object.getClass().getDeclaredFields()) {
       if (AbstractProperty.class.isAssignableFrom(field.getType())) {
         try {

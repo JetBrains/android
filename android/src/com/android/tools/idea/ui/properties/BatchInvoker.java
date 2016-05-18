@@ -39,34 +39,19 @@ public final class BatchInvoker {
   /**
    * Useful invoke strategy when developing an IDEA Plugin.
    */
-  public static final Strategy APPLICATION_INVOKE_LATER_STRATEGY = new Strategy() {
-    @Override
-    public void invoke(@NotNull Runnable runnableBatch) {
-      ApplicationManager.getApplication().invokeLater(runnableBatch, ModalityState.any());
-    }
-  };
+  public static final Strategy APPLICATION_INVOKE_LATER_STRATEGY =
+    runnableBatch -> ApplicationManager.getApplication().invokeLater(runnableBatch, ModalityState.any());
 
   /**
    * Useful invoke strategy when working on a Swing application.
    */
-  public static final Strategy SWING_INVOKE_LATER_STRATEGY = new Strategy() {
-    @Override
-    public void invoke(@NotNull Runnable runnableBatch) {
-      //noinspection SSBasedInspection
-      SwingUtilities.invokeLater(runnableBatch);
-    }
-  };
+  public static final Strategy SWING_INVOKE_LATER_STRATEGY = SwingUtilities::invokeLater;
 
   /**
    * Useful invoke strategy for testing, as logic is fired immediately and you can immediately make
    * assertions on the results.
    */
-  public static final Strategy INVOKE_IMMEDIATELY_STRATEGY = new Strategy() {
-    @Override
-    public void invoke(@NotNull Runnable runnableBatch) {
-      runnableBatch.run();
-    }
-  };
+  public static final Strategy INVOKE_IMMEDIATELY_STRATEGY = Runnable::run;
 
   /**
    * Ensure we don't end up in a non-stop invocation loop, where one cycle triggers another cycle
@@ -123,32 +108,29 @@ public final class BatchInvoker {
   }
 
   private void enqueueInvoke() {
-    myStrategy.invoke(new Runnable() {
-      @Override
-      public void run() {
-        int cycleCount = 0;
-        while (true) {
-          myUpdateInProgress = true;
-          for (Runnable runnable : myRunnables) {
-            runnable.run();
-          }
-          myRunnables.clear();
+    myStrategy.invoke(() -> {
+      int cycleCount = 0;
+      while (true) {
+        myUpdateInProgress = true;
+        for (Runnable runnable : myRunnables) {
+          runnable.run();
+        }
+        myRunnables.clear();
 
-          myUpdateInProgress = false;
+        myUpdateInProgress = false;
 
-          if (!myDeferredRunnables.isEmpty()) {
-            cycleCount++;
-            if (cycleCount > MAX_CYCLE_COUNT) {
-              myDeferredRunnables.clear();
-              throw new InfiniteCycleException();
-            }
-
-            myRunnables.addAll(myDeferredRunnables);
+        if (!myDeferredRunnables.isEmpty()) {
+          cycleCount++;
+          if (cycleCount > MAX_CYCLE_COUNT) {
             myDeferredRunnables.clear();
+            throw new InfiniteCycleException();
           }
-          else {
-            break;
-          }
+
+          myRunnables.addAll(myDeferredRunnables);
+          myDeferredRunnables.clear();
+        }
+        else {
+          break;
         }
       }
     });
