@@ -40,17 +40,14 @@ import static com.android.SdkConstants.FN_BUILD_GRADLE;
  */
 @Deprecated
 public class NewModuleWizard extends TemplateWizard {
-  private final boolean myIsImportOnly;
   protected ImportWizardModuleBuilder myModuleBuilder;
 
   public static NewModuleWizard createImportModuleWizard(@NotNull Project project) {
-    return new NewModuleWizard(project, true);
+    return new NewModuleWizard(project);
   }
 
-  private NewModuleWizard(@Nullable Project project,
-                          boolean isImportOnly) {
+  private NewModuleWizard(@Nullable Project project) {
     super("New Module", project);
-    myIsImportOnly = isImportOnly;
     Window window = getWindow();
     // Allow creation in headless mode for tests
     if (window != null) {
@@ -78,26 +75,14 @@ public class NewModuleWizard extends TemplateWizard {
   }
 
   protected ImportWizardModuleBuilder getModuleBuilder() {
-    if (myIsImportOnly) {
-      return new ImportWizardModuleBuilder(null, myProject, null, AndroidIcons.Wizards.NewModuleSidePanel,
-                                           mySteps, getDisposable(), false) {
-        @Override
-        public void update() {
-          super.update();
-          NewModuleWizard.this.update();
-        }
-      };
-    }
-    else {
-      return new TemplateWizardModuleBuilder(null, null, myProject, AndroidIcons.Wizards.NewModuleSidePanel,
-                                             mySteps, getDisposable(), false) {
-        @Override
-        public void update() {
-          super.update();
-          NewModuleWizard.this.update();
-        }
-      };
-    }
+    return new ImportWizardModuleBuilder(null, myProject, null, AndroidIcons.Wizards.NewModuleSidePanel,
+                                         mySteps, getDisposable(), false) {
+      @Override
+      public void update() {
+        super.update();
+        NewModuleWizard.this.update();
+      }
+    };
   }
 
   @Override
