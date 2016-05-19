@@ -439,6 +439,23 @@ public class NlComponent {
     return -1;
   }
 
+  /**
+   * Return the current view visibility from layout lib
+   *
+   * @return the view visibility, or 0 (visible) if impossible to get
+   */
+  public int getAndroidViewVisibility() {
+    try {
+      if (viewInfo != null) {
+        Object viewObject = viewInfo.getViewObject();
+        return (Integer)viewObject.getClass().getMethod("getVisibility").invoke(viewObject);
+      }
+    }
+    catch (Throwable ignore) {
+    }
+    return 0;
+  }
+
   private Insets myMargins;
   private Insets myPadding;
 
