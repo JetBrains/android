@@ -44,8 +44,6 @@ import java.io.InputStream;
 public class PhotoshopEditorProvider implements FileEditorProvider, DumbAware {
   @NonNls private static final String EDITOR_TYPE_ID = "photoshopeditor";
 
-  private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.editors.PhotoshopEditorProvider");
-
   @Override
   public boolean accept(@NotNull Project project, @NotNull VirtualFile file) {
     return SdkUtils.endsWithIgnoreCase(file.getPath(), SdkConstants.DOT_PSD);
