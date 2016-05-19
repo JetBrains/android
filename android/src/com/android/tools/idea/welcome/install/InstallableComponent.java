@@ -47,7 +47,6 @@ public abstract class InstallableComponent extends ComponentTreeNode {
   protected final FileOp myFileOp;
   protected final boolean myInstallUpdates;
   protected AndroidSdkHandler mySdkHandler;
-  protected RepositoryPackages myRepositoryPackages;
 
   public InstallableComponent(@NotNull ScopedStateStore stateStore,
                               @NotNull String name,
@@ -79,7 +78,7 @@ public abstract class InstallableComponent extends ComponentTreeNode {
   @NotNull
   public Collection<UpdatablePackage> getPackagesToInstall() {
     List<UpdatablePackage> result = Lists.newArrayList();
-    Map<String, UpdatablePackage> consolidatedPackages = myRepositoryPackages.getConsolidatedPkgs();
+    Map<String, UpdatablePackage> consolidatedPackages = getRepositoryPackages().getConsolidatedPkgs();
     for (String path : getRequiredSdkPackages()) {
       UpdatablePackage p = consolidatedPackages.get(path);
       if (p != null && p.hasRemote() && (!p.hasLocal() || (myInstallUpdates && p.isUpdate()))) {
@@ -87,6 +86,10 @@ public abstract class InstallableComponent extends ComponentTreeNode {
       }
     }
     return result;
+  }
+
+  protected RepositoryPackages getRepositoryPackages() {
+    return mySdkHandler.getSdkManager(PROGRESS_LOGGER).getPackages();
   }
 
   /**
@@ -129,10 +132,6 @@ public abstract class InstallableComponent extends ComponentTreeNode {
   public void updateState(@NotNull AndroidSdkHandler sdkHandler) {
     // If we don't have anything to install, show as unchecked and not editable.
     mySdkHandler = sdkHandler;
-    if (myRepositoryPackages == null) {
-      RepoManager sdkManager = mySdkHandler.getSdkManager(PROGRESS_LOGGER);
-      myRepositoryPackages = sdkManager.getPackages();
-    }
     boolean nothingToInstall = !SdkLocationUtils.isWritable(myFileOp, sdkHandler.getLocation()) || getPackagesToInstall().isEmpty();
     myIsOptional = !nothingToInstall && isOptionalForSdkLocation();
 
