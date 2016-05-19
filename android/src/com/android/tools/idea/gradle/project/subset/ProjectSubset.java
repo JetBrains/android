@@ -63,7 +63,7 @@ public final class ProjectSubset {
 
   private static final String MODULE_LOOKUP_MESSAGE_TITLE = "Module Lookup";
 
-  @NotNull private Project myProject;
+  @NotNull private final Project myProject;
 
   @NotNull
   public static ProjectSubset getInstance(@NotNull Project project) {
@@ -79,24 +79,29 @@ public final class ProjectSubset {
   }
 
   public boolean hasCachedModules() {
-    Collection<DataNode<ModuleData>> modules = getCachedModuleData();
-    return modules != null && !modules.isEmpty();
+    DataNode<ProjectData> projectInfo = getCachedProjectData(myProject);
+    if (projectInfo != null) {
+      return !findAll(projectInfo, MODULE).isEmpty();
+    }
+    return false;
   }
 
   public void addOrRemoveModules() {
-    Collection<DataNode<ModuleData>> modules = getCachedModuleData();
-    if (modules != null) {
-      Collection<String> selectedModuleNames = Collections.emptySet();
-      String[] selection = getSelection();
-      if (selection != null) {
-        selectedModuleNames = Sets.newHashSet(selection);
-      }
-      Collection<DataNode<ModuleData>> selectedModules = showModuleSelectionDialog(modules, selectedModuleNames);
-      if (selectedModules != null) {
-        setSelection(selectedModules);
-        if (!Arrays.equals(getSelection(), selection)) {
-          populate(myProject, selectedModules, true);
-        }
+    DataNode<ProjectData> projectInfo = getCachedProjectData(myProject);
+    if (projectInfo == null) {
+      return;
+    }
+    Collection<DataNode<ModuleData>> moduleInfos = findAll(projectInfo, MODULE);
+    Collection<String> selectedModuleNames = Collections.emptySet();
+    String[] selection = getSelection();
+    if (selection != null) {
+      selectedModuleNames = Sets.newHashSet(selection);
+    }
+    Collection<DataNode<ModuleData>> selectedModules = showModuleSelectionDialog(moduleInfos, selectedModuleNames);
+    if (selectedModules != null) {
+      setSelection(selectedModules);
+      if (!Arrays.equals(getSelection(), selection)) {
+        populate(myProject, projectInfo, selectedModules, true);
       }
     }
   }
@@ -112,28 +117,31 @@ public final class ProjectSubset {
    * The search is based on the Gradle models for both Android and Java modules. If the search finds more than one module that might contain
    * the file, the IDE will display a dialog where the user can see the potential matches and choose the module to include in the project.
    * </p>
+   *
    * @param virtualFile the given file.
    */
   public void findAndIncludeModuleContainingSourceFile(@NotNull VirtualFile virtualFile) {
-    final Collection<DataNode<ModuleData>> modules = getCachedModuleData();
+    DataNode<ProjectData> projectInfo = getCachedProjectData(myProject);
+    if (projectInfo == null) {
+      return;
+    }
+    Collection<DataNode<ModuleData>> moduleInfos = findAll(projectInfo, MODULE);
+    if (!moduleInfos.isEmpty()) {
+      File file = virtualToIoFile(virtualFile);
 
-    if (modules != null && !modules.isEmpty()) {
-      final Project project = myProject;
-      final File file = virtualToIoFile(virtualFile);
-
-      new Task.Modal(project, "Looking up Module", false) {
+      new Task.Modal(myProject, "Looking up Module", false) {
         @Override
         public void run(@NotNull ProgressIndicator indicator) {
           List<ModuleSearchResult> results = Lists.newArrayList();
 
           String[] storedSelection = getSelection();
-          Set<String> selection = storedSelection != null ? Sets.newHashSet(storedSelection) : Sets.<String>newHashSet();
+          Set<String> selection = storedSelection != null ? Sets.newHashSet(storedSelection) : Sets.newHashSet();
 
           List<DataNode<ModuleData>> selectedModules = Lists.newArrayList();
 
           int doneCount = 0;
-          for (DataNode<ModuleData> moduleNode : modules) {
-            indicator.setFraction(++doneCount / modules.size());
+          for (DataNode<ModuleData> moduleNode : moduleInfos) {
+            indicator.setFraction(++doneCount / moduleInfos.size());
             ModuleData module = moduleNode.getData();
 
             String name = module.getExternalName();
@@ -155,22 +163,19 @@ public final class ProjectSubset {
           int resultCount = results.size();
           if (resultCount == 0) {
             // Nothing found.
-            invokeLaterIfNeeded(new Runnable() {
-              @Override
-              public void run() {
-                String text = String.format("Unable to find a module containing the file '%1$s' in a source directory.", file.getName());
-                AndroidGradleNotification notification = AndroidGradleNotification.getInstance(project);
-                notification.showBalloon(MODULE_LOOKUP_MESSAGE_TITLE, text, ERROR);
-              }
+            invokeLaterIfNeeded(() -> {
+              String text = String.format("Unable to find a module containing the file '%1$s' in a source directory.", file.getName());
+              AndroidGradleNotification notification = AndroidGradleNotification.getInstance(ProjectSubset.this.myProject);
+              notification.showBalloon(MODULE_LOOKUP_MESSAGE_TITLE, text, ERROR);
             });
           }
           else if (resultCount == 1) {
             // If there is one result,just apply it.
-            addResultAndPopulateProject(results.get(0), selectedModules, file);
+            addResultAndPopulateProject(results.get(0), projectInfo, selectedModules, file);
           }
           else {
             // We need to let user decide which modules to include.
-            showModuleSelectionDialog(results, selectedModules, file);
+            showModuleSelectionDialog(results, projectInfo, selectedModules, file);
           }
         }
       }.queue();
@@ -179,27 +184,28 @@ public final class ProjectSubset {
 
   /**
    * Checks in the Android and Java models to see if the module contains the given file.
-   * @param moduleNode represents the module that is not included yet in the IDE.
-   * @param file the given file.
-   * @param selected indicates whether the module is included in the project.
+   *
+   * @param moduleInfos represents the module that is not included yet in the IDE.
+   * @param file        the given file.
+   * @param selected    indicates whether the module is included in the project.
    * @return the result of the search, or {@code null} if this module does not contain the given file.
    */
   @Nullable
-  private static ModuleSearchResult containsSourceFile(@NotNull DataNode<ModuleData> moduleNode, @NotNull File file, boolean selected) {
-    DataNode<AndroidGradleModel> androidProjectNode = find(moduleNode, ANDROID_MODEL);
+  private static ModuleSearchResult containsSourceFile(@NotNull DataNode<ModuleData> moduleInfos, @NotNull File file, boolean selected) {
+    DataNode<AndroidGradleModel> androidProjectNode = find(moduleInfos, ANDROID_MODEL);
     if (androidProjectNode != null) {
       AndroidGradleModel androidModel = androidProjectNode.getData();
       SourceFileContainerInfo result = androidModel.containsSourceFile(file);
       if (result != null) {
-        return new ModuleSearchResult(moduleNode, result, selected);
+        return new ModuleSearchResult(moduleInfos, result, selected);
       }
     }
 
-    DataNode<JavaProject> javaProjectNode = find(moduleNode, JAVA_PROJECT);
+    DataNode<JavaProject> javaProjectNode = find(moduleInfos, JAVA_PROJECT);
     if (javaProjectNode != null) {
       JavaProject javaProject = javaProjectNode.getData();
       if (javaProject.containsSourceFile(file)) {
-        return new ModuleSearchResult(moduleNode, null, selected);
+        return new ModuleSearchResult(moduleInfos, null, selected);
       }
     }
     return null;
@@ -208,16 +214,19 @@ public final class ProjectSubset {
   /**
    * Adds the module in the given search results to the IDE. If the search result indicates the variant where the file is, this method
    * will select such variant in the Android model.
-   * @param result the search result.
+   *
+   * @param result          the search result.
+   * @param projectInfo     information about the project.
    * @param selectedModules all the modules to be included in the project.
-   * @param file the file to include in the project.
+   * @param file            the file to include in the project.
    */
   private void addResultAndPopulateProject(@NotNull ModuleSearchResult result,
+                                           @NotNull DataNode<ProjectData> projectInfo,
                                            @NotNull List<DataNode<ModuleData>> selectedModules,
                                            @NotNull File file) {
     DataNode<ModuleData> moduleNode = result.moduleNode;
     String moduleName = getNameOf(moduleNode);
-    final String text;
+    String text;
     if (result.selected) {
       String tmp = String.format("File '%1$s' is already in module '%2$s'", file.getName(), moduleName);
       SourceFileContainerInfo containerInfo = result.containerInfo;
@@ -240,30 +249,29 @@ public final class ProjectSubset {
       setSelection(selectedModules);
     }
 
-    invokeLaterIfNeeded(new Runnable() {
-      @Override
-      public void run() {
-        AndroidGradleNotification notification = AndroidGradleNotification.getInstance(myProject);
-        notification.showBalloon(MODULE_LOOKUP_MESSAGE_TITLE, text, INFORMATION);
-      }
+    invokeLaterIfNeeded(() -> {
+      AndroidGradleNotification notification = AndroidGradleNotification.getInstance(myProject);
+      notification.showBalloon(MODULE_LOOKUP_MESSAGE_TITLE, text, INFORMATION);
     });
 
-    populate(myProject, selectedModules, true);
+    populate(myProject, projectInfo, selectedModules, true);
   }
 
   /**
    * Displays the "Select Modules" dialog. This method is invoked when the search for a module containing a file returns more than one
    * result. The user now needs to select the module(s) to include.
+   *
    * @param searchResults includes the modules that might contain the given file.
-   * @param selection all the modules that need to be included in the project.
-   * @param file the file to include in the project.
+   * @param selection     all the modules that need to be included in the project.
+   * @param file          the file to include in the project.
    */
   private void showModuleSelectionDialog(@NotNull List<ModuleSearchResult> searchResults,
-                                         final @NotNull List<DataNode<ModuleData>> selection,
-                                         final @NotNull File file) {
-    final List<DataNode<ModuleData>> finalSelection = Lists.newArrayList(selection);
-    final List<DataNode<ModuleData>> modulesToDisplayInDialog = Lists.newArrayList();
-    final Map<String, ModuleSearchResult> resultsByModuleName = Maps.newHashMap();
+                                         @NotNull DataNode<ProjectData> projectInfo,
+                                         @NotNull List<DataNode<ModuleData>> selection,
+                                         @NotNull File file) {
+    List<DataNode<ModuleData>> finalSelection = Lists.newArrayList(selection);
+    List<DataNode<ModuleData>> modulesToDisplayInDialog = Lists.newArrayList();
+    Map<String, ModuleSearchResult> resultsByModuleName = Maps.newHashMap();
 
     for (ModuleSearchResult result : searchResults) {
       DataNode<ModuleData> module = result.moduleNode;
@@ -274,89 +282,80 @@ public final class ProjectSubset {
       String moduleName = getNameOf(module);
       resultsByModuleName.put(moduleName, result);
     }
-    invokeLaterIfNeeded(new Runnable() {
-      @Override
-      public void run() {
-        ModulesToImportDialog dialog = new ModulesToImportDialog(modulesToDisplayInDialog, myProject);
+    invokeLaterIfNeeded(() -> {
+      ModulesToImportDialog dialog = new ModulesToImportDialog(modulesToDisplayInDialog, myProject);
 
-        String description = String.format("The file '%1$s' may be include in one of the following modules.", file.getName());
-        dialog.setDescription(description);
+      String description = String.format("The file '%1$s' may be include in one of the following modules.", file.getName());
+      dialog.setDescription(description);
 
-        dialog.clearSelection();
+      dialog.clearSelection();
 
-        if (dialog.showAndGet()) {
-          Collection<DataNode<ModuleData>> selectedModules = dialog.getSelectedModules();
-          if (!selectedModules.isEmpty()) {
-            for (DataNode<ModuleData> selectedModule : selectedModules) {
-              String name = getNameOf(selectedModule);
-              ModuleSearchResult result = resultsByModuleName.get(name);
-              if (result != null) {
-                SourceFileContainerInfo containerInfo = result.containerInfo;
-                if (containerInfo != null) {
-                  containerInfo.updateSelectedVariantIn(selectedModule);
-                }
+      if (dialog.showAndGet()) {
+        Collection<DataNode<ModuleData>> selectedModules = dialog.getSelectedModules();
+        if (!selectedModules.isEmpty()) {
+          for (DataNode<ModuleData> selectedModule : selectedModules) {
+            String name = getNameOf(selectedModule);
+            ModuleSearchResult result = resultsByModuleName.get(name);
+            if (result != null) {
+              SourceFileContainerInfo containerInfo = result.containerInfo;
+              if (containerInfo != null) {
+                containerInfo.updateSelectedVariantIn(selectedModule);
               }
             }
-
-            finalSelection.addAll(selectedModules);
-            setSelection(finalSelection);
-            populate(myProject, finalSelection, true);
           }
+
+          finalSelection.addAll(selectedModules);
+          setSelection(finalSelection);
+          populate(myProject, projectInfo, finalSelection, true);
         }
       }
     });
   }
 
-  public void findAndIncludeModules(@NotNull final Collection<String> moduleGradlePaths) {
-    final Collection<DataNode<ModuleData>> modules = getCachedModuleData();
-
-    if (modules != null && !modules.isEmpty()) {
-      final Project project = myProject;
+  public void findAndIncludeModules(@NotNull Collection<String> moduleGradlePaths) {
+    DataNode<ProjectData> projectInfo = getCachedProjectData(myProject);
+    if (projectInfo == null) {
+      return;
+    }
+    Collection<DataNode<ModuleData>> moduleInfos = findAll(projectInfo, MODULE);
+    if (!moduleInfos.isEmpty()) {
+      Project project = myProject;
 
       new Task.Modal(project, "Finding Missing Modules", false) {
         @Override
         public void run(@NotNull ProgressIndicator indicator) {
           String[] originalSelection = getSelection();
-          Set<String> selection = originalSelection != null ? Sets.newHashSet(originalSelection) : Sets.<String>newHashSet();
+          Set<String> selection = originalSelection != null ? Sets.newHashSet(originalSelection) : Sets.newHashSet();
 
           List<DataNode<ModuleData>> selectedModules = Lists.newArrayList();
           boolean found = false;
 
           int doneCount = 0;
-          for (DataNode<ModuleData> module : modules) {
-            indicator.setFraction(++doneCount / modules.size());
+          for (DataNode<ModuleData> moduleInfo : moduleInfos) {
+            indicator.setFraction(++doneCount / moduleInfos.size());
 
-            String name = getNameOf(module);
+            String name = getNameOf(moduleInfo);
             if (selection.contains(name)) {
-              selectedModules.add(module);
+              selectedModules.add(moduleInfo);
               continue;
             }
-            DataNode<GradleModel> gradleProjectNode = find(module, GRADLE_MODEL);
+            DataNode<GradleModel> gradleProjectNode = find(moduleInfo, GRADLE_MODEL);
             if (gradleProjectNode != null) {
               GradleModel gradleModel = gradleProjectNode.getData();
               if (moduleGradlePaths.contains(gradleModel.getGradlePath())) {
                 selection.add(name);
-                selectedModules.add(module);
+                selectedModules.add(moduleInfo);
                 found = true;
               }
             }
           }
           if (!selectedModules.isEmpty() && found) {
             setSelection(selectedModules);
-            populate(project, selectedModules, true);
+            populate(project, projectInfo, selectedModules, true);
           }
         }
       }.queue();
     }
-  }
-
-  @Nullable
-  public Collection<DataNode<ModuleData>> getCachedModuleData() {
-    DataNode<ProjectData> projectData = getCachedProjectData(myProject);
-    if (projectData != null) {
-      return findAll(projectData, MODULE);
-    }
-    return null;
   }
 
   @Nullable
