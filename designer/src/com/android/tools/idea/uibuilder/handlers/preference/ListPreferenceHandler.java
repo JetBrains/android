@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.preference;
 
+import com.android.resources.ResourceType;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.XmlBuilder;
@@ -25,6 +26,8 @@ import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
+import java.util.EnumSet;
 import java.util.List;
 
 import static com.android.SdkConstants.ATTR_TITLE;
@@ -39,8 +42,6 @@ public final class ListPreferenceHandler extends PreferenceHandler {
     return new XmlBuilder()
       .startTag(tagName)
       .androidAttribute(ATTR_DEFAULT_VALUE, 1)
-      .androidAttribute("entries", "@array/list_preference_entries")
-      .androidAttribute("entryValues", "@array/list_preference_entry_values")
       .androidAttribute(ATTR_TITLE, "List preference")
       .endTag(tagName)
       .toString();
@@ -66,8 +67,28 @@ public final class ListPreferenceHandler extends PreferenceHandler {
                           @Nullable NlComponent parent,
                           @NotNull NlComponent newChild,
                           @NotNull InsertType type) {
-    super.onCreate(editor, parent, newChild, type);
-    newChild.setAndroidAttribute(ATTR_KEY, generateKey(newChild, LIST_PREFERENCE, "list_preference_"));
+    if (!super.onCreate(editor, parent, newChild, type)) {
+      return false;
+    }
+
+    if (type.equals(InsertType.CREATE)) {
+      Collection<ResourceType> array = EnumSet.of(ResourceType.ARRAY);
+      String entries = editor.displayResourceInput("Choose entries Resource", array);
+
+      if (entries == null) {
+        return false;
+      }
+
+      String entryValues = editor.displayResourceInput("Choose entryValues Resource", array);
+
+      if (entryValues == null) {
+        return false;
+      }
+
+      newChild.setAndroidAttribute(ATTR_ENTRIES, entries);
+      newChild.setAndroidAttribute(ATTR_ENTRY_VALUES, entryValues);
+      newChild.setAndroidAttribute(ATTR_KEY, generateKey(newChild, LIST_PREFERENCE, "list_preference_"));
+    }
 
     return true;
   }

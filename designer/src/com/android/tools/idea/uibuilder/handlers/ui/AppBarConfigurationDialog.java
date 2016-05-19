@@ -138,7 +138,7 @@ public class AppBarConfigurationDialog extends JDialog {
     "    %1$s:src=\"%3$s\"\n" +                                     // 3 = Image src
     "    %1$s:scaleType=\"centerCrop\"/>\n";
 
-  private static final String TAG_TEXTVIEW =
+  private static final String TAG_TEXT_VIEW =
     "<TextView\n" +
     "    android:layout_width=\"match_parent\"\n" +
     "    android:layout_height=\"wrap_content\"\n" +
@@ -160,7 +160,7 @@ public class AppBarConfigurationDialog extends JDialog {
   private static final int START_WIDTH = 225;
   private static final int START_HEIGHT = 400;
 
-  private ViewEditor myEditor;
+  private final ViewEditor myEditor;
   private JPanel myContentPane;
   private JButton myButtonOK;
   private JButton myButtonCancel;
@@ -194,12 +194,9 @@ public class AppBarConfigurationDialog extends JDialog {
     getRootPane().setDefaultButton(myButtonOK);
     myBackgroundImage = DEFAULT_BACKGROUND_IMAGE;
     myFloatingActionButtonImage = DEFAULT_FAB_IMAGE;
-    final ActionListener updatePreviewListener = new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent actionEvent) {
-        updateControls();
-        generatePreviews();
-      }
+    final ActionListener updatePreviewListener = event -> {
+      updateControls();
+      generatePreviews();
     };
     myWithTabs.addActionListener(updatePreviewListener);
     myCollapsing.addActionListener(updatePreviewListener);
@@ -211,27 +208,27 @@ public class AppBarConfigurationDialog extends JDialog {
     myContentOverlapAmount.addActionListener(updatePreviewListener);
     ((GridLayoutManager)myPreviewPanel.getLayout()).setRowStretch(0, 2);
 
-    final ActionListener actionListener = new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        if (e.getSource() == myBackgroundImageSelector) {
-          String src = myEditor.displayResourceInput(EnumSet.of(ResourceType.DRAWABLE), null);
-          if (src != null) {
-            myBackgroundImage = src;
-            generatePreviews();
-          }
-        } else if (e.getSource() == myFloatingActionButtonImageSelector) {
-          String src = myEditor.displayResourceInput(EnumSet.of(ResourceType.DRAWABLE), null);
-          if (src != null) {
-            myFloatingActionButtonImage = src;
-            generatePreviews();
-          }
-        } else if (e.getSource() == myButtonOK) {
-          onOK();
-        } else if (e.getSource() == myButtonCancel ||
-                   e.getSource() == myContentPane) {
-          onCancel();
+    final ActionListener actionListener = event -> {
+      if (event.getSource() == myBackgroundImageSelector) {
+        String src = myEditor.displayResourceInput(EnumSet.of(ResourceType.DRAWABLE));
+        if (src != null) {
+          myBackgroundImage = src;
+          generatePreviews();
         }
+      }
+      else if (event.getSource() == myFloatingActionButtonImageSelector) {
+        String src = myEditor.displayResourceInput(EnumSet.of(ResourceType.DRAWABLE));
+        if (src != null) {
+          myFloatingActionButtonImage = src;
+          generatePreviews();
+        }
+      }
+      else if (event.getSource() == myButtonOK) {
+        onOK();
+      }
+      else if (event.getSource() == myButtonCancel ||
+               event.getSource() == myContentPane) {
+        onCancel();
       }
     };
     myBackgroundImageSelector.addActionListener(actionListener);
@@ -265,7 +262,7 @@ public class AppBarConfigurationDialog extends JDialog {
     myExpandedPreview.setMinimumSize(null);
     Dimension size = getSize();
     Rectangle screen = getGraphicsConfiguration().getBounds();
-    setLocation(screen.x + (screen.width - size.width)/2, screen.y + (screen.height - size.height)/2);
+    setLocation(screen.x + (screen.width - size.width) / 2, screen.y + (screen.height - size.height) / 2);
     updateControls();
     generatePreviews();
     setVisible(true);
@@ -310,10 +307,10 @@ public class AppBarConfigurationDialog extends JDialog {
 
   private BufferedImage generatePreview(boolean collapsed) {
     StringBuilder text = new StringBuilder(DUMMY_REPETITION * DUMMY_TEXT.length());
-    for (int i=0; i<DUMMY_REPETITION; i++) {
+    for (int i = 0; i < DUMMY_REPETITION; i++) {
       text.append(DUMMY_TEXT);
     }
-    String content = String.format(TAG_TEXTVIEW, text.toString());
+    String content = String.format(TAG_TEXT_VIEW, text.toString());
 
     Map<String, String> namespaces = getNameSpaces(null, collapsed);
     String xml = getXml(content, collapsed, namespaces);
@@ -327,7 +324,8 @@ public class AppBarConfigurationDialog extends JDialog {
   private void updatePreviewImages() {
     if (myExpandedImage == null || myCollapsedImage == null) {
       myPreview.setText(RENDER_ERROR);
-    } else {
+    }
+    else {
       myPreview.setText(PREVIEW_HEADER);
     }
     updatePreviewImage(myCollapsedImage, myCollapsedPreview);
@@ -340,7 +338,8 @@ public class AppBarConfigurationDialog extends JDialog {
       return;
     }
     double width = myPreviewPanel.getWidth() / 2;
-    double height = myPreviewPanel.getHeight() - myPreview.getHeight() - Math.max(myExpandedLabel.getHeight(), myCollapsedLabel.getHeight());
+    double height =
+      myPreviewPanel.getHeight() - myPreview.getHeight() - Math.max(myExpandedLabel.getHeight(), myCollapsedLabel.getHeight());
     if (width < MIN_WIDTH || height < MIN_HEIGHT) {
       view.setIcon(null);
     }
@@ -356,7 +355,8 @@ public class AppBarConfigurationDialog extends JDialog {
     XmlTag tag = elementFactory.createTagFromText(xml);
     if (file.getRootTag() == null) {
       file.add(tag);
-    } else {
+    }
+    else {
       file.getRootTag().replace(tag);
     }
   }
@@ -480,7 +480,7 @@ public class AppBarConfigurationDialog extends JDialog {
 
   @NotNull
   private static Map<String, String> getNameSpaces(@Nullable XmlTag root, boolean includeToolsNamespace) {
-    Map<String, String> reverse = new HashMap<String, String>();
+    Map<String, String> reverse = new HashMap<>();
     if (root != null) {
       Map<String, String> namespaces = root.getLocalNamespaceDeclarations();
       for (String prefix : namespaces.keySet()) {
@@ -521,7 +521,8 @@ public class AppBarConfigurationDialog extends JDialog {
             !tag.getName().equals(FLOATING_ACTION_BUTTON)) {
           if (tag.getName().equals(CLASS_NESTED_SCROLL_VIEW)) {
             content = tag.getSubTags().length > 0 ? tag.getSubTags()[0] : null;
-          } else {
+          }
+          else {
             content = tag;
           }
           break;

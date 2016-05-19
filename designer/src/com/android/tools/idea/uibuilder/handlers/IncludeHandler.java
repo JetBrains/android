@@ -15,25 +15,24 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.google.common.collect.ImmutableList;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.text.StringUtil;
 import icons.AndroidIcons;
 import org.intellij.lang.annotations.Language;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.EnumSet;
 import java.util.List;
 
 import static com.android.SdkConstants.ATTR_LAYOUT;
-import static com.android.SdkConstants.ATTR_NAME;
 import static com.android.SdkConstants.ATTR_VISIBILITY;
 
 /**
@@ -98,7 +97,7 @@ public final class IncludeHandler extends ViewHandler {
                           @NotNull InsertType insertType) {
     // When dropping an include tag, ask the user which layout to include.
     if (insertType == InsertType.CREATE) { // NOT InsertType.CREATE_PREVIEW
-      String src = editor.displayResourceInput(EnumSet.of(ResourceType.LAYOUT), null);
+      String src = editor.displayResourceInput(EnumSet.of(ResourceType.LAYOUT));
       if (src != null) {
         newChild.setAttribute(null, ATTR_LAYOUT, src);
         return true;
