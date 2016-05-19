@@ -47,10 +47,6 @@ public class NewModuleWizard extends TemplateWizard {
     return new NewModuleWizard(project, true);
   }
 
-  public static NewModuleWizard createNewModuleWizard(@NotNull Project project) {
-    return new NewModuleWizard(project, false);
-  }
-
   private NewModuleWizard(@Nullable Project project,
                           boolean isImportOnly) {
     super("New Module", project);
