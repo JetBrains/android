@@ -24,6 +24,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.CapturesToolWindowFixt
 import com.android.tools.idea.tests.gui.framework.fixture.HprofEditorFixture;
 import org.fest.swing.fixture.JTreeFixture;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -55,6 +56,7 @@ public class HprofEditorTest {
     myDefaultEditor = HprofEditorFixture.findByFileName(guiTest.robot(), guiTest.ideFrame(), SAMPLE_SNAPSHOT_NAME);
   }
 
+  @Ignore("go/studio-builder/builders/ubuntu-studio-master-dev-uitests/builds/72")
   @Test
   public void testInitialState() throws IOException {
     myDefaultEditor.assertCurrentHeapName("App heap");
