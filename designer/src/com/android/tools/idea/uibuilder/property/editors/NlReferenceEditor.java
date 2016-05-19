@@ -31,7 +31,6 @@ import com.intellij.codeInsight.completion.PrefixMatcher;
 import com.intellij.codeInsight.completion.impl.CamelHumpMatcher;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.HighlighterColors;
-import com.intellij.openapi.editor.colors.EditorColorsScheme;
 import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.editor.ex.util.EmptyEditorHighlighter;
 import com.intellij.openapi.editor.impl.EditorComponentImpl;
@@ -74,7 +73,7 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
   private final JPanel myPanel;
   private final JLabel myIconLabel;
   private final JSlider mySlider;
-  private final TextFieldWithAutoCompletion myTextFieldWithAutoCompletion;
+  private final TextEditor myTextFieldWithAutoCompletion;
   private final CompletionProvider myCompletionProvider;
   private final FixedSizeButton myBrowseButton;
 
@@ -229,7 +228,7 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
         myTextFieldWithAutoCompletion.setText(propValue);
       }
       Color color = myProperty.isDefaultValue(myLastReadValue) ? DEFAULT_VALUE_TEXT_COLOR : CHANGED_VALUE_TEXT_COLOR;
-      myTextFieldWithAutoCompletion.setForeground(color);
+      myTextFieldWithAutoCompletion.setTextColor(color);
     }
     finally {
       myUpdatingProperty = false;
@@ -385,9 +384,11 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
   }
 
   private static class TextEditor extends TextFieldWithAutoCompletion<String> {
+    private final TextAttributes myTextAttributes;
 
     public TextEditor(@NotNull Project project, @NotNull CompletionProvider provider) {
       super(project, provider, true, null);
+      myTextAttributes = new TextAttributes(DEFAULT_VALUE_TEXT_COLOR, null, null, null, Font.PLAIN);
     }
 
     @Override
@@ -395,19 +396,16 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
       super.addNotify();
       EditorEx editor = (EditorEx)getEditor();
       assert editor != null;
-      EditorColorsScheme scheme = editor.getColorsScheme();
-      TextAttributes attributes = scheme.getAttributes(HighlighterColors.TEXT).clone();
-      attributes.setForegroundColor(getForeground());
-      scheme.setAttributes(HighlighterColors.TEXT, attributes);
-      editor.setHighlighter(new EmptyEditorHighlighter(attributes));
+      editor.getColorsScheme().setAttributes(HighlighterColors.TEXT, myTextAttributes);
+      editor.setHighlighter(new EmptyEditorHighlighter(myTextAttributes));
     }
 
-    @Override
-    public void setForeground(@NotNull Color color) {
-      super.setForeground(color);
+    public void setTextColor(@NotNull Color color) {
+      myTextAttributes.setForegroundColor(color);
       EditorEx editor = (EditorEx)getEditor();
       if (editor != null) {
-        editor.getColorsScheme().getAttributes(HighlighterColors.TEXT).setForegroundColor(color);
+        editor.getColorsScheme().setAttributes(HighlighterColors.TEXT, myTextAttributes);
+        editor.setHighlighter(new EmptyEditorHighlighter(myTextAttributes));
       }
     }
   }
