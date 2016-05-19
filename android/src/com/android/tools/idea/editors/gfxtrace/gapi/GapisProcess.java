@@ -31,8 +31,8 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
+import static com.android.tools.idea.editors.gfxtrace.gapi.Version.*;
 
 public final class GapisProcess extends ChildProcess {
   @NotNull private static final Logger LOG = Logger.getInstance(GapisProcess.class);
@@ -43,14 +43,14 @@ public final class GapisProcess extends ChildProcess {
 
   private static final int SERVER_LAUNCH_TIMEOUT_MS = 10000;
   private static final String SERVER_HOST = "localhost";
-  private static final Pattern SERVER_POLL_VERSION_PATTERN = Pattern.compile("^GAPIS version (\\d+)$", 0);
+  private static final String SERVER_POLL_VERSION_PREFIX = "GAPIS version ";
   private static final int SERVER_POLL_VERSION_TIMEOUT_MS = 1000;
-  private static final int SERVER_DEFAULT_VERSION = 1;
+  private static final Version SERVER_DEFAULT_VERSION = VERSION_1;
 
   private final Set<GapisConnection> myConnections = Sets.newIdentityHashSet();
   private final GapirProcess myGapir;
   private final SettableFuture<Integer> myPortF;
-  private int myVersion = -1;
+  private Version myVersion = NULL_VERSION;
 
   static {
     Factory.register();
@@ -65,7 +65,7 @@ public final class GapisProcess extends ChildProcess {
   /**
    * Returns the version of the GAPIS instance.
    */
-  public int getVersion() {
+  public Version getVersion() {
     return myVersion;
   }
 
@@ -76,7 +76,7 @@ public final class GapisProcess extends ChildProcess {
       return false;
     }
 
-    if (myVersion == -1) {
+    if (myVersion == NULL_VERSION) {
       myVersion = fetchVersion();
       LOG.info("GAPIS is version " + myVersion);
     }
@@ -96,12 +96,12 @@ public final class GapisProcess extends ChildProcess {
     args.add(Integer.toString(gapirPort));
 
     File strings = GapiPaths.strings();
-    if (myVersion > 1 && strings.exists()) {
+    if (myVersion.isAtLeast(VERSION_2) && strings.exists()) {
       args.add("--strings");
       args.add(strings.getAbsolutePath());
     }
 
-    if (myVersion > 2) {
+    if (myVersion.isAtLeast(VERSION_3)) {
       args.add("--gapis-auth-token");
       args.add(getAuthToken());
       args.add("--gapir-auth-token");
@@ -212,7 +212,7 @@ public final class GapisProcess extends ChildProcess {
    *
    * @return the GAPIS version code.
    */
-  private int fetchVersion() {
+  private Version fetchVersion() {
     final ProcessBuilder pb = new ProcessBuilder();
     pb.directory(GapiPaths.base());
     pb.command(GapiPaths.gapis().getAbsolutePath(), "--version");
@@ -230,7 +230,7 @@ public final class GapisProcess extends ChildProcess {
       return SERVER_DEFAULT_VERSION;
     }
 
-    final SettableFuture<Integer> versionF = SettableFuture.create();
+    final SettableFuture<Version> versionF = SettableFuture.create();
 
     OutputHandler stdout = new OutputHandler(process.getInputStream(), false) {
       private boolean seenVersion = false;
@@ -238,10 +238,9 @@ public final class GapisProcess extends ChildProcess {
       @Override
       protected void processLine(String line) {
         super.processLine(line);
-        if (!seenVersion) {
-          Matcher matcher = SERVER_POLL_VERSION_PATTERN.matcher(line);
-          if (matcher.matches()) {
-            int version = Integer.parseInt(matcher.group(1));
+        if (!seenVersion && line.startsWith(SERVER_POLL_VERSION_PREFIX)) {
+          Version version = Version.parse(line);
+          if (version != NULL_VERSION) {
             seenVersion = true;
             versionF.set(version);
           }
