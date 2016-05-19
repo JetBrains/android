@@ -62,9 +62,11 @@ public final class RingtonePreferenceHandler extends PreferenceHandler {
                           @Nullable NlComponent parent,
                           @NotNull NlComponent newChild,
                           @NotNull InsertType type) {
-    super.onCreate(editor, parent, newChild, type);
-    newChild.setAndroidAttribute(ATTR_KEY, generateKey(newChild, RINGTONE_PREFERENCE, "ringtone_preference_"));
+    if (!super.onCreate(editor, parent, newChild, type)) {
+      return false;
+    }
 
+    newChild.setAndroidAttribute(ATTR_KEY, generateKey(newChild, RINGTONE_PREFERENCE, "ringtone_preference_"));
     return true;
   }
 }
