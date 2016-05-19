@@ -15,16 +15,13 @@
  */
 package com.android.tools.idea.npw;
 
-import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
-import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.wizard.template.TemplateWizardStep;
 import com.google.common.collect.Lists;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.projectRoots.JavaSdk;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.Processor;
 import com.intellij.util.SystemProperties;
@@ -65,23 +62,6 @@ public class NewModuleWizardTest extends AndroidTestCase {
         }
       });
     }
-  }
-
-  public void testTemplateChanged() throws Exception {
-    NewModuleWizard wizard = NewModuleWizard.createNewModuleWizard(myModule.getProject());
-    TemplateWizardModuleBuilder moduleBuilder = (TemplateWizardModuleBuilder)wizard.myModuleBuilder;
-
-    moduleBuilder.templateChanged(TemplateWizardModuleBuilder.LIB_TEMPLATE_NAME);
-    assertTrue(moduleBuilder.myWizardState.getBoolean(TemplateMetadata.ATTR_IS_LIBRARY_MODULE));
-    assertFalse(moduleBuilder.myWizardState.getBoolean(TemplateMetadata.ATTR_IS_LAUNCHER));
-    assertFalse(moduleBuilder.myWizardState.getBoolean(TemplateMetadata.ATTR_CREATE_ICONS));
-
-    moduleBuilder.templateChanged(TemplateWizardModuleBuilder.APP_TEMPLATE_NAME);
-    assertFalse(moduleBuilder.myWizardState.getBoolean(TemplateMetadata.ATTR_IS_LIBRARY_MODULE));
-    assertTrue(moduleBuilder.myWizardState.getBoolean(TemplateMetadata.ATTR_IS_LAUNCHER));
-    assertTrue(moduleBuilder.myWizardState.getBoolean(TemplateMetadata.ATTR_CREATE_ICONS));
-
-    Disposer.dispose(wizard.getDisposable());
   }
 
   public void testBuildChooseModuleStep() throws Exception {
@@ -137,44 +117,5 @@ public class NewModuleWizardTest extends AndroidTestCase {
 
     // Ensure we're not offering duplicate elements in the list
     assertEquals(templateNames.size(), templateMetadatas.getSize());
-  }
-
-  /**
-   * Test what paths the wizard takes depending on the first page selection.
-   */
-  public void testWizardPaths() {
-    NewModuleWizard wizard = NewModuleWizard.createNewModuleWizard(myModule.getProject());
-
-    try {
-      // On some systems JDK and Android SDK location might not be known - then the wizard will proceed to a page to set them up
-      final Class<?> firstStepNewModuleClass;
-      if (IdeSdks.getJdk() != null && IdeSdks.getAndroidSdkPath() != null) {
-        // Should proceed to Android module creation first step
-        firstStepNewModuleClass = ConfigureAndroidModuleStep.class;
-      }
-      else {
-        // Needs to setup JDK/Android SDK paths
-        firstStepNewModuleClass = ChooseAndroidAndJavaSdkStep.class;
-      }
-      assertInstanceOf(wizard.getCurrentStepObject(), ChooseTemplateStep.class);
-
-      // Import path
-      assertFollowingTheRightPath(wizard, NewModuleWizardState.MODULE_IMPORT_NAME, ImportSourceLocationStep.class);
-      // New module path
-      assertFollowingTheRightPath(wizard, TemplateWizardModuleBuilder.APP_TEMPLATE_NAME, firstStepNewModuleClass);
-      // Import archive
-      assertFollowingTheRightPath(wizard, NewModuleWizardState.ARCHIVE_IMPORT_NAME, WrapArchiveOptionsStep.class);
-    }
-    finally {
-      Disposer.dispose(wizard.getDisposable());
-    }
-  }
-
-  private static void assertFollowingTheRightPath(NewModuleWizard wizard, String templateName, Class<?> stepClass) {
-    wizard.myModuleBuilder.templateChanged(templateName);
-    wizard.doNextAction();
-    assertInstanceOf(wizard.getCurrentStepObject(), stepClass);
-    wizard.doPreviousAction();
-    assertInstanceOf(wizard.getCurrentStepObject(), ChooseTemplateStep.class);
   }
 }
