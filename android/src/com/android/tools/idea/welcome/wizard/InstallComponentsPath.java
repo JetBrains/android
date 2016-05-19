@@ -284,6 +284,10 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
         File sdkLocation = new File(sdkPath);
         if (!FileUtil.filesEqual(myLocalHandler.getLocation(), sdkLocation)) {
           myLocalHandler = AndroidSdkHandler.getInstance(sdkLocation);
+          StudioLoggerProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
+          myLocalHandler.getSdkManager(progress).loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS,
+                                                                   progress, new StudioDownloader(),
+                                                                   StudioSettingsController.getInstance());
           myComponentInstaller = new ComponentInstaller(myLocalHandler);
 
           myComponentTree.updateState(myLocalHandler);

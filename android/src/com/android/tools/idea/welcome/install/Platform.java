@@ -116,7 +116,7 @@ public class Platform extends InstallableComponent {
   private String findLatestCompatibleBuildTool() {
     Revision revision = null;
     String path = null;
-    for (RemotePackage remote : myRepositoryPackages.getRemotePackages().values()) {
+    for (RemotePackage remote : getRepositoryPackages().getRemotePackages().values()) {
       if (!remote.getPath().startsWith(SdkConstants.FD_BUILD_TOOLS)) {
         continue;
       }
