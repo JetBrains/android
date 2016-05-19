@@ -18,8 +18,10 @@ package com.android.tools.adtui.visual;
 
 import com.android.annotations.NonNull;
 import com.android.tools.adtui.*;
+import com.android.tools.adtui.common.AdtUIUtils;
 import com.android.tools.adtui.common.formatter.MemoryAxisFormatter;
 import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
+import com.android.tools.adtui.model.ContinuousSeries;
 import com.android.tools.adtui.model.EventAction;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.RangedSimpleSeries;
@@ -92,7 +94,7 @@ public class ProfilerOverviewVisualTest extends VisualTest {
   @NonNull
   private RangeScrollbar mScrollbar;
 
-  private ArrayList<RangedContinuousSeries> mData;
+  private ArrayList<ContinuousSeries> mData;
 
   private JPanel mSegmentsContainer;
 
@@ -176,11 +178,11 @@ public class ProfilerOverviewVisualTest extends VisualTest {
           ArrayList<Long> activities = new ArrayList<>();
           while (true) {
             long now = System.currentTimeMillis() - mStartTimeMs;
-            for (RangedContinuousSeries rangedSeries : mData) {
-              int size = rangedSeries.getSeries().size();
-              long last = size > 0 ? rangedSeries.getSeries().getY(size - 1) : 0;
+            for (ContinuousSeries series : mData) {
+              int size = series.size();
+              long last = size > 0 ? series.getY(size - 1) : 0;
               float delta = 10 * ((float)Math.random() - 0.45f);
-              rangedSeries.getSeries().add(now, (long)((last + delta) * Math.random()));
+              series.add(now, (long)((last + delta) * Math.random()));
             }
             downEvent = generateEventData(downEvent, fragments, activities, now);
             generateStackedEventData(mFragmentEventData, fragments, now, FRAGMENT_PROBABILITY);
@@ -268,7 +270,6 @@ public class ProfilerOverviewVisualTest extends VisualTest {
 
   private BaseSegment createSegment(BaseSegment.SegmentType type, int minHeight, int preferredHeight, int maxHeight) {
     BaseSegment segment = null;
-    List<RangedContinuousSeries> newData = new ArrayList<>();
     Range yRange = new Range();
     switch (type) {
       // TODO create corresponding segments based on type.
@@ -276,11 +277,11 @@ public class ProfilerOverviewVisualTest extends VisualTest {
         segment = new EventSegment(mXGlobalRange, mSystemEventData, mFragmentEventData, mActivityEventData, MOCK_ICONS);
         break;
       default:
-        RangedContinuousSeries ranged = new RangedContinuousSeries("Test", mXRange, yRange,
-                                                                   TimeAxisFormatter.DEFAULT, MemoryAxisFormatter.DEFAULT);
-        mData.add(ranged);
-        newData.add(ranged);
-        segment = new NetworkSegment(mXRange, newData);
+        ContinuousSeries sendingData = new ContinuousSeries();
+        ContinuousSeries receivingData = new ContinuousSeries();
+        mData.add(sendingData);
+        mData.add(receivingData);
+        segment = new NetworkSegment(mXRange, sendingData, receivingData);
     }
 
     segment.setMinimumSize(new Dimension(0, minHeight));

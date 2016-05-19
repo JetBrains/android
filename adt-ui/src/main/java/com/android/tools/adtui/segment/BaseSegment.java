@@ -120,11 +120,11 @@ public abstract class BaseSegment extends JComponent {
     setCenterContent(centerPanel);
 
     //Setup the right panel, like the left mostly filled with an AxisComponent
-    JPanel rightPanel = createSpacerPanel();
+    mRightPanel = createSpacerPanel();
     gbc.weightx = 0;
     gbc.gridx = 2;
-    panels.add(rightPanel, gbc);
-    setRightContent(rightPanel);
+    panels.add(mRightPanel, gbc);
+    setRightContent(mRightPanel);
 
     add(panels, BorderLayout.CENTER);
   }
@@ -153,7 +153,6 @@ public abstract class BaseSegment extends JComponent {
   protected abstract void setCenterContent(@NonNull JPanel panel);
 
   protected abstract void setRightContent(@NonNull JPanel panel);
-
 
   //TODO Refactor out of BaseSegment as this is a VisualTest specific function.
   protected abstract void registerComponents(@NonNull List<AnimatedComponent> components);
@@ -184,9 +183,7 @@ public abstract class BaseSegment extends JComponent {
           mMultiClicked = false;
           mDelayedEvents.add(e);
 
-          Timer dispatchTimer = new Timer(MULTI_CLICK_INTERVAL_MS, e1 -> {
-            dispatchOrAbsorbEvents();
-          });
+          Timer dispatchTimer = new Timer(MULTI_CLICK_INTERVAL_MS, e1 -> dispatchOrAbsorbEvents());
           dispatchTimer.setRepeats(false);
           dispatchTimer.start();
         }

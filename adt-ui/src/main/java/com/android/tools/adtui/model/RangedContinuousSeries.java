@@ -44,11 +44,15 @@ public class RangedContinuousSeries implements ReportingSeries {
 
   private BaseAxisFormatter mYAxisFormatter;
 
-  public RangedContinuousSeries(@NonNull String label, @NonNull Range xRange, @NonNull Range yRange) {
+  public RangedContinuousSeries(@NonNull String label, @NonNull Range xRange, @NonNull Range yRange, @NonNull ContinuousSeries series) {
     mLabel = label;
     mXRange = xRange;
     mYRange = yRange;
-    mSeries = new ContinuousSeries();
+    mSeries = series;
+  }
+
+  public RangedContinuousSeries(@NonNull String label, @NonNull Range xRange, @NonNull Range yRange) {
+    this(label, xRange, yRange, new ContinuousSeries());
   }
 
   public RangedContinuousSeries(@NonNull String label, @NonNull Range xRange, @NonNull Range yRange,
