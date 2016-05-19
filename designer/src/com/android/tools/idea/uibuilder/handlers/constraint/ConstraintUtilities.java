@@ -709,6 +709,25 @@ public class ConstraintUtilities {
                      || (!(widget.getParent() instanceof ConstraintWidgetContainer)
                           && !(widget instanceof ConstraintWidgetContainer));
     if (!update) {
+      if (widget instanceof ConstraintWidgetContainer
+          && (widget.isRoot() || !(widget.getParent() instanceof ConstraintWidgetContainer))) {
+        Insets padding = component.getPadding();
+        widget.setDimension(constraintModel.pxToDp(component.w - padding.width()),
+                            constraintModel.pxToDp(component.h - padding.height()));
+        int x = constraintModel.pxToDp(component.x);
+        int y = constraintModel.pxToDp(component.y);
+        x += constraintModel.pxToDp(padding.left);
+        y += constraintModel.pxToDp(padding.top);
+        WidgetContainer parentContainer = (WidgetContainer)widget.getParent();
+        if (parentContainer != null) {
+          x -= parentContainer.getDrawX();
+          y -= parentContainer.getDrawY();
+        }
+        if (widget.getX() != x || widget.getY() != y) {
+          widget.setOrigin(x, y);
+          widget.forceUpdateDrawPosition();
+        }
+      }
       return;
     }
     widget.setVisibility(component.getAndroidViewVisibility());
