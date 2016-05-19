@@ -15,23 +15,25 @@
  */
 package com.android.tools.idea.updater.configure;
 
+import com.android.SdkConstants;
 import com.android.repository.api.UpdatablePackage;
-import com.google.common.collect.ComparisonChain;
-import com.google.common.collect.Sets;
+import com.android.sdklib.repository.meta.DetailsTypes;
+import com.android.tools.idea.sdk.install.patch.PatchInstallerUtil;
+import com.google.common.collect.*;
+import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.dualView.TreeTableView;
 import com.intellij.ui.treeStructure.treetable.ListTreeTableModelOnColumns;
 import com.intellij.ui.treeStructure.treetable.TreeColumnInfo;
+import com.intellij.util.containers.HashSet;
 import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.ColumnInfo;
 import com.intellij.util.ui.tree.TreeUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.Set;
@@ -40,6 +42,9 @@ import java.util.Set;
  * Panel that shows all packages not associated with an AndroidVersion.
  */
 public class ToolComponentsPanel {
+  private static final Set<String> MULTI_VERSION_PREFIXES =
+    ImmutableSet.of(SdkConstants.FD_BUILD_TOOLS, SdkConstants.FD_LLDB, PatchInstallerUtil.PATCHER_PATH_PREFIX);
+
   private TreeTableView myToolsSummaryTable;
   private JCheckBox myToolsDetailsCheckbox;
   private JPanel myToolsPanel;
@@ -58,7 +63,7 @@ public class ToolComponentsPanel {
         .result();
     }
   });
-  private final Set<UpdatablePackage> myBuildToolsPackages = Sets.newTreeSet();
+  private final Multimap<String, UpdatablePackage> myMultiVersionPackages = HashMultimap.create();
 
   private UpdaterTreeNode myToolsDetailsRootNode;
   private UpdaterTreeNode myToolsSummaryRootNode;
@@ -66,21 +71,11 @@ public class ToolComponentsPanel {
   Set<NodeStateHolder> myStates = Sets.newHashSet();
 
   private boolean myModified = false;
-  private final ChangeListener myModificationListener = new ChangeListener() {
-    @Override
-    public void stateChanged(ChangeEvent e) {
-      refreshModified();
-    }
-  };
+  private final ChangeListener myModificationListener = e -> refreshModified();
   private SdkUpdaterConfigurable myConfigurable;
 
   public ToolComponentsPanel() {
-    myToolsDetailsCheckbox.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        updateToolsTable();
-      }
-    });
+    myToolsDetailsCheckbox.addActionListener(e -> updateToolsTable());
   }
 
   private void updateToolsTable() {
@@ -92,37 +87,40 @@ public class ToolComponentsPanel {
     myToolsSummaryRootNode.removeAllChildren();
     myStates.clear();
 
-    Set<UpdaterTreeNode> buildToolsNodes = Sets.newHashSet();
-    UpdaterTreeNode buildToolsParent = new ParentTreeNode(null) {
-      @Override
-      public void customizeRenderer(Renderer renderer,
-                                    JTree tree,
-                                    boolean selected,
-                                    boolean expanded,
-                                    boolean leaf,
-                                    int row,
-                                    boolean hasFocus) {
-        renderer.getTextRenderer().append("Android SDK Build Tools");
+    for (String prefix : myMultiVersionPackages.keySet()) {
+      Collection<UpdatablePackage> versions = myMultiVersionPackages.get(prefix);
+      Set<DetailsTreeNode> detailsNodes = new HashSet<>();
+      for (UpdatablePackage info : versions) {
+        NodeStateHolder holder = new NodeStateHolder(info);
+        myStates.add(holder);
+        detailsNodes.add(new DetailsTreeNode(holder, myModificationListener, myConfigurable));
       }
-    };
-    for (UpdatablePackage info : myBuildToolsPackages) {
-      NodeStateHolder holder = new NodeStateHolder(info);
-      myStates.add(holder);
-      UpdaterTreeNode node = new PlatformDetailsTreeNode(holder, myModificationListener, myConfigurable);
-      buildToolsParent.add(node);
-      buildToolsNodes.add(node);
-    }
-    myToolsDetailsRootNode.add(buildToolsParent);
+      MultiVersionTreeNode summaryNode = new MultiVersionTreeNode(detailsNodes);
+      myToolsSummaryRootNode.add(summaryNode);
 
-    myToolsSummaryRootNode.add(new BuildToolsSummaryTreeNode(buildToolsNodes));
+      UpdaterTreeNode multiVersionParent = new ParentTreeNode(null) {
+        @Override
+        public void customizeRenderer(Renderer renderer,
+                                      JTree tree,
+                                      boolean selected,
+                                      boolean expanded,
+                                      boolean leaf,
+                                      int row,
+                                      boolean hasFocus) {
+          renderer.getTextRenderer().append(summaryNode.getDisplayName(), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
+        }
+      };
+      detailsNodes.forEach(multiVersionParent::add);
+      myToolsDetailsRootNode.add(multiVersionParent);
+    }
 
     for (UpdatablePackage info : myToolsPackages) {
       NodeStateHolder holder = new NodeStateHolder(info);
       myStates.add(holder);
-      UpdaterTreeNode node = new PlatformDetailsTreeNode(holder, myModificationListener, myConfigurable);
+      UpdaterTreeNode node = new DetailsTreeNode(holder, myModificationListener, myConfigurable);
       myToolsDetailsRootNode.add(node);
       if (!info.getRepresentative().obsolete()) {
-        myToolsSummaryRootNode.add(new PlatformDetailsTreeNode(holder, myModificationListener, myConfigurable));
+        myToolsSummaryRootNode.add(new DetailsTreeNode(holder, myModificationListener, myConfigurable));
       }
     }
     refreshModified();
@@ -134,17 +132,30 @@ public class ToolComponentsPanel {
     TreeUtil.expandAll(myToolsSummaryTable.getTree());
   }
 
-  public void setPackages(@NotNull Set<UpdatablePackage> toolsPackages, @NotNull Set<UpdatablePackage> buildToolsPackages) {
-    myBuildToolsPackages.clear();
+  public void setPackages(@NotNull Set<UpdatablePackage> toolsPackages) {
+    myMultiVersionPackages.clear();
     myToolsPackages.clear();
-    myBuildToolsPackages.addAll(buildToolsPackages);
-    myToolsPackages.addAll(toolsPackages);
+    for (UpdatablePackage p : toolsPackages) {
+      String prefix = p.getRepresentative().getPath();
+      int lastSegmentIndex = prefix.lastIndexOf(';');
+      boolean found = false;
+      if (lastSegmentIndex > 0) {
+        prefix = prefix.substring(0, lastSegmentIndex);
+        if (MULTI_VERSION_PREFIXES.contains(prefix) || p.getRepresentative().getTypeDetails() instanceof DetailsTypes.MavenType) {
+          myMultiVersionPackages.put(prefix, p);
+          found = true;
+        }
+      }
+      if (!found) {
+        myToolsPackages.add(p);
+      }
+    }
     updateToolsItems();
   }
 
   public void startLoading() {
     myToolsPackages.clear();
-    myBuildToolsPackages.clear();
+    myMultiVersionPackages.clear();
     myToolsLoadingPanel.setVisible(true);
   }
 

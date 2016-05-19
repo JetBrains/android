@@ -170,7 +170,7 @@ class SummaryTreeNode extends UpdaterTreeNode {
     boolean foundUpdate = false;
     for (UpdaterTreeNode child : myAllChildren) {
       if (child.getInitialState() != NodeStateHolder.SelectedState.NOT_INSTALLED) {
-        TypeDetails details = ((PlatformDetailsTreeNode)child).getPackage().getTypeDetails();
+        TypeDetails details = ((DetailsTreeNode)child).getPackage().getTypeDetails();
         if (details instanceof DetailsTypes.SourceDetailsType) {
           foundSources = true;
         } else if (details instanceof DetailsTypes.PlatformDetailsType) {

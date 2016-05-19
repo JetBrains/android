@@ -30,9 +30,9 @@ class VersionColumnInfo extends ColumnInfo<UpdaterTreeNode, Revision> {
   @Nullable
   @Override
   public Revision valueOf(UpdaterTreeNode node) {
-    if (!(node instanceof PlatformDetailsTreeNode)) {
+    if (!(node instanceof DetailsTreeNode)) {
       return null;
     }
-    return ((PlatformDetailsTreeNode)node).getPackage().getVersion();
+    return ((DetailsTreeNode)node).getPackage().getVersion();
   }
 }
