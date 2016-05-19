@@ -19,6 +19,7 @@ import com.android.repository.api.InstallerFactory;
 import com.android.repository.api.RepoPackage;
 import com.android.repository.impl.installer.BasicInstallerFactory;
 import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.tools.idea.sdk.install.patch.PatchInstallerFactory;
 import org.jetbrains.annotations.NotNull;
 
 /**
