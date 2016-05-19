@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder.actions;
 
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.SelectionModel;
-import com.android.tools.idea.uibuilder.structure.FakeComponent;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -61,7 +60,8 @@ public class SelectParentAction extends AnAction {
       if (selection.size() == 1) {
         NlComponent first = selection.get(0);
         NlComponent parent = first.getParent();
-        if (parent != null && !(parent instanceof FakeComponent)) {
+
+        if (parent != null) {
           selectionModel.setSelection(Collections.singletonList(parent));
         }
       }

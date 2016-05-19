@@ -19,6 +19,7 @@ import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.google.common.collect.Sets;
 import com.intellij.ide.DeleteProvider;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DataProvider;
@@ -41,19 +42,19 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
-import javax.swing.tree.*;
+import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
 import java.awt.*;
 import java.awt.Insets;
 import java.awt.dnd.DropTarget;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
-import java.util.IdentityHashMap;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.property.NlPropertiesManager.UPDATE_DELAY_MSECS;
 import static com.android.tools.idea.uibuilder.structure.NlComponentTree.InsertionPoint.INSERT_INTO;
 import static com.intellij.util.Alarm.ThreadToUse.SWING_THREAD;
@@ -62,7 +63,6 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
                                                      DeleteProvider {
   private static final Insets INSETS = new Insets(0, 6, 0, 6);
 
-  private final Map<NlComponent, DefaultMutableTreeNode> myComponent2Node;
   private final AtomicBoolean mySelectionIsUpdating;
   private final MergingUpdateQueue myUpdateQueue;
 
@@ -73,13 +73,10 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   private boolean mySkipWait;
 
   public NlComponentTree(@NotNull DesignSurface designSurface) {
-    myComponent2Node = new IdentityHashMap<>();
     mySelectionIsUpdating = new AtomicBoolean(false);
     myUpdateQueue = new MergingUpdateQueue(
       "android.layout.structure-pane", UPDATE_DELAY_MSECS, true, null, null, null, SWING_THREAD);
-    TreeNode rootNode = new DefaultMutableTreeNode();
-    DefaultTreeModel treeModel = new DefaultTreeModel(rootNode);
-    setModel(treeModel);
+    setModel(new NlComponentTreeModel());
     getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
     setBorder(new EmptyBorder(INSETS));
     setRootVisible(true);
@@ -112,11 +109,6 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     setModel(screenView != null ? screenView.getModel() : null);
   }
 
-  @NotNull
-  Map<NlComponent, DefaultMutableTreeNode> getComponentToNode() {
-    return myComponent2Node;
-  }
-
   @Nullable
   public ScreenView getScreenView() {
     return myScreenView;
@@ -132,7 +124,8 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
       myModel.addListener(this);
       myModel.getSelectionModel().addListener(this);
     }
-    loadData();
+
+    updateHierarchy();
   }
 
   @Nullable
@@ -159,21 +152,13 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
                                         boolean leaf,
                                         int row,
                                         boolean hasFocus) {
-        NlComponent component = toComponent(value);
-
-        if (component == null) {
-          return;
+        if (value instanceof NlComponent) {
+          StructureTreeDecorator.decorate(this, (NlComponent)value);
         }
-
-        StructureTreeDecorator.decorate(this, component);
       }
     };
     renderer.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
     setCellRenderer(renderer);
-  }
-
-  private void loadData() {
-    updateHierarchy(true);
   }
 
   private void invalidateUI() {
@@ -182,27 +167,18 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
 
   // ---- Methods for updating hierarchy while attempting to keep expanded nodes expanded ----
 
-  private void updateHierarchy(final boolean firstLoad) {
+  private void updateHierarchy() {
     ApplicationManager.getApplication().assertIsDispatchThread();
     setPaintBusy(true);
     myUpdateQueue.queue(new Update("updateComponentStructure") {
       @Override
       public void run() {
-        NlLayoutType resourceType = myModel.getType();
-
         try {
           mySelectionIsUpdating.set(true);
 
-          switch (resourceType) {
-            case MENU:
-            case PREFERENCE_SCREEN:
-              updateHierarchy();
-              break;
-            case LAYOUT:
-            default:
-              updateLayoutHierarchy();
-              break;
-          }
+          Collection<NlComponent> components = getCollapsedComponents();
+          setModel(new NlComponentTreeModel(myModel));
+          collapseComponents(components);
 
           invalidateUI();
         }
@@ -210,14 +186,53 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
           setPaintBusy(false);
           mySelectionIsUpdating.set(false);
         }
-        if (firstLoad && resourceType.isLayout()) {
-          updateSelection();
-        }
+
+        updateSelection();
       }
     });
     if (mySkipWait) {
       mySkipWait = false;
       myUpdateQueue.flush();
+    }
+  }
+
+  @NotNull
+  private Collection<NlComponent> getCollapsedComponents() {
+    int rowCount = getRowCount();
+    Collection<NlComponent> components = Sets.newHashSetWithExpectedSize(rowCount);
+
+    for (int row = 0; row < rowCount; row++) {
+      if (isCollapsed(row)) {
+        NlComponent component = (NlComponent)getPathForRow(row).getLastPathComponent();
+
+        if (component.getChildCount() != 0) {
+          components.add(component);
+        }
+      }
+    }
+
+    return components;
+  }
+
+  private void collapseComponents(@NotNull Collection<NlComponent> components) {
+    NlComponent root = (NlComponent)getModel().getRoot();
+
+    if (root == null) {
+      return;
+    }
+
+    expandAll(root);
+    components.stream().forEach(component -> collapsePath(newTreePath(component)));
+  }
+
+  private void expandAll(@NotNull NlComponent parent) {
+    // If all the children are leaves
+    if (parent.getChildren().stream().allMatch(child -> child.getChildCount() == 0)) {
+      expandPath(newTreePath(parent));
+    }
+    else {
+      // Recurse
+      parent.getChildren().stream().forEach(this::expandAll);
     }
   }
 
@@ -230,75 +245,6 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     mySkipWait = true;
   }
 
-  private void updateHierarchy() {
-    List<NlComponent> components = myModel.getComponents();
-
-    // TODO See if the layout code path can also use NlComponentTreeModel
-    setModel(components.isEmpty() ? new NlComponentTreeModel() : new NlComponentTreeModel(components.get(0)));
-
-    // TODO Restore the expansion state of the nodes. Find a good way that both code paths can share.
-    for (int row = 0, rowCount = getRowCount(); row < rowCount; row++) {
-      expandRow(row);
-    }
-  }
-
-  private void updateLayoutHierarchy() {
-    boolean newRootNodeAdded = new HierarchyUpdater(this).execute();
-
-    if (!newRootNodeAdded) {
-      return;
-    }
-    final DefaultMutableTreeNode rootNode = (DefaultMutableTreeNode)getModel().getRoot();
-    if (rootNode.isLeaf()) {
-      return;
-    }
-    ApplicationManager.getApplication().invokeLater(() -> {
-      DefaultMutableTreeNode nodeToExpand = rootNode;
-      NlComponent component = findComponentToExpandTo();
-      if (component != null) {
-        nodeToExpand = myComponent2Node.get(component);
-        if (nodeToExpand == null) {
-          nodeToExpand = rootNode;
-        }
-      }
-      TreePath path = new TreePath(nodeToExpand.getPath());
-      expandPath(path);
-      while (path != null) {
-        path = path.getParentPath();
-        expandPath(path);
-      }
-    });
-  }
-
-  // Find a component that it would be interesting to expand to when a new file is viewed.
-  // If the file has an App Bar lookup something that may be user content.
-  @Nullable
-  private NlComponent findComponentToExpandTo() {
-    if (myModel == null || myModel.getComponents().isEmpty()) {
-      return null;
-    }
-    NlComponent root = myModel.getComponents().get(0);
-    NlComponent childOfInterest = root;
-    if (root.getTagName().equals(COORDINATOR_LAYOUT)) {
-      // Find first child that is not an AppBarLayout and not anchored to anything.
-      for (NlComponent child : root.getChildren()) {
-        if (!child.getTagName().equals(APP_BAR_LAYOUT) && child.getTag().getAttribute(ATTR_LAYOUT_ANCHOR, AUTO_URI) == null) {
-          // If this is a NestedScrollView look inside:
-          if (child.getTagName().equals(CLASS_NESTED_SCROLL_VIEW) && child.children != null && !child.children.isEmpty()) {
-            child = child.getChild(0);
-          }
-          childOfInterest = child;
-          break;
-        }
-      }
-    }
-
-    if (childOfInterest == null || childOfInterest.children == null || childOfInterest.children.isEmpty()) {
-      return childOfInterest;
-    }
-    return childOfInterest.children.get(childOfInterest.children.size() - 1);
-  }
-
   private void updateSelection() {
     if (!mySelectionIsUpdating.compareAndSet(false, true)) {
       return;
@@ -307,18 +253,26 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
       clearSelection();
       if (myModel != null) {
         for (NlComponent component : myModel.getSelectionModel().getSelection()) {
-          DefaultMutableTreeNode node = myComponent2Node.get(component);
-          if (node != null) {
-            TreePath path = new TreePath(node.getPath());
-            expandPath(path);
-            addSelectionPath(path);
-          }
+          addSelectionPath(newTreePath(component));
         }
       }
     }
     finally {
       mySelectionIsUpdating.set(false);
     }
+  }
+
+  @NotNull
+  private static TreePath newTreePath(@NotNull NlComponent component) {
+    List<NlComponent> components = new ArrayList<>();
+    components.add(component);
+
+    for (NlComponent parent = component.getParent(); parent != null; parent = parent.getParent()) {
+      components.add(parent);
+    }
+
+    Collections.reverse(components);
+    return new TreePath(components.toArray());
   }
 
   @Override
@@ -385,7 +339,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     TreePath[] paths = getSelectionPaths();
     if (paths != null) {
       for (TreePath path : paths) {
-        selected.add(toComponent(path.getLastPathComponent()));
+        selected.add((NlComponent)path.getLastPathComponent());
       }
     }
     return selected;
@@ -394,17 +348,13 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   // ---- Implemented SelectionListener ----
   @Override
   public void selectionChanged(@NotNull SelectionModel model, @NotNull List<NlComponent> selection) {
-    if (!myModel.getType().isLayout()) {
-      return;
-    }
-
     UIUtil.invokeLaterIfNeeded(this::updateSelection);
   }
 
   // ---- Implemented ModelListener ----
   @Override
   public void modelChanged(@NotNull NlModel model) {
-    UIUtil.invokeLaterIfNeeded(() -> updateHierarchy(false));
+    UIUtil.invokeLaterIfNeeded(this::updateHierarchy);
   }
 
   @Override
@@ -429,11 +379,6 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     }
   }
 
-  @Nullable
-  static NlComponent toComponent(@NotNull Object node) {
-    return (NlComponent)(node instanceof DefaultMutableTreeNode ? ((DefaultMutableTreeNode)node).getUserObject() : node);
-  }
-
   private class StructurePaneMouseListener extends MouseAdapter {
     @Override
     public void mouseClicked(MouseEvent e) {
@@ -454,11 +399,11 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
       if (e.isPopupTrigger()) {
         TreePath path = getPathForLocation(e.getX(), e.getY());
         if (path != null) {
-          Object pathComponent = path.getLastPathComponent();
-          NlComponent component = toComponent(pathComponent);
-          if (component != null) {
+          Object component = path.getLastPathComponent();
+
+          if (component instanceof NlComponent) {
             // TODO: Ensure the node is selected first
-            myScreenView.getSurface().getActionManager().showPopup(e, myScreenView, component);
+            myScreenView.getSurface().getActionManager().showPopup(e, myScreenView, (NlComponent)component);
           }
         }
       }
@@ -490,9 +435,9 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
       if (pattern == null) {
         return false;
       }
-      TreePath path = (TreePath)element;
-      NlComponent component = toComponent(path.getLastPathComponent());
-      return compare(component == null ? "" : StructureTreeDecorator.toString(component), pattern);
+
+      Object component = ((TreePath)element).getLastPathComponent();
+      return compare(component instanceof NlComponent ? StructureTreeDecorator.toString((NlComponent)component) : "", pattern);
     }
   }
 
