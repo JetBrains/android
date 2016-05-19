@@ -711,7 +711,9 @@ public class ConstraintUtilities {
     if (!update) {
       return;
     }
-    widget.setVisibility(component.getAndroidViewVisibility());
+    if (!(widget instanceof Guideline)) {
+      widget.setVisibility(component.getAndroidViewVisibility());
+    }
     widget.setDebugName(component.getId());
     WidgetsScene scene = constraintModel.getScene();
     Insets padding = component.getPadding();
