@@ -33,6 +33,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.SetMultimap;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -57,6 +58,7 @@ import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -202,13 +204,15 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
 
   public void install() {
     List<File> filesToOpen = Lists.newArrayList();
-    analyzeRecipe(false, filesToOpen, null, null, null);
+    analyzeRecipe(false, filesToOpen, null, null, null, null, null);
     TemplateUtils.openEditors(myModule.getProject(), filesToOpen, true);
   }
 
   private void analyzeRecipe(boolean findOnlyReferences,
                              @Nullable Collection<File> openFiles,
                              @Nullable SetMultimap<String, String> dependencies,
+                             @Nullable Collection<String> classpathEntries,
+                             @Nullable Collection<String> plugins,
                              @Nullable Collection<File> sourceFiles,
                              @Nullable Collection<File> targetFiles) {
     try {
@@ -223,6 +227,8 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
         .withGradleSync(false)
         .intoOpenFiles(openFiles)
         .intoDependencies(dependencies)
+        .intoClasspathEntries(classpathEntries)
+        .intoPlugins(plugins)
         .intoSourceFiles(sourceFiles)
         .intoTargetFiles(targetFiles)
         .build();
@@ -292,13 +298,21 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
 
   private void closeServiceTag() {
     SetMultimap<String, String> dependencies = LinkedHashMultimap.create();
+    Set<String> classpathEntries = Sets.newHashSet();
+    Set<String> plugins = Sets.newHashSet();
     List<File> sourceFiles = Lists.newArrayList();
     List<File> targetFiles = Lists.newArrayList();
-    analyzeRecipe(true, null, dependencies, sourceFiles, targetFiles);
+    analyzeRecipe(true, null, dependencies, classpathEntries, plugins, sourceFiles, targetFiles);
 
     // Ignore test configurations here.
     for (String d : dependencies.get(SdkConstants.GRADLE_COMPILE_CONFIGURATION)) {
       myDeveloperServiceMetadata.addDependency(d);
+    }
+    for (String c : classpathEntries) {
+      myDeveloperServiceMetadata.addClasspathEntry(c);
+    }
+    for (String p : plugins) {
+      myDeveloperServiceMetadata.addPlugin(p);
     }
     for (File f : sourceFiles) {
       if (f.getName().equals(SdkConstants.FN_ANDROID_MANIFEST_XML)) {
