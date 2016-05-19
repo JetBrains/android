@@ -65,9 +65,11 @@ public final class EditTextPreferenceHandler extends PreferenceHandler {
                           @Nullable NlComponent parent,
                           @NotNull NlComponent newChild,
                           @NotNull InsertType type) {
-    super.onCreate(editor, parent, newChild, type);
-    newChild.setAndroidAttribute(ATTR_KEY, generateKey(newChild, EDIT_TEXT_PREFERENCE, "edit_text_preference_"));
+    if (!super.onCreate(editor, parent, newChild, type)) {
+      return false;
+    }
 
+    newChild.setAndroidAttribute(ATTR_KEY, generateKey(newChild, EDIT_TEXT_PREFERENCE, "edit_text_preference_"));
     return true;
   }
 }

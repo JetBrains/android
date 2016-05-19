@@ -42,9 +42,10 @@ abstract class PreferenceHandler extends ViewHandler {
                           @Nullable NlComponent parent,
                           @NotNull NlComponent newChild,
                           @NotNull InsertType type) {
-    // TODO Should I alter the logic at NlModel.java:798?
-    newChild.removeAndroidAttribute(ATTR_LAYOUT_HEIGHT);
-    newChild.removeAndroidAttribute(ATTR_LAYOUT_WIDTH);
+    if (type.equals(InsertType.CREATE)) {
+      newChild.removeAndroidAttribute(ATTR_LAYOUT_WIDTH);
+      newChild.removeAndroidAttribute(ATTR_LAYOUT_HEIGHT);
+    }
 
     return true;
   }
