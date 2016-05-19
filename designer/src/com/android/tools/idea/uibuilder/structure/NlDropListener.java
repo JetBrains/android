@@ -162,7 +162,7 @@ public class NlDropListener extends DropTargetAdapter {
       return null;
     }
     NlModel model = screenView.getModel();
-    NlComponent component = NlComponentTree.toComponent(path.getLastPathComponent());
+    NlComponent component = (NlComponent)path.getLastPathComponent();
 
     if (component == null) {
       return null;
