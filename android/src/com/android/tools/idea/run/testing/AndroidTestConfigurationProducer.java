@@ -17,7 +17,6 @@
 package com.android.tools.idea.run.testing;
 
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.testing.TestArtifactSearchScopes;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.run.AndroidRunConfigurationType;
@@ -174,26 +173,24 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
         return false;
       }
 
-      if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
-        TestArtifactSearchScopes testScopes = TestArtifactSearchScopes.get(module);
-        if (testScopes == null) {
-          return false;
+      TestArtifactSearchScopes testScopes = TestArtifactSearchScopes.get(module);
+      if (testScopes == null) {
+        return false;
+      }
+      VirtualFile virtualFile = null;
+      if (element instanceof PsiDirectory) {
+        virtualFile = ((PsiDirectory)element).getVirtualFile();
+      } else {
+        PsiFile psiFile = element.getContainingFile();
+        if (psiFile != null) {
+          virtualFile = psiFile.getVirtualFile();
         }
-        VirtualFile virtualFile = null;
-        if (element instanceof PsiDirectory) {
-          virtualFile = ((PsiDirectory)element).getVirtualFile();
-        } else {
-          PsiFile psiFile = element.getContainingFile();
-          if (psiFile != null) {
-            virtualFile = psiFile.getVirtualFile();
-          }
-        }
-        if (virtualFile == null) {
-          return false;
-        }
-        if (!testScopes.isAndroidTestSource(virtualFile)) {
-          return false;
-        }
+      }
+      if (virtualFile == null) {
+        return false;
+      }
+      if (!testScopes.isAndroidTestSource(virtualFile)) {
+        return false;
       }
     }
 

@@ -22,7 +22,6 @@ import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.invoker.console.view.GradleConsoleView;
 import com.android.tools.idea.gradle.project.BuildSettings;
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.GradleBuilds;
 import com.google.common.annotations.VisibleForTesting;
@@ -330,13 +329,8 @@ public class GradleInvoker {
 
           // Add assemble tasks for tests.
           if (testCompileType != TestCompileType.NONE) {
-            if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
-              for (BaseArtifact artifact : getArtifactsForTestCompileType(testCompileType, androidGradleModel)) {
-                addTaskIfSpecified(tasks, gradlePath, artifact.getAssembleTaskName());
-              }
-            }
-            else {
-              addTaskIfSpecified(tasks, gradlePath, properties.ASSEMBLE_TEST_TASK_NAME);
+            for (BaseArtifact artifact : getArtifactsForTestCompileType(testCompileType, androidGradleModel)) {
+              addTaskIfSpecified(tasks, gradlePath, artifact.getAssembleTaskName());
             }
           }
           break;
@@ -352,13 +346,8 @@ public class GradleInvoker {
           }
 
           // Add compile tasks for tests.
-          if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
-            for (BaseArtifact artifact : getArtifactsForTestCompileType(testCompileType, androidGradleModel)) {
-              addTaskIfSpecified(tasks, gradlePath, artifact.getCompileTaskName());
-            }
-          }
-          else {
-            addTaskIfSpecified(tasks, gradlePath, properties.COMPILE_JAVA_TEST_TASK_NAME);
+          for (BaseArtifact artifact : getArtifactsForTestCompileType(testCompileType, androidGradleModel)) {
+            addTaskIfSpecified(tasks, gradlePath, artifact.getCompileTaskName());
           }
           break;
       }
@@ -381,12 +370,10 @@ public class GradleInvoker {
                                                         @NotNull String gradlePath,
                                                         @NotNull TestCompileType testCompileType,
                                                         @Nullable AndroidGradleModel androidGradleModel) {
-    if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
-      Collection<BaseArtifact> testArtifacts = getArtifactsForTestCompileType(testCompileType, androidGradleModel);
-      for (BaseArtifact artifact : testArtifacts) {
-        for (String taskName : getIdeSetupTasks(artifact)) {
-          addTaskIfSpecified(tasks, gradlePath, taskName);
-        }
+    Collection<BaseArtifact> testArtifacts = getArtifactsForTestCompileType(testCompileType, androidGradleModel);
+    for (BaseArtifact artifact : testArtifacts) {
+      for (String taskName : getIdeSetupTasks(artifact)) {
+        addTaskIfSpecified(tasks, gradlePath, taskName);
       }
     }
   }
