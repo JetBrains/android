@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.NativeAndroidGradleModel;
 import com.android.tools.idea.gradle.customizer.AbstractContentRootModuleCustomizer;
 import com.android.tools.idea.gradle.facet.NativeAndroidGradleFacet;
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.util.Facets;
 import com.android.tools.idea.gradle.util.FilePaths;
 import com.android.tools.idea.gradle.variant.view.BuildVariantModuleCustomizer;
@@ -85,15 +84,8 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
     AndroidArtifact mainArtifact = selectedVariant.getMainArtifact();
     addSourceFolders(androidModel, contentEntries, mainArtifact, false, shouldAddNativeSources, orphans);
 
-    if (GradleExperimentalSettings.getInstance().LOAD_ALL_TEST_ARTIFACTS) {
-      for (BaseArtifact artifact : androidModel.getTestArtifactsInSelectedVariant()) {
-        addSourceFolders(androidModel, contentEntries, artifact, true, shouldAddNativeSources, orphans);
-      }
-    } else {
-      BaseArtifact testArtifact = androidModel.findSelectedTestArtifact(androidModel.getSelectedVariant());
-      if (testArtifact != null) {
-        addSourceFolders(androidModel, contentEntries, testArtifact, true, shouldAddNativeSources, orphans);
-      }
+    for (BaseArtifact artifact : androidModel.getTestArtifactsInSelectedVariant()) {
+      addSourceFolders(androidModel, contentEntries, artifact, true, shouldAddNativeSources, orphans);
     }
 
     for (String flavorName : selectedVariant.getProductFlavors()) {
