@@ -53,7 +53,7 @@ public class GapisConnection implements Closeable {
                                 myServerSocket.getInputStream(),
                                 myServerSocket.getOutputStream(),
                                 1024,
-                                myParent.getVersion());
+                                myParent.getVersion().major);
   }
 
   @Override

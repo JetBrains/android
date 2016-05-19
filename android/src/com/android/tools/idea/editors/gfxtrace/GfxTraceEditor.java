@@ -17,10 +17,7 @@ package com.android.tools.idea.editors.gfxtrace;
 
 import com.android.repository.api.LocalPackage;
 import com.android.tools.idea.editors.gfxtrace.controllers.MainController;
-import com.android.tools.idea.editors.gfxtrace.gapi.GapiPaths;
-import com.android.tools.idea.editors.gfxtrace.gapi.GapisConnection;
-import com.android.tools.idea.editors.gfxtrace.gapi.GapisFeatures;
-import com.android.tools.idea.editors.gfxtrace.gapi.GapisProcess;
+import com.android.tools.idea.editors.gfxtrace.gapi.*;
 import com.android.tools.idea.editors.gfxtrace.models.AtomStream;
 import com.android.tools.idea.editors.gfxtrace.models.GpuState;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
@@ -77,9 +74,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
-
-  private static final int GAPI_VERSION_MAJOR = 1;
-  private static final int GAPI_VERSION_MINOR = 0;
+  private static final Version REQUIRED_GAPI_VERSION = Version.VERSION_1;
 
   private static final int FETCH_SCHEMA_TIMEOUT_MS = 3000;
   private static final int FETCH_FEATURES_TIMEOUT_MS = 3000;
@@ -208,7 +203,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
     }
     // OR we do have a version installed from the SDK manager, but it does not match our required version
     LocalPackage gapi = GapiPaths.getLocalPackage();
-    return gapi != null && (gapi.getVersion().getMajor() != GAPI_VERSION_MAJOR || gapi.getVersion().getMinor() < GAPI_VERSION_MINOR);
+    return gapi != null && !REQUIRED_GAPI_VERSION.isCompatible(gapi.getVersion());
   }
 
   /**
