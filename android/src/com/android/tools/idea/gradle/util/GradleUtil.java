@@ -166,7 +166,9 @@ public final class GradleUtil {
   }
 
   public static boolean androidModelSupportsDependencyGraph(@NotNull GradleVersion modelVersion) {
-    return modelVersion.compareIgnoringQualifiers("2.2.0") >= 0;
+    return false;
+    // TODO enable once we figure out why transitive dependencies in Java library modules are not being included in the graph.
+    //return modelVersion.compareIgnoringQualifiers("2.2.0") >= 0;
   }
 
   public static void clearStoredGradleJvmArgs(@NotNull final Project project) {
