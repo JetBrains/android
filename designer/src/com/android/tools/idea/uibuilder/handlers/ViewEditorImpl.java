@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.resources.ResourceType;
 import com.android.sdklib.AndroidVersion;
@@ -25,6 +23,7 @@ import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
+import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.NlComponent;
@@ -37,11 +36,12 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ArrayUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.ChooseClassDialog;
-import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.util.Collection;
 import java.util.Collections;
-import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -137,15 +137,20 @@ public class ViewEditorImpl extends ViewEditor {
 
   @Nullable
   @Override
-  public String displayResourceInput(@NotNull EnumSet<ResourceType> types, @Nullable String currentValue) {
-    Module module = myScreen.getModel().getModule();
-    ResourceType[] typeArray = types.toArray(new ResourceType[types.size()]);
-    ChooseResourceDialog dialog = new ChooseResourceDialog(module, typeArray, currentValue, null);
+  public String displayResourceInput(@NotNull String title, @NotNull Collection<ResourceType> types) {
+    ChooseResourceDialog dialog = new ChooseResourceDialog(myScreen.getModel().getModule(), types.toArray(new ResourceType[0]), null, null);
+
+    if (!title.isEmpty()) {
+      dialog.setTitle(title);
+    }
+
     dialog.show();
+
     if (dialog.isOK()) {
-      String value = dialog.getResourceName();
-      if (value != null && !value.isEmpty()) {
-        return value;
+      String resource = dialog.getResourceName();
+
+      if (resource != null && !resource.isEmpty()) {
+        return resource;
       }
     }
 

@@ -63,7 +63,7 @@ public class ImageViewHandler extends ViewHandler {
                           @NotNull NlComponent newChild,
                           @NotNull InsertType insertType) {
     if (insertType == InsertType.CREATE) { // NOT InsertType.CREATE_PREVIEW
-      String src = editor.displayResourceInput(EnumSet.of(ResourceType.DRAWABLE), null);
+      String src = editor.displayResourceInput(EnumSet.of(ResourceType.DRAWABLE));
       if (src != null) {
         newChild.setAttribute(ANDROID_URI, ATTR_SRC, src);
         return true;

@@ -65,9 +65,11 @@ public final class CheckBoxPreferenceHandler extends PreferenceHandler {
                           @Nullable NlComponent parent,
                           @NotNull NlComponent newChild,
                           @NotNull InsertType type) {
-    super.onCreate(editor, parent, newChild, type);
-    newChild.setAndroidAttribute(ATTR_KEY, generateKey(newChild, CHECK_BOX_PREFERENCE, "check_box_preference_"));
+    if (!super.onCreate(editor, parent, newChild, type)) {
+      return false;
+    }
 
+    newChild.setAndroidAttribute(ATTR_KEY, generateKey(newChild, CHECK_BOX_PREFERENCE, "check_box_preference_"));
     return true;
   }
 }
