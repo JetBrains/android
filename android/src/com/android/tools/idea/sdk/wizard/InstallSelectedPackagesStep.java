@@ -84,6 +84,7 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
 
   private List<UpdatablePackage> myInstallRequests;
   private Collection<LocalPackage> myUninstallRequests;
+
   // Ok to keep a reference, since the wizard is short-lived and modal.
   private final RepoManager myRepoManager;
   private final AndroidSdkHandler mySdkHandler;
@@ -312,7 +313,7 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
     private PackageOperation getOrCreateUninstaller(@NotNull RepoPackage p) {
       // If there's already an uninstaller in progress for this package, reuse it.
       PackageOperation op = myRepoManager.getInProgressInstallOperation(p);
-      if (op == null || !(op instanceof Uninstaller)) {
+      if (op == null || !(op instanceof Uninstaller) || op.getInstallStatus() == PackageOperation.InstallStatus.FAILED) {
         InstallerFactory installerFactory = StudioSdkInstallerUtil.createInstallerFactory(p, mySdkHandler);
         op = installerFactory.createUninstaller((LocalPackage)p, myRepoManager, mySdkHandler.getFileOp());
       }
@@ -360,9 +361,11 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
             String message;
             if (packages.size() == 1) {
               RepoPackage pack = packages.iterator().next();
+              PackageOperation op = myRepoManager.getInProgressInstallOperation(pack);
+              // op shouldn't be null. But just in case, we assume it's an install.
+              String opName = op == null ? "Install" : op.getName();
               message = String.format("%1$sation of '%2$s' is ready to continue<br/><a href=\"install\">%1$s Now</a>",
-                                      pack instanceof RemotePackage ? "Install" : "Uninstall",
-                                      pack.getDisplayName());
+                                      opName, pack.getDisplayName());
             }
             else {
               message = packages.size() + " packages are ready to install or uninstall<br/><a href=\"install\">Continue</a>";

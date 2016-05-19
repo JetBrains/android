@@ -26,9 +26,8 @@ import java.net.URI;
 import java.nio.file.FileSystem;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -55,7 +54,7 @@ public class PatchGenerator {
 
     Runner.initLogger();
     progress.logInfo("Generating patch...");
-    final List<String> srcFiles = new ArrayList<>();
+    final Set<String> srcFiles = new HashSet<>();
     try {
       Files.walkFileTree(srcRoot.toPath(), new SimpleFileVisitor<Path>() {
         @Override
@@ -70,6 +69,26 @@ public class PatchGenerator {
       progress.logWarning("Failed to read unzipped files!", e);
       return false;
     }
+    final List<String> deleteFiles = new ArrayList<>();
+    if (existingRoot != null) {
+      try {
+        Files.walkFileTree(existingRoot.toPath(), new SimpleFileVisitor<Path>() {
+          @Override
+          public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+            String relativePath = existingRoot.toPath().relativize(file).toString();
+            String path = relativePath.replace(srcRoot.separatorChar, '/');
+            if (!srcFiles.contains(path)) {
+              deleteFiles.add(path);
+            }
+            return FileVisitResult.CONTINUE;
+          }
+        });
+      }
+      catch (IOException e) {
+        progress.logWarning("Failed to read existing files!", e);
+        return false;
+      }
+    }
 
     PatchSpec spec = new PatchSpec()
       .setOldVersionDescription(oldDescription)
@@ -79,12 +98,17 @@ public class PatchGenerator {
       .setOldFolder(existingRoot == null ? "" : existingRoot.getAbsolutePath())
       .setNewFolder(srcRoot.getAbsolutePath())
       .setStrict(true)
-      .setCriticalFiles(srcFiles)
+      .setCriticalFiles(new ArrayList<>(srcFiles))
+      .setDeleteFiles(deleteFiles)
       .setHashAlgorithm("md5");
     ProgressUI ui = new ProgressUI(progress);
     File patchZip = new File(outputJar.getParent(), "patch-file.zip");
     try {
       Patch patchInfo = new Patch(spec, ui);
+      if (!patchZip.getParentFile().exists()) {
+        patchZip.getParentFile().mkdirs();
+      }
+      patchZip.createNewFile();
       PatchFileCreator.create(spec, patchZip, ui);
 
       // The expected format is for the patch to be inside the package zip.
