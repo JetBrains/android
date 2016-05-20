@@ -38,10 +38,6 @@ public final class AtomsPath extends Path {
     return new AtomPath().setAtoms(this).setIndex(i);
   }
 
-  public AtomRangePath range(long i, long count) {
-    return new AtomRangePath().setAtoms(this).setFirst(i).setCount(count);
-  }
-
   //<<<Start:Java.ClassBody:1>>>
   private CapturePath myCapture;
 

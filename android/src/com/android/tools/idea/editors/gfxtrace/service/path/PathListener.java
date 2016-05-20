@@ -49,15 +49,8 @@ public interface PathListener {
       return findPathOfType(CapturePath.class);
     }
 
-    public AtomRangePath findAtomPath() {
-      AtomRangePath result = findPathOfType(AtomRangePath.class);
-      if (result == null) {
-        AtomPath singleAtomPath = findPathOfType(AtomPath.class);
-        if (singleAtomPath != null) {
-          result = new AtomRangePath().setAtoms(singleAtomPath.getAtoms()).setFirst(singleAtomPath.getIndex()).setCount(1);
-        }
-      }
-      return result;
+    public AtomPath findAtomPath() {
+      return findPathOfType(AtomPath.class);
     }
 
     public MemoryRangePath findMemoryPath() {
