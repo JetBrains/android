@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.gradle.structure;
 
-import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
-import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
