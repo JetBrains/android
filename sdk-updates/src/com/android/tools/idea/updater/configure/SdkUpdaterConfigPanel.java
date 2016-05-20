@@ -497,16 +497,12 @@ public class SdkUpdaterConfigPanel {
 
   private void loadPackages(RepositoryPackages packages) {
     Multimap<AndroidVersion, UpdatablePackage> platformPackages = TreeMultimap.create();
-    Set<UpdatablePackage> buildToolsPackages = Sets.newTreeSet();
     Set<UpdatablePackage> toolsPackages = Sets.newTreeSet();
     for (UpdatablePackage info : packages.getConsolidatedPkgs().values()) {
       RepoPackage p = info.getRepresentative();
       TypeDetails details = p.getTypeDetails();
       if (details instanceof DetailsTypes.ApiDetailsType) {
         platformPackages.put(DetailsTypes.getAndroidVersion((DetailsTypes.ApiDetailsType)details), info);
-      }
-      else if (p.getPath().startsWith(SdkConstants.FD_BUILD_TOOLS)) {
-        buildToolsPackages.add(info);
       }
       else {
         toolsPackages.add(info);
@@ -515,7 +511,7 @@ public class SdkUpdaterConfigPanel {
     // TODO: when should we show this?
     //myChannelLink.setVisible(myHasPreview && !myIncludePreview);
     myPlatformComponentsPanel.setPackages(platformPackages);
-    myToolComponentsPanel.setPackages(toolsPackages, buildToolsPackages);
+    myToolComponentsPanel.setPackages(toolsPackages);
   }
 
   /**

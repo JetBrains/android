@@ -104,7 +104,7 @@ public class PlatformComponentsPanel {
         RepoPackage pkg = info.getRepresentative();
         NodeStateHolder holder = new NodeStateHolder(info);
         myStates.add(holder);
-        UpdaterTreeNode node = new PlatformDetailsTreeNode(holder, myModificationListener, myConfigurable);
+        UpdaterTreeNode node = new DetailsTreeNode(holder, myModificationListener, myConfigurable);
         marker.add(node);
         versionNodes.add(node);
         if (pkg.obsolete() && pkg.getTypeDetails() instanceof DetailsTypes.PlatformDetailsType) {

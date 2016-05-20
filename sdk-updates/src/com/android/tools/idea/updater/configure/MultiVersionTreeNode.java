@@ -17,26 +17,23 @@ package com.android.tools.idea.updater.configure;
 
 
 import com.android.repository.api.UpdatablePackage;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.util.Set;
+import java.util.Collection;
 
 /**
- * TreeNode that displays summary information for build tools. It will show as installed if the latest build tools version is installed,
- * updatable if only non-latest versions are installed, or not installed if no versions are installed. Selecting it to be installed will
- * install the most recent version.
+ * TreeNode that displays summary information for packages with multiple versions available. It will show as installed if the latest version
+ * is installed, updatable if only non-latest versions are installed, or not installed if no versions are installed. Selecting it to be
+ * installed will install the most recent version.
  */
-class BuildToolsSummaryTreeNode extends UpdaterTreeNode {
-  PlatformDetailsTreeNode myMaxVersionNode;
-  Set<UpdaterTreeNode> myBuildToolsNodes;
+class MultiVersionTreeNode extends UpdaterTreeNode {
+  private final DetailsTreeNode myMaxVersionNode;
+  private final Collection<DetailsTreeNode> myVersionNodes;
 
-  public BuildToolsSummaryTreeNode(Set<UpdaterTreeNode> buildToolsNodes) {
-    myBuildToolsNodes = buildToolsNodes;
-    for (UpdaterTreeNode node : myBuildToolsNodes) {
-      if (myMaxVersionNode == null || node.compareTo(myMaxVersionNode) > 0) {
-        myMaxVersionNode = (PlatformDetailsTreeNode)node;
-      }
-    }
+  public MultiVersionTreeNode(Collection<DetailsTreeNode> versionNodes) {
+    myVersionNodes = versionNodes;
+    myMaxVersionNode = myVersionNodes.stream().max(UpdaterTreeNode::compareTo).orElse(null);
   }
 
   @Override
@@ -47,7 +44,7 @@ class BuildToolsSummaryTreeNode extends UpdaterTreeNode {
     if (myMaxVersionNode.getInitialState() == NodeStateHolder.SelectedState.INSTALLED) {
       return NodeStateHolder.SelectedState.INSTALLED;
     }
-    for (UpdaterTreeNode node : myBuildToolsNodes) {
+    for (UpdaterTreeNode node : myVersionNodes) {
       if (node.getInitialState() != NodeStateHolder.SelectedState.NOT_INSTALLED) {
         return NodeStateHolder.SelectedState.MIXED;
       }
@@ -63,7 +60,7 @@ class BuildToolsSummaryTreeNode extends UpdaterTreeNode {
     if (myMaxVersionNode.getCurrentState() == NodeStateHolder.SelectedState.INSTALLED) {
       return NodeStateHolder.SelectedState.INSTALLED;
     }
-    for (UpdaterTreeNode node : myBuildToolsNodes) {
+    for (UpdaterTreeNode node : myVersionNodes) {
       if (node.getCurrentState() != NodeStateHolder.SelectedState.NOT_INSTALLED) {
         return NodeStateHolder.SelectedState.MIXED;
       }
@@ -84,7 +81,20 @@ class BuildToolsSummaryTreeNode extends UpdaterTreeNode {
                                 boolean leaf,
                                 int row,
                                 boolean hasFocus) {
-    renderer.getTextRenderer().append("Android SDK Build Tools");
+    renderer.getTextRenderer().append(getDisplayName());
+  }
+
+  @NotNull
+  public String getDisplayName() {
+    String maxName = myMaxVersionNode.getPackage().getDisplayName();
+    int lastSpaceIndex = maxName.lastIndexOf(' ');
+    if (lastSpaceIndex > 0 && lastSpaceIndex < maxName.length() && Character.isDigit(maxName.charAt(lastSpaceIndex + 1))) {
+      // strip off the version number
+      return maxName.substring(0, lastSpaceIndex);
+    }
+    else {
+      return maxName;
+    }
   }
 
   @Override
@@ -110,12 +120,12 @@ class BuildToolsSummaryTreeNode extends UpdaterTreeNode {
   @Override
   protected void setState(NodeStateHolder.SelectedState state) {
     if (state == NodeStateHolder.SelectedState.NOT_INSTALLED) {
-      for (UpdaterTreeNode node : myBuildToolsNodes) {
+      for (UpdaterTreeNode node : myVersionNodes) {
         node.setState(NodeStateHolder.SelectedState.NOT_INSTALLED);
       }
     }
     else {
-      for (UpdaterTreeNode node : myBuildToolsNodes) {
+      for (UpdaterTreeNode node : myVersionNodes) {
         node.resetState();
       }
       if (state == NodeStateHolder.SelectedState.INSTALLED) {
