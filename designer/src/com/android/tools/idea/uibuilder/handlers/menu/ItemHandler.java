@@ -27,8 +27,23 @@ import java.util.List;
 
 import static com.android.SdkConstants.*;
 
-// TODO Items can have children. So this should probably extend ViewGroupHandler.
-public final class ItemHandler extends ViewHandler {
+public final class ItemHandler extends ViewGroupHandler {
+  @Language("XML")
+  @NotNull
+  @Override
+  public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {
+    return new XmlBuilder()
+      .startTag(tagName)
+      .androidAttribute(ATTR_TITLE, "Item")
+      .endTag(tagName)
+      .toString();
+  }
+
+  @Override
+  public boolean acceptsChild(@NotNull NlComponent parent, @NotNull NlComponent newChild) {
+    return newChild.getTagName().equals(TAG_MENU);
+  }
+
   @Override
   public boolean onCreate(@NotNull ViewEditor editor,
                           @Nullable NlComponent parent,
@@ -57,16 +72,5 @@ public final class ItemHandler extends ViewHandler {
       ATTR_VISIBLE,
       ATTR_ENABLED,
       ATTR_CHECKABLE);
-  }
-
-  @Language("XML")
-  @NotNull
-  @Override
-  public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {
-    return new XmlBuilder()
-      .startTag(tagName)
-      .androidAttribute(ATTR_TITLE, "Item")
-      .endTag(tagName)
-      .toString();
   }
 }
