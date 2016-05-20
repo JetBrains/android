@@ -450,8 +450,8 @@ public class EditorFixture {
 
   @NotNull
   public EditorNotificationPanelFixture awaitNotification(@NotNull String text) {
-    // 2016-05-17: Under some circumstances, notifications might flutter and the first found may be replaced before the test tries to click
-    // its hyperlink. If this recurs, see commit 2dfac5d for a possible workaround, but at least leave a TODO to fix the implementation.
+    // TODO: Look if notification panels can be fixed to make that waitForBackgroundTasks unnecessary
+    waitForBackgroundTasks(robot);
     JLabel label = GuiTests.waitUntilShowing(robot, JLabelMatcher.withText(text));
     EditorNotificationPanel notificationPanel = (EditorNotificationPanel)label.getParent().getParent();
     return new EditorNotificationPanelFixture(myFrame, notificationPanel);
