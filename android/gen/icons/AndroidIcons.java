@@ -452,6 +452,7 @@ public class AndroidIcons {
     public static final Icon Lit = load("/icons/gfxtrace/lit.png"); // 16x16
     public static final Icon Flat = load("/icons/gfxtrace/flat.png"); // 16x16
     public static final Icon Normals = load("/icons/gfxtrace/normals.png"); // 16x16
+    public static final Icon Jump = load("/icons/gfxtrace/jump.png"); // 16x16
   }
 
   public static class Assistant {
