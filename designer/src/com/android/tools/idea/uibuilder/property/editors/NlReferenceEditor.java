@@ -36,18 +36,13 @@ import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.editor.ex.util.EmptyEditorHighlighter;
 import com.intellij.openapi.editor.impl.EditorComponentImpl;
 import com.intellij.openapi.editor.markup.TextAttributes;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.FixedSizeButton;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.TextFieldWithAutoCompletion;
 import com.intellij.ui.TextFieldWithAutoCompletionListProvider;
-import com.intellij.ui.UIBundle;
-import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import icons.AndroidIcons;
-import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -59,9 +54,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.Collections;
-import java.util.EnumSet;
 import java.util.List;
-import java.util.Set;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class NlReferenceEditor extends NlBaseComponentEditor implements NlComponentEditor {
@@ -69,37 +63,41 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
   private static final int VERTICAL_SPACING = 2;
   private static final int MIN_TEXT_WIDTH = 50;
 
-  private final NlEditingListener myListener;
   private final boolean myIncludeBrowseButton;
   private final JPanel myPanel;
   private final JLabel myIconLabel;
   private final JSlider mySlider;
   private final TextFieldWithAutoCompletion myTextFieldWithAutoCompletion;
   private final CompletionProvider myCompletionProvider;
-  private final FixedSizeButton myBrowseButton;
+  private final JComponent myBrowsePanel;
 
   private NlProperty myProperty;
   private boolean myPropertyHasSlider;
   private String myLastReadValue;
-  private String myLastWriteValue;
+  private Object myLastWriteValue;
   private boolean myUpdatingProperty;
   private boolean myCompletionsUpdated;
 
-  public static NlReferenceEditor createForTable(@NotNull Project project, @NotNull NlEditingListener listener) {
-    return new NlReferenceEditor(project, listener, true);
+  public static NlTableCellEditor createForTable(@NotNull Project project) {
+    NlTableCellEditor cellEditor = new NlTableCellEditor();
+    cellEditor.init(new NlReferenceEditor(project, cellEditor, cellEditor, true));
+    return cellEditor;
   }
 
   public static NlReferenceEditor createForInspector(@NotNull Project project, @NotNull NlEditingListener listener) {
-    return new NlReferenceEditor(project, listener, false);
+    return new NlReferenceEditor(project, listener, null, false);
   }
 
   public static NlReferenceEditor createForInspectorWithBrowseButton(@NotNull Project project, @NotNull NlEditingListener listener) {
-    return new NlReferenceEditor(project, listener, true);
+    return new NlReferenceEditor(project, listener, null, true);
   }
 
-  private NlReferenceEditor(@NotNull Project project, @NotNull NlEditingListener listener, boolean includeBrowseButton) {
+  private NlReferenceEditor(@NotNull Project project,
+                            @NotNull NlEditingListener listener,
+                            @Nullable BrowsePanel.Context context,
+                            boolean includeBrowseButton) {
+    super(listener);
     myIncludeBrowseButton = includeBrowseButton;
-    myListener = listener;
     myPanel = new JPanel(new BorderLayout(SystemInfo.isMac ? 0 : 2, 0));
 
     myIconLabel = new JBLabel();
@@ -124,21 +122,17 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
       BorderFactory.createEmptyBorder(VERTICAL_SPACING, HORIZONTAL_SPACING, VERTICAL_SPACING, HORIZONTAL_SPACING));
     myPanel.add(myTextFieldWithAutoCompletion, BorderLayout.CENTER);
 
-    myBrowseButton = new FixedSizeButton(new JBCheckBox());
-    myBrowseButton.setToolTipText(UIBundle.message("component.with.browse.button.browse.button.tooltip.text"));
-    JPanel browsePanel = new JPanel();
-    browsePanel.setLayout(new BoxLayout(browsePanel, BoxLayout.X_AXIS));
-    browsePanel.add(myBrowseButton);
-    myPanel.add(browsePanel, BorderLayout.LINE_END);
+    boolean showDesignButton = context != null;
+    if (!showDesignButton) {
+      context = this;
+    }
+    myBrowsePanel = new BrowsePanel(context, showDesignButton);
+    myPanel.add(myBrowsePanel, BorderLayout.LINE_END);
 
     myPanel.addComponentListener(new ComponentAdapter() {
       @Override
       public void componentResized(ComponentEvent event) {
-        if (!myPropertyHasSlider) {
-          return;
-        }
-        int widthForEditor = myPanel.getWidth() - 2 * HORIZONTAL_SPACING - mySlider.getPreferredSize().width - myBrowseButton.getWidth();
-        mySlider.setVisible(widthForEditor >= MIN_TEXT_WIDTH);
+        updateSliderVisibility();
       }
     });
 
@@ -164,8 +158,6 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
         stopEditing(getText());
       }
     });
-
-    myBrowseButton.addActionListener(event -> displayResourcePicker());
   }
 
   @NotNull
@@ -189,7 +181,7 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
   @Override
   public void setEnabled(boolean enabled) {
     myTextFieldWithAutoCompletion.setEnabled(enabled);
-    myBrowseButton.setVisible(enabled && myIncludeBrowseButton);
+    myBrowsePanel.setVisible(enabled && myIncludeBrowseButton);
   }
 
   @Override
@@ -203,7 +195,7 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
       myProperty = property;
       myLastReadValue = null;
 
-      myBrowseButton.setVisible(myIncludeBrowseButton && hasResourceChooser(myProperty));
+      myBrowsePanel.setVisible(myIncludeBrowseButton && BrowsePanel.hasResourceChooser(myProperty));
       myCompletionsUpdated = false;
     }
 
@@ -233,6 +225,14 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
     }
     finally {
       myUpdatingProperty = false;
+    }
+  }
+
+  private void updateSliderVisibility() {
+    if (myPropertyHasSlider) {
+      int widthForEditor =
+        myPanel.getWidth() - 2 * HORIZONTAL_SPACING - mySlider.getPreferredSize().width - myBrowsePanel.getPreferredSize().width;
+      mySlider.setVisible(widthForEditor >= MIN_TEXT_WIDTH);
     }
   }
 
@@ -337,51 +337,19 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
     return myPanel;
   }
 
+  @NotNull
+  @Override
   public Object getValue() {
     return getText();
   }
 
-  private void cancelEditing() {
-    myListener.cancelEditing(this);
-  }
-
-  private void stopEditing(@NotNull String newValue) {
-    if (!newValue.equals(myLastWriteValue)) {
+  @Override
+  protected void stopEditing(@Nullable Object newValue) {
+    if (!Objects.equals(newValue, myLastWriteValue)) {
       myLastWriteValue = newValue;
       myLastReadValue = null;
-      myListener.stopEditing(this, newValue);
-      refresh();
+      super.stopEditing(newValue);
     }
-  }
-
-  private void displayResourcePicker() {
-    ChooseResourceDialog dialog = showResourceChooser(myProperty);
-    if (dialog.showAndGet()) {
-      String newValue = dialog.getResourceName();
-      myTextFieldWithAutoCompletion.setText(StringUtil.notNullize(newValue));
-      stopEditing(newValue);
-    } else {
-      cancelEditing();
-    }
-  }
-
-  public static boolean hasResourceChooser(@NotNull NlProperty p) {
-    return getResourceTypes(p.getDefinition()).length > 0;
-  }
-
-  public static ChooseResourceDialog showResourceChooser(@NotNull NlProperty p) {
-    Module m = p.getModel().getModule();
-    AttributeDefinition definition = p.getDefinition();
-    ResourceType[] types = getResourceTypes(definition);
-    return new ChooseResourceDialog(m, types, p.getValue(), p.getTag());
-  }
-
-  @NotNull
-  private static ResourceType[] getResourceTypes(@Nullable AttributeDefinition definition) {
-    Set<AttributeFormat> formats = definition != null ? definition.getFormats() : EnumSet.allOf(AttributeFormat.class);
-    // for some special known properties, we can narrow down the possible types (rather than the all encompassing reference type)
-    ResourceType type = definition != null ? AndroidDomUtil.SPECIAL_RESOURCE_TYPES.get(definition.getName()) : null;
-    return type == null ? AttributeFormat.convertTypes(formats) : new ResourceType[]{type};
   }
 
   private static class TextEditor extends TextFieldWithAutoCompletion<String> {
@@ -459,7 +427,7 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
         return;
       }
 
-      ResourceType[] types = getResourceTypes(definition);
+      ResourceType[] types = BrowsePanel.getResourceTypes(definition);
       List<String> items = Lists.newArrayList();
 
       AndroidFacet facet = p.getModel().getFacet();

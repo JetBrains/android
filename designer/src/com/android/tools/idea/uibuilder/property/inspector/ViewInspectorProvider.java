@@ -128,6 +128,7 @@ public class ViewInspectorProvider implements InspectorProvider {
 
     @Override
     public void attachToInspector(@NotNull InspectorPanel inspector) {
+      refresh();
       inspector.addTitle(myComponentName);
       for (String propertyName : myPropertyNames) {
         if (myProperties.containsKey(propertyName)) {
@@ -138,7 +139,6 @@ public class ViewInspectorProvider implements InspectorProvider {
           }
         }
       }
-      refresh();
     }
 
     @Override

@@ -32,6 +32,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowFocusListener;
 
+import static com.android.tools.idea.uibuilder.property.editors.NlEditingListener.DEFAULT_LISTENER;
+
 /**
  * The {@link NlFlagsEditor} is used to edit a {@link NlFlagPropertyItem} by displaying
  * a popup with a list of choices.
@@ -48,6 +50,7 @@ public class NlFlagsEditor extends NlBaseComponentEditor implements NlComponentE
   }
 
   private NlFlagsEditor() {
+    super(DEFAULT_LISTENER);
     FixedSizeButton browseButton = new FixedSizeButton(new JBCheckBox());
     browseButton.setToolTipText(UIBundle.message("component.with.browse.button.browse.button.tooltip.text"));
     myValue = new JTextField();
@@ -131,7 +134,7 @@ public class NlFlagsEditor extends NlBaseComponentEditor implements NlComponentE
       AttributeDefinition definition = myProperty.getDefinition();
       assert definition != null;
       for (String item : definition.getValues()) {
-        NlFlagEditor editor = NlFlagEditor.createForInspector(NlEditingListener.DEFAULT_LISTENER);
+        NlFlagEditor editor = NlFlagEditor.createForInspector(DEFAULT_LISTENER);
         editor.setProperty(myProperty.getChildProperty(item));
         panel.add(editor.getComponent());
       }

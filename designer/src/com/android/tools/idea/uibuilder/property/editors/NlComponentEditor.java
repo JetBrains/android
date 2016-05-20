@@ -29,6 +29,11 @@ public interface NlComponentEditor {
   @NotNull
   JComponent getComponent();
 
+  @Nullable
+  Object getValue();
+
+  void activate();
+
   void setEnabled(boolean enabled);
 
   void setVisible(boolean visible);

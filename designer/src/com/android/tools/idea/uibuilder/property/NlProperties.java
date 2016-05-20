@@ -129,6 +129,8 @@ public class NlProperties {
     combinedProperties.remove(AUTO_URI, ATTR_PADDING_END);
     combinedProperties.remove(AUTO_URI, ATTR_THEME);
 
+    setUpDesignProperties(combinedProperties);
+
     //noinspection ConstantConditions
     return combinedProperties;
   }
@@ -164,5 +166,19 @@ public class NlProperties {
     // Never include the ID attribute when looking at multiple components:
     combinedProperties.remove(ANDROID_URI, ATTR_ID);
     return combinedProperties;
+  }
+
+  private static void setUpDesignProperties(Table<String, String, NlPropertyItem> properties) {
+    List<String> designProperties = new ArrayList<>(properties.row(TOOLS_URI).keySet());
+    for (String propertyName : designProperties) {
+      NlPropertyItem item = properties.get(AUTO_URI, propertyName);
+      if (item == null) {
+        item = properties.get(ANDROID_URI, propertyName);
+      }
+      if (item != null) {
+        NlPropertyItem designItem = item.getDesignTimeProperty();
+        properties.put(TOOLS_URI, propertyName, designItem);
+      }
+    }
   }
 }

@@ -15,17 +15,21 @@
  */
 package com.android.tools.idea.uibuilder.property.ptable.renderers;
 
+import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.android.tools.idea.uibuilder.property.ptable.PTable;
 import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
 import com.intellij.ide.ui.search.SearchUtil;
 import com.intellij.ui.ColoredTableCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.ui.UIUtil;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.table.TableCellRenderer;
 import java.awt.*;
+
+import static com.android.SdkConstants.TOOLS_URI;
 
 public class PNameRenderer implements TableCellRenderer {
   private final ColoredTableCellRenderer myRenderer = new Renderer();
@@ -67,8 +71,18 @@ public class PNameRenderer implements TableCellRenderer {
   private static class Renderer extends ColoredTableCellRenderer {
     @Override
     protected void customizeCellRenderer(JTable table, Object value, boolean selected, boolean hasFocus, int row, int column) {
+      setIcon(value);
       setPaintFocusBorder(false);
       setFocusBorderAroundIcon(true);
+    }
+
+    private void setIcon(Object value) {
+      if (value instanceof NlPropertyItem) {
+        NlPropertyItem item = (NlPropertyItem)value;
+        if (TOOLS_URI.equals(item.getNamespace())) {
+          setIcon(AndroidIcons.NeleIcons.DesignProperty);
+        }
+      }
     }
   }
 
@@ -95,6 +109,7 @@ public class PNameRenderer implements TableCellRenderer {
     while (item.getParent() != null) {
       result++;
       item = item.getParent();
+      assert item != null;
     }
     return result;
   }
