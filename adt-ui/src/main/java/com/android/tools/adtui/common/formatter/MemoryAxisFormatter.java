@@ -15,8 +15,8 @@
  */
 package com.android.tools.adtui.common.formatter;
 
-import com.android.annotations.NonNull;
 import gnu.trove.TIntArrayList;
+import org.jetbrains.annotations.NotNull;
 
 public final class MemoryAxisFormatter extends BaseAxisFormatter {
 
@@ -38,7 +38,7 @@ public final class MemoryAxisFormatter extends BaseAxisFormatter {
   }
 
   @Override
-  @NonNull
+  @NotNull
   protected String getUnit(int index) {
     return UNITS[index];
   }
@@ -59,7 +59,7 @@ public final class MemoryAxisFormatter extends BaseAxisFormatter {
   }
 
   @Override
-  @NonNull
+  @NotNull
   protected TIntArrayList getUnitBaseFactors(int index) {
     return BASE_FACTORS;
   }

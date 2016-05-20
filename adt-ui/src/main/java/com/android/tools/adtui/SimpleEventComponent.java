@@ -16,10 +16,10 @@
 
 package com.android.tools.adtui;
 
-import com.android.annotations.NonNull;
 import com.android.tools.adtui.model.EventAction;
 import com.android.tools.adtui.model.EventRenderData;
 import com.android.tools.adtui.model.RangedSimpleSeries;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
@@ -47,30 +47,30 @@ public class SimpleEventComponent<E extends Enum<E>> extends AnimatedComponent {
 
   private static final int HOLD_DELAY_MS = 150;
 
-  @NonNull
+  @NotNull
   private final RangedSimpleSeries<EventAction<Action, E>> mData;
 
-  @NonNull
+  @NotNull
   private final BufferedImage[] mIcons;
 
-  @NonNull
+  @NotNull
   private final ArrayList<Shape> mPaths;
 
-  @NonNull
+  @NotNull
   private final ArrayList<EventRenderData> mIconsToDraw;
 
-  @NonNull
+  @NotNull
   private final int mImageWidth;
 
-  @NonNull
+  @NotNull
   private final int mImageHeight;
 
   /**
    * Component that renders EventActions as a series of icons.
    */
   public SimpleEventComponent(
-    @NonNull RangedSimpleSeries<EventAction<Action, E>> data,
-    @NonNull BufferedImage[] icons) {
+    @NotNull RangedSimpleSeries<EventAction<Action, E>> data,
+    @NotNull BufferedImage[] icons) {
     mData = data;
     mIcons = icons;
     mPaths = new ArrayList<Shape>();

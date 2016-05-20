@@ -15,7 +15,7 @@
  */
 package com.android.tools.adtui.model;
 
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This class holds event information that is to be used by the event monitor components for
@@ -29,37 +29,37 @@ import com.android.annotations.NonNull;
 
 public class EventAction<T0, T1> {
 
-  @NonNull
+  @NotNull
   private final T0 mValue;
-  @NonNull
+  @NotNull
   private final T1 mValueData;
-  @NonNull
+  @NotNull
   private final long mStart;
-  @NonNull
+  @NotNull
   private final long mEnd;
 
-  @NonNull
+  @NotNull
   public T0 getValue() {
     return mValue;
   }
 
-  @NonNull
+  @NotNull
   public T1 getValueData() {
     return mValueData;
   }
 
-  @NonNull
+  @NotNull
   public long getStart() {
     return mStart;
   }
 
-  @NonNull
+  @NotNull
   public long getEnd() {
     return mEnd;
   }
 
-  public EventAction(@NonNull long start, @NonNull long end, @NonNull T0 value,
-                     @NonNull T1 valueData) {
+  public EventAction(@NotNull long start, @NotNull long end, @NotNull T0 value,
+                     @NotNull T1 valueData) {
     this.mValue = value;
     this.mStart = start;
     this.mEnd = end;

@@ -1,6 +1,5 @@
 package com.android.tools.adtui.segment;
 
-import com.android.annotations.NonNull;
 import com.android.tools.adtui.AccordionLayout;
 import com.android.tools.adtui.Animatable;
 import com.android.tools.adtui.AnimatedComponent;
@@ -8,6 +7,7 @@ import com.android.tools.adtui.Range;
 import com.android.tools.adtui.common.AdtUIUtils;
 import com.android.tools.adtui.common.RotatedLabel;
 import com.intellij.ui.components.JBPanel;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.border.CompoundBorder;
@@ -53,10 +53,10 @@ public abstract class BaseSegment extends JComponent {
 
   private JPanel mRightPanel;
 
-  @NonNull
+  @NotNull
   protected final String myName;
 
-  @NonNull
+  @NotNull
   protected Range mScopedRange;
 
   /**
@@ -76,7 +76,7 @@ public abstract class BaseSegment extends JComponent {
     return TEXT_FIELD_WIDTH;
   }
 
-  public BaseSegment(@NonNull String name, @NonNull Range scopedRange) {
+  public BaseSegment(@NotNull String name, @NotNull Range scopedRange) {
     myName = name;
     mScopedRange = scopedRange;
     mDelayedEvents = new ArrayDeque<>();
@@ -146,16 +146,16 @@ public abstract class BaseSegment extends JComponent {
     mRightPanel.setVisible(isVisible);
   }
 
-  public abstract void createComponentsList(@NonNull List<Animatable> animatables);
+  public abstract void createComponentsList(@NotNull List<Animatable> animatables);
 
-  protected abstract void setLeftContent(@NonNull JPanel panel);
+  protected abstract void setLeftContent(@NotNull JPanel panel);
 
-  protected abstract void setCenterContent(@NonNull JPanel panel);
+  protected abstract void setCenterContent(@NotNull JPanel panel);
 
-  protected abstract void setRightContent(@NonNull JPanel panel);
+  protected abstract void setRightContent(@NotNull JPanel panel);
 
   //TODO Refactor out of BaseSegment as this is a VisualTest specific function.
-  protected abstract void registerComponents(@NonNull List<AnimatedComponent> components);
+  protected abstract void registerComponents(@NotNull List<AnimatedComponent> components);
 
   private void initializeListeners() {
     // Add mouse listener to support expand/collapse when user double-clicks on the Segment.

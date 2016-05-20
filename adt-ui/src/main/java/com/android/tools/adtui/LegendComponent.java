@@ -16,12 +16,12 @@
 
 package com.android.tools.adtui;
 
-import com.android.annotations.NonNull;
 import com.android.tools.adtui.common.AdtUIUtils;
 import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.model.LegendRenderData;
 import com.android.tools.adtui.model.ReportingSeries;
 import com.intellij.ui.components.JBLabel;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -43,19 +43,19 @@ public class LegendComponent extends AnimatedComponent {
   private static final int ICON_PADDING = 2;
   private static final int LABEL_PADDING = 8;
 
-  @NonNull
+  @NotNull
   private BaseAxisFormatter mAxisFormatter;
 
-  @NonNull
+  @NotNull
   private int mFrequencyMillis;
 
-  @NonNull
+  @NotNull
   private List<JLabel> mLabelsToDraw;
 
-  @NonNull
+  @NotNull
   private long mLastUpdate;
 
-  @NonNull
+  @NotNull
   private List<LegendRenderData> mLegendRenderDatas;
 
   private Orientation mOrientation;

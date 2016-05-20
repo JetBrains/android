@@ -15,10 +15,10 @@
  */
 package com.android.tools.adtui;
 
-import com.android.annotations.NonNull;
 import com.android.tools.adtui.common.AdtUIUtils;
 import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
 import gnu.trove.TFloatArrayList;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.geom.Line2D;
@@ -52,31 +52,31 @@ public final class AxisComponent extends AnimatedComponent {
   /**
    * The Range object that drives this axis.
    */
-  @NonNull
+  @NotNull
   private final Range mRange;
 
   /**
    * The Global range object.
    */
-  @NonNull
+  @NotNull
   private final Range mGlobalRange;
 
   /**
    * Name of the axis.
    */
-  @NonNull
+  @NotNull
   private final String mLabel;
 
   /**
    * The font metrics of the tick labels.
    */
-  @NonNull
+  @NotNull
   private final FontMetrics mMetrics;
 
   /**
    * Orientation of the axis.
    */
-  @NonNull
+  @NotNull
   private final AxisOrientation mOrientation;
 
   /**
@@ -97,7 +97,7 @@ public final class AxisComponent extends AnimatedComponent {
   /**
    * Axis formatter.
    */
-  @NonNull
+  @NotNull
   private final BaseAxisFormatter mFormatter;
 
   /**
@@ -160,9 +160,9 @@ public final class AxisComponent extends AnimatedComponent {
    * @param showMinMax  If true, min/max values are shown on the axis.
    * @param domain      Domain used for formatting the tick markers.
    */
-  public AxisComponent(@NonNull Range range, @NonNull Range globalRange,
-                       @NonNull String label, @NonNull AxisOrientation orientation,
-                       int startMargin, int endMargin, boolean showMinMax, @NonNull BaseAxisFormatter formatter) {
+  public AxisComponent(@NotNull Range range, @NotNull Range globalRange,
+                       @NotNull String label, @NotNull AxisOrientation orientation,
+                       int startMargin, int endMargin, boolean showMinMax, @NotNull BaseAxisFormatter formatter) {
     mRange = range;
     mGlobalRange = globalRange;
     mLabel = label;
@@ -189,12 +189,12 @@ public final class AxisComponent extends AnimatedComponent {
     mParentAxis = parent;
   }
 
-  @NonNull
+  @NotNull
   public AxisOrientation getOrientation() {
     return mOrientation;
   }
 
-  @NonNull
+  @NotNull
   public TFloatArrayList getMajorMarkerPositions() {
     return mMajorMarkerPositions;
   }
@@ -248,7 +248,7 @@ public final class AxisComponent extends AnimatedComponent {
    *
    * e.g. For a value of 1500 in milliseconds, this will return "1.5s".
    */
-  @NonNull
+  @NotNull
   public String getFormattedValueAtPosition(int position) {
     return mFormatter.getFormattedString(mGlobalRange.getLength(), getValueAtPosition(position));
   }

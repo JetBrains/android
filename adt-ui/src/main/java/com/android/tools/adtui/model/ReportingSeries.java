@@ -16,8 +16,6 @@
 
 package com.android.tools.adtui.model;
 
-import com.android.annotations.NonNull;
-
 import java.util.Collection;
 
 /**

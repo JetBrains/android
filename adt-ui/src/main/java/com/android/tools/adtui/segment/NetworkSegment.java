@@ -1,8 +1,7 @@
 package com.android.tools.adtui.segment;
 
-import com.android.tools.adtui.*;
+import com.android.tools.adtui.Range;
 import com.android.tools.adtui.chart.linechart.LineChart;
-import com.android.tools.adtui.common.AdtUIUtils;
 import com.android.tools.adtui.common.formatter.MemoryAxisFormatter;
 import com.android.tools.adtui.model.*;
 import org.jetbrains.annotations.NotNull;

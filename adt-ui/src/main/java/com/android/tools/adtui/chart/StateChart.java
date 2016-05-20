@@ -16,11 +16,11 @@
 
 package com.android.tools.adtui.chart;
 
-import com.android.annotations.NonNull;
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.model.RangedDiscreteSeries;
 import com.android.tools.adtui.model.StateChartData;
 import gnu.trove.TIntArrayList;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -35,10 +35,10 @@ import java.util.ArrayList;
  */
 public class StateChart extends AnimatedComponent {
 
-  @NonNull
+  @NotNull
   private final StateChartData mData;
 
-  @NonNull
+  @NotNull
   private final Color[] mColors;
 
   private float mArcWidth;
@@ -47,13 +47,13 @@ public class StateChart extends AnimatedComponent {
 
   private float mHeightGap;
 
-  @NonNull
+  @NotNull
   private final ArrayList<RoundRectangle2D.Float> mPaths;
 
-  @NonNull
+  @NotNull
   private final TIntArrayList mValues;
 
-  @NonNull
+  @NotNull
   private Point mMousePosition;
 
   private boolean mHovered;
@@ -64,7 +64,7 @@ public class StateChart extends AnimatedComponent {
    *               need a better solution than passing in a Color array, as that has no
    *               correlation to the enum types used by the data.
    */
-  public StateChart(@NonNull StateChartData data, @NonNull Color[] colors) {
+  public StateChart(@NotNull StateChartData data, @NotNull Color[] colors) {
     mData = data;
     mColors = colors;
     mPaths = new ArrayList<>();

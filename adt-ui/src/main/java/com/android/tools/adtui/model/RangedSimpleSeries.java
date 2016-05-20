@@ -16,8 +16,8 @@
 
 package com.android.tools.adtui.model;
 
-import com.android.annotations.NonNull;
 import com.android.tools.adtui.Range;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 
@@ -26,10 +26,10 @@ import java.util.ArrayList;
  */
 public class RangedSimpleSeries<T> {
 
-  @NonNull
+  @NotNull
   private final Range myRange;
 
-  @NonNull
+  @NotNull
   private final ArrayList<T> mSeries;
 
   public RangedSimpleSeries(Range range) {
@@ -37,12 +37,12 @@ public class RangedSimpleSeries<T> {
     mSeries = new ArrayList<T>();
   }
 
-  @NonNull
+  @NotNull
   public ArrayList<T> getSeries() {
     return mSeries;
   }
 
-  @NonNull
+  @NotNull
   public Range getRange() {
     return myRange;
   }

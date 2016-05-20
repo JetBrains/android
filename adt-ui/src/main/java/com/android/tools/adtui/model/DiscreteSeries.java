@@ -16,9 +16,9 @@
 
 package com.android.tools.adtui.model;
 
-import com.android.annotations.NonNull;
 import gnu.trove.TIntArrayList;
 import gnu.trove.TLongArrayList;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A data series representing changes in an Enum state over time.
@@ -36,16 +36,16 @@ public class DiscreteSeries<E extends Enum<E>> {
 
   private int mLastValue = -1;
 
-  @NonNull
+  @NotNull
   private final TLongArrayList mX = new TLongArrayList();
 
-  @NonNull
+  @NotNull
   private final TIntArrayList mY = new TIntArrayList();
 
-  @NonNull
+  @NotNull
   private final E[] mEnumValues;
 
-  public DiscreteSeries(@NonNull Class<E> enumClass) {
+  public DiscreteSeries(@NotNull Class<E> enumClass) {
     mEnumValues = enumClass.getEnumConstants();
   }
 

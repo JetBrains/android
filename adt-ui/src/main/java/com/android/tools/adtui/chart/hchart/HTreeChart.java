@@ -16,11 +16,11 @@
 
 package com.android.tools.adtui.chart.hchart;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.Range;
 import com.android.tools.adtui.common.AdtUIUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.awt.event.MouseWheelEvent;
@@ -37,16 +37,16 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
   @Nullable
   private HRenderer<T> mHRenderer;
 
-  @NonNull
+  @NotNull
   private HNode<T> mRoot;
 
   @Nullable
   private Range mXRange;
 
-  @NonNull
+  @NotNull
   private Range mYRange;
 
-  @NonNull
+  @NotNull
   private Rectangle2D.Float mRect;
 
   private static final String NO_HTREE = "No HTree selected.";

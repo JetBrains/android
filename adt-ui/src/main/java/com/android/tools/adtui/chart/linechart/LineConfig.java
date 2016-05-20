@@ -16,8 +16,8 @@
 
 package com.android.tools.adtui.chart.linechart;
 
-import com.android.annotations.NonNull;
 import com.intellij.ui.JBColor;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 
@@ -63,10 +63,10 @@ public class LineConfig {
    */
   private boolean mIsStacked = false;
 
-  @NonNull
+  @NotNull
   private Color mColor;
 
-  public LineConfig(@NonNull Color color) {
+  public LineConfig(@NotNull Color color) {
     mColor = color;
   }
 
@@ -102,12 +102,12 @@ public class LineConfig {
     return mIsStacked;
   }
 
-  @NonNull
+  @NotNull
   public Color getColor() {
     return mColor;
   }
 
-  public void setColor(@NonNull Color color) {
+  public void setColor(@NotNull Color color) {
     mColor = color;
   }
 }

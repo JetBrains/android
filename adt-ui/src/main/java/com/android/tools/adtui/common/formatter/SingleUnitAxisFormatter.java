@@ -15,8 +15,8 @@
  */
 package com.android.tools.adtui.common.formatter;
 
-import com.android.annotations.NonNull;
 import gnu.trove.TIntArrayList;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Axis domain to be used by axis components with only one unit.
@@ -58,12 +58,12 @@ public class SingleUnitAxisFormatter extends BaseAxisFormatter {
   }
 
   @Override
-  @NonNull
+  @NotNull
   protected TIntArrayList getUnitBaseFactors(int index) {
     return BASE_FACTORS;
   }
 
-  @NonNull
+  @NotNull
   @Override
   protected String getUnit(int index) {
     return mUnit;
@@ -74,7 +74,7 @@ public class SingleUnitAxisFormatter extends BaseAxisFormatter {
     return mUnitMinimalInterval;
   }
 
-  @NonNull
+  @NotNull
   @Override
   public String getFormattedString(double globalRange, double value) {
     return String.format("%d%s", Math.round(value / getMultiplier()), mUnit);

@@ -16,7 +16,6 @@
 
 package com.android.tools.adtui.chart.linechart;
 
-import com.android.annotations.NonNull;
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.Range;
 import com.android.tools.adtui.common.AdtUIUtils;
@@ -25,6 +24,7 @@ import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.ReportingSeries;
 import com.android.tools.adtui.model.ReportingSeriesRenderer;
 import gnu.trove.TLongHashSet;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
@@ -60,13 +60,13 @@ public class LineChart extends AnimatedComponent implements ReportingSeriesRende
    * Maps the series to their correspondent visual line configuration.
    * The keys insertion order is preserved.
    */
-  @NonNull
+  @NotNull
   private final Map<RangedContinuousSeries, LineConfig> mLinesConfig = new LinkedHashMap<>();
 
-  @NonNull
+  @NotNull
   private final ArrayList<Path2D.Float> mPaths;
 
-  @NonNull
+  @NotNull
   private final ArrayList<Point2D.Float> mMarkerPositions;
 
   /**
@@ -77,7 +77,7 @@ public class LineChart extends AnimatedComponent implements ReportingSeriesRende
 
   private String mName;
 
-  @NonNull
+  @NotNull
   private final TLongHashSet mMarkedData;
 
   public LineChart() {
@@ -86,7 +86,7 @@ public class LineChart extends AnimatedComponent implements ReportingSeriesRende
     mMarkedData = new TLongHashSet();
   }
 
-  public LineChart(@NonNull String name) {
+  public LineChart(@NotNull String name) {
     this();
     mName = name;
   }
@@ -94,7 +94,7 @@ public class LineChart extends AnimatedComponent implements ReportingSeriesRende
   /**
    * Initialize a {@code LineChart} with a list of lines.
    */
-  public LineChart(@NonNull String name, @NonNull List<RangedContinuousSeries> data) {
+  public LineChart(@NotNull String name, @NotNull List<RangedContinuousSeries> data) {
     this(name);
     addLines(data);
   }
@@ -105,7 +105,7 @@ public class LineChart extends AnimatedComponent implements ReportingSeriesRende
    * @param series data of the line to be inserted
    * @param config configuration of the line to be inserted
    */
-  public void addLine(@NonNull RangedContinuousSeries series, @NonNull LineConfig config) {
+  public void addLine(@NotNull RangedContinuousSeries series, @NotNull LineConfig config) {
     mLinesConfig.put(series, config);
   }
 
@@ -114,7 +114,7 @@ public class LineChart extends AnimatedComponent implements ReportingSeriesRende
    *
    * @param series series data of the line to be inserted
    */
-  public void addLine(@NonNull RangedContinuousSeries series) {
+  public void addLine(@NotNull RangedContinuousSeries series) {
     mLinesConfig.put(series, new LineConfig(LineConfig.COLORS[mNextLineColorIndex++]));
     mNextLineColorIndex %= LineConfig.COLORS.length;
   }
@@ -122,11 +122,11 @@ public class LineChart extends AnimatedComponent implements ReportingSeriesRende
   /**
    * Add multiple lines with default configuration.
    */
-  public void addLines(@NonNull List<RangedContinuousSeries> data) {
+  public void addLines(@NotNull List<RangedContinuousSeries> data) {
     data.forEach(this::addLine);
   }
 
-  @NonNull
+  @NotNull
   public LineConfig getLineConfig(RangedContinuousSeries rangedContinuousSeries) {
     return mLinesConfig.get(rangedContinuousSeries);
   }
@@ -142,7 +142,7 @@ public class LineChart extends AnimatedComponent implements ReportingSeriesRende
   }
 
   @Override
-  public Color getReportingSeriesColor(@NonNull ReportingSeries series) {
+  public Color getReportingSeriesColor(@NotNull ReportingSeries series) {
     return mLinesConfig.get(series).getColor();
   }
 

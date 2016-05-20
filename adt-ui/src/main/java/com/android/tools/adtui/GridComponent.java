@@ -15,9 +15,9 @@
  */
 package com.android.tools.adtui;
 
-import com.android.annotations.NonNull;
 import com.android.tools.adtui.common.AdtUIUtils;
 import gnu.trove.TFloatArrayList;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.geom.Line2D;
@@ -30,7 +30,7 @@ import java.util.List;
  */
 public final class GridComponent extends AnimatedComponent {
 
-  @NonNull
+  @NotNull
   private List<AxisComponent> mAxes;
 
   public GridComponent() {
