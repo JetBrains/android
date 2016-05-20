@@ -135,14 +135,14 @@ public class AndroidDbManager extends BasicDbPsiManager<AndroidDataSource> {
   private void removeDataSourceInner(final Project project, final AndroidDataSource dataSource) {
     AndroidDataSourceStorage storage = AndroidDataSourceStorage.getInstance(project);
     storage.removeDataSource(dataSource);
-    getElementsMap().remove(dataSource);
+    detachDataSource(dataSource);
     clearCaches(null);
   }
 
   private void addDataSourceInner(final Project project, final AndroidDataSource dataSource) {
     AndroidDataSourceStorage storage = AndroidDataSourceStorage.getInstance(project);
     storage.addDataSource(dataSource);
-    getElementsMap().put(dataSource, createDataSourceElement(dataSource));
+    attachDataSource(dataSource);
     clearCaches(null);
   }
 
