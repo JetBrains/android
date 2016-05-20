@@ -40,24 +40,20 @@ import static com.android.SdkConstants.FN_BUILD_GRADLE;
  */
 @Deprecated
 public class NewModuleWizard extends TemplateWizard {
-  @Nullable private final VirtualFile myImportSource;
   private final boolean myIsImportOnly;
   protected ImportWizardModuleBuilder myModuleBuilder;
 
-  public static NewModuleWizard createImportModuleWizard(@NotNull Project project,
-                                                         @Nullable VirtualFile importLocation) {
-    return new NewModuleWizard(project, importLocation, true);
+  public static NewModuleWizard createImportModuleWizard(@NotNull Project project) {
+    return new NewModuleWizard(project, true);
   }
 
   public static NewModuleWizard createNewModuleWizard(@NotNull Project project) {
-    return new NewModuleWizard(project, null, false);
+    return new NewModuleWizard(project, false);
   }
 
   private NewModuleWizard(@Nullable Project project,
-                          @Nullable VirtualFile importSource,
                           boolean isImportOnly) {
     super("New Module", project);
-    myImportSource = importSource;
     myIsImportOnly = isImportOnly;
     Window window = getWindow();
     // Allow creation in headless mode for tests
@@ -87,7 +83,7 @@ public class NewModuleWizard extends TemplateWizard {
 
   protected ImportWizardModuleBuilder getModuleBuilder() {
     if (myIsImportOnly) {
-      return new ImportWizardModuleBuilder(null, myProject, myImportSource, AndroidIcons.Wizards.NewModuleSidePanel,
+      return new ImportWizardModuleBuilder(null, myProject, null, AndroidIcons.Wizards.NewModuleSidePanel,
                                            mySteps, getDisposable(), false) {
         @Override
         public void update() {

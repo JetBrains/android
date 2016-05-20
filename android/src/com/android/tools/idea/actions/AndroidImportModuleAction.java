@@ -43,7 +43,7 @@ public class AndroidImportModuleAction extends AnAction implements DumbAware {
    */
   private static void importGradleSubprojectAsModule(@NotNull Project destinationProject)
       throws IOException {
-    NewModuleWizard wizard = NewModuleWizard.createImportModuleWizard(destinationProject, null);
+    NewModuleWizard wizard = NewModuleWizard.createImportModuleWizard(destinationProject);
     if (wizard.showAndGet()) {
       wizard.createModule(true);
     }
