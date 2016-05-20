@@ -67,7 +67,6 @@ public class ImportWizardModuleBuilder extends ModuleBuilder
   @NotNull protected final List<ModuleWizardStep> mySteps;
   @NotNull protected final Iterable<WizardPath> myPaths;
   protected final NewModuleWizardState myWizardState;
-  @Nullable private final VirtualFile myImportSource;
   @NotNull private final Map<ModuleWizardStep, WizardPath> myStepsToPath = Maps.newHashMap();
   @VisibleForTesting
   protected boolean myInitializationComplete = false;
@@ -76,13 +75,11 @@ public class ImportWizardModuleBuilder extends ModuleBuilder
 
   public ImportWizardModuleBuilder(@Nullable File templateFile,
                                    @Nullable Project project,
-                                   @Nullable VirtualFile importSource,
                                    @Nullable Icon sidePanelIcon,
                                    @NotNull List<ModuleWizardStep> steps,
                                    @NotNull Disposable disposable,
                                    boolean inGlobalWizard) {
     myProject = project;
-    myImportSource = importSource;
     mySteps = steps;
 
     myWizardState = new NewProjectWizardState() {
@@ -135,7 +132,7 @@ public class ImportWizardModuleBuilder extends ModuleBuilder
   }
 
   protected Iterable<WizardPath> setupWizardPaths(@Nullable Project project, @Nullable Icon sidePanelIcon, Disposable disposable) {
-    myImportSourcesPath = new ImportSourceModulePath(myImportSource, myWizardState, new WizardContext(project), sidePanelIcon, this);
+    myImportSourcesPath = new ImportSourceModulePath(myWizardState, new WizardContext(project), sidePanelIcon, this);
     return ImmutableList.of(myImportSourcesPath);
   }
 
