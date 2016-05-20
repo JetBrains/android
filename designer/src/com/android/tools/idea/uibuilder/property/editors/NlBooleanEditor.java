@@ -15,14 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.property.editors;
 
-import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.renderer.NlBooleanRenderer;
-import com.intellij.openapi.ui.FixedSizeButton;
 import com.intellij.openapi.util.SystemInfo;
-import com.intellij.ui.UIBundle;
 import com.intellij.util.ui.ThreeStateCheckBox;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,40 +27,34 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 
 public class NlBooleanEditor extends NlBaseComponentEditor implements NlComponentEditor {
-  private final NlEditingListener myListener;
   private final JPanel myPanel;
-  private final FixedSizeButton myBrowseButton;
   private final ThreeStateCheckBox myCheckbox;
 
   private NlProperty myProperty;
   private Object myValue;
 
-  public static NlBooleanEditor createForTable(@NotNull NlEditingListener listener) {
-    return new NlBooleanEditor(listener, true);
+  public static NlTableCellEditor createForTable() {
+    NlTableCellEditor cellEditor = new NlTableCellEditor();
+    cellEditor.init(new NlBooleanEditor(cellEditor, cellEditor));
+    return cellEditor;
   }
 
   public static NlBooleanEditor createForInspector(@NotNull NlEditingListener listener) {
-    return new NlBooleanEditor(listener, false);
+    return new NlBooleanEditor(listener, null);
   }
 
-  private NlBooleanEditor(@NotNull NlEditingListener listener, boolean includeBrowseButton) {
-    myListener = listener;
+  private NlBooleanEditor(@NotNull NlEditingListener listener, @Nullable BrowsePanel.Context context) {
+    super(listener);
     myCheckbox = new ThreeStateCheckBox();
     myCheckbox.addActionListener(this::checkboxChanged);
 
-    if (!includeBrowseButton) {
+    if (context == null) {
       myPanel = null;
-      myBrowseButton = null;
     }
     else {
       myPanel = new JPanel(new BorderLayout(SystemInfo.isMac ? 0 : 2, 0));
       myPanel.add(myCheckbox, BorderLayout.LINE_START);
-
-      myBrowseButton = new FixedSizeButton(myCheckbox);
-      myBrowseButton.setToolTipText(UIBundle.message("component.with.browse.button.browse.button.tooltip.text"));
-      myPanel.add(myBrowseButton, BorderLayout.LINE_END);
-
-      myBrowseButton.addActionListener(this::browse);
+      myPanel.add(new BrowsePanel(context, true), BorderLayout.LINE_END);
     }
   }
 
@@ -90,27 +80,20 @@ public class NlBooleanEditor extends NlBaseComponentEditor implements NlComponen
     return myPanel != null ? myPanel : myCheckbox;
   }
 
+  @Nullable
+  @Override
   public Object getValue() {
     return myValue;
   }
 
-  public void setNextState() {
+  @Override
+  public void activate() {
     myValue = NlBooleanRenderer.getNextState(myCheckbox.getState());
-    myListener.stopEditing(this, myValue);
+    stopEditing(myValue);
   }
 
   private void checkboxChanged(ActionEvent e) {
     myValue = NlBooleanRenderer.getBoolean(myCheckbox.getState());
-    myListener.stopEditing(this, myValue);
-  }
-
-  private void browse(ActionEvent e) {
-    ChooseResourceDialog dialog = NlReferenceEditor.showResourceChooser(myProperty);
-    if (dialog.showAndGet()) {
-      myValue = dialog.getResourceName();
-      myListener.stopEditing(this, myValue);
-    } else {
-      myListener.cancelEditing(this);
-    }
+    stopEditing(myValue);
   }
 }

@@ -21,10 +21,7 @@ import com.android.tools.idea.uibuilder.model.PreferenceUtils;
 import com.android.tools.idea.uibuilder.property.NlFlagPropertyItem;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
-import com.android.tools.idea.uibuilder.property.editors.NlBooleanIconEditor;
-import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
-import com.android.tools.idea.uibuilder.property.editors.NlEnumEditor;
-import com.android.tools.idea.uibuilder.property.editors.NlReferenceEditor;
+import com.android.tools.idea.uibuilder.property.editors.*;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.project.Project;
 import icons.AndroidIcons;
@@ -117,10 +114,10 @@ public class TextInspectorProvider implements InspectorProvider {
       myDescriptionEditor = NlReferenceEditor.createForInspectorWithBrowseButton(project, DEFAULT_LISTENER);
 
       myStyleEditor = NlEnumEditor.createForInspector(createEnumStyleListener());
-      myFontFamilyEditor = NlEnumEditor.createForInspector(NlEnumEditor.getDefaultListener());
-      myTypefaceEditor = NlEnumEditor.createForInspector(NlEnumEditor.getDefaultListener());
-      myFontSizeEditor = NlEnumEditor.createForInspector(NlEnumEditor.getDefaultListener());
-      mySpacingEditor = NlEnumEditor.createForInspector(NlEnumEditor.getDefaultListener());
+      myFontFamilyEditor = NlEnumEditor.createForInspector(DEFAULT_LISTENER);
+      myTypefaceEditor = NlEnumEditor.createForInspector(DEFAULT_LISTENER);
+      myFontSizeEditor = NlEnumEditor.createForInspector(DEFAULT_LISTENER);
+      mySpacingEditor = NlEnumEditor.createForInspector(DEFAULT_LISTENER);
       myBoldEditor = new NlBooleanIconEditor(AndroidVectorIcons.EditorIcons.Bold);
       myItalicsEditor = new NlBooleanIconEditor(AndroidVectorIcons.EditorIcons.Italic);
       myAllCapsEditor = new NlBooleanIconEditor(AndroidVectorIcons.EditorIcons.AllCaps);
@@ -169,6 +166,7 @@ public class TextInspectorProvider implements InspectorProvider {
 
     @Override
     public void attachToInspector(@NotNull InspectorPanel inspector) {
+      refresh();
       inspector.addTitle("TextView");
       inspector.addComponent(ATTR_TEXT, myText.getTooltipText(), myTextEditor.getComponent());
       JLabel designText = inspector.addComponent(ATTR_TEXT, myDesignText.getTooltipText(), myDesignTextEditor.getComponent());
@@ -183,7 +181,6 @@ public class TextInspectorProvider implements InspectorProvider {
       inspector.addComponent(ATTR_TEXT_COLOR, myColor.getTooltipText(), myColorEditor.getComponent());
       inspector.addComponent(ATTR_TEXT_STYLE, myTextStyle.getTooltipText(), myTextStylePanel);
       inspector.addComponent(ATTR_TEXT_ALIGNMENT, myAlignment.getTooltipText(), myAlignmentPanel);
-      refresh();
     }
 
     @Override
@@ -217,10 +214,10 @@ public class TextInspectorProvider implements InspectorProvider {
       }
     }
 
-    private NlEnumEditor.Listener createEnumStyleListener() {
-      return new NlEnumEditor.Listener() {
+    private NlEditingListener createEnumStyleListener() {
+      return new NlEditingListener() {
         @Override
-        public void itemPicked(@NotNull NlEnumEditor source, @Nullable String value) {
+        public void stopEditing(@NotNull NlComponentEditor editor, @Nullable Object value) {
           // TODO: Create a write transaction here to include all these changes in one undo event
           myStyle.setValue(value);
           myFontFamily.setValue(null);
@@ -234,12 +231,8 @@ public class TextInspectorProvider implements InspectorProvider {
         }
 
         @Override
-        public void resourcePicked(@NotNull NlEnumEditor source, @NotNull String value) {
-          itemPicked(source, value);
-        }
+        public void cancelEditing(@NotNull NlComponentEditor editor) {
 
-        @Override
-        public void resourcePickerCancelled(@NotNull NlEnumEditor source) {
         }
       };
     }

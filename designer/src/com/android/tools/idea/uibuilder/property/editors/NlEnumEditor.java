@@ -19,16 +19,12 @@ import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.ui.laf.darcula.ui.DarculaComboBoxUI;
 import com.intellij.openapi.ui.ComboBox;
-import com.intellij.openapi.ui.FixedSizeButton;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.ColoredListCellRenderer;
-import com.intellij.ui.UIBundle;
-import com.intellij.ui.components.JBCheckBox;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
@@ -51,45 +47,29 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
   private static final List<String> AVAILABLE_LINE_SPACINGS = AVAILABLE_TEXT_SIZES;
   private static final List<String> AVAILABLE_TYPEFACES = ImmutableList.of("normal", "sans", "serif", "monospace");
   private static final List<String> AVAILABLE_SIZES = ImmutableList.of("match_parent", "wrap_content");
-  private static final Listener DEFAULT_LISTENER = new DefaultListener();
 
   private final JPanel myPanel;
   private final JComboBox<ValueWithDisplayString> myCombo;
-  private final FixedSizeButton myBrowseButton;
-  private final boolean myIncludeBrowseButton;
-  private final Listener myListener;
 
   private NlProperty myProperty;
   private boolean myUpdatingProperty;
   private int myAddedValueIndex;
 
-  public interface Listener {
-    /** Invoked when one of the enums is selected. */
-    void itemPicked(@NotNull NlEnumEditor source, @Nullable String value);
-
-    /** Invoked when a resource was selected using the resource picker. */
-    void resourcePicked(@NotNull NlEnumEditor source, @NotNull String value);
-
-    /** Invoked when the resource picker was cancelled. */
-    void resourcePickerCancelled(@NotNull NlEnumEditor source);
+  public static NlTableCellEditor createForTable() {
+    NlTableCellEditor cellEditor = new NlTableCellEditor();
+    cellEditor.init(new NlEnumEditor(cellEditor, cellEditor, true));
+    return cellEditor;
   }
 
-  public static NlEnumEditor createForTable(@NotNull Listener listener) {
-    return new NlEnumEditor(listener, true, true);
+  public static NlEnumEditor createForInspector(@NotNull NlEditingListener listener) {
+    return new NlEnumEditor(listener, null, false);
   }
 
-  public static NlEnumEditor createForInspector(@NotNull Listener listener) {
-    return new NlEnumEditor(listener, false, false);
-  }
-
-  public static Listener getDefaultListener() {
-    return DEFAULT_LISTENER;
-  }
-
-  private NlEnumEditor(@NotNull Listener listener, boolean useDarculaUI, boolean includeBrowseButton) {
+  private NlEnumEditor(@NotNull NlEditingListener listener,
+                       @Nullable BrowsePanel.Context context,
+                       boolean useDarculaUI) {
+    super(listener);
     myAddedValueIndex = -1; // nothing added
-    myListener = listener;
-    myIncludeBrowseButton = includeBrowseButton;
     myPanel = new JPanel(new BorderLayout(SystemInfo.isMac ? 0 : 2, 0));
 
     //noinspection unchecked
@@ -101,19 +81,16 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
     }
     myCombo.setEditable(true);
     myPanel.add(myCombo, BorderLayout.CENTER);
+    if (context != null) {
+      myPanel.add(new BrowsePanel(context, true), BorderLayout.LINE_END);
+      myCombo.registerKeyboardAction(event -> displayResourcePicker(),
+                                     KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.ALT_MASK),
+                                     JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+    }
 
-    myBrowseButton = new FixedSizeButton(new JBCheckBox());
-    myBrowseButton.setToolTipText(UIBundle.message("component.with.browse.button.browse.button.tooltip.text"));
-    myBrowseButton.setVisible(includeBrowseButton);
-    myPanel.add(myBrowseButton, BorderLayout.LINE_END);
-
-    myBrowseButton.addActionListener(event -> resourcePicked());
     myCombo.addActionListener(this::comboValuePicked);
     myCombo.registerKeyboardAction(event -> enter(),
                                    KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0),
-                                   JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-    myCombo.registerKeyboardAction(event -> resourcePicked(),
-                                   KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.ALT_MASK),
                                    JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
     //noinspection unchecked
     myCombo.setRenderer(new ColoredListCellRenderer<ValueWithDisplayString>() {
@@ -136,7 +113,6 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
   @Override
   public void setEnabled(boolean en) {
     myCombo.setEnabled(en);
-    myBrowseButton.setEnabled(en);
   }
 
   @Override
@@ -160,8 +136,6 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
 
   private void setModel(@NotNull NlProperty property) {
     myProperty = property;
-
-    myBrowseButton.setVisible(myIncludeBrowseButton && NlReferenceEditor.hasResourceChooser(property));
 
     AttributeDefinition definition = property.getDefinition();
     ValueWithDisplayString[] values;
@@ -258,6 +232,7 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
     return model.getSize();
   }
 
+  @Override
   public Object getValue() {
     ValueWithDisplayString value = (ValueWithDisplayString)myCombo.getSelectedItem();
     return value.getValue();
@@ -269,32 +244,16 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
     return myPanel;
   }
 
-  public void showPopup() {
-    myCombo.showPopup();
-  }
-
   private void enter() {
-    myListener.itemPicked(this, getText());
+    String newValue = getText();
+    selectItem(ValueWithDisplayString.create(newValue, myProperty));
+    stopEditing(newValue);
     myCombo.hidePopup();
   }
 
   private String getText() {
     String text = myCombo.getEditor().getItem().toString();
     return Quantity.addUnit(myProperty, text);
-  }
-
-  private void resourcePicked() {
-    if (myProperty == null) {
-      return;
-    }
-    ChooseResourceDialog dialog = NlReferenceEditor.showResourceChooser(myProperty);
-    if (dialog.showAndGet()) {
-      String value = dialog.getResourceName();
-      selectItem(ValueWithDisplayString.create(value, myProperty));
-      myListener.resourcePicked(this, value);
-    } else {
-      myListener.resourcePickerCancelled(this);
-    }
   }
 
   private void comboValuePicked(ActionEvent event) {
@@ -307,7 +266,7 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
     // only notify listener if a value has been picked from the combo box, not for every event from the combo
     // Note: these action names seem to be platform dependent?
     if (value != null && ("comboBoxEdited".equals(actionCommand) || "comboBoxChanged".equals(actionCommand))) {
-      myListener.itemPicked(this, value.getValue());
+      stopEditing(value.getValue());
     }
   }
 
@@ -332,24 +291,5 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
     ValueWithDisplayString[] array = new ValueWithDisplayString[list.size()];
     list.toArray(array);
     return array;
-  }
-
-  private static class DefaultListener implements Listener {
-    @Override
-    public void itemPicked(@NotNull NlEnumEditor source, @Nullable String value) {
-      if (source.getProperty() != null) {
-        source.getProperty().setValue(value);
-        source.refresh();
-      }
-    }
-
-    @Override
-    public void resourcePicked(@NotNull NlEnumEditor source, @NotNull String value) {
-      itemPicked(source, value);
-    }
-
-    @Override
-    public void resourcePickerCancelled(@NotNull NlEnumEditor source) {
-    }
   }
 }
