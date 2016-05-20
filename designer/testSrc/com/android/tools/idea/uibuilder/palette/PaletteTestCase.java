@@ -189,8 +189,17 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     assertStandardView(item, SEEK_BAR, IN_PLATFORM, NO_SCALE);
   }
 
+  @Language("XML")
+  private static final String QUICK_CONTACT_BADGE_XML =
+    "<QuickContactBadge\n" +
+    "    android:src=\"@android:drawable/btn_star\"\n" +
+    "    android:layout_width=\"wrap_content\"\n" +
+    "    android:layout_height=\"wrap_content\" />\n";
+
   public void assertQuickContactBadge(@NotNull Palette.BaseItem item) {
-    assertStandardView(item, "QuickContactBadge", IN_PLATFORM, NO_SCALE);
+    checkItem(item, QUICK_CONTACT_BADGE, "QuickContactBadge", AndroidIcons.Views.QuickContactBadge, QUICK_CONTACT_BADGE_XML,
+              QUICK_CONTACT_BADGE_XML, QUICK_CONTACT_BADGE_XML, IN_PLATFORM, NO_SCALE);
+    checkComponent(createMockComponent(QUICK_CONTACT_BADGE), "QuickContactBadge", AndroidIcons.Views.QuickContactBadge);
   }
 
   public void assertRatingBar(@NotNull Palette.BaseItem item) {
