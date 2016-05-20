@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
+import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.handlers.ImageViewHandler;
+import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.ImmutableTable;
@@ -130,6 +135,7 @@ public class NlProperties {
     combinedProperties.remove(AUTO_URI, ATTR_THEME);
 
     setUpDesignProperties(combinedProperties);
+    setUpSrcCompat(combinedProperties, facet, components);
 
     //noinspection ConstantConditions
     return combinedProperties;
@@ -168,7 +174,7 @@ public class NlProperties {
     return combinedProperties;
   }
 
-  private static void setUpDesignProperties(Table<String, String, NlPropertyItem> properties) {
+  private static void setUpDesignProperties(@NotNull Table<String, String, NlPropertyItem> properties) {
     List<String> designProperties = new ArrayList<>(properties.row(TOOLS_URI).keySet());
     for (String propertyName : designProperties) {
       NlPropertyItem item = properties.get(AUTO_URI, propertyName);
@@ -180,5 +186,35 @@ public class NlProperties {
         properties.put(TOOLS_URI, propertyName, designItem);
       }
     }
+  }
+
+  // If the src property is available and AppCompat is used then fabricate another property: srcCompat.
+  // This is how appCompat is supporting vector drawables in older versions of Android.
+  private static void setUpSrcCompat(@NotNull Table<String, String, NlPropertyItem> properties,
+                                     @NotNull AndroidFacet facet,
+                                     @NotNull final List<NlComponent> components) {
+    NlPropertyItem srcProperty = properties.get(ANDROID_URI, ATTR_SRC);
+    if (srcProperty != null) {
+      AndroidGradleModel gradleModel = AndroidGradleModel.get(facet);
+      if (gradleModel != null && GradleUtil.dependsOn(gradleModel, APPCOMPAT_LIB_ARTIFACT) && allTagsSupportSrcCompat(facet, components)) {
+        AttributeDefinition srcDefinition = srcProperty.getDefinition();
+        assert srcDefinition != null;
+        AttributeDefinition srcCompatDefinition = new AttributeDefinition(ATTR_SRC_COMPAT, null, srcDefinition.getFormats());
+        srcCompatDefinition.getParentStyleables().addAll(srcDefinition.getParentStyleables());
+        NlPropertyItem srcCompatProperty = new NlPropertyItem(components, AUTO_URI, srcCompatDefinition);
+        properties.put(AUTO_URI, ATTR_SRC_COMPAT, srcCompatProperty);
+      }
+    }
+  }
+
+  private static boolean allTagsSupportSrcCompat(@NotNull AndroidFacet facet, @NotNull final List<NlComponent> components) {
+    ViewHandlerManager manager = ViewHandlerManager.get(facet);
+    for (NlComponent component : components) {
+      ViewHandler handler = manager.getHandler(component.getTagName());
+      if (!(handler instanceof ImageViewHandler)) {
+        return false;
+      }
+    }
+    return true;
   }
 }
