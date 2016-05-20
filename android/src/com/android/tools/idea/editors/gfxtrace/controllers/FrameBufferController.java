@@ -22,7 +22,10 @@ import com.android.tools.idea.editors.gfxtrace.models.AtomStream;
 import com.android.tools.idea.editors.gfxtrace.service.RenderSettings;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.WireframeMode;
 import com.android.tools.idea.editors.gfxtrace.service.image.FetchedImage;
-import com.android.tools.idea.editors.gfxtrace.service.path.*;
+import com.android.tools.idea.editors.gfxtrace.service.path.AtomPath;
+import com.android.tools.idea.editors.gfxtrace.service.path.DevicePath;
+import com.android.tools.idea.editors.gfxtrace.service.path.ImageInfoPath;
+import com.android.tools.idea.editors.gfxtrace.service.path.PathStore;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Separator;
@@ -118,14 +121,14 @@ public class FrameBufferController extends ImagePanelController implements AtomS
   }
 
   @Override
-  public void onAtomsSelected(AtomRangePath path) {
+  public void onAtomSelected(AtomPath path, Object source) {
     updateBuffer();
   }
 
   private void updateBuffer() {
-    AtomRangePath atomPath = myEditor.getAtomStream().getSelectedAtomsPath();
+    AtomPath atomPath = myEditor.getAtomStream().getSelectedAtomPath();
     if (atomPath != null) {
-      setImage(FetchedImage.load(myEditor.getClient(), getImageInfoPath(atomPath.getPathToLast())));
+      setImage(FetchedImage.load(myEditor.getClient(), getImageInfoPath(atomPath)));
     }
   }
 
