@@ -154,11 +154,8 @@ public class LineChart extends AnimatedComponent implements ReportingSeriesRende
   @Override
   protected void updateData() {
     Map<Range, Long> max = new HashMap<>();
-    // Store the max of each range to make sure we're not going to set it to anything below its value
-    Map<Range, Double> initialMax = new HashMap<>();
     for (RangedContinuousSeries ranged : mLinesConfig.keySet()) {
       Range range = ranged.getYRange();
-      initialMax.put(range, range.getMax());
       ContinuousSeries series = ranged.getSeries();
       long maxY = series.getMaxY();
       Long m = max.get(range);
@@ -167,7 +164,7 @@ public class LineChart extends AnimatedComponent implements ReportingSeriesRende
 
     for (Map.Entry<Range, Long> entry : max.entrySet()) {
       Range range = entry.getKey();
-      if (initialMax.containsKey(range) && initialMax.get(range) < entry.getValue()) {
+      if (range.getMax() < entry.getValue()) {
         range.setMaxTarget(entry.getValue());
       }
     }
