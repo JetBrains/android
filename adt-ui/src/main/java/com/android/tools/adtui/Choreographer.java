@@ -16,7 +16,7 @@
 
 package com.android.tools.adtui;
 
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -47,7 +47,7 @@ public class Choreographer implements ActionListener {
    * individual components registered to the Choreographer, which can result in redundant draw
    * calls between loops if they overlap.
    */
-  @NonNull
+  @NotNull
   private final JComponent mParentContainer;
 
   /**
@@ -55,7 +55,7 @@ public class Choreographer implements ActionListener {
    * @param parent The parent component that contains all {@link AnimatedComponent} registered
    *               with the Choreographer.
    */
-  public Choreographer(int fps, @NonNull JComponent parent) {
+  public Choreographer(int fps, @NotNull JComponent parent) {
     mParentContainer = parent;
     mComponents = new LinkedList<>();
     mUpdate = true;
@@ -67,7 +67,7 @@ public class Choreographer implements ActionListener {
     mComponents.add(animatable);
   }
 
-  public void register(@NonNull List<Animatable> animatables) {
+  public void register(@NotNull List<Animatable> animatables) {
     mComponents.addAll(animatables);
   }
 

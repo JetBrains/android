@@ -15,10 +15,10 @@
  */
 package com.android.tools.adtui.chart;
 
-import com.android.annotations.NonNull;
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.ValuedTreeNode;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.tree.TreeNode;
 import java.awt.*;
@@ -116,7 +116,7 @@ public final class SunburstChart extends AnimatedComponent {
 
   private Map<Color, Path2D.Float> mPaths;
 
-  public SunburstChart(@NonNull ValuedTreeNode data) {
+  public SunburstChart(@NotNull ValuedTreeNode data) {
     mData = data;
     mSlice = new Slice(0.0f);
     mSliceWidth = 50;

@@ -15,8 +15,8 @@
  */
 package com.android.tools.adtui.common.formatter;
 
-import com.android.annotations.NonNull;
 import gnu.trove.TIntArrayList;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * An auxiliary object that formats the axis by determining the marker placement positions and their
@@ -55,7 +55,7 @@ public abstract class BaseAxisFormatter {
    * @param value       The value to display.
    * @return A nicely formatted string to display as the tick label.
    */
-  @NonNull
+  @NotNull
   public String getFormattedString(double globalRange, double value) {
     int index = getMultiplierIndex(globalRange, 1);
     String unit = getUnit(index);
@@ -99,7 +99,7 @@ public abstract class BaseAxisFormatter {
    * @return The string representation of a unit.
    * @throws IndexOutOfBoundsException If index is out of the expected range.
    */
-  @NonNull
+  @NotNull
   protected abstract String getUnit(int index);
 
   /**
@@ -126,7 +126,7 @@ public abstract class BaseAxisFormatter {
    * @return The list of interval factors that the axis should use for a unit.
    * @throws IndexOutOfBoundsException If index is out of the expected range.
    */
-  @NonNull
+  @NotNull
   protected abstract TIntArrayList getUnitBaseFactors(int index);
 
   /**
@@ -192,7 +192,7 @@ public abstract class BaseAxisFormatter {
    * e.g. for a base of 10, the result would be {10, 5, 1}
    * e.g. for a base of 60, the result would be {60, 30, 15, 5, 1}
    */
-  @NonNull
+  @NotNull
   protected static TIntArrayList getMultiplierFactors(int base) {
     TIntArrayList factors = new TIntArrayList();
     while (base > 1) {

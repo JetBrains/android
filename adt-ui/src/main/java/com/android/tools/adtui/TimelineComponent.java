@@ -15,11 +15,11 @@
  */
 package com.android.tools.adtui;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.common.AdtUIUtils;
 import gnu.trove.TIntObjectHashMap;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -52,10 +52,10 @@ public final class TimelineComponent extends AnimatedComponent {
 
   private final float mBufferTime;
 
-  @NonNull
+  @NotNull
   private final TimelineData mData;
 
-  @NonNull
+  @NotNull
   private final EventData mEvents;
 
   private final float mInitialMax;
@@ -209,8 +209,8 @@ public final class TimelineComponent extends AnimatedComponent {
    * @param initialMarkerSeparation the initial separations for the markers on the y-axis.
    */
   public TimelineComponent(
-    @NonNull TimelineData data,
-    @NonNull EventData events,
+    @NotNull TimelineData data,
+    @NotNull EventData events,
     float bufferTime,
     float initialMax,
     float absoluteMax,
@@ -265,7 +265,7 @@ public final class TimelineComponent extends AnimatedComponent {
    * Returns true if two streams are present and linked to each other, false otherwise. If two stream are linked, their labels will be
    * combined into one.
    */
-  public boolean linkStreams(@NonNull String streamId1, @NonNull String streamId2) {
+  public boolean linkStreams(@NotNull String streamId1, @NotNull String streamId2) {
     assert !streamId1.equals(streamId2) : String.format("Attempt to link a stream %1$s with itself", streamId1);
     LabelRow labelRow1 = null;
     LabelRow labelRow2 = null;
@@ -289,7 +289,7 @@ public final class TimelineComponent extends AnimatedComponent {
     return false;
   }
 
-  public void addListener(@NonNull Listener listener) {
+  public void addListener(@NotNull Listener listener) {
     myListeners.add(listener);
   }
 
@@ -688,7 +688,7 @@ public final class TimelineComponent extends AnimatedComponent {
     }
   }
 
-  public void addReference(float reference, @NonNull Color color) {
+  public void addReference(float reference, @NotNull Color color) {
     mReferences.add(new Reference(reference, color));
   }
 
@@ -873,7 +873,7 @@ public final class TimelineComponent extends AnimatedComponent {
      * An event fired whenever a new Stream is added into a TimelineComponent. It's often a good idea to call
      * {@link TimelineComponent#configureStream(int, String, Color, boolean)} at this point.
      */
-    void onStreamAdded(int stream, @NonNull String id);
+    void onStreamAdded(int stream, @NotNull String id);
   }
 
   private static class StreamComponent {
@@ -896,7 +896,7 @@ public final class TimelineComponent extends AnimatedComponent {
 
     public boolean isMirrored;
 
-    public StreamComponent(int valueSize, @NonNull String id, @NonNull Color color, boolean isMirrored) {
+    public StreamComponent(int valueSize, @NotNull String id, @NotNull Color color, boolean isMirrored) {
       this.values = new float[valueSize];
       this.currentValue = 0;
       this.id = id;
@@ -908,11 +908,11 @@ public final class TimelineComponent extends AnimatedComponent {
 
   private static class LabelRow {
 
-    @NonNull public StreamComponent stream1;
+    @NotNull public StreamComponent stream1;
 
     @Nullable public StreamComponent stream2;
 
-    public LabelRow(@NonNull StreamComponent stream1, @Nullable StreamComponent stream2) {
+    public LabelRow(@NotNull StreamComponent stream1, @Nullable StreamComponent stream2) {
       this.stream1 = stream1;
       this.stream2 = stream2;
     }
@@ -928,10 +928,10 @@ public final class TimelineComponent extends AnimatedComponent {
 
     public final float value;
 
-    @NonNull
+    @NotNull
     public final Color color;
 
-    private Reference(float value, @NonNull Color color) {
+    private Reference(float value, @NotNull Color color) {
       this.value = value;
       this.color = color;
     }

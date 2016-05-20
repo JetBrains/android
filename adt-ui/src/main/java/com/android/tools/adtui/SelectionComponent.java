@@ -15,11 +15,11 @@
  */
 package com.android.tools.adtui;
 
-import com.android.annotations.NonNull;
 import com.android.tools.adtui.common.AdtUIUtils;
 import com.android.tools.adtui.model.ReportingSeries;
 import com.android.tools.adtui.model.ReportingSeriesRenderer;
 import gnu.trove.TIntArrayList;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -77,29 +77,29 @@ public final class SelectionComponent extends AnimatedComponent {
 
   private Mode mode;
 
-  @NonNull
+  @NotNull
   private final Component mHost;
 
-  @NonNull
+  @NotNull
   private final AxisComponent mAxis;
 
   /**
    * The range being selected.
    */
-  @NonNull
+  @NotNull
   private final Range mSelectionRange;
 
   /**
    * The global range for clamping selection.
    */
-  @NonNull
+  @NotNull
   private final Range mDataRange;
 
   /**
    * The current viewing range which gets shifted when user drags the selection box beyond the
    * component's dimension.
    */
-  @NonNull
+  @NotNull
   private final Range mViewRange;
 
   /**
@@ -118,14 +118,14 @@ public final class SelectionComponent extends AnimatedComponent {
    */
   private ReportingSeriesRenderer mReportingContainer;
 
-  @NonNull
+  @NotNull
   private final ArrayList<ReportingSeries.ReportingData> mReportingData;
 
-  public SelectionComponent(@NonNull Component host,
-                            @NonNull AxisComponent axis,
-                            @NonNull Range selectionRange,
-                            @NonNull Range dataRange,
-                            @NonNull Range viewRange) {
+  public SelectionComponent(@NotNull Component host,
+                            @NotNull AxisComponent axis,
+                            @NotNull Range selectionRange,
+                            @NotNull Range dataRange,
+                            @NotNull Range viewRange) {
     mHost = host;
     mAxis = axis;
     mDataRange = dataRange;

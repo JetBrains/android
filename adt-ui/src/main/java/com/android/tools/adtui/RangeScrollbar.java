@@ -15,8 +15,8 @@
  */
 package com.android.tools.adtui;
 
-import com.android.annotations.NonNull;
 import com.intellij.ui.components.JBScrollBar;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.event.MouseAdapter;
@@ -57,18 +57,18 @@ public final class RangeScrollbar extends JBScrollBar implements Animatable {
    */
   private static final float STREAMING_POSITION_THRESHOLD = 0.1f;
 
-  @NonNull
+  @NotNull
   private ScrollingMode mScrollingMode;
 
   private boolean mStableScrolling;
 
-  @NonNull
+  @NotNull
   private final Range mGlobalRange;
 
-  @NonNull
+  @NotNull
   private final Range mRange;
 
-  public RangeScrollbar(@NonNull Range globalRange, @NonNull Range range) {
+  public RangeScrollbar(@NotNull Range globalRange, @NotNull Range range) {
     super(HORIZONTAL);
 
     mGlobalRange = globalRange;

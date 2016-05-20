@@ -15,8 +15,8 @@
  */
 package com.android.tools.adtui;
 
-import com.android.annotations.NonNull;
 import com.android.tools.adtui.common.AdtUIUtils;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -48,7 +48,7 @@ public abstract class AnimatedComponent extends JComponent implements Animatable
 
   protected final FontMetrics mDefaultFontMetrics;
 
-  @NonNull
+  @NotNull
   private final List<String> mDebugInfo;
 
   private int mDrawCount;

@@ -15,7 +15,7 @@
  */
 package com.android.tools.adtui.model;
 
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.Color;
 
@@ -29,10 +29,10 @@ public class LegendRenderData {
     BOX
   }
 
-  @NonNull
+  @NotNull
   private final Color mColor;
 
-  @NonNull
+  @NotNull
   private final IconType mIcon;
   private final ReportingSeries mSeries;
 
@@ -57,7 +57,7 @@ public class LegendRenderData {
    * @param color The color of the icon to be associated with the elements in the chart.
    * @param series Series data to be used for gathering the latest value.
    */
-  public LegendRenderData(@NonNull IconType icon, @NonNull Color color, ReportingSeries series) {
+  public LegendRenderData(@NotNull IconType icon, @NotNull Color color, ReportingSeries series) {
     mColor = color;
     mIcon = icon;
     mSeries = series;

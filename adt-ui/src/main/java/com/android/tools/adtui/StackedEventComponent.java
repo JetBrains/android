@@ -16,11 +16,11 @@
 
 package com.android.tools.adtui;
 
-import com.android.annotations.NonNull;
 import com.android.tools.adtui.common.AdtUIUtils;
 import com.android.tools.adtui.model.EventAction;
 import com.android.tools.adtui.model.EventRenderData;
 import com.android.tools.adtui.model.RangedSimpleSeries;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
@@ -53,10 +53,10 @@ public class StackedEventComponent extends AnimatedComponent {
   private static final int NORMALIZED_END = 1;
   private static final float EPSILON = .99f;
 
-  @NonNull
+  @NotNull
   private final RangedSimpleSeries<EventAction<Action, String>> mData;
 
-  @NonNull
+  @NotNull
   private final ArrayList<Shape> mPaths;
 
   private final int myMaxHeight;
@@ -72,7 +72,7 @@ public class StackedEventComponent extends AnimatedComponent {
    * @param data The state chart data.
    */
   public StackedEventComponent(int maxHeight,
-                               @NonNull RangedSimpleSeries<EventAction<Action, String>> data) {
+                               @NotNull RangedSimpleSeries<EventAction<Action, String>> data) {
     mData = data;
     myMaxHeight = maxHeight;
     mPaths = new ArrayList<Shape>();

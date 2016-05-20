@@ -1,9 +1,9 @@
 package com.android.tools.adtui.segment;
 
-import com.android.annotations.NonNull;
 import com.android.tools.adtui.*;
 import com.android.tools.adtui.model.EventAction;
 import com.android.tools.adtui.model.RangedSimpleSeries;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -16,37 +16,37 @@ public class EventSegment<E extends Enum<E>> extends BaseSegment {
   private static final int ACTIVITY_GRAPH_SIZE = 25;
   private static final int FRAGMENT_GRAPH_SIZE = 25;
 
-  @NonNull
+  @NotNull
   private Range mTimeGlobalRange;
 
-  @NonNull
+  @NotNull
   private SimpleEventComponent mSystemEvents;
 
-  @NonNull
+  @NotNull
   private StackedEventComponent mFragmentEvents;
 
-  @NonNull
+  @NotNull
   private StackedEventComponent mActivityEvents;
 
-  @NonNull
+  @NotNull
   private final RangedSimpleSeries<EventAction<SimpleEventComponent.Action, E>> mSystemEventData;
 
-  @NonNull
+  @NotNull
   private final RangedSimpleSeries<EventAction<StackedEventComponent.Action, String>> mFragmentEventData;
 
-  @NonNull
+  @NotNull
   private final RangedSimpleSeries<EventAction<StackedEventComponent.Action, String>> mActivityEventData;
 
-  @NonNull
+  @NotNull
   private BufferedImage[] mIcons;
 
   //TODO Add labels for series data.
 
-  public EventSegment(@NonNull Range scopedRange,
-                      @NonNull RangedSimpleSeries<EventAction<SimpleEventComponent.Action, E>> systemData,
-                      @NonNull RangedSimpleSeries<EventAction<StackedEventComponent.Action, String>> fragmentData,
-                      @NonNull RangedSimpleSeries<EventAction<StackedEventComponent.Action, String>> activityData,
-                      @NonNull BufferedImage[] icons) {
+  public EventSegment(@NotNull Range scopedRange,
+                      @NotNull RangedSimpleSeries<EventAction<SimpleEventComponent.Action, E>> systemData,
+                      @NotNull RangedSimpleSeries<EventAction<StackedEventComponent.Action, String>> fragmentData,
+                      @NotNull RangedSimpleSeries<EventAction<StackedEventComponent.Action, String>> activityData,
+                      @NotNull BufferedImage[] icons) {
     super(SEGMENT_NAME, scopedRange);
     mSystemEventData = systemData;
     mFragmentEventData = fragmentData;
@@ -55,7 +55,7 @@ public class EventSegment<E extends Enum<E>> extends BaseSegment {
   }
 
   @Override
-  public void createComponentsList(@NonNull List<Animatable> animatables) {
+  public void createComponentsList(@NotNull List<Animatable> animatables) {
     mSystemEvents = new SimpleEventComponent(mSystemEventData, mIcons);
     mFragmentEvents = new StackedEventComponent(FRAGMENT_GRAPH_SIZE, mFragmentEventData);
     mActivityEvents = new StackedEventComponent(ACTIVITY_GRAPH_SIZE, mActivityEventData);
@@ -66,24 +66,24 @@ public class EventSegment<E extends Enum<E>> extends BaseSegment {
   }
 
   @Override
-  public void registerComponents(@NonNull List<AnimatedComponent> components) {
+  public void registerComponents(@NotNull List<AnimatedComponent> components) {
     components.add(mSystemEvents);
     components.add(mFragmentEvents);
     components.add(mActivityEvents);
   }
 
   @Override
-  protected void setLeftContent(@NonNull JPanel panel) {
+  protected void setLeftContent(@NotNull JPanel panel) {
     //The Events Segment, shows no Axis components and the spacing is taken care of by our base.
   }
 
   @Override
-  protected void setRightContent(@NonNull JPanel panel) {
+  protected void setRightContent(@NotNull JPanel panel) {
     //The Events Segment, shows no Axis components and the spacing is taken care of by our base.
   }
 
   @Override
-  protected void setCenterContent(@NonNull JPanel panel) {
+  protected void setCenterContent(@NotNull JPanel panel) {
     JPanel layeredPane = new JPanel();
     layeredPane.setLayout(new GridBagLayout());
     //Divide up the space equally amongst the child components. Each of these may change to a specific height

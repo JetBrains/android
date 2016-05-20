@@ -15,8 +15,8 @@
  */
 package com.android.tools.adtui;
 
-import com.android.annotations.NonNull;
 import com.android.annotations.concurrency.GuardedBy;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -52,7 +52,7 @@ public class TimelineData {
     this(streams, capacity, new DirectTransform());
   }
 
-  public TimelineData(int streams, int capacity, @NonNull SampleTransform transform) {
+  public TimelineData(int streams, int capacity, @NotNull SampleTransform transform) {
     mCapacity = capacity;
     mSampleInfos = new CircularArrayList<SampleInfo>(capacity);
     mTransform = transform;
@@ -95,7 +95,7 @@ public class TimelineData {
     }
   }
 
-  public synchronized void addStream(@NonNull String id) {
+  public synchronized void addStream(@NotNull String id) {
     for (Stream stream : mStreams) {
       assert !id.equals(stream.getId()) : String.format("Attempt to add duplicate stream of id %1$s", id);
     }
@@ -105,13 +105,13 @@ public class TimelineData {
     mTransform.add(mStreams.size() - 1);
   }
 
-  public synchronized void addStreams(@NonNull List<String> ids) {
+  public synchronized void addStreams(@NotNull List<String> ids) {
     for (String id : ids) {
       addStream(id);
     }
   }
 
-  public synchronized void removeStream(@NonNull String id) {
+  public synchronized void removeStream(@NotNull String id) {
     int removeIndex = getStreamIndex(id);
     if (removeIndex >= 0) {
       mStreams.remove(removeIndex);
@@ -119,7 +119,7 @@ public class TimelineData {
     }
   }
 
-  private int getStreamIndex(@NonNull String id) {
+  private int getStreamIndex(@NotNull String id) {
     int indexToReturn = -1;
     for (int i = 0; i < mStreams.size(); i++) {
       if (id.equals(mStreams.get(i).getId())) {
@@ -133,7 +133,7 @@ public class TimelineData {
     return indexToReturn;
   }
 
-  public synchronized void removeStreams(@NonNull List<String> ids) {
+  public synchronized void removeStreams(@NotNull List<String> ids) {
     for (String id : ids) {
       removeStream(id);
     }
@@ -188,7 +188,7 @@ public class TimelineData {
 
     private int mValueSize;
 
-    public Stream(@NonNull String id, int maxValueSize, int startSize) {
+    public Stream(@NotNull String id, int maxValueSize, int startSize) {
       mId = id;
       mCircularValues = new float[maxValueSize];
       mStartIndex = 0;
@@ -254,7 +254,7 @@ public class TimelineData {
 
     public final int type;
 
-    public Sample(float time, int type, @NonNull float[] values) {
+    public Sample(float time, int type, @NotNull float[] values) {
       this.time = time;
       this.values = values;
       this.type = type;

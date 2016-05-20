@@ -16,8 +16,8 @@
 
 package com.android.tools.adtui.model;
 
-import com.android.annotations.NonNull;
 import com.android.tools.adtui.Range;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents a view into a discrete series, where the data in view is only
@@ -25,23 +25,23 @@ import com.android.tools.adtui.Range;
  */
 public class RangedDiscreteSeries {
 
-  @NonNull
+  @NotNull
   private final Range mXRange;
 
-  @NonNull
+  @NotNull
   private final DiscreteSeries mSeries;
 
-  public RangedDiscreteSeries(@NonNull Class<? extends Enum> clazz, @NonNull Range xRange) {
+  public RangedDiscreteSeries(@NotNull Class<? extends Enum> clazz, @NotNull Range xRange) {
     mXRange = xRange;
     mSeries = new DiscreteSeries(clazz);
   }
 
-  @NonNull
+  @NotNull
   public DiscreteSeries getSeries() {
     return mSeries;
   }
 
-  @NonNull
+  @NotNull
   public Range getXRange() {
     return mXRange;
   }

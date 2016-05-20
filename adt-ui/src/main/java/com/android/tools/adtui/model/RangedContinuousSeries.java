@@ -16,9 +16,9 @@
 
 package com.android.tools.adtui.model;
 
-import com.android.annotations.NonNull;
 import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.Range;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -28,51 +28,51 @@ import java.util.Collection;
  * within given x and y ranged.
  */
 public class RangedContinuousSeries implements ReportingSeries {
-  @NonNull
+  @NotNull
   private final Range mXRange;
 
-  @NonNull
+  @NotNull
   private final Range mYRange;
 
-  @NonNull
+  @NotNull
   private final ContinuousSeries mSeries;
 
-  @NonNull
+  @NotNull
   private final String mLabel;
 
   private BaseAxisFormatter mXAxisFormatter;
 
   private BaseAxisFormatter mYAxisFormatter;
 
-  public RangedContinuousSeries(@NonNull String label, @NonNull Range xRange, @NonNull Range yRange, @NonNull ContinuousSeries series) {
+  public RangedContinuousSeries(@NotNull String label, @NotNull Range xRange, @NotNull Range yRange, @NotNull ContinuousSeries series) {
     mLabel = label;
     mXRange = xRange;
     mYRange = yRange;
     mSeries = series;
   }
 
-  public RangedContinuousSeries(@NonNull String label, @NonNull Range xRange, @NonNull Range yRange) {
+  public RangedContinuousSeries(@NotNull String label, @NotNull Range xRange, @NotNull Range yRange) {
     this(label, xRange, yRange, new ContinuousSeries());
   }
 
-  public RangedContinuousSeries(@NonNull String label, @NonNull Range xRange, @NonNull Range yRange,
-                                @NonNull BaseAxisFormatter xAxisFormatter, @NonNull BaseAxisFormatter yAxisFormatter) {
+  public RangedContinuousSeries(@NotNull String label, @NotNull Range xRange, @NotNull Range yRange,
+                                @NotNull BaseAxisFormatter xAxisFormatter, @NotNull BaseAxisFormatter yAxisFormatter) {
     this(label, xRange, yRange);
     mXAxisFormatter = xAxisFormatter;
     mYAxisFormatter = yAxisFormatter;
   }
 
-  @NonNull
+  @NotNull
   public ContinuousSeries getSeries() {
     return mSeries;
   }
 
-  @NonNull
+  @NotNull
   public Range getYRange() {
     return mYRange;
   }
 
-  @NonNull
+  @NotNull
   public Range getXRange() {
     return mXRange;
   }

@@ -16,21 +16,21 @@
 
 package com.android.tools.adtui.model;
 
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.LinkedList;
 import java.util.List;
 
 public class StateChartData {
 
-  @NonNull
+  @NotNull
   private final List<RangedDiscreteSeries> mSeries = new LinkedList<RangedDiscreteSeries>();
 
-  public void add(@NonNull RangedDiscreteSeries series) {
+  public void add(@NotNull RangedDiscreteSeries series) {
     mSeries.add(series);
   }
 
-  @NonNull
+  @NotNull
   public List<RangedDiscreteSeries> series() {
     return mSeries;
   }

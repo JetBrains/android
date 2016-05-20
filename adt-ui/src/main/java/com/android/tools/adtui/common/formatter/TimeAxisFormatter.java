@@ -15,8 +15,8 @@
  */
 package com.android.tools.adtui.common.formatter;
 
-import com.android.annotations.NonNull;
 import gnu.trove.TIntArrayList;
+import org.jetbrains.annotations.NotNull;
 
 public final class TimeAxisFormatter extends BaseAxisFormatter {
 
@@ -47,7 +47,7 @@ public final class TimeAxisFormatter extends BaseAxisFormatter {
    * extended to include the extra unit/scale when appropriate.
    */
   @Override
-  @NonNull
+  @NotNull
   public String getFormattedString(double globalRange, double value) {
     int index1 = getMultiplierIndex(globalRange, 1);
     int scale1 = getMultiplier();
@@ -82,7 +82,7 @@ public final class TimeAxisFormatter extends BaseAxisFormatter {
   }
 
   @Override
-  @NonNull
+  @NotNull
   protected String getUnit(int index) {
     return UNITS[index];
   }
@@ -103,7 +103,7 @@ public final class TimeAxisFormatter extends BaseAxisFormatter {
   }
 
   @Override
-  @NonNull
+  @NotNull
   protected TIntArrayList getUnitBaseFactors(int index) {
     return BASE_FACTORS[index];
   }

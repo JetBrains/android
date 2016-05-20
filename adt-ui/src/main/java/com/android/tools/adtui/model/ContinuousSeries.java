@@ -16,15 +16,15 @@
 
 package com.android.tools.adtui.model;
 
-import com.android.annotations.NonNull;
 import gnu.trove.TLongArrayList;
+import org.jetbrains.annotations.NotNull;
 
 public class ContinuousSeries {
 
-  @NonNull
+  @NotNull
   private final TLongArrayList mX = new TLongArrayList();
 
-  @NonNull
+  @NotNull
   private final TLongArrayList mY = new TLongArrayList();
 
   private long mMaxX;

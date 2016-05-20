@@ -16,11 +16,9 @@
 
 package com.android.tools.adtui;
 
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
 import java.awt.*;
-import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -81,16 +79,16 @@ public class AccordionLayout implements LayoutManager2, Animatable {
     }
   }
 
-  @NonNull
+  @NotNull
   private final HashMap<Component, ComponentInfo> mComponentInfoMap;
 
-  @NonNull
+  @NotNull
   private final TreeSet<ComponentInfo> mComponentInfoSet;
 
-  @NonNull
+  @NotNull
   private final Orientation mOrientation;
 
-  @NonNull
+  @NotNull
   private final Container mParent;
 
   /**
@@ -111,20 +109,20 @@ public class AccordionLayout implements LayoutManager2, Animatable {
    */
   private float mPreoccupiedSpace;
 
-  public AccordionLayout(@NonNull Container parent, @NonNull Orientation orientation) {
+  public AccordionLayout(@NotNull Container parent, @NotNull Orientation orientation) {
     mParent = parent;
     mOrientation = orientation;
     mComponentInfoMap = new HashMap<>();
     mComponentInfoSet = new TreeSet<>();
   }
 
-  public AccordionState getState(@NonNull Component comp) {
+  public AccordionState getState(@NotNull Component comp) {
     assert mComponentInfoMap.containsKey(comp);
 
     return mComponentInfoMap.get(comp).state;
   }
 
-  public void setState(@NonNull Component comp, @NonNull AccordionState state) {
+  public void setState(@NotNull Component comp, @NotNull AccordionState state) {
     assert mComponentInfoMap.containsKey(comp);
 
     ComponentInfo info = mComponentInfoMap.get(comp);
@@ -133,7 +131,7 @@ public class AccordionLayout implements LayoutManager2, Animatable {
     }
   }
 
-  private void setStateInternal(@NonNull Component comp, @NonNull ComponentInfo info, @NonNull AccordionState state) {
+  private void setStateInternal(@NotNull Component comp, @NotNull ComponentInfo info, @NotNull AccordionState state) {
     // Remove/Re-add info into set to force a sort.
     mComponentInfoSet.remove(info);
     info.state = state;
@@ -150,7 +148,7 @@ public class AccordionLayout implements LayoutManager2, Animatable {
    * Toggle the component's maximized state.
    * If the component is already maximized, it will switch back to the preferred state.
    */
-  public void toggleMaximize(@NonNull Component comp) {
+  public void toggleMaximize(@NotNull Component comp) {
     assert mComponentInfoMap.containsKey(comp);
 
     ComponentInfo info = mComponentInfoMap.get(comp);
@@ -161,7 +159,7 @@ public class AccordionLayout implements LayoutManager2, Animatable {
    * Toggle the component's minimized state.
    * If the component is already minimized, it will switch back to the preferred state.
    */
-  public void toggleMinimize(@NonNull Component comp) {
+  public void toggleMinimize(@NotNull Component comp) {
     assert mComponentInfoMap.containsKey(comp);
 
     ComponentInfo info = mComponentInfoMap.get(comp);

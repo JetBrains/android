@@ -15,7 +15,7 @@
  */
 package com.android.tools.adtui;
 
-import com.android.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.AbstractList;
 
@@ -25,7 +25,7 @@ import java.util.AbstractList;
  */
 class CircularArrayList<T> extends AbstractList<T> {
 
-  @NonNull
+  @NotNull
   private final T[] mData;
 
   private int mSize;
