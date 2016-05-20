@@ -75,7 +75,7 @@ public class NewModuleWizard extends TemplateWizard {
   }
 
   protected ImportWizardModuleBuilder getModuleBuilder() {
-    return new ImportWizardModuleBuilder(null, myProject, null, AndroidIcons.Wizards.NewModuleSidePanel,
+    return new ImportWizardModuleBuilder(null, myProject, AndroidIcons.Wizards.NewModuleSidePanel,
                                          mySteps, getDisposable(), false) {
       @Override
       public void update() {
