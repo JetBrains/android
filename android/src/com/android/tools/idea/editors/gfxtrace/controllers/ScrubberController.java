@@ -91,7 +91,7 @@ public class ScrubberController extends ImageCellController<ScrubberController.D
 
   @Override
   public void selected(@NotNull Data cell) {
-    myEditor.getAtomStream().selectAtom(cell.range.getLast(), this);
+    myEditor.getAtomStream().selectAtoms(cell.range, this);
   }
 
 
@@ -135,10 +135,10 @@ public class ScrubberController extends ImageCellController<ScrubberController.D
   }
 
   @Override
-  public void onAtomSelected(AtomPath path, Object source) {
+  public void onAtomsSelected(AtomRangePath path) {
     int index = 0;
     for (Data data : myList.items()) {
-      if (data.range.contains(path.getIndex())) {
+      if (data.range.contains(path.getLast())) {
         myList.selectItem(index, false);
         break;
       }
