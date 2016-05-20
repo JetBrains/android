@@ -128,7 +128,6 @@ public class CPUProfilerVisualTest extends VisualTest {
     mSeriesMaxValues.put(mNumberOfThreadsSeries, maxNumberOfThreads);
     LineConfig numberOfThreadsLineConfig = new LineConfig(THREADS_LINE_COLOR);
     numberOfThreadsLineConfig.setStepped(true);
-    numberOfThreadsLineConfig.setDashed(true);
     mLineChart.addLine(mNumberOfThreadsSeries, numberOfThreadsLineConfig);
 
     mCPUUsageAxis = new AxisComponent(mCPUUsageRange, mCPUUsageRange, CPU_USAGE_AXIS_LABEL, AxisComponent.AxisOrientation.LEFT, AXIS_SIZE,
