@@ -47,8 +47,8 @@ public class LaunchAndroidApplicationTest {
     guiTest.importSimpleApplication();
 
     guiTest.ideFrame().runApp(APP_NAME);
-    guiTest.ideFrame().findChooseDeviceDialog().selectEmulator("Nexus7")
-                                         .clickOk();
+    guiTest.ideFrame().findChooseDeviceDialog().selectFirstAvailableDevice().clickOk();
+
 
     // Make sure the right app is being used. This also serves as the sync point for the package to get uploaded to the device/emulator.
     guiTest.ideFrame().getRunToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(LOCAL_PATH_OUTPUT), 120);
