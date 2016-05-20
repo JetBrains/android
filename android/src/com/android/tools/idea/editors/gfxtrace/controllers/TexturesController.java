@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.UiErrorCallback;
+import com.android.tools.idea.editors.gfxtrace.actions.AtomComboAction;
 import com.android.tools.idea.editors.gfxtrace.models.AtomStream;
 import com.android.tools.idea.editors.gfxtrace.renderers.ImageCellRenderer;
 import com.android.tools.idea.editors.gfxtrace.service.ErrDataUnavailable;
@@ -41,13 +42,17 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 public class TexturesController extends ImagePanelController {
   public static JComponent createUI(GfxTraceEditor editor) {
     return new TexturesController(editor).myPanel;
   }
+
+  @NotNull private AtomComboAction myJumpToAtomComboAction;
 
   public TexturesController(@NotNull GfxTraceEditor editor) {
     super(editor, GfxTraceEditor.SELECT_ATOM);
@@ -56,9 +61,18 @@ public class TexturesController extends ImagePanelController {
       public void selected(Data item) {
         setEmptyText(myList.isEmpty() ? GfxTraceEditor.NO_TEXTURES : GfxTraceEditor.SELECT_TEXTURE);
         setImage((item == null) ? null : FetchedImage.load(myEditor.getClient(), item.path));
+
+        if (item != null) {
+          List<Long> accesses = Arrays.stream(item.info.getAccesses()).boxed().collect(Collectors.toList());
+          myJumpToAtomComboAction.setAtomIds(accesses);
+        }
       }
     }.myList, BorderLayout.NORTH);
-    initToolbar(new DefaultActionGroup(), true);
+
+    DefaultActionGroup toolbar = new DefaultActionGroup();
+    myJumpToAtomComboAction = new AtomComboAction(editor);
+    initToolbar(toolbar, true);
+    toolbar.add(myJumpToAtomComboAction);
   }
 
   @Override
