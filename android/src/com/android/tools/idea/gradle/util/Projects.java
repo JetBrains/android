@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.project.PostProjectSetupTasksExecutor;
 import com.android.tools.idea.gradle.project.subset.ProjectSubset;
 import com.android.tools.idea.model.AndroidModel;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.intellij.ide.DataManager;
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
@@ -51,7 +52,6 @@ import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.openapi.wm.ex.IdeFrameEx;
-import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -70,7 +70,6 @@ import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidS
 import static com.intellij.ide.impl.ProjectUtil.updateLastProjectLocation;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY;
-import static com.intellij.openapi.externalSystem.model.ProjectKeys.PROJECT;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findAll;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.visit;
 import static com.intellij.openapi.module.ModuleUtilCore.findModuleForFile;
@@ -133,7 +132,7 @@ public final class Projects {
                               @NotNull DataNode<ProjectData> projectInfo,
                               boolean selectModulesToImport,
                               boolean runPostProjectSetupTasks) {
-    populate(project, getModulesToImport(project, projectInfo, selectModulesToImport), runPostProjectSetupTasks);
+    populate(project, projectInfo, getModulesToImport(project, projectInfo, selectModulesToImport), runPostProjectSetupTasks);
   }
 
   @NotNull
@@ -172,11 +171,12 @@ public final class Projects {
     }
     // Delete any stored module selection.
     subview.clearSelection();
-    return modules;
+    return modules; // Import all modules, not just subset.
   }
 
   public static void populate(@NotNull Project project,
-                              @NotNull Collection<DataNode<ModuleData>> modules,
+                              @NotNull DataNode<ProjectData> projectInfo,
+                              @NotNull Collection<DataNode<ModuleData>> modulesToImport,
                               boolean runPostProjectSetupTasks) {
     invokeAndWaitIfNeeded((Runnable)() -> {
       ProjectSyncMessages messages = ProjectSyncMessages.getInstance(project);
@@ -186,8 +186,9 @@ public final class Projects {
       ApplicationManager.getApplication().runWriteAction(() -> {
         if (!project.isDisposed()) {
           ProjectRootManagerEx.getInstanceEx(project).mergeRootsChangesDuring(() -> {
+            disableExcludedModules(projectInfo, modulesToImport);
             ProjectDataManager dataManager = ServiceManager.getService(ProjectDataManager.class);
-            dataManager.importData(modules, project, true /* synchronous */);
+            dataManager.importData(projectInfo, project, true /* synchronous */);
           });
         }
       });
@@ -202,24 +203,15 @@ public final class Projects {
   /**
    * Reuse external system 'selective import' feature for importing of the project sub-set.
    */
-  // TODO: figure out why this broke sync. This was added in IntelliJ IDEA 2016.1.1.
-  private static void doSelectiveImport(@NotNull Collection<DataNode<ModuleData>> enabledModules, @NotNull Project project) {
-    ProjectDataManager dataManager = ServiceManager.getService(ProjectDataManager.class);
-    DataNode<ProjectData> projectNode = enabledModules.isEmpty() ? null :
-                                        ExternalSystemApiUtil.findParent(enabledModules.iterator().next(), PROJECT);
-
-    if (projectNode != null) {
-      Collection<DataNode<ModuleData>> allModules = findAll(projectNode, ProjectKeys.MODULE);
-      if (enabledModules.size() != allModules.size()) {
-        Set<DataNode<ModuleData>> moduleToIgnore = ContainerUtil.newIdentityTroveSet(allModules);
-        moduleToIgnore.removeAll(enabledModules);
-        for (DataNode<ModuleData> moduleNode : moduleToIgnore) {
-          visit(moduleNode, node -> node.setIgnored(true));
-        }
+  private static void disableExcludedModules(@NotNull DataNode<ProjectData> projectInfo,
+                                             @NotNull Collection<DataNode<ModuleData>> selectedModules) {
+    Collection<DataNode<ModuleData>> allModules = findAll(projectInfo, ProjectKeys.MODULE);
+    if (selectedModules.size() != allModules.size()) {
+      Set<DataNode<ModuleData>> moduleToIgnore = Sets.newHashSet(allModules);
+      moduleToIgnore.removeAll(selectedModules);
+      for (DataNode<ModuleData> moduleNode : moduleToIgnore) {
+        visit(moduleNode, node -> node.setIgnored(true));
       }
-      dataManager.importData(projectNode, project, true /* synchronous */);
-    } else {
-      dataManager.importData(enabledModules, project, true /* synchronous */);
     }
   }
 
@@ -545,6 +537,7 @@ public final class Projects {
 
   /**
    * Indicates whether the project in the given folder can be imported as a Gradle project.
+   *
    * @param importSource the folder containing the project.
    * @return {@code true} if the project can be imported as a Gradle project, {@code false} otherwise.
    */
