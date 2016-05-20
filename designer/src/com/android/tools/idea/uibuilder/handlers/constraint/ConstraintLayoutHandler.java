@@ -54,8 +54,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
   ArrayList<ViewAction> myPopupActions = new ArrayList<>();
   ArrayList<ViewAction> myControlActions = new ArrayList<>();
 
-  private boolean mControlIsPressed;
-
   /**
    * Utility function to convert from an Icon to an Image
    *
@@ -82,10 +80,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
    */
   public ConstraintLayoutHandler() {
     loadWidgetDecoratorImages();
-  }
-
-  private void controlDownUpdate(boolean key) {
-    mControlIsPressed = key;
   }
 
   private static void loadWidgetDecoratorImages() {
@@ -413,8 +407,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
    *
    * @param gc         graphics context
    * @param screenView the current screenview
-   * @param width      width of the surface
-   * @param height     height of the surface
    * @param component  the component to draw
    * @return true to indicate that we will need to be repainted
    */
@@ -679,9 +671,9 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
         guideline.ensureId();
         guideline.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_GUIDELINE_RELATIVE_BEGIN, "20dp");
         if (myType == HORIZONTAL_GUIDELINE) {
-          guideline.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_GUIDELINE_ORIENTATION, SdkConstants.ATTR_GUIDELINE_ORIENTATION_HORIZONTAL);
+          guideline.setAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_ORIENTATION, SdkConstants.ATTR_GUIDELINE_ORIENTATION_HORIZONTAL);
         } else {
-          guideline.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_GUIDELINE_ORIENTATION, SdkConstants.ATTR_GUIDELINE_ORIENTATION_VERTICAL);
+          guideline.setAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_ORIENTATION, SdkConstants.ATTR_GUIDELINE_ORIENTATION_VERTICAL);
         }
       }
     }
@@ -700,7 +692,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     }
   }
 
-  private class AlignAction extends DirectViewAction implements Enableable {
+  private static class AlignAction extends DirectViewAction implements Enableable {
     private final Scout.Arrange myActionType;
     private final Icon myAlignIcon;
     private final Icon myConstrainIcon;
