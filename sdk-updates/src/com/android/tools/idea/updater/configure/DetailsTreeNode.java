@@ -29,14 +29,14 @@ import javax.swing.event.ChangeListener;
  * Represents a row in a table in {@link SdkUpdaterConfigurable} associated with a single package.
  * Can have three state: not installed, installed but with update available, and installed.
  */
-class PlatformDetailsTreeNode extends UpdaterTreeNode {
+class DetailsTreeNode extends UpdaterTreeNode {
   private NodeStateHolder myStateHolder;
   private final ChangeListener myChangeListener;
   private SdkUpdaterConfigurable myConfigurable;
 
-  public PlatformDetailsTreeNode(@NotNull NodeStateHolder state,
-                                 @Nullable ChangeListener changeListener,
-                                 @NotNull SdkUpdaterConfigurable configurable) {
+  public DetailsTreeNode(@NotNull NodeStateHolder state,
+                         @Nullable ChangeListener changeListener,
+                         @NotNull SdkUpdaterConfigurable configurable) {
     myStateHolder = state;
     myStateHolder.setState(getInitialState());
     myChangeListener = changeListener;
@@ -57,10 +57,10 @@ class PlatformDetailsTreeNode extends UpdaterTreeNode {
 
   @Override
   public int compareTo(UpdaterTreeNode o) {
-    if (!(o instanceof PlatformDetailsTreeNode)) {
+    if (!(o instanceof DetailsTreeNode)) {
       return toString().compareTo(o.toString());
     }
-    return myStateHolder.getPkg().compareTo(((PlatformDetailsTreeNode)o).myStateHolder.getPkg());
+    return myStateHolder.getPkg().compareTo(((DetailsTreeNode)o).myStateHolder.getPkg());
   }
 
   @Override
@@ -73,10 +73,10 @@ class PlatformDetailsTreeNode extends UpdaterTreeNode {
 
   @Override
   public boolean equals(Object obj) {
-    if (!(obj instanceof PlatformDetailsTreeNode)) {
+    if (!(obj instanceof DetailsTreeNode)) {
       return false;
     }
-    return myStateHolder.getPkg().equals(((PlatformDetailsTreeNode)obj).myStateHolder.getPkg());
+    return myStateHolder.getPkg().equals(((DetailsTreeNode)obj).myStateHolder.getPkg());
   }
 
   @Override
