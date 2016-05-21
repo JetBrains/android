@@ -19,15 +19,12 @@ import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
-import com.android.tools.idea.gradle.service.notification.hyperlink.DownloadJdk8Hyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenProjectStructureHyperlink;
-import com.android.tools.idea.gradle.service.notification.hyperlink.SelectJdkFromFileSystemHyperlink;
 import com.android.tools.idea.gradle.util.GradleProperties;
 import com.android.tools.idea.gradle.util.ProxySettings;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -46,6 +43,7 @@ import java.io.IOException;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.project.SdkSync.syncIdeAndProjectAndroidSdks;
+import static com.android.tools.idea.gradle.service.notification.hyperlink.JdkQuickFixes.getJdkQuickFixes;
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
@@ -106,14 +104,9 @@ final class PreSyncChecks {
 
       if (!Jdks.isApplicableJdk(jdk, JDK_1_8)) {
         Message message = new Message(PROJECT_SYNC_ERROR_GROUP, Message.Type.ERROR, "Please use JDK 8 or newer.");
-        List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
-        hyperlinks.add(new DownloadJdk8Hyperlink());
 
-        SelectJdkFromFileSystemHyperlink selectJdkHyperlink = SelectJdkFromFileSystemHyperlink.create(project);
-        if (selectJdkHyperlink != null) {
-          hyperlinks.add(selectJdkHyperlink);
-        }
-        syncMessages.add(message, hyperlinks.toArray(new NotificationHyperlink[hyperlinks.size()]));
+        List<NotificationHyperlink> quickFixes = getJdkQuickFixes(project);
+        syncMessages.add(message, quickFixes.toArray(new NotificationHyperlink[quickFixes.size()]));
         return PreSyncCheckResult.failure("Invalid Project Jdk");
       }
     }

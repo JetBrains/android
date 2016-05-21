@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.util;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.SystemInfo;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,6 +27,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
+import static com.android.tools.idea.sdk.IdeSdks.MAC_JDK_CONTENT_PATH;
+import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 
@@ -53,7 +56,7 @@ public class EmbeddedDistributionPaths {
       }
     } else {
       String relativePath = toSystemDependentName("/../../prebuilts/tools/common/offline-m2");
-      repoPath = new File(toCanonicalPath(toSystemDependentName(PathManager.getHomePath()) + relativePath));
+      repoPath = new File(toCanonicalPath(getIdeHomePath() + relativePath));
     }
     LOG.info("Looking for embedded Maven repo at '" + repoPath.getPath() + "'");
     if (repoPath.isDirectory()) {
@@ -90,8 +93,46 @@ public class EmbeddedDistributionPaths {
 
   @Nullable
   private static File getDefaultRootDirPath() {
-    String ideHomePath = toSystemDependentName(PathManager.getHomePath());
+    String ideHomePath = getIdeHomePath();
     File rootDirPath = new File(ideHomePath, "gradle");
     return rootDirPath.isDirectory() ? rootDirPath : null;
+  }
+
+  @NotNull
+  public static File getEmbeddedJdkPath() {
+    String ideHomePath = getIdeHomePath();
+    File jdkRootPath = new File(ideHomePath, join("jre", "jdk"));
+    if (jdkRootPath.isDirectory()) {
+      // Release build.
+      return getSystemSpecificJdkPath(jdkRootPath);
+    }
+
+    // Development build.
+    String relativePath = toSystemDependentName("/../../prebuilts/studio/jdk");
+    jdkRootPath = new File(toCanonicalPath(ideHomePath + relativePath));
+    if (SystemInfo.isWindows) {
+      jdkRootPath = new File(jdkRootPath, "win64");
+    }
+    else if (SystemInfo.isLinux) {
+      jdkRootPath = new File(jdkRootPath, "linux");
+    }
+    else if (SystemInfo.isMac) {
+      jdkRootPath = new File(jdkRootPath, "mac");
+    }
+    return getSystemSpecificJdkPath(jdkRootPath);
+  }
+
+  @NotNull
+  private static File getSystemSpecificJdkPath(File jdkRootPath) {
+    if (SystemInfo.isMac) {
+      jdkRootPath = new File(jdkRootPath, MAC_JDK_CONTENT_PATH);
+    }
+    assert jdkRootPath.isDirectory();
+    return jdkRootPath;
+  }
+
+  @NotNull
+  private static String getIdeHomePath() {
+    return toSystemDependentName(PathManager.getHomePath());
   }
 }
