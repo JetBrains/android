@@ -19,8 +19,6 @@ import com.intellij.ide.projectView.ProjectView;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import org.jetbrains.annotations.Nls;
@@ -30,8 +28,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.text.NumberFormatter;
 
-import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
-
 public class GradleExperimentalSettingsConfigurable implements SearchableConfigurable, Configurable.NoScroll {
   @NotNull private final GradleExperimentalSettings mySettings;
 
@@ -40,13 +36,12 @@ public class GradleExperimentalSettingsConfigurable implements SearchableConfigu
   private JSpinner myModuleNumberSpinner;
   private JCheckBox mySkipSourceGenOnSyncCheckbox;
   private JCheckBox myUseNewProjectStructureCheckBox;
-  private JCheckBox myGroupNativeSourcesByArtifact;
+  private JCheckBox myGroupNativeSourcesByArtifactCheckBox;
 
   private boolean myGroupNativeSourcesByArtifactChanged;
 
   public GradleExperimentalSettingsConfigurable() {
     mySettings = GradleExperimentalSettings.getInstance();
-    //myUseNewProjectStructureCheckBox.setVisible(SystemProperties.getBooleanProperty(ENABLE_NEW_PSD_SYSTEM_PROPERTY, false));
   }
 
   @Override
@@ -129,7 +124,7 @@ public class GradleExperimentalSettingsConfigurable implements SearchableConfigu
   }
 
   private boolean isGroupNativeSourcesByArtifact() {
-    return myGroupNativeSourcesByArtifact.isSelected();
+    return myGroupNativeSourcesByArtifactCheckBox.isSelected();
   }
 
   @Override
@@ -138,7 +133,7 @@ public class GradleExperimentalSettingsConfigurable implements SearchableConfigu
     mySkipSourceGenOnSyncCheckbox.setSelected(mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC);
     myModuleNumberSpinner.setValue(mySettings.MAX_MODULE_COUNT_FOR_SOURCE_GEN);
     myUseNewProjectStructureCheckBox.setSelected(mySettings.USE_NEW_PROJECT_STRUCTURE_DIALOG);
-    myGroupNativeSourcesByArtifact.setSelected(mySettings.GROUP_NATIVE_SOURCES_BY_ARTIFACT);
+    myGroupNativeSourcesByArtifactCheckBox.setSelected(mySettings.GROUP_NATIVE_SOURCES_BY_ARTIFACT);
   }
 
   @Override
@@ -146,22 +141,6 @@ public class GradleExperimentalSettingsConfigurable implements SearchableConfigu
     if (myGroupNativeSourcesByArtifactChanged) {
       for (final Project project : ProjectManager.getInstance().getOpenProjects()) {
         ProjectView.getInstance(project).refresh();
-      }
-    }
-  }
-
-  private static void syncAllGradleProjects() {
-    for (final Project project : ProjectManager.getInstance().getOpenProjects()) {
-      if (isBuildWithGradle(project)) {
-        new Task.Backgroundable(project, "Gradle Sync") {
-          @Override
-          public void run(@NotNull ProgressIndicator indicator) {
-            if (!project.isDisposed()) {
-              // Sync project with cached model. If there is no cache, the IDE will perform a full sync.
-              GradleProjectImporter.getInstance().requestProjectSync(project, true, false, false, null);
-            }
-          }
-        }.queue();
       }
     }
   }

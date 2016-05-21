@@ -100,7 +100,7 @@
           <text value="&lt;html&gt;&lt;br&gt;&lt;/html&gt;"/>
         </properties>
       </component>
-      <component id="8e508" class="javax.swing.JCheckBox" binding="myGroupNativeSourcesByArtifact">
+      <component id="8e508" class="javax.swing.JCheckBox" binding="myGroupNativeSourcesByArtifactCheckBox">
         <constraints>
           <grid row="9" column="0" row-span="1" col-span="3" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
