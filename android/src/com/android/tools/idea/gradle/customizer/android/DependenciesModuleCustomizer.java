@@ -44,7 +44,6 @@ import java.util.Set;
 
 import static com.android.SdkConstants.FD_JARS;
 import static com.android.tools.idea.gradle.customizer.dependency.LibraryDependency.PathType.*;
-import static com.android.tools.idea.gradle.util.Facets.findFacet;
 import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntry;
 import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
@@ -82,6 +81,7 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
       messages.reportSyncIssues(syncIssues, module);
     }
     else {
+      //noinspection deprecation
       Collection<String> unresolvedDependencies = androidProject.getUnresolvedDependencies();
       messages.reportUnresolvedDependencies(unresolvedDependencies, module);
     }
