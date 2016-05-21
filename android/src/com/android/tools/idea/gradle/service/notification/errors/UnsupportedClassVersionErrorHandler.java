@@ -16,16 +16,14 @@
 package com.android.tools.idea.gradle.service.notification.errors;
 
 import com.android.tools.idea.gradle.project.ProjectImportErrorHandler;
-import com.android.tools.idea.gradle.service.notification.hyperlink.DownloadJdk8Hyperlink;
-import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
-import com.android.tools.idea.gradle.service.notification.hyperlink.SelectJdkFromFileSystemHyperlink;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+
+import static com.android.tools.idea.gradle.service.notification.hyperlink.JdkQuickFixes.getJdkQuickFixes;
 
 public class UnsupportedClassVersionErrorHandler extends AbstractSyncErrorHandler {
   @Override
@@ -35,14 +33,7 @@ public class UnsupportedClassVersionErrorHandler extends AbstractSyncErrorHandle
                              @NotNull Project project) {
     String firstLine = message.get(0);
     if (firstLine.endsWith(ProjectImportErrorHandler.USE_JDK_8)) {
-      List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
-      hyperlinks.add(new DownloadJdk8Hyperlink());
-
-      SelectJdkFromFileSystemHyperlink selectJdkHyperlink = SelectJdkFromFileSystemHyperlink.create(project);
-      if (selectJdkHyperlink != null) {
-        hyperlinks.add(selectJdkHyperlink);
-      }
-      updateNotification(notification, project, firstLine, hyperlinks);
+      updateNotification(notification, project, firstLine, getJdkQuickFixes(project));
       return true;
     }
     return false;

@@ -18,6 +18,7 @@ package com.android.tools.idea.sdk;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.AndroidTestCaseHelper;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.google.common.collect.Lists;
 import com.intellij.facet.FacetManager;
@@ -25,6 +26,7 @@ import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -34,6 +36,9 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+
+import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.getEmbeddedJdkPath;
+import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 
 /**
  * Tests for {@link IdeSdks}.
@@ -121,5 +126,19 @@ public class IdeSdksTest extends IdeaTestCase {
     }
 
     assertEquals(0, platformTargets.size());
+  }
+
+  public void testUseEmbeddedJdk() {
+    ApplicationManager.getApplication().runWriteAction(() -> {
+      IdeSdks.shouldUseEmbeddedJdk(true);
+    });
+
+    // The path of the JDK should be the same as the embedded one.
+    File jdkPath = IdeSdks.getJdkPath();
+    assertNotNull(jdkPath);
+
+    File embeddedJdkPath = getEmbeddedJdkPath();
+    assertTrue(String.format("'%1$s' should be the embedded one ('%2$s')", jdkPath.getPath(), embeddedJdkPath.getPath()),
+               filesEqual(jdkPath, embeddedJdkPath));
   }
 }

@@ -21,10 +21,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
-import com.android.tools.idea.gradle.service.notification.hyperlink.DownloadJdk8Hyperlink;
-import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
-import com.android.tools.idea.gradle.service.notification.hyperlink.OpenFileHyperlink;
-import com.android.tools.idea.gradle.service.notification.hyperlink.SelectJdkFromFileSystemHyperlink;
+import com.android.tools.idea.gradle.service.notification.hyperlink.*;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
@@ -44,6 +41,7 @@ import org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes;
 
 import java.util.List;
 
+import static com.android.tools.idea.gradle.service.notification.hyperlink.JdkQuickFixes.getJdkQuickFixes;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.gradle.util.Projects.setHasWrongJdk;
 import static com.android.tools.idea.sdk.Jdks.isApplicableJdk;
@@ -70,13 +68,7 @@ final class ProjectJdkChecks {
       if (jdk != null && !isApplicableJdk(jdk, LanguageLevel.JDK_1_7)) {
         Project project = module.getProject();
 
-        List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
-        hyperlinks.add(new DownloadJdk8Hyperlink());
-
-        SelectJdkFromFileSystemHyperlink selectJdkHyperlink = SelectJdkFromFileSystemHyperlink.create(project);
-        if (selectJdkHyperlink != null) {
-          hyperlinks.add(selectJdkHyperlink);
-        }
+        List<NotificationHyperlink> quickFixes = Lists.newArrayList(getJdkQuickFixes(project));
         Message msg;
         String text = "compileSdkVersion " + compileTarget + " requires compiling with JDK 7 or newer";
         VirtualFile buildFile = getGradleBuildFile(module);
@@ -97,7 +89,7 @@ final class ProjectJdkChecks {
             }
           }
 
-          hyperlinks.add(new OpenFileHyperlink(buildFile.getPath(), "Open build.gradle File", lineNumber, column));
+          quickFixes.add(new OpenFileHyperlink(buildFile.getPath(), "Open build.gradle File", lineNumber, column));
           msg = new Message(project, groupName, Message.Type.ERROR, buildFile, lineNumber, column, text);
         }
         else {
@@ -105,7 +97,7 @@ final class ProjectJdkChecks {
         }
 
         ProjectSyncMessages messages = ProjectSyncMessages.getInstance(project);
-        messages.add(msg, hyperlinks.toArray(new NotificationHyperlink[hyperlinks.size()]));
+        messages.add(msg, quickFixes.toArray(new NotificationHyperlink[quickFixes.size()]));
 
         setHasWrongJdk(project, true);
         return false;
