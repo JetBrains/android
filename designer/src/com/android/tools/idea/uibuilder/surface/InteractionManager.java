@@ -658,7 +658,15 @@ public class InteractionManager {
         }
       }
 
-      // The below shortcuts only apply without modifier keys
+      if (keyChar == '+') {
+        mySurface.zoomIn();
+      } else if (keyChar == '-') {
+        mySurface.zoomOut();
+      }
+
+      // The below shortcuts only apply without modifier keys.
+      // (Zooming with "+" *may* require modifier keys, since on some keyboards you press for
+      // example Shift+= to create the + key.
       if (event.isAltDown() || event.isMetaDown() || event.isShiftDown() || event.isControlDown()) {
         return;
       }
@@ -671,13 +679,9 @@ public class InteractionManager {
       } else if (keyChar == 'r') {
         // Refresh layout
         RefreshRenderAction.clearCache(mySurface);
-      } else if (keyChar == '+') {
-        mySurface.zoomIn();
       } else if (keyChar == 'b') {
         DesignSurface.ScreenMode nextMode = mySurface.getScreenMode().next();
         mySurface.setScreenMode(nextMode, true);
-      } else if (keyChar == '-') {
-        mySurface.zoomOut();
       } else if (keyChar == '0') {
         mySurface.zoomToFit();
       } else if (keyChar == 'd') {
