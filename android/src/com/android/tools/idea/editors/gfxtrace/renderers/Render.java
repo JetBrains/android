@@ -425,7 +425,7 @@ public final class Render {
     // we can not find any exact match,
     // but for a number, maybe we can find a combination of constants that match (bit flags)
     Object value = obj.getObject();
-    if (!(value instanceof Number)) {
+    if (!(value instanceof Number) || value instanceof Double || value instanceof Float) {
       return Collections.emptyList();
     }
 
