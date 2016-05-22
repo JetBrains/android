@@ -58,6 +58,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 import static com.android.SdkConstants.*;
@@ -140,13 +141,14 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       // The cache is invalid, do nothing
       return;
     }
+
     try {
       ResourcePreprocessor preprocessor = new NoOpResourcePreprocessor();
       MergeConsumer<ResourceItem> consumer = MergedResourceWriter.createWriterWithoutPngCruncher(
-        blobRoot, null /*publicFile*/, null /*blameLogFolder*/, preprocessor);
+        blobRoot, null, null, preprocessor, FileUtil.createTempDirectory("resource", "tmp", true));
       myInitialInitialScanState.myResourceMerger.writeBlobToWithTimestamps(blobRoot, consumer);
     }
-    catch (MergingException e) {
+    catch (MergingException|IOException e) {
       LOG.error("Failed to saveStateToFile", e);
       // Delete the blob root just in case it's in an inconsistent state.
       FileUtil.delete(blobRoot);
