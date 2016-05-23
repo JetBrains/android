@@ -20,8 +20,9 @@ import com.android.tools.adtui.Animatable;
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.AnimatedTimeRange;
 import com.android.tools.adtui.Range;
-import com.android.tools.adtui.model.ContinuousSeries;
 import com.android.tools.adtui.model.RangedDiscreteSeries;
+import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.adtui.model.SeriesDataStore;
 import com.android.tools.adtui.segment.CpuUsageSegment;
 import com.android.tools.adtui.segment.ThreadsSegment;
 import org.jetbrains.annotations.NotNull;
@@ -36,14 +37,8 @@ public class CpuProfilerVisualTest extends VisualTest {
 
   private static final String CPU_PROFILER_NAME = "CPU Profiler";
 
-  private static final int MY_PROCESS_MAX_VALUE = 50;
-
-  private static final int OTHER_PROCESSES_MAX_VALUE = 30;
 
   private static final int UPDATE_THREAD_SLEEP_DELAY_MS = 100;
-
-  private static final int PROCESSES_LINE_CHART_VARIANCE = 10;
-
   /**
    * The active threads should be copied into this array when getThreadGroup().enumerate() is called.
    * It is initialized with a safe size.
@@ -57,23 +52,10 @@ public class CpuProfilerVisualTest extends VisualTest {
   private ThreadsSegment mThreadsSegment;
 
   private long mStartTimeMs;
-
-  /**
-   * Max y value of each process series.
-   */
-  private Map<ContinuousSeries, Integer> mSeriesMaxValues = new HashMap<>();
-
   /**
    * Stores the state series corresponding to each thread.
    */
   private Map<Thread, RangedDiscreteSeries<Thread.State>> mThreadsStateSeries;
-
-  /**
-   * Series that represent processes share some properties, so they can grouped in a list.
-   */
-  private List<ContinuousSeries> mProcessesSeries;
-
-  private ContinuousSeries mNumberOfThreadsSeries;
 
   private Range mTimeRange;
 
@@ -95,17 +77,11 @@ public class CpuProfilerVisualTest extends VisualTest {
     mTimeRange = new Range();
     AnimatedTimeRange AnimatedTimeRange = new AnimatedTimeRange(mTimeRange, mStartTimeMs);
 
-    ContinuousSeries myProcessSeries = new ContinuousSeries();
-    mSeriesMaxValues.put(myProcessSeries, MY_PROCESS_MAX_VALUE);
-    ContinuousSeries otherProcessesSeries = new ContinuousSeries();
-    mSeriesMaxValues.put(otherProcessesSeries, OTHER_PROCESSES_MAX_VALUE);
-    mNumberOfThreadsSeries = new ContinuousSeries();
-    mProcessesSeries = Arrays.asList(myProcessSeries, otherProcessesSeries);
-
+    //TODO Update test data for CPUUsageSegment to be exatly what it was.
     mThreadsStateSeries = new HashMap<>(); // TODO: maybe it's safer to keep insertion order
 
-    mCPULevel1Segment = new CpuUsageSegment(mTimeRange, myProcessSeries);
-    mCPULevel2Segment = new CpuUsageSegment(mTimeRange, myProcessSeries, otherProcessesSeries, mNumberOfThreadsSeries);
+    mCPULevel1Segment = new CpuUsageSegment(mTimeRange, mDataStore);
+    mCPULevel2Segment = new CpuUsageSegment(mTimeRange, mDataStore);
     mThreadsSegment = new ThreadsSegment(mTimeRange);
 
     List<Animatable> animatables = new ArrayList<>();
@@ -113,7 +89,6 @@ public class CpuProfilerVisualTest extends VisualTest {
     mCPULevel1Segment.createComponentsList(animatables);
     mCPULevel2Segment.createComponentsList(animatables);
     mThreadsSegment.createComponentsList(animatables);
-
     return animatables;
   }
 
@@ -137,23 +112,13 @@ public class CpuProfilerVisualTest extends VisualTest {
   }
 
   private void simulateTestData() {
-    mUpdateDataThread = new Thread() {
+    Thread updateDataThread = new Thread() {
       @Override
       public void run() {
         try {
           while (true) {
             //  Insert new data point at now.
             long now = System.currentTimeMillis() - mStartTimeMs;
-            for (ContinuousSeries series : mProcessesSeries) {
-              int size = series.size();
-              long last = size > 0 ? series.getY(size - 1) : 0;
-              // Difference between current and new values is going to be variance times a number in the interval [-0.5, 0.5)
-              float delta = PROCESSES_LINE_CHART_VARIANCE * ((float) Math.random() - 0.5f);
-              long current = last + (long) delta;
-              assert mSeriesMaxValues.containsKey(series);
-              current = Math.min(mSeriesMaxValues.get(series), Math.max(current, 0));
-              series.add(now, current);
-            }
 
             // Copy active threads into ACTIVE_THREADS array
             int numActiveThreads = getThreadGroup().enumerate(ACTIVE_THREADS);
@@ -173,7 +138,6 @@ public class CpuProfilerVisualTest extends VisualTest {
                 targetThreads++;
               }
             }
-            mNumberOfThreadsSeries.add(now, targetThreads);
 
             for (Map.Entry<Thread, RangedDiscreteSeries<Thread.State>> threadStateSeries : mThreadsStateSeries.entrySet()) {
               threadStateSeries.getValue().getSeries().add(now, threadStateSeries.getKey().getState());
@@ -184,6 +148,6 @@ public class CpuProfilerVisualTest extends VisualTest {
         } catch (InterruptedException ignored) {}
       }
     };
-    mUpdateDataThread.start();
+    updateDataThread.start();
   }
 }

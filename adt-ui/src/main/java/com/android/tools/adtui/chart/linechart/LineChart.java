@@ -19,8 +19,10 @@ package com.android.tools.adtui.chart.linechart;
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.Range;
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.model.ContinuousSeries;
 import com.android.tools.adtui.model.RangedContinuousSeries;
+import com.android.tools.adtui.model.*;
+import com.intellij.util.containers.ImmutableList;
+import gnu.trove.TDoubleArrayList;
 import gnu.trove.TLongHashSet;
 import org.jetbrains.annotations.NotNull;
 
@@ -136,16 +138,30 @@ public class LineChart extends AnimatedComponent {
 
   @Override
   protected void updateData() {
-    Map<Range, Long> max = new HashMap<>();
+    Map<Range, Double> max = new HashMap<>();
     for (RangedContinuousSeries ranged : mLinesConfig.keySet()) {
       Range range = ranged.getYRange();
-      ContinuousSeries series = ranged.getSeries();
-      long maxY = series.getMaxY();
-      Long m = max.get(range);
-      max.put(range, m == null ? maxY : Math.max(maxY, m));
+      double yMin = Double.MAX_VALUE;
+      double yMax = Double.MIN_VALUE;
+
+      ImmutableList<SeriesData<Long>> seriesList = ranged.getSeries();
+      // TODO Think about if SeriesDataStore should store a Max/min value for each datatype.
+      // Leaving this here for now to keep the DataStore API set to a minimum.
+      for(int i = 0; i < seriesList.size(); i++) {
+        double value = seriesList.get(i).value;
+        if(yMin > value) {
+          yMin = value;
+        }
+        if(yMax < value) {
+          yMax = value;
+        }
+      }
+      range.setTarget(yMin, yMax);
+      Double m = max.get(range);
+      max.put(range, m == null ? yMax: Math.max(yMax, m));
     }
 
-    for (Map.Entry<Range, Long> entry : max.entrySet()) {
+    for (Map.Entry<Range, Double> entry : max.entrySet()) {
       Range range = entry.getKey();
       // Prevent the LineChart to update the range below its initial max. We are only check against the initial max here as the
       // AxisComponent can interact with the range and clamp to a higher max value (See AxisComponent.setClampToMajorTicks(boolean)).
@@ -164,7 +180,7 @@ public class LineChart extends AnimatedComponent {
 
     // Store the Y coordinates of the last stacked series to use them to increment the Y values
     // of the current stacked series.
-    List<Double> lastStackedSeriesY = null;
+    TDoubleArrayList lastStackedSeriesY = null;
     // Store the last stacked path points to close the polygon of the current stacked line,
     // in case it is also filled
     List<Point2D.Float> lastStackedPath = null;
@@ -174,7 +190,7 @@ public class LineChart extends AnimatedComponent {
 
     for (RangedContinuousSeries ranged : mLinesConfig.keySet()) {
       // Stores the y coordinates of the current series in case it's used as a stacked series
-      final List<Double> currentSeriesY = new ArrayList<>();
+      final TDoubleArrayList currentSeriesY = new TDoubleArrayList();
       // Store the current path points in case they are used later to close a stacked line
       // polygon area
       final List<Point2D.Float> currentPath = new ArrayList<>();
@@ -193,6 +209,7 @@ public class LineChart extends AnimatedComponent {
       double xMax = ranged.getXRange().getMax();
       double yMin = ranged.getYRange().getMin();
       double yMax = ranged.getYRange().getMax();
+
       long prevX = 0;
       long prevY = 0;
 
@@ -202,10 +219,11 @@ public class LineChart extends AnimatedComponent {
       // X coordinate of the first destination point
       double firstXd = 0f;
       // TODO optimize to not draw anything before or after min and max.
-      int size = ranged.getSeries().size();
-      for (int i = 0; i < size; i++) {
-        long currX = ranged.getSeries().getX(i);
-        long currY = ranged.getSeries().getY(i);
+      ImmutableList<SeriesData<Long>> seriesList = ranged.getSeries();
+      for (int i = 0; i < seriesList.size(); i++) {
+        SeriesData<Long> seriesData = seriesList.get(i);
+        long currX = seriesData.time;
+        long currY = seriesData.value;
         double xd = (currX - xMin) / (xMax - xMin);
         double yd = (currY - yMin) / (yMax - yMin);
 

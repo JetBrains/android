@@ -39,21 +39,6 @@ public interface ReportingSeries {
   }
 
   /**
-   * This function should return the newest added value in a series. Implementors of this should
-   * handle if the series has no values and return 0.
-   *
-   * @return The most recently added value to a series
-   */
-  double getLatestValue();
-
-  /**
-   * This function should return the length of the range corresponding to the latest value.
-   *
-   * @return The length of the range that is used for the series values.
-   */
-  double getRangeLength();
-
-  /**
    * @return A ReportingData structure to be displayed for the latest value in the series. Null if the series contains no data.
    */
   ReportingData getLatestReportingData();

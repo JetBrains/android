@@ -131,7 +131,9 @@ public class StateChartVisualTest extends VisualTest {
     final AtomicInteger networkVariance = new AtomicInteger(MockFruitState.values().length);
     final AtomicInteger radioVariance = new AtomicInteger(MockStrengthState.values().length);
     final AtomicInteger delay = new AtomicInteger(100);
-    mUpdateDataThread = new Thread() {
+
+    //TODO Refactor this to come from the DataStore, in the mean time we will leak a thread every time reset is called on this test.
+    Thread updateDataThread = new Thread() {
       @Override
       public void run() {
         super.run();
@@ -160,7 +162,7 @@ public class StateChartVisualTest extends VisualTest {
         }
       }
     };
-    mUpdateDataThread.start();
+    updateDataThread.start();
 
     controls.add(VisualTests.createVariableSlider("ArcWidth", 0, 100, new VisualTests.Value() {
       @Override

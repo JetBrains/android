@@ -16,6 +16,9 @@
 
 package com.android.tools.adtui.visual;
 
+import com.android.tools.adtui.VisualTestSeriesDataStore;
+import com.android.tools.adtui.model.SeriesDataStore;
+
 import javax.swing.*;
 
 public class ProfilersMockPrototype {

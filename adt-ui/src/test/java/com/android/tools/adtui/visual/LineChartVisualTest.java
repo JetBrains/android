@@ -20,7 +20,8 @@ import com.android.annotations.NonNull;
 import com.android.tools.adtui.*;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.model.RangedContinuousSeries;
+import com.android.tools.adtui.model.*;
+import com.intellij.util.containers.ImmutableList;
 
 import javax.swing.*;
 import java.awt.*;
@@ -35,13 +36,17 @@ public class LineChartVisualTest extends VisualTest {
   private LineChart mLineChart;
 
   @NonNull
-  private List<RangedContinuousSeries> mData;
+  private List<RangedContinuousSeries> mRangedData;
+
+  @NonNull
+  private List<DefaultContinuousSeries> mData;
 
   @NonNull
   private AnimatedTimeRange mAnimatedTimeRange;
 
   @Override
   protected List<Animatable> createComponentsList() {
+    mRangedData = new ArrayList<>();
     mData = new ArrayList<>();
 
     long now = System.currentTimeMillis();
@@ -62,10 +67,13 @@ public class LineChartVisualTest extends VisualTest {
         mYRange = new Range(0.0, 100.0);
         componentsList.add(mYRange);
       }
-      RangedContinuousSeries ranged = new RangedContinuousSeries("Widgets", xRange, mYRange);
-      mData.add(ranged);
+      DefaultContinuousSeries series = new DefaultContinuousSeries();
+      RangedContinuousSeries ranged =
+        new RangedContinuousSeries("Widgets", xRange, mYRange, series);
+      mRangedData.add(ranged);
+      mData.add(series);
     }
-    mLineChart.addLines(mData);
+    mLineChart.addLines(mRangedData);
 
     return componentsList;
   }
@@ -87,7 +95,7 @@ public class LineChartVisualTest extends VisualTest {
 
     final AtomicInteger variance = new AtomicInteger(10);
     final AtomicInteger delay = new AtomicInteger(100);
-    mUpdateDataThread = new Thread() {
+    Thread mUpdateDataThread = new Thread() {
       @Override
       public void run() {
         super.run();
@@ -95,13 +103,13 @@ public class LineChartVisualTest extends VisualTest {
           while (true) {
             int v = variance.get();
             long now = System.currentTimeMillis();
-            for (RangedContinuousSeries rangedSeries : mData) {
-              int size = rangedSeries.getSeries().size();
-              long last = size > 0 ? rangedSeries.getSeries().getY(size - 1) : 0;
+            for (DefaultContinuousSeries series : mData) {
+              ImmutableList<SeriesData<Long>> data = series.getAllData();
+              long last = data.isEmpty() ? 0 : data.get(data.size() - 1).value;
               float delta = ((float)Math.random() - 0.45f) * v;
               // Make sure not to add negative numbers.
               long current = Math.max(last + (long)delta, 0);
-              rangedSeries.getSeries().add(now, current);
+              series.add(now, current);
             }
             Thread.sleep(delay.get());
           }
@@ -112,7 +120,6 @@ public class LineChartVisualTest extends VisualTest {
     };
 
     mUpdateDataThread.start();
-
     controls.add(VisualTests.createVariableSlider("Delay", 10, 5000, new VisualTests.Value() {
       @Override
       public void set(int v) {
@@ -140,32 +147,32 @@ public class LineChartVisualTest extends VisualTest {
     controls.add(VisualTests.createCheckbox("Stepped chart", itemEvent -> {
       boolean isStepped = itemEvent.getStateChange() == ItemEvent.SELECTED;
       // Make only some lines stepped
-      for (int i = 0; i < mData.size(); i += 2) {
-        RangedContinuousSeries series = mData.get(i);
+      for (int i = 0; i < mRangedData.size(); i += 2) {
+        RangedContinuousSeries series = mRangedData.get(i);
         mLineChart.getLineConfig(series).setStepped(isStepped);
       }
     }));
     controls.add(VisualTests.createCheckbox("Dashed lines", itemEvent -> {
       boolean isDashed = itemEvent.getStateChange() == ItemEvent.SELECTED;
       // Dash only some lines
-      for (int i = 0; i < mData.size(); i += 2) {
-        RangedContinuousSeries series = mData.get(i);
+      for (int i = 0; i < mRangedData.size(); i += 2) {
+        RangedContinuousSeries series = mRangedData.get(i);
         mLineChart.getLineConfig(series).setDashed(isDashed);
       }
     }));
     controls.add(VisualTests.createCheckbox("Filled lines", itemEvent -> {
       boolean isFilled = itemEvent.getStateChange() == ItemEvent.SELECTED;
       // Fill only some lines
-      for (int i = 0; i < mData.size(); i += 2) {
-        RangedContinuousSeries series = mData.get(i);
+      for (int i = 0; i < mRangedData.size(); i += 2) {
+        RangedContinuousSeries series = mRangedData.get(i);
         mLineChart.getLineConfig(series).setFilled(isFilled);
       }
     }));
     controls.add(VisualTests.createCheckbox("Stacked lines", itemEvent -> {
       boolean isStacked = itemEvent.getStateChange() == ItemEvent.SELECTED;
       // Stack only some lines
-      for (int i = 0; i < mData.size(); i += 2) {
-        RangedContinuousSeries series = mData.get(i);
+      for (int i = 0; i < mRangedData.size(); i += 2) {
+        RangedContinuousSeries series = mRangedData.get(i);
         mLineChart.getLineConfig(series).setStacked(isStacked);
       }
     }));

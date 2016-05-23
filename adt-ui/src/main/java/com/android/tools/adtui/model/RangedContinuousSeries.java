@@ -18,7 +18,9 @@ package com.android.tools.adtui.model;
 
 import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.Range;
+import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -27,7 +29,7 @@ import java.util.Collection;
  * Represents a view into a continuous series, where the data in view is only
  * within given x and y ranged.
  */
-public class RangedContinuousSeries implements ReportingSeries {
+public class RangedContinuousSeries implements ReportingSeries{
   @NotNull
   private final Range mXRange;
 
@@ -35,10 +37,10 @@ public class RangedContinuousSeries implements ReportingSeries {
   private final Range mYRange;
 
   @NotNull
-  private final ContinuousSeries mSeries;
+  private final String mLabel;
 
   @NotNull
-  private final String mLabel;
+  private final ContinuousSeries mSeries;
 
   private BaseAxisFormatter mXAxisFormatter;
 
@@ -51,20 +53,19 @@ public class RangedContinuousSeries implements ReportingSeries {
     mSeries = series;
   }
 
-  public RangedContinuousSeries(@NotNull String label, @NotNull Range xRange, @NotNull Range yRange) {
-    this(label, xRange, yRange, new ContinuousSeries());
-  }
-
-  public RangedContinuousSeries(@NotNull String label, @NotNull Range xRange, @NotNull Range yRange,
+  public RangedContinuousSeries(@NotNull String label, @NotNull Range xRange, @NotNull Range yRange, @NotNull ContinuousSeries series,
                                 @NotNull BaseAxisFormatter xAxisFormatter, @NotNull BaseAxisFormatter yAxisFormatter) {
-    this(label, xRange, yRange);
+    this(label, xRange, yRange, series);
     mXAxisFormatter = xAxisFormatter;
     mYAxisFormatter = yAxisFormatter;
   }
 
+  /**
+   * @return A new {@link SeriesDataList} that is immutable. This allows the caller to get a scoped enumeration of items in the DataStore.
+   */
   @NotNull
-  public ContinuousSeries getSeries() {
-    return mSeries;
+  public ImmutableList<SeriesData<Long>> getSeries() {
+    return mSeries.getDataForXRange(mXRange);
   }
 
   @NotNull
@@ -77,26 +78,37 @@ public class RangedContinuousSeries implements ReportingSeries {
     return mXRange;
   }
 
-  @Override
-  public double getRangeLength() {
-    return mYRange.getLength();
-  }
-
-  @Override
-  public double getLatestValue() {
-    double value = 0.0;
-    if (mSeries.size() != 0) {
-      value = mSeries.getY(mSeries.size() - 1);
+  /**
+   * Helper function for getting the maximum time and data value for a given series. This is used by the reporting data to determine how
+   * values should be reported back to the UI.
+   */
+  private static SeriesData<Long> getMaxYValue(ImmutableList<SeriesData<Long>> series) {
+    SeriesData<Long> maxData = series.get(0);
+    for(int i = 1; i < series.size(); i++) {
+      SeriesData<Long> data = series.get(i);
+      if(maxData.time < data.time) {
+        maxData.time = data.time;
+      }
+      if(maxData.value < data.value) {
+        maxData.value = data.value;
+      }
     }
-    return value;
+    return maxData;
   }
 
-  private ReportingData getReportingDataForIndex(int index) {
-    assert index >= 0 && index < mSeries.size();
-    long nearestX = mSeries.getX(index);
-    long nearestY = mSeries.getY(index);
-    long maxX = mSeries.getMaxX();
-    long maxY = mSeries.getMaxY();
+  @Nullable
+  private ReportingData getReportingData(long time) {
+    ImmutableList<SeriesData<Long>> series = getSeries();
+    if(series.size() == 0) {
+      return null;
+    }
+
+    SeriesData data = mSeries.getDataAtXValue(time);
+    SeriesData maxData = getMaxYValue(series);
+    long nearestX = data.time;
+    long nearestY = (long)data.value;
+    long maxX = maxData.time;
+    long maxY = (long)maxData.value;
 
     String formattedY = mYAxisFormatter == null ? Long.toString(nearestY) : mYAxisFormatter.getFormattedString(maxY, nearestY);
     String formattedX = mXAxisFormatter == null ? Long.toString(nearestX) : mXAxisFormatter.getFormattedString(maxX, nearestX);
@@ -104,17 +116,18 @@ public class RangedContinuousSeries implements ReportingSeries {
   }
 
   @Override
+  @Nullable
   public ReportingData getLatestReportingData() {
-    return mSeries.size() == 0 ? null : getReportingDataForIndex(mSeries.size()-1);
+    //TODO change this to get global latest per design. Currently this returns local latest eg, if zoomed in.
+    return getReportingData((long)mXRange.getMax());
   }
 
   @Override
   public Collection<ReportingData> getFullReportingData(long x) {
     ArrayList<ReportingData> dataList = new ArrayList<>();
-
-    int nearestIndex = mSeries.getNearestXIndex(x);
-    if (nearestIndex >= 0) {
-      dataList.add(getReportingDataForIndex(nearestIndex));
+    ReportingData report = getReportingData(x);
+    if(report != null) {
+      dataList.add(report);
     }
     return dataList;
   }
