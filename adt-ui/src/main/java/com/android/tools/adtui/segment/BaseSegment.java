@@ -10,6 +10,7 @@ import com.intellij.ui.components.JBPanel;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
@@ -23,6 +24,7 @@ import java.util.List;
 public abstract class BaseSegment extends JComponent {
 
   public enum SegmentType {
+    TIME,
     EVENT,
     NETWORK,
     MEMORY,
@@ -31,8 +33,6 @@ public abstract class BaseSegment extends JComponent {
   }
 
   private static final int SPACER_WIDTH = 100;
-  //TODO Adjust this when the vertical label gets integrated.
-  private static final int TEXT_FIELD_WIDTH = 50;
 
   /**
    * TODO consider getting OS/system specific double-click intervals.
@@ -49,9 +49,23 @@ public abstract class BaseSegment extends JComponent {
 
   private static final int MULTI_CLICK_THRESHOLD = 2;
 
-  private final CompoundBorder mCompoundBorder;
+  /**
+   * Top/bottom border between segments.
+   */
+  private static final Border SEGMENT_BORDER = new CompoundBorder(new MatteBorder(0, 0, 1, 0, AdtUIUtils.DEFAULT_BORDER_COLOR),
+                                                                   new EmptyBorder(0, 0, 0, 0));
+
+  private static final int LABEL_BORDER_WIDTH = 2;
+
+  /**
+   * Border around the segment label.
+   */
+  private static final Border LABEL_BORDER = new MatteBorder(0, 0, 0, LABEL_BORDER_WIDTH, AdtUIUtils.DEFAULT_BORDER_COLOR);
 
   private JPanel mRightPanel;
+
+  @NotNull
+  private RotatedLabel mLabel;
 
   @NotNull
   protected final String myName;
@@ -72,18 +86,10 @@ public abstract class BaseSegment extends JComponent {
     return SPACER_WIDTH;
   }
 
-  public static int getTextFieldWidth() {
-    return TEXT_FIELD_WIDTH;
-  }
-
   public BaseSegment(@NotNull String name, @NotNull Range scopedRange) {
     myName = name;
     mScopedRange = scopedRange;
     mDelayedEvents = new ArrayDeque<>();
-
-    //TODO Adjust borders according to neighbors
-    mCompoundBorder = new CompoundBorder(new MatteBorder(1, 1, 1, 1, AdtUIUtils.DEFAULT_BORDER_COLOR),
-                                         new EmptyBorder(0, 0, 0, 0));
 
     initializeListeners();
   }
@@ -91,49 +97,71 @@ public abstract class BaseSegment extends JComponent {
   public void initializeComponents() {
     setLayout(new BorderLayout());
 
-    RotatedLabel name = new RotatedLabel();
-    name.setFont(AdtUIUtils.DEFAULT_FONT);
-    name.setText(myName);
-    name.setBorder(mCompoundBorder);
-    this.add(name, BorderLayout.WEST);
-    JPanel panels = new JPanel();
+    FontMetrics metrics = getFontMetrics(AdtUIUtils.DEFAULT_FONT);
+    JPanel labelPanel = createSpacerPanel(metrics.getHeight() + LABEL_BORDER_WIDTH);
+    labelPanel.setBorder(LABEL_BORDER);
+    mLabel = new RotatedLabel();
+    mLabel.setFont(AdtUIUtils.DEFAULT_FONT);
+    mLabel.setText(myName);
+    mLabel.setBorder(SEGMENT_BORDER);
+    labelPanel.add(mLabel);
+    this.add(labelPanel, BorderLayout.WEST);
+
+    JBPanel panels = new JBPanel();
+    panels.setBorder(SEGMENT_BORDER);
     GridBagConstraints gbc = new GridBagConstraints();
     gbc.fill = GridBagConstraints.BOTH;
-    gbc.weighty = 1;
     panels.setLayout(new GridBagLayout());
 
-    //Setup the left panel, mostly filled with spacer, or AxisComponent
-    JPanel leftPanel = createSpacerPanel();
     gbc.weightx = 0;
+    gbc.weighty = 0;
+
+    //Setup the left panel, mostly filled with spacer, or AxisComponent
+    JPanel leftPanel = createSpacerPanel(getSpacerWidth());
     gbc.gridx = 0;
+    gbc.gridy = 1;
     panels.add(leftPanel, gbc);
     setLeftContent(leftPanel);
+
+    //Setup the top center panel.
+    JBPanel topPanel = new JBPanel();
+    topPanel.setLayout(new BorderLayout());
+    gbc.gridx = 1;
+    gbc.gridy = 0;
+    panels.add(topPanel, gbc);
+    setTopCenterContent(topPanel);
+
+    //Setup the right panel, like the left mostly filled with an AxisComponent
+    mRightPanel = createSpacerPanel(getSpacerWidth());
+    gbc.gridx = 2;
+    gbc.gridy = 1;
+    panels.add(mRightPanel, gbc);
+    setRightContent(mRightPanel);
 
     //Setup the center panel, the primary component.
     //This component should consume all available space.
     JBPanel centerPanel = new JBPanel();
     centerPanel.setLayout(new BorderLayout());
-    centerPanel.setBorder(mCompoundBorder);
     gbc.weightx = 1;
+    gbc.weighty = 1;
     gbc.gridx = 1;
+    gbc.gridy = 1;
     panels.add(centerPanel, gbc);
     setCenterContent(centerPanel);
-
-    //Setup the right panel, like the left mostly filled with an AxisComponent
-    mRightPanel = createSpacerPanel();
-    gbc.weightx = 0;
-    gbc.gridx = 2;
-    panels.add(mRightPanel, gbc);
-    setRightContent(mRightPanel);
 
     add(panels, BorderLayout.CENTER);
   }
 
-  private JPanel createSpacerPanel() {
+  public int getLabelColumnWidth() {
+    return mLabel == null ? LABEL_BORDER_WIDTH : mLabel.getPreferredSize().width + LABEL_BORDER_WIDTH;
+  }
+
+  private JPanel createSpacerPanel(int spacerWidth) {
     JBPanel panel = new JBPanel();
     panel.setLayout(new BorderLayout());
-    panel.setBorder(mCompoundBorder);
-    panel.setPreferredSize(new Dimension(getSpacerWidth(), 0));
+    Dimension spacerDimension = new Dimension(spacerWidth, 0);
+    panel.setPreferredSize(spacerDimension);
+    panel.setMinimumSize(spacerDimension);
     return panel;
   }
 
@@ -148,11 +176,19 @@ public abstract class BaseSegment extends JComponent {
 
   public abstract void createComponentsList(@NotNull List<Animatable> animatables);
 
-  protected abstract void setLeftContent(@NotNull JPanel panel);
+  protected void setLeftContent(@NotNull JPanel panel) {
+
+  }
 
   protected abstract void setCenterContent(@NotNull JPanel panel);
 
-  protected abstract void setRightContent(@NotNull JPanel panel);
+  protected void setRightContent(@NotNull JPanel panel) {
+
+  }
+
+  protected void setTopCenterContent(@NotNull JPanel panel) {
+
+  }
 
   //TODO Refactor out of BaseSegment as this is a VisualTest specific function.
   protected abstract void registerComponents(@NotNull List<AnimatedComponent> components);

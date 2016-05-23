@@ -28,19 +28,27 @@ import com.android.tools.adtui.model.RangedSimpleSeries;
 import com.android.tools.adtui.segment.BaseSegment;
 import com.android.tools.adtui.segment.EventSegment;
 import com.android.tools.adtui.segment.NetworkSegment;
+import com.android.tools.adtui.segment.TimeAxisSegment;
 import com.intellij.ui.components.JBPanel;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 
 public class ProfilerOverviewVisualTest extends VisualTest {
 
+  // Segment dimensions.
   private static final int EVENT_MIN_HEIGHT = 100;
   private static final int MONITOR_MAX_HEIGHT = Short.MAX_VALUE;
   private static final int MONITOR_PREFERRED_HEIGHT = 200;
+  private static final int TIME_AXIS_HEIGHT = 20;
+
+  // Event data generation constants.
   private static final int IMAGE_WIDTH = 16;
   private static final int IMAGE_HEIGHT = 16;
   private static final float CLICK_PROBABILITY = 1 / 5.0f; // 1 in 5 chance to click and release
@@ -48,8 +56,6 @@ public class ProfilerOverviewVisualTest extends VisualTest {
   private static final float ACTIVITY_PROBABILITY = 1 / 20.0f; // 1 in 20 chance to create / destroy a activity
   private static final double CREATE_DESTROY_PROBABILITY = .5; // 50% chance to create a new fragment/activity
   private static final int EVENT_LIMIT = 5; // create a maximum of X fragment/activities;
-
-  private static final int TIME_AXIS_HEIGHT = 20;
 
   private static final int DATA_DELAY_MS = 100;
 
@@ -73,28 +79,29 @@ public class ProfilerOverviewVisualTest extends VisualTest {
 
   private long mStartTimeMs;
 
-  @NonNull
+  @NotNull
   private Range mXRange;
 
-  @NonNull
+  @NotNull
   private Range mXGlobalRange;
 
-  @NonNull
+  @NotNull
   private AnimatedTimeRange mAnimatedTimeRange;
 
-  @NonNull
+  @NotNull
   private Range mXSelectionRange;
 
-  @NonNull
+  @NotNull
   private AxisComponent mTimeAxis;
 
-  @NonNull
+  @NotNull
   private SelectionComponent mSelection;
 
-  @NonNull
+  @NotNull
   private RangeScrollbar mScrollbar;
 
-  private ArrayList<ContinuousSeries> mData;
+  @NotNull
+  private HashMap<BaseSegment, List<ContinuousSeries>> mData;
 
   private JPanel mSegmentsContainer;
 
@@ -108,7 +115,7 @@ public class ProfilerOverviewVisualTest extends VisualTest {
 
   @Override
   protected List<Animatable> createComponentsList() {
-    mData = new ArrayList();
+    mData = new HashMap<>();
 
     mStartTimeMs = System.currentTimeMillis();
     mXRange = new Range();
@@ -161,7 +168,7 @@ public class ProfilerOverviewVisualTest extends VisualTest {
 
   @Override
   public String getName() {
-    return "L1";
+    return "Overview";
   }
 
   @Override
@@ -172,25 +179,26 @@ public class ProfilerOverviewVisualTest extends VisualTest {
         super.run();
         try {
           boolean downEvent = false;
-          // We need to cache the lifetime of fragments/activities to be represenative of
+          // We need to cache the lifetime of fragments/activities to be representative of
           // Actual event data that we will get from the device.
           ArrayList<Long> fragments = new ArrayList<>();
           ArrayList<Long> activities = new ArrayList<>();
           while (true) {
             long now = System.currentTimeMillis() - mStartTimeMs;
-            for (ContinuousSeries series : mData) {
-              int size = series.size();
-              long last = size > 0 ? series.getY(size - 1) : 0;
-              float delta = 10 * ((float)Math.random() - 0.45f);
-              series.add(now, (long)((last + delta) * Math.random()));
+            for (Collection<ContinuousSeries> seriesCollection : mData.values()) {
+              for (ContinuousSeries series : seriesCollection) {
+                int size = series.size();
+                long last = size > 0 ? series.getY(size - 1) : 0;
+                float delta = 10 * ((float)Math.random() - 0.45f);
+                series.add(now, (long)((last + delta) * Math.random()));
+              }
             }
             downEvent = generateEventData(downEvent, fragments, activities, now);
             generateStackedEventData(mFragmentEventData, fragments, now, FRAGMENT_PROBABILITY);
             generateStackedEventData(mActivityEventData, activities, now, ACTIVITY_PROBABILITY);
             Thread.sleep(DATA_DELAY_MS);
           }
-        }
-        catch (InterruptedException e) {
+        } catch (InterruptedException e) {
         }
       }
     };
@@ -199,6 +207,7 @@ public class ProfilerOverviewVisualTest extends VisualTest {
     GridBagLayout gbl = new GridBagLayout();
     GridBagConstraints gbc = new GridBagConstraints();
     JBPanel gridBagPanel = new JBPanel();
+    gridBagPanel.setBorder(BorderFactory.createLineBorder(AdtUIUtils.DEFAULT_BORDER_COLOR, 1));
     gridBagPanel.setLayout(gbl);
 
     // TODO create some controls.
@@ -214,8 +223,6 @@ public class ProfilerOverviewVisualTest extends VisualTest {
     gridBagPanel.add(createToolbarPanel(), gbc);
 
     // Add Selection Overlay
-    // TODO define sizes for x columns 0 and 1
-    gbc.fill = GridBagConstraints.BOTH;
     gbc.gridy = 1;
     gbc.gridx = 2;
     gbc.gridwidth = 1;
@@ -225,15 +232,14 @@ public class ProfilerOverviewVisualTest extends VisualTest {
 
     // Add Accordion Control
     gbc.gridx = 0;
-    gbc.gridwidth = 4;  // LABEL, AXIS, CHART, RIGHT SPACE
+    gbc.gridwidth = 4;
     gbc.gridy = 1;
-    gbc.weighty = 1;
-    gbc.weightx = 1;
+    gbc.weighty = 0;
+    gbc.weightx = 0;
     gridBagPanel.add(mSegmentsContainer, gbc);
 
     // Add Scrollbar
     gbc.gridy = 2;
-    gbc.weighty = 0;
     gridBagPanel.add(mScrollbar, gbc);
 
     // Mock event segment
@@ -242,14 +248,32 @@ public class ProfilerOverviewVisualTest extends VisualTest {
     BaseSegment networkSegment = createSegment(BaseSegment.SegmentType.NETWORK, 0, MONITOR_PREFERRED_HEIGHT, MONITOR_MAX_HEIGHT);
     BaseSegment memorySegment = createSegment(BaseSegment.SegmentType.MEMORY, 0, MONITOR_PREFERRED_HEIGHT, MONITOR_MAX_HEIGHT);
     BaseSegment cpuSegment = createSegment(BaseSegment.SegmentType.CPU, 0, MONITOR_PREFERRED_HEIGHT, MONITOR_MAX_HEIGHT);
+    // Timeline segment
+    BaseSegment timeSegment = createSegment(BaseSegment.SegmentType.TIME, TIME_AXIS_HEIGHT, TIME_AXIS_HEIGHT, TIME_AXIS_HEIGHT);
 
     mSegmentsContainer.add(eventSegment);
     mSegmentsContainer.add(networkSegment);
     mSegmentsContainer.add(memorySegment);
     mSegmentsContainer.add(cpuSegment);
+    mSegmentsContainer.add(timeSegment);
 
-    // Timeline
-    mSegmentsContainer.add(createTimeAxisPanel());
+    // Add left spacer
+    Dimension leftSpacer = new Dimension(BaseSegment.getSpacerWidth() + eventSegment.getLabelColumnWidth(), 0);
+    gbc.gridy = 0;
+    gbc.gridx = 0;
+    gbc.gridwidth = 2;
+    gbc.weightx = 0;
+    gbc.weighty = 0;
+    gridBagPanel.add(new Box.Filler(leftSpacer, leftSpacer, leftSpacer), gbc);
+
+    // Add right spacer
+    Dimension rightSpacer = new Dimension(BaseSegment.getSpacerWidth(), 0);
+    gbc.gridy = 0;
+    gbc.gridx = 3;
+    gbc.gridwidth = 1;
+    gbc.weightx = 0;
+    gbc.weighty = 0;
+    gridBagPanel.add(new Box.Filler(rightSpacer, rightSpacer, rightSpacer), gbc);
   }
 
   private JComponent createToolbarPanel() {
@@ -270,45 +294,40 @@ public class ProfilerOverviewVisualTest extends VisualTest {
 
   private BaseSegment createSegment(BaseSegment.SegmentType type, int minHeight, int preferredHeight, int maxHeight) {
     BaseSegment segment = null;
-    Range yRange = new Range();
+    List<ContinuousSeries> newData = new ArrayList<>();
     switch (type) {
-      // TODO create corresponding segments based on type.
+      case TIME:
+        segment = new TimeAxisSegment(mXRange, mTimeAxis);
+        break;
       case EVENT:
         segment = new EventSegment(mXGlobalRange, mSystemEventData, mFragmentEventData, mActivityEventData, MOCK_ICONS);
         break;
-      default:
+      // TODO create corresponding segments based on type.
+      case NETWORK:
+      case MEMORY:
+      case CPU:
+      case GPU:
         ContinuousSeries sendingData = new ContinuousSeries();
         ContinuousSeries receivingData = new ContinuousSeries();
-        mData.add(sendingData);
-        mData.add(receivingData);
         segment = new NetworkSegment(mXRange, sendingData, receivingData);
+        newData.add(sendingData);
+        newData.add(receivingData);
+        mData.put(segment, newData);
+        break;
     }
 
     segment.setMinimumSize(new Dimension(0, minHeight));
     segment.setPreferredSize(new Dimension(0, preferredHeight));
     segment.setMaximumSize(new Dimension(0, maxHeight));
-    segment.setBorder(BorderFactory.createLineBorder(Color.GRAY));
 
     List<Animatable> segmentAnimatables = new ArrayList<>();
     segment.createComponentsList(segmentAnimatables);
-
-    // LineChart needs to animate before y ranges so add them to the Choreographer in order.
     addToChoreographer(segmentAnimatables);
-    addToChoreographer(yRange);
-
     segment.initializeComponents();
 
     return segment;
   }
 
-  // TODO account for Label and Axis column width.
-  private JComponent createTimeAxisPanel() {
-    mTimeAxis.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-    mTimeAxis.setMinimumSize(new Dimension(0, TIME_AXIS_HEIGHT));
-    mTimeAxis.setPreferredSize(mTimeAxis.getMinimumSize());
-    mTimeAxis.setMaximumSize(mTimeAxis.getMinimumSize());
-    return mTimeAxis;
-  }
 
   private void generateStackedEventData(RangedSimpleSeries<EventAction<StackedEventComponent.Action, String>> rangedSeries,
                                         List<Long> activeEvents,
