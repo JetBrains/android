@@ -16,12 +16,14 @@
 package com.android.tools.idea.ui.properties;
 
 import com.android.tools.idea.ui.properties.core.ObservableBool;
+import com.android.tools.idea.ui.properties.expressions.Expression;
 import com.android.tools.idea.ui.properties.expressions.bool.IsEqualToExpression;
 import com.google.common.collect.Lists;
 import com.intellij.util.containers.UnsafeWeakList;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * Implementation for {@link ObservableValue}, providing the logic for adding/removing listeners.
@@ -47,6 +49,24 @@ public abstract class AbstractObservableValue<T> implements ObservableValue<T> {
     myWeakListeners.add(listener);
   }
 
+  @NotNull
+  @Override
+  public final <S> Expression<S> transform(@NotNull Function<T, S> function) {
+    return new Expression<S>(this) {
+      @NotNull
+      @Override
+      public S get() {
+        return function.apply(AbstractObservableValue.this.get());
+      }
+    };
+  }
+
+  @NotNull
+  @Override
+  public final ObservableBool isEqualTo(@NotNull T value) {
+    return new IsEqualToExpression<>(this, value);
+  }
+
   /**
    * Call to let our listeners know that our value has changed, and they should consider themselves
    * invalidated.
@@ -63,12 +83,6 @@ public abstract class AbstractObservableValue<T> implements ObservableValue<T> {
     for (InvalidationListener listener : myWeakListeners) {
       listener.onInvalidated(this);
     }
-  }
-
-  @NotNull
-  @Override
-  public final ObservableBool isEqualTo(@NotNull T value) {
-    return new IsEqualToExpression<>(this, value);
   }
 
   /**

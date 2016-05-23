@@ -20,7 +20,6 @@ import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.InvalidationListener;
 import com.android.tools.idea.ui.properties.ObservableValue;
 import com.android.tools.idea.ui.properties.core.StringProperty;
-import com.android.tools.idea.ui.properties.expressions.Expression;
 import com.android.tools.idea.ui.properties.swing.TextProperty;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
@@ -47,21 +46,8 @@ public final class VectorAssetBrowser extends TextFieldWithBrowseButton implemen
     addBrowseFolderListener(null, null, null, FileChooserDescriptorFactory.createSingleFileDescriptor("svg"));
 
     final StringProperty svgAbsolutePath = new TextProperty(getTextField());
-    myBindings.bind(svgAbsolutePath, new Expression<String>(mySvgAsset.path()) {
-      @NotNull
-      @Override
-      public String get() {
-        return mySvgAsset.path().get().getAbsolutePath();
-      }
-    });
-
-    myBindings.bind(mySvgAsset.path(), new Expression<File>(svgAbsolutePath) {
-      @NotNull
-      @Override
-      public File get() {
-        return new File(svgAbsolutePath.get());
-      }
-    });
+    myBindings.bind(svgAbsolutePath, mySvgAsset.path().transform(File::getAbsolutePath));
+    myBindings.bind(mySvgAsset.path(), svgAbsolutePath.transform(File::new));
 
     mySvgAsset.path().addListener(new InvalidationListener() {
       @Override

@@ -19,7 +19,6 @@ import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.InvalidationListener;
 import com.android.tools.idea.ui.properties.ObservableValue;
-import com.android.tools.idea.ui.properties.expressions.Expression;
 import com.android.tools.idea.ui.properties.swing.TextProperty;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
@@ -45,21 +44,8 @@ public final class ImageAssetBrowser extends TextFieldWithBrowseButton implement
     addBrowseFolderListener(null, null, null, FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor());
 
     final TextProperty imagePathText = new TextProperty(getTextField());
-    myBindings.bind(imagePathText, new Expression<String>(myImageAsset.imagePath()) {
-      @NotNull
-      @Override
-      public String get() {
-        return myImageAsset.imagePath().get().getAbsolutePath();
-      }
-    });
-
-    myBindings.bind(myImageAsset.imagePath(), new Expression<File>(imagePathText) {
-      @NotNull
-      @Override
-      public File get() {
-        return new File(imagePathText.get());
-      }
-    });
+    myBindings.bind(imagePathText, myImageAsset.imagePath().transform(File::getAbsolutePath));
+    myBindings.bind(myImageAsset.imagePath(), imagePathText.transform(File::new));
 
     InvalidationListener onImageChanged = new InvalidationListener() {
       @Override
