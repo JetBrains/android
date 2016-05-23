@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.property.editors;
 
-import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
@@ -40,6 +39,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+
+import static com.android.SdkConstants.*;
 
 public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEditor {
   private static final int SMALL_WIDTH = 65;
@@ -140,25 +141,25 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
     AttributeDefinition definition = property.getDefinition();
     ValueWithDisplayString[] values;
     switch (property.getName()) {
-      case SdkConstants.ATTR_FONT_FAMILY:
+      case ATTR_FONT_FAMILY:
         values = ValueWithDisplayString.create(AndroidDomUtil.AVAILABLE_FAMILIES);
         break;
-      case SdkConstants.ATTR_TYPEFACE:
+      case ATTR_TYPEFACE:
         values = ValueWithDisplayString.create(AVAILABLE_TYPEFACES);
         break;
-      case SdkConstants.ATTR_TEXT_SIZE:
+      case ATTR_TEXT_SIZE:
         values = ValueWithDisplayString.create(AVAILABLE_TEXT_SIZES);
         break;
-      case SdkConstants.ATTR_LINE_SPACING_EXTRA:
+      case ATTR_LINE_SPACING_EXTRA:
         values = ValueWithDisplayString.create(AVAILABLE_LINE_SPACINGS);
         break;
-      case SdkConstants.ATTR_TEXT_APPEARANCE:
+      case ATTR_TEXT_APPEARANCE:
         values = createTextAttributeList(property);
         break;
-      case SdkConstants.ATTR_LAYOUT_HEIGHT:
-      case SdkConstants.ATTR_LAYOUT_WIDTH:
-      case SdkConstants.ATTR_DROPDOWN_HEIGHT:
-      case SdkConstants.ATTR_DROPDOWN_WIDTH:
+      case ATTR_LAYOUT_HEIGHT:
+      case ATTR_LAYOUT_WIDTH:
+      case ATTR_DROPDOWN_HEIGHT:
+      case ATTR_DROPDOWN_WIDTH:
         values = ValueWithDisplayString.create(AVAILABLE_SIZES);
         break;
       default:
@@ -177,6 +178,7 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
     };
     newModel.insertElementAt(ValueWithDisplayString.UNSET, 0);
     myCombo.setModel(newModel);
+    myAddedValueIndex = -1; // nothing added
   }
 
   @Override
@@ -213,8 +215,8 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
     if (!isDimension) {
       return startIndex;
     }
-    String newTextValue = newValue.getValue();
-    Quantity newQuantity = newTextValue != null ? Quantity.parse(newTextValue) : null;
+    String newTextValue = newValue.toString();
+    Quantity newQuantity = Quantity.parse(newTextValue);
     if (newQuantity == null) {
       return startIndex;
     }
@@ -275,14 +277,14 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
     ResourceResolver resolver = property.getResolver();
     Map<String, ResourceValue> styles = resolver.getFrameworkResources().get(ResourceType.STYLE);
     for (String name : styles.keySet()) {
-      ValueWithDisplayString value = ValueWithDisplayString.createTextAppearanceValue(name, SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX);
+      ValueWithDisplayString value = ValueWithDisplayString.createTextAppearanceValue(name, ANDROID_STYLE_RESOURCE_PREFIX, null);
       if (value != null) {
         list.add(value);
       }
     }
     styles = resolver.getProjectResources().get(ResourceType.STYLE);
     for (String name : styles.keySet()) {
-      ValueWithDisplayString value = ValueWithDisplayString.createTextAppearanceValue(name, SdkConstants.STYLE_RESOURCE_PREFIX);
+      ValueWithDisplayString value = ValueWithDisplayString.createTextAppearanceValue(name, STYLE_RESOURCE_PREFIX, null);
       if (value != null) {
         list.add(value);
       }
