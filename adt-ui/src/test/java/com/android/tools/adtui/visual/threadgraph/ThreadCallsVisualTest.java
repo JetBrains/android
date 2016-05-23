@@ -22,7 +22,7 @@ import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.chart.hchart.HNode;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
 import com.android.tools.adtui.chart.linechart.LineChart;
-import com.android.tools.adtui.model.RangedContinuousSeries;
+import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.visual.VisualTest;
 import com.intellij.ui.components.JBLayeredPane;
 import com.intellij.ui.components.JBPanel;
@@ -210,14 +210,15 @@ public class ThreadCallsVisualTest extends VisualTest implements ActionListener 
         mSelectionRange.setMax(end);
 
         // Generate dummy values to simulate CPU Load.
-        RangedContinuousSeries series = new RangedContinuousSeries("Threads", mDataRange,
-                                                                   new Range(0.0, 200.0));
+        DefaultContinuousSeries series = new DefaultContinuousSeries();
+        RangedContinuousSeries rangedSeries = new RangedContinuousSeries("Threads", mDataRange,
+                                                                   new Range(0.0, 200.0),
+                                                                   series);
         Random r = new Random(System.currentTimeMillis());
         for (int i = 0; i < 100; i++) {
-          series.getSeries()
-            .add((long)(start + (end - start) / 100 * i), r.nextInt(100));
+          series.add((long)(start + (end - start) / 100 * i), r.nextInt(100));
         }
-        mLineChart.addLine(series);
+        mLineChart.addLine(rangedSeries);
         mScrollBar.setValues(0, mChart.getHeight(), 0, mChart.getMaximumHeight());
       }
     }

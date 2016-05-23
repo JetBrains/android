@@ -20,6 +20,8 @@ import com.android.annotations.NonNull;
 import com.android.tools.adtui.Animatable;
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.Choreographer;
+import com.android.tools.adtui.VisualTestSeriesDataStore;
+import com.android.tools.adtui.model.SeriesDataStore;
 import com.intellij.ui.components.JBPanel;
 
 import javax.swing.*;
@@ -41,13 +43,13 @@ public abstract class VisualTest {
 
   private Choreographer mChoreographer;
 
+  protected SeriesDataStore mDataStore;
+
   /**
    * Thread to be used to update components data. If set, it is going to be interrupted in {@code
    * reset}. Note that if the subclass creates some other threads, it should be responsible for
    * keeping track and interrupting them when necessary.
    */
-  protected Thread mUpdateDataThread;
-
   public JPanel getPanel() {
     return mPanel;
   }
@@ -84,6 +86,7 @@ public abstract class VisualTest {
   protected abstract void registerComponents(List<AnimatedComponent> components);
 
   private void initialize() {
+    mDataStore = new VisualTestSeriesDataStore();
     mPanel = new JBPanel();
     mChoreographer = new Choreographer(CHOREOGRAPHER_FPS, mPanel);
     mChoreographer.register(createComponentsList());
@@ -94,8 +97,8 @@ public abstract class VisualTest {
    * Interrupt active threads, clear all the components of the test and initialize it again.
    */
   protected void reset() {
-    if (mUpdateDataThread != null) {
-      mUpdateDataThread.interrupt();
+    if (mDataStore != null) {
+      mDataStore.reset();
     }
     initialize();
   }

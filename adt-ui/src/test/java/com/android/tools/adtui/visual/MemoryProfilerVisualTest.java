@@ -19,6 +19,7 @@ package com.android.tools.adtui.visual;
 import com.android.annotations.NonNull;
 import com.android.tools.adtui.Animatable;
 import com.android.tools.adtui.AnimatedComponent;
+import com.android.tools.adtui.model.SeriesDataStore;
 
 import javax.swing.*;
 import java.util.ArrayList;
@@ -27,10 +28,6 @@ import java.util.List;
 public class MemoryProfilerVisualTest extends VisualTest {
 
   private static final String MEMORY_PROFILER_NAME = "Memory Profiler";
-
-  public MemoryProfilerVisualTest() {
-    // TODO: implement constructor
-  }
 
   @Override
   protected void registerComponents(List<AnimatedComponent> components) {

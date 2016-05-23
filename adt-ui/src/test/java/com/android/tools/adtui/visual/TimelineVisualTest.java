@@ -108,7 +108,7 @@ public class TimelineVisualTest extends VisualTest {
     final AtomicInteger type = new AtomicInteger(0);
     final List<String> labelSharingStreams = new ArrayList<String>();
     final int maxNumStreams = 10;
-    mUpdateDataThread = new Thread() {
+    Thread updateDataThread = new Thread() {
       @Override
       public void run() {
         super.run();
@@ -144,7 +144,7 @@ public class TimelineVisualTest extends VisualTest {
         }
       }
     };
-    mUpdateDataThread.start();
+    updateDataThread.start();
 
     mTimeline.configureStream(0, "Data 0", new Color(0x78abd9));
     mTimeline.configureStream(1, "Data 1", new Color(0xbaccdc));

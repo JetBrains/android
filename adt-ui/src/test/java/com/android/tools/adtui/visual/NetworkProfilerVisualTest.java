@@ -21,13 +21,12 @@ import com.android.tools.adtui.Animatable;
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.AnimatedTimeRange;
 import com.android.tools.adtui.Range;
-import com.android.tools.adtui.model.ContinuousSeries;
+import com.android.tools.adtui.model.SeriesDataStore;
 import com.android.tools.adtui.segment.NetworkSegment;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import javax.swing.JPanel;
@@ -38,7 +37,6 @@ public class NetworkProfilerVisualTest extends VisualTest {
 
   private NetworkSegment mSegment;
 
-  private NetworkSegment mSegment2;
 
   private Range mSharedRange;
 
@@ -46,12 +44,10 @@ public class NetworkProfilerVisualTest extends VisualTest {
 
   private AnimatedTimeRange mAnimatedTimeRange;
 
-  private List<ContinuousSeries> mData;
-
   @Override
   protected void registerComponents(List<AnimatedComponent> components) {
     mSegment.registerComponents(components);
-    mSegment2.registerComponents(components);
+
   }
 
   @Override
@@ -64,16 +60,10 @@ public class NetworkProfilerVisualTest extends VisualTest {
     mStartTimeMs = System.currentTimeMillis();
     mSharedRange = new Range(0, 0);
     mAnimatedTimeRange = new AnimatedTimeRange(mSharedRange, mStartTimeMs);
-    ContinuousSeries sendingData = new ContinuousSeries();
-    ContinuousSeries receivingData = new ContinuousSeries();
-    ContinuousSeries connectionsData = new ContinuousSeries();
-    mSegment = new NetworkSegment(mSharedRange, sendingData, receivingData, connectionsData);
-    mSegment2 = new NetworkSegment(mSharedRange, sendingData, receivingData);
-    mData = Arrays.asList(sendingData, receivingData, connectionsData);
-    List<Animatable> animatables = new ArrayList<Animatable>();
+    mSegment = new NetworkSegment(mSharedRange, mDataStore);
+    List<Animatable> animatables = new ArrayList<>();
     animatables.add(mAnimatedTimeRange);
     mSegment.createComponentsList(animatables);
-    mSegment2.createComponentsList(animatables);
     return animatables;
   }
 
@@ -87,36 +77,5 @@ public class NetworkProfilerVisualTest extends VisualTest {
     constraints.gridy = 0;
     mSegment.initializeComponents();
     panel.add(mSegment, constraints);
-    constraints.gridy = 1;
-    mSegment2.initializeComponents();
-    panel.add(mSegment2, constraints);
-    simulateTestData();
-  }
-
-  private void simulateTestData() {
-    mUpdateDataThread = new Thread() {
-      @Override
-      public void run() {
-        try {
-          while (true) {
-            //  Insert new data point at now.
-            long now = System.currentTimeMillis() - mStartTimeMs;
-            int v = 10;
-            float i = 1;
-            for (ContinuousSeries series : mData) {
-              int size = series.size();
-              long last = size > 0 ? series.getY(size - 1) : 0;
-              float delta = (float)Math.random() * v - v * 0.45f;
-              series.add(now, last + (long)delta);
-            }
-
-            Thread.sleep(100);
-          }
-        }
-        catch (InterruptedException e) {
-        }
-      }
-    };
-    mUpdateDataThread.start();
   }
 }

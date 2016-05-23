@@ -7,6 +7,7 @@ import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.common.formatter.MemoryAxisFormatter;
 import com.android.tools.adtui.model.LegendRenderData;
 import com.android.tools.adtui.model.RangedContinuousSeries;
+import com.android.tools.adtui.model.SeriesDataStore;
 import com.intellij.ui.components.JBLayeredPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -51,13 +52,8 @@ public abstract class BaseLineChartSegment extends BaseSegment {
   @NotNull
   private LegendComponent mLegendComponent;
 
-  public BaseLineChartSegment(@NotNull String name,
-                              @NotNull Range xRange,
-                              @NotNull BaseAxisFormatter leftAxisFormatter,
-                              @Nullable BaseAxisFormatter rightAxisFormatter) {
-    this(name, xRange, leftAxisFormatter, rightAxisFormatter, null, null);
-  }
-
+  @NotNull
+  protected SeriesDataStore mSeriesDataStore;
   /**
    * @param rightAxisFormatter if it is null, chart will have a left axis only
    * @param leftAxisRange if it is null, a default range is going to be used
@@ -65,6 +61,7 @@ public abstract class BaseLineChartSegment extends BaseSegment {
    */
   public BaseLineChartSegment(@NotNull String name,
                               @NotNull Range xRange,
+                              @NotNull SeriesDataStore dataStore,
                               @NotNull BaseAxisFormatter leftAxisFormatter,
                               @Nullable BaseAxisFormatter rightAxisFormatter,
                               @Nullable Range leftAxisRange,
@@ -73,6 +70,8 @@ public abstract class BaseLineChartSegment extends BaseSegment {
     mLeftAxisFormatter = leftAxisFormatter;
     mRightAxisFormatter = rightAxisFormatter;
     mLeftAxisRange = leftAxisRange != null ? leftAxisRange : new Range();
+    mSeriesDataStore = dataStore;
+    mLeftAxisRange = new Range();
     if (mRightAxisFormatter != null) {
       mRightAxisRange = rightAxisRange != null ? rightAxisRange : new Range();
     }

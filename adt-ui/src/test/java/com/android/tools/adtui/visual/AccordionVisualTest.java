@@ -20,8 +20,9 @@ import com.android.annotations.NonNull;
 import com.android.tools.adtui.*;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.model.RangedContinuousSeries;
+import com.android.tools.adtui.model.*;
 import com.intellij.ui.components.JBPanel;
+import com.intellij.util.containers.ImmutableList;
 
 import javax.swing.*;
 import java.awt.*;
@@ -60,7 +61,9 @@ public class AccordionVisualTest extends VisualTest {
   @NonNull
   private AnimatedTimeRange mAnimatedTimeRange;
 
-  private ArrayList<RangedContinuousSeries> mData;
+  private ArrayList<RangedContinuousSeries> mRangedData;
+
+  private ArrayList<DefaultContinuousSeries> mData;
 
   @Override
   protected List<Animatable> createComponentsList() {
@@ -82,15 +85,19 @@ public class AccordionVisualTest extends VisualTest {
     componentsList.add(mAnimatedTimeRange);
     componentsList.add(xRange);
 
+    mRangedData = new ArrayList<>();
     mData = new ArrayList<>();
+
     Range mYRange = new Range(0.0, 100.0);
     for (int i = 0; i < 4; i++) {
       if (i % 2 == 0) {
         mYRange = new Range(0.0, 100.0);
         componentsList.add(mYRange);
       }
-      RangedContinuousSeries ranged = new RangedContinuousSeries("Widgets", xRange, mYRange);
-      mData.add(ranged);
+      DefaultContinuousSeries series = new DefaultContinuousSeries();
+      RangedContinuousSeries ranged = new RangedContinuousSeries("Widgets", xRange, mYRange, series);
+      mRangedData.add(ranged);
+      mData.add(series);
     }
     return componentsList;
   }
@@ -116,18 +123,17 @@ public class AccordionVisualTest extends VisualTest {
   protected void populateUi(@NonNull JPanel panel) {
     panel.setLayout(new GridLayout(0, 1));
 
-    mUpdateDataThread = new Thread() {
+    Thread mUpdateDataThread = new Thread() {
       @Override
       public void run() {
-        super.run();
         try {
           while (true) {
             long now = System.currentTimeMillis() - mStartTimeMs;
-            for (RangedContinuousSeries rangedSeries : mData) {
-              int size = rangedSeries.getSeries().size();
-              long last = size > 0 ? rangedSeries.getSeries().getY(size - 1) : 0;
+            for (DefaultContinuousSeries series : mData) {
+              ImmutableList<SeriesData<Long>> data = series.getAllData();
+              long last = data.isEmpty() ? 0 : data.get(data.size() - 1).value;
               float delta = 10 * ((float)Math.random() - 0.45f);
-              rangedSeries.getSeries().add(now, last + (long)delta);
+              series.add(now, last + (long)delta);
             }
             Thread.sleep(LINECHART_DATA_DELAY);
           }
@@ -137,7 +143,6 @@ public class AccordionVisualTest extends VisualTest {
       }
     };
     mUpdateDataThread.start();
-
     // Creates the vertical accordion at the top half.
     JBPanel yPanel = new JBPanel();
     panel.add(yPanel);
@@ -211,7 +216,7 @@ public class AccordionVisualTest extends VisualTest {
   @NonNull
   private LineChart generateChart(AccordionLayout layout, AccordionLayout.Orientation direction,
                                   int minSize, int preferredSize, int maxSize) {
-    LineChart chart = new LineChart(getName(), mData);
+    LineChart chart = new LineChart(getName(), mRangedData);
     if (direction == AccordionLayout.Orientation.VERTICAL) {
       chart.setMinimumSize(new Dimension(0, minSize));
       chart.setPreferredSize(new Dimension(0, preferredSize));

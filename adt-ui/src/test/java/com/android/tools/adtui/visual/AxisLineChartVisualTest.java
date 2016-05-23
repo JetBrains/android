@@ -22,10 +22,10 @@ import com.android.tools.adtui.common.formatter.MemoryAxisFormatter;
 import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
-import com.android.tools.adtui.model.LegendRenderData;
-import com.android.tools.adtui.model.RangedContinuousSeries;
+import com.android.tools.adtui.model.*;
 import com.intellij.ui.components.JBLayeredPane;
 import com.intellij.ui.components.JBPanel;
+import com.intellij.util.containers.ImmutableList;
 
 import javax.swing.*;
 import java.awt.*;
@@ -56,7 +56,10 @@ public class AxisLineChartVisualTest extends VisualTest {
   private AnimatedTimeRange mAnimatedTimeRange;
 
   @NonNull
-  private List<RangedContinuousSeries> mData;
+  private List<RangedContinuousSeries> mRangedData;
+
+  @NonNull
+  private List<DefaultContinuousSeries> mData;
 
   @NonNull
   private AxisComponent mMemoryAxis1;
@@ -82,6 +85,7 @@ public class AxisLineChartVisualTest extends VisualTest {
 
   @Override
   protected List<Animatable> createComponentsList() {
+    mRangedData = new ArrayList<>();
     mData = new ArrayList<>();
     mLineChart = new LineChart();
 
@@ -102,21 +106,26 @@ public class AxisLineChartVisualTest extends VisualTest {
     mMemoryAxis1 = new AxisComponent(yRange1Animatable, yRange1Animatable, SERIES1_LABEL,
                                      AxisComponent.AxisOrientation.LEFT, AXIS_SIZE, AXIS_SIZE, true,
                                      MemoryAxisFormatter.DEFAULT);
-    RangedContinuousSeries ranged1 = new RangedContinuousSeries(SERIES1_LABEL, xRange, yRange1Animatable);
-    mData.add(ranged1);
+    DefaultContinuousSeries series1 = new DefaultContinuousSeries();
+    RangedContinuousSeries ranged1 = new RangedContinuousSeries(SERIES1_LABEL, xRange, yRange1Animatable, series1);
+    mRangedData.add(ranged1);
+    mData.add(series1);
 
     // right memory data + axis
     Range yRange2Animatable = new Range(0, 100);
     mMemoryAxis2 = new AxisComponent(yRange2Animatable, yRange2Animatable, SERIES2_LABEL,
                                      AxisComponent.AxisOrientation.RIGHT, AXIS_SIZE, AXIS_SIZE, true,
                                      MemoryAxisFormatter.DEFAULT);
-    RangedContinuousSeries ranged2 = new RangedContinuousSeries(SERIES2_LABEL, xRange, yRange2Animatable);
-    mData.add(ranged2);
-    mLineChart.addLines(mData);
+    DefaultContinuousSeries series2 = new DefaultContinuousSeries();
+    RangedContinuousSeries ranged2 = new RangedContinuousSeries(SERIES2_LABEL, xRange, yRange2Animatable, series2);
+    mRangedData.add(ranged2);
+    mData.add(series2);
+
+    mLineChart.addLines(mRangedData);
     List<LegendRenderData> legendRenderInfo = new ArrayList<>();
 
     //Test the populated series case
-    legendRenderInfo.add(new LegendRenderData(LegendRenderData.IconType.BOX, LineConfig.COLORS[0], mData.get(0)));
+    legendRenderInfo.add(new LegendRenderData(LegendRenderData.IconType.BOX, LineConfig.COLORS[0], mRangedData.get(0)));
     //Test the null series case
     legendRenderInfo.add(new LegendRenderData(LegendRenderData.IconType.LINE, LineConfig.COLORS[1], null));
 
@@ -178,22 +187,19 @@ public class AxisLineChartVisualTest extends VisualTest {
 
     final AtomicInteger variance = new AtomicInteger(10);
     final AtomicInteger delay = new AtomicInteger(10);
-    mUpdateDataThread = new Thread() {
+
+    Thread mUpdateDataThread = new Thread() {
       @Override
       public void run() {
-        super.run();
         try {
           while (true) {
-            //  Insert new data point at now.
             long now = System.currentTimeMillis() - mStartTimeMs;
-            int v = variance.get();
-            for (RangedContinuousSeries rangedSeries : mData) {
-              int size = rangedSeries.getSeries().size();
-              long last = size > 0 ? rangedSeries.getSeries().getY(size - 1) : 0;
-              float delta = (float)Math.random() * variance.get() - v * 0.45f;
-              rangedSeries.getSeries().add(now, last + (long)delta);
+            for (DefaultContinuousSeries series : mData) {
+              ImmutableList<SeriesData<Long>> data = series.getAllData();
+              long last = data.isEmpty() ? 0 : data.get(data.size() - 1).value;
+              float delta = 10 * ((float)Math.random() - 0.45f);
+              series.add(now, last + (long)delta);
             }
-
             Thread.sleep(delay.get());
           }
         }
@@ -202,7 +208,6 @@ public class AxisLineChartVisualTest extends VisualTest {
       }
     };
     mUpdateDataThread.start();
-
     controls.add(VisualTests.createVariableSlider("Delay", 10, 5000, new VisualTests.Value() {
       @Override
       public void set(int v) {

@@ -19,9 +19,9 @@ package com.android.tools.adtui.visual;
 import com.android.tools.adtui.*;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
-import com.android.tools.adtui.model.ContinuousSeries;
 import com.android.tools.adtui.model.EventAction;
 import com.android.tools.adtui.model.RangedSimpleSeries;
+import com.android.tools.adtui.model.SeriesDataStore;
 import com.android.tools.adtui.segment.BaseSegment;
 import com.android.tools.adtui.segment.EventSegment;
 import com.android.tools.adtui.segment.NetworkSegment;
@@ -33,8 +33,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 
 public class ProfilerOverviewVisualTest extends VisualTest {
@@ -97,9 +95,6 @@ public class ProfilerOverviewVisualTest extends VisualTest {
   @NotNull
   private RangeScrollbar mScrollbar;
 
-  @NotNull
-  private HashMap<BaseSegment, List<ContinuousSeries>> mData;
-
   private JPanel mSegmentsContainer;
 
   private AccordionLayout mLayout;
@@ -112,8 +107,6 @@ public class ProfilerOverviewVisualTest extends VisualTest {
 
   @Override
   protected List<Animatable> createComponentsList() {
-    mData = new HashMap<>();
-
     mStartTimeMs = System.currentTimeMillis();
     mXRange = new Range();
     mXGlobalRange = new Range();
@@ -170,36 +163,6 @@ public class ProfilerOverviewVisualTest extends VisualTest {
 
   @Override
   public void populateUi(JPanel panel) {
-    mUpdateDataThread = new Thread() {
-      @Override
-      public void run() {
-        super.run();
-        try {
-          boolean downEvent = false;
-          // We need to cache the lifetime of fragments/activities to be representative of
-          // Actual event data that we will get from the device.
-          ArrayList<Long> fragments = new ArrayList<>();
-          ArrayList<Long> activities = new ArrayList<>();
-          while (true) {
-            long now = System.currentTimeMillis() - mStartTimeMs;
-            for (Collection<ContinuousSeries> seriesCollection : mData.values()) {
-              for (ContinuousSeries series : seriesCollection) {
-                int size = series.size();
-                long last = size > 0 ? series.getY(size - 1) : 0;
-                float delta = 10 * ((float)Math.random() - 0.45f);
-                series.add(now, (long)((last + delta) * Math.random()));
-              }
-            }
-            downEvent = generateEventData(downEvent, fragments, activities, now);
-            generateStackedEventData(mFragmentEventData, fragments, now, FRAGMENT_PROBABILITY);
-            generateStackedEventData(mActivityEventData, activities, now, ACTIVITY_PROBABILITY);
-            Thread.sleep(DATA_DELAY_MS);
-          }
-        } catch (InterruptedException e) {
-        }
-      }
-    };
-    mUpdateDataThread.start();
 
     GridBagLayout gbl = new GridBagLayout();
     GridBagConstraints gbc = new GridBagConstraints();
@@ -220,6 +183,8 @@ public class ProfilerOverviewVisualTest extends VisualTest {
     gridBagPanel.add(createToolbarPanel(), gbc);
 
     // Add Selection Overlay
+    // TODO define sizes for x columns 0 and 1
+    gbc.fill = GridBagConstraints.BOTH;
     gbc.gridy = 1;
     gbc.gridx = 2;
     gbc.gridwidth = 1;
@@ -291,7 +256,7 @@ public class ProfilerOverviewVisualTest extends VisualTest {
 
   private BaseSegment createSegment(BaseSegment.SegmentType type, int minHeight, int preferredHeight, int maxHeight) {
     BaseSegment segment = null;
-    List<ContinuousSeries> newData = new ArrayList<>();
+    Range yRange = new Range();
     switch (type) {
       case TIME:
         segment = new TimeAxisSegment(mXRange, mTimeAxis);
@@ -300,26 +265,22 @@ public class ProfilerOverviewVisualTest extends VisualTest {
         segment = new EventSegment(mXGlobalRange, mSystemEventData, mFragmentEventData, mActivityEventData, MOCK_ICONS);
         break;
       // TODO create corresponding segments based on type.
-      case NETWORK:
-      case MEMORY:
-      case CPU:
-      case GPU:
-        ContinuousSeries sendingData = new ContinuousSeries();
-        ContinuousSeries receivingData = new ContinuousSeries();
-        segment = new NetworkSegment(mXRange, sendingData, receivingData);
-        newData.add(sendingData);
-        newData.add(receivingData);
-        mData.put(segment, newData);
-        break;
+      default:
+        segment = new NetworkSegment(mXRange, mDataStore);
     }
 
     segment.setMinimumSize(new Dimension(0, minHeight));
     segment.setPreferredSize(new Dimension(0, preferredHeight));
     segment.setMaximumSize(new Dimension(0, maxHeight));
+    segment.setBorder(BorderFactory.createLineBorder(Color.GRAY));
 
     List<Animatable> segmentAnimatables = new ArrayList<>();
     segment.createComponentsList(segmentAnimatables);
+
+    // LineChart needs to animate before y ranges so add them to the Choreographer in order.
     addToChoreographer(segmentAnimatables);
+    addToChoreographer(yRange);
+
     segment.initializeComponents();
 
     return segment;
