@@ -22,6 +22,7 @@ import com.android.tools.rpclib.binary.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 public final class Range implements BinaryObject {
   public boolean isValid() {
@@ -39,6 +40,14 @@ public final class Range implements BinaryObject {
   /** @return whether this range completely contains the given range */
   public boolean contains(Range range) {
     return myStart <= range.getStart() && myEnd >= range.getEnd();
+  }
+
+  /** @return whether any of the ranges contains the given index */
+  public static boolean contains(Range[] list, long atomIndex) {
+    int rangeIndex = Arrays.binarySearch(list, null, (x, ignored) ->
+      (atomIndex < x.myStart) ? 1 :
+      (atomIndex >= x.myEnd) ? -1 : 0);
+    return rangeIndex >= 0;
   }
 
   /** @return whether this range has any overlap with the given range */
