@@ -107,9 +107,10 @@ public class NlPropertyEditors {
     if (isBoolean == Boolean.TRUE) {
       return EditorType.BOOLEAN;
     }
-    else {
-      return EditorType.DEFAULT;
+    else if (NlEnumEditor.supportsProperty(property)) {
+      return EditorType.COMBO;
     }
+    return EditorType.DEFAULT;
   }
 
   private PTableCellEditor getBooleanEditor() {
