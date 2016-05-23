@@ -68,7 +68,6 @@ public abstract class BaseLineChartSegment extends BaseSegment {
 
   @Override
   public void createComponentsList(@NotNull List<Animatable> animatables) {
-
     // left axis
     mLeftAxis = new AxisComponent(mLeftAxisRange, mLeftAxisRange, "",
                                   AxisComponent.AxisOrientation.LEFT, 0, 0, true,
@@ -128,9 +127,13 @@ public abstract class BaseLineChartSegment extends BaseSegment {
   }
 
   @Override
+  protected void setTopCenterContent(@NotNull JPanel panel) {
+    panel.add(mLegendComponent, BorderLayout.EAST);
+  }
+
+  @Override
   protected void setCenterContent(@NotNull JPanel panel) {
     JBLayeredPane layeredPane = new JBLayeredPane();
-    layeredPane.add(mLegendComponent);
     layeredPane.add(mLineChart);
     layeredPane.add(mGrid);
     layeredPane.addComponentListener(new ComponentAdapter() {
@@ -140,12 +143,7 @@ public abstract class BaseLineChartSegment extends BaseSegment {
         if (host != null) {
           Dimension dim = host.getSize();
           for (Component c : host.getComponents()) {
-            if (c instanceof LegendComponent) {
-              c.setBounds((int)(dim.width * .5), 0, dim.width, dim.height);
-            }
-            else {
-              c.setBounds(0, 0, dim.width, dim.height);
-            }
+            c.setBounds(0, 0, dim.width, dim.height);
           }
         }
       }

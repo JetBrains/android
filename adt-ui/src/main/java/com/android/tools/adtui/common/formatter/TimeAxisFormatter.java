@@ -26,7 +26,7 @@ public final class TimeAxisFormatter extends BaseAxisFormatter {
   private static final String[] UNITS = new String[]{"ms", "s", "m", "h"};
   private static final TIntArrayList[] BASE_FACTORS;
 
-  public static final TimeAxisFormatter DEFAULT = new TimeAxisFormatter(5, 5, 5);
+  public static final TimeAxisFormatter DEFAULT = new TimeAxisFormatter(5, 10, 5);
 
   static {
     int size = BASES.length;
