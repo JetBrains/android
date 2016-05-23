@@ -68,12 +68,8 @@ public abstract class BaseAxisFormatter {
    * @param range The range to calculate intervals for.
    */
   public int getMajorInterval(double range) {
-    int index = getMultiplierIndex(range, mSwitchThreshold);
-    int base = getUnitBase(index);
-    int minInterval = getUnitMinimalInterval(index);
-    TIntArrayList factors = getUnitBaseFactors(index);
-    return getInterval(range / mMultiplier, mMaxMajorTicks, base, minInterval, factors)
-           * mMultiplier;
+    return getInterval(range, mMaxMajorTicks);
+
   }
 
   /**
@@ -82,11 +78,19 @@ public abstract class BaseAxisFormatter {
    * @param range The range to calculate intervals for.
    */
   public int getMinorInterval(double range) {
+    return getInterval(range, mMaxMinorTicks);
+
+  }
+
+  /**
+   * Determines the interval value for a particular range given the number of ticks that should be used.
+   */
+  public int getInterval(double range, int numTicks) {
     int index = getMultiplierIndex(range, mSwitchThreshold);
     int base = getUnitBase(index);
     int minInterval = getUnitMinimalInterval(index);
     TIntArrayList factors = getUnitBaseFactors(index);
-    return getInterval(range / mMultiplier, mMaxMinorTicks, base, minInterval, factors)
+    return getInterval(range / mMultiplier, numTicks, base, minInterval, factors)
            * mMultiplier;
   }
 
@@ -168,7 +172,7 @@ public abstract class BaseAxisFormatter {
 
     // Multiplier of targetInterval at the current magnitude
     // rounded up to at least 1, which is the smallest possible value in the baseFactors array.
-    int multiplier = (int)(interval / magnitude + 0.5);
+    float multiplier = (float)Math.max(1, interval / magnitude);
 
     // Find the closest base factor bigger than multiplier and use that as the multiplier.
     // The idea behind using the factor is that it will add up nicely in the base system,
@@ -182,7 +186,7 @@ public abstract class BaseAxisFormatter {
       }
     }
 
-    return multiplier * magnitude;
+    return (int)multiplier * magnitude;
   }
 
   /**
