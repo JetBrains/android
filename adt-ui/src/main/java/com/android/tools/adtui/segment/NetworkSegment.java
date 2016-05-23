@@ -7,10 +7,6 @@ import com.android.tools.adtui.model.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.*;
-import java.util.ArrayList;
-import java.util.List;
-
 public class NetworkSegment extends BaseLineChartSegment {
 
   private static final String SEGMENT_NAME = "Network";
@@ -49,18 +45,6 @@ public class NetworkSegment extends BaseLineChartSegment {
                         @NotNull ContinuousSeries sendingData,
                         @NotNull ContinuousSeries receivingData) {
     this(timeRange, sendingData, receivingData, null);
-  }
-
-  @Override
-  public List<LegendRenderData> createLegendData(@NotNull ReportingSeriesRenderer renderer) {
-    List<LegendRenderData> legendRenderDataList = new ArrayList<>();
-    List<ReportingSeries> reportingSeriesList = renderer.getReportingSeries();
-    for (ReportingSeries series : reportingSeriesList) {
-      Color color = renderer.getReportingSeriesColor(series);
-      LegendRenderData renderData = new LegendRenderData(LegendRenderData.IconType.LINE, color, series);
-      legendRenderDataList.add(renderData);
-    }
-    return legendRenderDataList;
   }
 
   @Override
