@@ -150,6 +150,7 @@ public abstract class Dependency {
 
     if (!supportsDependencyGraph) {
       // If the Android model is pre 2.2.0, invoke Dependencies.getProjects. In 2.2.0+, this method returns an empty collection.
+      //noinspection deprecation
       for (String gradleProjectPath : artifactDependencies.getProjects()) {
         if (gradleProjectPath != null && !gradleProjectPath.isEmpty()) {
           ModuleDependency dependency = new ModuleDependency(gradleProjectPath, scope);
@@ -228,6 +229,9 @@ public abstract class Dependency {
           // This is a module.
           mainDependency = new ModuleDependency(gradleProjectPath, scope);
           dependencies.add(mainDependency);
+          // Add the dependencies of the module as well.
+          // See https://code.google.com/p/android/issues/detail?id=210172
+          addJavaLibraries(dependencies, lib.getDependencies(), scope, true);
         }
         if (mainDependency == null) {
           // This is a library, not a module.
