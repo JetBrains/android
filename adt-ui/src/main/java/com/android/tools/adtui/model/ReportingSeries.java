@@ -26,17 +26,20 @@ public interface ReportingSeries {
 
   class ReportingData {
     public long timeStamp;
-    public String label;
     public String formattedXData;
     public String formattedYData;
 
-    ReportingData(long timeStamp, String label, String formattedXData, String formattedYData) {
+    ReportingData(long timeStamp, String formattedXData, String formattedYData) {
       this.timeStamp = timeStamp;
-      this.label = label;
       this.formattedXData = formattedXData;
       this.formattedYData = formattedYData;
     }
   }
+
+  /**
+   * @return The label that was supplied to this series of data.
+   */
+  String getLabel();
 
   /**
    * @return A ReportingData structure to be displayed for the latest value in the series. Null if the series contains no data.

@@ -127,7 +127,7 @@ public class AxisLineChartVisualTest extends VisualTest {
     //Test the populated series case
     legendRenderInfo.add(new LegendRenderData(LegendRenderData.IconType.BOX, LineConfig.COLORS[0], mRangedData.get(0)));
     //Test the null series case
-    legendRenderInfo.add(new LegendRenderData(LegendRenderData.IconType.LINE, LineConfig.COLORS[1], null));
+    legendRenderInfo.add(new LegendRenderData(LegendRenderData.IconType.LINE, LineConfig.COLORS[1], SERIES2_LABEL));
 
     mLegendComponent = new LegendComponent(LegendComponent.Orientation.VERTICAL, LABEL_UPDATE_MILLIS);
     mLegendComponent.setLegendData(legendRenderInfo);

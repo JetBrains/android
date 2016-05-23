@@ -28,7 +28,10 @@ import java.awt.event.MouseEvent;
 import java.awt.geom.Path2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.RoundRectangle2D;
-import java.util.ArrayList;
+import java.util.ArrayDeque;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -119,7 +122,7 @@ public final class SelectionComponent extends AnimatedComponent {
   private ReportingSeriesRenderer mReportingContainer;
 
   @NotNull
-  private final ArrayList<ReportingSeries.ReportingData> mReportingData;
+  private final Map<ReportingSeries, Collection<ReportingSeries.ReportingData>> mReportingData;
 
   public SelectionComponent(@NotNull Component host,
                             @NotNull AxisComponent axis,
@@ -132,7 +135,7 @@ public final class SelectionComponent extends AnimatedComponent {
     mViewRange = viewRange;
     mode = Mode.NO_SELECTION;
     mSelectionRange = selectionRange;
-    mReportingData = new ArrayList<>();
+    mReportingData = new HashMap<>();
 
     initListeners();
   }
@@ -284,10 +287,11 @@ public final class SelectionComponent extends AnimatedComponent {
     if (hoveredComponent instanceof ReportingSeriesRenderer) {
       mReportingContainer = (ReportingSeriesRenderer)hoveredComponent;
       for (ReportingSeries series : mReportingContainer.getReportingSeries()) {
-        for (ReportingSeries.ReportingData data : series.getFullReportingData((long)valueAtCursor)) {
-          mReportingData.add(data);
+        Collection<ReportingSeries.ReportingData> reportingDataCollection = series.getFullReportingData((long)valueAtCursor);
+        for (ReportingSeries.ReportingData data : reportingDataCollection) {
           mReportingContainer.markData(data.timeStamp);
         }
+        mReportingData.put(series, reportingDataCollection);
       }
     }
 
@@ -384,15 +388,16 @@ public final class SelectionComponent extends AnimatedComponent {
     }
 
     // First pass through the data to measure the necessary width and height of the background rectangle.
-    TIntArrayList dataWidthArray = new TIntArrayList();
-    for (ReportingSeries.ReportingData data : mReportingData) {
-      int labelWidth = mDefaultFontMetrics.stringWidth(data.label);
-      int dataWidth = mDefaultFontMetrics.stringWidth(data.formattedYData);
+    ArrayDeque<Integer> dataWidthArray = new ArrayDeque<>();
+    for (ReportingSeries series : mReportingData.keySet()) {
+      int labelWidth = mDefaultFontMetrics.stringWidth(series.getLabel());
       labelColumnWidth = Math.max(labelColumnWidth, labelWidth);
-      dataColumnWidth = Math.max(dataColumnWidth, dataWidth);
-      dataWidthArray.add(dataWidth);
-
-      overlayHeight += ascent + OVERLAY_INFO_LINE_SPACING;
+      for (ReportingSeries.ReportingData data : mReportingData.get(series)) {
+        int dataWidth = mDefaultFontMetrics.stringWidth(data.formattedYData);
+        dataColumnWidth = Math.max(dataColumnWidth, dataWidth);
+        dataWidthArray.add(dataWidth);
+        overlayHeight += ascent + OVERLAY_INFO_LINE_SPACING;
+      }
     }
 
     int overlayWidth = Math.max(OVERLAY_INFO_MIN_WIDTH,
@@ -419,12 +424,13 @@ public final class SelectionComponent extends AnimatedComponent {
       textHeight += OVERLAY_INFO_LINE_SPACING;
     }
 
-    for (int i = 0; i < mReportingData.size(); i++) {
-      ReportingSeries.ReportingData data = mReportingData.get(i);
-      textHeight += ascent;
-      g.drawString(data.label, OVERLAY_INFO_PADDING, textHeight);
-      g.drawString(data.formattedYData, overlayWidth - OVERLAY_INFO_PADDING - dataWidthArray.get(i), textHeight);
-      textHeight += OVERLAY_INFO_LINE_SPACING;
+    for (ReportingSeries series : mReportingData.keySet()) {
+      for (ReportingSeries.ReportingData data : mReportingData.get(series)) {
+        textHeight += ascent;
+        g.drawString(series.getLabel(), OVERLAY_INFO_PADDING, textHeight);
+        g.drawString(data.formattedYData, overlayWidth - OVERLAY_INFO_PADDING - dataWidthArray.remove(), textHeight);
+        textHeight += OVERLAY_INFO_LINE_SPACING;
+      }
     }
 
     // Draw separator and double-click instruction message.
