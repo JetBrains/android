@@ -16,7 +16,10 @@
 package com.android.tools.idea.ui.properties;
 
 import com.android.tools.idea.ui.properties.core.ObservableBool;
+import com.android.tools.idea.ui.properties.expressions.Expression;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.function.Function;
 
 /**
  * A class that represents a value which, when modified, notifies all listeners.
@@ -46,6 +49,12 @@ public interface ObservableValue<T> {
    * {@link #removeListener(InvalidationListener)} to remove weakly added listeners.
    */
   void addWeakListener(@NotNull InvalidationListener listener);
+
+  /**
+   * Returns an expression that transforms this observable into a modified value (possibly of a different type)
+   */
+  @NotNull
+  <S> Expression<S> transform(@NotNull Function<T, S> function);
 
   @NotNull
   ObservableBool isEqualTo(@NotNull T value);
