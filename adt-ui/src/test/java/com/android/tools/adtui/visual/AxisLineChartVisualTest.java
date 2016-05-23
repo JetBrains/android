@@ -18,7 +18,6 @@ package com.android.tools.adtui.visual;
 
 import com.android.annotations.NonNull;
 import com.android.tools.adtui.*;
-import com.android.tools.adtui.common.AdtUIUtils;
 import com.android.tools.adtui.common.formatter.MemoryAxisFormatter;
 import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.chart.linechart.LineChart;
@@ -137,11 +136,11 @@ public class AxisLineChartVisualTest extends VisualTest {
                          mSelection, // Update selection range immediate.
                          mScrollbar, // Update current range immediate.
                          mLineChart, // Set y's interpolation values.
+                         mMemoryAxis1, // Clamp/interpolate ranges to major ticks if enabled.
+                         mMemoryAxis2, // Sync with mMemoryAxis1 if enabled.
+                         mTimeAxis, // Read ranges.
                          yRange1Animatable, // Interpolate y1.
                          yRange2Animatable, // Interpolate y2.
-                         mTimeAxis, // Read ranges.
-                         mMemoryAxis1, // Read ranges.
-                         mMemoryAxis2, // Read ranges.
                          mGrid, // No-op.
                          xRange, // Reset flags.
                          mXGlobalRange, // Reset flags.
@@ -226,43 +225,16 @@ public class AxisLineChartVisualTest extends VisualTest {
         return variance.get();
       }
     }));
-    controls.add(VisualTests.createCheckbox("Stable Scroll", new ItemListener() {
-      @Override
-      public void itemStateChanged(ItemEvent itemEvent) {
-        mScrollbar.setStableScrolling(itemEvent.getStateChange() == ItemEvent.SELECTED);
-      }
-    }));
-    controls.add(VisualTests.createCheckbox("Sync Vertical Axes", new ItemListener() {
-      @Override
-      public void itemStateChanged(ItemEvent itemEvent) {
-        mMemoryAxis2.setParentAxis(itemEvent.getStateChange() == ItemEvent.SELECTED ?
-                                   mMemoryAxis1 : null);
-      }
-    }));
-    controls.add(VisualTests.createButton("Zoom In", new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        mSelection.zoom(-SelectionComponent.ZOOM_FACTOR);
-      }
-    }));
-    controls.add(VisualTests.createButton("Zoom Out", new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        mSelection.zoom(SelectionComponent.ZOOM_FACTOR);
-      }
-    }));
-    controls.add(VisualTests.createButton("Reset Zoom", new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        mSelection.resetZoom();
-      }
-    }));
-    controls.add(VisualTests.createButton("Clear Selection", new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        mSelection.clear();
-      }
-    }));
+    controls.add(VisualTests.createCheckbox("Stable Scroll",
+                  itemEvent -> mScrollbar.setStableScrolling(itemEvent.getStateChange() == ItemEvent.SELECTED)));
+    controls.add(VisualTests.createCheckbox("Clamp To Major Ticks",
+                  itemEvent -> mMemoryAxis1.setClampToMajorTicks(itemEvent.getStateChange() == ItemEvent.SELECTED)));
+    controls.add(VisualTests.createCheckbox("Sync Vertical Axes",
+                  itemEvent -> mMemoryAxis2.setParentAxis(itemEvent.getStateChange() == ItemEvent.SELECTED ? mMemoryAxis1 : null)));
+    controls.add(VisualTests.createButton("Zoom In", e -> mSelection.zoom(-SelectionComponent.ZOOM_FACTOR)));
+    controls.add(VisualTests.createButton("Zoom Out", e -> mSelection.zoom(SelectionComponent.ZOOM_FACTOR)));
+    controls.add(VisualTests.createButton("Reset Zoom", e -> mSelection.resetZoom()));
+    controls.add(VisualTests.createButton("Clear Selection", e -> mSelection.clear()));
 
     controls.add(
       new Box.Filler(new Dimension(0, 0), new Dimension(300, Integer.MAX_VALUE),

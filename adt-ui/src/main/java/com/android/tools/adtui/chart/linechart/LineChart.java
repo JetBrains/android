@@ -149,7 +149,11 @@ public class LineChart extends AnimatedComponent {
 
     for (Map.Entry<Range, Long> entry : max.entrySet()) {
       Range range = entry.getKey();
-      if (range.getMax() < entry.getValue()) {
+      // Prevent the LineChart to update the range below its initial max. We are only check against the initial max here as the
+      // AxisComponent can interact with the range and clamp to a higher max value (See AxisComponent.setClampToMajorTicks(boolean)).
+      // In each pass, the LineChart needs to reset the max target according to the data, so the AxisComponent can apply the clamping logic
+      // using the current data max instead of the clamped max from the previous pass.
+      if (range.getInitialMax() < entry.getValue()) {
         range.setMaxTarget(entry.getValue());
       }
     }
