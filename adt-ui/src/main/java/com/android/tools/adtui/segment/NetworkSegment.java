@@ -1,29 +1,59 @@
 package com.android.tools.adtui.segment;
 
-import com.android.annotations.NonNull;
 import com.android.tools.adtui.*;
+import com.android.tools.adtui.chart.linechart.LineChart;
+import com.android.tools.adtui.common.AdtUIUtils;
 import com.android.tools.adtui.common.formatter.MemoryAxisFormatter;
-import com.android.tools.adtui.model.LegendRenderData;
-import com.android.tools.adtui.model.RangedContinuousSeries;
-import com.android.tools.adtui.model.ReportingSeries;
-import com.android.tools.adtui.model.ReportingSeriesRenderer;
+import com.android.tools.adtui.model.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class NetworkSegment extends BasicTwoAxisSegment {
+public class NetworkSegment extends BaseLineChartSegment {
 
   private static final String SEGMENT_NAME = "Network";
-  private static final String SENDING_NAME = "Sending";
-  private static final String RECEIVING_NAME = "Receiving";
+  private static final String SENDING = "Sending";
+  private static final String RECEIVING = "Receiving";
+  private static final String CONNECTIONS = "Connections";
 
-  public NetworkSegment(@NonNull Range scopedRange, @NonNull List<RangedContinuousSeries> data) {
-    super(SEGMENT_NAME, scopedRange, data, MemoryAxisFormatter.DEFAULT, MemoryAxisFormatter.DEFAULT);
+  @NotNull
+  private final Range mTimeRange;
+
+  @NotNull
+  private final ContinuousSeries mSendingData;
+
+  @NotNull
+  private final ContinuousSeries mReceivingData;
+
+  @Nullable
+  private final ContinuousSeries mConnectionsData;
+
+  /**
+   * @param connectionsData if it is null, connections line won't displayed, thus right axis won't displayed as well.
+   */
+  public NetworkSegment(@NotNull Range timeRange,
+                        @NotNull ContinuousSeries sendingData,
+                        @NotNull ContinuousSeries receivingData,
+                        @Nullable ContinuousSeries connectionsData) {
+    super(SEGMENT_NAME, timeRange, MemoryAxisFormatter.DEFAULT,
+          (connectionsData != null) ? MemoryAxisFormatter.DEFAULT : null);
+    mTimeRange = timeRange;
+    mSendingData = sendingData;
+    mReceivingData = receivingData;
+    mConnectionsData = connectionsData;
+  }
+
+  public NetworkSegment(@NotNull Range timeRange,
+                        @NotNull ContinuousSeries sendingData,
+                        @NotNull ContinuousSeries receivingData) {
+    this(timeRange, sendingData, receivingData, null);
   }
 
   @Override
-  public List<LegendRenderData> createLegendData(@NonNull ReportingSeriesRenderer renderer) {
+  public List<LegendRenderData> createLegendData(@NotNull ReportingSeriesRenderer renderer) {
     List<LegendRenderData> legendRenderDataList = new ArrayList<>();
     List<ReportingSeries> reportingSeriesList = renderer.getReportingSeries();
     for (ReportingSeries series : reportingSeriesList) {
@@ -35,13 +65,14 @@ public class NetworkSegment extends BasicTwoAxisSegment {
   }
 
   @Override
-  public void populateSeriesData(@NonNull List<RangedContinuousSeries> data, @NonNull Range leftAxisRange, @NonNull Range rightAxisRange) {
+  public void populateSeriesData(@NotNull LineChart lineChart) {
+    // TODO(Madiyar): set corresponding colors to the lines to match the design
+    lineChart.addLine(new RangedContinuousSeries(SENDING, mTimeRange, mLeftAxisRange, mSendingData));
+    lineChart.addLine(new RangedContinuousSeries(RECEIVING, mTimeRange, mLeftAxisRange, mReceivingData));
 
-    //TODO Refactor the interaction between TestData, LineChart, and this.
-    //Currently an array is passed from the test framework, to us, to LineChart for it to configure the chart.
-    //Ideally this function can create the series, and set them on the LineChart with the proper configs. To do this the test framework and
-    //monitor framework need some way to set data on the series created here.
-    data.add(new RangedContinuousSeries(SENDING_NAME, mScopedRange, leftAxisRange));
-    data.add(new RangedContinuousSeries(RECEIVING_NAME, mScopedRange, rightAxisRange));
+    if (mConnectionsData != null) {
+      // TODO(Madiyar): set corresponding colors to the lines to match the design
+      lineChart.addLine(new RangedContinuousSeries(CONNECTIONS, mTimeRange, mRightAxisRange, mConnectionsData));
+    }
   }
 }

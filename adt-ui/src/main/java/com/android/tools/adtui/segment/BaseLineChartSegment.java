@@ -1,14 +1,14 @@
 package com.android.tools.adtui.segment;
 
-import com.android.annotations.NonNull;
 import com.android.tools.adtui.*;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.common.formatter.MemoryAxisFormatter;
 import com.android.tools.adtui.model.LegendRenderData;
-import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.ReportingSeriesRenderer;
 import com.intellij.ui.components.JBLayeredPane;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -16,109 +16,114 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.util.List;
 
-public abstract class BasicTwoAxisSegment extends BaseSegment {
+/**
+ * This class can be used for line charts with a left axis or with both left and right.
+ * In former case rightAxisFormatter should be passed to {@link #BaseLineChartSegment(String, Range, BaseAxisFormatter, BaseAxisFormatter)}
+ * as null value, indicating that the chart has a left axis only.
+ */
+public abstract class BaseLineChartSegment extends BaseSegment {
+  @NotNull
+  protected Range mLeftAxisRange;
 
-  @NonNull
-  private AxisComponent mRightAxis;
+  @Nullable
+  protected Range mRightAxisRange;
 
-  @NonNull
+  @NotNull
   private AxisComponent mLeftAxis;
 
-  @NonNull
-  private GridComponent mGrid;
+  @Nullable
+  private AxisComponent mRightAxis;
 
-  @NonNull
-  private LineChart mLineChart;
-
-  @NonNull
-  private LegendComponent mLegendComponent;
-
-  @NonNull
-  private final List<RangedContinuousSeries> mData;
-
-  @NonNull
+  @NotNull
   private final BaseAxisFormatter mLeftAxisFormatter;
 
-  @NonNull
+  @Nullable
   private final BaseAxisFormatter mRightAxisFormatter;
 
-  public BasicTwoAxisSegment(@NonNull String name,
-                             @NonNull Range scopedRange,
-                             @NonNull List<RangedContinuousSeries> data,
-                             @NonNull BaseAxisFormatter leftAxisFormatter,
-                             @NonNull BaseAxisFormatter rightAxisFormatter) {
-    super(name, scopedRange);
-    mData = data;
+  @NotNull
+  private GridComponent mGrid;
+
+  @NotNull
+  private LineChart mLineChart;
+
+  @NotNull
+  private LegendComponent mLegendComponent;
+
+  /**
+   * @param rightAxisFormatter if it is null, chart will have a left axis only
+   */
+  public BaseLineChartSegment(@NotNull String name,
+                              @NotNull Range xRange,
+                              @NotNull BaseAxisFormatter leftAxisFormatter,
+                              @Nullable BaseAxisFormatter rightAxisFormatter) {
+    super(name, xRange);
     mLeftAxisFormatter = leftAxisFormatter;
     mRightAxisFormatter = rightAxisFormatter;
+    mLeftAxisRange = new Range();
+    if (mRightAxisFormatter != null) {
+      mRightAxisRange = new Range();
+    }
   }
 
   @Override
-  public void createComponentsList(@NonNull List<Animatable> animatables) {
+  public void createComponentsList(@NotNull List<Animatable> animatables) {
 
     // left axis
-    Range leftAxisRange = new Range();
-    mLeftAxis = new AxisComponent(leftAxisRange, leftAxisRange, "",
+    mLeftAxis = new AxisComponent(mLeftAxisRange, mLeftAxisRange, "",
                                   AxisComponent.AxisOrientation.LEFT, 0, 0, true,
                                   mLeftAxisFormatter);
-
     // right axis
-    Range rightAxisRange = new Range();
-    mRightAxis = new AxisComponent(rightAxisRange, rightAxisRange, "",
-                                   AxisComponent.AxisOrientation.RIGHT, 0, 0, true,
-                                   mRightAxisFormatter);
-
+    if (mRightAxisRange != null) {
+      mRightAxis = new AxisComponent(mRightAxisRange, mRightAxisRange, "",
+                                     AxisComponent.AxisOrientation.RIGHT, 0, 0, true,
+                                     mRightAxisFormatter);
+    }
     //TODO Associate the grid with both AxisComponents.
     mLineChart = new LineChart();
     mGrid = new GridComponent();
     mGrid.addAxis(mLeftAxis);
-
-    //Call into our child types to populate the control data.
-    populateSeriesData(mData, leftAxisRange, rightAxisRange);
-
-    //TODO move this to populateSeriesData.
-    for (RangedContinuousSeries series : mData) {
-      mLineChart.addLine(series);
-    }
-
+    populateSeriesData(mLineChart);
     List<LegendRenderData> legendRenderData = createLegendData(mLineChart);
     mLegendComponent = new LegendComponent(legendRenderData, LegendComponent.Orientation.HORIZONTAL, 100, MemoryAxisFormatter.DEFAULT);
-
 
     // Note: the order below is important as some components depend on
     // others to be updated first. e.g. the ranges need to be updated before the axes.
     // The comment on each line highlights why the component needs to be in that position.
     animatables.add(mLineChart); // Set y's interpolation values.
-    animatables.add(rightAxisRange); // Interpolate y1.
-    animatables.add(leftAxisRange); // Interpolate y2.
-    animatables.add(mRightAxis); // Read ranges.
+    if (mRightAxisRange != null) {
+      animatables.add(mRightAxisRange); // Interpolate y1.
+    }
+    animatables.add(mLeftAxisRange); // Interpolate y2.
+    if (mRightAxis != null) {
+      animatables.add(mRightAxis); // Read ranges.
+    }
     animatables.add(mLeftAxis); // Read ranges.
     animatables.add(mLegendComponent);
     animatables.add(mGrid); // No-op.
   }
 
-  public abstract List<LegendRenderData> createLegendData(@NonNull ReportingSeriesRenderer renderer);
+  public abstract List<LegendRenderData> createLegendData(@NotNull ReportingSeriesRenderer renderer);
 
-  public abstract void populateSeriesData(@NonNull List<RangedContinuousSeries> data,
-                                          @NonNull Range leftAxisRange,
-                                          @NonNull Range rightAxisRange);
+  public abstract void populateSeriesData(@NotNull LineChart lineChart);
 
   @Override
-  public void registerComponents(@NonNull List<AnimatedComponent> components) {
+  public void registerComponents(@NotNull List<AnimatedComponent> components) {
     components.add(mLineChart);
-    components.add(mRightAxis);
+    if (mRightAxis != null) {
+      components.add(mRightAxis);
+    }
     components.add(mLeftAxis);
     components.add(mGrid);
     components.add(mLegendComponent);
   }
 
   @Override
-  protected void setLeftContent(@NonNull JPanel panel) {
+  protected void setLeftContent(@NotNull JPanel panel) {
     panel.add(mLeftAxis, BorderLayout.CENTER);
   }
 
   @Override
-  protected void setCenterContent(@NonNull JPanel panel) {
+  protected void setCenterContent(@NotNull JPanel panel) {
     JBLayeredPane layeredPane = new JBLayeredPane();
     layeredPane.add(mLegendComponent);
     layeredPane.add(mLineChart);
@@ -144,7 +149,13 @@ public abstract class BasicTwoAxisSegment extends BaseSegment {
   }
 
   @Override
-  protected void setRightContent(@NonNull JPanel panel) {
-    panel.add(mRightAxis, BorderLayout.CENTER);
+  protected void setRightContent(@NotNull JPanel panel) {
+    if (mRightAxis != null) {
+      panel.add(mRightAxis, BorderLayout.CENTER);
+      setRightSpacerVisible(true);
+    } else {
+      setRightSpacerVisible(false);
+    }
   }
+
 }
