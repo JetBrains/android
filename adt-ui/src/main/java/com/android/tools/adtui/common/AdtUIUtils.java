@@ -53,6 +53,11 @@ public final class AdtUIUtils {
 
   public static final Color OVERLAY_INFO_BACKGROUND = JBColor.WHITE;
 
+  public static final Color DARK_GREEN = new JBColor(0x5A8725, 0x5A8725);
+
+  public static final Color STRONG_BLUE = new JBColor(0x2865BD, 0x2865BD);
+
+  public static final Color VIVID_ORANGE = new JBColor(0xFF7B00, 0xFF7B00);
 
   private AdtUIUtils() {
   }
