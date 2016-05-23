@@ -37,6 +37,7 @@ import com.intellij.openapi.command.undo.UndoableAction;
 import com.intellij.openapi.command.undo.UnexpectedUndoException;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.ComboBox;
+import com.intellij.ui.CheckBoxList;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBLabel;
@@ -52,6 +53,7 @@ import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Vector;
 import java.util.concurrent.ExecutionException;
 
 public class EditAtomParametersAction extends AbstractAction {
@@ -77,9 +79,9 @@ public class EditAtomParametersAction extends AbstractAction {
                                               null, null, null);
     if (result == JOptionPane.OK_OPTION) {
       Dynamic newAtom = ((Dynamic)myNode.atom.unwrap()).copy();
-      for (int i = 0; i < myEditors.length; i++) {
-        if (myEditors[i].hasEditComponent()) {
-          newAtom.setFieldValue(myEditors[i].myFieldIndex, myEditors[i].getValue());
+      for (Editor editor : myEditors) {
+        if (editor.hasEditComponent()) {
+          newAtom.setFieldValue(editor.myFieldIndex, editor.getValue());
         }
       }
 
@@ -98,6 +100,7 @@ public class EditAtomParametersAction extends AbstractAction {
     }
   }
 
+  @NotNull
   private JComponent buildDialog() {
     JPanel fields = new JPanel(new GridBagLayout());
     GridBag bag = new GridBag()
@@ -106,26 +109,21 @@ public class EditAtomParametersAction extends AbstractAction {
       .setDefaultWeightX(1, 1)
       .setDefaultPaddingX(5);
 
-    for (int i = 0; i < myEditors.length; i++) {
-      String typeString = myEditors[i].myType instanceof Primitive ? " ("  + ((Primitive)myEditors[i].myType).getMethod() + ")" : "";
-      fields.add(new JBLabel(myNode.atom.getFieldInfo(myEditors[i].myFieldIndex).getName() + typeString), bag.nextLine().next());
-      if (myEditors[i].hasEditComponent()) {
-        fields.add(myEditors[i].myComponent, bag.next());
-      }
-      else {
-        fields.add(myEditors[i].getReadOnlyComponent(), bag.next());
-      }
+    for (Editor editor : myEditors) {
+      String typeString = editor.myType instanceof Primitive ? " (" + ((Primitive)editor.myType).getMethod() + ")" : "";
+      fields.add(new JBLabel(myNode.atom.getFieldInfo(editor.myFieldIndex).getName() + typeString), bag.nextLine().next());
+      fields.add(editor.getComponent(), bag.next());
     }
     return fields;
   }
 
   class ActivatePathCommand implements Runnable, UndoableAction {
 
-    private String myName;
-    private Path myOldPath;
-    private Path myNewPath;
+    @NotNull private final String myName;
+    @NotNull private final Path myOldPath;
+    @NotNull private final Path myNewPath;
 
-    ActivatePathCommand(String name, Path oldPath, Path newPath) {
+    ActivatePathCommand(@NotNull String name, @NotNull Path oldPath, @NotNull Path newPath) {
       myName = name;
       myOldPath = oldPath;
       myNewPath = newPath;
@@ -185,16 +183,14 @@ public class EditAtomParametersAction extends AbstractAction {
     return found ? new EditAtomParametersAction(traceEditor, node, editors.toArray(new Editor[editors.size()])) : null;
   }
 
-  private static class Editor {
+  private abstract static class Editor {
     public final SnippetObject myCurrentValue;
     public final Type myType;
-    public final @Nullable JComponent myComponent;
     public final int myFieldIndex;
 
-    private Editor(@NotNull SnippetObject currentValue, @NotNull Type type, @Nullable JComponent component, int fieldIndex) {
+    Editor(@NotNull SnippetObject currentValue, @NotNull Type type, int fieldIndex) {
       myCurrentValue = currentValue;
       myType = type;
-      myComponent = component;
       myFieldIndex = fieldIndex;
     }
 
@@ -204,7 +200,7 @@ public class EditAtomParametersAction extends AbstractAction {
         final Primitive primitive = (Primitive)type;
 
         Collection<Constant> constant = Render.findConstant(snippetObject, primitive);
-        if (constant.size() == 1) {
+        if (constant.size() >= 1) {
           // handle enum
           List<Constant> constants = Arrays.asList(ConstantSet.lookup(type).getEntries());
           // if we have a set of preferred constants, use them.
@@ -216,53 +212,129 @@ public class EditAtomParametersAction extends AbstractAction {
             }
           }
 
-          JComboBox combo = new ComboBox(new DefaultComboBoxModel<>(constants.toArray()));
-          combo.setSelectedItem(Iterables.get(constant, 0));
-          return new Editor(snippetObject, type, combo, fieldIndex);
-        }
-        if (constant.size() >= 1) {
-          // TODO add editing of bit flags
-          return new Editor(snippetObject, type, null, fieldIndex);
+          // TODO change check to actually check if this ConstantSet is flags
+          if (constant.size() == 1) {
+            return new EnumEditor(snippetObject, type, fieldIndex, constants, Iterables.get(constant, 0));
+          }
+          else {
+            return new FlagEditor(snippetObject, type, fieldIndex, constants, constant);
+          }
         }
 
         Method method = primitive.getMethod();
         if (method == Method.Bool) {
           // handle boolean
-          JCheckBox checkBox = new JCheckBox();
-          checkBox.setSelected(Boolean.parseBoolean(String.valueOf(value)));
-          return new Editor(snippetObject, type, checkBox, fieldIndex);
+          return new BooleanEditor(snippetObject, type, fieldIndex, value);
         }
         else if (method == Method.Float32 || method == Method.Float64) {
           // handle floats/doubles
-          JTextField floatBox = new JTextField(String.valueOf(value));
-          ((AbstractDocument)floatBox.getDocument()).setDocumentFilter(new FloatFilter());
-          return new Editor(snippetObject, type, floatBox, fieldIndex);
+          assert value != null;
+          return new FloatEditor(snippetObject, type, fieldIndex, value);
         }
         else if (method == Method.String) {
-          return new Editor(snippetObject, type, new JTextField(String.valueOf(value)), fieldIndex);
+          return new StringEditor(snippetObject, type, fieldIndex, value);
         }
         else {
           // handle ints
-          JSpinner spinner;
-          // unsigned
-          if (method == Method.Uint8 || method == Method.Uint16 || method == Method.Uint32 || method == Method.Uint64) {
-
-            Number javaValue = RenderUtils.toJavaIntType(method, (Number)value);
-            // we need the class of zero to match the class of the number
-            Comparable<? extends Number> zero = getZero(javaValue.getClass());
-            Comparable<? extends Number> max = getUnsignedMax(method);
-
-            spinner = new JSpinner(new SpinnerNumberModel(javaValue, zero, max, Integer.valueOf(1)));
-          }
-          else {
-            // signed ints
-            spinner = new JSpinner();
-            spinner.setValue(value);
-          }
-          return new Editor(snippetObject, type, spinner, fieldIndex);
+          assert value != null;
+          return new IntEditor(snippetObject, type, fieldIndex, value);
         }
       }
-      return new Editor(snippetObject, type, null, fieldIndex);
+      return new NoEditor(snippetObject, type, fieldIndex);
+    }
+
+    public boolean hasEditComponent() {
+      return true;
+    }
+
+    @NotNull
+    abstract JComponent getComponent();
+
+    @Nullable
+    abstract Object getValue();
+  }
+
+  private static class NoEditor extends Editor {
+    NoEditor(@NotNull SnippetObject currentValue, @NotNull Type type, int fieldIndex) {
+      super(currentValue, type, fieldIndex);
+    }
+
+    @Override
+    public boolean hasEditComponent() {
+      return false;
+    }
+
+    @Override
+    @NotNull
+    public JComponent getComponent() {
+      SimpleColoredComponent result = new SimpleColoredComponent();
+      Render.render(myCurrentValue, myType, result, SimpleTextAttributes.REGULAR_ATTRIBUTES, Render.NO_TAG);
+      return result;
+    }
+
+    @Override
+    Object getValue() {
+      throw new IllegalStateException();
+    }
+  }
+
+  private static class BooleanEditor extends Editor {
+    private final JCheckBox myCheckBox;
+
+    BooleanEditor(@NotNull SnippetObject currentValue, @NotNull Type type, int fieldIndex, @Nullable Object value) {
+      super(currentValue, type, fieldIndex);
+
+      myCheckBox = new JCheckBox();
+      myCheckBox.setSelected(Boolean.parseBoolean(String.valueOf(value)));
+    }
+
+    @Override
+    @NotNull
+    JCheckBox getComponent() {
+      return myCheckBox;
+    }
+
+    @Override
+    @Nullable
+    Boolean getValue() {
+      return myCheckBox.isSelected();
+    }
+  }
+
+  private static class IntEditor extends Editor {
+    private final JSpinner mySpinner;
+
+    IntEditor(@NotNull SnippetObject currentValue, @NotNull Type type, int fieldIndex, @NotNull Object value) {
+      super(currentValue, type, fieldIndex);
+      Method method = ((Primitive)type).getMethod();
+
+      // unsigned
+      if (method == Method.Uint8 || method == Method.Uint16 || method == Method.Uint32 || method == Method.Uint64) {
+
+        Number javaValue = RenderUtils.toJavaIntType(method, (Number)value);
+        // we need the class of zero to match the class of the number
+        Comparable<? extends Number> zero = getZero(javaValue.getClass());
+        Comparable<? extends Number> max = getUnsignedMax(method);
+
+        mySpinner = new JSpinner(new SpinnerNumberModel(javaValue, zero, max, Integer.valueOf(1)));
+      }
+      else {
+        // signed ints
+        mySpinner = new JSpinner();
+        mySpinner.setValue(value);
+      }
+    }
+
+    @Override
+    @NotNull
+    JSpinner getComponent() {
+      return mySpinner;
+    }
+
+    @Override
+    @Nullable
+    Object getValue() {
+      return mySpinner.getValue();
     }
 
     @NotNull
@@ -301,46 +373,118 @@ public class EditAtomParametersAction extends AbstractAction {
       }
       throw new IllegalArgumentException("not unsigned type" + type);
     }
+  }
 
+  private static class FloatEditor extends Editor {
+    private final JTextField myFloatBox;
+
+    FloatEditor(@NotNull SnippetObject currentValue, @NotNull Type type, int fieldIndex, @NotNull Object value) {
+      super(currentValue, type, fieldIndex);
+
+      myFloatBox = new JTextField(String.valueOf(value));
+      ((AbstractDocument)myFloatBox.getDocument()).setDocumentFilter(new FloatFilter());
+    }
+
+    @Override
     @NotNull
-    public JComponent getReadOnlyComponent() {
-      SimpleColoredComponent result = new SimpleColoredComponent();
-      Render.render(myCurrentValue, myType, result, SimpleTextAttributes.REGULAR_ATTRIBUTES, -1);
-      return result;
+    JTextField getComponent() {
+      return myFloatBox;
     }
 
-    public boolean hasEditComponent() {
-      return myComponent != null;
-    }
-
-    // TODO make this not have instanceof checks
+    @Override
     @Nullable
-    public Object getValue() {
-      if (myComponent instanceof JSpinner) {
-        // ints
-        // we don't need to convert it back to the overflown java type as the encoder will encode it correctly anyway
-        // {@link Primitive#encodeValue(Encoder, Object)}
-        return ((JSpinner)myComponent).getValue();
+    Number getValue() {
+      String text = myFloatBox.getText();
+      return Double.parseDouble(text);
+    }
+  }
+
+  private static class StringEditor extends Editor {
+    private final JTextField textField;
+
+    StringEditor(@NotNull SnippetObject currentValue, @NotNull Type type, int fieldIndex, @Nullable Object value) {
+      super(currentValue, type, fieldIndex);
+
+      textField = new JTextField(String.valueOf(value));
+    }
+
+    @Override
+    @NotNull
+    JTextField getComponent() {
+      return textField;
+    }
+
+    @Override
+    @Nullable
+    String getValue() {
+      return textField.getText();
+    }
+  }
+
+  private static class EnumEditor extends Editor {
+    private final JComboBox<Constant> myCombo;
+
+    EnumEditor(@NotNull SnippetObject currentValue,
+               @NotNull Type type,
+               int fieldIndex,
+               @NotNull List<Constant> constants,
+               @NotNull Constant constant) {
+      super(currentValue, type, fieldIndex);
+
+      //noinspection unchecked,UseOfObsoleteCollectionType
+      myCombo = new ComboBox(new DefaultComboBoxModel<>(new Vector<>(constants)));
+      myCombo.setSelectedItem(constant);
+    }
+
+    @Override
+    @NotNull
+    JComboBox<Constant> getComponent() {
+      return myCombo;
+    }
+
+    @Override
+    @Nullable
+    Object getValue() {
+      Constant value = (Constant)myCombo.getSelectedItem();
+      return value.getValue();
+    }
+  }
+
+  private static class FlagEditor extends Editor {
+    private final CheckBoxList<Constant> myFlagList;
+
+    FlagEditor(@NotNull SnippetObject currentValue,
+               @NotNull Type type,
+               int fieldIndex,
+               @NotNull List<Constant> constants,
+               @NotNull Collection<Constant> constant) {
+      super(currentValue, type, fieldIndex);
+
+      myFlagList = new CheckBoxList<>();
+      myFlagList.setItems(constants, null);
+      for (Constant con : constant) {
+        myFlagList.setItemSelected(con, true);
       }
-      if (myComponent instanceof JTextField) {
-        // floats or strings
-        JTextField textField = ((JTextField)myComponent);
-        String text = textField.getText();
-        if (((AbstractDocument)textField.getDocument()).getDocumentFilter() instanceof FloatFilter) {
-          return Double.parseDouble(text);
+    }
+
+    @Override
+    @NotNull
+    CheckBoxList<Constant> getComponent() {
+      return myFlagList;
+    }
+
+    @Override
+    @Nullable
+    Number getValue() {
+      long result = 0;
+      for (int c = 0; c < myFlagList.getItemsCount(); c++) {
+        if (myFlagList.isItemSelected(c)) {
+          Constant flag = myFlagList.getItemAt(c);
+          assert flag != null;
+          result |= ((Number)flag.getValue()).longValue();
         }
-        return text;
       }
-      if (myComponent instanceof JComboBox) {
-        // enums
-        Constant value = (Constant)((JComboBox)myComponent).getSelectedItem();
-        return value.getValue();
-      }
-      if (myComponent instanceof JCheckBox) {
-        //booleans
-        return ((JCheckBox)myComponent).isSelected() ? Boolean.TRUE : Boolean.FALSE;
-      }
-      throw new IllegalStateException();
+      return result;
     }
   }
 }
