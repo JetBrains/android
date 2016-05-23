@@ -68,6 +68,7 @@ import java.util.*;
 import java.util.List;
 import java.util.Locale;
 
+import static com.android.SdkConstants.DOT_WEBP;
 import static com.android.SdkConstants.PREFIX_ANDROID;
 import static com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION;
 import static com.android.utils.SdkUtils.hasImageExtension;
@@ -1053,9 +1054,12 @@ public class AndroidJavaDocRenderer {
         }
 
         if (fileUrl != null) {
-          builder.beginDiv("background-color:gray;padding:10px");
-          builder.addImage(fileUrl, file.getPath());
-          builder.endDiv();
+          // TODO: Add handling for WEBP images. In the meantime, just remove the preview
+          if (!file.getPath().endsWith(DOT_WEBP)) {
+            builder.beginDiv("background-color:gray;padding:10px");
+            builder.addImage(fileUrl, file.getPath());
+            builder.endDiv();
+          }
 
           Dimension size = getSize(file);
           if (size != null) {
