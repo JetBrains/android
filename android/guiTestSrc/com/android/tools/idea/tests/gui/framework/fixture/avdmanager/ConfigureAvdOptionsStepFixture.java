@@ -73,13 +73,6 @@ public class ConfigureAvdOptionsStepFixture extends AbstractWizardStepFixture<Co
   }
 
   @NotNull
-  public ConfigureAvdOptionsStepFixture setScaleFactor(@NotNull String selection) {
-    JComboBoxFixture scaleFactorCombo = findComboBoxWithLabel("Scale:");
-    scaleFactorCombo.selectItem(selection);
-    return this;
-  }
-
-  @NotNull
   public ConfigureAvdOptionsStepFixture selectGraphicsHardware() {
     findComboBoxWithLabel("Graphics:").selectItem("Hardware - GLES 2.0");
     return this;

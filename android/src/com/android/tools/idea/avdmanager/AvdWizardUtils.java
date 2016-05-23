@@ -70,9 +70,6 @@ public class AvdWizardUtils {
   public static final String DISPLAY_SD_LOCATION_KEY = WIZARD_ONLY + "displaySdLocation";
   public static final String DISPLAY_USE_EXTERNAL_SD_KEY = WIZARD_ONLY + "displayUseExistingSd";
 
-  public static final String AVD_INI_SCALE_FACTOR = "runtime.scalefactor";
-  public static final String SCALE_SELECTION_KEY = AVD_INI_SCALE_FACTOR;
-
   public static final String DEFAULT_ORIENTATION_KEY = WIZARD_ONLY + "DefaultOrientation";
 
   public static final String AVD_INI_NETWORK_SPEED = "runtime.network.speed";
@@ -103,7 +100,6 @@ public class AvdWizardUtils {
   public static final String HAS_HARDWARE_KEYBOARD_KEY = HardwareProperties.HW_KEYBOARD;
 
   // Defaults
-  public static final AvdScaleFactor DEFAULT_SCALE = AvdScaleFactor.AUTO;
   public static final AvdNetworkSpeed DEFAULT_NETWORK_SPEED = AvdNetworkSpeed.FULL;
   public static final AvdNetworkLatency DEFAULT_NETWORK_LATENCY = AvdNetworkLatency.NONE;
   public static final AvdCamera DEFAULT_CAMERA = AvdCamera.NONE;
