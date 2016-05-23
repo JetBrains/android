@@ -43,6 +43,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
+import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.getEmbeddedJdkPath;
 import static com.android.tools.idea.gradle.util.Projects.requiresAndroidModel;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
@@ -56,6 +57,7 @@ public final class IdeSdks {
   @NonNls public static final String MAC_JDK_CONTENT_PATH = "/Contents/Home";
 
   @NonNls private static final String ANDROID_SDK_PATH_KEY = "android.sdk.path";
+  @NonNls private static final String ANDROID_STUDIO_USE_EMBEDDED_JDK_KEY = "android.studio.use.embedded.jdk";
 
   private IdeSdks() {
   }
@@ -365,6 +367,17 @@ public final class IdeSdks {
       //file doesn't exist yet
     }
     return path;
+  }
+
+  public static boolean isUsingEmbeddedJdk() {
+    return PropertiesComponent.getInstance().getBoolean(ANDROID_STUDIO_USE_EMBEDDED_JDK_KEY);
+  }
+
+  public static void shouldUseEmbeddedJdk(boolean useEmbeddedJdk) {
+    PropertiesComponent.getInstance().setValue(ANDROID_STUDIO_USE_EMBEDDED_JDK_KEY, useEmbeddedJdk);
+    if (useEmbeddedJdk) {
+      setJdkPath(getEmbeddedJdkPath());
+    }
   }
 
   /**
