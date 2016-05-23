@@ -16,11 +16,15 @@
 package com.android.tools.adtui;
 
 import com.android.tools.adtui.common.AdtUIUtils;
+import com.android.tools.adtui.common.RotatedLabel;
 import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
+import com.intellij.ui.components.JBLabel;
 import gnu.trove.TFloatArrayList;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
 
 import static com.android.tools.adtui.AxisComponent.AxisOrientation.LEFT;
@@ -65,7 +69,7 @@ public final class AxisComponent extends AnimatedComponent {
    * Name of the axis.
    */
   @NotNull
-  private final String mLabel;
+  private final JLabel mLabel;
 
   /**
    * The font metrics of the tick labels.
@@ -165,7 +169,6 @@ public final class AxisComponent extends AnimatedComponent {
                        int startMargin, int endMargin, boolean showMinMax, @NotNull BaseAxisFormatter formatter) {
     mRange = range;
     mGlobalRange = globalRange;
-    mLabel = label;
     mOrientation = orientation;
     mShowMinMax = showMinMax;
     mFormatter = formatter;
@@ -179,6 +182,21 @@ public final class AxisComponent extends AnimatedComponent {
     mEndMargin = endMargin;
 
     mMetrics = getFontMetrics(AdtUIUtils.DEFAULT_FONT);
+
+    switch (mOrientation) {
+      case LEFT:
+      case RIGHT:
+        mLabel = new RotatedLabel(label);
+        mLabel.setSize(mMetrics.getHeight(), mMetrics.stringWidth(label));
+        break;
+      case TOP:
+      case BOTTOM:
+      default:
+        mLabel = new JBLabel(label);
+        mLabel.setSize(mMetrics.stringWidth(label), mMetrics.getHeight());
+    }
+    mLabel.setFont(AdtUIUtils.DEFAULT_FONT);
+
   }
 
   /**
@@ -197,6 +215,10 @@ public final class AxisComponent extends AnimatedComponent {
   @NotNull
   public TFloatArrayList getMajorMarkerPositions() {
     return mMajorMarkerPositions;
+  }
+
+  public void setLabelVisible(boolean isVisible) {
+    mLabel.setVisible(isVisible);
   }
 
   /**
@@ -296,6 +318,7 @@ public final class AxisComponent extends AnimatedComponent {
     // Calculate drawing parameters.
     Point startPoint = new Point();
     Point endPoint = new Point();
+    Point labelPoint = new Point();
     Dimension dimension = getSize();
     switch (mOrientation) {
       case LEFT:
@@ -303,24 +326,40 @@ public final class AxisComponent extends AnimatedComponent {
         startPoint.y = dimension.height - mStartMargin - 1;
         endPoint.y = mEndMargin;
         mAxisLength = startPoint.y - endPoint.y;
+
+        //Affix label to top left.
+        labelPoint.x = 0;
+        labelPoint.y = endPoint.y;
         break;
       case BOTTOM:
         startPoint.x = mStartMargin;
         endPoint.x = dimension.width - mEndMargin - 1;
         startPoint.y = endPoint.y = 0;
         mAxisLength = endPoint.x - startPoint.x;
+
+        //Affix label to bottom left
+        labelPoint.x = startPoint.x;
+        labelPoint.y = getHeight() - (mMetrics.getMaxAscent() + mMetrics.getMaxDescent());
         break;
       case RIGHT:
         startPoint.x = endPoint.x = 0;
         startPoint.y = dimension.height - mStartMargin - 1;
         endPoint.y = mEndMargin;
         mAxisLength = startPoint.y - endPoint.y;
+
+        //Affix label to top right
+        labelPoint.x = getWidth() - mMetrics.getMaxAdvance();
+        labelPoint.y = endPoint.y;
         break;
       case TOP:
         startPoint.x = mStartMargin;
         endPoint.x = dimension.width - mEndMargin - 1;
         startPoint.y = endPoint.y = dimension.height - 1;
         mAxisLength = endPoint.x - startPoint.x;
+
+        //Affix label to top left
+        labelPoint.x = 0;
+        labelPoint.y = 0;
         break;
     }
 
@@ -334,7 +373,12 @@ public final class AxisComponent extends AnimatedComponent {
       // TODO account for pixel spacing so we can skip ticks if the length is too narrow.
       drawMarkers(g, startPoint);
 
-      // TODO draw axis label.
+      if (mLabel.isVisible()) {
+        AffineTransform initialTransform = g.getTransform();
+        g.translate(labelPoint.x, labelPoint.y);
+        mLabel.paint(g);
+        g.setTransform(initialTransform);
+      }
     }
   }
 
