@@ -16,11 +16,9 @@
 
 package com.android.tools.idea.stats;
 
-import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.PermanentInstallationID;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.updateSettings.impl.UpdateChecker;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -52,8 +50,7 @@ public class LegacySdkStatsService {
   private static final boolean DEBUG = System.getenv("ANDROID_DEBUG_PING") != null; //$NON-NLS-1$
 
   private static final boolean UNIT_TEST_MODE = ApplicationManager.getApplication() == null;
-  private static final String INSTALLATION_ID =
-    UNIT_TEST_MODE ? "unit-test" : UpdateChecker.getInstallationUID(PropertiesComponent.getInstance());
+  private static final String INSTALLATION_ID = UNIT_TEST_MODE ? "unit-test" : PermanentInstallationID.get();
 
   private DdmsPreferenceStore mStore = new DdmsPreferenceStore();
 
