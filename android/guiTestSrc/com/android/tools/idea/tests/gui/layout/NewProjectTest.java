@@ -23,6 +23,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.Wait;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.FileFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.InspectCodeDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.NlEditorFixture;
@@ -275,7 +276,7 @@ public class NewProjectTest {
     /**
      * Creates a project fixture for this description
      */
-    void create() {
+    IdeFrameFixture create() {
       WelcomeFrameFixture.find(guiTest.robot()).createNewProject();
 
       NewProjectWizardFixture newProjectWizard = NewProjectWizardFixture.find(guiTest.robot());
@@ -299,6 +300,7 @@ public class NewProjectTest {
       if (myWaitForSync) {
         guiTest.ideFrame().waitForGradleProjectSyncToFinish();
       }
+      return guiTest.ideFrame();
     }
   }
 }
