@@ -22,6 +22,7 @@ import com.android.ide.common.packaging.PackagingUtils;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.fd.client.*;
+import com.android.tools.idea.fd.actions.RestartActivityAction;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.run.*;
 import com.android.tools.idea.stats.UsageTracker;
@@ -180,9 +181,14 @@ public final class InstantRunManager implements ProjectComponent {
 
   @NotNull
   private static InstantRunClient getInstantRunClient(@NotNull AndroidGradleModel model, @NotNull AndroidFacet facet) {
+
     String packageName = getPackageName(facet);
     assert packageName != null : "Unable to obtain package name for " + facet.getModule().getName();
-    long token = PackagingUtils.computeApplicationHash(model.getAndroidProject().getBuildFolder());
+    // TODO : can't we call the getInstantRunClient(InstantRunContext) directly ?
+    InstantRunContext context = InstantRunGradleUtils.createGradleProjectContext(facet.getModule());
+    long token = context == null || context.getSecretToken() == 0
+                 ? PackagingUtils.computeApplicationHash(model.getAndroidProject().getBuildFolder())
+                 : context.getSecretToken();
     return new InstantRunClient(packageName, new InstantRunUserFeedback(facet.getModule()), ILOGGER, token);
   }
 
