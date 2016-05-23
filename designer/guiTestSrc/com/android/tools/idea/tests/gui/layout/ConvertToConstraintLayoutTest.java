@@ -29,6 +29,7 @@ import org.fest.swing.fixture.DialogFixture;
 import org.fest.swing.fixture.JButtonFixture;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,6 +46,7 @@ import static org.junit.Assert.assertNotNull;
 public class ConvertToConstraintLayoutTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
+  @Ignore("http://b.android.com/211200")
   @Test
   public void testConvert() throws Exception {
     guiTest.importSimpleApplication();
@@ -194,6 +196,7 @@ public class ConvertToConstraintLayoutTest {
     return xml;
   }
 
+  @Ignore("http://b.android.com/211200")
   @Test
   public void testConvert2() throws Exception {
     guiTest.importSimpleApplication();
