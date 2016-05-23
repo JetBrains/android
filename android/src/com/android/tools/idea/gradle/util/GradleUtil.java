@@ -159,16 +159,12 @@ public final class GradleUtil {
   }
 
   public static boolean androidModelSupportsDependencyGraph(@NotNull String modelVersion) {
-    return false;
-    // TODO enable once we figure out why transitive dependencies in Java library modules are not being included in the graph.
-    //GradleVersion parsedVersion = GradleVersion.tryParse(modelVersion);
-    //return parsedVersion != null && androidModelSupportsDependencyGraph(parsedVersion);
+    GradleVersion parsedVersion = GradleVersion.tryParse(modelVersion);
+    return parsedVersion != null && androidModelSupportsDependencyGraph(parsedVersion);
   }
 
   public static boolean androidModelSupportsDependencyGraph(@NotNull GradleVersion modelVersion) {
-    return false;
-    // TODO enable once we figure out why transitive dependencies in Java library modules are not being included in the graph.
-    //return modelVersion.compareIgnoringQualifiers("2.2.0") >= 0;
+    return modelVersion.compareIgnoringQualifiers("2.2.0") >= 0;
   }
 
   public static void clearStoredGradleJvmArgs(@NotNull final Project project) {
