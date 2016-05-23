@@ -508,7 +508,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   public void overrideConfigurationScreenSize(@AndroidCoordinate int xDimension, @AndroidCoordinate int yDimension) {
     Device.Builder deviceBuilder = new Device.Builder(myConfiguration.getDevice());
     deviceBuilder.setName("Custom");
-    deviceBuilder.setId("Custom");
+    deviceBuilder.setId(Configuration.CUSTOM_DEVICE_ID);
     Device device = deviceBuilder.build();
     for (State state : device.getAllStates()) {
       Screen screen = state.getHardware().getScreen();
