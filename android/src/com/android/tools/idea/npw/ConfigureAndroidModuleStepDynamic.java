@@ -30,8 +30,8 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.util.Set;
 
-import static com.android.tools.idea.npw.ConfigureAndroidProjectStep.PACKAGE_NAME_DERIVER;
-import static com.android.tools.idea.npw.ConfigureAndroidProjectStep.SAVED_COMPANY_DOMAIN;
+import static com.android.tools.idea.npw.deprecated.ConfigureAndroidProjectStep.PACKAGE_NAME_DERIVER;
+import static com.android.tools.idea.npw.deprecated.ConfigureAndroidProjectStep.SAVED_COMPANY_DOMAIN;
 import static com.android.tools.idea.wizard.WizardConstants.*;
 
 /**
