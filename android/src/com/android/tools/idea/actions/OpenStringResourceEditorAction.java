@@ -32,7 +32,7 @@ public class OpenStringResourceEditorAction extends AnAction {
   @Override
   public void update(AnActionEvent e) {
     boolean show = false;
-    final Project project = CommonDataKeys.PROJECT.getData(e.getDataContext());
+    final Project project = e.getProject();
     final VirtualFile file = CommonDataKeys.VIRTUAL_FILE.getData(e.getDataContext());
     if (project != null && file != null) {
       show = StringResourceEditorProvider.canViewTranslations(project, file);
@@ -44,7 +44,7 @@ public class OpenStringResourceEditorAction extends AnAction {
   @Override
   public void actionPerformed(AnActionEvent e) {
     final DataContext context = e.getDataContext();
-    final Project project = CommonDataKeys.PROJECT.getData(context);
+    final Project project = e.getProject();
     final VirtualFile file = CommonDataKeys.VIRTUAL_FILE.getData(context);
     if (project == null || file == null) {
       return;
