@@ -34,7 +34,7 @@ import java.awt.geom.Point2D;
 import java.util.*;
 import java.util.List;
 
-public class LineChart extends AnimatedComponent implements ReportingSeriesRenderer {
+public class LineChart extends AnimatedComponent {
 
   /**
    * Transparency value to be applied in filled line charts.
@@ -131,24 +131,9 @@ public class LineChart extends AnimatedComponent implements ReportingSeriesRende
     return mLinesConfig.get(rangedContinuousSeries);
   }
 
-  @Override
-  public String getContainerName() {
-    return mName;
-  }
-
-  @Override
-  public List<ReportingSeries> getReportingSeries() {
+  @NotNull
+  public List<RangedContinuousSeries> getRangedContinuousSeries() {
     return new ArrayList<>(mLinesConfig.keySet());
-  }
-
-  @Override
-  public Color getReportingSeriesColor(@NotNull ReportingSeries series) {
-    return mLinesConfig.get(series).getColor();
-  }
-
-  @Override
-  public void markData(long x) {
-    mMarkedData.add(x);
   }
 
   @Override
