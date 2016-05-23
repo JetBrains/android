@@ -66,6 +66,29 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
     return new NlEnumEditor(listener, null, false);
   }
 
+  /**
+   * Return <code>true</code> if the property can be edited with an {@link NlEnumEditor}.
+   */
+  public static boolean supportsProperty(@NotNull NlProperty property) {
+    // The attributes supported should list the properties that do not specify Enum in the formats.
+    // This is generally the same list we have special code for in {@link #setModel}.
+    // When updating list please make the corresponding change in {@link #setModel}.
+    switch (property.getName()) {
+      case ATTR_FONT_FAMILY:
+      case ATTR_TYPEFACE:
+      case ATTR_TEXT_SIZE:
+      case ATTR_LINE_SPACING_EXTRA:
+      case ATTR_TEXT_APPEARANCE:
+      case ATTR_LAYOUT_HEIGHT:
+      case ATTR_LAYOUT_WIDTH:
+      case ATTR_DROPDOWN_HEIGHT:
+      case ATTR_DROPDOWN_WIDTH:
+        return true;
+      default:
+        return false;
+    }
+  }
+
   private NlEnumEditor(@NotNull NlEditingListener listener,
                        @Nullable BrowsePanel.Context context,
                        boolean useDarculaUI) {
@@ -136,10 +159,14 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
   }
 
   private void setModel(@NotNull NlProperty property) {
+    assert supportsProperty(property);
     myProperty = property;
 
     AttributeDefinition definition = property.getDefinition();
     ValueWithDisplayString[] values;
+    // The attributes supported should list the properties that do not specify Enum in the formats.
+    // This is generally the same list we have special code for in {@link #propertySupported}.
+    // When updating list please make the corresponding change in {@link #propertySupported}.
     switch (property.getName()) {
       case ATTR_FONT_FAMILY:
         values = ValueWithDisplayString.create(AndroidDomUtil.AVAILABLE_FAMILIES);
