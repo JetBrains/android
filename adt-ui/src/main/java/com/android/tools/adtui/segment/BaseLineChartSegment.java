@@ -5,7 +5,7 @@ import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.common.formatter.MemoryAxisFormatter;
 import com.android.tools.adtui.model.LegendRenderData;
-import com.android.tools.adtui.model.ReportingSeriesRenderer;
+import com.android.tools.adtui.model.ReportingSeries;
 import com.intellij.ui.components.JBLayeredPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -14,6 +14,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -83,8 +84,14 @@ public abstract class BaseLineChartSegment extends BaseSegment {
     mGrid = new GridComponent();
     mGrid.addAxis(mLeftAxis);
     populateSeriesData(mLineChart);
-    List<LegendRenderData> legendRenderData = createLegendData(mLineChart);
-    mLegendComponent = new LegendComponent(legendRenderData, LegendComponent.Orientation.HORIZONTAL, 100, MemoryAxisFormatter.DEFAULT);
+
+    List<LegendRenderData> legendRenderDataList = new ArrayList<>();
+    for (ReportingSeries series : mLineChart.getReportingSeries()) {
+      Color color = mLineChart.getReportingSeriesColor(series);
+      LegendRenderData renderData = new LegendRenderData(LegendRenderData.IconType.LINE, color, series);
+      legendRenderDataList.add(renderData);
+    }
+    mLegendComponent = new LegendComponent(legendRenderDataList, LegendComponent.Orientation.HORIZONTAL, 100, MemoryAxisFormatter.DEFAULT);
 
     // Note: the order below is important as some components depend on
     // others to be updated first. e.g. the ranges need to be updated before the axes.
@@ -101,8 +108,6 @@ public abstract class BaseLineChartSegment extends BaseSegment {
     animatables.add(mLegendComponent);
     animatables.add(mGrid); // No-op.
   }
-
-  public abstract List<LegendRenderData> createLegendData(@NotNull ReportingSeriesRenderer renderer);
 
   public abstract void populateSeriesData(@NotNull LineChart lineChart);
 
