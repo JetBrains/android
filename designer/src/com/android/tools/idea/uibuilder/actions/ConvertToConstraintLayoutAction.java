@@ -190,9 +190,25 @@ public class ConvertToConstraintLayoutAction extends AnAction implements ModelLi
           }
           constraintModel.saveToXML(true);
           constraintModel.setNeedsAnimateConstraints(ConstraintAnchor.SCOUT_CREATOR);
+
+          // Finally remove the width/height attributes
+          List<NlComponent> components = model.getComponents();
+          for (NlComponent root : components) {
+            removeAbsSizes(root);
+          }
         }
       }
     }, model.getFile());
+  }
+
+  /** Removes absolute width/height attributes */
+  private static void removeAbsSizes(NlComponent component) {
+    // Work bottom up to ensure the children aren't invalidated when processing the parent
+    for (NlComponent child : component.getChildren()) {
+      child.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_WIDTH, null);
+      child.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_HEIGHT, null);
+      removeAbsSizes(child);
+    }
   }
 
   @Override
@@ -257,9 +273,13 @@ public class ConvertToConstraintLayoutAction extends AnAction implements ModelLi
       for (NlComponent child : component.getChildren()) {
         int dpx = myEditor.pxToDp(child.x - myRoot.x);
         int dpy = myEditor.pxToDp(child.y - myRoot.y);
+        int dpw = myEditor.pxToDp(child.w);
+        int dph = myEditor.pxToDp(child.h);
 
         child.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X, String.format(ROOT, VALUE_N_DP, dpx));
         child.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, String.format(ROOT, VALUE_N_DP, dpy));
+        child.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_WIDTH, String.format(ROOT, VALUE_N_DP, dpw));
+        child.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_HEIGHT, String.format(ROOT, VALUE_N_DP, dph));
 
         // First gather attributes to delete; can delete during iteration (concurrent modification exceptions will ensure)
         List<String> toDelete = null;
