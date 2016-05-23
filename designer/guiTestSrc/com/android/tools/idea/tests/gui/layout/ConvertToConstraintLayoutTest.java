@@ -23,9 +23,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.NlEditorFixture;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.util.ui.UIUtil;
 import org.fest.swing.core.GenericTypeMatcher;
-import org.fest.swing.driver.JComponentDriver;
 import org.fest.swing.finder.WindowFinder;
 import org.fest.swing.fixture.DialogFixture;
 import org.fest.swing.fixture.JButtonFixture;
@@ -82,65 +80,118 @@ public class ConvertToConstraintLayoutTest {
 
     @Language("XML")
     String xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                 "<android.support.constraint.ConstraintLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                 "    xmlns:tools=\"http://schemas.android.com/tools\"\n" +
-                 "    android:layout_width=\"match_parent\"\n" +
-                 "    android:layout_height=\"match_parent\">\n" +
-                 "\n" +
-                 "    <Button\n" +
-                 "        android:id=\"@+id/button\"\n" +
-                 "        android:layout_width=\"wrap_content\"\n" +
-                 "        android:layout_height=\"wrap_content\"\n" +
-                 "        android:text=\"Button\"\n" +
-                 "        tools:layout_editor_absoluteX=\"19dp\"\n" +
-                 "        tools:layout_editor_absoluteY=\"18dp\" />\n" +
-                 "\n" +
-                 "    <Button\n" +
-                 "        android:id=\"@+id/button2\"\n" +
-                 "        android:layout_width=\"wrap_content\"\n" +
-                 "        android:layout_height=\"wrap_content\"\n" +
-                 "        android:text=\"Button\"\n" +
-                 "        tools:layout_editor_absoluteX=\"22dp\"\n" +
-                 "        tools:layout_editor_absoluteY=\"66dp\" />\n" +
-                 "\n" +
-                 "    <EditText\n" +
-                 "        android:id=\"@+id/editText\"\n" +
-                 "        android:layout_width=\"wrap_content\"\n" +
-                 "        android:layout_height=\"wrap_content\"\n" +
-                 "        android:ems=\"10\"\n" +
-                 "        android:inputType=\"textPersonName\"\n" +
-                 "        android:text=\"Name\"\n" +
-                 "        tools:layout_editor_absoluteX=\"124dp\"\n" +
-                 "        tools:layout_editor_absoluteY=\"222dp\" />\n" +
-                 "\n" +
-                 "\n" +
-                 "    <Button\n" +
-                 "        android:id=\"@+id/button3\"\n" +
-                 "        android:layout_width=\"wrap_content\"\n" +
-                 "        android:layout_height=\"wrap_content\"\n" +
-                 "        android:text=\"Button\"\n" +
-                 "        tools:layout_editor_absoluteX=\"33dp\"\n" +
-                 "        tools:layout_editor_absoluteY=\"432dp\" />\n" +
-                 "\n" +
-                 "    <Button\n" +
-                 "        android:id=\"@+id/button5\"\n" +
-                 "        android:layout_width=\"wrap_content\"\n" +
-                 "        android:layout_height=\"wrap_content\"\n" +
-                 "        android:text=\"Button\"\n" +
-                 "        tools:layout_editor_absoluteX=\"152dp\"\n" +
-                 "        tools:layout_editor_absoluteY=\"432dp\" />\n" +
-                 "\n" +
-                 "    <Button\n" +
-                 "        android:id=\"@+id/button6\"\n" +
-                 "        android:layout_width=\"wrap_content\"\n" +
-                 "        android:layout_height=\"wrap_content\"\n" +
-                 "        android:text=\"Button\"\n" +
-                 "        tools:layout_editor_absoluteX=\"272dp\"\n" +
-                 "        tools:layout_editor_absoluteY=\"432dp\" />\n" +
-                 "\n" +
-                 "</android.support.constraint.ConstraintLayout>\n" +
-                 "\n";
-    assertThat(editor.getCurrentFileContents()).isEqualTo(xml);
+            "<android.support.constraint.ConstraintLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+            "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
+            "    xmlns:tools=\"http://schemas.android.com/tools\"\n" +
+            "    android:id=\"@+id/constraintLayout\"\n" +
+            "    android:layout_width=\"match_parent\"\n" +
+            "    android:layout_height=\"match_parent\"\n" +
+            "    tools:layout_editor_absoluteX=\"<test>\"\n" +
+            "    tools:layout_editor_absoluteY=\"<test>\">\n" +
+            "\n" +
+            "    <Button\n" +
+            "        android:id=\"@+id/button\"\n" +
+            "        android:layout_width=\"wrap_content\"\n" +
+            "        android:layout_height=\"wrap_content\"\n" +
+            "        android:layout_marginStart=\"<test>\"\n" +
+            "        android:layout_marginTop=\"<test>\"\n" +
+            "        android:text=\"Button\"\n" +
+            "        app:layout_constraintLeft_toLeftOf=\"@+id/constraintLayout\"\n" +
+            "        app:layout_constraintTop_toTopOf=\"@+id/constraintLayout\"\n" +
+            "        tools:layout_constraintLeft_creator=\"1\"\n" +
+            "        tools:layout_constraintTop_creator=\"1\"\n" +
+            "        tools:layout_editor_absoluteX=\"<test>\"\n" +
+            "        tools:layout_editor_absoluteY=\"<test>\" />\n" +
+            "\n" +
+            "    <Button\n" +
+            "        android:id=\"@+id/button2\"\n" +
+            "        android:layout_width=\"wrap_content\"\n" +
+            "        android:layout_height=\"wrap_content\"\n" +
+            "        android:layout_marginStart=\"<test>\"\n" +
+            "        android:text=\"Button\"\n" +
+            "        app:layout_constraintLeft_toLeftOf=\"@+id/button\"\n" +
+            "        app:layout_constraintTop_toBottomOf=\"@+id/button\"\n" +
+            "        tools:layout_constraintLeft_creator=\"1\"\n" +
+            "        tools:layout_constraintTop_creator=\"1\"\n" +
+            "        tools:layout_editor_absoluteX=\"<test>\"\n" +
+            "        tools:layout_editor_absoluteY=\"<test>\" />\n" +
+            "\n" +
+            "    <EditText\n" +
+            "        android:id=\"@+id/editText\"\n" +
+            "        android:layout_width=\"wrap_content\"\n" +
+            "        android:layout_height=\"wrap_content\"\n" +
+            "        android:layout_marginBottom=\"<test>\"\n" +
+            "        android:layout_marginEnd=\"<test>\"\n" +
+            "        android:layout_marginTop=\"<test>\"\n" +
+            "        android:ems=\"10\"\n" +
+            "        android:inputType=\"textPersonName\"\n" +
+            "        android:text=\"Name\"\n" +
+            "        app:layout_constraintBottom_toBottomOf=\"@+id/button6\"\n" +
+            "        app:layout_constraintRight_toRightOf=\"@+id/constraintLayout\"\n" +
+            "        app:layout_constraintTop_toTopOf=\"@+id/constraintLayout\"\n" +
+            "        tools:layout_constraintBottom_creator=\"1\"\n" +
+            "        tools:layout_constraintRight_creator=\"1\"\n" +
+            "        tools:layout_constraintTop_creator=\"1\"\n" +
+            "        tools:layout_editor_absoluteX=\"<test>\"\n" +
+            "        tools:layout_editor_absoluteY=\"<test>\" />\n" +
+            "\n" +
+            "\n" +
+            "    <Button\n" +
+            "        android:id=\"@+id/button3\"\n" +
+            "        android:layout_width=\"wrap_content\"\n" +
+            "        android:layout_height=\"wrap_content\"\n" +
+            "        android:layout_marginStart=\"<test>\"\n" +
+            "        android:text=\"Button\"\n" +
+            "        app:layout_constraintBottom_toBottomOf=\"@+id/button5\"\n" +
+            "        app:layout_constraintLeft_toLeftOf=\"@+id/constraintLayout\"\n" +
+            "        app:layout_constraintTop_toTopOf=\"@+id/button5\"\n" +
+            "        tools:layout_constraintBottom_creator=\"1\"\n" +
+            "        tools:layout_constraintLeft_creator=\"1\"\n" +
+            "        tools:layout_constraintTop_creator=\"1\"\n" +
+            "        tools:layout_editor_absoluteX=\"<test>\"\n" +
+            "        tools:layout_editor_absoluteY=\"<test>\" />\n" +
+            "\n" +
+            "    <Button\n" +
+            "        android:id=\"@+id/button5\"\n" +
+            "        android:layout_width=\"wrap_content\"\n" +
+            "        android:layout_height=\"wrap_content\"\n" +
+            "        android:layout_marginBottom=\"<test>\"\n" +
+            "        android:text=\"Button\"\n" +
+            "        app:layout_constraintBottom_toBottomOf=\"@+id/constraintLayout\"\n" +
+            "        app:layout_constraintLeft_toLeftOf=\"@+id/constraintLayout\"\n" +
+            "        app:layout_constraintRight_toRightOf=\"@+id/constraintLayout\"\n" +
+            "        tools:layout_constraintBottom_creator=\"1\"\n" +
+            "        tools:layout_constraintLeft_creator=\"1\"\n" +
+            "        tools:layout_constraintRight_creator=\"1\"\n" +
+            "        tools:layout_editor_absoluteX=\"<test>\"\n" +
+            "        tools:layout_editor_absoluteY=\"<test>\" />\n" +
+            "\n" +
+            "    <Button\n" +
+            "        android:id=\"@+id/button6\"\n" +
+            "        android:layout_width=\"wrap_content\"\n" +
+            "        android:layout_height=\"wrap_content\"\n" +
+            "        android:layout_marginEnd=\"<test>\"\n" +
+            "        android:text=\"Button\"\n" +
+            "        app:layout_constraintBottom_toBottomOf=\"@+id/button5\"\n" +
+            "        app:layout_constraintRight_toRightOf=\"@+id/constraintLayout\"\n" +
+            "        app:layout_constraintTop_toTopOf=\"@+id/button5\"\n" +
+            "        tools:layout_constraintBottom_creator=\"1\"\n" +
+            "        tools:layout_constraintRight_creator=\"1\"\n" +
+            "        tools:layout_constraintTop_creator=\"1\"\n" +
+            "        tools:layout_editor_absoluteX=\"<test>\"\n" +
+            "        tools:layout_editor_absoluteY=\"<test>\" />\n" +
+            "\n" +
+            "</android.support.constraint.ConstraintLayout>\n" +
+            "\n";
+    assertThat(wipeDimensions(editor.getCurrentFileContents())).isEqualTo(wipeDimensions(xml));
+  }
+
+  private static String wipeDimensions(@Language("XML") String xml) {
+    // Remove specific pixel sizes from an XML layout before pretty printing it; they may very from machine
+    // to machine. It's the constraints that matter.
+    xml = xml.replaceAll("tools:(.*)=\"(.*)dp\"", "tools:$1=\"<test>\"");
+    xml = xml.replaceAll("android:(.*)=\"(.*)dp\"", "android:$1=\"<test>\"");
+    return xml;
   }
 
   @Test
@@ -178,102 +229,106 @@ public class ConvertToConstraintLayoutTest {
 
     @Language("XML")
     String xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                 "<android.support.constraint.ConstraintLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                 "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
-                 "    xmlns:tools=\"http://schemas.android.com/tools\"\n" +
-                 "    android:id=\"@+id/constraintLayout\"\n" +
-                 "    android:layout_width=\"match_parent\"\n" +
-                 "    android:layout_height=\"wrap_content\"\n" +
-                 "    android:orientation=\"vertical\"\n" +
-                 "    tools:layout_editor_absoluteX=\"0dp\"\n" +
-                 "    tools:layout_editor_absoluteY=\"0dp\">\n" +
-                 "\n" +
-                 "    <TextView\n" +
-                 "        android:id=\"@+id/title\"\n" +
-                 "        android:layout_width=\"wrap_content\"\n" +
-                 "        android:layout_height=\"wrap_content\"\n" +
-                 "        android:text=\"Welcome\"\n" +
-                 "        app:layout_constraintBottom_toBottomOf=\"@+id/constraintLayout\"\n" +
-                 "        app:layout_constraintLeft_toRightOf=\"@+id/constraintLayout\"\n" +
-                 "        app:layout_constraintRight_toRightOf=\"@+id/constraintLayout\"\n" +
-                 "        app:layout_constraintTop_toBottomOf=\"@+id/constraintLayout\"\n" +
-                 "        tools:layout_constraintBottom_creator=\"1\"\n" +
-                 "        tools:layout_constraintLeft_creator=\"1\"\n" +
-                 "        tools:layout_constraintRight_creator=\"1\"\n" +
-                 "        tools:layout_constraintTop_creator=\"1\"\n" +
-                 "        tools:layout_editor_absoluteX=\"0dp\"\n" +
-                 "        tools:layout_editor_absoluteY=\"0dp\" />\n" +
-                 "\n" +
-                 "    <FrameLayout\n" +
-                 "        android:id=\"@+id/attending_remotely\"\n" +
-                 "        android:layout_width=\"0dp\"\n" +
-                 "        android:layout_height=\"wrap_content\"\n" +
-                 "        android:foreground=\"?android:selectableItemBackground\"\n" +
-                 "        app:layout_constraintBottom_toBottomOf=\"@+id/constraintLayout\"\n" +
-                 "        app:layout_constraintLeft_toRightOf=\"@+id/constraintLayout\"\n" +
-                 "        app:layout_constraintRight_toRightOf=\"@+id/constraintLayout\"\n" +
-                 "        app:layout_constraintTop_toBottomOf=\"@+id/constraintLayout\"\n" +
-                 "        tools:layout_constraintBottom_creator=\"1\"\n" +
-                 "        tools:layout_constraintLeft_creator=\"1\"\n" +
-                 "        tools:layout_constraintRight_creator=\"1\"\n" +
-                 "        tools:layout_constraintTop_creator=\"1\"\n" +
-                 "        tools:layout_editor_absoluteX=\"0dp\"\n" +
-                 "        tools:layout_editor_absoluteY=\"0dp\">\n" +
-                 "\n" +
-                 "        <ImageView\n" +
-                 "            android:layout_width=\"100dp\"\n" +
-                 "            android:layout_height=\"100dp\"\n" +
-                 "            android:adjustViewBounds=\"true\"\n" +
-                 "            android:scaleType=\"centerInside\"\n" +
-                 "            tools:layout_editor_absoluteX=\"0dp\"\n" +
-                 "            tools:layout_editor_absoluteY=\"89dp\" />\n" +
-                 "\n" +
-                 "        <TextView\n" +
-                 "            android:layout_width=\"wrap_content\"\n" +
-                 "            android:layout_height=\"wrap_content\"\n" +
-                 "            android:layout_gravity=\"bottom|end|right\"\n" +
-                 "            android:text=\"Remotely\"\n" +
-                 "            tools:layout_editor_absoluteX=\"41dp\"\n" +
-                 "            tools:layout_editor_absoluteY=\"172dp\" />\n" +
-                 "\n" +
-                 "    </FrameLayout>\n" +
-                 "\n" +
-                 "    <FrameLayout\n" +
-                 "        android:id=\"@+id/attending_in_person\"\n" +
-                 "        android:layout_width=\"0dp\"\n" +
-                 "        android:layout_height=\"wrap_content\"\n" +
-                 "        android:foreground=\"?android:selectableItemBackground\"\n" +
-                 "        app:layout_constraintBottom_toBottomOf=\"@+id/constraintLayout\"\n" +
-                 "        app:layout_constraintLeft_toRightOf=\"@+id/constraintLayout\"\n" +
-                 "        app:layout_constraintRight_toRightOf=\"@+id/constraintLayout\"\n" +
-                 "        app:layout_constraintTop_toBottomOf=\"@+id/constraintLayout\"\n" +
-                 "        tools:layout_constraintBottom_creator=\"1\"\n" +
-                 "        tools:layout_constraintLeft_creator=\"1\"\n" +
-                 "        tools:layout_constraintRight_creator=\"1\"\n" +
-                 "        tools:layout_constraintTop_creator=\"1\"\n" +
-                 "        tools:layout_editor_absoluteX=\"0dp\"\n" +
-                 "        tools:layout_editor_absoluteY=\"0dp\">\n" +
-                 "\n" +
-                 "        <ImageView\n" +
-                 "            android:layout_width=\"100dp\"\n" +
-                 "            android:layout_height=\"100dp\"\n" +
-                 "            android:adjustViewBounds=\"true\"\n" +
-                 "            android:scaleType=\"centerInside\"\n" +
-                 "            tools:layout_editor_absoluteX=\"0dp\"\n" +
-                 "            tools:layout_editor_absoluteY=\"189dp\" />\n" +
-                 "\n" +
-                 "        <TextView\n" +
-                 "            android:layout_width=\"wrap_content\"\n" +
-                 "            android:layout_height=\"wrap_content\"\n" +
-                 "            android:layout_gravity=\"bottom|end|right\"\n" +
-                 "            android:text=\"In Person\"\n" +
-                 "            tools:layout_editor_absoluteX=\"41dp\"\n" +
-                 "            tools:layout_editor_absoluteY=\"272dp\" />\n" +
-                 "\n" +
-                 "    </FrameLayout>\n" +
-                 "\n" +
-                 "</android.support.constraint.ConstraintLayout>\n";
-    assertThat(editor.getCurrentFileContents()).isEqualTo(xml);
+            "<android.support.constraint.ConstraintLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+            "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
+            "    xmlns:tools=\"http://schemas.android.com/tools\"\n" +
+            "    android:id=\"@+id/constraintLayout\"\n" +
+            "    android:layout_width=\"match_parent\"\n" +
+            "    android:layout_height=\"wrap_content\"\n" +
+            "    android:orientation=\"vertical\"\n" +
+            "    tools:layout_editor_absoluteX=\"<test>\"\n" +
+            "    tools:layout_editor_absoluteY=\"<test>\">\n" +
+            "\n" +
+            "    <TextView\n" +
+            "        android:id=\"@+id/title\"\n" +
+            "        android:layout_width=\"wrap_content\"\n" +
+            "        android:layout_height=\"wrap_content\"\n" +
+            "        android:text=\"Welcome\"\n" +
+            "        app:layout_constraintBottom_toBottomOf=\"@+id/constraintLayout\"\n" +
+            "        app:layout_constraintLeft_toLeftOf=\"@+id/constraintLayout\"\n" +
+            "        app:layout_constraintRight_toLeftOf=\"@+id/constraintLayout\"\n" +
+            "        app:layout_constraintTop_toBottomOf=\"@+id/constraintLayout\"\n" +
+            "        tools:layout_constraintBottom_creator=\"1\"\n" +
+            "        tools:layout_constraintLeft_creator=\"1\"\n" +
+            "        tools:layout_constraintRight_creator=\"1\"\n" +
+            "        tools:layout_constraintTop_creator=\"1\"\n" +
+            "        tools:layout_editor_absoluteX=\"<test>\"\n" +
+            "        tools:layout_editor_absoluteY=\"<test>\" />\n" +
+            "\n" +
+            "    <FrameLayout\n" +
+            "        android:id=\"@+id/attending_remotely\"\n" +
+            "        android:layout_width=\"0dp\"\n" +
+            "        android:layout_height=\"wrap_content\"\n" +
+            "        android:foreground=\"?android:selectableItemBackground\"\n" +
+            "        app:layout_constraintBottom_toBottomOf=\"@+id/constraintLayout\"\n" +
+            "        app:layout_constraintLeft_toLeftOf=\"@+id/constraintLayout\"\n" +
+            "        app:layout_constraintRight_toLeftOf=\"@+id/constraintLayout\"\n" +
+            "        app:layout_constraintTop_toBottomOf=\"@+id/constraintLayout\"\n" +
+            "        tools:layout_constraintBottom_creator=\"1\"\n" +
+            "        tools:layout_constraintLeft_creator=\"1\"\n" +
+            "        tools:layout_constraintRight_creator=\"1\"\n" +
+            "        tools:layout_constraintTop_creator=\"1\"\n" +
+            "        tools:layout_editor_absoluteX=\"<test>\"\n" +
+            "        tools:layout_editor_absoluteY=\"<test>\">\n" +
+            "\n" +
+            "        <ImageView\n" +
+            "            android:layout_width=\"100dp\"\n" +
+            "            android:layout_height=\"100dp\"\n" +
+            "            android:adjustViewBounds=\"true\"\n" +
+            "            android:scaleType=\"centerInside\"\n" +
+            "            app:layout_constraintLeft_toLeftOf=\"@+id/attending_remotely\"\n" +
+            "            tools:layout_constraintLeft_creator=\"1\"\n" +
+            "            tools:layout_editor_absoluteX=\"<test>\"\n" +
+            "            tools:layout_editor_absoluteY=\"<test>\" />\n" +
+            "\n" +
+            "        <TextView\n" +
+            "            android:layout_width=\"wrap_content\"\n" +
+            "            android:layout_height=\"wrap_content\"\n" +
+            "            android:layout_gravity=\"bottom|end|right\"\n" +
+            "            android:text=\"Remotely\"\n" +
+            "            tools:layout_editor_absoluteX=\"<test>\"\n" +
+            "            tools:layout_editor_absoluteY=\"<test>\" />\n" +
+            "\n" +
+            "    </FrameLayout>\n" +
+            "\n" +
+            "    <FrameLayout\n" +
+            "        android:id=\"@+id/attending_in_person\"\n" +
+            "        android:layout_width=\"0dp\"\n" +
+            "        android:layout_height=\"wrap_content\"\n" +
+            "        android:foreground=\"?android:selectableItemBackground\"\n" +
+            "        app:layout_constraintBottom_toBottomOf=\"@+id/constraintLayout\"\n" +
+            "        app:layout_constraintLeft_toLeftOf=\"@+id/constraintLayout\"\n" +
+            "        app:layout_constraintRight_toLeftOf=\"@+id/constraintLayout\"\n" +
+            "        app:layout_constraintTop_toBottomOf=\"@+id/constraintLayout\"\n" +
+            "        tools:layout_constraintBottom_creator=\"1\"\n" +
+            "        tools:layout_constraintLeft_creator=\"1\"\n" +
+            "        tools:layout_constraintRight_creator=\"1\"\n" +
+            "        tools:layout_constraintTop_creator=\"1\"\n" +
+            "        tools:layout_editor_absoluteX=\"<test>\"\n" +
+            "        tools:layout_editor_absoluteY=\"<test>\">\n" +
+            "\n" +
+            "        <ImageView\n" +
+            "            android:layout_width=\"100dp\"\n" +
+            "            android:layout_height=\"100dp\"\n" +
+            "            android:adjustViewBounds=\"true\"\n" +
+            "            android:scaleType=\"centerInside\"\n" +
+            "            app:layout_constraintLeft_toLeftOf=\"@+id/attending_in_person\"\n" +
+            "            tools:layout_constraintLeft_creator=\"1\"\n" +
+            "            tools:layout_editor_absoluteX=\"<test>\"\n" +
+            "            tools:layout_editor_absoluteY=\"<test>\" />\n" +
+            "\n" +
+            "        <TextView\n" +
+            "            android:layout_width=\"wrap_content\"\n" +
+            "            android:layout_height=\"wrap_content\"\n" +
+            "            android:layout_gravity=\"bottom|end|right\"\n" +
+            "            android:text=\"In Person\"\n" +
+            "            tools:layout_editor_absoluteX=\"<test>\"\n" +
+            "            tools:layout_editor_absoluteY=\"<test>\" />\n" +
+            "\n" +
+            "    </FrameLayout>\n" +
+            "\n" +
+            "</android.support.constraint.ConstraintLayout>\n";
+    assertThat(wipeDimensions(editor.getCurrentFileContents())).isEqualTo(wipeDimensions(xml));
   }
 
   private void waitForScout() {
@@ -283,6 +338,6 @@ public class ConvertToConstraintLayoutTest {
         // No op
       }
     });
-    guiTest.robot();
+    guiTest.robot().waitForIdle();
   }
 }
