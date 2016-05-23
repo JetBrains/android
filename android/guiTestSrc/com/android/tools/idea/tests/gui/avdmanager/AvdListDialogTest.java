@@ -51,7 +51,6 @@ public class AvdListDialogTest {
     configureAvdOptionsStep.requireAvdName("Nexus 7 API 19"); // check default
     configureAvdOptionsStep.setAvdName("Testsuite AVD");
     configureAvdOptionsStep.setFrontCamera("Emulated");
-    configureAvdOptionsStep.setScaleFactor("1dp on device = 1px on screen").selectGraphicsHardware();
     avdEditWizard.clickFinish();
     guiTest.waitForBackgroundTasks();
 
