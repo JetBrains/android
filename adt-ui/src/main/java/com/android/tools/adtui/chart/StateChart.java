@@ -48,7 +48,7 @@ public class StateChart extends AnimatedComponent {
   private float mHeightGap;
 
   @NotNull
-  private final ArrayList<RoundRectangle2D.Float> mPaths;
+  private final ArrayList<RoundRectangle2D.Float> mRectangles;
 
   @NotNull
   private final TIntArrayList mValues;
@@ -67,7 +67,7 @@ public class StateChart extends AnimatedComponent {
   public StateChart(@NotNull StateChartData data, @NotNull Color[] colors) {
     mData = data;
     mColors = colors;
-    mPaths = new ArrayList<>();
+    mRectangles = new ArrayList<>();
     mValues = new TIntArrayList();
     mMousePosition = new Point();
 
@@ -119,74 +119,69 @@ public class StateChart extends AnimatedComponent {
   @Override
   protected void updateData() {
     int seriesSize = mData.series().size();
-    int rectCount = 0;
-    if (seriesSize > 0) {
-      // TODO support adding series on the fly and interpolation.
-      float height = 1f / seriesSize;
-      float gap = height * mHeightGap;
-      int seriesCount = 0;
 
-      int size;
-      double min, max;
-      long x, previousX;
-      int y, previousY;
-      float startHeight;
-      RoundRectangle2D.Float rect;
-      for (RangedDiscreteSeries data : mData.series()) {
-        min = data.getXRange().getMin();
-        max = data.getXRange().getMax();
-        size = data.getSeries().size();
-
-        // Add paths as continuous blocks of rectangles.
-        previousY = -1;
-        previousX = -1;
-
-        for (int i = 0; i < size; i++) {
-          x = data.getSeries().getX(i);
-          y = data.getSeries().getY(i);
-          startHeight = 1 - (height * (seriesCount + 1));
-
-          if (i > 0) {
-            // Draw the previous block.
-            setRectangleAndValueData(rectCount,
-                                     previousX,
-                                     x,
-                                     min,
-                                     max,
-                                     previousY,
-                                     startHeight + gap * 0.5f,
-                                     height - gap);
-            rectCount++;
-          }
-
-          // Start a new block.
-          previousY = y;
-          previousX = x;
-
-          if (x >= max) {
-            // Drawn past max range, stop.
-            break;
-          }
-          else if (i == size - 1) {
-            // Reached the end, assumes the last data point continues till max.
-            setRectangleAndValueData(rectCount,
-                                     previousX,
-                                     max,
-                                     min,
-                                     max,
-                                     previousY,
-                                     startHeight + gap * 0.5f,
-                                     height - gap);
-            rectCount++;
-            break;
-          }
-        }
-        seriesCount++;
-      }
+    if (seriesSize == 0) {
+      return;
     }
 
-    if (rectCount < mPaths.size() - 1) {
-      mPaths.subList(rectCount, mPaths.size()).clear();
+    // TODO support adding series on the fly and interpolation.
+    float height = 1f / seriesSize;
+    float gap = height * mHeightGap;
+
+    int seriesIndex = 0, rectCount = 0;
+    for (RangedDiscreteSeries data : mData.series()) {
+      double min = data.getXRange().getMin();
+      double max = data.getXRange().getMax();
+      int size = data.getSeries().size();
+
+      // Construct rectangles.
+      long previousX = -1;
+      int previousY = -1;
+
+      for (int i = 0; i < size; i++) {
+        long x = data.getSeries().getX(i);
+        int y = data.getSeries().getY(i);
+        float startHeight = 1 - (height * (seriesIndex + 1));
+
+        if (i > 0) {
+          // Draw the previous block.
+          setRectangleAndValueData(rectCount,
+                                   previousX,
+                                   x,
+                                   min,
+                                   max,
+                                   previousY,
+                                   startHeight + gap * 0.5f,
+                                   height - gap);
+          rectCount++;
+        }
+
+        // Start a new block.
+        previousY = y;
+        previousX = x;
+
+        if (x >= max) {
+          // Drawn past max range, stop.
+          break;
+        }
+        else if (i == size - 1) {
+          // Reached the end, assumes the last data point continues till max.
+          setRectangleAndValueData(rectCount,
+                                   previousX,
+                                   max,
+                                   min,
+                                   max,
+                                   previousY,
+                                   startHeight + gap * 0.5f,
+                                   height - gap);
+          rectCount++;
+        }
+      }
+      seriesIndex++;
+    }
+
+    if (rectCount < mRectangles.size()) {
+      mRectangles.subList(rectCount, mRectangles.size()).clear();
       mValues.remove(rectCount, mValues.size() - rectCount);
     }
   }
@@ -196,11 +191,11 @@ public class StateChart extends AnimatedComponent {
     Dimension dim = getSize();
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-    assert mPaths.size() == mValues.size();
+    assert mRectangles.size() == mValues.size();
     AffineTransform scale = AffineTransform.getScaleInstance(dim.getWidth(), dim.getHeight());
-    for (int i = 0; i < mPaths.size(); i++) {
+    for (int i = 0; i < mRectangles.size(); i++) {
       g2d.setColor(mColors[mValues.get(i) % mColors.length]);
-      Shape shape = scale.createTransformedShape(mPaths.get(i));
+      Shape shape = scale.createTransformedShape(mRectangles.get(i));
       g2d.fill(shape);
     }
   }
@@ -221,25 +216,25 @@ public class StateChart extends AnimatedComponent {
     }
   }
 
-  private RoundRectangle2D.Float setRectangleAndValueData(int rectCount,
-                                                          double previousX,
-                                                          double currentX,
-                                                          double minX,
-                                                          double maxX,
-                                                          int previousY,
-                                                          float rectY,
-                                                          float rectHeight) {
+  private void setRectangleAndValueData(int rectCount,
+                                        double previousX,
+                                        double currentX,
+                                        double minX,
+                                        double maxX,
+                                        int previousY,
+                                        float rectY,
+                                        float rectHeight) {
     RoundRectangle2D.Float rect;
 
     //Reuse existing Rectangle objects when possible to avoid unnecessary allocations.
-    if (rectCount == mPaths.size()) {
+    if (rectCount == mRectangles.size()) {
       rect = new RoundRectangle2D.Float();
-      mPaths.add(rect);
+      mRectangles.add(rect);
       mValues.add(previousY);
 
     }
     else {
-      rect = mPaths.get(rectCount);
+      rect = mRectangles.get(rectCount);
       mValues.set(rectCount, previousY);
     }
 
@@ -249,8 +244,6 @@ public class StateChart extends AnimatedComponent {
                       rectHeight,
                       mArcWidth,
                       mArcHeight);
-
-    return rect;
   }
 }
 
