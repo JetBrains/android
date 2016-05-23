@@ -21,7 +21,6 @@ import com.android.tools.idea.npw.NewModuleWizard;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
@@ -75,7 +74,7 @@ public class AndroidImportModuleAction extends AnAction implements DumbAware {
 
   @Override
   public void actionPerformed(AnActionEvent e) {
-    Project project = CommonDataKeys.PROJECT.getData(e.getDataContext());
+    Project project = e.getProject();
     if (project != null) {
       try {
         importGradleSubprojectAsModule(null, project);
@@ -88,7 +87,7 @@ public class AndroidImportModuleAction extends AnAction implements DumbAware {
 
   @Override
   public void update(AnActionEvent e) {
-    Project project = CommonDataKeys.PROJECT.getData(e.getDataContext());
+    Project project = e.getProject();
     e.getPresentation().setEnabled(project != null);
   }
 }
