@@ -35,10 +35,10 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 /** Fix which surrounds an API warning with a version check */
-class AddTargetVersionCheckQuickFix implements AndroidLintQuickFix {
+public class AddTargetVersionCheckQuickFix implements AndroidLintQuickFix {
   private int myApi;
 
-  AddTargetVersionCheckQuickFix(int api) {
+  public AddTargetVersionCheckQuickFix(int api) {
     myApi = api;
   }
 
