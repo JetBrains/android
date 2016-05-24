@@ -19,7 +19,6 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdListDialog;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
@@ -54,8 +53,7 @@ public class RunAndroidAvdManagerAction extends DumbAwareAction {
 
   @Override
   public void actionPerformed(AnActionEvent e) {
-    Project project = CommonDataKeys.PROJECT.getData(e.getDataContext());
-    openAvdManager(project);
+    openAvdManager(e.getProject());
   }
 
   public void openAvdManager(@Nullable Project project) {
