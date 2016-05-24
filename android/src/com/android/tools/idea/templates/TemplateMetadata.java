@@ -85,6 +85,8 @@ public class TemplateMetadata {
   public static final String ATTR_APPLICATION_PACKAGE = "applicationPackage";
   public static final String ATTR_SOURCE_PROVIDER_NAME = "sourceProviderName";
 
+  public static final String ATTR_CPP_FLAGS = "cppFlags";
+  public static final String ATTR_CPP_SUPPORT = "includeCppSupport";
   public static final String ATTR_DEPENDENCIES_MULTIMAP = "dependenciesMultimap";
   public static final String ATTR_FRAGMENTS_EXTRA = "usesFragments";
   public static final String ATTR_ACTION_BAR_EXTRA = "usesActionBar";
