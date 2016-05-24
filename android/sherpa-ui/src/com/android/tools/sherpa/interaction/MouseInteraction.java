@@ -31,7 +31,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import java.awt.Cursor;
 import java.awt.Point;
-import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -554,7 +553,7 @@ public class MouseInteraction {
                 }
             }
             for (ResizeHandle handle : targets.getResizeHandles()) {
-                Rectangle bounds = handle.getBounds();
+                java.awt.Rectangle bounds = handle.getBounds();
                 int x = mViewTransform.getSwingFX((float) bounds.getCenterX());
                 int y = mViewTransform.getSwingFY((float) bounds.getCenterY());
                 picker.addPoint(handle, handleSelectionMargin, x, y);
@@ -681,7 +680,7 @@ public class MouseInteraction {
             if (w instanceof Guideline) {
                 Guideline guideline = (Guideline) w;
                 Rectangle head = guideline.getHead();
-                if (head.contains(x, y)) {
+                if (head.contains((int) x, (int) y)) {
                     mSelection.setSelectedGuideline(guideline);
                     break;
                 }
@@ -818,8 +817,9 @@ public class MouseInteraction {
             int x2 = Math.max(getStartPoint().x, getLastPoint().x);
             int y1 = Math.min(getStartPoint().y, getLastPoint().y);
             int y2 = Math.max(getStartPoint().y, getLastPoint().y);
-            Rectangle selectionRect = new Rectangle(x1, y1, x2 - x1, y2 - y1);
-            if (selectionRect.getWidth() > 0 && selectionRect.getHeight() > 0) {
+            Rectangle selectionRect = new Rectangle();
+            selectionRect.setBounds(x1, y1, x2 - x1, y2 - y1);
+            if (selectionRect.width > 0 && selectionRect.height > 0) {
                 ArrayList<ConstraintWidget> selection = mWidgetsScene.findWidgets(
                         mWidgetsScene.getRoot(),
                         selectionRect.x, selectionRect.y,
