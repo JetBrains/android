@@ -725,6 +725,24 @@ public class ConstraintUtilities {
       widget.setDimension(constraintModel.pxToDp(component.w),
                           constraintModel.pxToDp(component.h));
     }
+    String absoluteWidth = component.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_WIDTH);
+    if (absoluteWidth != null) {
+      Configuration configuration = component.getModel().getConfiguration();
+      ResourceResolver resourceResolver = configuration.getResourceResolver();
+      int size = ResourceHelper.resolveDimensionPixelSize(resourceResolver, absoluteWidth, configuration);
+      size = constraintModel.pxToDp(size);
+      widget.setWidth(size);
+    }
+
+    String absoluteHeight = component.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_HEIGHT);
+    if (absoluteHeight != null) {
+      Configuration configuration = component.getModel().getConfiguration();
+      ResourceResolver resourceResolver = configuration.getResourceResolver();
+      int size = ResourceHelper.resolveDimensionPixelSize(resourceResolver, absoluteHeight, configuration);
+      size = constraintModel.pxToDp(size);
+      widget.setHeight(size);
+    }
+
     widget.setMinWidth(constraintModel.pxToDp(component.getMinimumWidth()));
     widget.setMinHeight(constraintModel.pxToDp(component.getMinimumHeight()));
 
