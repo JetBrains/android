@@ -99,6 +99,13 @@ class DrawConstraintModel {
   //////////////////////////////////////////////////////////////////////////////
 
   /**
+   * Call repaint on the scene draw
+   */
+  public void repaint() {
+    mySceneDraw.repaint();
+  }
+
+  /**
    * Handles mouse press in the user interaction with our model
    *
    * @param x x mouse coordinate

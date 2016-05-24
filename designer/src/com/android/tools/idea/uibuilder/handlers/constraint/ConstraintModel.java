@@ -184,6 +184,9 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
         if (DEBUG) {
           System.out.println("-> updated [" + mAllowsUpdate + "] to " + myModificationCount);
         }
+        for (DrawConstraintModel drawConstraintModel : getDrawConstraintModels()) {
+          drawConstraintModel.repaint();
+        }
       }
       else {
         if (DEBUG) {
