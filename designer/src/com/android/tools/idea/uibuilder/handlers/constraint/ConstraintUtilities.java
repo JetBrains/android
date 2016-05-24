@@ -834,6 +834,10 @@ public class ConstraintUtilities {
       widget.setWrapWidth(widget.getWidth());
       widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.WRAP_CONTENT);
     }
+    else if (layout_width != null && layout_width.equalsIgnoreCase(SdkConstants.VALUE_MATCH_PARENT)) {
+      widget.setWrapWidth(widget.getWidth());
+      widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.ANY);
+    }
     else {
       widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.FIXED);
     }
@@ -844,6 +848,10 @@ public class ConstraintUtilities {
     else if (layout_height != null && layout_height.equalsIgnoreCase(SdkConstants.VALUE_WRAP_CONTENT)) {
       widget.setWrapHeight(widget.getHeight());
       widget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.WRAP_CONTENT);
+    }
+    else if (layout_height != null && layout_height.equalsIgnoreCase(SdkConstants.VALUE_MATCH_PARENT)) {
+      widget.setWrapHeight(widget.getHeight());
+      widget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.ANY);
     }
     else {
       widget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.FIXED);
