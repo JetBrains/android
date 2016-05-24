@@ -29,6 +29,7 @@ import com.android.tools.idea.gradle.service.notification.hyperlink.FixAndroidGr
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.utils.HtmlBuilder;
+import com.android.xml.AndroidManifest;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -76,6 +77,8 @@ import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
+import org.jetbrains.android.dom.manifest.Application;
+import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.*;
 import org.jetbrains.annotations.NotNull;
@@ -332,7 +335,7 @@ public class RenderErrorPanel extends JPanel {
       }
       reportBrokenClasses(logger, builder);
       reportInstantiationProblems(logger, builder);
-      reportOtherProblems(logger, builder);
+      reportOtherProblems(logger, builder, renderTask);
       reportUnknownFragments(logger, builder);
 
       if (renderTask != null) {
@@ -972,7 +975,44 @@ public class RenderErrorPanel extends JPanel {
     }
   }
 
-  private void reportOtherProblems(RenderLogger logger, HtmlBuilder builder) {
+  private static void addRtlNotEnabledAction(RenderLogger logger, HtmlBuilder builder, RenderTask task) {
+    ApplicationManager.getApplication().runReadAction(() -> {
+      Project project = logger.getProject();
+      if (project == null || project.isDisposed()) {
+        return;
+      }
+
+      Module module = logger.getModule();
+      if (module == null) {
+        return;
+      }
+
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      Manifest manifest = facet != null ? facet.getManifest() : null;
+      Application application = manifest != null ? manifest.getApplication() : null;
+      if (application == null) {
+        return;
+      }
+
+      final XmlTag applicationTag = application.getXmlTag();
+      if (applicationTag == null) {
+        return;
+      }
+
+      builder.add("(")
+        .addLink("Add android:supportsRtl=\"true\" to the manifest", logger.getLinkManager().createRunnableLink(() -> {
+          new SetAttributeFix(project, applicationTag, AndroidManifest.ATTRIBUTE_SUPPORTS_RTL, ANDROID_URI, VALUE_TRUE).execute();
+
+          DesignSurface surface = task != null ? task.getDesignSurface() : null;
+          if (surface != null) {
+            surface.requestRender(true);
+          }
+        })).add(")");
+    });
+  }
+
+  private void reportOtherProblems(RenderLogger logger, HtmlBuilder builder, RenderTask task) {
+    boolean shouldAddRefreshAction = true;
     List<RenderProblem> messages = logger.getMessages();
     if (messages != null && !messages.isEmpty()) {
       Set<String> seenTags = Sets.newHashSet();
@@ -1011,6 +1051,13 @@ public class RenderErrorPanel extends JPanel {
           if (LayoutLog.TAG_RESOURCES_FORMAT.equals(tag)) {
             appendFlagValueSuggestions(builder, message);
           }
+          else if (LayoutLog.TAG_RTL_NOT_ENABLED.equals(tag)) {
+            addRtlNotEnabledAction(logger, builder, task);
+            shouldAddRefreshAction = false;
+          }
+          else if (LayoutLog.TAG_RTL_NOT_SUPPORTED.equals(tag)) {
+            shouldAddRefreshAction = false;
+          }
 
           int count = logger.getTagCount(tag);
           if (count > 1) {
@@ -1021,7 +1068,9 @@ public class RenderErrorPanel extends JPanel {
         builder.newline();
       }
 
-      addRefreshAction(builder);
+      if (shouldAddRefreshAction) {
+        addRefreshAction(builder);
+      }
     }
   }
 
