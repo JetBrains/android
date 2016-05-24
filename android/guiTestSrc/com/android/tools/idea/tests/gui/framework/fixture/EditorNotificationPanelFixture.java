@@ -15,13 +15,14 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
-import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.Wait;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.HyperlinkLabel;
 import org.fest.reflect.core.Reflection;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.jetbrains.annotations.NotNull;
+
+import static com.google.common.base.Preconditions.checkState;
 
 public class EditorNotificationPanelFixture extends JComponentFixture<EditorNotificationPanelFixture, EditorNotificationPanel> {
 
@@ -33,7 +34,8 @@ public class EditorNotificationPanelFixture extends JComponentFixture<EditorNoti
   }
 
   public IdeFrameFixture performAction(@NotNull final String label) {
-    HyperlinkLabel link = GuiTests.waitUntilShowing(robot(), target(), new GenericTypeMatcher<HyperlinkLabel>(HyperlinkLabel.class) {
+    checkState(target().isShowing(), "cannot click link on hidden notification");
+    HyperlinkLabel link = robot().finder().find(target(), new GenericTypeMatcher<HyperlinkLabel>(HyperlinkLabel.class) {
       @Override
       protected boolean isMatching(@NotNull HyperlinkLabel hyperlinkLabel) {
         // IntelliJ's HyperLinkLabel class does not expose the getText method (it is package private)
