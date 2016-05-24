@@ -37,6 +37,7 @@ import com.android.tools.sherpa.structure.Selection;
 import android.support.constraint.solver.widgets.*;
 
 import java.awt.*;
+import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 
 /**
