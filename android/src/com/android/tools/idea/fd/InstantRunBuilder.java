@@ -16,6 +16,7 @@
 package com.android.tools.idea.fd;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.builder.model.OptionalCompilationStep;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.fd.client.AppState;
@@ -243,13 +244,14 @@ public class InstantRunBuilder implements BeforeRunBuilder {
     StringBuilder sb = new StringBuilder(50);
     sb.append("-P");
     sb.append(OPTIONAL_COMPILATION_STEPS);
-    sb.append("=INSTANT_DEV");
+    sb.append("=");
+    sb.append(OptionalCompilationStep.INSTANT_DEV.name());
 
     if (buildMode == BuildMode.HOT) {
       appendChangeInfo(sb, changes);
     }
     else {
-      sb.append(",RESTART_ONLY");
+      sb.append(",").append(OptionalCompilationStep.RESTART_ONLY.name());
     }
 
     return sb.toString();
