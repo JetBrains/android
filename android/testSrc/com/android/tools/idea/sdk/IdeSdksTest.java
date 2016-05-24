@@ -18,7 +18,6 @@ package com.android.tools.idea.sdk;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.AndroidTestCaseHelper;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
-import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.google.common.collect.Lists;
 import com.intellij.facet.FacetManager;
@@ -26,7 +25,6 @@ import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -38,6 +36,7 @@ import java.io.IOException;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.getEmbeddedJdkPath;
+import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 
 /**
@@ -129,8 +128,13 @@ public class IdeSdksTest extends IdeaTestCase {
   }
 
   public void testUseEmbeddedJdk() {
+    if (!isAndroidStudio()) {
+      System.out.println("SKIPPED: IdeSdksTest.testUseEmbeddedJdk runs only in Android Studio");
+      return;
+    }
+
     ApplicationManager.getApplication().runWriteAction(() -> {
-      IdeSdks.shouldUseEmbeddedJdk(true);
+      IdeSdks.setUseEmbeddedJdk();
     });
 
     // The path of the JDK should be the same as the embedded one.
