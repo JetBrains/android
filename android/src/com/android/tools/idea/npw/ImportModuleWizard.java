@@ -16,7 +16,6 @@
 package com.android.tools.idea.npw;
 
 import com.android.SdkConstants;
-import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.wizard.template.TemplateWizard;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
@@ -26,7 +25,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ui.JBUI;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 
@@ -42,11 +40,7 @@ import static com.android.SdkConstants.FN_BUILD_GRADLE;
 public class ImportModuleWizard extends TemplateWizard {
   protected ImportWizardModuleBuilder myModuleBuilder;
 
-  public static ImportModuleWizard createImportModuleWizard(@NotNull Project project) {
-    return new ImportModuleWizard(project);
-  }
-
-  private ImportModuleWizard(@Nullable Project project) {
+  public ImportModuleWizard(@NotNull Project project) {
     super("New Module", project);
     Window window = getWindow();
     // Allow creation in headless mode for tests
@@ -104,17 +98,5 @@ public class ImportModuleWizard extends TemplateWizard {
         myModuleBuilder.createModule(performGradleSyncAfter);
       }
     });
-  }
-
-  @Override
-  @VisibleForTesting
-  protected void doNextAction() {
-    super.doNextAction();
-  }
-
-  @Override
-  @VisibleForTesting
-  protected void doPreviousAction() {
-    super.doPreviousAction();
   }
 }
