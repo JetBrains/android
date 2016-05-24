@@ -22,6 +22,7 @@ import com.android.tools.idea.uibuilder.api.actions.*;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.Interaction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.sherpa.drawing.WidgetDraw;
 import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
 import com.android.tools.sherpa.interaction.MouseInteraction;
 import com.android.tools.sherpa.scout.Scout;
@@ -91,6 +92,21 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     }
     if (WidgetDecorator.sDeleteConnectionsImageIcon == null) {
       WidgetDecorator.sDeleteConnectionsImageIcon = iconToImage(AndroidIcons.SherpaIcons.DeleteConstraintB);
+    }
+    if (WidgetDraw.sGuidelineArrowLeft == null) {
+      WidgetDraw.sGuidelineArrowLeft = iconToImage(AndroidIcons.SherpaIcons.ArrowLeft);
+    }
+    if (WidgetDraw.sGuidelineArrowRight == null) {
+      WidgetDraw.sGuidelineArrowRight = iconToImage(AndroidIcons.SherpaIcons.ArrowRight);
+    }
+    if (WidgetDraw.sGuidelineArrowUp == null) {
+      WidgetDraw.sGuidelineArrowUp = iconToImage(AndroidIcons.SherpaIcons.ArrowUp);
+    }
+    if (WidgetDraw.sGuidelineArrowDown == null) {
+      WidgetDraw.sGuidelineArrowDown = iconToImage(AndroidIcons.SherpaIcons.ArrowDown);
+    }
+    if (WidgetDraw.sGuidelinePercent == null) {
+      WidgetDraw.sGuidelinePercent = iconToImage(AndroidIcons.SherpaIcons.Percent);
     }
   }
 
@@ -303,11 +319,11 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     myPopupActions.add(action);
 
     str = "Add Vertical Guideline";
-    actions.add(action = new AddElementAction(AddElementAction.VERTICAL_GUIDELINE, AndroidIcons.SherpaIcons.VerticalExpand, str));
+    actions.add(action = new AddElementAction(AddElementAction.VERTICAL_GUIDELINE, AndroidIcons.SherpaIcons.GuidelineVertical, str));
     myPopupActions.add(action);
 
     str = "Add Horizontal Guideline";
-    actions.add(action = new AddElementAction(AddElementAction.HORIZONTAL_GUIDELINE, AndroidIcons.SherpaIcons.HorizontalExpand, str));
+    actions.add(action = new AddElementAction(AddElementAction.HORIZONTAL_GUIDELINE, AndroidIcons.SherpaIcons.GuidelineHorizontal, str));
     myPopupActions.add(action);
 
   }
