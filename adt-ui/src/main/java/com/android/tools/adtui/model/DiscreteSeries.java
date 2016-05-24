@@ -72,8 +72,9 @@ public class DiscreteSeries<E extends Enum<E>> {
     return mX.get(index);
   }
 
-  public int getY(int index) {
-    return mY.get(index);
+  @NotNull
+  public E getValue(int index) {
+    return mEnumValues[mY.get(index)];
   }
 
   /**
@@ -94,6 +95,6 @@ public class DiscreteSeries<E extends Enum<E>> {
       index = -index - 2;
     }
 
-    return index >= 0 ? mEnumValues[mY.get(index)] : mEnumValues[0];
+    return index >= 0 ? getValue(index) : mEnumValues[0];
   }
 }

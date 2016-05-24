@@ -23,21 +23,21 @@ import org.jetbrains.annotations.NotNull;
  * Represents a view into a discrete series, where the data in view is only
  * within given x range.
  */
-public class RangedDiscreteSeries {
+public class RangedDiscreteSeries<E extends Enum<E>> {
 
   @NotNull
   private final Range mXRange;
 
   @NotNull
-  private final DiscreteSeries mSeries;
+  private final DiscreteSeries<E> mSeries;
 
-  public RangedDiscreteSeries(@NotNull Class<? extends Enum> clazz, @NotNull Range xRange) {
+  public RangedDiscreteSeries(@NotNull Class<E> clazz, @NotNull Range xRange) {
     mXRange = xRange;
-    mSeries = new DiscreteSeries(clazz);
+    mSeries = new DiscreteSeries<>(clazz);
   }
 
   @NotNull
-  public DiscreteSeries getSeries() {
+  public DiscreteSeries<E> getSeries() {
     return mSeries;
   }
 

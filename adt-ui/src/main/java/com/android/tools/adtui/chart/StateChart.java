@@ -18,8 +18,6 @@ package com.android.tools.adtui.chart;
 
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.model.RangedDiscreteSeries;
-import com.android.tools.adtui.model.StateChartData;
-import gnu.trove.TIntArrayList;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -28,18 +26,19 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.RoundRectangle2D;
-import java.util.ArrayList;
+import java.util.*;
+import java.util.List;
 
 /**
  * A chart component that renders series of state change events as rectangles.
  */
-public class StateChart extends AnimatedComponent {
+public class StateChart<E extends Enum<E>> extends AnimatedComponent {
 
   @NotNull
-  private final StateChartData mData;
+  private final List<RangedDiscreteSeries<E>> mSeriesList;
 
   @NotNull
-  private final Color[] mColors;
+  private final EnumMap<E, Color> mColors;
 
   private float mArcWidth;
 
@@ -51,7 +50,7 @@ public class StateChart extends AnimatedComponent {
   private final ArrayList<RoundRectangle2D.Float> mRectangles;
 
   @NotNull
-  private final TIntArrayList mValues;
+  private final List<E> mValues;
 
   @NotNull
   private Point mMousePosition;
@@ -59,17 +58,14 @@ public class StateChart extends AnimatedComponent {
   private boolean mHovered;
 
   /**
-   * @param data   The state chart data.
-   * @param colors An array of colors corresponding to the different states from the data. TODO
-   *               need a better solution than passing in a Color array, as that has no
-   *               correlation to the enum types used by the data.
+   * @param colors map of a state to corresponding color
    */
-  public StateChart(@NotNull StateChartData data, @NotNull Color[] colors) {
-    mData = data;
+  public StateChart(@NotNull EnumMap<E, Color> colors) {
     mColors = colors;
     mRectangles = new ArrayList<>();
-    mValues = new TIntArrayList();
+    mValues = new ArrayList<>();
     mMousePosition = new Point();
+    mSeriesList = new ArrayList<>();
 
     // TODO these logic should be moved to the Selection/Overlay Component.
     addMouseListener(new MouseAdapter() {
@@ -91,6 +87,10 @@ public class StateChart extends AnimatedComponent {
         mMousePosition.y = e.getY();
       }
     });
+  }
+
+  public void addSeries(@NotNull RangedDiscreteSeries<E> series) {
+    mSeriesList.add(series);
   }
 
   /**
@@ -118,7 +118,7 @@ public class StateChart extends AnimatedComponent {
 
   @Override
   protected void updateData() {
-    int seriesSize = mData.series().size();
+    int seriesSize = mSeriesList.size();
 
     if (seriesSize == 0) {
       return;
@@ -127,20 +127,22 @@ public class StateChart extends AnimatedComponent {
     // TODO support adding series on the fly and interpolation.
     float height = 1f / seriesSize;
     float gap = height * mHeightGap;
+    mValues.clear();
 
     int seriesIndex = 0, rectCount = 0;
-    for (RangedDiscreteSeries data : mData.series()) {
+    for (RangedDiscreteSeries<E> data : mSeriesList) {
       double min = data.getXRange().getMin();
       double max = data.getXRange().getMax();
       int size = data.getSeries().size();
 
       // Construct rectangles.
       long previousX = -1;
-      int previousY = -1;
+      E previousValue = null;
 
       for (int i = 0; i < size; i++) {
         long x = data.getSeries().getX(i);
-        int y = data.getSeries().getY(i);
+        E value = data.getSeries().getValue(i);
+
         float startHeight = 1 - (height * (seriesIndex + 1));
 
         if (i > 0) {
@@ -150,14 +152,14 @@ public class StateChart extends AnimatedComponent {
                                    x,
                                    min,
                                    max,
-                                   previousY,
+                                   previousValue,
                                    startHeight + gap * 0.5f,
                                    height - gap);
           rectCount++;
         }
 
         // Start a new block.
-        previousY = y;
+        previousValue = value;
         previousX = x;
 
         if (x >= max) {
@@ -171,7 +173,7 @@ public class StateChart extends AnimatedComponent {
                                    max,
                                    min,
                                    max,
-                                   previousY,
+                                   previousValue,
                                    startHeight + gap * 0.5f,
                                    height - gap);
           rectCount++;
@@ -182,7 +184,6 @@ public class StateChart extends AnimatedComponent {
 
     if (rectCount < mRectangles.size()) {
       mRectangles.subList(rectCount, mRectangles.size()).clear();
-      mValues.remove(rectCount, mValues.size() - rectCount);
     }
   }
 
@@ -194,7 +195,7 @@ public class StateChart extends AnimatedComponent {
     assert mRectangles.size() == mValues.size();
     AffineTransform scale = AffineTransform.getScaleInstance(dim.getWidth(), dim.getHeight());
     for (int i = 0; i < mRectangles.size(); i++) {
-      g2d.setColor(mColors[mValues.get(i) % mColors.length]);
+      g2d.setColor(mColors.get(mValues.get(i)));
       Shape shape = scale.createTransformedShape(mRectangles.get(i));
       g2d.fill(shape);
     }
@@ -206,7 +207,7 @@ public class StateChart extends AnimatedComponent {
 
     if (mHovered) {
       Dimension dim = getSize();
-      for (RangedDiscreteSeries data : mData.series()) {
+      for (RangedDiscreteSeries data : mSeriesList) {
         double min = data.getXRange().getMin();
         double max = data.getXRange().getMax();
         double range = max - min;
@@ -221,7 +222,7 @@ public class StateChart extends AnimatedComponent {
                                         double currentX,
                                         double minX,
                                         double maxX,
-                                        int previousY,
+                                        E previousValue,
                                         float rectY,
                                         float rectHeight) {
     RoundRectangle2D.Float rect;
@@ -230,13 +231,12 @@ public class StateChart extends AnimatedComponent {
     if (rectCount == mRectangles.size()) {
       rect = new RoundRectangle2D.Float();
       mRectangles.add(rect);
-      mValues.add(previousY);
-
     }
     else {
       rect = mRectangles.get(rectCount);
-      mValues.set(rectCount, previousY);
     }
+
+    mValues.add(previousValue);
 
     rect.setRoundRect((previousX - minX) / (maxX - minX),
                       rectY,
