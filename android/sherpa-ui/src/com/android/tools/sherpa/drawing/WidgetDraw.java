@@ -24,15 +24,7 @@ import android.support.constraint.solver.widgets.ConstraintWidget;
 import android.support.constraint.solver.widgets.ConstraintWidgetContainer;
 import android.support.constraint.solver.widgets.Guideline;
 
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics2D;
-import java.awt.Polygon;
-import java.awt.Rectangle;
-import java.awt.Shape;
-import java.awt.Stroke;
+import java.awt.*;
 import java.awt.geom.Ellipse2D;
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -57,6 +49,13 @@ public class WidgetDraw {
 
     private static Polygon sVerticalGuidelineHandle;
     private static Polygon sHorizontalGuidelineHandle;
+
+    // TODO: fix the loading image pattern
+    public static Image sGuidelinePercent = null;
+    public static Image sGuidelineArrowLeft = null;
+    public static Image sGuidelineArrowRight = null;
+    public static Image sGuidelineArrowUp = null;
+    public static Image sGuidelineArrowDown = null;
 
     /**
      * Enum encapsulating the policy deciding how to display anchors
@@ -343,8 +342,8 @@ public class WidgetDraw {
      * @param isSelected if the guideline is currently selected
      */
     private static void drawRootGuideline(ViewTransform transform, Graphics2D g,
-            ConstraintWidgetContainer root, Guideline guideline, boolean isSelected) {
-        Graphics2D g2 = (Graphics2D) g.create();
+                                          ConstraintWidgetContainer root, Guideline guideline, boolean isSelected) {
+        Graphics2D g2 = (Graphics2D)g.create();
         g2.setStroke(SnapDraw.sThinDashedStroke);
         int l = transform.getSwingX(root.getDrawX());
         int t = transform.getSwingY(root.getDrawY());
@@ -355,78 +354,79 @@ public class WidgetDraw {
             int x = transform.getSwingX(guideline.getDrawX());
             g2.drawLine(x, t, x, b);
             int offset = 2;
-            int circleSize = ConnectionDraw.ARROW_SIDE - 1;
+            int circleSize = sGuidelinePercent.getWidth(null) / 2 + 1;
             Shape circle = new Ellipse2D.Float(x - circleSize,
-                    t - 2 * circleSize - offset,
-                    2 * circleSize, 2 * circleSize);
-            g.draw(circle);
+                                               t - 2 * circleSize - offset,
+                                               2 * circleSize, 2 * circleSize);
+            g.fill(circle);
             int relative = guideline.getRelativeBehaviour();
             if (relative == Guideline.RELATIVE_PERCENT) {
-                g.drawString("%", x - 4, t - 4);
+                int iconWidth = sGuidelinePercent.getWidth(null);
+                int iconHeight = sGuidelinePercent.getHeight(null);
+                g.drawImage(sGuidelinePercent, x - iconWidth / 2, t - iconHeight - 3, null);
                 if (isSelected) {
                     int percent = (guideline.getX() * 100) / root.getWidth();
                     ConnectionDraw.drawCircledText(g, sFont, String.valueOf(percent), x, t + 20);
                 }
-            } else if (relative == Guideline.RELATIVE_BEGIN) {
+            }
+            else if (relative == Guideline.RELATIVE_BEGIN) {
+                int iconWidth = sGuidelineArrowLeft.getWidth(null);
+                int iconHeight = sGuidelineArrowLeft.getHeight(null);
                 Polygon arrow = ConnectionDraw.getLeftArrow();
-                int tx = x - ConnectionDraw.ARROW_SIDE / 2;
                 int ty = t - ConnectionDraw.ARROW_SIDE - offset / 2;
-                arrow.translate(tx, ty);
-                g.fill(arrow);
-                arrow.translate(-tx, -ty);
+                g.drawImage(sGuidelineArrowLeft, x - iconWidth / 2, t - iconHeight - 3, null);
                 if (isSelected) {
                     ConnectionDraw
-                            .drawHorizontalMarginIndicator(g, String.valueOf(guideline.getX()), l,
-                                    x, ty + 20);
-                }
-            } else if (relative == Guideline.RELATIVE_END) {
-                Polygon arrow = ConnectionDraw.getRightArrow();
-                int tx = x + ConnectionDraw.ARROW_SIDE / 2 + 1;
-                int ty = t - ConnectionDraw.ARROW_SIDE - offset / 2;
-                arrow.translate(tx, ty);
-                g.fill(arrow);
-                arrow.translate(-tx, -ty);
-                if (isSelected) {
-                    ConnectionDraw.drawHorizontalMarginIndicator(
-                            g, String.valueOf(root.getWidth() - guideline.getX()), x, r, ty + 20);
+                      .drawHorizontalMarginIndicator(g, String.valueOf(guideline.getX()), l,
+                                                     x, ty + 20);
                 }
             }
-        } else {
+            else if (relative == Guideline.RELATIVE_END) {
+                int iconWidth = sGuidelineArrowRight.getWidth(null);
+                int iconHeight = sGuidelineArrowRight.getHeight(null);
+                int ty = t - ConnectionDraw.ARROW_SIDE - offset / 2;
+                g.drawImage(sGuidelineArrowRight, x - iconWidth / 2 + 1, t - iconHeight - 3, null);
+                if (isSelected) {
+                    ConnectionDraw.drawHorizontalMarginIndicator(
+                      g, String.valueOf(root.getWidth() - guideline.getX()), x, r, ty + 20);
+                }
+            }
+        }
+        else {
             int y = transform.getSwingY(guideline.getDrawY());
             g2.drawLine(l, y, r, y);
             int offset = 2;
-            int circleSize = ConnectionDraw.ARROW_SIDE - 1;
+            int circleSize = sGuidelinePercent.getWidth(null) / 2 + 1;
             Shape circle = new Ellipse2D.Float(l - 2 * circleSize - offset,
-                    y - circleSize, 2 * circleSize, 2 * circleSize);
-            g.draw(circle);
+                                               y - circleSize, 2 * circleSize, 2 * circleSize);
+            g.fill(circle);
             int relative = guideline.getRelativeBehaviour();
             if (relative == Guideline.RELATIVE_PERCENT) {
-                g.drawString("%", l - 2 * circleSize + 1, y + 5);
+                int iconWidth = sGuidelinePercent.getWidth(null);
+                int iconHeight = sGuidelinePercent.getHeight(null);
+                g.drawImage(sGuidelinePercent, l - iconWidth - 3, y - iconHeight / 2, null);
                 if (isSelected) {
                     int percent = (guideline.getY() * 100) / root.getHeight();
                     ConnectionDraw.drawCircledText(g, sFont, String.valueOf(percent), l + 20, y);
                 }
-            } else if (relative == Guideline.RELATIVE_BEGIN) {
-                Polygon arrow = ConnectionDraw.getTopArrow();
-                int tx = l - ConnectionDraw.ARROW_SIDE;
-                int ty = y - ConnectionDraw.CONNECTION_ARROW_SIZE;
-                arrow.translate(tx, ty);
-                g.fill(arrow);
-                arrow.translate(-tx, -ty);
+            }
+            else if (relative == Guideline.RELATIVE_BEGIN) {
+                int iconWidth = sGuidelineArrowUp.getWidth(null);
+                int iconHeight = sGuidelineArrowUp.getHeight(null);
+                g.drawImage(sGuidelineArrowUp, l - iconWidth - 3, y - iconHeight / 2, null);
                 if (isSelected) {
                     ConnectionDraw.drawVerticalMarginIndicator(g, String.valueOf(guideline.getY()),
-                            l + 20, t, ty);
+                                                               l + 20, t, y);
                 }
-            } else if (relative == Guideline.RELATIVE_END) {
+            }
+            else if (relative == Guideline.RELATIVE_END) {
+                int iconWidth = sGuidelineArrowDown.getWidth(null);
+                int iconHeight = sGuidelineArrowDown.getHeight(null);
                 Polygon arrow = ConnectionDraw.getBottomArrow();
-                int tx = l - ConnectionDraw.ARROW_SIDE;
-                int ty = y + ConnectionDraw.CONNECTION_ARROW_SIZE;
-                arrow.translate(tx, ty);
-                g.fill(arrow);
-                arrow.translate(-tx, -ty);
+                g.drawImage(sGuidelineArrowDown, l - iconWidth - 3, y - iconHeight / 2 + 1, null);
                 if (isSelected) {
                     ConnectionDraw.drawVerticalMarginIndicator(
-                            g, String.valueOf(root.getHeight() - guideline.getY()), l + 20, ty, b);
+                      g, String.valueOf(root.getHeight() - guideline.getY()), l + 20, y, b);
                 }
             }
         }
