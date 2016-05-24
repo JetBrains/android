@@ -57,7 +57,6 @@ public final class IdeSdks {
   @NonNls public static final String MAC_JDK_CONTENT_PATH = "/Contents/Home";
 
   @NonNls private static final String ANDROID_SDK_PATH_KEY = "android.sdk.path";
-  @NonNls private static final String ANDROID_STUDIO_USE_EMBEDDED_JDK_KEY = "android.studio.use.embedded.jdk";
 
   private IdeSdks() {
   }
@@ -369,15 +368,20 @@ public final class IdeSdks {
     return path;
   }
 
+  /**
+   * Indicates whether the IDE is using its embedded JDK. This JDK is used to invoke Gradle.
+   * @return {@code true} if the IDE is using the embedded JDK, or {@code false} if its using an embedded
+   */
   public static boolean isUsingEmbeddedJdk() {
-    return PropertiesComponent.getInstance().getBoolean(ANDROID_STUDIO_USE_EMBEDDED_JDK_KEY);
+    File jdkPath = getJdkPath();
+    return jdkPath != null && filesEqual(jdkPath, getEmbeddedJdkPath());
   }
 
-  public static void shouldUseEmbeddedJdk(boolean useEmbeddedJdk) {
-    PropertiesComponent.getInstance().setValue(ANDROID_STUDIO_USE_EMBEDDED_JDK_KEY, useEmbeddedJdk);
-    if (useEmbeddedJdk) {
-      setJdkPath(getEmbeddedJdkPath());
-    }
+  /**
+   * Makes the IDE use its embedded JDK or a JDK selected by the user. This JDK is used to invoke Gradle.
+   */
+  public static void setUseEmbeddedJdk() {
+    setJdkPath(getEmbeddedJdkPath());
   }
 
   /**
