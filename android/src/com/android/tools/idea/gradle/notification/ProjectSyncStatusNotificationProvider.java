@@ -58,55 +58,113 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
   @Override
   @Nullable
   public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor fileEditor) {
+    NotificationPanel oldPanel = (NotificationPanel)fileEditor.getUserData(getKey());
+    NotificationPanel.Type newPanelType = notificationPanelType();
+    return (oldPanel != null && oldPanel.type == newPanelType) ? oldPanel : newPanelType.create(myProject);
+  }
+
+  @NotNull
+  private NotificationPanel.Type notificationPanelType() {
     if (!isBuildWithGradle(myProject)) {
-      return null;
+      return NotificationPanel.Type.NONE;
     }
     GradleSyncState syncState = GradleSyncState.getInstance(myProject);
     if (!syncState.areSyncNotificationsEnabled()) {
-      return null;
+      return NotificationPanel.Type.NONE;
     }
     if (syncState.isSyncInProgress()) {
-      EditorNotificationPanel panel = new EditorNotificationPanel();
-      panel.setText("Gradle project sync in progress...");
-      return panel;
+      return NotificationPanel.Type.IN_PROGRESS;
     }
     if (lastGradleSyncFailed(myProject)) {
-      String text = "Gradle project sync failed. Basic functionality (e.g. editing, debugging) will not work properly.";
-      return new SyncProblemNotificationPanel(text);
+      return NotificationPanel.Type.FAILED;
     }
     if (hasErrors(myProject)) {
-      String text = "Gradle project sync completed with some errors. Open the 'Messages' view to see the errors found.";
-      return new SyncProblemNotificationPanel(text);
+      return NotificationPanel.Type.ERRORS;
     }
 
     ThreeState gradleSyncNeeded = syncState.isSyncNeeded();
     if (gradleSyncNeeded == ThreeState.YES) {
-      return new StaleGradleModelNotificationPanel();
+      return NotificationPanel.Type.SYNC_NEEDED;
     }
 
-    return null;
+    return NotificationPanel.Type.NONE;
   }
 
-  private class StaleGradleModelNotificationPanel extends EditorNotificationPanel {
-    StaleGradleModelNotificationPanel() {
-      setText("Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.");
+  private static class NotificationPanel extends EditorNotificationPanel {
+    enum Type {
+      NONE() {
+        @Nullable
+        @Override
+        NotificationPanel create(Project project) {
+          return null;
+        }
+      },
+      IN_PROGRESS() {
+        @NotNull
+        @Override
+        NotificationPanel create(Project project) {
+          return new NotificationPanel(this, "Gradle project sync in progress...");
+        }
+      },
+      FAILED() {
+        @NotNull
+        @Override
+        NotificationPanel create(Project project) {
+          return new SyncProblemNotificationPanel(
+            project, this, "Gradle project sync failed. Basic functionality (e.g. editing, debugging) will not work properly.");
+        }
+      },
+      ERRORS() {
+        @NotNull
+        @Override
+        NotificationPanel create(Project project) {
+          return new SyncProblemNotificationPanel(
+            project, this, "Gradle project sync completed with some errors. Open the 'Messages' view to see the errors found.");
+        }
+      },
+      SYNC_NEEDED() {
+        @NotNull
+        @Override
+        NotificationPanel create(Project project) {
+          return new StaleGradleModelNotificationPanel(
+            project, this,
+            "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.");
+        }
+      },
+      ;
+
+      @Nullable
+      abstract NotificationPanel create(Project project);
+    }
+
+    @NotNull private final Type type;
+
+    NotificationPanel(@NotNull Type type, @NotNull String text) {
+      this.type = type;
+      setText(text);
+    }
+  }
+
+  private static class StaleGradleModelNotificationPanel extends NotificationPanel {
+    StaleGradleModelNotificationPanel(@NotNull Project project, @NotNull Type type, @NotNull String text) {
+      super(type, text);
 
       createActionLabel("Sync Now", () -> {
-        GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
+        GradleProjectImporter.getInstance().requestProjectSync(project, null);
       });
     }
   }
 
-  private class SyncProblemNotificationPanel extends EditorNotificationPanel {
-    SyncProblemNotificationPanel(@NotNull String text) {
-      setText(text);
+  private static class SyncProblemNotificationPanel extends NotificationPanel {
+    SyncProblemNotificationPanel(@NotNull Project project, @NotNull Type type, @NotNull String text) {
+      super(type, text);
 
       createActionLabel("Try Again", () -> {
-        GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
+        GradleProjectImporter.getInstance().requestProjectSync(project, null);
       });
 
       createActionLabel("Open 'Messages' View", () -> {
-        ExternalSystemNotificationManager.getInstance(myProject).openMessageView(GRADLE_SYSTEM_ID, PROJECT_SYNC);
+        ExternalSystemNotificationManager.getInstance(project).openMessageView(GRADLE_SYSTEM_ID, PROJECT_SYNC);
       });
 
       createActionLabel("Show Log in " + ShowFilePathAction.getFileManagerName(), () -> {
