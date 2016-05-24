@@ -19,6 +19,7 @@ import com.android.tools.sherpa.structure.WidgetsScene;
 import android.support.constraint.solver.widgets.ConstraintTableLayout;
 import android.support.constraint.solver.widgets.ConstraintWidget;
 import android.support.constraint.solver.widgets.ConstraintWidgetContainer;
+import android.support.constraint.solver.widgets.WidgetContainer;
 
 import java.awt.Rectangle;
 import java.util.ArrayList;
@@ -89,11 +90,11 @@ public class Scout {
      *
      * @param base
      */
-    private static void inferConstraints(ConstraintWidgetContainer base) {
+    private static void inferConstraints(WidgetContainer base) {
         if (base == null) {
             return;
         }
-        if (base.handlesInternalConstraints()) {
+        if (base instanceof ConstraintWidgetContainer && ((ConstraintWidgetContainer) base).handlesInternalConstraints()) {
             return;
         }
         int preX = base.getX();
@@ -101,8 +102,8 @@ public class Scout {
         base.setX(0);
         base.setY(0);
         for (ConstraintWidget constraintWidget : base.getChildren()) {
-            if (constraintWidget instanceof ConstraintWidgetContainer) {
-                inferConstraints((ConstraintWidgetContainer) constraintWidget);
+            if (constraintWidget instanceof WidgetContainer) {
+                inferConstraints((WidgetContainer) constraintWidget);
             }
         }
 
@@ -133,8 +134,8 @@ public class Scout {
      *
      * @param base
      */
-    private static ConstraintWidget[] inferTableList(ConstraintWidgetContainer base) {
-        if (base.handlesInternalConstraints()) {
+    private static ConstraintWidget[] inferTableList(WidgetContainer base) {
+        if (base instanceof ConstraintWidgetContainer && ((ConstraintWidgetContainer) base).handlesInternalConstraints()) {
             return null;
         }
 
