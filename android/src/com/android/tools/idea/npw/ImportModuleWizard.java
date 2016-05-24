@@ -33,20 +33,20 @@ import java.awt.*;
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
 
 /**
- * {@linkplain NewModuleWizard} guides the user through adding a new module to an existing project. It has a template-based flow and as the
+ * {@linkplain ImportModuleWizard} guides the user through adding a new module to an existing project. It has a template-based flow and as the
  * first step of the wizard allows the user to choose a template which will guide the rest of the wizard flow.
  *
  * Deprecated. Use {@link NewModuleWizardDynamic} instead.
  */
 @Deprecated
-public class NewModuleWizard extends TemplateWizard {
+public class ImportModuleWizard extends TemplateWizard {
   protected ImportWizardModuleBuilder myModuleBuilder;
 
-  public static NewModuleWizard createImportModuleWizard(@NotNull Project project) {
-    return new NewModuleWizard(project);
+  public static ImportModuleWizard createImportModuleWizard(@NotNull Project project) {
+    return new ImportModuleWizard(project);
   }
 
-  private NewModuleWizard(@Nullable Project project) {
+  private ImportModuleWizard(@Nullable Project project) {
     super("New Module", project);
     Window window = getWindow();
     // Allow creation in headless mode for tests
@@ -80,7 +80,7 @@ public class NewModuleWizard extends TemplateWizard {
       @Override
       public void update() {
         super.update();
-        NewModuleWizard.this.update();
+        ImportModuleWizard.this.update();
       }
     };
   }
