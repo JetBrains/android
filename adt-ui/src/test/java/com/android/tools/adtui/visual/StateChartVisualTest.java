@@ -20,31 +20,18 @@ import com.android.annotations.NonNull;
 import com.android.tools.adtui.*;
 import com.android.tools.adtui.chart.StateChart;
 import com.android.tools.adtui.model.RangedDiscreteSeries;
-import com.android.tools.adtui.model.StateChartData;
 import com.intellij.ui.JBColor;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class StateChartVisualTest extends VisualTest {
-
-  private static final Color[] MOCK_COLORS_1 = {
-    new JBColor(new Color(0, 0, 0, 0), new Color(0, 0, 0, 0)),
-    JBColor.RED,
-    JBColor.MAGENTA,
-    JBColor.ORANGE,
-    JBColor.YELLOW,
-  };
-
-  private static final Color[] MOCK_COLORS_2 = {
-    new JBColor(new Color(0, 0, 0, 0), new Color(0, 0, 0, 0)),
-    JBColor.CYAN,
-    JBColor.BLUE
-  };
 
   public enum MockFruitState {
     NONE,
@@ -69,30 +56,51 @@ public class StateChartVisualTest extends VisualTest {
   private AnimatedTimeRange mAnimatedTimeRange;
 
   @NonNull
-  private StateChart mNetworkStatusChart;
+  private StateChart<MockFruitState> mNetworkStatusChart;
 
   @NonNull
-  private StateChart mRadioStateChart;
+  private StateChart<MockStrengthState> mRadioStateChart;
 
   @NonNull
-  private StateChartData mNetworkData;
+  private List<RangedDiscreteSeries<MockFruitState>> mNetworkDataEntries = new ArrayList<>();
 
   @NonNull
-  private StateChartData mRadioData;
+  private List<RangedDiscreteSeries<MockStrengthState>> mRadioDataEntries = new ArrayList<>();
+
+  private static EnumMap<MockFruitState, Color> getFruitStateColor() {
+    EnumMap<MockFruitState, Color> colors = new EnumMap<>(MockFruitState.class);
+    colors.put(MockFruitState.NONE, new JBColor(new Color(0, 0, 0, 0), new Color(0, 0, 0, 0)));
+    colors.put(MockFruitState.APPLE, JBColor.RED);
+    colors.put(MockFruitState.GRAPE, JBColor.MAGENTA);
+    colors.put(MockFruitState.ORANGE, JBColor.ORANGE);
+    colors.put(MockFruitState.BANANA, JBColor.YELLOW);
+    return colors;
+  }
+
+  private static EnumMap<MockStrengthState, Color> getStrengthColor() {
+    EnumMap<MockStrengthState, Color> colors = new EnumMap<>(MockStrengthState.class);
+    colors.put(MockStrengthState.NONE, new JBColor(new Color(0, 0, 0, 0), new Color(0, 0, 0, 0)));
+    colors.put(MockStrengthState.WEAK, JBColor.CYAN);
+    colors.put(MockStrengthState.STRONG, JBColor.BLUE);
+    return colors;
+  }
 
   @Override
   protected List<Animatable> createComponentsList() {
-    mNetworkData = new StateChartData();
-    mRadioData = new StateChartData();
     long now = System.currentTimeMillis();
     mXRange = new Range(now, now + 60000);
     mAnimatedTimeRange = new AnimatedTimeRange(mXRange, 0);
 
-    mNetworkData.add(new RangedDiscreteSeries(MockFruitState.class, mXRange));
-    mRadioData.add(new RangedDiscreteSeries(MockStrengthState.class, mXRange));
+    RangedDiscreteSeries<MockFruitState> networkData = new RangedDiscreteSeries(MockFruitState.class, mXRange);
+    RangedDiscreteSeries<MockStrengthState> radioData = new RangedDiscreteSeries(MockStrengthState.class, mXRange);
 
-    mNetworkStatusChart = new StateChart(mNetworkData, MOCK_COLORS_1);
-    mRadioStateChart = new StateChart(mRadioData, MOCK_COLORS_2);
+    mNetworkStatusChart = new StateChart<>(getFruitStateColor());
+    mNetworkStatusChart.addSeries(networkData);
+    mNetworkDataEntries.add(networkData);
+
+    mRadioStateChart = new StateChart<>(getStrengthColor());
+    mRadioStateChart.addSeries(radioData);
+    mRadioDataEntries.add(radioData);
 
     return Arrays.asList(mAnimatedTimeRange, mXRange, mNetworkStatusChart, mRadioStateChart);
   }
@@ -132,16 +140,16 @@ public class StateChartVisualTest extends VisualTest {
             long now = System.currentTimeMillis();
 
             int v = networkVariance.get();
-            for (RangedDiscreteSeries series : mNetworkData.series()) {
+            for (RangedDiscreteSeries series : mNetworkDataEntries) {
               if (Math.random() > 0.5f) {
                 series.getSeries().add(now, MockFruitState.values()[(int)(Math.random() * v)]);
               }
             }
 
             v = radioVariance.get();
-            for (RangedDiscreteSeries series : mRadioData.series()) {
+            for (RangedDiscreteSeries series : mRadioDataEntries) {
               if (Math.random() > 0.5f) {
-                series.getSeries().add(now, MockFruitState.values()[(int)(Math.random() * v)]);
+                series.getSeries().add(now, MockStrengthState.values()[(int)(Math.random() * v)]);
               }
             }
 
@@ -226,13 +234,17 @@ public class StateChartVisualTest extends VisualTest {
     controls.add(VisualTests.createButton("Add Fruit Series", new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        mNetworkData.add(new RangedDiscreteSeries(MockFruitState.class, mXRange));
+        RangedDiscreteSeries networkData = new RangedDiscreteSeries(MockFruitState.class, mXRange);
+        mNetworkStatusChart.addSeries(networkData);
+        mNetworkDataEntries.add(networkData);
       }
     }));
     controls.add(VisualTests.createButton("Add Strength Series", new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        mRadioData.add(new RangedDiscreteSeries(MockStrengthState.class, mXRange));
+        RangedDiscreteSeries radioData = new RangedDiscreteSeries(MockStrengthState.class, mXRange);
+        mRadioStateChart.addSeries(radioData);
+        mRadioDataEntries.add(radioData);
       }
     }));
     controls.add(VisualTests.createCheckbox("Shift xRange Min", new ItemListener() {
