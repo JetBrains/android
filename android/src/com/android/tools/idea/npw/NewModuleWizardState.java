@@ -45,7 +45,7 @@ import static com.android.tools.idea.templates.TemplateMetadata.*;
 
 /**
  * Value object which holds the current state of the wizard pages for the
- * {@link NewModuleWizard}
+ * {@link ImportModuleWizard}
  *
  * Deprecated. Use {@link ScopedStateStore} instead.
  */

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.actions;
 
-import com.android.tools.idea.npw.NewModuleWizard;
+import com.android.tools.idea.npw.ImportModuleWizard;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -43,7 +43,7 @@ public class AndroidImportModuleAction extends AnAction implements DumbAware {
    */
   private static void importGradleSubprojectAsModule(@NotNull Project destinationProject)
       throws IOException {
-    NewModuleWizard wizard = NewModuleWizard.createImportModuleWizard(destinationProject);
+    ImportModuleWizard wizard = ImportModuleWizard.createImportModuleWizard(destinationProject);
     if (wizard.showAndGet()) {
       wizard.createModule(true);
     }
