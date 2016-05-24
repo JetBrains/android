@@ -450,8 +450,6 @@ public class EditorFixture {
 
   @NotNull
   public EditorNotificationPanelFixture awaitNotification(@NotNull String text) {
-    // TODO: Look if notification panels can be fixed to make that waitForBackgroundTasks unnecessary
-    waitForBackgroundTasks(robot);
     JLabel label = GuiTests.waitUntilShowing(robot, JLabelMatcher.withText(text));
     EditorNotificationPanel notificationPanel = (EditorNotificationPanel)label.getParent().getParent();
     return new EditorNotificationPanelFixture(myFrame, notificationPanel);
