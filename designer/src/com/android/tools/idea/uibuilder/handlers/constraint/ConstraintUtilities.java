@@ -935,7 +935,7 @@ public class ConstraintUtilities {
       catch (NumberFormatException e) {
       }
     }
-    String orientation = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_GUIDELINE_ORIENTATION);
+    String orientation = component.getAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_ORIENTATION);
     if (orientation != null) {
       int newOrientation = Guideline.HORIZONTAL;
       if (SdkConstants.ATTR_GUIDELINE_ORIENTATION_VERTICAL.equalsIgnoreCase(orientation)) {
