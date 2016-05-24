@@ -111,7 +111,7 @@ public class ConstraintDragHandler extends DragHandler {
       if (model != null) {
         int ax = model.pxToDp(x - this.layout.x - this.layout.getPadding().left - myComponent.w / 2);
         int ay = model.pxToDp(y - this.layout.y - this.layout.getPadding().top - myComponent.h / 2);
-        ConstraintUtilities.setEditorPosition(myComponent, ax, ay);
+        ConstraintUtilities.setEditorPosition(null, myComponent, ax, ay);
       }
       if (myDragWidget != null) {
         model.commitDragComponent(myComponent);

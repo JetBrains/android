@@ -251,6 +251,11 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
   }
 
   /**
+   * Getter for the drop widget
+   */
+  public ConstraintWidget getDragDropWidget() { return myDragDropWidget; }
+
+  /**
    * Remove a drop widget
    */
   public void removeDragComponent() {
