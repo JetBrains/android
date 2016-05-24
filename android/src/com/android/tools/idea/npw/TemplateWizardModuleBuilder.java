@@ -52,7 +52,7 @@ public class TemplateWizardModuleBuilder extends ImportWizardModuleBuilder {
                                      @NotNull List<ModuleWizardStep> steps,
                                      @NotNull Disposable disposable,
                                      boolean inGlobalWizard) {
-    super(templateLocation, project, null, sidePanelIcon, steps, disposable, inGlobalWizard);
+    super(templateLocation, project, sidePanelIcon, steps, disposable, inGlobalWizard);
     myBuilderId = metadata == null ? null : metadata.getTitle();
     if (!inGlobalWizard) {
       mySteps.add(0, buildChooseModuleStep(project));
