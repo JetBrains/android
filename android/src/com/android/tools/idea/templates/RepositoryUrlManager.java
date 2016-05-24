@@ -28,6 +28,7 @@ import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.lint.checks.GradleDetector;
 import com.android.tools.lint.client.api.LintClient;
+import com.android.utils.FileUtils;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
@@ -52,6 +53,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 
+import static com.android.SdkConstants.FD_EXTRAS;
+import static com.android.SdkConstants.FD_M2_REPOSITORY;
 import static com.android.ide.common.repository.GradleCoordinate.COMPARE_PLUS_LOWER;
 import static com.android.tools.idea.templates.SupportLibrary.PLAY_SERVICES;
 
@@ -115,20 +118,35 @@ public class RepositoryUrlManager {
                                           boolean includePreviews,
                                           @NotNull File sdkLocation,
                                           @NotNull FileOp fileOp) {
+    // Try the new, combined repository first:
+    File combinedRepo = FileUtils.join(sdkLocation, FD_EXTRAS, FD_M2_REPOSITORY);
+    if (fileOp.isDirectory(combinedRepo)) {
+      GradleCoordinate versionInCombined = MavenRepositories.getHighestInstalledVersion(groupId,
+                                                                                        artifactId,
+                                                                                        combinedRepo,
+                                                                                        filterPrefix,
+                                                                                        includePreviews,
+                                                                                        fileOp);
+      if (versionInCombined != null) {
+        return versionInCombined.getRevision();
+      }
+    }
+
+    // Now try the "old" repositories, "google" and "android":
     SdkMavenRepository repository = SdkMavenRepository.find(sdkLocation, groupId, artifactId, fileOp);
     if (repository == null) {
-      // Could it perhaps be in the offline repo? We distribute for example the constraint layout there for now
+      // Try the repo embedded in AS. We distribute for example the constraint layout there for now.
       List<File> paths = EmbeddedDistributionPaths.findAndroidStudioLocalMavenRepoPaths();
       for (File path : paths) {
         if (path != null && path.isDirectory()) {
-          GradleCoordinate found = MavenRepositories.getHighestInstalledVersion(groupId,
-                                                                                artifactId,
-                                                                                path,
-                                                                                filterPrefix,
-                                                                                includePreviews,
-                                                                                fileOp);
-          if (found != null) {
-            return found.getRevision();
+          GradleCoordinate versionInEmbedded = MavenRepositories.getHighestInstalledVersion(groupId,
+                                                                                            artifactId,
+                                                                                            path,
+                                                                                            filterPrefix,
+                                                                                            includePreviews,
+                                                                                            fileOp);
+          if (versionInEmbedded != null) {
+            return versionInEmbedded.getRevision();
           }
         }
       }
@@ -140,6 +158,7 @@ public class RepositoryUrlManager {
       return null;
     }
 
+    // Try using the POM file:
     File mavenMetadataFile = MavenRepositories.getMavenMetadataFile(repositoryLocation, groupId, artifactId);
     if (fileOp.isFile(mavenMetadataFile)) {
       try {
@@ -151,7 +170,6 @@ public class RepositoryUrlManager {
     }
 
     // Just scan all the directories:
-
     GradleCoordinate max = repository.getHighestInstalledVersion(sdkLocation,
                                                                  groupId,
                                                                  artifactId,
