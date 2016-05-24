@@ -5,6 +5,7 @@ import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.common.formatter.MemoryAxisFormatter;
 import com.android.tools.adtui.model.LegendRenderData;
+import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.ReportingSeries;
 import com.intellij.ui.components.JBLayeredPane;
 import org.jetbrains.annotations.NotNull;
@@ -85,8 +86,8 @@ public abstract class BaseLineChartSegment extends BaseSegment {
     populateSeriesData(mLineChart);
 
     List<LegendRenderData> legendRenderDataList = new ArrayList<>();
-    for (ReportingSeries series : mLineChart.getReportingSeries()) {
-      Color color = mLineChart.getReportingSeriesColor(series);
+    for (RangedContinuousSeries series : mLineChart.getRangedContinuousSeries()) {
+      Color color = mLineChart.getLineConfig(series).getColor();
       LegendRenderData renderData = new LegendRenderData(LegendRenderData.IconType.LINE, color, series);
       legendRenderDataList.add(renderData);
     }
