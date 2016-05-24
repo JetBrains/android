@@ -51,6 +51,7 @@ import java.util.Set;
 /**
  * ConfigureAndroidModuleStep is the first page in the New Project wizard that sets project/module name, location, and other project-global
  * parameters.
+ * @deprecated Replaced by {@link com.android.tools.idea.npw.project.ConfigureAndroidProjectStep}
  */
 public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndDescription {
   private static final String EXAMPLE_DOMAIN = "example.com";
