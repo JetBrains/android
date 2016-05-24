@@ -16,8 +16,12 @@
 package com.android.tools.idea.gradle.dsl.model;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleDslFile;
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
+import com.intellij.psi.PsiDocumentManager;
+import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 
 public abstract class GradleFileModel {
   @NotNull protected GradleDslFile myGradleDslFile;
@@ -45,5 +49,19 @@ public abstract class GradleFileModel {
 
   public void applyChanges() {
     myGradleDslFile.applyChanges();
+
+    // Check for any postponed psi operations and complete them to unblock the underlying document for further modifications.
+    GroovyPsiElement psiElement = myGradleDslFile.getPsiElement();
+    assert psiElement instanceof PsiFile;
+
+    PsiDocumentManager psiDocumentManager = PsiDocumentManager.getInstance(getProject());
+    Document document = psiDocumentManager.getDocument((PsiFile)psiElement);
+    if (document == null) {
+      return;
+    }
+
+    if (psiDocumentManager.isDocumentBlockedByPsi(document)) {
+      psiDocumentManager.doPostponedOperationsAndUnblockDocument(document);
+    }
   }
 }
