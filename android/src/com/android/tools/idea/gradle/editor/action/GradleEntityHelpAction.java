@@ -21,7 +21,6 @@ import com.intellij.CommonBundle;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
@@ -41,7 +40,7 @@ public class GradleEntityHelpAction extends AbstractGradleEntityAction {
       return;
     }
     assert helpId != null;
-    Project project = CommonDataKeys.PROJECT.getData(event.getDataContext());
+    Project project = event.getProject();
     BrowserUtil.browse(helpId, project);
   }
 }
