@@ -23,6 +23,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.TokenType;
 import com.intellij.psi.tree.IElementType;
+import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.lexer.GroovyLexer;
@@ -429,21 +431,26 @@ public class GradleFileSimpleMerger {
       ImmutableList<String> configurations = CONFIGURATION_ORDERING.immutableSortedCopy(dependencies.keySet());
 
       Ast prev = null;
-      for (String configuration : configurations) {
-        List<GradleCoordinate> resolved = urlManager.resolveDynamicDependencies(dependencies.get(configuration), context.getFilter());
+      AndroidSdkData sdk = AndroidSdkUtils.tryToChooseAndroidSdk();
+      if (sdk != null) {
+        for (String configuration : configurations) {
+          List<GradleCoordinate> resolved = urlManager.resolveDynamicSdkDependencies(dependencies.get(configuration),
+                                                                                     context.getFilter(),
+                                                                                     sdk);
 
-        // Add the resolved dependencies:
-        prev = myParam != null ? myParam.findLast() : null;
-        for (GradleCoordinate coordinate : resolved) {
-          AstNode compile = new AstNode(configuration);
-          compile.myParam = new ValueAst("'" + coordinate + "'");
-          if (prev == null) {
-            myParam = compile;
+          // Add the resolved dependencies:
+          prev = myParam != null ? myParam.findLast() : null;
+          for (GradleCoordinate coordinate : resolved) {
+            AstNode compile = new AstNode(configuration);
+            compile.myParam = new ValueAst("'" + coordinate + "'");
+            if (prev == null) {
+              myParam = compile;
+            }
+            else {
+              prev.myNext = compile;
+            }
+            prev = compile;
           }
-          else {
-            prev.myNext = compile;
-          }
-          prev = compile;
         }
       }
 
