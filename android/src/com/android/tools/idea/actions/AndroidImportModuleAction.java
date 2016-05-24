@@ -19,12 +19,8 @@ import com.android.tools.idea.npw.ImportModuleWizard;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.annotations.NotNull;
-
-import java.io.IOException;
 
 /**
  * Action for importing existing sources as an Android project modules.
@@ -34,30 +30,13 @@ public class AndroidImportModuleAction extends AnAction implements DumbAware {
     super("Import Module...");
   }
 
-  /**
-   * Imports sources from a given location as a new IDE project module. Wizard will be
-   * shown if the import source location was not specified or more then one module
-   * will be imported.
-   *
-   * @throws java.io.IOException if an error condition prevents the module from being imported.
-   */
-  private static void importGradleSubprojectAsModule(@NotNull Project destinationProject)
-      throws IOException {
-    ImportModuleWizard wizard = ImportModuleWizard.createImportModuleWizard(destinationProject);
-    if (wizard.showAndGet()) {
-      wizard.createModule(true);
-    }
-  }
-
   @Override
   public void actionPerformed(AnActionEvent e) {
     Project project = CommonDataKeys.PROJECT.getData(e.getDataContext());
     if (project != null) {
-      try {
-        importGradleSubprojectAsModule(project);
-      }
-      catch (IOException e1) {
-        Logger.getInstance(getClass()).error(e1);
+      ImportModuleWizard wizard = new ImportModuleWizard(project);
+      if (wizard.showAndGet()) {
+        wizard.createModule(true);
       }
     }
   }
