@@ -101,7 +101,8 @@ public class EmbeddedDistributionPaths {
   @NotNull
   public static File getEmbeddedJdkPath() {
     String ideHomePath = getIdeHomePath();
-    File jdkRootPath = new File(ideHomePath, join("jre", "jdk"));
+
+    File jdkRootPath = new File(ideHomePath, SystemInfo.isMac ? join("jre", "jdk") : "jre");
     if (jdkRootPath.isDirectory()) {
       // Release build.
       return getSystemSpecificJdkPath(jdkRootPath);
