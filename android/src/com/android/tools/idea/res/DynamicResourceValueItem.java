@@ -33,8 +33,8 @@ import org.jetbrains.annotations.Nullable;
  */
 public class DynamicResourceValueItem extends ResourceItem {
   public DynamicResourceValueItem(@NonNull ResourceType type, @NonNull ClassField field) {
-    super(field.getName(), type, null);
-    mResourceValue = new ResourceValue(type, field.getName(), field.getValue(), false);
+    super(field.getName(), type, null, null);
+    mResourceValue = new ResourceValue(type, field.getName(), field.getValue(), false, null);
   }
 
   @NonNull

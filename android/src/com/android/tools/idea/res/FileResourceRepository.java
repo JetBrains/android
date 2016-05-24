@@ -63,8 +63,7 @@ public class FileResourceRepository extends LocalResourceRepository {
   /** R.txt file associated with the repository. This is only available for aars. */
   @Nullable private File myResourceTextFile;
 
-  private final static SoftValueHashMap<File, FileResourceRepository> ourCache =
-    new SoftValueHashMap<File, FileResourceRepository>();
+  private final static SoftValueHashMap<File, FileResourceRepository> ourCache = new SoftValueHashMap<>();
 
   private FileResourceRepository(@NotNull File file) {
     super(file.getName());
@@ -72,10 +71,10 @@ public class FileResourceRepository extends LocalResourceRepository {
   }
 
   @NotNull
-  static FileResourceRepository get(@NotNull final File file) {
+  static FileResourceRepository get(@NotNull final File file, @Nullable String libraryName) {
     FileResourceRepository repository = ourCache.get(file);
     if (repository == null) {
-      repository = create(file);
+      repository = create(file, libraryName);
       ourCache.put(file, repository);
     }
 
@@ -89,10 +88,10 @@ public class FileResourceRepository extends LocalResourceRepository {
   }
 
   @NotNull
-  private static FileResourceRepository create(@NotNull final File file) {
+  private static FileResourceRepository create(@NotNull final File file, @Nullable String libraryName) {
     final FileResourceRepository repository = new FileResourceRepository(file);
     try {
-      ResourceMerger resourceMerger = createResourceMerger(file);
+      ResourceMerger resourceMerger = createResourceMerger(file, libraryName);
       resourceMerger.mergeData(repository.createMergeConsumer(), true);
     }
     catch (Exception e) {
@@ -122,11 +121,11 @@ public class FileResourceRepository extends LocalResourceRepository {
     return myFile;
   }
 
-  private static ResourceMerger createResourceMerger(File file) {
+  private static ResourceMerger createResourceMerger(File file, String libraryName) {
     ILogger logger = new LogWrapper(LOG);
     ResourceMerger merger = new ResourceMerger(0);
 
-    ResourceSet resourceSet = new ResourceSet(file.getName(), false /* validateEnabled */);
+    ResourceSet resourceSet = new ResourceSet(file.getName(), libraryName, false /* validateEnabled */);
     resourceSet.addSource(file);
     resourceSet.setTrackSourcePositions(false);
     try {
