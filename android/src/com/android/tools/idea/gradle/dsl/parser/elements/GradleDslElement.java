@@ -153,18 +153,21 @@ public abstract class GradleDslElement {
       return null; // Avoid creation of an empty block statement.
     }
 
-    String statementText = isBlockElement() ? myName + " {\n}\n" : myName + " \"abc\", \"xyz\"";
+    String statementText = myName + (isBlockElement() ? " {\n}\n" : " \"abc\", \"xyz\"");
     GrStatement statement = factory.createStatementFromText(statementText);
     if (statement instanceof GrApplicationStatement) {
       // Workaround to create an application statement.
       ((GrApplicationStatement)statement).getArgumentList().delete();
     }
+    PsiElement lineTerminator = factory.createLineTerminator(1);
     PsiElement addedElement;
     if (parentPsiElement instanceof GroovyFile) {
       addedElement = parentPsiElement.addAfter(statement, parentPsiElement.getLastChild());
+      parentPsiElement.addBefore(lineTerminator, addedElement);
     }
     else {
       addedElement = parentPsiElement.addBefore(statement, parentPsiElement.getLastChild());
+      parentPsiElement.addAfter(lineTerminator, addedElement);
     }
     if (isBlockElement()) {
       GrClosableBlock closableBlock = getClosableBlock(addedElement);
@@ -176,8 +179,6 @@ public abstract class GradleDslElement {
         setPsiElement((GrApplicationStatement)addedElement);
       }
     }
-    PsiElement lineTerminator = factory.createLineTerminator(1);
-    parentPsiElement.addAfter(lineTerminator, addedElement);
     return getPsiElement();
   }
 
