@@ -90,7 +90,7 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     assertTrue(moduleRepository.hasResourceItem(ResourceType.STRING, "title_card_flip"));
     assertFalse(moduleRepository.hasResourceItem(ResourceType.STRING, "non_existent_title_card_flip"));
 
-    FileResourceRepository aar1 = FileResourceRepository.get(VfsUtilCore.virtualToIoFile(res3));
+    FileResourceRepository aar1 = FileResourceRepository.get(VfsUtilCore.virtualToIoFile(res3), null);
     appResources.updateRoots(Arrays.asList(projectResources, aar1), Collections.singletonList(aar1));
 
     assertTrue(appResources.hasResourceItem(ResourceType.STRING, "another_unique_string"));
@@ -145,18 +145,18 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     final AppResourceRepository appResources = createTestAppResourceRepository(myFacet);
     ImmutableList.Builder<AttrResourceValue> builder = ImmutableList.builder();
     // simple styleable test.
-    ImmutableList<AttrResourceValue> attrList = builder.add(new AttrResourceValue(ResourceType.ATTR, "some-attr", false)).build();
+    ImmutableList<AttrResourceValue> attrList = builder.add(new AttrResourceValue(ResourceType.ATTR, "some-attr", false, null)).build();
     Integer[] foundValues = appResources.getDeclaredArrayValues(attrList, "Styleable1");
     assertOrderedEquals(foundValues, 0x7f010000);
 
     // slightly complex test.
     builder = ImmutableList.builder();
     attrList = builder
-      .add(new AttrResourceValue(ResourceType.ATTR, "app_attr1", false),
-           new AttrResourceValue(ResourceType.ATTR, "app_attr2", false),
-           new AttrResourceValue(ResourceType.ATTR, "framework-attr1", true),
-           new AttrResourceValue(ResourceType.ATTR, "app_attr3", false),
-           new AttrResourceValue(ResourceType.ATTR, "framework_attr2", true)).build();
+      .add(new AttrResourceValue(ResourceType.ATTR, "app_attr1", false, null),
+           new AttrResourceValue(ResourceType.ATTR, "app_attr2", false, null),
+           new AttrResourceValue(ResourceType.ATTR, "framework-attr1", true, null),
+           new AttrResourceValue(ResourceType.ATTR, "app_attr3", false, null),
+           new AttrResourceValue(ResourceType.ATTR, "framework_attr2", true, null)).build();
     foundValues = appResources.getDeclaredArrayValues(attrList, "Styleable_with_underscore");
     assertOrderedEquals(foundValues, 0x7f010000, 0x7f010068, 0x01010125, 0x7f010069, 0x01010142);
   }
@@ -179,7 +179,7 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     Set<VirtualFile> folders = appResources.getResourceDirs();
     assertSameElements(folders, res1);
 
-    FileResourceRepository aar1 = FileResourceRepository.get(VfsUtilCore.virtualToIoFile(res2));
+    FileResourceRepository aar1 = FileResourceRepository.get(VfsUtilCore.virtualToIoFile(res2), null);
     appResources.updateRoots(Arrays.asList(projectResources, aar1), Collections.singletonList(aar1));
 
     Set<VirtualFile> foldersWithAar = appResources.getResourceDirs();
