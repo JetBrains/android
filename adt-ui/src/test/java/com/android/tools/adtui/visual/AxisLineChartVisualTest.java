@@ -96,6 +96,7 @@ public class AxisLineChartVisualTest extends VisualTest {
     mTimeAxis = new AxisComponent(xRange, mXGlobalRange, "TIME",
                                   AxisComponent.AxisOrientation.BOTTOM,
                                   AXIS_SIZE, AXIS_SIZE, false, TimeAxisFormatter.DEFAULT);
+    mTimeAxis.setLabelVisible(false);
 
     // left memory data + axis
     Range yRange1Animatable = new Range(0, 100);

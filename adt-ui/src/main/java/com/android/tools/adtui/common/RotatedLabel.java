@@ -34,6 +34,17 @@ public class RotatedLabel extends JLabel {
    */
   private boolean mIsMirrored;
 
+  public RotatedLabel() {
+  }
+
+  /**
+   * Constructor that takes in a default label, this will be passed to the JLabel default constructor.
+   * @param label initial text to set in the rotated label.
+   */
+  public RotatedLabel(String label) {
+    super(label);
+  }
+
   @Override
   public void setUI(LabelUI newUI) {
     super.setUI(new RotatedLabelUI(newUI));
