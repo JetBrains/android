@@ -245,18 +245,61 @@ public class ConstraintUtilities {
   /**
    * Set the position of the component
    *
-   * @param component the component we work on
+   * @param widget    the constraint widget we work on
+   * @param component the associated component we work on
    * @param x         x position (in Dp)
    * @param y         y position (in Dp)
    */
-  public static void setEditorPosition(@NotNull NlComponent component,
+  public static void setEditorPosition(@Nullable ConstraintWidget widget, @NotNull NlComponent component,
                                        @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
-    String sX = String.format(SdkConstants.VALUE_N_DP, x);
-    String sY = String.format(SdkConstants.VALUE_N_DP, y);
     String attributeX = SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X;
     String attributeY = SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y;
-    component.setAttribute(SdkConstants.TOOLS_URI, attributeX, sX);
-    component.setAttribute(SdkConstants.TOOLS_URI, attributeY, sY);
+    if (widget != null && hasHorizontalConstraints(widget)) {
+      component.setAttribute(SdkConstants.TOOLS_URI, attributeX, null);
+    } else {
+      String sX = String.format(SdkConstants.VALUE_N_DP, x);
+      component.setAttribute(SdkConstants.TOOLS_URI, attributeX, sX);
+    }
+    if (widget != null && hasVerticalConstraints(widget)) {
+      component.setAttribute(SdkConstants.TOOLS_URI, attributeY, null);
+    } else {
+      String sY = String.format(SdkConstants.VALUE_N_DP, y);
+      component.setAttribute(SdkConstants.TOOLS_URI, attributeY, sY);
+    }
+  }
+
+  /**
+   * Clear all editor absolute positions
+   * @param component
+   */
+  public static void clearEditorPosition(@NotNull NlComponent component) {
+    component.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X, null);
+    component.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, null);
+  }
+
+  /**
+   * Return true if the widget has horizontal constraints
+   *
+   * @param widget the widget we work on
+   * @return true if horizontal constraints set, false otherwise
+   */
+  private static boolean hasHorizontalConstraints(@NotNull ConstraintWidget widget) {
+    ConstraintAnchor left = widget.getAnchor(ConstraintAnchor.Type.LEFT);
+    ConstraintAnchor right = widget.getAnchor(ConstraintAnchor.Type.RIGHT);
+    return (left != null && left.isConnected()) || (right != null && right.isConnected());
+  }
+
+  /**
+   * Return true if the widget has vertical constraints
+   *
+   * @param widget the widget we work on
+   * @return true if vertical constraints set, false otherwise
+   */
+  private static boolean hasVerticalConstraints(@NotNull ConstraintWidget widget) {
+    ConstraintAnchor top = widget.getAnchor(ConstraintAnchor.Type.TOP);
+    ConstraintAnchor bottom = widget.getAnchor(ConstraintAnchor.Type.BOTTOM);
+    ConstraintAnchor baseline = widget.getAnchor(ConstraintAnchor.Type.BASELINE);
+    return (top != null && top.isConnected()) || (bottom != null && bottom.isConnected()) || (baseline != null && baseline.isConnected());
   }
 
   /**
@@ -296,8 +339,13 @@ public class ConstraintUtilities {
       }
 
       String attributeCreator = getConnectionAttributeCreator(anchor);
-      component.setAttribute(SdkConstants.TOOLS_URI,
-                             attributeCreator, String.valueOf(anchor.getConnectionCreator()));
+      if (anchor.getConnectionCreator() != 0) {
+        component.setAttribute(SdkConstants.TOOLS_URI,
+                               attributeCreator, String.valueOf(anchor.getConnectionCreator()));
+      } else {
+        component.setAttribute(SdkConstants.TOOLS_URI,
+                               attributeCreator, null);
+      }
     }
   }
 
@@ -1012,7 +1060,7 @@ public class ConstraintUtilities {
         ConstraintModel model = ConstraintModel.getConstraintModel(nlModel);
         Collection<ConstraintWidget> widgets = model.getScene().getWidgets();
         for (ConstraintWidget widget : widgets) {
-          commitElement(widget);
+          commitElement(model, widget);
         }
       }
     };
@@ -1020,14 +1068,33 @@ public class ConstraintUtilities {
   }
 
   /**
+   * Return true if the widget is contained inside a ConstraintLayout
+   *
+   * @param widget
+   * @return
+   */
+  private static boolean isInConstraintLayout(ConstraintWidget widget) {
+    if (widget.getParent() instanceof ConstraintWidgetContainer) {
+      return true;
+    }
+    return false;
+  }
+
+  /**
    * Utility function to commit to the NlModel the current state of the given widget
    *
-   * @param widget the widget we want to save to the model
+   * @param model  the constraintmodel we are working with
+   * @param widget the widget we want to save to the nl model
    */
-  static void commitElement(@NotNull ConstraintWidget widget) {
+  static void commitElement(ConstraintModel model, @NotNull ConstraintWidget widget) {
     WidgetCompanion companion = (WidgetCompanion)widget.getCompanionWidget();
     NlComponent component = (NlComponent)companion.getWidgetModel();
-    setEditorPosition(component, widget.getX(), widget.getY());
+    if (model.getDragDropWidget() == widget || isInConstraintLayout(widget)) {
+      setEditorPosition(widget, component, widget.getX(), widget.getY());
+    } else {
+      clearEditorPosition(component);
+    }
+
     if (!widget.isRoot()) {
       setDimension(component, widget);
     }
