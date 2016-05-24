@@ -202,9 +202,9 @@ public class ScoutProbabilities {
      * @param list
      */
     private void pickColumnWidgets(ScoutWidget[] list) {
-        ScoutWidget[] w = new ScoutWidget[list.length];
-        for (int i = 0; i < list.length; i++) {
-            w[i] = list[i];
+        ScoutWidget[] w = new ScoutWidget[list.length - 1];
+        for (int i = 0; i < list.length-1; i++) {
+            w[i] = list[i + 1];
         }
         Arrays.sort(w, new Comparator<ScoutWidget>() {
             @Override
