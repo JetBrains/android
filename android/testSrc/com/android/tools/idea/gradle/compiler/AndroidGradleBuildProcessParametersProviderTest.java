@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.gradle.compiler;
 
-import com.android.tools.idea.AndroidTestCaseHelper;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.GradleBuilds;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.sdk.Jdks;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
 import com.intellij.openapi.module.Module;
@@ -36,6 +36,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.android.tools.idea.AndroidTestCaseHelper.getJdkPath;
+import static com.intellij.ide.impl.NewProjectUtil.applyJdkToProject;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.executeProjectChangeAction;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static org.easymock.classextension.EasyMock.*;
@@ -50,7 +52,14 @@ public class AndroidGradleBuildProcessParametersProviderTest extends IdeaTestCas
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    myJdk = AndroidTestCaseHelper.createAndSetJdk(myProject);
+    File jdkHome = getJdkPath();
+    myJdk = Jdks.createJdk(jdkHome.getPath());
+    executeProjectChangeAction(true, new DisposeAwareProjectChange(myProject) {
+     @Override
+     public void execute() {
+       applyJdkToProject(myProject, myJdk);
+     }
+    });
     myParametersProvider = new AndroidGradleBuildProcessParametersProvider(myProject);
   }
 
