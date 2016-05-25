@@ -45,10 +45,12 @@ import java.util.List;
 
 import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.getEmbeddedJdkPath;
 import static com.android.tools.idea.gradle.util.Projects.requiresAndroidModel;
+import static com.android.tools.idea.sdk.Jdks.createEmbeddedJdk;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.intellij.ide.impl.NewProjectUtil.applyJdkToProject;
 import static com.intellij.openapi.projectRoots.JavaSdk.checkForJdk;
+import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static org.jetbrains.android.sdk.AndroidSdkData.getSdkData;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.*;
@@ -105,8 +107,13 @@ public final class IdeSdks {
 
   @Nullable
   public static File getJdkPath() {
+    return doGetJdkPath(true);
+  }
+
+  @Nullable
+  private static File doGetJdkPath(boolean createJdkIfNeeded) {
     List<Sdk> androidSdks = getEligibleAndroidSdks();
-    if (androidSdks.isEmpty()) {
+    if (androidSdks.isEmpty() && createJdkIfNeeded) {
       // This happens when user has a fresh installation of Android Studio without an Android SDK, but with a JDK. Android Studio should
       // populate the text field with the existing JDK.
       Sdk jdk = Jdks.chooseOrCreateJavaSdk();
@@ -370,10 +377,10 @@ public final class IdeSdks {
 
   /**
    * Indicates whether the IDE is using its embedded JDK. This JDK is used to invoke Gradle.
-   * @return {@code true} if the IDE is using the embedded JDK, or {@code false} if its using an embedded
+   * @return {@code true} if the IDE is using the embedded JDK; {@code false} otherwise.
    */
   public static boolean isUsingEmbeddedJdk() {
-    File jdkPath = getJdkPath();
+    File jdkPath = doGetJdkPath(false);
     return jdkPath != null && filesEqual(jdkPath, getEmbeddedJdkPath());
   }
 
@@ -381,7 +388,9 @@ public final class IdeSdks {
    * Makes the IDE use its embedded JDK or a JDK selected by the user. This JDK is used to invoke Gradle.
    */
   public static void setUseEmbeddedJdk() {
-    setJdkPath(getEmbeddedJdkPath());
+    if (isAndroidStudio()) {
+      setJdkPath(getEmbeddedJdkPath());
+    }
   }
 
   /**
@@ -389,11 +398,11 @@ public final class IdeSdks {
    */
   @Nullable
   public static Sdk getJdk() {
-    return getJdk(null);
+    return getJdk(JDK_1_8);
   }
 
   @Nullable
-  public static Sdk getJdk(@Nullable JavaSdkVersion preferredVersion) {
+  private static Sdk getJdk(@Nullable JavaSdkVersion preferredVersion) {
     List<Sdk> androidSdks = getEligibleAndroidSdks();
     if (!androidSdks.isEmpty()) {
       Sdk androidSdk = androidSdks.get(0);
@@ -414,6 +423,14 @@ public final class IdeSdks {
         }
       }
     }
+
+    // This happens when user has a fresh installation of Android Studio, and goes through the 'First Run' Wizard.
+    if (isAndroidStudio()) {
+      Sdk jdk = createEmbeddedJdk();
+      assert isJdkCompatible(jdk, preferredVersion);
+      return jdk;
+    }
+
     List<File> jdkPaths = getPotentialJdkPaths();
     for (File jdkPath : jdkPaths) {
       if (checkForJdk(jdkPath)) {

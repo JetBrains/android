@@ -62,8 +62,6 @@ import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.util.SmartList;
-import com.intellij.util.lang.CompoundRuntimeException;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.inspections.lint.IntellijLintClient;
@@ -85,21 +83,20 @@ import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.AndroidTestCaseHelper.getAndroidSdkPath;
-import static com.android.tools.idea.AndroidTestCaseHelper.getSystemPropertyOrEnvironmentVariable;
+import static com.android.tools.idea.AndroidTestCaseHelper.getJdkPath;
 import static com.android.tools.idea.gradle.eclipse.GradleImport.CURRENT_BUILD_TOOLS_VERSION;
 import static com.android.tools.idea.gradle.util.GradleUtil.addLocalMavenRepoInitScriptCommandLineOption;
 import static com.android.tools.idea.gradle.util.Projects.*;
 import static com.android.tools.idea.sdk.Jdks.isApplicableJdk;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API_STRING;
-import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.io.Files.write;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
-import static com.intellij.openapi.projectRoots.JdkUtil.checkForJdk;
 import static com.intellij.openapi.util.SystemInfo.isWindows;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
+import static com.intellij.util.lang.CompoundRuntimeException.throwIfNotEmpty;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.setSdkData;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.tryToChooseAndroidSdk;
 
@@ -113,11 +110,6 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
    * The name of the gradle wrapper executable associated with the current OS.
    */
   @NonNls private static final String GRADLE_WRAPPER_EXECUTABLE_NAME = isWindows ? FN_GRADLE_WRAPPER_WIN : FN_GRADLE_WRAPPER_UNIX;
-
-  /**
-   * Environment variable pointing to the JDK to be used for tests
-   */
-  public static final String JDK_HOME_FOR_TESTS = "JDK_HOME_FOR_TESTS";
 
   private static AndroidSdkData ourPreviousSdkData;
 
@@ -167,24 +159,15 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     // One is whatever is already defined in the JDK Table, and the other is the global one as defined by IdeSdks.
     // Gradle import will fail if the global one isn't set.
     File androidSdkPath = getAndroidSdkPath();
+    File jdkPath = getJdkPath();
 
-    String jdkHome = getSystemPropertyOrEnvironmentVariable(JDK_HOME_FOR_TESTS);
-    if (isNullOrEmpty(jdkHome) || !checkForJdk(jdkHome)) {
-      fail("Please specify the path to a valid JDK using system property or environment variable " + JDK_HOME_FOR_TESTS);
-    }
-    File jdkPath = new File(jdkHome);
+    runWriteCommandAction(getProject(), () -> {
+      IdeSdks.setJdkPath(jdkPath);
+      LOG.info("Set JDK to " + jdkPath);
 
-    File currentAndroidSdkPath = IdeSdks.getAndroidSdkPath();
-    File currentJdkPath = IdeSdks.getJdkPath();
-    if (!filesEqual(androidSdkPath, currentAndroidSdkPath) || !filesEqual(jdkPath, currentJdkPath)) {
-      runWriteCommandAction(getProject(), () -> {
-        IdeSdks.setAndroidSdkPath(androidSdkPath, getProject());
-        LOG.info("Set IDE Sdk Path to " + androidSdkPath);
-
-        IdeSdks.setJdkPath(jdkPath);
-        LOG.info("Set JDK to " + jdkPath);
-      });
-    }
+      IdeSdks.setAndroidSdkPath(androidSdkPath, getProject());
+      LOG.info("Set IDE Sdk Path to " + androidSdkPath);
+    });
 
     Sdk currentJdk = IdeSdks.getJdk();
     assertNotNull(currentJdk);
@@ -206,7 +189,12 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
           }
         }
         finally {
-          myFixture.tearDown();
+          try {
+            myFixture.tearDown();
+          }
+          catch (Exception e) {
+            LOG.warn("Failed to tear down " + myFixture.getClass().getSimpleName(), e);
+          }
           myFixture = null;
         }
       }
@@ -221,7 +209,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
           PlatformTestCase.closeAndDisposeProjectAndCheckThatNoOpenProjects(openProjects[0], exceptions);
         }
         finally {
-          CompoundRuntimeException.throwIfNotEmpty(exceptions);
+          throwIfNotEmpty(exceptions);
         }
       }
     }
@@ -230,6 +218,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
         assertEquals(0, ProjectManager.getInstance().getOpenProjects().length);
       }
       finally {
+        //noinspection ThrowFromFinallyBlock
         super.tearDown();
       }
 
@@ -463,7 +452,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     projectWizardState.put(FormFactorUtils.ATTR_MODULE_NAME, "TestModule");
     projectWizardState.put(TemplateMetadata.ATTR_PACKAGE_NAME, "test.pkg");
     projectWizardState.put(TemplateMetadata.ATTR_CREATE_ICONS, false); // If not, you need to initialize additional state
-    BuildToolInfo buildTool = sdkData.getLatestBuildTool();
+    BuildToolInfo buildTool = sdkData.getLatestBuildTool(false);
     assertNotNull(buildTool);
     projectWizardState.put(TemplateMetadata.ATTR_BUILD_TOOLS_VERSION, buildTool.getRevision().toString());
     IAndroidTarget[] targets = sdkData.getTargets();
