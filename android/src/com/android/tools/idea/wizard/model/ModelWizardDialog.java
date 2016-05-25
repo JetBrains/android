@@ -162,11 +162,19 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
   }
 
   @Override
+  public void doOKAction() {
+    // OK doesn't work directly. This dialog only closes when the underlying wizard closes.
+    // super.doOKAction is triggered by onWizardFinished
+  }
+
+  @Override
   public void onWizardFinished(boolean success) {
-    if (!success) {
-      // DON'T call doCancelAction directly - that would just trigger us again recursively
-      // This roundabout way of handling cancel allows us to also handle someone externally
-      // cancelling a wizard.
+    // Only progress when we know the underlying wizard is done. Call the super methods directly
+    // since we stubbed out our local overrides.
+    if (success) {
+      super.doOKAction();
+    }
+    else {
       super.doCancelAction();
     }
   }
@@ -303,7 +311,6 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
     @Override
     protected void doAction(ActionEvent e) {
       myWizard.goForward();
-      doOKAction();
     }
 
     @Override
