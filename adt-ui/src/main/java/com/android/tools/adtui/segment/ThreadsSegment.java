@@ -46,7 +46,7 @@ public class ThreadsSegment extends BaseSegment {
   }
 
   @Override
-  protected void registerComponents(@NotNull List<AnimatedComponent> components) {
+  public void registerComponents(@NotNull List<AnimatedComponent> components) {
     components.add(mThreadsStateChart);
   }
 
