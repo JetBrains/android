@@ -21,13 +21,15 @@ import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.NewModuleDialogFixture;
-import com.intellij.openapi.vfs.VirtualFile;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.File;
+
+import static com.android.tools.idea.testing.FileSubject.file;
+import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.*;
 
 /**
  * Tests, that newly generated modules work, even with older gradle plugin versions.
@@ -40,33 +42,28 @@ public class NewModuleTest {
 
   @Test
   public void testNewModuleOldGradle() throws Exception {
-    guiTest.importSimpleApplication();
-    // That's the oldest combination we support:
-    guiTest.ideFrame().updateAndroidGradlePluginVersion("1.0.0");
-    guiTest.ideFrame().updateGradleWrapperVersion("2.2.1");
-
-    EditorFixture editor = guiTest.ideFrame().getEditor();
-    editor.open("app/build.gradle");
-    editor.moveBetween("use", "Library");
-    editor.invokeAction(EditorFixture.EditorAction.DELETE_LINE);
-
-    guiTest.ideFrame().requestProjectSync();
-    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
-
-    guiTest.ideFrame()
+    String gradleFileContents = guiTest.importSimpleApplication()
+      // the oldest combination we support:
+      .updateAndroidGradlePluginVersion("1.0.0")
+      .updateGradleWrapperVersion("2.2.1")
+      .getEditor()
+      .open("app/build.gradle")
+      .moveBetween("use", "Library")
+      .invokeAction(EditorFixture.EditorAction.DELETE_LINE)
+      .getIdeFrame()
+      .requestProjectSync()
+      .waitForGradleProjectSyncToFinish()
       .openFromMenu(NewModuleDialogFixture::find, "File", "New", "New Module...")
       .select("Android Library")
       .clickNext()
-      .clickFinish();
+      .clickFinish()
+      .waitForGradleProjectSyncToFinish()
+      .getEditor()
+      .open("mylibrary/build.gradle")
+      .getCurrentFileContents();
+    assertThat(gradleFileContents).doesNotContain("testCompile");
 
-    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
-
-    // Sync worked, so that's good. Just make sure we didn't generate "testCompile" in build.gradle
-    editor.open("mylibrary/build.gradle");
-    assertThat(editor.getCurrentFileContents()).doesNotContain("testCompile");
-
-    VirtualFile projectDir = guiTest.ideFrame().getProject().getBaseDir();
-    assertNotNull(projectDir.findFileByRelativePath("mylibrary/src/main"));
-    assertNull(projectDir.findFileByRelativePath("mylibrary/src/test"));
+    assertAbout(file()).that(new File(guiTest.getProjectPath(), "mylibrary/src/main")).isDirectory();
+    assertAbout(file()).that(new File(guiTest.getProjectPath(), "mylibrary/src/test")).doesNotExist();
   }
 }
