@@ -45,6 +45,7 @@ public abstract class NlBaseComponentEditor implements NlComponentEditor, Browse
   @Override
   public void setLabel(@NotNull JLabel label) {
     myLabel = label;
+    label.setVisible(getComponent().isVisible());
   }
 
   @Override
