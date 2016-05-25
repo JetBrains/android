@@ -737,6 +737,11 @@ public class EditorFixture {
     robot.click(tab);
   }
 
+  @NotNull
+  public IdeFrameFixture getIdeFrame() {
+    return myFrame;
+  }
+
   /**
    * Common editor actions, invokable via {@link #invokeAction(EditorAction)}
    */
