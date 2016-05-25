@@ -60,6 +60,7 @@ import java.awt.event.ComponentListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -544,14 +545,20 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
 
   public void zoom(@NotNull ZoomType type) {
     switch (type) {
-      case IN:
-        setScale(myScale * 1.1);
+      case IN: {
+        int current = (int)(myScale * 100);
+        double scale = ZoomType.zoomIn(current) / 100.0;
+        setScale(scale);
         repaint();
         break;
-      case OUT:
-        setScale(myScale * (1 / 1.1));
+      }
+      case OUT: {
+        int current = (int)(myScale * 100);
+        double scale = ZoomType.zoomOut(current) / 100.0;
+        setScale(scale);
         repaint();
         break;
+      }
       case ACTUAL:
         if (SystemInfo.isMac && UIUtil.isRetina()) {
           setScale(0.5);
