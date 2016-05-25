@@ -36,6 +36,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.res.ResourceHelper.getFolderType;
 
 public class AndroidPsiUtils {
   /**
@@ -149,7 +150,8 @@ public class AndroidPsiUtils {
    */
   @Nullable
   public static String getRootTagName(@NotNull PsiFile file) {
-    if (ResourceHelper.getFolderType(file) == ResourceFolderType.XML) {
+    ResourceFolderType folderType = getFolderType(file);
+    if (folderType == ResourceFolderType.XML || folderType == ResourceFolderType.MENU || folderType == ResourceFolderType.DRAWABLE) {
       if (file instanceof XmlFile) {
         XmlTag rootTag = getRootTagSafely(((XmlFile)file));
         return rootTag == null ? null : rootTag.getName();
