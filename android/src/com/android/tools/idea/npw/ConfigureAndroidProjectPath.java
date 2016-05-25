@@ -16,14 +16,19 @@
 package com.android.tools.idea.npw;
 
 import com.android.SdkConstants;
+import com.android.ide.common.repository.GradleCoordinate;
+import com.android.ide.common.repository.SdkMavenRepository;
 import com.android.repository.Revision;
+import com.android.repository.api.RepoPackage;
+import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.meta.DetailsTypes;
+import com.android.tools.idea.sdk.StudioSdkUtil;
 import com.android.tools.idea.sdk.VersionCheck;
+import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.wizard.legacy.LicenseAgreementStep;
 import com.android.tools.idea.sdk.wizard.legacy.SmwOldApiDirectInstall;
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.recipe.RenderingContext;
@@ -96,8 +101,22 @@ public class ConfigureAndroidProjectPath extends DynamicWizardPath {
    */
   public static void putSdkDependentParams(@NotNull ScopedStateStore state) {
     final AndroidSdkHandler sdkHandler = AndroidSdkUtils.tryToChooseSdkHandler();
-    BuildToolInfo buildTool = sdkHandler.getLatestBuildTool(new StudioLoggerProgressIndicator(ConfigureAndroidProjectPath.class), false);
+    StudioLoggerProgressIndicator progress = new StudioLoggerProgressIndicator(ConfigureAndroidProjectPath.class);
+    BuildToolInfo buildTool = sdkHandler.getLatestBuildTool(progress, false);
     Revision minimumRequiredBuildToolVersion = Revision.parseRevision(SdkConstants.MIN_BUILD_TOOLS_VERSION);
+
+    // TODO: remove once maven dependency downloading is available in studio
+    StudioSdkUtil.reloadRemoteSdkWithModalProgress();
+    GradleCoordinate constraintCoordinate = GradleCoordinate.parseCoordinateString(SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT + ":+");
+    RepositoryPackages packages = sdkHandler.getSdkManager(progress).getPackages();
+    RepoPackage constraintPackage = SdkMavenRepository.findBestPackageMatching(constraintCoordinate, packages.getLocalPackages().values());
+    if (constraintPackage == null) {
+      constraintPackage = SdkMavenRepository.findBestPackageMatching(constraintCoordinate, packages.getRemotePackages().values());
+      if (constraintPackage != null) {
+        state.listPush(WizardConstants.INSTALL_REQUESTS_KEY, constraintPackage.getPath());
+      }
+    }
+    
     if (buildTool != null && buildTool.getRevision().compareTo(minimumRequiredBuildToolVersion) >= 0) {
       state.put(WizardConstants.BUILD_TOOLS_VERSION_KEY, buildTool.getRevision().toString());
     }
