@@ -20,7 +20,7 @@ public interface AndroidLintQuickFix {
   @NotNull
   String getName();
 
-  public static class LocalFixWrapper implements LocalQuickFix {
+  class LocalFixWrapper implements LocalQuickFix {
     private final AndroidLintQuickFix myFix;
     private final PsiElement myStart;
     private final PsiElement myEnd;
