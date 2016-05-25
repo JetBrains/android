@@ -38,7 +38,7 @@ import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.facet.IdeaSourceProvider;
-import org.jetbrains.android.inspections.lint.SuppressLintIntentionAction;
+import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.*;
@@ -201,7 +201,7 @@ public class ManifestUtils {
       throw new IllegalArgumentException("should not have namespace as it's always tools");
     }
     ApplicationManager.getApplication().assertWriteAccessAllowed();
-    SuppressLintIntentionAction.ensureNamespaceImported(manifest.getProject(), manifest, TOOLS_URI);
+    AndroidResourceUtil.ensureNamespaceImported(manifest, TOOLS_URI, null);
     XmlTag parent = null;
     XmlTag[] manifestTags = new XmlTag[]{manifest.getRootTag()};
     for (Element tag : getPath(item)) {

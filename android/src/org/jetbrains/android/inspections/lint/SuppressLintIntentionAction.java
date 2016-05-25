@@ -151,14 +151,6 @@ public class SuppressLintIntentionAction implements IntentionAction, Iconable {
     }
   }
 
-  /**
-   * TODO: Inline
-   */
-  @NotNull
-  public static String ensureNamespaceImported(@NotNull Project project, @NotNull XmlFile file, @NotNull String namespaceUri) {
-    return AndroidResourceUtil.ensureNamespaceImported(file, namespaceUri, null);
-  }
-
   static String getLintId(String intentionId) {
     String lintId = intentionId;
     if (lintId.startsWith("AndroidLint")) {
@@ -192,7 +184,7 @@ public class SuppressLintIntentionAction implements IntentionAction, Iconable {
       Collections.sort(ids);
       value = Joiner.on(',').join(ids);
     }
-    ensureNamespaceImported(project, file, TOOLS_URI);
+    AndroidResourceUtil.ensureNamespaceImported(file, TOOLS_URI, null);
     element.setAttribute(ATTR_IGNORE, TOOLS_URI, value);
   }
 

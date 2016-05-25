@@ -25,6 +25,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Locale;
@@ -90,7 +91,7 @@ public class AddTargetApiQuickFix implements AndroidLintQuickFix {
       if (element != null) {
         XmlFile file = PsiTreeUtil.getParentOfType(element, XmlFile.class, false);
         if (file != null) {
-          SuppressLintIntentionAction.ensureNamespaceImported(element.getProject(), file, TOOLS_URI);
+          AndroidResourceUtil.ensureNamespaceImported(file, TOOLS_URI, null);
           String codeName = SdkVersionInfo.getBuildCode(myApi);
           if (codeName == null) {
             codeName = Integer.toString(myApi);
