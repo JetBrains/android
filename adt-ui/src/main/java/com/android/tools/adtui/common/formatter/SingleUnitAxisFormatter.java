@@ -30,7 +30,7 @@ public class SingleUnitAxisFormatter extends BaseAxisFormatter {
 
   private static final int UNITS_COUNT = 1;
 
-  private static final TIntArrayList BASE_FACTORS = new TIntArrayList(new int[]{1});
+  private static final TIntArrayList BASE_FACTORS = getMultiplierFactors(BASE);
 
   private final int mUnitMinimalInterval;
 

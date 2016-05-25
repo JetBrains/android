@@ -73,11 +73,14 @@ public abstract class BaseLineChartSegment extends BaseSegment {
     mLeftAxis = new AxisComponent(mLeftAxisRange, mLeftAxisRange, "",
                                   AxisComponent.AxisOrientation.LEFT, 0, 0, true,
                                   mLeftAxisFormatter);
+    mLeftAxis.setClampToMajorTicks(true);
+
     // right axis
     if (mRightAxisRange != null) {
       mRightAxis = new AxisComponent(mRightAxisRange, mRightAxisRange, "",
                                      AxisComponent.AxisOrientation.RIGHT, 0, 0, true,
                                      mRightAxisFormatter);
+      mRightAxis.setParentAxis(mLeftAxis);
     }
     //TODO Associate the grid with both AxisComponents.
     mLineChart = new LineChart();
@@ -99,14 +102,14 @@ public abstract class BaseLineChartSegment extends BaseSegment {
     // others to be updated first. e.g. the ranges need to be updated before the axes.
     // The comment on each line highlights why the component needs to be in that position.
     animatables.add(mLineChart); // Set y's interpolation values.
-    if (mRightAxisRange != null) {
-      animatables.add(mRightAxisRange); // Interpolate y1.
-    }
-    animatables.add(mLeftAxisRange); // Interpolate y2.
+    animatables.add(mLeftAxis);  // Read left y range and update its max to the next major tick.
     if (mRightAxis != null) {
-      animatables.add(mRightAxis); // Read ranges.
+      animatables.add(mRightAxis); // Read right y range and update its max by syncing to the left axis' major tick spacing.
     }
-    animatables.add(mLeftAxis); // Read ranges.
+    animatables.add(mLeftAxisRange); // Interpolate left y range.
+    if (mRightAxisRange != null) {
+      animatables.add(mRightAxisRange); // Interpolate right y range.
+    }
     animatables.add(mLegendComponent);
     animatables.add(mGrid); // No-op.
   }
