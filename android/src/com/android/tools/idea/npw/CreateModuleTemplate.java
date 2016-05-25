@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw;
 
+import com.android.tools.idea.npw.deprecated.ChooseModuleTypeStep;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.collect.Maps;

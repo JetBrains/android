@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw;
 
+import com.android.tools.idea.npw.deprecated.NewFormFactorModulePath;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import org.jetbrains.android.AndroidTestCase;
 

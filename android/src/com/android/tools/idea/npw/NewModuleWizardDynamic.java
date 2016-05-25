@@ -19,7 +19,9 @@ import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.npw.deprecated.ChooseModuleTypeStep;
 import com.android.tools.idea.npw.deprecated.ConfigureAndroidProjectPath;
+import com.android.tools.idea.npw.deprecated.NewFormFactorModulePath;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.wizard.WizardConstants;
@@ -112,7 +114,8 @@ public class NewModuleWizardDynamic extends DynamicWizard {
   }
 
   @NotNull
-  protected static WizardStepHeaderSettings buildHeader() {
+  // TODO: Used to be protected, try to keep protected / private when code is converted over to the new system
+  public static WizardStepHeaderSettings buildHeader() {
     return WizardStepHeaderSettings.createProductHeader("New Module");
   }
 
