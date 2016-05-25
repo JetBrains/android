@@ -32,10 +32,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.text.JTextComponent;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
+import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -83,9 +82,6 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
     myPanel.add(myCombo, BorderLayout.CENTER);
     if (context != null) {
       myPanel.add(new BrowsePanel(context, true), BorderLayout.LINE_END);
-      myCombo.registerKeyboardAction(event -> displayResourcePicker(),
-                                     KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.ALT_MASK),
-                                     JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
     }
 
     myCombo.addActionListener(this::comboValuePicked);
@@ -105,6 +101,20 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
             myForeground = DEFAULT_VALUE_TEXT_COLOR;
           }
           append(value.toString());
+        }
+      }
+    });
+    myCombo.getEditor().getEditorComponent().addFocusListener(new FocusAdapter() {
+      @Override
+      public void focusGained(FocusEvent e) {
+        myCombo.getEditor().selectAll();
+      }
+
+      @Override
+      public void focusLost(FocusEvent e) {
+        ComboBoxEditor editor = myCombo.getEditor();
+        if (editor instanceof JTextComponent) {
+          ((JTextComponent)editor).select(Integer.MAX_VALUE, Integer.MAX_VALUE);
         }
       }
     });

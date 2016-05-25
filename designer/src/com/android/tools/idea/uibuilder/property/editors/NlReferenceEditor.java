@@ -48,7 +48,6 @@ import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import sun.awt.CausedFocusEvent;
 
 import javax.swing.*;
 import java.awt.*;
@@ -135,12 +134,8 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
         updateSliderVisibility();
       }
     });
-
     myTextFieldWithAutoCompletion.registerKeyboardAction(event -> stopEditing(getText()),
                                                          KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0),
-                                                         JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-    myTextFieldWithAutoCompletion.registerKeyboardAction(event -> displayResourcePicker(),
-                                                         KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.ALT_MASK),
                                                          JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 
     myTextFieldWithAutoCompletion.addFocusListener(new FocusAdapter() {
@@ -168,13 +163,10 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
 
   private static void selectTextOnFocusGain(@NotNull FocusEvent focusEvent) {
     Object source = focusEvent.getSource();
-    if (source instanceof EditorComponentImpl && focusEvent instanceof CausedFocusEvent) {
-      CausedFocusEvent causedFocusEvent = (CausedFocusEvent)focusEvent;
+    if (source instanceof EditorComponentImpl) {
       EditorComponentImpl editorComponent = (EditorComponentImpl)source;
-      if (causedFocusEvent.getCause() == CausedFocusEvent.Cause.ACTIVATION) {
-        Editor editor = editorComponent.getEditor();
-        editor.getSelectionModel().setSelection(0, editor.getDocument().getTextLength());
-      }
+      Editor editor = editorComponent.getEditor();
+      editor.getSelectionModel().setSelection(0, editor.getDocument().getTextLength());
     }
   }
 
@@ -345,6 +337,10 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
 
   @Override
   protected void stopEditing(@Nullable Object newValue) {
+    Editor editor = myTextFieldWithAutoCompletion.getEditor();
+    if (editor != null) {
+      editor.getSelectionModel().removeSelection();
+    }
     if (!Objects.equals(newValue, myLastWriteValue)) {
       myLastWriteValue = newValue;
       myLastReadValue = null;
