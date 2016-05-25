@@ -21,7 +21,7 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.android.tools.idea.sdk.IdeSdks.shouldUseEmbeddedJdk;
+import static com.android.tools.idea.sdk.IdeSdks.setUseEmbeddedJdk;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 
 public class UseEmbeddedJdkHyperlink extends NotificationHyperlink {
@@ -40,7 +40,7 @@ public class UseEmbeddedJdkHyperlink extends NotificationHyperlink {
   @Override
   protected void execute(@NotNull Project project) {
     ApplicationManager.getApplication().runWriteAction(() -> {
-      shouldUseEmbeddedJdk(true);
+      setUseEmbeddedJdk();
     });
     GradleProjectImporter.getInstance().requestProjectSync(project, null);
   }
