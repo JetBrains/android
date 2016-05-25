@@ -65,7 +65,7 @@ public class ValueWithDisplayString {
     }
     String display = property.resolveValue(value);
     if (property.getName().equals(SdkConstants.ATTR_TEXT_APPEARANCE)) {
-      ValueWithDisplayString attr = createTextAppearanceValue(display, "");
+      ValueWithDisplayString attr = createTextAppearanceValue(display, "", value);
       if (attr != null) {
         return attr;
       }
@@ -73,8 +73,10 @@ public class ValueWithDisplayString {
     return new ValueWithDisplayString(display, value);
   }
 
-  public static ValueWithDisplayString createTextAppearanceValue(@NotNull String value, @NotNull String defaultPrefix) {
-    Matcher matcher = TEXT_APPEARANCE_PATTERN.matcher(value);
+  public static ValueWithDisplayString createTextAppearanceValue(@NotNull String styleName,
+                                                                 @NotNull String defaultPrefix,
+                                                                 @Nullable String value) {
+    Matcher matcher = TEXT_APPEARANCE_PATTERN.matcher(styleName);
     if (!matcher.matches()) {
       return null;
     }
@@ -85,8 +87,10 @@ public class ValueWithDisplayString {
       prefix = "";
     }
     String display = matcher.group(4);
-    String style = prefix + matcher.group(0);
-    return new ValueWithDisplayString(display, style);
+    if (value == null) {
+      value = prefix + matcher.group(0);
+    }
+    return new ValueWithDisplayString(display, value);
   }
 
   public ValueWithDisplayString(@NotNull String display, @Nullable String value) {
