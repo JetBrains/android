@@ -83,6 +83,7 @@ public class AndroidDomUtil {
                            ATTR_LAYOUT_BELOW, ATTR_LAYOUT_ALIGN_BASELINE, ATTR_LAYOUT_ALIGN_LEFT, ATTR_LAYOUT_ALIGN_TOP,
                            ATTR_LAYOUT_ALIGN_RIGHT, ATTR_LAYOUT_ALIGN_BOTTOM, ATTR_LAYOUT_ALIGN_START, ATTR_LAYOUT_ALIGN_END,
                            ATTR_LAYOUT_TO_START_OF, ATTR_LAYOUT_TO_END_OF);
+    addSpecialResourceType(ResourceType.LAYOUT, ATTR_LISTITEM);
   }
 
   private AndroidDomUtil() {
