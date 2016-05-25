@@ -82,7 +82,7 @@ import java.util.regex.Pattern;
 public class DataBindingUtil {
   public static final String BR = "BR";
 
-  private static List<String> VIEW_PACKAGE_ELEMENTS = Arrays.asList(SdkConstants.VIEW, SdkConstants.VIEW_GROUP, SdkConstants.VIEW_STUB,
+  private static List<String> VIEW_PACKAGE_ELEMENTS = Arrays.asList(SdkConstants.VIEW, SdkConstants.VIEW_GROUP,
                                                                     SdkConstants.TEXTURE_VIEW, SdkConstants.SURFACE_VIEW);
 
   private static AtomicLong ourDataBindingEnabledModificationCount = new AtomicLong(0);
@@ -150,6 +150,8 @@ public class DataBindingUtil {
         return getViewClassNameFromMerge(tag, facet);
       } else if (SdkConstants.VIEW_INCLUDE.equals(elementName)) {
         return getViewClassNameFromInclude(tag, facet);
+      } else if (SdkConstants.VIEW_STUB.equals(elementName)) {
+        return SdkConstants.DATA_BINDING_VIEW_STUB_PROXY;
       }
       return SdkConstants.WIDGET_PKG_PREFIX + elementName;
     } else {
