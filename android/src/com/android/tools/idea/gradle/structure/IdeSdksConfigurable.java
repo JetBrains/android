@@ -249,8 +249,10 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
       saveAndroidNdkPath();
 
       boolean useEmbeddedJdk = useEmbeddedJdk();
-      shouldUseEmbeddedJdk(useEmbeddedJdk);
-      if (!useEmbeddedJdk) {
+      if (useEmbeddedJdk) {
+        setUseEmbeddedJdk();
+      }
+      else {
         setJdkPath(getUserSelectedJdkLocation());
       }
 
