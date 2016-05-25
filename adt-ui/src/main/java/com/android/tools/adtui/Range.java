@@ -23,6 +23,8 @@ public class Range implements Animatable {
 
   private boolean mLock;
 
+  private double mInitMax;
+
   private double mTargetMin;
 
   private double mTargetMax;
@@ -40,7 +42,7 @@ public class Range implements Animatable {
     // That doesn't sound right, so we should come up with a way to either use a better naming than min/max or make sure that
     // the invariant min <= max is always kept.
     mCurrentMin = mTargetMin = min;
-    mCurrentMax = mTargetMax = max;
+    mInitMax = mCurrentMax = mTargetMax = max;
     mLerpFraction = DEFAULT_LERP_FRACTION;
     mLerpThreshold = DEFAULT_LERP_THRESHOLD;
   }
@@ -175,6 +177,14 @@ public class Range implements Animatable {
 
   public double getTargetLength() {
     return mTargetMax - mTargetMin;
+  }
+
+  public double getInitialMax() {
+    return mInitMax;
+  }
+
+  public double getMaxTarget() {
+    return mTargetMax;
   }
 
   /**

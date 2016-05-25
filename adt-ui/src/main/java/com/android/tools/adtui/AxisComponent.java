@@ -99,6 +99,11 @@ public final class AxisComponent extends AnimatedComponent {
   private boolean mShowMinMax;
 
   /**
+   * Clamp the Range's max to the next major tick interval.
+   */
+  private boolean mClampToMajorTicks;
+
+  /**
    * Axis formatter.
    */
   @NotNull
@@ -140,6 +145,12 @@ public final class AxisComponent extends AnimatedComponent {
   private float mMinorScale;
 
   /**
+   * Calculated - Number of major ticks that will be rendered based on the target range.
+   * This value is used by a child axis to sync its major tick spacing with its parent.
+   */
+  private float mMajorNumTicksTarget;
+
+  /**
    * Calculated - Value of first major marker.
    */
   private double mFirstMarkerValue;
@@ -155,6 +166,7 @@ public final class AxisComponent extends AnimatedComponent {
   private final TFloatArrayList mMinorMarkerPositions;
 
   /**
+   * TODO consider replacing this constructor with a builder pattern.
    * @param range       A Range object this AxisComponent listens to for the min/max values.
    * @param globalRange The global min/max range.
    * @param label       The label/name of the axis.
@@ -197,6 +209,10 @@ public final class AxisComponent extends AnimatedComponent {
     }
     mLabel.setFont(AdtUIUtils.DEFAULT_FONT);
 
+  }
+
+  public void setClampToMajorTicks(boolean clamp) {
+    mClampToMajorTicks = clamp;
   }
 
   /**
@@ -277,22 +293,43 @@ public final class AxisComponent extends AnimatedComponent {
 
   @Override
   protected void updateData() {
+    double maxTarget = mRange.getMaxTarget();
+    double rangeTarget = mRange.getTargetLength();
+    double clampedMaxTarget;
+
+    // During the animate/updateData phase, the axis updates the range's max to a new target based on whether:
+    // 1. mClampToMajorTicks is enabled
+    //    - This would increase the max to an integral multiplier of the major interval.
+    // 2. The axis has a parent axis
+    //    - This would use the parent axis's major num ticks to calculate its own major interval that would fit rangeTarget while
+    //      matching the tick spacing of the parent axis.
+    // TODO Handle non-zero min offsets. Currently these features are used only for y axes and a non-zero use case does not exist yet.
+    if (mParentAxis == null) {
+      int majorInterval = mFormatter.getMajorInterval(rangeTarget);
+      mMajorNumTicksTarget = mClampToMajorTicks ? (float)Math.ceil(maxTarget / majorInterval) : (float)(maxTarget / majorInterval);
+      clampedMaxTarget = mMajorNumTicksTarget * majorInterval;
+    } else {
+      int majorInterval = mFormatter.getInterval(rangeTarget, (int)Math.floor(mParentAxis.mMajorNumTicksTarget));
+      clampedMaxTarget = mParentAxis.mMajorNumTicksTarget * majorInterval;
+    }
+
+    mRange.setMaxTarget(clampedMaxTarget);
+  }
+
+  @Override
+  public void postAnimate() {
     mMajorMarkerPositions.reset();
     mMinorMarkerPositions.reset();
     mCurrentMinValue = mRange.getMin();
     mCurrentMaxValue = mRange.getMax();
-
     double range = mRange.getLength();
-    if (mParentAxis != null) {
-      mMajorScale = mMinorScale = mParentAxis.mMajorScale;
-      mMajorInterval = mMinorInterval = (float)range * mMajorScale;
-    }
-    else {
-      mMajorInterval = mFormatter.getMajorInterval(range);
-      mMajorScale = (float)(mMajorInterval / range);
-      mMinorInterval = mFormatter.getMinorInterval(mMajorInterval);
-      mMinorScale = (float)(mMinorInterval / range);
-    }
+
+    // During the postAnimate phase, use the interpoalted min/max/range values to calculate the current major and minor intervals that
+    // should be used. Based on the interval values, cache the normalized marker positions which will be used during the draw call.
+    mMajorInterval = mFormatter.getMajorInterval(range);
+    mMinorInterval = mFormatter.getMinorInterval(mMajorInterval);
+    mMajorScale = (float)(mMajorInterval / range);
+    mMinorScale = (float)(mMinorInterval / range);
 
     // Calculate the value and offset of the first major marker
     mFirstMarkerValue = Math.floor(mCurrentMinValue / mMajorInterval) * mMajorInterval;
