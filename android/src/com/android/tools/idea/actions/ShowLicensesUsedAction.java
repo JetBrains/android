@@ -26,6 +26,7 @@ import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.PathUtil;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -96,7 +97,7 @@ public class ShowLicensesUsedAction extends DumbAwareAction {
 
       String text = "<html>" + sb.toString() + "</html>";
       JTextPane label = new JTextPane();
-      label.setContentType("text/html");
+      label.setContentType(UIUtil.HTML_MIME);
       label.setText(text);
       JBScrollPane pane = new JBScrollPane(label);
 

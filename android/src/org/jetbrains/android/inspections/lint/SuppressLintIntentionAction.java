@@ -54,7 +54,7 @@ public class SuppressLintIntentionAction implements IntentionAction, Iconable {
   private final String myId;
   private final PsiElement myElement;
 
-  SuppressLintIntentionAction(String id, PsiElement element) {
+  public SuppressLintIntentionAction(String id, PsiElement element) {
     myId = id;
     myElement = element;
   }

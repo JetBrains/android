@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.editor;
 
 import com.android.tools.idea.configurations.*;
+import com.android.tools.idea.uibuilder.actions.LintNotificationAction;
 import com.android.tools.idea.uibuilder.actions.SetZoomAction;
 import com.android.tools.idea.uibuilder.actions.ZoomLabelAction;
 import com.android.tools.idea.uibuilder.model.ModelListener;
@@ -114,6 +115,7 @@ public class NlActionsToolbar implements DesignSurfaceListener, ModelListener {
     group.add(new ZoomLabelAction(surface));
     group.add(new SetZoomAction(surface, ZoomType.IN));
     group.add(new SetZoomAction(surface, ZoomType.FIT));
+    group.add(new LintNotificationAction(surface));
 
     return group;
   }

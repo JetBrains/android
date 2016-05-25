@@ -12,6 +12,7 @@ import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.idea.actions.OverrideResourceAction;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.templates.RepositoryUrlManager;
+import com.android.tools.idea.uibuilder.actions.UpgradeConstraintLayoutFix;
 import com.android.tools.lint.checks.*;
 import com.android.tools.lint.detector.api.Issue;
 import com.google.common.collect.Lists;
@@ -1803,6 +1804,17 @@ public class AndroidLintInspectionToolProvider {
   public static class AndroidLintMissingConstraintsInspection extends AndroidLintInspectionBase {
     public AndroidLintMissingConstraintsInspection() {
       super(AndroidBundle.message("android.lint.inspections.missing.constraints"), ConstraintLayoutDetector.ISSUE);
+    }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
+      if (ConstraintLayoutDetector.isUpgradeDependencyError(message, RAW)) {
+        return new AndroidLintQuickFix[]{new UpgradeConstraintLayoutFix()};
+      }
+      else {
+        return AndroidLintQuickFix.EMPTY_ARRAY;
+      }
     }
   }
 
