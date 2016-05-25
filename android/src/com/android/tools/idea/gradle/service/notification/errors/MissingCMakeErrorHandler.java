@@ -15,14 +15,21 @@
  */
 package com.android.tools.idea.gradle.service.notification.errors;
 
+import com.android.SdkConstants;
+import com.android.annotations.NonNull;
+import com.android.repository.api.ProgressIndicator;
+import com.android.repository.api.RemotePackage;
+import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.project.Project;
+import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -37,21 +44,29 @@ public class MissingCMakeErrorHandler extends AbstractSyncErrorHandler {
                              @NotNull NotificationData notification,
                              @NotNull Project project) {
     String firstLine = message.get(0);
-    if (firstLine.startsWith("Failed to find CMake.")) {
-      List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
-      NotificationHyperlink installCMakeLink = getInstallCMakeNotificationHyperlink();
-      hyperlinks.add(installCMakeLink);
-      updateNotification(notification, project, "Failed to find CMake.", hyperlinks);
-      return true;
+    if (!firstLine.startsWith("Failed to find CMake.")) {
+      return false;
     }
-    return false;
+
+    ProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
+    AndroidSdkHandler sdk = AndroidSdkData.getSdkData(project).getSdkHandler();
+    RemotePackage cmakePackage = sdk.getLatestRemotePackageForPrefix(SdkConstants.FD_CMAKE, false, progress);
+    if (cmakePackage == null) {
+      return false;
+    }
+
+    List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
+    NotificationHyperlink installCMakeLink = getInstallCMakeNotificationHyperlink(cmakePackage.getPath());
+    hyperlinks.add(installCMakeLink);
+    updateNotification(notification, project, "Failed to find CMake.", hyperlinks);
+    return true;
   }
 
-  private static NotificationHyperlink getInstallCMakeNotificationHyperlink() {
+  private static NotificationHyperlink getInstallCMakeNotificationHyperlink(@NonNull String cmakePackagePath) {
     return new NotificationHyperlink("install.cmake", "Install CMake and sync project") {
       @Override
       protected void execute(@NotNull Project project) {
-        ModelWizardDialog dialog = createDialogForPaths(project, ImmutableList.of("cmake"));
+        ModelWizardDialog dialog = createDialogForPaths(project, ImmutableList.of(cmakePackagePath));
         if (dialog != null && dialog.showAndGet()) {
           GradleProjectImporter.getInstance().requestProjectSync(project, null);
         }
