@@ -34,20 +34,24 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.getEmbeddedJdkPath;
+import static com.android.tools.idea.sdk.IdeSdks.isUsingEmbeddedJdk;
+import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil.createAndAddSDK;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
 import static java.util.Collections.emptyList;
 
 /**
  * Utility methods related to IDEA JDKs.
  */
 public class Jdks {
-  @NonNls
-  public static final String DOWNLOAD_JDK_8_URL = "http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html";
+  @NonNls public static final String DOWNLOAD_JDK_8_URL =
+    "http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html";
 
-  private static final LanguageLevel DEFAULT_LANG_LEVEL = LanguageLevel.JDK_1_6;
+  private static final LanguageLevel DEFAULT_LANG_LEVEL = JDK_1_8;
 
   @Nullable
   public static Sdk chooseOrCreateJavaSdk() {
@@ -58,6 +62,11 @@ public class Jdks {
   public static Sdk chooseOrCreateJavaSdk(@Nullable LanguageLevel langLevel) {
     if (langLevel == null) {
       langLevel = DEFAULT_LANG_LEVEL;
+    }
+    if (isAndroidStudio() && !isUsingEmbeddedJdk()) {
+      Sdk jdk = createJdk(getEmbeddedJdkPath().getPath());
+      assert jdk != null && isApplicableJdk(jdk, langLevel);
+      return jdk;
     }
     for (Sdk sdk : ProjectJdkTable.getInstance().getAllJdks()) {
       if (isApplicableJdk(sdk, langLevel)) {
@@ -98,12 +107,12 @@ public class Jdks {
     }
     // prefer jdk path of getJavaHome(), since we have to allow access to it in tests
     // see AndroidProjectDataServiceTest#testImportData()
-    final List<String> list = new ArrayList<>();
+    List<String> list = new ArrayList<>();
     String javaHome = SystemProperties.getJavaHome();
 
     if (javaHome != null && !javaHome.isEmpty()) {
       for (Iterator<String> it = jdkHomePaths.iterator(); it.hasNext(); ) {
-        final String path = it.next();
+        String path = it.next();
 
         if (path != null && javaHome.startsWith(path)) {
           it.remove();
@@ -211,5 +220,15 @@ public class Jdks {
       Logger.getInstance(Jdks.class).error(msg);
     }
     return jdk;
+  }
+
+  @Nullable
+  public static Sdk createEmbeddedJdk() {
+    if (isAndroidStudio()) {
+      Sdk jdk = createJdk(getEmbeddedJdkPath().getPath());
+      assert jdk != null;
+      return jdk;
+    }
+    return null;
   }
 }
