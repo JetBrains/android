@@ -15,28 +15,18 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
-import com.android.tools.idea.npw.ModuleTemplate;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.ui.ASGallery;
+import com.android.tools.idea.tests.gui.framework.fixture.NewModuleDialogFixture;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.fest.swing.core.matcher.DialogMatcher;
-import org.fest.swing.edt.GuiTask;
-import org.fest.swing.fixture.DialogFixture;
-import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.awt.*;
-
-import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickButton;
-import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickButtonWhenEnabled;
 import static com.google.common.truth.Truth.assertThat;
-import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.junit.Assert.*;
 
 /**
@@ -63,14 +53,11 @@ public class NewModuleTest {
     guiTest.ideFrame().requestProjectSync();
     guiTest.ideFrame().waitForGradleProjectSyncToFinish();
 
-    guiTest.ideFrame().invokeMenuPath("File", "New", "New Module...");
-    Dialog dialog = guiTest.robot().finder().find(DialogMatcher.withTitle("Create New Module").andShowing());
-    DialogFixture dialogFixture = new DialogFixture(guiTest.robot(), dialog);
-
-    selectItemInGallery(dialog, 1, "Android Library");
-    findAndClickButton(dialogFixture, "Next");
-    guiTest.waitForBackgroundTasks();
-    findAndClickButtonWhenEnabled(dialogFixture, "Finish");
+    guiTest.ideFrame()
+      .openFromMenu(NewModuleDialogFixture::find, "File", "New", "New Module...")
+      .select("Android Library")
+      .clickNext()
+      .clickFinish();
 
     guiTest.ideFrame().waitForGradleProjectSyncToFinish();
 
@@ -81,20 +68,5 @@ public class NewModuleTest {
     VirtualFile projectDir = guiTest.ideFrame().getProject().getBaseDir();
     assertNotNull(projectDir.findFileByRelativePath("mylibrary/src/main"));
     assertNull(projectDir.findFileByRelativePath("mylibrary/src/test"));
-  }
-
-  private void selectItemInGallery(@NotNull Dialog dialog,
-                                   final int selectedIndex,
-                                   @NotNull final String expectedName) {
-    final ASGallery gallery = guiTest.robot().finder().findByType(dialog, ASGallery.class);
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        gallery.setSelectedIndex(selectedIndex);
-        ModuleTemplate selected = (ModuleTemplate)gallery.getSelectedElement();
-        assertNotNull(selected);
-        assertEquals(expectedName, selected.getName());
-      }
-    });
   }
 }
