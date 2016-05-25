@@ -70,22 +70,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModel
 
     TextProperty packageNameText = new TextProperty(myPackageName);
 
-    Expression<String> computedPackageName = new Expression<String>(model.companyDomain(), model.applicationName()) {
-      @NotNull
-      @Override
-      public String get() {
-        final List<String> list = new ArrayList<>();
-        Splitter.on('.').split(model.companyDomain().get()).forEach(list::add);
-        Collections.reverse(list);
-        list.add(model.applicationName().get());
-
-        return list.stream()
-          .map(NewProjectModel::toPackagePart)
-          .filter(s -> !s.isEmpty())
-          .collect(Collectors.joining(""));
-      }
-    };
-
+    Expression<String> computedPackageName = new DomainToPackageExpression(model.companyDomain(), model.applicationName());
     BoolProperty isPackageSynced = new BoolValueProperty(true);
     myBindings.bind(packageNameText, computedPackageName, isPackageSynced);
     myBindings.bind(model.packageName(), packageNameText);
@@ -176,7 +161,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModel
     File parentPath = currentPath.getParentFile();
     if (parentPath == null) {
       String homePath = System.getProperty("user.home");
-      parentPath = new File(homePath == null ? "/" : homePath);
+      parentPath = new File(homePath == null ? File.separator : homePath);
     }
     VirtualFile parent = LocalFileSystem.getInstance().findFileByIoFile(parentPath);
 
