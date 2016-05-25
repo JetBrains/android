@@ -190,6 +190,7 @@ public class TextInspectorProvider implements InspectorProvider {
       myDescriptionEditor.setProperty(myDescription);
       myStyleEditor.setProperty(myStyle);
       myFontFamilyEditor.setProperty(myFontFamily);
+      myTypefaceEditor.setProperty(myTypeface);
       myFontSizeEditor.setProperty(myFontSize);
       mySpacingEditor.setProperty(mySpacing);
       myBoldEditor.setProperty(myTextStyle.getChildProperty(TextStyle.VALUE_BOLD));
