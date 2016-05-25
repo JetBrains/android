@@ -81,6 +81,7 @@ public class CPUProfilerVisualTest extends VisualTest {
   protected void registerComponents(List<AnimatedComponent> components) {
     mCPULevel1Segment.registerComponents(components);
     mCPULevel2Segment.registerComponents(components);
+    mThreadsSegment.registerComponents(components);
   }
 
   @Override
