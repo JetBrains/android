@@ -546,6 +546,10 @@ public class IntellijLintClient extends LintClient implements Disposable {
         public String compute() {
           final Module module = myState.getModule();
           final Project project = module.getProject();
+          if (project.isDisposed()) {
+            return null;
+          }
+
           final PsiFile psiFile = PsiManager.getInstance(project).findFile(vFile);
 
           if (psiFile == null) {
