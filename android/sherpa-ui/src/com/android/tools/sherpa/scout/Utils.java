@@ -46,8 +46,9 @@ public class Utils {
      *
      * @param array
      * @param result the index of the maximum filled by the function
+     * @return the value of the maximum probabilities
      */
-    static void max(float[][] array, int[] result) {
+    static float max(float[][] array, int[] result) {
         int max1 = 0;
         int max2 = 0;
         float val = array[max1][max2];
@@ -62,6 +63,7 @@ public class Utils {
         }
         result[0] = max1;
         result[1] = max2;
+        return val;
     }
 
     /**
