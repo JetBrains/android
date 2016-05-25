@@ -47,7 +47,7 @@ import static com.android.tools.idea.templates.TemplateMetadata.*;
 /**
  * ChooseTemplateStep is a wizard page that shows the user a list of templates of a given type and lets the user choose one.
  *
- * Deprecated. Use {@link TemplateGalleryStep} instead.
+ * Deprecated. Needs porting to Model Wizard framework
  */
 @Deprecated
 public class ChooseTemplateStep extends TemplateWizardStep implements ListSelectionListener {
