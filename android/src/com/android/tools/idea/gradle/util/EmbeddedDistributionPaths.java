@@ -54,7 +54,8 @@ public class EmbeddedDistributionPaths {
       if (!repoPath.isDirectory()) {
         throw new IllegalArgumentException("Invalid path in STUDIO_CUSTOM_REPO environment variable");
       }
-    } else {
+    }
+    else {
       String relativePath = toSystemDependentName("/../../prebuilts/tools/common/offline-m2");
       repoPath = new File(toCanonicalPath(getIdeHomePath() + relativePath));
     }

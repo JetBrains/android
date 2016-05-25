@@ -16,18 +16,11 @@
 
 package com.android.tools.idea;
 
-import com.google.common.base.Joiner;
-import com.intellij.ide.impl.NewProjectUtil;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
-import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,27 +28,23 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.intellij.openapi.projectRoots.JdkUtil.checkForJdk;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 public class AndroidTestCaseHelper {
-  @NotNull
-  public static Sdk createAndSetJdk(@NotNull final Project project) {
-    String[] names = {"JAVA6_HOME", "JAVA_HOME"};
-    String jdkHomePath = AndroidTestCaseHelper.getSystemPropertyOrEnvironmentVariable(names);
-    assertNotNull("Please set one of the following env vars (or system properties) to point to the JDK: " + Joiner.on(",").join(names),
-                  jdkHomePath);
-    final Sdk jdk = SdkConfigurationUtil.createAndAddSDK(jdkHomePath, JavaSdk.getInstance());
-    assertNotNull(jdk);
+  /**
+   * Environment variable pointing to the JDK to be used for tests
+   */
+  public static final String JDK_HOME_FOR_TESTS = "JDK_HOME_FOR_TESTS";
 
-    ExternalSystemApiUtil.executeProjectChangeAction(true, new DisposeAwareProjectChange(project) {
-      @Override
-      public void execute() {
-        NewProjectUtil.applyJdkToProject(project, jdk);
-      }
-    });
-    return jdk;
+  @NotNull
+  public static File getJdkPath() {
+    String jdkHome = getSystemPropertyOrEnvironmentVariable(JDK_HOME_FOR_TESTS);
+    if (isNullOrEmpty(jdkHome) || !checkForJdk(jdkHome)) {
+      fail("Please specify the path to a valid JDK using system property or environment variable " + JDK_HOME_FOR_TESTS);
+    }
+    return new File(jdkHome);
   }
 
   @NotNull
@@ -88,21 +77,13 @@ public class AndroidTestCaseHelper {
   }
 
   public static void removeExistingAndroidSdks() {
-    final ProjectJdkTable table = ProjectJdkTable.getInstance();
-    invokeAndWaitIfNeeded(new Runnable() {
-      @Override
-      public void run() {
-        ApplicationManager.getApplication().runWriteAction(new Runnable() {
-          @Override
-          public void run() {
-            for (Sdk sdk : table.getAllJdks()) {
-              table.removeJdk(sdk);
-            }
-            PropertiesComponent component = PropertiesComponent.getInstance(ProjectManager.getInstance().getDefaultProject());
-            component.setValue("android.sdk.path", null);
-          }
-        });
+    ProjectJdkTable table = ProjectJdkTable.getInstance();
+    invokeAndWaitIfNeeded((Runnable)() -> ApplicationManager.getApplication().runWriteAction(() -> {
+      for (Sdk sdk : table.getAllJdks()) {
+        table.removeJdk(sdk);
       }
-    });
+      PropertiesComponent component = PropertiesComponent.getInstance(ProjectManager.getInstance().getDefaultProject());
+      component.setValue("android.sdk.path", null);
+    }));
   }
 }
