@@ -19,6 +19,7 @@ import com.android.builder.model.AndroidProject;
 import com.android.ide.common.blame.Message;
 import com.android.ide.common.blame.SourceFile;
 import com.android.ide.common.blame.SourceFilePosition;
+import com.android.ide.common.blame.SourcePosition;
 import com.android.ide.common.blame.parser.PatternAwareOutputParser;
 import com.android.tools.idea.gradle.GradleModel;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
@@ -158,7 +159,7 @@ public class GradleTasksExecutor extends Task.Backgroundable {
 
   @NotNull private final GradleTaskExecutionContext myContext;
 
-  @GuardedBy("myErrorTreeView")
+  @GuardedBy("myMessageViewLock")
   @Nullable private GradleBuildTreeViewPanel myErrorTreeView;
 
   @NotNull private final GradleExecutionHelper myHelper = new GradleExecutionHelper();
@@ -618,12 +619,14 @@ public class GradleTasksExecutor extends Task.Backgroundable {
         LinkAwareMessageData messageData = prepareMessage(message);
         if (navigatable == null) {
           VirtualFile file = findFileFrom(message);
-          myErrorTreeView.addMessage(type,
-                                     messageData.textLines,
-                                     file,
-                                     message.getLineNumber() - 1,
-                                     message.getColumn() - 1,
-                                     messageData.hyperlinkListener);
+
+          List<SourceFilePosition> sourceFilePositions = message.getSourceFilePositions();
+          assert !sourceFilePositions.isEmpty();
+          SourcePosition position = sourceFilePositions.get(0).getPosition();
+          int line = position.getStartLine();
+          int column = position.getStartColumn();
+
+          myErrorTreeView.addMessage(type, messageData.textLines, file, line, column, messageData.hyperlinkListener);
         }
         else {
           myErrorTreeView.addMessage(type, messageData.textLines, null, navigatable, null, null, messageData.hyperlinkListener);
