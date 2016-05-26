@@ -21,6 +21,7 @@ import com.intellij.facet.ui.FacetEditorTab;
 import com.intellij.facet.ui.FacetValidatorsManager;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.WriteExternalException;
+import com.intellij.util.containers.HashMap;
 import com.intellij.util.xmlb.XmlSerializer;
 import org.jdom.Element;
 import org.jetbrains.annotations.NonNls;
@@ -28,10 +29,12 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class AndroidApkFacetConfiguration implements FacetConfiguration {
   @NonNls public String APK_PATH;
   @NonNls public List<String> SYMBOL_PATHS = new ArrayList<>();
+  public Map<String, String> SOURCE_MAP = new HashMap<>();
 
   @Override
   public FacetEditorTab[] createEditorTabs(FacetEditorContext editorContext, FacetValidatorsManager validatorsManager) {
