@@ -31,10 +31,22 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Set;
 
+import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope.STEP;
+import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
+
 /**
  * Step for configuring native (C++) related parameters in new project wizard
  */
 public class ConfigureCppSupportStep extends DynamicWizardStepWithDescription {
+  private static final ScopedStateStore.Key<CppStandardType> KEY_STANDARD_TYPE = createKey("cppStandard", STEP, CppStandardType.class);
+  private static final ScopedStateStore.Key<Boolean> KEY_ENABLE_EXCEPTIONS = createKey("cppEnableExceptions", STEP, Boolean.class);
+  private static final ScopedStateStore.Key<Boolean> KEY_ENABLE_RTTI = createKey("cppEnableRtti", STEP, Boolean.class);
+  private static final ScopedStateStore.Key<RuntimeLibraryType> KEY_RUNTIME_LIBRARY_TYPE =
+    createKey("cppRuntimeLibrary", STEP, RuntimeLibraryType.class);
+  private static final ScopedStateStore.Key<String> KEY_RUNTIME_LIBRARY_TYPE_STRING =
+    createKey("cppRuntimeLibraryString", STEP, String.class);
+
+
   private JPanel myPanel;
   private JComboBox<CppStandardType> myCppStandardCombo;
   private JCheckBox myExceptionSupportCheck;
@@ -60,27 +72,27 @@ public class ConfigureCppSupportStep extends DynamicWizardStepWithDescription {
     myCppStandardCombo.setModel(new CollectionComboBoxModel<>(Arrays.asList(CppStandardType.values())));
 
     // Connect widgets to wizard keys
-    register(WizardConstants.CPP_RUNTIME_LIBRARY_TYPE_KEY, myRuntimeLibraryCombo);
-    register(WizardConstants.CPP_STANDARD_TYPE_KEY, myCppStandardCombo);
-    register(WizardConstants.CPP_ENABLE_EXCEPTIONS_KEY, myExceptionSupportCheck);
-    register(WizardConstants.CPP_ENABLE_RTTI_KEY, myRttiSupportCheck);
+    register(KEY_RUNTIME_LIBRARY_TYPE, myRuntimeLibraryCombo);
+    register(KEY_STANDARD_TYPE, myCppStandardCombo);
+    register(KEY_ENABLE_EXCEPTIONS, myExceptionSupportCheck);
+    register(KEY_ENABLE_RTTI, myRttiSupportCheck);
 
     // Put default values for selected C++ stardard version and runtime library type
-    myState.put(WizardConstants.CPP_RUNTIME_LIBRARY_TYPE_KEY, RuntimeLibraryType.GABIXX);
-    myState.put(WizardConstants.CPP_STANDARD_TYPE_KEY, CppStandardType.DEFAULT);
+    myState.put(KEY_RUNTIME_LIBRARY_TYPE, RuntimeLibraryType.GABIXX);
+    myState.put(KEY_STANDARD_TYPE, CppStandardType.DEFAULT);
 
     // Convert runtime library type enum to string for consumption inside Freemarker templates
-    registerValueDeriver(WizardConstants.CPP_RUNTIME_LIBRARY_TYPE_STRING_KEY, new ValueDeriver<String>() {
+    registerValueDeriver(KEY_RUNTIME_LIBRARY_TYPE_STRING, new ValueDeriver<String>() {
       @Nullable
       @Override
       public Set<ScopedStateStore.Key<?>> getTriggerKeys() {
-        return makeSetOf(WizardConstants.CPP_RUNTIME_LIBRARY_TYPE_KEY);
+        return makeSetOf(KEY_RUNTIME_LIBRARY_TYPE);
       }
 
       @Nullable
       @Override
       public String deriveValue(@NotNull ScopedStateStore state, @Nullable ScopedStateStore.Key changedKey, @Nullable String currentValue) {
-        final RuntimeLibraryType type = state.get(WizardConstants.CPP_RUNTIME_LIBRARY_TYPE_KEY);
+        final RuntimeLibraryType type = state.get(KEY_RUNTIME_LIBRARY_TYPE);
         return type == null ? null : type.getGradleName();
       }
     });
@@ -90,16 +102,16 @@ public class ConfigureCppSupportStep extends DynamicWizardStepWithDescription {
       @Nullable
       @Override
       public Set<ScopedStateStore.Key<?>> getTriggerKeys() {
-        return makeSetOf(WizardConstants.CPP_STANDARD_TYPE_KEY, WizardConstants.CPP_ENABLE_EXCEPTIONS_KEY, WizardConstants.CPP_ENABLE_RTTI_KEY);
+        return makeSetOf(KEY_STANDARD_TYPE, KEY_ENABLE_EXCEPTIONS, KEY_ENABLE_RTTI);
       }
 
       @Nullable
       @Override
       public String deriveValue(@NotNull ScopedStateStore state, @Nullable ScopedStateStore.Key changedKey, @Nullable String currentValue) {
         final ArrayList<Object> flags = new ArrayList<>();
-        flags.add(state.getNotNull(WizardConstants.CPP_STANDARD_TYPE_KEY, CppStandardType.DEFAULT).getCompilerFlag());
-        flags.add(state.getNotNull(WizardConstants.CPP_ENABLE_RTTI_KEY, false) ? "-frtti" : null);
-        flags.add(state.getNotNull(WizardConstants.CPP_ENABLE_EXCEPTIONS_KEY, false) ? "-fexceptions" : null);
+        flags.add(state.getNotNull(KEY_STANDARD_TYPE, CppStandardType.DEFAULT).getCompilerFlag());
+        flags.add(state.getNotNull(KEY_ENABLE_RTTI, false) ? "-frtti" : null);
+        flags.add(state.getNotNull(KEY_ENABLE_EXCEPTIONS, false) ? "-fexceptions" : null);
         return Joiner.on(' ').skipNulls().join(flags);
       }
     });
