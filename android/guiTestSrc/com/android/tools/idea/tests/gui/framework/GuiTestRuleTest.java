@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
+import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
 import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
 import com.intellij.util.ui.UIUtil;
@@ -53,6 +54,12 @@ public class GuiTestRuleTest {
   private final GuiTestRule guiTest = new GuiTestRule().withLeakCheck();
 
   @Rule public final RuleChain ruleChain = RuleChain.outerRule(guiTestVerifier).around(exception).around(guiTest);
+
+  @Test
+  public void makeSimpleApplication() throws Exception {
+    GradleInvocationResult result = guiTest.importSimpleApplication().invokeProjectMake();
+    assertThat(result.isBuildSuccessful()).named("Gradle build successful").isTrue();
+  }
 
   @Test
   public void createNewProjectDialogLeftShowing() throws Exception {
