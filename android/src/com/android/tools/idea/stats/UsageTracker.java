@@ -146,6 +146,7 @@ public abstract class UsageTracker {
   public static final String ACTION_LLDB_INSTALL_STARTED = "installStarted";
   public static final String ACTION_LLDB_INSTALL_FAILED = "installFailed";
   public static final String ACTION_LLDB_SESSION_USED_WATCHPOINTS = "sessionUsedWatchpoints";
+  public static final String ACTION_LLDB_FRONTEND_EXITED = "frontendExited";
 
   @SuppressWarnings("unused") // literal value used in AnalyticsUploader.trackException (under tools/idea)
   public static final String CATEGORY_THROWABLE_DETAIL_MESSAGE = "Throwable.detailMessage";
