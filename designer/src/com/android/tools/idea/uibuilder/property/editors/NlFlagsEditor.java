@@ -17,6 +17,9 @@ package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.tools.idea.uibuilder.property.NlFlagPropertyItem;
 import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.intellij.icons.AllIcons;
+import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.FixedSizeButton;
 import com.intellij.ui.UIBundle;
@@ -51,8 +54,11 @@ public class NlFlagsEditor extends NlBaseComponentEditor implements NlComponentE
 
   private NlFlagsEditor() {
     super(DEFAULT_LISTENER);
-    FixedSizeButton browseButton = new FixedSizeButton(new JBCheckBox());
-    browseButton.setToolTipText(UIBundle.message("component.with.browse.button.browse.button.tooltip.text"));
+    AnAction action = createDisplayFlagEditorAction();
+    ActionButton button = new ActionButton(action,
+                                           action.getTemplatePresentation().clone(),
+                                           ActionPlaces.UNKNOWN,
+                                           ActionToolbar.NAVBAR_MINIMUM_BUTTON_SIZE);
     myValue = new JTextField();
     myValue.setEditable(false);
     JPanel panel = new JPanel(new BorderLayout());
@@ -60,8 +66,7 @@ public class NlFlagsEditor extends NlBaseComponentEditor implements NlComponentE
     panel.add(myValue, BorderLayout.CENTER);
     myPanel = new JPanel(new BorderLayout());
     myPanel.add(panel, BorderLayout.CENTER);
-    myPanel.add(browseButton, BorderLayout.LINE_END);
-    browseButton.addActionListener(event -> displayFlagEditor());
+    myPanel.add(button, BorderLayout.LINE_END);
     myValue.addActionListener(event -> displayFlagEditor());
     myValue.addMouseListener(new MouseAdapter() {
       @Override
@@ -88,6 +93,32 @@ public class NlFlagsEditor extends NlBaseComponentEditor implements NlComponentE
     assert property instanceof NlFlagPropertyItem;
     myProperty = (NlFlagPropertyItem)property;
     myValue.setText(property.getValue());
+  }
+
+  private AnAction createDisplayFlagEditorAction() {
+    return new AnAction() {
+      @Override
+      public void update(AnActionEvent event) {
+        Presentation presentation = event.getPresentation();
+        if (myProperty != null) {
+          presentation.setIcon(AllIcons.General.Ellipsis);
+          presentation.setText("Click to edit");
+          presentation.setVisible(true);
+          presentation.setEnabled(true);
+        }
+        else {
+          presentation.setIcon(null);
+          presentation.setText(null);
+          presentation.setVisible(false);
+          presentation.setEnabled(false);
+        }
+      }
+
+      @Override
+      public void actionPerformed(AnActionEvent event) {
+        displayFlagEditor();
+      }
+    };
   }
 
   private void displayFlagEditor() {

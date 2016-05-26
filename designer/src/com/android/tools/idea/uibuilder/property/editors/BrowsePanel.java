@@ -77,7 +77,7 @@ public class BrowsePanel extends JPanel {
     return new ActionButton(action,
                             action.getTemplatePresentation().clone(),
                             ActionPlaces.UNKNOWN,
-                            ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE);
+                            ActionToolbar.NAVBAR_MINIMUM_BUTTON_SIZE);
   }
 
   private AnAction createBrowseAction() {
@@ -88,7 +88,7 @@ public class BrowsePanel extends JPanel {
         NlProperty property = myContext.getProperty();
         if (property != null && hasResourceChooser(property)) {
           presentation.setIcon(AllIcons.General.Ellipsis);
-          presentation.setText(UIBundle.message("component.with.browse.button.browse.button.tooltip.text"));
+          presentation.setText("Click to pick a resource");
           presentation.setVisible(true);
           presentation.setEnabled(true);
         }
