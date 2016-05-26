@@ -29,6 +29,7 @@ import com.android.tools.sherpa.scout.Scout;
 import com.android.tools.sherpa.structure.Selection;
 import com.android.tools.sherpa.structure.WidgetsScene;
 import android.support.constraint.solver.widgets.ConstraintAnchor;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
@@ -49,6 +50,7 @@ import static com.android.SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT;
  */
 public class ConstraintLayoutHandler extends ViewGroupHandler {
 
+  private static final String PREFRENCE_HEADER = "ConstraintLayoutPreference";
   private boolean myShowAllConstraints = true;
 
   ArrayList<ViewAction> myActions = new ArrayList<>();
@@ -438,6 +440,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
   }
 
   private static class ToggleAutoConnectAction extends ToggleViewAction implements Enableable {
+    public static final String sAutoConnect = "Autoconnect";
 
     public ToggleAutoConnectAction() {
       super(AndroidIcons.SherpaIcons.AutoConnectOff, AndroidIcons.SherpaIcons.AutoConnect, "Turn on Autoconnect", "Turn off Autoconnect");
@@ -469,6 +472,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       ConstraintModel model = ConstraintModel.getConstraintModel(editor.getModel());
       if (model != null) {
         model.setAutoConnect(selected);
+        PropertiesComponent.getInstance().setValue(PREFRENCE_HEADER + sAutoConnect, selected);
       }
     }
 
@@ -484,6 +488,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       if (model != null) {
         presentation.setIcon(model.isAutoConnect() ? AndroidIcons.SherpaIcons.AutoConnect : AndroidIcons.SherpaIcons.AutoConnectOff);
       }
+      boolean sel = PropertiesComponent.getInstance().getBoolean(PREFRENCE_HEADER + sAutoConnect, true);
+      model.setAutoConnect(sel);
     }
 
     @Override
@@ -588,11 +594,12 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
   }
 
   private class ToggleConstraintModeAction extends ToggleViewAction {
+    private final String sShowAllConstraints = "ShowAllConstraints";
 
     public ToggleConstraintModeAction() {
       super(AndroidIcons.SherpaIcons.Unhide, AndroidIcons.SherpaIcons.Hide, "Show constraints",
             "Show No constraints");
-
+      myShowAllConstraints = PropertiesComponent.getInstance().getBoolean(PREFRENCE_HEADER + sShowAllConstraints, myShowAllConstraints);
     }
 
     @Override
@@ -610,6 +617,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                             @NotNull List<NlComponent> selectedChildren,
                             boolean selected) {
       myShowAllConstraints = selected;
+      PropertiesComponent.getInstance().setValue(PREFRENCE_HEADER + sShowAllConstraints, myShowAllConstraints);
     }
 
     @Override
@@ -687,9 +695,12 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
         guideline.ensureId();
         guideline.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_GUIDELINE_RELATIVE_BEGIN, "20dp");
         if (myType == HORIZONTAL_GUIDELINE) {
-          guideline.setAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_ORIENTATION, SdkConstants.ATTR_GUIDELINE_ORIENTATION_HORIZONTAL);
-        } else {
-          guideline.setAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_ORIENTATION, SdkConstants.ATTR_GUIDELINE_ORIENTATION_VERTICAL);
+          guideline.setAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_ORIENTATION,
+                                 SdkConstants.ATTR_GUIDELINE_ORIENTATION_HORIZONTAL);
+        }
+        else {
+          guideline.setAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_ORIENTATION,
+                                 SdkConstants.ATTR_GUIDELINE_ORIENTATION_VERTICAL);
         }
       }
     }
