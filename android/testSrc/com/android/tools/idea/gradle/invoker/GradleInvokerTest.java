@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.testFramework.UsefulTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -174,5 +175,15 @@ public class GradleInvokerTest extends AndroidGradleTestCase {
       assertEquals(BuildMode.REBUILD, getBuildMode());
     });
     myInvoker.rebuild();
+  }
+
+  public void testNoTaskForAarModule() throws Exception {
+    loadProject("guiTests/LocalAarsAsModules", false);
+    myModule = ModuleManager.getInstance(myFixture.getProject()).findModuleByName("library-debug");
+    assertNotNull(myModule);
+    myInvoker = new GradleInvoker(getProject());
+
+    myInvoker.addBeforeGradleInvocationTask(UsefulTestCase::assertEmpty);
+    myInvoker.compileJava(new Module[]{myModule}, GradleInvoker.TestCompileType.JAVA_TESTS);
   }
 }
