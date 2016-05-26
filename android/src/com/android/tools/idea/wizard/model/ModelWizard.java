@@ -476,6 +476,36 @@ public final class ModelWizard implements Disposable {
     }
 
     /**
+     * Allows the child step to move the wizard to the next step. If the wizard is on its last
+     * step, then this action finishes the wizard.
+     *
+     * This should be used very sparingly, as normally you should encourage the user to navigate
+     * the wizard via the UI and not do it directly. However, this can be useful if you have a
+     * UI interaction where it's obvious that the user is making a clear choice and wants to move
+     * forward with it, like double-clicking an item from a grid, etc.
+     *
+     * Because this class is passed to child steps before the wizard has even started, this method
+     * will throw an exception if called too early. The step is expected to delay the call at least
+     * until the wizard has started, such as on a button press or other UI event.
+     *
+     * @return {@code true} if the wizard moved forward, {@code false} if progress was blocked
+     */
+    public boolean goForward() {
+      if (myCurrIndex < 0) {
+        // Protects against user calling this method directly in ModelWizardStep#onWizardStarting
+        throw new IllegalStateException("Attempting to goForward before the wizard has even started");
+      }
+
+      if (canGoForward().get()) {
+        ModelWizard.this.goForward();
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+
+    /**
      * Allows the child step to cancel the wizard. This should be used very sparingly, as normally
      * you should encourage the user to cancel the wizard via the UI and not do it directly.
      * However, this can be useful if you need to, say, close the wizard after some timeout passed,
