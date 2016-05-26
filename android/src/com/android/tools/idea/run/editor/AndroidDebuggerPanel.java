@@ -51,7 +51,7 @@ public class AndroidDebuggerPanel<T extends AndroidRunConfigurationBase> {
     myDebuggerType.setRenderer(new AndroidDebugger.Renderer());
 
     for (AndroidDebugger androidDebugger: configuration.getAndroidDebuggers()) {
-      AndroidDebuggerConfigurable<AndroidDebuggerState> configurable = androidDebugger.createConfigurable(myConfiguration.getProject());
+      AndroidDebuggerConfigurable<AndroidDebuggerState> configurable = androidDebugger.createConfigurable(myConfiguration);
       configurable.resetFrom(myConfiguration.getAndroidDebuggerState(androidDebugger.getId()));
       myConfigurables.put(androidDebugger.getId(), configurable);
     }
