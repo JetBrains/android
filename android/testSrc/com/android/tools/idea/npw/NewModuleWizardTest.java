@@ -17,13 +17,10 @@ package com.android.tools.idea.npw;
 
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
-import com.android.tools.idea.wizard.template.TemplateWizardStep;
 import com.google.common.collect.Lists;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
-import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.util.Processor;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.containers.HashSet;
 import icons.AndroidIcons;
@@ -31,9 +28,11 @@ import org.jetbrains.android.AndroidTestCase;
 
 import javax.swing.*;
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Tests for {@link NewModuleWizard}
@@ -48,44 +47,27 @@ public class NewModuleWizardTest extends AndroidTestCase {
     roots.addAll(jdkPaths);
 
     for (final String jdkPath : jdkPaths) {
-      FileUtil.processFilesRecursively(new File(jdkPath), new Processor<File>() {
-        @Override
-        public boolean process(File file) {
-          try {
-            String path = file.getCanonicalPath();
-            if (!FileUtil.isAncestor(jdkPath, path, false)) {
-              roots.add(path);
-            }
+      FileUtil.processFilesRecursively(new File(jdkPath), file -> {
+        try {
+          String path = file.getCanonicalPath();
+          if (!FileUtil.isAncestor(jdkPath, path, false)) {
+            roots.add(path);
           }
-          catch (IOException ignore) { }
-          return true;
         }
+        catch (IOException ignore) {
+        }
+        return true;
       });
     }
   }
 
   public void testBuildChooseModuleStep() throws Exception {
     File otherTemplateDir = new File(TemplateManager.getTemplateRootFolder(), Template.CATEGORY_PROJECTS);
-    List<String> templateDirFiles = Arrays.asList(otherTemplateDir.list(new FilenameFilter() {
-      @Override
-      public boolean accept(File file, String name) {
-        return !name.startsWith(".");
-      }
-    }));
+    List<String> templateDirFiles = Arrays.asList(otherTemplateDir.list((file, name) -> !name.startsWith(".")));
     int expectedCount = templateDirFiles.size() - 3 + 3 /* Less "ImportExistingProject", "NewAndroidModule" and "NewAndroidProject"
                                                            added project, library, Gradle import */;
-    NewModuleWizardPathFactory[] extensions = Extensions.getExtensions(NewModuleWizardPathFactory.EP_NAME);
-    for (NewModuleWizardPathFactory factory : extensions) {
-      Collection<WizardPath> paths = factory.createWizardPaths(new NewModuleWizardState(), new TemplateWizardStep.UpdateListener() {
-        @Override
-        public void update() {
-
-        }
-      }, getProject(), null, getTestRootDisposable());
-      for (WizardPath path : paths) {
-        expectedCount += path.getBuiltInTemplates().size();
-      }
-    }
+    WrapArchiveWizardPath wrapArchiveWizardPath = new WrapArchiveWizardPath(new NewModuleWizardState(), getProject(), () -> { }, null);
+    expectedCount += wrapArchiveWizardPath.getBuiltInTemplates().size();
 
     ArrayList<ModuleWizardStep> steps = Lists.newArrayList();
     TemplateWizardModuleBuilder myModuleBuilder = new TemplateWizardModuleBuilder(null, null, myModule.getProject(),
