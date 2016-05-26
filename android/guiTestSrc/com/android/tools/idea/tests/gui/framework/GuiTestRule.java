@@ -64,14 +64,13 @@ import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.truth.TruthJUnit.assume;
 
 public class GuiTestRule implements TestRule {
-  private static final Timeout DEFAULT_TIMEOUT = new Timeout(5, TimeUnit.MINUTES);
+
   /** Hack to solve focus issue when running with no window manager */
   private static final boolean HAS_EXTERNAL_WINDOW_MANAGER = Toolkit.getDefaultToolkit().isFrameStateSupported(Frame.MAXIMIZED_BOTH);
 
   private File myProjectPath;
   private IdeFrameFixture myIdeFrameFixture;
 
-  private final Timeout myTimeout;
   private final RobotTestRule myRobotTestRule = new RobotTestRule();
   private final LeakCheck myLeakCheck = new LeakCheck();
   private final RuleChain myRuleChain = RuleChain.emptyRuleChain()
@@ -80,7 +79,9 @@ public class GuiTestRule implements TestRule {
     .around(myLeakCheck)
     .around(new IdeHandling())
     .around(new TestPerformance())
-    .around(new ScreenshotOnFailure());
+    .around(new ScreenshotOnFailure())
+    .around(new Timeout(5, TimeUnit.MINUTES));
+
   private final PropertyChangeListener myGlobalFocusListener = e -> {
     Object oldValue = e.getOldValue();
     if ("permanentFocusOwner".equals(e.getPropertyName()) && oldValue instanceof Component && e.getNewValue() == null) {
@@ -95,14 +96,6 @@ public class GuiTestRule implements TestRule {
     }
   };
 
-  public GuiTestRule() {
-    myTimeout = DEFAULT_TIMEOUT;
-  }
-
-  public GuiTestRule(Timeout timeout) {
-    myTimeout = timeout;
-  }
-
   public GuiTestRule withLeakCheck() {
     myLeakCheck.setEnabled(true);
     return this;
@@ -111,7 +104,7 @@ public class GuiTestRule implements TestRule {
   @NotNull
   @Override
   public Statement apply(final Statement base, final Description description) {
-    return myRuleChain.around(myTimeout).apply(base, description);
+    return myRuleChain.apply(base, description);
   }
 
   private class IdeHandling implements TestRule {
