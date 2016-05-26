@@ -24,8 +24,5 @@ public interface InstantRunTasksProvider {
   List<String> getCleanAndGenerateSourcesTasks();
 
   @NotNull
-  List<String> getIncrementalBuildTasks();
-
-  @NotNull
   List<String> getFullBuildTasks();
 }

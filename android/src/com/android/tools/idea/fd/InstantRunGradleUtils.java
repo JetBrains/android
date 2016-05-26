@@ -128,17 +128,6 @@ public class InstantRunGradleUtils {
     return modelVersion == null || modelVersion.compareTo(InstantRunManager.MINIMUM_GRADLE_PLUGIN_VERSION) >= 0;
   }
 
-  @NotNull
-  public static String getIncrementalDexTask(@NotNull AndroidGradleModel model, @NotNull Module module) {
-    assert modelSupportsInstantRun(model) : module;
-    String taskName = model.getSelectedVariant().getMainArtifact().getInstantRun().getIncrementalAssembleTaskName();
-    String gradlePath = GradleUtil.getGradlePath(module);
-    if (gradlePath != null) {
-      taskName = gradlePath + ":" + taskName;
-    }
-    return taskName;
-  }
-
   @Nullable
   public static AndroidGradleModel getAppModel(@NotNull Module module) {
     AndroidFacet facet = findAppModule(module, module.getProject());
