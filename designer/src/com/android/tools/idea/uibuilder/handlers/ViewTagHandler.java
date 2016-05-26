@@ -75,7 +75,7 @@ public class ViewTagHandler extends ViewHandler {
     if (insertType == InsertType.CREATE) { // NOT InsertType.CREATE_PREVIEW
       String src = editor.displayClassInput(Sets.newHashSet(CLASS_VIEW), null);
       if (src != null) {
-        newChild.setAttribute(null, ATTR_NAME, src);
+        newChild.setAttribute(null, ATTR_CLASS, src);
         return true;
       }
       else {
