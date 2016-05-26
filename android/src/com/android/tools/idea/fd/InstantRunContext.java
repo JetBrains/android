@@ -22,6 +22,9 @@ import com.intellij.openapi.components.ServiceManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
+import java.util.List;
+
 /**
  * {@link InstantRunContext} provides the project specific context necessary for {@link InstantRunBuilder} to perform
  * an Instant Run (IR) build.
@@ -86,5 +89,13 @@ public interface InstantRunContext {
   @NotNull
   default InstalledPatchCache getInstalledPatchCache() {
     return ServiceManager.getService(InstalledPatchCache.class);
+  }
+
+  /**
+   * @return additional project specific arguments passed on to the {@link InstantRunBuilder}
+   */
+  @NotNull
+  default List<String> getCustomBuildArguments() {
+    return Collections.emptyList();
   }
 }

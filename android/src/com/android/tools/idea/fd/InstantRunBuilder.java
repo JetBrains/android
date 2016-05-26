@@ -95,6 +95,7 @@ public class InstantRunBuilder implements BeforeRunBuilder {
     }
 
     List<String> args = new ArrayList<>(commandLineArguments);
+    args.addAll(myInstantRunContext.getCustomBuildArguments());
 
     FileChangeListener.Changes fileChanges = myInstantRunContext.getFileChangesAndReset();
     if (buildModeChoice.mode == BuildMode.HOT || buildModeChoice.mode == BuildMode.COLD) { // build for incremental deploy
