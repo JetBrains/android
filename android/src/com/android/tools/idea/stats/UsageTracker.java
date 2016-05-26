@@ -181,6 +181,8 @@ public abstract class UsageTracker {
   public abstract void trackAndroidModule(@NotNull String applicationId, @NotNull String moduleName, boolean isLibrary,
                                           int signingConfigCount, int buildTypeCount, int flavorCount, int flavorDimension);
 
+  public abstract void trackNativeBuildSystem(@NotNull String applicationId, @NotNull String moduleName, @NotNull String buildSystem);
+
   public abstract void trackGradleArtifactVersions(@NotNull String applicationId,
                                                    @NotNull String androidPluginVersion,
                                                    @NotNull String gradleVersion,
