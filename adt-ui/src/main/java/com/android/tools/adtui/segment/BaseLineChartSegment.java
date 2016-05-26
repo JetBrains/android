@@ -51,19 +51,30 @@ public abstract class BaseLineChartSegment extends BaseSegment {
   @NotNull
   private LegendComponent mLegendComponent;
 
-  /**
-   * @param rightAxisFormatter if it is null, chart will have a left axis only
-   */
   public BaseLineChartSegment(@NotNull String name,
                               @NotNull Range xRange,
                               @NotNull BaseAxisFormatter leftAxisFormatter,
                               @Nullable BaseAxisFormatter rightAxisFormatter) {
+    this(name, xRange, leftAxisFormatter, rightAxisFormatter, null, null);
+  }
+
+  /**
+   * @param rightAxisFormatter if it is null, chart will have a left axis only
+   * @param leftAxisRange if it is null, a default range is going to be used
+   * @param rightAxisRange if it is null, a default range is going to be used
+   */
+  public BaseLineChartSegment(@NotNull String name,
+                              @NotNull Range xRange,
+                              @NotNull BaseAxisFormatter leftAxisFormatter,
+                              @Nullable BaseAxisFormatter rightAxisFormatter,
+                              @Nullable Range leftAxisRange,
+                              @Nullable Range rightAxisRange) {
     super(name, xRange);
     mLeftAxisFormatter = leftAxisFormatter;
     mRightAxisFormatter = rightAxisFormatter;
-    mLeftAxisRange = new Range();
+    mLeftAxisRange = leftAxisRange != null ? leftAxisRange : new Range();
     if (mRightAxisFormatter != null) {
-      mRightAxisRange = new Range();
+      mRightAxisRange = rightAxisRange != null ? rightAxisRange : new Range();
     }
   }
 
