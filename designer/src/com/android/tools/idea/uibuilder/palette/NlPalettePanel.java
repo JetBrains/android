@@ -143,6 +143,8 @@ public class NlPalettePanel extends JPanel
   private static JComponent createStructurePane(@NotNull NlComponentTree structureTree) {
     JPanel panel = new JPanel(new BorderLayout());
     JBLabel label = new JBLabel("Component Tree");
+    label.setFont(UIUtil.getLabelFont(UIUtil.FontSize.SMALL));
+    label.setBorder(BorderFactory.createEmptyBorder(0, 5, 4, 10));
     panel.add(label, BorderLayout.NORTH);
     panel.add(ScrollPaneFactory.createScrollPane(structureTree, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER));
     return panel;
