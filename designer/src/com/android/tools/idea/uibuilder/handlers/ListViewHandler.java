@@ -41,8 +41,8 @@ public class ListViewHandler extends ViewGroupHandler {
       ATTR_BACKGROUND,
       ATTR_DIVIDER,
       ATTR_DIVIDER_HEIGHT,
-      ATTR_FOOTER_DIVIDERS_ENABLED,
-      ATTR_HEADER_DIVIDERS_ENABLED);
+      ATTR_HEADER_DIVIDERS_ENABLED,
+      ATTR_FOOTER_DIVIDERS_ENABLED);
   }
 
   @Override
