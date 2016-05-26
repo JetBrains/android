@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.run;
 
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidArtifactOutput;
+import com.android.builder.model.AndroidProject;
 import com.android.builder.model.SourceProvider;
 import com.android.ide.common.packaging.PackagingUtils;
 import com.android.ide.common.rendering.api.ResourceValue;
@@ -28,15 +29,19 @@ import com.android.tools.idea.fd.InstantRunContext;
 import com.android.tools.idea.fd.InstantRunGradleUtils;
 import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.utils.XmlUtils;
+import com.google.common.collect.ImmutableList;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,9 +49,7 @@ import org.w3c.dom.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -145,7 +148,8 @@ public class GradleInstantRunContext implements InstantRunContext {
             }
           });
         }
-      } catch (IOException ignore) {
+      }
+      catch (IOException ignore) {
       }
 
       return hasher.hash();
@@ -187,7 +191,9 @@ public class GradleInstantRunContext implements InstantRunContext {
     }
   }
 
-  /** Looks up the merged manifest file for a given facet */
+  /**
+   * Looks up the merged manifest file for a given facet
+   */
   @Nullable
   public static File findMergedManifestFile(@NotNull AndroidFacet facet) {
     AndroidGradleModel model = AndroidGradleModel.get(facet);
@@ -236,7 +242,29 @@ public class GradleInstantRunContext implements InstantRunContext {
     return InstantRunManager.get(myFacet.getModule().getProject()).getChangesAndReset();
   }
 
-  /** Returns whether the given manifest file uses multiple processes other than the specified ones. */
+  @NotNull
+  @Override
+  public List<String> getCustomBuildArguments() {
+    if (myModel.isLibrary()) {
+      return Collections.emptyList();
+    }
+
+    AndroidGradleFacet facet = AndroidGradleFacet.getInstance(myFacet.getModule());
+    if (facet == null) {
+      Logger.getInstance(GradleInstantRunContext.class).warn("Unable to obtain gradle facet for module " + myFacet.getModule().getName());
+      return Collections.emptyList();
+    }
+
+    // restrict the variants that get configured
+    return ImmutableList.of(AndroidGradleSettings.createProjectProperty(AndroidProject.PROPERTY_RESTRICT_VARIANT_NAME,
+                                                                        myModel.getSelectedVariant().getName()),
+                            AndroidGradleSettings.createProjectProperty(AndroidProject.PROPERTY_RESTRICT_VARIANT_PROJECT,
+                                                                        facet.getConfiguration().GRADLE_PROJECT_PATH));
+  }
+
+  /**
+   * Returns whether the given manifest file uses multiple processes other than the specified ones.
+   */
   static boolean manifestSpecifiesMultiProcess(@NotNull String manifest, @NotNull Set<String> allowedProcesses) {
     Matcher m = Pattern.compile("android:process\\s?=\\s?\"(.*)\"").matcher(manifest);
     while (m.find()) {
