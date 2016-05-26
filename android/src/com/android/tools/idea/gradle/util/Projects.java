@@ -439,6 +439,8 @@ public final class Projects {
    * @return {@code true} if the given module is the one that represents the project, {@code false} otherwise.
    */
   public static boolean isGradleProjectModule(@NotNull Module module) {
+    if(!ExternalSystemApiUtil.isExternalSystemAwareModule(GradleConstants.SYSTEM_ID, module)) return false;
+
     AndroidFacet androidFacet = AndroidFacet.getInstance(module);
     if (androidFacet != null && androidFacet.requiresAndroidModel() && isBuildWithGradle(module)) {
       // If the module is an Android project, check that the module's path is the same as the project's.
