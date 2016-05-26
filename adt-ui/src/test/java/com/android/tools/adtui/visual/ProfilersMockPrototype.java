@@ -28,7 +28,7 @@ public class ProfilersMockPrototype {
       dialog.setTitle(PROFILERS_DIALOG_TITLE);
       dialog.addTest(new ProfilerOverviewVisualTest());
       dialog.addTest(new NetworkProfilerVisualTest());
-      dialog.addTest(new CPUProfilerVisualTest());
+      dialog.addTest(new CpuProfilerVisualTest());
       dialog.addTest(new MemoryProfilerVisualTest());
       dialog.pack();
       dialog.setVisible(true);
