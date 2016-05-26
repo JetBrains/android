@@ -51,11 +51,14 @@ public final class AdtUiUtils {
 
   public static final Color OVERLAY_INFO_BACKGROUND = JBColor.WHITE;
 
-  public static final Color DARK_GREEN = new JBColor(0x5A8725, 0x5A8725);
+  public static final Color NETWORK_CONNECTIONS = new JBColor(new Color(0x5A8725), new Color(0x5A8725));
 
-  public static final Color STRONG_BLUE = new JBColor(0x2865BD, 0x2865BD);
+  public static final Color NETWORK_RECEIVING = new JBColor(new Color(0x2865BD), new Color(0x2865BD));
 
-  public static final Color VIVID_ORANGE = new JBColor(0xFF7B00, 0xFF7B00);
+  public static final Color NETWORK_SENDING = new JBColor(new Color(0xFF7B00), new Color(0xFF7B00));
+
+  public static final Color NETWORK_WAITING = new JBColor(new Color(0xAAAAAA), new Color(0xAAAAAA));
+
 
   private AdtUiUtils() {}
 }

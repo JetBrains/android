@@ -38,16 +38,17 @@ public class NetworkSegment extends BaseLineChartSegment {
     // TODO(Madiyar): set corresponding colors to the lines to match the design
     ContinuousSeries sendingSeries = new DataStoreContinuousSeries(mSeriesDataStore, SeriesDataType.NETWORK_SENDING);
     lineChart.addLine(new RangedContinuousSeries(SENDING, mTimeRange, mLeftAxisRange, sendingSeries),
-                      new LineConfig(AdtUiUtils.VIVID_ORANGE));
+                      new LineConfig(AdtUiUtils.NETWORK_SENDING));
 
     ContinuousSeries receivingSeries = new DataStoreContinuousSeries(mSeriesDataStore, SeriesDataType.NETWORK_RECEIVING);
     lineChart.addLine(new RangedContinuousSeries(RECEIVING, mTimeRange, mLeftAxisRange, receivingSeries),
-                      new LineConfig(AdtUiUtils.STRONG_BLUE));
+                      new LineConfig(AdtUiUtils.NETWORK_RECEIVING));
 
     //TODO Move visibility to segment config
-
     ContinuousSeries connectionsSeries = new DataStoreContinuousSeries(mSeriesDataStore, SeriesDataType.NETWORK_CONNECTIONS);
+    LineConfig connectionsConf = new LineConfig(AdtUiUtils.NETWORK_CONNECTIONS);
+    connectionsConf.setStepped(true);
     lineChart.addLine(new RangedContinuousSeries(CONNECTIONS, mTimeRange, mRightAxisRange, connectionsSeries),
-                      new LineConfig(AdtUiUtils.DARK_GREEN));
+                      connectionsConf);
   }
 }
