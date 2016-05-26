@@ -16,21 +16,23 @@
 package com.android.tools.idea.uibuilder.editor;
 
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
-import org.jetbrains.annotations.NotNull;
 import com.intellij.designer.DesignerEditorPanelFacade;
 import com.intellij.designer.LightToolWindow;
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindowAnchor;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class NlPropertiesWindowManager extends NlAbstractWindowManager {
+  private static final String PROPERTIES_WINDOW_ID = "Properties";
+
   private NlPropertiesManager myPropertiesManager;
 
   public NlPropertiesWindowManager(@NotNull Project project, @NotNull FileEditorManager fileEditorManager) {
     super(project, fileEditorManager);
-    myPropertiesManager = new NlPropertiesManager(myProject, null);
   }
 
   @NotNull
@@ -38,24 +40,24 @@ public class NlPropertiesWindowManager extends NlAbstractWindowManager {
     return project.getComponent(NlPropertiesWindowManager.class);
   }
 
-  @NotNull
-  public NlPropertiesManager getPropertiesManager() {
-    return myPropertiesManager;
-  }
-
   @Override
   protected void initToolWindow() {
-    initToolWindow("Nl-Properties", AllIcons.Toolwindows.ToolWindowStructure);
+    initToolWindow(PROPERTIES_WINDOW_ID, AllIcons.Toolwindows.ToolWindowStructure);
   }
 
   @Override
   protected void updateToolWindow(@Nullable DesignerEditorPanelFacade designer) {
     if (designer == null) {
       myToolWindow.setAvailable(false, null);
-      myPropertiesManager.setDesignSurface(null);
+      if (myPropertiesManager != null) {
+        myPropertiesManager.setDesignSurface(null);
+      }
     }
     else {
-      createWindowContent(myPropertiesManager.getConfigurationPanel(), myPropertiesManager.getConfigurationPanel(), null);
+      if (myPropertiesManager == null) {
+        myPropertiesManager = new NlPropertiesManager(myProject, null);
+        createWindowContent(myPropertiesManager.getConfigurationPanel(), myPropertiesManager.getConfigurationPanel(), null);
+      }
       myPropertiesManager.setDesignSurface(getDesignSurface(designer));
       myToolWindow.setAvailable(true, null);
       myToolWindow.show(null);
@@ -67,6 +69,10 @@ public class NlPropertiesWindowManager extends NlAbstractWindowManager {
     return ToolWindowAnchor.RIGHT;
   }
 
+  public String getVisibilityKeyName(@NotNull DesignerEditorPanelFacade designer) {
+    return getComponentName()+ "-" + designer.getClass().getSimpleName();
+  }
+
   @Override
   protected LightToolWindow createContent(@NotNull DesignerEditorPanelFacade designer) {
     if (!(designer instanceof NlEditorPanel)) {
@@ -74,9 +80,23 @@ public class NlPropertiesWindowManager extends NlAbstractWindowManager {
       return null;
     }
 
-    myPropertiesManager = new NlPropertiesManager(myProject, getDesignSurface(designer));
-    return createContent(designer, myPropertiesManager, "Properties", AllIcons.Toolwindows.ToolWindowStructure, myPropertiesManager.getConfigurationPanel(),
-                         myPropertiesManager.getConfigurationPanel(), 320, null);
+    PropertiesComponent propertiesComponent = PropertiesComponent.getInstance(myProject);
+    // When LightToolWindowManager#getEditorMode() is public (or a constructor which lets
+    // me not specify it) is available and upstreamed, replace the following with just
+    // anchor = getEditorMode() :
+    String value = propertiesComponent.getValue(myEditorModeKey);
+    ToolWindowAnchor anchor;
+    if (value == null) {
+      anchor = getAnchor();
+    } else {
+      anchor = value.equals("ToolWindow") ? null : ToolWindowAnchor.fromText(value);
+    }
+
+    NlPropertiesManager properties = new NlPropertiesManager(myProject, getDesignSurface(designer));
+    return new LightToolWindow(properties, PROPERTIES_WINDOW_ID, AllIcons.Toolwindows.ToolWindowStructure,
+                               properties.getConfigurationPanel(), properties.getConfigurationPanel(),
+                               designer.getContentSplitter(), anchor, this, myProject, propertiesComponent,
+                               getVisibilityKeyName(designer), 320, null);
   }
 
   public void activatePreferredEditor() {

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
-import com.android.tools.idea.uibuilder.editor.NlPropertiesWindowManager;
 import com.android.tools.idea.uibuilder.model.ModelListener;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
@@ -57,11 +56,6 @@ public class NlPropertiesManager implements DesignSurfaceListener, ModelListener
   private MergingUpdateQueue myUpdateQueue;
   private boolean myFirstLoad = true;
   private boolean myLoading;
-
-  public static NlPropertiesManager get(@NotNull Project project) {
-    NlPropertiesWindowManager windowManager = NlPropertiesWindowManager.get(project);
-    return windowManager.getPropertiesManager();
-  }
 
   public NlPropertiesManager(@NotNull Project project, @Nullable DesignSurface designSurface) {
     myProject = project;

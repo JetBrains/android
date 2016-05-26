@@ -77,11 +77,6 @@ public abstract class PTableItem {
     return null;
   }
 
-  @Nullable
-  public PTableCellEditor getCellEditor() {
-    return null;
-  }
-
   public boolean isEditable(int col) {
     return false;
   }

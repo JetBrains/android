@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.property.editors;
 
-import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.ptable.PTableCellEditor;
+import com.android.tools.idea.uibuilder.property.ptable.PTableCellEditorProvider;
+import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
@@ -28,7 +29,7 @@ import java.util.Set;
 
 import static com.android.tools.idea.uibuilder.property.editors.NlEditingListener.DEFAULT_LISTENER;
 
-public class NlPropertyEditors {
+public class NlPropertyEditors implements PTableCellEditorProvider {
   private Project myProject;
   private NlTableCellEditor myBooleanEditor;
   private NlTableCellEditor myFlagEditor;
@@ -41,15 +42,10 @@ public class NlPropertyEditors {
     myProject = project;
   }
 
-  public static PTableCellEditor get(@NotNull NlProperty property) {
-    NlPropertiesManager manager = NlPropertiesManager.get(property.getModel().getProject());
-    NlPropertyEditors editors = manager.getPropertyEditors();
-    return editors.getCellEditor(property);
-  }
-
   @NotNull
-  public PTableCellEditor getCellEditor(@NotNull NlProperty property) {
-    switch (getEditorType(property)) {
+  @Override
+  public PTableCellEditor getCellEditor(@NotNull PTableItem item) {
+    switch (getEditorType((NlProperty)item)) {
       case BOOLEAN:
         return getBooleanEditor();
       case FLAG:
