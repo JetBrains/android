@@ -17,6 +17,7 @@ package com.android.tools.idea.run.editor;
 
 import com.android.ddmlib.Client;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.tasks.ConnectJavaDebuggerTask;
 import com.android.tools.idea.run.tasks.DebugConnectorTask;
 import com.google.common.collect.ImmutableSet;
@@ -84,8 +85,8 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
 
   @NotNull
   @Override
-  public AndroidDebuggerConfigurable<AndroidDebuggerState> createConfigurable(@NotNull Project project) {
-    return new AndroidDebuggerConfigurable<AndroidDebuggerState>();
+  public AndroidDebuggerConfigurable<AndroidDebuggerState> createConfigurable(@NotNull AndroidRunConfigurationBase runConfiguration) {
+    return new AndroidDebuggerConfigurable<>();
   }
 
   @NotNull
