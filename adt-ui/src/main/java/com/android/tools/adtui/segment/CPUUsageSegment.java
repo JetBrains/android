@@ -23,7 +23,7 @@ public class CPUUsageSegment extends BaseLineChartSegment {
 
   private static final SingleUnitAxisFormatter CPU_USAGE_AXIS = new SingleUnitAxisFormatter(10, 10, 10, "%");
 
-  private static final SingleUnitAxisFormatter NUM_THREADS_AXIS = new SingleUnitAxisFormatter(1, 10, 1, "");
+  private static final SingleUnitAxisFormatter NUM_THREADS_AXIS = new SingleUnitAxisFormatter(5, 10, 1, "");
 
   // TODO (amaurym): Set proper darcula color
   private static final Color MY_PROCESS_LINE_COLOR = new JBColor(0x85c490, 0x85c490);
@@ -59,12 +59,11 @@ public class CPUUsageSegment extends BaseLineChartSegment {
    */
   public CPUUsageSegment(@NotNull Range timeRange, @NotNull ContinuousSeries myProcessData, @Nullable ContinuousSeries otherProcessesData,
                          @Nullable ContinuousSeries numThreadsData) {
-    super(SEGMENT_NAME, timeRange, CPU_USAGE_AXIS, (numThreadsData != null) ? NUM_THREADS_AXIS : null);
+    super(SEGMENT_NAME, timeRange, CPU_USAGE_AXIS, (numThreadsData != null) ? NUM_THREADS_AXIS : null, new Range(0, 100), null);
     mTimeRange = timeRange;
     mMyProcessData = myProcessData;
     mOtherProcessesData = otherProcessesData;
     mNumThreadsData = numThreadsData;
-    mLeftAxisRange.setMax(100); // Default range is (0, 0). Then we need to set the max of CPU usage axis.
   }
 
   public CPUUsageSegment(@NotNull Range timeRange,
