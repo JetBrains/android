@@ -15,27 +15,26 @@
  */
 package com.android.tools.idea.sdk.wizard.legacy;
 
-import com.android.annotations.NonNull;
 import com.android.repository.api.Installer;
 import com.android.repository.api.InstallerFactory;
 import com.android.repository.api.RemotePackage;
 import com.android.repository.api.RepoManager;
-import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.repository.io.FileOp;
 import com.android.repository.io.FileOpUtils;
+import com.android.repository.util.InstallerUtil;
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.repository.legacy.descriptors.IPkgDesc;
-import com.android.sdklib.repository.legacy.descriptors.PkgType;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.LoggerProgressIndicatorWrapper;
+import com.android.sdklib.repository.legacy.descriptors.IPkgDesc;
+import com.android.sdklib.repository.legacy.descriptors.PkgType;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SdkLoggerIntegration;
 import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.StudioSettingsController;
+import com.android.tools.idea.sdk.install.StudioSdkInstallerUtil;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.progress.StudioProgressRunner;
 import com.android.tools.idea.sdk.wizard.InstallSelectedPackagesStep;
-import com.android.tools.idea.sdk.install.StudioSdkInstallerUtil;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
 import com.android.utils.ILogger;
 import com.google.common.collect.ImmutableList;
@@ -124,55 +123,48 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithDescription {
     myLabelSdkPath.setText(sdkHandler.getLocation().getPath());
 
     final CustomLogger logger = new CustomLogger();
-
-    RepoManager.RepoLoadedCallback onComplete = new RepoManager.RepoLoadedCallback() {
-      @Override
-      public void doRun(@NonNull final RepositoryPackages packages) {
-        UIUtil.invokeLaterIfNeeded(new Runnable() {
-          @Override
-          public void run() {
-            List<String> requestedChanges = myState.get(INSTALL_REQUESTS_KEY);
-            if (requestedChanges == null) {
-              // This should never occur
-              assert false : "Shouldn't be in installer with no requests";
-              myInstallFinished = true;
-              invokeUpdate(null);
-              return;
-            }
-
-            Map<String, RemotePackage> remotes = packages.getRemotePackages();
-            List<RemotePackage> requestedPackages = Lists.newArrayList();
-            boolean notFound = false;
-            for (String path : requestedChanges) {
-              RemotePackage remotePackage = remotes.get(path);
-              if (remotePackage != null) {
-                requestedPackages.add(remotePackage);
-              }
-              else {
-                notFound = true;
-              }
-            }
-            if (requestedPackages.isEmpty()) {
-              myInstallFinished = true;
-              invokeUpdate(null);
-            }
-            else {
-              InstallTask task = new InstallTask(sdkHandler, requestedPackages, logger);
-              BackgroundableProcessIndicator indicator = new BackgroundableProcessIndicator(task);
-              logger.setIndicator(indicator);
-              ProgressManager.getInstance().runProcessWithProgressAsynchronously(task, indicator);
-            }
-            if (notFound) {
-              myErrorLabel.setText("Problem: Some required packages could not be installed. Check internet connection.");
-              myErrorLabel.setIcon(AllIcons.General.BalloonError);
-            }
-          }
-        });
+    final com.android.repository.api.ProgressIndicator repoProgress = new StudioLoggerProgressIndicator(getClass());
+    RepoManager.RepoLoadedCallback onComplete = packages -> UIUtil.invokeLaterIfNeeded(() -> {
+      List<String> requestedChanges = myState.get(INSTALL_REQUESTS_KEY);
+      if (requestedChanges == null) {
+        // This should never occur
+        assert false : "Shouldn't be in installer with no requests";
+        myInstallFinished = true;
+        invokeUpdate(null);
+        return;
       }
-    };
+
+      Map<String, RemotePackage> remotes = packages.getRemotePackages();
+      List<RemotePackage> requestedPackages = Lists.newArrayList();
+      boolean notFound = false;
+      for (String path : requestedChanges) {
+        RemotePackage remotePackage = remotes.get(path);
+        if (remotePackage != null) {
+          requestedPackages.add(remotePackage);
+        }
+        else {
+          notFound = true;
+        }
+      }
+      if (requestedPackages.isEmpty()) {
+        myInstallFinished = true;
+        invokeUpdate(null);
+      }
+      else {
+        requestedPackages = InstallerUtil.computeRequiredPackages(requestedPackages, packages, repoProgress);
+        InstallTask task = new InstallTask(sdkHandler, requestedPackages, logger);
+        BackgroundableProcessIndicator indicator = new BackgroundableProcessIndicator(task);
+        logger.setIndicator(indicator);
+        ProgressManager.getInstance().runProcessWithProgressAsynchronously(task, indicator);
+      }
+      if (notFound) {
+        myErrorLabel.setText("Problem: Some required packages could not be installed. Check internet connection.");
+        myErrorLabel.setIcon(AllIcons.General.BalloonError);
+      }
+    });
 
     StudioProgressRunner runner = new StudioProgressRunner(false, true, false, "Updating SDK", false, null);
-    sdkHandler.getSdkManager(new StudioLoggerProgressIndicator(getClass()))
+    sdkHandler.getSdkManager(repoProgress)
       .load(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null, ImmutableList.of(onComplete), null, runner, new StudioDownloader(),
             StudioSettingsController.getInstance(), false);
   }
@@ -232,24 +224,21 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithDescription {
       sdkManager.loadSynchronously(0, repoProgress, null, null);
       myState.remove(INSTALL_REQUESTS_KEY);
 
-      UIUtil.invokeLaterIfNeeded(new Runnable() {
-        @Override
-        public void run() {
-          myProgressBar.setValue(100);
-          myLabelProgress1.setText("");
-          myLabelProgress2.setText("Done");
-          List requestedChanges = myState.get(INSTALL_REQUESTS_KEY);
-          checkForUpgrades(requestedChanges);
-          myState.remove(INSTALL_REQUESTS_KEY);
-          myInstallFinished = true;
-          invokeUpdate(null);
+      UIUtil.invokeLaterIfNeeded(() -> {
+        myProgressBar.setValue(100);
+        myLabelProgress1.setText("");
+        myLabelProgress2.setText("Done");
+        List requestedChanges = myState.get(INSTALL_REQUESTS_KEY);
+        checkForUpgrades(requestedChanges);
+        myState.remove(INSTALL_REQUESTS_KEY);
+        myInstallFinished = true;
+        invokeUpdate(null);
 
-          VirtualFile sdkDir = LocalFileSystem.getInstance().findFileByIoFile(mySdkHandler.getLocation());
-          if (sdkDir != null) {
-            sdkDir.refresh(true, true);
-          }
-          sdkManager.markInvalid();
+        VirtualFile sdkDir = LocalFileSystem.getInstance().findFileByIoFile(mySdkHandler.getLocation());
+        if (sdkDir != null) {
+          sdkDir.refresh(true, true);
         }
+        sdkManager.markInvalid();
       });
     }
   }
