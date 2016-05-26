@@ -16,8 +16,10 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.run.DevicePickerEntry;
 import com.android.tools.idea.run.LaunchCompatibility;
 import com.android.tools.idea.tests.gui.framework.Wait;
+import com.intellij.ui.components.JBList;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ThreeState;
 import com.intellij.util.ui.AnimatedIcon;
@@ -44,12 +46,17 @@ public class ChooseDeviceDialogFixture extends ComponentFixture<ChooseDeviceDial
 
   @NotNull
   public static ChooseDeviceDialogFixture find(@NotNull Robot robot) {
-    Dialog dialog = WindowFinder.findDialog(DialogMatcher.withTitle(AndroidBundle.message("choose.device.dialog.title")))
+    Dialog dialog = WindowFinder.findDialog(DialogMatcher.withTitle(AndroidBundle.message("choose.device.dialog.title")).andShowing())
                                 .withTimeout(TimeUnit.MINUTES.toMillis(2)).using(robot)
                                 .target();
     assertThat(dialog).isInstanceOf(JDialog.class);
-    AnimatedIcon busyIcon = waitUntilShowing(robot, dialog, matcherForType(AnimatedIcon.class));
-    Wait.seconds(30).expecting("devices to load").until(() -> busyIcon.isRunning() == false);
+    // When adb & avd manager are not initialized, animated icons are displayed. We wait until those animated icons disappear.
+    waitUntilGone(robot, dialog, new GenericTypeMatcher<AnimatedIcon>(AnimatedIcon.class) {
+      @Override
+      protected boolean isMatching(@NotNull AnimatedIcon component) {
+        return component.isRunning();
+      }
+    });
     return new ChooseDeviceDialogFixture(robot, (JDialog)dialog);
   }
 
@@ -123,6 +130,27 @@ public class ChooseDeviceDialogFixture extends ComponentFixture<ChooseDeviceDial
   public ChooseDeviceDialogFixture selectUseSameDeviceStep(boolean value) {
     JCheckBoxFixture useSameDeviceCheckBox = new JCheckBoxFixture(robot(), "Use same device for future launches");
     useSameDeviceCheckBox.setSelected(value);
+    return this;
+  }
+
+  private static String getDeviceNameByIndex(JBList deviceList, int index) {
+    DevicePickerEntry value = ((DevicePickerEntry) deviceList.getModel().getElementAt(index));
+    if (value.isMarker()) {
+      return null;
+    } else {
+      return value.getAndroidDevice().getName();
+    }
+  }
+
+  @NotNull
+  public ChooseDeviceDialogFixture selectFirstAvailableDevice() {
+    JBList deviceList = robot().finder().findByType(target(), JBList.class);
+    for (int i = 0; i < deviceList.getItemsCount(); i++) {
+      if (getDeviceNameByIndex(deviceList, i) != null) {
+        new JListFixture(robot(), deviceList).selectItem(i);
+        break;
+      }
+    }
     return this;
   }
 
