@@ -17,8 +17,6 @@ package com.android.tools.idea.wizard.model;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.ui.properties.BindingsManager;
-import com.android.tools.idea.ui.properties.InvalidationListener;
-import com.android.tools.idea.ui.properties.ObservableValue;
 import com.android.tools.idea.ui.properties.core.*;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -52,7 +50,6 @@ import java.util.Set;
 public final class ModelWizard implements Disposable {
 
   private final List<ModelWizardStep> mySteps;
-  private final Facade myFacade = new Facade();
 
   /**
    * When we check if we should show a step, we also check the step's ancestor chain, and make sure
@@ -65,9 +62,9 @@ public final class ModelWizard implements Disposable {
   private final BoolProperty myCanGoBack = new BoolValueProperty();
   private final BoolProperty myCanGoForward = new BoolValueProperty();
   private final BoolProperty myOnLastStep = new BoolValueProperty();
-  private final OptionalProperty<Action> myExtraAction = new OptionalValueProperty<Action>();
+  private final OptionalProperty<Action> myExtraAction = new OptionalValueProperty<>();
 
-  private final Stack<ModelWizardStep> myPrevSteps = new Stack<ModelWizardStep>();
+  private final Stack<ModelWizardStep> myPrevSteps = new Stack<>();
 
   private final StringProperty myTitle = new StringValueProperty();
   private final JPanel myContentPanel = new JPanel(new CardLayout());
@@ -102,15 +99,12 @@ public final class ModelWizard implements Disposable {
       throw new IllegalStateException("Can't create a wizard with no steps");
     }
 
-    myCanGoForward.addListener(new InvalidationListener() {
-      @Override
-      public void onInvalidated(@NotNull ObservableValue<?> sender) {
-        if (myCanGoForward.get()) {
-          // Make double sure that, when we switch from blocked to can proceed, we check that no
-          // no future steps also became visible or hidden at some point. Otherwise, we might think
-          // we're on the last step when we're not (or vice versa).
-          myOnLastStep.set(isOnLastVisibleStep());
-        }
+    myCanGoForward.addListener(sender -> {
+      if (myCanGoForward.get()) {
+        // Make double sure that, when we switch from blocked to can proceed, we check that no
+        // future steps also became visible or hidden at some point. Otherwise, we might think
+        // we're on the last step when we're not (or vice versa).
+        myOnLastStep.set(isOnLastVisibleStep());
       }
     });
 
@@ -129,8 +123,9 @@ public final class ModelWizard implements Disposable {
     // At this point, we're ready to go! Try to start the wizard, proceeding into the first step
     // if we can.
 
+    Facade facade = new Facade();
     for (ModelWizardStep step : mySteps) {
-      step.onWizardStarting(myFacade);
+      step.onWizardStarting(facade);
     }
 
     boolean atLeastOneVisibleStep = false;
