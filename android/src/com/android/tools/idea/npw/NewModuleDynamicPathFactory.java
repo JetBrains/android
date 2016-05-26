@@ -26,7 +26,6 @@ import java.util.Collection;
 /**
  * Creates the wizard paths to be displayed in Android Studio's New Module dialog.
  *
- * This class replaces deprecated {@link NewModuleWizardPathFactory}
  */
 public interface NewModuleDynamicPathFactory {
   ExtensionPointName<NewModuleDynamicPathFactory> EP_NAME = ExtensionPointName.create("org.jetbrains.android.newModuleDynamicPathFactory");
