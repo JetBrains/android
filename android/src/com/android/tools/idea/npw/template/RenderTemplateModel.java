@@ -47,15 +47,12 @@ import java.util.Map;
  * representing an Android component.
  */
 public final class RenderTemplateModel extends WizardModel {
-
-  @NotNull private final TemplateHandle myTemplateHandle;
   @NotNull private final String myCommandName;
-
-  private final OptionalProperty<SourceProvider> mySourceSet = new OptionalValueProperty<>();
-
-  private final Map<String, Object> myTemplateValues = Maps.newHashMap();
+  @NotNull private final OptionalProperty<SourceProvider> mySourceSet = new OptionalValueProperty<>();
+  @NotNull private final Map<String, Object> myTemplateValues = Maps.newHashMap();
   @NotNull private final AndroidFacet myAndroidFacet;
 
+  @NotNull private TemplateHandle myTemplateHandle;
   @Nullable private AndroidProjectPaths myPaths;
   @Nullable private AndroidIconGenerator myIconGenerator;
 
@@ -100,6 +97,10 @@ public final class RenderTemplateModel extends WizardModel {
   @NotNull
   public OptionalProperty<SourceProvider> getSourceSet() {
     return mySourceSet;
+  }
+
+  public void setTemplateHandle(@NotNull TemplateHandle templateHandle) {
+    myTemplateHandle = templateHandle;
   }
 
   @NotNull

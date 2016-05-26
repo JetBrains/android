@@ -41,7 +41,6 @@ import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.ui.validation.Validator;
 import com.android.tools.idea.ui.validation.ValidatorPanel;
 import com.android.tools.idea.ui.wizard.WizardUtils;
-import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
@@ -183,7 +182,10 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
   }
 
   @Override
-  protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
+  protected void onEntering() {
+    // The Model TemplateHandle may have changed, rebuild the panel
+    resetPanel();
+
     final TemplateHandle templateHandle = getModel().getTemplateHandle();
 
     ApplicationManager.getApplication().invokeLater(new Runnable() {
@@ -525,6 +527,11 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
 
   private void createUIComponents() {
     myParametersPanel = new JPanel(ProportionalLayout.fromString("Fit,*", 10));
+  }
+
+  private void resetPanel() {
+    myParametersPanel.removeAll();
+    dispose();
   }
 
   @Override

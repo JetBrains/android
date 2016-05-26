@@ -17,7 +17,13 @@ package com.android.tools.idea.templates;
 
 import com.android.repository.Revision;
 import com.android.tools.idea.actions.NewAndroidComponentAction;
+import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.NewAndroidActivityWizard;
+import com.android.tools.idea.npw.template.ChooseActivityTypeStep;
+import com.android.tools.idea.npw.template.RenderTemplateModel;
+import com.android.tools.idea.npw.template.TemplateHandle;
+import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
+import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
 import com.google.common.collect.*;
@@ -31,6 +37,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -43,6 +50,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 
+import java.awt.event.InputEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -436,25 +444,53 @@ public class TemplateManager {
   private void fillCategory(NonEmptyActionGroup categoryGroup, final String category, ActionManager am) {
     Map<String, File> categoryRow = myCategoryTable.row(category);
     if (CATEGORY_ACTIVITY.equals(category)) {
-      AnAction action = new AnAction() {
-        @Override
-        public void actionPerformed(AnActionEvent e) {
-          DataContext dataContext = e.getDataContext();
-          final Module module = LangDataKeys.MODULE.getData(dataContext);
-          VirtualFile targetFile = CommonDataKeys.VIRTUAL_FILE.getData(dataContext);
-          NewAndroidActivityWizard wizard = new NewAndroidActivityWizard(module, targetFile, null);
-          wizard.init();
-          wizard.show();
-        }
-
+      AnAction galleryAction = new AnAction() {
         @Override
         public void update(AnActionEvent e) {
           updateAction(e, "Gallery...", true);
         }
+
+        @Override
+        public void actionPerformed(AnActionEvent e) {
+          // TODO: before submitting this code, change this to only use the new wizard
+          if (Boolean.getBoolean("use.npw.modelwizard") && (e.getModifiers() & InputEvent.SHIFT_MASK) == 0) {
+            DataContext dataContext = e.getDataContext();
+            Module module = LangDataKeys.MODULE.getData(dataContext);
+            assert module != null;
+
+            VirtualFile targetFile = CommonDataKeys.VIRTUAL_FILE.getData(dataContext);
+            assert targetFile != null;
+
+            VirtualFile targetDirectory = targetFile;
+            if (!targetDirectory.isDirectory()) {
+              targetDirectory = targetFile.getParent();
+              assert targetDirectory != null;
+            }
+
+            AndroidFacet facet = AndroidFacet.getInstance(module);
+            assert facet != null && facet.getAndroidModel() != null;
+
+            List<TemplateHandle> templateList = getTemplateList(FormFactor.MOBILE, NewAndroidComponentAction.NEW_WIZARD_CATEGORIES, EXCLUDED_TEMPLATES);
+            // TODO: Missing logic to select the default template
+            RenderTemplateModel renderModel = new RenderTemplateModel(facet, templateList.get(0), "Add an Activity to Mobile");
+            ChooseActivityTypeStep chooseActivityTypeStep = new ChooseActivityTypeStep(targetDirectory, renderModel, templateList);
+            ModelWizard wizard = new ModelWizard.Builder().addStep(chooseActivityTypeStep).build();
+
+            new StudioWizardDialogBuilder(wizard, "New Android Activity").build().show();
+          }
+          else {
+            DataContext dataContext = e.getDataContext();
+            final Module module = LangDataKeys.MODULE.getData(dataContext);
+            VirtualFile targetFile = CommonDataKeys.VIRTUAL_FILE.getData(dataContext);
+            NewAndroidActivityWizard wizard = new NewAndroidActivityWizard(module, targetFile, null);
+            wizard.init();
+            wizard.show();
+          }
+        }
       };
-      categoryGroup.add(action);
+      categoryGroup.add(galleryAction);
       categoryGroup.addSeparator();
-      setPresentation(category, action);
+      setPresentation(category, galleryAction);
     }
     for (String templateName : categoryRow.keySet()) {
       if (EXCLUDED_TEMPLATES.contains(templateName)) {
@@ -549,6 +585,55 @@ public class TemplateManager {
       }
       return delta;
     }
+  }
+
+  private List<TemplateHandle> getTemplateList(@NotNull FormFactor formFactor, @NotNull Set<String> categories, @NotNull Set<String> excluded) {
+    ArrayList<TemplateHandle> templates = Lists.newArrayList();
+    for (String category : categories) {
+      templates.addAll(getTemplateList(formFactor, category, excluded));
+    }
+
+    // Special case for Android Wear and Android Auto: These tend not to be activities; allow
+    // you to create a module with for example just a watch face
+    if (formFactor == FormFactor.WEAR) {
+      templates.addAll(getTemplateList(formFactor, "Wear", excluded));
+    }
+    if (formFactor == FormFactor.CAR) {
+      templates.addAll(getTemplateList(formFactor, "Android Auto", excluded));
+    }
+
+    Collections.sort(templates, (o1, o2) -> {
+      TemplateMetadata m1 = o1.getMetadata();
+      TemplateMetadata m2 = o2.getMetadata();
+      return StringUtil.naturalCompare(m1.getTitle(), m2.getTitle());
+    });
+
+    return templates;
+  }
+
+  /**
+   * Search the given folder for a list of templates and populate the display list.
+   */
+  private List<TemplateHandle> getTemplateList(@NotNull FormFactor formFactor, @NotNull String category, @Nullable Set<String> excluded) {
+    List<File> templates = getTemplatesInCategory(category);
+    List<TemplateHandle> metadataList = new ArrayList<>(templates.size());
+    for (File template : templates) {
+      TemplateHandle templateHandle = new TemplateHandle(template);
+      TemplateMetadata metadata = templateHandle.getMetadata();
+      if (metadata == null || !metadata.isSupported()) {
+        continue;
+      }
+      // Don't include this template if it's been excluded
+      if (excluded != null && excluded.contains(metadata.getTitle())) {
+        continue;
+      }
+      // If a form factor has been specified, ensure that requirement is met.
+      if (!formFactor.id.equalsIgnoreCase(metadata.getFormFactor())) {
+        continue;
+      }
+      metadataList.add(templateHandle);
+    }
+    return metadataList;
   }
 
   @Nullable
