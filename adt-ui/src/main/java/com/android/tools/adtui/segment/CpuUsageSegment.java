@@ -11,7 +11,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 
-public class CPUUsageSegment extends BaseLineChartSegment {
+public class CpuUsageSegment extends BaseLineChartSegment {
 
   private static final String SEGMENT_NAME = "CPU";
 
@@ -57,7 +57,7 @@ public class CPUUsageSegment extends BaseLineChartSegment {
    * Creates a segment to display CPU usage information. If {@code numThreadsData} is not null, we also display the right axis, which
    * correspond to the number of live threads.
    */
-  public CPUUsageSegment(@NotNull Range timeRange, @NotNull ContinuousSeries myProcessData, @Nullable ContinuousSeries otherProcessesData,
+  public CpuUsageSegment(@NotNull Range timeRange, @NotNull ContinuousSeries myProcessData, @Nullable ContinuousSeries otherProcessesData,
                          @Nullable ContinuousSeries numThreadsData) {
     super(SEGMENT_NAME, timeRange, CPU_USAGE_AXIS, (numThreadsData != null) ? NUM_THREADS_AXIS : null, new Range(0, 100), null);
     mTimeRange = timeRange;
@@ -66,8 +66,8 @@ public class CPUUsageSegment extends BaseLineChartSegment {
     mNumThreadsData = numThreadsData;
   }
 
-  public CPUUsageSegment(@NotNull Range timeRange,
-                        @NotNull ContinuousSeries myProcessData) {
+  public CpuUsageSegment(@NotNull Range timeRange,
+                         @NotNull ContinuousSeries myProcessData) {
     this(timeRange, myProcessData, null, null);
   }
 

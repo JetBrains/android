@@ -22,7 +22,7 @@ import com.android.tools.adtui.AnimatedTimeRange;
 import com.android.tools.adtui.Range;
 import com.android.tools.adtui.model.ContinuousSeries;
 import com.android.tools.adtui.model.RangedDiscreteSeries;
-import com.android.tools.adtui.segment.CPUUsageSegment;
+import com.android.tools.adtui.segment.CpuUsageSegment;
 import com.android.tools.adtui.segment.ThreadsSegment;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,7 +32,7 @@ import java.awt.GridBagLayout;
 import java.util.*;
 import java.util.List;
 
-public class CPUProfilerVisualTest extends VisualTest {
+public class CpuProfilerVisualTest extends VisualTest {
 
   private static final String CPU_PROFILER_NAME = "CPU Profiler";
 
@@ -50,9 +50,9 @@ public class CPUProfilerVisualTest extends VisualTest {
    */
   private static final Thread[] ACTIVE_THREADS = new Thread[1000];
 
-  private CPUUsageSegment mCPULevel1Segment;
+  private CpuUsageSegment mCPULevel1Segment;
 
-  private CPUUsageSegment mCPULevel2Segment;
+  private CpuUsageSegment mCPULevel2Segment;
 
   private ThreadsSegment mThreadsSegment;
 
@@ -104,8 +104,8 @@ public class CPUProfilerVisualTest extends VisualTest {
 
     mThreadsStateSeries = new HashMap<>(); // TODO: maybe it's safer to keep insertion order
 
-    mCPULevel1Segment = new CPUUsageSegment(mTimeRange, myProcessSeries);
-    mCPULevel2Segment = new CPUUsageSegment(mTimeRange, myProcessSeries, otherProcessesSeries, mNumberOfThreadsSeries);
+    mCPULevel1Segment = new CpuUsageSegment(mTimeRange, myProcessSeries);
+    mCPULevel2Segment = new CpuUsageSegment(mTimeRange, myProcessSeries, otherProcessesSeries, mNumberOfThreadsSeries);
     mThreadsSegment = new ThreadsSegment(mTimeRange);
 
     List<Animatable> animatables = new ArrayList<>();
