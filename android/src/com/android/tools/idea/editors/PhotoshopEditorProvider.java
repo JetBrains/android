@@ -14,10 +14,14 @@
  * limitations under the License.
  */
 
-package com.android.tools.idea.editors.layeredimage;
+package com.android.tools.idea.editors;
 
 import com.android.SdkConstants;
+import com.android.draw9patch.graphics.GraphicsUtilities;
+import com.android.tools.pixelprobe.Image;
+import com.android.tools.pixelprobe.PixelProbe;
 import com.android.utils.SdkUtils;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorPolicy;
 import com.intellij.openapi.fileEditor.FileEditorProvider;
@@ -27,12 +31,18 @@ import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.intellij.images.editor.ImageEditor;
+import org.intellij.images.editor.ImageFileEditor;
 import org.jdom.Element;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-public class LayeredImageEditorProvider implements FileEditorProvider, DumbAware {
-  @NonNls private static final String EDITOR_TYPE_ID = "layeredimageeditor";
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.InputStream;
+
+public class PhotoshopEditorProvider implements FileEditorProvider, DumbAware {
+  @NonNls private static final String EDITOR_TYPE_ID = "photoshopeditor";
 
   @Override
   public boolean accept(@NotNull Project project, @NotNull VirtualFile file) {
@@ -48,7 +58,17 @@ public class LayeredImageEditorProvider implements FileEditorProvider, DumbAware
     assert provider != null;
 
     FileEditor editor = provider.createEditor(project, file);
-    return new LayeredImageEditor(project, file, editor);
+    ImageEditor imageEditor = ((ImageFileEditor)editor).getImageEditor();
+
+    // Load our own PSD file
+    try {
+      imageEditor.getDocument().setValue(loadImage(file));
+    }
+    catch (IOException e) {
+      Logger.getInstance(PhotoshopEditorProvider.class).error("Unexpected exception while reading Photoshop file", e);
+    }
+
+    return editor;
   }
 
   @Override
@@ -76,5 +96,20 @@ public class LayeredImageEditorProvider implements FileEditorProvider, DumbAware
   @Override
   public FileEditorPolicy getPolicy() {
     return FileEditorPolicy.PLACE_BEFORE_DEFAULT_EDITOR;
+  }
+
+  private static BufferedImage loadImage(VirtualFile file) throws IOException {
+    try (InputStream in = file.getInputStream()) {
+      Image image = PixelProbe.probe(in);
+      if (!image.isValid()) {
+        throw new IOException("Unable to parse file: " + file.getCanonicalPath());
+      }
+
+      BufferedImage bufferedImage = image.getFlattenedBitmap();
+      if (bufferedImage == null) {
+        throw new IOException("Unable to parse file: " + file.getCanonicalPath());
+      }
+      return GraphicsUtilities.toCompatibleImage(bufferedImage);
+    }
   }
 }
