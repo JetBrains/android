@@ -20,7 +20,6 @@ import com.android.annotations.NonNull;
 import com.android.tools.adtui.Animatable;
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.Choreographer;
-import com.android.tools.adtui.common.AdtUIUtils;
 import com.intellij.ui.components.JBPanel;
 
 import javax.swing.*;
