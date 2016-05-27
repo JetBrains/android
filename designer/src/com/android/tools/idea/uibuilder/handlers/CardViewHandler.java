@@ -37,8 +37,8 @@ public class CardViewHandler extends FrameLayoutHandler {
       ATTR_CARD_CORNER_RADIUS,
       ATTR_CONTENT_PADDING,
       ATTR_CARD_ELEVATION,
-      ATTR_PREVENT_CORNER_OVERLAP,
-      ATTR_USE_COMPAT_PADDING);
+      ATTR_CARD_PREVENT_CORNER_OVERLAP,
+      ATTR_CARD_USE_COMPAT_PADDING);
   }
 
   @Override
