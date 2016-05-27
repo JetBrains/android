@@ -25,7 +25,6 @@ import com.intellij.openapi.actionSystem.Presentation;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
 import java.util.Collections;
 import java.util.List;
 
@@ -51,7 +50,7 @@ public class AtomComboAction extends FlatComboAction {
 
   @NotNull
   @Override
-  protected DefaultActionGroup createPopupActionGroup(JComponent button) {
+  protected DefaultActionGroup createPopupActionGroup() {
     DefaultActionGroup actionGroup = new DefaultActionGroup();
 
     for (final Long atomIndex : myAtomIds) {
