@@ -70,6 +70,7 @@ public class AddGradleDependencyTest {
     verifyUndo(editor, 1);
   }
 
+  @Ignore("go/studio-builder/builders/ubuntu-studio-master-dev-uitests/builds/265")
   @Test
   public void testAddTestModuleDependency() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("MultiModule");
@@ -95,6 +96,7 @@ public class AddGradleDependencyTest {
     verifyUndo(editor, 1);
   }
 
+  @Ignore("go/studio-builder/builders/ubuntu-studio-master-dev-uitests/builds/265")
   @Test
   public void testAddLibDependencyDeclaredInJavaProject() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("MultiModule");
@@ -183,6 +185,7 @@ public class AddGradleDependencyTest {
   }
 
   // http://b.android.com/202480
+  @Ignore("go/studio-builder/builders/ubuntu-studio-master-dev-uitests/builds/265")
   @Test
   public void testAddJUnitDependency() throws IOException {
     guiTest.importSimpleApplication();
@@ -203,6 +206,7 @@ public class AddGradleDependencyTest {
     verifyUndo(editor, 6);
   }
 
+  @Ignore("go/studio-builder/builders/ubuntu-studio-master-dev-uitests/builds/246")
   @Test
   public void testAddJetbrainsAnnotationDependency() throws IOException {
     guiTest.importSimpleApplication();
