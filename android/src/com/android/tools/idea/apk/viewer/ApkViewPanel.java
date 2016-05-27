@@ -16,8 +16,8 @@
 package com.android.tools.idea.apk.viewer;
 
 import com.android.SdkConstants;
+import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.idea.ddms.EdtExecutor;
-import com.android.tools.idea.editors.allocations.ColumnTreeBuilder;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;

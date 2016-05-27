@@ -19,6 +19,7 @@ import com.android.ddmlib.AllocationInfo;
 import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.chart.SunburstChart;
 import com.android.tools.adtui.ValuedTreeNode;
+import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.idea.actions.EditMultipleSourcesAction;
 import com.android.tools.idea.actions.PsiFileAndLineNavigation;
 import com.android.tools.idea.editors.allocations.nodes.*;
