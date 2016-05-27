@@ -15,11 +15,12 @@
  */
 package com.android.tools.adtui;
 
-import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.SeriesDataList;
+import com.android.tools.adtui.model.SeriesDataStore;
+import com.android.tools.adtui.model.SeriesDataType;
 import gnu.trove.TLongArrayList;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 public final class VisualTestSeriesDataStore implements SeriesDataStore {
 
@@ -77,8 +78,10 @@ public final class VisualTestSeriesDataStore implements SeriesDataStore {
 
       switch (type) {
         case CPU_MY_PROCESS:
+          data.add(randLong(0, 60));
+          break;
         case CPU_OTHER_PROCESSES:
-          data.add(randLong(0, 100));
+          data.add(randLong(0, 20));
           break;
         case CPU_THREADS:
         case NETWORK_CONNECTIONS:
