@@ -22,7 +22,7 @@ import java.util.List;
 
 import static com.android.SdkConstants.*;
 
-public class NestedScrollViewHandler extends FrameLayoutHandler {
+public class NestedScrollViewHandler extends ScrollViewHandler {
   @Override
   @NotNull
   public List<String> getInspectorProperties() {
