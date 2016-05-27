@@ -23,7 +23,6 @@ import com.android.tools.idea.ui.VectorImageComponent;
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.InvalidationListener;
 import com.android.tools.idea.ui.properties.ListenerManager;
-import com.android.tools.idea.ui.properties.ObservableValue;
 import com.android.tools.idea.ui.properties.adapters.StringToIntAdapterProperty;
 import com.android.tools.idea.ui.properties.core.*;
 import com.android.tools.idea.ui.properties.expressions.Expression;
@@ -70,7 +69,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
   private final OptionalProperty<Dimension> myOriginalSize = new OptionalValueProperty<>();
 
   private final BoolProperty isValidAsset = new BoolValueProperty();
-  private final SvgPreviewUpdater myPreviewUpdater = new SvgPreviewUpdater();
+  private final VectorPreviewUpdater myPreviewUpdater = new VectorPreviewUpdater();
 
   private final BindingsManager myGeneralBindings = new BindingsManager();
   private final BindingsManager myActiveAssetBindings = new BindingsManager();
@@ -81,7 +80,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
   private JLabel myImageFileLabel;
   private JTextField myOutputNameField;
   private JPanel myErrorPanel;
-  private JPanel mySvgBrowserPanel;
+  private JPanel myBrowserPanel;
   private JTextField myWidthTextField;
   private JTextField myHeightTextField;
   private JCheckBox myEnableAutoMirroredCheckBox;
@@ -100,7 +99,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
   private JPanel myRightPanel;
   private JPanel mySourceAssetRadioButtons;
   private JPanel mySourceAssetTypePanel;
-  private VectorAssetBrowser mySvgBrowser;
+  private VectorAssetBrowser myBrowser;
   private VectorIconButton myIconButton;
   private JBScrollPane myErrorsScrollPane;
   private JTextArea myErrorsTextArea;
@@ -125,19 +124,16 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
     final Runnable onAssetModified = myPreviewUpdater::enqueueUpdate;
 
     SelectedProperty iconSelected = new SelectedProperty(myMaterialIconRadioButton);
-    myListeners.listenAndFire(iconSelected, new Consumer<Boolean>() {
-      @Override
-      public void consume(Boolean isIconActive) {
-        myIconPickerPanel.setVisible(isIconActive);
-        mySvgBrowserPanel.setVisible(!isIconActive);
-        myActiveAsset.set(isIconActive ? myIconButton.getAsset() : mySvgBrowser.getAsset());
-      }
+    myListeners.listenAndFire(iconSelected, (Consumer<Boolean>) isIconActive -> {
+      myIconPickerPanel.setVisible(isIconActive);
+      myBrowserPanel.setVisible(!isIconActive);
+      myActiveAsset.set(isIconActive ? myIconButton.getAsset() : myBrowser.getAsset());
     });
     ActionListener assetListener = actionEvent -> onAssetModified.run();
     myIconButton.addAssetListener(assetListener);
-    mySvgBrowser.addAssetListener(assetListener);
+    myBrowser.addAssetListener(assetListener);
     Disposer.register(this, myIconButton);
-    Disposer.register(this, mySvgBrowser);
+    Disposer.register(this, myBrowser);
 
     final BoolProperty overrideSize = new SelectedProperty(myOverrideSizeCheckBox);
     final IntProperty width = new IntValueProperty();
@@ -146,17 +142,14 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
     myGeneralBindings.bindTwoWay(new StringToIntAdapterProperty(new TextProperty(myHeightTextField)), height);
     myGeneralBindings.bind(new EnabledProperty(myWidthTextField), overrideSize);
     myGeneralBindings.bind(new EnabledProperty(myHeightTextField), overrideSize);
-    myListeners.listenAll(overrideSize, myOriginalSize).withAndFire(new Runnable() {
-      @Override
-      public void run() {
-        if (!overrideSize.get() || !myOriginalSize.get().isPresent()) {
-          width.set(DEFAULT_MATERIAL_ICON_SIZE);
-          height.set(DEFAULT_MATERIAL_ICON_SIZE);
-        }
-        else {
-          width.set(myOriginalSize.getValue().width);
-          height.set(myOriginalSize.getValue().height);
-        }
+    myListeners.listenAll(overrideSize, myOriginalSize).withAndFire(() -> {
+      if (!overrideSize.get() || !myOriginalSize.get().isPresent()) {
+        width.set(DEFAULT_MATERIAL_ICON_SIZE);
+        height.set(DEFAULT_MATERIAL_ICON_SIZE);
+      }
+      else {
+        width.set(myOriginalSize.getValue().width);
+        height.set(myOriginalSize.getValue().height);
       }
     });
 
@@ -168,33 +161,30 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
     myListeners.listenAll(myActiveAsset, overrideSize, width, height, opacityValue, autoMirrored).with(onAssetModified);
 
     final StringProperty name = new TextProperty(myOutputNameField);
-    myListeners.listenAndFire(myActiveAsset, new InvalidationListener() {
-      @Override
-      public void onInvalidated(@NotNull ObservableValue<?> sender) {
-        myActiveAssetBindings.releaseAll();
+    myListeners.listenAndFire(myActiveAsset, (InvalidationListener) sender -> {
+      myActiveAssetBindings.releaseAll();
 
-        myActiveAssetBindings.bind(name, new Expression<String>(myActiveAsset.get().path()) {
-          @NotNull
-          @Override
-          public String get() {
-            File path = myActiveAsset.get().path().get();
-            if (path.exists() && !path.isDirectory()) {
-              String name = FileUtil.getNameWithoutExtension(path).toLowerCase(Locale.getDefault());
-              if (!name.startsWith(ICON_PREFIX)) {
-                name = ICON_PREFIX + AndroidResourceUtil.getValidResourceFileName(name);
-              }
-              return AndroidResourceUtil.getValidResourceFileName(name);
+      myActiveAssetBindings.bind(name, new Expression<String>(myActiveAsset.get().path()) {
+        @NotNull
+        @Override
+        public String get() {
+          File path = myActiveAsset.get().path().get();
+          if (path.exists() && !path.isDirectory()) {
+            String name1 = FileUtil.getNameWithoutExtension(path).toLowerCase(Locale.getDefault());
+            if (!name1.startsWith(ICON_PREFIX)) {
+              name1 = ICON_PREFIX + AndroidResourceUtil.getValidResourceFileName(name1);
             }
-            else {
-              return "ic_vector_name";
-            }
+            return AndroidResourceUtil.getValidResourceFileName(name1);
           }
-        });
-        myActiveAssetBindings.bind(myActiveAsset.get().opacity(), opacityValue);
-        myActiveAssetBindings.bind(myActiveAsset.get().autoMirrored(), autoMirrored);
-        myActiveAssetBindings.bind(myActiveAsset.get().outputWidth(), width);
-        myActiveAssetBindings.bind(myActiveAsset.get().outputHeight(), height);
-      }
+          else {
+            return "ic_vector_name";
+          }
+        }
+      });
+      myActiveAssetBindings.bind(myActiveAsset.get().opacity(), opacityValue);
+      myActiveAssetBindings.bind(myActiveAsset.get().autoMirrored(), autoMirrored);
+      myActiveAssetBindings.bind(myActiveAsset.get().outputWidth(), width);
+      myActiveAssetBindings.bind(myActiveAsset.get().outputHeight(), height);
     });
 
     // Refresh the asset preview, but fire using invokeLater, as this lets the UI lay itself out,
@@ -231,15 +221,15 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
   }
 
   /**
-   * Parsing and generating a preview SVG is not always a lightweight operation, and if we try to
-   * do it synchronously, especially with a larger SVG file, it can stutter the UI. So instead, we
+   * Parsing and generating a vector preview is not always a lightweight operation, and if we try to
+   * do it synchronously, especially with a larger vector file, it can stutter the UI. So instead, we
    * enqueue the request to run on a background thread. If several requests are made in a row while
    * an existing worker is still in progress, they will only generate a single update, run as soon
    * as the current update finishes.
    *
    * Call {@link #enqueueUpdate()} in order to kickstart the generation of a new preview.
    */
-  private final class SvgPreviewUpdater {
+  private final class VectorPreviewUpdater {
 
     @Nullable private SwingWorker<Void, Void> myCurrentWorker;
     @Nullable private SwingWorker<Void, Void> myEnqueuedWorker;
@@ -272,7 +262,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
 
         @Override
         protected Void doInBackground() throws Exception {
-          myParseResult = myActiveAsset.get().parseSvg(myImagePreview.getWidth());
+          myParseResult = myActiveAsset.get().parse(myImagePreview.getWidth());
           return null;
         }
 
@@ -291,22 +281,16 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
 
           myErrorPanel.setVisible(!myParseResult.getErrors().isEmpty());
           myErrorsTextArea.setText(myParseResult.getErrors());
-          ApplicationManager.getApplication().invokeLater(new Runnable() {
-            @Override
-            public void run() {
-              myErrorsScrollPane.getVerticalScrollBar().setValue(0);
-            }
+          ApplicationManager.getApplication().invokeLater(() -> {
+            myErrorsScrollPane.getVerticalScrollBar().setValue(0);
           }, ModalityState.any());
 
           myCurrentWorker = null;
           if (myEnqueuedWorker != null) {
             myCurrentWorker = myEnqueuedWorker;
             myEnqueuedWorker = null;
-            ApplicationManager.getApplication().invokeLater(new Runnable() {
-              @Override
-              public void run() {
-                myCurrentWorker.execute();
-              }
+            ApplicationManager.getApplication().invokeLater(() -> {
+              myCurrentWorker.execute();
             }, ModalityState.any());
           }
         }
