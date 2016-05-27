@@ -52,16 +52,11 @@ public class NewModuleDialogFixture implements ContainerFixture<JDialog> {
   }
 
   @NotNull
-  public NewModuleDialogFixture select(String itemName) {
-    new JListFixture(robot(), robot().finder().findByType(target(), ASGallery.class)).clickItem(itemName);
-    return this;
-  }
-
-  @NotNull
-  public NewModuleDialogFixture clickNext() {
+  public NewModuleDialogFixture chooseModuleType(String name) {
+    new JListFixture(robot(), robot().finder().findByType(target(), ASGallery.class)).clickItem(name);
     GuiTests.findAndClickButton(this, "Next");
     Wait.seconds(5).expecting("next step to appear").until(
-      () -> robot().finder().findAll(target(), JLabelMatcher.withText("Configure your new module").andShowing()).size() == 1);
+      () -> robot().finder().findAll(target(), JLabelMatcher.withText(name).andShowing()).size() == 1);
     return this;
   }
 
