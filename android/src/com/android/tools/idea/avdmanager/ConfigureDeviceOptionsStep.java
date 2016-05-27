@@ -17,7 +17,6 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.SdkConstants;
 import com.android.resources.Navigation;
-import com.android.sdklib.devices.Storage;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.idea.ui.TooltipLabel;
@@ -30,6 +29,7 @@ import com.android.tools.idea.ui.properties.swing.SelectedItemProperty;
 import com.android.tools.idea.ui.properties.swing.SelectedProperty;
 import com.android.tools.idea.ui.properties.swing.TextProperty;
 import com.android.tools.idea.ui.validation.Validator;
+import com.android.tools.idea.ui.validation.Validator.Result;
 import com.android.tools.idea.ui.validation.ValidatorPanel;
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.model.ModelWizard;
@@ -84,8 +84,8 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
   private final StudioWizardStepPanel myStudioPanel;
   private final ValidatorPanel myValidatorPanel;
 
-  private BindingsManager myBindings = new BindingsManager();
-  private ListenerManager myListeners = new ListenerManager();
+  private final BindingsManager myBindings = new BindingsManager();
+  private final ListenerManager myListeners = new ListenerManager();
 
   public ConfigureDeviceOptionsStep(@NotNull ConfigureDeviceModel model) {
     super(model, "Configure Hardware Profile");
@@ -97,7 +97,7 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
 
   @Override
   protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
-    myDeviceTypeComboBox.setModel(new CollectionComboBoxModel<IdDisplay>(AvdWizardUtils.ALL_DEVICE_TAGS));
+    myDeviceTypeComboBox.setModel(new CollectionComboBoxModel<>(AvdWizardUtils.ALL_DEVICE_TAGS));
 
     myDeviceTypeComboBox.setRenderer(new ListCellRendererWrapper<IdDisplay>() {
       @Override
@@ -151,7 +151,7 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
 
     myBindings.bindTwoWay(new SelectedProperty(myHasHardwareButtons), deviceModel.hasHardwareButtons());
     myBindings.bindTwoWay(new SelectedProperty(myHasHardwareKeyboard), deviceModel.hasHardwareKeyboard());
-    myBindings.bindTwoWay(new SelectedItemProperty<Navigation>(myNavigationControlsCombo), deviceModel.navigation());
+    myBindings.bindTwoWay(new SelectedItemProperty<>(myNavigationControlsCombo), deviceModel.navigation());
 
     myBindings.bindTwoWay(new SelectedProperty(myIsScreenRound), deviceModel.isScreenRound());
     myBindings.bindTwoWay(new SelectedProperty(mySupportsLandscape), deviceModel.supportsLandscape());
@@ -163,30 +163,27 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
     myBindings.bindTwoWay(new SelectedProperty(myHasGyroscope), deviceModel.hasGyroscope());
     myBindings.bindTwoWay(new SelectedProperty(myHasGps), deviceModel.hasGps());
     myBindings.bindTwoWay(new SelectedProperty(myHasProximitySensor), deviceModel.hasProximitySensor());
-    myBindings.bindTwoWay(new SelectedItemProperty<File>(myCustomSkinPath.getComboBox()), deviceModel.customSkinFile());
+    myBindings.bindTwoWay(new SelectedItemProperty<>(myCustomSkinPath.getComboBox()), deviceModel.customSkinFile());
 
-    SelectedItemProperty<IdDisplay> selectedDeviceType = new SelectedItemProperty<IdDisplay>(myDeviceTypeComboBox);
+    SelectedItemProperty<IdDisplay> selectedDeviceType = new SelectedItemProperty<>(myDeviceTypeComboBox);
     myBindings.bindTwoWay(selectedDeviceType, deviceModel.deviceType());
-    myListeners.listen(selectedDeviceType, new Consumer<Optional<IdDisplay>>() {
-      @Override
-      public void consume(Optional<IdDisplay> idDisplayOptional) {
-        IdDisplay selectedType = idDisplayOptional.orNull();
-        if (selectedType != null) {
-          /**
-           * TODO When the user selects round, the following could be done to make the UI cleaner
-           * if(selectedType == WEAR){
-           *     disable and hide width textbox
-           *     addListener to height textbox to set the new value to width so it is always round (square)
-           * }else{
-           *     enable and show width textbox
-           *    remove listener
-           * }
-           */
-          getModel().getDeviceData().isWear().set(selectedType.equals(SystemImage.WEAR_TAG));
-          getModel().getDeviceData().isTv().set(selectedType.equals(SystemImage.TV_TAG));
-          myIsScreenRound.setEnabled(selectedType.equals(SystemImage.WEAR_TAG));
-          myIsScreenRound.setSelected(getModel().getDeviceData().isScreenRound().get());
-        }
+    myListeners.listen(selectedDeviceType, (Consumer<Optional<IdDisplay>>)idDisplayOptional -> {
+      IdDisplay selectedType = idDisplayOptional.orNull();
+      if (selectedType != null) {
+        /**
+         * TODO When the user selects round, the following could be done to make the UI cleaner
+         * if(selectedType == WEAR){
+         *     disable and hide width textbox
+         *     addListener to height textbox to set the new value to width so it is always round (square)
+         * }else{
+         *     enable and show width textbox
+         *    remove listener
+         * }
+         */
+        getModel().getDeviceData().isWear().set(selectedType.equals(SystemImage.WEAR_TAG));
+        getModel().getDeviceData().isTv().set(selectedType.equals(SystemImage.TV_TAG));
+        myIsScreenRound.setEnabled(selectedType.equals(SystemImage.WEAR_TAG));
+        myIsScreenRound.setSelected(getModel().getDeviceData().isScreenRound().get());
       }
     });
 
@@ -200,18 +197,14 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
 
     myValidatorPanel.registerValidator(
       myScreenResWidthAdapter.inSync().and(deviceModel.screenResolutionWidth().isEqualTo(myScreenResWidthAdapter)),
-      "Please enter a valid value for the screen width");
+      "Please enter a valid value for the screen width.");
     myValidatorPanel.registerValidator(
       myScreenResHeightAdapter.inSync().and(deviceModel.screenResolutionHeight().isEqualTo(myScreenResHeightAdapter)),
-      "Please enter a valid value for the screen height");
+      "Please enter a valid value for the screen height.");
 
-    myValidatorPanel.registerValidator(deviceModel.ramStorage(), new Validator<Storage>() {
-      @NotNull
-      @Override
-      public Result validate(@NotNull Storage value) {
-        return (value.getSize() > 0) ? Result.OK : new Result(Severity.ERROR, "Please specify a non-zero amount of RAM.");
-      }
-    });
+    myValidatorPanel.registerValidator(
+      deviceModel.ramStorage(),
+      value -> (value.getSize() > 0) ? Result.OK : new Result(Validator.Severity.ERROR, "Please specify a non-zero amount of RAM."));
 
     myValidatorPanel.registerValidator(deviceModel.screenDpi().isGreaterThan(0),
       "The given resolution and screen size specified have a DPI that is too low.");
@@ -219,19 +212,15 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
     myValidatorPanel.registerValidator(deviceModel.supportsLandscape().or(deviceModel.supportsPortrait()),
       "A device must support at least one orientation (Portrait or Landscape).");
 
-    myValidatorPanel.registerValidator(deviceModel.customSkinFile(), new Validator<Optional<File>>() {
-      @NotNull
-      @Override
-      public Result validate(@NotNull Optional<File> value) {
-        File skinPath = value.orNull();
-        if (skinPath != null && !FileUtil.filesEqual(skinPath, AvdWizardUtils.NO_SKIN)) {
-          File layoutFile = new File(skinPath, SdkConstants.FN_SKIN_LAYOUT);
-          if (!layoutFile.isFile()) {
-            return new Result(Severity.ERROR, "The skin directory does not point to a valid skin.");
-          }
+    myValidatorPanel.registerValidator(deviceModel.customSkinFile(), value -> {
+      File skinPath = value.orNull();
+      if (skinPath != null && !FileUtil.filesEqual(skinPath, AvdWizardUtils.NO_SKIN)) {
+        File layoutFile = new File(skinPath, SdkConstants.FN_SKIN_LAYOUT);
+        if (!layoutFile.isFile()) {
+          return new Result(Validator.Severity.ERROR, "The skin directory does not point to a valid skin.");
         }
-        return Result.OK;
       }
+      return Result.OK;
     });
 
     myValidatorPanel.registerValidator(getModel().getDeviceData().compatibleSkinSize(),
@@ -239,7 +228,7 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
   }
 
   private void createUIComponents() {
-    myNavigationControlsCombo = new ComboBox(new EnumComboBoxModel<Navigation>(Navigation.class)) {
+    myNavigationControlsCombo = new ComboBox(new EnumComboBoxModel<>(Navigation.class)) {
       @Override
       public ListCellRenderer getRenderer() {
         return new ColoredListCellRenderer() {
