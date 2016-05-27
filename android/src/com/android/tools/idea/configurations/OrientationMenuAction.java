@@ -22,9 +22,7 @@ import com.android.resources.ScreenOrientation;
 import com.android.resources.UiMode;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
-import com.android.tools.idea.rendering.RenderService;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -65,7 +63,7 @@ public class OrientationMenuAction extends FlatComboAction {
 
   @Override
   @NotNull
-  protected DefaultActionGroup createPopupActionGroup(JComponent button) {
+  protected DefaultActionGroup createPopupActionGroup() {
     DefaultActionGroup group = new DefaultActionGroup(null, true);
 
     Configuration configuration = myRenderContext.getConfiguration();

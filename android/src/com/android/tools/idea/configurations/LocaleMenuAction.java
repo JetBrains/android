@@ -34,7 +34,6 @@ import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -60,7 +59,7 @@ public class LocaleMenuAction extends FlatComboAction {
 
   @Override
   @NotNull
-  protected DefaultActionGroup createPopupActionGroup(JComponent button) {
+  protected DefaultActionGroup createPopupActionGroup() {
     DefaultActionGroup group = new DefaultActionGroup(null, true);
 
     // TODO: Offer submenus, lazily populated, which offer languages either by code or by name.

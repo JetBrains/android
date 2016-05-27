@@ -26,19 +26,22 @@ import javax.swing.*;
 import java.util.List;
 
 /**
- * A sub menu for a group of actions
+ * An action which represents a hierarchy of menus; this is typically
+ * shown as a popup menu, where the popup shows rows of toolbars.
+ * However, if there is just a single row, it will be shown as a plain
+ * menu instead.
  */
-public final class ViewActionMenu extends ViewAction {
-  private final List<ViewAction> myActions;
+public final class NestedViewActionMenu extends ViewAction {
+  private final List<List<ViewAction>> myActions;
 
   /**
    * Creates a new view action.
    *
    * @param menuName the menu label
    * @param icon     the (optional) icon
-   * @param actions  the set of actions in this menu
+   * @param actions  the list of action-lists to be shown in this popup. Each list is shown on its own line.
    */
-  public ViewActionMenu(@NotNull String menuName, @Nullable Icon icon, @NotNull List<ViewAction> actions) {
+  public NestedViewActionMenu(@NotNull String menuName, @NotNull Icon icon, @NotNull List<List<ViewAction>> actions) {
     this(-1, menuName, icon, actions);
   }
 
@@ -48,9 +51,9 @@ public final class ViewActionMenu extends ViewAction {
    * @param rank     the sorting order of this action
    * @param menuName the menu label
    * @param icon     the (optional) icon
-   * @param actions  the set of actions in this menu
+   * @param actions  the list of action-lists to be shown in this popup. Each list is shown on its own line.
    */
-  public ViewActionMenu(int rank, @NotNull String menuName, @Nullable Icon icon, @NotNull List<ViewAction> actions) {
+  public NestedViewActionMenu(int rank, @NotNull String menuName, @Nullable Icon icon, @NotNull List<List<ViewAction>> actions) {
     super(rank, icon, menuName);
     myActions = actions;
   }
@@ -58,10 +61,10 @@ public final class ViewActionMenu extends ViewAction {
   /**
    * Returns the list of actions in this menu
    *
-   * @return the list of actions in this menu
+   * @return the list of action-lists in this popup.
    */
   @NotNull
-  public List<ViewAction> getActions() {
+  public List<List<ViewAction>> getActions() {
     return myActions;
   }
 
@@ -72,6 +75,7 @@ public final class ViewActionMenu extends ViewAction {
                                  @NotNull NlComponent component,
                                  @NotNull List<NlComponent> selectedChildren,
                                  @InputEventMask int modifiers) {
+    presentation.setIcon(myIcon);
     presentation.setLabel(myLabel);
   }
 }
