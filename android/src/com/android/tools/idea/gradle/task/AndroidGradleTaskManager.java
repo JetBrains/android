@@ -33,7 +33,6 @@ import java.util.List;
  * Executes Gradle tasks.
  */
 public class AndroidGradleTaskManager implements GradleTaskManagerExtension {
-
   @Override
   public boolean executeTasks(@NotNull ExternalSystemTaskId id,
                               @NotNull List<String> taskNames,
