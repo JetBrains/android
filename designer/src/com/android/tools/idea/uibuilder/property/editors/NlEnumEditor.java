@@ -83,6 +83,9 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
       case ATTR_DROPDOWN_WIDTH:
         return true;
       default:
+        if (property.getName().endsWith(ValueWithDisplayString.TEXT_APPEARANCE_SUFFIX)) {
+          return true;
+        }
         AttributeDefinition definition = property.getDefinition();
         Set<AttributeFormat> formats = definition != null ? definition.getFormats() : Collections.emptySet();
         return formats.contains(AttributeFormat.Enum);
@@ -187,7 +190,12 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
         values = ValueWithDisplayString.create(AVAILABLE_SIZES);
         break;
       default:
-        values = definition == null ? ValueWithDisplayString.EMPTY_ARRAY : ValueWithDisplayString.create(definition.getValues());
+        if (property.getName().endsWith(ValueWithDisplayString.TEXT_APPEARANCE_SUFFIX)) {
+          values = createTextAttributeList(property);
+        }
+        else {
+          values = definition == null ? ValueWithDisplayString.EMPTY_ARRAY : ValueWithDisplayString.create(definition.getValues());
+        }
     }
 
     DefaultComboBoxModel<ValueWithDisplayString> newModel = new DefaultComboBoxModel<ValueWithDisplayString>(values) {

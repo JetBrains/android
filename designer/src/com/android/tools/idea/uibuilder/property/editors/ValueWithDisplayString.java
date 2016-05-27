@@ -31,6 +31,7 @@ import java.util.regex.Pattern;
  * Used in combo-box and dropdown style controls.
  */
 public class ValueWithDisplayString {
+  public static final String TEXT_APPEARANCE_SUFFIX = "TextAppearance";
   public static final ValueWithDisplayString SEPARATOR = new ValueWithDisplayString("-", "-");
   public static final ValueWithDisplayString UNSET = new ValueWithDisplayString("none", null);
   public static final ValueWithDisplayString[] EMPTY_ARRAY = new ValueWithDisplayString[0];
@@ -63,7 +64,7 @@ public class ValueWithDisplayString {
       return UNSET;
     }
     String display = property.resolveValue(value);
-    if (property.getName().equals(SdkConstants.ATTR_TEXT_APPEARANCE)) {
+    if (property.getName().equals(SdkConstants.ATTR_TEXT_APPEARANCE) || property.getName().endsWith(TEXT_APPEARANCE_SUFFIX)) {
       ValueWithDisplayString attr = createTextAppearanceValue(display, "", value);
       if (attr != null) {
         return attr;
