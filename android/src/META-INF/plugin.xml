@@ -401,8 +401,6 @@
     <framework.detector implementation="org.jetbrains.android.facet.AndroidFrameworkDetector"/>
     <fileTemplateGroup implementation="org.jetbrains.android.AndroidFileTemplateProvider"/>
 
-    <projectTemplatesFactory implementation="com.android.tools.idea.npw.TemplateWizardProjectTemplateFactory"/>
-    <projectTemplatesFactory implementation="org.jetbrains.android.newProject.AndroidProjectTemplatesFactory"/>
     <moduleBuilder builderClass="org.jetbrains.android.newProject.AndroidWizardWrapper"/>
 
     <defaultLiveTemplatesProvider implementation="com.android.tools.idea.templates.live.AndroidLiveTemplatesProvider"/>
