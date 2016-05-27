@@ -20,6 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.Arrays;
 
 /** Describes different types of zoom actions */
 public enum ZoomType {
@@ -84,4 +85,62 @@ public enum ZoomType {
 
   // Zoom percentages
   // 25%, 33%, 50%, 67%, 75%, 90%, 100%, 110%, 125%, 150%, 200%, 300%, 400%, .... +100%
+  private static final int[] ZOOM_POINTS = new int[] {
+    25, 33, 50, 67, 75, 90, 100, 110, 125, 150, 200
+  };
+
+  public static int zoomIn(int percentage) {
+    int i = Arrays.binarySearch(ZOOM_POINTS, percentage);
+    if (i < 0) {
+      // inexact match: jump to nearest
+      i = -i - 1;
+      if (i == 0) {
+        // If we're far down (like 0.1) don't just jump up to 25%, jump 10%
+        if (percentage < 22) {
+          return (int)(Math.ceil(percentage * 1.1));
+        }
+      }
+      if (i < ZOOM_POINTS.length) {
+        return ZOOM_POINTS[i];
+      }
+      else {
+        // Round up to next nearest hundred
+        return ((percentage / 100) + 1) * 100;
+      }
+    }
+    else {
+      // exact match
+      if (i < ZOOM_POINTS.length - 1) {
+        return ZOOM_POINTS[i + 1];
+      }
+      // Just increase by 100 after this: 200, 300, 400, ...
+      return percentage + 100;
+    }
+  }
+
+  public static int zoomOut(int percentage) {
+    int i = Arrays.binarySearch(ZOOM_POINTS, percentage);
+    if (i < 0) {
+      // inexact match: jump to nearest
+      i = -i - 1;
+      if (i == 0) {
+        // If we're far down (like 0.1) don't just jump up to 25%, jump 10%
+        return (int)Math.floor(percentage / 1.1);
+      }
+      if (i < ZOOM_POINTS.length - 1) {
+        return ZOOM_POINTS[i + 1];
+      }
+      else {
+        // Round down to next nearest hundred
+        return ((percentage / 100) - 1) * 100;
+      }
+    }
+    else {
+      // exact match
+      if (i > 0) {
+        return ZOOM_POINTS[i - 1];
+      }
+      return (int)Math.floor(percentage / 1.1);
+    }
+  }
 }
