@@ -33,11 +33,12 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
-import java.awt.event.*;
-import java.util.ArrayList;
+import java.awt.event.ActionEvent;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.awt.event.KeyEvent;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 
 import static com.android.SdkConstants.*;
 
@@ -84,7 +85,9 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
       case ATTR_DROPDOWN_WIDTH:
         return true;
       default:
-        return false;
+        AttributeDefinition definition = property.getDefinition();
+        Set<AttributeFormat> formats = definition != null ? definition.getFormats() : Collections.emptySet();
+        return formats.contains(AttributeFormat.Enum);
     }
   }
 
