@@ -91,6 +91,7 @@ import java.util.*;
 
 import static com.android.SdkConstants.ANDROID_MANIFEST_XML;
 import static com.android.tools.idea.AndroidPsiUtils.getModuleSafely;
+import static com.android.tools.idea.apk.ApkProjects.isApkProject;
 import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
 import static com.intellij.openapi.vfs.JarFileSystem.JAR_SEPARATOR;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
@@ -164,7 +165,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
    * @return {@code true} if the project has a {@code AndroidProject}; {@code false} otherwise.
    */
   public boolean requiresAndroidModel() {
-    return !getProperties().ALLOW_USER_CONFIGURATION;
+    return !getProperties().ALLOW_USER_CONFIGURATION && !isApkProject(getModule());
   }
 
   /**

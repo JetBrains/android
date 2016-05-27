@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.run;
 
+import com.android.tools.idea.apk.AndroidApkFacet;
+import com.android.tools.idea.apk.ApkProjects;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.run.activity.DefaultStartActivityFlagsProvider;
 import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
@@ -53,6 +55,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -116,6 +119,10 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   protected ApkProvider getApkProvider(@NotNull AndroidFacet facet, @NotNull ApplicationIdProvider applicationIdProvider) {
     if (facet.getAndroidModel() != null && facet.getAndroidModel() instanceof AndroidGradleModel) {
       return new GradleApkProvider(facet, applicationIdProvider, false);
+    }
+    AndroidApkFacet androidApkFacet = AndroidApkFacet.getInstance(facet.getModule());
+    if (androidApkFacet != null) {
+      return new FileSystemApkProvider(androidApkFacet.getModule(), new File(androidApkFacet.getConfiguration().APK_PATH));
     }
     return new NonGradleApkProvider(facet, applicationIdProvider, ARTIFACT_NAME);
   }

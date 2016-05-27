@@ -15,20 +15,30 @@
  */
 package com.android.tools.idea.project;
 
+import com.android.tools.idea.run.AndroidRunConfiguration;
+import com.android.tools.idea.run.AndroidRunConfigurationType;
+import com.android.tools.idea.run.TargetSelectionMode;
+import com.intellij.execution.RunManager;
+import com.intellij.execution.configurations.ConfigurationFactory;
+import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import static com.intellij.openapi.util.io.FileUtil.delete;
 import static com.intellij.openapi.util.io.FileUtil.ensureExists;
 import static com.intellij.openapi.wm.ToolWindowId.PROJECT_VIEW;
+import static org.jetbrains.android.util.AndroidUtils.addRunConfiguration;
 
 public class NewProjects {
   private static final Logger LOG = Logger.getInstance(NewProjects.class);
@@ -67,5 +77,22 @@ public class NewProjects {
     if (window != null) {
       window.activate(null, false);
     }
+  }
+
+  public static void createRunConfigurations(@NotNull AndroidFacet facet) {
+    Module module = facet.getModule();
+    RunManager runManager = RunManager.getInstance(module.getProject());
+    ConfigurationFactory configurationFactory = AndroidRunConfigurationType.getInstance().getFactory();
+    List<RunConfiguration> configs = runManager.getConfigurationsList(configurationFactory.getType());
+    for (RunConfiguration config : configs) {
+      if (config instanceof AndroidRunConfiguration) {
+        AndroidRunConfiguration androidRunConfig = (AndroidRunConfiguration)config;
+        if (androidRunConfig.getConfigurationModule().getModule() == module) {
+          // There is already a run configuration for this module.
+          return;
+        }
+      }
+    }
+    addRunConfiguration(facet, null, false, TargetSelectionMode.SHOW_DIALOG, null);
   }
 }
