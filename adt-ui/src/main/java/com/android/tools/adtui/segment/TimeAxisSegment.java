@@ -5,7 +5,7 @@ import com.android.tools.adtui.Animatable;
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.Range;
-import com.android.tools.adtui.common.AdtUIUtils;
+import com.android.tools.adtui.common.AdtUiUtils;
 
 import javax.swing.*;
 import java.util.List;
@@ -35,12 +35,12 @@ public final class TimeAxisSegment extends BaseSegment {
 
   @Override
   protected void setLeftContent(@NonNull JPanel panel) {
-    panel.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, AdtUIUtils.DEFAULT_BORDER_COLOR));
+    panel.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, AdtUiUtils.DEFAULT_BORDER_COLOR));
   }
 
   @Override
   protected void setRightContent(@NonNull JPanel panel) {
-    panel.setBorder(BorderFactory.createMatteBorder(0, 1, 0, 0, AdtUIUtils.DEFAULT_BORDER_COLOR));
+    panel.setBorder(BorderFactory.createMatteBorder(0, 1, 0, 0, AdtUiUtils.DEFAULT_BORDER_COLOR));
   }
 
   @Override

@@ -15,7 +15,7 @@
  */
 package com.android.tools.adtui;
 
-import com.android.tools.adtui.common.AdtUIUtils;
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.RotatedLabel;
 import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
 import com.intellij.ui.components.JBLabel;
@@ -193,7 +193,7 @@ public final class AxisComponent extends AnimatedComponent {
     mStartMargin = startMargin;
     mEndMargin = endMargin;
 
-    mMetrics = getFontMetrics(AdtUIUtils.DEFAULT_FONT);
+    mMetrics = getFontMetrics(AdtUiUtils.DEFAULT_FONT);
 
     switch (mOrientation) {
       case LEFT:
@@ -207,7 +207,7 @@ public final class AxisComponent extends AnimatedComponent {
         mLabel = new JBLabel(label);
         mLabel.setSize(mMetrics.stringWidth(label), mMetrics.getHeight());
     }
-    mLabel.setFont(AdtUIUtils.DEFAULT_FONT);
+    mLabel.setFont(AdtUiUtils.DEFAULT_FONT);
 
   }
 
@@ -404,7 +404,7 @@ public final class AxisComponent extends AnimatedComponent {
       g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
       // Draw axis.
-      g.setColor(AdtUIUtils.DEFAULT_BORDER_COLOR);
+      g.setColor(AdtUiUtils.DEFAULT_BORDER_COLOR);
       g.drawLine(startPoint.x, startPoint.y, endPoint.x, endPoint.y);
 
       // TODO account for pixel spacing so we can skip ticks if the length is too narrow.
@@ -420,7 +420,7 @@ public final class AxisComponent extends AnimatedComponent {
   }
 
   private void drawMarkers(Graphics2D g2d, Point origin) {
-    g2d.setFont(AdtUIUtils.DEFAULT_FONT);
+    g2d.setFont(AdtUiUtils.DEFAULT_FONT);
 
     if (mShowMinMax) {
       drawMarkerLabel(g2d, LABEL_BOUNDS_OFFSET, origin, mCurrentMinValue, true);
@@ -478,7 +478,7 @@ public final class AxisComponent extends AnimatedComponent {
     }
 
     line.setLine(markerStartX, markerStartY, markerEndX, markerEndY);
-    g2d.setColor(AdtUIUtils.DEFAULT_BORDER_COLOR);
+    g2d.setColor(AdtUiUtils.DEFAULT_BORDER_COLOR);
     g2d.draw(line);
   }
 
@@ -516,7 +516,7 @@ public final class AxisComponent extends AnimatedComponent {
     }
 
     if (isMinMax || (markerOffset - reserved > 0 && markerOffset + reserved < mAxisLength)) {
-      g2d.setColor(AdtUIUtils.DEFAULT_FONT_COLOR);
+      g2d.setColor(AdtUiUtils.DEFAULT_FONT_COLOR);
       g2d.drawString(formattedValue, labelX, labelY);
     }
   }

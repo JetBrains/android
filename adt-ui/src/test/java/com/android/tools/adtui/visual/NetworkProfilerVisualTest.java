@@ -21,9 +21,7 @@ import com.android.tools.adtui.Animatable;
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.AnimatedTimeRange;
 import com.android.tools.adtui.Range;
-import com.android.tools.adtui.common.AdtUIUtils;
 import com.android.tools.adtui.model.ContinuousSeries;
-import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.segment.NetworkSegment;
 
 import java.awt.GridBagConstraints;

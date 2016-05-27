@@ -19,7 +19,7 @@ package com.android.tools.adtui.visual;
 import com.android.annotations.NonNull;
 import com.android.tools.adtui.*;
 import com.android.tools.adtui.chart.linechart.LineChart;
-import com.android.tools.adtui.common.AdtUIUtils;
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.intellij.ui.components.JBPanel;
 
@@ -141,7 +141,7 @@ public class AccordionVisualTest extends VisualTest {
     // Creates the vertical accordion at the top half.
     JBPanel yPanel = new JBPanel();
     panel.add(yPanel);
-    yPanel.setBorder(BorderFactory.createLineBorder(AdtUIUtils.DEFAULT_BORDER_COLOR));
+    yPanel.setBorder(BorderFactory.createLineBorder(AdtUiUtils.DEFAULT_BORDER_COLOR));
     final JPanel controlsY = VisualTests.createControlledPane(yPanel, mPanelY);
 
     controlsY.add(VisualTests.createButton("Reset Weights", listener -> {
@@ -176,7 +176,7 @@ public class AccordionVisualTest extends VisualTest {
     // Creates the horizontal accordion at the bottom half.
     JBPanel xPanel = new JBPanel();
     panel.add(xPanel);
-    xPanel.setBorder(BorderFactory.createLineBorder(AdtUIUtils.DEFAULT_BORDER_COLOR));
+    xPanel.setBorder(BorderFactory.createLineBorder(AdtUiUtils.DEFAULT_BORDER_COLOR));
     final JPanel controlsX = VisualTests.createControlledPane(xPanel, mPanelX);
     controlsX.add(VisualTests.createButton("Reset Weights", listener -> {
       mAccordionX.resetComponents();
