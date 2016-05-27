@@ -16,6 +16,8 @@
 package com.android.tools.idea.uibuilder.editor;
 
 import com.android.tools.idea.configurations.*;
+import com.android.tools.idea.uibuilder.actions.SetZoomAction;
+import com.android.tools.idea.uibuilder.actions.ZoomLabelAction;
 import com.android.tools.idea.uibuilder.model.ModelListener;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
@@ -24,21 +26,18 @@ import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.idea.uibuilder.surface.ZoomType;
-import com.intellij.openapi.actionSystem.*;
-import com.intellij.openapi.actionSystem.ex.CustomComponentAction;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.actionSystem.ActionGroup;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionToolbar;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
-import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.util.Collections;
 import java.util.List;
 
@@ -117,98 +116,6 @@ public class NlActionsToolbar implements DesignSurfaceListener, ModelListener {
     group.add(new SetZoomAction(surface, ZoomType.FIT));
 
     return group;
-  }
-
-  // We're using a FlatComboAction because a plain AnAction does not
-  // get its text presentation painted as a label...
-  public static class ZoomLabelAction extends AnAction implements CustomComponentAction {
-    @NotNull private final DesignSurface mySurface;
-
-    public ZoomLabelAction(@NotNull DesignSurface surface) {
-      mySurface = surface;
-      Presentation presentation = getTemplatePresentation();
-      presentation.setDescription("Current Zoom Level");
-      updatePresentation(presentation);
-    }
-
-    @Override
-    public void update(AnActionEvent e) {
-      super.update(e);
-      updatePresentation(e.getPresentation());
-    }
-
-    @Override
-    public void actionPerformed(AnActionEvent e) {
-      // No-op: only label matters
-    }
-
-    private void updatePresentation(Presentation presentation) {
-      double scale = mySurface.getScale();
-      if (SystemInfo.isMac && UIUtil.isRetina()) {
-        scale *= 2;
-      }
-
-      String label = String.format("%d%% ", (int)(100 * scale));
-      presentation.setText(label);
-    }
-
-    @Override
-    public JComponent createCustomComponent(Presentation presentation) {
-      JBLabel label = new JBLabel() {
-        private PropertyChangeListener myPresentationSyncer;
-        private Presentation myPresentation = presentation;
-
-        @Override
-        public void addNotify() {
-          super.addNotify();
-          if (myPresentationSyncer == null) {
-            myPresentationSyncer = new PresentationSyncer();
-            myPresentation.addPropertyChangeListener(myPresentationSyncer);
-          }
-          setText(myPresentation.getText());
-        }
-
-        @Override
-        public void removeNotify() {
-          if (myPresentationSyncer != null) {
-            myPresentation.removePropertyChangeListener(myPresentationSyncer);
-            myPresentationSyncer = null;
-          }
-          super.removeNotify();
-        }
-
-        class PresentationSyncer implements PropertyChangeListener {
-          @Override
-          public void propertyChange(PropertyChangeEvent evt) {
-            String propertyName = evt.getPropertyName();
-            if (Presentation.PROP_TEXT.equals(propertyName)) {
-              setText((String)evt.getNewValue());
-              invalidate();
-              repaint();
-            }
-          }
-        }
-      };
-      label.setFont(UIUtil.getToolTipFont());
-      return label;
-    }
-  }
-
-  private static class SetZoomAction extends AnAction {
-    @NotNull private final DesignSurface mySurface;
-    @NotNull private final ZoomType myType;
-
-    public SetZoomAction(@NotNull DesignSurface surface, @NotNull ZoomType type) {
-      super(type.getLabel());
-      myType = type;
-      mySurface = surface;
-      getTemplatePresentation().setIcon(type.getIcon());
-    }
-
-    @Override
-    public void actionPerformed(AnActionEvent e) {
-      mySurface.zoom(myType);
-    }
   }
 
   private static DefaultActionGroup createConfigActions(ConfigurationHolder configurationHolder, DesignSurface surface) {
