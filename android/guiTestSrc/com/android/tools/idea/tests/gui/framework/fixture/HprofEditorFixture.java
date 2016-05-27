@@ -30,12 +30,10 @@ import com.intellij.openapi.fileEditor.impl.EditorWindow;
 import com.intellij.openapi.fileEditor.impl.EditorWithProviderComposite;
 import com.intellij.openapi.fileEditor.impl.EditorsSplitters;
 import com.intellij.openapi.fileEditor.impl.FileEditorManagerImpl;
-import com.intellij.ui.table.JBTable;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.exception.ComponentLookupException;
-import org.fest.swing.fixture.JTableFixture;
 import org.fest.swing.fixture.JTreeFixture;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -118,19 +116,9 @@ public class HprofEditorFixture extends EditorFixture {
     return true;
   }
 
-  public void selectClassViewMode(@NotNull String oldViewModeName, @NotNull String newViewModeName) {
-    myToolbarFixture.findComboBoxActionWithText(oldViewModeName).selectItem(newViewModeName);
-  }
-
   @NotNull
   public JTreeFixture getClassesTree() {
     return new JTreeFixture(robot, ClassesTreeView.TREE_NAME);
-  }
-
-  @NotNull
-  public JTableFixture getClassesTreeHeader() {
-    JTreeFixture tree = getClassesTree();
-    return new JTableFixture(robot, robot.finder().findByType(tree.target().getParent(), JBTable.class));
   }
 
   @NotNull
@@ -139,20 +127,8 @@ public class HprofEditorFixture extends EditorFixture {
   }
 
   @NotNull
-  public JTableFixture getInstancesTreeHeader() {
-    JTreeFixture tree = getInstancesTree();
-    return new JTableFixture(robot, robot.finder().findByType(tree.target().getParent(), JBTable.class));
-  }
-
-  @NotNull
   public JTreeFixture getInstanceReferenceTree() {
     return new JTreeFixture(robot, InstanceReferenceTreeView.TREE_NAME);
-  }
-
-  @NotNull
-  public JTableFixture getInstanceReferenceTreeHeader() {
-    JTreeFixture tree = getInstanceReferenceTree();
-    return new JTableFixture(robot, robot.finder().findByType(tree.target().getParent(), JBTable.class));
   }
 
   private void waitForHprofEditor() {
