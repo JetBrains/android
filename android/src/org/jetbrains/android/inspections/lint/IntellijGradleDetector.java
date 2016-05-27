@@ -91,7 +91,9 @@ public class IntellijGradleDetector extends GradleDetector {
                   if (propertyExpression instanceof GrReferenceExpression) {
                     GrReferenceExpression propertyRef = (GrReferenceExpression)propertyExpression;
                     String property = propertyRef.getReferenceName();
-                    if (property != null && isInterestingProperty(property, parentName, parentParentName)) {
+                    //noinspection ConstantConditions
+                    if (property != null && isInterestingProperty(property, parentName, parentParentName)
+                          && argumentList != null) {
                       String value = argumentList.getText();
                       checkDslPropertyAssignment(context, property, value, parentName, parentParentName, argumentList, call);
                     }

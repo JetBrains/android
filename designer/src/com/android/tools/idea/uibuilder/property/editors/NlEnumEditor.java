@@ -172,7 +172,7 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
   }
 
   private void setModel(@NotNull NlProperty property) {
-    assert supportsProperty(property);
+    assert supportsProperty(property) : this.getClass().getName() + property;
     myProperty = property;
 
     AttributeDefinition definition = property.getDefinition();

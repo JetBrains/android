@@ -96,6 +96,20 @@ public class GradleDependencyManager {
     return false;
   }
 
+  /**
+   * Updates any coordinates to the versions specified in the dependencies list.
+   * For example, if you pass it [com.android.support.constraint:constraint-layout:1.0.0-alpha2],
+   * it will find any constraint layout occurrences of 1.0.0-alpha1 and replace them with 1.0.0-alpha2.
+   */
+  public boolean updateLibrariesToVersion(@NotNull Module module,
+                                          @NotNull List<GradleCoordinate> dependencies,
+                                          @Nullable Runnable callback) {
+    GradleBuildModel buildModel = GradleBuildModel.get(module);
+    assert buildModel != null;
+    updateDependenciesInTransaction(buildModel, module, dependencies, callback);
+    return true;
+  }
+
   @NotNull
   private static List<GradleCoordinate> findMissingLibrariesFromGradleBuildFile(@NotNull GradleBuildModel buildModel,
                                                                                 @NotNull Iterable<GradleCoordinate> dependencies) {
@@ -165,6 +179,42 @@ public class GradleDependencyManager {
         }
         buildModel.applyChanges();
       }
+    });
+  }
+
+  private static void updateDependenciesInTransaction(@NotNull final GradleBuildModel buildModel,
+                                                      @NotNull final Module module,
+                                                      @NotNull final List<GradleCoordinate> coordinates,
+                                                      @Nullable final Runnable callback) {
+    assert !coordinates.isEmpty();
+
+    final Project project = module.getProject();
+    new WriteCommandAction(project, ADD_DEPENDENCY) {
+      @Override
+      protected void run(@NotNull final Result result) throws Throwable {
+        updateDependencies(buildModel, module, coordinates);
+        GradleProjectImporter.getInstance().requestProjectSync(project, false /* do not generate sources */, createSyncListener(callback));
+      }
+    }.execute();
+  }
+
+  private static void updateDependencies(@NotNull final GradleBuildModel buildModel,
+                                         @NotNull Module module,
+                                         @NotNull final List<GradleCoordinate> coordinates) {
+    ModuleRootModificationUtil.updateModel(module, model -> {
+      DependenciesModel dependenciesModel = buildModel.dependencies();
+      for (GradleCoordinate gc : coordinates) {
+        List<ArtifactDependencyModel> artifacts = Lists.newArrayList(dependenciesModel.artifacts());
+        for (ArtifactDependencyModel m : artifacts) {
+          if (gc.getGroupId() != null && gc.getGroupId().equals(m.group().value())
+              && gc.getArtifactId() != null && gc.getArtifactId().equals(m.name().value())
+              && !gc.getRevision().equals(m.version().value())) {
+            dependenciesModel.remove(m);
+            dependenciesModel.addArtifact(m.configurationName(), gc.toString());
+          }
+        }
+      }
+      buildModel.applyChanges();
     });
   }
 
