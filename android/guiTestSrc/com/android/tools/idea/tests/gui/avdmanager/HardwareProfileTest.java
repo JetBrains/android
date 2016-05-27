@@ -83,12 +83,12 @@ public class HardwareProfileTest {
     deviceOptionsStep.setScreenSize("5.2")
       .setScreenResolutionX("0");
     assertThat(deviceOptionsStep.getValidationText())
-      .isEqualTo("Please enter non-zero positive integer values for the screen resolution width.");
+      .isEqualTo("Please enter a valid value for the screen width.");
 
     deviceOptionsStep.setScreenResolutionX("1280")
       .setScreenResolutionY("0");
     assertThat(deviceOptionsStep.getValidationText())
-      .isEqualTo("Please enter non-zero positive integer values for the screen resolution height.");
+      .isEqualTo("Please enter a valid value for the screen height.");
 
     hardwareProfileWizard.clickCancel();
     avdEditWizard.clickCancel();
