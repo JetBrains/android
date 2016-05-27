@@ -20,6 +20,8 @@ import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.GradleSyncState;
+import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
+import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
@@ -340,6 +342,32 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     // is the cause of the issue, but not all files inside a project are seen while running unit tests.
     // This explicit refresh of the entire project fix such issues (e.g. AndroidProjectViewTest).
     LocalFileSystem.getInstance().refreshFiles(Collections.singletonList(project.getBaseDir()));
+  }
+
+  @NotNull
+  protected GradleInvocationResult generateSources(boolean cleanProject) throws InterruptedException {
+    Ref<GradleInvocationResult> resultRef = new Ref<>();
+    CountDownLatch latch = new CountDownLatch(1);
+    GradleInvoker gradleInvoker = GradleInvoker.getInstance(getProject());
+
+    GradleInvoker.AfterGradleInvocationTask task = result -> {
+      resultRef.set(result);
+      latch.countDown();
+    };
+
+    gradleInvoker.addAfterGradleInvocationTask(task);
+
+    try {
+      gradleInvoker.generateSources(cleanProject);
+    }
+    finally {
+      gradleInvoker.removeAfterGradleInvocationTask(task);
+    }
+
+    latch.await();
+    GradleInvocationResult result = resultRef.get();
+    assert result != null;
+    return result;
   }
 
   public static void updateGradleVersions(@NotNull File file) throws IOException {

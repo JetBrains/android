@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,106 +15,44 @@
  */
 package com.android.tools.idea.gradle.invoker.console.view;
 
-import com.intellij.codeEditor.printing.PrintAction;
-import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.execution.ui.ConsoleViewContentType;
-import com.intellij.execution.ui.RunnerLayoutUi;
-import com.intellij.execution.ui.layout.PlaceInGrid;
-import com.intellij.ide.actions.NextOccurenceToolbarAction;
-import com.intellij.ide.actions.PreviousOccurenceToolbarAction;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.ActionPlaces;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.ui.content.Content;
-import com.intellij.ui.content.ContentFactory;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
-import java.awt.*;
+public abstract class GradleConsoleView implements Disposable {
+  private static final GradleConsoleView NO_OP = new GradleConsoleView() {
+    @Override
+    public void clear() {
+    }
 
-public class GradleConsoleView implements Disposable {
-  private static final Class<?>[] IGNORED_CONSOLE_ACTION_TYPES =
-    {PreviousOccurenceToolbarAction.class, NextOccurenceToolbarAction.class, ConsoleViewImpl.ClearAllAction.class, PrintAction.class};
+    @Override
+    public void print(@NotNull String text, @NotNull ConsoleViewContentType contentType) {
+    }
 
-  @NotNull private final Project myProject;
-  @NotNull private final ConsoleViewImpl myConsoleView;
+    @Override
+    public void createToolWindowContent(@NotNull ToolWindow toolWindow) {
+    }
 
-  private JPanel myConsolePanel;
+    @Override
+    public void dispose() {
+    }
+  };
 
-  public GradleConsoleView(@NotNull Project project) {
-    myProject = project;
-    myConsoleView = new ConsoleViewImpl(myProject, false);
-    Disposer.register(this, myConsoleView);
-  }
-
+  @NotNull
   public static GradleConsoleView getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, GradleConsoleView.class);
-  }
-
-  public void createToolWindowContent(@NotNull ToolWindow toolWindow) {
-    //Create runner UI layout
-    RunnerLayoutUi.Factory factory = RunnerLayoutUi.Factory.getInstance(myProject);
-    RunnerLayoutUi layoutUi = factory.create("", "", "session", myProject);
-
-    // Adding actions
-    DefaultActionGroup group = new DefaultActionGroup();
-    layoutUi.getOptions().setLeftToolbar(group, ActionPlaces.UNKNOWN);
-
-    Content console = layoutUi.createContent(GradleConsoleToolWindowFactory.ID, myConsoleView.getComponent(), "", null, null);
-    AnAction[] consoleActions = myConsoleView.createConsoleActions();
-    for (AnAction action : consoleActions) {
-      if (!shouldIgnoreAction(action)) {
-        group.add(action);
-      }
+    if (ApplicationManager.getApplication().isUnitTestMode()) {
+      return NO_OP;
     }
-    layoutUi.addContent(console, 0, PlaceInGrid.right, false);
-
-    JComponent layoutComponent = layoutUi.getComponent();
-    myConsolePanel.add(layoutComponent, BorderLayout.CENTER);
-
-    //noinspection ConstantConditions
-    Content content = ContentFactory.SERVICE.getInstance().createContent(layoutComponent, null, true);
-    toolWindow.getContentManager().addContent(content);
+    return ServiceManager.getService(project, DefaultGradleConsoleView.class);
   }
 
-  private static boolean shouldIgnoreAction(@NotNull AnAction action) {
-    for (Class<?> actionType : IGNORED_CONSOLE_ACTION_TYPES) {
-      if (actionType.isInstance(action)) {
-        return true;
-      }
-    }
-    return false;
-  }
+  public abstract void clear();
 
-  public void clear() {
-    if (myConsoleView.isShowing()) {
-      myConsoleView.clear();
-    }
-    else {
-      // "clear" does not work when the console is not visible. We need to flush the text from previous sessions. It has to be done in the
-      // UI thread, but we cannot call "invokeLater" because it will delete text belonging to the current session.
-      ApplicationManager.getApplication().invokeAndWait(new Runnable() {
-        @Override
-        public void run() {
-          // "flushDeferredText" is really "delete text from previous sessions and leave the text of the current session untouched."
-          myConsoleView.flushDeferredText();
-        }
-      }, ModalityState.NON_MODAL);
-    }
-  }
+  public abstract void print(@NotNull String text, @NotNull ConsoleViewContentType contentType);
 
-  public void print(@NotNull String text, @NotNull ConsoleViewContentType contentType) {
-    myConsoleView.print(text, contentType);
-  }
-
-  @Override
-  public void dispose() {
-  }
+  public abstract void createToolWindowContent(@NotNull ToolWindow toolWindow);
 }
