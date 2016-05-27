@@ -119,7 +119,7 @@ public abstract class FlatComboAction extends AnAction implements CustomComponen
   }
 
   @NotNull
-  protected abstract DefaultActionGroup createPopupActionGroup(JComponent button);
+  protected abstract DefaultActionGroup createPopupActionGroup();
 
   protected int getMaxRows() {
     return 30;
@@ -131,6 +131,15 @@ public abstract class FlatComboAction extends AnAction implements CustomComponen
 
   protected int getMinWidth() {
     return 1;
+  }
+
+  protected JBPopup createPopup(Runnable onDispose, DataContext context) {
+    DefaultActionGroup group = createPopupActionGroup();
+    JBPopupFactory factory = JBPopupFactory.getInstance();
+    ListPopup popup = factory.createActionGroupPopup(null, group, context, JBPopupFactory.ActionSelectionAid.SPEEDSEARCH, true, onDispose,
+                                                     getMaxRows());
+    popup.setMinimumSize(new Dimension(getMinWidth(), getMinHeight()));
+    return popup;
   }
 
   protected class FlatComboButton extends JButton {
@@ -268,14 +277,9 @@ public abstract class FlatComboAction extends AnAction implements CustomComponen
     }
 
     protected JBPopup createPopup(Runnable onDispose) {
-      DefaultActionGroup group = createPopupActionGroup(this);
-
       DataContext context = getDataContext();
       myDataContext = null;
-      final ListPopup popup = JBPopupFactory.getInstance()
-        .createActionGroupPopup(null, group, context, JBPopupFactory.ActionSelectionAid.SPEEDSEARCH, true, onDispose, getMaxRows());
-      popup.setMinimumSize(new Dimension(getMinWidth(), getMinHeight()));
-      return popup;
+      return FlatComboAction.this.createPopup(onDispose, context);
     }
 
     protected DataContext getDataContext() {

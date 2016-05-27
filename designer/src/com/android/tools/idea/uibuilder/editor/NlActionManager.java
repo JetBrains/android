@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
+import com.android.tools.idea.configurations.FlatComboAction;
 import com.android.tools.idea.uibuilder.actions.*;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
@@ -33,7 +34,10 @@ import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.popup.JBPopup;
+import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.psi.PsiFile;
+import com.intellij.ui.components.panels.VerticalLayout;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -186,7 +190,13 @@ public class NlActionManager {
     }
     if (parent != null) {
       ViewHandler handler = ViewHandlerManager.get(mySurface.getProject()).getHandler(parent);
-      addViewActionsForHandler(group, parent, newSelection, editor, handler, toolbar);
+      List<NlComponent> selectedChildren = Lists.newArrayListWithCapacity(newSelection.size());
+      for (NlComponent selected : newSelection) {
+        if (selected.getParent() == parent) {
+          selectedChildren.add(selected);
+        }
+      }
+      addViewActionsForHandler(group, parent, selectedChildren, editor, handler, toolbar);
     }
   }
 
@@ -212,7 +222,7 @@ public class NlActionManager {
     List<AnAction> target = Lists.newArrayList();
     NlActionManager actionManager = mySurface.getActionManager();
     for (ViewAction viewAction : viewActions) {
-      actionManager.addActions(target, viewAction, mySurface.getProject(), editor, handler, component, newSelection);
+      actionManager.addActions(target, toolbar, viewAction, mySurface.getProject(), editor, handler, component, newSelection);
     }
     boolean lastWasSeparator = false;
     for (AnAction action : target) {
@@ -254,6 +264,7 @@ public class NlActionManager {
    * a series of related actions.
    */
   void addActions(@NotNull List<AnAction> target,
+                  boolean toolbar,
                   @NotNull ViewAction viewAction,
                   @NotNull Project project,
                   @NotNull ViewEditor editor,
@@ -291,6 +302,12 @@ public class NlActionManager {
     }
     else if (viewAction instanceof ViewActionMenu) {
       target.add(new ViewActionMenuWrapper((ViewActionMenu)viewAction, editor, handler, parent, newSelection));
+    }
+    else if (viewAction instanceof NestedViewActionMenu) {
+      // Can't place toolbar popups in menus
+      if (toolbar) {
+        target.add(new ViewActionToolbarMenuWrapper((NestedViewActionMenu)viewAction, editor, handler, parent, newSelection));
+      }
     }
     else {
       throw new UnsupportedOperationException(viewAction.getClass().getName());
@@ -576,9 +593,119 @@ public class NlActionManager {
     public AnAction[] getChildren(@Nullable AnActionEvent e) {
       List<AnAction> actions = Lists.newArrayList();
       for (ViewAction viewAction : myAction.getActions()) {
-        addActions(actions, viewAction, mySurface.getProject(), myEditor, myHandler, myComponent, mySelectedChildren);
+        addActions(actions, false, viewAction, mySurface.getProject(), myEditor, myHandler, myComponent, mySelectedChildren);
       }
       return actions.toArray(AnAction.EMPTY_ARRAY);
+    }
+  }
+
+  private class ViewActionToolbarMenuWrapper extends FlatComboAction implements ViewActionPresentation {
+    private final NestedViewActionMenu myAction;
+    private final ViewEditor myEditor;
+    private final ViewHandler myHandler;
+    private final NlComponent myComponent;
+    private final List<NlComponent> mySelectedChildren;
+    private Presentation myCurrentPresentation;
+
+    public ViewActionToolbarMenuWrapper(@NotNull NestedViewActionMenu action,
+                                        @NotNull ViewEditor editor,
+                                        @NotNull ViewHandler handler,
+                                        @NotNull NlComponent component,
+                                        @NotNull List<NlComponent> selectedChildren) {
+      myAction = action;
+      myEditor = editor;
+      myHandler = handler;
+      myComponent = component;
+      mySelectedChildren = selectedChildren;
+      Presentation presentation = getTemplatePresentation();
+      presentation.setIcon(action.getDefaultIcon());
+      presentation.setText(action.getLabel());
+    }
+
+    @Override
+    public void update(AnActionEvent e) {
+      myCurrentPresentation = e.getPresentation();
+      try {
+        myAction.updatePresentation(this, myEditor, myHandler, myComponent, mySelectedChildren, e.getModifiers());
+      }
+      finally {
+        myCurrentPresentation = null;
+      }
+    }
+
+    @NotNull
+    @Override
+    protected DefaultActionGroup createPopupActionGroup() {
+      List<List<ViewAction>> rows = myAction.getActions();
+      if (rows.size() == 1) {
+        List<AnAction> actions = Lists.newArrayList();
+        for (ViewAction viewAction : rows.get(0)) {
+          addActions(actions, false, viewAction, mySurface.getProject(), myEditor, myHandler, myComponent, mySelectedChildren);
+        }
+        return new DefaultActionGroup(actions);
+      } else {
+        return new DefaultActionGroup();
+      }
+    }
+
+    @Override
+    protected JBPopup createPopup(@Nullable Runnable onDispose, @Nullable DataContext context) {
+      List<List<ViewAction>> rows = myAction.getActions();
+      if (rows.size() == 1) {
+        return super.createPopup(onDispose, context);
+      }
+
+      ActionManager actionManager = ActionManager.getInstance();
+      JPanel panel = new JPanel(new VerticalLayout(0));
+      for (List<ViewAction> row : rows) {
+        if (row.size() == 1 && row.get(0) instanceof ViewActionSeparator) {
+          panel.add(new JSeparator());
+          continue;
+        }
+        List<AnAction> actions = Lists.newArrayList();
+        for (ViewAction viewAction : row) {
+          addActions(actions, false, viewAction, mySurface.getProject(), myEditor, myHandler, myComponent, mySelectedChildren);
+        }
+        ActionGroup group = new DefaultActionGroup(actions);
+        ActionToolbar toolbar = actionManager.createActionToolbar("DynamicToolbar", group, true);
+        panel.add(toolbar.getComponent());
+      }
+
+      return JBPopupFactory.getInstance().createComponentPopupBuilder(panel, panel)
+        .setRequestFocus(true)
+        .setCancelOnClickOutside(true)
+        .setLocateWithinScreenBounds(true)
+        .setShowShadow(true)
+        .setCancelOnWindowDeactivation(true)
+        .setCancelCallback(() -> {
+          if (onDispose != null) {
+            onDispose.run();
+          }
+          return Boolean.TRUE;
+        })
+        .createPopup();
+    }
+
+    // ---- Implements ViewActionPresentation ----
+
+    @Override
+    public void setLabel(@NotNull String label) {
+      myCurrentPresentation.setText(label);
+    }
+
+    @Override
+    public void setEnabled(boolean enabled) {
+      myCurrentPresentation.setEnabled(enabled);
+    }
+
+    @Override
+    public void setVisible(boolean visible) {
+      myCurrentPresentation.setVisible(visible);
+    }
+
+    @Override
+    public void setIcon(@Nullable Icon icon) {
+      myCurrentPresentation.setIcon(icon);
     }
   }
 }

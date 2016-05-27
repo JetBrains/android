@@ -100,7 +100,9 @@ public class NlPropertiesWindowManager extends NlAbstractWindowManager {
   }
 
   public void activatePreferredEditor() {
-    myPropertiesManager.activatePreferredEditor();
+    if (myPropertiesManager != null) {
+      myPropertiesManager.activatePreferredEditor();
+    }
   }
 
   @Override

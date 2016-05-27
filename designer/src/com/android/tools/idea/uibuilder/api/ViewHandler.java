@@ -133,7 +133,7 @@ public class ViewHandler extends StructurePaneComponentHandler {
   protected void addToolbarActionsToMenu(@NotNull String label, @NotNull List<ViewAction> actions) {
     List<ViewAction> nestedActions = Lists.newArrayList();
     addToolbarActions(nestedActions);
-    actions.add(new ViewActionMenu(label, nestedActions));
+    actions.add(new ViewActionMenu(label, null, nestedActions));
   }
 
   protected void addDefaultViewActions(@NotNull List<ViewAction> actions, int startRank) {

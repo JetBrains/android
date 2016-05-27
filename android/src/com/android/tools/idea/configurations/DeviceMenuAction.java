@@ -156,7 +156,7 @@ public class DeviceMenuAction extends FlatComboAction {
 
   @Override
   @NotNull
-  protected DefaultActionGroup createPopupActionGroup(JComponent button) {
+  protected DefaultActionGroup createPopupActionGroup() {
     DefaultActionGroup group = new DefaultActionGroup(null, true);
     Configuration configuration = myRenderContext.getConfiguration();
     if (configuration == null) {
