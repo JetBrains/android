@@ -488,6 +488,7 @@ public class MergedManifest {
 
   @Nullable
   public Element findUsedFeature(@NotNull String name) {
+    sync();
     Node node = myDocument.getDocumentElement().getFirstChild();
     while (node != null) {
       if (node.getNodeType() == Node.ELEMENT_NODE && NODE_USES_FEATURE.equals(node.getNodeName())) {
