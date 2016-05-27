@@ -56,32 +56,36 @@ public class LegendComponent extends AnimatedComponent {
   private long mLastUpdate;
 
   @NotNull
-  private List<LegendRenderData> mLegendRenderDatas;
+  private List<LegendRenderData> mLegendRenderData;
 
   private Orientation mOrientation;
 
   /**
    * Legend component that renders a label, and icon for each series in a chart.
    *
-   * @param legendRenderDatas An list of labels, icons, and colors to be used in the rendering of each label. If the series is null
-   *                          only the label will be rendered
-   * @param orientation       Determines if we want the labels to be stacked horizontally or vertically
-   * @param frequencyMillis   How frequently the labels get updated
-   * @param domain            The conversion function to use for the data from the series to the label.
+   * @param legendRenderData An list of labels, icons, and colors to be used in the rendering of each label. If the series is null
+   *                         only the label will be rendered
+   * @param orientation      Determines if we want the labels to be stacked horizontally or vertically
+   * @param frequencyMillis  How frequently the labels get updated
+   * @param formatter        The conversion function to use for the data from the series to the label.
    */
-  public LegendComponent(List<LegendRenderData> legendRenderDatas,
+  public LegendComponent(List<LegendRenderData> legendRenderData,
                          Orientation orientation, int frequencyMillis, BaseAxisFormatter formatter) {
-    mLegendRenderDatas = legendRenderDatas;
     mAxisFormatter = formatter;
     mFrequencyMillis = frequencyMillis;
     mOrientation = orientation;
     mLastUpdate = 0;
-    initialize();
+
+    setLegendData(legendRenderData);
   }
 
-  private void initialize() {
-    mLabelsToDraw = new ArrayList<>(mLegendRenderDatas.size());
-    for (LegendRenderData data : mLegendRenderDatas) {
+  /**
+   * Clears existing LegendRenderData and adds new ones.
+   */
+  public void setLegendData(List<LegendRenderData> data) {
+    mLegendRenderData = new ArrayList<>(data);
+    mLabelsToDraw = new ArrayList<>(mLegendRenderData.size());
+    for (LegendRenderData unused : mLegendRenderData) {
       JBLabel label = new JBLabel();
       label.setFont(AdtUiUtils.DEFAULT_FONT);
       mLabelsToDraw.add(label);
@@ -93,8 +97,8 @@ public class LegendComponent extends AnimatedComponent {
     long now = System.currentTimeMillis();
     if (now - mLastUpdate > mFrequencyMillis) {
       mLastUpdate = now;
-      for (int i = 0; i < mLegendRenderDatas.size(); ++i) {
-        LegendRenderData data = mLegendRenderDatas.get(i);
+      for (int i = 0; i < mLegendRenderData.size(); ++i) {
+        LegendRenderData data = mLegendRenderData.get(i);
         ReportingSeries series = data.getSeries();
         JLabel label = mLabelsToDraw.get(i);
         Dimension preferredSize = label.getPreferredSize();
@@ -109,15 +113,18 @@ public class LegendComponent extends AnimatedComponent {
 
       //As we adjust the size of the label we need to adjust the size of ourself
       //to tell our parent to give us enough room to draw.
-      Dimension dimension = getPreferredSize();
-      setSize(dimension.width, dimension.height);
+      Dimension newSize = getLegendPreferredSize();
+      if (newSize != getPreferredSize()) {
+        setPreferredSize(newSize);
+        revalidate();
+      }
     }
   }
 
   @Override
   protected void draw(Graphics2D g2d) {
-    for (int i = 0; i < mLegendRenderDatas.size(); ++i) {
-      LegendRenderData data = mLegendRenderDatas.get(i);
+    for (int i = 0; i < mLegendRenderData.size(); ++i) {
+      LegendRenderData data = mLegendRenderData.get(i);
       JLabel label = mLabelsToDraw.get(i);
       Dimension preferredSize = label.getPreferredSize();
       int xOffset = 0;
@@ -149,8 +156,7 @@ public class LegendComponent extends AnimatedComponent {
     }
   }
 
-  @Override
-  public Dimension getPreferredSize() {
+  private Dimension getLegendPreferredSize() {
     int totalWidth = 0;
     int totalHeight = 0;
     int iconPaddedSize = ICON_WIDTH + ICON_PADDING + LABEL_PADDING;

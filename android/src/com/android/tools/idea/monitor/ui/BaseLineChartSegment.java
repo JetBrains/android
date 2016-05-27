@@ -62,10 +62,10 @@ public abstract class BaseLineChartSegment extends BaseSegment {
   private GridComponent mGrid;
 
   @NotNull
-  private LineChart mLineChart;
+  protected LineChart mLineChart;
 
   @NotNull
-  private LegendComponent mLegendComponent;
+  protected LegendComponent mLegendComponent;
 
   @NotNull
   protected SeriesDataStore mSeriesDataStore;

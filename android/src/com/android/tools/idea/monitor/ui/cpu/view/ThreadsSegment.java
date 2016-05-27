@@ -110,6 +110,16 @@ public class ThreadsSegment extends BaseSegment implements Animatable {
     this(timeRange, null);
   }
 
+  @Override
+  protected boolean hasLeftContent() {
+    return false;
+  }
+
+  @Override
+  protected boolean hasRightContent() {
+    return false;
+  }
+
   @NotNull
   private static EnumMap<Thread.State, Color> getThreadStateColor() {
     if (mThreadStateColor != null) {
@@ -159,11 +169,6 @@ public class ThreadsSegment extends BaseSegment implements Animatable {
       }
     });
     panel.add(centerPane, BorderLayout.CENTER);
-  }
-
-  @Override
-  protected void setLeftContent(@NotNull JPanel panel) {
-    setLeftSpacerVisible(false);
   }
 
   public void addThreadStateSeries(Thread thread) {

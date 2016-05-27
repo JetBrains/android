@@ -88,7 +88,7 @@ public abstract class BaseSegment extends JComponent {
   protected final String myName;
 
   @NotNull
-  protected Range mScopedRange;
+  protected Range mXRange;
 
   /**
    * Mouse events that are queued up as the segment waits for the double-click event. See {@link #initializeListeners()}.
@@ -101,7 +101,7 @@ public abstract class BaseSegment extends JComponent {
 
   public BaseSegment(@NotNull String name, @NotNull Range scopedRange) {
     myName = name;
-    mScopedRange = scopedRange;
+    mXRange = scopedRange;
     mDelayedEvents = new ArrayDeque<>();
 
     initializeListeners();
@@ -133,12 +133,14 @@ public abstract class BaseSegment extends JComponent {
     gbc.weightx = 0;
     gbc.weighty = 0;
 
-    //Setup the left panel, mostly filled with spacer, or AxisComponent
-    mLeftPanel = createSpacerPanel(getSpacerWidth());
-    gbc.gridx = 0;
-    gbc.gridy = 1;
-    panels.add(mLeftPanel, gbc);
-    setLeftContent(mLeftPanel);
+    //Setup the left panel
+    if (hasLeftContent()) {
+      mLeftPanel = createSpacerPanel(getSpacerWidth());
+      gbc.gridx = 0;
+      gbc.gridy = 1;
+      panels.add(mLeftPanel, gbc);
+      setLeftContent(mLeftPanel);
+    }
 
     //Setup the top center panel.
     JBPanel topPanel = new JBPanel();
@@ -148,12 +150,14 @@ public abstract class BaseSegment extends JComponent {
     panels.add(topPanel, gbc);
     setTopCenterContent(topPanel);
 
-    //Setup the right panel, like the left mostly filled with an AxisComponent
-    mRightPanel = createSpacerPanel(getSpacerWidth());
-    gbc.gridx = 2;
-    gbc.gridy = 1;
-    panels.add(mRightPanel, gbc);
-    setRightContent(mRightPanel);
+    //Setup the right panel
+    if (hasRightContent()) {
+      mRightPanel = createSpacerPanel(getSpacerWidth());
+      gbc.gridx = 2;
+      gbc.gridy = 1;
+      panels.add(mRightPanel, gbc);
+      setRightContent(mRightPanel);
+    }
 
     //Setup the center panel, the primary component.
     //This component should consume all available space.
@@ -167,6 +171,9 @@ public abstract class BaseSegment extends JComponent {
     setCenterContent(centerPanel);
 
     add(panels, BorderLayout.CENTER);
+
+    // By default, starts in L1, this gives the Segment a chance to hide the right spacer panel and determine what it should rendered.
+    toggleView(false);
   }
 
   public int getLabelColumnWidth() {
@@ -188,7 +195,13 @@ public abstract class BaseSegment extends JComponent {
    * @param isVisible True indicates the panel is visible, false hides it.
    */
   public void setRightSpacerVisible(boolean isVisible) {
-    mRightPanel.setVisible(isVisible);
+    if (hasRightContent()) {
+      mRightPanel.setVisible(isVisible);
+    }
+  }
+
+  public boolean isRightSpacerVisible() {
+    return hasRightContent() && mRightPanel.isVisible();
   }
 
   /**
@@ -197,14 +210,44 @@ public abstract class BaseSegment extends JComponent {
    * @param isVisible True indicates the panel is visible, false hides it.
    */
   public void setLeftSpacerVisible(boolean isVisible) {
-    mLeftPanel.setVisible(isVisible);
+    if (hasLeftContent()) {
+      mLeftPanel.setVisible(isVisible);
+    }
+  }
+
+  public boolean isLeftSpacerVisible() {
+    return hasLeftContent() && mLeftPanel.isVisible();
+  }
+
+  public void toggleView(boolean isExpanded) {
+    setRightSpacerVisible(isExpanded);
   }
 
   public void createComponentsList(@NotNull List<Animatable> animatables) {}
 
+  /**
+   * A read-only flag that indicates whether this segment has content in the left spacer. If true, the segment will construct and reverse
+   * space left of the center content, and {@link #setLeftContent(JPanel)} will be invoked. Subclasses of {@link BaseSegment} can override
+   * this to change how the segment is laid out and whether it will participate in any transitions toggling between the overview and
+   * detailed view.
+   */
+  protected boolean hasLeftContent() {
+    return true;
+  }
+
   protected void setLeftContent(@NotNull JPanel panel) {}
 
   protected abstract void setCenterContent(@NotNull JPanel panel);
+
+  /**
+   * A read-only flag that indicates whether this segment has content in the right spacer. If true, the segment will construct and reverse
+   * space right of the center content, and {@link #setRightContent(JPanel)} will be invoked. Subclasses of {@link BaseSegment} can override
+   * this to change how the segment is laid out and whether it will participate in any transitions toggling between the overview and
+   * detailed view.
+   */
+  protected boolean hasRightContent() {
+    return true;
+  }
 
   protected void setRightContent(@NotNull JPanel panel) {}
 
@@ -228,8 +271,20 @@ public abstract class BaseSegment extends JComponent {
           if (parent != null) {
             LayoutManager layout = parent.getLayout();
             if (layout instanceof AccordionLayout) {
+              // TODO it is strange to have logic that toggles other segments in here. We should consider refactoring this to some
+              // higher level "Event Manager" system that handle events that affect all segments.
               AccordionLayout accordion = (AccordionLayout)layout;
               accordion.toggleMaximize(BaseSegment.this);
+
+              // Find all the Segments inside the layout and toggle their states.
+              synchronized (parent.getTreeLock()) {
+                AccordionLayout.AccordionState state = accordion.getState(BaseSegment.this);
+                for (Component child : parent.getComponents()) {
+                  if (child instanceof BaseSegment) {
+                    ((BaseSegment)child).toggleView(state == AccordionLayout.AccordionState.MAXIMIZE);
+                  }
+                }
+              }
             }
           }
         } else {

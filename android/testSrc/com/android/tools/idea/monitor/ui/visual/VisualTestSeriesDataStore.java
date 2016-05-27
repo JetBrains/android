@@ -77,7 +77,7 @@ public final class VisualTestSeriesDataStore implements SeriesDataStore {
     for (SeriesDataType type : mDataSeriesMap.keySet()) {
       // TODO: come up with cleaner API, as this casting is wrong, i.e mDataSeriesMap returns a generic list
       List<Long> data = (List<Long>)mDataSeriesMap.get(type);
-
+      Runtime rt = Runtime.getRuntime();
       switch (type) {
         case CPU_MY_PROCESS:
           data.add(randLong(0, 60));
@@ -88,6 +88,14 @@ public final class VisualTestSeriesDataStore implements SeriesDataStore {
         case CPU_THREADS:
         case NETWORK_CONNECTIONS:
           data.add(randLong(0, 10));
+          break;
+        case MEMORY_TOTAL:
+        case MEMORY_JAVA:
+          long usedMem = rt.totalMemory() - rt.freeMemory();
+          data.add(usedMem);
+          break;
+        case MEMORY_OTHERS:
+          data.add(rt.freeMemory());
           break;
         default:
           long x = (data.isEmpty() ? 0 : data.get(data.size() - 1)) + randLong(-20, 100);
@@ -110,6 +118,8 @@ public final class VisualTestSeriesDataStore implements SeriesDataStore {
           while (true) {
             // TODO: come up with better thread issues handling
             SwingUtilities.invokeLater(() -> generateData());
+
+            // TODO support configurable timing
             Thread.sleep(100);
           }
         }

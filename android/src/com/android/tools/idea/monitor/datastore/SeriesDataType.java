@@ -25,7 +25,16 @@ public enum SeriesDataType {
   NETWORK_SENDING, //long
   NETWORK_RECEIVING, //long
   NETWORK_CONNECTIONS, //long
+
   CPU_MY_PROCESS, //long
   CPU_OTHER_PROCESSES, //long
-  CPU_THREADS //long
+  CPU_THREADS, //long
+
+  MEMORY_TOTAL, //long
+  MEMORY_JAVA, //long
+  MEMORY_NATIVE, //long
+  MEMORY_GRAPHICS, //long
+  MEMORY_CODE, //long
+  MEMORY_OTHERS, //long
+  MEMORY_OBJECT_COUNT //long
 }

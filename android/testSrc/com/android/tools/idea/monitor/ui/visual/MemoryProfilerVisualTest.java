@@ -18,15 +18,39 @@ package com.android.tools.idea.monitor.ui.visual;
 
 import com.android.annotations.NonNull;
 import com.android.tools.adtui.Animatable;
+import com.android.tools.adtui.AnimatedTimeRange;
+import com.android.tools.adtui.Range;
 import com.android.tools.adtui.visual.VisualTest;
+import com.android.tools.idea.monitor.datastore.SeriesDataStore;
+import com.android.tools.idea.monitor.ui.memory.view.MemorySegment;
 
 import javax.swing.*;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class MemoryProfilerVisualTest extends VisualTest {
 
   private static final String MEMORY_PROFILER_NAME = "Memory Profiler";
+
+  private SeriesDataStore mDataStore;
+
+  private MemorySegment mSegment;
+
+  @Override
+  protected void initialize() {
+    mDataStore = new VisualTestSeriesDataStore();
+    super.initialize();
+  }
+
+  @Override
+  protected void reset() {
+    if (mDataStore != null) {
+      mDataStore.reset();
+    }
+
+    super.reset();
+  }
 
   @Override
   public String getName() {
@@ -35,12 +59,23 @@ public class MemoryProfilerVisualTest extends VisualTest {
 
   @Override
   protected List<Animatable> createComponentsList() {
-    // TODO: create components list
-    return new ArrayList<>();
+    long startTimeMs = System.currentTimeMillis();
+    Range xRange = new Range();
+    AnimatedTimeRange animatedTimeRange = new AnimatedTimeRange(xRange, startTimeMs);
+    mSegment = new MemorySegment(xRange, mDataStore);
+    List<Animatable> animatables = new ArrayList<>();
+    animatables.add(animatedTimeRange);
+    animatables.add(xRange);
+    mSegment.createComponentsList(animatables);
+
+    return animatables;
   }
 
   @Override
   protected void populateUi(@NonNull JPanel panel) {
-    // TODO: implement memory profiler panel
+    panel.setLayout(new BorderLayout());
+    mSegment.initializeComponents();
+    mSegment.toggleView(true);
+    panel.add(mSegment, BorderLayout.CENTER);
   }
 }
