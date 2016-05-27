@@ -678,12 +678,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
-  public RunConfigurationsDialogFixture invokeRunConfigurationsDialog() {
-    invokeMenuPath("Run", "Edit Configurations...");
-    return RunConfigurationsDialogFixture.find(robot());
-  }
-
-  @NotNull
   public ProjectViewFixture getProjectView() {
     return new ProjectViewFixture(getProject(), robot());
   }
