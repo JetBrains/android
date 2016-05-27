@@ -70,32 +70,40 @@ public class LineConfig {
     mColor = color;
   }
 
-  public void setDashed(boolean isDashed) {
+  @NotNull
+  public LineConfig setDashed(boolean isDashed) {
     mIsDashed = isDashed;
+    return this;
   }
 
   public boolean isDashed() {
     return mIsDashed;
   }
 
-  public void setStepped(boolean isStepped) {
+  @NotNull
+  public LineConfig setStepped(boolean isStepped) {
     mIsStepped = isStepped;
+    return this;
   }
 
   public boolean isStepped() {
     return mIsStepped;
   }
 
-  public void setFilled(boolean isFilled) {
+  @NotNull
+  public LineConfig setFilled(boolean isFilled) {
     mIsFilled = isFilled;
+    return this;
   }
 
   public boolean isFilled() {
     return mIsFilled;
   }
 
-  public void setStacked(boolean isStacked) {
+  @NotNull
+  public LineConfig setStacked(boolean isStacked) {
     mIsStacked = isStacked;
+    return this;
   }
 
   public boolean isStacked() {
@@ -107,7 +115,9 @@ public class LineConfig {
     return mColor;
   }
 
-  public void setColor(@NotNull Color color) {
+  @NotNull
+  public LineConfig setColor(@NotNull Color color) {
     mColor = color;
+    return this;
   }
 }

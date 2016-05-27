@@ -28,12 +28,15 @@ import com.android.tools.idea.monitor.ui.BaseSegment;
 import com.android.tools.idea.monitor.ui.TimeAxisSegment;
 import com.android.tools.idea.monitor.ui.cpu.view.CpuUsageSegment;
 import com.android.tools.idea.monitor.ui.events.view.EventSegment;
+import com.android.tools.idea.monitor.ui.memory.view.MemorySegment;
 import com.android.tools.idea.monitor.ui.network.view.NetworkSegment;
 import com.intellij.ui.components.JBPanel;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
@@ -240,13 +243,24 @@ public class ProfilerOverviewVisualTest extends VisualTest {
     gridBagPanel.add(new Box.Filler(leftSpacer, leftSpacer, leftSpacer), gbc);
 
     // Add right spacer
-    Dimension rightSpacer = new Dimension(BaseSegment.getSpacerWidth(), 0);
+    Dimension rightSpacerWidth = new Dimension(BaseSegment.getSpacerWidth(), 0);
+    Box.Filler rightSpacer = new Box.Filler(rightSpacerWidth, rightSpacerWidth, rightSpacerWidth);
     gbc.gridy = 0;
     gbc.gridx = 3;
     gbc.gridwidth = 1;
     gbc.weightx = 0;
     gbc.weighty = 0;
-    gridBagPanel.add(new Box.Filler(rightSpacer, rightSpacer, rightSpacer), gbc);
+    gridBagPanel.add(rightSpacer, gbc);
+    rightSpacer.setVisible(false);  // hide right space in L1 by default.
+
+    // Add a ComponentListener on the timeline segment so the SelectionComponent can resize
+    // based on whether we are in L1 or L2 view.
+    timeSegment.addComponentListener(new ComponentAdapter() {
+      @Override
+      public void componentResized(ComponentEvent e) {
+        rightSpacer.setVisible(timeSegment.isRightSpacerVisible());
+      }
+    });
   }
 
   private JComponent createToolbarPanel() {
@@ -267,7 +281,6 @@ public class ProfilerOverviewVisualTest extends VisualTest {
 
   private BaseSegment createSegment(BaseSegment.SegmentType type, int minHeight, int preferredHeight, int maxHeight) {
     BaseSegment segment;
-    Range yRange = new Range();
     switch (type) {
       case TIME:
         segment = new TimeAxisSegment(mXRange, mTimeAxis);
@@ -279,9 +292,13 @@ public class ProfilerOverviewVisualTest extends VisualTest {
         // TODO use L1 segment instead
         segment = new CpuUsageSegment(mXRange, mDataStore);
         break;
-        // TODO create corresponding segments based on type.
-      default:
+      case NETWORK:
         segment = new NetworkSegment(mXRange, mDataStore);
+        break;
+      case MEMORY:
+      default:
+        segment = new MemorySegment(mXRange, mDataStore);
+        break;
     }
 
     segment.setMinimumSize(new Dimension(0, minHeight));
@@ -291,10 +308,7 @@ public class ProfilerOverviewVisualTest extends VisualTest {
 
     List<Animatable> segmentAnimatables = new ArrayList<>();
     segment.createComponentsList(segmentAnimatables);
-
-    // LineChart needs to animate before y ranges so add them to the Choreographer in order.
     addToChoreographer(segmentAnimatables);
-    addToChoreographer(yRange);
 
     segment.initializeComponents();
 

@@ -131,6 +131,13 @@ public class LineChart extends AnimatedComponent {
     return mLinesConfig.get(rangedContinuousSeries);
   }
 
+  /**
+   * Removes all existing lines in the line chart.
+   */
+  public void clearLineConfigs() {
+    mLinesConfig.clear();
+  }
+
   @NotNull
   public List<RangedContinuousSeries> getRangedContinuousSeries() {
     return new ArrayList<>(mLinesConfig.keySet());
@@ -139,6 +146,7 @@ public class LineChart extends AnimatedComponent {
   @Override
   protected void updateData() {
     Map<Range, Double> max = new HashMap<>();
+    // TODO Handle stacked configs
     for (RangedContinuousSeries ranged : mLinesConfig.keySet()) {
       Range range = ranged.getYRange();
       double yMax = Double.MIN_VALUE;

@@ -33,6 +33,11 @@ public class DataStoreContinuousSeries implements ContinuousSeries {
     mType = type;
   }
 
+  @NotNull
+  public SeriesDataType getSeriesType() {
+    return mType;
+  }
+
   @Override
   public ImmutableList<SeriesData<Long>> getDataForXRange(@NotNull Range xRange) {
     return mStore.getSeriesData(mType, xRange);
