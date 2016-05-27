@@ -21,8 +21,6 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.property.editors.NlPropertyEditors;
-import com.android.tools.idea.uibuilder.property.ptable.PTableCellEditor;
 import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
 import com.android.tools.idea.uibuilder.property.renderer.NlPropertyRenderers;
 import com.android.util.PropertiesMap;
@@ -333,11 +331,6 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
   @Override
   public boolean isEditable(int col) {
     return true;
-  }
-
-  @Override
-  public PTableCellEditor getCellEditor() {
-    return NlPropertyEditors.get(this);
   }
 
   @Override

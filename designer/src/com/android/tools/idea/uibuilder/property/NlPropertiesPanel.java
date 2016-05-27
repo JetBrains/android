@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.property;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.property.editors.NlPropertyEditors;
 import com.android.tools.idea.uibuilder.property.inspector.InspectorPanel;
 import com.android.tools.idea.uibuilder.property.ptable.PTable;
 import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
@@ -68,6 +69,7 @@ public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Mo
     myModel = new PTableModel();
 
     myTable = new PTable(myModel);
+    myTable.setEditorProvider(new NlPropertyEditors(project));
     myTable.getEmptyText().setText("No selected component");
     myInspectorPanel = new InspectorPanel(project);
 
