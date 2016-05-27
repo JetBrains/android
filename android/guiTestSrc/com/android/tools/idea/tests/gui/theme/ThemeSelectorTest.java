@@ -25,6 +25,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixtu
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorTableFixture;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.fixture.*;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -50,6 +51,7 @@ public class ThemeSelectorTest {
    * Tests the theme renaming functionality of the theme selector
    * and that IntelliJ's Undo works can revert this action
    */
+  @Ignore("go/studio-builder/builders/ubuntu-studio-master-dev-uitests/builds/257")
   @Test
   public void testRenameTheme() throws IOException {
     guiTest.importSimpleApplication();
