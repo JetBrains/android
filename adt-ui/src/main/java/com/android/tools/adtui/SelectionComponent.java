@@ -15,7 +15,7 @@
  */
 package com.android.tools.adtui;
 
-import com.android.tools.adtui.common.AdtUIUtils;
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.ReportingSeries;
 import com.android.tools.adtui.model.ReportingSeriesRenderer;
 import gnu.trove.TIntArrayList;
@@ -403,15 +403,15 @@ public final class SelectionComponent extends AnimatedComponent {
     Rectangle2D.Float rect = new Rectangle2D.Float(0, 0, overlayWidth, overlayHeight);
     g.translate(position.x + OVERLAY_INFO_OFFSET, position.y + OVERLAY_INFO_OFFSET);
     g.translate(OVERLAY_SHADOW_OFFSET, OVERLAY_SHADOW_OFFSET);
-    g.setColor(AdtUIUtils.DEFAULT_FONT_COLOR);
+    g.setColor(AdtUiUtils.DEFAULT_FONT_COLOR);
     g.fill(rect); // drop shadow
     g.translate(-OVERLAY_SHADOW_OFFSET, -OVERLAY_SHADOW_OFFSET);
-    g.setColor(AdtUIUtils.OVERLAY_INFO_BACKGROUND);
+    g.setColor(AdtUiUtils.OVERLAY_INFO_BACKGROUND);
     g.fill(rect); // overlay window surface.
 
     // Second pass through the data to draw the individual texts.
-    g.setColor(AdtUIUtils.DEFAULT_FONT_COLOR);
-    g.setFont(AdtUIUtils.DEFAULT_FONT);
+    g.setColor(AdtUiUtils.DEFAULT_FONT_COLOR);
+    g.setFont(AdtUiUtils.DEFAULT_FONT);
     int textHeight = OVERLAY_INFO_PADDING;
     if (containerName != null) {
       textHeight += ascent;
@@ -447,14 +447,14 @@ public final class SelectionComponent extends AnimatedComponent {
       drawCursor(mousePosition);
 
       // Draw selected area.
-      g.setColor(AdtUIUtils.SELECTION_BACKGROUND);
+      g.setColor(AdtUiUtils.SELECTION_BACKGROUND);
       float startXPos = mAxis.getPositionAtValue(mSelectionRange.getMin());
       float endXPos = mAxis.getPositionAtValue(mSelectionRange.getMax());
       Rectangle2D.Float rect = new Rectangle2D.Float(startXPos, 0, endXPos - startXPos, dim.height);
       g.fill(rect);
 
       // Draw vertical lines, one for each endsValue.
-      g.setColor(AdtUIUtils.SELECTION_FOREGROUND);
+      g.setColor(AdtUiUtils.SELECTION_FOREGROUND);
       Path2D.Float path = new Path2D.Float();
       path.moveTo(startXPos, 0);
       path.lineTo(startXPos, dim.height);
@@ -477,7 +477,7 @@ public final class SelectionComponent extends AnimatedComponent {
   }
 
   private void drawHandleAtValue(Graphics2D g, double value) {
-    g.setPaint(AdtUIUtils.SELECTION_HANDLE);
+    g.setPaint(AdtUiUtils.SELECTION_HANDLE);
     RoundRectangle2D.Double handle = getHandleAreaForValue(value);
     g.fill(handle);
   }

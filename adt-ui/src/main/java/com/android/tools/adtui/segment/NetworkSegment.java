@@ -3,12 +3,11 @@ package com.android.tools.adtui.segment;
 import com.android.tools.adtui.Range;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
-import com.android.tools.adtui.common.AdtUIUtils;
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.common.formatter.MemoryAxisFormatter;
 import com.android.tools.adtui.common.formatter.SingleUnitAxisFormatter;
 import com.android.tools.adtui.model.*;
-import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -58,14 +57,14 @@ public class NetworkSegment extends BaseLineChartSegment {
   @Override
   public void populateSeriesData(@NotNull LineChart lineChart) {
     RangedContinuousSeries sendingLine = new RangedContinuousSeries(SENDING, mTimeRange, mLeftAxisRange, mSendingData);
-    lineChart.addLine(sendingLine, new LineConfig(AdtUIUtils.VIVID_ORANGE));
+    lineChart.addLine(sendingLine, new LineConfig(AdtUiUtils.VIVID_ORANGE));
 
     RangedContinuousSeries receivingLine = new RangedContinuousSeries(RECEIVING, mTimeRange, mLeftAxisRange, mReceivingData);
-    lineChart.addLine(receivingLine, new LineConfig(AdtUIUtils.STRONG_BLUE));
+    lineChart.addLine(receivingLine, new LineConfig(AdtUiUtils.STRONG_BLUE));
 
     if (mConnectionsData != null) {
       RangedContinuousSeries connectionsLine = new RangedContinuousSeries(CONNECTIONS, mTimeRange, mRightAxisRange, mConnectionsData);
-      LineConfig connectionsLineConfig = new LineConfig(AdtUIUtils.DARK_GREEN);
+      LineConfig connectionsLineConfig = new LineConfig(AdtUiUtils.DARK_GREEN);
       connectionsLineConfig.setStepped(true);
       lineChart.addLine(connectionsLine, connectionsLineConfig);
     }

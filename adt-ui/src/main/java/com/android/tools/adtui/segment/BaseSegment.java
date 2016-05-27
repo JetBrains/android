@@ -4,7 +4,7 @@ import com.android.tools.adtui.AccordionLayout;
 import com.android.tools.adtui.Animatable;
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.Range;
-import com.android.tools.adtui.common.AdtUIUtils;
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.RotatedLabel;
 import com.intellij.ui.components.JBPanel;
 import org.jetbrains.annotations.NotNull;
@@ -52,7 +52,7 @@ public abstract class BaseSegment extends JComponent {
   /**
    * Top/bottom border between segments.
    */
-  private static final Border SEGMENT_BORDER = new CompoundBorder(new MatteBorder(0, 0, 1, 0, AdtUIUtils.DEFAULT_BORDER_COLOR),
+  private static final Border SEGMENT_BORDER = new CompoundBorder(new MatteBorder(0, 0, 1, 0, AdtUiUtils.DEFAULT_BORDER_COLOR),
                                                                    new EmptyBorder(0, 0, 0, 0));
 
   private static final int LABEL_BORDER_WIDTH = 2;
@@ -60,7 +60,7 @@ public abstract class BaseSegment extends JComponent {
   /**
    * Border around the segment label.
    */
-  private static final Border LABEL_BORDER = new MatteBorder(0, 0, 0, LABEL_BORDER_WIDTH, AdtUIUtils.DEFAULT_BORDER_COLOR);
+  private static final Border LABEL_BORDER = new MatteBorder(0, 0, 0, LABEL_BORDER_WIDTH, AdtUiUtils.DEFAULT_BORDER_COLOR);
 
   private JPanel mRightPanel;
 
@@ -97,11 +97,11 @@ public abstract class BaseSegment extends JComponent {
   public void initializeComponents() {
     setLayout(new BorderLayout());
 
-    FontMetrics metrics = getFontMetrics(AdtUIUtils.DEFAULT_FONT);
+    FontMetrics metrics = getFontMetrics(AdtUiUtils.DEFAULT_FONT);
     JPanel labelPanel = createSpacerPanel(metrics.getHeight() + LABEL_BORDER_WIDTH);
     labelPanel.setBorder(LABEL_BORDER);
     mLabel = new RotatedLabel();
-    mLabel.setFont(AdtUIUtils.DEFAULT_FONT);
+    mLabel.setFont(AdtUiUtils.DEFAULT_FONT);
     mLabel.setText(myName);
     mLabel.setBorder(SEGMENT_BORDER);
     labelPanel.add(mLabel);

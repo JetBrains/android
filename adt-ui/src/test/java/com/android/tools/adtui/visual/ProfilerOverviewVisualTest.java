@@ -16,14 +16,11 @@
 
 package com.android.tools.adtui.visual;
 
-import com.android.annotations.NonNull;
 import com.android.tools.adtui.*;
-import com.android.tools.adtui.common.AdtUIUtils;
-import com.android.tools.adtui.common.formatter.MemoryAxisFormatter;
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.ContinuousSeries;
 import com.android.tools.adtui.model.EventAction;
-import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.RangedSimpleSeries;
 import com.android.tools.adtui.segment.BaseSegment;
 import com.android.tools.adtui.segment.EventSegment;
@@ -207,7 +204,7 @@ public class ProfilerOverviewVisualTest extends VisualTest {
     GridBagLayout gbl = new GridBagLayout();
     GridBagConstraints gbc = new GridBagConstraints();
     JBPanel gridBagPanel = new JBPanel();
-    gridBagPanel.setBorder(BorderFactory.createLineBorder(AdtUIUtils.DEFAULT_BORDER_COLOR, 1));
+    gridBagPanel.setBorder(BorderFactory.createLineBorder(AdtUiUtils.DEFAULT_BORDER_COLOR, 1));
     gridBagPanel.setLayout(gbl);
 
     // TODO create some controls.

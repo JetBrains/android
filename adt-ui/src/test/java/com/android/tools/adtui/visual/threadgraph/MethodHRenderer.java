@@ -18,7 +18,7 @@ package com.android.tools.adtui.visual.threadgraph;
 
 import com.android.annotations.NonNull;
 import com.android.tools.adtui.chart.hchart.HRenderer;
-import com.android.tools.adtui.common.AdtUIUtils;
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.intellij.ui.JBColor;
 
 import java.awt.*;
@@ -94,7 +94,7 @@ public class MethodHRenderer implements HRenderer<Method> {
 
     Font prevFont = g.getFont();
     g.setFont(mFont);
-    g.setPaint(AdtUIUtils.DEFAULT_FONT_COLOR);
+    g.setPaint(AdtUiUtils.DEFAULT_FONT_COLOR);
     g.drawString(text, textPositionX, textPositionY);
     g.setFont(prevFont);
   }

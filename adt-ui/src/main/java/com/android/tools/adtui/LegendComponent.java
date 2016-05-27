@@ -16,7 +16,7 @@
 
 package com.android.tools.adtui;
 
-import com.android.tools.adtui.common.AdtUIUtils;
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.model.LegendRenderData;
 import com.android.tools.adtui.model.ReportingSeries;
@@ -83,7 +83,7 @@ public class LegendComponent extends AnimatedComponent {
     mLabelsToDraw = new ArrayList<>(mLegendRenderDatas.size());
     for (LegendRenderData data : mLegendRenderDatas) {
       JBLabel label = new JBLabel();
-      label.setFont(AdtUIUtils.DEFAULT_FONT);
+      label.setFont(AdtUiUtils.DEFAULT_FONT);
       mLabelsToDraw.add(label);
     }
   }
