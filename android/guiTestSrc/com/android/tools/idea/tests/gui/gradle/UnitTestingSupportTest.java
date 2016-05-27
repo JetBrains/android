@@ -37,6 +37,7 @@ public class UnitTestingSupportTest {
 
   private EditorFixture myEditor;
 
+  @Ignore("go/studio-builder/builders/ubuntu-studio-master-dev-uitests/builds/257")
   @Test
   public void appModule_gradleAwareMake() throws Exception {
     doTest("app/src/test/java/com/android/tests", "UnitTest");
