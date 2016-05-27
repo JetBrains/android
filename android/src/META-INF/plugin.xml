@@ -387,7 +387,6 @@
     <fileEditorProvider implementation="com.android.tools.idea.editors.theme.ThemeEditorProvider"/>
     <fileEditorProvider implementation="com.android.tools.idea.editors.manifest.ManifestEditorProvider"/>
     <fileEditorProvider implementation="com.android.tools.idea.apk.viewer.ApkEditorProvider"/>
-    <fileEditorProvider implementation="com.android.tools.idea.editors.PhotoshopEditorProvider" />
 
     <runConfigurationProducer implementation="com.android.tools.idea.run.AndroidConfigurationProducer"/>
     <runConfigurationProducer implementation="com.android.tools.idea.run.testing.AndroidTestConfigurationProducer" order="first"/>
@@ -1152,8 +1151,18 @@
       <skipForDefaultProject/>
       <headless-implementation-class/>
     </component>
-
   </project-components>
 
+  <!-- Layered images viewers -->
+
+  <extensions defaultExtensionNs="com.intellij">
+    <fileEditorProvider implementation="com.android.tools.idea.editors.layeredimage.LayeredImageEditorProvider" />
+  </extensions>
+
+  <project-components>
+    <component>
+      <implementation-class>com.android.tools.idea.editors.layeredimage.LayersManager</implementation-class>
+    </component>
+  </project-components>
 
 </idea-plugin>
