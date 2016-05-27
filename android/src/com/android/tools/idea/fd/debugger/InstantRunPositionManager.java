@@ -151,7 +151,7 @@ public class InstantRunPositionManager extends PositionManagerImpl {
       }
 
       DetailsTypes.ApiDetailsType details = (DetailsTypes.ApiDetailsType)typeDetails;
-      AndroidVersion version = DetailsTypes.getAndroidVersion(details);
+      AndroidVersion version = details.getAndroidVersion();
       VirtualFile sourceFolder = VfsUtil.findFileByIoFile(sourcePackage.getLocation(), true);
       if (sourceFolder != null && sourceFolder.isValid()) {
         builder.put(version, sourceFolder);

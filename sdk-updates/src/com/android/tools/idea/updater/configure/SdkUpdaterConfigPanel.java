@@ -502,7 +502,7 @@ public class SdkUpdaterConfigPanel {
       RepoPackage p = info.getRepresentative();
       TypeDetails details = p.getTypeDetails();
       if (details instanceof DetailsTypes.ApiDetailsType) {
-        platformPackages.put(DetailsTypes.getAndroidVersion((DetailsTypes.ApiDetailsType)details), info);
+        platformPackages.put(((DetailsTypes.ApiDetailsType)details).getAndroidVersion(), info);
       }
       else {
         toolsPackages.add(info);
