@@ -35,8 +35,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
-
 import static com.android.SdkConstants.TAG_PREFERENCE_SCREEN;
 import static com.android.tools.idea.configurations.Configuration.PREFERENCES_MIN_API;
 
@@ -166,7 +164,7 @@ public class TargetMenuAction extends FlatComboAction {
 
   @Override
   @NotNull
-  protected DefaultActionGroup createPopupActionGroup(JComponent button) {
+  protected DefaultActionGroup createPopupActionGroup() {
     DefaultActionGroup group = new DefaultActionGroup(null, true);
     Configuration configuration = myRenderContext.getConfiguration();
     if (configuration == null) {

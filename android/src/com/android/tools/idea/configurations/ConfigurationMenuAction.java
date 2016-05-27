@@ -43,7 +43,6 @@ import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import java.util.List;
 
 import static com.android.SdkConstants.FD_RES_LAYOUT;
@@ -69,7 +68,7 @@ public class ConfigurationMenuAction extends FlatComboAction {
 
   @Override
   @NotNull
-  protected DefaultActionGroup createPopupActionGroup(JComponent button) {
+  protected DefaultActionGroup createPopupActionGroup() {
     DefaultActionGroup group = new DefaultActionGroup("Configuration", true);
 
     Configuration configuration = mySurface.getConfiguration();
