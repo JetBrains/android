@@ -17,10 +17,7 @@ package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyTest.ExpectedModuleDependency;
-import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleBuildModelFixture;
 import org.fest.swing.core.Robot;
@@ -45,6 +42,7 @@ import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 public class AddGradleDependencyTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final ScreenshotsDuringTest screenshotsRule = new ScreenshotsDuringTest();
 
   @Ignore("http://wpie20.hot.corp.google.com:8200/builders/ubuntu-studio-master-dev-uitests/builds/28/")
   @Test
