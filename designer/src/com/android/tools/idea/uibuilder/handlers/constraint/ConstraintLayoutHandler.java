@@ -49,8 +49,12 @@ import static com.android.SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT;
  * Handles interactions for the ConstraintLayout viewgroups
  */
 public class ConstraintLayoutHandler extends ViewGroupHandler {
+  private static final String PREFERENCE_KEY_PREFIX = "ConstraintLayoutPreference";
+  /** Preference key (used with {@link PropertiesComponent}) for auto connect mode */
+  public static final String AUTO_CONNECT_PREF_KEY = PREFERENCE_KEY_PREFIX + "AutoConnect";
+  /** Preference key (used with {@link PropertiesComponent}) for show all constraints mode */
+  public static final String SHOW_CONSTRAINTS_PREF_KEY = PREFERENCE_KEY_PREFIX + "ShowAllConstraints";
 
-  private static final String PREFRENCE_HEADER = "ConstraintLayoutPreference";
   private boolean myShowAllConstraints = true;
 
   ArrayList<ViewAction> myActions = new ArrayList<>();
@@ -440,8 +444,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
   }
 
   private static class ToggleAutoConnectAction extends ToggleViewAction implements Enableable {
-    public static final String sAutoConnect = "Autoconnect";
-
     public ToggleAutoConnectAction() {
       super(AndroidIcons.SherpaIcons.AutoConnectOff, AndroidIcons.SherpaIcons.AutoConnect, "Turn on Autoconnect", "Turn off Autoconnect");
     }
@@ -472,7 +474,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       ConstraintModel model = ConstraintModel.getConstraintModel(editor.getModel());
       if (model != null) {
         model.setAutoConnect(selected);
-        PropertiesComponent.getInstance().setValue(PREFRENCE_HEADER + sAutoConnect, selected);
+        PropertiesComponent.getInstance().setValue(AUTO_CONNECT_PREF_KEY, selected);
       }
     }
 
@@ -488,8 +490,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       if (model != null) {
         presentation.setIcon(model.isAutoConnect() ? AndroidIcons.SherpaIcons.AutoConnect : AndroidIcons.SherpaIcons.AutoConnectOff);
       }
-      boolean sel = PropertiesComponent.getInstance().getBoolean(PREFRENCE_HEADER + sAutoConnect, true);
-      model.setAutoConnect(sel);
     }
 
     @Override
@@ -594,12 +594,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
   }
 
   private class ToggleConstraintModeAction extends ToggleViewAction {
-    private final String sShowAllConstraints = "ShowAllConstraints";
-
     public ToggleConstraintModeAction() {
       super(AndroidIcons.SherpaIcons.Unhide, AndroidIcons.SherpaIcons.Hide, "Show constraints",
             "Show No constraints");
-      myShowAllConstraints = PropertiesComponent.getInstance().getBoolean(PREFRENCE_HEADER + sShowAllConstraints, myShowAllConstraints);
+      myShowAllConstraints = PropertiesComponent.getInstance().getBoolean(SHOW_CONSTRAINTS_PREF_KEY, myShowAllConstraints);
     }
 
     @Override
@@ -617,7 +615,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                             @NotNull List<NlComponent> selectedChildren,
                             boolean selected) {
       myShowAllConstraints = selected;
-      PropertiesComponent.getInstance().setValue(PREFRENCE_HEADER + sShowAllConstraints, myShowAllConstraints);
+      PropertiesComponent.getInstance().setValue(SHOW_CONSTRAINTS_PREF_KEY, myShowAllConstraints);
     }
 
     @Override

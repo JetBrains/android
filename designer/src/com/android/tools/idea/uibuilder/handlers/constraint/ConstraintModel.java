@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
+import android.support.constraint.solver.widgets.*;
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.rendering.RenderLogger;
@@ -22,21 +23,21 @@ import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.android.tools.sherpa.drawing.*;
+import com.android.tools.sherpa.drawing.ViewTransform;
 import com.android.tools.sherpa.drawing.decorator.*;
 import com.android.tools.sherpa.drawing.decorator.WidgetDecorator.StateModel;
 import com.android.tools.sherpa.interaction.SnapCandidate;
 import com.android.tools.sherpa.interaction.WidgetInteractionTargets;
+import com.android.tools.sherpa.structure.Selection;
 import com.android.tools.sherpa.structure.WidgetCompanion;
+import com.android.tools.sherpa.structure.WidgetsScene;
 import com.google.common.collect.Maps;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.containers.WeakHashMap;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import com.android.tools.sherpa.structure.Selection;
-import com.android.tools.sherpa.structure.WidgetsScene;
-import android.support.constraint.solver.widgets.*;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -63,22 +64,22 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
 
   private WidgetsScene myWidgetsScene = new WidgetsScene();
   private Selection mySelection = new Selection(null);
-  private boolean mAutoConnect = true;
+  private boolean myAutoConnect = PropertiesComponent.getInstance().getBoolean(ConstraintLayoutHandler.AUTO_CONNECT_PREF_KEY, true);
   private float myDpiFactor;
-  private int mNeedsAnimateConstraints = -1;
+  private int myNeedsAnimateConstraints = -1;
   private final NlModel myNlModel;
-  private boolean mAllowsUpdate = true;
+  private boolean myAllowsUpdate = true;
   private ConstraintWidget myDragDropWidget;
   private ArrayList<DrawConstraintModel> myDrawConstraintModels = new ArrayList<>();
 
   public void setAutoConnect(boolean autoConnect) {
-    if (autoConnect != mAutoConnect) {
-      mAutoConnect = autoConnect;
+    if (autoConnect != myAutoConnect) {
+      myAutoConnect = autoConnect;
     }
   }
 
   public boolean isAutoConnect() {
-    return mAutoConnect;
+    return myAutoConnect;
   }
 
   private static Lock ourLock = new ReentrantLock();
@@ -88,7 +89,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
   private static final WeakHashMap<ScreenView, DrawConstraintModel> ourDrawModelCache = new WeakHashMap<>();
   private static final WeakHashMap<NlModel, ConstraintModel> ourModelCache = new WeakHashMap<>();
 
-  private SaveXMLTimer mSaveXmlTimer = new SaveXMLTimer();
+  private SaveXMLTimer mySaveXmlTimer = new SaveXMLTimer();
 
   //////////////////////////////////////////////////////////////////////////////
   // Utilities
@@ -188,14 +189,14 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
                            + " vs our " + myModificationCount);
       }
       if (model.getResourceVersion() > myModificationCount) {
-        if (mAllowsUpdate) {
+        if (myAllowsUpdate) {
           int dpi = model.getConfiguration().getDensity().getDpiValue();
           setDpiValue(dpi);
           updateNlModel(model.getComponents(), true);
         }
         myModificationCount = model.getResourceVersion();
         if (DEBUG) {
-          System.out.println("-> updated [" + mAllowsUpdate + "] to " + myModificationCount);
+          System.out.println("-> updated [" + myAllowsUpdate + "] to " + myModificationCount);
         }
         for (DrawConstraintModel drawConstraintModel : getDrawConstraintModels()) {
           drawConstraintModel.repaint();
@@ -222,7 +223,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
       ourLock.lock();
       updateNlModel(model.getComponents(), false);
       ourLock.unlock();
-      mSaveXmlTimer.reset();
+      mySaveXmlTimer.reset();
     });
   }
 
@@ -233,13 +234,13 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
    */
   public void allowsUpdate(boolean value) {
     ourLock.lock();
-    mAllowsUpdate = value;
+    myAllowsUpdate = value;
     ourLock.unlock();
     if (value) {
-      mSaveXmlTimer.reset();
+      mySaveXmlTimer.reset();
     }
     else {
-      mSaveXmlTimer.cancel();
+      mySaveXmlTimer.cancel();
     }
   }
 
@@ -308,7 +309,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
    * if auto-connect is on.
    */
   private void connectDroppedWidget() {
-    if (!mAutoConnect) {
+    if (!myAutoConnect) {
       // Clear the indicators
       ArrayList<DrawConstraintModel> drawConstraintModels = getDrawConstraintModels();
       if (drawConstraintModels.size() < 1) {
@@ -440,7 +441,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
         System.out.println("reset timer");
       }
       ourLock.lock();
-      boolean allowsUpdate = mAllowsUpdate;
+      boolean allowsUpdate = myAllowsUpdate;
       ourLock.unlock();
       if (allowsUpdate) {
         mTimer.restart();
@@ -457,7 +458,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
     @Override
     public void actionPerformed(ActionEvent e) {
       ourLock.lock();
-      boolean allowsUpdate = mAllowsUpdate;
+      boolean allowsUpdate = myAllowsUpdate;
       ourLock.unlock();
       if (allowsUpdate) {
         if (DEBUG) {
@@ -843,11 +844,11 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
   }
 
   public void setNeedsAnimateConstraints(int type) {
-    mNeedsAnimateConstraints = type;
+    myNeedsAnimateConstraints = type;
   }
 
   public int getNeedsAnimateConstraints() {
-    return mNeedsAnimateConstraints;
+    return myNeedsAnimateConstraints;
   }
 
   public NlModel getNlModel() {
