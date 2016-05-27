@@ -33,6 +33,7 @@ public class UsageTrackerAnalyticsImpl extends UsageTracker {
   private static final String GLOGS_CATEGORY_LIBCOUNT = "gradlelibs";
   private static final String GLOGS_CATEGORY_MODUDLE_COUNT = "gradlemodules";
   private static final String GLOGS_CATEGORY_ANDROID_MODUDLE = "gradleAndroidModule";
+  private static final String GLOGS_CATEGORY_NATIVE_BUILD_SYSTEM = "gradleNativeBuildSystem";
   private static final String GLOGS_CATEGORY_VERSIONS = "gradleVersions";
   private static final String GLOGS_CATEGORY_LEGACY_IDEA_ANDROID_PROJECT = "legacyIdeaAndroidProject";
   private static final String GLOGS_CATEGORY_INSTANT_RUN = "irstats2";
@@ -114,6 +115,21 @@ public class UsageTrackerAnalyticsImpl extends UsageTracker {
     builder.put("flavorDimension", String.valueOf(flavorDimension));
 
     myUploader.trackEvent(GLOGS_CATEGORY_ANDROID_MODUDLE, builder.build());
+  }
+
+  @Override
+  public void trackNativeBuildSystem(@NotNull String applicationId, @NotNull String moduleName, @NotNull String buildSystem) {
+    if (!trackingEnabled()) {
+      return;
+    }
+
+    // @formatter:off
+    myUploader.trackEvent(GLOGS_CATEGORY_NATIVE_BUILD_SYSTEM,
+                          ImmutableMap.of(
+                            "appId", anonymize(applicationId),
+                            "moduleName", anonymize(moduleName),
+                            "buildSystem", buildSystem));
+    // @formatter:off
   }
 
   @Override
