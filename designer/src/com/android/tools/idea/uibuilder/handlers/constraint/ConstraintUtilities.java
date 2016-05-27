@@ -776,6 +776,7 @@ public class ConstraintUtilities {
           widget.forceUpdateDrawPosition();
         }
       }
+      widget.setBaselineDistance(constraintModel.pxToDp(component.getBaseline()));
       return;
     }
     if (!(widget instanceof Guideline)) {
