@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.npw.deprecated;
 
-import com.android.tools.idea.npw.deprecated.ConfigureAndroidProjectStep;
+import com.android.tools.idea.npw.NewProjectModelTest;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import org.junit.Test;
 
@@ -23,6 +23,9 @@ import static com.android.tools.idea.wizard.WizardConstants.APPLICATION_NAME_KEY
 import static com.android.tools.idea.wizard.WizardConstants.COMPANY_DOMAIN_KEY;
 import static org.junit.Assert.assertEquals;
 
+/**
+ * @deprecated replaced by {@link NewProjectModelTest}
+ */
 public final class ConfigureAndroidProjectStepTest {
   @Test
   public void packageNameDeriverSantizesCompanyDomainKey() {
