@@ -814,15 +814,15 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
    * Gets the focus back to Android Studio if it was lost
    */
   public void requestFocusIfLost() {
+    KeyboardFocusManager keyboardFocusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
     execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
-        IdeFrameImpl ideFrame = target();
-        if (ideFrame.getFocusOwner() == null) {
-          ideFrame.requestFocus();
+        if (keyboardFocusManager.getFocusOwner() == null) {
+          target().requestFocus();
         }
       }
     });
-    Wait.seconds(30).expecting("a component to have the focus").until(() -> target().getFocusOwner() != null);
+    Wait.seconds(30).expecting("a component to have the focus").until(() -> keyboardFocusManager.getFocusOwner() != null);
   }
 }
