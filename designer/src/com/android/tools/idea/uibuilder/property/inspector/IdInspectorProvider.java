@@ -163,7 +163,7 @@ public class IdInspectorProvider implements InspectorProvider {
         return false;
       }
       NlComponent parent = components.get(0).getParent();
-      return parent != null && parent.getTagName().equals(CONSTRAINT_LAYOUT);
+      return parent != null && parent.isOrHasSuperclass(CONSTRAINT_LAYOUT);
     }
   }
 }

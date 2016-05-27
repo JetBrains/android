@@ -566,7 +566,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
    */
   private void createSolverWidgetFromComponent(@NotNull NlComponent component) {
     ConstraintWidget widget = myWidgetsScene.getWidget(component);
-    if (widget != null && component.getTagName().equalsIgnoreCase(SdkConstants.CONSTRAINT_LAYOUT)) {
+    if (widget != null && isConstraintLayout(component)) {
       if (!(widget instanceof ConstraintWidgetContainer)) {
         if (widget instanceof WidgetContainer) {
           ConstraintWidgetContainer container = new ConstraintWidgetContainer();
@@ -592,7 +592,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
         }
       }
       if (widget == null) {
-        if (component.getTagName().equalsIgnoreCase(SdkConstants.CONSTRAINT_LAYOUT)) {
+        if (isConstraintLayout(component)) {
           widget = new ConstraintWidgetContainer();
         }
         else if (component.getTagName().equalsIgnoreCase(SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE)) {
@@ -620,6 +620,10 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
     for (NlComponent child : component.getChildren()) {
       createSolverWidgetFromComponent(child);
     }
+  }
+
+  private static boolean isConstraintLayout(@NotNull NlComponent component) {
+    return component.isOrHasSuperclass(SdkConstants.CONSTRAINT_LAYOUT);
   }
 
   /**
