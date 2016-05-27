@@ -21,8 +21,6 @@ import com.android.tools.idea.editors.hprof.views.ClassesTreeView;
 import com.android.tools.idea.editors.hprof.views.InstanceReferenceTreeView;
 import com.android.tools.idea.editors.hprof.views.InstancesTreeView;
 import com.android.tools.idea.tests.gui.framework.Wait;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -38,11 +36,9 @@ import org.fest.swing.fixture.JTreeFixture;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import java.awt.*;
 
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 public class HprofEditorFixture extends EditorFixture {
   @NotNull private HprofEditor myHprofEditor;
@@ -107,10 +103,6 @@ public class HprofEditorFixture extends EditorFixture {
     return true;
   }
 
-  public void selectHeap(@NotNull String oldHeapName, @NotNull String newHeapName) {
-    myToolbarFixture.findComboBoxActionWithText(oldHeapName).selectItem(newHeapName);
-  }
-
   public boolean assertCurrentClassesViewMode(@NotNull String viewModeText) {
     myToolbarFixture.findComboBoxActionWithText(viewModeText);
     return true;
@@ -155,21 +147,6 @@ public class HprofEditorFixture extends EditorFixture {
     @NotNull
     public ComboBoxActionFixture findComboBoxActionWithText(@NotNull String text) {
       return ComboBoxActionFixture.findComboBoxByText(robot(), target(), text);
-    }
-
-    @NotNull
-    public ComboBoxActionFixture getComboBoxActionAt(int index) {
-      java.util.List<AnAction> actions = target().getActions(true);
-      if (index >= actions.size()) {
-        throw new ArrayIndexOutOfBoundsException("Index '" + index + "' is out of bounds (size: " + actions.size() + ")");
-      }
-      assertTrue(actions.get(index) instanceof ComboBoxAction);
-      Component buttonPanel = target().getComponent().getComponent(index);
-      assertTrue(buttonPanel instanceof Container);
-
-      final JButton button = robot().finder().findByType((Container)buttonPanel, JButton.class, false);
-      Wait.minutes(2).expecting("button to be visible").until(button::isShowing);
-      return ComboBoxActionFixture.findComboBox(robot(), (Container)buttonPanel);
     }
 
     private ActionToolbarFixture(@NotNull Robot robot, @NotNull ActionToolbarImpl target) {
