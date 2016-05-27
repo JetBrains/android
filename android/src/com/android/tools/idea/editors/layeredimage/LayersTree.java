@@ -30,6 +30,7 @@ import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeSelectionModel;
+import java.awt.*;
 import java.util.List;
 
 class LayersTree extends Tree {
@@ -88,43 +89,62 @@ class LayersTree extends Tree {
   }
 
   private void createCellRenderer() {
-    ColoredTreeCellRenderer renderer = new ColoredTreeCellRenderer() {
-      @Override
-      public void customizeCellRenderer(@NotNull JTree tree,
-                                        Object value,
-                                        boolean selected,
-                                        boolean expanded,
-                                        boolean leaf,
-                                        int row,
-                                        boolean hasFocus) {
-        DefaultMutableTreeNode node = (DefaultMutableTreeNode)value;
-        Object content = node.getUserObject();
-
-        if (content instanceof Layer) {
-          Layer layer = (Layer) content;
-          append(layer.getName());
-
-          switch (layer.getType()) {
-            case ADJUSTMENT:
-              setIcon(AndroidIcons.Views.SeekBar);
-              break;
-            case BITMAP:
-              setIcon(AndroidIcons.Views.ImageView);
-              break;
-            case GROUP:
-              setIcon(AllIcons.Nodes.Folder);
-              break;
-            case PATH:
-              setIcon(AndroidIcons.Views.TextureView);
-              break;
-            case TEXT:
-              setIcon(AndroidIcons.Views.TextView);
-              break;
-          }
-        }
-      }
-    };
+    ColoredTreeCellRenderer renderer = new LayerTreeCellRenderer();
     renderer.setBorder(BorderFactory.createEmptyBorder(1, 1, 0, 0));
     setCellRenderer(renderer);
+  }
+
+  private static class LayerTreeCellRenderer extends ColoredTreeCellRenderer {
+    private final Composite mAlphaComposite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f);
+    private boolean mVisible;
+
+    @Override
+    public void customizeCellRenderer(@NotNull JTree tree,
+                                      Object value,
+                                      boolean selected,
+                                      boolean expanded,
+                                      boolean leaf,
+                                      int row,
+                                      boolean hasFocus) {
+      DefaultMutableTreeNode node = (DefaultMutableTreeNode)value;
+      Object content = node.getUserObject();
+
+      if (content instanceof Layer) {
+        Layer layer = (Layer) content;
+        append(layer.getName());
+
+        switch (layer.getType()) {
+          case ADJUSTMENT:
+            setIcon(AndroidIcons.Views.SeekBar);
+            break;
+          case BITMAP:
+            setIcon(AndroidIcons.Views.ImageView);
+            break;
+          case GROUP:
+            setIcon(AllIcons.Nodes.Folder);
+            break;
+          case PATH:
+            setIcon(AndroidIcons.Views.TextureView);
+            break;
+          case TEXT:
+            setIcon(AndroidIcons.Views.TextView);
+            break;
+        }
+
+        mVisible = layer.isVisible();
+      }
+    }
+
+    @Override
+    protected void doPaint(Graphics2D g) {
+      Composite old = g.getComposite();
+      if (!mVisible) {
+        g.setComposite(mAlphaComposite);
+      }
+      super.doPaint(g);
+      if (!mVisible) {
+        g.setComposite(old);
+      }
+    }
   }
 }
