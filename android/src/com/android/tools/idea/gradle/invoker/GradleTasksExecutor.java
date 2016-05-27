@@ -29,7 +29,6 @@ import com.android.tools.idea.gradle.invoker.console.view.GradleConsoleView;
 import com.android.tools.idea.gradle.invoker.messages.GradleBuildTreeViewPanel;
 import com.android.tools.idea.gradle.output.parser.BuildOutputParser;
 import com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler;
-import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SelectSdkDialog;
 import com.google.common.base.Stopwatch;
@@ -97,6 +96,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 
+import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
 import static com.android.tools.idea.gradle.util.GradleBuilds.CONFIGURE_ON_DEMAND_OPTION;
 import static com.android.tools.idea.gradle.util.GradleBuilds.PARALLEL_BUILD_OPTION;
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
@@ -301,14 +301,14 @@ public class GradleTasksExecutor extends Task.Backgroundable {
           commandLineArgs.add(PARALLEL_BUILD_OPTION);
         }
 
-        commandLineArgs.add(AndroidGradleSettings.createProjectProperty(AndroidProject.PROPERTY_INVOKED_FROM_IDE, true));
+        commandLineArgs.add(createProjectProperty(AndroidProject.PROPERTY_INVOKED_FROM_IDE, true));
         commandLineArgs.addAll(myContext.getCommandLineArgs());
         addLocalMavenRepoInitScriptCommandLineOption(commandLineArgs);
         attemptToUseEmbeddedGradle(project);
 
         if (System.getProperty(ENABLE_EXPERIMENTAL_PROFILING) != null) {
           addProfilerClassPathInitScriptCommandLineOption(commandLineArgs);
-          commandLineArgs.add(AndroidGradleSettings.createProjectProperty(ANDROID_ADDITIONAL_PLUGINS, COM_ANDROID_TOOLS_PROFILER));
+          commandLineArgs.add(createProjectProperty(ANDROID_ADDITIONAL_PLUGINS, COM_ANDROID_TOOLS_PROFILER));
         }
 
         // Don't include passwords in the log
