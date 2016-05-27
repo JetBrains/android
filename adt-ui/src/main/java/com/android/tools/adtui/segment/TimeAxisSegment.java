@@ -25,10 +25,6 @@ public final class TimeAxisSegment extends BaseSegment {
   }
 
   @Override
-  public void createComponentsList(@NonNull List<Animatable> animatables) {
-  }
-
-  @Override
   protected void setCenterContent(@NonNull JPanel panel) {
     panel.add(mTimeAxis);
   }
@@ -41,9 +37,5 @@ public final class TimeAxisSegment extends BaseSegment {
   @Override
   protected void setRightContent(@NonNull JPanel panel) {
     panel.setBorder(BorderFactory.createMatteBorder(0, 1, 0, 0, AdtUiUtils.DEFAULT_BORDER_COLOR));
-  }
-
-  @Override
-  protected void registerComponents(@NonNull List<AnimatedComponent> components) {
   }
 }
