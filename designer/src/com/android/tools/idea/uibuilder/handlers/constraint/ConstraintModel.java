@@ -16,6 +16,10 @@
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.SdkConstants;
+import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.tools.idea.rendering.RenderLogger;
+import com.android.tools.idea.rendering.RenderService;
+import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.sherpa.drawing.*;
@@ -24,19 +28,28 @@ import com.android.tools.sherpa.drawing.decorator.WidgetDecorator.StateModel;
 import com.android.tools.sherpa.interaction.SnapCandidate;
 import com.android.tools.sherpa.interaction.WidgetInteractionTargets;
 import com.android.tools.sherpa.structure.WidgetCompanion;
+import com.google.common.collect.Maps;
+import com.intellij.psi.xml.XmlFile;
+import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.containers.WeakHashMap;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import com.android.tools.sherpa.structure.Selection;
 import com.android.tools.sherpa.structure.WidgetsScene;
 import android.support.constraint.solver.widgets.*;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
+import static com.android.SdkConstants.*;
 
 /**
  * Maintains a constraint model shadowing the current NlModel
@@ -236,6 +249,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
 
   /**
    * Accessor to the list of DrawConstraintModel representing this ConstraintModel
+   *
    * @return the list of DrawConstraintModel associated to this ConstraintModel
    */
   public ArrayList<DrawConstraintModel> getDrawConstraintModels() {
@@ -244,6 +258,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
 
   /**
    * Set a drop widget
+   *
    * @param droppedWidget
    */
   public void setDragDropWidget(ConstraintWidget droppedWidget) {
@@ -253,7 +268,9 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
   /**
    * Getter for the drop widget
    */
-  public ConstraintWidget getDragDropWidget() { return myDragDropWidget; }
+  public ConstraintWidget getDragDropWidget() {
+    return myDragDropWidget;
+  }
 
   /**
    * Remove a drop widget
@@ -280,7 +297,8 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
         companion.setWidgetModel(component);
         companion.setWidgetTag(component);
       }
-    } else {
+    }
+    else {
       removeDragComponent();
     }
   }
@@ -326,6 +344,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
 
   /**
    * Drag the current drag'n drop widget
+   *
    * @param x
    * @param y
    */
@@ -350,7 +369,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
   /**
    * Something has changed on the selection of NlModel
    *
-   * @param model the NlModel selection model
+   * @param model     the NlModel selection model
    * @param selection the list of selected NlComponents
    */
   @Override
@@ -530,6 +549,9 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
       }
     }
 
+    // Update the ConstraintLayout instances
+    updateConstraintLayoutRoots(myWidgetsScene.getRoot());
+
     // Finally, layout using our model.
     WidgetContainer root = myWidgetsScene.getRoot();
     if (root != null) {
@@ -570,10 +592,11 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
       if (!(widget instanceof ConstraintWidgetContainer)) {
         if (widget instanceof WidgetContainer) {
           ConstraintWidgetContainer container = new ConstraintWidgetContainer();
-          myWidgetsScene.transformContainerToContainer((WidgetContainer) widget, container);
+          myWidgetsScene.transformContainerToContainer((WidgetContainer)widget, container);
           setupConstraintWidget(component, container);
           widget = container;
-        } else {
+        }
+        else {
           myWidgetsScene.removeWidget(widget);
           widget = null;
         }
@@ -581,7 +604,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
     }
     if (widget == null) {
       boolean dropWidget = false;
-      if (USE_GUIDELINES_DURING_DND){
+      if (USE_GUIDELINES_DURING_DND) {
         if (myDragDropWidget != null) {
           WidgetCompanion companion = (WidgetCompanion)myDragDropWidget.getCompanionWidget();
           if (companion.getWidgetModel() == component) {
@@ -714,6 +737,71 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
   }
 
   /**
+   * Traverse the hierarchy to find all ConstraintLayout instances
+   * and update them. We set all the wrap_content sizes of the ConstraintLayout children
+   * from layout lib
+   *
+   * @param container
+   */
+  private void updateConstraintLayoutRoots(WidgetContainer container) {
+    Map<NlComponent, Dimension> wrapContentSizes = Maps.newHashMap();
+    if (container instanceof ConstraintWidgetContainer && container.getChildren().size() > 0) {
+      NlComponent root = (NlComponent)((WidgetCompanion)container.getCompanionWidget()).getWidgetModel();
+      XmlTag parentTag = root.getTag();
+      if (parentTag.isValid()) {
+        Map<XmlTag, NlComponent> tagToComponent = Maps.newHashMapWithExpectedSize(root.getChildCount());
+        for (NlComponent child : root.getChildren()) {
+          tagToComponent.put(child.getTag(), child);
+        }
+        XmlFile xmlFile = myNlModel.getFile();
+        AndroidFacet facet = myNlModel.getFacet();
+        RenderService renderService = RenderService.get(facet);
+        RenderLogger logger = renderService.createLogger();
+        final RenderTask task = renderService.createTask(xmlFile, myNlModel.getConfiguration(), logger, null);
+        if (task != null) {
+          // Measure wrap_content bounds
+          Map<XmlTag, ViewInfo> map = task.measureChildren(parentTag, new RenderTask.AttributeFilter() {
+            @Override
+            public String getAttribute(@NotNull XmlTag n, @Nullable String namespace, @NotNull String localName) {
+              // Change attributes to wrap_content
+              if (ATTR_LAYOUT_WIDTH.equals(localName) && ANDROID_URI.equals(namespace)) {
+                return VALUE_WRAP_CONTENT;
+              }
+              if (ATTR_LAYOUT_HEIGHT.equals(localName) && ANDROID_URI.equals(namespace)) {
+                return VALUE_WRAP_CONTENT;
+              }
+              return null;
+            }
+          });
+          task.dispose();
+          if (map != null) {
+            for (Map.Entry<XmlTag, ViewInfo> entry : map.entrySet()) {
+              ViewInfo viewInfo = entry.getValue();
+              viewInfo = RenderService.getSafeBounds(viewInfo);
+              Dimension size = new Dimension(viewInfo.getRight() - viewInfo.getLeft(), viewInfo.getBottom() - viewInfo.getTop());
+              NlComponent child = tagToComponent.get(entry.getKey());
+              if (child != null) {
+                wrapContentSizes.put(child, size);
+              }
+            }
+          }
+        }
+      }
+    }
+    for (ConstraintWidget child : container.getChildren()) {
+      NlComponent component = (NlComponent)((WidgetCompanion)child.getCompanionWidget()).getWidgetModel();
+      Dimension dimension = wrapContentSizes.get(component);
+      if (dimension != null) {
+        child.setWrapWidth(pxToDp((int)dimension.getWidth()));
+        child.setWrapHeight(pxToDp((int) dimension.getHeight()));
+      }
+      if (child instanceof WidgetContainer) {
+        updateConstraintLayoutRoots((WidgetContainer)child);
+      }
+    }
+  }
+
+  /**
    * Save the model to xml if needed
    */
   public void saveToXML() {
@@ -747,7 +835,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
     if (DEBUG) {
       System.out.println("### Model rendered to layoutlib -> "
                          + myModificationCount + " vs "
-                          + myNlModel.getResourceVersion());
+                         + myNlModel.getResourceVersion());
     }
     ourLock.unlock();
 
