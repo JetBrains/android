@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.apk.viewer.diff;
 
+import com.android.tools.adtui.common.ColumnTreeBuilder;
+import com.android.tools.idea.apk.viewer.ApkEntry;
 import com.android.tools.idea.apk.viewer.ApkViewPanel.FutureCallBackAdapter;
 import com.android.tools.idea.apk.viewer.ApkViewPanel.NameRenderer;
 import com.android.tools.idea.apk.viewer.ApkViewPanel.SizeRenderer;
-import com.android.tools.idea.apk.viewer.ApkEntry;
 import com.android.tools.idea.ddms.EdtExecutor;
-import com.android.tools.idea.editors.allocations.ColumnTreeBuilder;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.ui.LoadingNode;
