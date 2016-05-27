@@ -87,7 +87,7 @@ public class ConvertToConstraintLayoutAction extends AnAction implements ModelLi
     if (target != null) {
       String tagName = target.getTagName();
       // Don't show action if it's already a ConstraintLayout
-      if (CONSTRAINT_LAYOUT.equals(tagName)) {
+      if (target.isOrHasSuperclass(CONSTRAINT_LAYOUT)) {
         presentation.setVisible(false);
         return;
       }

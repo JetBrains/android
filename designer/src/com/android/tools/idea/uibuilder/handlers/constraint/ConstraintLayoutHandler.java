@@ -687,7 +687,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                         @InputEventMask int modifiers) {
 
       NlComponent parent = component;
-      while (parent != null && !parent.getTagName().equalsIgnoreCase(SdkConstants.CONSTRAINT_LAYOUT)) {
+      while (parent != null && !parent.isOrHasSuperclass(SdkConstants.CONSTRAINT_LAYOUT)) {
         parent = parent.getParent();
       }
       if (parent != null) {

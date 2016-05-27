@@ -527,6 +527,26 @@ public class NlComponent {
     return myPadding;
   }
 
+  /**
+   * Returns true if this NlComponent's class is the specified class,
+   * or if one of its super classes is the specified class.
+   *
+   * @param className A fully qualified class name
+   */
+  public boolean isOrHasSuperclass(@NotNull String className) {
+    if (viewInfo != null) {
+      Object viewObject = viewInfo.getViewObject();
+      Class<?> klass = viewObject.getClass();
+      while (klass != Object.class) {
+        if (className.equals(klass.getName())) {
+          return true;
+        }
+        klass = klass.getSuperclass();
+      }
+    }
+    return false;
+  }
+
   @Nullable
   public NlComponent getParent() {
     return myParent;
