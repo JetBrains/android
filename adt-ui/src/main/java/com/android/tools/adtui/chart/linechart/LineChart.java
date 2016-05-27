@@ -18,11 +18,9 @@ package com.android.tools.adtui.chart.linechart;
 
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.Range;
-import com.android.tools.adtui.common.AdtUIUtils;
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.ContinuousSeries;
 import com.android.tools.adtui.model.RangedContinuousSeries;
-import com.android.tools.adtui.model.ReportingSeries;
-import com.android.tools.adtui.model.ReportingSeriesRenderer;
 import gnu.trove.TLongHashSet;
 import org.jetbrains.annotations.NotNull;
 
@@ -323,7 +321,7 @@ public class LineChart extends AnimatedComponent {
     }
 
     // Draw a circle marker around each data marker position.
-    g2d.setColor(AdtUIUtils.DEFAULT_FONT_COLOR);
+    g2d.setColor(AdtUiUtils.DEFAULT_FONT_COLOR);
     for (Point2D.Float point : mMarkerPositions) {
       float x = point.x * dim.width - MARKER_RADIUS;
       float y = point.y * dim.height - MARKER_RADIUS;

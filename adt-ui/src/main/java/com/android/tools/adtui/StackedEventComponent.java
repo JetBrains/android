@@ -16,7 +16,7 @@
 
 package com.android.tools.adtui;
 
-import com.android.tools.adtui.common.AdtUIUtils;
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.EventAction;
 import com.android.tools.adtui.model.EventRenderData;
 import com.android.tools.adtui.model.RangedSimpleSeries;
@@ -215,7 +215,7 @@ public class StackedEventComponent extends AnimatedComponent {
       g2d.draw(shape);
     }
     g2d.setStroke(current);
-    g2d.setFont(AdtUIUtils.DEFAULT_FONT);
+    g2d.setFont(AdtUiUtils.DEFAULT_FONT);
     FontMetrics metrics = g2d.getFontMetrics();
     for (EventAction<Action, String> event : myActionToDrawLocationMap.keySet()) {
       EventRenderData positionData = myActionToDrawLocationMap.get(event);

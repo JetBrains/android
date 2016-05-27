@@ -15,7 +15,7 @@
  */
 package com.android.tools.adtui;
 
-import com.android.tools.adtui.common.AdtUIUtils;
+import com.android.tools.adtui.common.AdtUiUtils;
 import gnu.trove.TFloatArrayList;
 import org.jetbrains.annotations.NotNull;
 
@@ -48,7 +48,7 @@ public final class GridComponent extends AnimatedComponent {
   @Override
   protected void draw(Graphics2D g) {
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-    g.setColor(AdtUIUtils.GRID_COLOR);
+    g.setColor(AdtUiUtils.GRID_COLOR);
 
     Dimension dim = getSize();
     Line2D.Float line = new Line2D.Float();

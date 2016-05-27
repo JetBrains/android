@@ -18,7 +18,7 @@ package com.android.tools.adtui.chart.hchart;
 
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.Range;
-import com.android.tools.adtui.common.AdtUIUtils;
+import com.android.tools.adtui.common.AdtUiUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -146,7 +146,7 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
 
   public void setHRenderer(HRenderer<T> r) {
     this.mHRenderer = r;
-    this.mHRenderer.setFont(AdtUIUtils.DEFAULT_FONT);
+    this.mHRenderer.setFont(AdtUiUtils.DEFAULT_FONT);
   }
 
   public void setHTree(HNode<T> root) {
