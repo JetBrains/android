@@ -22,8 +22,11 @@ import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.invoker.console.view.GradleConsoleView;
 import com.android.tools.idea.gradle.project.BuildSettings;
+import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.GradleBuilds;
+import com.android.tools.idea.gradle.util.LocalProperties;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -44,6 +47,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -229,7 +234,28 @@ public class GradleInvoker {
 
   public void executeTasks(@NotNull List<String> gradleTasks, @NotNull List<String> commandLineArguments) {
     ExternalSystemTaskId id = ExternalSystemTaskId.create(GRADLE_SYSTEM_ID, EXECUTE_TASK, myProject);
-    executeTasks(gradleTasks, Collections.emptyList(), commandLineArguments, id, null, false);
+
+    List<String> jvmArguments = Lists.newArrayList();
+
+    if (ApplicationManager.getApplication().isUnitTestMode()) {
+      // Projects in tests may not have a local.properties, set ANDROID_HOME JVM argument if that's the case.
+      LocalProperties localProperties;
+      try {
+        localProperties = new LocalProperties(myProject);
+      }
+      catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+      if (localProperties.getAndroidSdkPath() == null) {
+        File androidHomePath = IdeSdks.getAndroidSdkPath();
+        // In Android Studio, the Android SDK home path will never be null. It may be null when running in IDEA.
+        if (androidHomePath != null) {
+          jvmArguments.add(AndroidGradleSettings.createAndroidHomeJvmArg(androidHomePath.getPath()));
+        }
+      }
+    }
+
+    executeTasks(gradleTasks, jvmArguments, commandLineArguments, id, null, false);
   }
 
   /**
@@ -259,7 +285,11 @@ public class GradleInvoker {
         //noinspection TestOnlyProblems
         listener.execute(gradleTasks);
       }
-      return;
+      if (!myBeforeTasks.isEmpty()) {
+        // In some unit tests we are using 'before tasks' to verify that the correct Gradle tasks are invoked, but those tests do not
+        // require a build. Keeping this functionality for now.
+        return;
+      }
     }
 
     GradleTaskExecutionContext context =
