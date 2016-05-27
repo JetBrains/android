@@ -339,7 +339,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
         continue;
       }
       DetailsTypes.PlatformDetailsType platformDetails = (DetailsTypes.PlatformDetailsType)details;
-      AndroidVersion version = DetailsTypes.getAndroidVersion(platformDetails);
+      AndroidVersion version = platformDetails.getAndroidVersion();
       if (version.isPreview()) {
         // We only want stable platforms
         continue;
