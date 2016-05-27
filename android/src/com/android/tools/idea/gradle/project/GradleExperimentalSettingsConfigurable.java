@@ -15,12 +15,9 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import com.intellij.ide.projectView.ProjectView;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,9 +33,6 @@ public class GradleExperimentalSettingsConfigurable implements SearchableConfigu
   private JSpinner myModuleNumberSpinner;
   private JCheckBox mySkipSourceGenOnSyncCheckbox;
   private JCheckBox myUseNewProjectStructureCheckBox;
-  private JCheckBox myGroupNativeSourcesByArtifactCheckBox;
-
-  private boolean myGroupNativeSourcesByArtifactChanged;
 
   public GradleExperimentalSettingsConfigurable() {
     mySettings = GradleExperimentalSettings.getInstance();
@@ -78,8 +72,7 @@ public class GradleExperimentalSettingsConfigurable implements SearchableConfigu
   public boolean isModified() {
     if (mySettings.SELECT_MODULES_ON_PROJECT_IMPORT != isModuleSelectionOnImportEnabled() ||
         mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC != isSkipSourceGenOnSync() ||
-        mySettings.USE_NEW_PROJECT_STRUCTURE_DIALOG != isUseNewProjectStructureDialog() ||
-        mySettings.GROUP_NATIVE_SOURCES_BY_ARTIFACT != isGroupNativeSourcesByArtifact()) {
+        mySettings.USE_NEW_PROJECT_STRUCTURE_DIALOG != isUseNewProjectStructureDialog()) {
       return true;
     }
     Integer value = getMaxModuleCountForSourceGen();
@@ -96,12 +89,6 @@ public class GradleExperimentalSettingsConfigurable implements SearchableConfigu
     Integer value = getMaxModuleCountForSourceGen();
     if (value != null) {
       mySettings.MAX_MODULE_COUNT_FOR_SOURCE_GEN = value;
-    }
-
-    boolean isGroupNativeSourcesByArtifact = isGroupNativeSourcesByArtifact();
-    if (mySettings.GROUP_NATIVE_SOURCES_BY_ARTIFACT != isGroupNativeSourcesByArtifact) {
-      mySettings.GROUP_NATIVE_SOURCES_BY_ARTIFACT = isGroupNativeSourcesByArtifact;
-      myGroupNativeSourcesByArtifactChanged = true;
     }
   }
 
@@ -123,26 +110,16 @@ public class GradleExperimentalSettingsConfigurable implements SearchableConfigu
     return myUseNewProjectStructureCheckBox.isSelected();
   }
 
-  private boolean isGroupNativeSourcesByArtifact() {
-    return myGroupNativeSourcesByArtifactCheckBox.isSelected();
-  }
-
   @Override
   public void reset() {
     myEnableModuleSelectionOnImportCheckBox.setSelected(mySettings.SELECT_MODULES_ON_PROJECT_IMPORT);
     mySkipSourceGenOnSyncCheckbox.setSelected(mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC);
     myModuleNumberSpinner.setValue(mySettings.MAX_MODULE_COUNT_FOR_SOURCE_GEN);
     myUseNewProjectStructureCheckBox.setSelected(mySettings.USE_NEW_PROJECT_STRUCTURE_DIALOG);
-    myGroupNativeSourcesByArtifactCheckBox.setSelected(mySettings.GROUP_NATIVE_SOURCES_BY_ARTIFACT);
   }
 
   @Override
   public void disposeUIResources() {
-    if (myGroupNativeSourcesByArtifactChanged) {
-      for (final Project project : ProjectManager.getInstance().getOpenProjects()) {
-        ProjectView.getInstance(project).refresh();
-      }
-    }
   }
 
   private void createUIComponents() {
