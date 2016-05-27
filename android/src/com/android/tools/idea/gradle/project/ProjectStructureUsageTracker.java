@@ -20,6 +20,7 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.fd.InstantRunGradleUtils;
 import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.NativeAndroidGradleModel;
 import com.android.tools.idea.stats.UsageTracker;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
@@ -117,6 +118,15 @@ class ProjectStructureUsageTracker {
                                                         androidModel.getBuildTypeNames().size(),
                                                         androidModel.getProductFlavorNames().size(),
                                                         getFlavorDimensions(androidModel).size());
+        }
+
+        NativeAndroidGradleModel nativeAndroidModel = NativeAndroidGradleModel.get(module);
+        if (nativeAndroidModel != null) {
+          if (nativeAndroidModel.modelVersionIsAtLeast("2.2.0")) {
+            for (String buildSystem : nativeAndroidModel.getNativeAndroidProject().getBuildSystems()) {
+              UsageTracker.getInstance().trackNativeBuildSystem(appId, module.getName(), buildSystem);
+            }
+          }
         }
       }
     }
