@@ -85,7 +85,7 @@ public class AndroidVirtualDevice extends InstallableComponent {
           "A preconfigured and optimized Android Virtual Device for app testing on the emulator. (Recommended)", installUpdates, fop);
     RemotePackage latestInfo = InstallComponentsPath.findLatestPlatform(remotePackages);
     if (latestInfo != null) {
-      myLatestVersion = DetailsTypes.getAndroidVersion((DetailsTypes.PlatformDetailsType)latestInfo.getTypeDetails());
+      myLatestVersion = ((DetailsTypes.PlatformDetailsType)latestInfo.getTypeDetails()).getAndroidVersion();
     }
     else {
       myLatestVersion = null;

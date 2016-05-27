@@ -263,7 +263,7 @@ public class LicenseAgreementStep extends DynamicWizardStepWithDescription {
         if (license == null) {
             license = AndroidSdkLicenseTemporaryData.getLicense(
               p.getTypeDetails() instanceof DetailsTypes.ApiDetailsType &&
-              DetailsTypes.getAndroidVersion((DetailsTypes.ApiDetailsType)p.getTypeDetails()).isPreview());
+              ((DetailsTypes.ApiDetailsType)p.getTypeDetails()).getAndroidVersion().isPreview());
         }
         myLicenses.add(license);
         if (!license.checkAccepted(mySdkRoot, mySdkHandler.getFileOp())) {

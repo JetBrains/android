@@ -156,7 +156,7 @@ public final class SystemImageDescription {
 
       TypeDetails details = myRemotePackage.getTypeDetails();
       assert details instanceof DetailsTypes.ApiDetailsType;
-      myAndroidVersion = DetailsTypes.getAndroidVersion((DetailsTypes.ApiDetailsType)details);
+      myAndroidVersion = ((DetailsTypes.ApiDetailsType)details).getAndroidVersion();
 
       IdDisplay tag = null;
       IdDisplay vendor = null;
