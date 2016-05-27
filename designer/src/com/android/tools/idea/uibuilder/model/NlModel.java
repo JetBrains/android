@@ -26,6 +26,7 @@ import com.android.tools.idea.avdmanager.AvdScreenData;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationMatcher;
 import com.android.tools.idea.rendering.*;
+import com.android.tools.idea.res.ProjectResourceRepository;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceVersion;
@@ -101,6 +102,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   @NotNull private final DesignSurface mySurface;
   @NotNull private final AndroidFacet myFacet;
+  @NotNull private final ProjectResourceRepository myProjectResourceRepository;
   private final XmlFile myFile;
   private RenderResult myRenderResult;
   private Configuration myConfiguration;
@@ -141,6 +143,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       Disposer.register(parent, this);
     }
     myType = NlLayoutType.typeOf(file);
+    myProjectResourceRepository = ProjectResourceRepository.getProjectResources(myFacet, true);
   }
 
   /**
@@ -155,6 +158,10 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
       // If the resources have changed or the configuration has been modified, request a model update
       if (!version.equals(myRenderedVersion) || (myConfiguration.getModificationCount() != myConfigurationModificationCount)) {
+        String theme = myConfiguration.getTheme();
+        if (theme != null && !theme.startsWith(ANDROID_STYLE_RESOURCE_PREFIX) && !myProjectResourceRepository.hasResourceItem(theme)) {
+          myConfiguration.setTheme(myConfiguration.getConfigurationManager().computePreferredTheme(myConfiguration));
+        }
         requestModelUpdate();
         myModelVersion.myResourceVersion.incrementAndGet();
       }
@@ -1652,6 +1659,10 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   public ModelVersion getModelVersion() { return myModelVersion; }
 
   public void notifyModified(ChangeType reason) {
+    String theme = myConfiguration.getTheme();
+    if (theme != null && !theme.startsWith(ANDROID_STYLE_RESOURCE_PREFIX) && !myProjectResourceRepository.hasResourceItem(theme)) {
+      myConfiguration.setTheme(myConfiguration.getConfigurationManager().computePreferredTheme(myConfiguration));
+    }
     myModelVersion.increase(reason);
     requestModelUpdate();
   }
