@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.property.inspector;
 
 import com.android.tools.idea.uibuilder.handlers.constraint.WidgetConstraintPanel;
+import com.android.tools.idea.uibuilder.handlers.constraint.WidgetNavigatorPanel;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
@@ -77,6 +78,7 @@ public class IdInspectorProvider implements InspectorProvider {
     private final NlEnumEditor myWidthEditor;
     private final NlEnumEditor myHeightEditor;
     private final WidgetConstraintPanel myConstraintWidget;
+    private final WidgetNavigatorPanel myWidgetNavigatorPanel;
 
     private NlProperty myIdAttr;
     private NlProperty myLayoutWidth;
@@ -87,6 +89,7 @@ public class IdInspectorProvider implements InspectorProvider {
       myWidthEditor = NlEnumEditor.createForInspector(DEFAULT_LISTENER);
       myHeightEditor = NlEnumEditor.createForInspector(DEFAULT_LISTENER);
       myConstraintWidget = new WidgetConstraintPanel(ImmutableList.of());
+      myWidgetNavigatorPanel = new WidgetNavigatorPanel(propertiesManager.getDesignSurface());
     }
 
     @Override
@@ -96,17 +99,19 @@ public class IdInspectorProvider implements InspectorProvider {
       myIdAttr = properties.get(ATTR_ID);
       myLayoutWidth = properties.get(ATTR_LAYOUT_WIDTH);
       myLayoutHeight = properties.get(ATTR_LAYOUT_HEIGHT);
+      myWidgetNavigatorPanel.updateComponents(components);
       myConstraintWidget.updateComponents(components);
       myConstraintWidget.setVisible(hasParentConstraintLayout(components));
     }
 
     @Override
     public int getMaxNumberOfRows() {
-      return 4;
+      return 5;
     }
 
     @Override
     public void attachToInspector(@NotNull InspectorPanel inspector) {
+      inspector.addPanel(myWidgetNavigatorPanel);
       myIdEditor.setLabel(inspector.addComponent("ID", null, myIdEditor.getComponent()));
       inspector.addPanel(myConstraintWidget);
       myWidthEditor.setLabel(inspector.addComponent(ATTR_LAYOUT_WIDTH, null, myWidthEditor.getComponent()));

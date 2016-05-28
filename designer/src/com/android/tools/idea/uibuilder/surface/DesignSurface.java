@@ -24,6 +24,7 @@ import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.uibuilder.editor.NlActionManager;
 import com.android.tools.idea.uibuilder.editor.NlEditorPanel;
 import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
+import com.android.tools.idea.uibuilder.handlers.constraint.WidgetNavigatorPanel;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.palette.ScalableDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView.ScreenViewType;
@@ -55,10 +56,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.plaf.ScrollBarUI;
 import java.awt.*;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -77,6 +75,7 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
   private final Project myProject;
   private final DesignerEditorPanelFacade myDesigner;
   private boolean myRenderHasProblems;
+  private boolean myStackVertically;
 
   private boolean myIsCanvasResizing = false;
 
@@ -138,6 +137,7 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
   private final GlassPane myGlassPane;
   private final RenderErrorPanel myErrorPanel;
   private List<DesignSurfaceListener> myListeners;
+  private List<PanZoomListener> myZoomListeners;
   private boolean myCentered;
   private final NlActionManager myActionManager = new NlActionManager(this);
 
@@ -162,11 +162,14 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
     myProgressPanel.setName("Layout Editor Progress Panel");
     myLayeredPane.add(myProgressPanel, LAYER_PROGRESS);
 
+
     myScrollPane = new MyScrollPane();
     myScrollPane.setViewportView(myLayeredPane);
     myScrollPane.setBorder(null);
     myScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
     myScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
+    myScrollPane.getHorizontalScrollBar().addAdjustmentListener(this::notifyPanningChanged);
+    myScrollPane.getVerticalScrollBar().addAdjustmentListener(this::notifyPanningChanged);
 
     add(myScrollPane, BorderLayout.CENTER);
 
@@ -494,6 +497,43 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
     }
   }
 
+  @Nullable
+  public ScreenView getBlueprintView() {
+    return myBlueprintView;
+  }
+
+  /**
+   * @param dimension the Dimension object to reuse to avoid reallocation
+   * @return The total size of all the ScreenViews in the DesignSurface
+   */
+  @NotNull
+  public Dimension getContentSize(@Nullable Dimension dimension) {
+    if (dimension == null) {
+      dimension = new Dimension();
+    }
+    if (myScreenMode == ScreenMode.BOTH
+        && myScreenView != null && myBlueprintView != null) {
+      if (isStackVertically()) {
+        dimension.setSize(
+          myScreenView.getSize().getWidth(),
+          myScreenView.getSize().getHeight() + myBlueprintView.getSize().getHeight()
+        );
+      }
+      else {
+        dimension.setSize(
+          myScreenView.getSize().getWidth() + myBlueprintView.getSize().getWidth(),
+          myScreenView.getSize().getHeight()
+        );
+      }
+    }
+    else if (getCurrentScreenView() != null) {
+      dimension.setSize(
+        getCurrentScreenView().getSize().getWidth(),
+        getCurrentScreenView().getSize().getHeight());
+    }
+    return dimension;
+  }
+
   public void hover(@SwingCoordinate int x, @SwingCoordinate int y) {
     // For constraint layer, set show on hover if they are above their screenview
     ScreenView current = getHoverScreenView(x, y);
@@ -655,6 +695,11 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
     }
   }
 
+  public void setScrollPosition(int x, int y) {
+    myScrollPane.getHorizontalScrollBar().setValue(x);
+    myScrollPane.getVerticalScrollBar().setValue(y);
+  }
+
   private void setScale(double scale) {
     if (Math.abs(scale - 1) < 0.0001) {
       scale = 1;
@@ -668,6 +713,23 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
     myScale = scale;
     positionScreens();
     updateScrolledAreaSize();
+    notifyScaleChanged();
+  }
+
+  private void notifyScaleChanged() {
+    if (myZoomListeners != null) {
+      for (int i = 0; i < myZoomListeners.size(); i++) {
+        myZoomListeners.get(i).zoomChanged(this);
+      }
+    }
+  }
+
+  private void notifyPanningChanged(AdjustmentEvent adjustmentEvent) {
+    if (myZoomListeners != null) {
+      for (int i = 0; i < myZoomListeners.size(); i++) {
+        myZoomListeners.get(i).panningChanged(adjustmentEvent);
+      }
+    }
   }
 
   private void positionScreens() {
@@ -679,13 +741,13 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
     // Position primary screen
     int availableWidth = myScrollPane.getWidth();
     int availableHeight = myScrollPane.getHeight();
-    boolean stackVertically = isVerticalScreenConfig(availableWidth, availableHeight, screenViewSize);
+    myStackVertically = isVerticalScreenConfig(availableWidth, availableHeight, screenViewSize);
 
     // If we are resizing the canvas, do not relocate the primary screen
     if (!myIsCanvasResizing) {
       if (myCentered && availableWidth > 10 && availableHeight > 10) {
         int requiredWidth = screenViewSize.width;
-        if (myScreenMode == ScreenMode.BOTH && !stackVertically) {
+        if (myScreenMode == ScreenMode.BOTH && !myStackVertically) {
           requiredWidth += SCREEN_DELTA;
           requiredWidth += screenViewSize.width;
         }
@@ -697,7 +759,7 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
         }
 
         int requiredHeight = screenViewSize.height;
-        if (myScreenMode == ScreenMode.BOTH && stackVertically) {
+        if (myScreenMode == ScreenMode.BOTH && myStackVertically) {
           requiredHeight += SCREEN_DELTA;
           requiredHeight += screenViewSize.height;
         }
@@ -724,7 +786,7 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
     // Position blueprint view
     if (myBlueprintView != null) {
 
-      if (stackVertically) {
+      if (myStackVertically) {
         // top/bottom stacking
         myBlueprintView.setLocation(myScreenX, myScreenY + screenViewSize.height + SCREEN_DELTA);
       }
@@ -733,6 +795,10 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
         myBlueprintView.setLocation(myScreenX + screenViewSize.width + SCREEN_DELTA, myScreenY);
       }
     }
+  }
+
+  public boolean isStackVertically() {
+    return myStackVertically;
   }
 
   public void toggleDeviceFrames() {
@@ -810,6 +876,22 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
       }
     }
   };
+
+  public void addPanZoomListener(PanZoomListener listener) {
+    if (myZoomListeners == null) {
+      myZoomListeners = Lists.newArrayList();
+    }
+    else {
+      myZoomListeners.remove(listener);
+    }
+    myZoomListeners.add(listener);
+  }
+
+  public void removePanZoomListener(PanZoomListener listener) {
+    if(myZoomListeners != null) {
+      myZoomListeners.remove(listener);
+    }
+  }
 
   /**
    * The editor has been activated
