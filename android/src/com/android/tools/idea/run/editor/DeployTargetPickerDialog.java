@@ -144,7 +144,7 @@ public class DeployTargetPickerDialog extends DialogWrapper {
   @Nullable
   @Override
   protected JComponent createCenterPanel() {
-    final JBLoadingPanel loadingPanel = new JBLoadingPanel(new BorderLayout(), myFacet.getModule().getProject());
+    final JBLoadingPanel loadingPanel = new JBLoadingPanel(new BorderLayout(), getDisposable());
     loadingPanel.add(myDeployTargetProvider == null ? myDevicesPanel : myContentPane);
 
     loadingPanel.setLoadingText("Initializing ADB");
