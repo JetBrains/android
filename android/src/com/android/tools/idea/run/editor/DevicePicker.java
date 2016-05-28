@@ -18,12 +18,9 @@ package com.android.tools.idea.run.editor;
 import com.android.annotations.Nullable;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
-import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.*;
-import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.run.*;
-import com.android.tools.idea.run.util.LaunchUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
@@ -48,20 +45,13 @@ import com.intellij.util.ui.update.Update;
 import gnu.trove.TIntArrayList;
 import gnu.trove.TIntObjectHashMap;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.event.HyperlinkEvent;
-import javax.swing.event.HyperlinkListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
+import java.awt.event.*;
 import java.util.Collections;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
@@ -98,28 +88,10 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
     myRunContextId = runContextId;
     myFacet = facet;
 
-    myHelpHyperlink.addHyperlinkListener(new HyperlinkListener() {
-      @Override
-      public void hyperlinkUpdate(HyperlinkEvent e) {
-        launchDiagnostics(facet.getModule().getProject());
-      }
-    });
-
+    myHelpHyperlink.addHyperlinkListener(e -> launchDiagnostics());
     myCompatibilityChecker = compatibilityChecker;
 
-    mySpeedSearch = new ListSpeedSearch(myDevicesList) {
-      @Override
-      protected String getElementText(Object element) {
-        if (element instanceof DevicePickerEntry) {
-          DevicePickerEntry entry = (DevicePickerEntry)element;
-          if (!entry.isMarker()) {
-            AndroidDevice device = entry.getAndroidDevice();
-            return device.getName();
-          }
-        }
-        return "";
-      }
-    };
+    mySpeedSearch = new DeviceListSpeedSearch(myDevicesList);
 
     myModel = new DevicePickerListModel();
     myDevicesList.setModel(myModel);
@@ -148,6 +120,7 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
 
   @Override
   public void dispose() {
+    myDevicesList = null;
     AndroidDebugBridge.removeDebugBridgeChangeListener(this);
     AndroidDebugBridge.removeDeviceChangeListener(this);
   }
@@ -170,7 +143,7 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
   public void actionPerformed(ActionEvent e) {
     if (e.getSource() == myCreateEmulatorButton) {
       AvdOptionsModel avdOptionsModel = new AvdOptionsModel(null);
-      ModelWizardDialog dialog = AvdWizardUtils.createAvdWizard(myPanel,myFacet.getModule().getProject(), avdOptionsModel);
+      ModelWizardDialog dialog = AvdWizardUtils.createAvdWizard(myPanel, myFacet.getModule().getProject(), avdOptionsModel);
       if (dialog.showAndGet()) {
         AvdInfo createdAvd = avdOptionsModel.getCreatedAvd();
         refreshAvds(createdAvd);
@@ -235,12 +208,7 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
     if (myDeviceCount == 0) {
       EditorNotificationPanel panel = new EditorNotificationPanel();
       panel.setText("No USB devices or running emulators detected");
-      panel.createActionLabel("Troubleshoot", new Runnable() {
-        @Override
-        public void run() {
-          launchDiagnostics(null);
-        }
-      });
+      panel.createActionLabel("Troubleshoot", this::launchDiagnostics);
 
       myNotificationPanel.add(panel);
     }
@@ -259,12 +227,8 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
                   // Ignore this error, there is another request coming.
                   return;
                 }
-                myNotificationPanel.add(new AccelerationErrorNotificationPanel(error, myFacet.getModule().getProject(), new Runnable() {
-                  @Override
-                  public void run() {
-                    updateErrorCheck();
-                  }
-                }));
+                myNotificationPanel.add(new AccelerationErrorNotificationPanel(error, myFacet.getModule().getProject(),
+                                                                               () -> updateErrorCheck()));
                 myPanel.revalidate();
                 myPanel.repaint();
               }
@@ -315,12 +279,7 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
     }
 
     if (!ApplicationManager.getApplication().isDispatchThread()) {
-      UIUtil.invokeLaterIfNeeded(new Runnable() {
-        @Override
-        public void run() {
-          updateModel();
-        }
-      });
+      UIUtil.invokeLaterIfNeeded(this::updateModel);
       return;
     }
 
@@ -440,7 +399,7 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
   public List<AndroidDevice> getSelectedDevices() {
     SmartList<AndroidDevice> devices = new SmartList<AndroidDevice>();
 
-    for (Object value: myDevicesList.getSelectedValues()) {
+    for (Object value : myDevicesList.getSelectedValues()) {
       if (value instanceof DevicePickerEntry) {
         AndroidDevice device = ((DevicePickerEntry)value).getAndroidDevice();
         if (device != null) {
@@ -453,12 +412,13 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
   }
 
   // TODO: this needs to become a diagnostics dialog
-  public static void launchDiagnostics(@Nullable Project project) {
-    BrowserUtil.browse("https://developer.android.com/r/studio-ui/devicechooser.html", project);
+  public void launchDiagnostics() {
+    BrowserUtil.browse("https://developer.android.com/r/studio-ui/devicechooser.html", myFacet.getModule().getProject());
   }
 
   public void installDoubleClickListener(@NotNull DoubleClickListener listener) {
-    listener.installOn(myDevicesList);
+    // wrap the incoming listener in a new listener so that we can remove the reference to the incoming object when we are disposed
+    new MyDoubleClickListener(listener, this).installOn(myDevicesList);
   }
 
   private static Set<String> getLastSelectionForProject(@NotNull Project project) {
@@ -470,7 +430,9 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
     PropertiesComponent.getInstance(project).setValue(DEVICE_PICKER_LAST_SELECTION, Joiner.on(' ').join(selectedSerials));
   }
 
-  /** {@link MyListKeyListener} provides a custom key listener that makes sure that up/down key events don't end up selecting a marker. */
+  /**
+   * {@link MyListKeyListener} provides a custom key listener that makes sure that up/down key events don't end up selecting a marker.
+   */
   private static class MyListKeyListener extends KeyAdapter {
     private final ListSpeedSearch mySpeedSearch;
 
@@ -519,6 +481,44 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
       }
 
       e.consume();
+    }
+  }
+
+  private static class DeviceListSpeedSearch extends ListSpeedSearch {
+    public DeviceListSpeedSearch(JBList list) {
+      super(list);
+    }
+
+    @Override
+    protected String getElementText(Object element) {
+      if (element instanceof DevicePickerEntry) {
+        DevicePickerEntry entry = (DevicePickerEntry)element;
+        if (!entry.isMarker()) {
+          AndroidDevice device = entry.getAndroidDevice();
+          assert device != null : "entry not a marker, yet device is null";
+          return device.getName();
+        }
+      }
+      return "";
+    }
+  }
+
+  private static class MyDoubleClickListener extends DoubleClickListener implements Disposable {
+    private DoubleClickListener myDelegate;
+
+    public MyDoubleClickListener(DoubleClickListener delegate, Disposable parent) {
+      myDelegate = delegate;
+      Disposer.register(parent, this);
+    }
+
+    @Override
+    protected boolean onDoubleClick(MouseEvent event) {
+      return myDelegate != null && myDelegate.onClick(event, 2);
+    }
+
+    @Override
+    public void dispose() {
+      myDelegate = null;
     }
   }
 }
