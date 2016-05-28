@@ -48,7 +48,10 @@ public class NewModuleTest {
       .updateGradleWrapperVersion("2.2.1")
       .getEditor()
       .open("app/build.gradle")
+      // delete lines using DSL features added after Android Gradle 1.0.0
       .moveBetween("use", "Library")
+      .invokeAction(EditorFixture.EditorAction.DELETE_LINE)
+      .moveBetween("test", "Compile")
       .invokeAction(EditorFixture.EditorAction.DELETE_LINE)
       .getIdeFrame()
       .requestProjectSync()
