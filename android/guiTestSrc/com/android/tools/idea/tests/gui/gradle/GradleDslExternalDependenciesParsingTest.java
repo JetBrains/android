@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
-import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
-import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyTest.ExpectedArtifactDependency;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
@@ -31,10 +29,9 @@ import org.junit.runner.RunWith;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.stream.Collectors;
 
-import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.COMPILE;
 import static com.google.common.truth.Truth.assertThat;
-import static junit.framework.Assert.assertNotNull;
 
 @RunIn(TestGroup.PROJECT_SUPPORT)
 @RunWith(GuiTestRunner.class)
@@ -49,49 +46,30 @@ public class GradleDslExternalDependenciesParsingTest {
 
   @Test
   public void testParseExternalDependenciesWithCompactNotation() throws IOException {
-    guiTest.importSimpleApplication();
-
-    GradleBuildModelFixture buildModel = guiTest.ideFrame().parseBuildFileForModule("app", true);
-
-    DependenciesModel dependenciesModel = buildModel.getTarget().dependencies();
-    List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
-    assertThat(dependencies).hasSize(3);
-
-    ExpectedArtifactDependency expected = new ExpectedArtifactDependency(COMPILE, "appcompat-v7", "com.android.support", "23.1.1");
-    expected.assertMatches(dependencies.get(0));
-
-    expected = new ExpectedArtifactDependency(COMPILE, "guava", "com.google.guava", "18.0");
-    expected.assertMatches(dependencies.get(1));
-
-    expected = new ExpectedArtifactDependency(COMPILE, "constraint-layout", "com.android.support.constraint", "+");
-    expected.assertMatches(dependencies.get(2));
+    // This isn't really a UI test; it's not simulating user interaction.
+    DependenciesModel dependencies = guiTest.importSimpleApplication()
+      .parseBuildFileForModule("app", true)
+      .getTarget()  // gets GradleBuildModel from GradleBuildModelFixture (gross)
+      .dependencies();
+    assertThat(compactNotation(dependencies)).containsExactly(
+      "com.android.support:appcompat-v7:23.1.1",
+      "com.google.guava:guava:18.0",
+      "com.android.support.constraint:constraint-layout:+",
+      "junit:junit:4.+");
   }
 
   @Test
   public void testSetVersionOnExternalDependencyWithCompactNotation() throws IOException {
-    guiTest.importSimpleApplication();
-    final GradleBuildModelFixture buildModel = guiTest.ideFrame().parseBuildFileForModule("app", true);
-
-    DependenciesModel dependenciesModel = buildModel.getTarget().dependencies();
-    assertNotNull(dependenciesModel);
-    List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
-    assertThat(dependencies).hasSize(3);
-
-    final ArtifactDependencyModel appCompat = dependencies.get(0);
-
-    ExpectedArtifactDependency expected = new ExpectedArtifactDependency(COMPILE, "appcompat-v7", "com.android.support", "23.1.1");
-    expected.assertMatches(appCompat);
-
-    appCompat.setVersion("1.2.3");
+    // This isn't really a UI test; it's not simulating user interaction.
+    GradleBuildModelFixture buildModel = guiTest.importSimpleApplication()
+      .parseBuildFileForModule("app", true);
+    DependenciesModel dependencies = buildModel.getTarget().dependencies();
+    dependencies.artifacts().get(0).setVersion("1.2.3");  // change appcompat-v7 from 23.1.1 to 1.2.3
     buildModel.applyChanges();
+    assertThat(compactNotation(dependencies)).contains("com.android.support:appcompat-v7:1.2.3");
+  }
 
-    dependencies = dependenciesModel.artifacts();
-    assertThat(dependencies).hasSize(3);
-
-    expected.configurationName = "compile";
-    expected.group = "com.android.support";
-    expected.name = "appcompat-v7";
-    expected.version = "1.2.3";
-    expected.assertMatches(dependencies.get(0));
+  private static List<String> compactNotation(DependenciesModel dependencies) {
+    return dependencies.artifacts().stream().map((dep) -> dep.compactNotation().value()).collect(Collectors.toList());
   }
 }
