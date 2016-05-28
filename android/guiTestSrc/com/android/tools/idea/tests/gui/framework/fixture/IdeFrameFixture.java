@@ -41,7 +41,6 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
-import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.application.Result;
@@ -85,7 +84,6 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
@@ -302,28 +300,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     };
     ApplicationManager.getApplication().putUserData(EXECUTE_BEFORE_PROJECT_BUILD_IN_GUI_TEST_KEY, failTask);
     selectProjectMakeAction();
-    return this;
-  }
-
-  @NotNull
-  public IdeFrameFixture invokeProjectMakeWithGradleOutput(@NotNull String output) {
-    ApplicationManager.getApplication().putUserData(GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY, output);
-    selectProjectMakeAction();
-    return this;
-  }
-
-  @NotNull
-  public IdeFrameFixture waitUntilFakeGradleOutputIsApplied() {
-    final Application application = ApplicationManager.getApplication();
-    if (application.getUserData(GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY) == null) {
-      fail("No fake gradle output is configured");
-    }
-    Wait.minutes(2).expecting("fake gradle output to be applied")
-      .until(() -> application.getUserData(GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY) == null);
-    String fakeOutput = application.getUserData(GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY);
-    if (fakeOutput != null) {
-      fail(String.format("Fake gradle output (%s) is not applied in %d ms", fakeOutput, TimeUnit.MINUTES.toMillis(2)));
-    }
     return this;
   }
 
