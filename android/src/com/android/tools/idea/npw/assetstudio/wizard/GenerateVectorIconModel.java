@@ -49,7 +49,7 @@ public final class GenerateVectorIconModel extends GenerateIconsModel {
   protected void generateIntoPath(@NotNull AndroidProjectPaths paths, @NotNull AndroidIconGenerator iconGenerator) {
     // We always know that this model is used on a step that requires VectorAssets
     VectorAsset vectorAsset = (VectorAsset)iconGenerator.sourceAsset().getValue();
-    VectorAsset.ParseResult result = vectorAsset.parseSvg();
+    VectorAsset.ParseResult result = vectorAsset.parse();
 
     Map<File, BufferedImage> fileMap = iconGenerator.generateIntoFileMap(paths);
     ArrayList<File> outputFiles = Lists.newArrayList(fileMap.keySet());
