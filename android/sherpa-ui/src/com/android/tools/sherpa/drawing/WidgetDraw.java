@@ -44,6 +44,7 @@ public class WidgetDraw {
 
     public static final long TOOLTIP_DELAY = 800; // in ms
 
+    private static final int GUIDDELINE_ICON_SIZE = 16;
     private static final int GUIDELINE_ARROW_SIZE = 6;
     private static final int ARROW_SIDE = 10;
 
@@ -354,7 +355,7 @@ public class WidgetDraw {
             int x = transform.getSwingX(guideline.getDrawX());
             g2.drawLine(x, t, x, b);
             int offset = 2;
-            int circleSize = sGuidelinePercent.getWidth(null) / 2 + 1;
+            int circleSize = GUIDDELINE_ICON_SIZE / 2 + 1;
             Shape circle = new Ellipse2D.Float(x - circleSize,
                                                t - 2 * circleSize - offset,
                                                2 * circleSize, 2 * circleSize);
@@ -363,7 +364,8 @@ public class WidgetDraw {
             if (relative == Guideline.RELATIVE_PERCENT) {
                 int iconWidth = sGuidelinePercent.getWidth(null);
                 int iconHeight = sGuidelinePercent.getHeight(null);
-                g.drawImage(sGuidelinePercent, x - iconWidth / 2, t - iconHeight - 3, null);
+                g.drawImage(sGuidelinePercent, x - GUIDDELINE_ICON_SIZE / 2, t - GUIDDELINE_ICON_SIZE - 3, x + GUIDDELINE_ICON_SIZE / 2, t - 3,
+                            0, 0, iconWidth, iconHeight, null);
                 if (isSelected) {
                     int percent = (guideline.getX() * 100) / root.getWidth();
                     ConnectionDraw.drawCircledText(g, sFont, String.valueOf(percent), x, t + 20);
@@ -372,9 +374,9 @@ public class WidgetDraw {
             else if (relative == Guideline.RELATIVE_BEGIN) {
                 int iconWidth = sGuidelineArrowLeft.getWidth(null);
                 int iconHeight = sGuidelineArrowLeft.getHeight(null);
-                Polygon arrow = ConnectionDraw.getLeftArrow();
                 int ty = t - ConnectionDraw.ARROW_SIDE - offset / 2;
-                g.drawImage(sGuidelineArrowLeft, x - iconWidth / 2, t - iconHeight - 3, null);
+                g.drawImage(sGuidelineArrowLeft, x - GUIDDELINE_ICON_SIZE / 2, t - GUIDDELINE_ICON_SIZE - 3, x + GUIDDELINE_ICON_SIZE / 2, t - 3,
+                            0, 0, iconWidth, iconHeight, null);
                 if (isSelected) {
                     ConnectionDraw
                       .drawHorizontalMarginIndicator(g, String.valueOf(guideline.getX()), l,
@@ -385,7 +387,8 @@ public class WidgetDraw {
                 int iconWidth = sGuidelineArrowRight.getWidth(null);
                 int iconHeight = sGuidelineArrowRight.getHeight(null);
                 int ty = t - ConnectionDraw.ARROW_SIDE - offset / 2;
-                g.drawImage(sGuidelineArrowRight, x - iconWidth / 2 + 1, t - iconHeight - 3, null);
+                g.drawImage(sGuidelineArrowRight, x - GUIDDELINE_ICON_SIZE / 2 + 1, t - GUIDDELINE_ICON_SIZE - 3, x + GUIDDELINE_ICON_SIZE / 2, t - 3,
+                            0, 0, iconWidth, iconHeight, null);
                 if (isSelected) {
                     ConnectionDraw.drawHorizontalMarginIndicator(
                       g, String.valueOf(root.getWidth() - guideline.getX()), x, r, ty + 20);
@@ -396,7 +399,7 @@ public class WidgetDraw {
             int y = transform.getSwingY(guideline.getDrawY());
             g2.drawLine(l, y, r, y);
             int offset = 2;
-            int circleSize = sGuidelinePercent.getWidth(null) / 2 + 1;
+            int circleSize = GUIDDELINE_ICON_SIZE / 2 + 1;
             Shape circle = new Ellipse2D.Float(l - 2 * circleSize - offset,
                                                y - circleSize, 2 * circleSize, 2 * circleSize);
             g.fill(circle);
@@ -404,7 +407,8 @@ public class WidgetDraw {
             if (relative == Guideline.RELATIVE_PERCENT) {
                 int iconWidth = sGuidelinePercent.getWidth(null);
                 int iconHeight = sGuidelinePercent.getHeight(null);
-                g.drawImage(sGuidelinePercent, l - iconWidth - 3, y - iconHeight / 2, null);
+                g.drawImage(sGuidelinePercent, l - GUIDDELINE_ICON_SIZE - 3, y - GUIDDELINE_ICON_SIZE / 2, l - 3, y + GUIDDELINE_ICON_SIZE / 2,
+                            0, 0, iconWidth, iconHeight, null);
                 if (isSelected) {
                     int percent = (guideline.getY() * 100) / root.getHeight();
                     ConnectionDraw.drawCircledText(g, sFont, String.valueOf(percent), l + 20, y);
@@ -413,7 +417,8 @@ public class WidgetDraw {
             else if (relative == Guideline.RELATIVE_BEGIN) {
                 int iconWidth = sGuidelineArrowUp.getWidth(null);
                 int iconHeight = sGuidelineArrowUp.getHeight(null);
-                g.drawImage(sGuidelineArrowUp, l - iconWidth - 3, y - iconHeight / 2, null);
+                g.drawImage(sGuidelineArrowUp, l - GUIDDELINE_ICON_SIZE - 3, y - GUIDDELINE_ICON_SIZE / 2, l - 3, y + GUIDDELINE_ICON_SIZE / 2,
+                            0, 0, iconWidth, iconHeight, null);
                 if (isSelected) {
                     ConnectionDraw.drawVerticalMarginIndicator(g, String.valueOf(guideline.getY()),
                                                                l + 20, t, y);
@@ -423,7 +428,8 @@ public class WidgetDraw {
                 int iconWidth = sGuidelineArrowDown.getWidth(null);
                 int iconHeight = sGuidelineArrowDown.getHeight(null);
                 Polygon arrow = ConnectionDraw.getBottomArrow();
-                g.drawImage(sGuidelineArrowDown, l - iconWidth - 3, y - iconHeight / 2 + 1, null);
+                g.drawImage(sGuidelineArrowDown, l - GUIDDELINE_ICON_SIZE - 3, y - GUIDDELINE_ICON_SIZE / 2 + 1, l - 3, y + GUIDDELINE_ICON_SIZE / 2,
+                            0, 0, iconWidth, iconHeight, null);
                 if (isSelected) {
                     ConnectionDraw.drawVerticalMarginIndicator(
                       g, String.valueOf(root.getHeight() - guideline.getY()), l + 20, y, b);
