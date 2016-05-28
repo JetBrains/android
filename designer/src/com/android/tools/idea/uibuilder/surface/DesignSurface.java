@@ -33,23 +33,31 @@ import com.intellij.designer.DesignerEditorPanelFacade;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.actionSystem.DataProvider;
+import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.wm.IdeGlassPane;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.xml.XmlFile;
+import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.components.JBScrollBar;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.Magnificator;
+import com.intellij.ui.treeStructure.filtered.FilteringTreeStructure;
 import com.intellij.util.Alarm;
+import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.ButtonlessScrollBarUI;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import org.intellij.lang.annotations.JdkConstants;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -997,7 +1005,7 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
     }
   }
 
-  private class MyLayeredPane extends JLayeredPane implements Magnificator {
+  private class MyLayeredPane extends JLayeredPane implements Magnificator, DataProvider {
     public MyLayeredPane() {
       setOpaque(true);
       setBackground(UIUtil.TRANSPARENT_COLOR);
@@ -1202,6 +1210,33 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
     public void doLayout() {
       super.doLayout();
       positionErrorPanel();
+    }
+
+    @Nullable
+    @Override
+    public Object getData(@NonNls String dataId) {
+      if (CommonDataKeys.PSI_ELEMENT.is(dataId)) {
+        if (myScreenView != null) {
+          SelectionModel selectionModel = myScreenView.getSelectionModel();
+          NlComponent primary = selectionModel.getPrimary();
+          if (primary != null) {
+            return primary.getTag();
+          }
+        }
+      }
+      if (LangDataKeys.PSI_ELEMENT_ARRAY.is(dataId)) {
+        if (myScreenView != null) {
+          SelectionModel selectionModel = myScreenView.getSelectionModel();
+          List<NlComponent> selection = selectionModel.getSelection();
+          List<XmlTag> list = Lists.newArrayListWithCapacity(selection.size());
+          for (NlComponent component : selection) {
+            list.add(component.getTag());
+          }
+          return list.toArray(new XmlTag[0]);
+        }
+      }
+
+      return null;
     }
   }
 
