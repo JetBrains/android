@@ -959,7 +959,7 @@ public class MouseInteraction {
                             && anchor != mSelection.getSelectedAnchor()
                             && mSelection.getSelectedAnchor().isValidConnection(anchor)
                             &&
-                            mSelection.getSelectedAnchor().isConnectionAllowed(anchor.getOwner())) {
+                            mSelection.getSelectedAnchor().isConnectionAllowed(anchor.getOwner(), anchor)) {
                         if (mSelection.getConnectionCandidateAnchor() != anchor) {
                             if (mSelection.getConnectionCandidateAnchor() != null) {
                                 if (getSnapshot() != null) {

@@ -226,7 +226,7 @@ public class SceneDraw {
             boolean highlighted = false;
             for (ConstraintAnchor a : widget.getAnchors()) {
                 if (selectedAnchor.isValidConnection(a)
-                        && selectedAnchor.isConnectionAllowed(a.getOwner())) {
+                        && selectedAnchor.isConnectionAllowed(a.getOwner(), a)) {
                     ConstraintHandle constraintHandle =
                             WidgetInteractionTargets.constraintHandle(a);
                     if (constraintHandle == null) {
