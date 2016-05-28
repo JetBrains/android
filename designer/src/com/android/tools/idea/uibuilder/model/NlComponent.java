@@ -501,7 +501,12 @@ public class NlComponent {
 
   @NotNull
   public Insets getPadding() {
-    if (myPadding == null) {
+    return getPadding(false);
+  }
+
+  @NotNull
+  public Insets getPadding(boolean force) {
+    if (myPadding == null || force) {
       if (viewInfo == null) {
         return Insets.NONE;
       }

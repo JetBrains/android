@@ -295,6 +295,8 @@ public class SceneDraw {
         }
         int xr = transform.getSwingX(root.getDrawX());
         int yr = transform.getSwingY(root.getDrawY());
+        w = transform.getSwingDimension(root.getWidth());
+        h = transform.getSwingDimension(root.getHeight());
         int tileSize = transform.getSwingDimension(8);
 
         if (!DRAW_GRID) {
