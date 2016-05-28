@@ -32,20 +32,20 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Locale;
 
 /**
- * An asset which represents a vector graphics image. This can be loaded either from an SVG file or
- * a Vector Drawable file.
+ * An asset which represents a vector graphics image. This can be loaded either from an SVG file,
+ * a layered image supported by the pixelprobe library or a Vector Drawable file.
  *
- * After setting {@link #path()}, call one of the {@link #parseSvg()} to attempt to read it and
+ * After setting {@link #path()}, call one of the {@link #parse()} to attempt to read it and
  * generate a result.
  */
 public final class VectorAsset extends BaseAsset {
 
   private static final String ERROR_EMPTY_PREVIEW = "Could not generate a preview";
 
-  private final FileType myFileType;
-
+  private final ObjectProperty<FileType> myFileType = new ObjectValueProperty<>(FileType.SVG);
   private final ObjectProperty<File> myPath = new ObjectValueProperty<>(new File(System.getProperty("user.home")));
   private final IntProperty myOpacity = new IntValueProperty(100);
   private final BoolProperty myAutoMirrored = new BoolValueProperty();
@@ -57,11 +57,31 @@ public final class VectorAsset extends BaseAsset {
    */
   public enum FileType {
     SVG,
+    LAYERED_IMAGE,
     VECTOR_DRAWABLE,
   }
 
   public VectorAsset(@NotNull FileType fileType) {
-    myFileType = fileType;
+    type().set(fileType);
+  }
+
+  @NotNull
+  public static FileType typeFromExtension(@NotNull String path) {
+    String fullPath = new File(path).getAbsolutePath();
+    int index = fullPath.lastIndexOf('.');
+    String extension = path.substring(index + 1);
+    switch (extension.toLowerCase(Locale.ROOT)) {
+      case "svg":
+        return FileType.SVG;
+      case "psd":
+        return FileType.LAYERED_IMAGE;
+    }
+    return FileType.VECTOR_DRAWABLE;
+  }
+
+  @NotNull
+  public ObjectProperty<FileType> type() {
+    return myFileType;
   }
 
   @NotNull
@@ -83,7 +103,7 @@ public final class VectorAsset extends BaseAsset {
    * Since vector assets can be rendered at any size, set this width to a positive value if you
    * want to override the final output width.
    *
-   * Otherwise, the asset's default width (as parsed from the SVG file) will be used.
+   * Otherwise, the asset's default width (as parsed from the file) will be used.
    *
    * @see #outputHeight()
    */
@@ -96,7 +116,7 @@ public final class VectorAsset extends BaseAsset {
    * Since vector assets can be rendered at any size, set this height to a positive value if you
    * want to override the final output height.
    *
-   * Otherwise, the asset's default height (as parsed from the SVG file) will be used.
+   * Otherwise, the asset's default height (as parsed from the file) will be used.
    *
    * @see #outputWidth()
    */
@@ -110,7 +130,7 @@ public final class VectorAsset extends BaseAsset {
    * useful for previewing this vector asset in some UI component of the same width.
    */
   @NotNull
-  public ParseResult parseSvg(int previewWidth) {
+  public ParseResult parse(int previewWidth) {
     return tryParse(previewWidth);
   }
 
@@ -118,18 +138,18 @@ public final class VectorAsset extends BaseAsset {
    * Parse the file specified by the {@link #path()} property.
    */
   @NotNull
-  public ParseResult parseSvg() {
-    return parseSvg(0);
+  public ParseResult parse() {
+    return parse(0);
   }
 
   @NotNull
   @Override
   protected BufferedImage createAsImage(@NotNull Color color) {
-    return parseSvg().getImage();
+    return parse().getImage();
   }
 
   /**
-   * Attempt to parse an SVG file based on current settings.
+   * Attempt to parse an SVG file, a Vector Drawable file or a layered image based on current settings.
    *
    * @param previewWidth If set to a positive value, this will override the current output width
    *                     value (in effect, scaling the final result).
@@ -144,11 +164,21 @@ public final class VectorAsset extends BaseAsset {
     }
 
     String xmlFileContent = null;
-    if (myFileType.equals(FileType.SVG)) {
+    FileType fileType = myFileType.get();
+
+    if (fileType.equals(FileType.SVG)) {
       OutputStream outStream = new ByteArrayOutputStream();
       String errorLog = Svg2Vector.parseSvgToXml(path, outStream);
       errorBuffer.append(errorLog);
       xmlFileContent = outStream.toString();
+    }
+    else if (fileType.equals(FileType.LAYERED_IMAGE)) {
+      try {
+        xmlFileContent = LayeredImageConverter.toVectorDrawableXml(path);
+      }
+      catch (IOException e) {
+        errorBuffer.append(e.getMessage());
+      }
     }
     else {
       try {
@@ -222,7 +252,7 @@ public final class VectorAsset extends BaseAsset {
   }
 
   /**
-   * A parse result returned after calling {@link #parseSvg()}. Check {@link #isValid()} to see if
+   * A parse result returned after calling {@link #parse()}. Check {@link #isValid()} to see if
    * the parse was successful.
    */
   public static final class ParseResult {
