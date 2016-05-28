@@ -39,6 +39,10 @@ import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.psi.PsiFile;
 import com.intellij.ui.components.panels.VerticalLayout;
 import com.intellij.util.IncorrectOperationException;
+import org.jetbrains.android.refactoring.AndroidExtractAsIncludeAction;
+import org.jetbrains.android.refactoring.AndroidExtractStyleAction;
+import org.jetbrains.android.refactoring.AndroidInlineIncludeAction;
+import org.jetbrains.android.refactoring.AndroidInlineStyleReferenceAction;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -90,6 +94,56 @@ public class NlActionManager {
     return actionsToolbar.getToolbarComponent();
   }
 
+  @NotNull
+  private static ActionGroup createRefactoringMenu() {
+    DefaultActionGroup group = new DefaultActionGroup("_Refactor", true);
+    ActionManager manager = ActionManager.getInstance();
+
+    AnAction action = manager.getAction(AndroidExtractStyleAction.ACTION_ID);
+    group.add(new AndroidRefactoringActionWrapper("_Extract Style...", action));
+
+    action = manager.getAction(AndroidInlineStyleReferenceAction.ACTION_ID);
+    group.add(new AndroidRefactoringActionWrapper("_Inline Style...", action));
+
+    action = manager.getAction(AndroidExtractAsIncludeAction.ACTION_ID);
+    group.add(new AndroidRefactoringActionWrapper("E_xtract Layout...", action));
+
+    action = manager.getAction(AndroidInlineIncludeAction.ACTION_ID);
+    group.add(new AndroidRefactoringActionWrapper("I_nline Layout...", action));
+
+    return group;
+  }
+
+  /**
+   * Exposes android refactoring actions in layout editor context menu: customizes
+   * label for menu usage (e.g. with mnemonics) and makes hidden action visible but
+   * disabled instead
+   */
+  private static class AndroidRefactoringActionWrapper extends AnAction {
+    private final AnAction myRefactoringAction;
+
+    public AndroidRefactoringActionWrapper(@NotNull String text, @NotNull AnAction refactoringAction) {
+      super(text, null, null);
+      myRefactoringAction = refactoringAction;
+      getTemplatePresentation().setDescription(refactoringAction.getTemplatePresentation().getDescription());
+    }
+
+    @Override
+    public void actionPerformed(AnActionEvent e) {
+      myRefactoringAction.actionPerformed(e);
+    }
+
+    @Override
+    public void update(AnActionEvent e) {
+      myRefactoringAction.update(e);
+      Presentation p = e.getPresentation();
+      if (!p.isVisible()) {
+        p.setEnabled(false);
+        p.setVisible(true);
+      }
+    }
+  }
+
   public void showPopup(@NotNull MouseEvent event) {
     NlComponent component = null;
     int x = event.getX();
@@ -135,6 +189,7 @@ public class NlActionManager {
     group.add(actionManager.getAction(IdeActions.ACTION_DELETE));
     group.addSeparator();
     group.add(myGotoComponentAction);
+    group.add(createRefactoringMenu());
 
     if (ConvertToConstraintLayoutAction.ENABLED) {
       group.addSeparator();

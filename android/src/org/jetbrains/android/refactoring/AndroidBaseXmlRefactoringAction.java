@@ -208,18 +208,13 @@ abstract class AndroidBaseXmlRefactoringAction extends BaseRefactoringAction {
 
   @NotNull
   protected static XmlTag[] getXmlTagsFromExternalContext(DataContext dataContext) {
-    if (dataContext == null) {
+    PsiElement[] data = LangDataKeys.PSI_ELEMENT_ARRAY.getData(dataContext);
+    if (data instanceof XmlTag[]) {
+      return (XmlTag[])data;
+    }
+    else {
       return XmlTag.EMPTY;
     }
-
-    for (AndroidRefactoringContextProvider provider : AndroidRefactoringContextProvider.EP_NAME.getExtensions()) {
-      final XmlTag[] componentTags = provider.getComponentTags(dataContext);
-
-      if (componentTags.length > 0) {
-        return componentTags;
-      }
-    }
-    return XmlTag.EMPTY;
   }
 
   private class MyHandler implements RefactoringActionHandler {
