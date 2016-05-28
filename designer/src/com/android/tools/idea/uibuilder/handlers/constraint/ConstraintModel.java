@@ -22,6 +22,7 @@ import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.model.Insets;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.sherpa.drawing.ViewTransform;
 import com.android.tools.sherpa.drawing.decorator.*;
@@ -745,7 +746,40 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
    * @param container
    */
   private void updateConstraintLayoutRoots(WidgetContainer container) {
+    if (container == null) {
+      return;
+    }
     Map<NlComponent, Dimension> wrapContentSizes = Maps.newHashMap();
+    if (container instanceof ConstraintWidgetContainer
+        || (container.isRoot()
+        || (container.getParent() != null && !(container.getParent() instanceof ConstraintWidgetContainer)))) {
+      NlComponent component = (NlComponent)((WidgetCompanion)container.getCompanionWidget()).getWidgetModel();
+      Insets padding = component.getPadding(true);
+      container.setDimension(pxToDp(component.w - padding.width()),
+                          pxToDp(component.h - padding.height()));
+      int x = pxToDp(component.x);
+      int y = pxToDp(component.y);
+      x += pxToDp(padding.left);
+      y += pxToDp(padding.top);
+      WidgetContainer parentContainer = (WidgetContainer)container.getParent();
+      if (parentContainer != null) {
+        x -= parentContainer.getDrawX();
+        y -= parentContainer.getDrawY();
+        if (!(parentContainer instanceof ConstraintWidgetContainer)) {
+          container.setDimension(pxToDp(component.w),
+                                 pxToDp(component.h));
+        }
+      }
+      if (container.getX() != x || container.getY() != y) {
+        container.setOrigin(x, y);
+        container.forceUpdateDrawPosition();
+      }
+    }
+    if (!(container instanceof ConstraintWidgetContainer)) {
+      NlComponent component = (NlComponent)((WidgetCompanion)container.getCompanionWidget()).getWidgetModel();
+      container.setDimension(pxToDp(component.w),
+                             pxToDp(component.h));
+    }
     if (container instanceof ConstraintWidgetContainer && container.getChildren().size() > 0) {
       NlComponent root = (NlComponent)((WidgetCompanion)container.getCompanionWidget()).getWidgetModel();
       XmlTag parentTag = root.getTag();

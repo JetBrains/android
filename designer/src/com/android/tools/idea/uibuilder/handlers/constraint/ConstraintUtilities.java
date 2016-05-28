@@ -757,20 +757,12 @@ public class ConstraintUtilities {
                      || (!(widget.getParent() instanceof ConstraintWidgetContainer)
                           && !(widget instanceof ConstraintWidgetContainer));
     if (!update) {
-      if (widget instanceof ConstraintWidgetContainer
-          && (widget.isRoot() || !(widget.getParent() instanceof ConstraintWidgetContainer))) {
-        Insets padding = component.getPadding();
-        widget.setDimension(constraintModel.pxToDp(component.w - padding.width()),
-                            constraintModel.pxToDp(component.h - padding.height()));
-        int x = constraintModel.pxToDp(component.x);
-        int y = constraintModel.pxToDp(component.y);
-        x += constraintModel.pxToDp(padding.left);
-        y += constraintModel.pxToDp(padding.top);
-        WidgetContainer parentContainer = (WidgetContainer)widget.getParent();
-        if (parentContainer != null) {
-          x -= parentContainer.getDrawX();
-          y -= parentContainer.getDrawY();
-        }
+      WidgetContainer parent = (WidgetContainer)widget.getParent();
+      if (parent != null && !(parent instanceof ConstraintWidgetContainer)) {
+        widget.setDimension(constraintModel.pxToDp(component.w),
+                               constraintModel.pxToDp(component.h));
+        int x = constraintModel.pxToDp(component.x) - parent.getDrawX();
+        int y = constraintModel.pxToDp(component.y) - parent.getDrawY();
         if (widget.getX() != x || widget.getY() != y) {
           widget.setOrigin(x, y);
           widget.forceUpdateDrawPosition();
@@ -784,7 +776,7 @@ public class ConstraintUtilities {
     }
     widget.setDebugName(component.getId());
     WidgetsScene scene = constraintModel.getScene();
-    Insets padding = component.getPadding();
+    Insets padding = component.getPadding(true);
     if (widget instanceof ConstraintWidgetContainer) {
       widget.setDimension(constraintModel.pxToDp(component.w - padding.width()),
                           constraintModel.pxToDp(component.h - padding.height()));
@@ -832,9 +824,11 @@ public class ConstraintUtilities {
       widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.ANY);
     }
     else if (layout_width != null && layout_width.equalsIgnoreCase(SdkConstants.VALUE_WRAP_CONTENT)) {
+      widget.setWrapWidth(widget.getWidth());
       widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.WRAP_CONTENT);
     }
     else if (layout_width != null && layout_width.equalsIgnoreCase(SdkConstants.VALUE_MATCH_PARENT)) {
+      widget.setWrapWidth(widget.getWidth());
       widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.ANY);
     }
     else {
