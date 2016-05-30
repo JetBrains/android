@@ -34,6 +34,64 @@ public class AdapterPropertiesTest {
   }
 
   @Test
+  public void initializingStringToIntAdapterWithValidValueWorks() throws Exception {
+    StringProperty intString = new StringValueProperty("42");
+    StringToIntAdapterProperty adapterProperty = new StringToIntAdapterProperty(intString);
+
+    assertThat(adapterProperty.get()).isEqualTo(42);
+
+    intString.set("1234");
+    assertThat(adapterProperty.get()).isEqualTo(1234);
+  }
+
+  @Test
+  public void initializingStringToIntAdapterWithInvalidValueDefaultsTo0() throws Exception {
+    StringProperty intString = new StringValueProperty("Forty-two");
+    StringToIntAdapterProperty adapterProperty = new StringToIntAdapterProperty(intString);
+
+    assertThat(adapterProperty.get()).isEqualTo(0);
+  }
+
+  @Test
+  public void bindingStringToIntAdapterWorks() throws Exception {
+    BindingsManager bindings = new BindingsManager(INVOKE_IMMEDIATELY_STRATEGY);
+    StringProperty intString = new StringValueProperty("0");
+    IntProperty intValue = new IntValueProperty(1);
+
+    bindings.bindTwoWay(new StringToIntAdapterProperty(intString), intValue);
+
+    assertThat(intString.get()).isEqualTo("1");
+
+    intString.set("-99");
+    assertThat(intValue.get()).isEqualTo(-99);
+
+    intString.set("not an int");
+    assertThat(intValue.get()).isEqualTo(-99);
+  }
+
+
+  @Test
+  public void initializingStringToDoubleAdapterWithValidValueWorks() throws Exception {
+    StringProperty doubleString = new StringValueProperty("12.34");
+    StringToDoubleAdapterProperty adapterProperty = new StringToDoubleAdapterProperty(doubleString, 2);
+
+    assertThat(adapterProperty.inSync().get()).isTrue();
+    assertThat(adapterProperty.get()).isWithin(0).of(12.34);
+
+    doubleString.set("3");
+    assertThat(adapterProperty.get()).isWithin(0).of(3.00);
+  }
+
+  @Test
+  public void initializingStringToDoubleAdapterWithInvalidValueDefaultsTo0() throws Exception {
+    StringProperty doubleString = new StringValueProperty("OneDotTwo");
+    StringToDoubleAdapterProperty adapterProperty = new StringToDoubleAdapterProperty(doubleString);
+
+    assertThat(adapterProperty.inSync().get()).isFalse();
+    assertThat(adapterProperty.get()).isWithin(0f).of(0);
+  }
+
+  @Test
   public void bindingStringToDoubleAdapterWorks() throws Exception {
     BindingsManager bindings = new BindingsManager(INVOKE_IMMEDIATELY_STRATEGY);
     StringProperty doubleString = new StringValueProperty("0");
@@ -96,23 +154,6 @@ public class AdapterPropertiesTest {
     bindings.bindTwoWay(new StringToDoubleAdapterProperty(doubleString, 3), doubleValue);
 
     assertThat(doubleString.get()).isEqualTo("0.123");
-  }
-
-  @Test
-  public void bindingStringToIntAdapterWorks() throws Exception {
-    BindingsManager bindings = new BindingsManager(INVOKE_IMMEDIATELY_STRATEGY);
-    StringProperty intString = new StringValueProperty("0");
-    IntProperty intValue = new IntValueProperty(1);
-
-    bindings.bindTwoWay(new StringToIntAdapterProperty(intString), intValue);
-
-    assertThat(intString.get()).isEqualTo("1");
-
-    intString.set("-99");
-    assertThat(intValue.get()).isEqualTo(-99);
-
-    intString.set("not an int");
-    assertThat(intValue.get()).isEqualTo(-99);
   }
 
   @Test
