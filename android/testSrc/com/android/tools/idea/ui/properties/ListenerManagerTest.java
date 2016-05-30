@@ -16,7 +16,6 @@
 package com.android.tools.idea.ui.properties;
 
 import com.android.tools.idea.ui.properties.core.*;
-import com.intellij.util.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
@@ -50,28 +49,28 @@ public final class ListenerManagerTest {
   }
 
   @Test
-  public void simpleConsumerWorks() throws Exception {
+  public void simpleReceiverWorks() throws Exception {
     ListenerManager listeners = new ListenerManager();
 
-    IntReceiver intListener = new IntReceiver();
+    IntReceiver intReceiver = new IntReceiver();
     IntValueProperty intProperty = new IntValueProperty(10);
 
-    listeners.listen(intProperty, intListener);
+    listeners.receive(intProperty, intReceiver);
 
-    assertThat(intListener.myInvalidationCount).isEqualTo(0);
-    assertThat(intListener.myLastValue).isEqualTo(0);
-
-    intProperty.set(20);
-    assertThat(intListener.myInvalidationCount).isEqualTo(1);
-    assertThat(intListener.myLastValue).isEqualTo(20);
+    assertThat(intReceiver.myInvalidationCount).isEqualTo(0);
+    assertThat(intReceiver.myLastValue).isEqualTo(0);
 
     intProperty.set(20);
-    assertThat(intListener.myInvalidationCount).isEqualTo(1);
-    assertThat(intListener.myLastValue).isEqualTo(20);
+    assertThat(intReceiver.myInvalidationCount).isEqualTo(1);
+    assertThat(intReceiver.myLastValue).isEqualTo(20);
+
+    intProperty.set(20);
+    assertThat(intReceiver.myInvalidationCount).isEqualTo(1);
+    assertThat(intReceiver.myLastValue).isEqualTo(20);
 
     intProperty.set(30);
-    assertThat(intListener.myInvalidationCount).isEqualTo(2);
-    assertThat(intListener.myLastValue).isEqualTo(30);
+    assertThat(intReceiver.myInvalidationCount).isEqualTo(2);
+    assertThat(intReceiver.myLastValue).isEqualTo(30);
   }
 
   @Test
@@ -92,20 +91,20 @@ public final class ListenerManagerTest {
   }
 
   @Test
-  public void listenWithConsumerAndFireWorks() throws Exception {
+  public void receiveAndFireWorks() throws Exception {
     ListenerManager listeners = new ListenerManager();
 
-    IntReceiver intListener = new IntReceiver();
+    IntReceiver intReceiver = new IntReceiver();
     IntValueProperty intProperty = new IntValueProperty(10);
 
-    listeners.listenAndFire(intProperty, intListener);
+    listeners.receiveAndFire(intProperty, intReceiver);
 
-    assertThat(intListener.myInvalidationCount).isEqualTo(1);
-    assertThat(intListener.myLastValue).isEqualTo(10);
+    assertThat(intReceiver.myInvalidationCount).isEqualTo(1);
+    assertThat(intReceiver.myLastValue).isEqualTo(10);
 
     intProperty.set(20);
-    assertThat(intListener.myInvalidationCount).isEqualTo(2);
-    assertThat(intListener.myLastValue).isEqualTo(20);
+    assertThat(intReceiver.myInvalidationCount).isEqualTo(2);
+    assertThat(intReceiver.myLastValue).isEqualTo(20);
   }
 
   @Test
@@ -156,21 +155,21 @@ public final class ListenerManagerTest {
   }
 
   @Test
-  public void releasingConsumerWorks() throws Exception {
+  public void releasingReceiverWorks() throws Exception {
     ListenerManager listeners = new ListenerManager();
 
-    IntReceiver intListener = new IntReceiver();
+    IntReceiver intReceiver = new IntReceiver();
     IntValueProperty intProperty = new IntValueProperty(10);
-    listeners.listen(intProperty, intListener);
+    listeners.receive(intProperty, intReceiver);
 
     intProperty.set(20);
-    assertThat(intListener.myInvalidationCount).isEqualTo(1);
+    assertThat(intReceiver.myInvalidationCount).isEqualTo(1);
 
-    listeners.release(intListener);
+    listeners.release(intReceiver);
 
     intProperty.set(30);
-    assertThat(intListener.myInvalidationCount).isEqualTo(1);
-    assertThat(intListener.myLastValue).isEqualTo(20);
+    assertThat(intReceiver.myInvalidationCount).isEqualTo(1);
+    assertThat(intReceiver.myLastValue).isEqualTo(20);
   }
 
   @Test
@@ -228,24 +227,24 @@ public final class ListenerManagerTest {
 
     ListenerManager listeners = new ListenerManager();
 
-    IntListener intListener1 = new IntListener();
-    IntReceiver intListener2 = new IntReceiver();
+    IntListener intListener = new IntListener();
+    IntReceiver intReceiver = new IntReceiver();
     IntValueProperty intProperty1 = new IntValueProperty(10);
     IntValueProperty intProperty2 = new IntValueProperty(10);
-    listeners.listen(intProperty1, intListener1);
-    listeners.listen(intProperty2, intListener2);
+    listeners.listen(intProperty1, intListener);
+    listeners.receive(intProperty2, intReceiver);
 
     intProperty1.set(20);
     intProperty2.set(20);
-    assertThat(intListener1.myInvalidationCount).isEqualTo(1);
-    assertThat(intListener2.myInvalidationCount).isEqualTo(1);
+    assertThat(intListener.myInvalidationCount).isEqualTo(1);
+    assertThat(intReceiver.myInvalidationCount).isEqualTo(1);
 
     listeners.releaseAll();
 
     intProperty1.set(30);
     intProperty2.set(30);
-    assertThat(intListener1.myInvalidationCount).isEqualTo(1);
-    assertThat(intListener2.myInvalidationCount).isEqualTo(1);
+    assertThat(intListener.myInvalidationCount).isEqualTo(1);
+    assertThat(intReceiver.myInvalidationCount).isEqualTo(1);
   }
 
   @Test
@@ -322,12 +321,12 @@ public final class ListenerManagerTest {
     }
   }
 
-  private static class IntReceiver implements Consumer<Integer> {
+  private static class IntReceiver implements Receiver<Integer> {
     int myInvalidationCount = 0;
     int myLastValue;
 
     @Override
-    public void consume(Integer value) {
+    public void receive(@NotNull Integer value) {
       myInvalidationCount++;
       myLastValue = value;
     }
