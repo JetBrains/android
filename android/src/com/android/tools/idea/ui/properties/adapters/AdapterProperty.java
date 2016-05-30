@@ -42,13 +42,15 @@ import org.jetbrains.annotations.Nullable;
 public abstract class AdapterProperty<S, D> extends AbstractProperty<D> implements InvalidationListener {
 
   @NotNull private final AbstractProperty<S> myWrappedProperty;
-
+  private final BoolProperty myInSync = new BoolValueProperty();
   @NotNull private D myLastValue;
 
-  // Assume we're in sync - that way, if the two properties already have the same value when
-  // connected, we're correct. If not, we'll try to put them in sync and updated this boolean
-  // appropriately.
-  private final BoolProperty myInSync = new BoolValueProperty(true);
+  /**
+   * We can't simply call trySync in our constructor because some child classes initialize fields
+   * in their own constructor which are then used in the syncing. Instead, we sync lazily at the
+   * first chance we get.
+   */
+  private boolean myNeedsInitialSync = true;
 
   public AdapterProperty(@NotNull AbstractProperty<S> wrappedProperty, @NotNull D initialValue) {
     myLastValue = initialValue;
@@ -64,10 +66,13 @@ public abstract class AdapterProperty<S, D> extends AbstractProperty<D> implemen
   @NotNull
   @Override
   public final D get() {
+    doInitialSync();
     return myLastValue;
   }
 
+  @NotNull
   public ObservableBool inSync() {
+    doInitialSync();
     return myInSync;
   }
 
@@ -88,12 +93,19 @@ public abstract class AdapterProperty<S, D> extends AbstractProperty<D> implemen
   @NotNull
   protected abstract S convertFromDestType(@NotNull D value);
 
+  private void doInitialSync() {
+    if (myNeedsInitialSync) {
+      trySync(); // Sets myNeedsInitialSync to false
+    }
+  }
+
   private void trySync() {
     D result = convertFromSourceType(myWrappedProperty.get());
     myInSync.set(result != null);
     if (result != null) {
       myLastValue = result;
     }
+    myNeedsInitialSync = false;
   }
 }
 
