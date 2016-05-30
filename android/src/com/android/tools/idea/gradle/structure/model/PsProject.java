@@ -55,15 +55,15 @@ public class PsProject extends PsModel {
           module = new PsAndroidModule(this, resolvedModel, gradlePath, gradleModel);
         }
         // TODO enable when Java module support is complete.
-        //else {
-        //  JavaGradleFacet facet = JavaGradleFacet.getInstance(resolvedModel);
-        //  if (facet != null) {
-        //    JavaProject javaProject = facet.getJavaProject();
-        //    if (javaProject != null) {
-        //      module = new PsJavaModule(this, resolvedModel, gradlePath, javaProject);
-        //    }
-        //  }
-        //}
+        else {
+          JavaGradleFacet facet = JavaGradleFacet.getInstance(resolvedModel);
+          if (facet != null) {
+            JavaProject javaProject = facet.getJavaProject();
+            if (javaProject != null && javaProject.isBuildable()) {
+              module = new PsJavaModule(this, resolvedModel, gradlePath, javaProject);
+            }
+          }
+        }
 
         if (module != null) {
           myModules.add(module);
