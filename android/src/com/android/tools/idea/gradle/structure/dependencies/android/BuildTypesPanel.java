@@ -17,66 +17,85 @@ package com.android.tools.idea.gradle.structure.dependencies.android;
 
 import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeEventDispatcher;
 import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeListener;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.model.android.PsBuildType;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
-import org.jetbrains.annotations.NonNls;
+import com.intellij.ui.CheckBoxList;
+import com.intellij.ui.IdeBorderFactory;
+import com.intellij.ui.ListSpeedSearch;
+import com.intellij.ui.ScrollPaneFactory;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.event.ChangeListener;
+import java.awt.*;
 import java.util.List;
 
+import static com.intellij.ui.SideBorder.BOTTOM;
+import static com.intellij.ui.SideBorder.RIGHT;
+
 class BuildTypesPanel extends JPanel {
-  @NonNls private static final String BUILD_TYPE_PROPERTY = "buildType";
-
-  @NotNull private final JRadioButton myAllRadioButton;
-  @NotNull private final List<PsBuildType> myAllBuildTypes;
-
-  @NotNull private final List<PsBuildType> mySelectedBuildTypes = Lists.newArrayList();
-  @NotNull private final List<JRadioButton> myRadioButtons = Lists.newArrayList();
+  @NotNull private final PsBuildType myFakeAllBuildType;
+  @NotNull private final List<PsBuildType> myBuildTypes;
+  @NotNull private final List<PsBuildType> mySelectedBuildTypes;
+  @NotNull private final CheckBoxList<PsBuildType> myBuildTypesList;
   @NotNull private final SelectionChangeEventDispatcher<List<PsBuildType>> myEventDispatcher = new SelectionChangeEventDispatcher<>();
 
-  BuildTypesPanel(@NotNull List<PsBuildType> buildTypes) {
-    myAllBuildTypes = buildTypes;
-    setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
+  BuildTypesPanel(@NotNull PsAndroidModule module, @NotNull List<PsBuildType> buildTypes) {
+    super(new BorderLayout());
 
-    ChangeListener changeListener = e -> {
-      updateSelection();
-      myEventDispatcher.selectionChanged(mySelectedBuildTypes);
+    myFakeAllBuildType = new PsBuildType(module, null, null) {
+      @Override
+      @NotNull
+      public String getName() {
+        return "<All>";
+      }
     };
-    ButtonGroup group = new ButtonGroup();
 
-    myAllRadioButton = new JRadioButton("<All>");
-    myAllRadioButton.setSelected(true);
-    myAllRadioButton.addChangeListener(changeListener);
-    add(myAllRadioButton);
-    group.add(myAllRadioButton);
+    myBuildTypes = buildTypes;
 
-    for (PsBuildType buildType : buildTypes) {
-      JRadioButton radioButton = new JRadioButton(buildType.getName());
-      radioButton.putClientProperty(BUILD_TYPE_PROPERTY, buildType);
-      radioButton.addChangeListener(changeListener);
-      myRadioButtons.add(radioButton);
-      add(radioButton);
-      group.add(radioButton);
-    }
+    myBuildTypesList = new CheckBoxList<>();
+    List<PsBuildType> items = Lists.newArrayList(buildTypes);
+    items.add(0, myFakeAllBuildType);
+    myBuildTypesList.setItems(items, null);
 
-    updateSelection();
-  }
+    // Select "<All"> build types
+    myBuildTypesList.setItemSelected(myFakeAllBuildType, true);
+    mySelectedBuildTypes = Lists.newArrayList(myBuildTypes);
 
-  private void updateSelection() {
-    mySelectedBuildTypes.clear();
-    if (myAllRadioButton.isSelected()) {
-      mySelectedBuildTypes.addAll(myAllBuildTypes);
-      return;
-    }
-    myRadioButtons.stream().filter(AbstractButton::isSelected).forEach(radioButton -> {
-      Object value = radioButton.getClientProperty(BUILD_TYPE_PROPERTY);
-      if (value instanceof PsBuildType) {
-        mySelectedBuildTypes.add((PsBuildType)value);
+    myBuildTypesList.setCheckBoxListListener((index, value) -> {
+      mySelectedBuildTypes.clear();
+      PsBuildType buildType = myBuildTypesList.getItemAt(index);
+      if (buildType != null) {
+        if (value) {
+          if (buildType == myFakeAllBuildType) {
+            mySelectedBuildTypes.addAll(myBuildTypes);
+          }
+          else {
+            mySelectedBuildTypes.add(buildType);
+          }
+        }
+
+        // We force only one selected item, as if the list contained radio buttons instead of check boxes.
+        int itemsCount = myBuildTypesList.getItemsCount();
+        for (int i = 0; i < itemsCount; i++) {
+          if (i != index) {
+            PsBuildType item = myBuildTypesList.getItemAt(i);
+            if (item != null) {
+              myBuildTypesList.setItemSelected(item, false);
+            }
+          }
+        }
+
+        myEventDispatcher.selectionChanged(mySelectedBuildTypes);
       }
     });
+
+    new ListSpeedSearch(myBuildTypesList);
+
+    JScrollPane scrollPane = ScrollPaneFactory.createScrollPane(myBuildTypesList);
+    scrollPane.setBorder(IdeBorderFactory.createBorder(RIGHT | BOTTOM));
+    add(scrollPane, BorderLayout.CENTER);
   }
 
   @NotNull
@@ -90,6 +109,6 @@ class BuildTypesPanel extends JPanel {
 
   @NotNull
   JComponent getPreferredFocusedComponent() {
-    return myAllRadioButton;
+    return myBuildTypesList;
   }
 }

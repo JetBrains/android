@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.structure.dependencies.android;
 
-import com.android.tools.idea.gradle.structure.dependencies.android.ConfigurationsForm.Configuration;
 import com.android.tools.idea.gradle.structure.model.android.PsBuildType;
 import com.android.tools.idea.gradle.structure.model.android.PsProductFlavor;
 import com.google.common.collect.Lists;
@@ -26,9 +25,7 @@ import org.junit.Test;
 import java.util.Collections;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.structure.dependencies.android.ConfigurationsForm.Configuration.ANDROID_TEST;
-import static com.android.tools.idea.gradle.structure.dependencies.android.ConfigurationsForm.Configuration.MAIN;
-import static com.android.tools.idea.gradle.structure.dependencies.android.ConfigurationsForm.Configuration.UNIT_TEST;
+import static com.android.tools.idea.gradle.structure.dependencies.android.Configuration.*;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;

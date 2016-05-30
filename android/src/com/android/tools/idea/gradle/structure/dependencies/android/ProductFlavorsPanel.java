@@ -20,49 +20,58 @@ import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeL
 import com.android.tools.idea.gradle.structure.model.android.PsProductFlavor;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
-import org.jetbrains.annotations.NonNls;
+import com.intellij.ui.CheckBoxList;
+import com.intellij.ui.IdeBorderFactory;
+import com.intellij.ui.ListSpeedSearch;
+import com.intellij.ui.ScrollPaneFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.event.ChangeListener;
+import java.awt.*;
 import java.util.List;
 
-class ProductFlavorsPanel extends JPanel {
-  @NonNls private static final String PRODUCT_FLAVOR_PROPERTY = "productFlavor";
+import static com.intellij.ui.SideBorder.BOTTOM;
+import static com.intellij.ui.SideBorder.RIGHT;
 
-  @NotNull private final List<PsProductFlavor> mySelectedProductFlavors = Lists.newArrayList();
-  @NotNull private final List<JCheckBox> myCheckBoxes = Lists.newArrayList();
+class ProductFlavorsPanel extends JPanel {
+  @NotNull private final List<PsProductFlavor> mySelectedProductFlavors;
+  @NotNull private final CheckBoxList<PsProductFlavor> myProductFlavorsList;
   @NotNull private final SelectionChangeEventDispatcher<List<PsProductFlavor>> myEventDispatcher = new SelectionChangeEventDispatcher<>();
 
   ProductFlavorsPanel(@NotNull List<PsProductFlavor> productFlavors) {
-    setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
+    super(new BorderLayout());
 
-    ChangeListener changeListener = e -> {
-      updateSelection();
-      myEventDispatcher.selectionChanged(mySelectedProductFlavors);
-    };
+    myProductFlavorsList = new CheckBoxList<>();
+    myProductFlavorsList.setItems(productFlavors, null);
 
+    // By default select all product flavors.
     for (PsProductFlavor productFlavor : productFlavors) {
-      JCheckBox checkBox = new JCheckBox(productFlavor.getName());
-      checkBox.putClientProperty(PRODUCT_FLAVOR_PROPERTY, productFlavor);
-      checkBox.addChangeListener(changeListener);
-      checkBox.setSelected(true);
-      myCheckBoxes.add(checkBox);
-      add(checkBox);
+      myProductFlavorsList.setItemSelected(productFlavor, true);
     }
+    mySelectedProductFlavors = Lists.newArrayList(productFlavors);
 
-    updateSelection();
-  }
-
-  private void updateSelection() {
-    mySelectedProductFlavors.clear();
-    myCheckBoxes.stream().filter(AbstractButton::isSelected).forEach(radioButton -> {
-      Object value = radioButton.getClientProperty(PRODUCT_FLAVOR_PROPERTY);
-      if (value instanceof PsProductFlavor) {
-        mySelectedProductFlavors.add((PsProductFlavor)value);
+    myProductFlavorsList.setCheckBoxListListener((index, value) -> {
+      PsProductFlavor productFlavor = myProductFlavorsList.getItemAt(index);
+      if (productFlavor != null) {
+        updateSelection(productFlavor, value);
+        myEventDispatcher.selectionChanged(mySelectedProductFlavors);
       }
     });
+
+    new ListSpeedSearch(myProductFlavorsList);
+
+    JScrollPane scrollPane = ScrollPaneFactory.createScrollPane(myProductFlavorsList);
+    scrollPane.setBorder(IdeBorderFactory.createBorder(RIGHT | BOTTOM));
+    add(scrollPane, BorderLayout.CENTER);
+  }
+
+  private void updateSelection(@NotNull PsProductFlavor productFlavor, boolean selected) {
+    if (selected) {
+      mySelectedProductFlavors.add(productFlavor);
+      return;
+    }
+    mySelectedProductFlavors.remove(productFlavor);
   }
 
   @NotNull
@@ -76,6 +85,6 @@ class ProductFlavorsPanel extends JPanel {
 
   @Nullable
   public JComponent getPreferredFocusedComponent() {
-    return myCheckBoxes.isEmpty() ? null : myCheckBoxes.get(0);
+    return myProductFlavorsList;
   }
 }
