@@ -124,7 +124,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
     final Runnable onAssetModified = myPreviewUpdater::enqueueUpdate;
 
     SelectedProperty iconSelected = new SelectedProperty(myMaterialIconRadioButton);
-    myListeners.listenAndFire(iconSelected, (Consumer<Boolean>) isIconActive -> {
+    myListeners.receiveAndFire(iconSelected, isIconActive -> {
       myIconPickerPanel.setVisible(isIconActive);
       myBrowserPanel.setVisible(!isIconActive);
       myActiveAsset.set(isIconActive ? myIconButton.getAsset() : myBrowser.getAsset());
@@ -161,7 +161,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
     myListeners.listenAll(myActiveAsset, overrideSize, width, height, opacityValue, autoMirrored).with(onAssetModified);
 
     final StringProperty name = new TextProperty(myOutputNameField);
-    myListeners.listenAndFire(myActiveAsset, (InvalidationListener) sender -> {
+    myListeners.listenAndFire(myActiveAsset, (InvalidationListener)sender -> {
       myActiveAssetBindings.releaseAll();
 
       myActiveAssetBindings.bind(name, new Expression<String>(myActiveAsset.get().path()) {

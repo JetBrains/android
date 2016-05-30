@@ -359,7 +359,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myAvdId.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseClicked(MouseEvent mouseEvent) {
-              myAvdId.requestFocusInWindow();
+        myAvdId.requestFocusInWindow();
       }
     });
 
@@ -385,7 +385,14 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myOrientationToggle.setOpaque(false);
     KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener(FOCUS_OWNER, myPropertyChangeListener);
 
-    myListeners.listen(getModel().device(), myDeviceConsumer);
+    myListeners.receive(getModel().device(), device -> {
+      toggleOptionals(device, true);
+      if (device.isPresent()) {
+        myDeviceName.setIcon(DeviceDefinitionPreview.getIcon(getModel().getAvdDeviceData()));
+        myDeviceName.setText(getModel().device().getValue().getDisplayName());
+        updateDeviceDetails();
+      }
+    });
 
     List<AbstractProperty<?>> deviceProperties = AbstractProperty.getAll(getModel().getAvdDeviceData());
     deviceProperties.add(getModel().systemImage());
@@ -416,7 +423,19 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       }
     });
 
-    myListeners.listen(getModel().sdCardStorage(), mySdCardStorageConsumer);
+    myListeners.receive(getModel().sdCardStorage(), storage -> {
+      if (myCheckSdForChanges && storage.isPresent() && !storage.get().equals(myOriginalSdCard)) {
+        int result = Messages.showYesNoDialog((Project)null, "Changing the size of the built-in SD card will erase " +
+                                                             "the current contents of the card. Continue?", "Confirm Data Wipe",
+                                              AllIcons.General.QuestionDialog);
+        if (result == Messages.YES) {
+          myCheckSdForChanges = false;
+        }
+        else {
+          getModel().sdCardStorage().setValue(myOriginalSdCard);
+        }
+      }
+    });
 
     myListeners.listen(getModel().useQemu2(), new InvalidationListener() {
       @Override
@@ -425,12 +444,8 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       }
     });
 
-    myListeners.listen(getModel().selectedAvdOrientation(), new Consumer<ScreenOrientation>() {
-      @Override
-      public void consume(ScreenOrientation screenOrientation) {
-        myOrientationToggle.setSelectedElement(screenOrientation);
-      }
-    });
+    myListeners.receive(getModel().selectedAvdOrientation(),
+                        screenOrientation -> myOrientationToggle.setSelectedElement(screenOrientation));
   }
 
   private void updateSystemImageData() {
@@ -465,18 +480,6 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       else {
         myShowAdvancedSettingsButton.setText(HIDE);
         setAdvanceSettingsVisible(true);
-      }
-    }
-  };
-
-  private Consumer<Optional<Device>> myDeviceConsumer = new Consumer<Optional<Device>>() {
-    @Override
-    public void consume(Optional<Device> device) {
-      toggleOptionals(device, true);
-      if (device.isPresent()) {
-        myDeviceName.setIcon(DeviceDefinitionPreview.getIcon(getModel().getAvdDeviceData()));
-        myDeviceName.setText(getModel().device().getValue().getDisplayName());
-        updateDeviceDetails();
       }
     }
   };
@@ -965,22 +968,4 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     }
   };
 
-  private Consumer<Optional<Storage>> mySdCardStorageConsumer = new Consumer<Optional<Storage>>() {
-    @Override
-    public void consume(Optional<Storage> storageOptional) {
-      if (myCheckSdForChanges &&
-          getModel().sdCardStorage().get().isPresent() &&
-          !getModel().sdCardStorage().getValue().equals(myOriginalSdCard)) {
-        int result = Messages.showYesNoDialog((Project)null, "Changing the size of the built-in SD card will erase " +
-                                                             "the current contents of the card. Continue?", "Confirm Data Wipe",
-                                              AllIcons.General.QuestionDialog);
-        if (result == Messages.YES) {
-          myCheckSdForChanges = false;
-        }
-        else {
-          getModel().sdCardStorage().setValue(myOriginalSdCard);
-        }
-      }
-    }
-  };
 }
