@@ -18,56 +18,56 @@ package com.android.tools.adtui.visual.flamegraph;
 
 public class MethodUsage {
 
-    private String mNamespace;
-    private String mName;
-    private String mFilename;
-    private int invocationCounter;
-    private float mPercentage;
+  private String mNamespace;
+  private String mName;
+  private String mFilename;
+  private int invocationCounter;
+  private float mPercentage;
 
-    public MethodUsage() {
-    }
+  public MethodUsage() {
+  }
 
-    public String getNameSpace() {
-        return this.mNamespace;
-    }
+  public String getNameSpace() {
+    return this.mNamespace;
+  }
 
-    public String getName() {
-        return this.mName;
-    }
+  public String getName() {
+    return this.mName;
+  }
 
-    public String getFilename() {
-        return this.mFilename;
-    }
+  public String getFilename() {
+    return this.mFilename;
+  }
 
-    public void setNamespace(String namespace) {
-        this.mNamespace = namespace;
-    }
+  public void setNamespace(String namespace) {
+    this.mNamespace = namespace;
+  }
 
-    public void setName(String name) {
-        this.mName = name;
-    }
+  public void setName(String name) {
+    this.mName = name;
+  }
 
-    public void setFilename(String filename) {
-        this.mFilename = filename;
-    }
+  public void setFilename(String filename) {
+    this.mFilename = filename;
+  }
 
-    public int getInvocationCount() {
-        return invocationCounter;
-    }
+  public int getInvocationCount() {
+    return invocationCounter;
+  }
 
-    public void setInvocationCount(int count) {
-        this.invocationCounter = count;
-    }
+  public void setInvocationCount(int count) {
+    this.invocationCounter = count;
+  }
 
-    public void incInvocationCounter() {
-        invocationCounter++;
-    }
+  public void incInvocationCounter() {
+    invocationCounter++;
+  }
 
-    public float getPercentage() {
-        return mPercentage;
-    }
+  public float getPercentage() {
+    return mPercentage;
+  }
 
-    public void setPercentage(float percentage) {
-        this.mPercentage = percentage;
-    }
+  public void setPercentage(float percentage) {
+    this.mPercentage = percentage;
+  }
 }
