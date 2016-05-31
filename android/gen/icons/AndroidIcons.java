@@ -200,16 +200,17 @@ public class AndroidIcons {
   }
 
   public static class LintNotification {
-    public static final Icon Lint1 = load("/icons/nele/lint1.png");  // 12x12
-    public static final Icon Lint2 = load("/icons/nele/lint2.png");  // 12x12
-    public static final Icon Lint3 = load("/icons/nele/lint3.png");  // 12x12
-    public static final Icon Lint4 = load("/icons/nele/lint4.png");  // 12x12
-    public static final Icon Lint5 = load("/icons/nele/lint5.png");  // 12x12
-    public static final Icon Lint6 = load("/icons/nele/lint6.png");  // 12x12
-    public static final Icon Lint7 = load("/icons/nele/lint7.png");  // 12x12
-    public static final Icon Lint8 = load("/icons/nele/lint8.png");  // 12x12
-    public static final Icon Lint9 = load("/icons/nele/lint9.png");  // 12x12
-    public static final Icon Lint9plus = load("/icons/nele/lint9p.png");  // 12x12
+    public static final Icon Lint0 = load("/icons/nele/lint0.png");
+    public static final Icon Lint1 = load("/icons/nele/lint1.png");
+    public static final Icon Lint2 = load("/icons/nele/lint2.png");
+    public static final Icon Lint3 = load("/icons/nele/lint3.png");
+    public static final Icon Lint4 = load("/icons/nele/lint4.png");
+    public static final Icon Lint5 = load("/icons/nele/lint5.png");
+    public static final Icon Lint6 = load("/icons/nele/lint6.png");
+    public static final Icon Lint7 = load("/icons/nele/lint7.png");
+    public static final Icon Lint8 = load("/icons/nele/lint8.png");
+    public static final Icon Lint9 = load("/icons/nele/lint9.png");
+    public static final Icon Lint9plus = load("/icons/nele/lint9p.png");
   }
 
   public static class TextDecoration {
