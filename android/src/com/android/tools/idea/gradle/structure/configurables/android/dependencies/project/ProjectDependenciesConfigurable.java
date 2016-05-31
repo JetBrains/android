@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.project;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.AbstractDependenciesConfigurable;
+import com.android.tools.idea.gradle.structure.configurables.AbstractDependenciesConfigurable;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.options.ConfigurationException;
