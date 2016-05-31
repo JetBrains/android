@@ -19,10 +19,7 @@ import com.android.builder.model.NativeAndroidProject;
 import com.android.builder.model.NativeArtifact;
 import com.android.tools.idea.gradle.NativeAndroidGradleModel;
 import com.android.tools.idea.gradle.facet.NativeAndroidGradleFacet;
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import com.google.common.collect.*;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
@@ -35,7 +32,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.List;
 
-import static com.android.tools.idea.navigator.nodes.NativeAndroidArtifactNode.getSourceDirectoryNodes;
+import static com.android.tools.idea.navigator.nodes.NativeAndroidLibraryNode.getSourceDirectoryNodes;
+import static com.intellij.openapi.util.text.StringUtil.trimEnd;
+import static com.intellij.openapi.util.text.StringUtil.trimStart;
 
 public class NativeAndroidModuleNode extends ProjectViewModuleNode {
   public NativeAndroidModuleNode(@NotNull Project project, @NotNull Module value, ViewSettings viewSettings) {
@@ -53,14 +52,38 @@ public class NativeAndroidModuleNode extends ProjectViewModuleNode {
     fileExtensions.addAll(nativeAndroidProject.getFileExtensions().keySet());
 
     NativeAndroidGradleModel.NativeVariant variant = nativeAndroidModel.getSelectedVariant();
-    if (GradleExperimentalSettings.getInstance().GROUP_NATIVE_SOURCES_BY_ARTIFACT) {
-      List<AbstractTreeNode> children = Lists.newArrayList();
-      for (NativeArtifact artifact : variant.getArtifacts()) {
-        children.add(new NativeAndroidArtifactNode(project, artifact, viewSettings, fileExtensions));
-      }
-      return children;
+    Multimap<String, NativeArtifact> nativeLibraries = HashMultimap.create();
+    for (NativeArtifact artifact : variant.getArtifacts()) {
+      String artifactOutputFileName = artifact.getOutputFile().getName();
+      nativeLibraries.put(artifactOutputFileName, artifact);
     }
-    return getSourceDirectoryNodes(project, variant.getArtifacts(), viewSettings, fileExtensions);
+
+    if(nativeLibraries.keySet().size() == 1) {
+      return getSourceDirectoryNodes(project, nativeLibraries.values(), viewSettings, fileExtensions);
+    }
+
+    List<AbstractTreeNode> children = Lists.newArrayList();
+    for (String name : nativeLibraries.keySet()) {
+      String nativeLibraryType = "";
+      String nativeLibraryName = trimEnd(name, ".so");
+      if (nativeLibraryName.length() < name.length()) {
+        nativeLibraryType = "Shared Library";
+      }
+      else {
+        nativeLibraryName = trimEnd(name, ".a");
+        if (nativeLibraryName.length() < name.length()) {
+          nativeLibraryType = "Static Library";
+        }
+      }
+      nativeLibraryName = trimStart(nativeLibraryName, "lib");
+      children.add(new NativeAndroidLibraryNode(project,
+                                                nativeLibraryName,
+                                                nativeLibraryType,
+                                                nativeLibraries.get(name),
+                                                viewSettings,
+                                                fileExtensions));
+    }
+    return children;
   }
 
   @NotNull

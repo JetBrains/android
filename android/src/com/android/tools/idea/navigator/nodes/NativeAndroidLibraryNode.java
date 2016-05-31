@@ -18,7 +18,7 @@ package com.android.tools.idea.navigator.nodes;
 import com.android.builder.model.NativeArtifact;
 import com.android.builder.model.NativeFile;
 import com.android.builder.model.NativeFolder;
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.projectView.PresentationData;
@@ -38,20 +38,27 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.TreeMap;
 
 import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
 
-public class NativeAndroidArtifactNode extends ProjectViewNode<NativeArtifact> implements DirectoryGroupNode {
+public class NativeAndroidLibraryNode extends ProjectViewNode<Collection<NativeArtifact>> implements DirectoryGroupNode {
+  @NotNull private final String myNativeLibraryName;
+  @NotNull private final String myNativeLibraryType;
   @NotNull private final Collection<String> myFileExtensions;
 
-  public NativeAndroidArtifactNode(@NotNull Project project,
-                                   @NotNull NativeArtifact artifact,
-                                   @NotNull ViewSettings settings,
-                                   @NotNull Collection<String> fileExtensions) {
-    super(project, artifact, settings);
+  public NativeAndroidLibraryNode(@NotNull Project project,
+                                  @NotNull String nativeLibraryName,
+                                  @NotNull String nativeLibraryType,
+                                  @NotNull Collection<NativeArtifact> artifacts,
+                                  @NotNull ViewSettings settings,
+                                  @NotNull Collection<String> fileExtensions) {
+    super(project, artifacts, settings);
+    myNativeLibraryName = nativeLibraryName;
+    myNativeLibraryType = nativeLibraryType;
     myFileExtensions = fileExtensions;
   }
 
@@ -60,7 +67,7 @@ public class NativeAndroidArtifactNode extends ProjectViewNode<NativeArtifact> i
                                                                      @NotNull Collection<NativeArtifact> artifacts,
                                                                      @NotNull ViewSettings settings,
                                                                      @NotNull Collection<String> fileExtensions) {
-    TreeMap<String, RootDirectory> rootDirectories = new TreeMap<String, RootDirectory>();
+    TreeMap<String, RootDirectory> rootDirectories = new TreeMap<>();
 
     for (NativeArtifact artifact : artifacts) {
       addSourceFolders(rootDirectories, artifact);
@@ -232,16 +239,21 @@ public class NativeAndroidArtifactNode extends ProjectViewNode<NativeArtifact> i
   @NotNull
   @Override
   public Collection<? extends AbstractTreeNode> getChildren() {
-    NativeArtifact artifact = getValue();
-    if (artifact == null) {
-      return ImmutableList.of();
+    Collection<AbstractTreeNode> sourceDirectoryNodes = getSourceDirectoryNodes(myProject, getArtifacts(), getSettings(), myFileExtensions);
+    if (sourceDirectoryNodes.size() == 1) {
+      AbstractTreeNode node = Iterables.getOnlyElement(sourceDirectoryNodes);
+      assert node instanceof NativeAndroidSourceDirectoryNode;
+      return ((NativeAndroidSourceDirectoryNode)node).getChildren();
     }
-    return getSourceDirectoryNodes(myProject, ImmutableList.of(artifact), getSettings(), myFileExtensions);
+    return sourceDirectoryNodes;
   }
 
   @Override
   protected void update(PresentationData presentation) {
-    presentation.addText(getArtifactName(), SimpleTextAttributes.REGULAR_ATTRIBUTES);
+    presentation.addText(myNativeLibraryName, SimpleTextAttributes.REGULAR_ATTRIBUTES);
+    if (!myNativeLibraryType.isEmpty()) {
+      presentation.addText(" (" + myNativeLibraryType + ")", SimpleTextAttributes.GRAY_ATTRIBUTES);
+    }
     Icon icon = AllIcons.Modules.SourceRoot;
     if (icon != null) {
       presentation.setIcon(icon);
@@ -250,24 +262,20 @@ public class NativeAndroidArtifactNode extends ProjectViewNode<NativeArtifact> i
 
   @Override
   public boolean contains(@NotNull VirtualFile file) {
-    NativeArtifact artifact = getValue();
-    if (artifact == null) {
-      return false;
-    }
-
-    for (VirtualFile folder : getSourceFolders(artifact)) {
-      if (VfsUtilCore.isAncestor(folder, file, false)) {
-        return true;
+    for (NativeArtifact artifact : getArtifacts()) {
+      for (VirtualFile folder : getSourceFolders(artifact)) {
+        if (VfsUtilCore.isAncestor(folder, file, false)) {
+          return true;
+        }
       }
     }
-
     return false;
   }
 
   @Nullable
   @Override
   public Comparable getSortKey() {
-    return getArtifactName();
+    return myNativeLibraryType + myNativeLibraryName;
   }
 
   @Nullable
@@ -279,7 +287,7 @@ public class NativeAndroidArtifactNode extends ProjectViewNode<NativeArtifact> i
   @Nullable
   @Override
   public String toTestString(@Nullable Queryable.PrintInfo printInfo) {
-    return getArtifactName();
+    return myNativeLibraryName + (myNativeLibraryType.isEmpty() ? "" : " (" + myNativeLibraryType + ")");
   }
 
   @Override
@@ -288,7 +296,7 @@ public class NativeAndroidArtifactNode extends ProjectViewNode<NativeArtifact> i
     if (o == null || getClass() != o.getClass()) return false;
     if (!super.equals(o)) return false;
 
-    NativeAndroidArtifactNode that = (NativeAndroidArtifactNode)o;
+    NativeAndroidLibraryNode that = (NativeAndroidLibraryNode)o;
 
     if (getValue() != that.getValue()) return false;
 
@@ -298,8 +306,7 @@ public class NativeAndroidArtifactNode extends ProjectViewNode<NativeArtifact> i
   @Override
   public int hashCode() {
     int result = super.hashCode();
-    NativeArtifact artifact = getValue();
-    if (artifact != null) {
+    for (NativeArtifact artifact : getArtifacts()) {
       result = 31 * result + artifact.hashCode();
     }
     return result;
@@ -308,31 +315,26 @@ public class NativeAndroidArtifactNode extends ProjectViewNode<NativeArtifact> i
   @NotNull
   @Override
   public PsiDirectory[] getDirectories() {
-    NativeArtifact artifact = getValue();
-    if (artifact == null) {
-      return new PsiDirectory[0];
-    }
-
     PsiManager psiManager = PsiManager.getInstance(myProject);
-    Collection<VirtualFile> sourceFolders = getSourceFolders(artifact);
-    List<PsiDirectory> psiDirectories = Lists.newArrayListWithExpectedSize(sourceFolders.size());
+    List<PsiDirectory> psiDirectories = new ArrayList<>();
 
-    for (VirtualFile f : sourceFolders) {
-      PsiDirectory dir = psiManager.findDirectory(f);
-      if (dir != null) {
-        psiDirectories.add(dir);
+    for (NativeArtifact artifact : getArtifacts()) {
+      for (VirtualFile f : getSourceFolders(artifact)) {
+        PsiDirectory dir = psiManager.findDirectory(f);
+        if (dir != null) {
+          psiDirectories.add(dir);
+        }
       }
     }
 
     return psiDirectories.toArray(new PsiDirectory[psiDirectories.size()]);
   }
 
-  private String getArtifactName() {
-    NativeArtifact artifact = getValue();
-    if (artifact == null) {
-      return "";
-    }
-    return artifact.getOutputFile().getName();
+  @NotNull
+  private Collection<NativeArtifact> getArtifacts() {
+    Collection<NativeArtifact> artifacts = getValue();
+    assert artifacts != null;
+    return artifacts;
   }
 
   private static final class RootDirectory {
