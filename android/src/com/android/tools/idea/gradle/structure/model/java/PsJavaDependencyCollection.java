@@ -62,7 +62,12 @@ class PsJavaDependencyCollection implements PsModelCollection<PsJavaDependency> 
 
   @Override
   public void forEach(@NotNull Consumer<PsJavaDependency> consumer) {
+    forEachDependency(myLibraryDependenciesBySpec, consumer);
+  }
 
+  private static void forEachDependency(@NotNull Map<String, ? extends PsJavaDependency> dependenciesBySpec,
+                                        @NotNull Consumer<PsJavaDependency> consumer) {
+    dependenciesBySpec.values().forEach(consumer);
   }
 
   void forEachDeclaredDependency(@NotNull Consumer<PsJavaDependency> consumer) {

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.java.dependencies;
 
+import com.android.tools.idea.gradle.structure.configurables.AbstractDependenciesConfigurable;
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.AbstractDependenciesConfigurable;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule;
 import com.intellij.openapi.util.ActionCallback;
@@ -25,7 +25,6 @@ import com.intellij.ui.navigation.Place;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import java.util.List;
 
 public class JavaModuleDependenciesConfigurable extends AbstractDependenciesConfigurable<PsJavaModule> {
@@ -44,7 +43,7 @@ public class JavaModuleDependenciesConfigurable extends AbstractDependenciesConf
   }
 
   @Override
-  public JComponent createOptionsPanel() {
+  public MainPanel createOptionsPanel() {
     if (myMainPanel == null) {
       myMainPanel = new MainPanel(getModule(), getContext());
       myMainPanel.setHistory(getHistory());
@@ -61,11 +60,11 @@ public class JavaModuleDependenciesConfigurable extends AbstractDependenciesConf
 
   @Override
   public ActionCallback navigateTo(@Nullable Place place, boolean requestFocus) {
-    return null;
+    return createOptionsPanel().navigateTo(place, requestFocus);
   }
 
   @Override
   public void queryPlace(@NotNull Place place) {
-
+    createOptionsPanel().queryPlace(place);
   }
 }

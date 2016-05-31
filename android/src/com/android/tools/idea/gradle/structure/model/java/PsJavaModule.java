@@ -68,6 +68,10 @@ public class PsJavaModule extends PsModule {
     getOrCreateDependencyCollection().forEachDeclaredDependency(consumer);
   }
 
+  public void forEachDependency(@NotNull Consumer<PsJavaDependency> consumer) {
+    getOrCreateDependencyCollection().forEach(consumer);
+  }
+
   @NotNull
   private PsJavaDependencyCollection getOrCreateDependencyCollection() {
     return myDependencyCollection == null ? myDependencyCollection = new PsJavaDependencyCollection(this) : myDependencyCollection;
