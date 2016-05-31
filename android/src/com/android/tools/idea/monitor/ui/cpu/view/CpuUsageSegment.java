@@ -13,13 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.adtui.segment;
+package com.android.tools.idea.monitor.ui.cpu.view;
 
 import com.android.tools.adtui.Range;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.common.formatter.SingleUnitAxisFormatter;
-import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.ContinuousSeries;
+import com.android.tools.adtui.model.RangedContinuousSeries;
+import com.android.tools.idea.monitor.datastore.DataStoreContinuousSeries;
+import com.android.tools.idea.monitor.datastore.SeriesDataStore;
+import com.android.tools.idea.monitor.datastore.SeriesDataType;
+import com.android.tools.idea.monitor.ui.BaseLineChartSegment;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 

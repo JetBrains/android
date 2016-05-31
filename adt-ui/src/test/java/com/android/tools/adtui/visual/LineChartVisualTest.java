@@ -90,7 +90,7 @@ public class LineChartVisualTest extends VisualTest {
 
   @Override
   protected void populateUi(@NonNull JPanel panel) {
-    JPanel controls = VisualTests.createControlledPane(panel, mLineChart);
+    JPanel controls = VisualTest.createControlledPane(panel, mLineChart);
     mLineChart.setBorder(BorderFactory.createLineBorder(AdtUiUtils.DEFAULT_BORDER_COLOR));
 
     final AtomicInteger variance = new AtomicInteger(10);
@@ -120,7 +120,7 @@ public class LineChartVisualTest extends VisualTest {
     };
 
     mUpdateDataThread.start();
-    controls.add(VisualTests.createVariableSlider("Delay", 10, 5000, new VisualTests.Value() {
+    controls.add(VisualTest.createVariableSlider("Delay", 10, 5000, new VisualTests.Value() {
       @Override
       public void set(int v) {
         delay.set(v);
@@ -131,7 +131,7 @@ public class LineChartVisualTest extends VisualTest {
         return delay.get();
       }
     }));
-    controls.add(VisualTests.createVariableSlider("Variance", 0, 50, new VisualTests.Value() {
+    controls.add(VisualTest.createVariableSlider("Variance", 0, 50, new VisualTests.Value() {
       @Override
       public void set(int v) {
         variance.set(v);
@@ -142,9 +142,9 @@ public class LineChartVisualTest extends VisualTest {
         return variance.get();
       }
     }));
-    controls.add(VisualTests.createCheckbox("Shift xRange Min", itemEvent ->
+    controls.add(VisualTest.createCheckbox("Shift xRange Min", itemEvent ->
       mAnimatedTimeRange.setShift(itemEvent.getStateChange() == ItemEvent.SELECTED)));
-    controls.add(VisualTests.createCheckbox("Stepped chart", itemEvent -> {
+    controls.add(VisualTest.createCheckbox("Stepped chart", itemEvent -> {
       boolean isStepped = itemEvent.getStateChange() == ItemEvent.SELECTED;
       // Make only some lines stepped
       for (int i = 0; i < mRangedData.size(); i += 2) {
@@ -152,7 +152,7 @@ public class LineChartVisualTest extends VisualTest {
         mLineChart.getLineConfig(series).setStepped(isStepped);
       }
     }));
-    controls.add(VisualTests.createCheckbox("Dashed lines", itemEvent -> {
+    controls.add(VisualTest.createCheckbox("Dashed lines", itemEvent -> {
       boolean isDashed = itemEvent.getStateChange() == ItemEvent.SELECTED;
       // Dash only some lines
       for (int i = 0; i < mRangedData.size(); i += 2) {
@@ -160,7 +160,7 @@ public class LineChartVisualTest extends VisualTest {
         mLineChart.getLineConfig(series).setDashed(isDashed);
       }
     }));
-    controls.add(VisualTests.createCheckbox("Filled lines", itemEvent -> {
+    controls.add(VisualTest.createCheckbox("Filled lines", itemEvent -> {
       boolean isFilled = itemEvent.getStateChange() == ItemEvent.SELECTED;
       // Fill only some lines
       for (int i = 0; i < mRangedData.size(); i += 2) {
@@ -168,7 +168,7 @@ public class LineChartVisualTest extends VisualTest {
         mLineChart.getLineConfig(series).setFilled(isFilled);
       }
     }));
-    controls.add(VisualTests.createCheckbox("Stacked lines", itemEvent -> {
+    controls.add(VisualTest.createCheckbox("Stacked lines", itemEvent -> {
       boolean isStacked = itemEvent.getStateChange() == ItemEvent.SELECTED;
       // Stack only some lines
       for (int i = 0; i < mRangedData.size(); i += 2) {

@@ -58,11 +58,11 @@ public class SunburstVisualTest extends VisualTest {
 
   @Override
   protected void populateUi(@NonNull JPanel panel) {
-    JPanel controls = VisualTests.createControlledPane(panel, mSunburst);
+    JPanel controls = VisualTest.createControlledPane(panel, mSunburst);
     final JLabel info = new JLabel("<No information yet>");
     panel.add(info, BorderLayout.SOUTH);
 
-    controls.add(VisualTests.createVariableSlider("Gap", 0, 200, new VisualTests.Value() {
+    controls.add(VisualTest.createVariableSlider("Gap", 0, 200, new VisualTests.Value() {
       @Override
       public void set(int v) {
         mSunburst.setGap(v);
@@ -74,7 +74,7 @@ public class SunburstVisualTest extends VisualTest {
       }
     }));
     final JPanel sizeSlider =
-      VisualTests.createVariableSlider("Size", 0, 200, new VisualTests.Value() {
+      VisualTest.createVariableSlider("Size", 0, 200, new VisualTests.Value() {
         @Override
         public void set(int v) {
           mSunburst.setSliceWidth(v);
@@ -86,7 +86,7 @@ public class SunburstVisualTest extends VisualTest {
         }
       });
     controls.add(sizeSlider);
-    controls.add(VisualTests.createVariableSlider("Angle", 0, 360, new VisualTests.Value() {
+    controls.add(VisualTest.createVariableSlider("Angle", 0, 360, new VisualTests.Value() {
       @Override
       public void set(int v) {
         mSunburst.setAngle(v);
@@ -97,7 +97,7 @@ public class SunburstVisualTest extends VisualTest {
         return (int)mSunburst.getAngle();
       }
     }));
-    controls.add(VisualTests.createVariableSlider("Start", 0, 360, new VisualTests.Value() {
+    controls.add(VisualTest.createVariableSlider("Start", 0, 360, new VisualTests.Value() {
       @Override
       public void set(int v) {
         mSunburst.setStart(v);
@@ -108,7 +108,7 @@ public class SunburstVisualTest extends VisualTest {
         return (int)mSunburst.getStart();
       }
     }));
-    controls.add(VisualTests.createVariableSlider("Fixed", 1, 100, new VisualTests.Value() {
+    controls.add(VisualTest.createVariableSlider("Fixed", 1, 100, new VisualTests.Value() {
       @Override
       public void set(int v) {
         mSunburst.setFixed(v);
@@ -119,7 +119,7 @@ public class SunburstVisualTest extends VisualTest {
         return (int)mSunburst.getFixed();
       }
     }));
-    controls.add(VisualTests.createVariableSlider("Separator", 0, 100, new VisualTests.Value() {
+    controls.add(VisualTest.createVariableSlider("Separator", 0, 100, new VisualTests.Value() {
       @Override
       public void set(int v) {
         mSunburst.setSeparator(v);
@@ -130,13 +130,13 @@ public class SunburstVisualTest extends VisualTest {
         return (int)mSunburst.getSeparator();
       }
     }));
-    controls.add(VisualTests.createButton("Generate", new ActionListener() {
+    controls.add(VisualTest.createButton("Generate", new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent actionEvent) {
         generateLayoutData((DataNode)mSunburst.getData(), 5);
       }
     }));
-    controls.add(VisualTests.createButton("Tree A", new ActionListener() {
+    controls.add(VisualTest.createButton("Tree A", new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent actionEvent) {
         DataNode g = new DataNode();
@@ -148,7 +148,7 @@ public class SunburstVisualTest extends VisualTest {
         mSunburst.setData(g);
       }
     }));
-    controls.add(VisualTests.createButton("Tree B", new ActionListener() {
+    controls.add(VisualTest.createButton("Tree B", new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent actionEvent) {
         DataNode g = new DataNode();
@@ -158,7 +158,7 @@ public class SunburstVisualTest extends VisualTest {
         mSunburst.setData(g);
       }
     }));
-    controls.add(VisualTests.createButton("Value", new ActionListener() {
+    controls.add(VisualTest.createButton("Value", new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent actionEvent) {
         DataNode g = new DataNode();
@@ -166,7 +166,7 @@ public class SunburstVisualTest extends VisualTest {
         mSunburst.setData(g);
       }
     }));
-    controls.add(VisualTests.createCheckbox("Auto size", new ItemListener() {
+    controls.add(VisualTest.createCheckbox("Auto size", new ItemListener() {
       @Override
       public void itemStateChanged(ItemEvent itemEvent) {
         final boolean enableAutoSize = itemEvent.getStateChange() == ItemEvent.SELECTED;

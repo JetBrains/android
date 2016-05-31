@@ -1,4 +1,19 @@
-package com.android.tools.adtui.segment;
+/*
+ * Copyright (C) 2016 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.idea.monitor.ui.network.view;
 
 import com.android.tools.adtui.Range;
 import com.android.tools.adtui.chart.linechart.LineChart;
@@ -7,7 +22,12 @@ import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.common.formatter.MemoryAxisFormatter;
 import com.android.tools.adtui.common.formatter.SingleUnitAxisFormatter;
-import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.ContinuousSeries;
+import com.android.tools.adtui.model.RangedContinuousSeries;
+import com.android.tools.idea.monitor.datastore.DataStoreContinuousSeries;
+import com.android.tools.idea.monitor.datastore.SeriesDataStore;
+import com.android.tools.idea.monitor.datastore.SeriesDataType;
+import com.android.tools.idea.monitor.ui.BaseLineChartSegment;
 import org.jetbrains.annotations.NotNull;
 
 public class NetworkSegment extends BaseLineChartSegment {

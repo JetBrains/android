@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.tools.adtui.visual;
+package com.android.tools.idea.monitor.ui.visual;
 
 import com.android.annotations.NonNull;
 import com.android.tools.adtui.Animatable;
@@ -22,16 +22,16 @@ import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.AnimatedTimeRange;
 import com.android.tools.adtui.Range;
 import com.android.tools.adtui.model.RangedDiscreteSeries;
-import com.android.tools.adtui.segment.NetworkCaptureSegment;
-import com.android.tools.adtui.segment.NetworkSegment;
+import com.android.tools.idea.monitor.ui.network.view.NetworkCaptureSegment;
+import com.android.tools.adtui.visual.VisualTest;
+import com.android.tools.idea.monitor.datastore.SeriesDataStore;
+import com.android.tools.idea.monitor.ui.network.view.NetworkSegment;
 
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
+import javax.swing.*;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-
-import javax.swing.JPanel;
 
 public class NetworkProfilerVisualTest extends VisualTest {
 
@@ -40,6 +40,8 @@ public class NetworkProfilerVisualTest extends VisualTest {
   // Number of fake network capture data
   private static final int CAPTURE_SIZE = 10;
 
+  private SeriesDataStore mDataStore;
+
   private NetworkSegment mSegment;
 
   private NetworkCaptureSegment mCaptureSegment;
@@ -47,6 +49,21 @@ public class NetworkProfilerVisualTest extends VisualTest {
   private long mStartTimeMs;
 
   private List<RangedDiscreteSeries<NetworkCaptureSegment.NetworkState>> mCaptureData;
+
+  @Override
+  protected void initialize() {
+    mDataStore = new VisualTestSeriesDataStore();
+    super.initialize();
+  }
+
+  @Override
+  protected void reset() {
+    if (mDataStore != null) {
+      mDataStore.reset();
+    }
+
+    super.reset();
+  }
 
   @Override
   protected void registerComponents(List<AnimatedComponent> components) {

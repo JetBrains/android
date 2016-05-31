@@ -13,16 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.adtui.model;
+package com.android.tools.idea.monitor.datastore;
 
 import com.android.tools.adtui.Range;
+import com.android.tools.adtui.model.SeriesData;
 import com.intellij.util.containers.ImmutableList;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.Iterator;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.NoSuchElementException;
 
 /**
  * Immutable list that all UI components get their data from. SeriesDataList are the

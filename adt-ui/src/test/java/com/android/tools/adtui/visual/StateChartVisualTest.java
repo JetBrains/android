@@ -164,7 +164,7 @@ public class StateChartVisualTest extends VisualTest {
     };
     updateDataThread.start();
 
-    controls.add(VisualTests.createVariableSlider("ArcWidth", 0, 100, new VisualTests.Value() {
+    controls.add(VisualTest.createVariableSlider("ArcWidth", 0, 100, new VisualTests.Value() {
       @Override
       public void set(int v) {
         mNetworkStatusChart.setArcWidth(v / 100f);
@@ -176,7 +176,7 @@ public class StateChartVisualTest extends VisualTest {
         return -1; // unused
       }
     }));
-    controls.add(VisualTests.createVariableSlider("ArcHeight", 0, 100, new VisualTests.Value() {
+    controls.add(VisualTest.createVariableSlider("ArcHeight", 0, 100, new VisualTests.Value() {
       @Override
       public void set(int v) {
         mNetworkStatusChart.setArcHeight(v / 100f);
@@ -188,7 +188,7 @@ public class StateChartVisualTest extends VisualTest {
         return -1; // unused
       }
     }));
-    controls.add(VisualTests.createVariableSlider("Gap", 0, 100, new VisualTests.Value() {
+    controls.add(VisualTest.createVariableSlider("Gap", 0, 100, new VisualTests.Value() {
       @Override
       public void set(int v) {
         mNetworkStatusChart.setHeightGap(v / 100f);
@@ -200,7 +200,7 @@ public class StateChartVisualTest extends VisualTest {
         return -1; // unused
       }
     }));
-    controls.add(VisualTests.createVariableSlider("Delay", 10, 5000, new VisualTests.Value() {
+    controls.add(VisualTest.createVariableSlider("Delay", 10, 5000, new VisualTests.Value() {
       @Override
       public void set(int v) {
         delay.set(v);
@@ -211,7 +211,7 @@ public class StateChartVisualTest extends VisualTest {
         return delay.get();
       }
     }));
-    controls.add(VisualTests.createVariableSlider("Fruit Variance", 1, MockFruitState.values().length, new VisualTests.Value() {
+    controls.add(VisualTest.createVariableSlider("Fruit Variance", 1, MockFruitState.values().length, new VisualTests.Value() {
       @Override
       public void set(int v) {
         networkVariance.set(v);
@@ -222,7 +222,7 @@ public class StateChartVisualTest extends VisualTest {
         return networkVariance.get();
       }
     }));
-    controls.add(VisualTests.createVariableSlider("Strength Variance", 1, MockStrengthState.values().length, new VisualTests.Value() {
+    controls.add(VisualTest.createVariableSlider("Strength Variance", 1, MockStrengthState.values().length, new VisualTests.Value() {
       @Override
       public void set(int v) {
         radioVariance.set(v);
@@ -233,7 +233,7 @@ public class StateChartVisualTest extends VisualTest {
         return radioVariance.get();
       }
     }));
-    controls.add(VisualTests.createButton("Add Fruit Series", new ActionListener() {
+    controls.add(VisualTest.createButton("Add Fruit Series", new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
         RangedDiscreteSeries networkData = new RangedDiscreteSeries(MockFruitState.class, mXRange);
@@ -241,7 +241,7 @@ public class StateChartVisualTest extends VisualTest {
         mNetworkDataEntries.add(networkData);
       }
     }));
-    controls.add(VisualTests.createButton("Add Strength Series", new ActionListener() {
+    controls.add(VisualTest.createButton("Add Strength Series", new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
         RangedDiscreteSeries radioData = new RangedDiscreteSeries(MockStrengthState.class, mXRange);
@@ -249,7 +249,7 @@ public class StateChartVisualTest extends VisualTest {
         mRadioDataEntries.add(radioData);
       }
     }));
-    controls.add(VisualTests.createCheckbox("Shift xRange Min", new ItemListener() {
+    controls.add(VisualTest.createCheckbox("Shift xRange Min", new ItemListener() {
       @Override
       public void itemStateChanged(ItemEvent itemEvent) {
         mAnimatedTimeRange.setShift(itemEvent.getStateChange() == ItemEvent.SELECTED);

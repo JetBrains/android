@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.adtui.model;
+package com.android.tools.idea.monitor.datastore;
 
 /**
  * Here we define the series of data that we collect. The implementation of {@link SeriesDataStore} needs to return the
