@@ -41,7 +41,8 @@ public class TestArtifactCustomScopeTest extends AndroidGradleTestCase {
     assertTrue(packageSet.contains(file, getProject(), null));
   }
 
-  public void testAndroidTestFileColor() throws Exception {
+  // see comments on http://ag/1025651
+  public void ignore_testAndroidTestFileColor() throws Exception {
     VirtualFile file = findRelativeFile("app/src/androidTest/java/google/simpleapplication/ApplicationTest.java",
                                         getProject().getBaseDir());
     assertNotNull(file);
