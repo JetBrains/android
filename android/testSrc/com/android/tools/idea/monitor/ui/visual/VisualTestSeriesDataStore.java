@@ -21,6 +21,7 @@ import com.android.tools.idea.monitor.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.datastore.SeriesDataType;
 import gnu.trove.TLongArrayList;
 
+import javax.swing.*;
 import java.util.*;
 
 public final class VisualTestSeriesDataStore implements SeriesDataStore {
@@ -109,7 +110,8 @@ public final class VisualTestSeriesDataStore implements SeriesDataStore {
       public void run() {
         try {
           while (true) {
-            generateData();
+            // TODO: come up with better thread issues handling
+            SwingUtilities.invokeLater(() -> generateData());
             Thread.sleep(100);
           }
         }

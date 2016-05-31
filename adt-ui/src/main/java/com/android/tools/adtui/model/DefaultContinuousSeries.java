@@ -41,7 +41,7 @@ public class DefaultContinuousSeries implements ContinuousSeries {
       public SeriesData<Long> get(int index) {
         assert index < size();
         SeriesData<Long> data = new SeriesData<>();
-        data.time = getX(index + fromIndex);
+        data.x = getX(index + fromIndex);
         data.value = getY(index + fromIndex);
         return data;
       }
@@ -63,7 +63,7 @@ public class DefaultContinuousSeries implements ContinuousSeries {
   public SeriesData<Long> getDataAtXValue(long x) {
     int index = getNearestXIndex(x);
     SeriesData<Long> data = new SeriesData<>();
-    data.time = getX(index);
+    data.x = getX(index);
     data.value = getY(index);
     return data;
   }

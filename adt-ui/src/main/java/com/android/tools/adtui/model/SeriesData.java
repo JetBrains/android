@@ -15,14 +15,10 @@
  */
 package com.android.tools.adtui.model;
 
+/**
+ * This class stores key-value ({@link #x} as a key) data.
+ */
 public class SeriesData<T> {
-  /**
-   * The time value returned here is the elapsed time from the start of the application to the collection of the data point.
-   */
-  public long time;
-
-  /**
-   * The value that was collected.
-   */
+  public long x;
   public T value;
 }

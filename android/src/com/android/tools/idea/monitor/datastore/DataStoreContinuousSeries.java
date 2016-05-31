@@ -42,7 +42,7 @@ public class DataStoreContinuousSeries implements ContinuousSeries {
   public SeriesData<Long> getDataAtXValue(long x) {
     int index = mStore.getClosestTimeIndex(x);
     SeriesData<Long> data = new SeriesData<>();
-    data.time = mStore.getTimeAtIndex(index);
+    data.x = mStore.getTimeAtIndex(index);
     data.value = mStore.getValueAtIndex(mType, index);
     return data;
   }
