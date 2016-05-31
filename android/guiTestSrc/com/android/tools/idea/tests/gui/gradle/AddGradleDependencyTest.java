@@ -124,6 +124,7 @@ public class AddGradleDependencyTest {
     verifyUndo(editor, 1);
   }
 
+  @Ignore("go/studio-builder/builders/ubuntu-studio-master-dev-uitests/builds/284")
   @Test
   public void testAddLibDependencyDeclaredInAndroidProject() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("MultiModule");
