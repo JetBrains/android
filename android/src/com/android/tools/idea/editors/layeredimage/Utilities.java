@@ -36,11 +36,7 @@ class Utilities {
   @NotNull
   static Image loadImage(@NotNull VirtualFile file) throws IOException {
     try (InputStream in = file.getInputStream()) {
-      Image image = PixelProbe.probe(in);
-      if (!image.isValid()) {
-        throw new IOException("Unknown or invalid file");
-      }
-      return image;
+      return PixelProbe.probe(in);
     }
   }
 

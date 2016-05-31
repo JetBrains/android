@@ -80,7 +80,7 @@ class LayersTree extends Tree {
         expandRow(i);
       } else {
         Layer layer = (Layer)node.getUserObject();
-        if (layer.getType() == Layer.Type.GROUP && layer.isOpened()) {
+        if (layer.getType() == Layer.Type.GROUP && layer.isOpen()) {
           expandRow(i);
         }
       }
