@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.ui;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -27,21 +28,32 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public class PsCheckBoxList<T> extends CheckBoxList<T> {
+  @NotNull private final List<CheckBoxListListener> myListeners = Lists.newCopyOnWriteArrayList();
+
   @Nullable private SelectionChangeListener<ImmutableList<T>> mySelectionChangeListener;
 
   public PsCheckBoxList(@NotNull List<T> items) {
     super();
     setItems(items, null);
-    super.setCheckBoxListListener((index, value) -> fireSelectionChangedEvent());
+    super.setCheckBoxListListener((index, value) -> {
+      for (CheckBoxListListener listener : myListeners) {
+        listener.checkBoxSelectionChanged(index, value);
+      }
+    });
+    addCheckBoxListListener((index, value) -> fireSelectionChangedEvent());
   }
 
   /**
-   * @deprecated use {@link #setSelectionChangeListener(SelectionChangeListener)} instead.
+   * @deprecated use {@link #addCheckBoxListListener(CheckBoxListListener)} instead.
    */
   @Deprecated
   @Override
   public void setCheckBoxListListener(CheckBoxListListener checkBoxListListener) {
     throw new UnsupportedOperationException("Invoke 'setSelectionChangeListener' instead");
+  }
+
+  public void addCheckBoxListListener(@NotNull CheckBoxListListener checkBoxListListener) {
+    myListeners.add(checkBoxListListener);
   }
 
   @NotNull

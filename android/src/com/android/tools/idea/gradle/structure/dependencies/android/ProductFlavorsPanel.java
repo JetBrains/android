@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.gradle.structure.dependencies.android;
 
+import com.android.tools.idea.gradle.structure.configurables.ui.PsCheckBoxList;
 import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeEventDispatcher;
 import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeListener;
 import com.android.tools.idea.gradle.structure.model.android.PsProductFlavor;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
-import com.intellij.ui.CheckBoxList;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.ListSpeedSearch;
 import com.intellij.ui.ScrollPaneFactory;
@@ -35,29 +34,15 @@ import static com.intellij.ui.SideBorder.BOTTOM;
 import static com.intellij.ui.SideBorder.RIGHT;
 
 class ProductFlavorsPanel extends JPanel {
-  @NotNull private final List<PsProductFlavor> mySelectedProductFlavors;
-  @NotNull private final CheckBoxList<PsProductFlavor> myProductFlavorsList;
+  @NotNull private final PsCheckBoxList<PsProductFlavor> myProductFlavorsList;
   @NotNull private final SelectionChangeEventDispatcher<List<PsProductFlavor>> myEventDispatcher = new SelectionChangeEventDispatcher<>();
 
   ProductFlavorsPanel(@NotNull List<PsProductFlavor> productFlavors) {
     super(new BorderLayout());
 
-    myProductFlavorsList = new CheckBoxList<>();
-    myProductFlavorsList.setItems(productFlavors, null);
-
-    // By default select all product flavors.
-    for (PsProductFlavor productFlavor : productFlavors) {
-      myProductFlavorsList.setItemSelected(productFlavor, true);
-    }
-    mySelectedProductFlavors = Lists.newArrayList(productFlavors);
-
-    myProductFlavorsList.setCheckBoxListListener((index, value) -> {
-      PsProductFlavor productFlavor = myProductFlavorsList.getItemAt(index);
-      if (productFlavor != null) {
-        updateSelection(productFlavor, value);
-        myEventDispatcher.selectionChanged(mySelectedProductFlavors);
-      }
-    });
+    myProductFlavorsList = new PsCheckBoxList<>(productFlavors);
+    myProductFlavorsList.setSelectionChangeListener(myEventDispatcher::selectionChanged);
+    myProductFlavorsList.setItemsSelected(true);
 
     new ListSpeedSearch(myProductFlavorsList);
 
@@ -66,17 +51,9 @@ class ProductFlavorsPanel extends JPanel {
     add(scrollPane, BorderLayout.CENTER);
   }
 
-  private void updateSelection(@NotNull PsProductFlavor productFlavor, boolean selected) {
-    if (selected) {
-      mySelectedProductFlavors.add(productFlavor);
-      return;
-    }
-    mySelectedProductFlavors.remove(productFlavor);
-  }
-
   @NotNull
   List<PsProductFlavor> getSelectedProductFlavors() {
-    return mySelectedProductFlavors;
+    return myProductFlavorsList.getSelectedItems();
   }
 
   void add(@NotNull SelectionChangeListener<List<PsProductFlavor>> listener, @NotNull Disposable parentDisposable) {
@@ -84,7 +61,7 @@ class ProductFlavorsPanel extends JPanel {
   }
 
   @Nullable
-  public JComponent getPreferredFocusedComponent() {
+  JComponent getPreferredFocusedComponent() {
     return myProductFlavorsList;
   }
 }

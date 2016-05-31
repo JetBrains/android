@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.gradle.structure.dependencies.android;
 
+import com.android.tools.idea.gradle.structure.configurables.ui.PsCheckBoxList;
 import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeEventDispatcher;
 import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeListener;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
-import com.intellij.ui.CheckBoxList;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.ListSpeedSearch;
 import com.intellij.ui.ScrollPaneFactory;
@@ -34,8 +34,8 @@ import static com.android.tools.idea.gradle.structure.dependencies.android.Confi
 import static com.intellij.ui.SideBorder.*;
 
 class ConfigurationsPanel extends JPanel {
-  @NotNull private List<Configuration> mySelectedConfigurations;
-  @NotNull private final CheckBoxList<Configuration> myConfigurationsList;
+  @NotNull private final List<Configuration> mySelectedConfigurations;
+  @NotNull private final PsCheckBoxList<Configuration> myConfigurationsList;
   @NotNull private final SelectionChangeEventDispatcher<List<Configuration>> myEventDispatcher = new SelectionChangeEventDispatcher<>();
 
   ConfigurationsPanel() {
@@ -43,15 +43,14 @@ class ConfigurationsPanel extends JPanel {
 
     List<Configuration> configurations = Lists.newArrayList(MAIN, ANDROID_TEST, UNIT_TEST);
 
-    myConfigurationsList = new CheckBoxList<>();
-    myConfigurationsList.setItems(configurations, null);
+    myConfigurationsList = new PsCheckBoxList<>(configurations);
 
     // Select "main" by default.
     mySelectedConfigurations = Lists.newArrayList(MAIN);
     for (Configuration configuration : configurations) {
       myConfigurationsList.setItemSelected(configuration, true);
     }
-    myConfigurationsList.setCheckBoxListListener((index, value) -> {
+    myConfigurationsList.addCheckBoxListListener((index, value) -> {
       Configuration configuration = myConfigurationsList.getItemAt(index);
       if (configuration != null) {
         if (configuration == MAIN) {
@@ -67,8 +66,9 @@ class ConfigurationsPanel extends JPanel {
         }
       }
       updateSelection();
-      myEventDispatcher.selectionChanged(mySelectedConfigurations);
     });
+
+    myConfigurationsList.setSelectionChangeListener(newSelection -> updateSelection());
 
     new ListSpeedSearch(myConfigurationsList);
 
@@ -90,6 +90,7 @@ class ConfigurationsPanel extends JPanel {
         mySelectedConfigurations.add(UNIT_TEST);
       }
     }
+    myEventDispatcher.selectionChanged(mySelectedConfigurations);
   }
 
   void add(@NotNull SelectionChangeListener<List<Configuration>> listener, @NotNull Disposable parentDisposable) {
@@ -97,7 +98,7 @@ class ConfigurationsPanel extends JPanel {
   }
 
   @Nullable
-  public JComponent getPreferredFocusedComponent() {
+  JComponent getPreferredFocusedComponent() {
     return myConfigurationsList;
   }
 
