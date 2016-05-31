@@ -414,17 +414,17 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
       return StringUtil.compare(item1, item2, false);
     }
 
-    public void updateCompletions(@NotNull NlProperty p) {
-      AttributeDefinition definition = p.getDefinition();
+    public void updateCompletions(@NotNull NlProperty property) {
+      AttributeDefinition definition = property.getDefinition();
       if (definition == null) {
         setItems(null);
         return;
       }
 
-      ResourceType[] types = BrowsePanel.getResourceTypes(definition);
+      ResourceType[] types = BrowsePanel.getResourceTypes(property.getName(), definition);
       List<String> items = Lists.newArrayList();
 
-      AndroidFacet facet = p.getModel().getFacet();
+      AndroidFacet facet = property.getModel().getFacet();
 
       for (ResourceType type : types) {
         List<ResourceItem> resItems =
