@@ -205,19 +205,19 @@ public class EventVisualTest extends VisualTest {
     LayoutManager manager = new BoxLayout(controls, BoxLayout.Y_AXIS);
     controls.setLayout(manager);
     panel.add(controls, BorderLayout.WEST);
-    controls.add(VisualTests.createButton("Add Activity", new ActionListener() {
+    controls.add(VisualTest.createButton("Add Activity", new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
         addActivityCreatedEvent();
       }
     }));
-    controls.add(VisualTests.createButton("Close Top Activity", new ActionListener() {
+    controls.add(VisualTest.createButton("Close Top Activity", new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
         addActivityFinishedEvent();
       }
     }));
-    controls.add(VisualTests.createButton("Close Random Activity", new ActionListener() {
+    controls.add(VisualTest.createButton("Close Random Activity", new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
         int size = myOpenActivites.size();
@@ -226,7 +226,7 @@ public class EventVisualTest extends VisualTest {
         performTapAction();
       }
     }));
-    JButton tapButton = VisualTests.createButton("Tap Me");
+    JButton tapButton = VisualTest.createButton("Tap Me");
     tapButton.addMouseListener(new MouseAdapter() {
       @Override
       public void mousePressed(MouseEvent e) {
@@ -247,7 +247,7 @@ public class EventVisualTest extends VisualTest {
       }
     });
     controls.add(tapButton);
-    controls.add(VisualTests.createCheckbox("Shift xRange Min", new ItemListener() {
+    controls.add(VisualTest.createCheckbox("Shift xRange Min", new ItemListener() {
       @Override
       public void itemStateChanged(ItemEvent itemEvent) {
         mAnimatedRange.setShift(itemEvent.getStateChange() == ItemEvent.SELECTED);

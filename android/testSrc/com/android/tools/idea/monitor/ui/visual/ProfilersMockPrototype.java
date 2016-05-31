@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package com.android.tools.adtui.visual;
+package com.android.tools.idea.monitor.ui.visual;
+
+import com.android.tools.adtui.visual.VisualTestsDialog;
 
 import javax.swing.*;
 

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.adtui.segment;
+package com.android.tools.idea.monitor.ui.cpu.view;
 
 import com.android.tools.adtui.Animatable;
 import com.android.tools.adtui.AnimatedComponent;
@@ -21,6 +21,7 @@ import com.android.tools.adtui.Range;
 import com.android.tools.adtui.chart.StateChart;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.RangedDiscreteSeries;
+import com.android.tools.idea.monitor.ui.BaseSegment;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLayeredPane;
 import com.intellij.ui.components.JBList;

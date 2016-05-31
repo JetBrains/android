@@ -61,7 +61,7 @@ public class VisualTestsDialog extends JDialog {
    */
   private JButton stepButton;
 
-  protected VisualTestsDialog() {
+  public VisualTestsDialog() {
     final JPanel contentPane = new JPanel(new BorderLayout());
     mTabs = new JTabbedPane();
 

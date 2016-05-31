@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
-package com.android.tools.adtui.visual;
+package com.android.tools.idea.monitor.ui.visual;
 
 import com.android.tools.adtui.Animatable;
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.AnimatedTimeRange;
 import com.android.tools.adtui.Range;
 import com.android.tools.adtui.model.RangedDiscreteSeries;
-import com.android.tools.adtui.segment.CpuUsageSegment;
-import com.android.tools.adtui.segment.ThreadsSegment;
+import com.android.tools.adtui.visual.VisualTest;
+import com.android.tools.idea.monitor.datastore.SeriesDataStore;
+import com.android.tools.idea.monitor.ui.cpu.view.CpuUsageSegment;
+import com.android.tools.idea.monitor.ui.cpu.view.ThreadsSegment;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -36,7 +38,6 @@ public class CpuProfilerVisualTest extends VisualTest {
 
   private static final String CPU_PROFILER_NAME = "CPU Profiler";
 
-
   private static final int UPDATE_THREAD_SLEEP_DELAY_MS = 100;
   /**
    * The active threads should be copied into this array when getThreadGroup().enumerate() is called.
@@ -44,11 +45,30 @@ public class CpuProfilerVisualTest extends VisualTest {
    */
   private static final Thread[] ACTIVE_THREADS = new Thread[1000];
 
+  private SeriesDataStore mDataStore;
+
+  private CpuUsageSegment mCPULevel1Segment;
+
   private CpuUsageSegment mCPULevel2Segment;
 
   private ThreadsSegment mThreadsSegment;
 
   private long mStartTimeMs;
+
+  @Override
+  protected void initialize() {
+    mDataStore = new VisualTestSeriesDataStore();
+    super.initialize();
+  }
+
+  @Override
+  protected void reset() {
+    if (mDataStore != null) {
+      mDataStore.reset();
+    }
+
+    super.reset();
+  }
 
   @Override
   protected void registerComponents(List<AnimatedComponent> components) {

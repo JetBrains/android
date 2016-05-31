@@ -67,7 +67,7 @@ public class TimelineVisualTest extends VisualTest {
   static Component createEventButton(final int type, final EventData events, final AtomicInteger variance) {
     final String start = "Start " + (variance != null ? "blocking " : "") + "event type " + type;
     final String stop = "Stop event type " + type;
-    return VisualTests.createButton(start, new ActionListener() {
+    return VisualTest.createButton(start, new ActionListener() {
       EventData.Event event = null;
       int var = 0;
 
@@ -177,9 +177,9 @@ public class TimelineVisualTest extends VisualTest {
     };
     mTimeline.addListener(listener);
 
-    final JPanel controls = VisualTests.createControlledPane(panel, mTimeline);
+    final JPanel controls = VisualTest.createControlledPane(panel, mTimeline);
 
-    controls.add(VisualTests.createVariableSlider("Delay", 10, 5000, new VisualTests.Value() {
+    controls.add(VisualTest.createVariableSlider("Delay", 10, 5000, new VisualTests.Value() {
       @Override
       public void set(int v) {
         delay.set(v);
@@ -190,7 +190,7 @@ public class TimelineVisualTest extends VisualTest {
         return delay.get();
       }
     }));
-    controls.add(VisualTests.createVariableSlider("Variance", 0, 50, new VisualTests.Value() {
+    controls.add(VisualTest.createVariableSlider("Variance", 0, 50, new VisualTests.Value() {
       @Override
       public void set(int v) {
         variance.set(v);
@@ -201,7 +201,7 @@ public class TimelineVisualTest extends VisualTest {
         return variance.get();
       }
     }));
-    controls.add(VisualTests.createVariableSlider("Type", 0, 2, new VisualTests.Value() {
+    controls.add(VisualTest.createVariableSlider("Type", 0, 2, new VisualTests.Value() {
       @Override
       public void set(int v) {
         type.set(v);
@@ -215,9 +215,9 @@ public class TimelineVisualTest extends VisualTest {
     controls.add(createEventButton(1, mEvents, variance));
     controls.add(createEventButton(1, mEvents, null));
     controls.add(createEventButton(2, mEvents, variance));
-    final JButton addStreamButton = VisualTests.createButton("Add a stream");
-    final JButton removeStreamButton = VisualTests.createButton("Remove a stream");
-    final JButton addLinkedStreamsButton = VisualTests.createButton("Add label sharing streams");
+    final JButton addStreamButton = VisualTest.createButton("Add a stream");
+    final JButton removeStreamButton = VisualTest.createButton("Remove a stream");
+    final JButton addLinkedStreamsButton = VisualTest.createButton("Add label sharing streams");
     removeStreamButton.setEnabled(false);
     addStreamButton.addActionListener(new ActionListener() {
       @Override
@@ -243,7 +243,7 @@ public class TimelineVisualTest extends VisualTest {
     controls.add(addStreamButton);
     controls.add(addLinkedStreamsButton);
     controls.add(removeStreamButton);
-    controls.add(VisualTests.createCheckbox("Stack streams", new ItemListener() {
+    controls.add(VisualTest.createCheckbox("Stack streams", new ItemListener() {
       @Override
       public void itemStateChanged(ItemEvent e) {
         mTimeline.setStackStreams(e.getStateChange() == ItemEvent.SELECTED);

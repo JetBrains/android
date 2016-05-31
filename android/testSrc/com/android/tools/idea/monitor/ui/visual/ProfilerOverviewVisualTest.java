@@ -14,14 +14,21 @@
  * limitations under the License.
  */
 
-package com.android.tools.adtui.visual;
+package com.android.tools.idea.monitor.ui.visual;
 
 import com.android.tools.adtui.*;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.EventAction;
 import com.android.tools.adtui.model.RangedSimpleSeries;
-import com.android.tools.adtui.segment.*;
+import com.android.tools.adtui.visual.EventVisualTest;
+import com.android.tools.adtui.visual.VisualTest;
+import com.android.tools.idea.monitor.datastore.SeriesDataStore;
+import com.android.tools.idea.monitor.ui.BaseSegment;
+import com.android.tools.idea.monitor.ui.TimeAxisSegment;
+import com.android.tools.idea.monitor.ui.cpu.view.CpuUsageSegment;
+import com.android.tools.idea.monitor.ui.events.view.EventSegment;
+import com.android.tools.idea.monitor.ui.network.view.NetworkSegment;
 import com.intellij.ui.components.JBPanel;
 import org.jetbrains.annotations.NotNull;
 
@@ -68,6 +75,8 @@ public class ProfilerOverviewVisualTest extends VisualTest {
     buildStaticImage(Color.blue),
   };
 
+  private SeriesDataStore mDataStore;
+
   private long mStartTimeMs;
 
   @NotNull
@@ -100,6 +109,21 @@ public class ProfilerOverviewVisualTest extends VisualTest {
   private RangedSimpleSeries<EventAction<StackedEventComponent.Action, String>> mFragmentEventData;
 
   private RangedSimpleSeries<EventAction<StackedEventComponent.Action, String>> mActivityEventData;
+
+  @Override
+  protected void initialize() {
+    mDataStore = new VisualTestSeriesDataStore();
+    super.initialize();
+  }
+
+  @Override
+  protected void reset() {
+    if (mDataStore != null) {
+      mDataStore.reset();
+    }
+
+    super.reset();
+  }
 
   @Override
   protected List<Animatable> createComponentsList() {
@@ -167,7 +191,7 @@ public class ProfilerOverviewVisualTest extends VisualTest {
     gridBagPanel.setLayout(gbl);
 
     // TODO create some controls.
-    final JPanel controls = VisualTests.createControlledPane(panel, gridBagPanel);
+    final JPanel controls = VisualTest.createControlledPane(panel, gridBagPanel);
 
     // Add Mock Toolbar
     gbc.fill = GridBagConstraints.BOTH;
@@ -286,7 +310,7 @@ public class ProfilerOverviewVisualTest extends VisualTest {
     return segment;
   }
 
-
+  // TODO refactor to VisualTestSeriesDataStore.
   private void generateStackedEventData(RangedSimpleSeries<EventAction<StackedEventComponent.Action, String>> rangedSeries,
                                         List<Long> activeEvents,
                                         long deltaTime,
@@ -306,6 +330,7 @@ public class ProfilerOverviewVisualTest extends VisualTest {
     }
   }
 
+  // TODO refactor to VisualTestSeriesDataStore.
   private boolean generateEventData(boolean downEvent, List<Long> fragments, List<Long> activities, long deltaTime) {
     boolean downState = downEvent;
     if (Math.random() < CLICK_PROBABILITY) {

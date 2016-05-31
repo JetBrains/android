@@ -208,7 +208,7 @@ public class AxisLineChartVisualTest extends VisualTest {
       }
     };
     mUpdateDataThread.start();
-    controls.add(VisualTests.createVariableSlider("Delay", 10, 5000, new VisualTests.Value() {
+    controls.add(VisualTest.createVariableSlider("Delay", 10, 5000, new VisualTests.Value() {
       @Override
       public void set(int v) {
         delay.set(v);
@@ -219,7 +219,7 @@ public class AxisLineChartVisualTest extends VisualTest {
         return delay.get();
       }
     }));
-    controls.add(VisualTests.createVariableSlider("Variance", 0, 50, new VisualTests.Value() {
+    controls.add(VisualTest.createVariableSlider("Variance", 0, 50, new VisualTests.Value() {
       @Override
       public void set(int v) {
         variance.set(v);
@@ -230,16 +230,16 @@ public class AxisLineChartVisualTest extends VisualTest {
         return variance.get();
       }
     }));
-    controls.add(VisualTests.createCheckbox("Stable Scroll",
+    controls.add(VisualTest.createCheckbox("Stable Scroll",
                   itemEvent -> mScrollbar.setStableScrolling(itemEvent.getStateChange() == ItemEvent.SELECTED)));
-    controls.add(VisualTests.createCheckbox("Clamp To Major Ticks",
+    controls.add(VisualTest.createCheckbox("Clamp To Major Ticks",
                   itemEvent -> mMemoryAxis1.setClampToMajorTicks(itemEvent.getStateChange() == ItemEvent.SELECTED)));
-    controls.add(VisualTests.createCheckbox("Sync Vertical Axes",
+    controls.add(VisualTest.createCheckbox("Sync Vertical Axes",
                   itemEvent -> mMemoryAxis2.setParentAxis(itemEvent.getStateChange() == ItemEvent.SELECTED ? mMemoryAxis1 : null)));
-    controls.add(VisualTests.createButton("Zoom In", e -> mSelection.zoom(-SelectionComponent.ZOOM_FACTOR)));
-    controls.add(VisualTests.createButton("Zoom Out", e -> mSelection.zoom(SelectionComponent.ZOOM_FACTOR)));
-    controls.add(VisualTests.createButton("Reset Zoom", e -> mSelection.resetZoom()));
-    controls.add(VisualTests.createButton("Clear Selection", e -> mSelection.clear()));
+    controls.add(VisualTest.createButton("Zoom In", e -> mSelection.zoom(-SelectionComponent.ZOOM_FACTOR)));
+    controls.add(VisualTest.createButton("Zoom Out", e -> mSelection.zoom(SelectionComponent.ZOOM_FACTOR)));
+    controls.add(VisualTest.createButton("Reset Zoom", e -> mSelection.resetZoom()));
+    controls.add(VisualTest.createButton("Clear Selection", e -> mSelection.clear()));
 
     controls.add(
       new Box.Filler(new Dimension(0, 0), new Dimension(300, Integer.MAX_VALUE),

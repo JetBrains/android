@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.adtui;
+package com.android.tools.idea.monitor.ui.visual;
 
-import com.android.tools.adtui.model.SeriesDataList;
-import com.android.tools.adtui.model.SeriesDataStore;
-import com.android.tools.adtui.model.SeriesDataType;
+import com.android.tools.adtui.Range;
+import com.android.tools.idea.monitor.datastore.SeriesDataList;
+import com.android.tools.idea.monitor.datastore.SeriesDataStore;
+import com.android.tools.idea.monitor.datastore.SeriesDataType;
 import gnu.trove.TLongArrayList;
 
 import java.util.*;

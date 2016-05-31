@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package com.android.tools.adtui.visual;
+package com.android.tools.idea.monitor.ui.visual;
 
 import com.android.annotations.NonNull;
 import com.android.tools.adtui.Animatable;
 import com.android.tools.adtui.AnimatedComponent;
-import com.android.tools.adtui.model.SeriesDataStore;
+import com.android.tools.adtui.visual.VisualTest;
 
 import javax.swing.*;
 import java.util.ArrayList;

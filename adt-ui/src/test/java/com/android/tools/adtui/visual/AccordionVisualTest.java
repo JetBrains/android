@@ -147,30 +147,30 @@ public class AccordionVisualTest extends VisualTest {
     JBPanel yPanel = new JBPanel();
     panel.add(yPanel);
     yPanel.setBorder(BorderFactory.createLineBorder(AdtUiUtils.DEFAULT_BORDER_COLOR));
-    final JPanel controlsY = VisualTests.createControlledPane(yPanel, mPanelY);
+    final JPanel controlsY = VisualTest.createControlledPane(yPanel, mPanelY);
 
-    controlsY.add(VisualTests.createButton("Reset Weights", listener -> {
+    controlsY.add(VisualTest.createButton("Reset Weights", listener -> {
       mAccordionY.resetComponents();
     }));
-    controlsY.add(VisualTests.createButton("Add Chart", listener -> {
+    controlsY.add(VisualTest.createButton("Add Chart", listener -> {
       final LineChart chart = generateChart(mAccordionY, AccordionLayout.Orientation.VERTICAL,
                                             0, PREFERRED_SIZE, Integer.MAX_VALUE);
       mPanelY.add(chart);
       mChartCountY++;
     }));
-    controlsY.add(VisualTests.createButton("Add Chart With Min", listener -> {
+    controlsY.add(VisualTest.createButton("Add Chart With Min", listener -> {
       final LineChart chart = generateChart(mAccordionY, AccordionLayout.Orientation.VERTICAL,
                                             MIN_SIZE, PREFERRED_SIZE, Integer.MAX_VALUE);
       mPanelY.add(chart);
       mChartCountY++;
     }));
-    controlsY.add(VisualTests.createButton("Add Chart With Small Max", listener -> {
+    controlsY.add(VisualTest.createButton("Add Chart With Small Max", listener -> {
       final LineChart chart = generateChart(mAccordionY, AccordionLayout.Orientation.VERTICAL,
                                             0, PREFERRED_SIZE, MAX_SIZE);
       mPanelY.add(chart);
       mChartCountY++;
     }));
-    controlsY.add(VisualTests.createButton("Remove Last Chart", listener -> {
+    controlsY.add(VisualTest.createButton("Remove Last Chart", listener -> {
       mPanelY.remove(--mChartCountY);
     }));
 
@@ -182,29 +182,29 @@ public class AccordionVisualTest extends VisualTest {
     JBPanel xPanel = new JBPanel();
     panel.add(xPanel);
     xPanel.setBorder(BorderFactory.createLineBorder(AdtUiUtils.DEFAULT_BORDER_COLOR));
-    final JPanel controlsX = VisualTests.createControlledPane(xPanel, mPanelX);
-    controlsX.add(VisualTests.createButton("Reset Weights", listener -> {
+    final JPanel controlsX = VisualTest.createControlledPane(xPanel, mPanelX);
+    controlsX.add(VisualTest.createButton("Reset Weights", listener -> {
       mAccordionX.resetComponents();
     }));
-    controlsX.add(VisualTests.createButton("Add Chart", listener -> {
+    controlsX.add(VisualTest.createButton("Add Chart", listener -> {
       final LineChart chart = generateChart(mAccordionX, AccordionLayout.Orientation.HORIZONTAL,
                                             0, PREFERRED_SIZE, Integer.MAX_VALUE);
       mPanelX.add(chart);
       mChartCountX++;
     }));
-    controlsX.add(VisualTests.createButton("Add Chart With Min", listener -> {
+    controlsX.add(VisualTest.createButton("Add Chart With Min", listener -> {
       final LineChart chart = generateChart(mAccordionX, AccordionLayout.Orientation.HORIZONTAL,
                                             MIN_SIZE, PREFERRED_SIZE, Integer.MAX_VALUE);
       mPanelX.add(chart);
       mChartCountX++;
     }));
-    controlsX.add(VisualTests.createButton("Add Chart With Small Max", listener -> {
+    controlsX.add(VisualTest.createButton("Add Chart With Small Max", listener -> {
       final LineChart chart = generateChart(mAccordionX, AccordionLayout.Orientation.HORIZONTAL,
                                             0, PREFERRED_SIZE, MAX_SIZE);
       mPanelX.add(chart);
       mChartCountX++;
     }));
-    controlsX.add(VisualTests.createButton("Remove Last Chart", listener -> {
+    controlsX.add(VisualTest.createButton("Remove Last Chart", listener -> {
       mPanelX.remove(--mChartCountX);
     }));
 

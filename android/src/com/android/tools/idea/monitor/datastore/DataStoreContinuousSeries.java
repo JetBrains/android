@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.adtui.model;
+package com.android.tools.idea.monitor.datastore;
 
 import com.android.tools.adtui.Range;
+import com.android.tools.adtui.model.ContinuousSeries;
+import com.android.tools.adtui.model.SeriesData;
 import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
