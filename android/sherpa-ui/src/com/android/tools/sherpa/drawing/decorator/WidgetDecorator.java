@@ -576,6 +576,9 @@ public class WidgetDecorator {
         if (!mColorSet.drawBackground()) {
             return;
         }
+        if (mWidget.isRoot() || mWidget.isRootContainer()) {
+            return;
+        }
         if (!(mWidget instanceof ConstraintWidgetContainer)
                 && mWidget.getVisibility() == ConstraintWidget.VISIBLE) {
             int l = transform.getSwingX(mWidget.getDrawX());
