@@ -394,7 +394,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
     mySelection.silentClear();
     for (NlComponent component : model.getSelection()) {
       ConstraintWidget widget = myWidgetsScene.getWidget(component);
-      if (widget != null && !widget.isRoot()) {
+      if (widget != null && !widget.isRoot() && !widget.isRootContainer()) {
         mySelection.silentAdd(widget);
       }
     }
@@ -750,9 +750,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
       return;
     }
     Map<NlComponent, Dimension> wrapContentSizes = Maps.newHashMap();
-    if (container instanceof ConstraintWidgetContainer
-        || (container.isRoot()
-        || (container.getParent() != null && !(container.getParent() instanceof ConstraintWidgetContainer)))) {
+    if (container.isRoot() || container.isRootContainer()) {
       NlComponent component = (NlComponent)((WidgetCompanion)container.getCompanionWidget()).getWidgetModel();
       Insets padding = component.getPadding(true);
       container.setDimension(pxToDp(component.w - padding.width()),
