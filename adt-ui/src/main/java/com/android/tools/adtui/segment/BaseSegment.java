@@ -64,6 +64,8 @@ public abstract class BaseSegment extends JComponent {
 
   private JPanel mRightPanel;
 
+  private JPanel mLeftPanel;
+
   @NotNull
   private RotatedLabel mLabel;
 
@@ -82,16 +84,16 @@ public abstract class BaseSegment extends JComponent {
 
   private Point mMousePressedPosition;
 
-  public static int getSpacerWidth() {
-    return SPACER_WIDTH;
-  }
-
   public BaseSegment(@NotNull String name, @NotNull Range scopedRange) {
     myName = name;
     mScopedRange = scopedRange;
     mDelayedEvents = new ArrayDeque<>();
 
     initializeListeners();
+  }
+
+  public static int getSpacerWidth() {
+    return SPACER_WIDTH;
   }
 
   public void initializeComponents() {
@@ -117,11 +119,11 @@ public abstract class BaseSegment extends JComponent {
     gbc.weighty = 0;
 
     //Setup the left panel, mostly filled with spacer, or AxisComponent
-    JPanel leftPanel = createSpacerPanel(getSpacerWidth());
+    mLeftPanel = createSpacerPanel(getSpacerWidth());
     gbc.gridx = 0;
     gbc.gridy = 1;
-    panels.add(leftPanel, gbc);
-    setLeftContent(leftPanel);
+    panels.add(mLeftPanel, gbc);
+    setLeftContent(mLeftPanel);
 
     //Setup the top center panel.
     JBPanel topPanel = new JBPanel();
@@ -166,7 +168,7 @@ public abstract class BaseSegment extends JComponent {
   }
 
   /**
-   * This enables segments to toggle the visibilty of the right panel.
+   * This enables segments to toggle the visibility of the right panel.
    *
    * @param isVisible True indicates the panel is visible, false hides it.
    */
@@ -174,24 +176,27 @@ public abstract class BaseSegment extends JComponent {
     mRightPanel.setVisible(isVisible);
   }
 
-  public abstract void createComponentsList(@NotNull List<Animatable> animatables);
-
-  protected void setLeftContent(@NotNull JPanel panel) {
-
+  /**
+   * This enables segments to toggle the visibility of the left panel.
+   *
+   * @param isVisible True indicates the panel is visible, false hides it.
+   */
+  public void setLeftSpacerVisible(boolean isVisible) {
+    mLeftPanel.setVisible(isVisible);
   }
+
+  public void createComponentsList(@NotNull List<Animatable> animatables) {}
+
+  protected void setLeftContent(@NotNull JPanel panel) {}
 
   protected abstract void setCenterContent(@NotNull JPanel panel);
 
-  protected void setRightContent(@NotNull JPanel panel) {
+  protected void setRightContent(@NotNull JPanel panel) {}
 
-  }
-
-  protected void setTopCenterContent(@NotNull JPanel panel) {
-
-  }
+  protected void setTopCenterContent(@NotNull JPanel panel) {}
 
   //TODO Refactor out of BaseSegment as this is a VisualTest specific function.
-  protected abstract void registerComponents(@NotNull List<AnimatedComponent> components);
+  protected void registerComponents(@NotNull List<AnimatedComponent> components) {}
 
   private void initializeListeners() {
     // Add mouse listener to support expand/collapse when user double-clicks on the Segment.

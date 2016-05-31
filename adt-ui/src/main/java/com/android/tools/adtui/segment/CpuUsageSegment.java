@@ -1,6 +1,21 @@
+/*
+ * Copyright (C) 2016 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.android.tools.adtui.segment;
 
-import com.android.tools.adtui.*;
+import com.android.tools.adtui.Range;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.common.formatter.SingleUnitAxisFormatter;
@@ -24,13 +39,13 @@ public class CpuUsageSegment extends BaseLineChartSegment {
 
   private static final SingleUnitAxisFormatter NUM_THREADS_AXIS = new SingleUnitAxisFormatter(5, 10, 1, "");
 
-  // TODO (amaurym): Set proper darcula color
+  // TODO: Set proper darcula color
   private static final Color MY_PROCESS_LINE_COLOR = new JBColor(0x85c490, 0x85c490);
 
-  // TODO (amaurym): Set proper darcula color
+  // TODO: Set proper darcula color
   private static final Color OTHER_PROCESSES_LINE_COLOR = new JBColor(0xc9d8e1, 0xc9d8e1);
 
-  // TODO (amaurym): Set proper darcula color
+  // TODO: Set proper darcula color
   private static final Color THREADS_LINE_COLOR = new JBColor(0x5a9240, 0x5a9240);
 
   @NotNull
@@ -43,7 +58,6 @@ public class CpuUsageSegment extends BaseLineChartSegment {
   public CpuUsageSegment(@NotNull Range timeRange, @NotNull SeriesDataStore dataStore) {
     super(SEGMENT_NAME, timeRange, dataStore, CPU_USAGE_AXIS, NUM_THREADS_AXIS, new Range(0, 100), null);
     mTimeRange = timeRange;
-    mLeftAxisRange.setMax(100); // Default range is (0, 0). Then we need to set the max of CPU usage axis.
   }
 
   @Override

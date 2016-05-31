@@ -141,7 +141,6 @@ public class LineChart extends AnimatedComponent {
     Map<Range, Double> max = new HashMap<>();
     for (RangedContinuousSeries ranged : mLinesConfig.keySet()) {
       Range range = ranged.getYRange();
-      double yMin = Double.MAX_VALUE;
       double yMax = Double.MIN_VALUE;
 
       ImmutableList<SeriesData<Long>> seriesList = ranged.getSeries();
@@ -149,14 +148,11 @@ public class LineChart extends AnimatedComponent {
       // Leaving this here for now to keep the DataStore API set to a minimum.
       for(int i = 0; i < seriesList.size(); i++) {
         double value = seriesList.get(i).value;
-        if(yMin > value) {
-          yMin = value;
-        }
-        if(yMax < value) {
+        if (yMax < value) {
           yMax = value;
         }
       }
-      range.setTarget(yMin, yMax);
+
       Double m = max.get(range);
       max.put(range, m == null ? yMax: Math.max(yMax, m));
     }

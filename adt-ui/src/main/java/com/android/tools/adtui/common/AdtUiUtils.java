@@ -37,6 +37,11 @@ public final class AdtUiUtils {
    */
   public static final Color DEFAULT_FONT_COLOR = JBColor.foreground();
 
+  /**
+   * Default background color of charts and components.
+   */
+  public static final Color DEFAULT_BACKGROUND_COLOR = JBColor.background();
+
   public static final Color DEFAULT_BORDER_COLOR = new JBColor(Gray._96, Gray._192);
 
   public static final Color GRID_COLOR = new JBColor(Gray._192, Gray._96);
