@@ -21,6 +21,7 @@ import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
 import com.intellij.util.ui.UIUtil;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -55,6 +56,7 @@ public class GuiTestRuleTest {
 
   @Rule public final RuleChain ruleChain = RuleChain.outerRule(guiTestVerifier).around(exception).around(guiTest);
 
+  @Ignore("go/studio-builder/builders/ubuntu-studio-master-dev-uitests/builds/276")
   @Test
   public void makeSimpleApplication() throws Exception {
     GradleInvocationResult result = guiTest.importSimpleApplication().invokeProjectMake();
