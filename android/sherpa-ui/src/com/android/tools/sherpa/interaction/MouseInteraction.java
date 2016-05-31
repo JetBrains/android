@@ -839,10 +839,12 @@ public class MouseInteraction {
                             Guideline.VERTICAL) {
                         if (element.origin.x == mSelection.getSelectedGuideline().getDrawX()) {
                             mSelection.getSelectedGuideline().cyclePosition();
+                            mSelection.addModifiedWidget(mSelection.getSelectedGuideline());
                         }
                     } else {
                         if (element.origin.y == mSelection.getSelectedGuideline().getDrawY()) {
                             mSelection.getSelectedGuideline().cyclePosition();
+                            mSelection.addModifiedWidget(mSelection.getSelectedGuideline());
                         }
                     }
                 }
