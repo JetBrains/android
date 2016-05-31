@@ -21,17 +21,16 @@ import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.AnimatedTimeRange;
 import com.android.tools.adtui.Range;
 import com.android.tools.adtui.model.RangedDiscreteSeries;
-import com.android.tools.adtui.model.SeriesData;
-import com.android.tools.adtui.model.SeriesDataStore;
 import com.android.tools.adtui.segment.CpuUsageSegment;
 import com.android.tools.adtui.segment.ThreadsSegment;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.JPanel;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.util.*;
+import javax.swing.*;
+import java.awt.*;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class CpuProfilerVisualTest extends VisualTest {
 
@@ -45,25 +44,15 @@ public class CpuProfilerVisualTest extends VisualTest {
    */
   private static final Thread[] ACTIVE_THREADS = new Thread[1000];
 
-  private CpuUsageSegment mCPULevel1Segment;
-
   private CpuUsageSegment mCPULevel2Segment;
 
   private ThreadsSegment mThreadsSegment;
 
   private long mStartTimeMs;
-  /**
-   * Stores the state series corresponding to each thread.
-   */
-  private Map<Thread, RangedDiscreteSeries<Thread.State>> mThreadsStateSeries;
-
-  private Range mTimeRange;
 
   @Override
   protected void registerComponents(List<AnimatedComponent> components) {
-    mCPULevel1Segment.registerComponents(components);
     mCPULevel2Segment.registerComponents(components);
-    mThreadsSegment.registerComponents(components);
   }
 
   @Override
@@ -74,21 +63,19 @@ public class CpuProfilerVisualTest extends VisualTest {
   @Override
   protected List<Animatable> createComponentsList() {
     mStartTimeMs = System.currentTimeMillis();
-    mTimeRange = new Range();
-    AnimatedTimeRange AnimatedTimeRange = new AnimatedTimeRange(mTimeRange, mStartTimeMs);
+    Range timeRange = new Range();
+    AnimatedTimeRange AnimatedTimeRange = new AnimatedTimeRange(timeRange, mStartTimeMs);
 
-    //TODO Update test data for CPUUsageSegment to be exatly what it was.
-    mThreadsStateSeries = new HashMap<>(); // TODO: maybe it's safer to keep insertion order
-
-    mCPULevel1Segment = new CpuUsageSegment(mTimeRange, mDataStore);
-    mCPULevel2Segment = new CpuUsageSegment(mTimeRange, mDataStore);
-    mThreadsSegment = new ThreadsSegment(mTimeRange);
+    //TODO Update test data for CpuUsageSegment to be exactly what it was.
+    mCPULevel2Segment = new CpuUsageSegment(timeRange, mDataStore);
+    mThreadsSegment = new ThreadsSegment(timeRange);
 
     List<Animatable> animatables = new ArrayList<>();
     animatables.add(AnimatedTimeRange);
-    mCPULevel1Segment.createComponentsList(animatables);
+    animatables.add(mThreadsSegment);
     mCPULevel2Segment.createComponentsList(animatables);
     mThreadsSegment.createComponentsList(animatables);
+
     return animatables;
   }
 
@@ -97,15 +84,12 @@ public class CpuProfilerVisualTest extends VisualTest {
     panel.setLayout(new GridBagLayout());
     GridBagConstraints constraints = new GridBagConstraints();
     constraints.fill = GridBagConstraints.BOTH;
-    constraints.weighty = 1f/3;
+    constraints.weighty = 1f/2;
     constraints.weightx = 1;
     constraints.gridy = 0;
-    mCPULevel1Segment.initializeComponents();
-    panel.add(mCPULevel1Segment, constraints);
-    constraints.gridy = 1;
     mCPULevel2Segment.initializeComponents();
     panel.add(mCPULevel2Segment, constraints);
-    constraints.gridy = 2;
+    constraints.gridy = 1;
     mThreadsSegment.initializeComponents();
     panel.add(mThreadsSegment, constraints);
     simulateTestData();
@@ -122,30 +106,26 @@ public class CpuProfilerVisualTest extends VisualTest {
 
             // Copy active threads into ACTIVE_THREADS array
             int numActiveThreads = getThreadGroup().enumerate(ACTIVE_THREADS);
-            int targetThreads = 0;
             for (int i = 0; i < numActiveThreads; i++) {
               // We're only interested in threads that are alive
               Thread thread = ACTIVE_THREADS[i];
               if (thread.isAlive()) {
-                // Add new series to states map in case there's no series corresponding to the current thread.
-                if (!mThreadsStateSeries.containsKey(thread)) {
-                  RangedDiscreteSeries<Thread.State> threadSeries = new RangedDiscreteSeries<>(Thread.State.class, mTimeRange);
-                  mThreadsStateSeries.put(thread, threadSeries);
-                  // TODO: avoid this redundancy.
-                  // Maybe pass a list of data to StateChart() on its creation, so it updates when a new series is added.
-                  mThreadsSegment.addThreadStateSeries(threadSeries);
-                }
-                targetThreads++;
+                // Add new thread to the segment in case it's not represented there yet.
+                SwingUtilities.invokeAndWait(() -> mThreadsSegment.addThreadStateSeries(thread));
               }
             }
 
-            for (Map.Entry<Thread, RangedDiscreteSeries<Thread.State>> threadStateSeries : mThreadsStateSeries.entrySet()) {
-              threadStateSeries.getValue().getSeries().add(now, threadStateSeries.getKey().getState());
+            for (Map.Entry<Thread, RangedDiscreteSeries<Thread.State>> series : mThreadsSegment.getThreadsStateSeries().entrySet()) {
+              series.getValue().getSeries().add(now, series.getKey().getState());
             }
 
             Thread.sleep(UPDATE_THREAD_SLEEP_DELAY_MS);
           }
-        } catch (InterruptedException ignored) {}
+        }
+        catch (InterruptedException ignored) {}
+        catch (InvocationTargetException e) {
+          e.printStackTrace();
+        }
       }
     };
     updateDataThread.start();

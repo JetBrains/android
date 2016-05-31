@@ -21,11 +21,7 @@ import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.EventAction;
 import com.android.tools.adtui.model.RangedSimpleSeries;
-import com.android.tools.adtui.model.SeriesDataStore;
-import com.android.tools.adtui.segment.BaseSegment;
-import com.android.tools.adtui.segment.EventSegment;
-import com.android.tools.adtui.segment.NetworkSegment;
-import com.android.tools.adtui.segment.TimeAxisSegment;
+import com.android.tools.adtui.segment.*;
 import com.intellij.ui.components.JBPanel;
 import org.jetbrains.annotations.NotNull;
 
@@ -264,7 +260,11 @@ public class ProfilerOverviewVisualTest extends VisualTest {
       case EVENT:
         segment = new EventSegment(mXGlobalRange, mSystemEventData, mFragmentEventData, mActivityEventData, MOCK_ICONS);
         break;
-      // TODO create corresponding segments based on type.
+      case CPU:
+        // TODO use L1 segment instead
+        segment = new CpuUsageSegment(mXRange, mDataStore);
+        break;
+        // TODO create corresponding segments based on type.
       default:
         segment = new NetworkSegment(mXRange, mDataStore);
     }

@@ -71,7 +71,6 @@ public abstract class BaseLineChartSegment extends BaseSegment {
     mRightAxisFormatter = rightAxisFormatter;
     mLeftAxisRange = leftAxisRange != null ? leftAxisRange : new Range();
     mSeriesDataStore = dataStore;
-    mLeftAxisRange = new Range();
     if (mRightAxisFormatter != null) {
       mRightAxisRange = rightAxisRange != null ? rightAxisRange : new Range();
     }
