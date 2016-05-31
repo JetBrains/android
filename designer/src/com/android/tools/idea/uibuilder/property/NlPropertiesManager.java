@@ -52,6 +52,7 @@ public class NlPropertiesManager implements DesignSurfaceListener, ModelListener
 
   @Nullable private DesignSurface mySurface;
   @Nullable private ScreenView myScreenView;
+  @Nullable private List<DesignSurfaceChangedListener> mySurfaceChangedListeners;
 
   private MergingUpdateQueue myUpdateQueue;
   private boolean myFirstLoad = true;
@@ -87,9 +88,31 @@ public class NlPropertiesManager implements DesignSurfaceListener, ModelListener
                                     screenView.getSelectionModel().getSelection() : Collections.emptyList();
       componentSelectionChanged(mySurface, selection);
     }
+    notifyDesignSurfaceChanged(mySurface);
   }
 
-  public @Nullable DesignSurface getDesignSurface() {
+  private void notifyDesignSurfaceChanged(@Nullable DesignSurface surface) {
+    if (mySurfaceChangedListeners == null || mySurfaceChangedListeners.isEmpty()) return;
+    for (int i = 0; i < mySurfaceChangedListeners.size(); i++) {
+      mySurfaceChangedListeners.get(i).surfaceChanged(surface);
+    }
+  }
+
+  /**
+   * Add or replace a {@link DesignSurfaceChangedListener}
+   *
+   * @param listener
+   */
+  public void addSurfaceChangedListener(@NotNull DesignSurfaceChangedListener listener) {
+    if (mySurfaceChangedListeners == null) {
+      mySurfaceChangedListeners = new ArrayList<>(2);
+    }
+    mySurfaceChangedListeners.remove(listener);
+    mySurfaceChangedListeners.add(listener);
+  }
+
+  @Nullable
+  public DesignSurface getDesignSurface() {
     return mySurface;
   }
 
@@ -261,5 +284,15 @@ public class NlPropertiesManager implements DesignSurfaceListener, ModelListener
 
   @Override
   public void dispose() {
+  }
+
+  public interface DesignSurfaceChangedListener {
+
+    /**
+     * Notify when the current instance of the DesignSurface used in the editor is changed.
+     *
+     * @param surface The new instance of the DesignSurface
+     */
+    void surfaceChanged(@Nullable DesignSurface surface);
   }
 }
