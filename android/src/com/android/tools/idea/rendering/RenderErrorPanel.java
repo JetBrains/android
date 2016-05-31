@@ -34,15 +34,12 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.compiler.impl.javaCompiler.javac.JavacConfiguration;
-import com.intellij.icons.AllIcons;
 import com.intellij.ide.DataManager;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.editor.colors.EditorColorsManager;
-import com.intellij.openapi.editor.colors.EditorColorsScheme;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.module.Module;
@@ -89,10 +86,6 @@ import org.jetbrains.jps.model.java.compiler.JpsJavaCompilerOptions;
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
-import javax.swing.text.Document;
-import javax.swing.text.Style;
-import javax.swing.text.StyleConstants;
-import javax.swing.text.StyledDocument;
 import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLFrameHyperlinkEvent;
 import java.awt.*;
@@ -100,9 +93,6 @@ import java.awt.datatransfer.StringSelection;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.*;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -267,20 +257,7 @@ public class RenderErrorPanel extends JPanel {
     myScrollPane.setOpaque(false);
     myScrollPane.setBackground(null);
 
-    Document document = myHTMLViewer.getDocument();
-    if (!(document instanceof StyledDocument)) {
-      return;
-    }
-
-    StyledDocument styledDocument = (StyledDocument)document;
-
-    EditorColorsManager colorsManager = EditorColorsManager.getInstance();
-    EditorColorsScheme scheme = colorsManager.getGlobalScheme();
-
-    Style style = styledDocument.addStyle("active", null);
-    StyleConstants.setFontFamily(style, scheme.getEditorFontName());
-    StyleConstants.setFontSize(style, scheme.getEditorFontSize());
-    styledDocument.setCharacterAttributes(0, document.getLength(), style, false);
+    HtmlBuilderHelper.fixFontStyles(myHTMLViewer);
 
     // Make background semitransparent
     Color background = myHTMLViewer.getBackground();
@@ -1520,53 +1497,5 @@ public class RenderErrorPanel extends JPanel {
     }
   }
 
-  public static class HtmlBuilderHelper {
-    @Nullable
-    private static String getIconPath(String relative) {
-      // TODO: Find a way to do this more efficiently; not referencing assets but the corresponding
-      // AllIcons constants, and loading them into HTML class loader contexts?
-      URL resource = AllIcons.class.getClassLoader().getResource(relative);
-      try {
-        return (resource != null) ? resource.toURI().toURL().toExternalForm() : null;
-      }
-      catch (MalformedURLException e) {
-        return null;
-      }
-      catch (URISyntaxException e) {
-        return null;
-      }
-    }
-
-    @Nullable
-    public static String getCloseIconPath() {
-      return getIconPath("/actions/closeNew.png");
-    }
-
-    @Nullable
-    public static String getTipIconPath() {
-      return getIconPath("/actions/createFromUsage.png");
-    }
-
-    @Nullable
-    public static String getWarningIconPath() {
-      return getIconPath("/general/warningDialog.png");
-    }
-
-    @Nullable
-    public static String getErrorIconPath() {
-      return getIconPath("/general/error.png");
-    }
-
-    @Nullable
-    public static String getRefreshIconPath() {
-      return getIconPath("/actions/refresh.png");
-    }
-
-    public static String getHeaderFontColor() {
-      // See om.intellij.codeInspection.HtmlComposer.appendHeading
-      // (which operates on StringBuffers)
-      return UIUtil.isUnderDarcula() ? "#A5C25C" : "#005555";
-    }
-  }
 }
 

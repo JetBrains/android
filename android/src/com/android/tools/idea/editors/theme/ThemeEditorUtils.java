@@ -666,7 +666,7 @@ public class ThemeEditorUtils {
   @NotNull
   public static ChooseResourceDialog getResourceDialog(@NotNull EditedStyleItem item,
                                                        @NotNull ThemeEditorContext context,
-                                                       ResourceType[] allowedTypes) {
+                                                       EnumSet<ResourceType> allowedTypes) {
     Module module = context.getModuleForResources();
     ItemResourceValue itemSelectedValue = item.getSelectedValue();
 
@@ -686,7 +686,15 @@ public class ThemeEditorUtils {
       resourceNameVisibility = ChooseResourceDialog.ResourceNameVisibility.SHOW;
     }
 
-    ChooseResourceDialog dialog = new ChooseResourceDialog(module, allowedTypes, value, isFrameworkValue, resourceNameVisibility, nameSuggestion);
+    ChooseResourceDialog dialog = ChooseResourceDialog.builder()
+      .setModule(module)
+      .setTypes(allowedTypes)
+      .setCurrentValue(value)
+      .setIsFrameworkValue(isFrameworkValue)
+      .setResourceNameVisibility(resourceNameVisibility)
+      .setResourceNameSuggestion(nameSuggestion)
+      .build();
+
     dialog.setUseGlobalUndo(true);
 
     return dialog;

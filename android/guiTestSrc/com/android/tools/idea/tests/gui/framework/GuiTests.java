@@ -29,6 +29,7 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectManagerAdapter;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.IdeFrame;
@@ -44,6 +45,7 @@ import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.ContainerFixture;
 import org.fest.swing.fixture.JListFixture;
+import org.fest.swing.fixture.JTableFixture;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -592,6 +594,59 @@ public final class GuiTests {
                !progressManager.hasProgressIndicator() &&
                !progressManager.hasUnsafeProgressIndicator();
       });
+  }
+
+  /** Pretty-prints the given table fixture */
+  @NotNull
+  public static String tableToString(@NotNull JTableFixture table) {
+    return tableToString(table, 0, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, 40);
+  }
+
+  /** Pretty-prints the given table fixture */
+  @NotNull
+  public static String tableToString(@NotNull JTableFixture table, int startRow, int endRow, int startColumn, int endColumn,
+                                     int cellWidth) {
+    String[][] contents = table.contents();
+
+    StringBuilder sb = new StringBuilder();
+    String formatString = "%-" + Integer.toString(cellWidth) + "s";
+    for (int row = Math.max(0, startRow); row < Math.min(endRow, contents.length); row++) {
+      for (int column = Math.max(0, startColumn); column < Math.min(contents[0].length, endColumn); column++) {
+        String cell = contents[row][column];
+        if (cell.length() > cellWidth) {
+          cell = cell.substring(0, cellWidth - 3) + "...";
+        }
+        sb.append(String.format(formatString, cell));
+      }
+      sb.append('\n');
+    }
+
+    return sb.toString();
+  }
+
+  /** Pretty-prints the given list fixture */
+  @NotNull
+  public static String listToString(@NotNull JListFixture list) {
+    return listToString(list, 0, Integer.MAX_VALUE, 40);
+  }
+
+  /** Pretty-prints the given list fixture */
+  @NotNull
+  public static String listToString(@NotNull JListFixture list, int startRow, int endRow, int cellWidth) {
+    String[] contents = list.contents();
+
+    StringBuilder sb = new StringBuilder();
+    String formatString = "%-" + Integer.toString(cellWidth) + "s";
+    for (int row = Math.max(0, startRow); row < Math.min(endRow, contents.length); row++) {
+      String cell = contents[row];
+      if (cell.length() > cellWidth) {
+        cell = cell.substring(0, cellWidth - 3) + "...";
+      }
+      sb.append(String.format(formatString, cell));
+      sb.append('\n');
+    }
+
+    return sb.toString();
   }
 
   @NotNull

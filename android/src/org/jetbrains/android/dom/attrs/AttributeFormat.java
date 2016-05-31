@@ -26,8 +26,8 @@ import java.util.Set;
 public enum AttributeFormat {
     Reference, String, Color, Dimension, Boolean, Integer, Float, Fraction, Enum, Flag;
 
-    public static ResourceType[] convertTypes(Set<AttributeFormat> formats) {
-        Set<ResourceType> types = EnumSet.noneOf(ResourceType.class);
+    public static EnumSet<ResourceType> convertTypes(Set<AttributeFormat> formats) {
+        EnumSet<ResourceType> types = EnumSet.noneOf(ResourceType.class);
         for (AttributeFormat format : formats) {
             switch (format) {
                 case Boolean:
@@ -63,6 +63,6 @@ public enum AttributeFormat {
             }
         }
 
-        return types.toArray(new ResourceType[types.size()]);
+        return types;
     }
 }

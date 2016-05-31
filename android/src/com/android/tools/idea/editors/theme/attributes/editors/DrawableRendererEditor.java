@@ -38,6 +38,7 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 
 import java.awt.image.BufferedImage;
+import java.util.EnumSet;
 import java.util.List;
 
 /**
@@ -102,7 +103,7 @@ public class DrawableRendererEditor extends GraphicalResourceRendererEditor {
 
   @NotNull
   @Override
-  protected ResourceType[] getAllowedResourceTypes() {
+  protected EnumSet<ResourceType> getAllowedResourceTypes() {
     return GraphicalResourceRendererEditor.DRAWABLES_ONLY;
   }
 }

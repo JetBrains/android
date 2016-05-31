@@ -15,7 +15,6 @@
  */
 package org.jetbrains.android.uipreview;
 
-import com.android.tools.idea.ui.resourcechooser.ResourceItem;
 import com.intellij.ide.util.DefaultPsiElementCellRenderer;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;

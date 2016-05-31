@@ -129,20 +129,26 @@ public class BrowsePanel extends JPanel {
   public static ChooseResourceDialog showResourceChooser(@NotNull NlProperty property) {
     Module module = property.getModel().getModule();
     AttributeDefinition definition = property.getDefinition();
-    ResourceType[] types = getResourceTypes(property.getName(), definition);
-    return new ChooseResourceDialog(module, types, property.getValue(), property.getTag());
+    EnumSet<ResourceType> types = getResourceTypes(property.getName(), definition);
+    //return new ChooseResourceDialog(module, types, property.getValue(), property.getTag());
+    return ChooseResourceDialog.builder()
+      .setModule(module)
+      .setTypes(types)
+      .setCurrentValue(property.getValue())
+      .setTag(property.getTag())
+      .build();
   }
 
   public static boolean hasResourceChooser(@NotNull NlProperty property) {
-    return getResourceTypes(property.getName(), property.getDefinition()).length > 0;
+    return !getResourceTypes(property.getName(), property.getDefinition()).isEmpty();
   }
 
   @NotNull
-  public static ResourceType[] getResourceTypes(@NotNull String propertyName, @Nullable AttributeDefinition definition) {
+  public static EnumSet<ResourceType> getResourceTypes(@NotNull String propertyName, @Nullable AttributeDefinition definition) {
     Set<AttributeFormat> formats = definition != null ? definition.getFormats() : EnumSet.allOf(AttributeFormat.class);
     // for some special known properties, we can narrow down the possible types (rather than the all encompassing reference type)
     ResourceType type = AndroidDomUtil.SPECIAL_RESOURCE_TYPES.get(propertyName);
-    return type == null ? AttributeFormat.convertTypes(formats) : new ResourceType[]{type};
+    return type == null ? AttributeFormat.convertTypes(formats) : EnumSet.of(type);
   }
 
   private enum DesignState {NOT_APPLICABLE, IS_DESIGN_PROPERTY, HAS_DESIGN_PROPERTY, MISSING_DESIGN_PROPERTY}

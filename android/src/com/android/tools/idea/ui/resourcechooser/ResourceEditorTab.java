@@ -19,6 +19,8 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.ResourceNameValidator;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -59,12 +61,8 @@ public abstract class ResourceEditorTab {
     myExpertDecorator = new HideableDecorator(myExpertPlaceholder, "Device Configuration", true) {
       private void pack() {
         // Hack to not shrink the window too small when we close or open the advanced panel.
-        SwingUtilities.invokeLater(new Runnable() {
-          @Override
-          public void run() {
-            SwingUtilities.getWindowAncestor(myExpertPlaceholder).pack();
-          }
-        });
+        ApplicationManager.getApplication().invokeLater(() -> SwingUtilities.getWindowAncestor(myExpertPlaceholder).pack(),
+                                                        ModalityState.any());
       }
 
       @Override

@@ -17,11 +17,12 @@ package com.android.tools.idea.editors.theme.attributes.editors;
 
 
 import com.android.resources.ResourceType;
+import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.ThemeEditorContext;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
-import com.intellij.openapi.ui.ComboBox;
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
+import com.intellij.openapi.ui.ComboBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,6 +30,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.EnumSet;
 
 /**
  * Custom Renderer and Editor for values of boolean attributes
@@ -37,7 +39,6 @@ import java.awt.event.ActionListener;
  */
 public class BooleanRendererEditor extends TypedCellRendererEditor<EditedStyleItem, String> {
   private static final String USE_REFERENCE = "Use reference ...";
-  private static final ResourceType[] BOOLEAN_TYPE = new ResourceType[] { ResourceType.BOOL };
   private static final String[] COMBOBOX_OPTIONS = {"true", "false", USE_REFERENCE};
 
   private final ComboBox myComboBox;
@@ -94,8 +95,13 @@ public class BooleanRendererEditor extends TypedCellRendererEditor<EditedStyleIt
       String selectedValue = (String) myComboBox.getSelectedItem();
       if (USE_REFERENCE.equals(selectedValue)) {
         myComboBox.hidePopup();
-        final ChooseResourceDialog dialog = new ChooseResourceDialog(myContext.getModuleForResources(), BOOLEAN_TYPE, myEditedItemValue, null);
-
+        Configuration configuration = myContext.getConfiguration();
+        ChooseResourceDialog dialog = ChooseResourceDialog.builder()
+          .setModule(myContext.getModuleForResources())
+          .setTypes(EnumSet.of(ResourceType.BOOL))
+          .setCurrentValue(myEditedItemValue)
+          .setConfiguration(configuration)
+          .build();
         dialog.show();
 
         if (dialog.isOK()) {

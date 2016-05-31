@@ -60,11 +60,11 @@ import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -720,13 +720,13 @@ public class HtmlLinkManager {
     @NotNull final XmlFile file,
     @NotNull final String activityName) {
 
-    ChooseResourceDialog dialog = new ChooseResourceDialog(module, new ResourceType[]{ResourceType.LAYOUT}, null, null) {
-      @NotNull
-      @Override
-      protected Action[] createLeftSideActions() {
-        return new Action[0];
-      }
-    };
+    ChooseResourceDialog dialog = ChooseResourceDialog.builder()
+      .setModule(module)
+      .setTypes(EnumSet.of(ResourceType.LAYOUT))
+      .setFile(file)
+      .setHideLeftSideActions(true)
+      .build();
+
     if (dialog.showAndGet()) {
       String layout = dialog.getResourceName();
       if (!layout.equals(LAYOUT_RESOURCE_PREFIX + file.getName())) {

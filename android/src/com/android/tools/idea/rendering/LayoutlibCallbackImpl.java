@@ -23,6 +23,7 @@ import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.lint.detector.api.LintUtils;
@@ -41,7 +42,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.RecyclerViewHelper;
 import org.jetbrains.android.uipreview.ViewLoader;
@@ -62,9 +62,8 @@ import java.net.MalformedURLException;
 import java.util.*;
 
 import static com.android.SdkConstants.*;
-import static com.android.ide.common.rendering.RenderParamsFlags.FLAG_KEY_APPLICATION_PACKAGE;
-import static com.android.ide.common.rendering.RenderParamsFlags.FLAG_KEY_RECYCLER_VIEW_SUPPORT;
-import static com.android.ide.common.rendering.RenderParamsFlags.FLAG_KEY_XML_FILE_PARSER_SUPPORT;
+import static com.android.ide.common.rendering.RenderParamsFlags.*;
+import static com.android.tools.idea.gradle.AndroidGradleModel.EXPLODED_AAR;
 import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
 /**
@@ -81,6 +80,8 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   private static final Set<String> NOT_VIEW = Collections.unmodifiableSet(Sets.newHashSet(RecyclerViewHelper.CN_RV_ADAPTER,
                                                                                           RecyclerViewHelper.CN_RV_LAYOUT_MANAGER,
                                                                                           "android.support.v7.internal.app.WindowDecorActionBar"));
+  /** Directory name for the bundled layoutlib installation */
+  public static final String FD_LAYOUTLIB = "layoutlib";
 
   @NotNull private final Module myModule;
   @NotNull private final AppResourceRepository myProjectRes;
@@ -130,6 +131,13 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
 
     AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
     myHasAppCompat = androidModel != null && GradleUtil.dependsOn(androidModel, APPCOMPAT_LIB_ARTIFACT);
+
+    String javaPackage = MergedManifest.get(myModule).getPackage();
+    if (javaPackage != null && javaPackage.length() > 0) {
+      myNamespace = URI_PREFIX + javaPackage;
+    } else {
+      myNamespace = AUTO_URI;
+    }
   }
 
   /** Resets the callback state for another render */
@@ -196,36 +204,9 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
    *
    * @return The package namespace of the project or null in case of error.
    */
-  // TODO: Remove
+  @Nullable
   @Override
   public String getNamespace() {
-    // TODO: use
-    //     final String namespace = AndroidXmlSchemaProvider.getLocalXmlNamespace(facet);
-    // instead!
-    if (myNamespace == null) {
-      String javaPackage = ApplicationManager.getApplication().runReadAction(new Computable<String>() {
-        @Nullable
-        @Override
-        public String compute() {
-          final AndroidFacet facet = AndroidFacet.getInstance(myModule);
-          if (facet == null) {
-            return null;
-          }
-
-          final Manifest manifest = facet.getManifest();
-          if (manifest == null) {
-            return null;
-          }
-
-          return manifest.getPackage().getValue();
-        }
-      });
-
-      if (javaPackage != null) {
-        myNamespace = String.format(NS_CUSTOM_RESOURCES_S, javaPackage);
-      }
-    }
-
     return myNamespace;
   }
 
@@ -265,6 +246,12 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   @Nullable
   @Override
   public XmlPullParser getXmlFileParser(String fileName) {
+    // No need to generate a PSI-based parser (which can read edited/unsaved contents) for files in build outputs or
+    // layoutlib built-in directories
+    if (fileName.contains(EXPLODED_AAR) || fileName.contains(FD_LAYOUTLIB)) {
+      return null;
+    }
+
     boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
     try {
       VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByPath(fileName);
@@ -359,7 +346,10 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     // contents rather than the most recently saved file contents.
     if (xml != null && xml.isFile()) {
       File parent = xml.getParentFile();
-      if (parent != null) {
+      String path = xml.getPath();
+      // No need to generate a PSI-based parser (which can read edited/unsaved contents) for files in build outputs or
+      // layoutlib built-in directories
+      if (parent != null && !path.contains(EXPLODED_AAR) && !path.contains(FD_LAYOUTLIB)) {
         String parentName = parent.getName();
         if (parentName.startsWith(FD_RES_LAYOUT) || parentName.startsWith(FD_RES_MENU)) {
           VirtualFile file = LocalFileSystem.getInstance().findFileByIoFile(xml);

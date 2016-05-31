@@ -1477,7 +1477,7 @@ public class DesignSurface extends JPanel implements Disposable {
     @Override
     public void doLayout() {
       super.doLayout();
-      setBackground(JBColor.RED);
+      setBackground(JBColor.RED); // make this null instead?
 
       if (!myProgressVisible) {
         return;

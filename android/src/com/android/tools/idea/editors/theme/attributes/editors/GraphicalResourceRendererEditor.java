@@ -58,9 +58,9 @@ import java.util.*;
  * and styles on the {@link ResourceComponent}.
  */
 public abstract class GraphicalResourceRendererEditor extends TypedCellRendererEditor<EditedStyleItem, String> {
-  public static final ResourceType[] COLORS_ONLY = {ResourceType.COLOR};
-  public static final ResourceType[] DRAWABLES_ONLY = {ResourceType.DRAWABLE, ResourceType.MIPMAP};
-  public static final ResourceType[] COLORS_AND_DRAWABLES = {ResourceType.COLOR, ResourceType.DRAWABLE, ResourceType.MIPMAP};
+  public static final EnumSet<ResourceType> COLORS_ONLY = EnumSet.of(ResourceType.COLOR);
+  public static final EnumSet<ResourceType> DRAWABLES_ONLY = EnumSet.of(ResourceType.DRAWABLE, ResourceType.MIPMAP);
+  public static final EnumSet<ResourceType> COLORS_AND_DRAWABLES = EnumSet.of(ResourceType.COLOR, ResourceType.DRAWABLE, ResourceType.MIPMAP);
   static final String DUMB_MODE_MESSAGE = "Editing theme is not possible - indexing is in progress";
 
   private static final Logger LOG = Logger.getInstance(GraphicalResourceRendererEditor.class);
@@ -225,7 +225,7 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellRendererE
    * Returns the allowed resource types for the attribute being edited
    */
   @NotNull
-  protected abstract ResourceType[] getAllowedResourceTypes();
+  protected abstract EnumSet<ResourceType> getAllowedResourceTypes();
 
   private class EditorClickListener extends DumbAwareActionListener {
     public EditorClickListener() {
