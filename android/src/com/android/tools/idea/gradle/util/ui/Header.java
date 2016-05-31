@@ -158,7 +158,7 @@ public class Header extends JPanel {
     setAdditionalActions(actions.toArray(new AnAction[actions.size()]));
   }
 
-  public void setAdditionalActions(@NotNull AnAction[] actions) {
+  public void setAdditionalActions(@NotNull AnAction...actions) {
     myButtonPanel.removeAll();
     myButtonPanel.revalidate();
     myButtonPanel.repaint();
