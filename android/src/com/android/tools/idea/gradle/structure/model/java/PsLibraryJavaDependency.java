@@ -33,7 +33,7 @@ import static com.intellij.util.PlatformIcons.LIBRARY_ICON;
 
 public class PsLibraryJavaDependency extends PsJavaDependency implements PsLibraryDependency {
   @NotNull private final List<PsArtifactDependencySpec> myPomDependencies = Lists.newArrayList();
-  @NotNull private final PsArtifactDependencySpec myResolvedSpec;
+  @NotNull private PsArtifactDependencySpec myResolvedSpec;
 
   @Nullable private final JarLibraryDependency myResolvedModel;
   @Nullable private PsArtifactDependencySpec myDeclaredSpec;
@@ -45,20 +45,9 @@ public class PsLibraryJavaDependency extends PsJavaDependency implements PsLibra
     super(parent, parsedModel);
     myResolvedSpec = resolvedSpec;
     myResolvedModel = resolvedModel;
-    setDeclaredSpec(parsedModel);
-  }
-
-  private void setDeclaredSpec(@Nullable ArtifactDependencyModel parsedModel) {
-    myDeclaredSpec = createSpec(parsedModel);
-  }
-
-  @Nullable
-  private static PsArtifactDependencySpec createSpec(@Nullable ArtifactDependencyModel parsedModel) {
     if (parsedModel != null) {
-      String compactNotation = parsedModel.compactNotation().value();
-      return PsArtifactDependencySpec.create(compactNotation);
+      setDeclaredSpec(createSpec(parsedModel));
     }
-    return null;
   }
 
   @Override
@@ -107,8 +96,13 @@ public class PsLibraryJavaDependency extends PsJavaDependency implements PsLibra
   }
 
   @Override
-  public void setVersion(@NotNull String version) {
+  public void setResolvedSpec(@NotNull PsArtifactDependencySpec spec) {
+    myResolvedSpec = spec;
+  }
 
+  @Override
+  public void setDeclaredSpec(@NotNull PsArtifactDependencySpec spec) {
+    myDeclaredSpec = spec;
   }
 
   @Override

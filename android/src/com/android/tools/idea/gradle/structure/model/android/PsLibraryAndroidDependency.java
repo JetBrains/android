@@ -35,7 +35,6 @@ import java.util.Objects;
 import java.util.Set;
 
 import static com.android.tools.idea.gradle.structure.model.PsDependency.TextType.PLAIN_TEXT;
-import static com.google.common.base.Strings.nullToEmpty;
 import static com.intellij.util.PlatformIcons.LIBRARY_ICON;
 
 public class PsLibraryAndroidDependency extends PsAndroidDependency implements PsLibraryDependency {
@@ -54,7 +53,9 @@ public class PsLibraryAndroidDependency extends PsAndroidDependency implements P
     super(parent, container, parsedModel);
     myResolvedSpec = resolvedSpec;
     myResolvedModel = resolvedModel;
-    setDeclaredSpec(parsedModel);
+    if (parsedModel != null) {
+      setDeclaredSpec(createSpec(parsedModel));
+    }
   }
 
   @Override
@@ -70,15 +71,6 @@ public class PsLibraryAndroidDependency extends PsAndroidDependency implements P
   void setDependenciesFromPomFile(@NotNull List<PsArtifactDependencySpec> pomDependencies) {
     myPomDependencies.clear();
     myPomDependencies.addAll(pomDependencies);
-  }
-
-  @Nullable
-  private static PsArtifactDependencySpec createSpec(@Nullable ArtifactDependencyModel parsedModel) {
-    if (parsedModel != null) {
-      String compactNotation = parsedModel.compactNotation().value();
-      return PsArtifactDependencySpec.create(compactNotation);
-    }
-    return null;
   }
 
   @Override
@@ -163,34 +155,13 @@ public class PsLibraryAndroidDependency extends PsAndroidDependency implements P
   }
 
   @Override
-  public void setVersion(@NotNull String version) {
-    boolean modified = false;
-    ArtifactDependencyModel reference = null;
-    for (DependencyModel parsedDependency : getParsedModels()) {
-      if (parsedDependency instanceof ArtifactDependencyModel) {
-        ArtifactDependencyModel dependency = (ArtifactDependencyModel)parsedDependency;
-        dependency.setVersion(version);
-        if (reference == null) {
-          reference = dependency;
-        }
-        modified = true;
-      }
-    }
-    if (modified) {
-      GradleVersion parsedVersion = GradleVersion.parse(version);
-      String resolvedVersion = nullToEmpty(myResolvedSpec.version);
-      if (parsedVersion.compareTo(resolvedVersion) != 0) {
-        // Update the "resolved" spec with the new version
-        myResolvedSpec = new PsArtifactDependencySpec(myResolvedSpec.name, myResolvedSpec.group, version);
-      }
-      setDeclaredSpec(reference);
-      setModified(true);
-      getParent().fireDependencyModifiedEvent(this);
-    }
+  public void setResolvedSpec(@NotNull PsArtifactDependencySpec spec) {
+    myResolvedSpec = spec;
   }
 
-  private void setDeclaredSpec(@Nullable ArtifactDependencyModel parsedModel) {
-    myDeclaredSpec = createSpec(parsedModel);
+  @Override
+  public void setDeclaredSpec(@NotNull PsArtifactDependencySpec spec) {
+    myDeclaredSpec = spec;
   }
 
   @Override
