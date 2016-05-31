@@ -50,9 +50,6 @@ class LayeredImageConverter {
   static String toVectorDrawableXml(@NotNull File path) throws IOException {
     FileInputStream in = new FileInputStream(path);
     Image image = PixelProbe.probe(in);
-    if (!image.isValid()) {
-      throw new IOException("Invalid image file: " + path.getAbsolutePath());
-    }
 
     // Find the total bounds of all the vector layers
     Rectangle2D bounds = new Rectangle2D.Double();
