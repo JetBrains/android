@@ -26,6 +26,8 @@ import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.run.AndroidProgramRunner;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.intellij.debugger.engine.DebugProcessImpl;
 import com.intellij.debugger.engine.PositionManagerImpl;
 import com.intellij.debugger.settings.DebuggerSettings;
@@ -141,7 +143,7 @@ public class InstantRunPositionManager extends PositionManagerImpl {
 
   private static Map<AndroidVersion, VirtualFile> createSourcesByApiLevel() {
     Collection<? extends LocalPackage> sourcePackages = getAllPlatformSourcePackages();
-    ImmutableMap.Builder<AndroidVersion, VirtualFile> builder = ImmutableMap.builder();
+    Map<AndroidVersion, VirtualFile> sourcesByApi = Maps.newHashMap();
     for (LocalPackage sourcePackage : sourcePackages) {
       TypeDetails typeDetails = sourcePackage.getTypeDetails();
       if (!(typeDetails instanceof DetailsTypes.ApiDetailsType)) {
@@ -154,11 +156,11 @@ public class InstantRunPositionManager extends PositionManagerImpl {
       AndroidVersion version = DetailsTypes.getAndroidVersion(details);
       VirtualFile sourceFolder = VfsUtil.findFileByIoFile(sourcePackage.getLocation(), true);
       if (sourceFolder != null && sourceFolder.isValid()) {
-        builder.put(version, sourceFolder);
+        sourcesByApi.put(version, sourceFolder);
       }
     }
 
-    return builder.build();
+    return ImmutableMap.copyOf(sourcesByApi);
   }
 
   private static Collection<? extends LocalPackage> getAllPlatformSourcePackages() {
