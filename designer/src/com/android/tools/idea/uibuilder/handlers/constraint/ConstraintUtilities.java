@@ -1319,49 +1319,53 @@ public class ConstraintUtilities {
    */
   @SuppressWarnings("EnumSwitchStatementWhichMissesCases")
   static void resetField(@NotNull Object layoutParams, @NotNull ConstraintAnchor anchor)
-    throws NoSuchFieldException, IllegalAccessException {
-    switch (anchor.getType()) {
-      case BASELINE: {
-        Field field = layoutParams.getClass().getField("baselineToBaseline");
-        field.set(layoutParams, -1);
+    throws IllegalAccessException {
+    try {
+      switch (anchor.getType()) {
+        case BASELINE: {
+          Field field = layoutParams.getClass().getField("baselineToBaseline");
+          field.set(layoutParams, -1);
+        }
+        break;
+        case LEFT: {
+          Field field = layoutParams.getClass().getField("leftToLeft");
+          field.set(layoutParams, -1);
+          field = layoutParams.getClass().getField("leftToRight");
+          field.set(layoutParams, -1);
+          field = layoutParams.getClass().getField("leftMargin");
+          field.set(layoutParams, -1);
+        }
+        break;
+        case RIGHT: {
+          Field field = layoutParams.getClass().getField("rightToLeft");
+          field.set(layoutParams, -1);
+          field = layoutParams.getClass().getField("rightToRight");
+          field.set(layoutParams, -1);
+          field = layoutParams.getClass().getField("rightMargin");
+          field.set(layoutParams, -1);
+        }
+        break;
+        case TOP: {
+          Field field = layoutParams.getClass().getField("topToTop");
+          field.set(layoutParams, -1);
+          field = layoutParams.getClass().getField("topToBottom");
+          field.set(layoutParams, -1);
+          field = layoutParams.getClass().getField("topMargin");
+          field.set(layoutParams, -1);
+        }
+        break;
+        case BOTTOM: {
+          Field field = layoutParams.getClass().getField("bottomToTop");
+          field.set(layoutParams, -1);
+          field = layoutParams.getClass().getField("bottomToBottom");
+          field.set(layoutParams, -1);
+          field = layoutParams.getClass().getField("bottomMargin");
+          field.set(layoutParams, -1);
+        }
+        break;
       }
-      break;
-      case LEFT: {
-        Field field = layoutParams.getClass().getField("lefToLeft");
-        field.set(layoutParams, -1);
-        field = layoutParams.getClass().getField("leftToRight");
-        field.set(layoutParams, -1);
-        field = layoutParams.getClass().getField("left_margin");
-        field.set(layoutParams, -1);
-      }
-      break;
-      case RIGHT: {
-        Field field = layoutParams.getClass().getField("rightToLeft");
-        field.set(layoutParams, -1);
-        field = layoutParams.getClass().getField("rightToRight");
-        field.set(layoutParams, -1);
-        field = layoutParams.getClass().getField("right_margin");
-        field.set(layoutParams, -1);
-      }
-      break;
-      case TOP: {
-        Field field = layoutParams.getClass().getField("topToTop");
-        field.set(layoutParams, -1);
-        field = layoutParams.getClass().getField("topToBottom");
-        field.set(layoutParams, -1);
-        field = layoutParams.getClass().getField("top_margin");
-        field.set(layoutParams, -1);
-      }
-      break;
-      case BOTTOM: {
-        Field field = layoutParams.getClass().getField("bottomToTop");
-        field.set(layoutParams, -1);
-        field = layoutParams.getClass().getField("bottomToBottom");
-        field.set(layoutParams, -1);
-        field = layoutParams.getClass().getField("bottom_margin");
-        field.set(layoutParams, -1);
-      }
-      break;
+    } catch (NoSuchFieldException e) {
+      // Ignore
     }
   }
 
@@ -1389,7 +1393,7 @@ public class ConstraintUtilities {
         case LEFT: {
           switch (target.getType()) {
             case LEFT: {
-              return layoutParams.getClass().getField("lefToLeft");
+              return layoutParams.getClass().getField("leftToLeft");
             }
             case RIGHT: {
               return layoutParams.getClass().getField("leftToRight");
