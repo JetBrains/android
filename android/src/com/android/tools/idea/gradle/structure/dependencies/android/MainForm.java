@@ -68,8 +68,9 @@ class MainForm implements Disposable {
   private JXLabel myScopesLabel;
 
   MainForm(@NotNull PsAndroidModule module) {
-    myScopesLabel.setBorder(getTextFieldBorder());
+    myScopesLabel.setBorder(BorderFactory.createCompoundBorder(getTextFieldBorder(), IdeBorderFactory.createEmptyBorder(2)));
     myScopesLabel.setBackground(getTextFieldBackground());
+    myScopesLabel.setText(" ");
 
     ScopesPanel scopesPanel = new ScopesPanel();
     myConfigurationsPanel = new ConfigurationsPanel();
@@ -212,9 +213,14 @@ class MainForm implements Disposable {
     if (configurations.isEmpty()) {
       return new ValidationInfo("Please select at least one configuration", myConfigurationsPanel);
     }
+
+    List<PsBuildType> buildTypes = myBuildTypesPanel.getSelectedBuildTypes();
+    if (buildTypes.isEmpty()) {
+      return new ValidationInfo("Please select at least one build type", myBuildTypesPanel);
+    }
+
     if (mySelectedScopeNames.isEmpty()) {
       if (configurations.size() == 1 && configurations.contains(ANDROID_TEST)) {
-        List<PsBuildType> buildTypes = myBuildTypesPanel.getSelectedBuildTypes();
         boolean hasDebugBuildType = false;
         for (PsBuildType buildType : buildTypes) {
           if (buildType.getName().equals(DEBUG_BUILD_TYPE)) {
@@ -257,9 +263,9 @@ class MainForm implements Disposable {
       super(new GridLayout(1, 0));
     }
 
-    private void createAndAddToolWindowPanel(@NotNull String title,
-                                             @NotNull JPanel contents,
-                                             @Nullable JComponent preferredFocusedComponent) {
+    void createAndAddToolWindowPanel(@NotNull String title,
+                                     @NotNull JPanel contents,
+                                     @Nullable JComponent preferredFocusedComponent) {
       ToolWindowPanel panel = new ToolWindowPanel(title, AndroidIcons.Android, null) {
       };
 
