@@ -28,7 +28,7 @@ public class PsBuildType extends PsChildModel implements PsAndroidModel {
 
   private String myName = "";
 
-  PsBuildType(@NotNull PsAndroidModule parent, @Nullable BuildType resolvedModel, @Nullable BuildTypeModel parsedModel) {
+  public PsBuildType(@NotNull PsAndroidModule parent, @Nullable BuildType resolvedModel, @Nullable BuildTypeModel parsedModel) {
     super(parent);
     myResolvedModel = resolvedModel;
     myParsedModel = parsedModel;

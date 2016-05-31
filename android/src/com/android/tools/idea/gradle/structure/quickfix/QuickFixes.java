@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsLibraryDependency;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
+import com.android.tools.idea.gradle.structure.model.java.PsJavaModule;
 import com.google.common.base.Splitter;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -56,13 +57,26 @@ public final class QuickFixes {
       PsAndroidModule androidModule = (PsAndroidModule)module;
       androidModule.forEachDeclaredDependency(declaredDependency -> {
         if (declaredDependency instanceof PsLibraryDependency) {
-          PsLibraryDependency libraryDependency = (PsLibraryDependency)declaredDependency;
-          PsArtifactDependencySpec declaredSpec = libraryDependency.getDeclaredSpec();
-          if (declaredSpec != null && dependency.equals(declaredSpec.compactNotation())) {
-            libraryDependency.setVersion(version);
-          }
+          setLibraryDependencyVersion((PsLibraryDependency)declaredDependency, dependency, version);
         }
       });
+    }
+    else if (module instanceof PsJavaModule) {
+      PsJavaModule javaModule = (PsJavaModule)module;
+      javaModule.forEachDeclaredDependency(declaredDependency -> {
+        if (declaredDependency instanceof PsLibraryDependency) {
+          setLibraryDependencyVersion((PsLibraryDependency)declaredDependency, dependency, version);
+        }
+      });
+    }
+  }
+
+  private static void setLibraryDependencyVersion(@NotNull PsLibraryDependency dependency,
+                                                  @NotNull String dependencySpec,
+                                                  @NotNull String version) {
+    PsArtifactDependencySpec declaredSpec = dependency.getDeclaredSpec();
+    if (declaredSpec != null && dependencySpec.equals(declaredSpec.compactNotation())) {
+      dependency.setVersion(version);
     }
   }
 }

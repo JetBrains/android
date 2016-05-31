@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.structure.configurables.ui.ArtifactReposito
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository;
 import com.intellij.openapi.Disposable;
+import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.components.JBLabel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,7 +41,7 @@ class LibraryDependencyForm implements Disposable {
   private JPanel mySearchPanelHost;
 
   LibraryDependencyForm(@NotNull PsModule module) {
-    myLibraryLabel.setBorder(getTextFieldBorder());
+    myLibraryLabel.setBorder(BorderFactory.createCompoundBorder(getTextFieldBorder(), IdeBorderFactory.createEmptyBorder(2)));
     myLibraryLabel.setBackground(getTextFieldBackground());
     myLibraryLabel.setText(" ");
 

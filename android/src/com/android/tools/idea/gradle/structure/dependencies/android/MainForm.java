@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.structure.dependencies.android;
 
+import com.android.tools.idea.gradle.structure.configurables.ui.PsCheckBoxList;
+import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowHeader;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowPanel;
 import com.android.tools.idea.gradle.structure.model.PsModel;
 import com.android.tools.idea.gradle.structure.model.PsModelNameComparator;
@@ -28,6 +30,7 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.ui.IdeBorderFactory;
 import icons.AndroidIcons;
 import org.jdesktop.swingx.JXLabel;
 import org.jetbrains.annotations.NonNls;
@@ -39,21 +42,18 @@ import java.awt.*;
 import java.util.Collections;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.ANDROID_TEST_COMPILE;
-import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.COMPILE;
-import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.TEST_COMPILE;
-import static com.android.tools.idea.gradle.structure.dependencies.android.ConfigurationsForm.Configuration.ANDROID_TEST;
-import static com.android.tools.idea.gradle.structure.dependencies.android.ConfigurationsForm.Configuration.MAIN;
-import static com.android.tools.idea.gradle.structure.dependencies.android.ConfigurationsForm.Configuration.UNIT_TEST;
+import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.*;
+import static com.android.tools.idea.gradle.structure.dependencies.android.Configuration.*;
 import static com.intellij.openapi.util.text.StringUtil.capitalize;
-import static com.intellij.ui.ScrollPaneFactory.createScrollPane;
+import static com.intellij.ui.SideBorder.LEFT;
+import static com.intellij.ui.SideBorder.RIGHT;
 import static com.intellij.util.ui.UIUtil.getTextFieldBackground;
 import static com.intellij.util.ui.UIUtil.getTextFieldBorder;
 
 class MainForm implements Disposable {
   @NonNls private static final String DEBUG_BUILD_TYPE = "debug";
 
-  @NotNull private final ConfigurationsForm myConfigurationsPanel;
+  @NotNull private final ConfigurationsPanel myConfigurationsPanel;
   @NotNull private final BuildTypesPanel myBuildTypesPanel;
   @NotNull private final ProductFlavorsPanel myProductFlavorsPanel;
 
@@ -69,14 +69,14 @@ class MainForm implements Disposable {
   private JXLabel myScopesLabel;
 
   MainForm(@NotNull PsAndroidModule module) {
-    myScopesLabel.setBorder(getTextFieldBorder());
+    myScopesLabel.setBorder(BorderFactory.createCompoundBorder(getTextFieldBorder(), IdeBorderFactory.createEmptyBorder(2)));
     myScopesLabel.setBackground(getTextFieldBackground());
+    myScopesLabel.setText(" ");
 
     ScopesPanel scopesPanel = new ScopesPanel();
-    myConfigurationsPanel = new ConfigurationsForm();
+    myConfigurationsPanel = new ConfigurationsPanel();
     myConfigurationsPanel.add(newSelection -> updateScopes(), this);
-    scopesPanel.createAndAddToolWindowPanel("Configurations", myConfigurationsPanel.getPanel(),
-                                            myConfigurationsPanel.getPreferredFocusedComponent());
+    scopesPanel.createAndAddToolWindowPanel("Configurations", myConfigurationsPanel, myConfigurationsPanel.getPreferredFocusedComponent());
 
     module.forEachBuildType(myAllBuildTypes::add);
     Collections.sort(myAllBuildTypes, new PsModelNameComparator<>());
@@ -95,7 +95,7 @@ class MainForm implements Disposable {
   }
 
   private void updateScopes() {
-    List<ConfigurationsForm.Configuration> configurations = myConfigurationsPanel.getSelectedConfigurations();
+    List<Configuration> configurations = myConfigurationsPanel.getSelectedConfigurations();
     List<PsBuildType> buildTypes = myBuildTypesPanel.getSelectedBuildTypes();
     List<PsProductFlavor> productFlavors = myProductFlavorsPanel.getSelectedProductFlavors();
     boolean allBuildTypesSelected = buildTypes.size() == myAllBuildTypes.size();
@@ -120,7 +120,7 @@ class MainForm implements Disposable {
   }
 
   @VisibleForTesting
-  static List<String> deduceScopes(@NotNull List<ConfigurationsForm.Configuration> configurations,
+  static List<String> deduceScopes(@NotNull List<Configuration> configurations,
                                    @NotNull List<PsBuildType> buildTypes,
                                    @NotNull List<PsProductFlavor> productFlavors,
                                    boolean allBuildTypesSelected,
@@ -210,13 +210,18 @@ class MainForm implements Disposable {
 
   @Nullable
   ValidationInfo validateInput() {
-    List<ConfigurationsForm.Configuration> configurations = myConfigurationsPanel.getSelectedConfigurations();
+    List<Configuration> configurations = myConfigurationsPanel.getSelectedConfigurations();
     if (configurations.isEmpty()) {
-      return new ValidationInfo("Please select at least one configuration", myConfigurationsPanel.getPanel());
+      return new ValidationInfo("Please select at least one configuration", myConfigurationsPanel);
     }
+
+    List<PsBuildType> buildTypes = myBuildTypesPanel.getSelectedBuildTypes();
+    if (buildTypes.isEmpty()) {
+      return new ValidationInfo("Please select at least one build type", myBuildTypesPanel);
+    }
+
     if (mySelectedScopeNames.isEmpty()) {
       if (configurations.size() == 1 && configurations.contains(ANDROID_TEST)) {
-        List<PsBuildType> buildTypes = myBuildTypesPanel.getSelectedBuildTypes();
         boolean hasDebugBuildType = false;
         for (PsBuildType buildType : buildTypes) {
           if (buildType.getName().equals(DEBUG_BUILD_TYPE)) {
@@ -236,7 +241,7 @@ class MainForm implements Disposable {
   public PsNewDependencyScopes getNewScopes() {
     if (!mySelectedScopeNames.isEmpty()) {
       List<String> artifactNames = Lists.newArrayList();
-      myConfigurationsPanel.getSelectedConfigurations().forEach(configuration -> artifactNames.add(configuration.artifactName));
+      myConfigurationsPanel.getSelectedConfigurations().forEach(configuration -> artifactNames.add(configuration.getArtifactName()));
 
       return new PsNewDependencyScopes(myBuildTypesPanel.getSelectedBuildTypes(), myProductFlavorsPanel.getSelectedProductFlavors(),
                                        artifactNames);
@@ -259,13 +264,28 @@ class MainForm implements Disposable {
       super(new GridLayout(1, 0));
     }
 
-    private void createAndAddToolWindowPanel(@NotNull String title,
-                                             @NotNull JPanel contents,
-                                             @Nullable JComponent preferredFocusedComponent) {
+    void createAndAddToolWindowPanel(@NotNull String title,
+                                     @NotNull JPanel contents,
+                                     @Nullable JComponent preferredFocusedComponent) {
       ToolWindowPanel panel = new ToolWindowPanel(title, AndroidIcons.Android, null) {
       };
-      panel.getHeader().setPreferredFocusedComponent(preferredFocusedComponent);
-      panel.add(createScrollPane(contents), BorderLayout.CENTER);
+
+      ToolWindowHeader header = panel.getHeader();
+
+      int borders = RIGHT;
+      if (myToolWindowPanels.isEmpty()) {
+        // The first panel should have left border.
+        borders = LEFT | borders;
+      }
+
+      header.setBorder(IdeBorderFactory.createBorder(borders));
+      header.setPreferredFocusedComponent(preferredFocusedComponent);
+      if (preferredFocusedComponent instanceof PsCheckBoxList) {
+        PsCheckBoxList<?> checkBoxList = (PsCheckBoxList)preferredFocusedComponent;
+        header.setAdditionalActions(checkBoxList.createSelectAllAction(), checkBoxList.createUnselectAllAction());
+      }
+
+      panel.add(contents, BorderLayout.CENTER);
       add(panel);
       myToolWindowPanels.add(panel);
     }

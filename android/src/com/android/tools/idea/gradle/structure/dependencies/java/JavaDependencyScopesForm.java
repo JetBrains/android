@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.dependencies.android;
+package com.android.tools.idea.gradle.structure.dependencies.java;
 
 import com.android.tools.idea.gradle.structure.dependencies.DependencyScopesForm;
-import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
-import com.android.tools.idea.gradle.structure.model.android.dependency.PsNewDependencyScopes;
+import com.android.tools.idea.gradle.structure.model.java.PsJavaModule;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.HyperlinkAdapter;
@@ -34,19 +33,17 @@ import static com.intellij.util.ui.UIUtil.getTreeFont;
 import static javax.swing.BorderFactory.createEmptyBorder;
 import static org.jetbrains.android.util.AndroidUiUtil.setUpAsHtmlLabel;
 
-public class AndroidDependencyScopesForm extends JPanel implements DependencyScopesForm {
+public class JavaDependencyScopesForm extends JPanel implements DependencyScopesForm {
   @NotNull private final MainForm myMainForm;
 
-  public AndroidDependencyScopesForm(@NotNull PsAndroidModule module) {
+  public JavaDependencyScopesForm(@NotNull PsJavaModule module) {
     super(new BorderLayout());
-
     JEditorPane instructionsPane = new JEditorPane();
     setUpAsHtmlLabel(instructionsPane, getTreeFont());
 
     instructionsPane.setText("<html><body><b>Step 2.</b><br/>" +
-                             "Assign a scope to the new dependency by selecting the scopes, build types and product " +
-                             "flavors where the dependency will be used.<br/><a " +
-                             "href='http://tools.android.com/tech-docs/new-build-system/user-guide#TOC-Dependencies-Android-Libraries-and-Multi-project-setup'>Open Documentation</a>" +
+                             "Assign a scope to the new dependency by selecting the configurations below.<br/><a " +
+                             "href='https://docs.gradle.org/current/userguide/artifact_dependencies_tutorial.html'>Open Documentation</a>" +
                              "</body></html>");
     instructionsPane.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
@@ -71,11 +68,6 @@ public class AndroidDependencyScopesForm extends JPanel implements DependencySco
   @NotNull
   public List<String> getSelectedScopeNames() {
     return myMainForm.getSelectedScopeNames();
-  }
-
-  @Nullable
-  public PsNewDependencyScopes getNewScopes() {
-    return myMainForm.getNewScopes();
   }
 
   @Nullable
