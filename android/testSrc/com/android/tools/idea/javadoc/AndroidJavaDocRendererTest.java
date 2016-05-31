@@ -323,9 +323,9 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
     myFixture.copyFileToProject(getTestDataPath() + "/javadoc/colors/third.xml", "res/color/third.xml");
     checkJavadoc("/javadoc/colors/values.xml", "res/values/values.xml",
                  "<html><body>" +
-                 "<table><tr><td><font color=\"#ff0000\"><B>@android:color/bright_foreground_dark_disabled</B></font></td><td>Not enabled</td></tr>" +
-                 "<tr><td><font color=\"#ff0000\"><B>@android:color/bright_foreground_dark</B></font></td><td>Not window_focused</td></tr>" +
-                 "<tr><td><font color=\"#ff0000\"><B>@android:color/bright_foreground_dark_inverse</B></font></td><td>Pressed</td></tr>" +
+                 "<table><tr><td><FONT color=\"#ff0000\"><B>@android:color/bright_foreground_dark_disabled</B></FONT></td><td>Not enabled</td></tr>" +
+                 "<tr><td><FONT color=\"#ff0000\"><B>@android:color/bright_foreground_dark</B></FONT></td><td>Not window_focused</td></tr>" +
+                 "<tr><td><FONT color=\"#ff0000\"><B>@android:color/bright_foreground_dark_inverse</B></FONT></td><td>Pressed</td></tr>" +
                  "<tr><td><table style=\"background-color:rgb(255,255,255);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:black\">#ffffff</td></tr></table></td><td>Selected</td><td><BR/>@android:color/my_white => #ffffff<BR/></td></tr>" +
                  "<tr><td><table style=\"background-color:rgb(0,0,0);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:white\">#000000</td></tr></table></td><td>Activated</td><td><BR/>@android:color/primary_text_dark => #000000<BR/></td></tr>" +
                  "<tr><td><table style=\"background-color:rgb(170,68,170);width:66px;text-align:center;" +

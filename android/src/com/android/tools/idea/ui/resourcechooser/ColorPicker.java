@@ -27,6 +27,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.ide.ui.LafManager;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.popup.Balloon;
 import com.intellij.openapi.util.SystemInfo;
@@ -499,16 +500,13 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
       pipette.setBorder(IdeBorderFactory.createEmptyBorder());
       pipette.setRolloverIcon(AllIcons.Ide.Pipette_rollover);
       pipette.setFocusable(false);
-      pipette.addActionListener(new ActionListener() {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-          myPicker.myOldColor = getColor();
-          myPicker.pick();
-          //JBPopupFactory.getInstance().createBalloonBuilder(new JLabel("Press ESC button to close pipette"))
-          //  .setAnimationCycle(2000)
-          //  .setSmallVariant(true)
-          //  .createBalloon().show(new RelativePoint(pipette, new Point(pipette.getWidth() / 2, 0)), Balloon.Position.above);
-        }
+      pipette.addActionListener(e -> {
+        myPicker.myOldColor = getColor();
+        myPicker.pick();
+        //JBPopupFactory.getInstance().createBalloonBuilder(new JLabel("Press ESC button to close pipette"))
+        //  .setAnimationCycle(2000)
+        //  .setSmallVariant(true)
+        //  .createBalloon().show(new RelativePoint(pipette, new Point(pipette.getWidth() / 2, 0)), Balloon.Position.above);
       });
       previewPanel.add(pipette);
     }
@@ -581,13 +579,10 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
 
       myHueComponent = new HueSlideComponent("Hue");
       myHueComponent.setToolTipText("Hue");
-      myHueComponent.addListener(new Consumer<Integer>() {
-        @Override
-        public void consume(Integer value) {
-          mySaturationBrightnessComponent.setHue(value.intValue() / 360.0f);
-          myOpacityComponent.setHue(value.intValue() / 360.0f);
-          mySaturationBrightnessComponent.repaint();
-        }
+      myHueComponent.addListener(value -> {
+        mySaturationBrightnessComponent.setHue(value.intValue() / 360.0f);
+        myOpacityComponent.setHue(value.intValue() / 360.0f);
+        mySaturationBrightnessComponent.repaint();
       });
 
       add(myHueComponent);
@@ -596,12 +591,9 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
         myOpacityComponent = new SlideComponent("Opacity");
         myOpacityComponent.setUnits(opacityInPercent ? SlideComponent.Unit.PERCENT : SlideComponent.Unit.LEVEL);
         myOpacityComponent.setToolTipText("Opacity");
-        myOpacityComponent.addListener(new Consumer<Integer>() {
-          @Override
-          public void consume(Integer integer) {
-            mySaturationBrightnessComponent.setOpacity(integer.intValue());
-            mySaturationBrightnessComponent.repaint();
-          }
+        myOpacityComponent.addListener(integer -> {
+          mySaturationBrightnessComponent.setOpacity(integer.intValue());
+          mySaturationBrightnessComponent.repaint();
         });
 
         add(myOpacityComponent);
@@ -939,7 +931,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     private static final int CELL_SIZE = JBUI.scale(40);
     private static final int COLUMN_COUNT = 10;
 
-    private List<Color> myRecommendedColors = new ArrayList<Color>();
+    private List<Color> myRecommendedColors = new ArrayList<>();
 
     private RecommendedColorsComponent(final ColorListener listener) {
       addMouseListener(new MouseAdapter() {
@@ -1398,15 +1390,6 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
         return false;
       }
     }
-  }
-
-  public static void main(String[] args) {
-    SwingUtilities.invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        showDialog(null, "", null, true, null, false);
-      }
-    });
   }
 
   // SlideComponent uses a lot of plain colors because it's a color-manipulating component.
