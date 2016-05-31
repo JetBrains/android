@@ -22,7 +22,6 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.module.Module;
-import com.intellij.ui.UIBundle;
 import icons.AndroidIcons;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
@@ -122,19 +121,19 @@ public class BrowsePanel extends JPanel {
   public static ChooseResourceDialog showResourceChooser(@NotNull NlProperty property) {
     Module module = property.getModel().getModule();
     AttributeDefinition definition = property.getDefinition();
-    ResourceType[] types = getResourceTypes(definition);
+    ResourceType[] types = getResourceTypes(property.getName(), definition);
     return new ChooseResourceDialog(module, types, property.getValue(), property.getTag());
   }
 
   public static boolean hasResourceChooser(@NotNull NlProperty property) {
-    return getResourceTypes(property.getDefinition()).length > 0;
+    return getResourceTypes(property.getName(), property.getDefinition()).length > 0;
   }
 
   @NotNull
-  public static ResourceType[] getResourceTypes(@Nullable AttributeDefinition definition) {
+  public static ResourceType[] getResourceTypes(@NotNull String propertyName, @Nullable AttributeDefinition definition) {
     Set<AttributeFormat> formats = definition != null ? definition.getFormats() : EnumSet.allOf(AttributeFormat.class);
     // for some special known properties, we can narrow down the possible types (rather than the all encompassing reference type)
-    ResourceType type = definition != null ? AndroidDomUtil.SPECIAL_RESOURCE_TYPES.get(definition.getName()) : null;
+    ResourceType type = AndroidDomUtil.SPECIAL_RESOURCE_TYPES.get(propertyName);
     return type == null ? AttributeFormat.convertTypes(formats) : new ResourceType[]{type};
   }
 

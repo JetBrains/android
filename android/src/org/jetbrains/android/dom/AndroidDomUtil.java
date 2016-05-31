@@ -77,7 +77,7 @@ public class AndroidDomUtil {
     // that it's a reference to a drawable.
     addSpecialResourceType(ResourceType.STRING, ATTR_LABEL, "description", ATTR_TITLE);
     addSpecialResourceType(ResourceType.DRAWABLE, ATTR_ICON);
-    addSpecialResourceType(ResourceType.STYLE, ATTR_THEME);
+    addSpecialResourceType(ResourceType.STYLE, ATTR_THEME, ATTR_STYLE);
     addSpecialResourceType(ResourceType.ANIM, "animation");
     addSpecialResourceType(ResourceType.ID, ATTR_ID, ATTR_LAYOUT_TO_RIGHT_OF, ATTR_LAYOUT_TO_LEFT_OF, ATTR_LAYOUT_ABOVE,
                            ATTR_LAYOUT_BELOW, ATTR_LAYOUT_ALIGN_BASELINE, ATTR_LAYOUT_ALIGN_LEFT, ATTR_LAYOUT_ALIGN_TOP,

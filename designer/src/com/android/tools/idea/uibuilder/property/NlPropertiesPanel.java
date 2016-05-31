@@ -130,6 +130,7 @@ public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Mo
     Map<String, NlPropertyItem> androidProperties = properties.row(SdkConstants.ANDROID_URI);
     Map<String, NlPropertyItem> autoProperties = properties.row(SdkConstants.AUTO_URI);
     Map<String, NlPropertyItem> designProperties = properties.row(TOOLS_URI);
+    Map<String, NlPropertyItem> bareProperties = properties.row("");
 
     // Include all auto (app) properties and all android properties that are not also auto properties.
     List<NlPropertyItem> result = new ArrayList<>(properties.size());
@@ -140,6 +141,7 @@ public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Mo
       }
     }
     result.addAll(designProperties.values());
+    result.addAll(bareProperties.values());
     return result;
   }
 
