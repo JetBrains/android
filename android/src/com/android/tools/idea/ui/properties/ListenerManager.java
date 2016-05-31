@@ -18,7 +18,6 @@ package com.android.tools.idea.ui.properties;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.intellij.util.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,6 +34,12 @@ import java.util.Map;
  * later. This can be fine for one or two listeners, but for more complex cases, use this class
  * to manage listeners for you (and remove them all easily using {@link #releaseAll()}
  * <p/>
+ * This class also provides convenience methods for listening by {@link Receiver}, which has more
+ * type safety than using a generic {@link InvalidationListener}.
+ * <p/>
+ * Finally, it provides a {@link #listenAll(Collection)} method, which allows you to register a
+ * single listener for many properties in aggregate.
+ * <p/>
  * Note: This class is currently not thread-safe. You are expected to add and remove listeners on
  * the dispatch thread to avoid undefined behavior.
  */
@@ -46,11 +51,11 @@ public final class ListenerManager {
   private final List<ListenerPairing> myListeners = Lists.newArrayList();
 
   /**
-   * The listen methods take either an invalidation listener (untyped) or a consumer (typed).
-   * When a user adds a consumer listener, those are wrapped in an invalidation listener, and the
-   * relationship is recorded here so we can later remove by consumer as well.
+   * The listen methods take either an invalidation listener (untyped) or a receiver (typed).
+   * When a user adds a receiver, those are wrapped in an invalidation listener, and the
+   * relationship is recorded here so we can later remove by receiver as well.
    */
-  private final Map<Consumer<?>, InvalidationListener> myConsumerMapping = Maps.newHashMap();
+  private final Map<Receiver<?>, InvalidationListener> myReceiverMapping = Maps.newHashMap();
 
   /**
    * List of listeners registered by listenAll.
@@ -75,18 +80,18 @@ public final class ListenerManager {
   }
 
   /**
-   * Like {@link #listen(ObservableValue, InvalidationListener)} but with a typed listener.
+   * Like {@link #listen(ObservableValue, InvalidationListener)} but with a typed receiver.
    */
-  public <T> void listen(@NotNull final ObservableValue<T> src, @NotNull final Consumer<T> listener) {
-    InvalidationListener listenerWrapper = sender -> listener.consume(src.get());
-    myConsumerMapping.put(listener, listenerWrapper);
+  public <T> void receive(@NotNull final ObservableValue<T> src, @NotNull final Receiver<T> receiver) {
+    InvalidationListener listenerWrapper = sender -> receiver.receive(src.get());
+    myReceiverMapping.put(receiver, listenerWrapper);
 
     listen(src, listenerWrapper);
   }
 
   /**
    * A convenience method which both registers the target listener and then fires it with the
-   * observable's latest value.
+   * observable's latest value (to initialize it, essentially).
    */
   public void listenAndFire(@NotNull ObservableValue<?> src, @NotNull InvalidationListener listener) {
     listen(src, listener);
@@ -94,12 +99,12 @@ public final class ListenerManager {
   }
 
   /**
-   * A convenience method which both registers the target listener and then fires it with the
-   * observable's latest value.
+   * A convenience method which both registers the target receiver and then fires it with the
+   * observable's latest value (to initialize it, essentially).
    */
-  public <T> void listenAndFire(@NotNull final ObservableValue<T> src, @NotNull final Consumer<T> listener) {
-    listen(src, listener);
-    listener.consume(src.get());
+  public <T> void receiveAndFire(@NotNull final ObservableValue<T> src, @NotNull final Receiver<T> receiver) {
+    receive(src, receiver);
+    receiver.receive(src.get());
   }
 
   /**
@@ -146,12 +151,12 @@ public final class ListenerManager {
   }
 
   /**
-   * Releases a listener previously registered via
-   * {@link #listen(ObservableValue, Consumer)}. If the listener was registered with
+   * Releases a receiver previously registered via
+   * {@link #receive(ObservableValue, Receiver)}. If the receiver was registered with
    * multiple observables, they will all be released.
    */
-  public void release(@NotNull Consumer<?> listener) {
-    InvalidationListener listenerWrapper = myConsumerMapping.get(listener);
+  public void release(@NotNull Receiver<?> receiver) {
+    InvalidationListener listenerWrapper = myReceiverMapping.get(receiver);
     if (listenerWrapper == null) {
       return;
     }
@@ -161,7 +166,7 @@ public final class ListenerManager {
   /**
    * Releases all listeners previously registered to a target observable via
    * {@link #listen(ObservableValue, InvalidationListener)} or
-   * {@link #listen(ObservableValue, Consumer)}.
+   * {@link #receive(ObservableValue, Receiver)}.
    */
   public void release(@NotNull ObservableValue<?> observable) {
     Iterator<ListenerPairing> i = myListeners.iterator();

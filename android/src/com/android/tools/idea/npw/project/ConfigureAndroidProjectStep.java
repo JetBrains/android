@@ -29,24 +29,18 @@ import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.swing.util.FormScalingUtil;
-import com.google.common.base.Splitter;
 import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.Consumer;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * First page in the New Project wizard that sets project/module name, location, and other project-global
@@ -74,16 +68,14 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModel
     BoolProperty isPackageSynced = new BoolValueProperty(true);
     myBindings.bind(packageNameText, computedPackageName, isPackageSynced);
     myBindings.bind(model.packageName(), packageNameText);
-    myListeners.listen(packageNameText,
-                       (Consumer<String>)sender -> isPackageSynced.set(packageNameText.get().equals(computedPackageName.get())));
+    myListeners.receive(packageNameText, value -> isPackageSynced.set(value.equals(computedPackageName.get())));
 
     Expression<String> computedLocation = model.applicationName().transform(ConfigureAndroidProjectStep::findProjectLocation);
     TextProperty locationText = new TextProperty(myProjectLocation.getChildComponent());
     BoolProperty isLocationSynced = new BoolValueProperty(true);
     myBindings.bind(locationText, computedLocation, isLocationSynced);
     myBindings.bind(model.projectLocation(), locationText);
-    myListeners.listen(locationText,
-                       (Consumer<String>)sender -> isLocationSynced.set(locationText.get().equals(computedLocation.get())));
+    myListeners.receive(locationText, value -> isLocationSynced.set(value.equals(computedLocation.get())));
 
     myBindings.bindTwoWay(new TextProperty(myAppName), model.applicationName());
     myBindings.bindTwoWay(new TextProperty(myCompanyDomain), model.companyDomain());

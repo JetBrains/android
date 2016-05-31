@@ -40,7 +40,6 @@ import com.google.common.primitives.Ints;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.treeStructure.Tree;
-import com.intellij.util.Consumer;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -137,93 +136,90 @@ public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIcon
   @Override
   protected void onEntering() {
     myListeners.release(mySelectedPaths); // Just in case we're entering this step a second time
-    myListeners.listenAndFire(mySelectedPaths, new Consumer<AndroidProjectPaths>() {
-      @Override
-      public void consume(AndroidProjectPaths paths) {
-        AndroidIconGenerator iconGenerator = getModel().getIconGenerator();
-        File resDir = paths.getResDirectory();
-        if (iconGenerator == null || resDir == null || resDir.getParentFile() == null) {
-          return;
-        }
+    myListeners.receiveAndFire(mySelectedPaths, paths -> {
+      AndroidIconGenerator iconGenerator = getModel().getIconGenerator();
+      File resDir = paths.getResDirectory();
+      if (iconGenerator == null || resDir == null || resDir.getParentFile() == null) {
+        return;
+      }
 
-        final Map<File, BufferedImage> pathIconMap = iconGenerator.generateIntoFileMap(paths);
-        myFilesAlreadyExist.set(false);
+      final Map<File, BufferedImage> pathIconMap = iconGenerator.generateIntoFileMap(paths);
+      myFilesAlreadyExist.set(false);
 
-        int minHeight = Integer.MAX_VALUE;
-        int maxHeight = Integer.MIN_VALUE;
-        for (BufferedImage image : pathIconMap.values()) {
-          minHeight = Math.min(minHeight, image.getHeight());
-          maxHeight = Math.max(maxHeight, image.getHeight());
-        }
+      int minHeight = Integer.MAX_VALUE;
+      int maxHeight = Integer.MIN_VALUE;
+      for (BufferedImage image : pathIconMap.values()) {
+        minHeight = Math.min(minHeight, image.getHeight());
+        maxHeight = Math.max(maxHeight, image.getHeight());
+      }
 
-        ImmutableSortedSet.Builder<File> sortedPaths = ImmutableSortedSet.orderedBy(new Comparator<File>() {
-          @Override
-          public int compare(File file1, File file2) {
-            String path1 = file1.getAbsolutePath();
-            String path2 = file2.getAbsolutePath();
-            Density density1 = CategoryIconMap.pathToDensity(path1);
-            Density density2 = CategoryIconMap.pathToDensity(path2);
+      ImmutableSortedSet.Builder<File> sortedPaths = ImmutableSortedSet.orderedBy(new Comparator<File>() {
+        @Override
+        public int compare(File file1, File file2) {
+          String path1 = file1.getAbsolutePath();
+          String path2 = file2.getAbsolutePath();
+          Density density1 = CategoryIconMap.pathToDensity(path1);
+          Density density2 = CategoryIconMap.pathToDensity(path2);
 
-            if (density1 != null && density2 != null && density1 != density2) {
-              // Sort least dense to most dense
-              return Ints.compare(density2.ordinal(), density1.ordinal());
-            }
-            else {
-              BufferedImage image1 = pathIconMap.get(file1);
-              BufferedImage image2 = pathIconMap.get(file2);
-              int compareValue = Ints.compare(image2.getHeight(), image1.getHeight());
-              // If heights are the same, use path as a tie breaker
-              return (compareValue != 0) ? compareValue : path2.compareTo(path1);
-            }
-
+          if (density1 != null && density2 != null && density1 != density2) {
+            // Sort least dense to most dense
+            return Ints.compare(density2.ordinal(), density1.ordinal());
           }
-        });
-        sortedPaths.addAll(pathIconMap.keySet());
-
-        FileTreeModel treeModel = new FileTreeModel(resDir.getParentFile(), true);
-
-        for (File path : sortedPaths.build()) {
-          Image image = pathIconMap.get(path);
-
-          if (path.exists()) {
-            myFilesAlreadyExist.set(true);
+          else {
+            BufferedImage image1 = pathIconMap.get(file1);
+            BufferedImage image2 = pathIconMap.get(file2);
+            int compareValue = Ints.compare(image2.getHeight(), image1.getHeight());
+            // If heights are the same, use path as a tie breaker
+            return (compareValue != 0) ? compareValue : path2.compareTo(path1);
           }
 
-          // By default, icons grow exponentially, and if presented at scale, may take up way too
-          // much real estate. Instead, let's scale down all icons proportionally so the largest
-          // one fits in our maximum allowed space.
-          if (maxHeight > MAX_TREE_ROW_HEIGHT) {
-            int hCurr = image.getHeight(null);
-            int wCurr = image.getWidth(null);
+        }
+      });
+      sortedPaths.addAll(pathIconMap.keySet());
 
-            double hScale;
-            if (maxHeight != minHeight) {
-              // From hMin <= hCurr <= hMax, interpolate to hMin <= hFinal <= MAX_TREE_ROW_HEIGHT
-              double hCurrPercent = (double)(hCurr - minHeight) / (double)(maxHeight - minHeight);
-              double scaledDeltaH = hCurrPercent * (MAX_TREE_ROW_HEIGHT - minHeight);
-              double hCurrScaled = minHeight + scaledDeltaH;
-              hScale = hCurrScaled / hCurr;
-            }
-            else {
-              // This happens if there's only one entry in the list and it's larger than
-              // MAX_TREE_ROW_HEIGHT
-              hScale = MAX_TREE_ROW_HEIGHT / (double)hCurr;
-            }
+      FileTreeModel treeModel = new FileTreeModel(resDir.getParentFile(), true);
 
-            int hFinal = (int)(hCurr * hScale);
-            int wFinal = (int)(wCurr * hScale);
-            image = image.getScaledInstance(wFinal, hFinal, Image.SCALE_SMOOTH);
+      for (File path : sortedPaths.build()) {
+        Image image = pathIconMap.get(path);
+
+        if (path.exists()) {
+          myFilesAlreadyExist.set(true);
+        }
+
+        // By default, icons grow exponentially, and if presented at scale, may take up way too
+        // much real estate. Instead, let's scale down all icons proportionally so the largest
+        // one fits in our maximum allowed space.
+        if (maxHeight > MAX_TREE_ROW_HEIGHT) {
+          int hCurr = image.getHeight(null);
+          int wCurr = image.getWidth(null);
+
+          double hScale;
+          if (maxHeight != minHeight) {
+            // From hMin <= hCurr <= hMax, interpolate to hMin <= hFinal <= MAX_TREE_ROW_HEIGHT
+            double hCurrPercent = (double)(hCurr - minHeight) / (double)(maxHeight - minHeight);
+            double scaledDeltaH = hCurrPercent * (MAX_TREE_ROW_HEIGHT - minHeight);
+            double hCurrScaled = minHeight + scaledDeltaH;
+            hScale = hCurrScaled / hCurr;
+          }
+          else {
+            // This happens if there's only one entry in the list and it's larger than
+            // MAX_TREE_ROW_HEIGHT
+            hScale = MAX_TREE_ROW_HEIGHT / (double)hCurr;
           }
 
-          treeModel.forceAddFile(path, new ImageIcon(image));
+          int hFinal = (int)(hCurr * hScale);
+          int wFinal = (int)(wCurr * hScale);
+          image = image.getScaledInstance(wFinal, hFinal, Image.SCALE_SMOOTH);
         }
 
-        myOutputPreviewTree.setModel(treeModel);
+        treeModel.forceAddFile(path, new ImageIcon(image));
+      }
 
-        // The tree should be totally expanded by default
-        for (int i = 0; i < myOutputPreviewTree.getRowCount(); ++i) {
-          myOutputPreviewTree.expandRow(i);
-        }
+      myOutputPreviewTree.setModel(treeModel);
+
+      // The tree should be totally expanded by default
+      for (int i = 0; i < myOutputPreviewTree.getRowCount(); ++i) {
+        myOutputPreviewTree.expandRow(i);
       }
     });
   }

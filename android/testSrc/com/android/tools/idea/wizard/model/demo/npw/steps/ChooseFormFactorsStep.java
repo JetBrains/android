@@ -26,7 +26,6 @@ import com.android.tools.idea.wizard.model.demo.npw.models.ProjectModel;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.ui.VerticalFlowLayout;
-import com.intellij.util.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -79,12 +78,9 @@ public final class ChooseFormFactorsStep extends ModelWizardStep<ProjectModel> {
         myPreferredFocus = checkbox;
       }
 
-      myListeners.listenAndFire(selected, new Consumer<Boolean>() {
-        @Override
-        public void consume(Boolean selected) {
-          ChooseActivityStep step = myFormFactorSteps.get(formFactor);
-          step.setVisible(selected);
-        }
+      myListeners.receiveAndFire(selected, value -> {
+        ChooseActivityStep step = myFormFactorSteps.get(formFactor);
+        step.setVisible(value);
       });
 
       myRootPanel.add(checkbox);
