@@ -477,6 +477,12 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintHardwareIdsInspection extends AndroidLintInspectionBase {
+    public AndroidLintHardwareIdsInspection() {
+      super(AndroidBundle.message("android.lint.inspections.hardware.ids"), HardwareIdDetector.ISSUE);
+    }
+  }
+
   public static class AndroidLintDrawAllocationInspection extends AndroidLintInspectionBase {
     public AndroidLintDrawAllocationInspection() {
       super(AndroidBundle.message("android.lint.inspections.draw.allocation"), JavaPerformanceDetector.PAINT_ALLOC);
