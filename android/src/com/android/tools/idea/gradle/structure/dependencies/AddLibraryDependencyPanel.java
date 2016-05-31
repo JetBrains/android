@@ -16,11 +16,13 @@
 package com.android.tools.idea.gradle.structure.dependencies;
 
 import com.android.tools.idea.gradle.structure.dependencies.android.AndroidDependencyScopesForm;
+import com.android.tools.idea.gradle.structure.dependencies.java.JavaDependencyScopesForm;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.model.android.PsLibraryAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.dependency.PsNewDependencyScopes;
+import com.android.tools.idea.gradle.structure.model.java.PsJavaModule;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.OnePixelDivider;
 import com.intellij.openapi.ui.ValidationInfo;
@@ -68,14 +70,17 @@ class AddLibraryDependencyPanel extends JPanel implements Disposable {
 
     if (myModule instanceof PsAndroidModule) {
       myScopesForm = new AndroidDependencyScopesForm((PsAndroidModule)myModule);
-      JPanel scopesPanel = myScopesForm.getPanel();
-      scopesPanel.setBorder(createMainPanelBorder());
-      splitter.setSecondComponent(scopesPanel);
+    }
+    else if (myModule instanceof PsJavaModule) {
+      myScopesForm = new JavaDependencyScopesForm((PsJavaModule)myModule);
     }
     else {
-      // TODO Implement "configurations" for Java modules
-      myScopesForm = null;
+      throw new IllegalStateException("Unsupported module type: " + myModule.getClass().getName());
     }
+
+    JPanel scopesPanel = myScopesForm.getPanel();
+    scopesPanel.setBorder(createMainPanelBorder());
+    splitter.setSecondComponent(scopesPanel);
 
     add(splitter, BorderLayout.CENTER);
     add(new TitlePanel(myModule), BorderLayout.NORTH);
@@ -144,7 +149,7 @@ class AddLibraryDependencyPanel extends JPanel implements Disposable {
     String library = myLibraryDependencyForm.getSelectedLibrary();
     assert library != null;
 
-    List<String> scopesNames = myScopesForm.getSelectedScopesNames();
+    List<String> scopesNames = myScopesForm.getSelectedScopeNames();
     if (myScopesForm instanceof AndroidDependencyScopesForm && myModule instanceof PsAndroidModule) {
       PsNewDependencyScopes newScopes = ((AndroidDependencyScopesForm)myScopesForm).getNewScopes();
       assert newScopes != null;

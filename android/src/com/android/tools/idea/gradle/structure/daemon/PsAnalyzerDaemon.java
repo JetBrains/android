@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.daemon.AvailableLibraryUpdateStorage.AvailableLibraryUpdate;
 import com.android.tools.idea.gradle.structure.daemon.AvailableLibraryUpdateStorage.AvailableLibraryUpdates;
 import com.android.tools.idea.gradle.structure.daemon.analysis.PsAndroidModuleAnalyzer;
+import com.android.tools.idea.gradle.structure.daemon.analysis.PsJavaModuleAnalyzer;
 import com.android.tools.idea.gradle.structure.daemon.analysis.PsModelAnalyzer;
 import com.android.tools.idea.gradle.structure.model.*;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
@@ -119,6 +120,7 @@ public class PsAnalyzerDaemon extends PsDaemon {
 
   private void createModelAnalyzers() {
     add(new PsAndroidModuleAnalyzer(getContext()));
+    add(new PsJavaModuleAnalyzer(getContext()));
   }
 
   private void add(@NotNull PsModelAnalyzer<? extends PsModel> analyzer) {

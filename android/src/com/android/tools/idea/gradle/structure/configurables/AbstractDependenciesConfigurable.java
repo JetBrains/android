@@ -13,10 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables.android.dependencies;
+package com.android.tools.idea.gradle.structure.configurables;
 
-import com.android.tools.idea.gradle.structure.configurables.BaseNamedConfigurable;
-import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import org.jetbrains.annotations.NotNull;
 

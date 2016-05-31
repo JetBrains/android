@@ -30,26 +30,22 @@ import org.jetbrains.plugins.gradle.model.ModuleExtendedModel;
 
 import java.io.File;
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.android.tools.idea.gradle.facet.JavaGradleFacet.COMPILE_JAVA_TASK_NAME;
 import static com.intellij.openapi.util.io.FileUtil.isAncestor;
-import static com.intellij.util.containers.ContainerUtil.getFirstItem;
-import static java.util.Collections.emptyList;
 
 public class JavaProject implements Serializable {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 2L;
+  private static final long serialVersionUID = 3L;
 
   @NotNull private String myModuleName;
   @NotNull private Collection<JavaModuleContentRoot> myContentRoots = Lists.newArrayList();
   @NotNull private Collection<JavaModuleDependency> myJavaModuleDependencies = Lists.newArrayList();
   @NotNull private Collection<JarLibraryDependency> myJarLibraryDependencies = Lists.newArrayList();
+  @NotNull private Map<String, Set<File>> myArtifactsByConfiguration;
+  @NotNull private List<String> myConfigurations;
 
-  @Nullable private Map<String, Set<File>> myArtifactsByConfiguration;
   @Nullable private ExtIdeaCompilerOutput myCompilerOutput;
   @Nullable private File myBuildFolderPath;
   @Nullable private String myLanguageLevel;
@@ -59,9 +55,14 @@ public class JavaProject implements Serializable {
 
   @NotNull
   public static JavaProject create(@NotNull IdeaModule ideaModule,
-                                   @Nullable ModuleExtendedModel extendedModel,
+                                   @SuppressWarnings("deprecation") @Nullable ModuleExtendedModel extendedModel,
                                    boolean androidProjectWithoutVariants) {
-    Collection<? extends IdeaContentRoot> contentRoots = getContentRoots(ideaModule, extendedModel);
+    Collection<? extends IdeaContentRoot> contentRoots = extendedModel != null ? extendedModel.getContentRoots() : null;
+    if (contentRoots == null) {
+      contentRoots = ideaModule.getContentRoots();
+    }
+    contentRoots = contentRoots != null ? contentRoots : Collections.emptyList();
+
     Map<String, Set<File>> artifactsByConfiguration = Maps.newHashMap();
     if (extendedModel != null) {
       artifactsByConfiguration = extendedModel.getArtifactsByConfiguration();
@@ -82,26 +83,12 @@ public class JavaProject implements Serializable {
   }
 
   @NotNull
-  private static Collection<? extends IdeaContentRoot> getContentRoots(@NotNull IdeaModule ideaModule,
-                                                                       @Nullable ModuleExtendedModel extendedModel) {
-    Collection<? extends IdeaContentRoot> contentRoots = extendedModel != null ? extendedModel.getContentRoots() : null;
-    if (contentRoots != null) {
-      return contentRoots;
-    }
-    contentRoots = ideaModule.getContentRoots();
-    if (contentRoots != null) {
-      return contentRoots;
-    }
-    return emptyList();
-  }
-
-  @NotNull
   private static List<? extends IdeaDependency> getDependencies(@NotNull IdeaModule ideaModule) {
     List<? extends IdeaDependency> dependencies = ideaModule.getDependencies().getAll();
     if (dependencies != null) {
       return dependencies;
     }
-    return emptyList();
+    return Collections.emptyList();
   }
 
   private static boolean isBuildable(@NotNull IdeaModule ideaModule) {
@@ -144,7 +131,11 @@ public class JavaProject implements Serializable {
       }
     }
 
-    myArtifactsByConfiguration = artifactsByConfiguration;
+    myArtifactsByConfiguration = artifactsByConfiguration != null ? artifactsByConfiguration : Collections.emptyMap();
+
+    myConfigurations = Lists.newArrayList(myArtifactsByConfiguration.keySet());
+    Collections.sort(myConfigurations);
+
     myCompilerOutput = compilerOutput;
     myBuildFolderPath = buildFolderPath;
     myLanguageLevel = languageLevel;
@@ -196,19 +187,7 @@ public class JavaProject implements Serializable {
     return false;
   }
 
-  @Nullable
-  public File getJarFilePath() {
-    Map<String, Set<File>> artifactsByConfiguration = getArtifactsByConfiguration();
-    if (artifactsByConfiguration != null) {
-      Set<File> defaultArtifacts = artifactsByConfiguration.get("default");
-      if (!defaultArtifacts.isEmpty()) {
-        return getFirstItem(defaultArtifacts);
-      }
-    }
-    return null;
-  }
-
-  @Nullable
+  @NotNull
   public Map<String, Set<File>> getArtifactsByConfiguration() {
     return myArtifactsByConfiguration;
   }
@@ -247,5 +226,10 @@ public class JavaProject implements Serializable {
       return LanguageLevel.parse(myLanguageLevel);
     }
     return null;
+  }
+
+  @NotNull
+  public List<String> getConfigurations() {
+    return myConfigurations;
   }
 }
