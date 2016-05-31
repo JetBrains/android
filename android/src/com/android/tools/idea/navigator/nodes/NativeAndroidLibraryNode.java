@@ -36,7 +36,6 @@ import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -254,10 +253,7 @@ public class NativeAndroidLibraryNode extends ProjectViewNode<Collection<NativeA
     if (!myNativeLibraryType.isEmpty()) {
       presentation.addText(" (" + myNativeLibraryType + ")", SimpleTextAttributes.GRAY_ATTRIBUTES);
     }
-    Icon icon = AllIcons.Modules.SourceRoot;
-    if (icon != null) {
-      presentation.setIcon(icon);
-    }
+    presentation.setIcon(AllIcons.Nodes.NativeLibrariesFolder);
   }
 
   @Override
