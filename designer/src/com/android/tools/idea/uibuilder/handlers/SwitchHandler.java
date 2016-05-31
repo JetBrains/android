@@ -40,4 +40,10 @@ public class SwitchHandler extends ButtonHandler {
       ATTR_SHOW_TEXT,
       ATTR_SPLIT_TRACK);
   }
+
+  @Override
+  @NotNull
+  public List<String> getBaseStyles(@NotNull String tagName) {
+    return ImmutableList.of("Widget.CompoundButton." + tagName);
+  }
 }

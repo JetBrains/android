@@ -65,12 +65,16 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
 
   public static NlTableCellEditor createForTable() {
     NlTableCellEditor cellEditor = new NlTableCellEditor();
-    cellEditor.init(new NlEnumEditor(cellEditor, cellEditor, true));
+    cellEditor.init(new NlEnumEditor(cellEditor, cellEditor, true, true));
     return cellEditor;
   }
 
   public static NlEnumEditor createForInspector(@NotNull NlEditingListener listener) {
-    return new NlEnumEditor(listener, null, false);
+    return new NlEnumEditor(listener, null, false, false);
+  }
+
+  public static NlEnumEditor createForInspectorWithBrowseButton(@NotNull NlEditingListener listener) {
+    return new NlEnumEditor(listener, null, false, true);
   }
 
   /**
@@ -92,6 +96,9 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
       case ATTR_DROPDOWN_WIDTH:
       case ATTR_ON_CLICK:
         return true;
+      case ATTR_STYLE:
+        String tagName = property.getTagName();
+        return tagName != null && StyleFilter.hasWidgetStyles(property.getModel().getProject(), property.getResolver(), tagName);
       default:
         if (property.getName().endsWith(ValueWithDisplayString.TEXT_APPEARANCE_SUFFIX)) {
           return true;
@@ -104,7 +111,8 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
 
   private NlEnumEditor(@NotNull NlEditingListener listener,
                        @Nullable BrowsePanel.Context context,
-                       boolean useDarculaUI) {
+                       boolean useDarculaUI,
+                       boolean includeBrowseButton) {
     super(listener);
     myAddedValueIndex = -1; // nothing added
     myPanel = new JPanel(new BorderLayout(SystemInfo.isMac ? 0 : 2, 0));
@@ -118,8 +126,13 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
     }
     myCombo.setEditable(true);
     myPanel.add(myCombo, BorderLayout.CENTER);
+
+    boolean showDesignButton = context != null;
+    if (includeBrowseButton && !showDesignButton) {
+      context = this;
+    }
     if (context != null) {
-      myPanel.add(new BrowsePanel(context, true), BorderLayout.LINE_END);
+      myPanel.add(new BrowsePanel(context, showDesignButton), BorderLayout.LINE_END);
     }
 
     myCombo.addActionListener(this::comboValuePicked);
@@ -191,7 +204,7 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
         values = ValueWithDisplayString.create(AVAILABLE_LINE_SPACINGS);
         break;
       case ATTR_TEXT_APPEARANCE:
-        values = createTextAttributeList(property);
+        values = createTextAttributeArray(property);
         break;
       case ATTR_LAYOUT_HEIGHT:
       case ATTR_LAYOUT_WIDTH:
@@ -202,9 +215,12 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
       case ATTR_ON_CLICK:
         values = createOnClickValues(property);
         break;
+      case ATTR_STYLE:
+        values = createStyleArrayFromTag(property);
+        break;
       default:
         if (property.getName().endsWith(ValueWithDisplayString.TEXT_APPEARANCE_SUFFIX)) {
-          values = createTextAttributeList(property);
+          values = createTextAttributeArray(property);
         }
         else {
           values = definition == null ? ValueWithDisplayString.EMPTY_ARRAY : ValueWithDisplayString.create(definition.getValues());
@@ -321,14 +337,23 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
     }
   }
 
-  private static ValueWithDisplayString[] createTextAttributeList(@NotNull NlProperty property) {
-    StyleFilter checker = new StyleFilter(property.getResolver());
-    TextAttributeAccumulator accumulator = new TextAttributeAccumulator();
+  private static ValueWithDisplayString[] createTextAttributeArray(@NotNull NlProperty property) {
+    StyleFilter checker = new StyleFilter(property.getModel().getProject(), property.getResolver());
+    StyleAccumulator accumulator = new StyleAccumulator();
     checker.getStylesDerivedFrom("TextAppearance", true).forEach(accumulator::append);
     return accumulator.getValues().toArray(new ValueWithDisplayString[0]);
   }
 
-  private static class TextAttributeAccumulator {
+  private static ValueWithDisplayString[] createStyleArrayFromTag(@NotNull NlProperty property) {
+    String tagName = property.getTagName();
+    assert tagName != null;
+    StyleFilter checker = new StyleFilter(property.getModel().getProject(), property.getResolver());
+    StyleAccumulator accumulator = new StyleAccumulator();
+    checker.getWidgetStyles(tagName).forEach(accumulator::append);
+    return accumulator.getValues().toArray(new ValueWithDisplayString[0]);
+  }
+
+  private static class StyleAccumulator {
     private final List<ValueWithDisplayString> myValues = new ArrayList<>();
     private StyleResourceValue myPreviousStyle;
 
@@ -338,7 +363,7 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
         myValues.add(ValueWithDisplayString.SEPARATOR);
       }
       myPreviousStyle = style;
-      myValues.add(ValueWithDisplayString.createTextAppearanceValue(style.getName(), getStylePrefix(style), null));
+      myValues.add(ValueWithDisplayString.createStyleValue(style.getName(), getStylePrefix(style), null));
     }
 
     @NotNull

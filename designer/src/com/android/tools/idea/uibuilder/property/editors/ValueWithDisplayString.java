@@ -65,7 +65,7 @@ public class ValueWithDisplayString {
     }
     String display = property.resolveValue(value);
     if (property.getName().equals(SdkConstants.ATTR_TEXT_APPEARANCE) || property.getName().endsWith(TEXT_APPEARANCE_SUFFIX)) {
-      ValueWithDisplayString attr = createTextAppearanceValue(display, "", value);
+      ValueWithDisplayString attr = createStyleValue(display, "", value);
       if (attr != null) {
         return attr;
       }
@@ -73,9 +73,9 @@ public class ValueWithDisplayString {
     return new ValueWithDisplayString(display, value);
   }
 
-  public static ValueWithDisplayString createTextAppearanceValue(@NotNull String styleName,
-                                                                 @NotNull String defaultPrefix,
-                                                                 @Nullable String value) {
+  public static ValueWithDisplayString createStyleValue(@NotNull String styleName,
+                                                        @NotNull String defaultPrefix,
+                                                        @Nullable String value) {
     String prefix = "";
     String display = styleName;
     String style = styleName;
