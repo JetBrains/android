@@ -26,6 +26,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardF
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -127,6 +128,7 @@ public class NewActivityTest {
     assertEquals(StringUtil.getOccurrenceCount(text, "android:parentActivityName=\".MyActivity\">"), 1);
   }
 
+  @Ignore("go/studio-builder/builders/ubuntu-studio-master-dev-uitests/builds/290")
   @Test
   public void createActivityWithInvalidHierarchicalParent() throws Exception {
     myConfigActivity.enterTextFieldValue(ActivityTextField.HIERARCHICAL_PARENT, "google.simpleapplication.MyActivityWrong");
@@ -174,6 +176,7 @@ public class NewActivityTest {
     myDialog.clickCancel();
   }
 
+  @Ignore("go/studio-builder/builders/ubuntu-studio-master-dev-uitests/builds/272")
   @Test
   public void changeLayoutNameUndo() throws Exception {
     // Changing "Layout Name" causes "Activity Name" and "Title" to change

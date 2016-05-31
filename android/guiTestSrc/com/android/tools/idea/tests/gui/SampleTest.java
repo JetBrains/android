@@ -19,6 +19,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.ScreenshotsDuringTest;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,6 +35,7 @@ public class SampleTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
   @Rule public final ScreenshotsDuringTest screenshotsDuringTest = new ScreenshotsDuringTest();
 
+  @Ignore("go/studio-builder/builders/ubuntu-studio-master-dev-uitests/builds/290")
   @Test
   public void testEditor() throws IOException {
     guiTest.importSimpleApplication();
