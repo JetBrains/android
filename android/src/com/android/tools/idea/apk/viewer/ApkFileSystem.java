@@ -17,6 +17,8 @@ package com.android.tools.idea.apk.viewer;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.apk.AndroidApkFileType;
+import com.google.common.primitives.Shorts;
+import com.google.devrel.gmscore.tools.apk.arsc.Chunk;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileTypes.FileTypeRegistry;
 import com.intellij.openapi.util.Key;
@@ -124,7 +126,7 @@ public class ApkFileSystem extends ArchiveFileSystem {
   @Override
   public byte[] contentsToByteArray(@NotNull VirtualFile file) throws IOException {
     byte[] bytes = super.contentsToByteArray(file);
-    if (!isBinaryXml(file)) {
+    if (!isBinaryXml(file, bytes)) {
       return bytes;
     }
 
@@ -175,13 +177,24 @@ public class ApkFileSystem extends ArchiveFileSystem {
   /**
    * @return Whether the given file is a binary XML file within the APK.
    */
-  public boolean isBinaryXml(@NotNull VirtualFile file) {
-    return isBinaryXml(getRelativePath(file));
+  public boolean isBinaryXml(VirtualFile file, byte[] bytes) {
+    return isBinaryXml(getRelativePath(file), bytes);
   }
 
-  public static boolean isBinaryXml(@NotNull String relativePath) {
-    return relativePath.equals(SdkConstants.FN_ANDROID_MANIFEST_XML) ||
-           relativePath.startsWith(SdkConstants.FD_RES) && relativePath.endsWith(SdkConstants.DOT_XML);
+  public static boolean isBinaryXml(String relativePath, byte[] bytes) {
+    if (!relativePath.endsWith(SdkConstants.DOT_XML)) {
+      return false;
+    }
+
+    boolean encodedXmlPath = relativePath.equals(SdkConstants.FN_ANDROID_MANIFEST_XML) ||
+                             (relativePath.startsWith(SdkConstants.FD_RES) &&
+                              !relativePath.startsWith(SdkConstants.FD_RES + "/" + SdkConstants.FD_RES_RAW));
+    if (!encodedXmlPath) {
+      return false;
+    }
+
+    short code = Shorts.fromBytes(bytes[1], bytes[0]);
+    return code == Chunk.Type.XML.code();
   }
 
   public boolean isArsc(@NotNull VirtualFile file) {
