@@ -34,6 +34,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.refactoring.UnusedResourcesQuickFix;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
@@ -670,7 +671,7 @@ public class AndroidLintInspectionToolProvider {
             Project project = startElement.getProject();
             final XmlFile file = PsiTreeUtil.getParentOfType(startElement, XmlFile.class);
             if (file != null) {
-              SuppressLintIntentionAction.ensureNamespaceImported(project, file, AUTO_URI);
+              AndroidResourceUtil.ensureNamespaceImported(file, AUTO_URI, null);
               PsiDocumentManager.getInstance(project).doPostponedOperationsAndUnblockDocument(document);
             }
           }
@@ -815,7 +816,18 @@ public class AndroidLintInspectionToolProvider {
 
   public static class AndroidLintVectorDrawableCompatInspection extends AndroidLintInspectionBase {
     public AndroidLintVectorDrawableCompatInspection() {
-      super(AndroidBundle.message("android.lint.inspections.vector.drawable.compat"), com.android.tools.lint.checks.VectorDrawableCompatDetector.ISSUE);
+      super(AndroidBundle.message("android.lint.inspections.vector.drawable.compat"), VectorDrawableCompatDetector.ISSUE);
+    }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
+      XmlAttribute attribute = PsiTreeUtil.getParentOfType(startElement, XmlAttribute.class, false);
+      if (attribute != null && ATTR_SRC.equals(attribute.getLocalName())) {
+        return new AndroidLintQuickFix[] {new RenameAttributeQuickFix(AUTO_URI, ATTR_SRC_COMPAT)};
+      } else {
+        return AndroidLintQuickFix.EMPTY_ARRAY;
+      }
     }
   }
 

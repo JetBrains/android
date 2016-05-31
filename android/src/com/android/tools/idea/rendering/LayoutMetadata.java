@@ -34,7 +34,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import org.jetbrains.android.inspections.lint.SuppressLintIntentionAction;
+import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -306,7 +306,7 @@ public class LayoutMetadata {
           }
         } else {
           if (namespace != null) {
-            SuppressLintIntentionAction.ensureNamespaceImported(project, file, namespace);
+            AndroidResourceUtil.ensureNamespaceImported(file, namespace, null);
             element.setAttribute(name, namespace, value);
           } else {
             element.setAttribute(name, value);
@@ -388,7 +388,7 @@ public class LayoutMetadata {
               }
             } else {
               if (namespace != null) {
-                SuppressLintIntentionAction.ensureNamespaceImported(project, file, namespace);
+                AndroidResourceUtil.ensureNamespaceImported(file, namespace, null);
                 tag.setAttribute(name, namespace, value);
               } else {
                 tag.setAttribute(name, value);
