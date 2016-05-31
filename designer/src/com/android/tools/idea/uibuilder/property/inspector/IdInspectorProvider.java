@@ -89,7 +89,7 @@ public class IdInspectorProvider implements InspectorProvider {
       myWidthEditor = NlEnumEditor.createForInspector(DEFAULT_LISTENER);
       myHeightEditor = NlEnumEditor.createForInspector(DEFAULT_LISTENER);
       myConstraintWidget = new WidgetConstraintPanel(ImmutableList.of());
-      myWidgetNavigatorPanel = new WidgetNavigatorPanel(propertiesManager.getDesignSurface());
+      myWidgetNavigatorPanel = new WidgetNavigatorPanel(propertiesManager);
     }
 
     @Override
