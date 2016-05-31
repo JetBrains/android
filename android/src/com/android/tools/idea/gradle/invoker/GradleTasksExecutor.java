@@ -416,7 +416,8 @@ public class GradleTasksExecutor extends Task.Backgroundable {
       }
     }
 
-    File projectDirPath = getBaseDirPath(project);
+    File buildFilePath = myContext.getBuildFilePath();
+    File projectDirPath = buildFilePath != null ? buildFilePath : getBaseDirPath(project);
     myHelper.execute(projectDirPath.getPath(), executionSettings, executeTasksFunction);
   }
 
