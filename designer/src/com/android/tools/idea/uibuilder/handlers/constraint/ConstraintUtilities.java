@@ -1087,19 +1087,6 @@ public class ConstraintUtilities {
   }
 
   /**
-   * Return true if the widget is contained inside a ConstraintLayout
-   *
-   * @param widget
-   * @return
-   */
-  private static boolean isInConstraintLayout(ConstraintWidget widget) {
-    if (widget.getParent() instanceof ConstraintWidgetContainer) {
-      return true;
-    }
-    return false;
-  }
-
-  /**
    * Utility function to commit to the NlModel the current state of the given widget
    *
    * @param model  the constraintmodel we are working with
@@ -1108,15 +1095,16 @@ public class ConstraintUtilities {
   static void commitElement(ConstraintModel model, @NotNull ConstraintWidget widget) {
     WidgetCompanion companion = (WidgetCompanion)widget.getCompanionWidget();
     NlComponent component = (NlComponent)companion.getWidgetModel();
-    if (model.getDragDropWidget() == widget || isInConstraintLayout(widget)) {
+    if (widget.isRoot() || widget.isRootContainer() || !widget.isInsideConstraintLayout()) {
+      return;
+    }
+    if (model.getDragDropWidget() == widget) {
       setEditorPosition(widget, component, widget.getX(), widget.getY());
     } else {
       clearEditorPosition(component);
     }
 
-    if (!widget.isRoot()) {
-      setDimension(component, widget);
-    }
+    setDimension(component, widget);
     for (ConstraintAnchor anchor : widget.getAnchors()) {
       setConnection(component, anchor);
     }

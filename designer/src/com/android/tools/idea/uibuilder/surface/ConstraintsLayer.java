@@ -104,24 +104,24 @@ public class ConstraintsLayer extends Layer {
    * @return true if the component needs a repaint (for example when running an application)
    */
   private boolean drawComponent(@NotNull Graphics2D gc, @NotNull NlComponent component) {
-    if (component.viewInfo == null) {
-      return false;
-    }
+    if (component.viewInfo != null) {
 
-    ViewHandler handler = component.getViewHandler();
+      ViewHandler handler = component.getViewHandler();
 
-    // Check if the view handler handles the painting
-    if (handler != null && handler instanceof ViewGroupHandler) {
-      ViewGroupHandler viewGroupHandler = (ViewGroupHandler)handler;
-      if (viewGroupHandler.handlesPainting()) {
-        return viewGroupHandler.drawGroup(gc, myScreenView, component);
+      // Check if the view handler handles the painting
+      if (handler != null && handler instanceof ViewGroupHandler) {
+        ViewGroupHandler viewGroupHandler = (ViewGroupHandler)handler;
+        if (viewGroupHandler.handlesPainting()) {
+          return viewGroupHandler.drawGroup(gc, myScreenView, component);
+        }
       }
-    }
 
-    if (handler != null) {
-      if (handler.paintConstraints(myScreenView, gc, component)) {
-        return false;
+      if (handler != null) {
+        if (handler.paintConstraints(myScreenView, gc, component)) {
+          return false;
+        }
       }
+
     }
 
     boolean needsRepaint = false;
