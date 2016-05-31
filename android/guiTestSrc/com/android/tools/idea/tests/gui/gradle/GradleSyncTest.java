@@ -1507,4 +1507,30 @@ public class GradleSyncTest {
 
     Wait.minutes(2).expecting("sync to be skipped").until(syncSkipped::get);
   }
+
+  /**
+   * Verify that the project syncs and gradle file updates after changing the minSdkVersion in the build.gradle file.
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   *   <pre>
+   *   Steps:
+   *   1. Import a project.
+   *   2. Open build.gradle file for the project and update the min sdk value to 23.
+   *   3. Sync the project.
+   *   Verify:
+   *   Project syncs and minSdk version is updated.
+   *   </pre>
+   */
+  @Test
+  public void modifyMinSdk() throws Exception {
+    guiTest.importSimpleApplication()
+      .getEditor()
+      .open("app/build.gradle")
+      .select("minSdkVersion (19)")
+      .enterText("23")
+      .awaitNotification("Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
+      .performAction("Sync Now")
+      .waitForGradleProjectSyncToFinish();
+  }
 }
