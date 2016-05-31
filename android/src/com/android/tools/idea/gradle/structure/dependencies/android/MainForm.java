@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.dependencies.android;
 
+import com.android.tools.idea.gradle.structure.configurables.ui.PsCheckBoxList;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowHeader;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowPanel;
 import com.android.tools.idea.gradle.structure.model.PsModel;
@@ -79,7 +80,7 @@ class MainForm implements Disposable {
 
     module.forEachBuildType(myAllBuildTypes::add);
     Collections.sort(myAllBuildTypes, new PsModelNameComparator<>());
-    myBuildTypesPanel = new BuildTypesPanel(module, myAllBuildTypes);
+    myBuildTypesPanel = new BuildTypesPanel(myAllBuildTypes);
     myBuildTypesPanel.add(newSelection -> updateScopes(), this);
     scopesPanel.createAndAddToolWindowPanel("Build Types", myBuildTypesPanel, myBuildTypesPanel.getPreferredFocusedComponent());
 
@@ -279,6 +280,10 @@ class MainForm implements Disposable {
 
       header.setBorder(IdeBorderFactory.createBorder(borders));
       header.setPreferredFocusedComponent(preferredFocusedComponent);
+      if (preferredFocusedComponent instanceof PsCheckBoxList) {
+        PsCheckBoxList<?> checkBoxList = (PsCheckBoxList)preferredFocusedComponent;
+        header.setAdditionalActions(checkBoxList.createSelectAllAction(), checkBoxList.createUnselectAllAction());
+      }
 
       panel.add(contents, BorderLayout.CENTER);
       add(panel);
