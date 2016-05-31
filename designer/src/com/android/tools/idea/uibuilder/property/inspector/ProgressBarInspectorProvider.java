@@ -57,7 +57,7 @@ public class ProgressBarInspectorProvider implements InspectorProvider {
    * ProgressBar inspector component. Has a dual view depending on the value of determinate.
    */
   private static class ProgressBarInspectorComponent implements InspectorComponent {
-    private final NlReferenceEditor myStyleEditor;
+    private final NlEnumEditor myStyleEditor;
     private final NlReferenceEditor myDrawableEditor;
     private final NlReferenceEditor myIndeterminateDrawableEditor;
     private final NlReferenceEditor myTintEditor;
@@ -81,7 +81,7 @@ public class ProgressBarInspectorProvider implements InspectorProvider {
 
     public ProgressBarInspectorComponent(@NotNull NlPropertiesManager propertiesManager) {
       Project project = propertiesManager.getProject();
-      myStyleEditor = NlReferenceEditor.createForInspectorWithBrowseButton(project, DEFAULT_LISTENER);
+      myStyleEditor = NlEnumEditor.createForInspectorWithBrowseButton(DEFAULT_LISTENER);
       myDrawableEditor = NlReferenceEditor.createForInspectorWithBrowseButton(project, DEFAULT_LISTENER);
       myIndeterminateDrawableEditor = NlReferenceEditor.createForInspectorWithBrowseButton(project, DEFAULT_LISTENER);
       myTintEditor = NlReferenceEditor.createForInspectorWithBrowseButton(project, DEFAULT_LISTENER);

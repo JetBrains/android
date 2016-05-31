@@ -106,6 +106,12 @@ public interface NlProperty {
   XmlTag getTag();
 
   /**
+   * Get the Tag name of the components we are handling or {@code null} if we are handling multiple components with different tags.
+   */
+  @Nullable
+  String getTagName();
+
+  /**
    * Return a child property by name.
    * An exception is raised if no such child property exists.
    */

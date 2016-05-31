@@ -274,6 +274,21 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
 
   @Override
   @Nullable
+  public String getTagName() {
+    String tagName = null;
+    for (NlComponent component : myComponents) {
+      if (tagName == null) {
+        tagName = component.getTagName();
+      }
+      else if (!tagName.equals(component.getTagName())) {
+        return null;
+      }
+    }
+    return tagName;
+  }
+
+  @Override
+  @Nullable
   public ResourceResolver getResolver() {
     Configuration configuration = getModel().getConfiguration();
     //noinspection ConstantConditions

@@ -304,6 +304,8 @@ public class ViewHandlerManager implements ProjectComponent {
         return new SearchFragmentHandler();
       case SEEK_BAR:
         return new SeekBarHandler();
+      case SNACKBAR:
+        return STANDARD_HANDLER;
       case SPACE:
         return new SpaceHandler();
       case SURFACE_VIEW:
