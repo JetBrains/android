@@ -64,7 +64,7 @@ public class AddGradleDependencyTest {
     dependencyOnLibrary3.configurationName = COMPILE;
     dependencyOnLibrary3.path = ":library3";
 
-    GradleBuildModelFixture buildModel = guiTest.ideFrame().parseBuildFileForModule("app", false);
+    GradleBuildModelFixture buildModel = guiTest.ideFrame().parseBuildFileForModule("app");
     buildModel.requireDependency(dependencyOnLibrary3);
 
     verifyUndo(editor, 1);
@@ -90,7 +90,7 @@ public class AddGradleDependencyTest {
     dependencyOnLibrary3.configurationName = ANDROID_TEST_COMPILE;
     dependencyOnLibrary3.path = ":library3";
 
-    GradleBuildModelFixture buildModel = guiTest.ideFrame().parseBuildFileForModule("app", false);
+    GradleBuildModelFixture buildModel = guiTest.ideFrame().parseBuildFileForModule("app");
     buildModel.requireDependency(dependencyOnLibrary3);
 
     verifyUndo(editor, 1);
@@ -101,7 +101,7 @@ public class AddGradleDependencyTest {
   public void testAddLibDependencyDeclaredInJavaProject() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("MultiModule");
 
-    GradleBuildModelFixture library3BuildModel = guiTest.ideFrame().parseBuildFileForModule("library3", false);
+    GradleBuildModelFixture library3BuildModel = guiTest.ideFrame().parseBuildFileForModule("library3");
     ArtifactDependencySpec gson = new ArtifactDependencySpec("gson", "com.google.code.gson", "2.4");
     library3BuildModel.getTarget().dependencies().addArtifact(COMPILE, gson);
     library3BuildModel.applyChanges();
@@ -118,7 +118,7 @@ public class AddGradleDependencyTest {
     guiTest.ideFrame().waitForGradleProjectSyncToFinish();
     editor.waitForCodeAnalysisHighlightCount(ERROR, 0);
 
-    GradleBuildModelFixture appBuildModel = guiTest.ideFrame().parseBuildFileForModule("app", false);
+    GradleBuildModelFixture appBuildModel = guiTest.ideFrame().parseBuildFileForModule("app");
     appBuildModel.requireDependency(COMPILE, gson);
 
     verifyUndo(editor, 1);
@@ -129,7 +129,7 @@ public class AddGradleDependencyTest {
   public void testAddLibDependencyDeclaredInAndroidProject() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("MultiModule");
 
-    GradleBuildModelFixture appBuildModel = guiTest.ideFrame().parseBuildFileForModule("app", false);
+    GradleBuildModelFixture appBuildModel = guiTest.ideFrame().parseBuildFileForModule("app");
     ArtifactDependencySpec gson = new ArtifactDependencySpec("gson", "com.google.code.gson", "2.4");
     appBuildModel.getTarget().dependencies().addArtifact(COMPILE, gson);
     appBuildModel.applyChanges();
@@ -200,7 +200,7 @@ public class AddGradleDependencyTest {
     guiTest.ideFrame().waitForGradleProjectSyncToFinish();
     editor.waitForCodeAnalysisHighlightCount(ERROR, 0);
 
-    GradleBuildModelFixture appBuildModel = guiTest.ideFrame().parseBuildFileForModule("app", false);
+    GradleBuildModelFixture appBuildModel = guiTest.ideFrame().parseBuildFileForModule("app");
     ArtifactDependencySpec expected = new ArtifactDependencySpec("junit", "junit", "4.12");
     appBuildModel.requireDependency(TEST_COMPILE, expected);
 
@@ -224,7 +224,7 @@ public class AddGradleDependencyTest {
     guiTest.ideFrame().waitForGradleProjectSyncToFinish();
     editor.waitForCodeAnalysisHighlightCount(ERROR, 0);
 
-    GradleBuildModelFixture appBuildModel = guiTest.ideFrame().parseBuildFileForModule("app", false);
+    GradleBuildModelFixture appBuildModel = guiTest.ideFrame().parseBuildFileForModule("app");
     ArtifactDependencySpec expected = new ArtifactDependencySpec("annotations-java5", "org.jetbrains", "15.0");
     appBuildModel.requireDependency(COMPILE, expected);
 

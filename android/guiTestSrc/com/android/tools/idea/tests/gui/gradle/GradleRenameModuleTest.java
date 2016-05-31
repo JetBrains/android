@@ -86,7 +86,7 @@ public class GradleRenameModuleTest {
     assertNotNull(guiTest.ideFrame().findModule("newLibrary"));
 
     // app module has two references to library module
-    GradleBuildModelFixture buildModel = guiTest.ideFrame().parseBuildFileForModule("app", true);
+    GradleBuildModelFixture buildModel = guiTest.ideFrame().parseBuildFileForModule("app");
 
     ExpectedModuleDependency expected = new ExpectedModuleDependency();
     expected.configurationName = "debugCompile";
