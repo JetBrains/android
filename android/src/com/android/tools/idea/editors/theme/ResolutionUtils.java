@@ -18,6 +18,7 @@ package com.android.tools.idea.editors.theme;
 import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
+import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.ResourceUrl;
@@ -30,7 +31,6 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.lint.checks.ApiLookup;
-import com.google.common.base.Strings;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -46,9 +46,10 @@ import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static com.android.SdkConstants.*;
 
@@ -58,8 +59,6 @@ import static com.android.SdkConstants.*;
 public class ResolutionUtils {
 
   private static final Logger LOG = Logger.getInstance(ResolutionUtils.class);
-
-  private static final Pattern RESOURCE_URL_MATCHER = Pattern.compile("@(.*:)?(.+/)(.+)");
 
   // Utility methods class isn't meant to be constructed, all methods are static.
   private ResolutionUtils() { }
@@ -91,14 +90,9 @@ public class ResolutionUtils {
    */
   @NotNull
   public static String getQualifiedNameFromResourceUrl(@NotNull String styleResourceUrl) {
-    Matcher matcher = RESOURCE_URL_MATCHER.matcher(styleResourceUrl);
-    boolean matches = matcher.find();
-    assert matches : "no match " + styleResourceUrl;
-
-    String namespace = Strings.nullToEmpty(matcher.group(1)); // the namespace containing the colon (if existing)
-    String resourceName = matcher.group(3); // the resource name
-
-    return namespace + resourceName;
+    ResourceUrl url = ResourceUrl.parse(styleResourceUrl);
+    assert url != null : styleResourceUrl;
+    return url.namespace != null ? url.namespace + ':' + url.name : url.name;
   }
 
   /**
@@ -112,20 +106,12 @@ public class ResolutionUtils {
   }
 
   /**
-   * @return the namespace of the full name, so bob:thing will return bob
-   */
-  @Nullable("if there is no namespace")
-  public static String getNamespaceFromQualifiedName(String qualifiedName) {
-    int colonIndex = qualifiedName.indexOf(':');
-    return colonIndex != -1 ? qualifiedName.substring(0, colonIndex) : null;
-  }
-
-  /**
    * Returns the style name, including the appropriate namespace.
    */
   @NotNull
   public static String getQualifiedStyleName(@NotNull StyleResourceValue style) {
-    return (style.isFramework() ? PREFIX_ANDROID : "") + style.getName();
+    String name = style.getName();
+    return style.isFramework() ? PREFIX_ANDROID + name : name;
   }
 
   /**
@@ -133,7 +119,8 @@ public class ResolutionUtils {
    */
   @NotNull
   public static String getQualifiedItemName(@NotNull ItemResourceValue item) {
-    return (item.isFrameworkAttr() ? PREFIX_ANDROID : "") + item.getName();
+    String name = item.getName();
+    return item.isFrameworkAttr() ? PREFIX_ANDROID + name : name;
   }
 
   /**
@@ -271,12 +258,13 @@ public class ResolutionUtils {
 
   @NotNull
   public static Collection<ItemResourceValue> getThemeAttributes(@NotNull ResourceResolver resolver, final @NotNull String themeUrl) {
-    Map<String, ItemResourceValue> allItems = new HashMap<String, ItemResourceValue>();
+    Map<String, ItemResourceValue> allItems = new HashMap<>();
     String themeName = getQualifiedNameFromResourceUrl(themeUrl);
     do {
       StyleResourceValue theme = resolver.getStyle(getNameFromQualifiedName(themeName), themeName.startsWith(PREFIX_ANDROID));
-      assert theme != null;
-
+      if (theme == null) {
+        break;
+      }
       Collection<ItemResourceValue> themeItems = theme.getValues();
       for (ItemResourceValue item : themeItems) {
         String itemName = getQualifiedItemName(item);
@@ -330,7 +318,7 @@ public class ResolutionUtils {
       assert target != null;
       ResourceRepository resourceRepository = configurationManager.getResolverCache().getFrameworkResources(configuration, target);
       assert resourceRepository != null;
-      com.android.ide.common.resources.ResourceItem resourceItem = resourceRepository.getResourceItem(resolvedValue.getResourceType(), resolvedValue.getName());
+      ResourceItem resourceItem = resourceRepository.getResourceItem(resolvedValue.getResourceType(), resolvedValue.getName());
       configurables = resourceItem.getSourceFileList();
     }
     else {
