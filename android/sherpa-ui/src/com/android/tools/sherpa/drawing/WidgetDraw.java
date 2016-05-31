@@ -98,7 +98,7 @@ public class WidgetDraw {
         if (widget.getParent() instanceof ConstraintWidgetContainer) {
             ConstraintWidgetContainer parent = (ConstraintWidgetContainer) widget.getParent();
             if (widget instanceof Guideline) {
-                if (parent.isRoot()) {
+                if (parent.isRootContainer()) {
                     drawRootGuideline(transform, g, parent, (Guideline) widget, isSelected);
                 }
                 return;
@@ -193,7 +193,7 @@ public class WidgetDraw {
                 drawTableLayoutGuidelines(transform, g2, (ConstraintTableLayout) widget);
             }
         }
-        if (!widget.isRoot() && (horizontalSpring || verticalSpring)) {
+        if (!widget.isRootContainer() && (horizontalSpring || verticalSpring)) {
             int x = l;
             int y = t;
             Stroke previousStroke = g.getStroke();

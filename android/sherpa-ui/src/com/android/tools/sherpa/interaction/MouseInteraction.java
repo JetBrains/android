@@ -380,7 +380,7 @@ public class MouseInteraction {
             reset();
             Collection<ConstraintWidget> widgets = mWidgetsScene.getWidgets();
             for (ConstraintWidget widget : widgets) {
-                if (widget == mWidgetsScene.getRoot() && mMode != DRAG_MODE) {
+                if ((widget.isRoot() || widget.isRootContainer()) && mMode != DRAG_MODE) {
                     continue;
                 }
                 addWidgetToPicker(widget, mPicker);
@@ -629,7 +629,7 @@ public class MouseInteraction {
         }
 
         // don't allow direct interactions with root
-        if (widget == mWidgetsScene.getRoot()) {
+        if (widget != null && (widget.isRoot() || widget.isRootContainer())) {
             widget = null;
         }
 
@@ -932,7 +932,8 @@ public class MouseInteraction {
                     // if we have a resize handle selected, let's resize!
                     Selection.Element selection = mSelection.getFirstElement();
                     if (mSelection.getSelectedResizeHandle() != null &&
-                            !selection.widget.isRoot()) {
+                            !selection.widget.isRoot() &&
+                            !selection.widget.isRootContainer()) {
                         ArrayList<ConstraintWidget> widgetsToCheck =
                                 new ArrayList<ConstraintWidget>();
                         for (ConstraintWidget w : mWidgetsScene.getWidgets()) {
@@ -992,7 +993,7 @@ public class MouseInteraction {
                             }
                             if (handleTarget.getAnchor().getType() ==
                                     handle.getAnchor().getType()) {
-                                if (handleTarget.getOwner().isRoot()) {
+                                if (handleTarget.getOwner().isRootContainer()) {
                                     // for root we use a default margin (16dp)
                                     margin = Math.max(SnapPlacement.DEFAULT_MARGIN, margin);
                                 } else {

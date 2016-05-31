@@ -349,7 +349,7 @@ public class WidgetsScene {
             }
         }
         for (ConstraintWidget widget : mWidgets.values()) {
-            if (widget.isRoot()) {
+            if (widget.isRootContainer()) {
                 continue;
             }
             ResizeHandle handle = findResizeHandleInWidget(widget, x, y, transform);
