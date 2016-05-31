@@ -33,7 +33,7 @@ import javax.swing.*;
  */
 public class LintNotificationAction extends AnAction {
   private final DesignSurface mySurface;
-  private int myCount;
+  private int myCount = -1;
 
   public LintNotificationAction(@NotNull DesignSurface surface) {
     mySurface = surface;
@@ -43,39 +43,35 @@ public class LintNotificationAction extends AnAction {
   public void update(AnActionEvent e) {
     Presentation presentation = e.getPresentation();
     ScreenView screenView = mySurface.getCurrentScreenView();
-    if (screenView == null) {
-      presentation.setVisible(false);
-      return;
-    }
-    LintAnnotationsModel lintModel = screenView.getModel().getLintAnnotationsModel();
-    if (lintModel == null) {
-      presentation.setVisible(false);
-      return;
-    }
-
-    int markerCount = lintModel.getIssueCount();
-    if (markerCount == 0) {
-      presentation.setVisible(false);
-    } else {
-      presentation.setVisible(true);
-
-      if (markerCount != myCount) {
-        myCount = markerCount;
-        Icon icon;
-        switch (markerCount) {
-          case 1: icon = AndroidIcons.LintNotification.Lint1; break;
-          case 2: icon = AndroidIcons.LintNotification.Lint2; break;
-          case 3: icon = AndroidIcons.LintNotification.Lint3; break;
-          case 4: icon = AndroidIcons.LintNotification.Lint4; break;
-          case 5: icon = AndroidIcons.LintNotification.Lint5; break;
-          case 6: icon = AndroidIcons.LintNotification.Lint6; break;
-          case 7: icon = AndroidIcons.LintNotification.Lint7; break;
-          case 8: icon = AndroidIcons.LintNotification.Lint8; break;
-          case 9: icon = AndroidIcons.LintNotification.Lint9; break;
-          default: icon = AndroidIcons.LintNotification.Lint9plus; break;
-        }
-        presentation.setIcon(icon);
+    int markerCount = 0;
+    if (screenView != null) {
+      LintAnnotationsModel lintModel = screenView.getModel().getLintAnnotationsModel();
+      if (lintModel != null) {
+        markerCount = lintModel.getIssueCount();
       }
+    }
+
+    if (markerCount != myCount) {
+      myCount = markerCount;
+      Icon icon;
+      switch (markerCount) {
+        case 0: icon = AndroidIcons.LintNotification.Lint0; break;
+        case 1: icon = AndroidIcons.LintNotification.Lint1; break;
+        case 2: icon = AndroidIcons.LintNotification.Lint2; break;
+        case 3: icon = AndroidIcons.LintNotification.Lint3; break;
+        case 4: icon = AndroidIcons.LintNotification.Lint4; break;
+        case 5: icon = AndroidIcons.LintNotification.Lint5; break;
+        case 6: icon = AndroidIcons.LintNotification.Lint6; break;
+        case 7: icon = AndroidIcons.LintNotification.Lint7; break;
+        case 8: icon = AndroidIcons.LintNotification.Lint8; break;
+        case 9: icon = AndroidIcons.LintNotification.Lint9; break;
+        default: icon = AndroidIcons.LintNotification.Lint9plus; break;
+      }
+      presentation.setIcon(icon);
+      presentation.setText(markerCount == 0 ? "No Warnings" : "Show Warnings and Errors");
+      // Leaving action enabled, since the disabled icon currently doesn't look right.
+      // Instead we check in the action performed method and do nothing if the error count
+      // is 0.
     }
   }
 
@@ -85,7 +81,7 @@ public class LintNotificationAction extends AnAction {
     ScreenView screenView = mySurface.getCurrentScreenView();
     if (screenView != null) {
       LintAnnotationsModel lintModel = screenView.getModel().getLintAnnotationsModel();
-      if (lintModel != null) {
+      if (lintModel != null && lintModel.getIssueCount() > 0) {
         new LintNotificationPanel(screenView, lintModel).show(e);
       }
     }
