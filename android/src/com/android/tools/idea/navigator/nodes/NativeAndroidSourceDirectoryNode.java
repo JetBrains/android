@@ -63,7 +63,7 @@ public class NativeAndroidSourceDirectoryNode extends PsiDirectoryNode {
   @Override
   protected void updateImpl(PresentationData presentation) {
     super.updateImpl(presentation);
-    presentation.setIcon(AllIcons.Modules.SourceRoot);
+    presentation.setIcon(AllIcons.Nodes.Folder);
   }
 
   @Override
@@ -91,7 +91,7 @@ public class NativeAndroidSourceDirectoryNode extends PsiDirectoryNode {
 
         if (mySourceFolders.contains(dir) || mySourceFolders.contains(psiDirectory.getVirtualFile())) {
           result.add(new NativeAndroidSourceDirectoryNode(myProject, (PsiDirectory)value, getSettings(), myFileExtensions,
-                                                          ImmutableList.of(dir), ImmutableList.<VirtualFile>of()));
+                                                          ImmutableList.of(dir), ImmutableList.of()));
           continue;
         }
 
