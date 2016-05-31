@@ -30,6 +30,7 @@ import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
 
@@ -73,7 +74,7 @@ public class ColorRendererEditor extends GraphicalResourceRendererEditor {
 
   @NotNull
   @Override
-  protected ResourceType[] getAllowedResourceTypes() {
+  protected EnumSet<ResourceType> getAllowedResourceTypes() {
     AttributeDefinition attrDefinition = ResolutionUtils.getAttributeDefinition(myContext.getConfiguration(), myItem.getSelectedValue());
 
     String attributeName = myItem.getName().toLowerCase(Locale.ENGLISH);

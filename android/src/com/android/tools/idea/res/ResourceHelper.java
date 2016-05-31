@@ -17,7 +17,11 @@ package com.android.tools.idea.res;
 
 import com.android.ide.common.rendering.api.RenderResources;
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.repository.ResourceVisibilityLookup;
+import com.android.ide.common.res2.DataFile;
 import com.android.ide.common.res2.ResourceFile;
+import com.android.ide.common.res2.ResourceItem;
+import com.android.ide.common.resources.FrameworkResources;
 import com.android.ide.common.resources.ResourceUrl;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.FolderTypeRelationship;
@@ -28,16 +32,10 @@ import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
-import com.android.tools.idea.ui.resourcechooser.ResourceGroup;
-import com.android.tools.idea.ui.resourcechooser.ResourceItem;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
+import com.google.common.collect.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -52,12 +50,15 @@ import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.xml.*;
 import com.intellij.ui.ColorUtil;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -1138,9 +1139,25 @@ public class ResourceHelper {
    * Returns the list of all resource names that can be used as a value for one of the {@link ResourceType} in completionTypes
    */
   @NotNull
-  public static List<String> getCompletionFromTypes(@NotNull AndroidFacet facet, @NotNull ResourceType[] completionTypes) {
-    ImmutableList.Builder<String> resourceNamesList = ImmutableList.builder();
-    EnumSet<ResourceType> types = Sets.newEnumSet(Arrays.asList(completionTypes), ResourceType.class);
+  public static List<String> getCompletionFromTypes(@NotNull AndroidFacet facet, @NotNull EnumSet<ResourceType> completionTypes) {
+    return getCompletionFromTypes(facet, completionTypes, true);
+  }
+
+  /**
+   * Returns the list of all resource names that can be used as a value for one of the {@link ResourceType} in completionTypes,
+   * optionally sorting/not sorting the results.
+   */
+  @NotNull
+  public static List<String> getCompletionFromTypes(@NotNull AndroidFacet facet, @NotNull EnumSet<ResourceType> completionTypes,
+                                                    boolean sort) {
+    EnumSet<ResourceType> types = Sets.newEnumSet(completionTypes, ResourceType.class);
+
+    // Use drawables for mipmaps
+    if (types.contains(ResourceType.MIPMAP)) {
+      types.add(ResourceType.DRAWABLE);
+    } else if (types.contains(ResourceType.DRAWABLE)) {
+      types.add(ResourceType.MIPMAP);
+    }
 
     boolean completionTypesContainsColor = types.contains(ResourceType.COLOR);
     if (types.contains(ResourceType.DRAWABLE)) {
@@ -1148,23 +1165,90 @@ public class ResourceHelper {
       types.add(ResourceType.COLOR);
     }
 
+    AppResourceRepository repository = AppResourceRepository.getAppResources(facet, true);
+    ResourceVisibilityLookup lookup = repository.getResourceVisibility(facet);
+    AndroidPlatform androidPlatform = AndroidPlatform.getInstance(facet.getModule());
+    FrameworkResources frameworkResources = null;
+    if (androidPlatform != null) {
+      AndroidTargetData targetData = androidPlatform.getSdkData().getTargetData(androidPlatform.getTarget());
+      try {
+        frameworkResources = targetData.getFrameworkResources(true);
+      } catch (IOException ignore) {
+      }
+    }
+
+    List<String> resources = Lists.newArrayListWithCapacity(500);
     for (ResourceType type : types) {
       // If type == ResourceType.COLOR, we want to include file resources (i.e. color state lists) only in the case where
       // color was present in completionTypes, and not if we added it because of the presence of ResourceType.DRAWABLES.
       // For any other ResourceType, we always include file resources.
       boolean includeFileResources = (type != ResourceType.COLOR) || completionTypesContainsColor;
-      ResourceGroup group = new ResourceGroup(ANDROID_NS_NAME, type, facet, ANDROID_NS_NAME, includeFileResources);
-      for (ResourceItem item : group.getItems()) {
-        resourceNamesList.add(item.getResourceUrl());
+      if (frameworkResources != null) {
+        addFrameworkItems(resources, type, includeFileResources, frameworkResources);
       }
-
-      group = new ResourceGroup(ChooseResourceDialog.APP_NAMESPACE_LABEL, type, facet, null, includeFileResources);
-      for (ResourceItem item : group.getItems()) {
-        resourceNamesList.add(item.getResourceUrl());
-      }
+      addProjectItems(resources, type, includeFileResources, repository, lookup);
     }
 
-    return resourceNamesList.build();
+    if (sort) {
+      Collections.sort(resources, ResourceHelper::compareResourceReferences);
+    }
+
+    return resources;
+  }
+
+  /**
+   * Comparator function for resource references (e.g. {@code @foo/bar}.
+   * Sorts project resources higher than framework resources.
+   */
+  public static int compareResourceReferences(String resource1, String resource2) {
+    int framework1 = resource1.startsWith(ANDROID_PREFIX) ? 1 : 0;
+    int framework2 = resource2.startsWith(ANDROID_PREFIX) ? 1 : 0;
+    int delta = framework1 - framework2;
+    if (delta != 0) {
+      return delta;
+    }
+    return resource1.compareToIgnoreCase(resource2);
+  }
+
+  private static void addFrameworkItems(@NotNull List<String> destination,
+                                        @NotNull ResourceType type,
+                                        boolean includeFileResources,
+                                        @NotNull FrameworkResources frameworkResources) {
+    List<com.android.ide.common.resources.ResourceItem> items;
+    items = frameworkResources.getResourceItemsOfType(type);
+    for (com.android.ide.common.resources.ResourceItem item : items) {
+      if (!includeFileResources) {
+        List<com.android.ide.common.resources.ResourceFile> sourceFileList = item.getSourceFileList();
+        if (!sourceFileList.isEmpty() && !sourceFileList.get(0).getFolder().getFolder().getName().startsWith(FD_RES_VALUES)) {
+          continue;
+        }
+      }
+
+      destination.add(PREFIX_RESOURCE_REF + ANDROID_NS_NAME_PREFIX + type.getName() + '/' + item.getName());
+    }
+  }
+
+  private static void addProjectItems(@NotNull List<String> destination,
+                                      @NotNull ResourceType type,
+                                      boolean includeFileResources,
+                                      @NotNull AppResourceRepository repository,
+                                      @Nullable ResourceVisibilityLookup lookup) {
+    for (String resourceName : repository.getItemsOfType(type)) {
+      if (lookup != null && lookup.isPrivate(type, resourceName)) {
+        continue;
+      }
+      List<ResourceItem> items = repository.getResourceItem(type, resourceName);
+      if (items == null) {
+        continue;
+      }
+      if (!includeFileResources) {
+        if (items.get(0).getSourceType() != DataFile.FileType.XML_VALUES) {
+          continue;
+        }
+      }
+
+      destination.add(PREFIX_RESOURCE_REF + type.getName() + '/' + resourceName);
+    }
   }
 
   /**

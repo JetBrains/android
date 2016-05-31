@@ -72,7 +72,7 @@ public final class ListPreferenceHandler extends PreferenceHandler {
     }
 
     if (type.equals(InsertType.CREATE)) {
-      Collection<ResourceType> array = EnumSet.of(ResourceType.ARRAY);
+      EnumSet<ResourceType> array = EnumSet.of(ResourceType.ARRAY);
       String entries = editor.displayResourceInput("Choose entries Resource", array);
 
       if (entries == null) {

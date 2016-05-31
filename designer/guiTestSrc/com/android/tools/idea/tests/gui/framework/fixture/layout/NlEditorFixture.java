@@ -28,10 +28,13 @@ import java.util.List;
  * Fixture wrapping the the layout editor for a particular file
  */
 public class NlEditorFixture extends ComponentFixture<NlEditorFixture, Component> {
+  private final IdeFrameFixture myFrame;
   private final DesignSurfaceFixture myDesignSurfaceFixture;
+  private NlPropertyInspectorFixture myPropertyFixture;
 
   public NlEditorFixture(@NotNull Robot robot, @NotNull IdeFrameFixture frame, @NotNull NlEditor editor) {
     super(NlEditorFixture.class, robot, editor.getComponent());
+    myFrame = frame;
     myDesignSurfaceFixture = new DesignSurfaceFixture(robot, frame, editor.getComponent().getSurface());
   }
 
@@ -54,5 +57,13 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, Component
 
   public boolean errorPanelContains(@NotNull String errorText) {
     return myDesignSurfaceFixture.errorPanelContains(errorText);
+  }
+
+  @NotNull
+  public NlPropertyInspectorFixture getPropertyInspector() {
+    if (myPropertyFixture == null) {
+      myPropertyFixture = new NlPropertyInspectorFixture(robot(), myFrame, NlPropertyInspectorFixture.create(robot()));
+    }
+    return myPropertyFixture;
   }
 }

@@ -44,8 +44,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -148,8 +148,13 @@ public class ViewEditorImpl extends ViewEditor {
 
   @Nullable
   @Override
-  public String displayResourceInput(@NotNull String title, @NotNull Collection<ResourceType> types) {
-    ChooseResourceDialog dialog = new ChooseResourceDialog(myScreen.getModel().getModule(), types.toArray(new ResourceType[0]), null, null);
+  public String displayResourceInput(@NotNull String title, @NotNull EnumSet<ResourceType> types) {
+    NlModel model = myScreen.getModel();
+    ChooseResourceDialog dialog = ChooseResourceDialog.builder()
+      .setModule(model.getModule())
+      .setTypes(types)
+      .setConfiguration(model.getConfiguration())
+      .build();
 
     if (!title.isEmpty()) {
       dialog.setTitle(title);

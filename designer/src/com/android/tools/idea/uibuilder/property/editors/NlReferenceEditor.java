@@ -20,13 +20,9 @@ import com.android.resources.Density;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.res.ResourceHelper;
-import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
-import com.android.tools.idea.ui.resourcechooser.ResourceGroup;
-import com.android.tools.idea.ui.resourcechooser.ResourceItem;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.renderer.NlDefaultRenderer;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.intellij.codeInsight.completion.PrefixMatcher;
 import com.intellij.codeInsight.completion.impl.CamelHumpMatcher;
 import com.intellij.openapi.command.undo.UndoConstants;
@@ -51,9 +47,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.Collections;
-import java.util.List;
+import java.util.EnumSet;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 public class NlReferenceEditor extends NlBaseComponentEditor implements NlComponentEditor {
   private static final int HORIZONTAL_SPACING = 4;
@@ -412,7 +407,7 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
 
     @Override
     public int compare(String item1, String item2) {
-      return StringUtil.compare(item1, item2, false);
+      return ResourceHelper.compareResourceReferences(item1, item2);
     }
 
     public void updateCompletions(@NotNull NlProperty property) {
@@ -422,29 +417,26 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
         return;
       }
 
-      ResourceType[] types = BrowsePanel.getResourceTypes(property.getName(), definition);
-      List<String> items = Lists.newArrayList();
+      EnumSet<ResourceType> types = BrowsePanel.getResourceTypes(property.getName(), definition);
+
+      // We include mipmap directly in the drawable maps
+      if (types.contains(ResourceType.MIPMAP)) {
+        types = types.clone();
+        types.remove(ResourceType.MIPMAP);
+        types.add(ResourceType.DRAWABLE);
+      }
+
+      if (types.contains(ResourceType.ID) && SdkConstants.ATTR_ID.equals(property.getName())) {
+        // Don't offer code completion on id's; you typically want to specify a new, unique
+        // one here, not reference an existing one
+        setItems(null);
+        return;
+      }
 
       AndroidFacet facet = property.getModel().getFacet();
-
-      for (ResourceType type : types) {
-        List<ResourceItem> resItems =
-          new ResourceGroup(ChooseResourceDialog.APP_NAMESPACE_LABEL, type, facet, null, true).getItems();
-        items.addAll(getResNames(resItems));
-      }
-
-      for (ResourceType type : types) {
-        List<ResourceItem> resItems =
-          new ResourceGroup(SdkConstants.ANDROID_NS_NAME, type, facet, SdkConstants.ANDROID_NS_NAME, true).getItems();
-        items.addAll(getResNames(resItems));
-      }
-
-      setItems(items);
-    }
-
-    @NotNull
-    private static List<String> getResNames(List<ResourceItem> resItems) {
-      return resItems.stream().map(ResourceItem::getResourceUrl).collect(Collectors.toList());
+      // No point sorting: TextFieldWithAutoCompletionListProvider performs its
+      // own sorting afterwards (by calling compare() above)
+      setItems(ResourceHelper.getCompletionFromTypes(facet, types, false));
     }
   }
 }
