@@ -127,7 +127,7 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTask {
     final String pkgName = client.getClientData().getClientDescription();
     final IDevice device = client.getDevice();
 
-    final ApplicationLogListener logListener = new ApplicationLogListener(pkgName) {
+    final ApplicationLogListener logListener = new ApplicationLogListener(pkgName, client.getClientData().getPid()) {
       private final String SIMPLE_FORMAT = AndroidLogcatFormatter.createCustomFormat(false, false, false, true);
 
       @NotNull

@@ -84,14 +84,37 @@ public class AndroidProcessHandler extends DefaultDebugProcessHandler implements
   public void addTargetDevice(@NotNull final IDevice device) {
     myDevices.add(device.getSerialNumber());
 
-    AndroidLogcatService.LogLineListener logListener = new ApplicationLogListener(myApplicationId) {
+    setMinDeviceApiLevel(device.getVersion());
+
+    Client client = device.getClient(myApplicationId);
+    if (client != null) {
+        addClient(client);
+    } else {
+      notifyTextAvailable("Client not ready yet..", ProcessOutputTypes.STDOUT);
+    }
+
+    LOG.info("Adding device " + device.getName() + " to monitor for launched app: " + myApplicationId);
+    myDeviceAdded = System.currentTimeMillis();
+  }
+
+  private void addClient(@NotNull final Client client) {
+    if (!myClients.add(client)) {
+      return;
+    }
+    IDevice device = client.getDevice();
+    notifyTextAvailable("Connected to process " + client.getClientData().getPid() + " on device " + device.getName() + "\n",
+                        ProcessOutputTypes.STDOUT);
+
+    assert !myLogListeners.containsKey(device);
+
+    AndroidLogcatService.LogLineListener logListener = new ApplicationLogListener(myApplicationId, client.getClientData().getPid()) {
       private final String SIMPLE_FORMAT = AndroidLogcatFormatter.createCustomFormat(false, false, false, true);
 
       @Override
       protected String formatLogLine(@NotNull LogCatMessage line) {
         String message = AndroidLogcatFormatter.formatMessage(SIMPLE_FORMAT, line.getHeader(), line.getMessage());
         if (myDevices.size() > 1) {
-          return String.format("[%1$s]: %2$s", device.getName(), message);
+          return String.format("[%1$s]: %2$s", client.getDevice().getName(), message);
         }
         else {
           return message;
@@ -103,24 +126,9 @@ public class AndroidProcessHandler extends DefaultDebugProcessHandler implements
         AndroidProcessHandler.this.notifyTextAvailable(message, key);
       }
     };
+
     AndroidLogcatService.getInstance().addListener(device, logListener, true);
     myLogListeners.put(device, logListener);
-
-    setMinDeviceApiLevel(device.getVersion());
-
-    Client client = device.getClient(myApplicationId);
-    if (client != null) {
-      boolean added = myClients.add(client);
-      if (added) {
-        notifyTextAvailable("Connected to process " + client.getClientData().getPid() + " on device " + device.getName() + "\n",
-                            ProcessOutputTypes.STDOUT);
-      }
-    } else {
-      notifyTextAvailable("Client not ready yet..", ProcessOutputTypes.STDOUT);
-    }
-
-    LOG.info("Adding device " + device.getName() + " to monitor for launched app: " + myApplicationId);
-    myDeviceAdded = System.currentTimeMillis();
   }
 
   private void setMinDeviceApiLevel(@NotNull AndroidVersion deviceVersion) {
@@ -217,9 +225,14 @@ public class AndroidProcessHandler extends DefaultDebugProcessHandler implements
   }
 
   private void stopMonitoring(@NotNull IDevice device) {
+    assert myDevices.contains(device.getSerialNumber());
     myDevices.remove(device.getSerialNumber());
-    AndroidLogcatService.getInstance().removeListener(device, myLogListeners.get(device));
-    myLogListeners.remove(device);
+
+    //  This shouldn't usually happen but occasionally does due to threading issues
+    if (myLogListeners.containsKey(device)) {
+      AndroidLogcatService.getInstance().removeListener(device, myLogListeners.get(device));
+      myLogListeners.remove(device);
+    }
 
     if (myDevices.isEmpty()) {
       detachProcess();
@@ -238,8 +251,7 @@ public class AndroidProcessHandler extends DefaultDebugProcessHandler implements
 
     Client client = device.getClient(myApplicationId);
     if (client != null) {
-      print("Connected to process " + client.getClientData().getPid() + " on device " + device.getName());
-      myClients.add(client);
+      addClient(client);
       return;
     }
 
@@ -274,8 +286,7 @@ public class AndroidProcessHandler extends DefaultDebugProcessHandler implements
     }
 
     if (StringUtil.equals(myApplicationId, client.getClientData().getClientDescription())) {
-      print("Connected to process " + client.getClientData().getPid() + " on device " + client.getDevice().getName());
-      myClients.add(client);
+      addClient(client);
     }
 
     String name = client.getClientData().getClientDescription();
