@@ -14,10 +14,9 @@ import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.SystemResourceManager;
+import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static org.jetbrains.android.inspections.lint.SuppressLintIntentionAction.ensureNamespaceImported;
 
 class SetAttributeQuickFix implements AndroidLintQuickFix {
 
@@ -64,7 +63,7 @@ class SetAttributeQuickFix implements AndroidLintQuickFix {
     if (myNamespace != null) {
       XmlFile file = PsiTreeUtil.getParentOfType(tag, XmlFile.class);
       if (file != null) {
-        ensureNamespaceImported(startElement.getProject(), file, myNamespace);
+        AndroidResourceUtil.ensureNamespaceImported(file, myNamespace, null);
       }
     }
 
