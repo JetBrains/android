@@ -731,18 +731,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   @NotNull
   public GradleBuildModelFixture parseBuildFileForModule(@NotNull String moduleName, boolean openInEditor) {
     Module module = getModule(moduleName);
-    return parseBuildFile(module, openInEditor);
-  }
-
-  @NotNull
-  public GradleBuildModelFixture parseBuildFile(@NotNull Module module, boolean openInEditor) {
     VirtualFile buildFile = getGradleBuildFile(module);
     assertNotNull(buildFile);
-    return parseBuildFile(buildFile, openInEditor);
-  }
-
-  @NotNull
-  public GradleBuildModelFixture parseBuildFile(@NotNull final VirtualFile buildFile, boolean openInEditor) {
     if (openInEditor) {
       getEditor().open(buildFile, Tab.DEFAULT).getCurrentFile();
     }
