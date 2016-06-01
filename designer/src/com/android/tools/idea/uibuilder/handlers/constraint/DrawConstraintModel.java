@@ -115,7 +115,7 @@ class DrawConstraintModel {
     myConstraintModel.allowsUpdate(false);
     if (myMouseInteraction != null) {
       myMouseInteraction.mousePressed(pxToDp(x), pxToDp(y), false);
-      myMouseInteraction.setAutoConnect(myConstraintModel.isAutoConnect());
+      myMouseInteraction.setAutoConnect(ConstraintModel.isAutoConnect());
     }
   }
 
