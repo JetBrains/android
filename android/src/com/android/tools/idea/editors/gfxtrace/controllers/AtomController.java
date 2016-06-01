@@ -252,7 +252,6 @@ public class AtomController extends TreeController implements AtomStream.Listene
     myEditor.getAtomStream().addListener(this);
 
     myPanel.add(mySearchField, BorderLayout.NORTH);
-    myPanel.setBorder(BorderFactory.createTitledBorder(myScrollPane.getBorder(), "GPU Commands"));
     myScrollPane.setBorder(new EmptyBorder(0, 0, 0, 0));
     myTree.setLargeModel(true); // Set some performance optimizations for large models.
     myTree.addTreeSelectionListener(new TreeSelectionListener() {

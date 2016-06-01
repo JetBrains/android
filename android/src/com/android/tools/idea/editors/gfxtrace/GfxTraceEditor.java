@@ -53,7 +53,6 @@ import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.HyperlinkLabel;
-import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -112,7 +111,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
     return true;
   }
 
-  public GfxTraceEditor(@NotNull final Project project, @SuppressWarnings("UnusedParameters") @NotNull final VirtualFile file) {
+  public GfxTraceEditor(@NotNull final Project project, @NotNull final VirtualFile file) {
     myProject = project;
     myFile = file;
     myLoadingPanel.setLoadingText("Initializing GFX Trace System");
