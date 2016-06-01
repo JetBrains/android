@@ -16,13 +16,17 @@
 package com.android.tools.idea.gradle.structure.model.java;
 
 import com.android.tools.idea.gradle.JavaProject;
+import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
+import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsModule;
+import com.android.tools.idea.gradle.structure.model.PsParsedDependencies;
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.util.List;
 import java.util.function.Consumer;
 
 public class PsJavaModule extends PsModule {
@@ -75,5 +79,26 @@ public class PsJavaModule extends PsModule {
   @NotNull
   private PsJavaDependencyCollection getOrCreateDependencyCollection() {
     return myDependencyCollection == null ? myDependencyCollection = new PsJavaDependencyCollection(this) : myDependencyCollection;
+  }
+
+  public void addLibraryDependency(@NotNull String library, @NotNull List<String> scopesNames) {
+    // Update/reset the "parsed" model.
+    addLibraryDependencyToParsedModel(scopesNames, library);
+
+    // Reset dependencies.
+    myDependencyCollection = null;
+    PsJavaDependencyCollection dependencyCollection = getOrCreateDependencyCollection();
+
+    PsArtifactDependencySpec spec = PsArtifactDependencySpec.create(library);
+    assert spec != null;
+
+    PsParsedDependencies parsedDependencies = getParsedDependencies();
+    List<ArtifactDependencyModel> matchingParsedDependencies = parsedDependencies.findLibraryDependencies(spec, null);
+    for (ArtifactDependencyModel parsedDependency : matchingParsedDependencies) {
+      dependencyCollection.addLibraryDependency(spec, parsedDependency);
+    }
+
+    fireLibraryDependencyAddedEvent(spec);
+    setModified(true);
   }
 }
