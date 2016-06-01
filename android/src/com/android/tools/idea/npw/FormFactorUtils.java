@@ -225,7 +225,7 @@ public class FormFactorUtils {
   public static AndroidVersion getAndroidVersion(@NotNull RepoPackage repoPackage) {
     TypeDetails details = repoPackage.getTypeDetails();
     if (details instanceof DetailsTypes.ApiDetailsType) {
-      return DetailsTypes.getAndroidVersion((DetailsTypes.ApiDetailsType)details);
+      return ((DetailsTypes.ApiDetailsType)details).getAndroidVersion();
     }
     throw new RuntimeException("Could not determine version");
   }
