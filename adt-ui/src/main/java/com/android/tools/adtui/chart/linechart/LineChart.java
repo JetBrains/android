@@ -285,7 +285,7 @@ public class LineChart extends AnimatedComponent {
           while (j-- > 0) {
             path.lineTo(lastStackedPath.get(j).getX(), lastStackedPath.get(j).getY());
           }
-        } else {
+        } else if (path.getCurrentPoint() != null) {
           // If the chart is filled, but not stacked, draw a line from the last point to X
           // axis and another one from this new point to the first destination point.
           path.lineTo(path.getCurrentPoint().getX(), 1f);
