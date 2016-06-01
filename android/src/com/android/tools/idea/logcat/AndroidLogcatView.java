@@ -327,9 +327,9 @@ public abstract class AndroidLogcatView implements Disposable {
       if (myDevice != null) {
         androidLogcatService.removeListener(myDevice, myFormattedLogLineReceiver);
       }
-      ConsoleView console = myLogConsole.getConsole();
-      if (console != null) {
-        console.clear();
+      // We check for null, because myLogConsole.clear() depends on myLogConsole.getConsole() not being null
+      if (myLogConsole.getConsole() != null) {
+        myLogConsole.clear();
       }
       myDevice = device;
       androidLogcatService.addListener(myDevice, myFormattedLogLineReceiver, true);
