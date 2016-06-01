@@ -448,11 +448,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                               @NotNull ViewHandler handler,
                               @NotNull NlComponent parent,
                               @NotNull List<NlComponent> selectedChildren) {
-      ConstraintModel model = ConstraintModel.getConstraintModel(editor.getModel());
-      if (model != null) {
-        return model.isAutoConnect();
-      }
-      return false;
+      return ConstraintModel.isAutoConnect();
     }
 
     @Override
@@ -461,11 +457,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                             @NotNull NlComponent parent,
                             @NotNull List<NlComponent> selectedChildren,
                             boolean selected) {
-      ConstraintModel model = ConstraintModel.getConstraintModel(editor.getModel());
-      if (model != null) {
-        model.setAutoConnect(selected);
-        PropertiesComponent.getInstance().setValue(AUTO_CONNECT_PREF_KEY, selected);
-      }
+      ConstraintModel.setAutoConnect(selected);
     }
 
     @Override
@@ -476,10 +468,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                                    @NotNull List<NlComponent> selectedChildren,
                                    @InputEventMask int modifiers,
                                    boolean selected) {
-      ConstraintModel model = ConstraintModel.getConstraintModel(editor.getModel());
-      if (model != null) {
-        presentation.setIcon(model.isAutoConnect() ? AndroidIcons.SherpaIcons.AutoConnect : AndroidIcons.SherpaIcons.AutoConnectOff);
-      }
+      presentation.setIcon(ConstraintModel.isAutoConnect() ? AndroidIcons.SherpaIcons.AutoConnect : AndroidIcons.SherpaIcons.AutoConnectOff);
     }
 
     @Override
@@ -584,7 +573,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     public ToggleConstraintModeAction() {
       super(AndroidIcons.SherpaIcons.Unhide, AndroidIcons.SherpaIcons.Hide, "Show constraints",
             "Show No constraints");
-      myShowAllConstraints = PropertiesComponent.getInstance().getBoolean(SHOW_CONSTRAINTS_PREF_KEY, myShowAllConstraints);
+      myShowAllConstraints = PropertiesComponent.getInstance().getBoolean(SHOW_CONSTRAINTS_PREF_KEY);
     }
 
     @Override
@@ -655,13 +644,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     public static final int VERTICAL_GUIDELINE = 1;
 
     final int myType;
-    final Icon myIcon;
-    final String myText;
 
     public AddElementAction(int type, Icon icon, String text) {
+      super(icon, text);
       myType = type;
-      myIcon = icon;
-      myText = text;
     }
 
     @Override
@@ -699,8 +685,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                                    @InputEventMask int modifiers) {
       presentation.setVisible(true);
       presentation.setEnabled(true);
-      presentation.setIcon(myIcon);
-      presentation.setLabel(myText);
     }
   }
 
@@ -761,7 +745,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
         return;
       }
       modifiers &= InputEvent.CTRL_MASK;
-      Scout.arrangeWidgets(myActionType, model.getSelection().getWidgets(), modifiers != 0 || model.isAutoConnect());
+      Scout.arrangeWidgets(myActionType, model.getSelection().getWidgets(), modifiers != 0 || ConstraintModel.isAutoConnect());
       model.saveToXML(true);
     }
 
@@ -775,8 +759,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
 
       Icon icon = myAlignIcon;
       if (myConstrainIcon != null) {
-        ConstraintModel model = ConstraintModel.getConstraintModel(editor.getModel());
-        if (model.isAutoConnect() || (InputEvent.CTRL_MASK & modifiers) != 0) {
+        if (ConstraintModel.isAutoConnect() || (InputEvent.CTRL_MASK & modifiers) != 0) {
           icon = myConstrainIcon;
         }
       }
@@ -847,10 +830,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                                    @NotNull List<NlComponent> selectedChildren,
                                    @InputEventMask int modifiers) {
       if (myAlignIcon instanceof ControlIcon) {
-        ConstraintModel model = ConstraintModel.getConstraintModel(editor.getModel());
-        if (model != null) {
-          ((ControlIcon)myAlignIcon).setHighlight(model.isAutoConnect() || (InputEvent.CTRL_MASK & modifiers) != 0);
-        }
+        ((ControlIcon)myAlignIcon).setHighlight(ConstraintModel.isAutoConnect() || (InputEvent.CTRL_MASK & modifiers) != 0);
       }
 
       presentation.setIcon(myAlignIcon);
