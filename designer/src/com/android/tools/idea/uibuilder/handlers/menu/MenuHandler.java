@@ -32,7 +32,7 @@ public final class MenuHandler extends ViewGroupHandler {
                                        @NotNull NlComponent menu,
                                        @NotNull List<NlComponent> items,
                                        @NotNull DragType type) {
-    return new MenuDragHandler(editor, this, menu, items, type);
+    return new GroupDragHandler(editor, this, menu, items, type);
   }
 
   @Override
