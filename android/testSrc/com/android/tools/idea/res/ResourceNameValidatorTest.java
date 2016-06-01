@@ -93,12 +93,12 @@ public class ResourceNameValidatorTest extends AndroidTestCase {
     final Map<ResourceType, ListMultimap<String, ResourceItem>> map = Maps.newHashMap();
     ListMultimap<String, ResourceItem> multimap = ArrayListMultimap.create();
     map.put(ResourceType.ID, multimap);
-    multimap.put("foo1", new ResourceItem("foo1", ResourceType.ID, null));
-    multimap.put("foo3", new ResourceItem("foo3", ResourceType.ID, null));
-    multimap.put("foo.4", new ResourceItem("foo.4", ResourceType.ID, null));
-    multimap.put("foo_5", new ResourceItem("foo_5", ResourceType.ID, null));
-    multimap.put("foo-6", new ResourceItem("foo-6", ResourceType.ID, null));
-    multimap.put("foo:7", new ResourceItem("foo:7", ResourceType.ID, null));
+    multimap.put("foo1", new ResourceItem("foo1", ResourceType.ID, null, null));
+    multimap.put("foo3", new ResourceItem("foo3", ResourceType.ID, null, null));
+    multimap.put("foo.4", new ResourceItem("foo.4", ResourceType.ID, null, null));
+    multimap.put("foo_5", new ResourceItem("foo_5", ResourceType.ID, null, null));
+    multimap.put("foo-6", new ResourceItem("foo-6", ResourceType.ID, null, null));
+    multimap.put("foo:7", new ResourceItem("foo:7", ResourceType.ID, null, null));
     LocalResourceRepository resources = new LocalResourceRepository("unit test") {
       @NonNull
       @Override

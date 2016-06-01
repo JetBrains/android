@@ -40,7 +40,7 @@ public class FileResourceRepositoryTest extends TestCase {
   public void testCacheUseSoftReferences() throws IOException {
     File dir = Files.createTempDir();
     try {
-      assertNotNull(FileResourceRepository.get(dir));
+      assertNotNull(FileResourceRepository.get(dir, null));
       // We shouldn't clear it out immediately on GC *eligibility*:
       System.gc();
       assertNotNull(FileResourceRepository.getCached(dir));
@@ -87,6 +87,6 @@ public class FileResourceRepositoryTest extends TestCase {
                      EXPLODED_AAR + separatorChar +
                      "my_aar_lib" + separatorChar +
                      "res";
-    return FileResourceRepository.get(new File(aarPath));
+    return FileResourceRepository.get(new File(aarPath), null);
   }
 }

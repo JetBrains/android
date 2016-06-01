@@ -33,15 +33,11 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.gradle.AndroidGradleModel.EXPLODED_AAR;
 import static com.android.tools.idea.gradle.AndroidGradleModel.EXPLODED_BUNDLES;
-import static com.android.tools.idea.gradle.variant.view.BuildVariantView.BuildVariantSelectionChangeListener;
 
 /**
  * The resource folder manager is responsible for returning the current set
@@ -103,7 +99,7 @@ public class ResourceFolderManager implements ModificationTracker {
     if (myFacet.requiresAndroidModel()) {
       JpsAndroidModuleProperties state = myFacet.getConfiguration().getState();
       AndroidModel androidModel = myFacet.getAndroidModel();
-      List<VirtualFile> resDirectories = new ArrayList<VirtualFile>();
+      List<VirtualFile> resDirectories = new ArrayList<>();
       if (androidModel == null) {
         // Read string property
         if (state != null) {
@@ -157,12 +153,7 @@ public class ResourceFolderManager implements ModificationTracker {
         // Also refresh the app resources whenever the variant changes
         if (!myVariantListenerAdded) {
           myVariantListenerAdded = true;
-          BuildVariantView.getInstance(myFacet.getModule().getProject()).addListener(new BuildVariantSelectionChangeListener() {
-            @Override
-            public void buildVariantsConfigChanged() {
-              invalidate();
-            }
-          });
+          BuildVariantView.getInstance(myFacet.getModule().getProject()).addListener(this::invalidate);
         }
       }
       // Listen to root change events. Be notified when project is initialized so we can update the
@@ -171,21 +162,21 @@ public class ResourceFolderManager implements ModificationTracker {
 
       return resDirectories;
     } else {
-      return new ArrayList<VirtualFile>(myFacet.getMainIdeaSourceProvider().getResDirectories());
+      return new ArrayList<>(myFacet.getMainIdeaSourceProvider().getResDirectories());
     }
   }
 
   private void notifyChanged(@NotNull List<VirtualFile> before, @NotNull List<VirtualFile> after) {
     myGeneration++;
-    Set<VirtualFile> added = new HashSet<VirtualFile>(after.size());
+    Set<VirtualFile> added = new HashSet<>(after.size());
     added.addAll(after);
     added.removeAll(before);
 
-    Set<VirtualFile> removed = new HashSet<VirtualFile>(before.size());
+    Set<VirtualFile> removed = new HashSet<>(before.size());
     removed.addAll(before);
     removed.removeAll(after);
 
-    for (ResourceFolderListener listener : new ArrayList<ResourceFolderListener>(myListeners)) {
+    for (ResourceFolderListener listener : new ArrayList<>(myListeners)) {
       listener.resourceFoldersChanged(myFacet, after, added, removed);
     }
   }
@@ -204,7 +195,7 @@ public class ResourceFolderManager implements ModificationTracker {
   }
 
   /** Adds in any AAR library resource directories found in the library definitions for the given facet */
-  public static void addAarsFromModuleLibraries(@NotNull AndroidFacet facet, @NotNull Set<File> dirs) {
+  public static void addAarsFromModuleLibraries(@NotNull AndroidFacet facet, @NotNull Map<File, String> dirs) {
     Module module = facet.getModule();
     OrderEntry[] orderEntries = ModuleRootManager.getInstance(module).getOrderEntries();
     for (OrderEntry orderEntry : orderEntries) {
@@ -212,6 +203,7 @@ public class ResourceFolderManager implements ModificationTracker {
         if (orderEntry.isValid() && isAarDependency(facet, orderEntry)) {
           final LibraryOrSdkOrderEntry entry = (LibraryOrSdkOrderEntry)orderEntry;
           final VirtualFile[] libClasses = entry.getRootFiles(OrderRootType.CLASSES);
+          String libraryName = entry.getPresentableName();
           File res = null;
           for (VirtualFile root : libClasses) {
             if (root.getName().equals(FD_RES)) {
@@ -235,7 +227,7 @@ public class ResourceFolderManager implements ModificationTracker {
           }
 
           if (res != null) {
-            dirs.add(res);
+            dirs.put(res, libraryName);
           }
         }
       }

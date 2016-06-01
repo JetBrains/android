@@ -40,10 +40,10 @@ public class EditedStyleItemTest extends AndroidTestCase {
     List<ConfiguredElement<ItemResourceValue>> items = ImmutableList.of(ConfiguredElement
                                                                           .create(FolderConfiguration.getConfigForFolder("values-v21"),
                                                                                   new ItemResourceValue("attribute", false, "otherValue",
-                                                                                                        false)));
+                                                                                                        false, null)));
 
     EditedStyleItem editedStyleItem = new EditedStyleItem(
-      ConfiguredElement.create(new FolderConfiguration(), new ItemResourceValue("attribute", false, "selectedValue", false)), items,
+      ConfiguredElement.create(new FolderConfiguration(), new ItemResourceValue("attribute", false, "selectedValue", false, null)), items,
       fakeTheme);
 
     assertEquals("selectedValue", editedStyleItem.getValue());

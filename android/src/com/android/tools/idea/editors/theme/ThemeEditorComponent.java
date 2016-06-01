@@ -242,7 +242,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
         StyleResourceValue modifiedResourceValue = modifiedTheme.getStyleResourceValue();
         StyleResourceValue restoredResourceValue =
           new StyleResourceValue(ResourceType.STYLE, modifiedResourceValue.getName(), modifiedResourceValue.getParentStyle(),
-                                 modifiedResourceValue.isFramework());
+                                 modifiedResourceValue.isFramework(), modifiedResourceValue.getLibraryName());
         for (ItemResourceValue item : originalItems) {
           restoredResourceValue.addItem(item);
         }
@@ -685,7 +685,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
         myModifiedTheme = myThemeEditorContext.getThemeResolver().getTheme(name);
         assert myModifiedTheme != null;
         ItemResourceValue newSelectedValue =
-          new ItemResourceValue(originalValue.getName(), originalValue.isFrameworkAttr(), strValue, false);
+          new ItemResourceValue(originalValue.getName(), originalValue.isFrameworkAttr(), strValue, false, null);
         myModifiedTheme.getStyleResourceValue().addItem(newSelectedValue);
         myPreviewThemeName = null;
         refreshPreviewPanel(name);

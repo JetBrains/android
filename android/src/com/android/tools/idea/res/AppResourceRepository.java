@@ -129,20 +129,28 @@ public class AppResourceRepository extends MultiResourceRepository {
 
   private static List<FileResourceRepository> computeLibraries(@NotNull final AndroidFacet facet) {
     List<AndroidFacet> dependentFacets = AndroidUtils.getAllAndroidDependencies(facet.getModule(), true);
-    List<File> aarDirs = findAarLibraries(facet, dependentFacets);
+    Map<File, String> aarDirs = findAarLibraries(facet, dependentFacets);
     if (aarDirs.isEmpty()) {
       return Collections.emptyList();
     }
 
+    List<File> dirs = Lists.newArrayList(aarDirs.keySet());
+
+    // Sort alphabetically to ensure that we keep a consistent order of these libraries;
+    // otherwise when we jump from libraries initialized from IntelliJ library binary paths
+    // to gradle project state, the order difference will cause the merged project resource
+    // maps to have to be recomputed
+    Collections.sort(dirs);
+
     List<FileResourceRepository> resources = Lists.newArrayListWithExpectedSize(aarDirs.size());
-    for (File root : aarDirs) {
-      resources.add(FileResourceRepository.get(root));
+    for (File root : dirs) {
+      resources.add(FileResourceRepository.get(root, aarDirs.get(root)));
     }
     return resources;
   }
 
   @NotNull
-  private static List<File> findAarLibraries(@NotNull AndroidFacet facet, @NotNull List<AndroidFacet> dependentFacets) {
+  private static Map<File, String> findAarLibraries(@NotNull AndroidFacet facet, @NotNull List<AndroidFacet> dependentFacets) {
     // Use the gradle model if available, but if not, fall back to using plain IntelliJ library dependencies
     // which have been persisted since the most recent sync
     AndroidGradleModel androidGradleModel = AndroidGradleModel.get(facet);
@@ -183,18 +191,14 @@ public class AppResourceRepository extends MultiResourceRepository {
    * Reads IntelliJ library definitions ({@link com.intellij.openapi.roots.LibraryOrSdkOrderEntry}) and if possible, finds a corresponding
    * {@code .aar} resource library to include. This works before the Gradle project has been initialized.
    */
-  private static List<File> findAarLibrariesFromIntelliJ(AndroidFacet facet, List<AndroidFacet> dependentFacets) {
+  private static Map<File, String> findAarLibrariesFromIntelliJ(AndroidFacet facet, List<AndroidFacet> dependentFacets) {
     // Find .aar libraries from old IntelliJ library definitions
-    Set<File> dirs = Sets.newHashSet();
+    Map<File, String> dirs = new HashMap<>();
     addAarsFromModuleLibraries(facet, dirs);
     for (AndroidFacet f : dependentFacets) {
       addAarsFromModuleLibraries(f, dirs);
     }
-    List<File> sorted = new ArrayList<File>(dirs);
-    // Sort to ensure consistent results between pre-model sync order of resources and
-    // the post-sync order. (Also see sort comment in the method below.)
-    Collections.sort(sorted);
-    return sorted;
+    return dirs;
   }
 
   /**
@@ -202,9 +206,9 @@ public class AppResourceRepository extends MultiResourceRepository {
    * resource directories.
    */
   @NotNull
-  private static List<File> findAarLibrariesFromGradle(List<AndroidFacet> dependentFacets, List<AndroidLibrary> libraries) {
+  private static Map<File, String> findAarLibrariesFromGradle(List<AndroidFacet> dependentFacets, List<AndroidLibrary> libraries) {
     // Pull out the unique directories, in case multiple modules point to the same .aar folder
-    Set<File> files = Sets.newHashSetWithExpectedSize(dependentFacets.size());
+    Map<File, String> files = new HashMap<>(libraries.size());
 
     Set<String> moduleNames = Sets.newHashSet();
     for (AndroidFacet f : dependentFacets) {
@@ -237,7 +241,7 @@ public class AppResourceRepository extends MultiResourceRepository {
         if (libraryName != null && !moduleNames.contains(libraryName)) {
           File resFolder = library.getResFolder();
           if (resFolder.exists()) {
-            files.add(resFolder);
+            files.put(resFolder, library.getName());
 
             // Don't add it again!
             moduleNames.add(libraryName);
@@ -252,18 +256,7 @@ public class AppResourceRepository extends MultiResourceRepository {
       // Project sync now is smart enough to handle this case and will trigger a full sync.
       LOG.warn("Incompatibility found between the IDE's builder-model and the cached Gradle model", e);
     }
-
-    List<File> dirs = Lists.newArrayList();
-    for (File resFolder : files) {
-      dirs.add(resFolder);
-    }
-
-    // Sort alphabetically to ensure that we keep a consistent order of these libraries;
-    // otherwise when we jump from libraries initialized from IntelliJ library binary paths
-    // to gradle project state, the order difference will cause the merged project resource
-    // maps to have to be recomputed
-    Collections.sort(dirs);
-    return dirs;
+    return files;
   }
 
   // TODO: b/23032391
