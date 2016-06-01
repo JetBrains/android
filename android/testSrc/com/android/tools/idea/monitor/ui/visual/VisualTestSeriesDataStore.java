@@ -101,8 +101,6 @@ public final class VisualTestSeriesDataStore implements SeriesDataStore {
       mDataSeriesMap.put(type, new ArrayList<>());
     }
     mStartTime = System.currentTimeMillis();
-    // TODO: Find better way to deal with an empty data
-    generateData();
 
     mDataThread = new Thread() {
       @Override
