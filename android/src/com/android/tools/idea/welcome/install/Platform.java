@@ -68,7 +68,7 @@ public class Platform extends InstallableComponent {
                                             boolean installUpdates) {
     RemotePackage latest = InstallComponentsPath.findLatestPlatform(remotePackages);
     if (latest != null) {
-      AndroidVersion version = DetailsTypes.getAndroidVersion(((DetailsTypes.PlatformDetailsType)latest.getTypeDetails()));
+      AndroidVersion version = ((DetailsTypes.PlatformDetailsType)latest.getTypeDetails()).getAndroidVersion();
       String versionName = SdkVersionInfo.getAndroidName(version.getFeatureLevel());
       final String description = "Android platform libraries for targeting " + versionName + " platform";
       return new Platform(store, versionName, description, version, !version.isPreview(), installUpdates);
@@ -83,7 +83,7 @@ public class Platform extends InstallableComponent {
       RepositoryPackages packages = handler.getSdkManager(new StudioLoggerProgressIndicator(Platform.class)).getPackages();
       for (LocalPackage p : packages.getLocalPackages().values()) {
         if (p.getTypeDetails() instanceof DetailsTypes.PlatformDetailsType) {
-          result.add(DetailsTypes.getAndroidVersion((DetailsTypes.PlatformDetailsType)p.getTypeDetails()));
+          result.add(((DetailsTypes.PlatformDetailsType)p.getTypeDetails()).getAndroidVersion());
         }
       }
     }
