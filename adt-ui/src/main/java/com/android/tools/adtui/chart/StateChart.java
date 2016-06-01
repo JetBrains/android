@@ -17,22 +17,27 @@
 package com.android.tools.adtui.chart;
 
 import com.android.tools.adtui.AnimatedComponent;
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.RangedDiscreteSeries;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionAdapter;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.RoundRectangle2D;
-import java.util.*;
+import java.awt.geom.*;
+import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.List;
 
 /**
  * A chart component that renders series of state change events as rectangles.
  */
 public class StateChart<E extends Enum<E>> extends AnimatedComponent {
+
+  public enum RenderMode {
+    BAR,  // Each state is rendered as a filled rectangle until the next state changed.
+    TEXT  // Each state is marked with a vertical line and and corresponding state text/label at the beginning.
+  }
+
+  private static final int TEXT_PADDING = 3;
 
   @NotNull
   private final List<RangedDiscreteSeries<E>> mSeriesList;
@@ -53,9 +58,7 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
   private final List<E> mValues;
 
   @NotNull
-  private Point mMousePosition;
-
-  private boolean mHovered;
+  private RenderMode mRenderMode;
 
   /**
    * @param colors map of a state to corresponding color
@@ -64,29 +67,12 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
     mColors = colors;
     mRectangles = new ArrayList<>();
     mValues = new ArrayList<>();
-    mMousePosition = new Point();
     mSeriesList = new ArrayList<>();
+    mRenderMode = RenderMode.BAR;
+  }
 
-    // TODO these logic should be moved to the Selection/Overlay Component.
-    addMouseListener(new MouseAdapter() {
-      @Override
-      public void mouseEntered(MouseEvent e) {
-        mHovered = true;
-      }
-
-      @Override
-      public void mouseExited(MouseEvent e) {
-        mHovered = false;
-      }
-    });
-
-    addMouseMotionListener(new MouseMotionAdapter() {
-      @Override
-      public void mouseMoved(MouseEvent e) {
-        mMousePosition.x = e.getX();
-        mMousePosition.y = e.getY();
-      }
-    });
+  public void setRenderMode(RenderMode mode) {
+    mRenderMode = mode;
   }
 
   public void addSeries(@NotNull RangedDiscreteSeries<E> series) {
@@ -190,6 +176,7 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
   @Override
   protected void draw(Graphics2D g2d) {
     Dimension dim = getSize();
+    g2d.setFont(AdtUiUtils.DEFAULT_FONT);
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
     assert mRectangles.size() == mValues.size();
@@ -197,22 +184,23 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
     for (int i = 0; i < mRectangles.size(); i++) {
       g2d.setColor(mColors.get(mValues.get(i)));
       Shape shape = scale.createTransformedShape(mRectangles.get(i));
-      g2d.fill(shape);
-    }
-  }
 
-  @Override
-  protected void debugDraw(Graphics2D g) {
-    super.debugDraw(g);
-
-    if (mHovered) {
-      Dimension dim = getSize();
-      for (RangedDiscreteSeries data : mSeriesList) {
-        double min = data.getXRange().getMin();
-        double max = data.getXRange().getMax();
-        double range = max - min;
-        long targetX = (long)(range * mMousePosition.x / dim.width + min);
-        addDebugInfo("State: %s", data.getSeries().findYFromX(targetX).toString());
+      switch (mRenderMode) {
+        case BAR:
+          g2d.fill(shape);
+          break;
+        case TEXT:
+          Rectangle2D rect = shape.getBounds2D();
+          g2d.draw(new Line2D.Double(rect.getX(), rect.getY(), rect.getX(), rect.getY() + rect.getHeight()));
+          String text = AdtUiUtils.getFittedString(mDefaultFontMetrics,
+                                                   mValues.get(i).toString(),
+                                                   (float)rect.getWidth() - TEXT_PADDING * 2,
+                                                   1);
+          if (!text.isEmpty()) {
+            g2d.setColor(AdtUiUtils.DEFAULT_FONT_COLOR);
+            g2d.drawString(text, (float)(rect.getX() + TEXT_PADDING), (float)(rect.getY() + rect.getHeight() - TEXT_PADDING));
+          }
+          break;
       }
     }
   }
@@ -231,8 +219,7 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
     if (rectCount == mRectangles.size()) {
       rect = new RoundRectangle2D.Float();
       mRectangles.add(rect);
-    }
-    else {
+    } else {
       rect = mRectangles.get(rectCount);
     }
 

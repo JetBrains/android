@@ -29,6 +29,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.PriorityQueue;
 
+import static com.android.tools.adtui.common.AdtUiUtils.getFittedString;
+
 /**
  * A chart component that renders lines with a title that have the ability to stack.
  */
@@ -45,8 +47,6 @@ public class StackedEventComponent extends AnimatedComponent {
 
   private static final Color DISABLED_ACTION = new Color(137, 157, 179);
   private static final Color ENABLED_ACTION = new Color(93, 185, 98);
-  private static final String ELLIPSIS = "...";
-  private static final int ELLIPSIS_LENGTH = ELLIPSIS.length();
   private static final int CHARACTERS_TO_SHRINK_BY = 1;
   private static final int TAIL_HEIGHT = 4;
   private static final int SEGMENT_SPACING = 4;
@@ -120,8 +120,7 @@ public class StackedEventComponent extends AnimatedComponent {
         int index = lastIndex;
         if (offsetValues.size() != 0) {
           index = offsetValues.remove();
-        }
-        else {
+        } else {
           lastIndex++;
         }
         drawOrderIndex.put(data.getStart(), index);
@@ -130,8 +129,7 @@ public class StackedEventComponent extends AnimatedComponent {
         if (lastStart == null) {
           lastStart = data;
           lastStartIndex = index;
-        }
-        else if (index >= lastStartIndex) {
+        } else if (index >= lastStartIndex) {
           myActionToDrawLocationMap.put(lastStart, new EventRenderData(lastStartIndex,
                                                                        data.getStart() - lastStart.getStart()));
           lastStart = data;
@@ -140,8 +138,7 @@ public class StackedEventComponent extends AnimatedComponent {
       }
       if (data.getValue() == Action.ACTIVITY_STARTED) {
         downEvents.put(data.getStart(), data);
-      }
-      else if (data.getValue() == Action.ACTIVITY_COMPLETED) {
+      } else if (data.getValue() == Action.ACTIVITY_COMPLETED) {
         assert downEvents.containsKey(data.getStart());
         EventAction<Action, String> event = downEvents.get(data.getStart());
         int index = drawOrderIndex.get(event.getStart());
@@ -195,7 +192,7 @@ public class StackedEventComponent extends AnimatedComponent {
   @Override
   protected void draw(Graphics2D g2d) {
     Dimension dim = getSize();
-    double scaleFactor = dim.getWidth();
+    int scaleFactor = dim.width;
     double min = mData.getRange().getMin();
     double max = mData.getRange().getMax();
     Stroke current = g2d.getStroke();
@@ -207,8 +204,7 @@ public class StackedEventComponent extends AnimatedComponent {
       //Small fudge factor
       if (maxX <= scaleFactor - EPSILON) {
         g2d.setColor(DISABLED_ACTION);
-      }
-      else {
+      } else {
         g2d.setColor(ENABLED_ACTION);
       }
       Shape shape = scale.createTransformedShape(mPaths.get(i));
@@ -225,8 +221,8 @@ public class StackedEventComponent extends AnimatedComponent {
       double normalizedStartPosition = (event.getStart() - min) / (max - min);
       double normalizedEndPosition = ((event.getStart() + positionData.getTimestamp()) - min)
                                      / (max - min);
-      double startPosition = normalizedStartPosition * scaleFactor;
-      double endPosition = normalizedEndPosition * scaleFactor;
+      float startPosition = (float)normalizedStartPosition * scaleFactor;
+      float endPosition = (float)normalizedEndPosition * scaleFactor;
       boolean ellipsis = true;
       //TODO: If text was previously ellipsed and it is getting pushed off the screen,
       //we need to ellipse it before doing the sliding animation.
@@ -234,23 +230,21 @@ public class StackedEventComponent extends AnimatedComponent {
         startPosition = width < endPosition ? 0 : endPosition - width;
         ellipsis = false;
       }
-      // This loop test the length of the word we are trying to draw, if it is to big to fit between the start of this event and the
-      // start of the next event we add an ellipsis and remove a character. We do this until the word fits in the space available to draw.
-      while (width > endPosition - startPosition && text.length() > ELLIPSIS_LENGTH
-             && ellipsis) {
-        text = text
-          .substring(0, text.length() - (ELLIPSIS_LENGTH + CHARACTERS_TO_SHRINK_BY));
-        text += ELLIPSIS;
-        width = metrics.stringWidth(text);
+
+      if (ellipsis) {
+        text = getFittedString(metrics, text, endPosition - startPosition, CHARACTERS_TO_SHRINK_BY);
+        if (text.isEmpty()) {
+          continue;
+        }
       }
+
       //Small Fudge factor
       if (endPosition <= scaleFactor - EPSILON) {
         g2d.setColor(DISABLED_ACTION);
-      }
-      else {
+      } else {
         g2d.setColor(ENABLED_ACTION);
       }
-      g2d.drawString(text, (float)startPosition, myMaxHeight - (offset * SEGMENT_SPACING));
+      g2d.drawString(text, startPosition, myMaxHeight - (offset * SEGMENT_SPACING));
     }
   }
 
