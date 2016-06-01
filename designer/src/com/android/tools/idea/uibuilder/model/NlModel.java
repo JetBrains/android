@@ -98,7 +98,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   private static final Logger LOG = Logger.getInstance(NlModel.class);
   @AndroidCoordinate private static final int VISUAL_EMPTY_COMPONENT_SIZE = 14;
   private static final int RENDER_DELAY_MS = 10;
-  private Set<String> myPendingIds = Sets.newHashSet();
+  private final Set<String> myPendingIds = Sets.newHashSet();
 
   @NotNull private final DesignSurface mySurface;
   @NotNull private final AndroidFacet myFacet;
@@ -114,11 +114,11 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   private final Disposable myParent;
   private boolean myActive;
   private ResourceVersion myRenderedVersion;
-  private ModelVersion myModelVersion = new ModelVersion();
+  private final ModelVersion myModelVersion = new ModelVersion();
   private AndroidPreviewProgressIndicator myCurrentIndicator;
   private static final Object PROGRESS_LOCK = new Object();
   private RenderTask myRenderTask;
-  private NlLayoutType myType;
+  private final NlLayoutType myType;
   private long myConfigurationModificationCount;
 
   @NotNull
@@ -287,6 +287,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   /**
    * Synchronously inflates the model and updates the view hierarchy
+   *
    * @param force forces the model to be re-inflated even if a previous version was already inflated
    * @returns whether the model was inflated in this call or not
    */
@@ -350,7 +351,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   private void updateHierarchy(@Nullable RenderResult result) {
     if (result == null || !result.getRenderResult().isSuccess()) {
       myComponents = Collections.emptyList();
-    } else {
+    }
+    else {
       XmlTag rootTag = AndroidPsiUtils.getRootTagSafely(myFile);
       List<ViewInfo> rootViews;
       rootViews = myType == NlLayoutType.MENU ? result.getSystemRootViews() : result.getRootViews();
@@ -423,6 +425,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   /**
    * Method that paints the current layout to the given {@link Graphics2D} object.
    */
+  @SuppressWarnings("unused")
   public void paint(@NotNull Graphics2D graphics) {
     synchronized (RENDERING_LOCK) {
       if (myRenderTask != null) {
@@ -571,7 +574,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       // Switch to the same type of editor (XML or Layout Editor) in the target file
       if (selectedEditor instanceof NlEditor) {
         manager.setSelectedEditor(better, NlEditorProvider.DESIGNER_ID);
-      } else if (selectedEditor != null) {
+      }
+      else if (selectedEditor != null) {
         manager.setSelectedEditor(better, TextEditorProvider.getInstance().getEditorTypeId());
       }
 
@@ -607,9 +611,13 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   private static class ModelUpdater {
     private final NlModel myModel;
     private final Map<XmlTag, NlComponent> myTagToComponentMap = Maps.newIdentityHashMap();
-    /** Map from snapshots in the old component map to the corresponding components */
+    /**
+     * Map from snapshots in the old component map to the corresponding components
+     */
     private final Map<TagSnapshot, NlComponent> mySnapshotToComponent = Maps.newIdentityHashMap();
-    /** Map from tags in the view render tree to the corresponding snapshots */
+    /**
+     * Map from tags in the view render tree to the corresponding snapshots
+     */
     private final Map<XmlTag, TagSnapshot> myTagToSnapshot = Maps.newHashMap();
 
     public ModelUpdater(@NotNull NlModel model) {
@@ -702,7 +710,9 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
           for (NlComponent child : children) {
             rectangle = rectangle.union(new Rectangle(child.x, child.y, child.w, child.h));
           }
+
           root.setBounds(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
+          root.setBoundsComputed(true);
         }
       }
     }
@@ -864,7 +874,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     private static void gatherTagsAndSnapshots(ViewInfo view, Map<XmlTag, TagSnapshot> map) {
       Object cookie = view.getCookie();
       if (cookie instanceof TagSnapshot) {
-        TagSnapshot snapshot = (TagSnapshot) cookie;
+        TagSnapshot snapshot = (TagSnapshot)cookie;
         map.put(snapshot.tag, snapshot);
       }
 
@@ -919,7 +929,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
               assert snapshot.tag != null;
               component.setTag(snapshot.tag);
             }
-          } else {
+          }
+          else {
             component.setSnapshot(snapshot);
             assert snapshot.tag != null;
             component.setTag(snapshot.tag);
@@ -1587,10 +1598,12 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       switch (r) {
         case RESOURCE_EDIT: {
           notifyModified(ChangeType.RESOURCE_EDIT);
-        } break;
+        }
+        break;
         case EDIT: {
           notifyModified(ChangeType.EDIT);
-        } break;
+        }
+        break;
         default:
           notifyModified(ChangeType.RESOURCE_CHANGED);
       }
@@ -1616,11 +1629,11 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   /**
    * Maintains multiple counter depending on what did change in the model
    */
-  class ModelVersion {
-    private AtomicLong myVersion = new AtomicLong();
-    private AtomicLong myResourceVersion = new AtomicLong();
-    private AtomicLong myHierarchyVersion = new AtomicLong();
-    ChangeType mLastReason;
+  static class ModelVersion {
+    private final AtomicLong myVersion = new AtomicLong();
+    private final AtomicLong myResourceVersion = new AtomicLong();
+    private final AtomicLong myHierarchyVersion = new AtomicLong();
+    @SuppressWarnings("unused") ChangeType mLastReason;
 
     public void increase(ChangeType reason) {
       myVersion.incrementAndGet();
@@ -1634,7 +1647,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
         case RESIZE_COMMIT:
         case ADD_COMPONENTS: {
           myResourceVersion.incrementAndGet();
-        } break;
+        }
+        break;
         default:
           myHierarchyVersion.incrementAndGet();
       }
@@ -1643,8 +1657,10 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     public long getVersion() {
       return myVersion.get();
     }
-    public long getResourceVersion() { return myResourceVersion.get(); }
-    public long getHierarchyVersion() { return myHierarchyVersion.get(); }
+
+    public long getResourceVersion() {
+      return myResourceVersion.get();
+    }
   }
 
   @Override
@@ -1655,8 +1671,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   public long getResourceVersion() {
     return myModelVersion.getResourceVersion();
   }
-
-  public ModelVersion getModelVersion() { return myModelVersion; }
 
   public void notifyModified(ChangeType reason) {
     String theme = myConfiguration.getTheme();

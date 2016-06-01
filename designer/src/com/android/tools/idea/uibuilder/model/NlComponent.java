@@ -73,6 +73,12 @@ public class NlComponent {
   @AndroidCoordinate public int y;
   @AndroidCoordinate public int w;
   @AndroidCoordinate public int h;
+
+  /**
+   * True if this component's bounds were computed by NlModel.
+   */
+  private boolean myBoundsComputed;
+
   private NlComponent myParent;
   @NotNull private final NlModel myModel;
   @NotNull private XmlTag myTag;
@@ -114,6 +120,10 @@ public class NlComponent {
     this.y = y;
     this.w = w;
     this.h = h;
+  }
+
+  void setBoundsComputed(boolean boundsComputed) {
+    myBoundsComputed = boundsComputed;
   }
 
   public void addChild(@NotNull NlComponent component) {
@@ -248,11 +258,19 @@ public class NlComponent {
       }
     }
 
-    return (x <= px && y <= py && x + w >= px && y + h >= py) ? this : null;
+    return (!myBoundsComputed && x <= px && y <= py && x + w >= px && y + h >= py) ? this : null;
+  }
+
+  public boolean containsX(@AndroidCoordinate int x) {
+    return Ranges.contains(this.x, this.x + w, x);
   }
 
   public boolean containsY(@AndroidCoordinate int y) {
     return Ranges.contains(this.y, this.y + h, y);
+  }
+
+  public int getMidpointX() {
+    return x + w / 2;
   }
 
   public int getMidpointY() {
@@ -541,12 +559,12 @@ public class NlComponent {
   public boolean isOrHasSuperclass(@NotNull String className) {
     if (viewInfo != null) {
       Object viewObject = viewInfo.getViewObject();
-      Class<?> klass = viewObject.getClass();
-      while (klass != Object.class) {
-        if (className.equals(klass.getName())) {
+      Class<?> viewClass = viewObject.getClass();
+      while (viewClass != Object.class) {
+        if (className.equals(viewClass.getName())) {
           return true;
         }
-        klass = klass.getSuperclass();
+        viewClass = viewClass.getSuperclass();
       }
     }
     return false;
