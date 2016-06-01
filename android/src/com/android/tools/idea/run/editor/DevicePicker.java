@@ -182,23 +182,21 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
 
   public void refreshAvds(@Nullable final AvdInfo avdToSelect) {
     myDevicesList.setPaintBusy(true);
-    ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
-      @Override
-      public void run() {
-        final List<AvdInfo> avdInfos = AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(true);
-        UIUtil.invokeLaterIfNeeded(new Runnable() {
-          @Override
-          public void run() {
-            myAvdInfos = avdInfos;
-            updateModel();
-            myDevicesList.setPaintBusy(false);
+    ApplicationManager.getApplication().executeOnPooledThread(() -> {
+      final List<AvdInfo> avdInfos = AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(true);
+      UIUtil.invokeLaterIfNeeded(() -> {
+        if (myDevicesList == null) { // don't update anything post disposal of the dialog
+          return;
+        }
 
-            if (avdToSelect != null) {
-              selectAvd(avdToSelect);
-            }
-          }
-        });
-      }
+        myAvdInfos = avdInfos;
+        updateModel();
+        myDevicesList.setPaintBusy(false);
+
+        if (avdToSelect != null) {
+          selectAvd(avdToSelect);
+        }
+      });
     });
   }
 
@@ -283,6 +281,9 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
       return;
     }
 
+    if (myDevicesList == null) { // happens if this was scheduled post disposal of the dialog
+      return;
+    }
     Set<String> selectedSerials = getSelectedSerials(myDevicesList.getSelectedValues());
 
     List<IDevice> connectedDevices = Lists.newArrayList(bridge.getDevices());
