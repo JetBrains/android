@@ -214,7 +214,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       )
     )));
 
-    actions.add(new NestedViewActionMenu("Guides", AndroidIcons.SherpaIcons.GuidelineVertical, Lists.<List<ViewAction>>newArrayList(
+    actions.add(new NestedViewActionMenu("Guidelines", AndroidIcons.SherpaIcons.GuidelineVertical, Lists.<List<ViewAction>>newArrayList(
       Lists.newArrayList(
         new AddElementAction(AddElementAction.VERTICAL_GUIDELINE,
                              AndroidIcons.SherpaIcons.GuidelineVertical,
