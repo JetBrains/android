@@ -34,6 +34,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
@@ -56,16 +57,7 @@ class MainForm implements Disposable {
     myScopesLabel.setText(" ");
 
     List<String> configurations = Lists.newArrayList(module.getGradleModel().getConfigurations());
-    Collections.sort(configurations, (s1, s2) -> {
-      // compile goes first.
-      if ("compile".equals(s1)) {
-        return -1;
-      }
-      else if ("compile".endsWith(s2)) {
-        return 1;
-      }
-      return s1.compareTo(s2);
-    });
+    Collections.sort(configurations, ConfigurationComparator.INSTANCE);
 
     String selected = null;
     if (!configurations.isEmpty()) {
@@ -120,11 +112,29 @@ class MainForm implements Disposable {
 
   @NotNull
   List<String> getSelectedScopeNames() {
-    return myConfigurationsList.getSelectedItems();
+    List<String> scopes = Lists.newArrayList(myConfigurationsList.getSelectedItems());
+    Collections.sort(scopes, ConfigurationComparator.INSTANCE);
+    return scopes;
   }
 
   @Override
   public void dispose() {
     Disposer.dispose(myToolWindowPanel);
+  }
+
+  private static class ConfigurationComparator implements Comparator<String> {
+    static final ConfigurationComparator INSTANCE = new ConfigurationComparator();
+
+    @Override
+    public int compare(String s1, String s2) {
+      // compile goes first.
+      if ("compile".equals(s1)) {
+        return -1;
+      }
+      else if ("compile".endsWith(s2)) {
+        return 1;
+      }
+      return s1.compareTo(s2);
+    }
   }
 }

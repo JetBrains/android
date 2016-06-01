@@ -150,11 +150,15 @@ class AddLibraryDependencyPanel extends JPanel implements Disposable {
     assert library != null;
 
     List<String> scopesNames = myScopesForm.getSelectedScopeNames();
-    if (myScopesForm instanceof AndroidDependencyScopesForm && myModule instanceof PsAndroidModule) {
+
+    if (myModule instanceof PsAndroidModule) {
       PsNewDependencyScopes newScopes = ((AndroidDependencyScopesForm)myScopesForm).getNewScopes();
       assert newScopes != null;
 
       ((PsAndroidModule)myModule).addLibraryDependency(library, newScopes, scopesNames);
+    }
+    else if (myModule instanceof PsJavaModule) {
+      ((PsJavaModule)myModule).addLibraryDependency(library, scopesNames);
     }
   }
 
