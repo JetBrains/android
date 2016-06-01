@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.editor;
 
 import com.android.tools.idea.uibuilder.palette.NlPalettePanel;
-import com.android.tools.idea.uibuilder.palette.ScalableDesignSurface;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.intellij.designer.DesignerEditorPanelFacade;
 import com.intellij.designer.LightToolWindow;
 import com.intellij.icons.AllIcons;
@@ -72,7 +72,7 @@ public class NlPaletteManager extends NlAbstractWindowManager {
     return getComponentName()+ "-" + designer.getClass().getSimpleName();
   }
 
-  public void setDesignSurface(LightToolWindow toolWindow, @Nullable ScalableDesignSurface designSurface) {
+  public void setDesignSurface(LightToolWindow toolWindow, @Nullable DesignSurface designSurface) {
     NlPalettePanel palette = (NlPalettePanel)toolWindow.getContent();
     palette.setDesignSurface(designSurface);
   }
@@ -86,7 +86,6 @@ public class NlPaletteManager extends NlAbstractWindowManager {
     }
 
     NlPalettePanel palette = new NlPalettePanel(myProject, getDesignSurface(designer));
-    palette.setDesignSurface(getDesignSurface(designer));
 
     PropertiesComponent propertiesComponent = PropertiesComponent.getInstance(myProject);
     // When LightToolWindowManager#getEditorMode() is public (or a constructor which lets

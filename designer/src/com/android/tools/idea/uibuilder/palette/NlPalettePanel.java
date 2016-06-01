@@ -109,12 +109,12 @@ public class NlPalettePanel extends JPanel
 
   private final NlComponentTree myStructureTree;
 
-  private ScalableDesignSurface myDesignSurface;
+  private DesignSurface myDesignSurface;
   private Mode myMode;
   private BufferedImage myLastDragImage;
   private Configuration myConfiguration;
 
-  public NlPalettePanel(@NotNull Project project, @NotNull DesignSurface designSurface) {
+  public NlPalettePanel(@NotNull Project project, @Nullable DesignSurface designSurface) {
     myPaletteTree = new PaletteTree();
     myIconFactory = IconPreviewFactory.get();
     myModel = NlPaletteModel.get(project);
@@ -125,7 +125,7 @@ public class NlPalettePanel extends JPanel
     myDndManager = DnDManager.getInstance();
     myDndSource = new PaletteDnDSource();
     myDndManager.registerSource(myDndSource, myPaletteTree);
-    initTree(project);
+    initTree();
     JScrollPane palettePane = ScrollPaneFactory.createScrollPane(myPaletteTree, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
 
     myStructureTree = new NlComponentTree(designSurface);
@@ -137,6 +137,7 @@ public class NlPalettePanel extends JPanel
 
     setLayout(new BorderLayout());
     add(splitter, BorderLayout.CENTER);
+    setDesignSurface(designSurface);
   }
 
   @NotNull
@@ -171,7 +172,8 @@ public class NlPalettePanel extends JPanel
     }
   }
 
-  public void setDesignSurface(@Nullable ScalableDesignSurface designSurface) {
+  public void setDesignSurface(@Nullable DesignSurface designSurface) {
+    myStructureTree.setDesignSurface(designSurface);
     Module prevModule = null;
     if (myDesignSurface != null) {
       Configuration configuration = myDesignSurface.getConfiguration();
@@ -189,6 +191,8 @@ public class NlPalettePanel extends JPanel
         configuration.addListener(this);
       }
       updateConfiguration();
+      initItems();
+      checkForNewMissingDependencies();
     }
     if (prevModule != newModule) {
       if (prevModule != null) {
@@ -207,7 +211,6 @@ public class NlPalettePanel extends JPanel
         myIconFactory.dropCache();
       }
     }
-    checkForNewMissingDependencies();
   }
 
   private void updateColorsAfterColorThemeChange(boolean doUpdate) {
@@ -370,7 +373,7 @@ public class NlPalettePanel extends JPanel
     IJSwingUtilities.updateComponentTreeUI(myPaletteTree);
   }
 
-  private void initTree(@NotNull Project project) {
+  private void initTree() {
     DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(null);
     DefaultTreeModel treeModel = new DefaultTreeModel(rootNode);
     myPaletteTree.setModel(treeModel);
@@ -387,7 +390,13 @@ public class NlPalettePanel extends JPanel
     new PaletteSpeedSearch(myPaletteTree);
     updateColorsAfterColorThemeChange(true);
     enableClickToLoadMissingDependency();
-    DumbService.getInstance(project).smartInvokeLater(() -> {
+  }
+
+  private void initItems() {
+    if (myDesignSurface == null || myPaletteTree.getRowCount() > 0) {
+      return;
+    }
+    DumbService.getInstance(myDesignSurface.getProject()).smartInvokeLater(() -> {
       if (myDesignSurface == null) {
         return;
       }
