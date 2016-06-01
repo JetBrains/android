@@ -39,6 +39,7 @@ import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
 import com.intellij.openapi.externalSystem.service.project.ExternalProjectRefreshCallback;
 import com.intellij.openapi.externalSystem.util.ExternalSystemBundle;
+import com.intellij.openapi.fileChooser.impl.FileChooserUtil;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -173,6 +174,7 @@ public class GradleProjectImporter {
       importProject(projectDir.getName(), projectDirPath, true, new NewProjectImportGradleSyncListener() {
         @Override
         public void syncSucceeded(@NotNull Project project) {
+          FileChooserUtil.setLastOpenedFile(project, projectDir);
           activateProjectView(project);
         }
       }, project, null);
