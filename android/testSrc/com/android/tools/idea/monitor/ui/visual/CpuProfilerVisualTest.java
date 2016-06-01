@@ -47,13 +47,13 @@ public class CpuProfilerVisualTest extends VisualTest {
 
   private SeriesDataStore mDataStore;
 
-  private CpuUsageSegment mCPULevel1Segment;
-
   private CpuUsageSegment mCPULevel2Segment;
 
   private ThreadsSegment mThreadsSegment;
 
   private long mStartTimeMs;
+
+  private Thread mSimulateTestDataThread;
 
   @Override
   protected void initialize() {
@@ -66,7 +66,9 @@ public class CpuProfilerVisualTest extends VisualTest {
     if (mDataStore != null) {
       mDataStore.reset();
     }
-
+    if (mSimulateTestDataThread != null) {
+      mSimulateTestDataThread.interrupt();
+    }
     super.reset();
   }
 
@@ -116,7 +118,7 @@ public class CpuProfilerVisualTest extends VisualTest {
   }
 
   private void simulateTestData() {
-    Thread updateDataThread = new Thread() {
+    mSimulateTestDataThread = new Thread() {
       @Override
       public void run() {
         try {
@@ -148,6 +150,6 @@ public class CpuProfilerVisualTest extends VisualTest {
         }
       }
     };
-    updateDataThread.start();
+    mSimulateTestDataThread.start();
   }
 }
