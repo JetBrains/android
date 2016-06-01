@@ -67,16 +67,32 @@ public class NlGraphics {
     drawLine(component.x, component.y, component.x + component.w, component.y);
   }
 
+  public void drawTop(@NotNull Rectangle rectangle) {
+    drawLine(rectangle.x, rectangle.y, rectangle.x + rectangle.width, rectangle.y);
+  }
+
   public void drawLeft(@NotNull NlComponent component) {
     drawLine(component.x, component.y, component.x, component.y + component.h);
+  }
+
+  public void drawLeft(@NotNull Rectangle rectangle) {
+    drawLine(rectangle.x, rectangle.y, rectangle.x, rectangle.y + rectangle.height);
   }
 
   public void drawRight(@NotNull NlComponent component) {
     drawLine(component.x + component.w, component.y, component.x + component.w, component.y + component.h);
   }
 
+  public void drawRight(@NotNull Rectangle rectangle) {
+    drawLine(rectangle.x + rectangle.width, rectangle.y, rectangle.x + rectangle.width, rectangle.y + rectangle.height);
+  }
+
   public void drawBottom(@NotNull NlComponent component) {
     drawLine(component.x, component.y + component.h, component.x + component.w, component.y + component.h);
+  }
+
+  public void drawBottom(@NotNull Rectangle rectangle) {
+    drawLine(rectangle.x, rectangle.y + rectangle.height, rectangle.x + rectangle.width, rectangle.y + rectangle.height);
   }
 
   public void drawLine(@AndroidCoordinate int x1,

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers.menu;
 
+import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.ide.common.rendering.api.ViewType;
 import com.android.tools.idea.uibuilder.api.DragHandler;
 import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
@@ -30,16 +32,31 @@ import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
 
-public final class MenuDragHandlerTest {
+public final class GroupDragHandlerTest {
   @Test
-  public void update() {
-    NlComponent menu = newNlComponent(366, 162, 392, 288);
+  public void updateUsingActionBarGroup() {
+    NlComponent group = newGroup(670, 58, 98, 96);
+    group.addChild(newActionBarItem(670, 58, 98, 96));
 
-    menu.addChild(newNlComponent(366, 162, 392, 96));
-    menu.addChild(newNlComponent(366, 258, 392, 96));
-    menu.addChild(newNlComponent(366, 354, 392, 96));
+    NlComponent menu = newMenu(572, 58, 196, 96);
+    menu.addChild(newActionBarItem(572, 58, 98, 96));
+    menu.addChild(group);
 
-    DragHandler handler = newMenuDragHandler(menu);
+    DragHandler handler = newGroupDragHandler(menu);
+    handler.update(793, 0, 0);
+
+    assertEquals(-1, handler.getInsertIndex());
+  }
+
+  @Test
+  public void updateUsingOverflowGroup() {
+    NlComponent menu = newMenu(366, 162, 392, 288);
+
+    menu.addChild(newOverflowItem(366, 162, 392, 96));
+    menu.addChild(newOverflowItem(366, 258, 392, 96));
+    menu.addChild(newOverflowItem(366, 354, 392, 96));
+
+    DragHandler handler = newGroupDragHandler(menu);
     int y = 90;
 
     y += 48;
@@ -76,19 +93,19 @@ public final class MenuDragHandlerTest {
   }
 
   @Test
-  public void updateEmptyGroupInFront() {
-    NlComponent menu = newNlComponent(366, 162, 392, 192);
+  public void updateUsingOverflowGroupEmptyGroupInFront() {
+    NlComponent menu = newMenu(366, 162, 392, 192);
 
-    menu.addChild(newNlComponent(0, 0, -1, -1));
-    menu.addChild(newNlComponent(366, 162, 392, 96));
-    menu.addChild(newNlComponent(366, 258, 392, 96));
+    menu.addChild(newGroup(0, 0, -1, -1));
+    menu.addChild(newOverflowItem(366, 162, 392, 96));
+    menu.addChild(newOverflowItem(366, 258, 392, 96));
 
-    DragHandler handler = newMenuDragHandler(menu);
+    DragHandler handler = newGroupDragHandler(menu);
     int y = 90;
 
     y += 48;
     handler.update(0, y, 0);
-    assertEquals(1, handler.getInsertIndex());
+    assertEquals(0, handler.getInsertIndex());
 
     y += 48;
     handler.update(0, y, 0);
@@ -112,14 +129,14 @@ public final class MenuDragHandlerTest {
   }
 
   @Test
-  public void updateEmptyGroupInMiddle() {
-    NlComponent menu = newNlComponent(366, 162, 392, 192);
+  public void updateUsingOverflowGroupEmptyGroupInMiddle() {
+    NlComponent menu = newMenu(366, 162, 392, 192);
 
-    menu.addChild(newNlComponent(366, 162, 392, 96));
-    menu.addChild(newNlComponent(0, 0, -1, -1));
-    menu.addChild(newNlComponent(366, 258, 392, 96));
+    menu.addChild(newOverflowItem(366, 162, 392, 96));
+    menu.addChild(newGroup(0, 0, -1, -1));
+    menu.addChild(newOverflowItem(366, 258, 392, 96));
 
-    DragHandler handler = newMenuDragHandler(menu);
+    DragHandler handler = newGroupDragHandler(menu);
     int y = 90;
 
     y += 48;
@@ -148,14 +165,14 @@ public final class MenuDragHandlerTest {
   }
 
   @Test
-  public void updateEmptyGroupInBack() {
-    NlComponent menu = newNlComponent(366, 162, 392, 192);
+  public void updateUsingOverflowGroupEmptyGroupInBack() {
+    NlComponent menu = newMenu(366, 162, 392, 192);
 
-    menu.addChild(newNlComponent(366, 162, 392, 96));
-    menu.addChild(newNlComponent(366, 258, 392, 96));
-    menu.addChild(newNlComponent(0, 0, -1, -1));
+    menu.addChild(newOverflowItem(366, 162, 392, 96));
+    menu.addChild(newOverflowItem(366, 258, 392, 96));
+    menu.addChild(newGroup(0, 0, -1, -1));
 
-    DragHandler handler = newMenuDragHandler(menu);
+    DragHandler handler = newGroupDragHandler(menu);
     int y = 90;
 
     y += 48;
@@ -180,19 +197,63 @@ public final class MenuDragHandlerTest {
 
     y += 48;
     handler.update(0, y, 0);
-    assertEquals(2, handler.getInsertIndex());
+    assertEquals(-1, handler.getInsertIndex());
   }
 
   @NotNull
-  private static NlComponent newNlComponent(int x, int y, int width, int height) {
-    NlComponent component = new NlComponent(Mockito.mock(NlModel.class), Mockito.mock(XmlTag.class));
-    component.setBounds(x, y, width, height);
+  private static NlComponent newMenu(int x, int y, int width, int height) {
+    NlComponent menu = newNlComponent("menu");
+    menu.setBounds(x, y, width, height);
 
-    return component;
+    return menu;
   }
 
   @NotNull
-  private static DragHandler newMenuDragHandler(@NotNull NlComponent menu) {
-    return new MenuDragHandler(Mockito.mock(ViewEditor.class), new ViewGroupHandler(), menu, Collections.emptyList(), DragType.CREATE);
+  @SuppressWarnings("SameParameterValue")
+  private static NlComponent newActionBarItem(int x, int y, int width, int height) {
+    NlComponent item = newNlComponent("item");
+    item.viewInfo = newViewInfo(ViewType.ACTION_BAR_MENU);
+    item.setBounds(x, y, width, height);
+
+    return item;
+  }
+
+  @NotNull
+  @SuppressWarnings("SameParameterValue")
+  private static NlComponent newOverflowItem(int x, int y, int width, int height) {
+    NlComponent item = newNlComponent("item");
+    item.viewInfo = newViewInfo(ViewType.ACTION_BAR_OVERFLOW_MENU);
+    item.setBounds(x, y, width, height);
+
+    return item;
+  }
+
+  @NotNull
+  private static NlComponent newGroup(int x, int y, int width, int height) {
+    NlComponent group = newNlComponent("group");
+    group.setBounds(x, y, width, height);
+
+    return group;
+  }
+
+  @NotNull
+  private static NlComponent newNlComponent(@NotNull String tagName) {
+    XmlTag tag = Mockito.mock(XmlTag.class);
+    Mockito.when(tag.getName()).thenReturn(tagName);
+
+    return new NlComponent(Mockito.mock(NlModel.class), tag);
+  }
+
+  @NotNull
+  private static ViewInfo newViewInfo(@NotNull ViewType viewType) {
+    ViewInfo view = Mockito.mock(ViewInfo.class);
+    Mockito.when(view.getViewType()).thenReturn(viewType);
+
+    return view;
+  }
+
+  @NotNull
+  private static DragHandler newGroupDragHandler(@NotNull NlComponent group) {
+    return new GroupDragHandler(Mockito.mock(ViewEditor.class), new ViewGroupHandler(), group, Collections.emptyList(), DragType.CREATE);
   }
 }
