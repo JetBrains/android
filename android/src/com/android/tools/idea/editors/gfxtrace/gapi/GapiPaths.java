@@ -18,6 +18,7 @@ package com.android.tools.idea.editors.gfxtrace.gapi;
 import com.android.repository.api.LocalPackage;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.SystemProperties;
@@ -27,11 +28,15 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 
 import static com.intellij.idea.IdeaApplication.IDEA_IS_INTERNAL_PROPERTY;
 
 public final class GapiPaths {
+  public static final Version REQUIRED_GAPI_VERSION = Version.VERSION_1;
+
   private static final Map<String, String> ABI_REMAP = ImmutableMap.<String, String>builder()
     .put("32-bit (arm)", "armeabi-v7a") // Not a valid abi, but returned anyway by ClientData.getAbi
     .put("64-bit (arm)", "arm64-v8a")   // Not a valid abi, but returned anyway by ClientData.getAbi
@@ -59,7 +64,6 @@ public final class GapiPaths {
   @NotNull private static final String TRACER_NAME = "gfxtracer.aar";
   @NotNull private static final String EXE_EXTENSION;
   @NotNull private static final String SDK_PATH = "gapid";
-  @NotNull public static final String SDK_PACKAGE_PATH = "extras;android;gapid";
   @NotNull private static final String OS_ANDROID = "android";
 
   static {
@@ -147,6 +151,21 @@ public final class GapiPaths {
     return myTracerPath;
   }
 
+  /**
+   * @return a {@link Collection} of SDK components to install, or the empty collection if we're up-to-date.
+   */
+  public static Collection<String> getMissingSdkComponents() {
+    // If we have found a valid install, ...
+    if (isValid()) {
+      LocalPackage gapi = GapiPaths.getLocalPackage();
+      // ... and if the installed package is compatible, we don't need a new install.
+      if (gapi == null || REQUIRED_GAPI_VERSION.isCompatible(gapi.getVersion())) {
+        return Collections.emptyList();
+      }
+    }
+    return ImmutableList.of(REQUIRED_GAPI_VERSION.getSdkPackagePath());
+  }
+
   @NotNull
   private static File findPath(@NotNull String os, String abi, @NotNull String binary) {
     File test;
@@ -175,13 +194,13 @@ public final class GapiPaths {
   }
 
   @Nullable("gapi is not installed")
-  public static LocalPackage getLocalPackage() {
+  private static LocalPackage getLocalPackage() {
     AndroidSdkHandler handler = AndroidSdkUtils.tryToChooseSdkHandler();
-    return handler.getLocalPackage(SDK_PACKAGE_PATH, new StudioLoggerProgressIndicator(GapiPaths.class));
+    return handler.getLocalPackage(REQUIRED_GAPI_VERSION.getSdkPackagePath(), new StudioLoggerProgressIndicator(GapiPaths.class));
   }
 
   @Nullable("gapi is not installed")
-  public static File getSdkPath() {
+  private static File getSdkPath() {
     LocalPackage info = getLocalPackage();
     return info == null ? null : info.getLocation();
   }
@@ -199,7 +218,7 @@ public final class GapiPaths {
 
   private static void findTools() {
     synchronized (myPathLock) {
-      if (myGapisPath != null) {
+      if (myGapisPath != null && myGapisPath.exists()) {
         return;
       }
       if (Boolean.getBoolean(IDEA_IS_INTERNAL_PROPERTY)) {

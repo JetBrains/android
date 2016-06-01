@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.editors.gfxtrace;
 
-import com.android.repository.api.LocalPackage;
 import com.android.tools.idea.editors.gfxtrace.controllers.MainController;
-import com.android.tools.idea.editors.gfxtrace.gapi.*;
+import com.android.tools.idea.editors.gfxtrace.gapi.GapiPaths;
+import com.android.tools.idea.editors.gfxtrace.gapi.GapisConnection;
+import com.android.tools.idea.editors.gfxtrace.gapi.GapisFeatures;
+import com.android.tools.idea.editors.gfxtrace.gapi.GapisProcess;
 import com.android.tools.idea.editors.gfxtrace.models.AtomStream;
 import com.android.tools.idea.editors.gfxtrace.models.GpuState;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
@@ -35,7 +37,6 @@ import com.android.tools.rpclib.schema.ConstantSet;
 import com.android.tools.rpclib.schema.Dynamic;
 import com.android.tools.rpclib.schema.Entity;
 import com.android.tools.rpclib.schema.Message;
-import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -53,14 +54,11 @@ import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.HyperlinkLabel;
-import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.event.HyperlinkEvent;
-import javax.swing.event.HyperlinkListener;
 import java.awt.*;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
@@ -74,8 +72,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
-  private static final Version REQUIRED_GAPI_VERSION = Version.VERSION_1;
-
   private static final int FETCH_SCHEMA_TIMEOUT_MS = 3000;
   private static final int FETCH_FEATURES_TIMEOUT_MS = 3000;
   private static final int FETCH_STRING_TABLE_TIMEOUT_MS = 3000;
@@ -133,19 +129,15 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
       @Override
       public void run() {
-        if (installNeeded()) {
+        final Collection<String> missingComponents = GapiPaths.getMissingSdkComponents();
+        if (!missingComponents.isEmpty()) {
           HyperlinkLabel link = new HyperlinkLabel("(install here)");
-          link.addHyperlinkListener(new HyperlinkListener() {
-            @Override
-            public void hyperlinkUpdate(HyperlinkEvent e) {
-              Collection<String> requested = ImmutableList.of(GapiPaths.SDK_PACKAGE_PATH);
-              // TODO do we want to tell it to install a specific version?
-              ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(myProject, requested);
-              if (dialog != null) {
-                dialog.setTitle("Install Missing Components");
-                if (dialog.showAndGet()) {
-                  connect();
-                }
+          link.addHyperlinkListener(e -> {
+            ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(myProject, missingComponents);
+            if (dialog != null) {
+              dialog.setTitle("Install Missing Components");
+              if (dialog.showAndGet()) {
+                connect();
               }
             }
           });
@@ -194,16 +186,6 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
 
     fetchReplayDevice();
     fetchTrace(myFile);
-  }
-
-  private static boolean installNeeded() {
-    // install needed if we have no version installed
-    if (!GapiPaths.isValid()) {
-      return true;
-    }
-    // OR we do have a version installed from the SDK manager, but it does not match our required version
-    LocalPackage gapi = GapiPaths.getLocalPackage();
-    return gapi != null && !REQUIRED_GAPI_VERSION.isCompatible(gapi.getVersion());
   }
 
   /**
