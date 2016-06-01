@@ -20,6 +20,7 @@ import com.intellij.ide.IdeBundle;
 import com.intellij.ide.IdeView;
 import com.intellij.ide.actions.CreateFromTemplateAction;
 import com.intellij.ide.fileTemplates.FileTemplate;
+import com.intellij.ide.fileTemplates.FileTemplateManager;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
@@ -237,6 +238,14 @@ public final class CreateClassAction extends AnAction {
       }
 
       newName = names.get(names.size() - 1);
+    }
+
+    if (templateName.matches("^AS.*")) {
+      String baseTemplateName = templateName.substring(2);
+      FileTemplate baseTemplate = FileTemplateManager.getInstance(dir.getProject()).getInternalTemplate(baseTemplateName);
+      if (!baseTemplate.isDefault()) {
+        templateName = baseTemplateName;
+      }
     }
 
     return myJavaDirectoryService.createClass(dir, newName, templateName, true, creationOptions);
