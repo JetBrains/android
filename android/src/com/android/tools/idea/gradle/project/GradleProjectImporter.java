@@ -27,6 +27,7 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
+import com.intellij.ide.impl.ProjectUtil;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
@@ -175,6 +176,7 @@ public class GradleProjectImporter {
         @Override
         public void syncSucceeded(@NotNull Project project) {
           FileChooserUtil.setLastOpenedFile(project, projectDir);
+          ProjectUtil.focusProjectWindow(project, false);
           activateProjectView(project);
         }
       }, project, null);
