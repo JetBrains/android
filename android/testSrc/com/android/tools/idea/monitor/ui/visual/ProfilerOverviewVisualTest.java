@@ -50,12 +50,8 @@ public class ProfilerOverviewVisualTest extends VisualTest {
   private static final int IMAGE_WIDTH = 16;
   private static final int IMAGE_HEIGHT = 16;
   private static final float CLICK_PROBABILITY = 1 / 5.0f; // 1 in 5 chance to click and release
-  private static final float FRAGMENT_PROBABILITY = 1 / 10.0f; // 1 in 10 change to create / destroy a fragment
-  private static final float ACTIVITY_PROBABILITY = 1 / 20.0f; // 1 in 20 chance to create / destroy a activity
   private static final double CREATE_DESTROY_PROBABILITY = .5; // 50% chance to create a new fragment/activity
   private static final int EVENT_LIMIT = 5; // create a maximum of X fragment/activities;
-
-  private static final int DATA_DELAY_MS = 100;
 
   //TODO refactor this to a common location.
   private static BufferedImage buildStaticImage(Color color) {
@@ -264,9 +260,9 @@ public class ProfilerOverviewVisualTest extends VisualTest {
     panel.setLayout(layout);
     panel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
 
-    JComboBox<String> deviceCb = new JComboBox(new String[]{"Device1", "Device2"});
+    JComboBox<String> deviceCb = new JComboBox<>(new String[]{"Device1", "Device2"});
     deviceCb.addActionListener(e -> getChoreographer().reset());
-    JComboBox<String> processCb = new JComboBox(new String[]{"Process1", "Process2"});
+    JComboBox<String> processCb = new JComboBox<>(new String[]{"Process1", "Process2"});
     processCb.addActionListener(e -> getChoreographer().reset());
 
     panel.add(deviceCb);
@@ -275,14 +271,14 @@ public class ProfilerOverviewVisualTest extends VisualTest {
   }
 
   private BaseSegment createSegment(BaseSegment.SegmentType type, int minHeight, int preferredHeight, int maxHeight) {
-    BaseSegment segment = null;
+    BaseSegment segment;
     Range yRange = new Range();
     switch (type) {
       case TIME:
         segment = new TimeAxisSegment(mXRange, mTimeAxis);
         break;
       case EVENT:
-        segment = new EventSegment(mXGlobalRange, mSystemEventData, mFragmentEventData, mActivityEventData, MOCK_ICONS);
+        segment = new EventSegment<>(mXGlobalRange, mSystemEventData, mFragmentEventData, mActivityEventData, MOCK_ICONS);
         break;
       case CPU:
         // TODO use L1 segment instead
