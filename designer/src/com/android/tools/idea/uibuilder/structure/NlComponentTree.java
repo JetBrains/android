@@ -72,7 +72,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   private InsertionPoint myInsertionPoint;
   private boolean mySkipWait;
 
-  public NlComponentTree(@NotNull DesignSurface designSurface) {
+  public NlComponentTree(@Nullable DesignSurface designSurface) {
     mySelectionIsUpdating = new AtomicBoolean(false);
     myUpdateQueue = new MergingUpdateQueue(
       "android.layout.structure-pane", UPDATE_DELAY_MSECS, true, null, null, null, SWING_THREAD);
@@ -174,6 +174,9 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
       @Override
       public void run() {
         try {
+          if (myModel == null) {
+            return;
+          }
           mySelectionIsUpdating.set(true);
 
           Collection<NlComponent> components = getCollapsedComponents();
