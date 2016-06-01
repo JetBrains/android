@@ -50,6 +50,8 @@ public class NetworkProfilerVisualTest extends VisualTest {
 
   private List<RangedDiscreteSeries<NetworkCaptureSegment.NetworkState>> mCaptureData;
 
+  private Thread mSimulateTestDataThread;
+
   @Override
   protected void initialize() {
     mDataStore = new VisualTestSeriesDataStore();
@@ -61,7 +63,9 @@ public class NetworkProfilerVisualTest extends VisualTest {
     if (mDataStore != null) {
       mDataStore.reset();
     }
-
+    if (mSimulateTestDataThread != null) {
+      mSimulateTestDataThread.interrupt();
+    }
     super.reset();
   }
 
@@ -116,7 +120,7 @@ public class NetworkProfilerVisualTest extends VisualTest {
   }
 
   private void simulateTestData() {
-    Thread updateDataThread = new Thread() {
+    mSimulateTestDataThread = new Thread() {
       @Override
       public void run() {
         try {
@@ -137,6 +141,6 @@ public class NetworkProfilerVisualTest extends VisualTest {
         }
       }
     };
-    updateDataThread.start();
+    mSimulateTestDataThread.start();
   }
 }
