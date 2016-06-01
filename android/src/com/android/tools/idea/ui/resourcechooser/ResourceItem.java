@@ -78,7 +78,7 @@ public class ResourceItem {
   @NotNull
   public ResourceValue getResourceValue() {
     // No need to try and find the resource as we know exactly what it's going to be like
-    return new ResourceValue(myGroup.getType(), getName(), myFile == null ? getResourceUrl() : myFile.getPath(), isFramework());
+    return new ResourceValue(myGroup.getType(), getName(), myFile == null ? getResourceUrl() : myFile.getPath(), isFramework(), null);
   }
 
   @Override
