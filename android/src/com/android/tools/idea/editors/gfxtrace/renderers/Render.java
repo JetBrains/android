@@ -22,13 +22,17 @@ import com.android.tools.idea.editors.gfxtrace.service.atom.DynamicAtom;
 import com.android.tools.idea.editors.gfxtrace.service.memory.MemoryPointer;
 import com.android.tools.idea.editors.gfxtrace.service.memory.MemoryProtos.PoolNames;
 import com.android.tools.idea.editors.gfxtrace.service.memory.MemoryRange;
+import com.android.tools.idea.editors.gfxtrace.service.memory.MemorySliceInfo;
+import com.android.tools.idea.editors.gfxtrace.service.memory.MemorySliceMetadata;
 import com.android.tools.idea.editors.gfxtrace.service.snippets.CanFollow;
 import com.android.tools.idea.editors.gfxtrace.service.snippets.Labels;
 import com.android.tools.idea.editors.gfxtrace.service.snippets.SnippetObject;
+import com.android.tools.rpclib.binary.BinaryObject;
 import com.android.tools.rpclib.schema.*;
 import com.android.tools.rpclib.schema.Map;
 import com.google.common.collect.*;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
@@ -61,10 +65,10 @@ public final class Render {
       return;
     }
     if (value instanceof MemoryRange) {
-      render((MemoryRange)value, component, attributes);
+      render((MemoryRange)value, component, attributes, tag);
       return;
     }
-    component.append(value.toString(), attributes);
+    component.append(value.toString(), attributes, tag);
   }
 
   public static void render(@NotNull SnippetObject obj, @NotNull Dynamic dynamic,
@@ -74,6 +78,12 @@ public final class Render {
       render(mp, component, attributes, tag);
       return;
     }
+
+    if (dynamic.getFieldCount() == 1 && dynamic.getFieldValue(0) instanceof MemorySliceInfo) {
+      render((MemorySliceInfo)dynamic.getFieldValue(0), getSliceMetadata(dynamic), component, attributes, tag);
+      return;
+    }
+
     component.append("{", SimpleTextAttributes.GRAY_ATTRIBUTES);
     for (int index = 0; index < dynamic.getFieldCount(); ++index) {
       if (index > 0) {
@@ -82,6 +92,17 @@ public final class Render {
       render(obj.field(dynamic, index), dynamic.getFieldInfo(index).getType(), component, attributes, tag);
     }
     component.append("}", SimpleTextAttributes.GRAY_ATTRIBUTES);
+  }
+
+  @Nullable
+  private static MemorySliceMetadata getSliceMetadata(@NotNull Dynamic dynamic) {
+    BinaryObject[] metaData = dynamic.type().getMetadata();
+    for (BinaryObject md : metaData) {
+      if (md instanceof MemorySliceMetadata) {
+        return (MemorySliceMetadata)md;
+      }
+    }
+    return null;
   }
 
   /**
@@ -147,7 +168,7 @@ public final class Render {
                             @NotNull SimpleColoredComponent component,
                             @NotNull SimpleTextAttributes attributes) {
     render(memory.isRead ? "read:" : "write:", component, attributes, NO_TAG);
-    render(memory.observation.getRange(), component, SimpleTextAttributes.SYNTHETIC_ATTRIBUTES);
+    render(memory.observation.getRange(), component, SimpleTextAttributes.SYNTHETIC_ATTRIBUTES, NO_TAG);
   }
 
   public static void render(@NotNull AtomController.Group group,
@@ -213,24 +234,8 @@ public final class Render {
     }
   }
 
-  public static boolean isValidParam(@NotNull SnippetObject paramValue) {
-    if (paramValue.getObject() instanceof MemoryPointer) {
-      MemoryPointer mp = (MemoryPointer)paramValue.getObject();
-      return mp.isAddress();
-    }
-    // MemoryPointer that have other names come through as Dynamic, so we need to test if this is actually a MemoryPointer
-    else if (paramValue.getObject() instanceof Dynamic) {
-      // Avoid highlighting pointers for invalid memory addresses. Note only affects rendering.
-      Dynamic dyn = (Dynamic)paramValue.getObject();
-      MemoryPointer mp = tryMemoryPointer(dyn);
-      return mp == null || mp.isAddress();
-    }
-    // Valid until proven otherwise.
-    return true;
-  }
-
   private static boolean isHighlighted(int highlightedParameter, int i, @NotNull SnippetObject paramValue) {
-    return (i == highlightedParameter || CanFollow.fromSnippets(paramValue.getSnippets()) != null) && isValidParam(paramValue);
+    return (i == highlightedParameter || CanFollow.fromSnippets(paramValue.getSnippets()) != null);
   }
 
   private static SimpleTextAttributes paramAttributes(int highlightedParameter, int i, SnippetObject paramValue, SimpleTextAttributes attributes) {
@@ -242,25 +247,51 @@ public final class Render {
                             @NotNull SimpleTextAttributes attributes,
                             int tag) {
     if (PoolNames.Application_VALUE != pointer.getPool()) {
-        component.append("0x" + Long.toHexString(pointer.getAddress()), attributes, tag);
-        component.append("@", SimpleTextAttributes.GRAY_ATTRIBUTES, tag);
-        component.append(Long.toHexString(pointer.getPool()), attributes, tag);
-    } else {
-      if (!pointer.isAddress()) {
-        // Not really an address, display a decimal.
-        component.append(String.format("%d", pointer.getAddress()), attributes, tag);
-      } else {
-        component.append("0x" + Long.toHexString(pointer.getAddress()), attributes, tag);
+      if (pointer.getAddress() != 0) {
+        component.append(toPointerString(pointer.getAddress()) + " ", attributes, tag);
       }
+      component.append("Pool: ", attributes, tag);
+      component.append("0x" + Long.toHexString(pointer.getPool()), attributes, tag);
+    } else {
+      component.append(toPointerString(pointer.getAddress()), attributes, tag);
     }
+  }
+
+  static String toPointerString(long pointer) {
+    String hex = Long.toHexString(pointer);
+    if (hex.length() > 8) {
+      return "0x" + StringUtil.repeat("0", 16 - hex.length()) + hex;
+    }
+    return "0x" + StringUtil.repeat("0", 8 - hex.length()) + hex;
   }
 
   public static void render(@NotNull MemoryRange range,
                             @NotNull SimpleColoredComponent component,
-                            @NotNull SimpleTextAttributes attributes) {
-    component.append(Long.toString(range.getSize()), attributes);
-    component.append(" bytes at ", SimpleTextAttributes.GRAY_ATTRIBUTES);
-    component.append("0x" + Long.toHexString(range.getBase()), attributes);
+                            @NotNull SimpleTextAttributes attributes,
+                            int tag) {
+    component.append(Long.toString(range.getSize()), attributes, tag);
+    component.append(" bytes at ", SimpleTextAttributes.GRAY_ATTRIBUTES, tag);
+    component.append("0x" + Long.toHexString(range.getBase()), attributes, tag);
+  }
+
+  public static void render(@NotNull MemorySliceInfo info,
+                            @Nullable MemorySliceMetadata metaData,
+                            @NotNull SimpleColoredComponent component,
+                            @NotNull SimpleTextAttributes attributes,
+                            int tag) {
+    if (metaData != null) {
+      component.append(metaData.getElementTypeName(), attributes, tag);
+    }
+    component.append("[" + info.getCount() + "]", attributes, tag);
+
+    if (info.getPool() != PoolNames.Application_VALUE || info.getBase() != 0) {
+      component.append(" (", attributes, tag);
+      MemoryPointer pointer = new MemoryPointer();
+      pointer.setAddress(info.getBase());
+      pointer.setPool(info.getPool());
+      render(pointer, component, attributes, tag);
+      component.append(")", attributes, tag);
+    }
   }
 
   public static void render(@NotNull SnippetObject value,

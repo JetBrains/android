@@ -20,6 +20,7 @@ import com.android.tools.idea.editors.gfxtrace.actions.ViewTextAction;
 import com.android.tools.idea.editors.gfxtrace.models.GpuState;
 import com.android.tools.idea.editors.gfxtrace.renderers.Render;
 import com.android.tools.idea.editors.gfxtrace.service.ErrDataUnavailable;
+import com.android.tools.idea.editors.gfxtrace.service.memory.MemorySliceInfo;
 import com.android.tools.idea.editors.gfxtrace.service.path.FieldPath;
 import com.android.tools.idea.editors.gfxtrace.service.path.MapIndexPath;
 import com.android.tools.idea.editors.gfxtrace.service.path.Path;
@@ -206,6 +207,7 @@ public class StateController extends TreeController implements GpuState.Listener
       if (node == nodePath[0]) {
         // the root
         assert myTree.getModel().getRoot().equals(node);
+        assert ROOT_TYPE.equals(((Node)node).key);
         assert "state".equals(((Node)node).key.value.getObject());
         parent = myEditor.getGpuState().getPath();
       }
@@ -318,18 +320,25 @@ public class StateController extends TreeController implements GpuState.Listener
         for (int i = 0; i < dynamic.getFieldCount(); i++) {
           final Field field = dynamic.getFieldInfo(i);
           final SnippetObject fieldObj = obj.field(dynamic, i);
-          result.addChild(convert(new TypedValue(null, SnippetObject.symbol(field.getDeclared())), new TypedValue(field.getType(), fieldObj)));
+          addChildNode(result,null, SnippetObject.symbol(field.getDeclared()), field.getType(), fieldObj);
         }
       }
       else {
         final java.util.Map<Object, Object> map = (java.util.Map<Object, Object>)underlying;
         final Type keyType = ((Map)value.type).getKeyType(), valueType = ((Map)value.type).getValueType();
         for (java.util.Map.Entry<Object, Object> e : map.entrySet()) {
-          result.addChild(convert(new TypedValue(keyType, obj.key(e)), new TypedValue(valueType, obj.elem(e))));
+          addChildNode(result, keyType, obj.key(e), valueType, obj.elem(e));
         }
       }
     }
     return result;
+  }
+
+  private static void addChildNode(Node parent, Type keyType, SnippetObject keyValue, Type valueType, SnippetObject valueValue) {
+    // we dont want to create child Nodes for MemorySliceInfo, as they are shown simply as a inline values
+    if (!(valueValue.getObject() instanceof MemorySliceInfo)) {
+      parent.addChild(convert(new TypedValue(keyType, keyValue), new TypedValue(valueType, valueValue)));
+    }
   }
 
   private static class PathBreadcrumbsItem extends BreadcrumbsItem {
@@ -484,7 +493,7 @@ public class StateController extends TreeController implements GpuState.Listener
     }
 
     public boolean canFollow() {
-      return CanFollow.fromSnippets(value.value.getSnippets()) != null && Render.isValidParam(value.value);
+      return CanFollow.fromSnippets(value.value.getSnippets()) != null;
     }
 
     @Nullable("if we have not made a request to the server for this path yet")
