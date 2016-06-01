@@ -59,7 +59,7 @@ import java.util.*;
 import java.util.List;
 
 public class StateController extends TreeController implements GpuState.Listener {
-  public static JComponent createUI(GfxTraceEditor editor) {
+  public static JComponent createUI(@NotNull GfxTraceEditor editor) {
     return new StateController(editor).myPanel;
   }
 
@@ -74,7 +74,6 @@ public class StateController extends TreeController implements GpuState.Listener
     super(editor, GfxTraceEditor.SELECT_ATOM);
     myEditor.getGpuState().addListener(this);
 
-    myPanel.setBorder(BorderFactory.createTitledBorder(myScrollPane.getBorder(), "GPU State"));
     myScrollPane.setBorder(new EmptyBorder(0, 0, 0, 0));
     setModel(myModel);
 

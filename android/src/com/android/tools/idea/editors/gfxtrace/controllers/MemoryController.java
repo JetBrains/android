@@ -74,7 +74,7 @@ public class MemoryController extends Controller {
 
   @NotNull private static final Logger LOG = Logger.getInstance(MemoryController.class);
 
-  public static JComponent createUI(GfxTraceEditor editor) {
+  public static JComponent createUI(@NotNull GfxTraceEditor editor) {
     return new MemoryController(editor).myPanel;
   }
 
@@ -102,7 +102,6 @@ public class MemoryController extends Controller {
     myPanel.add(myCombo, BorderLayout.NORTH);
     myPanel.add(myLoading, BorderLayout.CENTER);
 
-    myPanel.setBorder(BorderFactory.createTitledBorder(myScrollPane.getBorder(), "Memory"));
     myScrollPane.setBorder(new EmptyBorder(0, 0, 0, 0));
   }
 
@@ -163,8 +162,9 @@ public class MemoryController extends Controller {
   public void notifyPath(PathEvent event) {
     final TypedMemoryPath typedMemoryPath = event.findTypedMemoryPath();
     final MemoryRangePath memoryPath = typedMemoryPath != null ? typedMemoryPath.getRange() : event.findMemoryPath();
-    final DataType dataType = typedMemoryPath != null ? dataTypeFromMemoryType(typedMemoryPath.getType()) : myDataType;
     if (memoryPath != null) {
+      final DataType dataType = typedMemoryPath != null ? dataTypeFromMemoryType(typedMemoryPath.getType()) : myDataType;
+
       if (memoryPath.getSize() == 0) {
         // Fetch a default amount of memory for memory pointers, as they point to a region of unknown size.
         memoryPath.setSize(DEFAULT_MEMORY_SIZE);

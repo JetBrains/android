@@ -31,7 +31,7 @@ public final class TypedMemoryPath extends Path {
   }
 
   @Override
-  public Path getParent() {
+  public AtomPath getParent() {
     return myRange.getParent();
   }
 
