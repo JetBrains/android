@@ -20,11 +20,6 @@ import com.android.tools.adtui.visual.flamegraph.FlameGraphVisualTest;
 import com.android.tools.adtui.visual.threadgraph.ThreadCallsVisualTest;
 
 import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import java.awt.*;
-import java.awt.event.ActionListener;
-import java.awt.event.ItemListener;
 
 public class VisualTests {
 
@@ -35,9 +30,7 @@ public class VisualTests {
   }
 
   public static void main(String[] args) throws Exception {
-    SwingUtilities.invokeAndWait(new Runnable() {
-      @Override
-      public void run() {
+    SwingUtilities.invokeAndWait(() -> {
         VisualTestsDialog dialog = new VisualTestsDialog();
         dialog.addTest(new FlameGraphVisualTest());
         dialog.addTest(new AccordionVisualTest());
@@ -51,7 +44,6 @@ public class VisualTests {
         dialog.setTitle("Visual Tests");
         dialog.pack();
         dialog.setVisible(true);
-      }
     });
     System.exit(0);
   }
