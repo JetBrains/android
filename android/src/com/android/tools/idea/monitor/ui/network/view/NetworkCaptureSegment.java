@@ -159,11 +159,4 @@ public class NetworkCaptureSegment extends BaseSegment {
     pane.setPreferredSize(new Dimension(0, mRowHeight * mCharts.size()));
     panel.add(new JBScrollPane(pane), BorderLayout.CENTER);
   }
-
-  @Override
-  public void registerComponents(@NotNull List<AnimatedComponent> components) {
-    for (int i = 0; i < mCharts.size(); ++i) {
-      components.add(mCharts.get(i));
-    }
-  }
 }

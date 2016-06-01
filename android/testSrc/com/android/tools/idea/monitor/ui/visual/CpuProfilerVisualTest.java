@@ -73,11 +73,6 @@ public class CpuProfilerVisualTest extends VisualTest {
   }
 
   @Override
-  protected void registerComponents(List<AnimatedComponent> components) {
-    mCPULevel2Segment.registerComponents(components);
-  }
-
-  @Override
   public String getName() {
     return CPU_PROFILER_NAME;
   }

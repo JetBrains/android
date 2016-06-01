@@ -80,11 +80,6 @@ public abstract class VisualTest {
    */
   protected abstract void populateUi(@NonNull JPanel panel);
 
-  /**
-   * The {@code AnimatedComponent} should be added to {@code components}.
-   */
-  protected abstract void registerComponents(List<AnimatedComponent> components);
-
   protected void initialize() {
     mPanel = new JBPanel();
     mChoreographer = new Choreographer(CHOREOGRAPHER_FPS, mPanel);

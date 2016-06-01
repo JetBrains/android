@@ -158,17 +158,6 @@ public class AxisLineChartVisualTest extends VisualTest {
   }
 
   @Override
-  protected void registerComponents(List<AnimatedComponent> components) {
-    components.add(mLineChart);
-    components.add(mSelection);
-    components.add(mTimeAxis);
-    components.add(mMemoryAxis1);
-    components.add(mMemoryAxis2);
-    components.add(mGrid);
-    components.add(mLegendComponent);
-  }
-
-  @Override
   public String getName() {
     return "Axis+Scroll+Zoom";
   }

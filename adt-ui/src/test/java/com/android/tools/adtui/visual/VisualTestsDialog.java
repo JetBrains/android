@@ -36,9 +36,6 @@ public class VisualTestsDialog extends JDialog {
   private List<Choreographer> mChoreographers = new LinkedList<>();
 
   @NonNull
-  private List<AnimatedComponent> mComponents = new LinkedList<>();
-
-  @NonNull
   protected List<VisualTest> mTests = new LinkedList<>();
 
   @NonNull
@@ -130,12 +127,9 @@ public class VisualTestsDialog extends JDialog {
   private void resetTabs() {
     int currentTabIndex = mTabs.getSelectedIndex();
     mTabs.removeAll();
-    // Make sure to reset the components and choreographers list
-    mComponents.clear();
     mChoreographers.clear();
     for (VisualTest test : mTests) {
       test.reset();
-      test.registerComponents(mComponents);
       mTabs.addTab(test.getName(), test.getPanel());
       mChoreographers.add(test.getChoreographer());
     }
@@ -161,8 +155,8 @@ public class VisualTestsDialog extends JDialog {
   }
 
   private void setDebugMode(boolean isDebug) {
-    for (AnimatedComponent component : mComponents) {
-      component.setDrawDebugInfo(isDebug);
+    for (Choreographer choreographer : mChoreographers) {
+      choreographer.toggleDebug(isDebug);
     }
   }
 

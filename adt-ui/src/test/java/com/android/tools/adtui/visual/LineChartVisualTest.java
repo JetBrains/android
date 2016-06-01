@@ -79,11 +79,6 @@ public class LineChartVisualTest extends VisualTest {
   }
 
   @Override
-  protected void registerComponents(List<AnimatedComponent> components) {
-    components.add(mLineChart);
-  }
-
-  @Override
   public String getName() {
     return "LineChart";
   }

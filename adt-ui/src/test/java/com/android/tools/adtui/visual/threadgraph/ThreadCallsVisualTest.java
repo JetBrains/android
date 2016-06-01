@@ -83,14 +83,6 @@ public class ThreadCallsVisualTest extends VisualTest implements ActionListener 
   }
 
   @Override
-  protected void registerComponents(List<AnimatedComponent> components) {
-    components.add(mChart);
-    components.add(mAxis);
-    components.add(mSelector);
-    components.add(mLineChart);
-  }
-
-  @Override
   public String getName() {
     return "Thread stacks";
   }

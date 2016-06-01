@@ -106,7 +106,7 @@ public abstract class BaseLineChartSegment extends BaseSegment {
                                      mRightAxisFormatter);
       mRightAxis.setParentAxis(mLeftAxis);
     }
-    //TODO Associate the grid with both AxisComponents.
+
     mLineChart = new LineChart();
     mGrid = new GridComponent();
     mGrid.addAxis(mLeftAxis);
@@ -139,17 +139,6 @@ public abstract class BaseLineChartSegment extends BaseSegment {
   }
 
   public abstract void populateSeriesData(@NotNull LineChart lineChart);
-
-  @Override
-  public void registerComponents(@NotNull List<AnimatedComponent> components) {
-    components.add(mLineChart);
-    if (mRightAxis != null) {
-      components.add(mRightAxis);
-    }
-    components.add(mLeftAxis);
-    components.add(mGrid);
-    components.add(mLegendComponent);
-  }
 
   @Override
   protected void setLeftContent(@NotNull JPanel panel) {

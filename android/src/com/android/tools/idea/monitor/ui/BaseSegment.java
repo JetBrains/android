@@ -210,9 +210,6 @@ public abstract class BaseSegment extends JComponent {
 
   protected void setTopCenterContent(@NotNull JPanel panel) {}
 
-  //TODO Refactor out of BaseSegment as this is a VisualTest specific function.
-  protected void registerComponents(@NotNull List<AnimatedComponent> components) {}
-
   private void initializeListeners() {
     // Add mouse listener to support expand/collapse when user double-clicks on the Segment.
     // Note that other mouse events have to be queued up for a certain delay to allow the listener to detect the second click.

@@ -79,13 +79,6 @@ public class EventSegment<E extends Enum<E>> extends BaseSegment {
   }
 
   @Override
-  public void registerComponents(@NotNull List<AnimatedComponent> components) {
-    components.add(mSystemEvents);
-    components.add(mFragmentEvents);
-    components.add(mActivityEvents);
-  }
-
-  @Override
   protected void setCenterContent(@NotNull JPanel panel) {
     JPanel layeredPane = new JPanel();
     layeredPane.setLayout(new GridBagLayout());
