@@ -218,7 +218,7 @@ public class LineChart extends AnimatedComponent {
       ImmutableList<SeriesData<Long>> seriesList = ranged.getSeries();
       for (int i = 0; i < seriesList.size(); i++) {
         SeriesData<Long> seriesData = seriesList.get(i);
-        long currX = seriesData.time;
+        long currX = seriesData.x;
         long currY = seriesData.value;
         double xd = (currX - xMin) / (xMax - xMin);
         double yd = (currY - yMin) / (yMax - yMin);

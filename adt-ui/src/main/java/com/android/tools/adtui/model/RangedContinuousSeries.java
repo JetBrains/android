@@ -86,8 +86,8 @@ public class RangedContinuousSeries implements ReportingSeries{
     SeriesData<Long> maxData = series.get(0);
     for(int i = 1; i < series.size(); i++) {
       SeriesData<Long> data = series.get(i);
-      if(maxData.time < data.time) {
-        maxData.time = data.time;
+      if(maxData.x < data.x) {
+        maxData.x = data.x;
       }
       if(maxData.value < data.value) {
         maxData.value = data.value;
@@ -105,9 +105,9 @@ public class RangedContinuousSeries implements ReportingSeries{
 
     SeriesData data = mSeries.getDataAtXValue(time);
     SeriesData maxData = getMaxYValue(series);
-    long nearestX = data.time;
+    long nearestX = data.x;
     long nearestY = (long)data.value;
-    long maxX = maxData.time;
+    long maxX = maxData.x;
     long maxY = (long)maxData.value;
 
     String formattedY = mYAxisFormatter == null ? Long.toString(nearestY) : mYAxisFormatter.getFormattedString(maxY, nearestY);
