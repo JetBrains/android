@@ -55,7 +55,7 @@ public final class StringTable implements BinaryObject {
         return node.getString(arguments);
       }
     }
-    return identifier + " " + arguments;
+    return identifier + (arguments == null ? "" : " " + arguments);
   }
 
   /**

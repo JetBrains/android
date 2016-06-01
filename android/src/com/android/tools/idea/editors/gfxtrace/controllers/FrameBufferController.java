@@ -20,11 +20,14 @@ import com.android.tools.idea.editors.gfxtrace.actions.FramebufferTypeAction;
 import com.android.tools.idea.editors.gfxtrace.actions.FramebufferWireframeAction;
 import com.android.tools.idea.editors.gfxtrace.models.AtomStream;
 import com.android.tools.idea.editors.gfxtrace.service.Context;
+import com.android.tools.idea.editors.gfxtrace.service.ErrDataUnavailable;
 import com.android.tools.idea.editors.gfxtrace.service.RenderSettings;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.WireframeMode;
 import com.android.tools.idea.editors.gfxtrace.service.gfxapi.GfxAPIProtos.FramebufferAttachment;
 import com.android.tools.idea.editors.gfxtrace.service.image.FetchedImage;
+import com.android.tools.idea.editors.gfxtrace.service.msg.Msg;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Separator;
@@ -153,16 +156,22 @@ public class FrameBufferController extends ImagePanelController implements AtomS
   }
 
   private ListenableFuture<ImageInfoPath> getImageInfoPath(AtomPath atomPath) {
+    DevicePath device = myRenderDevice.getPath();
+
+    if (device == null) {
+      return Futures.immediateFailedFuture(new ErrDataUnavailable().setReason(new Msg().setIdentifier(GfxTraceEditor.MESSAGE_NO_REPLAY_DEVICE)));
+    }
+
     if (myMRTSupport) {
-      return myEditor.getClient().getFramebufferAttachment(myRenderDevice.getPath(), atomPath, myFramebufferAttachment, mySettings);
+      return myEditor.getClient().getFramebufferAttachment(device, atomPath, myFramebufferAttachment, mySettings);
     }
 
     // DEPRECATED: Logic below is to support GAPIS without the 'framebuffer-attachment' feature.
     switch (myFramebufferAttachment) {
       case Color0:
-        return myEditor.getClient().getFramebufferColor(myRenderDevice.getPath(), atomPath, mySettings);
+        return myEditor.getClient().getFramebufferColor(device, atomPath, mySettings);
       case Depth:
-        return myEditor.getClient().getFramebufferDepth(myRenderDevice.getPath(), atomPath);
+        return myEditor.getClient().getFramebufferDepth(device, atomPath);
       default:
         return null;
     }
