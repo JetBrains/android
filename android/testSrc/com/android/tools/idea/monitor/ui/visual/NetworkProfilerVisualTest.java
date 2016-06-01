@@ -70,12 +70,6 @@ public class NetworkProfilerVisualTest extends VisualTest {
   }
 
   @Override
-  protected void registerComponents(List<AnimatedComponent> components) {
-    mSegment.registerComponents(components);
-    mCaptureSegment.registerComponents(components);
-  }
-
-  @Override
   public String getName() {
     return NETWORK_PROFILER_NAME;
   }

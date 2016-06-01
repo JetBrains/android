@@ -159,13 +159,6 @@ public class EventVisualTest extends VisualTest {
   }
 
   @Override
-  protected void registerComponents(List<AnimatedComponent> components) {
-    components.add(mTimeAxis);
-    components.add(mSimpleEventComponent);
-    components.add(myStackedEventComponent);
-  }
-
-  @Override
   public String getName() {
     return "EventChart";
   }

@@ -39,11 +39,6 @@ public class SunburstVisualTest extends VisualTest {
   private SunburstChart mSunburst;
 
   @Override
-  protected void registerComponents(List<AnimatedComponent> components) {
-    components.add(mSunburst);
-  }
-
-  @Override
   protected List<Animatable> createComponentsList() {
     final DataNode data = new DataNode();
     data.addDataNode(new DataNode(1, 10));

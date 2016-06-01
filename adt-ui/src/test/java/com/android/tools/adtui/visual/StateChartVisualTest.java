@@ -106,12 +106,6 @@ public class StateChartVisualTest extends VisualTest {
   }
 
   @Override
-  protected void registerComponents(List<AnimatedComponent> components) {
-    components.add(mNetworkStatusChart);
-    components.add(mRadioStateChart);
-  }
-
-  @Override
   public String getName() {
     return "StateChart";
   }

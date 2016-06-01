@@ -103,10 +103,6 @@ public class AccordionVisualTest extends VisualTest {
   }
 
   @Override
-  protected void registerComponents(List<AnimatedComponent> components) {
-  }
-
-  @Override
   protected void reset() {
     super.reset();
 

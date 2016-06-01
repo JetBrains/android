@@ -39,11 +39,6 @@ public class TimelineVisualTest extends VisualTest {
   private TimelineData mData;
 
   @Override
-  protected void registerComponents(List<AnimatedComponent> components) {
-    components.add(mTimeline);
-  }
-
-  @Override
   protected List<Animatable> createComponentsList() {
     mEvents = new EventData();
     mData = new TimelineData(2, 2000);

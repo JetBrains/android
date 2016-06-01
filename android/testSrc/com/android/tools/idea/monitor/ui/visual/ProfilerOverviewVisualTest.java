@@ -168,11 +168,6 @@ public class ProfilerOverviewVisualTest extends VisualTest {
   }
 
   @Override
-  protected void registerComponents(List<AnimatedComponent> components) {
-    components.add(mSelection);
-  }
-
-  @Override
   public String getName() {
     return "Overview";
   }

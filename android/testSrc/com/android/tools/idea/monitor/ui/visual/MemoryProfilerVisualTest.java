@@ -30,11 +30,6 @@ public class MemoryProfilerVisualTest extends VisualTest {
   private static final String MEMORY_PROFILER_NAME = "Memory Profiler";
 
   @Override
-  protected void registerComponents(List<AnimatedComponent> components) {
-    // TODO: register components
-  }
-
-  @Override
   public String getName() {
     return MEMORY_PROFILER_NAME;
   }
