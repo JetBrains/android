@@ -16,6 +16,7 @@
 package com.android.tools.adtui.model;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.Color;
 
@@ -23,6 +24,7 @@ import java.awt.Color;
  * Class to store all the render data needed to render a legend.
  */
 public class LegendRenderData {
+
   public enum IconType {
     NONE,
     LINE,
@@ -34,7 +36,23 @@ public class LegendRenderData {
 
   @NotNull
   private final IconType mIcon;
+
+  @Nullable
   private final ReportingSeries mSeries;
+
+  /**
+   * Render data to be used when rendering the legend. The only optional parameter is the series. If the series is null the legend renders
+   * the icon and the label without any additional processing. If the series is populated it is used as a postfix to the label passed in.
+   *
+   * @param icon The icon type to be displayed
+   * @param color The color of the icon to be associated with the elements in the chart.
+   * @param series Series data to be used for gathering the latest value.
+   */
+  public LegendRenderData(@NotNull IconType icon, @NotNull Color color, @Nullable ReportingSeries series) {
+    mColor = color;
+    mIcon = icon;
+    mSeries = series;
+  }
 
   public Color getColor() {
     return mColor;
@@ -46,20 +64,5 @@ public class LegendRenderData {
 
   public ReportingSeries getSeries() {
     return mSeries;
-  }
-
-  /**
-   * Render data to be used when rendering the legend. The only optional parameter is the series. If the series is null the legend renders
-   * the icon, and the label without any additional processing. If the series is populated it is used to as a postfix to the label passed
-   * in.
-   * @param label The prefix, or label to be drawn.
-   * @param icon The icon type to be displayed
-   * @param color The color of the icon to be associated with the elements in the chart.
-   * @param series Series data to be used for gathering the latest value.
-   */
-  public LegendRenderData(@NotNull IconType icon, @NotNull Color color, ReportingSeries series) {
-    mColor = color;
-    mIcon = icon;
-    mSeries = series;
   }
 }
