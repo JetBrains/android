@@ -644,13 +644,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     public static final int VERTICAL_GUIDELINE = 1;
 
     final int myType;
-    final Icon myIcon;
-    final String myText;
 
     public AddElementAction(int type, Icon icon, String text) {
+      super(icon, text);
       myType = type;
-      myIcon = icon;
-      myText = text;
     }
 
     @Override
@@ -688,8 +685,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                                    @InputEventMask int modifiers) {
       presentation.setVisible(true);
       presentation.setEnabled(true);
-      presentation.setIcon(myIcon);
-      presentation.setLabel(myText);
     }
   }
 
