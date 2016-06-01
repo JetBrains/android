@@ -52,6 +52,31 @@ public class NewProjectTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
+  /**
+   * Verify able to create a new project with name containing a space.
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   *   <pre>
+   *   Steps:
+   *   1. Create a new project with min sdk 23.
+   *   2. Enter a project name with at least one space.
+   *   3. Accept all other defaults.
+   *   4. Wait for build to finish.
+   *   5. Project is created successfully.
+   *   Verify:
+   *   Successfully created new project with name containing a space.
+   *   </pre>
+   */
+  @Test
+  public void createNewProjectNameWithSpace() {
+    EditorFixture editor = newProject("Test Application").withMinSdk("23").create()
+      .getEditor()
+      .open("app/src/main/res/values/strings.xml", EditorFixture.Tab.EDITOR);
+    String text = editor.getCurrentFileContents();
+    assertThat(text.contains("Test Application"));
+  }
+
   @Ignore("http://wpie20.hot.corp.google.com:8200/builders/ubuntu-studio-master-dev-uitests/builds/28/")
   @Test
   public void testCreateNewMobileProject() {
