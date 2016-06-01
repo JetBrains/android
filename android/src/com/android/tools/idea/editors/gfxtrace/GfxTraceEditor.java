@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.editors.gfxtrace.controllers.MainController;
 import com.android.tools.idea.editors.gfxtrace.gapi.GapiPaths;
@@ -86,18 +87,18 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   private static final int FETCH_FEATURES_TIMEOUT_MS = 3000;
   private static final int FETCH_STRING_TABLE_TIMEOUT_MS = 3000;
   private static final int FETCH_REPLAY_DEVICE_TIMEOUT_MS = 3000;
-  private static final int FETCH_REPLAY_DEVICE_RETRY_DELAY_MS = 3000;
-  private static final int FETCH_REPLAY_DEVICE_MAX_RETRIES = 30;
   private static final int FETCH_TRACE_TIMEOUT_MS = 30000;
 
-  @NotNull public static final String LOADING_CAPTURE = "Loading capture...";
-  @NotNull public static final String SELECT_ATOM = "Select a frame or command";
-  @NotNull public static final String SELECT_DRAW_CALL = "Select a draw call";
-  @NotNull public static final String SELECT_MEMORY = "Select a memory range or pointer in the command list";
-  @NotNull public static final String SELECT_TEXTURE = "Select a texture";
-  @NotNull public static final String NO_TEXTURES = "No textures have been created by this point";
-
-  @NotNull public static final String NOTIFICATION_GROUP = "GPU Trace";
+  public static final String LOADING_CAPTURE = "Loading capture...";
+  public static final String SELECT_ATOM = "Select a frame or command";
+  public static final String SELECT_DRAW_CALL = "Select a draw call";
+  public static final String SELECT_MEMORY = "Select a memory range or pointer in the command list";
+  public static final String SELECT_TEXTURE = "Select a texture";
+  public static final String NO_TEXTURES = "No textures have been created by this point";
+  public static final String MESSAGE_NO_REPLAY_DEVICE = "No replay targets available";
+  public static final String MESSAGE_NO_GPU_SDK_INSTALLED = "GPU debugging SDK not installed";
+  public static final String INSTALL_GPU_SDK_TITLE = "Install Missing Components";
+  public static final String NOTIFICATION_GROUP = "GPU Trace";
 
   @NotNull private static final Logger LOG = Logger.getInstance(GfxTraceEditor.class);
 
@@ -118,6 +119,8 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   @Nullable private GapisConnection myGapisConnection;
   @Nullable private ServiceClient myClient;
   private boolean myDisposed;
+  private int myFetchReplayDeviceRetryDelayMs = 3000;
+  private int myFetchReplayDeviceMaxRetries = 30;
 
   public GfxTraceEditor(@NotNull final Project project, @NotNull final VirtualFile file) {
     myProject = project;
@@ -137,6 +140,12 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
     myMainUi = MainController.createUI(this);
 
     connect();
+  }
+
+  @VisibleForTesting
+  public void setFetchReplayDeviceRetrySettings(int delayMs, int max) {
+    myFetchReplayDeviceRetryDelayMs = delayMs;
+    myFetchReplayDeviceMaxRetries = max;
   }
 
   /** @return the list of features supported by GAPIS */
@@ -163,13 +172,13 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
           link.addHyperlinkListener(e -> {
             ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(myProject, missingComponents);
             if (dialog != null) {
-              dialog.setTitle("Install Missing Components");
+              dialog.setTitle(INSTALL_GPU_SDK_TITLE);
               if (dialog.showAndGet()) {
                 connect();
               }
             }
           });
-          setLoadingErrorTextOnEdt("GPU debugging SDK not installed", link);
+          setLoadingErrorTextOnEdt(MESSAGE_NO_GPU_SDK_INSTALLED, link);
           return;
         }
 
@@ -293,8 +302,8 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   /**
    * Requests and blocks for the replay device from the server.
    */
-  private void fetchReplayDevice() throws GapisInitException, Channel.NotConnectedException {
-    for (int i = 0; i < FETCH_REPLAY_DEVICE_MAX_RETRIES; i++) {
+  private void fetchReplayDevice() throws Channel.NotConnectedException {
+    for (int i = 0; i < myFetchReplayDeviceMaxRetries; i++) {
       try {
         DevicePath[] devices = Rpc.get(getClient().getDevices(), FETCH_REPLAY_DEVICE_TIMEOUT_MS, TimeUnit.MILLISECONDS);
         if (devices != null && devices.length >= 1) {
@@ -306,13 +315,13 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
         // Ignored, retry.
       }
       try {
-        Thread.sleep(FETCH_REPLAY_DEVICE_RETRY_DELAY_MS);
+        // TODO do this in the background and then fire an event of device changed when we get a device
+        Thread.sleep(myFetchReplayDeviceRetryDelayMs);
       }
       catch (InterruptedException e) {
         break;
       }
     }
-    throw new GapisInitException(GapisInitException.MESSAGE_NO_REPLAY_DEVICE, "No usable replay device found", null);
   }
 
   /**
@@ -544,7 +553,6 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
 
     public static final String MESSAGE_FAILED_CONNECT = "Failed to connect to the graphics debugger";
     public static final String MESSAGE_FAILED_INIT = "Failed to initialize the graphics debugger";
-    public static final String MESSAGE_NO_REPLAY_DEVICE = "No replay targets available";
 
     public static final String MESSAGE_TRACE_FILE_EMPTY = "Empty trace file ";
     public static final String MESSAGE_TRACE_FILE_BROKEN = "Invalid/Corrupted trace file ";

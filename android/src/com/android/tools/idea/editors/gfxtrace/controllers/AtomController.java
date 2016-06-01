@@ -532,6 +532,7 @@ public class AtomController extends TreeController implements AtomStream.Listene
 
     myPanel.add(mySearchField, BorderLayout.NORTH);
     myScrollPane.setBorder(new EmptyBorder(0, 0, 0, 0));
+    myTree.setName("AtomTree"); // for ui tests
     myTree.setLargeModel(true); // Set some performance optimizations for large models.
     myTree.addTreeSelectionListener(treeSelectionEvent -> {
       if (treeSelectionEvent.isAddedPath()) {

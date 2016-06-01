@@ -83,6 +83,7 @@ public class ScrubberController extends ImageCellController<ScrubberController.D
   public void loadCell(final Data cell, final Runnable onLoad) {
     final DevicePath devicePath = myRenderDevice.getPath();
     if (devicePath == null) {
+      cell.stopLoading(null);
       return;
     }
     final ServiceClient client = myEditor.getClient();

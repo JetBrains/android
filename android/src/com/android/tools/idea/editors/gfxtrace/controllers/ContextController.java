@@ -44,6 +44,7 @@ public class ContextController extends Controller implements AtomStream.Listener
   private ContextController(@NotNull GfxTraceEditor editor) {
     super(editor);
     editor.getAtomStream().addListener(this);
+    myComboBox.setName("ContextCombo"); // for ui tests
     myComboBox.addItemListener(event -> {
       if (event.getStateChange() == ItemEvent.SELECTED) {
         selectContext((Context)(event.getItem()));

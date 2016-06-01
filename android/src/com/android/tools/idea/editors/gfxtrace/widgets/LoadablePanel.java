@@ -64,6 +64,10 @@ public class LoadablePanel extends JBLayeredPane implements SingleInFlight.Liste
     return myContents;
   }
 
+  public boolean isShowingError() {
+    return myLoadingLayer.myShowingError;
+  }
+
   public void setLoadingText(@NotNull String loadingText) {
     myLoadingLayer.setLoadingText(loadingText);
   }

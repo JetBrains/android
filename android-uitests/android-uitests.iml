@@ -23,5 +23,6 @@
     <orderEntry type="module" module-name="java-impl" scope="TEST" />
     <orderEntry type="module" module-name="dom-openapi" scope="TEST" />
     <orderEntry type="library" name="hamcrest" level="project" />
+    <orderEntry type="module" module-name="rpclib" scope="TEST" />
   </component>
 </module>
