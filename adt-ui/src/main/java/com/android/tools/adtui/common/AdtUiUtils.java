@@ -19,8 +19,9 @@ import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBFont;
 
-import java.awt.Font;
-import java.awt.Color;
+import java.awt.*;
+
+import static com.intellij.util.ui.SwingHelper.ELLIPSIS;
 
 /**
  * ADT-UI utility class to hold constants and function used across the ADT-UI framework.
@@ -64,6 +65,36 @@ public final class AdtUiUtils {
 
   public static final Color NETWORK_WAITING = new JBColor(new Color(0xAAAAAA), new Color(0xAAAAAA));
 
-
   private AdtUiUtils() {}
+
+  /**
+   * Collapses a line of text to fit the availableSpace by truncating the string and pad the end with ellipsis.
+   *
+   * @param metrics the {@link FontMetrics} used to measure the text's width.
+   * @param text the original text.
+   * @param availableSpace the available space to render the text.
+   * @param characterToShrink the number of characters to trim by on each truncate iteration.
+   *
+   * @return the fitted text. If the available space is too small to fit an ellipsys, an empty string is returned.
+   */
+  public static String getFittedString(FontMetrics metrics, String text, float availableSpace, int characterToShrink) {
+    int textWidth = metrics.stringWidth(text);
+    int ellipsysWidth = metrics.stringWidth(ELLIPSIS);
+    if (textWidth <= availableSpace) {
+      // Enough space - early return.
+      return text;
+    } else if (availableSpace < ellipsysWidth) {
+      // No space to fit "..." - early return.
+      return "";
+    }
+
+    // This loop test the length of the word we are trying to draw, if it is to big to fit the available space,
+    // we add an ellipsis and remove a character. We do this until the word fits in the space available to draw.
+    while (textWidth > availableSpace) {
+      text = text.substring(0, Math.max(0, text.length() - characterToShrink));
+      textWidth = metrics.stringWidth(text) + ellipsysWidth;
+    }
+
+    return text + ELLIPSIS;
+  }
 }
