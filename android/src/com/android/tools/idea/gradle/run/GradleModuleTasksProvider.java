@@ -67,18 +67,6 @@ public class GradleModuleTasksProvider implements InstantRunTasksProvider {
 
   @NotNull
   @Override
-  public List<String> getIncrementalBuildTasks() {
-    Module module = myModules[0];
-    AndroidGradleModel model = AndroidGradleModel.get(module);
-    if (model == null) {
-      throw new IllegalStateException("Attempted to obtain incremental dex task for module that does not have a Gradle facet");
-    }
-
-    return Collections.singletonList(InstantRunGradleUtils.getIncrementalDexTask(model, module));
-  }
-
-  @NotNull
-  @Override
   public List<String> getFullBuildTasks() {
     return getTasksFor(BuildMode.ASSEMBLE, GradleInvoker.TestCompileType.NONE);
   }

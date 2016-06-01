@@ -33,6 +33,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -98,23 +99,7 @@ public class InstantRunBuilder implements BeforeRunBuilder {
     args.addAll(myInstantRunContext.getCustomBuildArguments());
 
     FileChangeListener.Changes fileChanges = myInstantRunContext.getFileChangesAndReset();
-    if (buildModeChoice.mode == BuildMode.HOT || buildModeChoice.mode == BuildMode.COLD) { // build for incremental deploy
-      List<String> incrementalArgs = new ArrayList<>(args);
-      incrementalArgs.add(getInstantDevProperty(buildModeChoice.mode, fileChanges));
-      boolean success = taskRunner.run(myTasksProvider.getIncrementalBuildTasks(), null, incrementalArgs);
-      if (!success) {
-        return false;
-      }
-
-      InstantRunBuildInfo buildInfo = myInstantRunContext.getInstantRunBuildInfo();
-      if (buildInfo != null && !needsFullRebuild(buildInfo)) {
-        return true;
-      }
-
-      // fall through and do a full build
-    }
-
-    args.add(getInstantDevProperty(BuildMode.FULL, null));
+    args.add(getInstantDevProperty(buildModeChoice.mode, fileChanges));
 
     List<String> tasks = new LinkedList<>();
     if (buildModeChoice.mode == BuildMode.CLEAN) {
@@ -144,6 +129,7 @@ public class InstantRunBuilder implements BeforeRunBuilder {
   }
 
   @Nullable
+  @Contract("null -> !null")
   private String needsFullBuild(@Nullable IDevice device) {
     if (device == null) {
       return InstantRunBuildCauses.NO_DEVICE;
@@ -240,8 +226,11 @@ public class InstantRunBuilder implements BeforeRunBuilder {
     if (buildMode == BuildMode.HOT) {
       appendChangeInfo(sb, changes);
     }
-    else {
+    else if(buildMode == BuildMode.COLD) {
       sb.append(",").append(OptionalCompilationStep.RESTART_ONLY.name());
+    }
+    else {
+      sb.append(",").append("FULL_APK"); //TODO: Replace with enum reference after next model drop.
     }
 
     return sb.toString();
@@ -260,20 +249,6 @@ public class InstantRunBuilder implements BeforeRunBuilder {
         sb.append(",LOCAL_JAVA_ONLY");
       }
     }
-  }
-
-  private static boolean needsFullRebuild(@NotNull InstantRunBuildInfo buildInfo) {
-    if (!buildInfo.getArtifacts().isEmpty()) {
-      return false;
-    }
-
-    // If we are forced to do a cold swap, but we didn't get any artifacts, then issue a rebuild. This happens in a few scenarios:
-    //    a) There was a change in the resource id assignment, which caused some resource id used in the manifest to change. In such a case,
-    //       the verifier status is set to BINARY_MANIFEST_CHANGED
-    //    b) The build detected a cold swap scenario (e.g. field added), but we don't support cold swap at the target device's API level.
-    // Note that this check looks at the verifier status being set because the verifier status could be empty if there were no changes,
-    // but the buildInfo.canHotswap() treats that differently
-    return !buildInfo.getVerifierStatus().isEmpty();
   }
 
   /**
