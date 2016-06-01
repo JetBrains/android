@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.editors.hprof.views;
 
+import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.idea.actions.EditMultipleSourcesAction;
 import com.android.tools.idea.actions.PsiFileAndLineNavigation;
-import com.android.tools.idea.editors.allocations.ColumnTreeBuilder;
 import com.android.tools.idea.editors.hprof.descriptors.*;
 import com.android.tools.perflib.heap.*;
 import com.android.tools.perflib.heap.memoryanalyzer.HprofBitmapProvider;

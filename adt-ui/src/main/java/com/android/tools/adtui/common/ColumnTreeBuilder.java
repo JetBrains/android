@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.allocations;
+package com.android.tools.adtui.common;
 
 import com.android.annotations.Nullable;
-import com.google.common.collect.ImmutableList;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.JBTable;
@@ -350,7 +349,7 @@ public class ColumnTreeBuilder {
       if (myComparator != null) {
         sorter.setComparator(column.getModelIndex(), myComparator);
         if (myInitialOrder != SortOrder.UNSORTED) {
-          sorter.setSortKeys(ImmutableList.of(new RowSorter.SortKey(column.getModelIndex(), myInitialOrder)));
+          sorter.setSortKeys(Collections.singletonList(new RowSorter.SortKey(column.getModelIndex(), myInitialOrder)));
         }
       }
       else {
