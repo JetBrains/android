@@ -48,24 +48,24 @@ public class ExternalBuildFilesGroupNode extends ProjectViewNode<Project> {
 
   @Override
   public boolean contains(@NotNull VirtualFile file) {
-    return getBuildFilesWithQualifiers().containsKey(file);
+    return getBuildFilesWithModuleNames().containsKey(file);
   }
 
   @NotNull
   @Override
   public Collection<? extends AbstractTreeNode> getChildren() {
-    Map<VirtualFile, String> buildFiles = getBuildFilesWithQualifiers();
+    Map<VirtualFile, String> buildFiles = getBuildFilesWithModuleNames();
     List<PsiFileNode> children = Lists.newArrayListWithExpectedSize(buildFiles.size());
 
-    for (Map.Entry<VirtualFile, String> buildFileWithQualifier : buildFiles.entrySet()) {
-      addPsiFile(children, buildFileWithQualifier.getKey(), buildFileWithQualifier.getValue());
+    for (Map.Entry<VirtualFile, String> buildFileWithModuleName : buildFiles.entrySet()) {
+      addPsiFile(children, buildFileWithModuleName.getKey(), buildFileWithModuleName.getValue());
     }
 
     return children;
   }
 
   @NotNull
-  private Map<VirtualFile, String> getBuildFilesWithQualifiers() {
+  private Map<VirtualFile, String> getBuildFilesWithModuleNames() {
     Map<VirtualFile, String> buildFiles = Maps.newHashMap();
 
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
@@ -83,10 +83,10 @@ public class ExternalBuildFilesGroupNode extends ProjectViewNode<Project> {
     return buildFiles;
   }
 
-  private void addPsiFile(@NotNull List<PsiFileNode> psiFileNodes, @NotNull VirtualFile file, @NotNull String qualifier) {
+  private void addPsiFile(@NotNull List<PsiFileNode> psiFileNodes, @NotNull VirtualFile file, @NotNull String moduleName) {
     PsiFile psiFile = PsiManager.getInstance(myProject).findFile(file);
     if (psiFile != null) {
-      psiFileNodes.add(new ExternalBuildFileNode(myProject, psiFile, getSettings(), qualifier));
+      psiFileNodes.add(new ExternalBuildFileNode(myProject, psiFile, getSettings(), moduleName));
     }
   }
 
