@@ -71,7 +71,7 @@ public class GeneratedCodeMatchTest extends AndroidGradleTestCase {
     }
   }
 
-  public void testGeneratedCodeMatch() throws Exception {
+  public void ignore_testGeneratedCodeMatch() throws Exception {
     File projectFolder = virtualToIoFile(myFixture.getProject().getBaseDir());
     createGradlePropertiesFile(projectFolder);
     loadProject("projects/projectWithDataBinding");
