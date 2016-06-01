@@ -65,7 +65,11 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
 
   private WidgetsScene myWidgetsScene = new WidgetsScene();
   private Selection mySelection = new Selection(null);
-  private boolean myAutoConnect = PropertiesComponent.getInstance().getBoolean(ConstraintLayoutHandler.AUTO_CONNECT_PREF_KEY, true);
+  private static boolean ourAutoConnect;
+  static {
+    ourAutoConnect = PropertiesComponent.getInstance().getBoolean(ConstraintLayoutHandler.AUTO_CONNECT_PREF_KEY, true);
+  }
+
   private float myDpiFactor;
   private int myNeedsAnimateConstraints = -1;
   private final NlModel myNlModel;
@@ -73,14 +77,15 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
   private ConstraintWidget myDragDropWidget;
   private ArrayList<DrawConstraintModel> myDrawConstraintModels = new ArrayList<>();
 
-  public void setAutoConnect(boolean autoConnect) {
-    if (autoConnect != myAutoConnect) {
-      myAutoConnect = autoConnect;
+  public static void setAutoConnect(boolean autoConnect) {
+    if (autoConnect != ourAutoConnect) {
+      ourAutoConnect = autoConnect;
+      PropertiesComponent.getInstance().setValue(ConstraintLayoutHandler.AUTO_CONNECT_PREF_KEY, autoConnect, true);
     }
   }
 
-  public boolean isAutoConnect() {
-    return myAutoConnect;
+  public static boolean isAutoConnect() {
+    return ourAutoConnect;
   }
 
   private static Lock ourLock = new ReentrantLock();
@@ -310,7 +315,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
    * if auto-connect is on.
    */
   private void connectDroppedWidget() {
-    if (!myAutoConnect) {
+    if (!ourAutoConnect) {
       // Clear the indicators
       ArrayList<DrawConstraintModel> drawConstraintModels = getDrawConstraintModels();
       if (drawConstraintModels.size() < 1) {
