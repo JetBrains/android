@@ -1095,10 +1095,11 @@ public class ConstraintUtilities {
   static void commitElement(ConstraintModel model, @NotNull ConstraintWidget widget) {
     WidgetCompanion companion = (WidgetCompanion)widget.getCompanionWidget();
     NlComponent component = (NlComponent)companion.getWidgetModel();
-    if (widget.isRoot() || widget.isRootContainer() || !widget.isInsideConstraintLayout()) {
+    boolean isInsideConstraintLayout = (model.getDragDropWidget() == widget) || widget.isInsideConstraintLayout();
+    if (widget.isRoot() || widget.isRootContainer() || !isInsideConstraintLayout) {
       return;
     }
-    if (model.getDragDropWidget() == widget) {
+    if (isInsideConstraintLayout) {
       setEditorPosition(widget, component, widget.getX(), widget.getY());
     } else {
       clearEditorPosition(component);
