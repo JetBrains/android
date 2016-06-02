@@ -17,8 +17,7 @@ package com.android.tools.idea.welcome.install;
 
 import com.android.SdkConstants;
 import com.android.ide.common.repository.SdkMavenRepository;
-import com.android.repository.api.ProgressIndicator;
-import com.android.repository.api.ProgressIndicatorAdapter;
+import com.android.repository.Revision;
 import com.android.repository.api.RemotePackage;
 import com.android.repository.api.RepoPackage;
 import com.android.repository.io.FileOpUtils;
@@ -49,10 +48,23 @@ public final class AndroidSdk extends InstallableComponent {
    * @return The Revision of the latest build tools package, or null if no remote build tools packages are available.
    */
   @Nullable
-  private String getLatestCompatibleBuildToolsPath() {
-    ProgressIndicator progress = new ProgressIndicatorAdapter() {};
-    RemotePackage latest = mySdkHandler.getLatestRemotePackageForPrefix(SdkConstants.FD_BUILD_TOOLS, false, progress);
-    return latest != null ? latest.getPath() : null;
+  private Revision getLatestCompatibleBuildToolsRevision() {
+    Revision revision = null;
+    for (RemotePackage p : getRepositoryPackages().getRemotePackages().values()) {
+      if (!p.getPath().startsWith(SdkConstants.FD_BUILD_TOOLS)) {
+        continue;
+      }
+
+      Revision fullRevision = p.getVersion();
+      // We never want to push preview platforms on users
+      if (fullRevision.isPreview()) {
+        continue;
+      }
+      if (revision == null || fullRevision.compareTo(revision) > 0) {
+        revision = fullRevision;
+      }
+    }
+    return revision;
   }
 
   @NotNull
@@ -61,9 +73,9 @@ public final class AndroidSdk extends InstallableComponent {
     Collection<String> result = Lists.newArrayList();
     result.add(SdkConstants.FD_TOOLS);
     result.add(SdkConstants.FD_PLATFORM_TOOLS);
-    String buildToolsPath = getLatestCompatibleBuildToolsPath();
-    if (buildToolsPath != null) {
-      result.add(buildToolsPath);
+    Revision revision = getLatestCompatibleBuildToolsRevision();
+    if (revision != null) {
+      result.add(SdkConstants.FD_BUILD_TOOLS + RepoPackage.PATH_SEPARATOR + revision.toString());
     }
 
     for (SdkMavenRepository repository : SdkMavenRepository.values()) {
