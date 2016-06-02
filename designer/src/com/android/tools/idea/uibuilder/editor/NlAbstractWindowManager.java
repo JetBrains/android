@@ -64,14 +64,14 @@ public abstract class NlAbstractWindowManager extends LightToolWindowManager {
     return null;
   }
 
-  @NotNull
+  @Nullable
   protected static DesignSurface getDesignSurface(@NotNull DesignerEditorPanelFacade designer) {
     if (designer instanceof NlEditorPanel) {
       NlEditorPanel editor = (NlEditorPanel)designer;
       return editor.getSurface();
     } else if (designer instanceof NlPreviewForm) {
       NlPreviewForm form = (NlPreviewForm)designer;
-      return form.getSurface();
+      return form.getFile() != null ? form.getSurface() : null;
     }
 
     // Unexpected facade
