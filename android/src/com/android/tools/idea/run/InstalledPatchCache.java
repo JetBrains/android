@@ -50,16 +50,6 @@ public class InstalledPatchCache implements Disposable {
   }
 
   @Nullable
-  public HashCode getInstalledManifestTimestamp(@NotNull IDevice device, @NotNull String pkgName) {
-    PatchState state = getState(device, pkgName, false);
-    return state == null ? null : state.manifest;
-  }
-
-  public void setInstalledManifestTimestamp(@NotNull IDevice device, @NotNull String pkgName, @NotNull HashCode hashCode) {
-    getState(device, pkgName, true).manifest = hashCode;
-  }
-
-  @Nullable
   public HashCode getInstalledManifestResourcesHash(@NotNull IDevice device, @NotNull String pkgName) {
     PatchState state = getState(device, pkgName, false);
     return state == null ? null : state.manifestResources;
@@ -85,7 +75,6 @@ public class InstalledPatchCache implements Disposable {
   }
 
   private static class PatchState {
-    @Nullable public HashCode manifest;
     @Nullable public HashCode manifestResources;
   }
 }

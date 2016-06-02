@@ -91,34 +91,6 @@ public class GradleInstantRunContext implements InstantRunContext {
 
   @NotNull
   @Override
-  public HashCode getManifestHash() {
-    AndroidModel androidModel = myFacet.getAndroidModel();
-
-    Hasher hasher = Hashing.md5().newHasher(1024);
-
-    if (androidModel != null) {
-      // Suppress deprecation: the recommended replacement is not suitable
-      // (that's an API for VirtualFiles; we need the java.io.File instances)
-      //noinspection deprecation
-      for (SourceProvider provider : androidModel.getActiveSourceProviders()) {
-        String manifest;
-        try {
-          manifest = Files.toString(provider.getManifestFile(), UTF_8);
-        }
-        catch (IOException ignored) {
-          continue;
-        }
-
-        hasher.putString(manifest, UTF_8);
-      }
-    }
-
-    return hasher.hash();
-
-  }
-
-  @NotNull
-  @Override
   public HashCode getManifestResourcesHash() {
     File manifest = findMergedManifestFile(myFacet);
     if (manifest != null) { // ensures exists too

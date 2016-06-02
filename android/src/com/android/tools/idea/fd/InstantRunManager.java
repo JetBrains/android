@@ -135,7 +135,7 @@ public final class InstantRunManager implements ProjectComponent {
 
   public static boolean hasLocalCacheOfDeviceData(@NotNull IDevice device, @NotNull InstantRunContext context) {
     InstalledPatchCache cache = context.getInstalledPatchCache();
-    return cache.getInstalledManifestTimestamp(device, context.getApplicationId()) != null;
+    return cache.getInstalledManifestResourcesHash(device, context.getApplicationId()) != null;
   }
 
   @NotNull
