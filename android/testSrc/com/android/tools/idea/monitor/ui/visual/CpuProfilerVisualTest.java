@@ -90,7 +90,10 @@ public class CpuProfilerVisualTest extends VisualTest {
 
     //TODO Update test data for CpuUsageSegment to be exactly what it was.
     mCPULevel2Segment = new CpuUsageSegment(timeRange, mDataStore);
-    mThreadsSegment = new ThreadsSegment(timeRange);
+    mThreadsSegment = new ThreadsSegment(timeRange, (threads) -> {
+      // TODO: show L3 segment with the charts corresponding to threads selected.
+      // Hide any charts corresponding to unselected threads and hide L3 segment in case no threads are selected
+    });
 
     List<Animatable> animatables = new ArrayList<>();
     animatables.add(AnimatedTimeRange);
