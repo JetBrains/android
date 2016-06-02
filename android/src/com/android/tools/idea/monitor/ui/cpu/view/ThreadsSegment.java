@@ -28,6 +28,7 @@ import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -36,9 +37,8 @@ import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.List;
 
 public class ThreadsSegment extends BaseSegment implements Animatable {
 
@@ -80,9 +80,16 @@ public class ThreadsSegment extends BaseSegment implements Animatable {
 
   private final JBList mThreadsList = new JBList(mThreadsListModel);
 
+  @NotNull
   private final Range mTimeRange;
 
   private static EnumMap<Thread.State, Color> mThreadStateColor;
+
+  /**
+   * Listens to changes in the threads list selection. In case it's null, changes in the selection won't notify anything.
+   */
+  @Nullable
+  private final ThreadSelectedListener mThreadSelectedListener;
 
   /**
    * Stores the state series corresponding to each thread.
@@ -91,11 +98,16 @@ public class ThreadsSegment extends BaseSegment implements Animatable {
   @NotNull
   private final Map<Thread, RangedDiscreteSeries<Thread.State>> mThreadsStateSeries;
 
-  public ThreadsSegment(@NotNull Range timeRange) {
+  public ThreadsSegment(@NotNull Range timeRange, @Nullable ThreadSelectedListener threadSelectedListener) {
     super(SEGMENT_NAME, timeRange);
     mTimeRange = timeRange;
     mThreadsStateSeries = new HashMap<>();
+    mThreadSelectedListener = threadSelectedListener;
     initialize();
+  }
+
+  public ThreadsSegment(@NotNull Range timeRange) {
+    this(timeRange, null);
   }
 
   @NotNull
@@ -117,6 +129,16 @@ public class ThreadsSegment extends BaseSegment implements Animatable {
     mThreadsList.setCellRenderer(new ThreadsStateCellRenderer());
     mThreadsList.setSelectionBackground(AdtUiUtils.DEFAULT_BACKGROUND_COLOR);
     mThreadsList.setFixedCellHeight(mCellHeight);
+    if (mThreadSelectedListener != null) {
+      mThreadsList.addListSelectionListener((event) -> {
+        int[] selectedThreadsIndices = mThreadsList.getSelectedIndices();
+        List<Thread> selectedThreads = new ArrayList<>();
+        for (int i = 0; i < selectedThreadsIndices.length; i++) {
+          selectedThreads.add(mThreadsListModel.get(i));
+        }
+        mThreadSelectedListener.onSelected(selectedThreads);
+      });
+    }
   }
 
   @Override
@@ -179,6 +201,10 @@ public class ThreadsSegment extends BaseSegment implements Animatable {
   @Override
   public void postAnimate() {
     mThreadsStateCharts.values().forEach(AnimatedComponent::postAnimate);
+  }
+
+  public interface ThreadSelectedListener {
+    void onSelected(@NotNull List<Thread> selectedThreads);
   }
 
   private class ThreadsStateCellRenderer implements ListCellRenderer<Thread> {
