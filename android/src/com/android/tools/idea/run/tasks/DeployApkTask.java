@@ -115,7 +115,6 @@ public class DeployApkTask implements LaunchTask {
 
   public static void cacheManifestInstallationData(@NotNull IDevice device, @NotNull InstantRunContext context) {
     InstalledPatchCache patchCache = ServiceManager.getService(InstalledPatchCache.class);
-    patchCache.setInstalledManifestTimestamp(device, context.getApplicationId(), context.getManifestHash());
     patchCache.setInstalledManifestResourcesHash(device, context.getApplicationId(), context.getManifestResourcesHash());
   }
 
