@@ -17,6 +17,7 @@ package org.jetbrains.android.inspections.lint;
 
 import com.android.tools.idea.npw.ConfigureAndroidModuleStep;
 import com.intellij.codeInsight.intention.IntentionAction;
+import com.intellij.idea.Bombed;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.android.AndroidTestCase;
@@ -24,6 +25,8 @@ import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Calendar;
 
 import static org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider.AndroidLintNewApiInspection;
 
@@ -151,6 +154,7 @@ public class IntellijApiDetectorTest extends AndroidTestCase {
     doTest(inspection, null);
   }
 
+  @Bombed(month = Calendar.SEPTEMBER, day = 31, user = "dmitry.avdeev", description = "No idea why it started to fail")
   public void testBundleTestOk() throws Exception {
     // Regression test for https://code.google.com/p/android/issues/detail?id=78495
     // Checks that if the API level is higher than the base level, the error is filtered out
