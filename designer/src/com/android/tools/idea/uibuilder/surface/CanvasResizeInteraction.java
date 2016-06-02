@@ -39,9 +39,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.android.tools.idea.uibuilder.graphics.NlConstants.BOUNDS_RECT_DELTA;
-import static com.android.tools.idea.uibuilder.graphics.NlConstants.DASHED_STROKE;
-
 public class CanvasResizeInteraction extends Interaction {
   private final DesignSurface myDesignSurface;
   private final boolean isPreviewSurface;
@@ -302,16 +299,12 @@ public class CanvasResizeInteraction extends Interaction {
       int y = screenView.getY();
 
       if (myCurrentX > x && myCurrentY > y) {
-        Stroke prevStroke = g2d.getStroke();
-        g2d.setColor(new Color(0xFF, 0x99, 0x00, 255));
-        g2d.setStroke(DASHED_STROKE);
+        Graphics2D graphics = (Graphics2D)g2d.create();
+        graphics.setColor(NlConstants.RESIZING_CONTOUR_COLOR);
+        graphics.setStroke(NlConstants.THICK_SOLID_STROKE);
 
-        g2d.drawLine(x - 1, y - BOUNDS_RECT_DELTA, x - 1, myCurrentY + BOUNDS_RECT_DELTA);
-        g2d.drawLine(x - BOUNDS_RECT_DELTA, y - 1, myCurrentX + BOUNDS_RECT_DELTA, y - 1);
-        g2d.drawLine(myCurrentX, y - BOUNDS_RECT_DELTA, myCurrentX, myCurrentY + BOUNDS_RECT_DELTA);
-        g2d.drawLine(x - BOUNDS_RECT_DELTA, myCurrentY, myCurrentX + BOUNDS_RECT_DELTA, myCurrentY);
-
-        g2d.setStroke(prevStroke);
+        graphics.drawRect(x - 1, y - 1, myCurrentX - x, myCurrentY - y);
+        graphics.dispose();
       }
     }
   }
