@@ -42,7 +42,7 @@ class Utilities {
 
   @NotNull
   static BufferedImage getDisplayableImage(@NotNull Image image) throws IOException {
-    BufferedImage bufferedImage = image.getFlattenedBitmap();
+    BufferedImage bufferedImage = image.getMergedImage();
     if (bufferedImage == null) {
       throw new IOException("Unable to extract flattened bitmap");
     }
