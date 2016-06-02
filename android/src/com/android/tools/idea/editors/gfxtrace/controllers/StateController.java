@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.gfxtrace.controllers;
 
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
+import com.android.tools.idea.editors.gfxtrace.actions.ViewTextAction;
 import com.android.tools.idea.editors.gfxtrace.models.GpuState;
 import com.android.tools.idea.editors.gfxtrace.renderers.Render;
 import com.android.tools.idea.editors.gfxtrace.service.ErrDataUnavailable;
@@ -25,10 +26,8 @@ import com.android.tools.idea.editors.gfxtrace.service.path.Path;
 import com.android.tools.idea.editors.gfxtrace.service.snippets.CanFollow;
 import com.android.tools.idea.editors.gfxtrace.service.snippets.KindredSnippets;
 import com.android.tools.idea.editors.gfxtrace.service.snippets.SnippetObject;
-import com.android.tools.rpclib.schema.Dynamic;
-import com.android.tools.rpclib.schema.Field;
+import com.android.tools.rpclib.schema.*;
 import com.android.tools.rpclib.schema.Map;
-import com.android.tools.rpclib.schema.Type;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -79,6 +78,7 @@ public class StateController extends TreeController implements GpuState.Listener
     setModel(myModel);
 
     MouseAdapter mouseHandler = new MouseAdapter() {
+      private JPopupMenu popupMenu = new JPopupMenu();
       @Override
       public void mouseMoved(MouseEvent event) {
         TreePath treePath = myTree.getClosestPathForLocation(event.getX(), event.getY());
@@ -128,6 +128,23 @@ public class StateController extends TreeController implements GpuState.Listener
           else {
             // this can happen if the server takes too long to respond, or responds with a error
             LOG.warn("click, but we don't have a path :(");
+          }
+        }
+      }
+
+      @Override
+      public void mousePressed(MouseEvent e) {
+        if (e.isPopupTrigger()) {
+          TreePath path = myTree.getPathForLocation(e.getX(), e.getY());
+          if (path != null) {
+            Node treeNode = (Node)path.getLastPathComponent();
+            if (treeNode.value.type instanceof Primitive && ((Primitive)treeNode.value.type).getMethod() == Method.String) {
+              String title = TreeController.getDisplayTextFor(myEditor.getGpuState().getPath(), getPath(path));
+              ViewTextAction viewText = new ViewTextAction(myEditor.getProject(), title, treeNode.value.value.getObject());
+              popupMenu.removeAll();
+              popupMenu.add(viewText);
+              popupMenu.show(e.getComponent(), e.getX(), e.getY());
+            }
           }
         }
       }
