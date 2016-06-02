@@ -25,7 +25,7 @@ public class RangeTest extends TestCase {
 
   public void testSetMin() throws Exception {
     Range range = new Range(0f, 100f);
-    range.setInterpolationFraction(1f);
+    range.setLerpFraction(1f);
 
     // Assert initial min value.
     assertEquals(0f, range.getMin(), THRESHOLD);
@@ -50,7 +50,7 @@ public class RangeTest extends TestCase {
 
   public void testSetMinTarget() throws Exception {
     Range range = new Range(0f, 100f);
-    range.setInterpolationFraction(1f);
+    range.setLerpFraction(1f);
 
     // Assert initial min value.
     assertEquals(0f, range.getMin(), THRESHOLD);
@@ -78,7 +78,7 @@ public class RangeTest extends TestCase {
 
   public void testSetMax() throws Exception {
     Range range = new Range(0f, 100f);
-    range.setInterpolationFraction(1f);
+    range.setLerpFraction(1f);
 
     // Assert initial min value.
     assertEquals(100f, range.getMax(), THRESHOLD);
@@ -104,7 +104,7 @@ public class RangeTest extends TestCase {
 
   public void testSetMaxTarget() throws Exception {
     Range range = new Range(0f, 100f);
-    range.setInterpolationFraction(1f);
+    range.setLerpFraction(1f);
 
     // Assert initial min value.
     assertEquals(100f, range.getMax(), THRESHOLD);
@@ -131,7 +131,7 @@ public class RangeTest extends TestCase {
 
   public void testSet() throws Exception {
     Range range = new Range();
-    range.setInterpolationFraction(1f);
+    range.setLerpFraction(1f);
 
     // Immediate set.
     range.set(50f, 100f);
@@ -153,7 +153,7 @@ public class RangeTest extends TestCase {
 
   public void testSetTarget() throws Exception {
     Range range = new Range();
-    range.setInterpolationFraction(1f);
+    range.setLerpFraction(1f);
 
     // Interpolate set.
     range.setTarget(50f, 100f);

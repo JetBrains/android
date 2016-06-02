@@ -42,8 +42,8 @@ import java.util.TreeSet;
  */
 public class AccordionLayout implements LayoutManager2, Animatable {
 
-  private static final float LERP_RATIO = 0.9999f;
-  private static final float LERP_THRESHOLD_PIXEL = 1;
+  private static final float DEFAULT_LERP_FRACTION = 0.9999f;
+  private static final float DEFAULT_LERP_THRESHOLD_PIXEL = 1;
 
   public enum Orientation {
     HORIZONTAL,
@@ -109,11 +109,28 @@ public class AccordionLayout implements LayoutManager2, Animatable {
    */
   private float mPreoccupiedSpace;
 
+  private float mLerpFraction;
+
+  private float mLerpThreshold;
+
   public AccordionLayout(@NotNull Container parent, @NotNull Orientation orientation) {
     mParent = parent;
     mOrientation = orientation;
     mComponentInfoMap = new HashMap<>();
     mComponentInfoSet = new TreeSet<>();
+
+    mLerpFraction = DEFAULT_LERP_FRACTION;
+    mLerpThreshold = DEFAULT_LERP_THRESHOLD_PIXEL;
+  }
+
+  @Override
+  public void setLerpFraction(float fraction) {
+    mLerpFraction = fraction;
+  }
+
+  @Override
+  public void setLerpThreshold(float threshold) {
+    mLerpThreshold = threshold;
   }
 
   public AccordionState getState(@NotNull Component comp) {
@@ -407,11 +424,11 @@ public class AccordionLayout implements LayoutManager2, Animatable {
       }
 
       if (info.currentSize != targetSize) {
-        info.currentSize = Choreographer.lerp(info.currentSize, targetSize, LERP_RATIO, frameLength, LERP_THRESHOLD_PIXEL);
+        info.currentSize = Choreographer.lerp(info.currentSize, targetSize, mLerpFraction, frameLength, mLerpThreshold);
       }
 
       if (currentSize != minSize) {
-        currentSize = Choreographer.lerp(currentSize, minSize, LERP_RATIO, frameLength, LERP_THRESHOLD_PIXEL);
+        currentSize = Choreographer.lerp(currentSize, minSize, mLerpFraction, frameLength, mLerpThreshold);
       }
 
       switch (info.state) {
