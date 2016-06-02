@@ -46,7 +46,7 @@ public class LaunchAndroidApplicationTest {
   public void testRunOnEmulator() throws IOException, ClassNotFoundException {
     guiTest.importSimpleApplication()
       .runApp(APP_NAME)
-      .selectFirstAvailableDevice()
+      .selectDevice("device under test")  // TODO: create (and delete) an appropriate device automatically
       .clickOk();
 
     // Make sure the right app is being used. This also serves as the sync point for the package to get uploaded to the device/emulator.

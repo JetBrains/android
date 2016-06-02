@@ -16,13 +16,13 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.run.DevicePickerEntry;
 import com.android.tools.idea.run.LaunchCompatibility;
 import com.android.tools.idea.tests.gui.framework.Wait;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ThreeState;
 import com.intellij.util.ui.AnimatedIcon;
+import org.fest.swing.cell.JListCellReader;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.DialogMatcher;
@@ -134,24 +134,20 @@ public class DeployTargetPickerDialogFixture extends ComponentFixture<DeployTarg
     return this;
   }
 
-  private static String getDeviceNameByIndex(JBList deviceList, int index) {
-    DevicePickerEntry value = ((DevicePickerEntry) deviceList.getModel().getElementAt(index));
-    if (value.isMarker()) {
-      return null;
-    } else {
-      return value.getAndroidDevice().getName();
-    }
-  }
+  /**
+   * This looks odd because {@code DevicePicker} uses {@code AndroidDeviceRenderer}, which is a {@code ColoredListCellRenderer}, whose
+   * {@code getListCellRendererComponent} method returns {@code this}, which is also a {@code SimpleColoredComponent}, whose
+   * {@code toString} method returns what gets rendered to the cell. You may vomit now.
+   */
+  private static final JListCellReader DEVICE_PICKER_CELL_READER = (jList, index) ->
+    jList.getCellRenderer().getListCellRendererComponent(jList, jList.getModel().getElementAt(index), index, true, true).toString();
 
   @NotNull
-  public DeployTargetPickerDialogFixture selectFirstAvailableDevice() {
+  public DeployTargetPickerDialogFixture selectDevice(String text) {
     JBList deviceList = robot().finder().findByType(target(), JBList.class);
-    for (int i = 0; i < deviceList.getItemsCount(); i++) {
-      if (getDeviceNameByIndex(deviceList, i) != null) {
-        new JListFixture(robot(), deviceList).selectItem(i);
-        break;
-      }
-    }
+    JListFixture jListFixture = new JListFixture(robot(), deviceList);
+    jListFixture.replaceCellReader(DEVICE_PICKER_CELL_READER);
+    jListFixture.selectItem(text);
     return this;
   }
 
