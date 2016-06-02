@@ -29,7 +29,7 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -49,7 +49,7 @@ public class MissingCMakeErrorHandler extends AbstractSyncErrorHandler {
     }
 
     ProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
-    AndroidSdkHandler sdk = AndroidSdkData.getSdkData(project).getSdkHandler();
+    AndroidSdkHandler sdk = AndroidSdkUtils.tryToChooseSdkHandler();
     RemotePackage cmakePackage = sdk.getLatestRemotePackageForPrefix(SdkConstants.FD_CMAKE, false, progress);
     if (cmakePackage == null) {
       return false;
