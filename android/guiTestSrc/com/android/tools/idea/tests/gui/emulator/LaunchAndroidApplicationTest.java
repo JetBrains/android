@@ -39,7 +39,7 @@ public class LaunchAndroidApplicationTest {
   private static final String APP_NAME = "app";
   private static final String PROCESS_NAME = "com.android.simple.application";
   private static final Pattern LOCAL_PATH_OUTPUT = Pattern.compile(
-    ".*local path: (?:[^\\/]*[\\/])*SimpleApplication/app/build/outputs/apk/app-debug\\.apk.*", Pattern.DOTALL);
+    ".*adb shell am start .*com.android.simple.application.+Connected to process.*", Pattern.DOTALL);
 
   @Ignore("failed in http://go/aj/job/studio-ui-test/389 and from IDEA")
   @Test
