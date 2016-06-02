@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.editor;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.res.ResourceNotificationManager;
-import com.android.tools.idea.uibuilder.palette.ScalableDesignSurface;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.intellij.designer.LightToolWindow;
 import com.intellij.openapi.application.ApplicationManager;
@@ -165,7 +164,7 @@ public class NlPreviewManager implements ProjectComponent {
   }
 
   // The preview image was updated. Notify the attached palette if any.
-  public void setDesignSurface(@Nullable ScalableDesignSurface designSurface) {
+  public void setDesignSurface(@Nullable DesignSurface designSurface) {
     if (myToolWindow != null) {
       NlPaletteManager paletteManager = NlPaletteManager.get(myProject);
       LightToolWindow toolWindow = (LightToolWindow)myToolWindowForm.getClientProperty(paletteManager.getComponentName());

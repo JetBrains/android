@@ -24,9 +24,7 @@ import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.uibuilder.editor.NlActionManager;
 import com.android.tools.idea.uibuilder.editor.NlEditorPanel;
 import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
-import com.android.tools.idea.uibuilder.handlers.constraint.WidgetNavigatorPanel;
 import com.android.tools.idea.uibuilder.model.*;
-import com.android.tools.idea.uibuilder.palette.ScalableDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView.ScreenViewType;
 import com.google.common.collect.Lists;
 import com.intellij.designer.DesignerEditorPanelFacade;
@@ -42,15 +40,12 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.wm.IdeGlassPane;
-import com.intellij.psi.PsiElement;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.components.JBScrollBar;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.Magnificator;
-import com.intellij.ui.treeStructure.filtered.FilteringTreeStructure;
 import com.intellij.util.Alarm;
-import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.ButtonlessScrollBarUI;
 import com.intellij.util.ui.UIUtil;
@@ -66,7 +61,6 @@ import javax.swing.plaf.ScrollBarUI;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -76,7 +70,7 @@ import static com.android.tools.idea.uibuilder.graphics.NlConstants.*;
  * The design surface in the layout editor, which contains the full background, rulers, one
  * or more device renderings, etc
  */
-public class DesignSurface extends JPanel implements Disposable, ScalableDesignSurface {
+public class DesignSurface extends JPanel implements Disposable {
   public static final boolean SIZE_ERROR_PANEL_DYNAMICALLY = true;
   private static final Integer LAYER_PROGRESS = JLayeredPane.POPUP_LAYER + 100;
 
@@ -94,7 +88,7 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
 
     private final ScreenViewType myScreenViewType;
 
-    private ScreenMode(@NotNull ScreenViewType screenViewType) {
+    ScreenMode(@NotNull ScreenViewType screenViewType) {
       myScreenViewType = screenViewType;
     }
 
@@ -120,7 +114,7 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
         }
       }
 
-      return ScreenMode.BOTH;
+      return BOTH;
     }
 
     public static void saveDefault(@NotNull ScreenMode mode) {
@@ -225,7 +219,6 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
   }
 
   @NotNull
-  @Override
   public NlLayoutType getLayoutType() {
     XmlFile file;
     if (myDesigner instanceof NlEditorPanel) {
@@ -242,7 +235,6 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
     return NlLayoutType.typeOf(file);
   }
 
-  @Override
   public void minimizePaletteOnPreview() {
     if (isPreviewSurface()) {
       ApplicationManager.getApplication().invokeLater(((NlPreviewForm)myDesigner)::minimizePalette);
@@ -314,7 +306,6 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
     List<NlComponent> selectionBefore = Collections.emptyList();
     List<NlComponent> selectionAfter = Collections.emptyList();
 
-    ScreenView previousScreenView = myScreenView;
     if (myScreenView != null) {
       myScreenView.getModel().removeListener(myModelListener);
 
@@ -409,19 +400,14 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
       return;
     }
     Dimension size = myScreenView.getSize();
-    if (size != null) {
-      // TODO: Account for the size of the blueprint screen too? I should figure out if I can automatically make it jump
-      // to the side or below based on the form factor and the available size
-      Dimension dimension = new Dimension(size.width + 2 * DEFAULT_SCREEN_OFFSET_X,
-                                          size.height + 2 * DEFAULT_SCREEN_OFFSET_Y);
-      myLayeredPane.setBounds(0, 0, dimension.width, dimension.height);
-      myLayeredPane.setPreferredSize(dimension);
-      myScrollPane.revalidate();
-      myProgressPanel.setBounds(myScreenX, myScreenY, size.width, size.height);
-    }
-    else {
-      myProgressPanel.setBounds(0, 0, getWidth(), getHeight());
-    }
+    // TODO: Account for the size of the blueprint screen too? I should figure out if I can automatically make it jump
+    // to the side or below based on the form factor and the available size
+    Dimension dimension = new Dimension(size.width + 2 * DEFAULT_SCREEN_OFFSET_X,
+                                        size.height + 2 * DEFAULT_SCREEN_OFFSET_Y);
+    myLayeredPane.setBounds(0, 0, dimension.width, dimension.height);
+    myLayeredPane.setPreferredSize(dimension);
+    myScrollPane.revalidate();
+    myProgressPanel.setBounds(myScreenX, myScreenY, size.width, size.height);
   }
 
   public JComponent getPreferredFocusedComponent() {
@@ -439,7 +425,6 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
   }
 
   @Nullable
-  @Override
   public ScreenView getCurrentScreenView() {
     return myScreenView;
   }
@@ -626,33 +611,30 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
         int availableWidth = myScrollPane.getWidth();
         int availableHeight = myScrollPane.getHeight();
         Dimension preferredSize = myScreenView.getPreferredSize();
-        if (preferredSize != null) {
-          int requiredWidth = preferredSize.width;
-          int requiredHeight = preferredSize.height;
-          availableWidth -= 2 * DEFAULT_SCREEN_OFFSET_X;
-          availableHeight -= 2 * DEFAULT_SCREEN_OFFSET_Y;
+        int requiredWidth = preferredSize.width;
+        int requiredHeight = preferredSize.height;
+        availableWidth -= 2 * DEFAULT_SCREEN_OFFSET_X;
+        availableHeight -= 2 * DEFAULT_SCREEN_OFFSET_Y;
 
-          if (myScreenMode == ScreenMode.BOTH) {
-            if (isVerticalScreenConfig(availableWidth, availableHeight, preferredSize)) {
-              requiredHeight *= 2;
-              requiredHeight += SCREEN_DELTA;
-            }
-            else {
-              requiredWidth *= 2;
-              requiredWidth += SCREEN_DELTA;
-            }
+        if (myScreenMode == ScreenMode.BOTH) {
+          if (isVerticalScreenConfig(availableWidth, availableHeight, preferredSize)) {
+            requiredHeight *= 2;
+            requiredHeight += SCREEN_DELTA;
           }
-
-          double scaleX = (double)availableWidth / requiredWidth;
-          double scaleY = (double)availableHeight / requiredHeight;
-          double scale = Math.min(scaleX, scaleY);
-          if (type == ZoomType.FIT_INTO) {
-            scale = Math.min(1.0, scale);
+          else {
+            requiredWidth *= 2;
+            requiredWidth += SCREEN_DELTA;
           }
-          setScale(scale);
-          repaint();
         }
 
+        double scaleX = (double)availableWidth / requiredWidth;
+        double scaleY = (double)availableHeight / requiredHeight;
+        double scale = Math.min(scaleX, scaleY);
+        if (type == ZoomType.FIT_INTO) {
+          scale = Math.min(1.0, scale);
+        }
+        setScale(scale);
+        repaint();
         break;
       default:
       case SCREEN:
@@ -687,12 +669,10 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
     return stackVertically;
   }
 
-  @Override
   public double getScale() {
     return myScale;
   }
 
-  @Override
   public Configuration getConfiguration() {
     return myScreenView != null ? myScreenView.getConfiguration() : null;
   }
@@ -726,16 +706,16 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
 
   private void notifyScaleChanged() {
     if (myZoomListeners != null) {
-      for (int i = 0; i < myZoomListeners.size(); i++) {
-        myZoomListeners.get(i).zoomChanged(this);
+      for (PanZoomListener myZoomListener : myZoomListeners) {
+        myZoomListener.zoomChanged(this);
       }
     }
   }
 
   private void notifyPanningChanged(AdjustmentEvent adjustmentEvent) {
     if (myZoomListeners != null) {
-      for (int i = 0; i < myZoomListeners.size(); i++) {
-        myZoomListeners.get(i).panningChanged(adjustmentEvent);
+      for (PanZoomListener myZoomListener : myZoomListeners) {
+        myZoomListener.panningChanged(adjustmentEvent);
       }
     }
   }
@@ -864,7 +844,7 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
         notifySelectionListeners(selection);
       }
       else {
-        notifySelectionListeners(Collections.<NlComponent>emptyList());
+        notifySelectionListeners(Collections.emptyList());
       }
     }
   };
@@ -962,6 +942,7 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
       return new MyScrollBar(Adjustable.VERTICAL);
     }
 
+    @NotNull
     @Override
     public JScrollBar createHorizontalScrollBar() {
       return new MyScrollBar(Adjustable.HORIZONTAL);
@@ -1343,7 +1324,7 @@ public class DesignSurface extends JPanel implements Disposable, ScalableDesignS
     }
   }
 
-  private final List<ProgressIndicator> myProgressIndicators = new ArrayList<ProgressIndicator>();
+  private final List<ProgressIndicator> myProgressIndicators = new ArrayList<>();
 
   @SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
   private final MyProgressPanel myProgressPanel;
