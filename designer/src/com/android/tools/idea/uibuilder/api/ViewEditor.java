@@ -106,6 +106,13 @@ public abstract class ViewEditor {
   public abstract NlModel getModel();
 
   /**
+   * Returns true if the current module depends on the specified library.
+   *
+   * @param artifact library artifact e.g. "com.android.support:appcompat-v7"
+   */
+  public abstract boolean isModuleDependency(@NotNull String artifact);
+
+  /**
    * Measures the children of the given parent and returns them as a map to view info instances.
    *
    * @param parent the parent component whose children we want to measure
