@@ -71,5 +71,9 @@ public interface PathListener {
     public StatePath findStatePath() {
       return findPathOfType(StatePath.class);
     }
+
+    public ContextPath findContextPath() {
+      return findPathOfType(ContextPath.class);
+    }
   }
 }
