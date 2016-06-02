@@ -353,7 +353,7 @@ public abstract class GfxTraceCaptureAction extends ToggleAction {
 
       @Override
       public void onError(@NotNull String error) {
-        dialog.onError(error);
+        EdtExecutor.INSTANCE.execute(() -> dialog.onError(error));
       }
 
       private void update() {
