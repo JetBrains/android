@@ -50,6 +50,20 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
     myGradleModel = gradleModel;
   }
 
+  @Override
+  public boolean canDependOn(@NotNull PsModule module) {
+    if (module instanceof PsAndroidModule) {
+      PsAndroidModule androidModule = (PsAndroidModule)module;
+      return androidModule.isLibrary();
+    }
+    // 'module' is either a Java library or an AAR module.
+    return true;
+  }
+
+  public boolean isLibrary() {
+    return myGradleModel.isLibrary();
+  }
+
   @Nullable
   public PsBuildType findBuildType(@NotNull String buildType) {
     return getOrCreateBuildTypeCollection().findElement(buildType, PsBuildType.class);
