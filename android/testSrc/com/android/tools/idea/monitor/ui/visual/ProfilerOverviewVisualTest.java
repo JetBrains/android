@@ -150,6 +150,8 @@ public class ProfilerOverviewVisualTest extends VisualTest {
 
     mSegmentsContainer = new JBPanel();
     mLayout = new AccordionLayout(mSegmentsContainer, AccordionLayout.Orientation.VERTICAL);
+    // TODO animation is disabled at the moment as it causes visual artifacts on the SelectionComponent due to overlapping painting regions.
+    mLayout.setLerpFraction(1f);
     mSegmentsContainer.setLayout(mLayout);
 
     mSelection = new SelectionComponent(mSegmentsContainer,

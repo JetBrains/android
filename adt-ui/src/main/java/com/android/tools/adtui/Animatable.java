@@ -38,4 +38,18 @@ public interface Animatable {
    */
   default void postAnimate() {
   }
+
+  /**
+   * An auxiliary function to allow an {@link Animatable} to configure its interpolation speed when calling the
+   * {@link Choreographer#lerp(float, float, float, float, float)} method.
+   */
+  default void setLerpFraction(float fraction) {
+  }
+
+  /**
+   * An auxiliary function to allow an {@link Animatable} to configure its lerp snapping threshold when calling the
+   * {@link Choreographer#lerp(float, float, float, float, float)} method.
+   */
+  default void setLerpThreshold(float threshold) {
+  }
 }

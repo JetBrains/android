@@ -51,20 +51,13 @@ public class Range implements Animatable {
     this(0, 0);
   }
 
-  /**
-   * Sets the fraction at which the min/max interpolates if the values set are not immediately
-   * applied. See {@link Choreographer#lerp(double, double, float, float)} for details.
-   */
-  public void setInterpolationFraction(float fraction) {
+  @Override
+  public void setLerpFraction(float fraction) {
     mLerpFraction = fraction;
   }
 
-  /**
-   * Sets the threshold at which the min/max would snap to their target values when animating.
-   * See {@link Choreographer#lerp(float, float, float, float, float)} for details.
-   * @param threshold
-   */
-  public void setInterpolationThreshold(float threshold) {
+  @Override
+  public void setLerpThreshold(float threshold) {
     mLerpThreshold = threshold;
   }
 
