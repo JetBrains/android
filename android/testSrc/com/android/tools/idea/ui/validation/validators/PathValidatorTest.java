@@ -138,6 +138,7 @@ public class PathValidatorTest {
   @Test
   public void parentDirectoryNotWritableMatches() throws Exception {
     File parent = new File("/a/b/");
+    myFileOp.mkdirs(parent);
     myFileOp.setReadOnly(parent);
 
     File file = new File("/a/b/c/d/e.txt");
