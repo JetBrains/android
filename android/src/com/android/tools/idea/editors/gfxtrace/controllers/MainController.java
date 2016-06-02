@@ -40,13 +40,17 @@ public class MainController extends Controller {
 
   private MainController(@NotNull GfxTraceEditor editor) {
     super(editor);
-    myPanel.add(new JBLabel() {{
+
+    JBPanel top = new JBPanel(new GridLayout(2, 1));
+    top.add(new JBLabel() {{
       setText("The GPU debugger is experimental software.");
       setIcon(AllIcons.General.BalloonWarning);
       setBackground(new JBColor(0xffee88, 0xa49152));
       setBorder(JBUI.Borders.empty(0, 10));
       setOpaque(true);
-    }}, BorderLayout.NORTH);
+    }});
+    top.add(ContextController.createUI(editor));
+    myPanel.add(top, BorderLayout.NORTH);
 
     ThreeComponentsSplitter threePanes = new ThreeComponentsSplitter(true);
     myPanel.add(threePanes, BorderLayout.CENTER);

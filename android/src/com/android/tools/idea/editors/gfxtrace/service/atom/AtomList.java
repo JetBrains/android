@@ -17,6 +17,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.atom;
 
+import com.android.tools.idea.editors.gfxtrace.service.Context;
 import com.android.tools.rpclib.schema.*;
 import com.android.tools.rpclib.binary.*;
 import org.jetbrains.annotations.NotNull;
@@ -29,12 +30,13 @@ public final class AtomList implements BinaryObject {
     return myAtoms[(int)index];
   }
 
-  public void addAtoms(@NotNull DefaultMutableTreeNode parent, long start, long end) {
+  public void addAtoms(@NotNull DefaultMutableTreeNode parent, long start, long end, Context context) {
     for (long index = start; index < end;  ++index) {
-      get(index).buildTree(parent, index);
+      if (context.contains(index)) {
+        get(index).buildTree(parent, index);
+      }
     }
   }
-
 
   //<<<Start:Java.ClassBody:1>>>
   private Atom[] myAtoms;

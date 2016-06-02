@@ -17,6 +17,10 @@ package com.android.tools.idea.editors.gfxtrace.models;
 
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.UiErrorCallback;
+import com.android.tools.idea.editors.gfxtrace.service.ContextID;
+import com.android.tools.idea.editors.gfxtrace.service.ContextList;
+import com.android.tools.idea.editors.gfxtrace.service.Hierarchy;
+import com.android.tools.idea.editors.gfxtrace.service.HierarchyList;
 import com.android.tools.idea.editors.gfxtrace.service.atom.Atom;
 import com.android.tools.idea.editors.gfxtrace.service.atom.AtomGroup;
 import com.android.tools.idea.editors.gfxtrace.service.atom.AtomList;
@@ -25,11 +29,13 @@ import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.android.tools.rpclib.binary.BinaryObject;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
+import com.google.common.base.Function;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.Pair;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -43,7 +49,8 @@ public class AtomStream implements PathListener {
   private final Listeners myListeners = new Listeners();
 
   private AtomList myAtomList;
-  private AtomGroup myAtomGroup;
+  private HierarchyList myHierarchies; // TODO: this probably doesn't belong here.
+  private ContextList myContexts; // TODO: this probably doesn't belong here.
 
   public AtomStream(GfxTraceEditor editor) {
     myEditor = editor;
@@ -53,14 +60,18 @@ public class AtomStream implements PathListener {
   public void notifyPath(PathEvent event) {
     if (myAtomsPath.updateIfNotNull(CapturePath.atoms(event.findCapturePath()))) {
       myListeners.onAtomLoadingStart(this);
-      final ListenableFuture<AtomList> atomF = myEditor.getClient().get(myAtomsPath.getPath());
-      final ListenableFuture<AtomGroup> hierarchyF = myEditor.getClient().get(myAtomsPath.getPath().getCapture().hierarchy());
-      Rpc.listen(Futures.allAsList(atomF, hierarchyF), LOG, new UiErrorCallback<List<BinaryObject>, Pair<AtomList, AtomGroup>, Void>() {
+      CapturePath capturePath = myAtomsPath.getPath().getCapture();
+      ListenableFuture<AtomList> atomF = myEditor.getClient().get(myAtomsPath.getPath());
+      final ListenableFuture allF = Futures.allAsList(
+          /* 0 */ atomF,
+          /* 1 */ loadContexts(capturePath),
+          /* 2 */ loadHierarchies(capturePath));
+      Rpc.listen(allF, LOG, new UiErrorCallback<List<BinaryObject>, LoadData, Void>() {
         @Override
-        protected ResultOrError<Pair<AtomList, AtomGroup>, Void> onRpcThread(Rpc.Result<List<BinaryObject>> result) {
+        protected ResultOrError<LoadData, Void> onRpcThread(Rpc.Result<List<BinaryObject>> result) {
           try {
             List<BinaryObject> list = result.get();
-            return success(Pair.create((AtomList)list.get(0), (AtomGroup)list.get(1)));
+            return success(new LoadData((AtomList)list.get(0), (ContextList)list.get(1), (HierarchyList)list.get(2)));
           }
           catch (RpcException e) {
             LOG.error(e);
@@ -73,13 +84,13 @@ public class AtomStream implements PathListener {
         }
 
         @Override
-        protected void onUiThreadSuccess(Pair<AtomList, AtomGroup> result) {
-          update(result.first, result.second);
+        protected void onUiThreadSuccess(LoadData data) {
+          update(data.myAtoms, data.myContexts, data.myHierarchies);
         }
 
         @Override
         protected void onUiThreadError(Void error) {
-          update(null, null);
+          update(null, null, null);
         }
       });
     }
@@ -89,14 +100,54 @@ public class AtomStream implements PathListener {
     }
   }
 
-  private void update(AtomList atomList, AtomGroup atomGroup) {
+  private ListenableFuture<ContextList> loadContexts(CapturePath capturePath) {
+    if (myEditor.getFeatures().hasContextsAndHierachies()) {
+      return myEditor.getClient().get(capturePath.contexts());
+    }
+    // Server doesn't support the contexts path, assume no contexts.
+    return Futures.immediateFuture(new ContextList());
+  }
+
+  private ListenableFuture<HierarchyList> loadHierarchies(CapturePath capturePath) {
+    if (myEditor.getFeatures().hasContextsAndHierachies()) {
+      return myEditor.getClient().get(capturePath.hierarchies());
+    }
+    // Server doesn't support the hierarchies path, instead build a list from the deprecated
+    // Hierarchy path.
+    return Futures.transform(myEditor.getClient().get(capturePath.hierarchy()),
+        new Function<AtomGroup, HierarchyList>() {
+          @Nullable
+          @Override
+          public HierarchyList apply(@Nullable AtomGroup root) {
+            Hierarchy hierarchy = new Hierarchy().setRoot(root).setContext(ContextID.INVALID);
+            return new HierarchyList().setHierarchies(new Hierarchy[]{hierarchy});
+          }
+        }
+    );
+  }
+
+  /** The structure to hold the results of the RPC loads */
+  private class LoadData {
+    public final AtomList myAtoms;
+    public final ContextList myContexts;
+    public final HierarchyList myHierarchies;
+
+    public LoadData(AtomList atoms, ContextList contexts, HierarchyList hierarchies) {
+      myAtoms = atoms;
+      myContexts = contexts;
+      myHierarchies = hierarchies;
+    }
+  }
+
+  private void update(AtomList atomList, ContextList contexts, HierarchyList hierarchies) {
     myAtomList = atomList;
-    myAtomGroup = atomGroup;
+    myContexts = contexts;
+    myHierarchies = hierarchies;
     myListeners.onAtomLoadingComplete(this);
   }
 
   public boolean isLoaded() {
-    return myAtomList != null && myAtomGroup != null;
+    return myAtomList != null && myHierarchies != null && myContexts != null;
   }
 
   public AtomsPath getPath() {
@@ -135,8 +186,12 @@ public class AtomStream implements PathListener {
     return myAtomList;
   }
 
-  public AtomGroup getHierarchy() {
-    return myAtomGroup;
+  public HierarchyList getHierarchies() {
+    return myHierarchies;
+  }
+
+  public ContextList getContexts() {
+    return myContexts;
   }
 
   public AtomRangePath getSelectedAtomsPath() {
