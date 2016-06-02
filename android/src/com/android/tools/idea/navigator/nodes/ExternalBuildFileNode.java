@@ -25,38 +25,32 @@ import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ExternalBuildFileNode extends PsiFileNode {
-  public static final String MODULE_PREFIX = "Module: ";
+import static com.intellij.openapi.util.io.FileUtil.getLocationRelativeToUserHome;
 
-  @NotNull private final String myQualifier;
+public class ExternalBuildFileNode extends PsiFileNode {
+  @NotNull private final String myModuleName;
 
   public ExternalBuildFileNode(@NotNull Project project,
                                @NotNull PsiFile value,
                                @NotNull ViewSettings viewSettings,
-                               @NotNull String qualifier) {
+                               @NotNull String moduleName) {
     super(project, value, viewSettings);
-    myQualifier = qualifier;
+    myModuleName = moduleName;
   }
 
   @Override
   public void update(PresentationData data) {
     super.update(data);
-
-    PsiFile psiFile = getValue();
-    if (psiFile == null || !psiFile.isValid()) {
-      return;
-    }
-
-    String fileName = psiFile.getName();
+    String fileName = getPsiFileName();
     data.addText(fileName, SimpleTextAttributes.REGULAR_ATTRIBUTES);
     data.setPresentableText(fileName);
-    data.addText(" (" + MODULE_PREFIX + myQualifier + ")", SimpleTextAttributes.GRAY_ATTRIBUTES);
+    data.addText(" (" + myModuleName + ", " + getPsiFilePath() + ")", SimpleTextAttributes.GRAY_ATTRIBUTES);
   }
 
   @Nullable
   @Override
   public Comparable getSortKey() {
-    return myQualifier + "-" + getPsiFile().getName();
+    return myModuleName + "-" + getPsiFileName() + "-" + getPsiFilePath();
   }
 
   @Override
@@ -67,7 +61,7 @@ public class ExternalBuildFileNode extends PsiFileNode {
   @Nullable
   @Override
   public String toTestString(@Nullable Queryable.PrintInfo printInfo) {
-    return getPsiFile().getName() + " (" + MODULE_PREFIX +  myQualifier + ")";
+    return getPsiFileName() + " (" + myModuleName + ", " + getPsiFilePath() + ")";
   }
 
   @NotNull
@@ -75,5 +69,13 @@ public class ExternalBuildFileNode extends PsiFileNode {
     PsiFile value = getValue();
     assert value != null;
     return value;
+  }
+
+  private String getPsiFileName() {
+    return getPsiFile().getName();
+  }
+
+  private String getPsiFilePath() {
+    return getLocationRelativeToUserHome(getPsiFile().getVirtualFile().getPresentableUrl());
   }
 }
