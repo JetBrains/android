@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.editors;
 
-import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.resources.ResourceResolver;
-import com.android.resources.ResourceType;
+import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.ui.laf.darcula.ui.DarculaComboBoxUI;
@@ -85,6 +83,9 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
       case ATTR_DROPDOWN_WIDTH:
         return true;
       default:
+        if (property.getName().endsWith(ValueWithDisplayString.TEXT_APPEARANCE_SUFFIX)) {
+          return true;
+        }
         AttributeDefinition definition = property.getDefinition();
         Set<AttributeFormat> formats = definition != null ? definition.getFormats() : Collections.emptySet();
         return formats.contains(AttributeFormat.Enum);
@@ -115,22 +116,6 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
     myCombo.registerKeyboardAction(event -> enter(),
                                    KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0),
                                    JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-    //noinspection unchecked
-    myCombo.setRenderer(new ColoredListCellRenderer<ValueWithDisplayString>() {
-      @Override
-      protected void customizeCellRenderer(JList list, ValueWithDisplayString value, int index, boolean selected, boolean hasFocus) {
-        if (value != null) {
-          boolean isDefaultValue = myProperty.isDefaultValue(value.getValue());
-          if (!selected && !isDefaultValue && Objects.equals(value.getValue(), getValue())) {
-            myForeground = CHANGED_VALUE_TEXT_COLOR;
-          }
-          else if (index == 0 || isDefaultValue) {
-            myForeground = DEFAULT_VALUE_TEXT_COLOR;
-          }
-          append(value.toString());
-        }
-      }
-    });
     myCombo.getEditor().getEditorComponent().addFocusListener(new FocusAdapter() {
       @Override
       public void focusGained(FocusEvent e) {
@@ -145,6 +130,8 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
         }
       }
     });
+    //noinspection unchecked
+    myCombo.setRenderer(new EnumRenderer());
   }
 
   @Override
@@ -203,7 +190,12 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
         values = ValueWithDisplayString.create(AVAILABLE_SIZES);
         break;
       default:
-        values = definition == null ? ValueWithDisplayString.EMPTY_ARRAY : ValueWithDisplayString.create(definition.getValues());
+        if (property.getName().endsWith(ValueWithDisplayString.TEXT_APPEARANCE_SUFFIX)) {
+          values = createTextAttributeList(property);
+        }
+        else {
+          values = definition == null ? ValueWithDisplayString.EMPTY_ARRAY : ValueWithDisplayString.create(definition.getValues());
+        }
     }
 
     DefaultComboBoxModel<ValueWithDisplayString> newModel = new DefaultComboBoxModel<ValueWithDisplayString>(values) {
@@ -275,8 +267,12 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
   }
 
   @Override
+  @Nullable
   public Object getValue() {
     ValueWithDisplayString value = (ValueWithDisplayString)myCombo.getSelectedItem();
+    if (value == null) {
+      return null;
+    }
     return value.getValue();
   }
 
@@ -313,25 +309,61 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
   }
 
   private static ValueWithDisplayString[] createTextAttributeList(@NotNull NlProperty property) {
-    List<ValueWithDisplayString> list = new ArrayList<>();
-    ResourceResolver resolver = property.getResolver();
-    Map<String, ResourceValue> styles = resolver.getFrameworkResources().get(ResourceType.STYLE);
-    for (String name : styles.keySet()) {
-      ValueWithDisplayString value = ValueWithDisplayString.createTextAppearanceValue(name, ANDROID_STYLE_RESOURCE_PREFIX, null);
+    StyleFilter checker = new StyleFilter(property.getResolver());
+    TextAttributeAccumulator accumulator = new TextAttributeAccumulator();
+    checker.getStylesDerivedFrom("TextAppearance", true).forEach(accumulator::append);
+    return accumulator.getValues().toArray(new ValueWithDisplayString[0]);
+  }
+
+  private static class TextAttributeAccumulator {
+    private final List<ValueWithDisplayString> myValues = new ArrayList<>();
+    private StyleResourceValue myPreviousStyle;
+
+    public void append(@NotNull StyleResourceValue style) {
+      if (myPreviousStyle != null && (myPreviousStyle.isFramework() != style.isFramework() ||
+                                      myPreviousStyle.isUserDefined() != style.isUserDefined())) {
+        myValues.add(ValueWithDisplayString.SEPARATOR);
+      }
+      myPreviousStyle = style;
+      myValues.add(ValueWithDisplayString.createTextAppearanceValue(style.getName(), getStylePrefix(style), null));
+    }
+
+    @NotNull
+    public List<ValueWithDisplayString> getValues() {
+      return myValues;
+    }
+
+    @NotNull
+    private static String getStylePrefix(@NotNull StyleResourceValue style) {
+      if (style.isFramework()) {
+        return ANDROID_STYLE_RESOURCE_PREFIX;
+      }
+      return STYLE_RESOURCE_PREFIX;
+    }
+  }
+
+  private class EnumRenderer extends ColoredListCellRenderer<ValueWithDisplayString> {
+
+    @Override
+    public Component getListCellRendererComponent(JList list, Object value, int index, boolean selected, boolean hasFocus) {
+      if (value == ValueWithDisplayString.SEPARATOR) {
+        return new JSeparator();
+      }
+      return super.getListCellRendererComponent(list, value, index, selected, hasFocus);
+    }
+
+    @Override
+    protected void customizeCellRenderer(JList list, ValueWithDisplayString value, int index, boolean selected, boolean hasFocus) {
       if (value != null) {
-        list.add(value);
+        boolean isDefaultValue = myProperty.isDefaultValue(value.getValue());
+        if (!selected && !isDefaultValue && Objects.equals(value.getValue(), getValue())) {
+          myForeground = CHANGED_VALUE_TEXT_COLOR;
+        }
+        else if (index == 0 || isDefaultValue) {
+          myForeground = DEFAULT_VALUE_TEXT_COLOR;
+        }
+        append(value.toString());
       }
     }
-    styles = resolver.getProjectResources().get(ResourceType.STYLE);
-    for (String name : styles.keySet()) {
-      ValueWithDisplayString value = ValueWithDisplayString.createTextAppearanceValue(name, STYLE_RESOURCE_PREFIX, null);
-      if (value != null) {
-        list.add(value);
-      }
-    }
-    list.sort((value, other) -> value.toString().compareTo(other.toString()));
-    ValueWithDisplayString[] array = new ValueWithDisplayString[list.size()];
-    list.toArray(array);
-    return array;
   }
 }

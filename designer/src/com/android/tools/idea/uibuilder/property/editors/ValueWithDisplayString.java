@@ -31,12 +31,12 @@ import java.util.regex.Pattern;
  * Used in combo-box and dropdown style controls.
  */
 public class ValueWithDisplayString {
+  public static final String TEXT_APPEARANCE_SUFFIX = "TextAppearance";
+  public static final ValueWithDisplayString SEPARATOR = new ValueWithDisplayString("-", "-");
   public static final ValueWithDisplayString UNSET = new ValueWithDisplayString("none", null);
   public static final ValueWithDisplayString[] EMPTY_ARRAY = new ValueWithDisplayString[0];
 
-  // TODO: Add a test that checks this pattern
-  private static final Pattern TEXT_APPEARANCE_PATTERN =
-    Pattern.compile("^((@(\\w+:)?)style/)?TextAppearance.([^\\.]+\\.(Body\\d+|Display\\d+|Small|Medium|Large)|AppTheme\\..+)$");
+  private static final Pattern TEXT_APPEARANCE_PATTERN = Pattern.compile("^((@(\\w+:)?)style/)?TextAppearance.(.+)$");
 
   private final String myDisplay;
   private final String myValue;
@@ -64,7 +64,7 @@ public class ValueWithDisplayString {
       return UNSET;
     }
     String display = property.resolveValue(value);
-    if (property.getName().equals(SdkConstants.ATTR_TEXT_APPEARANCE)) {
+    if (property.getName().equals(SdkConstants.ATTR_TEXT_APPEARANCE) || property.getName().endsWith(TEXT_APPEARANCE_SUFFIX)) {
       ValueWithDisplayString attr = createTextAppearanceValue(display, "", value);
       if (attr != null) {
         return attr;
@@ -76,19 +76,23 @@ public class ValueWithDisplayString {
   public static ValueWithDisplayString createTextAppearanceValue(@NotNull String styleName,
                                                                  @NotNull String defaultPrefix,
                                                                  @Nullable String value) {
+    String prefix = "";
+    String display = styleName;
+    String style = styleName;
     Matcher matcher = TEXT_APPEARANCE_PATTERN.matcher(styleName);
-    if (!matcher.matches()) {
-      return null;
+    if (matcher.matches()) {
+      prefix = matcher.group(1);
+      display = matcher.group(4);
+      style = matcher.group(0);
     }
-    String prefix = matcher.group(1);
-    if (StringUtil.isEmpty(prefix)) {
-      prefix = defaultPrefix;
-    } else {
-      prefix = "";
-    }
-    String display = matcher.group(4);
     if (value == null) {
-      value = prefix + matcher.group(0);
+      if (StringUtil.isEmpty(prefix)) {
+        prefix = defaultPrefix;
+      }
+      else {
+        prefix = "";
+      }
+      value = prefix + style;
     }
     return new ValueWithDisplayString(display, value);
   }
