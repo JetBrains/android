@@ -157,10 +157,6 @@ public class InstantRunBuilder implements BeforeRunBuilder {
       GradleInvoker.saveAllFilesSafely();
     }
 
-    if (manifestChanged(device)) {
-      return InstantRunBuildCauses.MANIFEST_CHANGED;
-    }
-
     if (manifestResourceChanged(device)) {
       return InstantRunBuildCauses.MANIFEST_RESOURCE_CHANGED;
     }
@@ -282,18 +278,6 @@ public class InstantRunBuilder implements BeforeRunBuilder {
 
     InstantRunManager.LOG.info(String.format("Build timestamps: Local: %1$s, Device: %2$s", localTimestamp, deviceBuildTimestamp));
     return localTimestamp.equals(deviceBuildTimestamp);
-  }
-
-  /**
-   * Returns true if the manifest has changed since the last manifest push to the device.
-   */
-  private boolean manifestChanged(@NotNull IDevice device) {
-    InstalledPatchCache cache = myInstantRunContext.getInstalledPatchCache();
-
-    HashCode current = myInstantRunContext.getManifestHash();
-    HashCode installed = cache.getInstalledManifestTimestamp(device, myInstantRunContext.getApplicationId());
-
-    return installed == null || !installed.equals(current);
   }
 
   /**

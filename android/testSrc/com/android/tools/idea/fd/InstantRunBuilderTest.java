@@ -263,29 +263,10 @@ public class InstantRunBuilderTest {
   }
 
   @Test
-  public void fullBuildIfManifestChanged() throws Exception {
-    myDumpsysPackageOutput = DUMPSYS_PACKAGE_EXISTS;
-    myDeviceBuildTimetamp = "100";
-    when(myDevice.getVersion()).thenReturn(new AndroidVersion(23, null));
-    setUpDeviceForHotSwap();
-    myInstalledPatchCache.setInstalledManifestTimestamp(myDevice, APPLICATION_ID, HashCode.fromInt(1));
-    when(myInstantRunContext.getManifestHash()).thenReturn(HashCode.fromInt(2));
-
-    myBuilder.build(myTaskRunner, Collections.emptyList());
-    assertEquals(
-      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK :app:assemble",
-      myTaskRunner.getBuilds());
-  }
-
-  @Test
   public void fullBuildIfManifestResourceChanged() throws Exception {
     myDumpsysPackageOutput = DUMPSYS_PACKAGE_EXISTS;
     myDeviceBuildTimetamp = "100";
     when(myDevice.getVersion()).thenReturn(new AndroidVersion(23, null));
-
-    HashCode manifestHash = HashCode.fromInt(1011);
-    myInstalledPatchCache.setInstalledManifestTimestamp(myDevice, APPLICATION_ID, manifestHash);
-    when(myInstantRunContext.getManifestHash()).thenReturn(manifestHash);
 
     myInstalledPatchCache.setInstalledManifestResourcesHash(myDevice, APPLICATION_ID, HashCode.fromInt(1));
     when(myInstantRunContext.getManifestResourcesHash()).thenReturn(HashCode.fromInt(2));
@@ -412,10 +393,6 @@ public class InstantRunBuilderTest {
   }
 
   private void setUpDeviceForHotSwap() {
-    HashCode manifestHash = HashCode.fromInt(1011);
-    myInstalledPatchCache.setInstalledManifestTimestamp(myDevice, APPLICATION_ID, manifestHash);
-    when(myInstantRunContext.getManifestHash()).thenReturn(manifestHash);
-
     HashCode resourcesHash = HashCode.fromInt(1);
     myInstalledPatchCache.setInstalledManifestResourcesHash(myDevice, APPLICATION_ID, resourcesHash);
     when(myInstantRunContext.getManifestResourcesHash()).thenReturn(resourcesHash);

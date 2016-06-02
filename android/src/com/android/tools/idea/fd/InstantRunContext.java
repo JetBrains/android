@@ -50,12 +50,6 @@ public interface InstantRunContext {
   long getSecretToken();
 
   /**
-   * @return the hash of the current manifest. A change to the manifest will result in a full build and install.
-   */
-  @NotNull
-  HashCode getManifestHash();
-
-  /**
    * @return a hashcode which encapsulates the set of resources referenced from the manifest along with the values of those resources.
    * A change to the resources referenced from the manifest should result in a full build and install.
    */
