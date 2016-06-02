@@ -16,15 +16,24 @@
 package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.ide.common.rendering.api.StyleResourceValue;
+import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.ui.laf.darcula.ui.DarculaComboBoxUI;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiMethod;
+import com.intellij.psi.impl.source.PsiMethodImpl;
+import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.ui.ColoredListCellRenderer;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
+import org.jetbrains.android.dom.converters.OnClickConverter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -81,6 +90,7 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
       case ATTR_LAYOUT_WIDTH:
       case ATTR_DROPDOWN_HEIGHT:
       case ATTR_DROPDOWN_WIDTH:
+      case ATTR_ON_CLICK:
         return true;
       default:
         if (property.getName().endsWith(ValueWithDisplayString.TEXT_APPEARANCE_SUFFIX)) {
@@ -188,6 +198,9 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
       case ATTR_DROPDOWN_HEIGHT:
       case ATTR_DROPDOWN_WIDTH:
         values = ValueWithDisplayString.create(AVAILABLE_SIZES);
+        break;
+      case ATTR_ON_CLICK:
+        values = createOnClickValues(property);
         break;
       default:
         if (property.getName().endsWith(ValueWithDisplayString.TEXT_APPEARANCE_SUFFIX)) {
@@ -340,6 +353,39 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
       }
       return STYLE_RESOURCE_PREFIX;
     }
+  }
+
+  private static ValueWithDisplayString[] createOnClickValues(@NotNull NlProperty property) {
+    Module module = property.getModel().getModule();
+    Configuration configuration = property.getModel().getConfiguration();
+    String activityClassName = configuration.getActivity();
+    JavaPsiFacade facade = JavaPsiFacade.getInstance(module.getProject());
+    Collection<PsiClass> classes;
+    if (activityClassName != null) {
+      classes = Collections.singleton(facade.findClass(activityClassName, module.getModuleScope()));
+    }
+    else {
+      GlobalSearchScope scope = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module, false);
+      PsiClass activity = facade.findClass(CLASS_ACTIVITY, scope);
+      if (activity != null) {
+        classes = ClassInheritorsSearch.search(activity, scope, true).findAll();
+      }
+      else {
+        classes = Collections.emptyList();
+      }
+    }
+    List<ValueWithDisplayString> values = new ArrayList<>();
+    Set<String> found = new HashSet<>();
+    for (PsiClass psiClass : classes) {
+      for (PsiMethod method : psiClass.getAllMethods()) {
+        if (OnClickConverter.CONVERTER_FOR_LAYOUT.checkSignature(method) &&
+            found.add(method.getName()) &&
+            method instanceof PsiMethodImpl) {
+          values.add(new ValueWithDisplayString(method.getName() + " (" + psiClass.getName() + ")", method.getName()));
+        }
+      }
+    }
+    return values.toArray(new ValueWithDisplayString[0]);
   }
 
   private class EnumRenderer extends ColoredListCellRenderer<ValueWithDisplayString> {
