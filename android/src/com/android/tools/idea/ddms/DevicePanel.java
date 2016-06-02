@@ -92,6 +92,7 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
 
   private void initializeClientCombo() {
     AccessibleContextUtil.setName(myClientCombo, "Processes");
+    myClientCombo.setName("Processes");
     myClientCombo.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent actionEvent) {
