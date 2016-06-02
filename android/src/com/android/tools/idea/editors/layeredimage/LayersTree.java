@@ -117,7 +117,7 @@ class LayersTree extends Tree {
           case ADJUSTMENT:
             setIcon(AndroidIcons.Views.SeekBar);
             break;
-          case BITMAP:
+          case IMAGE:
             setIcon(AndroidIcons.Views.ImageView);
             break;
           case GROUP:
