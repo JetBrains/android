@@ -34,6 +34,7 @@ import com.intellij.openapi.application.Result;
 import com.intellij.openapi.application.RunResult;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.ActionCallback;
+import com.intellij.openapi.util.Ref;
 import com.intellij.util.EventDispatcher;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
@@ -81,7 +82,7 @@ public class PsAnalyzerDaemon extends PsDaemon {
   private void addApplicableUpdatesAsIssues() {
     PsContext context = getContext();
     context.getProject().forEachModule(module -> {
-      AtomicBoolean updatesFound = new AtomicBoolean(false);
+      Ref<Boolean> updatesFound = new Ref<>(false);
       if (module instanceof PsAndroidModule) {
         PsAndroidModule androidModule = (PsAndroidModule)module;
         androidModule.forEachDeclaredDependency(dependency -> {

@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.structure.configurables.issues.IssuesViewer
 import com.android.tools.idea.gradle.structure.configurables.ui.ChooseModuleDialog;
 import com.android.tools.idea.gradle.structure.configurables.ui.EmptyPanel;
 import com.android.tools.idea.gradle.structure.dependencies.AddLibraryDependencyDialog;
+import com.android.tools.idea.gradle.structure.dependencies.AddModuleDependencyDialog;
 import com.android.tools.idea.gradle.structure.model.*;
 import com.android.tools.idea.structure.dialog.Header;
 import com.google.common.collect.Lists;
@@ -54,6 +55,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import static com.android.tools.idea.gradle.structure.model.PsDependency.TextType.FOR_NAVIGATION;
+import static com.intellij.icons.AllIcons.Nodes.Module;
 import static com.intellij.ui.IdeBorderFactory.createEmptyBorder;
 import static com.intellij.ui.ScrollPaneFactory.createScrollPane;
 import static com.intellij.util.PlatformIcons.LIBRARY_ICON;
@@ -73,10 +75,10 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
 
   @Nullable private final PsModule myModule;
 
-  private List<AbstractPopupAction> myPopupActions;
   private DependencyDetails myCurrentDependencyDetails;
   private History myHistory;
   private IssuesViewer myIssuesViewer;
+  private AddLibraryDependencyAction myAddLibraryDependencyAction;
 
   protected AbstractDependenciesPanel(@NotNull String title, @NotNull PsContext context, @Nullable PsModule module) {
     super(new BorderLayout());
@@ -168,8 +170,7 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
     AnAction addDependencyAction = new DumbAwareAction("Add Dependency", "", IconUtil.getAddIcon()) {
       @Override
       public void actionPerformed(AnActionEvent e) {
-        initPopupActions();
-        JBPopup popup = JBPopupFactory.getInstance().createListPopup(new BaseListPopupStep<AbstractPopupAction>(null, myPopupActions) {
+        JBPopup popup = JBPopupFactory.getInstance().createListPopup(new BaseListPopupStep<AbstractPopupAction>(null, getPopupActions()) {
           @Override
           public Icon getIconFor(AbstractPopupAction action) {
             return action.icon;
@@ -215,12 +216,21 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
     return Collections.emptyList();
   }
 
-  private void initPopupActions() {
-    if (myPopupActions == null) {
-      List<AbstractPopupAction> actions = Lists.newArrayList();
-      actions.add(new AddDependencyAction());
-      myPopupActions = actions;
+  @NotNull
+  private List<AbstractPopupAction> getPopupActions() {
+    if (myAddLibraryDependencyAction == null) {
+      myAddLibraryDependencyAction = new AddLibraryDependencyAction();
     }
+
+    List<AbstractPopupAction> actions = Lists.newArrayList(myAddLibraryDependencyAction);
+
+    PsProject project = myContext.getProject();
+    if (project.getModelCount() > 1) {
+      // Only show the "Add Module Dependency" action if there is more than one module in the project.
+      actions.add(new AddModuleDependencyAction());
+    }
+
+    return actions;
   }
 
   @NotNull
@@ -275,9 +285,40 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
 
   public abstract void selectDependency(@Nullable String dependency);
 
-  private class AddDependencyAction extends AbstractPopupAction {
-    AddDependencyAction() {
-      super("Artifact Dependency", LIBRARY_ICON, 1);
+  private class AddLibraryDependencyAction extends AbstractAddDependencyAction {
+    AddLibraryDependencyAction() {
+      super(AddLibraryDependencyDialog.TITLE, "Library Dependency", LIBRARY_ICON, 1);
+    }
+
+    @Override
+    protected void showAddDependencyDialog(@NotNull PsModule module) {
+      AddLibraryDependencyDialog dialog = new AddLibraryDependencyDialog(module);
+      if (dialog.showAndGet()) {
+        dialog.addNewDependencies();
+      }
+    }
+  }
+
+  private class AddModuleDependencyAction extends AbstractAddDependencyAction {
+    AddModuleDependencyAction() {
+      super(AddModuleDependencyDialog.TITLE, "Module Dependency", Module, 2);
+    }
+
+    @Override
+    protected void showAddDependencyDialog(@NotNull PsModule module) {
+      AddModuleDependencyDialog dialog = new AddModuleDependencyDialog(module);
+      if (dialog.showAndGet()) {
+        dialog.addNewDependencies();
+      }
+    }
+  }
+
+  private abstract class AbstractAddDependencyAction extends AbstractPopupAction {
+    @NotNull private final String myTitle;
+
+    AbstractAddDependencyAction(@NotNull String title, @NotNull String text, @NotNull Icon icon, int index) {
+      super(text, icon, index);
+      myTitle = title;
     }
 
     @Override
@@ -292,29 +333,23 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
           PsModule module = moduleRef.get();
           assert module != null;
 
-          showAddLibraryDependencyDialog(module);
+          showAddDependencyDialog(module);
           return;
         }
-        Consumer<PsModule> onOkTask = this::showAddLibraryDependencyDialog;
-        ChooseModuleDialog dialog = new ChooseModuleDialog(project, onOkTask, "Add Library Dependency");
+        Consumer<PsModule> onOkTask = this::showAddDependencyDialog;
+        ChooseModuleDialog dialog = new ChooseModuleDialog(project, onOkTask, myTitle);
         dialog.showAndGet();
         return;
       }
-      showAddLibraryDependencyDialog(myModule);
+      showAddDependencyDialog(myModule);
     }
 
-    private void showAddLibraryDependencyDialog(@NotNull PsModule module) {
-      AddLibraryDependencyDialog dialog = new AddLibraryDependencyDialog(module);
-      if (dialog.showAndGet()) {
-        dialog.addNewDependency();
-      }
-    }
+    protected abstract void showAddDependencyDialog(@NotNull PsModule module);
   }
 
   private static abstract class AbstractPopupAction implements ActionListener {
     @NotNull final String text;
     @NotNull final Icon icon;
-
     final int index;
 
     AbstractPopupAction(@NotNull String text, @NotNull Icon icon, int index) {

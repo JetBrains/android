@@ -33,14 +33,14 @@ import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.util.ui.UIUtil.getTextFieldBackground;
 import static com.intellij.util.ui.UIUtil.getTextFieldBorder;
 
-class LibraryDependencyForm implements Disposable {
+class LibraryDependenciesForm implements Disposable {
   @NotNull private final ArtifactRepositorySearchForm mySearchForm;
 
   private JPanel myMainPanel;
   private JBLabel myLibraryLabel;
   private JPanel mySearchPanelHost;
 
-  LibraryDependencyForm(@NotNull PsModule module) {
+  LibraryDependenciesForm(@NotNull PsModule module) {
     myLibraryLabel.setBorder(BorderFactory.createCompoundBorder(getTextFieldBorder(), IdeBorderFactory.createEmptyBorder(2)));
     myLibraryLabel.setBackground(getTextFieldBackground());
     myLibraryLabel.setText(" ");

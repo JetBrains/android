@@ -151,6 +151,10 @@ public abstract class PsModule extends PsChildModel {
     }
   }
 
+  public boolean canDependOn(@NotNull PsModule module) {
+    return false;
+  }
+
   public interface DependenciesChangeListener extends EventListener {
     void dependencyChanged(@NotNull DependencyChangedEvent event);
   }

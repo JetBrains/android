@@ -18,10 +18,10 @@ package com.android.tools.idea.gradle.structure.dependencies.java;
 import com.android.tools.idea.gradle.structure.configurables.ui.PsCheckBoxList;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowHeader;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowPanel;
+import com.android.tools.idea.gradle.structure.dependencies.AbstractDependencyScopesPanel;
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.IdeBorderFactory;
@@ -43,15 +43,15 @@ import static com.intellij.ui.SideBorder.*;
 import static com.intellij.util.ui.UIUtil.getTextFieldBackground;
 import static com.intellij.util.ui.UIUtil.getTextFieldBorder;
 
-class MainForm implements Disposable {
+public class JavaDependencyScopesPanel extends AbstractDependencyScopesPanel {
+  @NotNull private final ToolWindowPanel myToolWindowPanel;
+  @NotNull private final PsCheckBoxList<String> myConfigurationsList;
+
   private JPanel myContentsPanel;
   private JPanel myMainPanel;
   private JXLabel myScopesLabel;
 
-  @NotNull private final ToolWindowPanel myToolWindowPanel;
-  @NotNull private final PsCheckBoxList<String> myConfigurationsList;
-
-  MainForm(@NotNull PsJavaModule module) {
+  public JavaDependencyScopesPanel(@NotNull PsJavaModule module) {
     myScopesLabel.setBorder(BorderFactory.createCompoundBorder(getTextFieldBorder(), IdeBorderFactory.createEmptyBorder(2)));
     myScopesLabel.setBackground(getTextFieldBackground());
     myScopesLabel.setText(" ");
@@ -87,6 +87,8 @@ class MainForm implements Disposable {
 
     myToolWindowPanel.add(scrollPane, BorderLayout.CENTER);
     myContentsPanel.add(myToolWindowPanel, BorderLayout.CENTER);
+
+    setUpContents(myMainPanel, getInstructions());
   }
 
   private void updateLabel(@NotNull List<String> newSelection) {
@@ -98,20 +100,23 @@ class MainForm implements Disposable {
   }
 
   @NotNull
-  JPanel getPanel() {
-    return myMainPanel;
+  private static String getInstructions() {
+    return "Assign a scope to the new dependency by selecting the configurations below.<br/><a " +
+           "href='https://docs.gradle.org/current/userguide/artifact_dependencies_tutorial.html'>Open Documentation</a>";
   }
 
+  @Override
   @Nullable
-  ValidationInfo validateInput() {
+  public ValidationInfo validateInput() {
     if (getSelectedScopeNames().isEmpty()) {
       return new ValidationInfo("Please select at least one configuration", myConfigurationsList);
     }
     return null;
   }
 
+  @Override
   @NotNull
-  List<String> getSelectedScopeNames() {
+  public List<String> getSelectedScopeNames() {
     List<String> scopes = Lists.newArrayList(myConfigurationsList.getSelectedItems());
     Collections.sort(scopes, ConfigurationComparator.INSTANCE);
     return scopes;

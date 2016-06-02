@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.dependencies.java;
+package com.android.tools.idea.gradle.structure.dependencies;
 
-import com.android.tools.idea.gradle.structure.dependencies.DependencyScopesForm;
-import com.android.tools.idea.gradle.structure.model.java.PsJavaModule;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.ValidationInfo;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.HyperlinkAdapter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,18 +31,22 @@ import static com.intellij.util.ui.UIUtil.getTreeFont;
 import static javax.swing.BorderFactory.createEmptyBorder;
 import static org.jetbrains.android.util.AndroidUiUtil.setUpAsHtmlLabel;
 
-public class JavaDependencyScopesForm extends JPanel implements DependencyScopesForm {
-  @NotNull private final MainForm myMainForm;
-
-  public JavaDependencyScopesForm(@NotNull PsJavaModule module) {
+public abstract class AbstractDependencyScopesPanel extends JPanel implements Disposable {
+  protected AbstractDependencyScopesPanel() {
     super(new BorderLayout());
+  }
+
+  protected void setUpContents(@NotNull JComponent contents, @NotNull String instructions) {
+    add(createInstructionsPane(instructions), BorderLayout.NORTH);
+    add(contents, BorderLayout.CENTER);
+  }
+
+  @NotNull
+  protected JEditorPane createInstructionsPane(@NotNull String instructions) {
     JEditorPane instructionsPane = new JEditorPane();
     setUpAsHtmlLabel(instructionsPane, getTreeFont());
 
-    instructionsPane.setText("<html><body><b>Step 2.</b><br/>" +
-                             "Assign a scope to the new dependency by selecting the configurations below.<br/><a " +
-                             "href='https://docs.gradle.org/current/userguide/artifact_dependencies_tutorial.html'>Open Documentation</a>" +
-                             "</body></html>");
+    instructionsPane.setText("<html><body><b>Step 2.</b><br/>" + instructions + "</body></html>");
     instructionsPane.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
       protected void hyperlinkActivated(HyperlinkEvent e) {
@@ -52,32 +54,12 @@ public class JavaDependencyScopesForm extends JPanel implements DependencyScopes
       }
     });
     instructionsPane.setBorder(createEmptyBorder(0, 5, 8, 5));
-    add(instructionsPane, BorderLayout.NORTH);
-
-    myMainForm = new MainForm(module);
-    add(myMainForm.getPanel(), BorderLayout.CENTER);
+    return instructionsPane;
   }
 
-  @Override
   @NotNull
-  public JPanel getPanel() {
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public List<String> getSelectedScopeNames() {
-    return myMainForm.getSelectedScopeNames();
-  }
+  public abstract List<String> getSelectedScopeNames();
 
   @Nullable
-  @Override
-  public ValidationInfo validateInput() {
-    return myMainForm.validateInput();
-  }
-
-  @Override
-  public void dispose() {
-    Disposer.dispose(myMainForm);
-  }
+  public abstract ValidationInfo validateInput();
 }

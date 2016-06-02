@@ -31,9 +31,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * Tests for {@link MainForm}.
+ * Tests for {@link AndroidDependencyScopesPanel}.
  */
-public class MainFormTest {
+public class AndroidDependencyScopesPanelTest {
   private PsBuildType myDebugBuildType;
   private PsBuildType myReleaseBuildType;
 
@@ -49,7 +49,7 @@ public class MainFormTest {
     List<PsBuildType> buildTypes = Lists.newArrayList(myDebugBuildType, myReleaseBuildType);
     List<PsProductFlavor> productFlavors = Collections.emptyList();
 
-    List<String> scopes = MainForm.deduceScopes(configurations, buildTypes, productFlavors, true, true);
+    List<String> scopes = AndroidDependencyScopesPanel.deduceScopes(configurations, buildTypes, productFlavors, true, true);
     assertThat(scopes).containsOnly("compile");
   }
 
@@ -59,7 +59,7 @@ public class MainFormTest {
     List<PsBuildType> buildTypes = Lists.newArrayList(myDebugBuildType, myReleaseBuildType);
     List<PsProductFlavor> productFlavors = Collections.emptyList();
 
-    List<String> scopes = MainForm.deduceScopes(configurations, buildTypes, productFlavors, true, true);
+    List<String> scopes = AndroidDependencyScopesPanel.deduceScopes(configurations, buildTypes, productFlavors, true, true);
     assertThat(scopes).containsOnly("androidTestCompile");
   }
 
@@ -69,7 +69,7 @@ public class MainFormTest {
     List<PsBuildType> buildTypes = Lists.newArrayList(myDebugBuildType, myReleaseBuildType);
     List<PsProductFlavor> productFlavors = Collections.emptyList();
 
-    List<String> scopes = MainForm.deduceScopes(configurations, buildTypes, productFlavors, true, true);
+    List<String> scopes = AndroidDependencyScopesPanel.deduceScopes(configurations, buildTypes, productFlavors, true, true);
     assertThat(scopes).containsOnly("testCompile");
   }
 
@@ -79,7 +79,7 @@ public class MainFormTest {
     List<PsBuildType> buildTypes = Lists.newArrayList(myDebugBuildType, myReleaseBuildType);
     List<PsProductFlavor> productFlavors = Collections.emptyList();
 
-    List<String> scopes = MainForm.deduceScopes(configurations, buildTypes, productFlavors, true, true);
+    List<String> scopes = AndroidDependencyScopesPanel.deduceScopes(configurations, buildTypes, productFlavors, true, true);
     assertThat(scopes).containsOnly("androidTestCompile", "testCompile");
   }
 
@@ -89,7 +89,7 @@ public class MainFormTest {
     List<PsBuildType> buildTypes = Lists.newArrayList(myDebugBuildType, myReleaseBuildType);
     List<PsProductFlavor> productFlavors = Lists.newArrayList(productFlavor("flavor1"));
 
-    List<String> scopes = MainForm.deduceScopes(configurations, buildTypes, productFlavors, true, false);
+    List<String> scopes = AndroidDependencyScopesPanel.deduceScopes(configurations, buildTypes, productFlavors, true, false);
     assertThat(scopes).containsOnly("flavor1Compile");
   }
 
@@ -99,7 +99,7 @@ public class MainFormTest {
     List<PsBuildType> buildTypes = Lists.newArrayList(myDebugBuildType, myReleaseBuildType);
     List<PsProductFlavor> productFlavors = Lists.newArrayList(productFlavor("flavor1"));
 
-    List<String> scopes = MainForm.deduceScopes(configurations, buildTypes, productFlavors, true, false);
+    List<String> scopes = AndroidDependencyScopesPanel.deduceScopes(configurations, buildTypes, productFlavors, true, false);
     assertThat(scopes).containsOnly("androidTestFlavor1Compile");
   }
 
@@ -109,7 +109,7 @@ public class MainFormTest {
     List<PsBuildType> buildTypes = Lists.newArrayList(myDebugBuildType, myReleaseBuildType);
     List<PsProductFlavor> productFlavors = Lists.newArrayList(productFlavor("flavor1"));
 
-    List<String> scopes = MainForm.deduceScopes(configurations, buildTypes, productFlavors, true, false);
+    List<String> scopes = AndroidDependencyScopesPanel.deduceScopes(configurations, buildTypes, productFlavors, true, false);
     assertThat(scopes).containsOnly("testFlavor1Compile");
   }
 
@@ -119,7 +119,7 @@ public class MainFormTest {
     List<PsBuildType> buildTypes = Lists.newArrayList(myDebugBuildType);
     List<PsProductFlavor> productFlavors = Lists.newArrayList(productFlavor("flavor1"));
 
-    List<String> scopes = MainForm.deduceScopes(configurations, buildTypes, productFlavors, false, false);
+    List<String> scopes = AndroidDependencyScopesPanel.deduceScopes(configurations, buildTypes, productFlavors, false, false);
     assertThat(scopes).containsOnly("androidTestFlavor1Compile");
   }
 
@@ -129,7 +129,7 @@ public class MainFormTest {
     List<PsBuildType> buildTypes = Lists.newArrayList(myDebugBuildType);
     List<PsProductFlavor> productFlavors = Lists.newArrayList(productFlavor("flavor1"));
 
-    List<String> scopes = MainForm.deduceScopes(configurations, buildTypes, productFlavors, false, false);
+    List<String> scopes = AndroidDependencyScopesPanel.deduceScopes(configurations, buildTypes, productFlavors, false, false);
     assertThat(scopes).containsOnly("testDebugCompile", "testFlavor1Compile");
   }
   @Test
@@ -138,7 +138,7 @@ public class MainFormTest {
     List<PsBuildType> buildTypes = Lists.newArrayList(myReleaseBuildType);
     List<PsProductFlavor> productFlavors = Lists.newArrayList(productFlavor("flavor1"));
 
-    List<String> scopes = MainForm.deduceScopes(configurations, buildTypes, productFlavors, false, false);
+    List<String> scopes = AndroidDependencyScopesPanel.deduceScopes(configurations, buildTypes, productFlavors, false, false);
     assertThat(scopes).isEmpty();
   }
 
