@@ -20,14 +20,15 @@ import com.android.ddmlib.InstallException;
 import com.android.tools.fd.client.InstantRunArtifact;
 import com.android.tools.fd.client.InstantRunArtifactType;
 import com.android.tools.fd.client.InstantRunBuildInfo;
+import com.android.tools.idea.fd.DeployType;
+import com.android.tools.idea.fd.InstantRunContext;
 import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.fd.InstantRunStatsService;
-import com.android.tools.idea.gradle.run.GradleInstantRunContext;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
-import org.jetbrains.android.facet.AndroidFacet;
+import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -35,14 +36,12 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class SplitApkDeployTask implements LaunchTask {
-  @NotNull private final String myPkgName;
-  @NotNull private final AndroidFacet myFacet;
-  @NotNull private final InstantRunBuildInfo myBuildInfo;
+  private final Project myProject;
+  private final InstantRunContext myInstantRunContext;
 
-  public SplitApkDeployTask(@NotNull String pkgName, @NotNull AndroidFacet facet, @NotNull InstantRunBuildInfo buildInfo) {
-    myPkgName = pkgName;
-    myFacet = facet;
-    myBuildInfo = buildInfo;
+  public SplitApkDeployTask(Project project, InstantRunContext context) {
+    myProject = project;
+    myInstantRunContext = context;
   }
 
   @NotNull
@@ -58,14 +57,15 @@ public class SplitApkDeployTask implements LaunchTask {
 
   @Override
   public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
-    InstantRunManager.displayVerifierStatus(myFacet, myBuildInfo);
+    InstantRunBuildInfo buildInfo = myInstantRunContext.getInstantRunBuildInfo();
+    assert buildInfo != null;
 
-    List<InstantRunArtifact> artifacts = myBuildInfo.getArtifacts();
+    List<InstantRunArtifact> artifacts = buildInfo.getArtifacts();
 
     List<String> installOptions = Lists.newArrayList(); // TODO: should we pass in pm install options?
-    if (!myBuildInfo.hasMainApk()) {
+    if (!buildInfo.hasMainApk()) {
       installOptions.add("-p"); // partial install
-      installOptions.add(myPkgName);
+      installOptions.add(myInstantRunContext.getApplicationId());
     }
 
     List<File> apks = Lists.newArrayListWithExpectedSize(artifacts.size());
@@ -81,13 +81,8 @@ public class SplitApkDeployTask implements LaunchTask {
 
     try {
       device.installPackages(apks, true, installOptions, 5, TimeUnit.MINUTES);
-
-      GradleInstantRunContext context = new GradleInstantRunContext(myPkgName, myFacet);
-      InstantRunManager.transferLocalIdToDeviceId(device, context);
-      DeployApkTask.cacheManifestInstallationData(device, context);
-
-      InstantRunStatsService.get(myFacet.getModule().getProject())
-        .notifyDeployType(InstantRunStatsService.DeployType.SPLITAPK);
+      printer.stdout("Split APKs installed");
+      InstantRunStatsService.get(myProject).notifyDeployType(DeployType.SPLITAPK);
       return true;
     }
     catch (InstallException e) {

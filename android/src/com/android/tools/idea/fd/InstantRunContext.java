@@ -19,6 +19,7 @@ import com.android.tools.fd.client.InstantRunBuildInfo;
 import com.android.tools.idea.run.InstalledPatchCache;
 import com.google.common.hash.HashCode;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,6 +31,8 @@ import java.util.List;
  * an Instant Run (IR) build.
  */
 public interface InstantRunContext {
+  Key<InstantRunContext> KEY = Key.create("android.instant.run.context");
+
   /**
    * @return the application id (package name) of the Android application in this project.
    */
@@ -66,6 +69,17 @@ public interface InstantRunContext {
    */
   @Nullable
   InstantRunBuildInfo getInstantRunBuildInfo();
+
+  /**
+   * Store the build mode picked by {@link InstantRunBuilder}.
+   */
+  void setBuildSelection(@NotNull BuildSelection buildSelection);
+
+  /**
+   * Returns the build mode set via the call to {@link #setBuildSelection(BuildSelection)}.
+   */
+  @Nullable
+  BuildSelection getBuildSelection();
 
   @NotNull
   default InstalledPatchCache getInstalledPatchCache() {

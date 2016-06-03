@@ -384,7 +384,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       return new DefaultGradleBuilder(gradleTasksProvider.getTasksFor(BuildMode.ASSEMBLE, testCompileType), BuildMode.ASSEMBLE);
     }
 
-    InstantRunContext irContext = InstantRunGradleUtils.createGradleProjectContext(appFacet);
+    InstantRunContext irContext = env.getCopyableUserData(InstantRunContext.KEY);
     assert irContext != null;
 
     return new InstantRunBuilder(getLaunchedDevice(targetDevices.get(0)), irContext, runConfigContext, gradleTasksProvider,

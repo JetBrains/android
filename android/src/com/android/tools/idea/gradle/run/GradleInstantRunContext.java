@@ -18,20 +18,14 @@ package com.android.tools.idea.gradle.run;
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidArtifactOutput;
 import com.android.builder.model.AndroidProject;
-import com.android.builder.model.SourceProvider;
-import com.android.ide.common.packaging.PackagingUtils;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.resources.ResourceUrl;
 import com.android.tools.fd.client.InstantRunBuildInfo;
-import com.android.tools.idea.fd.FileChangeListener;
-import com.android.tools.idea.fd.InstantRunContext;
-import com.android.tools.idea.fd.InstantRunGradleUtils;
-import com.android.tools.idea.fd.InstantRunManager;
+import com.android.tools.idea.fd.*;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
-import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.utils.XmlUtils;
 import com.google.common.collect.ImmutableList;
@@ -60,6 +54,7 @@ public class GradleInstantRunContext implements InstantRunContext {
   private final String myApplicationId;
   private final AndroidFacet myFacet;
   private final AndroidGradleModel myModel;
+  private BuildSelection myBuildChoice;
 
   public GradleInstantRunContext(@NotNull String applicationId, @NotNull AndroidFacet appFacet) {
     myApplicationId = applicationId;
@@ -71,6 +66,17 @@ public class GradleInstantRunContext implements InstantRunContext {
   @Override
   public InstantRunBuildInfo getInstantRunBuildInfo() {
     return InstantRunGradleUtils.getBuildInfo(myModel);
+  }
+
+  @Override
+  public void setBuildSelection(@NotNull BuildSelection buildSelection) {
+    myBuildChoice = buildSelection;
+  }
+
+  @Nullable
+  @Override
+  public BuildSelection getBuildSelection() {
+    return myBuildChoice;
   }
 
   @NotNull
