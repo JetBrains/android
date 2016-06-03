@@ -1341,7 +1341,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                  + "\n"
                  + "android {\n"
                  + "    compileSdkVersion 22\n"
-                 + "    buildToolsVersion \"" + MIN_BUILD_TOOLS_VERSION + "\"\n"
+                 + "    buildToolsVersion \"" + CURRENT_BUILD_TOOLS_VERSION + "\"\n"
                  + "\n"
                  + "    defaultConfig {\n"
                  + "        applicationId \"test.pkg\"\n"
