@@ -29,15 +29,17 @@ import org.jetbrains.annotations.Nullable;
  */
 public abstract class ApplicationLogListener implements AndroidLogcatService.LogLineListener {
   @Nullable private LogCatHeader myActiveHeader;
-  @NotNull private String myApplicationId;
+  @NotNull private final String myPackageName;
+  private final int myPid;
 
-  public ApplicationLogListener(@NotNull String applicationId) {
-    myApplicationId = applicationId;
+  public ApplicationLogListener(@NotNull String packageName, int pid) {
+    myPackageName = packageName;
+    myPid = pid;
   }
 
   @Override
   public void receiveLogLine(@NotNull LogCatMessage line) {
-    if (!line.getHeader().getAppName().equals(myApplicationId)) {
+    if (!myPackageName.equals(line.getHeader().getAppName()) || myPid != line.getHeader().getPid()) {
       myActiveHeader = null;
       return;
     }
