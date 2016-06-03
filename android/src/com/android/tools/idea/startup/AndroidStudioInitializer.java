@@ -16,6 +16,7 @@
 package com.android.tools.idea.startup;
 
 import com.android.tools.idea.actions.MakeIdeaModuleAction;
+import com.android.tools.idea.monitor.tool.AndroidMonitorToolWindowFactory;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.lang.injection.MultiHostInjector;
@@ -35,9 +36,15 @@ import com.intellij.openapi.options.ConfigurableEP;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectManagerAdapter;
+import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.openapi.wm.ToolWindowAnchor;
+import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.util.SystemProperties;
+import icons.AndroidIcons;
 import org.intellij.plugins.intelliLang.inject.groovy.GrConcatenationInjector;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -62,6 +69,9 @@ import static com.intellij.util.PlatformUtils.getPlatformPrefix;
  * </p>
  */
 public class AndroidStudioInitializer implements Runnable {
+
+  @NonNls public static final String ENABLE_EXPERIMENTAL_PROFILING = "enable.experimental.profiling";
+
   private static final Logger LOG = Logger.getInstance(AndroidStudioInitializer.class);
 
   private static final List<String> IDE_SETTINGS_TO_REMOVE = Lists.newArrayList("org.jetbrains.plugins.javaFX.JavaFxSettingsConfigurable",
@@ -85,6 +95,7 @@ public class AndroidStudioInitializer implements Runnable {
     setUpMakeActions();
     disableGroovyLanguageInjection();
     setUpNewProjectActions();
+    setUpExperimentalFeatures();
 
     // Modify built-in "Default" color scheme to remove background from XML tags.
     // "Darcula" and user schemes will not be touched.
@@ -100,6 +111,28 @@ public class AndroidStudioInitializer implements Runnable {
           at com.android.tools.idea.startup.AndroidStudioInitializer.run(AndroidStudioInitializer.java:90)
     FileColorConfigurationUtil.createAndroidTestFileColorConfigurationIfNotExist(ProjectManager.getInstance().getDefaultProject());
      */
+  }
+
+  private void setUpExperimentalFeatures() {
+    if (System.getProperty(ENABLE_EXPERIMENTAL_PROFILING) != null) {
+      ProjectManager.getInstance().addProjectManagerListener(new ProjectManagerAdapter() {
+        @Override
+        public void projectOpened(final Project project) {
+          StartupManager.getInstance(project).runWhenProjectIsInitialized(
+            new Runnable() {
+              @Override
+              public void run() {
+                ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(project);
+                ToolWindow toolWindow = toolWindowManager.registerToolWindow(AndroidMonitorToolWindowFactory.ID, false, ToolWindowAnchor.BOTTOM);
+                toolWindow.setIcon(AndroidIcons.AndroidToolWindow);
+                new AndroidMonitorToolWindowFactory().createToolWindowContent(project, toolWindow);
+                toolWindow.show(null);
+              }
+            }
+          );
+        }
+      });
+    }
   }
 
   private static void checkInstallation() {

@@ -102,7 +102,7 @@ import static com.android.tools.idea.gradle.util.GradleBuilds.PARALLEL_BUILD_OPT
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
-import static com.android.tools.idea.startup.GradleSpecificInitializer.ENABLE_EXPERIMENTAL_PROFILING;
+import static com.android.tools.idea.startup.AndroidStudioInitializer.ENABLE_EXPERIMENTAL_PROFILING;
 import static com.google.common.base.Splitter.on;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.common.io.Closeables.close;
