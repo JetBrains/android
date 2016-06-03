@@ -62,8 +62,9 @@ public class ConstraintDragHandler extends DragHandler {
   @Override
   public void start(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers) {
     super.start(x, y, modifiers);
-    if (myComponent != null && myDragWidget != null) {
-      ConstraintModel model = ConstraintModel.getConstraintModel(editor.getModel());
+    ConstraintModel model = ConstraintModel.getConstraintModel(editor.getModel());
+    if (myComponent != null && myDragWidget != null
+        && model != null && model.getScene() != null && model.getScene().getRoot() != null) {
       model.getSelection().clear();
       model.getScene().getRoot().add(myDragWidget);
       model.getScene().addWidget(myDragWidget);
@@ -72,8 +73,8 @@ public class ConstraintDragHandler extends DragHandler {
       myDragWidget.setDimension(model.pxToDp(myComponent.w), model.pxToDp(myComponent.h));
       myDragWidget.setX(ax);
       myDragWidget.setY(ay);
-      model.getSelection().add(myDragWidget);
       model.setDragDropWidget(myDragWidget);
+      model.getSelection().add(myDragWidget);
     }
   }
 
