@@ -18,6 +18,9 @@ package com.android.tools.idea.editors.gfxtrace.actions;
 import com.android.tools.idea.configurations.FlatComboAction;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.service.atom.Atom;
+import com.android.tools.idea.editors.gfxtrace.service.atom.Range;
+import com.android.tools.idea.editors.gfxtrace.service.path.AtomRangePath;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
@@ -53,13 +56,14 @@ public class AtomComboAction extends FlatComboAction {
   protected DefaultActionGroup createPopupActionGroup() {
     DefaultActionGroup actionGroup = new DefaultActionGroup();
 
-    for (final Long atomIndex : myAtomIds) {
+    Range range = myAtomIds.isEmpty() ? null : myGfxTraceEditor.getAtomStream().getSelectedAtomsPath().getRange();
+
+    for (int i = 0; i < myAtomIds.size(); i++) {
+      long atomIndex = myAtomIds.get(i);
       AnAction action = new AnAction() {
         @Override
         public void actionPerformed(AnActionEvent e) {
-          if (atomIndex != null) {
-            myGfxTraceEditor.getAtomStream().selectAtoms(atomIndex, 1, this);
-          }
+          myGfxTraceEditor.getAtomStream().selectAtoms(atomIndex, 1, this);
         }
       };
       actionGroup.add(action);
@@ -67,6 +71,13 @@ public class AtomComboAction extends FlatComboAction {
 
       Atom atom = myGfxTraceEditor.getAtomStream().getAtom(atomIndex);
       presentation.setText(atomIndex + ": " + atom.getName());
+
+      assert range != null;
+      if (atomIndex <= range.getLast() &&
+          (i == myAtomIds.size() - 1 || myAtomIds.get(i + 1) > range.getLast())) {
+        // show the arrow
+        presentation.setIcon(AllIcons.Diff.CurrentLine);
+      }
     }
 
     return actionGroup;
