@@ -28,9 +28,7 @@ import icons.AndroidDesignerIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.*;
 import java.util.List;
-import java.util.Map;
 
 import static com.android.SdkConstants.*;
 
@@ -83,19 +81,16 @@ public class ScrollViewHandler extends ViewGroupHandler {
   @Override
   public ScrollHandler createScrollHandler(@NotNull ViewEditor editor, @NotNull NlComponent component) {
     int maxScrollableHeight = 0;
-    Map<NlComponent, Dimension> childrenMeasure = editor.measureChildren(component, null);
-    if (childrenMeasure != null && !childrenMeasure.isEmpty()) {
-      for (Dimension dimension : childrenMeasure.values()) {
-        maxScrollableHeight += dimension.height;
-      }
+    for (NlComponent child : component.getChildren()) {
+      maxScrollableHeight += child.h;
+    }
 
-      // Substract the viewport form the scrollable size
-      maxScrollableHeight -=  component.h;
+    // Substract the viewport form the scrollable size
+    maxScrollableHeight -= component.h;
 
-      if (maxScrollableHeight > 0) {
-        // There is something to scroll
-        return new ScrollHandler(component, maxScrollableHeight, 10);
-      }
+    if (maxScrollableHeight > 0) {
+      // There is something to scroll
+      return new ScrollHandler(component, maxScrollableHeight, 10);
     }
 
     return null;
