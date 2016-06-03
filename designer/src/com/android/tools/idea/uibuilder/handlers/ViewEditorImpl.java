@@ -19,6 +19,8 @@ import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.resources.ResourceType;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderService;
@@ -44,6 +46,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
+
+import static com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT;
 
 /**
  * Implementation of the {@link ViewEditor} abstraction presented
@@ -89,6 +93,12 @@ public class ViewEditorImpl extends ViewEditor {
   @Override
   public NlModel getModel() {
     return myScreen.getModel();
+  }
+
+  @Override
+  public boolean isModuleDependency(@NotNull String artifact) {
+    AndroidGradleModel gradleModel = AndroidGradleModel.get(getModel().getFacet());
+    return gradleModel != null && GradleUtil.dependsOn(gradleModel, artifact);
   }
 
   @Nullable
