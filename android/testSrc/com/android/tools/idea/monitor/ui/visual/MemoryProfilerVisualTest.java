@@ -18,7 +18,6 @@ package com.android.tools.idea.monitor.ui.visual;
 
 import com.android.annotations.NonNull;
 import com.android.tools.adtui.Animatable;
-import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.visual.VisualTest;
 
 import javax.swing.*;

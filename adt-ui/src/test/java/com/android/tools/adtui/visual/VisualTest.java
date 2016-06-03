@@ -16,11 +16,10 @@
 
 package com.android.tools.adtui.visual;
 
-import com.android.annotations.NonNull;
 import com.android.tools.adtui.Animatable;
-import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.Choreographer;
 import com.intellij.ui.components.JBPanel;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.event.ChangeListener;
@@ -66,11 +65,11 @@ public abstract class VisualTest {
    */
   protected abstract List<Animatable> createComponentsList();
 
-  protected final void addToChoreographer(@NonNull Animatable animatable) {
+  protected final void addToChoreographer(@NotNull Animatable animatable) {
     mChoreographer.register(animatable);
   }
 
-  protected final void addToChoreographer(@NonNull List<Animatable> animatables) {
+  protected final void addToChoreographer(@NotNull List<Animatable> animatables) {
     mChoreographer.register(animatables);
   }
 
@@ -78,7 +77,7 @@ public abstract class VisualTest {
    * The UI elements for the test should be populated inside {@code panel}. It can use elements
    * created in {@code createComponentsList}.
    */
-  protected abstract void populateUi(@NonNull JPanel panel);
+  protected abstract void populateUi(@NotNull JPanel panel);
 
   protected void initialize() {
     mPanel = new JBPanel();
