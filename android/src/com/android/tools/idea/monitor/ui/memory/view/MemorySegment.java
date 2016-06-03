@@ -23,12 +23,13 @@ import com.android.tools.adtui.common.formatter.MemoryAxisFormatter;
 import com.android.tools.adtui.common.formatter.SingleUnitAxisFormatter;
 import com.android.tools.adtui.model.LegendRenderData;
 import com.android.tools.adtui.model.RangedContinuousSeries;
-import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.idea.monitor.datastore.DataStoreContinuousSeries;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.datastore.SeriesDataType;
 import com.android.tools.idea.monitor.ui.BaseLineChartSegment;
+import com.android.tools.idea.monitor.ui.ProfilerEventListener;
 import com.intellij.ui.JBColor;
+import com.intellij.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -49,8 +50,14 @@ public class MemorySegment extends BaseLineChartSegment {
   private static final Color MEMORY_COUNT_COLOR = new JBColor(new Color(70, 120, 31), new Color(70, 120, 31));
 
   public MemorySegment(@NotNull Range timeRange,
-                       @NotNull SeriesDataStore dataStore) {
-    super(SEGMENT_NAME, timeRange, dataStore, MEMORY_AXIS_FORMATTER, COUNT_AXIS_FORMATTER, null, null);
+                       @NotNull SeriesDataStore dataStore,
+                       @NotNull EventDispatcher<ProfilerEventListener> dispatcher) {
+    super(SEGMENT_NAME, timeRange, dataStore, MEMORY_AXIS_FORMATTER, COUNT_AXIS_FORMATTER, null, null, dispatcher);
+  }
+
+  @Override
+  public SegmentType getSegmentType() {
+    return SegmentType.MEMORY;
   }
 
   @Override

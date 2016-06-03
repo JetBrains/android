@@ -21,10 +21,12 @@ import com.android.tools.adtui.Animatable;
 import com.android.tools.adtui.AnimatedTimeRange;
 import com.android.tools.adtui.Range;
 import com.android.tools.adtui.model.RangedDiscreteSeries;
-import com.android.tools.idea.monitor.ui.network.view.NetworkCaptureSegment;
 import com.android.tools.adtui.visual.VisualTest;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
+import com.android.tools.idea.monitor.ui.ProfilerEventListener;
+import com.android.tools.idea.monitor.ui.network.view.NetworkCaptureSegment;
 import com.android.tools.idea.monitor.ui.network.view.NetworkSegment;
+import com.intellij.util.EventDispatcher;
 
 import javax.swing.*;
 import java.awt.*;
@@ -79,13 +81,14 @@ public class NetworkProfilerVisualTest extends VisualTest {
     Range timeRange = new Range();
     AnimatedTimeRange animatedTimeRange = new AnimatedTimeRange(timeRange, mStartTimeMs);
 
-    mSegment = new NetworkSegment(timeRange, mDataStore);
+    EventDispatcher<ProfilerEventListener> dummyDispatcher = EventDispatcher.create(ProfilerEventListener.class);
+    mSegment = new NetworkSegment(timeRange, mDataStore, dummyDispatcher);
 
     mCaptureData = new ArrayList<>();
     for (int i = 0; i < CAPTURE_SIZE; ++i) {
       mCaptureData.add(new RangedDiscreteSeries<>(NetworkCaptureSegment.NetworkState.class, timeRange));
     }
-    mCaptureSegment = new NetworkCaptureSegment(timeRange, mCaptureData);
+    mCaptureSegment = new NetworkCaptureSegment(timeRange, mCaptureData, dummyDispatcher);
 
     List<Animatable> animatables = new ArrayList<>();
 

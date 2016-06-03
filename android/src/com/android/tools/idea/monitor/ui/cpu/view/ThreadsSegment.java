@@ -22,10 +22,12 @@ import com.android.tools.adtui.chart.StateChart;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.RangedDiscreteSeries;
 import com.android.tools.idea.monitor.ui.BaseSegment;
+import com.android.tools.idea.monitor.ui.ProfilerEventListener;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLayeredPane;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.EventDispatcher;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -98,16 +100,13 @@ public class ThreadsSegment extends BaseSegment implements Animatable {
   @NotNull
   private final Map<Thread, RangedDiscreteSeries<Thread.State>> mThreadsStateSeries;
 
-  public ThreadsSegment(@NotNull Range timeRange, @Nullable ThreadSelectedListener threadSelectedListener) {
-    super(SEGMENT_NAME, timeRange);
+  public ThreadsSegment(@NotNull Range timeRange, @Nullable ThreadSelectedListener threadSelectedListener,
+                        @NotNull EventDispatcher<ProfilerEventListener> dispatcher) {
+    super(SEGMENT_NAME, timeRange, dispatcher);
     mTimeRange = timeRange;
     mThreadsStateSeries = new HashMap<>();
     mThreadSelectedListener = threadSelectedListener;
     initialize();
-  }
-
-  public ThreadsSegment(@NotNull Range timeRange) {
-    this(timeRange, null);
   }
 
   @Override

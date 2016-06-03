@@ -16,15 +16,16 @@
 package com.android.tools.idea.monitor.ui.network.view;
 
 import com.android.tools.adtui.Animatable;
-import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.Range;
 import com.android.tools.adtui.chart.StateChart;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.RangedDiscreteSeries;
 import com.android.tools.idea.monitor.ui.BaseSegment;
+import com.android.tools.idea.monitor.ui.ProfilerEventListener;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.JBTable;
+import com.intellij.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -62,8 +63,9 @@ public class NetworkCaptureSegment extends BaseSegment {
   @NotNull
   private final List<RangedDiscreteSeries<NetworkState>> mData;
 
-  public NetworkCaptureSegment(@NotNull Range timeRange, @NotNull List<RangedDiscreteSeries<NetworkState>> data) {
-    super(SEGMENT_NAME, timeRange);
+  public NetworkCaptureSegment(@NotNull Range timeRange, @NotNull List<RangedDiscreteSeries<NetworkState>> data,
+                               @NotNull EventDispatcher<ProfilerEventListener> dispatcher) {
+    super(SEGMENT_NAME, timeRange, dispatcher);
     mCharts = new ArrayList<>();
     mData = data;
 
