@@ -27,14 +27,12 @@ import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.project.AndroidProjectBuildNotifications;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.Wait;
-import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleBuildModelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleProjectEventListener;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleToolWindowFixture;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.intellij.codeInspection.ui.InspectionTree;
 import com.intellij.ide.RecentProjectsManager;
 import com.intellij.ide.actions.ShowSettingsUtilImpl;
 import com.intellij.openapi.Disposable;
@@ -63,7 +61,6 @@ import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
 import com.intellij.util.PathUtil;
 import com.intellij.util.ThreeState;
-import com.intellij.xdebugger.impl.ui.tree.nodes.XDebuggerTreeNode;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
@@ -76,7 +73,6 @@ import org.jetbrains.jps.model.module.JpsModuleSourceRootType;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
-import javax.swing.tree.TreeNode;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.io.File;
@@ -92,7 +88,6 @@ import static com.android.tools.idea.gradle.util.BuildMode.COMPILE_JAVA;
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.testing.FileSubject.file;
-import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static com.android.tools.idea.tests.gui.framework.fixture.LibraryPropertiesDialogFixture.showPropertiesDialog;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
@@ -425,7 +420,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
         return myGradleProjectEventListener.isBuildFinished(buildMode);
       });
 
-    waitForBackgroundTasks(robot());
+    GuiTests.waitForBackgroundTasks(robot());
     robot().waitForIdle();
 
     return this;
@@ -479,8 +474,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   private void waitForGradleSyncAction() {
-    waitForBackgroundTasks(robot());
-    waitUntilShowing(robot(), target(), new GenericTypeMatcher<ActionButton>(ActionButton.class) {
+    GuiTests.waitForBackgroundTasks(robot());
+    GuiTests.waitUntilShowing(robot(), target(), new GenericTypeMatcher<ActionButton>(ActionButton.class) {
       @Override
       protected boolean isMatching(@NotNull ActionButton button) {
         AnAction action = button.getAction();
@@ -501,7 +496,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     catch (RuntimeException expected) {
       // expected failure.
     }
-    waitForBackgroundTasks(robot());
+    GuiTests.waitForBackgroundTasks(robot());
     return this;
   }
 
@@ -552,7 +547,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       waitForBuildToFinish(SOURCE_GEN);
     }
 
-    waitForBackgroundTasks(robot());
+    GuiTests.waitForBackgroundTasks(robot());
   }
 
   @NotNull
