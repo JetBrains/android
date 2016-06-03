@@ -59,14 +59,15 @@ public class NewModuleTest {
       .openFromMenu(NewModuleDialogFixture::find, "File", "New", "New Module...")
       .chooseModuleType("Android Library")
       .clickNextToStep("Android Library")
+      .setModuleName("somelibrary")
       .clickFinish()
       .waitForGradleProjectSyncToFinish()
       .getEditor()
-      .open("mylibrary/build.gradle")
+      .open("somelibrary/build.gradle")
       .getCurrentFileContents();
     assertThat(gradleFileContents).doesNotContain("testCompile");
 
-    assertAbout(file()).that(new File(guiTest.getProjectPath(), "mylibrary/src/main")).isDirectory();
-    assertAbout(file()).that(new File(guiTest.getProjectPath(), "mylibrary/src/test")).doesNotExist();
+    assertAbout(file()).that(new File(guiTest.getProjectPath(), "somelibrary/src/main")).isDirectory();
+    assertAbout(file()).that(new File(guiTest.getProjectPath(), "somelibrary/src/test")).doesNotExist();
   }
 }

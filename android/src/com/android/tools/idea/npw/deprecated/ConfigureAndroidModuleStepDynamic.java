@@ -65,6 +65,7 @@ public class ConfigureAndroidModuleStepDynamic extends DynamicWizardStepWithHead
     CreateModuleTemplate template = getFormfactorModuleTemplate();
     assert template != null;
     register(FormFactorUtils.getModuleNameKey(template.getFormFactor()), myModuleName);
+    myModuleName.setName("ModuleName");
     mySdkControls.init(template.getFormFactor(), template.getMetadata().getMinSdk(), null, null, null);
     mySdkControls.registerWith(this);
 
