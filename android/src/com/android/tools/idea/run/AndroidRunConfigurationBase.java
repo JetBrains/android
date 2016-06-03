@@ -116,7 +116,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
   @Override
   public final void checkConfiguration() throws RuntimeConfigurationException {
-    List<ValidationError> errors = validate();
+    List<ValidationError> errors = validate(null);
     if (errors.isEmpty()) {
       return;
     }
@@ -132,7 +132,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
    * We collect errors rather than throwing to avoid missing fatal errors by exiting early for a warning.
    * We use a separate method for the collection so the compiler prevents us from accidentally throwing.
    */
-  private List<ValidationError> validate() {
+  private List<ValidationError> validate(@Nullable Executor executor) {
     List<ValidationError> errors = Lists.newArrayList();
     JavaRunConfigurationModule configurationModule = getConfigurationModule();
     try {
@@ -176,7 +176,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     errors.addAll(checkConfiguration(facet));
     AndroidDebuggerState androidDebuggerState = getAndroidDebuggerState(DEBUGGER_TYPE);
     if (androidDebuggerState != null) {
-      errors.addAll(androidDebuggerState.validate(facet));
+      errors.addAll(androidDebuggerState.validate(facet, executor));
     }
 
     return errors;
@@ -309,8 +309,26 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     return null;
   }
 
+  private void validateBeforeRun(@NotNull Executor executor) throws ExecutionException {
+    List<ValidationError> errors = validate(executor);
+    if (errors.isEmpty()) {
+      return;
+    }
+    for (ValidationError error: errors) {
+      if (error.getQuickfix() != null) {
+        if (Messages.showYesNoDialog(getProject(), error.getMessage() + " - do you want to fix it?", "Quick fix", null) == Messages.YES) {
+          error.getQuickfix().run();
+          continue;
+        }
+      }
+      throw new ExecutionException(error.getMessage());
+    }
+  }
+
   @Override
   public RunProfileState getState(@NotNull final Executor executor, @NotNull ExecutionEnvironment env) throws ExecutionException {
+    validateBeforeRun(executor);
+
     final Module module = getConfigurationModule().getModule();
     assert module != null : "Enforced by fatal validation check in checkConfiguration.";
     final AndroidFacet facet = AndroidFacet.getInstance(module);
