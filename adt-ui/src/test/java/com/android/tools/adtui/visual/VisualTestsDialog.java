@@ -17,7 +17,6 @@
 package com.android.tools.adtui.visual;
 
 import com.android.annotations.NonNull;
-import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.Choreographer;
 import com.intellij.ide.ui.laf.darcula.DarculaLaf;
 import com.intellij.ui.JBColor;
