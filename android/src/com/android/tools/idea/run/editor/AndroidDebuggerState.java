@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.editor;
 
 import com.android.tools.idea.run.ValidationError;
+import com.intellij.execution.Executor;
 import com.intellij.openapi.util.DefaultJDOMExternalizer;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.JDOMExternalizable;
@@ -23,13 +24,14 @@ import com.intellij.openapi.util.WriteExternalException;
 import org.jdom.Element;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
 
 public class AndroidDebuggerState implements JDOMExternalizable {
   @NotNull
-  public List<ValidationError> validate(@NotNull AndroidFacet facet) {
+  public List<ValidationError> validate(@NotNull AndroidFacet facet, @Nullable Executor executor) {
     return Collections.emptyList();
   }
 
