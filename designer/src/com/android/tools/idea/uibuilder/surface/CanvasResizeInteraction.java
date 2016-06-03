@@ -21,6 +21,7 @@ import com.android.ide.common.resources.configuration.*;
 import com.android.resources.ResourceType;
 import com.android.resources.ScreenOrientation;
 import com.android.resources.ScreenRatio;
+import com.android.sdklib.devices.State;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.res.ProjectResourceRepository;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
@@ -33,6 +34,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import org.intellij.lang.annotations.JdkConstants.InputEventMask;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.*;
 import java.util.List;
@@ -40,10 +42,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class CanvasResizeInteraction extends Interaction {
+  private static final double SQRT_2 = Math.sqrt(2.0);
+
   private final DesignSurface myDesignSurface;
   private final boolean isPreviewSurface;
   private final Set<FolderConfiguration> myFolderConfigurations;
   private final UnavailableSizesLayer myUnavailableLayer = new UnavailableSizesLayer();
+  private final OrientationLayer myOrientationLayer;
 
   private int myCurrentX;
   private int myCurrentY;
@@ -51,6 +56,7 @@ public class CanvasResizeInteraction extends Interaction {
   public CanvasResizeInteraction(DesignSurface designSurface) {
     myDesignSurface = designSurface;
     isPreviewSurface = designSurface.isPreviewSurface();
+    myOrientationLayer = new OrientationLayer(myDesignSurface);
 
     Configuration config = myDesignSurface.getConfiguration();
     assert config != null;
@@ -211,6 +217,7 @@ public class CanvasResizeInteraction extends Interaction {
   }
 
   private static void constructPolygon(@NotNull Polygon polygon, @Nullable ScreenRatio ratio, int dim, boolean isPortrait) {
+    polygon.reset();
     int x1 = isPortrait ? 0 : dim;
     int y1 = isPortrait ? dim : 0;
     int x2 = isPortrait ? dim : 5 * dim / 3;
@@ -272,7 +279,7 @@ public class CanvasResizeInteraction extends Interaction {
 
   @Override
   public List<Layer> createOverlays() {
-    return ImmutableList.of(myUnavailableLayer, new ResizeLayer());
+    return ImmutableList.of(myUnavailableLayer, myOrientationLayer, new ResizeLayer());
   }
 
   /**
@@ -343,6 +350,78 @@ public class CanvasResizeInteraction extends Interaction {
     @Nullable
     private FolderConfiguration getCurrentFolderConfig() {
       return myCurrentFolderConfig;
+    }
+  }
+
+  private static class OrientationLayer extends Layer {
+    private final Polygon myOrientationPolygon = new Polygon();
+    private final double myPortraitWidth;
+    private final double myLandscapeWidth;
+    private final DesignSurface myDesignSurface;
+
+    public OrientationLayer(@NotNull DesignSurface designSurface) {
+      myDesignSurface = designSurface;
+      FontMetrics fontMetrics = myDesignSurface.getFontMetrics(myDesignSurface.getFont());
+      myPortraitWidth = fontMetrics.getStringBounds("Portrait", null).getWidth();
+      myLandscapeWidth = fontMetrics.getStringBounds("Landscape", null).getWidth();
+    }
+
+    @Override
+    public void paint(@NotNull Graphics2D g2d) {
+      ScreenView screenView = myDesignSurface.getCurrentScreenView();
+      if (screenView == null) {
+        return;
+      }
+
+      State deviceState = screenView.getConfiguration().getDeviceState();
+      assert deviceState != null;
+      boolean isDevicePortrait = deviceState.getOrientation() == ScreenOrientation.PORTRAIT;
+
+      JScrollPane scrollPane = myDesignSurface.getScrollPane();
+      int height = scrollPane.getHeight() - scrollPane.getHorizontalScrollBar().getHeight();
+      int width = scrollPane.getWidth() - scrollPane.getVerticalScrollBar().getWidth();
+      int x0 = screenView.getX();
+      int y0 = screenView.getY();
+      int maxDim = Math.max(width, height);
+
+      constructPolygon(myOrientationPolygon, null, maxDim, !isDevicePortrait);
+      myOrientationPolygon.translate(x0, y0);
+
+      Graphics2D graphics = (Graphics2D)g2d.create();
+      graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+      graphics.setColor(NlConstants.UNAVAILABLE_ZONE_COLOR);
+      graphics.fill(myOrientationPolygon);
+
+      int xL;
+      int yL;
+      int xP;
+      int yP;
+      if (height - width < myPortraitWidth / SQRT_2) {
+        xP = height - y0 + x0 - (int)(myPortraitWidth * SQRT_2) - 5;
+        yP = height;
+      }
+      else {
+        xP = width - (int)(myPortraitWidth / SQRT_2) - 5;
+        yP = width - x0 + y0 + (int)(myPortraitWidth / SQRT_2);
+      }
+
+      if (height - width < y0 - x0 - myLandscapeWidth / SQRT_2) {
+        xL = height - y0 + x0 + 5;
+        yL = height;
+      }
+      else {
+        xL = width - (int)(myLandscapeWidth / SQRT_2);
+        yL = width - x0 + y0 - (int)(myLandscapeWidth / SQRT_2) - 5;
+      }
+
+      graphics.setColor(Color.DARK_GRAY);
+      graphics.rotate(-Math.PI / 4, xL, yL);
+      graphics.drawString("Landscape", xL, yL);
+      graphics.rotate(Math.PI / 4, xL, yL);
+
+      graphics.rotate(-Math.PI / 4, xP, yP);
+      graphics.drawString("Portrait", xP, yP);
+      graphics.dispose();
     }
   }
 }
