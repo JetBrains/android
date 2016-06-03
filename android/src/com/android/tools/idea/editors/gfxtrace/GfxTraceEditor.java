@@ -111,7 +111,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
     return true;
   }
 
-  public GfxTraceEditor(@NotNull final Project project, @SuppressWarnings("UnusedParameters") @NotNull final VirtualFile file) {
+  public GfxTraceEditor(@NotNull final Project project, @NotNull final VirtualFile file) {
     myProject = project;
     myFile = file;
     myLoadingPanel.setLoadingText("Initializing GFX Trace System");
