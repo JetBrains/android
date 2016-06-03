@@ -186,13 +186,13 @@ public class InstantRunBuilderTest {
   }
 
   @Test
-  public void fullBuildIfNoDevice() throws Exception {
+  public void cleanBuildIfNoDevice() throws Exception {
     InstantRunBuilder builder =
       new InstantRunBuilder(null, myInstantRunContext, myRunConfigContext, myTasksProvider, ourRunAsSupported, myInstalledApkCache,
                             myInstantRunClientDelegate);
     builder.build(myTaskRunner, Arrays.asList("-Pdevice.api=14", "-Pprofiling=on"));
     assertEquals(
-      "gradlew -Pdevice.api=14 -Pprofiling=on -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY :app:assemble",
+      "gradlew -Pdevice.api=14 -Pprofiling=on -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY clean :app:gen :app:assemble",
       myTaskRunner.getBuilds());
   }
 
@@ -207,27 +207,27 @@ public class InstantRunBuilderTest {
   }
 
   @Test
-  public void fullBuildIfNoLocalTimestamp() throws Exception {
+  public void cleanBuildIfNoLocalTimestamp() throws Exception {
     when(myInstantRunContext.getInstantRunBuildInfo()).thenReturn(null);
     when(myDevice.getVersion()).thenReturn(new AndroidVersion(23, null));
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY :app:assemble",
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY clean :app:gen :app:assemble",
       myTaskRunner.getBuilds());
   }
 
   @Test
-  public void fullBuildWhenPackageNotInstalledOnDevice() throws Exception {
+  public void cleanBuildWhenPackageNotInstalledOnDevice() throws Exception {
     myDumpsysPackageOutput = DUMPSYS_NO_SUCH_PACKAGE;
     when(myDevice.getVersion()).thenReturn(new AndroidVersion(23, null));
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY :app:assemble",
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY clean :app:gen :app:assemble",
       myTaskRunner.getBuilds());
   }
 
   @Test
-  public void fullBuildIfBuildTimestampsDoNotMatch() throws Exception {
+  public void cleanBuildIfBuildTimestampsDoNotMatch() throws Exception {
     myDumpsysPackageOutput = DUMPSYS_PACKAGE_EXISTS;
     myDeviceBuildTimetamp = "123";
     when(myDevice.getVersion()).thenReturn(new AndroidVersion(23, null));
@@ -235,7 +235,7 @@ public class InstantRunBuilderTest {
 
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY :app:assemble",
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY clean :app:gen :app:assemble",
       myTaskRunner.getBuilds());
   }
 
