@@ -22,7 +22,11 @@ import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.ui.popup.JBPopup;
+import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.awt.RelativePoint;
+import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBSlidingPanel;
@@ -42,10 +46,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
-import java.awt.image.BufferedImage;
-import java.awt.image.ColorModel;
-import java.awt.image.Raster;
-import java.awt.image.WritableRaster;
+import java.awt.image.*;
 import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 
@@ -128,6 +129,7 @@ public class ImagePanel extends JPanel {
     private static final int BORDER_SIZE = JBUI.scale(2);
     private static final Border BORDER = new LineBorder(JBColor.border(), BORDER_SIZE);
     private static final Paint CHECKER_PAINT = new CheckerboardPaint();
+    private static final int CHANNEL_RED = 0, CHANNEL_GREEN = 1, CHANNEL_BLUE = 2, CHANNEL_ALPHA = 3;
 
     private final JViewport parent;
     private final StatusText emptyText;
@@ -135,11 +137,11 @@ public class ImagePanel extends JPanel {
     private FutureController imageRequestController = FutureController.NULL_CONTROLLER;
     private MultiLevelImage image;
     private BufferedImage level = MultiLevelImage.EMPTY_LEVEL;
-    private BufferedImage opaqueLevel = null;
+    private BufferedImage displayed = null;
     private double zoom;
     private boolean drawCheckerBoard = true;
-    private boolean transparent = true;
     private boolean flipped = false;
+    private boolean[] channels = new boolean[] { true, true, true, true };
 
     public ImageComponent(JBScrollPane scrollPane) {
       scrollPane.setViewportView(this);
@@ -271,7 +273,7 @@ public class ImagePanel extends JPanel {
       }
       this.image = (image == null) ? MultiLevelImage.EMPTY_IMAGE : image;
       this.level = MultiLevelImage.EMPTY_LEVEL;
-      this.opaqueLevel = null;
+      this.displayed = null;
       if (!levelChooser.update(this.image.getLevelCount())) {
         loadLevel(levelChooser.getLevel());
       }
@@ -305,16 +307,33 @@ public class ImagePanel extends JPanel {
         }
       });
       group.add(new Separator());
-      group.add(new ToggleAction("Toggle Transparency", "Enable/disable image transparency", AndroidIcons.GfxTrace.Opacity) {
+      group.add(new AnAction("Color Channels", "Select color channels to show", AndroidIcons.GfxTrace.ColorChannels) {
         @Override
-        public boolean isSelected(AnActionEvent e) {
-          return transparent;
+        public void actionPerformed(AnActionEvent e) {
+          JPanel contents = new JPanel();
+          contents.add(new ChannelCheckbox("Red", CHANNEL_RED));
+          contents.add(new ChannelCheckbox("Green", CHANNEL_GREEN));
+          contents.add(new ChannelCheckbox("Blue", CHANNEL_BLUE));
+          contents.add(new ChannelCheckbox("Alpha", CHANNEL_ALPHA));
+
+          JBPopup popup = JBPopupFactory.getInstance().createComponentPopupBuilder(contents, contents)
+            .setCancelOnClickOutside(true)
+            .setResizable(false)
+            .setMovable(false)
+            .createPopup();
+
+          Component source = e.getInputEvent().getComponent();
+          popup.setMinimumSize(new Dimension(0, source.getHeight()));
+          popup.show(new RelativePoint(source, new Point(source.getWidth(), 0)));
         }
 
-        @Override
-        public void setSelected(AnActionEvent e, boolean state) {
-          transparent = state;
-          repaint();
+        class ChannelCheckbox extends JBCheckBox {
+          public ChannelCheckbox(String text, final int index) {
+            super(text, channels[index]);
+            addActionListener(e -> {
+              setChannelEnabled(index, isSelected());
+            });
+          }
         }
       });
       group.add(new ToggleAction("Show Checkerboard", "Toggle the checkerboard background", ImagesIcons.ToggleTransparencyChessboard) {
@@ -333,7 +352,7 @@ public class ImagePanel extends JPanel {
         public void update(@NotNull AnActionEvent e) {
           super.update(e);
           Presentation presentation = e.getPresentation();
-          presentation.setEnabled(transparent);
+          presentation.setEnabled(channels[CHANNEL_ALPHA]);
         }
       });
       if (enableVerticalFlip) {
@@ -396,7 +415,7 @@ public class ImagePanel extends JPanel {
       int w = (int)(level.getWidth(this) * scale), h = (int)(level.getHeight(this) * scale);
       int x = (getWidth() - w) / 2, y = (getHeight() - h) / 2;
 
-      if (drawCheckerBoard && transparent) {
+      if (drawCheckerBoard && channels[CHANNEL_ALPHA]) {
         ((Graphics2D)g).setPaint(CHECKER_PAINT);
         g.fillRect(x, y, w, h);
       }
@@ -405,20 +424,53 @@ public class ImagePanel extends JPanel {
       if (flipped) {
         ((Graphics2D)g).transform(new AffineTransform(1, 0, 0, -1, 0, getHeight() - 1));
       }
-      if (transparent) {
-        g.drawImage(level, x, y, w, h, this);
-      }
-      else {
-        if (opaqueLevel == null) {
-          //noinspection UndesirableClassUsage
-          opaqueLevel = new BufferedImage(level.getWidth(this), level.getHeight(this), BufferedImage.TYPE_3BYTE_BGR);
-          Graphics2D opaqueG = opaqueLevel.createGraphics();
-          opaqueG.setComposite(AlphaComposite.Src);
-          opaqueG.drawImage(level, 0, 0, this);
-          opaqueG.dispose();
+      if (displayed == null) {
+        Composite composite = null;
+        int imageFormat = 0;
+        if (channels[CHANNEL_RED] && channels[CHANNEL_GREEN] && channels[CHANNEL_BLUE]) {
+          if (channels[CHANNEL_ALPHA]) {
+            // If all channels are enabled, just display the original image.
+            displayed = level;
+          }
+          else {
+            // Use the platform provided alpha composite if alpha is disabled.
+            composite = AlphaComposite.Src;
+            imageFormat = BufferedImage.TYPE_3BYTE_BGR;
+          }
         }
-        g.drawImage(opaqueLevel, x, y, w, h, this);
+        else {
+          // Use a custom color filtering composite otherwise.
+          composite = (srcColorModel, dstColorModel, hints) -> new CompositeContext() {
+            @Override
+            public void dispose() {
+            }
+
+            @Override
+            public void compose(Raster srcRaster, Raster dstIn, WritableRaster dstOut) {
+              byte[] dst = ((DataBufferByte)dstOut.getDataBuffer()).getData();
+              byte[] src = ((DataBufferByte)srcRaster.getDataBuffer()).getData();
+              for (int i = 0; i < dst.length; i += 4) {
+                dst[i + 0] = channels[CHANNEL_ALPHA] ? src[i + 0] : -1;
+                dst[i + 1] = channels[CHANNEL_BLUE] ? src[i + 1] : 0;
+                dst[i + 2] = channels[CHANNEL_GREEN] ? src[i + 2] : 0;
+                dst[i + 3] = channels[CHANNEL_RED] ? src[i + 3] : 0;
+              }
+            }
+          };
+          imageFormat = BufferedImage.TYPE_4BYTE_ABGR;
+        }
+
+        if (composite != null) {
+          //noinspection UndesirableClassUsage
+          displayed = new BufferedImage(level.getWidth(this), level.getHeight(this), imageFormat);
+          Graphics2D displayedG = displayed.createGraphics();
+          displayedG.setComposite(composite);
+          displayedG.drawImage(level, 0, 0, this);
+          displayedG.dispose();
+        }
       }
+      g.drawImage(displayed, x, y, w, h, this);
+
       ((Graphics2D)g).setTransform(transform);
       BORDER.paintBorder(this, g, x - BORDER_SIZE, y - BORDER_SIZE, w + 2 * BORDER_SIZE, h + 2 * BORDER_SIZE);
     }
@@ -444,9 +496,17 @@ public class ImagePanel extends JPanel {
         zoomToFit();
       }
       this.level = (level == null) ? MultiLevelImage.EMPTY_LEVEL : level;
-      this.opaqueLevel = null;
+      this.displayed = null;
       revalidate();
       repaint();
+    }
+
+    private void setChannelEnabled(int channel, boolean enabled) {
+      if (channels[channel] != enabled) {
+        channels[channel] = enabled;
+        displayed = null;
+        repaint();
+      }
     }
 
     private void scrollBy(int dx, int dy) {
