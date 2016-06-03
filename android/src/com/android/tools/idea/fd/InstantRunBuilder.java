@@ -111,8 +111,9 @@ public class InstantRunBuilder implements BeforeRunBuilder {
 
   @NotNull
   private BuildModeChoice getBuildMode() {
-    if (myRunContext.isCleanRerun()) {
-      return new BuildModeChoice(BuildMode.CLEAN, InstantRunBuildCauses.USER_REQUESTED_CLEAN_RERUN);
+    String cleanBuildReason = needsCleanBuild(myDevice);
+    if (cleanBuildReason != null) {
+      return new BuildModeChoice(BuildMode.CLEAN, cleanBuildReason);
     }
 
     String fullBuildReason = needsFullBuild(myDevice);
@@ -129,14 +130,27 @@ public class InstantRunBuilder implements BeforeRunBuilder {
   }
 
   @Nullable
-  @Contract("null -> !null")
-  private String needsFullBuild(@Nullable IDevice device) {
+  private String needsCleanBuild(@Nullable IDevice device) {
     if (device == null) {
       return InstantRunBuildCauses.NO_DEVICE;
     }
 
+    if (myRunContext.isCleanRerun()) {
+      return InstantRunBuildCauses.USER_REQUESTED_CLEAN_RERUN;
+    }
+
     if (!buildTimestampsMatch(device)) {
       return InstantRunBuildCauses.MISMATCHING_TIMESTAMPS;
+    }
+
+    return null;
+  }
+
+  @Nullable
+  @Contract("null -> !null")
+  private String needsFullBuild(@Nullable IDevice device) {
+    if (device == null) {
+      return InstantRunBuildCauses.NO_DEVICE;
     }
 
     AndroidVersion deviceVersion = device.getVersion();
