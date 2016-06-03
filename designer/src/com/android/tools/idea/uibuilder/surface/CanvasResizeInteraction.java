@@ -21,8 +21,11 @@ import com.android.ide.common.resources.configuration.*;
 import com.android.resources.ResourceType;
 import com.android.resources.ScreenOrientation;
 import com.android.resources.ScreenRatio;
+import com.android.sdklib.devices.Device;
+import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.res.ProjectResourceRepository;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
 import com.android.tools.idea.uibuilder.model.Coordinates;
@@ -30,6 +33,7 @@ import com.android.tools.idea.uibuilder.model.ModelListener;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.model.SwingCoordinate;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.intellij.lang.annotations.JdkConstants.InputEventMask;
 import org.jetbrains.annotations.NotNull;
@@ -43,12 +47,14 @@ import java.util.stream.Collectors;
 
 public class CanvasResizeInteraction extends Interaction {
   private static final double SQRT_2 = Math.sqrt(2.0);
+  private static final String[] DEVICES_TO_SHOW = {"Nexus 5", "Nexus 6P", "Nexus 7", "Nexus 9", "Nexus 10"};
 
   private final DesignSurface myDesignSurface;
   private final boolean isPreviewSurface;
   private final Set<FolderConfiguration> myFolderConfigurations;
   private final UnavailableSizesLayer myUnavailableLayer = new UnavailableSizesLayer();
   private final OrientationLayer myOrientationLayer;
+  private final List<DeviceLayer> myDeviceLayers = Lists.newArrayList();
 
   private int myCurrentX;
   private int myCurrentY;
@@ -69,6 +75,19 @@ public class CanvasResizeInteraction extends Interaction {
     List<ResourceItem> layouts =
       resourceRepository.getItems().get(ResourceType.LAYOUT).get(layoutName);
     myFolderConfigurations = layouts.stream().map(ResourceItem::getConfiguration).collect(Collectors.toSet());
+
+    double currentDpi = config.getDensity().getDpiValue();
+    ConfigurationManager configManager = config.getConfigurationManager();
+    for (String name : DEVICES_TO_SHOW) {
+      Device device = configManager.getDeviceById(name);
+      assert device != null;
+      Screen screen = device.getDefaultHardware().getScreen();
+      double dpiRatio = currentDpi / screen.getPixelDensity().getDpiValue();
+      myDeviceLayers
+        .add(new DeviceLayer(myDesignSurface, (int)(screen.getXDimension() * dpiRatio), (int)(screen.getYDimension() * dpiRatio), name));
+    }
+
+    myDeviceLayers.add(new DeviceLayer(myDesignSurface, (int)(426 * currentDpi / 160), (int)(320 * currentDpi / 160), "Small Screen"));
   }
 
   @Override
@@ -279,7 +298,12 @@ public class CanvasResizeInteraction extends Interaction {
 
   @Override
   public List<Layer> createOverlays() {
-    return ImmutableList.of(myUnavailableLayer, myOrientationLayer, new ResizeLayer());
+    ImmutableList.Builder<Layer> layers = ImmutableList.builder();
+    layers.add(new ResizeLayer());
+    layers.add(myUnavailableLayer);
+    layers.addAll(myDeviceLayers);
+    layers.add(myOrientationLayer);
+    return layers.build();
   }
 
   /**
@@ -350,6 +374,46 @@ public class CanvasResizeInteraction extends Interaction {
     @Nullable
     private FolderConfiguration getCurrentFolderConfig() {
       return myCurrentFolderConfig;
+    }
+  }
+
+  private static class DeviceLayer extends Layer {
+    private final String myName;
+    private final DesignSurface myDesignSurface;
+    private final int myNameWidth;
+    private int myBigDimension;
+    private int mySmallDimension;
+
+    public DeviceLayer(@NotNull DesignSurface designSurface, int pxWidth, int pxHeight, @NotNull String name) {
+      myDesignSurface = designSurface;
+      myBigDimension = Math.max(pxWidth, pxHeight);
+      mySmallDimension = Math.min(pxWidth, pxHeight);
+      myName = name;
+      FontMetrics fontMetrics = myDesignSurface.getFontMetrics(myDesignSurface.getFont());
+      myNameWidth = (int)fontMetrics.getStringBounds(myName, null).getWidth();
+    }
+
+    @Override
+    public void paint(@NotNull Graphics2D g2d) {
+      ScreenView screenView = myDesignSurface.getCurrentScreenView();
+      if (screenView == null) {
+        return;
+      }
+
+      State deviceState = screenView.getConfiguration().getDeviceState();
+      assert deviceState != null;
+      boolean isDevicePortrait = deviceState.getOrientation() == ScreenOrientation.PORTRAIT;
+
+      int x = Coordinates.getSwingX(screenView, isDevicePortrait ? mySmallDimension : myBigDimension);
+      int y = Coordinates.getSwingY(screenView, isDevicePortrait ? myBigDimension : mySmallDimension);
+
+      Graphics graphics = g2d.create();
+      graphics.setColor(NlConstants.RESIZING_CORNER_COLOR);
+      graphics.drawLine(x, y, x - NlConstants.RESIZING_CORNER_SIZE, y);
+      graphics.drawLine(x, y, x, y - NlConstants.RESIZING_CORNER_SIZE);
+      graphics.setColor(NlConstants.DEVICE_TEXT_COLOR);
+      graphics.drawString(myName, x - myNameWidth - 5, y - 5);
+      graphics.dispose();
     }
   }
 
