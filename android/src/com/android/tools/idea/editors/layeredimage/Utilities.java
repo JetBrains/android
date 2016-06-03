@@ -21,11 +21,7 @@ import com.android.tools.pixelprobe.PixelProbe;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.Graphics;
-import java.awt.GraphicsConfiguration;
-import java.awt.GraphicsEnvironment;
 import java.awt.image.BufferedImage;
-import java.awt.image.ColorModel;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -46,28 +42,6 @@ class Utilities {
     if (bufferedImage == null) {
       throw new IOException("Unable to extract flattened bitmap");
     }
-    return toCompatibleImage(bufferedImage);
-  }
-
-  @NotNull
-  private static GraphicsConfiguration getGraphicsConfiguration() {
-    GraphicsEnvironment environment = GraphicsEnvironment.getLocalGraphicsEnvironment();
-    return environment.getDefaultScreenDevice().getDefaultConfiguration();
-  }
-
-  @NotNull
-  private static BufferedImage toCompatibleImage(@NotNull BufferedImage image) {
-    ColorModel colorModel = image.getColorModel();
-    if (colorModel != null && colorModel.equals(getGraphicsConfiguration().getColorModel())) {
-      return image;
-    }
-
-    BufferedImage compatibleImage = getGraphicsConfiguration().createCompatibleImage(
-      image.getWidth(), image.getHeight(), image.getTransparency());
-    Graphics g = compatibleImage.getGraphics();
-    g.drawImage(image, 0, 0, null);
-    g.dispose();
-
-    return compatibleImage;
+    return bufferedImage;
   }
 }
