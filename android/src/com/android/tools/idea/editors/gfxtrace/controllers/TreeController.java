@@ -84,11 +84,11 @@ public abstract class TreeController extends Controller implements CopyEnabledTr
 
   public static void hoverHand(@NotNull Component component, @Nullable Path root, @Nullable Path followPath) {
     boolean validPath = followPath != null && followPath != Path.EMPTY;
-    ActionMenu.showDescriptionInStatusBar(true, component, validPath ? getStatusBarTextFor(root, followPath) : null);
+    ActionMenu.showDescriptionInStatusBar(true, component, validPath ? getDisplayTextFor(root, followPath) : null);
     component.setCursor(validPath ? Cursor.getPredefinedCursor(Cursor.HAND_CURSOR) : Cursor.getDefaultCursor());
   }
 
-  private static @NotNull String getStatusBarTextFor(@Nullable Path root, @NotNull Path path) {
+  public static @NotNull String getDisplayTextFor(@Nullable Path root, @NotNull Path path) {
     List<Path> pathParts = new ArrayList<>();
     while (path != null) {
       pathParts.add(path);
