@@ -29,12 +29,19 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.intellij.images.editor.ImageDocument;
 import org.intellij.images.editor.ImageEditor;
 import org.intellij.images.editor.ImageFileEditor;
+import org.intellij.images.editor.ImageZoomModel;
+import org.intellij.images.options.Options;
+import org.intellij.images.options.OptionsManager;
+import org.intellij.images.options.ZoomOptions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 
@@ -55,11 +62,35 @@ class LayeredImageEditor extends UserDataHolderBase implements FileEditor {
     myImageEditor = ((ImageFileEditor) editor).getImageEditor();
     try {
       myImage = Utilities.loadImage(file);
-      myImageEditor.getDocument().setValue(Utilities.getDisplayableImage(myImage));
+      setImage(myImage);
     }
     catch (IOException e) {
       Logger.getInstance(LayeredImageEditorProvider.class).error(
-        "Unexpected exception while reading Photoshop file " + file.getCanonicalPath(), e);
+        "Unexpected exception while reading image " + file.getCanonicalPath(), e);
+    }
+  }
+
+  private void setImage(Image image) throws IOException {
+    ImageDocument document = myImageEditor.getDocument();
+    BufferedImage previousImage = document.getValue();
+    document.setValue(Utilities.getDisplayableImage(image));
+    document.setFormat(image.getFormat());
+
+    // from ImageEditorUI
+    ImageZoomModel zoomModel = myImageEditor.getZoomModel();
+    if (previousImage == null || !zoomModel.isZoomLevelChanged()) {
+      Options options = OptionsManager.getInstance().getOptions();
+      ZoomOptions zoomOptions = options.getEditorOptions().getZoomOptions();
+      zoomModel.setZoomFactor(1.0d);
+
+      if (zoomOptions.isSmartZooming()) {
+        Dimension preferred = zoomOptions.getPrefferedSize();
+        if (preferred.width > image.getWidth() && preferred.height > image.getHeight()) {
+          double factor =
+            (preferred.getWidth() / (double)image.getWidth() + preferred.getHeight() / (double)image.getHeight()) / 2.0d;
+          zoomModel.setZoomFactor(Math.ceil(factor));
+        }
+      }
     }
   }
 
