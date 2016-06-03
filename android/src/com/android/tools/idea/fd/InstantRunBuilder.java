@@ -92,19 +92,20 @@ public class InstantRunBuilder implements BeforeRunBuilder {
   @Override
   public boolean build(@NotNull GradleTaskRunner taskRunner, @NotNull List<String> commandLineArguments) throws InterruptedException,
                                                                                                                 InvocationTargetException {
-    BuildModeChoice buildModeChoice = getBuildMode();
-    if (buildModeChoice.mode != BuildMode.HOT) {
-      LOG.info(buildModeChoice.mode + ": " + buildModeChoice.why);
+    BuildSelection buildSelection = getBuildMode();
+    myInstantRunContext.setBuildSelection(buildSelection);
+    if (buildSelection.mode != BuildMode.HOT) {
+      LOG.info(buildSelection.mode + ": " + buildSelection.why);
     }
 
     List<String> args = new ArrayList<>(commandLineArguments);
     args.addAll(myInstantRunContext.getCustomBuildArguments());
 
     FileChangeListener.Changes fileChanges = myInstantRunContext.getFileChangesAndReset();
-    args.addAll(getInstantRunArguments(buildModeChoice.mode, fileChanges));
+    args.addAll(getInstantRunArguments(buildSelection.mode, fileChanges));
 
     List<String> tasks = new LinkedList<>();
-    if (buildModeChoice.mode == BuildMode.CLEAN) {
+    if (buildSelection.mode == BuildMode.CLEAN) {
       tasks.addAll(myTasksProvider.getCleanAndGenerateSourcesTasks());
     }
     tasks.addAll(myTasksProvider.getFullBuildTasks());
@@ -112,23 +113,23 @@ public class InstantRunBuilder implements BeforeRunBuilder {
   }
 
   @NotNull
-  private BuildModeChoice getBuildMode() {
+  private BuildSelection getBuildMode() {
     String cleanBuildReason = needsCleanBuild(myDevice);
     if (cleanBuildReason != null) {
-      return new BuildModeChoice(BuildMode.CLEAN, cleanBuildReason);
+      return new BuildSelection(BuildMode.CLEAN, cleanBuildReason);
     }
 
     String fullBuildReason = needsFullBuild(myDevice);
     if (fullBuildReason != null) {
-      return new BuildModeChoice(BuildMode.FULL, fullBuildReason);
+      return new BuildSelection(BuildMode.FULL, fullBuildReason);
     }
 
     String coldSwapReason = needsColdswapPatches(myDevice);
     if (coldSwapReason != null) {
-      return new BuildModeChoice(BuildMode.COLD, coldSwapReason);
+      return new BuildSelection(BuildMode.COLD, coldSwapReason);
     }
 
-    return new BuildModeChoice(BuildMode.HOT, "");
+    return new BuildSelection(BuildMode.HOT, "");
   }
 
   @Nullable
@@ -200,6 +201,8 @@ public class InstantRunBuilder implements BeforeRunBuilder {
       return InstantRunBuildCauses.MULTI_PROCESS_APP;
     }
 
+    // TODO: we also need to assert that the same process handler is still alive
+
     return null;
   }
 
@@ -209,23 +212,6 @@ public class InstantRunBuilder implements BeforeRunBuilder {
     // then very likely the process is in the middle of being terminated since we don't reuse the same run session.
     boolean isAppRunning = myInstantRunClientDelegate.isAppInForeground(device, myInstantRunContext);
     return isAppRunning && myRunContext.isSameExecutorAsPreviousSession();
-  }
-
-  private enum BuildMode {
-    HOT,    // incremental build
-    COLD,   // incremental build w/ cold swap patches
-    FULL,   // full build
-    CLEAN,  // clean build
-  }
-
-  private static class BuildModeChoice {
-    @NotNull public final BuildMode mode;
-    @NotNull public final String why;
-
-    private BuildModeChoice(@NotNull BuildMode mode, @NotNull String why) {
-      this.mode = mode;
-      this.why = why;
-    }
   }
 
   private static List<String> getInstantRunArguments(@NotNull BuildMode buildMode, @Nullable FileChangeListener.Changes changes) {
