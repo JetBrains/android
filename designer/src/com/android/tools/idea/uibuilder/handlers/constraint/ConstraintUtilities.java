@@ -696,7 +696,12 @@ public class ConstraintUtilities {
         if (creatorValue != null) {
           connectionCreator = Integer.parseInt(creatorValue);
         }
-        widgetSrc.connect(constraintA, widget, constraintB, 0, ConstraintAnchor.Strength.STRONG, connectionCreator);
+        if (constraintA == constraintB && constraintA == ConstraintAnchor.Type.BASELINE) {
+          widgetSrc.getAnchor(constraintA).connect(widget.getAnchor(constraintB), 0,
+                                                   ConstraintAnchor.Strength.STRONG, connectionCreator, true);
+        } else {
+          widgetSrc.connect(constraintA, widget, constraintB, 0, ConstraintAnchor.Strength.STRONG, connectionCreator);
+        }
       }
     }
   }
@@ -1095,11 +1100,12 @@ public class ConstraintUtilities {
   static void commitElement(ConstraintModel model, @NotNull ConstraintWidget widget) {
     WidgetCompanion companion = (WidgetCompanion)widget.getCompanionWidget();
     NlComponent component = (NlComponent)companion.getWidgetModel();
-    boolean isInsideConstraintLayout = (model.getDragDropWidget() == widget) || widget.isInsideConstraintLayout();
-    if (widget.isRoot() || widget.isRootContainer() || !isInsideConstraintLayout) {
+    boolean isDroppedWidget = (model.getDragDropWidget() == widget);
+    boolean isInsideConstraintLayout = widget.isInsideConstraintLayout();
+    if (!isDroppedWidget && (widget.isRoot() || widget.isRootContainer() || !isInsideConstraintLayout)) {
       return;
     }
-    if (isInsideConstraintLayout) {
+    if (isInsideConstraintLayout || isDroppedWidget) {
       setEditorPosition(widget, component, widget.getX(), widget.getY());
     } else {
       clearEditorPosition(component);
