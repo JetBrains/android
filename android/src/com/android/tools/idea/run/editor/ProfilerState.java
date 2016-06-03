@@ -23,7 +23,7 @@ import org.jdom.Element;
 
 import java.util.Properties;
 
-import static com.android.tools.idea.startup.GradleSpecificInitializer.ENABLE_EXPERIMENTAL_PROFILING;
+import static com.android.tools.idea.startup.AndroidStudioInitializer.ENABLE_EXPERIMENTAL_PROFILING;
 
 /**
  * Holds all the project persisted state variables for the profilers.

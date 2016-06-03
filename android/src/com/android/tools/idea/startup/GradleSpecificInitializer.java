@@ -90,10 +90,6 @@ public class GradleSpecificInitializer implements Runnable {
 
   private static final Logger LOG = Logger.getInstance(GradleSpecificInitializer.class);
 
-  @NonNls public static final String ENABLE_EXPERIMENTAL_ACTIONS = "enable.experimental.actions";
-
-  @NonNls public static final String ENABLE_EXPERIMENTAL_PROFILING = "enable.experimental.profiling";
-
   // Paths relative to the IDE installation folder where the Android SDK may be present.
   @NonNls private static final String ANDROID_SDK_FOLDER_NAME = "sdk";
   private static final String[] ANDROID_SDK_RELATIVE_PATHS =
