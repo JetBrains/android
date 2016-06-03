@@ -59,7 +59,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 import static com.android.tools.idea.gradle.util.Projects.requiredAndroidModelMissing;
 
@@ -327,11 +330,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     AndroidSessionInfo info = AndroidSessionInfo.findOldSession(project, null, getUniqueID());
     // note: we look for this run config with any executor
 
-    IDevice rerunDevice = InstantRunUtils.getRestartDevice(env);
-    if (rerunDevice != null) { // first check if this is a session that has been restarted with some info pre-filled in the env
-      deviceFutures = DeviceFutures.forDevices(Collections.singletonList(rerunDevice));
-    }
-    else if (info != null && supportsInstantRun()) {
+    if (info != null && supportsInstantRun()) {
       // if there is an existing previous session, then see if we can detect devices to fast deploy to
       deviceFutures = getFastDeployDevices(executor, facet, info);
 

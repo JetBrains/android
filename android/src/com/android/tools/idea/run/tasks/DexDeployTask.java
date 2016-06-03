@@ -16,21 +16,16 @@
 package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.fd.client.InstantRunClient;
-import com.android.tools.fd.client.UpdateMode;
 import com.android.tools.fd.client.InstantRunBuildInfo;
-import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.fd.client.InstantRunPushFailedException;
+import com.android.tools.fd.client.UpdateMode;
+import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.fd.InstantRunStatsService;
 import com.android.tools.idea.fd.InstantRunUserFeedback;
-import com.android.tools.idea.fd.InstantRunUtils;
-import com.android.tools.idea.fd.RunAsValidityService;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.intellij.execution.runners.ExecutionEnvironment;
-import com.intellij.execution.runners.ExecutionUtil;
 import com.intellij.notification.NotificationType;
-import com.intellij.openapi.application.ApplicationManager;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
@@ -73,22 +68,6 @@ public class DexDeployTask implements LaunchTask {
         return true;
       }
       catch (InstantRunPushFailedException e) {
-        if (InstantRunClient.BROKEN_RUN_AS.equals(e.getMessage())) {
-          launchStatus.terminateLaunch("Restarting build: This device does not support run-as");
-          InstantRunManager.LOG.warn("Restarting build: This device does not support run-as");
-
-          RunAsValidityService.getInstance().addInvalidDevice(device);
-          ApplicationManager.getApplication().invokeLater(new Runnable() {
-            @Override
-            public void run() {
-              InstantRunUtils.setRestartSession(myEnv, device);
-              ExecutionUtil.restart(myEnv);
-            }
-          });
-
-          return true; // not an error condition since we've already terminated and restarted the launch
-        }
-
         launchStatus.terminateLaunch("Error installing cold swap patches: " + e);
         InstantRunManager.LOG.warn("Failed to push dex files: ", e);
 
