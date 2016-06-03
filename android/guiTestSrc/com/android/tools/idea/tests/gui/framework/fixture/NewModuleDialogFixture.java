@@ -23,6 +23,7 @@ import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JLabelMatcher;
 import org.fest.swing.fixture.ContainerFixture;
 import org.fest.swing.fixture.JListFixture;
+import org.fest.swing.fixture.JTextComponentFixture;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -54,6 +55,12 @@ public class NewModuleDialogFixture implements ContainerFixture<JDialog> {
   @NotNull
   public NewModuleDialogFixture chooseModuleType(String name) {
     new JListFixture(robot(), robot().finder().findByType(target(), ASGallery.class)).clickItem(name);
+    return this;
+  }
+
+  @NotNull
+  public NewModuleDialogFixture setModuleName(String name) {
+    new JTextComponentFixture(robot(), robot().finder().findByName(target(), "ModuleName", JTextField.class)).selectAll().enterText(name);
     return this;
   }
 
