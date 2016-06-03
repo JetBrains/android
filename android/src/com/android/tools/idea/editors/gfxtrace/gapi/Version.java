@@ -57,6 +57,10 @@ public class Version {
     return rev.getMajor() == major && rev.getMinor() >= minor;
   }
 
+  public String getSdkPackagePath() {
+    return "extras;android;gapid" + (major == 1 ? "" : "-" + major);
+  }
+
   @Override
   public String toString() {
     StringBuilder result = new StringBuilder().append(major).append('.').append(minor);
