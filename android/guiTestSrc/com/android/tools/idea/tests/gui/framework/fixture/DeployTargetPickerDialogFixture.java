@@ -41,11 +41,12 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.fest.swing.core.matcher.JButtonMatcher.withText;
 import static org.junit.Assert.assertNotNull;
 
-public class ChooseDeviceDialogFixture extends ComponentFixture<ChooseDeviceDialogFixture, JDialog>
+/** Fixture for {@link com.android.tools.idea.run.editor.DeployTargetPickerDialog}. */
+public class DeployTargetPickerDialogFixture extends ComponentFixture<DeployTargetPickerDialogFixture, JDialog>
   implements ContainerFixture<JDialog> {
 
   @NotNull
-  public static ChooseDeviceDialogFixture find(@NotNull Robot robot) {
+  public static DeployTargetPickerDialogFixture find(@NotNull Robot robot) {
     Dialog dialog = WindowFinder.findDialog(DialogMatcher.withTitle(AndroidBundle.message("choose.device.dialog.title")).andShowing())
                                 .withTimeout(TimeUnit.MINUTES.toMillis(2)).using(robot)
                                 .target();
@@ -57,11 +58,11 @@ public class ChooseDeviceDialogFixture extends ComponentFixture<ChooseDeviceDial
         return component.isRunning();
       }
     });
-    return new ChooseDeviceDialogFixture(robot, (JDialog)dialog);
+    return new DeployTargetPickerDialogFixture(robot, (JDialog)dialog);
   }
 
-  private ChooseDeviceDialogFixture(@NotNull Robot robot, @NotNull JDialog target) {
-    super(ChooseDeviceDialogFixture.class, robot, target);
+  private DeployTargetPickerDialogFixture(@NotNull Robot robot, @NotNull JDialog target) {
+    super(DeployTargetPickerDialogFixture.class, robot, target);
   }
 
   @NotNull
@@ -103,7 +104,7 @@ public class ChooseDeviceDialogFixture extends ComponentFixture<ChooseDeviceDial
   }
 
   @NotNull
-  public ChooseDeviceDialogFixture getChooseDeviceDialog(@NotNull String deviceName) {
+  public DeployTargetPickerDialogFixture getChooseDeviceDialog(@NotNull String deviceName) {
     JRadioButtonFixture launchEmulatorButton = new JRadioButtonFixture(robot(), findRadioButtonByText("Launch emulator"));
     launchEmulatorButton.click();
 
@@ -127,7 +128,7 @@ public class ChooseDeviceDialogFixture extends ComponentFixture<ChooseDeviceDial
   }
 
   @NotNull
-  public ChooseDeviceDialogFixture selectUseSameDeviceStep(boolean value) {
+  public DeployTargetPickerDialogFixture selectUseSameDeviceStep(boolean value) {
     JCheckBoxFixture useSameDeviceCheckBox = new JCheckBoxFixture(robot(), "Use same device for future launches");
     useSameDeviceCheckBox.setSelected(value);
     return this;
@@ -143,7 +144,7 @@ public class ChooseDeviceDialogFixture extends ComponentFixture<ChooseDeviceDial
   }
 
   @NotNull
-  public ChooseDeviceDialogFixture selectFirstAvailableDevice() {
+  public DeployTargetPickerDialogFixture selectFirstAvailableDevice() {
     JBList deviceList = robot().finder().findByType(target(), JBList.class);
     for (int i = 0; i < deviceList.getItemsCount(); i++) {
       if (getDeviceNameByIndex(deviceList, i) != null) {
@@ -155,7 +156,7 @@ public class ChooseDeviceDialogFixture extends ComponentFixture<ChooseDeviceDial
   }
 
   @NotNull
-  public ChooseDeviceDialogFixture selectEmulator(@NotNull String emulatorName) {
+  public DeployTargetPickerDialogFixture selectEmulator(@NotNull String emulatorName) {
     // Try to find already-running emulators to launch the app on.
     if (!chooseRunningDeviceStep(emulatorName)) {
       // If we can't find an already-launched device, fire up a new one.

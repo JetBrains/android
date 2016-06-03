@@ -44,11 +44,10 @@ public class LaunchAndroidApplicationTest {
   @Ignore("failed in http://go/aj/job/studio-ui-test/389 and from IDEA")
   @Test
   public void testRunOnEmulator() throws IOException, ClassNotFoundException {
-    guiTest.importSimpleApplication();
-
-    guiTest.ideFrame().runApp(APP_NAME);
-    guiTest.ideFrame().findChooseDeviceDialog().selectFirstAvailableDevice().clickOk();
-
+    guiTest.importSimpleApplication()
+      .runApp(APP_NAME)
+      .selectFirstAvailableDevice()
+      .clickOk();
 
     // Make sure the right app is being used. This also serves as the sync point for the package to get uploaded to the device/emulator.
     guiTest.ideFrame().getRunToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(LOCAL_PATH_OUTPUT), 120);
@@ -68,9 +67,10 @@ public class LaunchAndroidApplicationTest {
       .getCurrentFileContents();
     assertThat(contents).contains("setContentView(R.layout.activity_my);");
 
-    guiTest.ideFrame().debugApp(APP_NAME);
-    guiTest.ideFrame().findChooseDeviceDialog().selectEmulator("Nexus7")
-                                         .clickOk();
+    guiTest.ideFrame()
+      .debugApp(APP_NAME)
+      .selectEmulator("Nexus7")
+      .clickOk();
 
     // Make sure the right app is being used. This also serves as the sync point for the package to get uploaded to the device/emulator.
     guiTest.ideFrame().getDebugToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(LOCAL_PATH_OUTPUT), 120);
