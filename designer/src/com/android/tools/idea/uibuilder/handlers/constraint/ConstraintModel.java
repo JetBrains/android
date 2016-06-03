@@ -347,6 +347,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
       }
       drawConstraintModel.getMouseInteraction().clearIndicators();
     }
+    saveToXML(true);
   }
 
   /**
@@ -419,11 +420,18 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
     }
     List<NlComponent> components = new ArrayList<>();
     for (Selection.Element selectedElement : mySelection.getElements()) {
+      if (selectedElement.widget == myDragDropWidget) {
+        continue;
+      }
       WidgetCompanion companion = (WidgetCompanion)selectedElement.widget.getCompanionWidget();
       NlComponent component = (NlComponent)companion.getWidgetModel();
       components.add(component);
     }
-    selectionModel.setSelection(components);
+    if (!components.isEmpty()) {
+      selectionModel.setSelection(components);
+    } else {
+      selectionModel.clear();
+    }
   }
 
   @Override
@@ -642,7 +650,8 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
       if (USE_GUIDELINES_DURING_DND) {
         if (dropWidget) {
           connectDroppedWidget();
-          mySelection.add(myDragDropWidget);
+          myDragDropWidget = null;
+          mySelection.add(widget);
         }
       }
     }
