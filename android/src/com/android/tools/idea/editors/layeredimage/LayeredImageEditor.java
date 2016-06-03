@@ -74,7 +74,7 @@ class LayeredImageEditor extends UserDataHolderBase implements FileEditor {
     ImageDocument document = myImageEditor.getDocument();
     BufferedImage previousImage = document.getValue();
     document.setValue(Utilities.getDisplayableImage(image));
-    document.setFormat(image.getFormat());
+    document.setFormat(image.getFormat() + "/" + image.getColorMode());
 
     // from ImageEditorUI
     ImageZoomModel zoomModel = myImageEditor.getZoomModel();
