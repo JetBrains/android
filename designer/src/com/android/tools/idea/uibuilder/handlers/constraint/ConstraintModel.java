@@ -333,9 +333,6 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
     for (DrawConstraintModel drawConstraintModel : drawConstraintModels) {
       // Start the autoconnection
       for (SnapCandidate candidate : drawConstraintModel.getMouseInteraction().getSnapCandidates()) {
-        if (!candidate.source.isConnectionAllowed(candidate.target.getOwner())) {
-          continue;
-        }
         int margin = candidate.margin;
         if (candidate.padding != 0) {
           margin = candidate.padding;
