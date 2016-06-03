@@ -24,7 +24,9 @@ import com.intellij.ui.JBColor;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ItemEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumMap;
@@ -227,27 +229,23 @@ public class StateChartVisualTest extends VisualTest {
         return radioVariance.get();
       }
     }));
-    controls.add(VisualTest.createButton("Add Fruit Series", new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        RangedDiscreteSeries networkData = new RangedDiscreteSeries(MockFruitState.class, mXRange);
-        mNetworkStatusChart.addSeries(networkData);
-        mNetworkDataEntries.add(networkData);
-      }
+    controls.add(VisualTest.createButton("Add Fruit Series", e -> {
+      RangedDiscreteSeries networkData = new RangedDiscreteSeries(MockFruitState.class, mXRange);
+      mNetworkStatusChart.addSeries(networkData);
+      mNetworkDataEntries.add(networkData);
     }));
-    controls.add(VisualTest.createButton("Add Strength Series", new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        RangedDiscreteSeries radioData = new RangedDiscreteSeries(MockStrengthState.class, mXRange);
-        mRadioStateChart.addSeries(radioData);
-        mRadioDataEntries.add(radioData);
-      }
+    controls.add(VisualTest.createButton("Add Strength Series", e -> {
+      RangedDiscreteSeries radioData = new RangedDiscreteSeries(MockStrengthState.class, mXRange);
+      mRadioStateChart.addSeries(radioData);
+      mRadioDataEntries.add(radioData);
     }));
-    controls.add(VisualTest.createCheckbox("Shift xRange Min", new ItemListener() {
-      @Override
-      public void itemStateChanged(ItemEvent itemEvent) {
-        mAnimatedTimeRange.setShift(itemEvent.getStateChange() == ItemEvent.SELECTED);
-      }
+    controls.add(VisualTest.createCheckbox("Shift xRange Min",
+                                           itemEvent -> mAnimatedTimeRange.setShift(itemEvent.getStateChange() == ItemEvent.SELECTED)));
+    controls.add(VisualTest.createCheckbox("Text Mode", itemEvent -> {
+      StateChart.RenderMode mode = itemEvent.getStateChange() == ItemEvent.SELECTED ?
+                                   StateChart.RenderMode.TEXT : StateChart.RenderMode.BAR;
+      mNetworkStatusChart.setRenderMode(mode);
+      mRadioStateChart.setRenderMode(mode);
     }));
     controls.add(
       new Box.Filler(new Dimension(0, 0), new Dimension(300, Integer.MAX_VALUE),
