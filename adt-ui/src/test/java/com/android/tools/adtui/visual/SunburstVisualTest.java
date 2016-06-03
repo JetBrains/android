@@ -18,7 +18,6 @@ package com.android.tools.adtui.visual;
 
 import com.android.annotations.NonNull;
 import com.android.tools.adtui.Animatable;
-import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.chart.SunburstChart;
 import com.android.tools.adtui.ValuedTreeNode;
 
