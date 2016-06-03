@@ -42,6 +42,7 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.wm.IdeGlassPane;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollBar;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.Magnificator;
@@ -353,6 +354,8 @@ public class DesignSurface extends JPanel implements Disposable {
   }
 
   private void addLayers(@NotNull NlModel model) {
+    assert myScreenView != null;
+
     switch (myScreenMode) {
       case SCREEN_ONLY:
         addScreenLayers();
@@ -374,6 +377,8 @@ public class DesignSurface extends JPanel implements Disposable {
   }
 
   private void addScreenLayers() {
+    assert myScreenView != null;
+
     myLayers.add(new ScreenViewLayer(myScreenView));
     myLayers.add(new SelectionLayer(myScreenView));
 
@@ -471,7 +476,7 @@ public class DesignSurface extends JPanel implements Disposable {
     for (Layer layer : myLayers) {
       if (layer instanceof ConstraintsLayer) {
         ConstraintsLayer constraintsLayer = (ConstraintsLayer)layer;
-        if (constraintsLayer.isShowOnHover() != true) {
+        if (!constraintsLayer.isShowOnHover()) {
           constraintsLayer.setShowOnHover(true);
           repaint();
         }
@@ -486,7 +491,7 @@ public class DesignSurface extends JPanel implements Disposable {
     for (Layer layer : myLayers) {
       if (layer instanceof ConstraintsLayer) {
         ConstraintsLayer constraintsLayer = (ConstraintsLayer)layer;
-        if (constraintsLayer.isShowOnHover() != false) {
+        if (constraintsLayer.isShowOnHover()) {
           constraintsLayer.setShowOnHover(false);
           repaint();
         }
@@ -532,7 +537,7 @@ public class DesignSurface extends JPanel implements Disposable {
   }
 
   public void hover(@SwingCoordinate int x, @SwingCoordinate int y) {
-    // For constraint layer, set show on hover if they are above their screenview
+    // For constraint layer, set show on hover if they are above their screen view
     ScreenView current = getHoverScreenView(x, y);
     for (Layer layer : myLayers) {
       if (layer instanceof ConstraintsLayer) {
@@ -1119,6 +1124,7 @@ public class DesignSurface extends JPanel implements Disposable {
         graphics.fillRect(lx, ly + RULER_SIZE_PX, RULER_SIZE_PX, height - RULER_SIZE_PX);
 
         graphics.setColor(RULER_TICK_COLOR);
+        graphics.setStroke(SOLID_STROKE);
 
         int x = myScreenX + lx - lx % 100;
         int px2 = x + 10 - 100;
@@ -1183,9 +1189,6 @@ public class DesignSurface extends JPanel implements Disposable {
       int x = myScreenX;
       int y = myScreenY;
       Dimension size = myScreenView.getSize();
-      if (size == null) {
-        return;
-      }
 
       Stroke prevStroke = g2d.getStroke();
       g2d.setStroke(DASHED_STROKE);
@@ -1257,7 +1260,7 @@ public class DesignSurface extends JPanel implements Disposable {
   }
 
   /**
-   * Notifies the design surface that the given screenview (which must be showing in this design surface)
+   * Notifies the design surface that the given screen view (which must be showing in this design surface)
    * has been rendered (possibly with errors)
    */
   public void updateErrorDisplay(@Nullable final RenderResult result) {
@@ -1449,7 +1452,7 @@ public class DesignSurface extends JPanel implements Disposable {
     @Override
     public void doLayout() {
       super.doLayout();
-      setBackground(Color.RED);
+      setBackground(JBColor.RED);
 
       if (!myProgressVisible) {
         return;
