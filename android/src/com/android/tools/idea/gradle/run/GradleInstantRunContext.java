@@ -79,16 +79,6 @@ public class GradleInstantRunContext implements InstantRunContext {
     return myApplicationId;
   }
 
-  @Override
-  public long getSecretToken() {
-    InstantRunBuildInfo instantRunBuildInfo = getInstantRunBuildInfo();
-    long token = 0;
-    if (instantRunBuildInfo != null) {
-      token = instantRunBuildInfo.getSecretToken();
-    }
-    return token != 0 ? token : PackagingUtils.computeApplicationHash(myModel.getAndroidProject().getBuildFolder());
-  }
-
   @NotNull
   @Override
   public HashCode getManifestResourcesHash() {

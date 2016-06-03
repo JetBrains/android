@@ -18,13 +18,17 @@ package com.android.tools.idea.fd;
 import com.android.SdkConstants;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
-import com.android.ide.common.packaging.PackagingUtils;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.fd.client.*;
-import com.android.tools.idea.fd.actions.RestartActivityAction;
+import com.android.tools.fd.client.InstantRunBuildInfo;
+import com.android.tools.fd.client.InstantRunClient;
+import com.android.tools.fd.client.InstantRunPushFailedException;
+import com.android.tools.fd.client.UpdateMode;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.run.*;
+import com.android.tools.idea.run.AndroidProgramRunner;
+import com.android.tools.idea.run.ApkProviderUtil;
+import com.android.tools.idea.run.ApkProvisionException;
+import com.android.tools.idea.run.InstalledPatchCache;
 import com.android.tools.idea.stats.UsageTracker;
 import com.android.utils.ILogger;
 import com.google.common.collect.ImmutableSet;
@@ -40,7 +44,6 @@ import com.intellij.notification.NotificationGroup;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.ToolWindowId;
@@ -170,31 +173,16 @@ public final class InstantRunManager implements ProjectComponent {
     manager.myFileChangeListener.setEnabled(InstantRunSettings.isInstantRunEnabled());
   }
 
-  @NotNull
-  public static InstantRunClient getInstantRunClient(@NotNull Module module) {
-    AndroidFacet facet = InstantRunGradleUtils.findAppModule(module, module.getProject());
-    assert facet != null : module;
-    AndroidGradleModel model = AndroidGradleModel.get(facet);
-    assert model != null;
-    return getInstantRunClient(model, facet);
-  }
-
-  @NotNull
-  private static InstantRunClient getInstantRunClient(@NotNull AndroidGradleModel model, @NotNull AndroidFacet facet) {
-
-    String packageName = getPackageName(facet);
-    assert packageName != null : "Unable to obtain package name for " + facet.getModule().getName();
-    // TODO : can't we call the getInstantRunClient(InstantRunContext) directly ?
-    InstantRunContext context = InstantRunGradleUtils.createGradleProjectContext(facet.getModule());
-    long token = context == null || context.getSecretToken() == 0
-                 ? PackagingUtils.computeApplicationHash(model.getAndroidProject().getBuildFolder())
-                 : context.getSecretToken();
-    return new InstantRunClient(packageName, new InstantRunUserFeedback(facet.getModule()), ILOGGER, token);
-  }
-
-  @NotNull
+  @Nullable
   public static InstantRunClient getInstantRunClient(@NotNull InstantRunContext context) {
-    return new InstantRunClient(context.getApplicationId(), null, ILOGGER, context.getSecretToken());
+    InstantRunBuildInfo buildInfo = context.getInstantRunBuildInfo();
+    if (buildInfo == null) {
+      // we always obtain the secret token from the build info, and if a build info doesn't exist,
+      // there is no point connecting to the app, we'll be doing a clean build anyway
+      return null;
+    }
+
+    return new InstantRunClient(context.getApplicationId(), null, ILOGGER, buildInfo.getSecretToken());
   }
 
   /**
@@ -211,7 +199,12 @@ public final class InstantRunManager implements ProjectComponent {
     AndroidGradleModel model = AndroidGradleModel.get(facet);
     assert model != null : "Instant Run push artifacts called without a Gradle model";
 
-    InstantRunClient client = getInstantRunClient(model, facet);
+    InstantRunContext context = InstantRunGradleUtils.createGradleProjectContext(facet);
+    assert context != null : facet.getModule();
+
+    InstantRunClient client = getInstantRunClient(context);
+    assert client != null;
+
     updateMode = client.pushPatches(device,
                               buildInfo,
                               updateMode,
