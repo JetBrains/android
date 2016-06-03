@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.monitor.ui;
 
-import com.android.tools.adtui.AccordionLayout;
 import com.android.tools.adtui.Animatable;
-import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.Range;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.RotatedLabel;
 import com.intellij.ui.components.JBPanel;
+import com.intellij.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -30,13 +29,9 @@ import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
 import java.awt.*;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
-import java.util.ArrayDeque;
 import java.util.List;
 
-public abstract class BaseSegment extends JComponent {
+public abstract class BaseSegment extends JComponent implements ProfilerEventListener {
 
   public enum SegmentType {
     TIME,
@@ -48,21 +43,6 @@ public abstract class BaseSegment extends JComponent {
   }
 
   private static final int SPACER_WIDTH = 100;
-
-  /**
-   * TODO consider getting OS/system specific double-click intervals.
-   * If this is too large, however, the delay in dispatching the queued events would be significantly noticeable. The lag is undesirable
-   * if the user is trying to perform other operations such as selection.
-   */
-  private static final int MULTI_CLICK_INTERVAL_MS = 300;
-
-  /**
-   * A mouse drag threshold to short circuit the double-click detection logic. Once the user starts dragging the mouse beyond this distance
-   * value, all queued up events will be dispatched immediately.
-   */
-  private static final int MOUSE_DRAG_DISTANCE_THRESHOLD = 5;
-
-  private static final int MULTI_CLICK_THRESHOLD = 2;
 
   /**
    * Top/bottom border between segments.
@@ -90,21 +70,14 @@ public abstract class BaseSegment extends JComponent {
   @NotNull
   protected Range mXRange;
 
-  /**
-   * Mouse events that are queued up as the segment waits for the double-click event. See {@link #initializeListeners()}.
-   */
-  private final ArrayDeque<MouseEvent> mDelayedEvents;
+  @NotNull
+  protected final EventDispatcher<ProfilerEventListener> mEventDispatcher;
 
-  private boolean mMultiClicked;
-
-  private Point mMousePressedPosition;
-
-  public BaseSegment(@NotNull String name, @NotNull Range scopedRange) {
+  public BaseSegment(@NotNull String name, @NotNull Range xRange, @NotNull EventDispatcher<ProfilerEventListener> dispatcher) {
     myName = name;
-    mXRange = scopedRange;
-    mDelayedEvents = new ArrayDeque<>();
-
-    initializeListeners();
+    mXRange = xRange;
+    mEventDispatcher = dispatcher;
+    mEventDispatcher.addListener(this);
   }
 
   public static int getSpacerWidth() {
@@ -252,118 +225,4 @@ public abstract class BaseSegment extends JComponent {
   protected void setRightContent(@NotNull JPanel panel) {}
 
   protected void setTopCenterContent(@NotNull JPanel panel) {}
-
-  private void initializeListeners() {
-    // Add mouse listener to support expand/collapse when user double-clicks on the Segment.
-    // Note that other mouse events have to be queued up for a certain delay to allow the listener to detect the second click.
-    // If the second click event has not arrived within the time limit, the queued events are dispatched up the tree to allow other
-    // components to perform operations such as selection.
-    addMouseListener(new MouseListener() {
-      @Override
-      public void mousePressed(MouseEvent e) {
-        // Cache the mouse pressed position to detect dragging threshold.
-        mMousePressedPosition = e.getPoint();
-        if (e.getClickCount() >= MULTI_CLICK_THRESHOLD && !mDelayedEvents.isEmpty()) {
-          // If a multi-click event has arrived and the dispatch timer below has not run to dispatch the queue events,
-          // then process the multi-click.
-          mMultiClicked = true;
-          Container parent = getParent();
-          if (parent != null) {
-            LayoutManager layout = parent.getLayout();
-            if (layout instanceof AccordionLayout) {
-              // TODO it is strange to have logic that toggles other segments in here. We should consider refactoring this to some
-              // higher level "Event Manager" system that handle events that affect all segments.
-              AccordionLayout accordion = (AccordionLayout)layout;
-              accordion.toggleMaximize(BaseSegment.this);
-
-              // Find all the Segments inside the layout and toggle their states.
-              synchronized (parent.getTreeLock()) {
-                AccordionLayout.AccordionState state = accordion.getState(BaseSegment.this);
-                for (Component child : parent.getComponents()) {
-                  if (child instanceof BaseSegment) {
-                    ((BaseSegment)child).toggleView(state == AccordionLayout.AccordionState.MAXIMIZE);
-                  }
-                }
-              }
-            }
-          }
-        } else {
-          mMultiClicked = false;
-          mDelayedEvents.add(e);
-
-          Timer dispatchTimer = new Timer(MULTI_CLICK_INTERVAL_MS, e1 -> dispatchOrAbsorbEvents());
-          dispatchTimer.setRepeats(false);
-          dispatchTimer.start();
-        }
-      }
-
-      @Override
-      public void mouseClicked(MouseEvent e) {
-        dispatchOrDelayEvent(e);
-      }
-
-      @Override
-      public void mouseReleased(MouseEvent e) {
-        dispatchOrDelayEvent(e);
-      }
-
-      @Override
-      public void mouseEntered(MouseEvent e) {
-        dispatchOrDelayEvent(e);
-      }
-
-      @Override
-      public void mouseExited(MouseEvent e) {
-        dispatchOrDelayEvent(e);
-      }
-    });
-
-    // MouseMotionListener to detect the distance the user has dragged since the last mouse press.
-    // Dispatch the queued events immediately if the threshold is passed.
-    addMouseMotionListener(new MouseMotionListener() {
-      @Override
-      public void mouseDragged(MouseEvent e) {
-        dispatchOrDelayEvent(e);
-        if (!mDelayedEvents.isEmpty()) {
-          double distance = Point.distance(mMousePressedPosition.getX(), mMousePressedPosition.getY(),
-                                           e.getPoint().getX(), e.getPoint().getY());
-          if (distance > MOUSE_DRAG_DISTANCE_THRESHOLD) {
-            dispatchOrAbsorbEvents();
-          }
-        }
-      }
-
-      @Override
-      public void mouseMoved(MouseEvent e) {
-        dispatchOrDelayEvent(e);
-      }
-    });
-  }
-
-  /**
-   * Queue the MouseEvent if the dispatch timer has started and there are already events in the queue.
-   * Dispatch the event immediately to the parent otherwise.
-   */
-  private void dispatchOrDelayEvent(MouseEvent e) {
-    if (mDelayedEvents.isEmpty()) {
-      getParent().dispatchEvent(e);
-    } else {
-      mDelayedEvents.addLast(e);
-    }
-  }
-
-  /**
-   * If a multi-click event has not occurred, dispatch all the queued events to the parent in order.
-   * Swallows all the queued events otherwise.
-   */
-  private void dispatchOrAbsorbEvents() {
-    if (mMultiClicked) {
-      mDelayedEvents.clear();
-    } else {
-      while (!mDelayedEvents.isEmpty()) {
-        getParent().dispatchEvent(mDelayedEvents.remove());
-      }
-    }
-  }
-
 }

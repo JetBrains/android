@@ -25,18 +25,18 @@ import com.android.tools.adtui.visual.EventVisualTest;
 import com.android.tools.adtui.visual.VisualTest;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.ui.BaseSegment;
+import com.android.tools.idea.monitor.ui.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.TimeAxisSegment;
 import com.android.tools.idea.monitor.ui.cpu.view.CpuUsageSegment;
 import com.android.tools.idea.monitor.ui.events.view.EventSegment;
 import com.android.tools.idea.monitor.ui.memory.view.MemorySegment;
 import com.android.tools.idea.monitor.ui.network.view.NetworkSegment;
 import com.intellij.ui.components.JBPanel;
+import com.intellij.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
@@ -109,8 +109,13 @@ public class ProfilerOverviewVisualTest extends VisualTest {
 
   private RangedSimpleSeries<EventAction<StackedEventComponent.Action, String>> mActivityEventData;
 
+  private EventDispatcher<ProfilerEventListener> mEventDispatcher;
+
+  private Component mResetProfilersButton;
+
   @Override
   protected void initialize() {
+    mEventDispatcher = EventDispatcher.create(ProfilerEventListener.class);
     mDataStore = new VisualTestSeriesDataStore();
     super.initialize();
   }
@@ -179,7 +184,6 @@ public class ProfilerOverviewVisualTest extends VisualTest {
 
   @Override
   public void populateUi(JPanel panel) {
-
     GridBagLayout gbl = new GridBagLayout();
     GridBagConstraints gbc = new GridBagConstraints();
     JBPanel gridBagPanel = new JBPanel();
@@ -255,12 +259,33 @@ public class ProfilerOverviewVisualTest extends VisualTest {
     gridBagPanel.add(rightSpacer, gbc);
     rightSpacer.setVisible(false);  // hide right space in L1 by default.
 
-    // Add a ComponentListener on the timeline segment so the SelectionComponent can resize
-    // based on whether we are in L1 or L2 view.
-    timeSegment.addComponentListener(new ComponentAdapter() {
+    // Resize the SelectionComponent based on whether we are in L1 or L2 view.
+    // TODO construct/destroyed Level3 segment/elements as we expand/collapse segments
+    mEventDispatcher.addListener(new ProfilerEventListener() {
       @Override
-      public void componentResized(ComponentEvent e) {
-        rightSpacer.setVisible(timeSegment.isRightSpacerVisible());
+      public void profilerExpanded(@NotNull BaseSegment.SegmentType segmentType) {
+        switch (segmentType) {
+          case NETWORK:
+            mLayout.setState(networkSegment, AccordionLayout.AccordionState.MAXIMIZE);
+            break;
+          case CPU:
+            mLayout.setState(cpuSegment, AccordionLayout.AccordionState.MAXIMIZE);
+            break;
+          case MEMORY:
+            mLayout.setState(memorySegment, AccordionLayout.AccordionState.MAXIMIZE);
+            break;
+        }
+
+        rightSpacer.setVisible(true);
+        mResetProfilersButton.setEnabled(true);
+      }
+
+      @Override
+      public void profilersReset() {
+        // Sets all the components back to their preferred states.
+        mLayout.resetComponents();
+        rightSpacer.setVisible(false);
+        mResetProfilersButton.setEnabled(false);
       }
     });
   }
@@ -276,6 +301,10 @@ public class ProfilerOverviewVisualTest extends VisualTest {
     JComboBox<String> processCb = new JComboBox<>(new String[]{"Process1", "Process2"});
     processCb.addActionListener(e -> getChoreographer().reset());
 
+    mResetProfilersButton = VisualTest.createButton("Back to L1", e -> mEventDispatcher.getMulticaster().profilersReset());
+    mResetProfilersButton.setEnabled(false);
+
+    panel.add(mResetProfilersButton);
     panel.add(deviceCb);
     panel.add(processCb);
     return panel;
@@ -285,21 +314,20 @@ public class ProfilerOverviewVisualTest extends VisualTest {
     BaseSegment segment;
     switch (type) {
       case TIME:
-        segment = new TimeAxisSegment(mXRange, mTimeAxis);
+        segment = new TimeAxisSegment(mXRange, mTimeAxis, mEventDispatcher);
         break;
       case EVENT:
-        segment = new EventSegment<>(mXGlobalRange, mSystemEventData, mFragmentEventData, mActivityEventData, MOCK_ICONS);
+        segment = new EventSegment<>(mXGlobalRange, mSystemEventData, mFragmentEventData, mActivityEventData, MOCK_ICONS, mEventDispatcher);
         break;
       case CPU:
-        // TODO use L1 segment instead
-        segment = new CpuUsageSegment(mXRange, mDataStore);
+        segment = new CpuUsageSegment(mXRange, mDataStore, mEventDispatcher);
         break;
       case NETWORK:
-        segment = new NetworkSegment(mXRange, mDataStore);
+        segment = new NetworkSegment(mXRange, mDataStore, mEventDispatcher);
         break;
       case MEMORY:
       default:
-        segment = new MemorySegment(mXRange, mDataStore);
+        segment = new MemorySegment(mXRange, mDataStore, mEventDispatcher);
         break;
     }
 

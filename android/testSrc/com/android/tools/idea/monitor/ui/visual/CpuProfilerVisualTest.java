@@ -22,8 +22,10 @@ import com.android.tools.adtui.Range;
 import com.android.tools.adtui.model.RangedDiscreteSeries;
 import com.android.tools.adtui.visual.VisualTest;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
+import com.android.tools.idea.monitor.ui.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.cpu.view.CpuUsageSegment;
 import com.android.tools.idea.monitor.ui.cpu.view.ThreadsSegment;
+import com.intellij.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -83,11 +85,12 @@ public class CpuProfilerVisualTest extends VisualTest {
     AnimatedTimeRange AnimatedTimeRange = new AnimatedTimeRange(timeRange, mStartTimeMs);
 
     //TODO Update test data for CpuUsageSegment to be exactly what it was.
-    mCPULevel2Segment = new CpuUsageSegment(timeRange, mDataStore);
+    EventDispatcher<ProfilerEventListener> dummyDispatcher = EventDispatcher.create(ProfilerEventListener.class);
+    mCPULevel2Segment = new CpuUsageSegment(timeRange, mDataStore, dummyDispatcher);
     mThreadsSegment = new ThreadsSegment(timeRange, (threads) -> {
       // TODO: show L3 segment with the charts corresponding to threads selected.
       // Hide any charts corresponding to unselected threads and hide L3 segment in case no threads are selected
-    });
+    }, dummyDispatcher);
 
     List<Animatable> animatables = new ArrayList<>();
     animatables.add(AnimatedTimeRange);
