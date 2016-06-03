@@ -47,7 +47,7 @@ public class LayeredImageEditorProvider implements FileEditorProvider, DumbAware
     // There is always a standard images provider
     assert provider != null;
 
-    FileEditor editor = provider.createEditor(project, file);
+    FileEditor editor = provider.createEditor(project, new EmptyVirtualFile(file));
     return new LayeredImageEditor(project, file, editor);
   }
 
@@ -77,4 +77,5 @@ public class LayeredImageEditorProvider implements FileEditorProvider, DumbAware
   public FileEditorPolicy getPolicy() {
     return FileEditorPolicy.PLACE_BEFORE_DEFAULT_EDITOR;
   }
+
 }
