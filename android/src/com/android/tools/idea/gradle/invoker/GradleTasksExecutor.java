@@ -945,10 +945,6 @@ public class GradleTasksExecutor extends Task.Backgroundable {
     private boolean myUserAcceptedCancel;
 
     @Override
-    public void projectOpened(Project project) {
-    }
-
-    @Override
     public boolean canCloseProject(Project project) {
       if (!project.equals(myProject)) {
         return true;
