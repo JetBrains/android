@@ -616,8 +616,12 @@ public class NlComponent {
     }
   }
 
-  public void removeAndroidAttribute(@NotNull String name) {
-    setAttribute(ANDROID_URI, name, null);
+  public void removeAndroidAttribute(@NotNull String attribute) {
+    setAttribute(ANDROID_URI, attribute, null);
+  }
+
+  public void removeAttribute(@NotNull String namespace, @NotNull String attribute) {
+    setAttribute(namespace, attribute, null);
   }
 
   @Nullable

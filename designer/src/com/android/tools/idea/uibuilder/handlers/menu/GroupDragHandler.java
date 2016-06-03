@@ -108,11 +108,15 @@ final class GroupDragHandler extends DragHandler {
   public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers) {
     if (isActionBarGroupActive()) {
       // TODO Handle more than one item
-      myItems.get(0).setAndroidAttribute(SdkConstants.ATTR_SHOW_AS_ACTION, SdkConstants.VALUE_ALWAYS);
+      myItems.get(0).setAttribute(getNamespace(), SdkConstants.ATTR_SHOW_AS_ACTION, SdkConstants.VALUE_ALWAYS);
     }
     else {
-      myItems.get(0).removeAndroidAttribute(SdkConstants.ATTR_SHOW_AS_ACTION);
+      myItems.get(0).removeAttribute(getNamespace(), SdkConstants.ATTR_SHOW_AS_ACTION);
     }
+  }
+
+  private String getNamespace() {
+    return editor.isModuleDependency(SdkConstants.APPCOMPAT_LIB_ARTIFACT) ? SdkConstants.AUTO_URI : SdkConstants.ANDROID_URI;
   }
 
   @Nullable
