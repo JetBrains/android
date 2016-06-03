@@ -100,9 +100,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   @NotNull private final GpuState myState = new GpuState(this);
   @NotNull private final VirtualFile myFile;
   @NotNull private final JComponent myMainUi;
-
   @NotNull private final List<PathListener> myPathListeners = new ArrayList<PathListener>();
-  @NotNull private final PathStore<Path> myLastActivatadPath = new PathStore<Path>();
 
   @Nullable private GapisConnection myGapisConnection;
   @Nullable private ServiceClient myClient;
@@ -342,11 +340,6 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   }
 
   public void activatePath(@NotNull final Path path, final Object source) {
-    synchronized (myLastActivatadPath) {
-      if (!myLastActivatadPath.update(path)) {
-        return;
-      }
-    }
 
     final PathListener.PathEvent event = new PathListener.PathEvent(path, source);
     // All path notifications are executed in the editor thread
