@@ -58,6 +58,7 @@ public class NewModuleTest {
       .waitForGradleProjectSyncToFinish()
       .openFromMenu(NewModuleDialogFixture::find, "File", "New", "New Module...")
       .chooseModuleType("Android Library")
+      .clickNextToStep("Android Library")
       .clickFinish()
       .waitForGradleProjectSyncToFinish()
       .getEditor()
