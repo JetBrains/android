@@ -313,7 +313,8 @@ public class InstantRunBuilder implements BeforeRunBuilder {
      * @return whether the app associated with the given module is already running on the given device and listening for IR updates
      */
     default boolean isAppInForeground(@NotNull IDevice device, @NotNull InstantRunContext context) {
-      return InstantRunManager.getInstantRunClient(context).getAppState(device) == AppState.FOREGROUND;
+      InstantRunClient instantRunClient = InstantRunManager.getInstantRunClient(context);
+      return instantRunClient != null && instantRunClient.getAppState(device) == AppState.FOREGROUND;
     }
   }
 }

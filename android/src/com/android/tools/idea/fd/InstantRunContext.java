@@ -37,19 +37,6 @@ public interface InstantRunContext {
   String getApplicationId();
 
   /**
-   * An IR enabled app has a server embedded within it that listens for changes sent from the host. In order to restrict who
-   * can communicate to that server, a secret token is embedded within the app, and anyone who wishes to communicate must send
-   * this token.
-   *
-   * Typically, this token is the project path on disk, which is only available on the host where the build takes place.
-   *
-   * NOTE: See b/28200898. Currently Gradle doesn't inject this and assumes that the key is the Gradle project path.
-   *
-   * @return a secret token that will be embedded within the IR capable app and will be necessary to communicate to the app.
-   */
-  long getSecretToken();
-
-  /**
    * @return a hashcode which encapsulates the set of resources referenced from the manifest along with the values of those resources.
    * A change to the resources referenced from the manifest should result in a full build and install.
    */
