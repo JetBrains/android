@@ -30,7 +30,7 @@ public final class MemoryRangePath extends Path {
   }
 
   @Override
-  public Path getParent() {
+  public AtomPath getParent() {
     return myAfter;
   }
 

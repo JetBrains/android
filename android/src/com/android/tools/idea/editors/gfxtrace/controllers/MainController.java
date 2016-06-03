@@ -17,11 +17,13 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.intellij.execution.ui.RunnerLayoutUi;
+import com.intellij.execution.ui.layout.PlaceInGrid;
+import com.intellij.execution.ui.layout.impl.RunnerContentUi;
+import com.intellij.execution.ui.layout.impl.ViewImpl;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.JBColor;
-import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.content.Content;
@@ -37,6 +39,10 @@ public class MainController extends Controller {
   }
 
   @NotNull private JBPanel myPanel = new JBPanel(new BorderLayout());
+  @NotNull private final RunnerLayoutUi myLayoutUi;
+  @NotNull private final Content myAtomTab;
+  @NotNull private final Content myStateTab;
+  @NotNull private final Content myMemoryTab;
 
   private MainController(@NotNull GfxTraceEditor editor) {
     super(editor);
@@ -52,50 +58,64 @@ public class MainController extends Controller {
     top.add(ContextController.createUI(editor));
     myPanel.add(top, BorderLayout.NORTH);
 
-    ThreeComponentsSplitter threePanes = new ThreeComponentsSplitter(true);
-    myPanel.add(threePanes, BorderLayout.CENTER);
-    threePanes.setDividerWidth(5);
+    // ThreeComponentsSplitter instead of JBSplitter as it lets us set an exact size for the first component.
+    ThreeComponentsSplitter splitter = new ThreeComponentsSplitter(true);
+    myPanel.add(splitter, BorderLayout.CENTER);
+    splitter.setDividerWidth(5);
 
     // Add the scrubber view to the top panel.
-    threePanes.setFirstComponent(ScrubberController.createUI(editor));
-    threePanes.setFirstSize(150);
+    splitter.setFirstComponent(ScrubberController.createUI(editor));
+    splitter.setFirstSize(150);
 
     // Configure the image tabs.
     // we use RunnerLayoutUi to allow the user to drag the tabs out of the JBRunnerTabs
-    RunnerLayoutUi layoutUi = RunnerLayoutUi.Factory.getInstance(editor.getProject()).create("gfx-runnerId", editor.getName(), editor.getSessionName(), this);
-    addTab(layoutUi, FrameBufferController.createUI(editor), "Framebuffer");
-    addTab(layoutUi, TexturesController.createUI(editor), "Textures");
-    addTab(layoutUi, GeometryController.createUI(editor), "Geometry");
+    myLayoutUi = RunnerLayoutUi.Factory.getInstance(editor.getProject()).create("gfx-trace-runnerId", editor.getName(), editor.getSessionName(), this);
+    myAtomTab = addTab(myLayoutUi, AtomController.createUI(editor), "GPU Commands", PlaceInGrid.left);
+    addTab(myLayoutUi, FrameBufferController.createUI(editor), "Framebuffer", PlaceInGrid.center);
+    addTab(myLayoutUi, TexturesController.createUI(editor), "Textures", PlaceInGrid.center);
+    addTab(myLayoutUi, GeometryController.createUI(editor), "Geometry", PlaceInGrid.center);
+    myStateTab = addTab(myLayoutUi, StateController.createUI(editor), "GPU State", PlaceInGrid.center);
+    myMemoryTab = addTab(myLayoutUi, MemoryController.createUI(editor), "Memory", PlaceInGrid.center);
 
-    // Now add the atom tree and buffer views to the middle pane in the main pane.
-    final JBSplitter middleSplitter = new JBSplitter(false);
-    middleSplitter.setMinimumSize(JBUI.size(100, 10));
-    middleSplitter.setFirstComponent(AtomController.createUI(editor));
-    middleSplitter.setSecondComponent(layoutUi.getComponent());
-    middleSplitter.setProportion(0.3f);
-    threePanes.setInnerComponent(middleSplitter);
-
-    // Configure the bottom splitter.
-    JBSplitter bottomSplitter = new JBSplitter(false);
-    bottomSplitter.setMinimumSize(JBUI.size(100, 10));
-    bottomSplitter.setFirstComponent(StateController.createUI(editor));
-    bottomSplitter.setSecondComponent(MemoryController.createUI(editor));
-    threePanes.setLastComponent(bottomSplitter);
-    threePanes.setLastSize(300);
-
-    // Make sure the bottom splitter honors minimum sizes.
-    threePanes.setHonorComponentsMinimumSize(true);
-    Disposer.register(this, threePanes);
+    splitter.setLastComponent(myLayoutUi.getComponent());
   }
 
-  private static void addTab(RunnerLayoutUi layoutUi, JComponent component, String name) {
+  private static Content addTab(@NotNull RunnerLayoutUi layoutUi, @NotNull JComponent component, @NotNull String name, @NotNull PlaceInGrid defaultPlace) {
     Content content = layoutUi.createContent(name + "-contentId", component, name, null, null);
     content.setCloseable(false);
-    layoutUi.addContent(content);
+    layoutUi.addContent(content, -1, defaultPlace, false);
+    return content;
   }
 
   @Override
   public void notifyPath(PathEvent event) {
+    if (event.findTypedMemoryPath() != null || event.findMemoryPath() != null) {
+      select(myMemoryTab);
+    }
+    else if (event.findStatePath() != null) {
+      select(myStateTab);
+    }
+    else if (event.findAtomPath() != null) {
+      select(myAtomTab);
+    }
+  }
+
+  private void select(Content content) {
+    restoreIfMinimized(myLayoutUi, content);
+    myLayoutUi.selectAndFocus(content, true, true, true);
+  }
+
+  /**
+   * @see XWatchesViewImpl#showWatchesTab(XDebugSessionImpl)
+   */
+  public static void restoreIfMinimized(RunnerLayoutUi layoutUi, Content content) {
+    JComponent component = layoutUi.getComponent();
+    if (component instanceof DataProvider) {
+      RunnerContentUi ui = RunnerContentUi.KEY.getData(((DataProvider)component));
+      if (ui != null) {
+        ui.restoreContent(content.getUserData(ViewImpl.ID));
+      }
+    }
   }
 
   @Override
