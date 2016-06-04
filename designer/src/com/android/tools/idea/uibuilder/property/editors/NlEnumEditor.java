@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.ide.common.rendering.api.StyleResourceValue;
+import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.google.common.collect.ImmutableList;
@@ -101,6 +102,9 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
         return tagName != null && StyleFilter.hasWidgetStyles(property.getModel().getProject(), property.getResolver(), tagName);
       default:
         if (property.getName().endsWith(ValueWithDisplayString.TEXT_APPEARANCE_SUFFIX)) {
+          return true;
+        }
+        if (AndroidDomUtil.SPECIAL_RESOURCE_TYPES.get(property.getName()) == ResourceType.ID) {
           return true;
         }
         AttributeDefinition definition = property.getDefinition();
@@ -221,6 +225,9 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
       default:
         if (property.getName().endsWith(ValueWithDisplayString.TEXT_APPEARANCE_SUFFIX)) {
           values = createTextAttributeArray(property);
+        }
+        else if (AndroidDomUtil.SPECIAL_RESOURCE_TYPES.get(property.getName()) == ResourceType.ID) {
+          values = createChoicesForId(property);
         }
         else {
           values = definition == null ? ValueWithDisplayString.EMPTY_ARRAY : ValueWithDisplayString.create(definition.getValues());
@@ -411,6 +418,12 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
       }
     }
     return values.toArray(new ValueWithDisplayString[0]);
+  }
+
+  private static ValueWithDisplayString[] createChoicesForId(@NotNull NlProperty property) {
+    return IdAnalyzer.findIdsForProperty(property).stream()
+      .map(id -> new ValueWithDisplayString(id, ID_PREFIX + id))
+      .toArray(ValueWithDisplayString[]::new);
   }
 
   private class EnumRenderer extends ColoredListCellRenderer<ValueWithDisplayString> {
