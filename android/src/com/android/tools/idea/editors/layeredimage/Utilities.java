@@ -21,7 +21,10 @@ import com.android.tools.pixelprobe.PixelProbe;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 
+import java.awt.*;
+import java.awt.color.ColorSpace;
 import java.awt.image.BufferedImage;
+import java.awt.image.ColorConvertOp;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -42,6 +45,9 @@ class Utilities {
     if (bufferedImage == null) {
       throw new IOException("Unable to extract flattened bitmap");
     }
-    return bufferedImage;
+    ColorConvertOp op = new ColorConvertOp(ColorSpace.getInstance(ColorSpace.CS_sRGB),
+                                           new RenderingHints(RenderingHints.KEY_COLOR_RENDERING,
+                                                              RenderingHints.VALUE_COLOR_RENDER_QUALITY));
+    return op.filter(bufferedImage, null);
   }
 }
