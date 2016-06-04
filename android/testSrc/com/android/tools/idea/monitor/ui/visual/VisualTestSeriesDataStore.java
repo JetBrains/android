@@ -16,9 +16,12 @@
 package com.android.tools.idea.monitor.ui.visual;
 
 import com.android.tools.adtui.Range;
+import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.idea.monitor.datastore.SeriesDataList;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.datastore.SeriesDataType;
+import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.Table;
 import gnu.trove.TLongArrayList;
 
 import javax.swing.*;
@@ -26,12 +29,14 @@ import java.util.*;
 
 public final class VisualTestSeriesDataStore implements SeriesDataStore {
 
-  private TLongArrayList mTimingData = new TLongArrayList();
-  private Map<SeriesDataType, List<?>> mDataSeriesMap = new HashMap<>();
-
+  // The following Table data structure just provides an example implementation on how we can achieve having different timestamps for
+  // different series. The profiler datastore implementation should not rely on using generic List<?> to store numerical arrays as that
+  // is memory-inefficient.
+  private Table<SeriesDataType, TLongArrayList, List<?>> mDataSeriesMap = HashBasedTable.create();
   private Thread mDataThread;
   private Random mRandom = new Random();
   private long mStartTime;
+  private long mCurrentTime;
 
   public VisualTestSeriesDataStore() {
     startGeneratingData();
@@ -45,24 +50,42 @@ public final class VisualTestSeriesDataStore implements SeriesDataStore {
   }
 
   @Override
-  public long getTimeAtIndex(int index) {
-    return mTimingData.get(index);
+  public long getLatestTime() {
+    return mCurrentTime;
   }
 
   @Override
-  public int getClosestTimeIndex(long timeValue) {
-    int index = mTimingData.binarySearch(timeValue);
+  public long getTimeAtIndex(SeriesDataType type, int index) {
+    Map<TLongArrayList, List<?>> dataMap = mDataSeriesMap.row(type);
+    assert dataMap.size() == 1;
+
+    TLongArrayList timeData = dataMap.keySet().iterator().next();
+    return timeData.get(index);
+  }
+
+  @Override
+  public int getClosestTimeIndex(SeriesDataType type, long timeValue) {
+    Map<TLongArrayList, List<?>> dataMap = mDataSeriesMap.row(type);
+    assert dataMap.size() == 1;
+
+    TLongArrayList timeData = dataMap.keySet().iterator().next();
+    int index = timeData.binarySearch(timeValue);
     if (index < 0) {
       // No exact match, returns position to the left of the insertion point.
       // NOTE: binarySearch returns -(insertion point + 1) if not found.
       index = -index - 1;
     }
-    return Math.max(0, Math.min(mTimingData.size() - 1, index));
+
+    return Math.max(0, Math.min(timeData.size() - 1, index));
   }
 
   @Override
   public <T> T getValueAtIndex(SeriesDataType type, int index) {
-    return (T)mDataSeriesMap.get(type).get(index);
+    Map<TLongArrayList, List<?>> dataMap = mDataSeriesMap.row(type);
+    assert dataMap.size() == 1;
+
+    List<?> seriesData = dataMap.values().iterator().next();
+    return (T)seriesData.get(index);
   }
 
   @Override
@@ -72,42 +95,47 @@ public final class VisualTestSeriesDataStore implements SeriesDataStore {
 
   private void generateData() {
     long now = System.currentTimeMillis();
-    mTimingData.add(now - mStartTime);
+    mCurrentTime = now - mStartTime;
 
-    for (SeriesDataType type : mDataSeriesMap.keySet()) {
-      // TODO: come up with cleaner API, as this casting is wrong, i.e mDataSeriesMap returns a generic list
-      List<Long> data = (List<Long>)mDataSeriesMap.get(type);
-      Runtime rt = Runtime.getRuntime();
-      switch (type) {
-        case CPU_MY_PROCESS:
-          data.add(randLong(0, 60));
-          break;
-        case CPU_OTHER_PROCESSES:
-          data.add(randLong(0, 20));
-          break;
-        case CPU_THREADS:
-        case NETWORK_CONNECTIONS:
-          data.add(randLong(0, 10));
-          break;
-        case MEMORY_TOTAL:
-        case MEMORY_JAVA:
-          long usedMem = rt.totalMemory() - rt.freeMemory();
-          data.add(usedMem);
-          break;
-        case MEMORY_OTHERS:
-          data.add(rt.freeMemory());
-          break;
-        default:
-          long x = (data.isEmpty() ? 0 : data.get(data.size() - 1)) + randLong(-20, 100);
-          data.add(Math.max(0, x));
-          break;
+    Map<SeriesDataType, Map<TLongArrayList, List<?>>> rowMap = mDataSeriesMap.rowMap();
+    for (SeriesDataType dataType : rowMap.keySet()) {
+      Map<TLongArrayList, List<?>> series = rowMap.get(dataType);
+      for (Map.Entry<TLongArrayList, List<?>> dataList : series.entrySet()) {
+        // TODO: come up with cleaner API, as this casting is wrong, i.e mDataSeriesMap returns a generic list
+        dataList.getKey().add(mCurrentTime);
+        List<Long> castedData = (List<Long>)dataList.getValue();
+        Runtime rt = Runtime.getRuntime();
+        switch (dataType) {
+          case CPU_MY_PROCESS:
+            castedData.add(randLong(0, 60));
+            break;
+          case CPU_OTHER_PROCESSES:
+            castedData.add(randLong(0, 20));
+            break;
+          case CPU_THREADS:
+          case NETWORK_CONNECTIONS:
+            castedData.add(randLong(0, 10));
+            break;
+          case MEMORY_TOTAL:
+          case MEMORY_JAVA:
+            long usedMem = rt.totalMemory() - rt.freeMemory();
+            castedData.add(usedMem);
+            break;
+          case MEMORY_OTHERS:
+            castedData.add(rt.freeMemory());
+            break;
+          default:
+            long x = (castedData.isEmpty() ? 0 : castedData.get(castedData.size() - 1)) + randLong(-20, 100);
+            castedData.add(Math.max(0, x));
+            break;
+        }
       }
     }
   }
 
   private void startGeneratingData() {
     for (SeriesDataType type : SeriesDataType.values()) {
-      mDataSeriesMap.put(type, new ArrayList<>());
+      mDataSeriesMap.put(type, new TLongArrayList(), new ArrayList<>());
     }
     mStartTime = System.currentTimeMillis();
 

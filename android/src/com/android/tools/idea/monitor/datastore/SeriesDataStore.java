@@ -17,7 +17,6 @@ package com.android.tools.idea.monitor.datastore;
 
 import com.android.tools.adtui.Range;
 
-//TODO Update the interface to support multiple samples at different rates, eg events vs cpu.
 /**
  * This interface is the minimal interface required for defining an object that
  * provides data to the UI. Each {@link SeriesDataType} expects to be backed by a {@link SeriesDataList}.
@@ -28,6 +27,11 @@ public interface SeriesDataStore {
    * Resets all data sources to an empty state.
    */
   void reset();
+
+  /**
+   * @return the timestamp of the most current set of data.
+   */
+  long getLatestTime();
 
   /**
    * Function to return a typed {@link SeriesDataList} that is scoped to allow access to data within a specific range.
@@ -41,7 +45,7 @@ public interface SeriesDataStore {
   /**
    * Returns the time at a given index, used by the SeriesDataList to retrieve timestamps.
    */
-  long getTimeAtIndex(int index);
+  long getTimeAtIndex(SeriesDataType type, int index);
 
   /**
    * Returns the value at the specified index for a given data type, used by the SeriesDataList to retrieve series specific data.
@@ -51,5 +55,5 @@ public interface SeriesDataStore {
   /**
    * Returns the closest index less than or equal to the time value.
    */
-  int getClosestTimeIndex(long timeValue);
+  int getClosestTimeIndex(SeriesDataType type, long timeValue);
 }

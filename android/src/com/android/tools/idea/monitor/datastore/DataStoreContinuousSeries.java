@@ -45,9 +45,9 @@ public class DataStoreContinuousSeries implements ContinuousSeries {
 
   @Override
   public SeriesData<Long> getDataAtXValue(long x) {
-    int index = mStore.getClosestTimeIndex(x);
+    int index = mStore.getClosestTimeIndex(mType, x);
     SeriesData<Long> data = new SeriesData<>();
-    data.x = mStore.getTimeAtIndex(index);
+    data.x = mStore.getTimeAtIndex(mType, index);
     data.value = mStore.getValueAtIndex(mType, index);
     return data;
   }

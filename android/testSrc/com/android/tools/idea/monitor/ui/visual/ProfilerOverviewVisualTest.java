@@ -76,16 +76,11 @@ public class ProfilerOverviewVisualTest extends VisualTest {
 
   private SeriesDataStore mDataStore;
 
-  private long mStartTimeMs;
-
   @NotNull
   private Range mXRange;
 
   @NotNull
   private Range mXGlobalRange;
-
-  @NotNull
-  private AnimatedTimeRange mAnimatedTimeRange;
 
   @NotNull
   private Range mXSelectionRange;
@@ -131,10 +126,8 @@ public class ProfilerOverviewVisualTest extends VisualTest {
 
   @Override
   protected List<Animatable> createComponentsList() {
-    mStartTimeMs = System.currentTimeMillis();
     mXRange = new Range();
     mXGlobalRange = new Range();
-    mAnimatedTimeRange = new AnimatedTimeRange(mXGlobalRange, mStartTimeMs);
     mXSelectionRange = new Range();
 
     mScrollbar = new RangeScrollbar(mXGlobalRange, mXRange);
@@ -167,7 +160,8 @@ public class ProfilerOverviewVisualTest extends VisualTest {
 
     List<Animatable> componentsList = new ArrayList<>();
     componentsList.add(mLayout);
-    componentsList.add(mAnimatedTimeRange);    // Update global range immediate.
+    // Get latest data time from the data store.
+    componentsList.add(frameLength -> mXGlobalRange.setMaxTarget(mDataStore.getLatestTime()));
     componentsList.add(mSelection);            // Update selection range immediate.
     componentsList.add(mScrollbar);            // Update current range immediate.
     componentsList.add(mTimeAxis);             // Read ranges.
