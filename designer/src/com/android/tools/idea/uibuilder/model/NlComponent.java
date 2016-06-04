@@ -49,6 +49,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import static com.android.SdkConstants.*;
 
@@ -183,6 +184,13 @@ public class NlComponent {
     return children != null && index >= 0 && index < children.size() ? children.get(index) : null;
   }
 
+  @NotNull
+  public Stream<NlComponent> flatten() {
+    return Stream.concat(
+      Stream.of(this),
+      getChildren().stream().flatMap(NlComponent::flatten));
+  }
+
   @Nullable
   public NlComponent getNextSibling() {
     if (myParent == null) {
@@ -294,7 +302,11 @@ public class NlComponent {
    */
   @Nullable
   public String getId() {
-    String id = getAttribute(ANDROID_URI, ATTR_ID);
+    return stripId(getAttribute(ANDROID_URI, ATTR_ID));
+  }
+
+  @Nullable
+  public static String stripId(@Nullable String id) {
     if (id != null) {
       if (id.startsWith(NEW_ID_PREFIX)) {
         return id.substring(NEW_ID_PREFIX.length());
