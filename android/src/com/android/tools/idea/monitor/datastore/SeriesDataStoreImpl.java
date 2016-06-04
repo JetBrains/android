@@ -21,6 +21,8 @@ import gnu.trove.TLongArrayList;
 import javax.swing.*;
 import java.util.*;
 
+// TODO support different timestamps for different data type - currently the implementation below examines the same time array
+// regardless of data type.
 public final class SeriesDataStoreImpl implements SeriesDataStore {
 
   private static final int GENERATE_DATA_THREAD_DELAY = 100;
@@ -55,12 +57,17 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
   }
 
   @Override
-  public long getTimeAtIndex(int index) {
+  public long getLatestTime() {
+    return myTimingData.size() > 0 ? myTimingData.get(myTimingData.size() - 1) : 0;
+  }
+
+  @Override
+  public long getTimeAtIndex(SeriesDataType type, int index) {
     return myTimingData.get(index);
   }
 
   @Override
-  public int getClosestTimeIndex(long timeValue) {
+  public int getClosestTimeIndex(SeriesDataType type, long timeValue) {
     int index = myTimingData.binarySearch(timeValue);
     if (index < 0) {
       // No exact match, returns position to the left of the insertion point.
