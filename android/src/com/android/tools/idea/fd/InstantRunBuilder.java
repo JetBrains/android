@@ -25,9 +25,11 @@ import com.android.tools.fd.client.InstantRunClient;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.run.BeforeRunBuilder;
 import com.android.tools.idea.gradle.run.GradleTaskRunner;
+import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.run.AndroidRunConfigContext;
 import com.android.tools.idea.run.InstalledApkCache;
 import com.android.tools.idea.run.InstalledPatchCache;
+import com.google.common.collect.Lists;
 import com.google.common.hash.HashCode;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
@@ -99,7 +101,7 @@ public class InstantRunBuilder implements BeforeRunBuilder {
     args.addAll(myInstantRunContext.getCustomBuildArguments());
 
     FileChangeListener.Changes fileChanges = myInstantRunContext.getFileChangesAndReset();
-    args.add(getInstantDevProperty(buildModeChoice.mode, fileChanges));
+    args.addAll(getInstantRunArguments(buildModeChoice.mode, fileChanges));
 
     List<String> tasks = new LinkedList<>();
     if (buildModeChoice.mode == BuildMode.CLEAN) {
@@ -226,7 +228,19 @@ public class InstantRunBuilder implements BeforeRunBuilder {
     }
   }
 
-  private static String getInstantDevProperty(@NotNull BuildMode buildMode, @Nullable FileChangeListener.Changes changes) {
+  private static List<String> getInstantRunArguments(@NotNull BuildMode buildMode, @Nullable FileChangeListener.Changes changes) {
+    List<String> args = Lists.newArrayListWithExpectedSize(3);
+
+    // TODO: Add a user-level setting to disable this?
+    // TODO: Use constants from AndroidProject once we import the new model jar.
+
+    // During Instant Run, we don't want to have to do a full build just because some users change the version code and version name in the
+    // build. These flags force it to a constant value, thereby avoiding a full build due to a manifest change.
+    args.add(AndroidGradleSettings.createProjectProperty("android.injected.version.code",
+                                                         Integer.MAX_VALUE));
+    args.add(AndroidGradleSettings.createProjectProperty("android.injected.version.name",
+                                                         "INSTANT_RUN"));
+
     StringBuilder sb = new StringBuilder(50);
     sb.append("-P");
     sb.append(OPTIONAL_COMPILATION_STEPS);
@@ -236,14 +250,16 @@ public class InstantRunBuilder implements BeforeRunBuilder {
     if (buildMode == BuildMode.HOT) {
       appendChangeInfo(sb, changes);
     }
-    else if(buildMode == BuildMode.COLD) {
+    else if (buildMode == BuildMode.COLD) {
       sb.append(",").append(OptionalCompilationStep.RESTART_ONLY.name());
     }
     else {
       sb.append(",").append("FULL_APK"); //TODO: Replace with enum reference after next model drop.
     }
 
-    return sb.toString();
+    args.add(sb.toString());
+
+    return args;
   }
 
   private static void appendChangeInfo(@NotNull StringBuilder sb, @Nullable FileChangeListener.Changes changes) {
