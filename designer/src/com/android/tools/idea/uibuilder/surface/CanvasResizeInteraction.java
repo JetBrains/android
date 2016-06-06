@@ -42,8 +42,8 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.*;
+import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 public class CanvasResizeInteraction extends Interaction {
@@ -52,7 +52,7 @@ public class CanvasResizeInteraction extends Interaction {
 
   private final DesignSurface myDesignSurface;
   private final boolean isPreviewSurface;
-  private final Set<FolderConfiguration> myFolderConfigurations;
+  private final List<FolderConfiguration> myFolderConfigurations;
   private final UnavailableSizesLayer myUnavailableLayer = new UnavailableSizesLayer();
   private final OrientationLayer myOrientationLayer;
   private final List<DeviceLayer> myDeviceLayers = Lists.newArrayList();
@@ -75,7 +75,8 @@ public class CanvasResizeInteraction extends Interaction {
 
     List<ResourceItem> layouts =
       resourceRepository.getItems().get(ResourceType.LAYOUT).get(layoutName);
-    myFolderConfigurations = layouts.stream().map(ResourceItem::getConfiguration).collect(Collectors.toSet());
+    myFolderConfigurations =
+      layouts.stream().map(ResourceItem::getConfiguration).sorted(Collections.reverseOrder()).collect(Collectors.toList());
 
     double currentDpi = config.getDensity().getDpiValue();
     ConfigurationManager configManager = config.getConfigurationManager();
@@ -129,22 +130,18 @@ public class CanvasResizeInteraction extends Interaction {
       return;
     }
 
-    DesignSurface surface = screenView.getSurface();
-    // Start with covering the full screen
-    Area unavailable = new Area(new Rectangle(screenView.getX(), screenView.getY(), surface.getWidth(), surface.getHeight()));
-
-    // Uncover the area associated with the current folder configuration
-    unavailable.subtract(coveredAreaForConfig(currentFolderConfig, screenView));
-
+    List<Area> configAreas = Lists.newArrayList();
+    Area totalCoveredArea = new Area();
     for (FolderConfiguration configuration : myFolderConfigurations) {
-      if (!configuration.equals(currentFolderConfig) &&
-          currentFolderConfig.isMatchFor(configuration) &&
-          currentFolderConfig.compareTo(configuration) < 0) {
-        // Cover the area associated with every folder configuration that would be preferred to the current one
-        unavailable.add(coveredAreaForConfig(configuration, screenView));
+      Area configArea = coveredAreaForConfig(configuration, screenView);
+      configArea.subtract(totalCoveredArea);
+      if (!configuration.equals(currentFolderConfig)) {
+        configAreas.add(configArea);
       }
+      totalCoveredArea.add(configArea);
     }
-    myUnavailableLayer.update(unavailable, currentFolderConfig);
+
+    myUnavailableLayer.update(configAreas, currentFolderConfig);
   }
 
   /**
@@ -351,34 +348,48 @@ public class CanvasResizeInteraction extends Interaction {
    * An {@link Layer} for the {@link CanvasResizeInteraction}.
    * Greys out the {@link Area} unavailableArea.
    */
-  private static class UnavailableSizesLayer extends Layer {
-    private Area myUnavailableArea;
+  private class UnavailableSizesLayer extends Layer {
+    private Polygon myClip = new Polygon();
+    private List<Area> myConfigAreas;
     private FolderConfiguration myCurrentFolderConfig;
 
     @Override
-    public void create() {
-    }
-
-    @Override
-    public void dispose() {
-    }
-
-    @Override
     public void paint(@NotNull Graphics2D g2d) {
-      if (myUnavailableArea != null) {
-        Graphics2D graphics = (Graphics2D)g2d.create();
-        graphics.setColor(NlConstants.UNAVAILABLE_ZONE_COLOR);
-        graphics.fill(myUnavailableArea);
-        graphics.dispose();
+      ScreenView screenView = myDesignSurface.getCurrentScreenView();
+      if (screenView == null) {
+        return;
       }
+
+      State deviceState = screenView.getConfiguration().getDeviceState();
+      assert deviceState != null;
+      boolean isDevicePortrait = deviceState.getOrientation() == ScreenOrientation.PORTRAIT;
+
+      constructPolygon(myClip, null, Math.max(myDesignSurface.getWidth(), myDesignSurface.getHeight()), isDevicePortrait);
+      myClip.translate(screenView.getX() + 1, screenView.getY() + 1);
+
+      Graphics2D graphics = (Graphics2D)g2d.create();
+      graphics.clip(myClip);
+
+      int n = 0;
+      for (Area configArea : myConfigAreas) {
+        graphics.setColor(NlConstants.RESIZING_OTHER_CONFIG_COLOR_ARRAY[n++ % NlConstants.RESIZING_OTHER_CONFIG_COLOR_ARRAY.length]);
+        graphics.fill(configArea);
+      }
+
+      graphics.dispose();
     }
 
     private boolean isAvailable(int x, int y) {
-      return !myUnavailableArea.contains(x, y);
+      for (Area configArea : myConfigAreas) {
+        if (configArea.contains(x, y)) {
+          return false;
+        }
+      }
+      return true;
     }
 
-    private void update(@NotNull Area unavailableArea, @NotNull FolderConfiguration currentFolderConfig) {
-      myUnavailableArea = unavailableArea;
+    private void update(@NotNull List<Area> configAreas, @NotNull FolderConfiguration currentFolderConfig) {
+      myConfigAreas = configAreas;
       myCurrentFolderConfig = currentFolderConfig;
     }
 
