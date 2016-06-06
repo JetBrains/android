@@ -952,6 +952,10 @@ public class WidgetDecorator {
                 mDisplayAnchorsPolicy.clear();
                 mDisplayAnchorsPolicy.add(WidgetDraw.ANCHORS_DISPLAY.NONE);
             }
+        } else {
+            // if the parent is NOT a ConstraintWidgetContainer, don't show the anchors
+            mDisplayAnchorsPolicy.clear();
+            mDisplayAnchorsPolicy.add(WidgetDraw.ANCHORS_DISPLAY.NONE);
         }
         if (!mShowResizeHandles) {
             mDisplayAnchorsPolicy.clear();
