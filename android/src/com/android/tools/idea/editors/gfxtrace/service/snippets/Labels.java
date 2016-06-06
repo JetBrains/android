@@ -63,8 +63,8 @@ public final class Labels extends KindredSnippets implements BinaryObject {
 
   static {
     ENTITY.setFields(new Field[]{
-      new Field("path", new Interface("Pathway")),
-      new Field("labels", new Slice("", new Primitive("string", Method.String))),
+      new Field("Path", new Interface("Pathway")),
+      new Field("Labels", new Slice("", new Primitive("string", Method.String))),
     });
     Namespace.register(Klass.INSTANCE);
   }
