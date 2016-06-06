@@ -635,7 +635,7 @@ public class HtmlLinkManager {
   private static void handleAssignFragmentUrl(@NotNull String url, @NotNull Module module, @NotNull final PsiFile file) {
     assert url.startsWith(URL_ASSIGN_FRAGMENT_URL) : url;
 
-    final String className = ChooseClassDialog.openDialog(module, "Fragments", true, CLASS_FRAGMENT, CLASS_V4_FRAGMENT);
+    final String className = ChooseClassDialog.openDialog(module, "Fragments", true, null, CLASS_FRAGMENT, CLASS_V4_FRAGMENT);
     if (className == null) {
       return;
     }

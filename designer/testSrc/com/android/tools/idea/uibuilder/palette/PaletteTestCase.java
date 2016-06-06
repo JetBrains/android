@@ -485,8 +485,8 @@ public abstract class PaletteTestCase extends AndroidTestCase {
   }
 
   public void assertViewTag(@NotNull Palette.BaseItem item) {
-    checkItem(item, VIEW_TAG, "View", AndroidIcons.Views.Unknown, "<view/>\n", NO_PREVIEW, NO_PREVIEW, IN_PLATFORM, NO_SCALE);
-    checkComponent(createMockComponent(VIEW_TAG), "View", AndroidIcons.Views.Unknown);
+    checkItem(item, VIEW_TAG, "<view>", AndroidIcons.Views.Unknown, "<view/>\n", NO_PREVIEW, NO_PREVIEW, IN_PLATFORM, NO_SCALE);
+    checkComponent(createMockComponent(VIEW_TAG), "<view>", AndroidIcons.Views.Unknown);
   }
 
   public void assertViewStub(@NotNull Palette.BaseItem item) {

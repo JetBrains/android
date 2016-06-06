@@ -15,12 +15,14 @@
  */
 package org.jetbrains.android.uipreview;
 
+import com.android.tools.idea.ui.resourcechooser.ResourceItem;
 import com.intellij.ide.util.DefaultPsiElementCellRenderer;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.util.Condition;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -29,6 +31,7 @@ import com.intellij.ui.DoubleClickListener;
 import com.intellij.ui.ListSpeedSearch;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.components.JBList;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -45,10 +48,12 @@ import java.util.Collections;
 public class ChooseClassDialog extends DialogWrapper implements ListSelectionListener {
   private final JList myList = new JBList();
   private final JScrollPane myComponent = ScrollPaneFactory.createScrollPane(myList);
+  private final Condition<PsiClass> myFilter;
   private String myResultClassName;
 
-  public ChooseClassDialog(Module module, String title, boolean includeAll, String... classes) {
+  public ChooseClassDialog(Module module, String title, boolean includeAll, @Nullable Condition<PsiClass> filter, String... classes) {
     super(module.getProject());
+    myFilter = filter;
 
     new DoubleClickListener() {
       @Override
@@ -91,6 +96,9 @@ public class ChooseClassDialog extends DialogWrapper implements ListSelectionLis
   protected void findClasses(Module module, boolean includeAll, DefaultListModel model, String[] classes) {
     for (String className : classes) {
       for (PsiClass psiClass : findInheritors(module, className, includeAll)) {
+        if (myFilter != null && !myFilter.value(psiClass)) {
+          continue;
+        }
         model.addElement(psiClass);
       }
     }
@@ -136,7 +144,10 @@ public class ChooseClassDialog extends DialogWrapper implements ListSelectionLis
    * @return class name if user has selected one, null otherwise
    */
   @Nullable
-  public static String openDialog(Module module, String title, boolean includeAll, String... classes) {
+  public static String openDialog(Module module, String title,
+                                  boolean includeAll,
+                                  @Nullable Condition<PsiClass> filter,
+                                  @NotNull String... classes) {
     final Project project = module.getProject();
     final DumbService dumbService = DumbService.getInstance(project);
     if (dumbService.isDumb()) {
@@ -145,7 +156,7 @@ public class ChooseClassDialog extends DialogWrapper implements ListSelectionLis
       return null;
     }
 
-    final ChooseClassDialog dialog = new ChooseClassDialog(module, title, includeAll, classes);
+    final ChooseClassDialog dialog = new ChooseClassDialog(module, title, includeAll, filter, classes);
     return dialog.showAndGet() ? dialog.getClassName() : null;
   }
 
