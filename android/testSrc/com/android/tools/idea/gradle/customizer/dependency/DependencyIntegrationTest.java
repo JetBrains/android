@@ -56,24 +56,45 @@ public class DependencyIntegrationTest extends AndroidGradleTestCase {
     }
 
     // 'app' module should have 'guava' as dependency.
-    // 'guava' -> 'lib' -> 'guava'
+    // 'app' -> 'lib' -> 'guava'
     String libraryName = "guava-17.0";
     if (!hasLibraryDependency(appModule, libraryName)) {
-      List<String> allLibraries = Lists.newArrayList();
-      OrderEntry[] orderEntries = ModuleRootManager.getInstance(appModule).getOrderEntries();
-      for (OrderEntry orderEntry : orderEntries) {
-        if (orderEntry instanceof LibraryOrderEntry) {
-          LibraryOrderEntry libraryEntry = (LibraryOrderEntry)orderEntry;
-          String name = libraryEntry.getLibraryName();
-          allLibraries.add(name);
-        }
-      }
-      fail("Unable to find library dependency '" + libraryName + "' " + allLibraries);
+      fail("Unable to find library dependency '" + libraryName + "' " + collectExistingLibrariesIn(appModule));
     }
   }
 
-  private static boolean hasLibraryDependency(@NotNull Module appModule, @NotNull String libraryName) {
-    OrderEntry[] orderEntries = ModuleRootManager.getInstance(appModule).getOrderEntries();
+  // See: https://code.google.com/p/android/issues/detail?id=212338
+  public void testTransitiveDependenciesFromAndroidModule() throws Throwable {
+    loadProject("projects/transitiveDependencies");
+
+    Module appModule = ModuleManager.getInstance(getProject()).findModuleByName("app");
+    assertNotNull(appModule);
+
+    AndroidGradleModel gradleModel = AndroidGradleModel.get(appModule);
+    assertNotNull(gradleModel);
+    assertTrue(gradleModel.supportsDependencyGraph());
+
+    AndroidProject androidProject = gradleModel.getAndroidProject();
+    List<String> unresolvedDependencies = Lists.newArrayList();
+    for (SyncIssue syncIssue : androidProject.getSyncIssues()) {
+      if (syncIssue.getType() == SyncIssue.TYPE_UNRESOLVED_DEPENDENCY) {
+        unresolvedDependencies.add(syncIssue.getData());
+      }
+    }
+    if (!unresolvedDependencies.isEmpty()) {
+      fail("Unresolved dependencies: " + unresolvedDependencies);
+    }
+
+    // 'app' module should have 'javawriter' as dependency.
+    // 'app' -> 'library2' -> 'library1' -> 'javawriter'
+    String libraryName = "javawriter-2.5.0";
+    if (!hasLibraryDependency(appModule, libraryName)) {
+      fail("Unable to find library dependency '" + libraryName + "' " + collectExistingLibrariesIn(appModule));
+    }
+  }
+
+  private static boolean hasLibraryDependency(@NotNull Module module, @NotNull String libraryName) {
+    OrderEntry[] orderEntries = ModuleRootManager.getInstance(module).getOrderEntries();
     for (OrderEntry orderEntry : orderEntries) {
       if (orderEntry instanceof LibraryOrderEntry) {
         LibraryOrderEntry libraryEntry = (LibraryOrderEntry)orderEntry;
@@ -84,5 +105,19 @@ public class DependencyIntegrationTest extends AndroidGradleTestCase {
       }
     }
     return false;
+  }
+
+  @NotNull
+  private static List<String> collectExistingLibrariesIn(@NotNull Module module) {
+    List<String> allLibraries = Lists.newArrayList();
+    OrderEntry[] orderEntries = ModuleRootManager.getInstance(module).getOrderEntries();
+    for (OrderEntry orderEntry : orderEntries) {
+      if (orderEntry instanceof LibraryOrderEntry) {
+        LibraryOrderEntry libraryEntry = (LibraryOrderEntry)orderEntry;
+        String name = libraryEntry.getLibraryName();
+        allLibraries.add(name);
+      }
+    }
+    return allLibraries;
   }
 }
