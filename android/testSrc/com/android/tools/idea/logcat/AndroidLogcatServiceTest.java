@@ -195,4 +195,25 @@ public class AndroidLogcatServiceTest {
     verify(mockDevice, times(4)).getClientName(1493);
     verifyNoMoreInteractions(mockDevice);
   }
+
+  /**
+   * Tests {@link AndroidLogcatService} to verify that when no one is interested in a device logs, AndroidLogcatService should
+   * stop receiving logs from the device. Subsequently, if a listener will be interested in the device, it should receive all logs
+   */
+  @Test
+  public void testNoDeviceListener() {
+    when(mockDevice.isOnline()).thenReturn(true);
+    myLogcatService.deviceConnected(mockDevice);
+    myLogcatService.addListener(mockDevice, myLogLineListener, true);
+    myLogLineListener.assertAllReceived();
+
+    myLogcatService.removeListener(mockDevice, myLogLineListener);
+    myLogLineListener.reset();
+    myLogcatService.addListener(mockDevice, myLogLineListener, false);
+    myLogLineListener.assertAllReceived();
+
+    verify(mockDevice, times(3)).isOnline();
+    verify(mockDevice, times(4)).getClientName(1493);
+    verifyNoMoreInteractions(mockDevice);
+  }
 }
