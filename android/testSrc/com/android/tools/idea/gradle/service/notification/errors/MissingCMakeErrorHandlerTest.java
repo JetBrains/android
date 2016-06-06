@@ -15,7 +15,15 @@
  */
 package com.android.tools.idea.gradle.service.notification.errors;
 
+import com.android.SdkConstants;
+import com.android.repository.Revision;
+import com.android.repository.api.RemotePackage;
+import com.android.repository.api.RepoPackage;
+import com.android.repository.impl.meta.RepositoryPackages;
+import com.android.repository.testframework.*;
+import com.android.sdklib.repository.AndroidSdkHandler;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Maps;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.service.notification.NotificationCategory;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
@@ -23,7 +31,9 @@ import com.intellij.openapi.externalSystem.service.notification.NotificationSour
 import com.intellij.openapi.project.Project;
 import junit.framework.TestCase;
 
+import java.io.File;
 import java.util.List;
+import java.util.Map;
 
 import static org.easymock.EasyMock.createMock;
 
@@ -35,29 +45,70 @@ public class MissingCMakeErrorHandlerTest extends TestCase {
   private NotificationData myNotification;
   private Project myProject;
 
-  private MissingCMakeErrorHandler myErrorHandler;
-
   @Override
   protected void setUp() throws Exception {
     super.setUp();
     myError = new ExternalSystemException("Test");
     myNotification = new NotificationData("Test", "Testing", NotificationCategory.ERROR, NotificationSource.PROJECT_SYNC);
     myProject = createMock(Project.class);
-    myErrorHandler = new MissingCMakeErrorHandler();
   }
 
   public void testHandleError() throws Exception {
-    // Temporarily disabling this since faking the remote cmake package will take a bit of work. And the CL is already sprawling out of
-    // control. This test is relatively low coverage and the behavior has been confirmed manually, so this should be okay.
-    // TODO(chaorenl): work on re-enabling this immediately.
+    RepositoryPackages packages = new RepositoryPackages();
+    Map<String, RemotePackage> remotePackages = Maps.newHashMap();
+    Revision fakeCmakeVersion = new Revision(1, 2);
+    String fakeCmakePackage = SdkConstants.FD_CMAKE + RepoPackage.PATH_SEPARATOR + fakeCmakeVersion.toString();
+    remotePackages.put(fakeCmakePackage, new FakePackage(fakeCmakePackage, fakeCmakeVersion, null));
+    packages.setRemotePkgInfos(remotePackages);
+    AndroidSdkHandler sdkHandler = new AndroidSdkHandler(new File("/sdk"), new MockFileOp(), new FakeRepoManager(packages));
 
-    //List<String> message = ImmutableList.of("Failed to find CMake.", "Install from Android Studio under File/Settings/" +
-    //                                                                 "Appearance & Behavior/System Settings/Android SDK/SDK Tools/CMake.");
-    //assertTrue(myErrorHandler.handleError(message, myError, myNotification, myProject));
-    //String notificationMessage = myNotification.getMessage();
-    //assertEquals(notificationMessage, "Failed to find CMake.\n<a href=\"install.cmake\">Install CMake and sync project</a>");
-    //List<String> linkIds = myNotification.getRegisteredListenerIds();
-    //assertEquals(1, linkIds.size());
-    //assertEquals("install.cmake", linkIds.get(0));
+    MissingCMakeErrorHandler errorHandler = new MissingCMakeErrorHandler(sdkHandler, new FakeDownloader(new MockFileOp()),
+                                                                         new FakeSettingsController(false));
+
+    List<String> message = ImmutableList.of("Failed to find CMake.", "Install from Android Studio under File/Settings/" +
+                                                                     "Appearance & Behavior/System Settings/Android SDK/SDK Tools/CMake.");
+    assertTrue(errorHandler.handleError(message, myError, myNotification, myProject));
+    String notificationMessage = myNotification.getMessage();
+    assertEquals(notificationMessage, "Failed to find CMake.\n<a href=\"install.cmake\">Install CMake and sync project</a>");
+    List<String> linkIds = myNotification.getRegisteredListenerIds();
+    assertEquals(ImmutableList.of("install.cmake"), linkIds);
+  }
+
+  public void testHandleErrorNoCMakePackage() {
+    AndroidSdkHandler sdkHandler = new AndroidSdkHandler(new File("/sdk"), new MockFileOp(), new FakeRepoManager(new RepositoryPackages()));
+    MissingCMakeErrorHandler errorHandler = new MissingCMakeErrorHandler(sdkHandler, new FakeDownloader(new MockFileOp()),
+                                                                         new FakeSettingsController(false));
+
+    List<String> message = ImmutableList.of("Failed to find CMake.", "Install from Android Studio under File/Settings/" +
+                                                                     "Appearance & Behavior/System Settings/Android SDK/SDK Tools/CMake.");
+    String originalNotificationMessage = myNotification.getMessage();
+    assertFalse(errorHandler.handleError(message, myError, myNotification, myProject));
+    String notificationMessage = myNotification.getMessage();
+    assertEquals(notificationMessage, originalNotificationMessage);
+    List<String> linkIds = myNotification.getRegisteredListenerIds();
+    assertTrue(linkIds.isEmpty());
+  }
+
+  public void testHandlerErrorUnrelatedMessage() {
+    RepositoryPackages packages = new RepositoryPackages();
+    Map<String, RemotePackage> remotePackages = Maps.newHashMap();
+    packages.setRemotePkgInfos(remotePackages);
+
+    Revision fakeCmakeVersion = new Revision(1, 2);
+    String fakeCmakePackage = SdkConstants.FD_CMAKE + RepoPackage.PATH_SEPARATOR + fakeCmakeVersion.toString();
+    remotePackages.put(fakeCmakePackage, new FakePackage(fakeCmakePackage, fakeCmakeVersion, null));
+    packages.setRemotePkgInfos(remotePackages);
+
+    AndroidSdkHandler sdkHandler = new AndroidSdkHandler(new File("/sdk"), new MockFileOp(), new FakeRepoManager(packages));
+    MissingCMakeErrorHandler errorHandler = new MissingCMakeErrorHandler(sdkHandler, new FakeDownloader(new MockFileOp()),
+                                                new FakeSettingsController(false));
+
+    List<String> message = ImmutableList.of("Arbitrary message.", "This has nothing to do with CMake.");
+    String originalNotificationMessage = myNotification.getMessage();
+    assertFalse(errorHandler.handleError(message, myError, myNotification, myProject));
+    String notificationMessage = myNotification.getMessage();
+    assertEquals(notificationMessage, originalNotificationMessage);
+    List<String> linkIds = myNotification.getRegisteredListenerIds();
+    assertTrue(linkIds.isEmpty());
   }
 }
