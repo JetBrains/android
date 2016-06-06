@@ -17,7 +17,10 @@ package com.android.tools.idea.avdmanager;
 
 import com.intellij.execution.KillableProcess;
 import com.intellij.execution.TaskExecutor;
-import com.intellij.execution.process.*;
+import com.intellij.execution.process.ProcessAdapter;
+import com.intellij.execution.process.ProcessEvent;
+import com.intellij.execution.process.ProcessHandler;
+import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Key;
@@ -160,8 +163,9 @@ public class EmulatorProcessHandler extends ProcessHandler implements TaskExecut
       start("emulator output");
     }
 
+    @NotNull
     @Override
-    protected Future<?> executeOnPooledThread(Runnable runnable) {
+    protected Future<?> executeOnPooledThread(@NotNull Runnable runnable) {
       return EmulatorProcessHandler.this.executeTask(runnable);
     }
 
