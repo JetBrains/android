@@ -30,6 +30,7 @@ import java.util.Collection;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 
 import static com.android.SdkConstants.VALUE_N_DP;
 import static com.android.resources.Density.DEFAULT_DENSITY;
@@ -131,5 +132,7 @@ public abstract class ViewEditor {
   public abstract String displayResourceInput(@NotNull String title, @NotNull Collection<ResourceType> types);
 
   @Nullable
-  public abstract String displayClassInput(@NotNull Set<String> superTypes, @Nullable String currentValue);
+  public abstract String displayClassInput(@NotNull Set<String> superTypes,
+                                           @Nullable Predicate<String> filter,
+                                           @Nullable String currentValue);
 }

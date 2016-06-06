@@ -100,7 +100,7 @@ public final class FragmentHandler extends ViewHandler {
       if (newChild.getAttribute(ANDROID_URI, ATTR_NAME) != null) {
         return true;
       }
-      String src = editor.displayClassInput(Sets.newHashSet(CLASS_FRAGMENT, CLASS_V4_FRAGMENT), null);
+      String src = editor.displayClassInput(Sets.newHashSet(CLASS_FRAGMENT, CLASS_V4_FRAGMENT), null, null);
       if (src != null) {
         newChild.setAttribute(ANDROID_URI, ATTR_NAME, src);
         return true;
