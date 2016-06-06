@@ -133,8 +133,7 @@ public abstract class Dependency {
       String gradleProjectPath = lib.getProject();
       if (isNotEmpty(gradleProjectPath)) {
         // This is a module.
-        mainDependency = new ModuleDependency(gradleProjectPath, scope);
-        dependencies.add(mainDependency);
+        mainDependency = addAndroidModule(lib, gradleProjectPath, dependencies, scope, unique, supportsDependencyGraph);
       }
       if (mainDependency == null) {
         // This is a library, not a module.
@@ -171,7 +170,23 @@ public abstract class Dependency {
   }
 
   /**
-   * Add a library, along with any recursive library dependencies
+   * Add an Android module, along with any recursive library dependencies
+   */
+  @NotNull
+  private static ModuleDependency addAndroidModule(@NotNull AndroidLibrary library,
+                                                   @NotNull String gradleProjectPath,
+                                                   @NotNull DependencySet dependencies,
+                                                   @NotNull DependencyScope scope,
+                                                   @NotNull Set<File> unique,
+                                                   boolean supportsDependencyGraph) {
+    ModuleDependency dependency = new ModuleDependency(gradleProjectPath, scope);
+    dependencies.add(dependency);
+    addTransitiveDependencies(library, dependencies, scope, unique, supportsDependencyGraph);
+    return dependency;
+  }
+
+  /**
+   * Add an Android library, along with any recursive library dependencies
    */
   private static void addAndroidLibrary(@NotNull AndroidLibrary library,
                                         @NotNull DependencySet dependencies,
@@ -186,9 +201,15 @@ public abstract class Dependency {
     }
     unique.add(folder);
 
-    LibraryDependency dependency = createLibraryDependency(library, scope);
-    dependencies.add(dependency);
+    dependencies.add(createLibraryDependency(library, scope));
+    addTransitiveDependencies(library, dependencies, scope, unique, supportsDependencyGraph);
+  }
 
+  private static void addTransitiveDependencies(@NotNull AndroidLibrary library,
+                                                @NotNull DependencySet dependencies,
+                                                @NotNull DependencyScope scope,
+                                                @NotNull Set<File> unique,
+                                                boolean supportsDependencyGraph) {
     for (AndroidLibrary dependentLibrary : library.getLibraryDependencies()) {
       addAndroidLibrary(dependentLibrary, dependencies, scope, unique, supportsDependencyGraph);
     }
