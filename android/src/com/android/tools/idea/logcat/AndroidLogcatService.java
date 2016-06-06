@@ -200,6 +200,10 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
     synchronized (myLock) {
       if (myListeners.containsKey(device)) {
         myListeners.get(device).remove(listener);
+
+        if (myListeners.get(device).isEmpty() && isReceivingFrom(device)) {
+          stopReceiving(device);
+        }
       }
     }
   }
