@@ -114,10 +114,13 @@ class LayeredImageConverter {
         path.transform(AffineTransform.getTranslateInstance(
           layerBounds.getX() - bounds.getX(), layerBounds.getY() - bounds.getY()));
 
+        Color color = layer.getPathColor();
+        float fillAlpha = layer.getOpacity() * color.getAlpha() / 255.0f;
+
         root.child(new Element("path")
                  .attribute("name", StringUtil.escapeXml(layer.getName()))
-                 .attribute("fillColor", "#" + ColorUtil.toHex(layer.getPathColor()))
-                 .attribute("fillAlpha", String.valueOf(layer.getOpacity()))
+                 .attribute("fillColor", "#" + ColorUtil.toHex(color))
+                 .attribute("fillAlpha", String.valueOf(fillAlpha))
                  .attribute("pathData", toPathData(path)));
 
       } else if (type == Layer.Type.GROUP) {
