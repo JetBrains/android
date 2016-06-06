@@ -20,7 +20,10 @@ import com.intellij.codeInsight.completion.PrioritizedLookupElement;
 import com.intellij.codeInsight.completion.XmlTagInsertHandler;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiModifierList;
 import com.intellij.psi.impl.source.xml.TagNameVariantCollector;
 import com.intellij.psi.meta.PsiPresentableMetaData;
 import com.intellij.psi.xml.XmlFile;
@@ -37,6 +40,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+
+import static com.android.SdkConstants.ANDROID_SUPPORT_PKG_PREFIX;
 
 /**
  * Tag name provider that is supposed to work with Java-style fully-qualified names
@@ -68,7 +73,7 @@ public class AndroidLayoutXmlTagNameProvider implements XmlTagNameProvider {
     for (XmlElementDescriptor descriptor : variants) {
       String qualifiedName = descriptor.getName(tag);
 
-      if (qualifiedName.startsWith("android.support.")) {
+      if (qualifiedName.startsWith(ANDROID_SUPPORT_PKG_PREFIX)) {
         supportAlternatives.add(AndroidUtils.getUnqualifiedName(qualifiedName));
       }
     }

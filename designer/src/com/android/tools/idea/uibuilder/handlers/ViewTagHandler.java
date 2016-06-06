@@ -15,16 +15,17 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.google.common.collect.ImmutableList;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import org.intellij.lang.annotations.Language;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -43,13 +44,13 @@ public class ViewTagHandler extends ViewHandler {
   @Override
   @NotNull
   public String getTitle(@NotNull String tagName) {
-    return "View";
+    return "<view>";
   }
 
   @Override
   @NotNull
   public String getTitle(@NotNull NlComponent component) {
-    return "View";
+    return "<view>";
   }
 
   @Override
@@ -73,7 +74,10 @@ public class ViewTagHandler extends ViewHandler {
                           @NotNull NlComponent newChild,
                           @NotNull InsertType insertType) {
     if (insertType == InsertType.CREATE) { // NOT InsertType.CREATE_PREVIEW
-      String src = editor.displayClassInput(Sets.newHashSet(CLASS_VIEW), null);
+      String src = editor.displayClassInput(Sets.newHashSet(CLASS_VIEW), qualifiedName -> {
+        // Don't include builtin views (these are already in the palette and likely not what the user is looking for)
+        return !qualifiedName.startsWith(ANDROID_PKG_PREFIX) || qualifiedName.startsWith(ANDROID_SUPPORT_PKG_PREFIX);
+      }, null);
       if (src != null) {
         newChild.setAttribute(null, ATTR_CLASS, src);
         return true;
