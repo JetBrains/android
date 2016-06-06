@@ -39,7 +39,7 @@ public class AndroidLintUtil {
       return null;
     }
 
-    final InspectionProfile profile = InspectionProjectProfileManager.getInstance(context.getProject()).getInspectionProfile();
+    final InspectionProfile profile = InspectionProjectProfileManager.getInstance(context.getProject()).getCurrentProfile();
     if (!profile.isToolEnabled(key, context)) {
       if (!issue.isEnabledByDefault()) {
         // Lint will skip issues (and not report them) for issues that have been disabled,

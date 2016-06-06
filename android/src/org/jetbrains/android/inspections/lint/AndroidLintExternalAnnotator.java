@@ -189,7 +189,7 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
         continue;
       }
 
-      final InspectionProfile profile = InspectionProjectProfileManager.getInstance(project).getInspectionProfile();
+      final InspectionProfile profile = InspectionProjectProfileManager.getInstance(project).getCurrentProfile();
       final boolean enabled = context != null ? profile.isToolEnabled(key, context) : profile.isToolEnabled(key);
 
       if (!enabled) {
