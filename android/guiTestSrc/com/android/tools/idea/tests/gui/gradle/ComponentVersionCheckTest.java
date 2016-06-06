@@ -21,7 +21,6 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
-import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.ContentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageFixture;
 import org.intellij.lang.annotations.Language;
 import org.jdom.JDOMException;
@@ -71,14 +70,14 @@ public class ComponentVersionCheckTest {
                       "  </check>\n" +
                       "</compatibility>";
     VersionCompatibilityService.getInstance().reloadMetadataForTesting(metadata);
-    guiTest.importSimpleApplication();
-
-    guiTest.ideFrame().updateGradleWrapperVersion("2.4").updateAndroidGradlePluginVersion("1.3.0").requestProjectSync()
-      .waitForGradleProjectSyncToFinish();
-
-    ContentFixture syncMessages = guiTest.ideFrame().getMessagesToolWindow().getGradleSyncContent();
-    MessageFixture message = syncMessages.findMessage(ERROR, firstLineStartingWith("Gradle 2.4 requires Android Gradle plugin 1.5.0"));
-
+    MessageFixture message = guiTest.importSimpleApplication()
+      .updateGradleWrapperVersion("2.4")
+      .updateAndroidGradlePluginVersion("1.3.0")
+      .requestProjectSync()
+      .waitForGradleProjectSyncToFinish()
+      .getMessagesToolWindow()
+      .getGradleSyncContent()
+      .findMessage(ERROR, firstLineStartingWith("Gradle 2.4 requires Android Gradle plugin 1.5.0"));
     String text = message.getText();
     assertThat(text).named("custom failure message").contains("Please use Android Gradle plugin 1.5.0 or newer.");
 
@@ -103,16 +102,15 @@ public class ComponentVersionCheckTest {
                       "  </check>\n" +
                       "</compatiblity>\n";
     VersionCompatibilityService.getInstance().reloadMetadataForTesting(metadata);
-    guiTest.importSimpleApplication();
-
-    guiTest.ideFrame().updateGradleWrapperVersion("2.4").updateAndroidGradlePluginVersion("1.3.0").requestProjectSync()
-      .waitForGradleProjectSyncToFinish();
-
-    ContentFixture syncMessages = guiTest.ideFrame().getMessagesToolWindow().getGradleSyncContent();
-    MessageFixture message =
-      syncMessages.findMessage(WARNING, firstLineStartingWith("'buildToolsVersion' "));
-
-    String text = message.getText();
+    String text = guiTest.importSimpleApplication()
+      .updateGradleWrapperVersion("2.4")
+      .updateAndroidGradlePluginVersion("1.3.0")
+      .requestProjectSync()
+      .waitForGradleProjectSyncToFinish()
+      .getMessagesToolWindow()
+      .getGradleSyncContent()
+      .findMessage(WARNING, firstLineStartingWith("'buildToolsVersion' "))
+      .getText();
     assertThat(text).named("custom failure message").contains("The project will not build.");
     assertThat(text).named("custom failure message").contains("Please use Android Gradle plugin 1.5.0 or newer.");
   }
