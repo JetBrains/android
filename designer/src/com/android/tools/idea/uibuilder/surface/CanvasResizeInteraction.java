@@ -23,6 +23,7 @@ import com.android.resources.ScreenOrientation;
 import com.android.resources.ScreenRatio;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Screen;
+import com.android.resources.ScreenSize;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
@@ -93,6 +94,8 @@ public class CanvasResizeInteraction extends Interaction {
   @Override
   public void begin(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int startMask) {
     super.begin(x, y, startMask);
+    myCurrentX = x;
+    myCurrentY = y;
 
     ScreenView screenView = myDesignSurface.getCurrentScreenView();
     if (screenView == null) {
@@ -302,10 +305,11 @@ public class CanvasResizeInteraction extends Interaction {
   @Override
   public List<Layer> createOverlays() {
     ImmutableList.Builder<Layer> layers = ImmutableList.builder();
-    layers.add(new ResizeLayer());
+    layers.add(new SizeBucketLayer());
     layers.add(myUnavailableLayer);
     layers.addAll(myDeviceLayers);
     layers.add(myOrientationLayer);
+    layers.add(new ResizeLayer());
     return layers.build();
   }
 
@@ -418,7 +422,7 @@ public class CanvasResizeInteraction extends Interaction {
       graphics.setColor(NlConstants.RESIZING_CORNER_COLOR);
       graphics.drawLine(x, y, x - NlConstants.RESIZING_CORNER_SIZE, y);
       graphics.drawLine(x, y, x, y - NlConstants.RESIZING_CORNER_SIZE);
-      graphics.setColor(NlConstants.DEVICE_TEXT_COLOR);
+      graphics.setColor(NlConstants.RESIZING_TEXT_COLOR);
       graphics.drawString(myName, x - myNameWidth - 5, y - 5);
       graphics.dispose();
     }
@@ -493,6 +497,122 @@ public class CanvasResizeInteraction extends Interaction {
       graphics.rotate(-Math.PI / 4, xP, yP);
       graphics.drawString("Portrait", xP, yP);
       graphics.dispose();
+    }
+  }
+
+  private class SizeBucketLayer extends Layer {
+    private final Polygon myClip = new Polygon();
+    private final int myTotalHeight;
+    private final int myTotalWidth;
+    private final FontMetrics myFontMetrics;
+
+    public SizeBucketLayer() {
+      JScrollPane scrollPane = myDesignSurface.getScrollPane();
+      myTotalHeight = scrollPane.getHeight() - scrollPane.getHorizontalScrollBar().getHeight();
+      myTotalWidth = scrollPane.getWidth() - scrollPane.getVerticalScrollBar().getWidth();
+      myFontMetrics = myDesignSurface.getFontMetrics(myDesignSurface.getFont());
+    }
+
+    @Override
+    public void paint(@NotNull Graphics2D g2d) {
+      ScreenView screenView = myDesignSurface.getCurrentScreenView();
+      if (screenView == null) {
+        return;
+      }
+
+      State deviceState = screenView.getConfiguration().getDeviceState();
+      assert deviceState != null;
+      boolean isDevicePortrait = deviceState.getOrientation() == ScreenOrientation.PORTRAIT;
+
+      if ((myCurrentX > myCurrentY && isDevicePortrait) || (myCurrentX < myCurrentY && !isDevicePortrait)) {
+        return;
+      }
+
+      int width = Coordinates.getAndroidX(screenView, myCurrentX);
+      int height = Coordinates.getAndroidY(screenView, myCurrentY);
+      int dpi = screenView.getConfiguration().getDensity().getDpiValue();
+
+      int small = Math.min(width, height) * 160 / dpi;
+      int big = Math.max(width, height) * 160 / dpi;
+
+      constructPolygon(myClip, null, Math.max(myTotalHeight, myTotalWidth), isDevicePortrait);
+      myClip.translate(screenView.getX() + 1, screenView.getY() + 1);
+
+      Graphics2D graphics = (Graphics2D)g2d.create();
+      graphics.clip(myClip);
+      graphics.setColor(NlConstants.RESIZING_BUCKET_COLOR);
+      ScreenSize screenSizeBucket = getScreenSizeBucket(small, big);
+      Area coveredArea = getAreaForScreenSize(screenSizeBucket, screenView, isDevicePortrait);
+      graphics.fill(coveredArea);
+
+      graphics.setColor(NlConstants.RESIZING_CORNER_COLOR);
+      graphics.setStroke(NlConstants.THICK_SOLID_STROKE);
+      graphics.draw(coveredArea);
+
+      graphics.setColor(NlConstants.RESIZING_TEXT_COLOR);
+      Rectangle bounds = coveredArea.getBounds();
+      if (isDevicePortrait) {
+        int left = bounds.x + 5;
+        int bottom = Math.min(bounds.y + bounds.height, myTotalHeight) - 5;
+        graphics.drawString(screenSizeBucket.getShortDisplayValue() + " size range", left, bottom);
+      }
+      else {
+        String text = screenSizeBucket.getShortDisplayValue() + " size range";
+        Rectangle2D textBounds = myFontMetrics.getStringBounds(text, null);
+        int left = (int)(Math.min(bounds.x + bounds.width, myTotalWidth) - textBounds.getWidth() - 5);
+        int bottom = (int)(bounds.y + textBounds.getHeight());
+
+        graphics.drawString(text, left, bottom);
+      }
+      graphics.dispose();
+    }
+
+    @NotNull
+    private ScreenSize getScreenSizeBucket(int small, int big) {
+      if (big < 470) {
+        return ScreenSize.SMALL;
+      }
+      if (big >= 960 && small >= 720) {
+        return ScreenSize.XLARGE;
+      }
+      if (big >= 640 && small >= 480) {
+        return ScreenSize.LARGE;
+      }
+      return ScreenSize.NORMAL;
+    }
+
+    @NotNull
+    private Area getAreaForScreenSize(@NotNull ScreenSize screenSize, @NotNull ScreenView screenView, boolean isDevicePortrait) {
+      int x0 = screenView.getX();
+      int y0 = screenView.getY();
+      int dpi = screenView.getConfiguration().getDensity().getDpiValue();
+
+      int smallX = Coordinates.getSwingX(screenView, 470 * dpi / 160);
+      int smallY = Coordinates.getSwingY(screenView, 470 * dpi / 160);
+      Area smallArea = new Area(new Rectangle(x0, y0, smallX - x0, smallY - y0));
+      if (screenSize == ScreenSize.SMALL) {
+        return smallArea;
+      }
+
+      int xlargeX = Coordinates.getSwingX(screenView, (isDevicePortrait ? 720 : 960) * dpi / 160);
+      int xlargeY = Coordinates.getSwingY(screenView, (isDevicePortrait ? 960 : 720) * dpi / 160);
+      Area xlargeArea = new Area(new Rectangle(xlargeX, xlargeY, myTotalWidth, myTotalHeight));
+      if (screenSize == ScreenSize.XLARGE) {
+        return xlargeArea;
+      }
+
+      int largeX = Coordinates.getSwingX(screenView, (isDevicePortrait ? 480 : 640) * dpi / 160);
+      int largeY = Coordinates.getSwingY(screenView, (isDevicePortrait ? 640 : 480) * dpi / 160);
+      Area largeArea = new Area(new Rectangle(largeX, largeY, myTotalWidth, myTotalHeight));
+      if (screenSize == ScreenSize.LARGE) {
+        largeArea.subtract(xlargeArea);
+        return largeArea;
+      }
+
+      Area normalArea = new Area(new Rectangle(x0, y0, myTotalWidth, myTotalHeight));
+      normalArea.subtract(smallArea);
+      normalArea.subtract(largeArea);
+      return normalArea;
     }
   }
 }

@@ -67,7 +67,9 @@ public class NlConstants {
   @SuppressWarnings("UseJBColor")
   public static final Color RESIZING_CORNER_COLOR = new Color(0x03a9f4);
   @SuppressWarnings("UseJBColor")
-  public static final Color DEVICE_TEXT_COLOR = new Color(0, 0, 0, 128);
+  public static final Color RESIZING_TEXT_COLOR = new Color(0, 0, 0, 128);
+  @SuppressWarnings("UseJBColor")
+  public static final Color RESIZING_BUCKET_COLOR = new Color(0x03, 0xa9, 0xf4, 26);
 
 
   public static final JBColor DESIGN_SURFACE_BG = new JBColor(0xf2f2f2, UIUtil.getListBackground().getRGB());
