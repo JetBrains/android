@@ -150,9 +150,6 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
             InstantRunManager.transferLocalIdToDeviceId(device, context);
             DeployApkTask.cacheManifestInstallationData(device, context);
 
-            // we should have already done a rebuild if the verifier status was not empty and we had no artifacts
-            assert buildInfo.getVerifierStatus().isEmpty();
-
             consolePrinter.stdout("No local changes, not deploying APK");
             InstantRunManager.LOG.info("List of artifacts is empty, no deployment necessary.");
             new InstantRunUserFeedback(myFacet.getModule()).info("No changes to deploy");
