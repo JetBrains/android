@@ -36,6 +36,23 @@ public class GenerateJavadocTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
+  /**
+   * Verify that JavaDoc can be generated.
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TR ID: C13809689
+   * <p>
+   *   <pre>
+   *   Steps:
+   *   1. Import a simple app.
+   *   2. Click on Tools > Generate JavaDoc
+   *   3. Keep the default selection and select an output directory.
+   *   4. Click OK.
+   *   Verify:
+   *   JavaDoc files are generated in the selected output directory.
+   *   </pre>
+   */
   @Test
   public void generateJavadoc() throws Exception {
     guiTest.importSimpleApplication()
