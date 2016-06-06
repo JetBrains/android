@@ -110,7 +110,7 @@ public class ComponentVersionCheckTest {
 
     ContentFixture syncMessages = guiTest.ideFrame().getMessagesToolWindow().getGradleSyncContent();
     MessageFixture message =
-      syncMessages.findMessage(WARNING, firstLineStartingWith("'buildToolsVersion' 19.1.0 requires Android Gradle plugin 1.5.0"));
+      syncMessages.findMessage(WARNING, firstLineStartingWith("'buildToolsVersion' "));
 
     String text = message.getText();
     assertThat(text).named("custom failure message").contains("The project will not build.");
