@@ -70,6 +70,7 @@ import java.util.stream.Collectors;
 
 import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.ENABLE_EXPERIMENTAL_PROFILING;
+import static com.intellij.openapi.util.io.FileUtil.createTempFile;
 
 /**
  * Provides the "Gradle-aware Make" task for Run Configurations, which
@@ -321,15 +322,15 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
 
     Properties profilerProperties = ((AndroidRunConfigurationBase)configuration).getProfilerState().toProperties();
     try {
-      File propertiesFile = File.createTempFile("profiler", ".properties");
+      File propertiesFile = createTempFile("profiler", ".properties");
       propertiesFile.deleteOnExit(); // TODO: It'd be nice to clean this up sooner than at exit.
 
       Writer writer = new OutputStreamWriter(new FileOutputStream(propertiesFile), Charsets.UTF_8);
       profilerProperties.store(writer, "Android Studio Profiler Gradle Plugin Properties");
       writer.close();
 
-      return Collections
-        .singletonList(AndroidGradleSettings.createProjectProperty("android.profiler.properties", propertiesFile.getAbsolutePath()));
+      String profilingOption = AndroidGradleSettings.createProjectProperty("android.profiler.properties", propertiesFile.getAbsolutePath());
+      return Collections.singletonList(profilingOption);
     }
     catch (IOException e) {
       Throwables.propagate(e);
