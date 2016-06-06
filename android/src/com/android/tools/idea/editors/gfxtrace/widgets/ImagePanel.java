@@ -426,17 +426,9 @@ public class ImagePanel extends JPanel {
       }
       if (displayed == null) {
         Composite composite = null;
-        int imageFormat = 0;
-        if (channels[CHANNEL_RED] && channels[CHANNEL_GREEN] && channels[CHANNEL_BLUE]) {
-          if (channels[CHANNEL_ALPHA]) {
-            // If all channels are enabled, just display the original image.
-            displayed = level;
-          }
-          else {
-            // Use the platform provided alpha composite if alpha is disabled.
-            composite = AlphaComposite.Src;
-            imageFormat = BufferedImage.TYPE_3BYTE_BGR;
-          }
+        if (channels[CHANNEL_RED] && channels[CHANNEL_GREEN] && channels[CHANNEL_BLUE] && channels[CHANNEL_ALPHA]) {
+          // If all channels are enabled, just display the original image.
+          displayed = level;
         }
         else {
           // Use a custom color filtering composite otherwise.
@@ -457,12 +449,11 @@ public class ImagePanel extends JPanel {
               }
             }
           };
-          imageFormat = BufferedImage.TYPE_4BYTE_ABGR;
         }
 
         if (composite != null) {
           //noinspection UndesirableClassUsage
-          displayed = new BufferedImage(level.getWidth(this), level.getHeight(this), imageFormat);
+          displayed = new BufferedImage(level.getWidth(this), level.getHeight(this), BufferedImage.TYPE_4BYTE_ABGR);
           Graphics2D displayedG = displayed.createGraphics();
           displayedG.setComposite(composite);
           displayedG.drawImage(level, 0, 0, this);
