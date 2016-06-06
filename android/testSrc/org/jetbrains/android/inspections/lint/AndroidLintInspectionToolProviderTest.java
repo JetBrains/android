@@ -124,7 +124,7 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
         continue;
       }
 
-      final InspectionProfile profile = InspectionProjectProfileManager.getInstance(project).getInspectionProfile();
+      final InspectionProfile profile = InspectionProjectProfileManager.getInstance(project).getCurrentProfile();
       PsiElement element = null;
       HighlightDisplayLevel errorLevel = profile.getErrorLevel(key, element);
       Severity s;

@@ -260,7 +260,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
       if (ourIssue2InspectionShortName == null) {
         ourIssue2InspectionShortName = new HashMap<Issue, String>();
 
-        final InspectionProfile profile = InspectionProjectProfileManager.getInstance(project).getInspectionProfile();
+        final InspectionProfile profile = InspectionProjectProfileManager.getInstance(project).getCurrentProfile();
 
         for (InspectionToolWrapper e : profile.getInspectionTools(null)) {
           final String shortName = e.getShortName();
