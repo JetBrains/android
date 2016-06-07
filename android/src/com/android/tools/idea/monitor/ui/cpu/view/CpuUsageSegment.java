@@ -16,12 +16,8 @@
 package com.android.tools.idea.monitor.ui.cpu.view;
 
 import com.android.tools.adtui.Range;
-import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.common.formatter.SingleUnitAxisFormatter;
-import com.android.tools.adtui.model.ContinuousSeries;
-import com.android.tools.adtui.model.RangedContinuousSeries;
-import com.android.tools.idea.monitor.datastore.DataStoreContinuousSeries;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.datastore.SeriesDataType;
 import com.android.tools.idea.monitor.ui.BaseLineChartSegment;
@@ -55,9 +51,6 @@ public class CpuUsageSegment extends BaseLineChartSegment {
   // TODO: Set proper darcula color
   private static final Color THREADS_LINE_COLOR = new JBColor(0x5a9240, 0x5a9240);
 
-  @NotNull
-  private final Range mTimeRange;
-
   /**
    * Creates a segment to display CPU usage information. If {@code numThreadsData} is not null, we also display the right axis, which
    * correspond to the number of live threads.
@@ -65,7 +58,6 @@ public class CpuUsageSegment extends BaseLineChartSegment {
   public CpuUsageSegment(@NotNull Range timeRange, @NotNull SeriesDataStore dataStore,
                          @NotNull EventDispatcher<ProfilerEventListener> dispatcher) {
     super(SEGMENT_NAME, timeRange, dataStore, CPU_USAGE_AXIS, NUM_THREADS_AXIS, new Range(0, 100), null, dispatcher);
-    mTimeRange = timeRange;
   }
 
   @Override
@@ -73,30 +65,28 @@ public class CpuUsageSegment extends BaseLineChartSegment {
     return SegmentType.CPU;
   }
 
+  /**
+   * Toggle between levels 1 and 2.
+   * @param isExpanded true if toggling to level 2.
+   */
   @Override
-  public void populateSeriesData(@NotNull LineChart lineChart) {
-    ContinuousSeries myProcessSeries = new DataStoreContinuousSeries(mSeriesDataStore, SeriesDataType.CPU_MY_PROCESS);
-    lineChart.addLine(
-      new RangedContinuousSeries(MY_PROCESS_SERIES_LABEL, mTimeRange, mLeftAxisRange, myProcessSeries),
-      getProcessLineConfig(MY_PROCESS_LINE_COLOR));
-    ContinuousSeries otherProcessSeries = new DataStoreContinuousSeries(mSeriesDataStore, SeriesDataType.CPU_OTHER_PROCESSES);
-    lineChart.addLine(
-      new RangedContinuousSeries(OTHER_PROCESSES_SERIES_LABEL, mTimeRange, mLeftAxisRange, otherProcessSeries),
-      getProcessLineConfig(OTHER_PROCESSES_LINE_COLOR));
+  public void toggleView(boolean isExpanded) {
+    super.toggleView(isExpanded);
 
-    // TODO we need a way to disable data collection / enumeration for various states of a segment.
-    LineConfig threadsLineConfig = new LineConfig(THREADS_LINE_COLOR);
-    threadsLineConfig.setStepped(true);
-    ContinuousSeries threadsSeries = new DataStoreContinuousSeries(mSeriesDataStore, SeriesDataType.CPU_THREADS);
-    lineChart
-      .addLine(new RangedContinuousSeries(THREADS_SERIES_LABEL, mTimeRange, mRightAxisRange, threadsSeries),
-               threadsLineConfig);
+    // My process CPU usage is present in both Level 1 and Level 2
+    addCpuUsageLine(SeriesDataType.CPU_MY_PROCESS, MY_PROCESS_SERIES_LABEL, MY_PROCESS_LINE_COLOR);
+
+    if (isExpanded) {
+      // Other processes CPU usage
+      addCpuUsageLine(SeriesDataType.CPU_OTHER_PROCESSES, OTHER_PROCESSES_SERIES_LABEL, OTHER_PROCESSES_LINE_COLOR);
+
+      // TODO we need a way to disable data collection / enumeration for various states of a segment.
+      // Add number of threads line
+      addLine(SeriesDataType.CPU_THREADS, THREADS_SERIES_LABEL, new LineConfig(THREADS_LINE_COLOR).setStepped(true), mRightAxisRange);
+    }
   }
 
-  private static LineConfig getProcessLineConfig(Color lineColor) {
-    LineConfig lineConfig = new LineConfig(lineColor);
-    lineConfig.setFilled(true);
-    lineConfig.setStacked(true);
-    return lineConfig;
+  private void addCpuUsageLine(SeriesDataType type, String label, Color lineColor) {
+    addLine(type, label, new LineConfig(lineColor).setFilled(true).setStacked(true), mLeftAxisRange);
   }
 }
