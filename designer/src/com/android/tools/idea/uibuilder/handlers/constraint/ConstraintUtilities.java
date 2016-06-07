@@ -1132,7 +1132,7 @@ public class ConstraintUtilities {
     for (ConstraintWidget widget : widgets) {
       saveWidgetLayoutParams(model, widget);
     }
-    model.getNlModel().requestRender(); // let's render asynchronously for now
+    model.getNlModel().render();
   }
 
   /**
