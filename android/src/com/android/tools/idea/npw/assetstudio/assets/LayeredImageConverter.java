@@ -20,6 +20,7 @@ import com.android.SdkConstants;
 import com.android.tools.pixelprobe.Image;
 import com.android.tools.pixelprobe.Layer;
 import com.android.tools.pixelprobe.PixelProbe;
+import com.android.tools.pixelprobe.ShapeInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColorUtil;
 import org.jetbrains.annotations.NotNull;
@@ -80,7 +81,7 @@ class LayeredImageConverter {
       if (!layer.isVisible()) continue;
 
       Layer.Type type = layer.getType();
-      if (type == Layer.Type.PATH) {
+      if (type == Layer.Type.SHAPE) {
         Rectangle2D layerBounds = layer.getBounds();
         if (bounds.isEmpty()) {
           bounds.setRect(layerBounds);
@@ -107,26 +108,84 @@ class LayeredImageConverter {
       if (!layer.isVisible()) continue;
 
       Layer.Type type = layer.getType();
-      if (type == Layer.Type.PATH) {
-        Rectangle2D layerBounds = layer.getBounds();
+      if (type == Layer.Type.SHAPE) {
+        ShapeInfo shapeInfo = layer.getShapeInfo();
+        if (shapeInfo.getStyle() == ShapeInfo.Style.NONE) continue;
 
-        Path2D path = layer.getPath();
+        Path2D path = shapeInfo.getPath();
+
+        Rectangle2D layerBounds = layer.getBounds();
         path.transform(AffineTransform.getTranslateInstance(
           layerBounds.getX() - bounds.getX(), layerBounds.getY() - bounds.getY()));
 
-        Color color = layer.getPathColor();
-        float fillAlpha = layer.getOpacity() * color.getAlpha() / 255.0f;
+        Element element = new Element("path")
+          .attribute("name", StringUtil.escapeXml(layer.getName()))
+          .attribute("pathData", toPathData(path));
 
-        root.child(new Element("path")
-                 .attribute("name", StringUtil.escapeXml(layer.getName()))
-                 .attribute("fillColor", "#" + ColorUtil.toHex(color))
-                 .attribute("fillAlpha", String.valueOf(fillAlpha))
-                 .attribute("pathData", toPathData(path)));
+        extractFill(layer, shapeInfo, element);
+        extractStroke(layer, shapeInfo, element);
 
+        root.child(element);
       } else if (type == Layer.Type.GROUP) {
         extractPathLayers(root, layer.getChildren(), bounds);
       }
     }
+  }
+
+  private static void extractStroke(Layer layer, ShapeInfo shapeInfo, Element element) {
+    if (shapeInfo.getStyle() != ShapeInfo.Style.FILL) {
+      Paint strokePaint = shapeInfo.getStrokePaint();
+      //noinspection UseJBColor
+      Color color = Color.BLACK;
+      if (strokePaint instanceof Color) color = (Color)strokePaint;
+      float strokeAlpha = layer.getOpacity() * shapeInfo.getStrokeOpacity();
+
+      element
+        .attribute("strokeColor", "#" + ColorUtil.toHex(color))
+        .attribute("strokeAlpha", String.valueOf(strokeAlpha));
+
+      if (shapeInfo.getStroke() instanceof BasicStroke) {
+        BasicStroke stroke = (BasicStroke)shapeInfo.getStroke();
+        element
+          .attribute("strokeWidth", String.valueOf(stroke.getLineWidth()))
+          .attribute("strokeLineJoin", getJoinValue(stroke.getLineJoin()))
+          .attribute("strokeLineCap", getCapValue(stroke.getEndCap()));
+      } else {
+        element.attribute("strokeWidth", String.valueOf(0.0f));
+      }
+    }
+  }
+
+  private static void extractFill(Layer layer, ShapeInfo shapeInfo, Element element) {
+    if (shapeInfo.getStyle() != ShapeInfo.Style.STROKE) {
+      Paint fillPaint = shapeInfo.getFillPaint();
+      //noinspection UseJBColor
+      Color color = Color.BLACK;
+      if (fillPaint instanceof Color) color = (Color)fillPaint;
+      float fillAlpha = layer.getOpacity() * shapeInfo.getFillOpacity();
+
+      element
+        .attribute("fillColor", "#" + ColorUtil.toHex(color))
+        .attribute("fillAlpha", String.valueOf(fillAlpha));
+    }
+  }
+
+  private static String getCapValue(int endCap) {
+    switch (endCap) {
+      case BasicStroke.CAP_BUTT: return "butt";
+      case BasicStroke.CAP_ROUND: return "round";
+      case BasicStroke.CAP_SQUARE: return "square";
+    }
+    return "inherit";
+  }
+
+  private static String getJoinValue(int lineJoin) {
+    switch (lineJoin) {
+      case BasicStroke.JOIN_BEVEL: return "bevel";
+      case BasicStroke.JOIN_ROUND: return "round";
+      case BasicStroke.JOIN_MITER: return "miter";
+    }
+    return "inherit";
   }
 
   @NotNull
