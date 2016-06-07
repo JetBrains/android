@@ -18,7 +18,10 @@ package com.android.tools.adtui.chart;
 
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.model.RangedDiscreteSeries;
+import com.android.tools.adtui.model.DefaultDataSeries;
+import com.android.tools.adtui.model.RangedSeries;
+import com.android.tools.adtui.model.SeriesData;
+import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -40,7 +43,7 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
   private static final int TEXT_PADDING = 3;
 
   @NotNull
-  private final List<RangedDiscreteSeries<E>> mSeriesList;
+  private final List<RangedSeries<E>> mSeriesList;
 
   @NotNull
   private final EnumMap<E, Color> mColors;
@@ -75,7 +78,7 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
     mRenderMode = mode;
   }
 
-  public void addSeries(@NotNull RangedDiscreteSeries<E> series) {
+  public void addSeries(@NotNull RangedSeries<E> series) {
     mSeriesList.add(series);
   }
 
@@ -116,18 +119,20 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
     mValues.clear();
 
     int seriesIndex = 0, rectCount = 0;
-    for (RangedDiscreteSeries<E> data : mSeriesList) {
+    for (RangedSeries<E> data : mSeriesList) {
       double min = data.getXRange().getMin();
       double max = data.getXRange().getMax();
-      int size = data.getSeries().size();
+      ImmutableList<SeriesData<E>> seriesDataList = data.getSeries();
+      int size = seriesDataList.size();
 
       // Construct rectangles.
       long previousX = -1;
       E previousValue = null;
 
       for (int i = 0; i < size; i++) {
-        long x = data.getSeries().getX(i);
-        E value = data.getSeries().getValue(i);
+        SeriesData<E> seriesData = seriesDataList.get(i);
+        long x = seriesData.x;
+        E value = seriesData.value;
 
         float startHeight = 1 - (height * (seriesIndex + 1));
 

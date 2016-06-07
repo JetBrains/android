@@ -202,13 +202,13 @@ public class ThreadCallsVisualTest extends VisualTest implements ActionListener 
         mSelectionRange.setMax(end);
 
         // Generate dummy values to simulate CPU Load.
-        DefaultContinuousSeries series = new DefaultContinuousSeries();
+        LongDataSeries series = new LongDataSeries();
         RangedContinuousSeries rangedSeries = new RangedContinuousSeries("Threads", mDataRange,
                                                                    new Range(0.0, 200.0),
                                                                    series);
         Random r = new Random(System.currentTimeMillis());
         for (int i = 0; i < 100; i++) {
-          series.add((long)(start + (end - start) / 100 * i), r.nextInt(100));
+          series.add((long)(start + (end - start) / 100 * i), (long)r.nextInt(100));
         }
         mLineChart.addLine(rangedSeries);
         mScrollBar.setValues(0, mChart.getHeight(), 0, mChart.getMaximumHeight());

@@ -63,7 +63,7 @@ public class AccordionVisualTest extends VisualTest {
 
   private ArrayList<RangedContinuousSeries> mRangedData;
 
-  private ArrayList<DefaultContinuousSeries> mData;
+  private ArrayList<LongDataSeries> mData;
 
   @Override
   protected List<Animatable> createComponentsList() {
@@ -94,7 +94,7 @@ public class AccordionVisualTest extends VisualTest {
         mYRange = new Range(0.0, 100.0);
         componentsList.add(mYRange);
       }
-      DefaultContinuousSeries series = new DefaultContinuousSeries();
+      LongDataSeries series = new LongDataSeries();
       RangedContinuousSeries ranged = new RangedContinuousSeries("Widgets", xRange, mYRange, series);
       mRangedData.add(ranged);
       mData.add(series);
@@ -125,7 +125,7 @@ public class AccordionVisualTest extends VisualTest {
         try {
           while (true) {
             long now = System.currentTimeMillis() - mStartTimeMs;
-            for (DefaultContinuousSeries series : mData) {
+            for (LongDataSeries series : mData) {
               ImmutableList<SeriesData<Long>> data = series.getAllData();
               long last = data.isEmpty() ? 0 : data.get(data.size() - 1).value;
               float delta = 10 * ((float)Math.random() - 0.45f);

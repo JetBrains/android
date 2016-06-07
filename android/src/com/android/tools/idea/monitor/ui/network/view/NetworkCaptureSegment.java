@@ -19,7 +19,7 @@ import com.android.tools.adtui.Animatable;
 import com.android.tools.adtui.Range;
 import com.android.tools.adtui.chart.StateChart;
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.model.RangedDiscreteSeries;
+import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.idea.monitor.ui.BaseSegment;
 import com.android.tools.idea.monitor.ui.ProfilerEventListener;
 import com.intellij.ui.JBColor;
@@ -63,9 +63,9 @@ public class NetworkCaptureSegment extends BaseSegment {
   private final List<StateChart<NetworkState>> mCharts;
 
   @NotNull
-  private final List<RangedDiscreteSeries<NetworkState>> mData;
+  private final List<RangedSeries<NetworkState>> mData;
 
-  public NetworkCaptureSegment(@NotNull Range timeRange, @NotNull List<RangedDiscreteSeries<NetworkState>> data,
+  public NetworkCaptureSegment(@NotNull Range timeRange, @NotNull List<RangedSeries<NetworkState>> data,
                                @NotNull EventDispatcher<ProfilerEventListener> dispatcher) {
     super(SEGMENT_NAME, timeRange, dispatcher);
     mCharts = new ArrayList<>();
@@ -77,7 +77,7 @@ public class NetworkCaptureSegment extends BaseSegment {
 
   @Override
   public void createComponentsList(@NotNull List<Animatable> animatables) {
-    for (RangedDiscreteSeries<NetworkState> series : mData) {
+    for (RangedSeries<NetworkState> series : mData) {
       StateChart<NetworkState> chart = new StateChart<>(NETWORK_STATE_COLORS);
       chart.addSeries(series);
       animatables.add(chart);
