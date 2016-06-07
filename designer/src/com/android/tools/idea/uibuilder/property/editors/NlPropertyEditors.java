@@ -27,6 +27,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collections;
 import java.util.Set;
 
+import static com.android.SdkConstants.ATTR_STYLE;
 import static com.android.tools.idea.uibuilder.property.editors.NlEditingListener.DEFAULT_LISTENER;
 
 public class NlPropertyEditors implements PTableCellEditorProvider {
@@ -36,7 +37,7 @@ public class NlPropertyEditors implements PTableCellEditorProvider {
   private NlTableCellEditor myComboEditor;
   private NlTableCellEditor myDefaultEditor;
 
-  public enum EditorType {DEFAULT, BOOLEAN, FLAG, COMBO}
+  public enum EditorType {DEFAULT, BOOLEAN, FLAG, COMBO, COMBO_WITH_BROWSE}
 
   public NlPropertyEditors(@NotNull Project project) {
     myProject = project;
@@ -51,6 +52,7 @@ public class NlPropertyEditors implements PTableCellEditorProvider {
       case FLAG:
         return getMyFlagEditor();
       case COMBO:
+      case COMBO_WITH_BROWSE:
         return getMyComboEditor();
       default:
         return getDefaultEditor();
@@ -65,6 +67,8 @@ public class NlPropertyEditors implements PTableCellEditorProvider {
         return NlFlagsEditor.create();
       case COMBO:
         return NlEnumEditor.createForInspector(DEFAULT_LISTENER);
+      case COMBO_WITH_BROWSE:
+        return NlEnumEditor.createForInspectorWithBrowseButton(DEFAULT_LISTENER);
       default:
         return NlReferenceEditor.createForInspectorWithBrowseButton(property.getModel().getProject(), DEFAULT_LISTENER);
     }
@@ -104,6 +108,9 @@ public class NlPropertyEditors implements PTableCellEditorProvider {
       return EditorType.BOOLEAN;
     }
     else if (NlEnumEditor.supportsProperty(property)) {
+      if (property.getName().equals(ATTR_STYLE)) {
+        return EditorType.COMBO_WITH_BROWSE;
+      }
       return EditorType.COMBO;
     }
     return EditorType.DEFAULT;

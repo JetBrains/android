@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import com.android.SdkConstants;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,5 +33,14 @@ public class CollapsingToolbarLayoutHandler extends FrameLayoutHandler {
       ATTR_CONTENT_SCRIM,
       ATTR_TOOLBAR_ID,
       ATTR_FITS_SYSTEM_WINDOWS);
+  }
+
+  @Override
+  @NotNull
+  public List<String> getBaseStyles(@NotNull String tagName) {
+    if (tagName.equals(SdkConstants.COLLAPSING_TOOLBAR_LAYOUT)) {
+      return ImmutableList.of("Widget.Design.CollapsingToolbar");  // Notice the missing "Layout"
+    }
+    return super.getBaseStyles(tagName);
   }
 }

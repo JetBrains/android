@@ -15,15 +15,19 @@
  */
 package com.android.tools.idea.uibuilder.property.editors;
 
+import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class StyleFilterTest extends AndroidGradleTestCase {
@@ -46,12 +50,24 @@ public class StyleFilterTest extends AndroidGradleTestCase {
     Configuration configuration = myAndroidFacet.getConfigurationManager().getConfiguration(file);
     myResolver = configuration.getResourceResolver();
     assertNotNull(myResolver);
-    myFilter = new StyleFilter(myResolver);
+    myFilter = new StyleFilter(getProject(), myResolver);
   }
 
   public void testTextAppearances() {
-    List<StyleResourceValue> styles = myFilter.getStylesDerivedFrom("TextAppearance", true).sequential().collect(Collectors.toList());
-    assertTextAppearances(styles);
+    List<StyleResourceValue> styles = myFilter.getStylesDerivedFrom("TextAppearance", true).collect(Collectors.toList());
+    assertStylesSorted("TextAppearance", styles, 3, 50, 200,
+                       ImmutableList.of("Text2", "Text34", "TextAppearance"),
+                       ImmutableList.of("TextAppearance.AppCompat",
+                                        "TextAppearance.AppCompat.Body1",
+                                        "TextAppearance.AppCompat.Body2",
+                                        "TextAppearance.AppCompat.Display1",
+                                        "TextAppearance.AppCompat.Display2",
+                                        "TextAppearance.AppCompat.Display3",
+                                        "TextAppearance.AppCompat.Display4"),
+                       ImmutableList.of("TextAppearance",
+                                        "TextAppearance.DeviceDefault",
+                                        "TextAppearance.Material",
+                                        "TextAppearance.Material.Small"));
 
     // User defined TextAppearances are included
     assertStyle("Text2", !FRAMEWORK, USER_DEFINED, IS_DERIVED_STYLE, !FILTERED_OUT);
@@ -76,32 +92,129 @@ public class StyleFilterTest extends AndroidGradleTestCase {
     assertStyle("Yang", !FRAMEWORK, USER_DEFINED, !IS_DERIVED_STYLE, FILTERED_OUT);
   }
 
-  private void assertTextAppearances(@NotNull List<StyleResourceValue> styles) {
-    assertStyle(styles.get(0), "Text2", !FRAMEWORK, USER_DEFINED, IS_DERIVED_STYLE, !FILTERED_OUT);
-    assertStyle(styles.get(1), "Text34", !FRAMEWORK, USER_DEFINED, IS_DERIVED_STYLE, !FILTERED_OUT);
-    assertStyle(styles.get(2), "TextAppearance", !FRAMEWORK, USER_DEFINED, IS_DERIVED_STYLE, !FILTERED_OUT);
-    assertStyle(styles.get(3), "TextAppearance.AppCompat", !FRAMEWORK, !USER_DEFINED, IS_DERIVED_STYLE, !FILTERED_OUT);
+  public void testStylesByTagName() {
+    assertTagStyle(SdkConstants.BUTTON, 0, 6, 46,
+                   ImmutableList.of(),
+                   ImmutableList.of("Widget.AppCompat.Button", "Widget.AppCompat.Button.Borderless", "Widget.AppCompat.Button.Small"),
+                   ImmutableList.of("Widget.Button", "Widget.Button.Small", "Widget.Material.Button"));
+    assertTagStyle(SdkConstants.PROGRESS_BAR, 0, 2, 57,
+                   ImmutableList.of(),
+                   ImmutableList.of("Widget.AppCompat.ProgressBar", "Widget.AppCompat.ProgressBar.Horizontal"),
+                   ImmutableList.of("Widget.ProgressBar", "Widget.Material.ProgressBar"));
+    assertTagStyle(SdkConstants.RADIO_BUTTON, 0, 1, 7,
+                   ImmutableList.of(),
+                   ImmutableList.of("Widget.AppCompat.CompoundButton.RadioButton"),
+                   ImmutableList.of("Widget.CompoundButton.RadioButton", "Widget.Material.CompoundButton.RadioButton"));
+    assertTagStyle(SdkConstants.CHECK_BOX, 0, 1, 7,
+                   ImmutableList.of(),
+                   ImmutableList.of("Widget.AppCompat.CompoundButton.CheckBox"),
+                   ImmutableList.of("Widget.CompoundButton.CheckBox", "Widget.Material.CompoundButton.CheckBox"));
+    assertTagStyle(SdkConstants.SWITCH, 0, 0, 2,
+                   ImmutableList.of(),
+                   ImmutableList.of(),
+                   ImmutableList.of("Widget.CompoundButton.Switch"));
+    assertTagStyle(SdkConstants.TEXT_VIEW, 0, 1, 24,
+                   ImmutableList.of(),
+                   ImmutableList.of("Widget.AppCompat.TextView.SpinnerItem"),
+                   ImmutableList.of("Widget.TextView", "Widget.Material.TextView"));
+    assertTagStyle(SdkConstants.APP_BAR_LAYOUT, 0, 1, 0,
+                   ImmutableList.of(),
+                   ImmutableList.of("Widget.Design.AppBarLayout"),
+                   ImmutableList.of());
+    assertTagStyle(SdkConstants.COLLAPSING_TOOLBAR_LAYOUT, 0, 1, 0,
+                   ImmutableList.of(),
+                   ImmutableList.of("Widget.Design.CollapsingToolbar"),
+                   ImmutableList.of());
+    assertTagStyle(SdkConstants.COORDINATOR_LAYOUT, 0, 1, 0,
+                   ImmutableList.of(),
+                   ImmutableList.of("Widget.Design.CoordinatorLayout"),
+                   ImmutableList.of());
+    assertTagStyle(SdkConstants.FLOATING_ACTION_BUTTON, 0, 1, 0,
+                   ImmutableList.of(),
+                   ImmutableList.of("Widget.Design.FloatingActionButton"),
+                   ImmutableList.of());
+    assertTagStyle(SdkConstants.NAVIGATION_VIEW, 0, 1, 0,
+                   ImmutableList.of(),
+                   ImmutableList.of("Widget.Design.NavigationView"),
+                   ImmutableList.of());
+    assertTagStyle(SdkConstants.SNACKBAR, 0, 1, 0,
+                   ImmutableList.of(),
+                   ImmutableList.of("Widget.Design.Snackbar"),
+                   ImmutableList.of());
+    assertTagStyle(SdkConstants.TAB_LAYOUT, 0, 1, 0,
+                   ImmutableList.of(),
+                   ImmutableList.of("Widget.Design.TabLayout"),
+                   ImmutableList.of());
+    assertTagStyle(SdkConstants.TEXT_INPUT_LAYOUT, 0, 1, 0,
+                   ImmutableList.of(),
+                   ImmutableList.of("Widget.Design.TextInputLayout"),
+                   ImmutableList.of());
+  }
+
+  private void assertTagStyle(@NotNull String tagName, int userCount, int libraryCount, int frameworkCount,
+                              List<String> userSample, List<String> librarySample, List<String> frameworkSample) {
+    List<StyleResourceValue> styles = myFilter.getWidgetStyles(tagName).collect(Collectors.toList());
+    assertStylesSorted(tagName, styles, userCount, libraryCount, frameworkCount, userSample, librarySample, frameworkSample);
+    boolean expectHasStyles = userCount + libraryCount + frameworkCount > 0;
+    assertEquals(tagName + " hasWidgetStyles", expectHasStyles, StyleFilter.hasWidgetStyles(getProject(), myResolver, tagName));
+  }
+
+  private void assertStylesSorted(@NotNull String context,
+                                  @NotNull List<StyleResourceValue> styles,
+                                  int minUserCount,
+                                  int minLibraryCount,
+                                  int minFrameworkCount,
+                                  List<String> userSample,
+                                  List<String> librarySample,
+                                  List<String> frameworkSample) {
+    Set<String> userSampleStyles = new HashSet<>(userSample);
+    Set<String> librarySampleStyles = new HashSet<>(librarySample);
+    Set<String> frameworkSampleStyles = new HashSet<>(frameworkSample);
+
+    String previousStyleName = "";
+    int index = 0;
+
+    // All user styles should be sorted
+    for (; index < styles.size() && styles.get(index).isUserDefined(); index++) {
+      StyleResourceValue style = styles.get(index);
+      assertStyle(styles.get(index), style.getName(), !FRAMEWORK, USER_DEFINED, IS_DERIVED_STYLE, false);
+      assertTrue(previousStyleName.compareTo(style.getName()) < 0);
+      userSampleStyles.remove(style.getName());
+      previousStyleName = style.getName();
+    }
+    int actualUserCount = index;
+    assertTrue(context + " user style count, actual: " + actualUserCount, minUserCount <= actualUserCount);
+    assertEmpty(context, userSampleStyles);
 
     // All library styles should be sorted
-    String previousStyleName = styles.get(3).getName();
-    int index;
-    for (index = 4; index < styles.size() && !styles.get(index).isFramework(); index++) {
+    int previousIndex = index;
+    previousStyleName = "";
+    for (; index < styles.size() && !styles.get(index).isFramework(); index++) {
       StyleResourceValue style = styles.get(index);
-      boolean expectedFilteredOut = style.getName().startsWith("Base.");
-      assertStyle(styles.get(index), style.getName(), !FRAMEWORK, !USER_DEFINED, IS_DERIVED_STYLE, expectedFilteredOut);
-      assertTrue(previousStyleName.compareTo(style.getName()) <= 0);
+      assertStyle(styles.get(index), style.getName(), !FRAMEWORK, !USER_DEFINED, IS_DERIVED_STYLE, false);
+      assertTrue(previousStyleName.compareTo(style.getName()) < 0);
+      librarySampleStyles.remove(style.getName());
+      previousStyleName = style.getName();
     }
+    int actualLibraryCount = index - previousIndex;
+    assertTrue(context + " library style count, actual: " + actualLibraryCount, minLibraryCount <= actualLibraryCount);
+    assertEmpty(context, librarySampleStyles);
 
     // All framework styles should be sorted
-    previousStyleName = styles.get(index).getName();
+    previousIndex = index;
+    previousStyleName = "";
     for (; index < styles.size(); index++) {
       StyleResourceValue style = styles.get(index);
-      boolean expectedFilteredOut = style.getName().startsWith("Base.");
-      assertStyle(styles.get(index), style.getName(), FRAMEWORK, !USER_DEFINED, IS_DERIVED_STYLE, expectedFilteredOut);
-      assertTrue(previousStyleName.compareTo(style.getName()) <= 0);
+      assertStyle(styles.get(index), style.getName(), FRAMEWORK, !USER_DEFINED, IS_DERIVED_STYLE, false);
+      assertTrue(previousStyleName.compareTo(style.getName()) < 0);
+      frameworkSampleStyles.remove(style.getName());
+      previousStyleName = style.getName();
     }
+    int actualFrameworkCount = index - previousIndex;
+    assertTrue(context + " framework style count, actual: " + actualFrameworkCount , minFrameworkCount <= actualFrameworkCount);
+    assertEmpty(context, frameworkSampleStyles);
 
-    assertEquals(styles.size(), index);
+    assertEquals("All styles should be in 3 sections", styles.size(), index);
   }
 
   private void assertStyle(@NotNull String name, boolean isFramework, boolean userDefined, boolean isDerived, boolean filteredOut) {
