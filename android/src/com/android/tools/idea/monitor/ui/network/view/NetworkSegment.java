@@ -16,15 +16,10 @@
 package com.android.tools.idea.monitor.ui.network.view;
 
 import com.android.tools.adtui.Range;
-import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
-import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.common.formatter.MemoryAxisFormatter;
 import com.android.tools.adtui.common.formatter.SingleUnitAxisFormatter;
-import com.android.tools.adtui.model.ContinuousSeries;
-import com.android.tools.adtui.model.RangedContinuousSeries;
-import com.android.tools.idea.monitor.datastore.DataStoreContinuousSeries;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.datastore.SeriesDataType;
 import com.android.tools.idea.monitor.ui.BaseLineChartSegment;
@@ -35,22 +30,21 @@ import org.jetbrains.annotations.NotNull;
 public class NetworkSegment extends BaseLineChartSegment {
 
   private static final String SEGMENT_NAME = "Network";
+
   private static final String SENDING = "Sending";
+
   private static final String RECEIVING = "Receiving";
+
   private static final String CONNECTIONS = "Connections";
 
   private static final BaseAxisFormatter BANDWIDTH_AXIS_FORMATTER = MemoryAxisFormatter.DEFAULT;
-  private static final BaseAxisFormatter CONNECTIONS_AXIS_FORMATTER = new SingleUnitAxisFormatter(1, 10, 1, "");
 
-  @NotNull
-  private final Range mTimeRange;
+  private static final BaseAxisFormatter CONNECTIONS_AXIS_FORMATTER = new SingleUnitAxisFormatter(1, 10, 1, "");
 
   public NetworkSegment(@NotNull Range timeRange,
                         @NotNull SeriesDataStore dataStore,
                         @NotNull EventDispatcher<ProfilerEventListener> dispatcher) {
-    super(SEGMENT_NAME, timeRange, dataStore, BANDWIDTH_AXIS_FORMATTER,
-          CONNECTIONS_AXIS_FORMATTER, null, null, dispatcher);
-    mTimeRange = timeRange;
+    super(SEGMENT_NAME, timeRange, dataStore, BANDWIDTH_AXIS_FORMATTER, CONNECTIONS_AXIS_FORMATTER, dispatcher);
   }
 
   @Override
@@ -58,22 +52,21 @@ public class NetworkSegment extends BaseLineChartSegment {
     return SegmentType.NETWORK;
   }
 
+  /**
+   * Toggle between levels 1 and 2.
+   * @param isExpanded true if toggling to level 2.
+   */
   @Override
-  public void populateSeriesData(@NotNull LineChart lineChart) {
-    // TODO(Madiyar): set corresponding colors to the lines to match the design
-    ContinuousSeries sendingSeries = new DataStoreContinuousSeries(mSeriesDataStore, SeriesDataType.NETWORK_SENDING);
-    lineChart.addLine(new RangedContinuousSeries(SENDING, mTimeRange, mLeftAxisRange, sendingSeries),
-                      new LineConfig(AdtUiUtils.NETWORK_SENDING));
+  public void toggleView(boolean isExpanded) {
+    super.toggleView(isExpanded);
 
-    ContinuousSeries receivingSeries = new DataStoreContinuousSeries(mSeriesDataStore, SeriesDataType.NETWORK_RECEIVING);
-    lineChart.addLine(new RangedContinuousSeries(RECEIVING, mTimeRange, mLeftAxisRange, receivingSeries),
-                      new LineConfig(AdtUiUtils.NETWORK_RECEIVING));
+    // Sending and Receiving lines are present in both levels 1 and 2
+    addLine(SeriesDataType.NETWORK_SENDING, SENDING, new LineConfig(Constants.NETWORK_SENDING_COLOR), mLeftAxisRange);
+    addLine(SeriesDataType.NETWORK_RECEIVING, RECEIVING, new LineConfig(Constants.NETWORK_RECEIVING_COLOR), mLeftAxisRange);
 
-    //TODO Move visibility to segment config
-    ContinuousSeries connectionsSeries = new DataStoreContinuousSeries(mSeriesDataStore, SeriesDataType.NETWORK_CONNECTIONS);
-    LineConfig connectionsConf = new LineConfig(AdtUiUtils.NETWORK_CONNECTIONS);
-    connectionsConf.setStepped(true);
-    lineChart.addLine(new RangedContinuousSeries(CONNECTIONS, mTimeRange, mRightAxisRange, connectionsSeries),
-                      connectionsConf);
+    if (isExpanded) {
+      addLine(SeriesDataType.NETWORK_CONNECTIONS, CONNECTIONS, new LineConfig(Constants.NETWORK_CONNECTIONS_COLOR).setStepped(true),
+              mRightAxisRange);
+    }
   }
 }
