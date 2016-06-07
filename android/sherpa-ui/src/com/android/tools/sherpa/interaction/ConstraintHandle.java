@@ -1827,4 +1827,9 @@ public class ConstraintHandle {
         return (delta / (float) LOCK_CONNECTIONS_DURATION);
     }
 
+    @Override
+    public String toString() {
+        return mAnchor.toString();
+    }
+
 }
