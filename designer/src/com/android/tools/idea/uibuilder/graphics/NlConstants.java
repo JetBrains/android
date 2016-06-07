@@ -41,9 +41,10 @@ public class NlConstants {
   public static final int MAX_MATCH_DISTANCE = 20;
 
   public static final int RESIZING_CORNER_SIZE = 32;
+  public static final int RESIZING_CUE_SIZE = 16;
 
   public static final JBColor RULER_BG = new JBColor(Color.WHITE, ColorUtil.brighter(UIUtil.getListBackground(), 1));
-  public static final JBColor BOUNDS_RECT_COLOR = new JBColor(Color.GRAY, UIUtil.getListForeground());
+  public static final JBColor BOUNDS_RECT_COLOR = new JBColor(0xbdbdbd, UIUtil.getListForeground().getRGB());
   public static final JBColor RULER_TICK_COLOR = new JBColor(0xdbdbdb, UIUtil.getListForeground().darker().getRGB());
   public static final JBColor RULER_TEXT_COLOR = new JBColor(0x959595, UIUtil.getListForeground().getRGB());
   public static final Font RULER_TEXT_FONT = JBUI.Fonts.miniFont();
@@ -58,6 +59,7 @@ public class NlConstants {
   public static final Color UNAVAILABLE_ZONE_COLOR = new Color(0, 0, 0, 100);
   public static final Color RESIZING_CONTOUR_COLOR = new Color(0x5082db);
   public static final Color RESIZING_CORNER_COLOR = new Color(0x03a9f4);
+  public static final Color RESIZING_CUE_COLOR = new Color(0x757575);
   public static final Color RESIZING_TEXT_COLOR = new Color(0, 0, 0, 128);
   public static final Color RESIZING_BUCKET_COLOR = new Color(0x03, 0xa9, 0xf4, 26);
 
