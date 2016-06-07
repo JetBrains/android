@@ -141,8 +141,8 @@ class DrawConstraintModel {
     if (myMouseInteraction != null) {
       myMouseInteraction.mouseReleased(pxToDp(x), pxToDp(y));
     }
-    myConstraintModel.renderInLayoutLib();
     myConstraintModel.allowsUpdate(true);
+    myConstraintModel.requestRender();
   }
 
   /**

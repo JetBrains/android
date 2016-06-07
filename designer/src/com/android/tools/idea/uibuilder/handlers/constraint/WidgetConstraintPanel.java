@@ -345,7 +345,7 @@ public class WidgetConstraintPanel extends JPanel {
   }
 
   private void saveWidget() {
-    mConstraintModel.saveToXML();
+    mConstraintModel.requestSaveToXML();
     mWidgetSaveTimer.stop();
     mWidgetModified = false;
   }
@@ -384,7 +384,7 @@ public class WidgetConstraintPanel extends JPanel {
     mWidget.setHorizontalBiasPercent(bias);
     widgetModified();
     mConstraintModel.allowsUpdate(true);
-    mConstraintModel.renderInLayoutLib();
+    mConstraintModel.requestRender();
   }
 
   public void setVerticalBias() {
@@ -396,7 +396,7 @@ public class WidgetConstraintPanel extends JPanel {
     mWidget.setVerticalBiasPercent(bias);
     widgetModified();
     mConstraintModel.allowsUpdate(true);
-    mConstraintModel.renderInLayoutLib();
+    mConstraintModel.requestRender();
   }
 
   public void setTopMargin(int margin) {
@@ -406,7 +406,7 @@ public class WidgetConstraintPanel extends JPanel {
     mConstraintModel.allowsUpdate(false);
     setMargin(ConstraintAnchor.Type.TOP, margin);
     mConstraintModel.allowsUpdate(true);
-    mConstraintModel.renderInLayoutLib();
+    mConstraintModel.requestRender();
   }
 
   public void setLeftMargin(int margin) {
@@ -416,7 +416,7 @@ public class WidgetConstraintPanel extends JPanel {
     mConstraintModel.allowsUpdate(false);
     setMargin(ConstraintAnchor.Type.LEFT, margin);
     mConstraintModel.allowsUpdate(true);
-    mConstraintModel.renderInLayoutLib();
+    mConstraintModel.requestRender();
   }
 
   public void setRightMargin(int margin) {
@@ -426,7 +426,7 @@ public class WidgetConstraintPanel extends JPanel {
     mConstraintModel.allowsUpdate(false);
     setMargin(ConstraintAnchor.Type.RIGHT, margin);
     mConstraintModel.allowsUpdate(true);
-    mConstraintModel.renderInLayoutLib();
+    mConstraintModel.requestRender();
   }
 
   public void setBottomMargin(int margin) {
@@ -436,7 +436,7 @@ public class WidgetConstraintPanel extends JPanel {
     mConstraintModel.allowsUpdate(false);
     setMargin(ConstraintAnchor.Type.BOTTOM, margin);
     mConstraintModel.allowsUpdate(true);
-    mConstraintModel.renderInLayoutLib();
+    mConstraintModel.requestRender();
   }
 
   public void killTopConstraint() {
@@ -446,7 +446,7 @@ public class WidgetConstraintPanel extends JPanel {
     mConstraintModel.allowsUpdate(false);
     killConstraint(ConstraintAnchor.Type.TOP);
     mConstraintModel.allowsUpdate(true);
-    mConstraintModel.renderInLayoutLib();
+    mConstraintModel.requestRender();
   }
 
   public void killLeftConstraint() {
@@ -456,7 +456,7 @@ public class WidgetConstraintPanel extends JPanel {
     mConstraintModel.allowsUpdate(false);
     killConstraint(ConstraintAnchor.Type.LEFT);
     mConstraintModel.allowsUpdate(true);
-    mConstraintModel.renderInLayoutLib();
+    mConstraintModel.requestRender();
   }
 
   public void killRightConstraint() {
@@ -466,7 +466,7 @@ public class WidgetConstraintPanel extends JPanel {
     mConstraintModel.allowsUpdate(false);
     killConstraint(ConstraintAnchor.Type.RIGHT);
     mConstraintModel.allowsUpdate(true);
-    mConstraintModel.renderInLayoutLib();
+    mConstraintModel.requestRender();
   }
 
   public void killBottomConstraint() {
@@ -499,7 +499,7 @@ public class WidgetConstraintPanel extends JPanel {
     }
     widgetModified();
     mConstraintModel.allowsUpdate(true);
-    mConstraintModel.renderInLayoutLib();
+    mConstraintModel.requestRender();
   }
 
   public void setVerticalConstraint(int verticalConstraint) {
@@ -520,7 +520,7 @@ public class WidgetConstraintPanel extends JPanel {
     }
     widgetModified();
     mConstraintModel.allowsUpdate(true);
-    mConstraintModel.renderInLayoutLib();
+    mConstraintModel.requestRender();
   }
 
   /*-----------------------------------------------------------------------*/

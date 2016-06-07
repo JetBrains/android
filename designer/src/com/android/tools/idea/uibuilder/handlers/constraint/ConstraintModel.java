@@ -96,6 +96,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
   private static final WeakHashMap<NlModel, ConstraintModel> ourModelCache = new WeakHashMap<>();
 
   private SaveXMLTimer mySaveXmlTimer = new SaveXMLTimer();
+  private RequestRenderTimer myRequestRenderTimer = new RequestRenderTimer();
 
   //////////////////////////////////////////////////////////////////////////////
   // Utilities
@@ -437,6 +438,24 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
   }
 
   /**
+   * Schedule an XML save
+   */
+  public void requestSaveToXML() {
+    mySaveXmlTimer.reset();
+  }
+
+  /**
+   * Schedule a render
+   */
+  public void requestRender() {
+    ourLock.lock();
+    if (myAllowsUpdate) {
+      myRequestRenderTimer.reset();
+    };
+    ourLock.unlock();
+  }
+
+  /**
    * Timer class managing the xml save behaviour
    * We only want to save if we are not doing something else...
    */
@@ -477,6 +496,27 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
         }
         saveToXML();
       }
+    }
+  }
+
+  /**
+   * Timer class managing the request render behaviour
+   * We don't want to queue rendering continuously.
+   */
+  class RequestRenderTimer implements ActionListener {
+    Timer mTimer = new Timer(400, this); // 400ms delay before render
+
+    public RequestRenderTimer() {
+      mTimer.setRepeats(false);
+    }
+
+    public void reset() {
+      mTimer.restart();
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      renderInLayoutLib();
     }
   }
 
@@ -868,13 +908,14 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
       }
       ConstraintUtilities.saveModelToXML(myNlModel);
       selection.clearModifiedWidgets();
+      requestRender();
     }
   }
 
   /**
    * Render the model in layoutlib
    */
-  public void renderInLayoutLib() {
+  private void renderInLayoutLib() {
     ourLock.lock();
     if (DEBUG) {
       System.out.println("### Model rendered to layoutlib -> "
