@@ -123,7 +123,7 @@ class LayersTree extends Tree {
           case GROUP:
             setIcon(AllIcons.Nodes.Folder);
             break;
-          case PATH:
+          case SHAPE:
             setIcon(AndroidIcons.Views.TextureView);
             break;
           case TEXT:
