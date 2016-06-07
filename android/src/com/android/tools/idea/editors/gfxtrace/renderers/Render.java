@@ -153,8 +153,11 @@ public final class Render {
   public static void render(@NotNull AtomController.Group group,
                             @NotNull final SimpleColoredComponent component,
                             @NotNull SimpleTextAttributes attributes) {
+    render(group.group.getRange().getStart(), component, attributes, NO_TAG);
+    component.append(": ", attributes);
     component.append(group.group.getName(), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
-    String range = "  (" + group.group.getRange().getStart() + " - " + group.group.getRange().getLast() + ")";
+    long count = group.group.getRange().getCount();
+    String range = "  (" + count + " Command" + (count != 1 ? "s" : "") + ")";
     component.append(range, SimpleTextAttributes.GRAYED_ATTRIBUTES);
   }
 
