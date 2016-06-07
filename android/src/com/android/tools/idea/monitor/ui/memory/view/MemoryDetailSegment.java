@@ -19,10 +19,12 @@ import com.android.tools.adtui.Animatable;
 import com.android.tools.adtui.Range;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.idea.monitor.ui.BaseSegment;
+import com.android.tools.idea.monitor.ui.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.memory.model.MemoryInfoTreeNode;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.treeStructure.Tree;
+import com.intellij.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -49,8 +51,9 @@ public class MemoryDetailSegment extends BaseSegment {
 
   private DefaultTreeModel mTreeModel;
 
-  public MemoryDetailSegment(@NotNull Range timeRange, @NotNull MemoryInfoTreeNode root) {
-    super(SEGMENT_NAME, timeRange);
+  public MemoryDetailSegment(@NotNull Range timeRange, @NotNull MemoryInfoTreeNode root,
+                             @NotNull EventDispatcher<ProfilerEventListener> dispatcher) {
+    super(SEGMENT_NAME, timeRange, dispatcher);
     mRoot = root;
   }
 

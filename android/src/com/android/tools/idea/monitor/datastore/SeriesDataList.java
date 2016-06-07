@@ -57,13 +57,13 @@ public class SeriesDataList<E> extends ImmutableList<SeriesData<E>> {
       throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + size());
     }
     SeriesData<E> data = new SeriesData<>();
-    data.x = mDataStore.getTimeAtIndex(mStartIndex + index);
+    data.x = mDataStore.getTimeAtIndex(mDataType, mStartIndex + index);
     data.value = mDataStore.getValueAtIndex(mDataType, mStartIndex + index);
     return data;
   }
 
   public int getIndexForTime(long time) {
-    int index = mDataStore.getClosestTimeIndex(time) - mStartIndex;
+    int index = mDataStore.getClosestTimeIndex(mDataType, time) - mStartIndex;
     return Math.max(0,Math.min(size()-1,index));
   }
 
@@ -72,8 +72,8 @@ public class SeriesDataList<E> extends ImmutableList<SeriesData<E>> {
    * an internal range.
    */
   private void initialize(Range range) {
-    mStartIndex = mDataStore.getClosestTimeIndex((long)range.getMin() - RANGE_PADDING_MS);
-    mEndIndex = mDataStore.getClosestTimeIndex((long)range.getMax() + RANGE_PADDING_MS);
+    mStartIndex = mDataStore.getClosestTimeIndex(mDataType, (long)range.getMin() - RANGE_PADDING_MS);
+    mEndIndex = mDataStore.getClosestTimeIndex(mDataType, (long)range.getMax() + RANGE_PADDING_MS);
     //TODO When we cache data to disk here we can tell the datastore to preload it for this range.
   }
 

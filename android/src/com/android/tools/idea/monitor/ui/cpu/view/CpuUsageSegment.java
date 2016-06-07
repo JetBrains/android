@@ -25,7 +25,9 @@ import com.android.tools.idea.monitor.datastore.DataStoreContinuousSeries;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.datastore.SeriesDataType;
 import com.android.tools.idea.monitor.ui.BaseLineChartSegment;
+import com.android.tools.idea.monitor.ui.ProfilerEventListener;
 import com.intellij.ui.JBColor;
+import com.intellij.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -60,9 +62,15 @@ public class CpuUsageSegment extends BaseLineChartSegment {
    * Creates a segment to display CPU usage information. If {@code numThreadsData} is not null, we also display the right axis, which
    * correspond to the number of live threads.
    */
-  public CpuUsageSegment(@NotNull Range timeRange, @NotNull SeriesDataStore dataStore) {
-    super(SEGMENT_NAME, timeRange, dataStore, CPU_USAGE_AXIS, NUM_THREADS_AXIS, new Range(0, 100), null);
+  public CpuUsageSegment(@NotNull Range timeRange, @NotNull SeriesDataStore dataStore,
+                         @NotNull EventDispatcher<ProfilerEventListener> dispatcher) {
+    super(SEGMENT_NAME, timeRange, dataStore, CPU_USAGE_AXIS, NUM_THREADS_AXIS, new Range(0, 100), null, dispatcher);
     mTimeRange = timeRange;
+  }
+
+  @Override
+  public SegmentType getSegmentType() {
+    return SegmentType.CPU;
   }
 
   @Override
