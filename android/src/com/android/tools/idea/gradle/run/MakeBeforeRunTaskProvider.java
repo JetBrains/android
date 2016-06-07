@@ -69,6 +69,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static com.android.builder.model.AndroidProject.*;
+import static com.android.tools.idea.apk.ApkProjects.isApkProject;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.ENABLE_EXPERIMENTAL_PROFILING;
 import static com.intellij.openapi.util.io.FileUtil.createTempFile;
 
@@ -147,6 +148,9 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   }
 
   private static boolean configurationTypeIsSupported(@NotNull RunConfiguration runConfiguration) {
+    if (isApkProject(runConfiguration.getProject())) {
+      return false;
+    }
     return runConfiguration instanceof AndroidRunConfigurationBase || isUnitTestConfiguration(runConfiguration);
   }
 

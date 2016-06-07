@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.activity;
 
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.module.Module;
 import com.intellij.psi.PsiClass;
 import com.intellij.util.xml.DomElement;
 import org.jetbrains.android.dom.AndroidDomUtil;
@@ -31,6 +32,7 @@ import org.w3c.dom.Node;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.apk.ApkProjects.isApkProject;
 import static com.android.xml.AndroidManifest.NODE_ACTION;
 import static com.android.xml.AndroidManifest.NODE_CATEGORY;
 
@@ -139,7 +141,13 @@ public class ActivityLocatorUtils {
     ApplicationManager.getApplication().assertReadAccessAllowed();
 
     PsiClass c = activity.getActivityClass().getValue();
+
     if (c == null) {
+      Module module = activity.getModule();
+      if (module != null && isApkProject(module)) {
+        // In APK project we doesn't necessarily have the source/class file of the activity.
+        return activity.getActivityClass().getStringValue();
+      }
       return null;
     }
 
