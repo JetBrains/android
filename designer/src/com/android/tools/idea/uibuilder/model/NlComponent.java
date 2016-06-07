@@ -251,6 +251,10 @@ public class NlComponent {
     return (x <= px && y <= py && x + w >= px && y + h >= py) ? this : null;
   }
 
+  public boolean containsX(@AndroidCoordinate int x) {
+    return Ranges.contains(this.x, this.x + w, x);
+  }
+
   public boolean containsY(@AndroidCoordinate int y) {
     return Ranges.contains(this.y, this.y + h, y);
   }
