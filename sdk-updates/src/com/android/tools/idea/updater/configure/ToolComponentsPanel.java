@@ -33,10 +33,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.Enumeration;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Panel that shows all packages not associated with an AndroidVersion.
@@ -89,7 +86,7 @@ public class ToolComponentsPanel {
 
     for (String prefix : myMultiVersionPackages.keySet()) {
       Collection<UpdatablePackage> versions = myMultiVersionPackages.get(prefix);
-      Set<DetailsTreeNode> detailsNodes = new HashSet<>();
+      Set<DetailsTreeNode> detailsNodes = new TreeSet<>();
       for (UpdatablePackage info : versions) {
         NodeStateHolder holder = new NodeStateHolder(info);
         myStates.add(holder);
