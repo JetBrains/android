@@ -40,7 +40,7 @@ import java.util.*;
  */
 public class ToolComponentsPanel {
   private static final Set<String> MULTI_VERSION_PREFIXES =
-    ImmutableSet.of(SdkConstants.FD_BUILD_TOOLS, SdkConstants.FD_LLDB, PatchInstallerUtil.PATCHER_PATH_PREFIX);
+    ImmutableSet.of(SdkConstants.FD_BUILD_TOOLS, SdkConstants.FD_LLDB, SdkConstants.FD_CMAKE, PatchInstallerUtil.PATCHER_PATH_PREFIX);
 
   private TreeTableView myToolsSummaryTable;
   private JCheckBox myToolsDetailsCheckbox;
