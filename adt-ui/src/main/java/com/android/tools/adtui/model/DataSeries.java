@@ -13,36 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.android.tools.adtui.model;
 
 import com.android.tools.adtui.Range;
-import org.jetbrains.annotations.NotNull;
+import com.intellij.util.containers.ImmutableList;
 
 /**
- * Represents a view into a discrete series, where the data in view is only
- * within given x range.
+ * An interface that provides data to all RangedSeries used by the UI.
  */
-public class RangedDiscreteSeries<E extends Enum<E>> {
-
-  @NotNull
-  private final Range mXRange;
-
-  @NotNull
-  private final DiscreteSeries<E> mSeries;
-
-  public RangedDiscreteSeries(@NotNull Class<E> clazz, @NotNull Range xRange) {
-    mXRange = xRange;
-    mSeries = new DiscreteSeries<>(clazz);
-  }
-
-  @NotNull
-  public DiscreteSeries<E> getSeries() {
-    return mSeries;
-  }
-
-  @NotNull
-  public Range getXRange() {
-    return mXRange;
-  }
+public interface DataSeries<E> {
+  ImmutableList<SeriesData<E>> getDataForXRange(Range xRange);
+  SeriesData<E> getDataAtXValue(long x);
 }

@@ -19,7 +19,7 @@ package com.android.tools.idea.monitor.ui.visual;
 import com.android.tools.adtui.Animatable;
 import com.android.tools.adtui.AnimatedTimeRange;
 import com.android.tools.adtui.Range;
-import com.android.tools.adtui.model.RangedDiscreteSeries;
+import com.android.tools.adtui.model.DefaultDataSeries;
 import com.android.tools.adtui.visual.VisualTest;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.ui.ProfilerEventListener;
@@ -137,8 +137,8 @@ public class CpuProfilerVisualTest extends VisualTest {
               }
             }
 
-            for (Map.Entry<Thread, RangedDiscreteSeries<Thread.State>> series : mThreadsSegment.getThreadsStateSeries().entrySet()) {
-              series.getValue().getSeries().add(now, series.getKey().getState());
+            for (Map.Entry<Thread, DefaultDataSeries<State>> series : mThreadsSegment.getThreadsStateSeries().entrySet()) {
+              series.getValue().add(now, series.getKey().getState());
             }
 
             Thread.sleep(UPDATE_THREAD_SLEEP_DELAY_MS);

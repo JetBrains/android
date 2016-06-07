@@ -29,53 +29,34 @@ import java.util.Collection;
  * Represents a view into a continuous series, where the data in view is only
  * within given x and y ranged.
  */
-public class RangedContinuousSeries implements ReportingSeries{
-  @NotNull
-  private final Range mXRange;
-
-  @NotNull
-  private final Range mYRange;
+public class RangedContinuousSeries extends RangedSeries<Long> implements ReportingSeries {
 
   @NotNull
   private final String mLabel;
 
   @NotNull
-  private final ContinuousSeries mSeries;
+  private final Range mYRange;
 
   private BaseAxisFormatter mXAxisFormatter;
 
   private BaseAxisFormatter mYAxisFormatter;
 
-  public RangedContinuousSeries(@NotNull String label, @NotNull Range xRange, @NotNull Range yRange, @NotNull ContinuousSeries series) {
-    mLabel = label;
-    mXRange = xRange;
+  public RangedContinuousSeries(@NotNull String label, @NotNull Range xRange, @NotNull Range yRange, @NotNull DataSeries series) {
+    super(xRange, series);
     mYRange = yRange;
-    mSeries = series;
+    mLabel = label;
   }
 
-  public RangedContinuousSeries(@NotNull String label, @NotNull Range xRange, @NotNull Range yRange, @NotNull ContinuousSeries series,
+  public RangedContinuousSeries(@NotNull String label, @NotNull Range xRange, @NotNull Range yRange, @NotNull DataSeries series,
                                 @NotNull BaseAxisFormatter xAxisFormatter, @NotNull BaseAxisFormatter yAxisFormatter) {
     this(label, xRange, yRange, series);
     mXAxisFormatter = xAxisFormatter;
     mYAxisFormatter = yAxisFormatter;
   }
 
-  /**
-   * @return A new {@link SeriesDataList} that is immutable. This allows the caller to get a scoped enumeration of items in the DataStore.
-   */
-  @NotNull
-  public ImmutableList<SeriesData<Long>> getSeries() {
-    return mSeries.getDataForXRange(mXRange);
-  }
-
   @NotNull
   public Range getYRange() {
     return mYRange;
-  }
-
-  @NotNull
-  public Range getXRange() {
-    return mXRange;
   }
 
   /**
