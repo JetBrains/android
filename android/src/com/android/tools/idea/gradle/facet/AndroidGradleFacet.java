@@ -41,7 +41,7 @@ import org.jetbrains.annotations.Nullable;
 public class AndroidGradleFacet extends Facet<AndroidGradleFacetConfiguration> {
   private static final Logger LOG = Logger.getInstance(AndroidGradleFacet.class);
 
-  @NotNull public static final FacetTypeId<AndroidGradleFacet> TYPE_ID = new FacetTypeId<AndroidGradleFacet>("android-gradle");
+  @NotNull public static final FacetTypeId<AndroidGradleFacet> TYPE_ID = new FacetTypeId<>("android-gradle");
 
   @NonNls public static final String ID = AndroidModelSerializationConstants.ANDROID_GRADLE_FACET_ID;
   @NonNls public static final String NAME = AndroidModelSerializationConstants.ANDROID_GRADLE_FACET_NAME;
@@ -53,7 +53,6 @@ public class AndroidGradleFacet extends Facet<AndroidGradleFacetConfiguration> {
     return FacetManager.getInstance(module).getFacetByType(TYPE_ID);
   }
 
-  @SuppressWarnings("ConstantConditions")
   public AndroidGradleFacet(@NotNull Module module,
                             @NotNull String name,
                             @NotNull AndroidGradleFacetConfiguration configuration) {
@@ -73,13 +72,10 @@ public class AndroidGradleFacet extends Facet<AndroidGradleFacetConfiguration> {
     connection.subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootAdapter() {
       @Override
       public void rootsChanged(ModuleRootEvent event) {
-        ApplicationManager.getApplication().invokeLater(new Runnable() {
-          @Override
-          public void run() {
-            if (!isDisposed()) {
-              PsiDocumentManager.getInstance(getModule().getProject()).commitAllDocuments();
-              updateConfiguration();
-            }
+        ApplicationManager.getApplication().invokeLater(() -> {
+          if (!isDisposed()) {
+            PsiDocumentManager.getInstance(getModule().getProject()).commitAllDocuments();
+            updateConfiguration();
           }
         });
       }

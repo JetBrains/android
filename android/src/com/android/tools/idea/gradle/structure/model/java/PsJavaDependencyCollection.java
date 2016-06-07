@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.model.java;
 
 import com.android.tools.idea.gradle.JavaProject;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
+import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.model.java.JarLibraryDependency;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsModelCollection;
@@ -77,5 +78,22 @@ class PsJavaDependencyCollection implements PsModelCollection<PsJavaDependency> 
   private static void forEachDeclaredDependency(@NotNull Map<String, ? extends PsJavaDependency> dependenciesBySpec,
                                                 @NotNull Consumer<PsJavaDependency> consumer) {
     dependenciesBySpec.values().stream().filter(PsJavaDependency::isDeclared).forEach(consumer);
+  }
+
+  void addLibraryDependency(@NotNull PsArtifactDependencySpec spec, @Nullable ArtifactDependencyModel parsedModel) {
+    PsLibraryJavaDependency dependency = myLibraryDependenciesBySpec.get(spec.toString());
+    if (dependency == null) {
+      dependency = new PsLibraryJavaDependency(myParent, spec, null, parsedModel);
+      myLibraryDependenciesBySpec.put(spec.toString(), dependency);
+    }
+    else {
+      updateDependency(dependency, parsedModel);
+    }
+  }
+
+  private static void updateDependency(@NotNull PsJavaDependency dependency, @Nullable DependencyModel parsedModel) {
+    if (parsedModel != null) {
+      dependency.addParsedModel(parsedModel);
+    }
   }
 }
