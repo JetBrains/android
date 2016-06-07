@@ -39,7 +39,9 @@ import java.util.EnumMap;
 import java.util.List;
 
 public class NetworkCaptureSegment extends BaseSegment {
+
   private static final String SEGMENT_NAME = "Network Capture";
+
   private static final int ROW_HEIGHT_PADDING = 5;
 
   public enum NetworkState {
@@ -49,10 +51,10 @@ public class NetworkCaptureSegment extends BaseSegment {
   private static final EnumMap<NetworkState, Color> NETWORK_STATE_COLORS = new EnumMap<>(NetworkState.class);
 
   static {
-    NETWORK_STATE_COLORS.put(NetworkState.SENDING, AdtUiUtils.NETWORK_SENDING);
-    NETWORK_STATE_COLORS.put(NetworkState.RECEIVING, AdtUiUtils.NETWORK_RECEIVING);
-    NETWORK_STATE_COLORS.put(NetworkState.WAITING, AdtUiUtils.NETWORK_WAITING);
-    NETWORK_STATE_COLORS.put(NetworkState.NONE, JBColor.white);
+    NETWORK_STATE_COLORS.put(NetworkState.SENDING, Constants.NETWORK_SENDING_COLOR);
+    NETWORK_STATE_COLORS.put(NetworkState.RECEIVING, Constants.NETWORK_RECEIVING_COLOR);
+    NETWORK_STATE_COLORS.put(NetworkState.WAITING, Constants.NETWORK_WAITING_COLOR);
+    NETWORK_STATE_COLORS.put(NetworkState.NONE, JBColor.WHITE);
   }
 
   private int mRowHeight;
@@ -75,9 +77,9 @@ public class NetworkCaptureSegment extends BaseSegment {
 
   @Override
   public void createComponentsList(@NotNull List<Animatable> animatables) {
-    for (int i = 0; i < mData.size(); ++i) {
+    for (RangedDiscreteSeries<NetworkState> series : mData) {
       StateChart<NetworkState> chart = new StateChart<>(NETWORK_STATE_COLORS);
-      chart.addSeries(mData.get(i));
+      chart.addSeries(series);
       animatables.add(chart);
       mCharts.add(chart);
     }
@@ -86,7 +88,7 @@ public class NetworkCaptureSegment extends BaseSegment {
   @NotNull
   private JTable createInformationTable() {
     JBTable table = new JBTable(new AbstractTableModel() {
-      final String[] SAMPLE = {"2","http://myapp.example.com/list/xml", "746 K", "322 ms", ""};
+      final String[] SAMPLE = {"2", "http://myapp.example.com/list/xml", "746 K", "322 ms", ""};
 
       @Override
       public int getRowCount() {
@@ -101,7 +103,7 @@ public class NetworkCaptureSegment extends BaseSegment {
       @Override
       public Object getValueAt(int rowIndex, int columnIndex) {
         if (columnIndex == 0) {
-          return "" + rowIndex;
+          return String.valueOf(rowIndex);
         }
         return SAMPLE[columnIndex];
       }
