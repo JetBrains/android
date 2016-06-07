@@ -1247,6 +1247,7 @@ public class ConstraintUtilities {
       }
     }
     catch (IllegalAccessException | NoSuchFieldException e) {
+      System.out.println("Exception " + e);
       // Ignore
     }
   }
