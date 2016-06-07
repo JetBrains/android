@@ -39,6 +39,8 @@ public class NlConstants {
    */
   public static final int MAX_MATCH_DISTANCE = 20;
 
+  public static final int RESIZING_CORNER_SIZE = 32;
+
   @SuppressWarnings("UseJBColor")
   public static final JBColor RULER_BG = new JBColor(Color.WHITE, ColorUtil.brighter(UIUtil.getListBackground(), 1));
   @SuppressWarnings("UseJBColor")
@@ -62,6 +64,10 @@ public class NlConstants {
   public static final Color UNAVAILABLE_ZONE_COLOR = new Color(0, 0, 0, 100);
   @SuppressWarnings("UseJBColor")
   public static final Color RESIZING_CONTOUR_COLOR = new Color(0x5082db);
+  @SuppressWarnings("UseJBColor")
+  public static final Color RESIZING_CORNER_COLOR = new Color(0x03a9f4);
+  @SuppressWarnings("UseJBColor")
+  public static final Color DEVICE_TEXT_COLOR = new Color(0, 0, 0, 128);
 
 
   public static final JBColor DESIGN_SURFACE_BG = new JBColor(0xf2f2f2, UIUtil.getListBackground().getRGB());
