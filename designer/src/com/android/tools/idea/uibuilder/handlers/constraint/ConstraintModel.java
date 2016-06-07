@@ -667,6 +667,9 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
           WidgetCompanion companion = (WidgetCompanion)myDragDropWidget.getCompanionWidget();
           if (companion.getWidgetModel() == component) {
             widget = myDragDropWidget;
+            if (component.isOrHasSuperclass(CLASS_VIEWGROUP)) {
+              widget = new WidgetContainer();
+            }
             widget.setCompanionWidget(null);
             dropWidget = true;
           }
@@ -680,7 +683,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
           widget = new Guideline();
         }
         else {
-          if (component.children != null && component.children.size() > 0) {
+          if (component.isOrHasSuperclass(CLASS_VIEWGROUP)) {
             widget = new WidgetContainer();
           }
           else {
