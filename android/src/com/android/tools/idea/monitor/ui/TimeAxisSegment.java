@@ -16,14 +16,13 @@
 package com.android.tools.idea.monitor.ui;
 
 import com.android.annotations.NonNull;
-import com.android.tools.adtui.Animatable;
-import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.Range;
 import com.android.tools.adtui.common.AdtUiUtils;
+import com.intellij.util.EventDispatcher;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.util.List;
 
 /**
  * A simple Segment that holds the horizontal time axis, taking advantage of the default BaseSegment
@@ -34,9 +33,20 @@ public final class TimeAxisSegment extends BaseSegment {
   @NonNull
   private final AxisComponent mTimeAxis;
 
-  public TimeAxisSegment(@NonNull Range scopedRange, @NonNull AxisComponent timeAxis) {
-    super("", scopedRange); // Empty label.
+  public TimeAxisSegment(@NonNull Range scopedRange, @NonNull AxisComponent timeAxis,
+                         @NotNull EventDispatcher<ProfilerEventListener> dispatcher) {
+    super("", scopedRange, dispatcher); // Empty label.
     mTimeAxis = timeAxis;
+  }
+
+  @Override
+  public void profilerExpanded(@NotNull SegmentType segment) {
+    toggleView(true);
+  }
+
+  @Override
+  public void profilersReset() {
+    toggleView(false);
   }
 
   @Override

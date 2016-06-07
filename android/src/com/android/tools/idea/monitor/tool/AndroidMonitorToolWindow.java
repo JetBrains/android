@@ -23,6 +23,7 @@ import com.android.tools.idea.ddms.DevicePanel;
 import com.android.tools.idea.monitor.datastore.SeriesDataStoreImpl;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.ui.BaseSegment;
+import com.android.tools.idea.monitor.ui.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.TimeAxisSegment;
 import com.android.tools.idea.monitor.ui.cpu.view.CpuUsageSegment;
 import com.android.tools.idea.monitor.ui.memory.view.MemorySegment;
@@ -31,6 +32,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBPanel;
+import com.intellij.util.EventDispatcher;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
@@ -73,12 +75,15 @@ public class AndroidMonitorToolWindow implements Disposable {
 
   private JPanel mySegmentsContainer;
 
+  private EventDispatcher<ProfilerEventListener> mEventDispatcher;
+
   public AndroidMonitorToolWindow(@NotNull final Project project) {
     myProject = project;
     myComponent = new JPanel(new BorderLayout());
     myDataStore = new SeriesDataStoreImpl();
     myChoreographer = new Choreographer(CHOREOGRAPHER_FPS, myComponent);
     myChoreographer.register(createComponentsList());
+    mEventDispatcher = EventDispatcher.create(ProfilerEventListener.class);
     populateUi();
   }
 
@@ -180,17 +185,17 @@ public class AndroidMonitorToolWindow implements Disposable {
     BaseSegment segment;
     switch (type) {
       case TIME:
-        segment = new TimeAxisSegment(myXRange, myTimeAxis);
+        segment = new TimeAxisSegment(myXRange, myTimeAxis, mEventDispatcher);
         break;
       case CPU:
-        segment = new CpuUsageSegment(myXRange, myDataStore);
+        segment = new CpuUsageSegment(myXRange, myDataStore, mEventDispatcher);
         break;
       case MEMORY:
-        segment = new MemorySegment(myXRange, myDataStore);
+        segment = new MemorySegment(myXRange, myDataStore, mEventDispatcher);
         break;
       default:
         // TODO create corresponding segments based on type (e.g. GPU, events).
-        segment = new NetworkSegment(myXRange, myDataStore);
+        segment = new NetworkSegment(myXRange, myDataStore, mEventDispatcher);
     }
 
     segment.setMinimumSize(new Dimension(0, minHeight));

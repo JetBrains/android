@@ -184,8 +184,8 @@ public class AccordionLayout implements LayoutManager2, Animatable {
   }
 
   public void resetComponents() {
-    for (ComponentInfo info : mComponentInfoSet) {
-      info.state = AccordionState.PREFERRED;
+    for (Component comp : mComponentInfoMap.keySet()) {
+      setState(comp, AccordionState.PREFERRED);
     }
   }
 

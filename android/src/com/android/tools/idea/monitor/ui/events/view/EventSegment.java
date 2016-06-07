@@ -15,10 +15,15 @@
  */
 package com.android.tools.idea.monitor.ui.events.view;
 
-import com.android.tools.adtui.*;
+import com.android.tools.adtui.Animatable;
+import com.android.tools.adtui.Range;
+import com.android.tools.adtui.SimpleEventComponent;
+import com.android.tools.adtui.StackedEventComponent;
 import com.android.tools.adtui.model.EventAction;
 import com.android.tools.adtui.model.RangedSimpleSeries;
 import com.android.tools.idea.monitor.ui.BaseSegment;
+import com.android.tools.idea.monitor.ui.ProfilerEventListener;
+import com.intellij.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -59,8 +64,9 @@ public class EventSegment<E extends Enum<E>> extends BaseSegment {
                       @NotNull RangedSimpleSeries<EventAction<SimpleEventComponent.Action, E>> systemData,
                       @NotNull RangedSimpleSeries<EventAction<StackedEventComponent.Action, String>> fragmentData,
                       @NotNull RangedSimpleSeries<EventAction<StackedEventComponent.Action, String>> activityData,
-                      @NotNull BufferedImage[] icons) {
-    super(SEGMENT_NAME, scopedRange);
+                      @NotNull BufferedImage[] icons,
+                      @NotNull EventDispatcher<ProfilerEventListener> dispatcher) {
+    super(SEGMENT_NAME, scopedRange, dispatcher);
     mSystemEventData = systemData;
     mFragmentEventData = fragmentData;
     mActivityEventData = activityData;
@@ -76,6 +82,16 @@ public class EventSegment<E extends Enum<E>> extends BaseSegment {
     animatables.add(mSystemEvents);
     animatables.add(mFragmentEvents);
     animatables.add(mActivityEvents);
+  }
+
+  @Override
+  public void profilerExpanded(@NotNull SegmentType segment) {
+    toggleView(true);
+  }
+
+  @Override
+  public void profilersReset() {
+    toggleView(false);
   }
 
   @Override

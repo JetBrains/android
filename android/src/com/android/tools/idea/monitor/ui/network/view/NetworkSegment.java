@@ -28,6 +28,8 @@ import com.android.tools.idea.monitor.datastore.DataStoreContinuousSeries;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.datastore.SeriesDataType;
 import com.android.tools.idea.monitor.ui.BaseLineChartSegment;
+import com.android.tools.idea.monitor.ui.ProfilerEventListener;
+import com.intellij.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;
 
 public class NetworkSegment extends BaseLineChartSegment {
@@ -43,14 +45,17 @@ public class NetworkSegment extends BaseLineChartSegment {
   @NotNull
   private final Range mTimeRange;
 
-  /**
-   * @param connectionsData if it is null, connections line won't displayed, thus right axis won't displayed as well.
-   */
   public NetworkSegment(@NotNull Range timeRange,
-                        @NotNull SeriesDataStore dataStore) {
+                        @NotNull SeriesDataStore dataStore,
+                        @NotNull EventDispatcher<ProfilerEventListener> dispatcher) {
     super(SEGMENT_NAME, timeRange, dataStore, BANDWIDTH_AXIS_FORMATTER,
-          CONNECTIONS_AXIS_FORMATTER, null, null);
+          CONNECTIONS_AXIS_FORMATTER, null, null, dispatcher);
     mTimeRange = timeRange;
+  }
+
+  @Override
+  public SegmentType getSegmentType() {
+    return SegmentType.NETWORK;
   }
 
   @Override
