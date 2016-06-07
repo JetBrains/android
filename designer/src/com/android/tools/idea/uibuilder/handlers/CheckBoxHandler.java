@@ -35,4 +35,10 @@ public class CheckBoxHandler extends TextViewHandler {
       ATTR_CLICKABLE,
       ATTR_DUPLICATE_PARENT_STATE);
   }
+
+  @Override
+  @NotNull
+  public List<String> getBaseStyles(@NotNull String tagName) {
+    return ImmutableList.of("Widget.CompoundButton." + tagName);
+  }
 }

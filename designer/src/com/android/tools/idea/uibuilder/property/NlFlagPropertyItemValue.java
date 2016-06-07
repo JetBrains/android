@@ -122,6 +122,12 @@ public class NlFlagPropertyItemValue extends PTableItem implements NlProperty {
     return myFlags.getTag();
   }
 
+  @Nullable
+  @Override
+  public String getTagName() {
+    return myFlags.getTagName();
+  }
+
   @NotNull
   @Override
   public TableCellRenderer getCellRenderer() {

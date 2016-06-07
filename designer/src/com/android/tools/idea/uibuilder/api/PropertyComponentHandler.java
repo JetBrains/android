@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.api;
 
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 import java.util.List;
+
+import static com.android.SdkConstants.*;
 
 /**
  * Methods for handling of a component's properties.
@@ -30,5 +33,24 @@ public abstract class PropertyComponentHandler extends PaletteComponentHandler {
   @NotNull
   public List<String> getInspectorProperties() {
     return Collections.emptyList();
+  }
+
+  /**
+   * Return the possible base styles for this component.
+   * This will be used to determine which styles are shown in the style dropdown in
+   * the property table if any.
+   * If the styles returned here exist, these styles and all their descendants will
+   * be considered for the style dropdown.
+   */
+  @NotNull
+  public List<String> getBaseStyles(@NotNull String tagName) {
+    String simpleTagName = getSimpleTagName(tagName);
+    if (tagName.startsWith(ANDROID_SUPPORT_DESIGN_PKG)) {
+      return ImmutableList.of("Widget.Design." + simpleTagName);
+    }
+    if (tagName.equals(simpleTagName)) {
+      return ImmutableList.of("Widget." + simpleTagName, "Widget.Material." + simpleTagName);
+    }
+    return ImmutableList.of();
   }
 }
