@@ -21,6 +21,7 @@ import com.android.tools.idea.structure.services.DeveloperService;
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.components.panels.HorizontalLayout;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -40,11 +41,18 @@ public class TutorialCard extends CardViewPanel {
 
   JBScrollPane myContentsScroller = new JBScrollPane();
 
+  /**
+   * Partial label used in the back button.
+   */
+  String myMutorialsTitle;
+
   TutorialCard(@NotNull ActionListener listener,
                @NotNull TutorialData tutorial,
                @NotNull String featureTitle,
+               @NotNull String tutorialsTitle,
                @NotNull DeveloperService service) {
     super(listener);
+    myMutorialsTitle = tutorialsTitle;
 
     // TODO: Add a short label to the xml and use that here instead.
     add(new HeaderNav(featureTitle, myListener), BorderLayout.NORTH);
@@ -92,7 +100,7 @@ public class TutorialCard extends CardViewPanel {
     c.gridy++;
 
     // remove insets for footer.
-    c.insets = new Insets(0,0,0,0);
+    c.insets = new Insets(0, 0, 0, 0);
     contents.add(new FooterNav(), c);
 
     // HACK ALERT: For an unknown reason (possibly race condition calculating inner contents)
@@ -144,15 +152,13 @@ public class TutorialCard extends CardViewPanel {
    */
   private class HeaderNav extends JPanel {
 
-    public static final String ROOT_TITLE = "Firebase >";
+    public final String ROOT_TITLE = "<html><b>" + myMutorialsTitle + "</b> &nbsp;&rsaquo;</html>";
 
     HeaderNav(String location, ActionListener listener) {
-      super();
-      setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
-      setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
+      super(new HorizontalLayout(5, SwingConstants.CENTER));
+      setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
       add(new BackButton(ROOT_TITLE));
-      add(Box.createRigidArea(new Dimension(5, 0)));
 
       JBLabel label = new JBLabel(location);
       label.setForeground(UIUtils.getSecondaryColor());
@@ -161,7 +167,7 @@ public class TutorialCard extends CardViewPanel {
   }
 
   private class FooterNav extends JPanel {
-    private static final String BACK_LABEL = "Back to Firebase";
+    private final String BACK_LABEL = "Back to " + myMutorialsTitle;
 
     FooterNav() {
       super(new FlowLayout(FlowLayout.LEADING));
@@ -187,7 +193,7 @@ public class TutorialCard extends CardViewPanel {
 
       // As the button is presented as a label, use the label font.
       Font font = new JBLabel().getFont();
-      setFont(new Font(font.getFontName(), Font.BOLD, font.getSize()));
+      setFont(new Font(font.getFontName(), Font.PLAIN, font.getSize()));
     }
   }
 }
