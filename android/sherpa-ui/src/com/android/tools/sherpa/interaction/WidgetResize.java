@@ -370,12 +370,12 @@ public class WidgetResize {
         widget.setDrawOrigin(newX, newY);
         widget.setDimension(newWidth, newHeight);
         widget.forceUpdateDrawPosition();
-        if (widget.getWidth() <= widget.getMinWidth()) {
+        if (widget.getWidth() == widget.getWrapWidth()) {
             widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.WRAP_CONTENT);
         } else {
             widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.FIXED);
         }
-        if (widget.getHeight() <= widget.getMinHeight()) {
+        if (widget.getHeight() == widget.getWrapHeight()) {
             widget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.WRAP_CONTENT);
         } else {
             widget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.FIXED);
