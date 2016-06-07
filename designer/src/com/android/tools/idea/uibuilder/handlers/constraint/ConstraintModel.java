@@ -230,7 +230,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
       ourLock.lock();
       updateNlModel(model.getComponents(), false);
       ourLock.unlock();
-      mySaveXmlTimer.reset();
+      mySaveXmlTimer.delay();
     });
   }
 
@@ -460,10 +460,16 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
    * We only want to save if we are not doing something else...
    */
   class SaveXMLTimer implements ActionListener {
-    Timer mTimer = new Timer(800, this); // 800ms delay before saving
+    Timer myTimer = new Timer(800, this); // 800ms delay before saving
 
     public SaveXMLTimer() {
-      mTimer.setRepeats(false);
+      myTimer.setRepeats(false);
+    }
+
+    public void delay() {
+      if (myTimer.isRunning()) {
+        reset();
+      }
     }
 
     public void reset() {
@@ -474,7 +480,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
       boolean allowsUpdate = myAllowsUpdate;
       ourLock.unlock();
       if (allowsUpdate) {
-        mTimer.restart();
+        myTimer.restart();
       }
     }
 
@@ -482,7 +488,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
       if (DEBUG) {
         System.out.println("cancel timer");
       }
-      mTimer.stop();
+      myTimer.stop();
     }
 
     @Override
@@ -494,7 +500,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
         if (DEBUG) {
           System.out.println("save xml");
         }
-        saveToXML();
+        saveToXML(true);
       }
     }
   }
@@ -883,13 +889,6 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
         updateConstraintLayoutRoots((WidgetContainer)child);
       }
     }
-  }
-
-  /**
-   * Save the model to xml if needed
-   */
-  public void saveToXML() {
-    saveToXML(false);
   }
 
   /**
