@@ -664,22 +664,6 @@ public class MouseInteraction {
             }
         }
 
-        // If we hit a widget, update the selection
-        if (widget != null) {
-            if (mMouseMode == MouseMode.SELECT) {
-                if (!mSelection.contains(widget)) {
-                    // replace the current selection
-                    if (!(isShiftDown() || isControlDown())) {
-                        mSelection.clear();
-                    }
-                    mSelection.add(widget);
-                } else if (isControlDown()) {
-                    mSelection.remove(widget);
-                }
-                mMouseMode = MouseMode.MOVE;
-            }
-        }
-
         ///////////////////////////////////////////////////////////////////////
         // let's check for guidelines...
         // TODO: switch to the WidgetDecorator model
@@ -821,6 +805,22 @@ public class MouseInteraction {
             }
         }
 
+        // If we hit a widget, update the selection
+        ConstraintWidget widget = mClickListener.mHitWidget;
+        if (widget != null) {
+            if (mMouseMode == MouseMode.SELECT) {
+                if (!mSelection.contains(widget)) {
+                    // replace the current selection
+                    if (!(isShiftDown() || isControlDown())) {
+                        mSelection.clear();
+                    }
+                    mSelection.add(widget);
+                } else if (isControlDown()) {
+                    mSelection.remove(widget);
+                }
+            }
+        }
+
         if (mSelection.isEmpty() && mSelection.getSelectedAnchor() == null) {
             int x1 = Math.min(getStartPoint().x, getLastPoint().x);
             int x2 = Math.max(getStartPoint().x, getLastPoint().x);
@@ -833,8 +833,8 @@ public class MouseInteraction {
                         mWidgetsScene.getRoot(),
                         selectionRect.x, selectionRect.y,
                         selectionRect.width, selectionRect.height);
-                for (ConstraintWidget widget : selection) {
-                    mSelection.add(widget);
+                for (ConstraintWidget w : selection) {
+                    mSelection.add(w);
                 }
             }
         }
@@ -890,6 +890,22 @@ public class MouseInteraction {
      * @return the type of direction (locked in x/y or not)
      */
     public int mouseDragged(int x, int y) {
+        if (mMouseMode == MouseMode.SELECT) {
+            ConstraintWidget widget = mClickListener.mHitWidget;
+            if (widget != null && widget.getParent() instanceof ConstraintWidgetContainer) {
+                if (!mSelection.contains(widget)) {
+                    // replace the current selection
+                    if (!(isShiftDown() || isControlDown())) {
+                        mSelection.clear();
+                    }
+                    mSelection.add(widget);
+                }
+                else if (isControlDown()) {
+                    mSelection.remove(widget);
+                }
+            }
+            mMouseMode = MouseMode.MOVE;
+        }
         int directionLockedStatus = Selection.DIRECTION_UNLOCKED;
         mLastMousePosition.setLocation(x, y);
         switch (mMouseMode) {
