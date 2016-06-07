@@ -207,7 +207,10 @@ public abstract class GfxTraceCaptureAction extends ToggleAction {
 
         @Override
         public void onStopTrace() {
-          myTracer.stop();
+          // myTracer may be null if for some reason we have crashed while starting taking a trace.
+          if (myTracer != null) {
+            myTracer.stop();
+          }
           onStop();
         }
 
