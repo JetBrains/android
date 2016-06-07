@@ -110,7 +110,9 @@ public class CanvasResizeInteraction extends Interaction {
 
     screenView.getModel().overrideConfigurationScreenSize(Coordinates.getAndroidX(screenView, x),
                                                           Coordinates.getAndroidY(screenView, y));
-    updateUnavailableLayer(screenView);
+    if (isPreviewSurface) {
+      updateUnavailableLayer(screenView);
+    }
   }
 
   private void updateUnavailableLayer(@NotNull ScreenView screenView) {
@@ -263,8 +265,9 @@ public class CanvasResizeInteraction extends Interaction {
     myCurrentX = x;
     myCurrentY = y;
 
-    // Only do live updating of the file if we are in preview mode
-    if (isPreviewSurface) {
+    // Only do full live updating of the file if we are in preview mode.
+    // Otherwise, restrict it to the area associated with the current configuration of the layout.
+    if (isPreviewSurface || myUnavailableLayer.isAvailable(x, y)) {
       updatePosition(x, y);
     }
   }
@@ -364,6 +367,10 @@ public class CanvasResizeInteraction extends Interaction {
         graphics.fill(myUnavailableArea);
         graphics.dispose();
       }
+    }
+
+    private boolean isAvailable(int x, int y) {
+      return !myUnavailableArea.contains(x, y);
     }
 
     private void update(@NotNull Area unavailableArea, @NotNull FolderConfiguration currentFolderConfig) {
