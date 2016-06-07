@@ -24,6 +24,7 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.layoutlib.RenderingException;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
@@ -37,7 +38,6 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.SystemInfo;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
-import com.android.tools.idea.layoutlib.RenderingException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -507,9 +507,12 @@ public class GraphicsLayoutRenderer {
     try {
       if (myRenderSession != null) {
         myImageFactory.setGraphics(null);
-        myRenderSession.dispose();
+        RenderService.runRenderAction(myRenderSession::dispose);
         myRenderSession = null;
       }
+    }
+    catch (Exception e) {
+      LOG.error("Error while disposing the session", e);
     }
     finally {
       myRenderSessionLock.writeLock().unlock();
