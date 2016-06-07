@@ -28,6 +28,7 @@ public final class CommonMessageGroupNames {
   public static final String UNRESOLVED_DEPENDENCIES = "Unresolved dependencies";
   public static final String VARIANT_SELECTION_CONFLICTS = "Variant selection conflicts";
   public static final String EXTRA_GENERATED_SOURCES = "Source folders generated at incorrect location";
+  public static final String EXTERNAL_NATIVE_BUILD_ISSUES = "External Native Build Issues";
   public static final String UNHANDLED_SYNC_ISSUE_TYPE = "Gradle Sync Issue";
 
   private CommonMessageGroupNames() {
