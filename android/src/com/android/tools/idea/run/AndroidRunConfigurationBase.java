@@ -309,7 +309,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     return null;
   }
 
-  private void validateBeforeRun(@NotNull Executor executor) throws ExecutionException {
+  protected void validateBeforeRun(@NotNull Executor executor) throws ExecutionException {
     List<ValidationError> errors = validate(executor);
     if (errors.isEmpty()) {
       return;
