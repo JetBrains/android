@@ -56,7 +56,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.w3c.dom.Element;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.awt.*;
@@ -976,7 +975,12 @@ public class RenderTask implements IImageFactory {
   public Map<XmlTag, ViewInfo> measureChildren(XmlTag parent, final AttributeFilter filter) {
     ILayoutPullParser modelParser = LayoutPsiPullParser.create(filter, parent, myLogger);
     Map<XmlTag, ViewInfo> map = Maps.newHashMap();
-    RenderSession session = measure(modelParser);
+    RenderSession session = null;
+    try {
+      session = RenderService.runRenderAction(() -> measure(modelParser));
+    }
+    catch (Exception ignored) {
+    }
     if (session != null) {
       try {
         Result result = session.getResult();
@@ -995,7 +999,11 @@ public class RenderTask implements IImageFactory {
 
         return map;
       } finally {
-        session.dispose();
+        try {
+          RenderService.runRenderAction(session::dispose);
+        }
+        catch (Exception ignored) {
+        }
       }
     }
 
