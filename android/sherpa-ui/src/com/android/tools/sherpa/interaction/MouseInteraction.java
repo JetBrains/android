@@ -441,15 +441,20 @@ public class MouseInteraction {
                         // TODO: revisit in the future, it might be better to unify Guidelines connections
                         return;
                     }
-                    if (dist == 0 && mHitConstraintHandle != null) {
+                    if (dist < SELECTION_TARGET_SLOPE && mHitConstraintHandle != null) {
                         // we should select children preferably
                         ConstraintWidget currentWidget = mHitConstraintHandle.getOwner();
                         ConstraintWidget candidateWidget = handle.getOwner();
-                        if (!candidateWidget.hasAncestor(currentWidget)
-                          && !(currentWidget.hasAncestor(candidateWidget)
-                                && !(candidateWidget instanceof ConstraintWidgetContainer))) {
+                        if (!candidateWidget.hasAncestor(currentWidget)) {
                             // not a children, keep the current one
                             return;
+                        } else {
+                            ConstraintWidget parent = candidateWidget.getParent();
+                            if (!(parent instanceof ConstraintWidgetContainer)) {
+                                // candidate is inside a non-ConstraintWidgetContainer, keep
+                                // the current one
+                                return;
+                            }
                         }
                     }
                     if (handle.getAnchor().getType() == ConstraintAnchor.Type.BASELINE) {
