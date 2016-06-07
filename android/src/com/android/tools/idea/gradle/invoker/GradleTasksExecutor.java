@@ -84,6 +84,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.service.JpsServiceManager;
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper;
 import org.jetbrains.plugins.gradle.service.execution.GradleProgressEventConverter;
+import org.jetbrains.plugins.gradle.settings.DistributionType;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 
 import javax.swing.*;
@@ -97,6 +98,7 @@ import java.util.List;
 import java.util.concurrent.Semaphore;
 
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
+import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.findEmbeddedGradleDistributionPath;
 import static com.android.tools.idea.gradle.util.GradleBuilds.CONFIGURE_ON_DEMAND_OPTION;
 import static com.android.tools.idea.gradle.util.GradleBuilds.PARALLEL_BUILD_OPTION;
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
@@ -269,7 +271,7 @@ public class GradleTasksExecutor extends Task.Backgroundable {
 
   private void invokeGradleTasks() {
     Project project = getNotNullProject();
-    GradleExecutionSettings executionSettings = getGradleExecutionSettings(project);
+    GradleExecutionSettings executionSettings = getOrCreateGradleExecutionSettings(project);
 
     Function<ProjectConnection, Void> executeTasksFunction = connection -> {
       Stopwatch stopwatch = Stopwatch.createStarted();
@@ -418,7 +420,25 @@ public class GradleTasksExecutor extends Task.Backgroundable {
 
     File buildFilePath = myContext.getBuildFilePath();
     File projectDirPath = buildFilePath != null ? buildFilePath : getBaseDirPath(project);
+
     myHelper.execute(projectDirPath.getPath(), executionSettings, executeTasksFunction);
+  }
+
+  @Nullable
+  private GradleExecutionSettings getOrCreateGradleExecutionSettings(Project project) {
+    GradleExecutionSettings executionSettings = getGradleExecutionSettings(project);
+    if (isAndroidStudio() && myContext.getUseEmbeddedGradle()) {
+      if (executionSettings == null) {
+        File gradlePath = findEmbeddedGradleDistributionPath();
+        assert gradlePath != null && gradlePath.isDirectory();
+        executionSettings = new GradleExecutionSettings(gradlePath.getPath(), null, DistributionType.LOCAL, null, false);
+        File jdkPath = IdeSdks.getJdkPath();
+        if (jdkPath != null) {
+          executionSettings.setJavaHome(jdkPath.getPath());
+        }
+      }
+    }
+    return executionSettings;
   }
 
   private void handleTaskExecutionError(@NotNull Throwable e) {
