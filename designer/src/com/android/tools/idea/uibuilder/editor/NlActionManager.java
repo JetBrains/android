@@ -77,7 +77,7 @@ public class NlActionManager {
     registerAction(myGotoComponentAction, IdeActions.ACTION_GOTO_DECLARATION, component);
 
     mySelectParent = new SelectParentAction(mySurface);
-    mySelectParent.registerCustomShortcutSet(KeyEvent.VK_ESCAPE, 0, null);
+    mySelectParent.registerCustomShortcutSet(KeyEvent.VK_ESCAPE, 0, component);
   }
 
   private static void registerAction(@NotNull AnAction action, @NonNls String actionId, @NotNull JComponent component) {
