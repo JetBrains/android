@@ -66,8 +66,75 @@ public class NewModuleTest {
       .open("somelibrary/build.gradle")
       .getCurrentFileContents();
     assertThat(gradleFileContents).doesNotContain("testCompile");
-
     assertAbout(file()).that(new File(guiTest.getProjectPath(), "somelibrary/src/main")).isDirectory();
     assertAbout(file()).that(new File(guiTest.getProjectPath(), "somelibrary/src/test")).doesNotExist();
+  }
+
+  /**
+   * Verifies addition of new application module to application.
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * </p>
+   * <p>
+   * TR ID: C14578813
+   * </p>
+   * <p>
+   * <pre>
+   *   This is run to qualify releases. Please involve the test team in substantial changes.
+   *   Test Steps
+   *   1. File -> new module
+   *   2. Select Phone & Tablet module
+   *   3. Choose no activity
+   *   3. Wait for build to complete
+   *   Verification
+   *   a new folder matching the module name should have been created.
+   * </pre>
+   * </p>
+   */
+  @Test
+  public void createNewAppModuleWithDefaults() throws Exception {
+    guiTest.importSimpleApplication()
+      .openFromMenu(NewModuleDialogFixture::find, "File", "New", "New Module...")
+      .chooseModuleType("Phone & Tablet Module")
+      .clickNextToStep("Phone & Tablet Module")
+      .setModuleName("application-module")
+      .clickNextToStep("Add an Activity to Mobile")
+      .chooseActivity("Add No Activity")
+      .clickFinish()
+      .waitForGradleProjectSyncToFinish();
+    assertAbout(file()).that(new File(guiTest.getProjectPath(), "application-module")).isDirectory();
+  }
+
+  /**
+   * Verifies addition of new library module to application.
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * </p>
+   * <p>
+   * TR ID: C14578813
+   * </p>
+   * <p>
+   * <pre>
+   *   This is run to qualify releases. Please involve the test team in substantial changes.
+   *   Test Steps
+   *   Create a new project
+   *   1. File > New Module
+   *   2. Choose Android Library
+   *   3. Click Finish
+   *   Verification
+   *   a new folder matching the module name should have been created
+   * </pre>
+   * </p>
+   */
+  @Test
+  public void createNewLibraryModuleWithDefaults() throws Exception {
+    guiTest.importSimpleApplication()
+      .openFromMenu(NewModuleDialogFixture::find, "File", "New", "New Module...")
+      .chooseModuleType("Android Library")
+      .clickNextToStep("Android Library")
+      .setModuleName("library-module")
+      .clickFinish()
+      .waitForGradleProjectSyncToFinish();
+    assertAbout(file()).that(new File(guiTest.getProjectPath(), "library-module")).isDirectory();
   }
 }
