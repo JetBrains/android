@@ -1217,8 +1217,30 @@ public class ConstraintUtilities {
       Field fieldHeight = layoutParams.getClass().getField("height");
       int previousWidth = fieldWidth.getInt(layoutParams);
       int previousHeight = fieldHeight.getInt(layoutParams);
-      int newWidth = model.dpToPx(widget.getWidth());
-      int newHeight = model.dpToPx(widget.getHeight());
+      int newWidth = 0;
+      int newHeight = 0;
+      switch (widget.getHorizontalDimensionBehaviour()) {
+        case WRAP_CONTENT: {
+          newWidth = -2;
+        } break;
+        case ANY: {
+          newWidth = 0;
+        } break;
+        case FIXED: {
+          newWidth = model.dpToPx(widget.getWidth());
+        } break;
+      }
+      switch (widget.getVerticalDimensionBehaviour()) {
+        case WRAP_CONTENT: {
+          newHeight = -2;
+        } break;
+        case ANY: {
+          newHeight = 0;
+        } break;
+        case FIXED: {
+          newHeight = model.dpToPx(widget.getHeight());
+        } break;
+      }
       if (previousWidth != newWidth || previousHeight != newHeight) {
         fieldWidth.set(layoutParams, newWidth);
         fieldHeight.set(layoutParams, newHeight);
