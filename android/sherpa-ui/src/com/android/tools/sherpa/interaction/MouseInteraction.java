@@ -72,6 +72,8 @@ public class MouseInteraction {
 
     private long mPressTime = 0;
 
+    private final int SELECTION_TARGET_SLOPE = 4;
+
     // After that delay, prevent delete anchor
     private final static int LONG_PRESS_THRESHOLD = 500; // ms
 
@@ -421,10 +423,12 @@ public class MouseInteraction {
                 }
             } else if (over instanceof ConstraintHandle) {
                 ConstraintHandle handle = (ConstraintHandle) over;
-                if ((mHitConstraintHandle == null) || (mHitConstraintHandleDistance >= dist)) {
+                if ((mHitConstraintHandle == null)
+                    || (mHitConstraintHandleDistance >= dist)
+                    || dist < SELECTION_TARGET_SLOPE) {
                     if ((mHitConstraintHandle != null)
-                            && (mHitConstraintHandleDistance < 4
-                            && mSelection.contains(mHitConstraintHandle.getOwner()))
+                            && (mHitConstraintHandleDistance < SELECTION_TARGET_SLOPE)
+                            && mSelection.contains(mHitConstraintHandle.getOwner())
                             && !mSelection.contains(handle.getOwner())) {
                         // If we hit something that's closer to the current best hit,
                         // but the current best hit belongs to a selected widget,
@@ -441,14 +445,16 @@ public class MouseInteraction {
                         // we should select children preferably
                         ConstraintWidget currentWidget = mHitConstraintHandle.getOwner();
                         ConstraintWidget candidateWidget = handle.getOwner();
-                        if (!candidateWidget.hasAncestor(currentWidget)) {
+                        if (!candidateWidget.hasAncestor(currentWidget)
+                          && !(currentWidget.hasAncestor(candidateWidget)
+                                && !(candidateWidget instanceof ConstraintWidgetContainer))) {
                             // not a children, keep the current one
                             return;
                         }
                     }
                     if (handle.getAnchor().getType() == ConstraintAnchor.Type.BASELINE) {
                         if (mEnableBaseline || mMode == DRAG_MODE) {
-                            if (dist < 4) {
+                            if (dist < SELECTION_TARGET_SLOPE) {
                                 mHitConstraintHandle = handle;
                                 mHitConstraintHandleDistance = dist;
                             }
@@ -460,9 +466,12 @@ public class MouseInteraction {
                 }
             } else if (over instanceof ResizeHandle) {
                 ResizeHandle handle = (ResizeHandle) over;
-                if ((mHitConstraintHandle == null) || (mHitResizeHandleDistance > dist)) {
-                    if (mHitConstraintHandleDistance < 4
-                            && mSelection.contains(mHitConstraintHandle.getOwner())
+                if ((mHitResizeHandle == null)
+                    || (mHitResizeHandleDistance > dist)
+                    || dist < SELECTION_TARGET_SLOPE) {
+                    if ((mHitResizeHandle != null)
+                            && (mHitResizeHandleDistance < SELECTION_TARGET_SLOPE)
+                            && mSelection.contains(mHitResizeHandle.getOwner())
                             && !mSelection.contains(handle.getOwner())) {
                         // If we hit something that's closer to the current best hit,
                         // but the current best hit belongs to a selected widget,
