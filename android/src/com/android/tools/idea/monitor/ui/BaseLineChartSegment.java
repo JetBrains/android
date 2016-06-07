@@ -22,7 +22,9 @@ import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.common.formatter.MemoryAxisFormatter;
 import com.android.tools.adtui.model.LegendRenderData;
 import com.android.tools.adtui.model.RangedContinuousSeries;
+import com.android.tools.idea.monitor.datastore.DataStoreContinuousSeries;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
+import com.android.tools.idea.monitor.datastore.SeriesDataType;
 import com.intellij.ui.components.JBLayeredPane;
 import com.intellij.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;
@@ -41,6 +43,7 @@ import java.util.List;
  * as null value, indicating that the chart has a left axis only.
  */
 public abstract class BaseLineChartSegment extends BaseSegment {
+
   /**
    * TODO consider getting OS/system specific double-click intervals.
    * If this is too large, however, the delay in dispatching the queued events would be significantly noticeable. The lag is undesirable
@@ -62,25 +65,18 @@ public abstract class BaseLineChartSegment extends BaseSegment {
   @Nullable
   protected Range mRightAxisRange;
 
-  @NotNull
   private AxisComponent mLeftAxis;
 
-  @Nullable
   private AxisComponent mRightAxis;
 
-  @NotNull
   private final BaseAxisFormatter mLeftAxisFormatter;
 
-  @Nullable
   private final BaseAxisFormatter mRightAxisFormatter;
 
-  @NotNull
   private GridComponent mGrid;
 
-  @NotNull
   protected LineChart mLineChart;
 
-  @NotNull
   protected LegendComponent mLegendComponent;
 
   @NotNull
@@ -121,6 +117,15 @@ public abstract class BaseLineChartSegment extends BaseSegment {
     initializeListeners();
   }
 
+  public BaseLineChartSegment(@NotNull String name,
+                              @NotNull Range xRange,
+                              @NotNull SeriesDataStore dataStore,
+                              @NotNull BaseAxisFormatter leftAxisFormatter,
+                              @Nullable BaseAxisFormatter rightAxisFormatter,
+                              @NotNull EventDispatcher<ProfilerEventListener> dispatcher) {
+    this(name, xRange, dataStore, leftAxisFormatter, rightAxisFormatter, null, null, dispatcher);
+  }
+
   public abstract SegmentType getSegmentType();
 
   @Override
@@ -156,7 +161,6 @@ public abstract class BaseLineChartSegment extends BaseSegment {
     mLineChart = new LineChart();
     mGrid = new GridComponent();
     mGrid.addAxis(mLeftAxis);
-    populateSeriesData(mLineChart);
 
     List<LegendRenderData> legendRenderDataList = new ArrayList<>();
     for (RangedContinuousSeries series : mLineChart.getRangedContinuousSeries()) {
@@ -183,8 +187,6 @@ public abstract class BaseLineChartSegment extends BaseSegment {
     animatables.add(mLegendComponent);
     animatables.add(mGrid); // No-op.
   }
-
-  public abstract void populateSeriesData(@NotNull LineChart lineChart);
 
   @Override
   protected void setLeftContent(@NotNull JPanel panel) {
@@ -318,5 +320,19 @@ public abstract class BaseLineChartSegment extends BaseSegment {
         getParent().dispatchEvent(mDelayedEvents.remove());
       }
     }
+  }
+
+  @Override
+  public void toggleView(boolean isExpanded) {
+    super.toggleView(isExpanded);
+    mLineChart.clearLineConfigs();
+  }
+
+  /**
+   * Adds a line to {@link #mLineChart}.
+   */
+  protected void addLine(SeriesDataType type, String label, LineConfig lineConfig, Range yRange) {
+    mLineChart.addLine(new RangedContinuousSeries(label, mXRange, yRange, new DataStoreContinuousSeries(mSeriesDataStore, type)),
+                       lineConfig);
   }
 }
