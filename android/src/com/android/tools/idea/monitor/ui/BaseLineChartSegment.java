@@ -19,7 +19,6 @@ import com.android.tools.adtui.*;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
-import com.android.tools.adtui.common.formatter.MemoryAxisFormatter;
 import com.android.tools.adtui.model.LegendRenderData;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.idea.monitor.datastore.DataStoreContinuousSeries;
@@ -75,7 +74,7 @@ public abstract class BaseLineChartSegment extends BaseSegment {
 
   private GridComponent mGrid;
 
-  protected LineChart mLineChart;
+  private LineChart mLineChart;
 
   protected LegendComponent mLegendComponent;
 
@@ -162,15 +161,7 @@ public abstract class BaseLineChartSegment extends BaseSegment {
     mGrid = new GridComponent();
     mGrid.addAxis(mLeftAxis);
 
-    List<LegendRenderData> legendRenderDataList = new ArrayList<>();
-    for (RangedContinuousSeries series : mLineChart.getRangedContinuousSeries()) {
-      LineConfig lineConfig = mLineChart.getLineConfig(series);
-      Color color = lineConfig.getColor();
-      LegendRenderData.IconType iconType = lineConfig.isFilled() ? LegendRenderData.IconType.BOX : LegendRenderData.IconType.LINE;
-      LegendRenderData renderData = new LegendRenderData(iconType, color, series);
-      legendRenderDataList.add(renderData);
-    }
-    mLegendComponent = new LegendComponent(legendRenderDataList, LegendComponent.Orientation.HORIZONTAL, 100, MemoryAxisFormatter.DEFAULT);
+    mLegendComponent = new LegendComponent(LegendComponent.Orientation.HORIZONTAL, 100);
 
     // Note: the order below is important as some components depend on
     // others to be updated first. e.g. the ranges need to be updated before the axes.
@@ -322,10 +313,34 @@ public abstract class BaseLineChartSegment extends BaseSegment {
     }
   }
 
+  /**
+   * Toggle between levels 1 and 2.
+   * @param isExpanded true if toggling to level 2.
+   */
   @Override
   public void toggleView(boolean isExpanded) {
     super.toggleView(isExpanded);
     mLineChart.clearLineConfigs();
+    updateChartLines(isExpanded);
+    mLegendComponent.setLegendData(getLegendRenderDataList());
+  }
+
+  /**
+   * Updates the line chart based on the expanded state of the segment. Expanded segments usually display more information/lines.
+   */
+  protected abstract void updateChartLines(boolean isExpanded);
+
+  /**
+   * Returns a list of {@link LegendRenderData} based on the data series currently being rendered in the LineChart.
+   */
+  private List<LegendRenderData> getLegendRenderDataList() {
+    List<LegendRenderData> legendRenderDataList = new ArrayList<>();
+    for (RangedContinuousSeries series : mLineChart.getRangedContinuousSeries()) {
+      LineConfig lineConfig = mLineChart.getLineConfig(series);
+      LegendRenderData.IconType iconType = lineConfig.isFilled() ? LegendRenderData.IconType.BOX : LegendRenderData.IconType.LINE;
+      legendRenderDataList.add(new LegendRenderData(iconType, lineConfig.getColor(), series));
+    }
+    return legendRenderDataList;
   }
 
   /**

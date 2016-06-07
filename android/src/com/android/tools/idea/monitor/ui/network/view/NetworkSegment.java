@@ -52,14 +52,8 @@ public class NetworkSegment extends BaseLineChartSegment {
     return SegmentType.NETWORK;
   }
 
-  /**
-   * Toggle between levels 1 and 2.
-   * @param isExpanded true if toggling to level 2.
-   */
   @Override
-  public void toggleView(boolean isExpanded) {
-    super.toggleView(isExpanded);
-
+  protected void updateChartLines(boolean isExpanded) {
     // Sending and Receiving lines are present in both levels 1 and 2
     addLine(SeriesDataType.NETWORK_SENDING, SENDING, new LineConfig(Constants.NETWORK_SENDING_COLOR), mLeftAxisRange);
     addLine(SeriesDataType.NETWORK_RECEIVING, RECEIVING, new LineConfig(Constants.NETWORK_RECEIVING_COLOR), mLeftAxisRange);
