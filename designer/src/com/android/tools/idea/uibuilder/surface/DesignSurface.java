@@ -164,7 +164,6 @@ public class DesignSurface extends JPanel implements Disposable {
     myProgressPanel.setName("Layout Editor Progress Panel");
     myLayeredPane.add(myProgressPanel, LAYER_PROGRESS);
 
-
     myScrollPane = new MyScrollPane();
     myScrollPane.setViewportView(myLayeredPane);
     myScrollPane.setBorder(null);
@@ -253,6 +252,7 @@ public class DesignSurface extends JPanel implements Disposable {
   /**
    * Tells this surface to resize mode. While on resizing mode, the views won't be auto positioned.
    * This can be disabled to avoid moving the screens around when the user is resizing the canvas. See {@link CanvasResizeInteraction}
+   *
    * @param isResizing true to enable the resize mode
    */
   public void setResizeMode(boolean isResizing) {
@@ -336,7 +336,6 @@ public class DesignSurface extends JPanel implements Disposable {
       addLayers(model);
       positionScreens();
 
-
       SelectionModel selectionModel = model.getSelectionModel();
       selectionModel.addListener(mySelectionListener);
       selectionAfter = selectionModel.getSelection();
@@ -395,9 +394,13 @@ public class DesignSurface extends JPanel implements Disposable {
   public void dispose() {
   }
 
-  private void updateScrolledAreaSize() {
+  /**
+   * @return The new {@link Dimension} of the LayeredPane (ScreenView)
+   */
+  @Nullable
+  private Dimension updateScrolledAreaSize() {
     if (myScreenView == null) {
-      return;
+      return null;
     }
     Dimension size = myScreenView.getSize();
     // TODO: Account for the size of the blueprint screen too? I should figure out if I can automatically make it jump
@@ -408,6 +411,7 @@ public class DesignSurface extends JPanel implements Disposable {
     myLayeredPane.setPreferredSize(dimension);
     myScrollPane.revalidate();
     myProgressPanel.setBounds(myScreenX, myScreenY, size.width, size.height);
+    return dimension;
   }
 
   public JComponent getPreferredFocusedComponent() {
@@ -577,6 +581,7 @@ public class DesignSurface extends JPanel implements Disposable {
   }
 
   public void zoom(@NotNull ZoomType type) {
+
     switch (type) {
       case IN: {
         int current = (int)(myScale * 100);
@@ -684,11 +689,33 @@ public class DesignSurface extends JPanel implements Disposable {
   }
 
   public void setScrollPosition(int x, int y) {
-    myScrollPane.getHorizontalScrollBar().setValue(x);
-    myScrollPane.getVerticalScrollBar().setValue(y);
+    setScrollPosition(new Point(x, y));
+  }
+
+  public void setScrollPosition(Point p) {
+    final JScrollBar horizontalScrollBar = myScrollPane.getHorizontalScrollBar();
+    final JScrollBar verticalScrollBar = myScrollPane.getVerticalScrollBar();
+    p.setLocation(
+      Math.max(horizontalScrollBar.getMinimum(), p.x),
+      Math.max(verticalScrollBar.getMinimum(), p.y));
+
+    p.setLocation(
+      Math.min(horizontalScrollBar.getMaximum() - horizontalScrollBar.getVisibleAmount(), p.x),
+      Math.min(verticalScrollBar.getMaximum() - verticalScrollBar.getVisibleAmount(), p.y));
+    myScrollPane.getViewport().setViewPosition(p);
+  }
+
+  public Point getScrollPosition() {
+    return myScrollPane.getViewport().getViewPosition();
   }
 
   private void setScale(double scale) {
+    final Point viewPosition = myScrollPane.getViewport().getViewPosition();
+    final Dimension oldSize = myScrollPane.getViewport().getViewSize();
+
+    final double normalizedX = (viewPosition.x + myScrollPane.getWidth() / 2.0) / oldSize.getWidth();
+    final double normalizedY = (viewPosition.y + myScrollPane.getHeight() / 2.0) / oldSize.getHeight();
+
     if (Math.abs(scale - 1) < 0.0001) {
       scale = 1;
     }
@@ -698,9 +725,17 @@ public class DesignSurface extends JPanel implements Disposable {
     else if (scale > 10) {
       scale = 10;
     }
+
     myScale = scale;
     positionScreens();
-    updateScrolledAreaSize();
+    final Dimension newSize = updateScrolledAreaSize();
+
+    if (newSize != null) {
+      // Replace the Viewport at the same position it was before the scaling
+      viewPosition.setLocation(normalizedX * newSize.getWidth() - myScrollPane.getWidth() / 2.0,
+                               normalizedY * newSize.getHeight() - myScrollPane.getHeight() / 2.0);
+      myScrollPane.getViewport().setViewPosition(viewPosition);
+    }
     notifyScaleChanged();
   }
 
@@ -876,7 +911,7 @@ public class DesignSurface extends JPanel implements Disposable {
   }
 
   public void removePanZoomListener(PanZoomListener listener) {
-    if(myZoomListeners != null) {
+    if (myZoomListeners != null) {
       myZoomListeners.remove(listener);
     }
   }
@@ -1466,6 +1501,7 @@ public class DesignSurface extends JPanel implements Disposable {
 
   /**
    * Requests a new render of the layout.
+   *
    * @param invalidateModel if true, the model will be invalidated and re-inflated. When false, this will only repaint the current model.
    */
   public void requestRender(boolean invalidateModel) {

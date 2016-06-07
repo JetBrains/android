@@ -38,10 +38,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.AdjustmentEvent;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
+import java.awt.event.*;
 import java.util.List;
 
 import static com.android.tools.idea.uibuilder.surface.DesignSurface.ScreenMode.BOTH;
@@ -76,6 +73,7 @@ public class WidgetNavigatorPanel extends JPanel
   @Nullable private DesignSurface myDesignSurface;
   private NlComponent myComponent;
   private Dimension myCurrentScreenViewSize;
+  private Dimension myDesignSurfaceSize;
   private Dimension myDeviceSize;
   private double myScreenViewScale;
   private double myDeviceScale;
@@ -85,6 +83,7 @@ public class WidgetNavigatorPanel extends JPanel
   private boolean myIsZoomed;
   private int myYScreenNumber;
   private int myXScreenNumber;
+  private int myScaledScreenSpace;
 
   public WidgetNavigatorPanel(@NotNull NlPropertiesManager propertiesManager) {
     super(new BorderLayout());
@@ -117,6 +116,7 @@ public class WidgetNavigatorPanel extends JPanel
     final MouseInteractionListener listener = new MouseInteractionListener();
     addMouseListener(listener);
     addMouseMotionListener(listener);
+    addMouseWheelListener(listener);
 
     myDesignSurfaceOffset = new Point();
     mySecondScreenOffset = new Point();
@@ -191,9 +191,9 @@ public class WidgetNavigatorPanel extends JPanel
     if (myDesignSurface == null) {
       return;
     }
-    computeScale(myDesignSurface.getCurrentScreenView(), myDesignSurface.getBlueprintView(), myDesignSurface.getSize(),
+    computeScale(myDesignSurface.getCurrentScreenView(), myDesignSurface.getSize(),
                  myDesignSurface.getContentSize(null));
-    computeOffsets(myDesignSurface.getCurrentScreenView(), myDesignSurface.getBlueprintView());
+    computeOffsets(myDesignSurface.getCurrentScreenView());
   }
 
   /**
@@ -223,7 +223,7 @@ public class WidgetNavigatorPanel extends JPanel
   public void screenChanged(@NotNull DesignSurface surface, @Nullable ScreenView screenView) {
     setSurface(surface);
     assert myDesignSurface != null;
-    computeOffsets(myDesignSurface.getCurrentScreenView(), myDesignSurface.getBlueprintView());
+    computeOffsets(myDesignSurface.getCurrentScreenView());
     myMiniMap.repaint();
   }
 
@@ -236,7 +236,7 @@ public class WidgetNavigatorPanel extends JPanel
     if (model != null) {
       model.addListener(this);
     }
-    computeOffsets(surface.getCurrentScreenView(), surface.getBlueprintView());
+    computeOffsets(surface.getCurrentScreenView());
     myMiniMap.repaint();
   }
 
@@ -277,21 +277,13 @@ public class WidgetNavigatorPanel extends JPanel
     if (currentScreenView == null) return;
 
     myCurrentScreenViewSize = currentScreenView.getSize(myCurrentScreenViewSize);
-    final double newPosition = (double)adjustmentEvent.getValue() /
-                               (adjustmentEvent.getAdjustable().getMaximum() - adjustmentEvent.getAdjustable().getMinimum());
-
-    switch (adjustmentEvent.getAdjustable().getOrientation()) {
-      case Adjustable.HORIZONTAL:
-        myDesignSurfaceOffset
-          .setLocation(newPosition * (myCurrentScreenViewSize.getWidth()) * myScreenViewScale,
-                       myDesignSurfaceOffset.y);
-        break;
-      case Adjustable.VERTICAL:
-        myDesignSurfaceOffset.setLocation(myDesignSurfaceOffset.x, newPosition *
-                                                                   (myCurrentScreenViewSize.getHeight()) *
-                                                                   myScreenViewScale);
-        break;
-    }
+    myDesignSurfaceSize = myDesignSurface.getSize(myDesignSurfaceSize);
+    computeScale(currentScreenView, myDesignSurfaceSize, myCurrentScreenViewSize);
+    final Point scrollPosition = myDesignSurface.getScrollPosition();
+    myDesignSurfaceOffset.setLocation(
+      scrollPosition.getX() * myScreenViewScale,
+      scrollPosition.getY() * myScreenViewScale
+    );
     repaint();
   }
 
@@ -324,7 +316,7 @@ public class WidgetNavigatorPanel extends JPanel
    * @param surface
    */
   public void setSurface(@Nullable DesignSurface surface) {
-    if(surface == myDesignSurface) {
+    if (surface == myDesignSurface) {
       return;
     }
 
@@ -384,7 +376,7 @@ public class WidgetNavigatorPanel extends JPanel
   /**
    * Handle all mouse interaction onto the Minimap
    */
-  private class MouseInteractionListener implements MouseListener, MouseMotionListener {
+  private class MouseInteractionListener implements MouseListener, MouseMotionListener, MouseWheelListener {
 
     private final Point myMouseOrigin = new Point(0, 0);
     private final Point mySurfaceOrigin = new Point(0, 0);
@@ -466,6 +458,25 @@ public class WidgetNavigatorPanel extends JPanel
     public void mouseExited(MouseEvent e) {
       setCursor(Cursor.getDefaultCursor());
     }
+
+    @Override
+    public void mouseWheelMoved(MouseWheelEvent e) {
+      if (myDesignSurface == null) {
+        return;
+      }
+
+      final int wheelRotation = e.getWheelRotation();
+      if (wheelRotation < 0 && myDesignSurface.getScale() <= 2.) {
+        for (int i = 0; i > wheelRotation; i--) {
+          myDesignSurface.zoomIn();
+        }
+      }
+      else if (wheelRotation > 0 && myDesignSurface.getScale() > 0.1) {
+        for (int i = 0; i < wheelRotation; i++) {
+          myDesignSurface.zoomOut();
+        }
+      }
+    }
   }
 
   /**
@@ -527,12 +538,10 @@ public class WidgetNavigatorPanel extends JPanel
    * whatever the value of the zoom is.
    *
    * @param currentScreenView The active {@link ScreenView}
-   * @param blueScreenView    The blueScreenView or null if it doesn't exist
    * @param designSurfaceSize The real size of the {@link DesignSurface}
    * @param screenViewSize    The total size of all the {@link ScreenView} in the {@link DesignSurface}
    */
   private void computeScale(@Nullable ScreenView currentScreenView,
-                            @Nullable ScreenView blueScreenView,
                             @NotNull Dimension designSurfaceSize,
                             @NotNull Dimension screenViewSize) {
 
@@ -544,39 +553,45 @@ public class WidgetNavigatorPanel extends JPanel
                  || designSurfaceSize.getHeight() < currentScreenView.getY() + screenViewSize.getHeight();
 
     myScreenViewScale = Math.min(
-      (myMiniMap.getWidth()) / screenViewSize.getWidth(),
-      (myMiniMap.getHeight()) / screenViewSize.getHeight()
+      myMiniMap.getWidth() / screenViewSize.getWidth(),
+      myMiniMap.getHeight() / screenViewSize.getHeight()
     );
+
+    double surfaceScale = Math.min(
+      myMiniMap.getWidth() / designSurfaceSize.getWidth(),
+      myMiniMap.getHeight() / designSurfaceSize.getHeight()
+    );
+
+    myScaledScreenSpace = (int)Math.round(SCREEN_SPACE * surfaceScale);
 
     myDeviceScale = Math.min(
       myMiniMap.getWidth() / myDeviceSize.getWidth() / (double)myXScreenNumber,
       myMiniMap.getHeight() / myDeviceSize.getHeight() / (double)myYScreenNumber
     );
 
-    computeOffsets(currentScreenView, blueScreenView);
+    computeOffsets(currentScreenView);
   }
 
   /**
    * Set the Offsets of the Screens to draw and the offset to center all the content
    *
    * @param currentScreenView
-   * @param blueScreenView
    */
-  private void computeOffsets(@Nullable ScreenView currentScreenView, @Nullable ScreenView blueScreenView) {
+  private void computeOffsets(@Nullable ScreenView currentScreenView) {
     if (myDesignSurface != null && currentScreenView != null) {
       myCurrentScreenViewSize = currentScreenView.getSize(myCurrentScreenViewSize);
-      if (blueScreenView != null && myDesignSurface.getScreenMode() == BOTH) {
+      if (myDesignSurface.getScreenMode() == BOTH) {
         if (myDesignSurface.isStackVertically()) {
-          mySecondScreenOffset.setLocation(0, myDeviceSize.getHeight() * myDeviceScale + SCREEN_SPACE);
+          mySecondScreenOffset.setLocation(0, myDeviceSize.getHeight() * myDeviceScale + myScaledScreenSpace);
         }
         else {
-          mySecondScreenOffset.setLocation(myDeviceSize.getWidth() * myDeviceScale + SCREEN_SPACE, 0);
+          mySecondScreenOffset.setLocation(myDeviceSize.getWidth() * myDeviceScale + myScaledScreenSpace, 0);
         }
       }
     }
 
     myCenterOffset = (int)Math.round(
-      (myMiniMap.getWidth() - myXScreenNumber * myDeviceSize.getWidth() * myDeviceScale - SCREEN_SPACE) / 2.);
+      (myMiniMap.getWidth() - myXScreenNumber * myDeviceSize.getWidth() * myDeviceScale - myScaledScreenSpace) / 2.);
   }
 
   /**
@@ -597,17 +612,16 @@ public class WidgetNavigatorPanel extends JPanel
         final ScreenView currentScreenView = myDesignSurface.getCurrentScreenView();
         if (currentScreenView != null) {
 
-          final Dimension designSurfaceSize = myDesignSurface.getSize(null);
+          myDesignSurfaceSize = myDesignSurface.getSize(myDesignSurfaceSize);
           final Dimension contentSize = myDesignSurface.getContentSize(null);
           final ScreenView blueprintView = myDesignSurface.getBlueprintView();
-          final Dimension size = new Dimension();
 
-          computeScale(currentScreenView, blueprintView, designSurfaceSize, contentSize);
+          computeScale(currentScreenView, myDesignSurfaceSize, contentSize);
 
           gc.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
           gc.setColor(BACKGROUND_COLOR);
 
-          drawContainers(gc, currentScreenView, blueprintView, size);
+          drawContainers(gc, currentScreenView, blueprintView);
           gc.setColor(COMPONENT_STROKE_COLOR);
           if (myComponent != null) {
             drawAllComponents(gc, myComponent.getRoot(), blueprintView);
@@ -632,6 +646,7 @@ public class WidgetNavigatorPanel extends JPanel
       Color color = gc.getColor();
       if (component.getId() != null && component.getId().equals(myComponent.getId())) {
         gc.setColor(myColorSet.getSelectedFrames());
+
       }
       drawComponent(gc, component, blueprintView);
       gc.setColor(color);
@@ -676,18 +691,12 @@ public class WidgetNavigatorPanel extends JPanel
      * @param gc                the {@link Graphics2D} to draw on
      * @param currentScreenView the current {@link ScreenView}
      * @param blueprintView     the blueprint {@link ScreenView} if it is availableView
-     * @param size              a {@link Dimension} to be reused for better performances
      */
     private void drawContainers(Graphics2D gc,
                                 ScreenView currentScreenView,
-                                @Nullable ScreenView blueprintView,
-                                @Nullable Dimension size) {
-      if (size == null) {
-        size = new Dimension();
-      }
+                                @Nullable ScreenView blueprintView) {
 
       // Draw the first screen view
-      size = currentScreenView.getSize(size);
       assert myDesignSurface != null;
       if (myDesignSurface.getScreenMode() == DesignSurface.ScreenMode.BLUEPRINT_ONLY) {
         gc.setColor(BLUEPRINT_SCREEN_VIEW_COLOR);
@@ -707,7 +716,6 @@ public class WidgetNavigatorPanel extends JPanel
           && blueprintView != null) {
 
         gc.setColor(BLUEPRINT_SCREEN_VIEW_COLOR);
-        size = blueprintView.getSize(size);
         gc.fillRect(
           myCenterOffset + mySecondScreenOffset.x,
           mySecondScreenOffset.y,
@@ -719,14 +727,13 @@ public class WidgetNavigatorPanel extends JPanel
       if (myIsZoomed) {
 
         // Rectangle of the drawing surface
-        size = myDesignSurface.getSize(size);
         gc.setColor(DRAWING_SURFACE_RECTANGLE_COLOR);
 
         final Rectangle designSurfaceRect = new Rectangle(
           myCenterOffset + myDesignSurfaceOffset.x,
           myDesignSurfaceOffset.y,
-          (int)Math.round((size.getWidth() - currentScreenView.getX() / 2.) * myScreenViewScale),
-          (int)Math.round(size.getHeight() * myScreenViewScale));
+          (int)Math.round((myDesignSurfaceSize.getWidth() - currentScreenView.getX() / 2.) * myScreenViewScale),
+          (int)Math.round(myDesignSurfaceSize.getHeight() * myScreenViewScale));
 
         gc.draw(designSurfaceRect);
 
@@ -746,7 +753,7 @@ public class WidgetNavigatorPanel extends JPanel
         // Right
         gc.fillRect(designSurfaceRect.x + designSurfaceRect.width,
                     0,
-                    myMiniMap.getWidth() - designSurfaceRect.x - designSurfaceRect.width + myCenterOffset + SCREEN_SPACE,
+                    myMiniMap.getWidth() - designSurfaceRect.x - designSurfaceRect.width + myCenterOffset + myScaledScreenSpace,
                     getHeight());
 
         // Bottom
