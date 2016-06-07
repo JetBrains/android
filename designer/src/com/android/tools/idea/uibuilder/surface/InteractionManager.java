@@ -454,9 +454,13 @@ public class InteractionManager {
         NlComponent primary = screenView.getSelectionModel().getPrimary();
         NlComponent parent = primary.getParent();
         if (parent != null) {
-          ViewGroupHandler handler = parent.getViewGroupHandler();
-          if (handler != null) {
-            interaction = handler.createInteraction(screenView, primary);
+          int ax = Coordinates.getAndroidX(screenView, myLastMouseX);
+          int ay = Coordinates.getAndroidY(screenView, myLastMouseY);
+          if (primary.containsX(ax) && primary.containsY(ay)) {
+            ViewGroupHandler handler = parent.getViewGroupHandler();
+            if (handler != null) {
+              interaction = handler.createInteraction(screenView, primary);
+            }
           }
         }
       }
@@ -579,66 +583,60 @@ public class InteractionManager {
         if (screenView == null) {
           return;
         }
-        Interaction interaction = null;
         SelectionModel selectionModel = screenView.getSelectionModel();
 
-        // First give a chance to the current selection
-        if (!selectionModel.isEmpty()) {
-          NlComponent primary = selectionModel.getPrimary();
-          NlComponent parent = primary.getParent();
-          if (parent != null) {
-            ViewGroupHandler handler = parent.getViewGroupHandler();
-            if (handler != null) {
-              interaction = handler.createInteraction(screenView, primary);
-            }
-          }
-        }
+        int ax = Coordinates.getAndroidX(screenView, x);
+        int ay = Coordinates.getAndroidY(screenView, y);
 
-        if (interaction == null) {
-          // Dragging on top of a selection handle: start a resize operation
-          int ax = Coordinates.getAndroidX(screenView, x);
-          int ay = Coordinates.getAndroidY(screenView, y);
-          int max = Coordinates.getAndroidDimension(screenView, PIXEL_RADIUS + PIXEL_MARGIN);
-          SelectionHandle handle = selectionModel.findHandle(ax, ay, max);
-          if (handle != null) {
-            interaction = new ResizeInteraction(screenView, handle.component, handle);
+        Interaction interaction = null;
+        // Dragging on top of a selection handle: start a resize operation
+        int max = Coordinates.getAndroidDimension(screenView, PIXEL_RADIUS + PIXEL_MARGIN);
+        SelectionHandle handle = selectionModel.findHandle(ax, ay, max);
+        if (handle != null) {
+          interaction = new ResizeInteraction(screenView, handle.component, handle);
+        }
+        else {
+          NlModel model = screenView.getModel();
+          NlComponent component = model.findLeafAt(ax, ay, false);
+
+          // See if you're dragging inside a selected parent; if so, drag the selection instead of any
+          // leaf nodes inside it
+          NlComponent primary = selectionModel.getPrimary();
+          if (primary != null && !primary.isRoot() && primary.containsX(ax) && primary.containsY(ay)) {
+            component = primary;
+          }
+
+          if (component == null || component.isRoot()) {
+            // Dragging on the background/root view: start a marquee selection
+            interaction = new MarqueeInteraction(screenView, toggle);
           }
           else {
-            NlModel model = screenView.getModel();
-            NlComponent component = model.findLeafAt(ax, ay, false);
-            if (component == null || component.isRoot()) {
-              // Dragging on the background/root view: start a marquee selection
-              interaction = new MarqueeInteraction(screenView, toggle);
+            List<NlComponent> dragged;
+            // Dragging over a non-root component: move the set of components (if the component dragged over is
+            // part of the selection, drag them all, otherwise drag just this component)
+            if (selectionModel.isSelected(component)) {
+              dragged = Lists.newArrayList();
+
+              // Make sure the primary is the first element
+              if (primary != null) {
+                if (primary.isRoot()) {
+                  primary = null;
+                }
+                else {
+                  dragged.add(primary);
+                }
+              }
+
+              for (NlComponent selected : selectionModel.getSelection()) {
+                if (!selected.isRoot() && selected != primary) {
+                  dragged.add(selected);
+                }
+              }
             }
             else {
-              List<NlComponent> dragged;
-              // Dragging over a non-root component: move the set of components (if the component dragged over is
-              // part of the selection, drag them all, otherwise drag just this component)
-              if (selectionModel.isSelected(component)) {
-                dragged = Lists.newArrayList();
-
-                // Make sure the primary is the first element
-                NlComponent primary = selectionModel.getPrimary();
-                if (primary != null) {
-                  if (primary.isRoot()) {
-                    primary = null;
-                  }
-                  else {
-                    dragged.add(primary);
-                  }
-                }
-
-                for (NlComponent selected : selectionModel.getSelection()) {
-                  if (!selected.isRoot() && selected != primary) {
-                    dragged.add(selected);
-                  }
-                }
-              }
-              else {
-                dragged = Collections.singletonList(component);
-              }
-              interaction = new DragDropInteraction(mySurface, dragged);
+              dragged = Collections.singletonList(component);
             }
+            interaction = new DragDropInteraction(mySurface, dragged);
           }
         }
         startInteraction(x, y, interaction, modifiers);
