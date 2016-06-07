@@ -65,6 +65,12 @@ public class NewModuleDialogFixture implements ContainerFixture<JDialog> {
   }
 
   @NotNull
+  public NewModuleDialogFixture chooseActivity(String activity) {
+    new JListFixture(robot(), robot().finder().findByType(target(), ASGallery.class)).clickItem(activity);
+    return this;
+  }
+
+  @NotNull
   public NewModuleDialogFixture clickNextToStep(String name) {
     GuiTests.findAndClickButton(this, "Next");
     Wait.seconds(5).expecting("next step to appear").until(
