@@ -54,6 +54,7 @@ import org.jetbrains.plugins.gradle.execution.test.runner.TestMethodGradleConfig
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.android.tools.idea.apk.ApkProjects.isApkProject;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.Projects.*;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
@@ -113,7 +114,7 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
       // button and editor notifications.
       syncState.notifyUser();
     }
-    if (isAndroidStudio() && isLegacyIdeaAndroidProject(myProject)) {
+    if (isAndroidStudio() && isLegacyIdeaAndroidProject(myProject) && !isApkProject(myProject)) {
       trackLegacyIdeaAndroidProject();
       if (shouldShowMigrateToGradleNotification()) {
         // Suggest that Android Studio users use Gradle instead of IDEA project builder.
