@@ -36,7 +36,7 @@ import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAct
 /**
  * Tests for {@link PsAndroidModule}.
  */
-public class PsdAndroidModuleTest extends AndroidGradleTestCase {
+public class PsAndroidModuleTest extends AndroidGradleTestCase {
   public void testProductFlavors() throws Throwable {
     loadProject("projects/projectWithAppandLib");
 
@@ -191,5 +191,21 @@ public class PsdAndroidModuleTest extends AndroidGradleTestCase {
     List<PsAndroidDependency> dependencies = Lists.newArrayList();
     module.forEachDeclaredDependency(dependencies::add);
     return dependencies;
+  }
+
+  public void testCanDependOnModules() throws Throwable {
+    loadProject("projects/projectWithAppandLib");
+
+    Project resolvedProject = myFixture.getProject();
+    PsProject project = new PsProject(resolvedProject);
+
+    PsAndroidModule appModule = (PsAndroidModule)project.findModuleByName("app");
+    assertNotNull(appModule);
+
+    PsAndroidModule libModule = (PsAndroidModule)project.findModuleByName("lib");
+    assertNotNull(libModule);
+
+    assertTrue(appModule.canDependOn(libModule));
+    assertFalse(libModule.canDependOn(appModule));
   }
 }

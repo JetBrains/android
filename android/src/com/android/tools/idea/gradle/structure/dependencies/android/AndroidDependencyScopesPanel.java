@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.structure.dependencies.android;
 import com.android.tools.idea.gradle.structure.configurables.ui.PsCheckBoxList;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowHeader;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowPanel;
+import com.android.tools.idea.gradle.structure.dependencies.AbstractDependencyScopesPanel;
 import com.android.tools.idea.gradle.structure.model.PsModel;
 import com.android.tools.idea.gradle.structure.model.PsModelNameComparator;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
@@ -27,7 +28,6 @@ import com.android.tools.idea.gradle.structure.model.android.dependency.PsNewDep
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.IdeBorderFactory;
@@ -50,7 +50,7 @@ import static com.intellij.ui.SideBorder.RIGHT;
 import static com.intellij.util.ui.UIUtil.getTextFieldBackground;
 import static com.intellij.util.ui.UIUtil.getTextFieldBorder;
 
-class MainForm implements Disposable {
+public class AndroidDependencyScopesPanel extends AbstractDependencyScopesPanel {
   @NonNls private static final String DEBUG_BUILD_TYPE = "debug";
 
   @NotNull private final ConfigurationsPanel myConfigurationsPanel;
@@ -65,10 +65,9 @@ class MainForm implements Disposable {
 
   private JPanel myMainPanel;
   private JPanel myContentsPanel;
-
   private JXLabel myScopesLabel;
 
-  MainForm(@NotNull PsAndroidModule module) {
+  public AndroidDependencyScopesPanel(@NotNull PsAndroidModule module) {
     myScopesLabel.setBorder(BorderFactory.createCompoundBorder(getTextFieldBorder(), IdeBorderFactory.createEmptyBorder(2)));
     myScopesLabel.setBackground(getTextFieldBackground());
     myScopesLabel.setText(" ");
@@ -92,6 +91,15 @@ class MainForm implements Disposable {
 
     myContentsPanel.add(scopesPanel, BorderLayout.CENTER);
     updateScopes();
+
+    setUpContents(myMainPanel, getInstructions());
+  }
+
+  @NotNull
+  private static String getInstructions() {
+    return "Assign a scope to the new dependency by selecting the scopes, build types and product " +
+           "flavors where the dependency will be used.<br/><a " +
+           "href='http://tools.android.com/tech-docs/new-build-system/user-guide#TOC-Dependencies-Android-Libraries-and-Multi-project-setup'>Open Documentation</a>";
   }
 
   private void updateScopes() {
@@ -203,13 +211,9 @@ class MainForm implements Disposable {
     return configurationNames;
   }
 
-  @NotNull
-  JPanel getPanel() {
-    return myMainPanel;
-  }
-
+  @Override
   @Nullable
-  ValidationInfo validateInput() {
+  public ValidationInfo validateInput() {
     List<Configuration> configurations = myConfigurationsPanel.getSelectedConfigurations();
     if (configurations.isEmpty()) {
       return new ValidationInfo("Please select at least one configuration", myConfigurationsPanel);
@@ -249,8 +253,9 @@ class MainForm implements Disposable {
     return null;
   }
 
+  @Override
   @NotNull
-  List<String> getSelectedScopeNames() {
+  public List<String> getSelectedScopeNames() {
     return mySelectedScopeNames;
   }
 

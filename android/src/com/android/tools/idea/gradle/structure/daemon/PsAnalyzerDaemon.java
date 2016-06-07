@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.structure.daemon.analysis.PsJavaModuleAnaly
 import com.android.tools.idea.gradle.structure.daemon.analysis.PsModelAnalyzer;
 import com.android.tools.idea.gradle.structure.model.*;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
+import com.android.tools.idea.gradle.structure.model.java.PsJavaModule;
 import com.android.tools.idea.gradle.structure.navigation.PsLibraryDependencyNavigationPath;
 import com.android.tools.idea.gradle.structure.model.PsModulePath;
 import com.android.tools.idea.gradle.structure.quickfix.PsLibraryDependencyVersionQuickFixPath;
@@ -33,6 +34,7 @@ import com.intellij.openapi.application.Result;
 import com.intellij.openapi.application.RunResult;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.ActionCallback;
+import com.intellij.openapi.util.Ref;
 import com.intellij.util.EventDispatcher;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
@@ -79,43 +81,60 @@ public class PsAnalyzerDaemon extends PsDaemon {
 
   private void addApplicableUpdatesAsIssues() {
     PsContext context = getContext();
-    AvailableLibraryUpdates results = context.getLibraryUpdateCheckerDaemon().getAvailableUpdates();
     context.getProject().forEachModule(module -> {
+      Ref<Boolean> updatesFound = new Ref<>(false);
       if (module instanceof PsAndroidModule) {
         PsAndroidModule androidModule = (PsAndroidModule)module;
-
-        AtomicBoolean updatesFound = new AtomicBoolean(false);
-
         androidModule.forEachDeclaredDependency(dependency -> {
           if (dependency instanceof PsLibraryDependency) {
-            PsLibraryDependency libraryDependency = (PsLibraryDependency)dependency;
-            PsArtifactDependencySpec spec = libraryDependency.getDeclaredSpec();
-            if (spec != null) {
-              AvailableLibraryUpdate update = results.findUpdateFor(spec);
-              if (update != null) {
-                String text = String.format("Newer version available: <b>%1$s</b> (%2$s)", update.version, update.repository);
-
-                PsLibraryDependencyNavigationPath mainPath = new PsLibraryDependencyNavigationPath(context, libraryDependency);
-                PsIssue issue = new PsIssue(text, mainPath, LIBRARY_UPDATES_AVAILABLE, UPDATE);
-                issue.setExtraPath(new PsModulePath(module));
-
-                PsLibraryDependencyVersionQuickFixPath quickFix =
-                  new PsLibraryDependencyVersionQuickFixPath(libraryDependency, update.version);
-                quickFix.setHrefText("[Update]");
-                issue.setQuickFixPath(quickFix);
-
-                myIssues.add(issue);
-                updatesFound.set(true);
-              }
+            boolean found = checkForUpdates((PsLibraryDependency)dependency);
+            if (found) {
+              updatesFound.set(true);
             }
           }
         });
+      }
+      else if (module instanceof PsJavaModule) {
+        PsJavaModule javaModule = (PsJavaModule)module;
+        javaModule.forEachDeclaredDependency(dependency -> {
+          if (dependency instanceof PsLibraryDependency) {
+            boolean found = checkForUpdates((PsLibraryDependency)dependency);
+            if (found) {
+              updatesFound.set(true);
+            }
+          }
+        });
+      }
 
-        if (updatesFound.get()) {
-          myResultsUpdaterQueue.queue(new IssuesComputed(module));
-        }
+      if (updatesFound.get()) {
+        myResultsUpdaterQueue.queue(new IssuesComputed(module));
       }
     });
+  }
+
+  private boolean checkForUpdates(@NotNull PsLibraryDependency dependency) {
+    PsContext context = getContext();
+    AvailableLibraryUpdates results = context.getLibraryUpdateCheckerDaemon().getAvailableUpdates();
+    PsArtifactDependencySpec spec = dependency.getDeclaredSpec();
+    if (spec != null) {
+      AvailableLibraryUpdate update = results.findUpdateFor(spec);
+      if (update != null) {
+        String text = String.format("Newer version available: <b>%1$s</b> (%2$s)", update.version, update.repository);
+
+        PsLibraryDependencyNavigationPath mainPath = new PsLibraryDependencyNavigationPath(context, dependency);
+        PsIssue issue = new PsIssue(text, mainPath, LIBRARY_UPDATES_AVAILABLE, UPDATE);
+        issue.setExtraPath(new PsModulePath(dependency.getParent()));
+
+        PsLibraryDependencyVersionQuickFixPath quickFix =
+          new PsLibraryDependencyVersionQuickFixPath(dependency, update.version);
+        quickFix.setHrefText("[Update]");
+        issue.setQuickFixPath(quickFix);
+
+        myIssues.add(issue);
+        return true;
+      }
+    }
+    return false;
   }
 
   private void createModelAnalyzers() {

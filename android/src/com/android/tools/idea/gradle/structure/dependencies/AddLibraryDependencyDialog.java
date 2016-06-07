@@ -15,32 +15,77 @@
  */
 package com.android.tools.idea.gradle.structure.dependencies;
 
+import com.android.tools.idea.gradle.structure.dependencies.android.AndroidDependencyScopesPanel;
+import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsModule;
-import com.intellij.openapi.ui.DialogWrapper;
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
+import com.android.tools.idea.gradle.structure.model.android.PsLibraryAndroidDependency;
+import com.android.tools.idea.gradle.structure.model.android.dependency.PsNewDependencyScopes;
+import com.android.tools.idea.gradle.structure.model.java.PsJavaModule;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.Ref;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.*;
+import java.net.UnknownHostException;
+import java.util.List;
+import java.util.Objects;
 
-public class AddLibraryDependencyDialog extends DialogWrapper {
-  @NotNull private final PsModule myModule;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
-  private JPanel myPanel;
-  private AddLibraryDependencyPanel myAddLibraryDependencyPanel;
+public class AddLibraryDependencyDialog extends AbstractAddDependenciesDialog {
+  @NotNull public static final String TITLE = "Add Library Dependency";
+
+  private LibraryDependenciesForm myLibraryDependenciesForm;
 
   public AddLibraryDependencyDialog(@NotNull PsModule module) {
-    super(module.getParent().getResolvedModel());
-    myModule = module;
-    setTitle("Add Library Dependency");
-    init();
-    getContentPanel().setBorder(BorderFactory.createEmptyBorder());
+    super(module);
+    setTitle(TITLE);
   }
 
-  public void addNewDependency() {
-    myAddLibraryDependencyPanel.addNewDependency();
+  @Override
+  public void addNewDependencies() {
+    String library = myLibraryDependenciesForm.getSelectedLibrary();
+    assert library != null;
+
+    AbstractDependencyScopesPanel scopesPanel = getScopesPanel();
+    List<String> scopesNames = scopesPanel.getSelectedScopeNames();
+
+    PsModule module = getModule();
+    if (module instanceof PsAndroidModule) {
+      PsNewDependencyScopes newScopes = ((AndroidDependencyScopesPanel)scopesPanel).getNewScopes();
+      assert newScopes != null;
+
+      ((PsAndroidModule)module).addLibraryDependency(library, newScopes, scopesNames);
+    }
+    else if (module instanceof PsJavaModule) {
+      ((PsJavaModule)module).addLibraryDependency(library, scopesNames);
+    }
+  }
+
+  @Override
+  @NotNull
+  protected String getSplitterProportionKey() {
+    return "psd.add.library.dependency.main.horizontal.splitter.proportion";
+  }
+
+  @Override
+  @NotNull
+  protected JComponent getDependencySelectionView() {
+    if (myLibraryDependenciesForm == null) {
+      myLibraryDependenciesForm = new LibraryDependenciesForm(getModule());
+    }
+    return myLibraryDependenciesForm.getPanel();
+  }
+
+  @Override
+  @NotNull
+  protected String getInstructions() {
+    return "Use the form below to find the library to add. This form uses the repositories specified in  the project's build files (e.g. " +
+           "JCenter, Maven Central, etc.)";
   }
 
   @Override
@@ -50,41 +95,67 @@ public class AddLibraryDependencyDialog extends DialogWrapper {
   }
 
   @Override
-  protected boolean postponeValidation() {
-    return false;
-  }
-
-  @Override
-  @Nullable
-  protected JComponent createCenterPanel() {
-    if (myPanel == null) {
-      myPanel = new JPanel(new BorderLayout());
-      myAddLibraryDependencyPanel = new AddLibraryDependencyPanel(myModule);
-      myPanel.add(myAddLibraryDependencyPanel, BorderLayout.CENTER);
-    }
-    return myPanel;
-  }
-
-  @Override
   @Nullable
   public JComponent getPreferredFocusedComponent() {
-    if (myAddLibraryDependencyPanel != null) {
-      return myAddLibraryDependencyPanel.getPreferredFocusedComponent();
-    }
-    return null;
+    return myLibraryDependenciesForm != null ? myLibraryDependenciesForm.getPreferredFocusedComponent() : null;
   }
 
   @Override
   protected void dispose() {
     super.dispose();
-    if (myAddLibraryDependencyPanel != null) {
-      Disposer.dispose(myAddLibraryDependencyPanel);
+    if (myLibraryDependenciesForm != null) {
+      Disposer.dispose(myLibraryDependenciesForm);
     }
   }
 
   @Override
   @Nullable
   protected ValidationInfo doValidate() {
-    return myAddLibraryDependencyPanel.validateInput();
+    List<Exception> searchErrors = myLibraryDependenciesForm.getSearchErrors();
+    if (!searchErrors.isEmpty()) {
+      StringBuilder buffer = new StringBuilder();
+      searchErrors.forEach(e -> buffer.append(getErrorMessage(e)).append("\n"));
+      return new ValidationInfo(buffer.toString(), myLibraryDependenciesForm.getPreferredFocusedComponent());
+    }
+
+    String selectedLibrary = myLibraryDependenciesForm.getSelectedLibrary();
+    if (isEmpty(selectedLibrary)) {
+      return new ValidationInfo("Please specify the library to add as dependency", myLibraryDependenciesForm.getPreferredFocusedComponent());
+    }
+    PsArtifactDependencySpec spec = PsArtifactDependencySpec.create(selectedLibrary);
+    PsModule module = getModule();
+    if (spec != null && module instanceof PsAndroidModule) {
+      PsAndroidModule androidModule = (PsAndroidModule)module;
+      Ref<Boolean> found = new Ref<>(false);
+      androidModule.forEachDeclaredDependency(dependency -> {
+        if (dependency instanceof PsLibraryAndroidDependency) {
+          PsLibraryAndroidDependency libraryDependency = (PsLibraryAndroidDependency)dependency;
+          PsArtifactDependencySpec resolvedSpec = libraryDependency.getResolvedSpec();
+          if (Objects.equals(spec.group, resolvedSpec.group) && Objects.equals(spec.name, resolvedSpec.name)) {
+            found.set(true);
+          }
+        }
+      });
+
+      if (found.get()) {
+        String msg = String.format("Library '%1$s' is already a dependency", spec.name);
+        return new ValidationInfo(msg, myLibraryDependenciesForm.getPreferredFocusedComponent());
+      }
+    }
+
+    return getScopesPanel().validateInput();
+  }
+
+  @NotNull
+  private static String getErrorMessage(@NotNull Exception error) {
+    if (error instanceof UnknownHostException) {
+      return "Failed to connect to host '" + error.getMessage() + "'. Please check your Internet connection.";
+    }
+
+    String msg = error.getMessage();
+    if (isNotEmpty(msg)) {
+      return msg;
+    }
+    return error.getClass().getName();
   }
 }

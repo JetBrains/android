@@ -23,10 +23,7 @@ import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyMo
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyModel;
 import com.google.common.base.Joiner;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.*;
 import com.intellij.openapi.application.ApplicationManager;
 import org.gradle.tooling.model.GradleModuleVersion;
 import org.jetbrains.annotations.NotNull;
@@ -81,10 +78,13 @@ public class PsParsedDependencies {
 
   @NotNull
   public List<ArtifactDependencyModel> findLibraryDependencies(@NotNull PsArtifactDependencySpec spec,
-                                                               @NotNull Predicate<ArtifactDependencyModel> predicate) {
+                                                               @Nullable Predicate<ArtifactDependencyModel> predicate) {
     String id = createIdFrom(spec);
     Collection<ArtifactDependencyModel> potentialMatches = myParsedArtifactDependencies.get(id);
-    return potentialMatches.stream().filter(predicate).collect(Collectors.toList());
+    if (predicate != null) {
+      return potentialMatches.stream().filter(predicate).collect(Collectors.toList());
+    }
+    return ImmutableList.copyOf(potentialMatches);
   }
 
   @NotNull
