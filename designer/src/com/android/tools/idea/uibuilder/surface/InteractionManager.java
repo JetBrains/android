@@ -431,14 +431,14 @@ public class InteractionManager {
         }
       }
 
+      SelectionModel selectionModel = screenView.getSelectionModel();
       NlComponent component = Coordinates.findComponent(screenView, myLastMouseX, myLastMouseY);
       if (component == null) {
         // If we cannot find an element where we clicked, try to use the first element currently selected
         // (if any) to find the view group handler that may want to handle the mousePressed()
         // This allows us to correctly handle elements out of the bounds of the screenview.
-        List<NlComponent> selection = screenView.getSelectionModel().getSelection();
-        if (selection.size() > 0) {
-          component = selection.get(0);
+        if (!selectionModel.isEmpty()) {
+          component = selectionModel.getPrimary();
         } else {
           return;
         }
@@ -448,6 +448,19 @@ public class InteractionManager {
         return;
       }
       Interaction interaction = viewGroupHandler.createInteraction(screenView, component);
+
+      // Give a chance to the current selection's parent handler
+      if (interaction == null && !selectionModel.isEmpty()) {
+        NlComponent primary = screenView.getSelectionModel().getPrimary();
+        NlComponent parent = primary.getParent();
+        if (parent != null) {
+          ViewGroupHandler handler = parent.getViewGroupHandler();
+          if (handler != null) {
+            interaction = handler.createInteraction(screenView, primary);
+          }
+        }
+      }
+
       if (interaction != null) {
         startInteraction(myLastMouseX, myLastMouseY, interaction, ourLastStateMask);
       }
