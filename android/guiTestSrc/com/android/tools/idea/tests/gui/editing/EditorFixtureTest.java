@@ -34,6 +34,21 @@ public class EditorFixtureTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   @Test
+  public void editLine() throws Exception {
+    String line = guiTest.importSimpleApplication()
+      .getEditor()
+      .open("app/src/main/res/values/strings.xml", EditorFixture.Tab.EDITOR)
+      .select("(Simple) Application")
+      .enterText("Tester")
+      .invokeAction(EditorFixture.EditorAction.BACK_SPACE)
+      .enterText("d")
+      .invokeAction(EditorFixture.EditorAction.UNDO)
+      .invokeAction(EditorFixture.EditorAction.BACK_SPACE)
+      .getCurrentLine();
+    assertThat(line).contains("Test Application");
+  }
+
+  @Test
   public void moveBetween_scrollsWhenNeeded() throws Exception {
     int lineNumber = guiTest.importSimpleApplication()
       .getEditor()

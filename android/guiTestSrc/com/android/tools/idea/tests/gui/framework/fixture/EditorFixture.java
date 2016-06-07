@@ -67,10 +67,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.FocusManager;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.InputMethodEvent;
-import java.awt.font.TextHitInfo;
-import java.text.AttributedCharacterIterator;
-import java.text.AttributedString;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -193,33 +189,6 @@ public class EditorFixture {
     Component component = getFocusedEditor();
     if (component != null) {
       robot.enterText(text);
-    }
-
-    return this;
-  }
-
-  /**
-   * Type the given text into the editor as if the user had typed it
-   * with an IME (an input method editor)
-   *
-   * @param text the text to type at the current editor position
-   */
-  public EditorFixture enterImeText(@NotNull final String text) {
-    final Component component = getFocusedEditor();
-    if (component != null && !text.isEmpty()) {
-      execute(new GuiTask() {
-        @Override
-        protected void executeInEDT() throws Throwable {
-          // Simulate editing by sending the same IME events that we observe arriving from a real input method
-          int characterCount = text.length();
-          TextHitInfo caret = TextHitInfo.afterOffset(characterCount - 1);
-          TextHitInfo visiblePosition = TextHitInfo.beforeOffset(0);
-          AttributedCharacterIterator iterator = new AttributedString(text).getIterator();
-          int id = InputMethodEvent.INPUT_METHOD_TEXT_CHANGED;
-          InputMethodEvent event = new InputMethodEvent(component, id, iterator, characterCount, caret, visiblePosition);
-          component.dispatchEvent(event);
-        }
-      });
     }
 
     return this;
@@ -751,7 +720,6 @@ public class EditorFixture {
     BACK_SPACE("EditorBackSpace"),
     COMPLETE_CURRENT_STATEMENT("EditorCompleteStatement"),
     DELETE_LINE("EditorDeleteLine"),
-    TOGGLE_COMMENT("CommentByLineComment"),
     GOTO_DECLARATION("GotoDeclaration"),
     RUN_FROM_CONTEXT("RunClass"),
     ESCAPE("EditorEscape"),
