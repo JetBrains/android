@@ -65,14 +65,8 @@ public class CpuUsageSegment extends BaseLineChartSegment {
     return SegmentType.CPU;
   }
 
-  /**
-   * Toggle between levels 1 and 2.
-   * @param isExpanded true if toggling to level 2.
-   */
   @Override
-  public void toggleView(boolean isExpanded) {
-    super.toggleView(isExpanded);
-
+  protected void updateChartLines(boolean isExpanded) {
     // My process CPU usage is present in both Level 1 and Level 2
     addCpuUsageLine(SeriesDataType.CPU_MY_PROCESS, MY_PROCESS_SERIES_LABEL, MY_PROCESS_LINE_COLOR);
 
