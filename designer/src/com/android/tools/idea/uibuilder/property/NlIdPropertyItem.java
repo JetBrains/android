@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.property;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.lint.detector.api.LintUtils;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogBuilder;
@@ -38,6 +39,10 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.util.List;
 
+import static com.android.SdkConstants.ID_PREFIX;
+import static com.android.SdkConstants.NEW_ID_PREFIX;
+import static com.android.tools.lint.detector.api.LintUtils.stripIdPrefix;
+
 public class NlIdPropertyItem extends NlPropertyItem {
   private static final int REFACTOR_ASK = 0;
   private static final int REFACTOR_NO = 1;
@@ -51,9 +56,34 @@ public class NlIdPropertyItem extends NlPropertyItem {
     super(components, descriptor, SdkConstants.ANDROID_URI, attributeDefinition);
   }
 
+  @Nullable
+  @Override
+  public String getValue() {
+    return stripIdPrefix(super.getValue());
+  }
+
+  /** Like {@link LintUtils#stripIdPrefix(String)} but doesn't return "" for a null id */
+  private static String stripIdPrefix(@Nullable String id) {
+    if (id != null) {
+      if (id.startsWith(NEW_ID_PREFIX)) {
+        return id.substring(NEW_ID_PREFIX.length());
+      }
+      else if (id.startsWith(ID_PREFIX)) {
+        return id.substring(ID_PREFIX.length());
+      }
+    }
+    return id;
+  }
+
+  @NotNull
+  @Override
+  public String resolveValue(@NotNull String value) {
+    return value;
+  }
+
   @Override
   public void setValue(Object value) {
-    String newId = value != null ? value.toString() : "";
+    String newId = value != null ? stripIdPrefix(value.toString()) : "";
     String oldId = getValue();
     XmlTag tag = getTag();
 
@@ -125,6 +155,7 @@ public class NlIdPropertyItem extends NlPropertyItem {
         }
       }
     }
-    super.setValue(value);
+
+    super.setValue(value != null ? NEW_ID_PREFIX + value : null);
   }
 }
