@@ -29,11 +29,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.completion.PrefixMatcher;
 import com.intellij.codeInsight.completion.impl.CamelHumpMatcher;
-import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.HighlighterColors;
 import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.editor.ex.util.EmptyEditorHighlighter;
-import com.intellij.openapi.editor.impl.EditorComponentImpl;
 import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SystemInfo;
@@ -144,12 +142,14 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
           myCompletionProvider.updateCompletions(myProperty);
           myCompletionsUpdated = true;
         }
-        selectTextOnFocusGain(focusEvent);
+        myTextFieldWithAutoCompletion.selectAll();
       }
 
       @Override
       public void focusLost(FocusEvent event) {
         stopEditing(getText());
+        // Remove the selection after we looses focus for feedback on which editor is the active editor
+        myTextFieldWithAutoCompletion.removeSelection();
       }
     });
   }
@@ -158,15 +158,6 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
   private String getText() {
     String text = myTextFieldWithAutoCompletion.getDocument().getText();
     return Quantity.addUnit(myProperty, text);
-  }
-
-  private static void selectTextOnFocusGain(@NotNull FocusEvent focusEvent) {
-    Object source = focusEvent.getSource();
-    if (source instanceof EditorComponentImpl) {
-      EditorComponentImpl editorComponent = (EditorComponentImpl)source;
-      Editor editor = editorComponent.getEditor();
-      editor.getSelectionModel().setSelection(0, editor.getDocument().getTextLength());
-    }
   }
 
   @Override
@@ -335,11 +326,14 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
   }
 
   @Override
-  protected void stopEditing(@Nullable Object newValue) {
-    Editor editor = myTextFieldWithAutoCompletion.getEditor();
-    if (editor != null) {
-      editor.getSelectionModel().removeSelection();
+  public void stopEditing(@Nullable Object newValue) {
+    // Update the selected value for immediate feedback from resource editor.
+    myTextFieldWithAutoCompletion.setText((String)newValue);
+    // Select all the text to give visual confirmation that the value has been applied.
+    if (myTextFieldWithAutoCompletion.hasFocus()) {
+      myTextFieldWithAutoCompletion.selectAll();
     }
+
     if (!Objects.equals(newValue, myLastWriteValue)) {
       myLastWriteValue = newValue;
       myLastReadValue = null;
