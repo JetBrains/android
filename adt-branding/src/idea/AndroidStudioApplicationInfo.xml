@@ -16,7 +16,7 @@
 <component>
   <version major="2" minor="2" micro="0" patch="2" full="{0}.{1} Preview 3" eap="true" />
   <company name="Google" url="http://developer.android.com"/>
-  <build number="__BUILD_NUMBER__" date="__BUILD_DATE__" apiVersion="AI-145.1503.1"/>
+  <build number="__BUILD_NUMBER__" date="__BUILD_DATE__" apiVersion="AI-145.1617.8"/>
   <install-over minbuild="0.1" maxbuild="999.999999" version="0"/>
   <logo url="/artwork/studio_splash.png" textcolor="cccccc" progressColor="90c653" progressY="238" progressTailIcon="/community_progress_tail.png"/>
   <about url="/artwork/studio_about.png" foreground="cccccc"/>
