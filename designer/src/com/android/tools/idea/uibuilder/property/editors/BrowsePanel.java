@@ -50,6 +50,13 @@ public class BrowsePanel extends JPanel {
     default void cancelEditing() {
     }
 
+    default void stopEditing(@Nullable Object newValue) {
+      NlProperty property = getProperty();
+      if (property != null) {
+        property.setValue(newValue);
+      }
+    }
+
     default void addDesignProperty() {
       throw new UnsupportedOperationException();
     }
@@ -113,8 +120,9 @@ public class BrowsePanel extends JPanel {
     }
     ChooseResourceDialog dialog = showResourceChooser(property);
     myContext.cancelEditing();
+
     if (dialog.showAndGet()) {
-      property.setValue(dialog.getResourceName());
+      myContext.stopEditing(dialog.getResourceName());
     }
   }
 
