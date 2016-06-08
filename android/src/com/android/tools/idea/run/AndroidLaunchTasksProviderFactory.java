@@ -15,18 +15,14 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.tools.fd.client.InstantRunBuildInfo;
-import com.android.tools.idea.fd.InstantRunGradleUtils;
-import com.android.tools.idea.fd.InstantRunManager;
+import com.android.tools.idea.fd.InstantRunBuildAnalyzer;
+import com.android.tools.idea.fd.InstantRunContext;
 import com.android.tools.idea.fd.InstantRunStatsService;
-import com.android.tools.idea.fd.InstantRunUtils;
-import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.run.tasks.LaunchTasksProvider;
 import com.android.tools.idea.run.tasks.LaunchTasksProviderFactory;
-import com.android.tools.idea.run.tasks.NoChangesTasksProvider;
+import com.android.tools.idea.run.tasks.UpdateSessionTasksProvider;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
-import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,6 +35,7 @@ public class AndroidLaunchTasksProviderFactory implements LaunchTasksProviderFac
   private final ApkProvider myApkProvider;
   private final LaunchOptions myLaunchOptions;
   private final ProcessHandler myPreviousSessionProcessHandler;
+  private final InstantRunContext myInstantRunContext;
 
   public AndroidLaunchTasksProviderFactory(@NotNull AndroidRunConfigurationBase runConfig,
                                            @NotNull ExecutionEnvironment env,
@@ -46,7 +43,8 @@ public class AndroidLaunchTasksProviderFactory implements LaunchTasksProviderFac
                                            @NotNull ApplicationIdProvider applicationIdProvider,
                                            @NotNull ApkProvider apkProvider,
                                            @NotNull LaunchOptions launchOptions,
-                                           @Nullable ProcessHandler processHandler) {
+                                           @Nullable ProcessHandler processHandler,
+                                           @Nullable InstantRunContext instantRunContext) {
     myRunConfig = runConfig;
     myEnv = env;
     myFacet = facet;
@@ -54,6 +52,7 @@ public class AndroidLaunchTasksProviderFactory implements LaunchTasksProviderFac
     myApkProvider = apkProvider;
     myLaunchOptions = launchOptions;
     myPreviousSessionProcessHandler = processHandler;
+    myInstantRunContext = instantRunContext;
   }
 
   @NotNull
@@ -61,54 +60,15 @@ public class AndroidLaunchTasksProviderFactory implements LaunchTasksProviderFac
   public LaunchTasksProvider get() {
     InstantRunStatsService.get(myEnv.getProject()).notifyDeployStarted();
 
-    if (InstantRunUtils.isInstantRunEnabled(myEnv)) {
-      InstantRunBuildInfo buildInfo = getInstantRunBuildInfo();
-      if (buildInfo != null) {
-        InstantRunManager.LOG.info("Build timestamp: " +
-                                   buildInfo.getTimeStamp() +
-                                   ", verifier status: " +
-                                   StringUtil.notNullize(buildInfo.getVerifierStatus(), "empty"));
-
-        // If there is nothing new to deploy, and there is an existing run session connected to the process,
-        // then we should not use AndroidLaunchTasksProvider since it assumes that there will be a new process created,
-        // and unnecessarily terminates and restarts the existing session. The termination is troublesome because restarting
-        // a process without proper cold swap patches could result in loss of updates from all previous hotswaps.
-        if (myPreviousSessionProcessHandler != null &&
-            !myPreviousSessionProcessHandler.isProcessTerminated() &&
-            buildInfo.hasNoChanges()) {
-          return new NoChangesTasksProvider(myFacet);
-        }
-        else if (canHotSwap(buildInfo)) {
-          return new HotSwapTasksProvider(myRunConfig, myEnv, myFacet, myApplicationIdProvider, myLaunchOptions);
-        }
-      }
-      else {
-        InstantRunManager.LOG.info("No build-info.xml file");
-      }
+    InstantRunBuildAnalyzer analyzer = null;
+    if (myInstantRunContext != null && myInstantRunContext.getInstantRunBuildInfo() != null) {
+      analyzer = new InstantRunBuildAnalyzer(myEnv.getProject(), myInstantRunContext, myPreviousSessionProcessHandler);
     }
 
-    return new AndroidLaunchTasksProvider(myRunConfig, myEnv, myFacet, myApplicationIdProvider, myApkProvider, myLaunchOptions);
-  }
-
-  /** Returns whether the build results indicate that we can perform a hot swap */
-  private boolean canHotSwap(@NotNull InstantRunBuildInfo info) {
-    if (myPreviousSessionProcessHandler == null) {
-      // if there is no existing session, then even though the build ids might match, we can't use hotswap (possibly use dexswap)
-      InstantRunManager.LOG.info("Cannot hot swap since there is no active launch session for this config.");
-      return false;
+    if (analyzer != null && analyzer.canReuseProcessHandler()) {
+      return new UpdateSessionTasksProvider(myFacet.getModule(), analyzer);
     }
 
-    boolean canHotswap = info.canHotswap();
-    if (!canHotswap) {
-      InstantRunManager.LOG.info("Cannot hot swap according to build-info.xml");
-    }
-
-    return canHotswap;
-  }
-
-  @Nullable
-  private InstantRunBuildInfo getInstantRunBuildInfo() {
-    AndroidGradleModel model = AndroidGradleModel.get(myFacet);
-    return model == null ? null : InstantRunGradleUtils.getBuildInfo(model);
+    return new AndroidLaunchTasksProvider(myRunConfig, myEnv, myFacet, analyzer, myApplicationIdProvider, myApkProvider, myLaunchOptions);
   }
 }

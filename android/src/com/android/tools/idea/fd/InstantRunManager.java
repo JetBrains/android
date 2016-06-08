@@ -192,28 +192,23 @@ public final class InstantRunManager implements ProjectComponent {
    *
    * @return true if the caller needs to manually start the app.
    */
-  public boolean pushArtifacts(@NotNull final IDevice device,
-                               @NotNull final AndroidFacet facet,
-                               @NotNull UpdateMode updateMode,
-                               @NotNull InstantRunBuildInfo buildInfo) throws InstantRunPushFailedException {
-    AndroidGradleModel model = AndroidGradleModel.get(facet);
-    assert model != null : "Instant Run push artifacts called without a Gradle model";
-
-    InstantRunContext context = InstantRunGradleUtils.createGradleProjectContext(facet);
-    assert context != null : facet.getModule();
-
+  public boolean pushArtifacts(@NotNull IDevice device,
+                               @NotNull InstantRunContext context,
+                               @NotNull UpdateMode updateMode) throws InstantRunPushFailedException {
     InstantRunClient client = getInstantRunClient(context);
     assert client != null;
 
-    updateMode = client.pushPatches(device,
-                              buildInfo,
-                              updateMode,
-                              InstantRunSettings.isRestartActivity(),
-                              InstantRunSettings.isShowToastEnabled());
+    InstantRunBuildInfo instantRunBuildInfo = context.getInstantRunBuildInfo();
+    assert instantRunBuildInfo != null;
 
-    String packageName = getPackageName(facet);
-    if ((updateMode == UpdateMode.HOT_SWAP || updateMode == UpdateMode.WARM_SWAP) && packageName != null) {
-      refreshDebugger(packageName);
+    updateMode = client.pushPatches(device,
+                                    instantRunBuildInfo,
+                                    updateMode,
+                                    InstantRunSettings.isRestartActivity(),
+                                    InstantRunSettings.isShowToastEnabled());
+
+    if ((updateMode == UpdateMode.HOT_SWAP || updateMode == UpdateMode.WARM_SWAP)) {
+      refreshDebugger(context.getApplicationId());
     }
 
     return updateMode == UpdateMode.COLD_SWAP;
