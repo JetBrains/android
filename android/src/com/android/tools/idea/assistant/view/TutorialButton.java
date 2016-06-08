@@ -38,8 +38,8 @@ public class TutorialButton extends NavigationButton {
     // click handler to retain built-in accessibility benefits of a button.
     super(UIUtils.getHtml("<a href=\"#\">" + label + "</a>"), key, listener);
     setIcon(AndroidIcons.Assistant.TutorialIndicator);
+    setIconTextGap(5);
     setHorizontalAlignment(SwingConstants.LEFT);
-    setMargin(new Insets(50, 10, 10, 10));
     setContentAreaFilled(false);
     setBorderPainted(false);
     setBorder(null);
