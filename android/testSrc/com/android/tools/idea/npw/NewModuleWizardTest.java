@@ -94,9 +94,6 @@ public class NewModuleWizardTest extends AndroidTestCase {
     // Make sure we have the right number of choices
     assertEquals(expectedCount, templateMetadatas.getSize());
 
-    // Ensure we're offering NewApplication and NewLibrary
-    assertContainsElements(templateNames, TemplateWizardModuleBuilder.APP_TEMPLATE_NAME, TemplateWizardModuleBuilder.LIB_TEMPLATE_NAME);
-
     // Ensure we're not offering duplicate elements in the list
     assertEquals(templateNames.size(), templateMetadatas.getSize());
   }
