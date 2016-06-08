@@ -112,6 +112,7 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
   private static final int DIALOG_HEADER = JBUI.scale(20);
   private static final String V11 = "V11";
   private static final String V9 = "V9";
+  private static final String IMAGES_CLIPART_BIG = "images/clipart/big/";
 
   private final StringEvaluator myStringEvaluator = new StringEvaluator();
   private final MergingUpdateQueue myUpdateQueue;
@@ -542,7 +543,7 @@ public class IconStep extends DynamicWizardStepWithDescription implements Dispos
     FlowLayout layout = new FlowLayout();
     dialog.getRootPane().setLayout(layout);
     int count = 0;
-    for (Iterator<String> iter = GraphicGenerator.getResourcesNames(RasterAssetSetStep.IMAGES_CLIPART_BIG, SdkConstants.DOT_PNG);
+    for (Iterator<String> iter = GraphicGenerator.getResourcesNames(IMAGES_CLIPART_BIG, SdkConstants.DOT_PNG);
          iter.hasNext(); ) {
       final String name = iter.next();
       try {
