@@ -29,11 +29,7 @@ import com.android.tools.idea.gradle.projectView.AndroidTreeStructureProvider;
 import com.android.tools.idea.gradle.util.GradleProperties;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
-import com.android.tools.idea.tests.gui.framework.Wait;
+import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.ContentFixture;
@@ -91,7 +87,6 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
@@ -1272,18 +1267,22 @@ public class GradleSyncTest {
     GradleSettings gradleSettings = GradleSettings.getInstance(guiTest.ideFrame().getProject());
     gradleSettings.setOfflineWork(true);
 
-    guiTest.ideFrame().requestProjectSync();
-
-    MessageFixture message =
-      guiTest.ideFrame().getMessagesToolWindow().getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("Failed to resolve:"));
+    MessageFixture message = guiTest.ideFrame()
+      .requestProjectSync()
+      .waitForGradleProjectSyncToFinish()
+      .getMessagesToolWindow()
+      .getGradleSyncContent()
+      .findMessage(ERROR, firstLineStartingWith("Failed to resolve:"));
 
     HyperlinkFixture hyperlink = message.findHyperlink(hyperlinkText);
     hyperlink.click();
 
     assertFalse(gradleSettings.isOfflineWork());
-
-    message =
-      guiTest.ideFrame().getMessagesToolWindow().getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("Failed to resolve:"));
+    message = guiTest.ideFrame()
+      .waitForGradleProjectSyncToFinish()
+      .getMessagesToolWindow()
+      .getGradleSyncContent()
+      .findMessage(ERROR, firstLineStartingWith("Failed to resolve:"));
 
     try {
       message.findHyperlink(hyperlinkText);
