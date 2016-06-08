@@ -115,11 +115,6 @@ public class TutorialCard extends CardViewPanel {
     myContentsScroller.getViewport().setOpaque(false);
     myContentsScroller.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
     add(myContentsScroller, BorderLayout.CENTER);
-
-    // HACK ALERT: For an unknown reason, a subset of html components fail to report the correct sizing and run into an order of events
-    // issue with layouts (overlapping and clipping). Thus far the only thing that corrects the problem is resize. Force a resize to
-    // address this in the short term.
-    processEvent(new ComponentEvent(this, ComponentEvent.COMPONENT_RESIZED));
   }
 
   /**
@@ -128,6 +123,12 @@ public class TutorialCard extends CardViewPanel {
   @Override
   public void setVisible(boolean aFlag) {
     super.setVisible(aFlag);
+
+    // HACK ALERT: For an unknown reason, a subset of html components fail to report the correct sizing and run into an order of events
+    // issue with layouts (overlapping and clipping). Thus far the only thing that corrects the problem is resize. Force a resize to
+    // address this in the short term.
+    processEvent(new ComponentEvent(this, ComponentEvent.COMPONENT_RESIZED));
+
     JScrollBar verticalScrollBar = myContentsScroller.getVerticalScrollBar();
     JScrollBar horizontalScrollBar = myContentsScroller.getHorizontalScrollBar();
     verticalScrollBar.setValue(verticalScrollBar.getMinimum());
