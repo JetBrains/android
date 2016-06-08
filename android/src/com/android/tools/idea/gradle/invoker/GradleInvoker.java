@@ -255,7 +255,7 @@ public class GradleInvoker {
       }
     }
 
-    executeTasks(gradleTasks, jvmArguments, commandLineArguments, id, null, null, false);
+    executeTasks(gradleTasks, jvmArguments, commandLineArguments, id, null, null, false, false);
   }
 
   /**
@@ -270,6 +270,7 @@ public class GradleInvoker {
    * @param taskListener         a listener interested in target tasks processing.
    * @param buildFilePath        the path of the build.gradle to use. Specify if it's different than the root build.gradle file.
    * @param waitForCompletion    a flag which hints whether current method should return control flow before target tasks are executed.
+   * @param useEmbeddedGradle    indicates whether the Gradle distribution embedded in the IDE should be used.
    */
   public void executeTasks(@NotNull List<String> gradleTasks,
                            @NotNull List<String> jvmArguments,
@@ -277,7 +278,8 @@ public class GradleInvoker {
                            @NotNull ExternalSystemTaskId taskId,
                            @Nullable ExternalSystemTaskNotificationListener taskListener,
                            @Nullable File buildFilePath,
-                           boolean waitForCompletion) {
+                           boolean waitForCompletion,
+                           boolean useEmbeddedGradle) {
     LOG.info("About to execute Gradle tasks: " + gradleTasks);
     if (gradleTasks.isEmpty()) {
       return;
@@ -296,7 +298,7 @@ public class GradleInvoker {
 
     GradleTaskExecutionContext context =
       new GradleTaskExecutionContext(this, myProject, gradleTasks, jvmArguments, commandLineArguments, myCancellationMap, taskId,
-                                     taskListener, buildFilePath);
+                                     taskListener, buildFilePath, useEmbeddedGradle);
     GradleTasksExecutor executor = new GradleTasksExecutor(context);
 
     saveAllFilesSafely();

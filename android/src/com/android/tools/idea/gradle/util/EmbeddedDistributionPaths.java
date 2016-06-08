@@ -76,10 +76,10 @@ public class EmbeddedDistributionPaths {
 
   @Nullable
   public static File findEmbeddedGradleDistributionPath() {
-    File defaultRootDirPath = getDefaultRootDirPath();
-    if (defaultRootDirPath != null) {
+    File distributionPath = getDefaultRootDirPath();
+    if (distributionPath != null) {
       // Release build
-      File embeddedPath = new File(defaultRootDirPath, "gradle-" + GRADLE_LATEST_VERSION);
+      File embeddedPath = new File(distributionPath, "gradle-" + GRADLE_LATEST_VERSION);
       LOG.info("Looking for embedded Gradle distribution at '" + embeddedPath.getPath() + "'");
       if (embeddedPath.isDirectory()) {
         LOG.info("Found embedded Gradle " + GRADLE_LATEST_VERSION);
@@ -88,8 +88,12 @@ public class EmbeddedDistributionPaths {
       LOG.info("Unable to find embedded Gradle " + GRADLE_LATEST_VERSION);
       return null;
     }
-    // For development build, we should have Gradle installed.
-    return null;
+
+    // Development build.
+    String ideHomePath = getIdeHomePath();
+    String relativePath = toSystemDependentName("/../../out/gradle-dist-link");
+    distributionPath = new File(toCanonicalPath(ideHomePath + relativePath));
+    return distributionPath.isDirectory() ? distributionPath : null;
   }
 
   @Nullable
