@@ -19,6 +19,7 @@ import com.google.common.collect.Queues;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
 import java.util.Queue;
@@ -59,6 +60,10 @@ public final class BatchInvoker {
    */
   private static final int MAX_CYCLE_COUNT = 10;
 
+
+  private static Strategy ourOverrideStrategy = null;
+
+
   private final Strategy myStrategy;
 
   /**
@@ -75,7 +80,9 @@ public final class BatchInvoker {
   private boolean myUpdateInProgress;
 
   public BatchInvoker() {
-    this(ApplicationManager.getApplication() != null ? APPLICATION_INVOKE_LATER_STRATEGY : SWING_INVOKE_LATER_STRATEGY);
+    this(ourOverrideStrategy != null
+         ? ourOverrideStrategy
+         : ApplicationManager.getApplication() != null ? APPLICATION_INVOKE_LATER_STRATEGY : SWING_INVOKE_LATER_STRATEGY);
   }
 
   public BatchInvoker(@NotNull Strategy strategy) {
@@ -144,6 +151,22 @@ public final class BatchInvoker {
    */
   public interface Strategy {
     void invoke(@NotNull Runnable runnableBatch);
+  }
+
+  /**
+   * Override the default invocation strategy used if one is not provided in the constructor.
+   */
+  @TestOnly
+  public static void setOverrideStrategy(Strategy overrideStrategy) {
+    ourOverrideStrategy = overrideStrategy;
+  }
+
+  /**
+   * Resets the default invocation strategy.
+   */
+  @TestOnly
+  public static void clearOverrideStrategy() {
+    ourOverrideStrategy = null;
   }
 
   /**
