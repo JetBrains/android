@@ -31,14 +31,6 @@ public class InstantRunStatsService {
   // On average, we'll lose stats from half the upload interval.
   public static final int UPLOAD_INTERVAL_MINUTES = 10;
 
-  public enum DeployType {
-    LEGACY,   // full apk installation when IR is disabled
-    FULLAPK,  // full apk installation when IR is enabled
-    HOTSWAP,
-    SPLITAPK, // split apk installation as part of cold swap (however, split APKs are currently disabled..)
-    DEX,      // cold swap scheme that uses dex files
-  }
-
   private final Object LOCK = new Object();
 
   /**

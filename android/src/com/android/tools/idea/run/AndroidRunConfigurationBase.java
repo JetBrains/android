@@ -397,6 +397,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
 
     ApplicationIdProvider applicationIdProvider = getApplicationIdProvider(facet);
+    InstantRunContext instantRunContext = null;
 
     if (supportsInstantRun() && InstantRunSettings.isInstantRunEnabled()) {
       List<AndroidDevice> devices = deviceFutures.getDevices();
@@ -409,6 +410,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       }
       else if (InstantRunGradleUtils.getIrSupportStatus(module, devices.get(0).getVersion()).success) {
         InstantRunUtils.setInstantRunEnabled(env, true);
+        instantRunContext = InstantRunGradleUtils.createGradleProjectContext(facet);
 
         if (!AndroidEnableAdbServiceAction.isAdbServiceEnabled()) {
           throw new ExecutionException("Instant Run requires 'Tools | Android | Enable ADB integration' to be enabled.");
@@ -422,6 +424,9 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     runConfigContext.setTargetDevices(deviceFutures);
     runConfigContext.setSameExecutorAsPreviousSession(info != null && executor.getId().equals(info.getExecutorId()));
     runConfigContext.setCleanRerun(InstantRunUtils.isCleanReRun(env));
+
+    // Save the instant run context so that before-run task can access it
+    env.putCopyableUserData(InstantRunContext.KEY, instantRunContext);
 
     if (debug) {
       String error = canDebug(deviceFutures, facet, module.getName());
@@ -441,7 +446,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
     ApkProvider apkProvider = getApkProvider(facet, applicationIdProvider);
     LaunchTasksProviderFactory providerFactory =
-      new AndroidLaunchTasksProviderFactory(this, env, facet, applicationIdProvider, apkProvider, launchOptions, processHandler);
+      new AndroidLaunchTasksProviderFactory(this, env, facet, applicationIdProvider, apkProvider, launchOptions, processHandler,
+                                            instantRunContext);
 
     InstantRunStatsService.get(project).notifyBuildStarted();
     return new AndroidRunState(env, getName(), module, applicationIdProvider, getConsoleProvider(), deviceFutures, providerFactory,

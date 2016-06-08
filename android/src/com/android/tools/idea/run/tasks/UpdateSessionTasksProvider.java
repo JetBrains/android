@@ -17,47 +17,34 @@ package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.fd.InstantRunManager;
-import com.android.tools.idea.fd.InstantRunUserFeedback;
-import com.android.tools.idea.gradle.run.GradleInstantRunContext;
-import com.android.tools.idea.run.ApkProviderUtil;
-import com.android.tools.idea.run.ApkProvisionException;
+import com.android.tools.idea.fd.InstantRunBuildAnalyzer;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
-import org.jetbrains.android.facet.AndroidFacet;
+import com.google.common.collect.Lists;
+import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
 import java.util.List;
 
-public class NoChangesTasksProvider implements LaunchTasksProvider {
-  private final AndroidFacet myFacet;
+public class UpdateSessionTasksProvider implements LaunchTasksProvider {
+  private final Module myModule;
+  private final InstantRunBuildAnalyzer myBuildAnalyzer;
 
-  public NoChangesTasksProvider(@NotNull AndroidFacet facet) {
-    myFacet = facet;
+  public UpdateSessionTasksProvider(@NotNull Module module, @NotNull InstantRunBuildAnalyzer buildAnalyzer) {
+    myModule = module;
+    myBuildAnalyzer = buildAnalyzer;
   }
 
   @NotNull
   @Override
   public List<LaunchTask> getTasks(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter consolePrinter) {
-    String pkgName;
-    try {
-      pkgName = ApkProviderUtil.computePackageName(myFacet);
-    }
-    catch (ApkProvisionException e) {
-      launchStatus.terminateLaunch("Unable to determine application id for module " + myFacet.getModule().getName());
-      return Collections.emptyList();
-    }
+    consolePrinter.stdout(myBuildAnalyzer.getNotificationText());
 
-    // We should update the id on the device even if there were no artifact changes, since otherwise the next build will mismatch
-    GradleInstantRunContext context = new GradleInstantRunContext(pkgName, myFacet);
-    InstantRunManager.transferLocalIdToDeviceId(device, context);
-    DeployApkTask.cacheManifestInstallationData(device, context);
-
-    consolePrinter.stdout("No changes.");
-    new InstantRunUserFeedback(myFacet.getModule()).info("No changes to deploy");
-    return Collections.emptyList();
+    List<LaunchTask> launchTasks = Lists.newArrayList();
+    launchTasks.addAll(myBuildAnalyzer.getDeployTasks(null));
+    launchTasks.add(new InstantRunNotificationTask(myModule, myBuildAnalyzer));
+    return launchTasks;
   }
 
   @Nullable

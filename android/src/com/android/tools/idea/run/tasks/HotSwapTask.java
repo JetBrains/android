@@ -16,27 +16,22 @@
 package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.fd.client.InstantRunBuildInfo;
 import com.android.tools.fd.client.InstantRunPushFailedException;
 import com.android.tools.fd.client.UpdateMode;
-import com.android.tools.idea.fd.InstantRunGradleUtils;
-import com.android.tools.idea.fd.InstantRunManager;
-import com.android.tools.idea.fd.InstantRunStatsService;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.fd.*;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
-import com.intellij.execution.runners.ExecutionEnvironment;
-import org.jetbrains.android.facet.AndroidFacet;
+import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 public class HotSwapTask implements LaunchTask {
-  private final AndroidFacet myFacet;
-  private final ExecutionEnvironment myEnv;
+  private final Project myProject;
+  private final InstantRunContext myInstantRunContext;
   private boolean myNeedsActivityLaunch;
 
-  public HotSwapTask(@NotNull ExecutionEnvironment env, @NotNull AndroidFacet facet) {
-    myEnv = env;
-    myFacet = facet;
+  public HotSwapTask(@NotNull Project project, @NotNull InstantRunContext context) {
+    myProject = project;
+    myInstantRunContext = context;
   }
 
   @NotNull
@@ -52,26 +47,17 @@ public class HotSwapTask implements LaunchTask {
 
   @Override
   public boolean perform(@NotNull final IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
-    printer.stdout("Hotswapping changes...");
-
-    InstantRunManager manager = InstantRunManager.get(myFacet.getModule().getProject());
-
-    AndroidGradleModel model = AndroidGradleModel.get(myFacet);
-    assert model != null;
-    InstantRunBuildInfo buildInfo = InstantRunGradleUtils.getBuildInfo(model);
-    assert buildInfo != null;
-
+    InstantRunManager manager = InstantRunManager.get(myProject);
     try {
-      myNeedsActivityLaunch = manager.pushArtifacts(device, myFacet, UpdateMode.HOT_SWAP, buildInfo);
-      // Note that the above method will update the build id on the device
-      // and the InstalledPatchCache, so we don't have to do it again.
+      myNeedsActivityLaunch = manager.pushArtifacts(device, myInstantRunContext, UpdateMode.HOT_SWAP);
+      printer.stdout("Hot swapped changes");
     }
     catch (InstantRunPushFailedException e) {
       launchStatus.terminateLaunch("Error installing hot swap patches: " + e);
       return false;
     }
 
-    InstantRunStatsService.get(myEnv.getProject()).notifyDeployType(InstantRunStatsService.DeployType.HOTSWAP);
+    InstantRunStatsService.get(myProject).notifyDeployType(DeployType.HOTSWAP);
     return true;
   }
 
