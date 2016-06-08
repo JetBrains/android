@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.fixtures;
 
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.ide.common.rendering.api.ViewType;
 import com.android.tools.idea.rendering.TagSnapshot;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.utils.XmlUtils;
@@ -23,7 +24,6 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.util.Pair;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ArrayUtil;
-import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,18 +33,21 @@ import java.util.List;
 
 import static com.android.SdkConstants.*;
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class ComponentDescriptor {
   @NotNull private final String myTagName;
-  @NotNull List<Pair<String, String>> myAttributes = Lists.newArrayList();
+  @NotNull final List<Pair<String, String>> myAttributes = Lists.newArrayList();
   @NotNull private ComponentDescriptor[] myChildren = new ComponentDescriptor[0];
   @AndroidCoordinate private int myX;
   @AndroidCoordinate private int myY;
   @AndroidCoordinate private int myWidth;
   @AndroidCoordinate private int myHeight;
-  @Nullable private ViewInfo myViewInfo;
+
   @Nullable private Object myViewObject;
   @Nullable private Object myLayoutParamsObject;
+  private ViewType myViewType;
 
   public ComponentDescriptor(@NotNull String tagName) {
     myTagName = tagName;
@@ -124,14 +127,14 @@ public class ComponentDescriptor {
     // Make sure that all the children have bounds that fit within this component
     Rectangle bounds = getBounds();
     for (ComponentDescriptor child : children) {
-      TestCase.assertTrue("Expected parent layout with bounds " +
-                          bounds +
-                          " to fully contain child bounds " +
-                          child.getBounds() +
-                          " where parent=" +
-                          this +
-                          " and child=" +
-                          child, bounds.contains(child.getBounds()));
+      assertTrue("Expected parent layout with bounds " +
+                 bounds +
+                 " to fully contain child bounds " +
+                 child.getBounds() +
+                 " where parent=" +
+                 this +
+                 " and child=" +
+                 child, bounds.contains(child.getBounds()));
     }
 
     myChildren = children;
@@ -145,6 +148,11 @@ public class ComponentDescriptor {
 
   public ComponentDescriptor layoutParamsObject(@Nullable Object layoutParamsObject) {
     myLayoutParamsObject = layoutParamsObject;
+    return this;
+  }
+
+  public ComponentDescriptor viewType(@NotNull ViewType viewType) {
+    myViewType = viewType;
     return this;
   }
 
@@ -163,7 +171,8 @@ public class ComponentDescriptor {
       assertThat(myChildren).asList().contains(before);
       int index = ArrayUtil.indexOf(myChildren, before);
       list.add(index, child);
-    } else {
+    }
+    else {
       list.add(child);
     }
     myChildren = list.toArray(new ComponentDescriptor[0]);
@@ -286,17 +295,47 @@ public class ComponentDescriptor {
     int right = left + myWidth;
     int bottom = top + myHeight;
     TagSnapshot snapshot = TagSnapshot.createTagSnapshotWithoutChildren(tag);
-    myViewInfo = new ViewInfo(myTagName, snapshot, left, top, right, bottom, myViewObject, myLayoutParamsObject);
+
+    TestViewInfo viewInfo = new TestViewInfo(myTagName, snapshot, left, top, right, bottom, myViewObject, myLayoutParamsObject);
+
+    if (myViewType != null) {
+      viewInfo.setViewType(myViewType);
+    }
 
     List<ViewInfo> childList = Lists.newArrayList();
     XmlTag[] subTags = tag.getSubTags();
-    TestCase.assertEquals(subTags.length, myChildren.length);
+    assertEquals(subTags.length, myChildren.length);
     for (int i = 0; i < subTags.length; i++) {
       ComponentDescriptor childDescriptor = myChildren[i];
       XmlTag childTag = subTags[i];
       childList.add(childDescriptor.createViewInfo(this, childTag));
     }
-    myViewInfo.setChildren(childList);
-    return myViewInfo;
+    viewInfo.setChildren(childList);
+    return viewInfo;
+  }
+
+  private static final class TestViewInfo extends ViewInfo {
+    private ViewType myViewType;
+
+    private TestViewInfo(@NotNull String name,
+                         @NotNull Object cookie,
+                         int left,
+                         int top,
+                         int right,
+                         int bottom,
+                         @Nullable Object viewObject,
+                         @Nullable Object layoutParamsObject) {
+      super(name, cookie, left, top, right, bottom, viewObject, layoutParamsObject);
+      myViewType = ViewType.USER;
+    }
+
+    @Override
+    public ViewType getViewType() {
+      return myViewType;
+    }
+
+    private void setViewType(@NotNull ViewType viewType) {
+      myViewType = viewType;
+    }
   }
 }
