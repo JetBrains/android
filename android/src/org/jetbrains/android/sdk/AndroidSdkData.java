@@ -48,7 +48,7 @@ import static org.jetbrains.android.util.AndroidCommonUtils.parsePackageRevision
  * @author Eugene.Kudelevsky
  */
 public class AndroidSdkData {
-  private final Map<IAndroidTarget, SoftReference<AndroidTargetData>> myTargetDataByTarget = Maps.newHashMap();
+  private final Map<String, SoftReference<AndroidTargetData>> myTargetDataByTarget = Maps.newHashMap();
 
   private final DeviceManager myDeviceManager;
 
@@ -236,11 +236,12 @@ public class AndroidSdkData {
 
   @NotNull
   public AndroidTargetData getTargetData(@NotNull IAndroidTarget target) {
-    final SoftReference<AndroidTargetData> targetDataRef = myTargetDataByTarget.get(target);
+    String key = target.hashString();
+    final SoftReference<AndroidTargetData> targetDataRef = myTargetDataByTarget.get(key);
     AndroidTargetData targetData = targetDataRef != null ? targetDataRef.get() : null;
     if (targetData == null) {
       targetData = new AndroidTargetData(this, target);
-      myTargetDataByTarget.put(target, new SoftReference<AndroidTargetData>(targetData));
+      myTargetDataByTarget.put(key, new SoftReference<>(targetData));
     }
     return targetData;
   }
