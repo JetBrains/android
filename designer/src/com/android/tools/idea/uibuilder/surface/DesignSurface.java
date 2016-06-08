@@ -81,6 +81,7 @@ public class DesignSurface extends JPanel implements Disposable {
   private boolean myStackVertically;
 
   private boolean myIsCanvasResizing = false;
+  private boolean myMockupVisible;
 
   public enum ScreenMode {
     SCREEN_ONLY(ScreenViewType.NORMAL),
@@ -393,6 +394,7 @@ public class DesignSurface extends JPanel implements Disposable {
     myLayers.add(new BlueprintLayer(view));
     myLayers.add(new SelectionLayer(view));
     myLayers.add(new ConstraintsLayer(this, view, false));
+    myLayers.add(new MockupLayer(view));
   }
 
   @Override
@@ -1555,5 +1557,13 @@ public class DesignSurface extends JPanel implements Disposable {
    */
   public void requestRender() {
     requestRender(true);
+  }
+
+  public void setMockupVisible(boolean mockupVisible) {
+    myMockupVisible = mockupVisible;
+  }
+
+  public boolean isMockupVisible() {
+    return myMockupVisible;
   }
 }
