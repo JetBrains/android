@@ -45,7 +45,7 @@ public class NlDefaultRendererTest extends LayoutTestCase {
     NlDefaultRenderer renderer = new NlDefaultRenderer();
 
     NlPropertyItem property = properties.get(SdkConstants.ANDROID_URI, "id");
-    validateRendering(renderer, property, "id", "@+id/textView");
+    validateRendering(renderer, property, "id", "textView");
 
     property = properties.get(SdkConstants.ANDROID_URI, "text");
     validateRendering(renderer, property, "text", "");
