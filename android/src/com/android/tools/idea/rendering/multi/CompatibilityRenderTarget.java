@@ -43,12 +43,14 @@ public class CompatibilityRenderTarget implements IAndroidTarget {
   private final IAndroidTarget myDelegate;
   private final AndroidVersion myVersion;
   private final IAndroidTarget myRealTarget;
+  private final String myHashString;
 
   public CompatibilityRenderTarget(@NotNull IAndroidTarget delegate, int apiLevel, @Nullable IAndroidTarget realTarget) {
     myDelegate = delegate;
     myApiLevel = apiLevel;
     myRealTarget = realTarget;
     myVersion = realTarget != null ? realTarget.getVersion() : new AndroidVersion(apiLevel, null);
+    myHashString = AndroidTargetHash.getPlatformHashString(myVersion);
   }
 
   /**
@@ -96,7 +98,7 @@ public class CompatibilityRenderTarget implements IAndroidTarget {
 
   @Override
   public String hashString() {
-    return AndroidTargetHash.getPlatformHashString(myVersion);
+    return myHashString;
   }
 
   @Override
