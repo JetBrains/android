@@ -19,6 +19,8 @@ import com.intellij.ui.BrowserHyperlinkListener;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.UIUtil;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -154,7 +156,6 @@ public class UIUtils {
     setHtml(pane, content, null, null);
   }
 
-
   public static void setHtml(JEditorPane pane, String content, String css) {
     setHtml(pane, content, css, null);
   }
@@ -180,6 +181,28 @@ public class UIUtils {
     // Enable links opening in the default browser.
     pane.addHyperlinkListener(BrowserHyperlinkListener.INSTANCE);
 
+    pane.setText(getHtml(content, "a, a:visited, a:active { color: " + getCssColor(OFFSITE_LINK_COLOR) + "; }" + css, headContent));
+  }
+
+  public static String getHtml(@NotNull String content) {
+    return getHtml(content, null, null);
+  }
+
+  public static String getHtml(@NotNull String content, @Nullable("not required") String css) {
+    return getHtml(content, css, null);
+  }
+
+  /**
+   * Gets valid/consistent html markup for use in Swing component display.
+   * NOTE: Use {@code setHtml} when working with editors.
+   *
+   * @param content     The html body content, excluding the <body></body> tags.
+   * @param css         Extra css to add. Example ".testClass { color: red}\n.anotherClass { border: 1px solid blue}".
+   * @param headContent Extra header content to add. Example "<title>My Favorite!!</title>".
+   */
+  public static String getHtml(@NotNull String content,
+                               @Nullable("not required") String css,
+                               @Nullable("not required") String headContent) {
     // Use the label font as the default for markup so that it appears more consistent with non-html elements.
     // TODO: Determine if the label font is the ideal font choice.
     Font defaultFont = new JBLabel().getFont();
@@ -197,7 +220,6 @@ public class UIUtils {
                   "ol {margin: 0 0 0 20px; } ul {list-style-type: circle; margin: 0 0 0 20px; } " +
                   "li {margin: 0 0 10px 10px; } " +
                   "code { font-family: 'Roboto Mono', 'Courier New', monospace; color: " + getCssColor(CODE_COLOR) + "; font-size: 1em; }" +
-                  "a, a:visited, a:active { color: " + getCssColor(OFFSITE_LINK_COLOR) + "; }" +
                   // In some scenario, containers render contents at 0 height on theme change. Override this class to have 1px of top margin
                   // in that event and accommodate the size change in your document.
                   ".as-shim { margin: 0 0 0 0; }";
@@ -209,7 +231,7 @@ public class UIUtils {
       text += "\n" + headContent;
     }
     text += "</head><body><div class=\"as-shim\">" + content + "</div></body></html>";
-    pane.setText(text);
+    return text;
   }
 
 }
