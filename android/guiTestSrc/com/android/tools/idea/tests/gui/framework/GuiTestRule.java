@@ -161,7 +161,9 @@ public class GuiTestRule implements TestRule {
       errors.add(e);
     }
     errors.addAll(checkForModalDialogs());
-    GuiTests.closeAllProjects();
+    if (myIdeFrameFixture != null && myIdeFrameFixture.target().isShowing()) {
+      myIdeFrameFixture.closeProject();
+    }
     if (myProjectPath != null) {
       FileUtilRt.delete(myProjectPath);
       GuiTests.refreshFiles();
