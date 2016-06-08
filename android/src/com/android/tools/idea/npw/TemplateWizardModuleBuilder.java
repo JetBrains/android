@@ -42,7 +42,6 @@ public class TemplateWizardModuleBuilder extends ImportWizardModuleBuilder {
   protected static final String LIB_TEMPLATE_NAME = "Android Library";
 
   @Nullable private final String myBuilderId;
-  private NewAndroidModulePath myNewAndroidModulePath;
 
   public TemplateWizardModuleBuilder(@Nullable File templateLocation,
                                      @Nullable TemplateMetadata metadata,
@@ -61,21 +60,8 @@ public class TemplateWizardModuleBuilder extends ImportWizardModuleBuilder {
   @Override
   protected Iterable<WizardPath> setupWizardPaths(Project project, Icon sidePanelIcon, Disposable disposable) {
     List<WizardPath> paths = Lists.newArrayList(super.setupWizardPaths(project, sidePanelIcon, disposable));
-    myNewAndroidModulePath = new NewAndroidModulePath(myWizardState, this, project, sidePanelIcon, disposable);
-    paths.add(myNewAndroidModulePath);
     paths.add(new WrapArchiveWizardPath(myWizardState, project, this, sidePanelIcon));
     return paths;
-  }
-
-  @Override
-  protected WizardPath getDefaultPath() {
-    return myNewAndroidModulePath;
-  }
-
-  @Override
-  public void templateChanged(String templateName) {
-    myNewAndroidModulePath.templateChanged();
-    super.templateChanged(templateName);
   }
 
   @Nullable
