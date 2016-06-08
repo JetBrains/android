@@ -401,7 +401,9 @@
     <framework.detector implementation="org.jetbrains.android.facet.AndroidFrameworkDetector"/>
     <fileTemplateGroup implementation="org.jetbrains.android.AndroidFileTemplateProvider"/>
 
+    <!-- TODO: AndroidWizardWrapper wraps the old DynamicWizard and this registration should be removed once we've ported to ModelWizard -->
     <moduleBuilder builderClass="org.jetbrains.android.newProject.AndroidWizardWrapper"/>
+    <moduleBuilder builderClass="com.android.tools.idea.npw.ideahost.AndroidModuleBuilder"/>
 
     <defaultLiveTemplatesProvider implementation="com.android.tools.idea.templates.live.AndroidLiveTemplatesProvider"/>
 
