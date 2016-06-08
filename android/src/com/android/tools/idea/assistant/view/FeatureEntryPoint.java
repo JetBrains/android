@@ -44,7 +44,7 @@ public class FeatureEntryPoint extends JPanel {
   private JPanel myTargetPane;
 
   public FeatureEntryPoint(FeatureData feature, ActionListener listener) {
-    super(new VerticalFlowLayout(0, 5));
+    super(new VerticalFlowLayout(0, 0));
     setOpaque(false);
 
     String label = feature.getName();
@@ -62,7 +62,7 @@ public class FeatureEntryPoint extends JPanel {
     myArrow.addMouseListener(summaryMouseHandler);
     myArrow.setIcon(AllIcons.Nodes.TreeRightArrow);
     myArrow.setFocusable(true);
-    myArrow.setBorder(BorderFactory.createEmptyBorder(9, 5, 0, 5));
+    myArrow.setBorder(BorderFactory.createEmptyBorder(9, 5, 0, 10));
     myArrow.setAlignmentY(Component.TOP_ALIGNMENT);
     myTargetPane.add(myArrow);
 
@@ -83,6 +83,7 @@ public class FeatureEntryPoint extends JPanel {
     Icon featureIcon = feature.getIcon();
     if (featureIcon != null) {
       serviceLabel.setIcon(featureIcon);
+      serviceLabel.setIconTextGap(5);
       innerContentsOffset +=  featureIcon.getIconWidth() + serviceLabel.getIconTextGap();
     }
     summary.add(serviceLabel);
@@ -97,7 +98,7 @@ public class FeatureEntryPoint extends JPanel {
     myTutorialsList = new JPanel();
     myTutorialsList.setOpaque(false);
     myTutorialsList.setLayout(new BoxLayout(myTutorialsList, BoxLayout.Y_AXIS));
-    myTutorialsList.setBorder(BorderFactory.createEmptyBorder(0, 50 + innerContentsOffset, 0, 5));
+    myTutorialsList.setBorder(BorderFactory.createEmptyBorder(5, myArrow.getPreferredSize().width + innerContentsOffset, 0, 5));
     myTutorialsList.setVisible(false);
     for (TutorialData tutorial : feature.getTutorials()) {
       addTutorial(tutorial.getLabel(), tutorial.getKey());
