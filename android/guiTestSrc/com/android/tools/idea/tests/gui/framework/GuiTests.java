@@ -32,15 +32,11 @@ import com.intellij.openapi.project.ProjectManagerAdapter;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.IdeFrame;
-import com.intellij.openapi.wm.WindowManager;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
-import com.intellij.openapi.wm.impl.WindowManagerImpl;
-import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.popup.PopupFactoryImpl;
 import com.intellij.ui.popup.list.ListPopupModel;
 import com.intellij.util.net.HttpConfigurable;
-import com.intellij.util.ui.UIUtil;
 import org.fest.swing.core.*;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiActionRunner;
@@ -73,7 +69,6 @@ import static com.google.common.base.Joiner.on;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.io.Files.createTempDir;
 import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.ide.impl.ProjectUtil.closeAndDispose;
 import static com.intellij.openapi.projectRoots.JdkUtil.checkForJdk;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -301,37 +296,6 @@ public final class GuiTests {
       }
     }
     return listBuilder.build();
-  }
-
-  static void closeAllProjects() {
-    Wait.minutes(2).expecting("all projects to be closed")
-      .until(() -> {
-        final Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
-        execute(new GuiTask() {
-          @Override
-          protected void executeInEDT() throws Throwable {
-            for (Project project : openProjects) {
-              assertTrue("Failed to close project " + quote(project.getName()), closeAndDispose(project));
-            }
-          }
-        });
-        return ProjectManager.getInstance().getOpenProjects().length == 0;
-      });
-
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        WelcomeFrame.showNow();
-        WindowManagerImpl windowManager = (WindowManagerImpl)WindowManager.getInstance();
-        windowManager.disposeRootFrame();
-      }
-    });
-
-    Wait.minutes(2).expecting("'Welcome' frame to show up").until(() -> ((Component)WelcomeFrame.getInstance()).isShowing());
-
-    // At this point there are no open projects and we're displaying the welcome screen, with no ongoing animations. The AWT queue might
-    // have some events left from project closing actions, so we flush it completely before proceeding.
-    UIUtil.pump();
   }
 
   @NotNull
