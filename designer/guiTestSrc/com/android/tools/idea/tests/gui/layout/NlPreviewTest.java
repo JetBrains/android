@@ -184,7 +184,7 @@ public class NlPreviewTest {
 
     NlComponentFixture string1 = preview.findView("TextView", 0);
     string1.requireAttribute(ANDROID_URI, ATTR_TEXT, "@string/dynamic_string1");
-    string1.requireViewClass("android.widget.TextView");
+    string1.requireViewClass("android.support.v7.widget.AppCompatTextView");
     string1.requireActualText("String 1 defined only by defaultConfig");
 
     NlComponentFixture string2 = preview.findView("TextView", 1);
