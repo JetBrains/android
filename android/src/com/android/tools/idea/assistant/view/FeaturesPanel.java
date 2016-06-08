@@ -67,7 +67,7 @@ public class FeaturesPanel extends JPanel implements ItemListener, ActionListene
     for (FeatureData feature : myTutorialBundle.getFeatures()) {
       DeveloperService service = serviceMap.get(feature.getServiceId());
       for (TutorialData tutorial : feature.getTutorials()) {
-        addCard(new TutorialCard(this, tutorial, feature.getName(), service), tutorial.getKey());
+        addCard(new TutorialCard(this, tutorial, feature.getName(), bundle.getName(), service), tutorial.getKey());
       }
     }
     add(myCards);
