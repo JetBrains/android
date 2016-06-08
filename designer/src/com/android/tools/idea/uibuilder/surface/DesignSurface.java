@@ -411,7 +411,16 @@ public class DesignSurface extends JPanel implements Disposable {
     // TODO: Account for the size of the blueprint screen too? I should figure out if I can automatically make it jump
     // to the side or below based on the form factor and the available size
     Dimension dimension = new Dimension(size.width + 2 * DEFAULT_SCREEN_OFFSET_X,
-                                        size.height + 2 * DEFAULT_SCREEN_OFFSET_Y);
+                                          size.height + 2 * DEFAULT_SCREEN_OFFSET_Y);
+    if (myScreenMode == ScreenMode.BOTH) {
+      if (isStackVertically()) {
+        dimension.setSize(dimension.getWidth(),
+                          dimension.getHeight() + size.height + SCREEN_DELTA);
+      } else {
+        dimension.setSize(dimension.getWidth() + size.width + SCREEN_DELTA,
+                          dimension.getHeight());
+      }
+    }
     myLayeredPane.setBounds(0, 0, dimension.width, dimension.height);
     myLayeredPane.setPreferredSize(dimension);
     myScrollPane.revalidate();
