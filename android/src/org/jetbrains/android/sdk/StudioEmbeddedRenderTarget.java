@@ -283,7 +283,7 @@ public class StudioEmbeddedRenderTarget implements IAndroidTarget {
 
   @Override
   public String hashString() {
-    throw new UnsupportedOperationException(ONLY_FOR_RENDERING_ERROR);
+    return "studio-embedded-render-target";
   }
 
   @Override
