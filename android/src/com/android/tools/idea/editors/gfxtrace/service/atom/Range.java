@@ -121,7 +121,6 @@ public final class Range implements BinaryObject {
     Namespace.register(Klass.INSTANCE);
   }
   public static void register() {}
-
   //<<<End:Java.ClassBody:1>>>
   public enum Klass implements BinaryClass {
     //<<<Start:Java.KlassBody:2>>>
