@@ -17,11 +17,9 @@
 package com.android.tools.adtui;
 
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.model.LegendRenderData;
 import com.android.tools.adtui.model.ReportingSeries;
 import com.intellij.ui.components.JBLabel;
-import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -39,23 +37,19 @@ public class LegendComponent extends AnimatedComponent {
   }
 
   private static final int LINE_THICKNESS = 4;
+
   private static final int ICON_WIDTH = 16;
+
   private static final int ICON_PADDING = 2;
+
   private static final int LABEL_PADDING = 8;
 
-  @NotNull
-  private BaseAxisFormatter mAxisFormatter;
-
-  @NotNull
   private int mFrequencyMillis;
 
-  @NotNull
   private List<JLabel> mLabelsToDraw;
 
-  @NotNull
   private long mLastUpdate;
 
-  @NotNull
   private List<LegendRenderData> mLegendRenderData;
 
   private Orientation mOrientation;
@@ -63,20 +57,13 @@ public class LegendComponent extends AnimatedComponent {
   /**
    * Legend component that renders a label, and icon for each series in a chart.
    *
-   * @param legendRenderData An list of labels, icons, and colors to be used in the rendering of each label. If the series is null
-   *                         only the label will be rendered
    * @param orientation      Determines if we want the labels to be stacked horizontally or vertically
    * @param frequencyMillis  How frequently the labels get updated
-   * @param formatter        The conversion function to use for the data from the series to the label.
    */
-  public LegendComponent(List<LegendRenderData> legendRenderData,
-                         Orientation orientation, int frequencyMillis, BaseAxisFormatter formatter) {
-    mAxisFormatter = formatter;
+  public LegendComponent(Orientation orientation, int frequencyMillis) {
     mFrequencyMillis = frequencyMillis;
     mOrientation = orientation;
     mLastUpdate = 0;
-
-    setLegendData(legendRenderData);
   }
 
   /**
