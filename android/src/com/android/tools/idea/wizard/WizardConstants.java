@@ -90,7 +90,7 @@ public class WizardConstants {
   public static final Key<String> PACKAGE_NAME_KEY = createKey(ATTR_PACKAGE_NAME, WIZARD, String.class);
   public static final Key<String> PROJECT_LOCATION_KEY = createKey(ATTR_TOP_OUT, WIZARD, String.class);
   public static final Key<String> SDK_DIR_KEY = createKey(ATTR_SDK_DIR, WIZARD, String.class);
-  public static final Key<String> SDK_HOME_KEY = createKey(ATTR_SDK_DIR, WIZARD, String.class);
+  public static final Key<String> ESPRESSO_VERSION_KEY = createKey("espressoVersion", WIZARD, String.class);
   public static final Key<ModuleTemplate> SELECTED_MODULE_TYPE_KEY = createKey("selectedModuleType", WIZARD, ModuleTemplate.class);
   @SuppressWarnings("unchecked") public static final Key<List<IPkgDesc>> SKIPPED_INSTALL_REQUESTS_KEY =
     createKey("packagesSkipped", WIZARD, (Class<List<IPkgDesc>>)(Class)List.class);
