@@ -89,7 +89,8 @@ public abstract class NlBaseComponentEditor implements NlComponentEditor, Browse
     myListener.cancelEditing(this);
   }
 
-  protected void stopEditing(@Nullable Object newValue) {
+  @Override
+  public void stopEditing(@Nullable Object newValue) {
     myListener.stopEditing(this, newValue);
     refresh();
   }
