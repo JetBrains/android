@@ -112,6 +112,7 @@ public class TexturesController extends ImagePanelController {
 
       usingComboBoxWidget(CONTROL_SIZE);
       ((ImageCellRenderer<?>)myList.getRenderer()).setLayout(ImageCellRenderer.Layout.LEFT_TO_RIGHT);
+      ((ImageCellRenderer<?>)myList.getRenderer()).setFlipImage(true);
     }
 
     @Override

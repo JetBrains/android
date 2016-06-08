@@ -356,6 +356,7 @@ public class ImagePanel extends JPanel {
         }
       });
       if (enableVerticalFlip) {
+        flipped = true;
         group.add(new ToggleAction("Flip Vertically", "Flip The image vertically", AndroidIcons.GfxTrace.FlipVertically) {
           @Override
           public boolean isSelected(AnActionEvent e) {
