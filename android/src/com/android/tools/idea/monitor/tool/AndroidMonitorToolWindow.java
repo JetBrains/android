@@ -20,18 +20,20 @@ import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.ddms.DevicePanel;
-import com.android.tools.idea.monitor.datastore.SeriesDataStoreImpl;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
+import com.android.tools.idea.monitor.datastore.SeriesDataStoreImpl;
 import com.android.tools.idea.monitor.ui.BaseSegment;
 import com.android.tools.idea.monitor.ui.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.TimeAxisSegment;
 import com.android.tools.idea.monitor.ui.cpu.view.CpuUsageSegment;
 import com.android.tools.idea.monitor.ui.memory.view.MemorySegment;
 import com.android.tools.idea.monitor.ui.network.view.NetworkSegment;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBPanel;
+import com.intellij.ui.components.panels.HorizontalLayout;
 import com.intellij.util.EventDispatcher;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
@@ -45,6 +47,8 @@ import java.util.List;
 public class AndroidMonitorToolWindow implements Disposable {
 
   private static final int CHOREOGRAPHER_FPS = 60;
+
+  private static final int TOOLBAR_HORIZONTAL_GAP = JBUI.scale(5);
 
   // Segment dimensions.
   private static final int MONITOR_MAX_HEIGHT = JBUI.scale(Short.MAX_VALUE);
@@ -75,7 +79,11 @@ public class AndroidMonitorToolWindow implements Disposable {
 
   private JPanel mySegmentsContainer;
 
-  private EventDispatcher<ProfilerEventListener> mEventDispatcher;
+  private EventDispatcher<ProfilerEventListener> myEventDispatcher;
+
+  private AccordionLayout mySegmentsLayout;
+
+  private JButton myCollapseSegmentsButton;
 
   public AndroidMonitorToolWindow(@NotNull final Project project) {
     myProject = project;
@@ -83,7 +91,7 @@ public class AndroidMonitorToolWindow implements Disposable {
     myDataStore = new SeriesDataStoreImpl();
     myChoreographer = new Choreographer(CHOREOGRAPHER_FPS, myComponent);
     myChoreographer.register(createComponentsList());
-    mEventDispatcher = EventDispatcher.create(ProfilerEventListener.class);
+    myEventDispatcher = EventDispatcher.create(ProfilerEventListener.class);
     populateUi();
   }
 
@@ -104,17 +112,32 @@ public class AndroidMonitorToolWindow implements Disposable {
                                    TimeAxisFormatter.DEFAULT);
 
     mySegmentsContainer = new JBPanel();
-    AccordionLayout accordionLayout = new AccordionLayout(mySegmentsContainer, AccordionLayout.Orientation.VERTICAL);
-    mySegmentsContainer.setLayout(accordionLayout);
+    mySegmentsLayout = new AccordionLayout(mySegmentsContainer, AccordionLayout.Orientation.VERTICAL);
+    mySegmentsContainer.setLayout(mySegmentsLayout);
     mySelection = new SelectionComponent(mySegmentsContainer, myTimeAxis, xSelectionRange, xGlobalRange, myXRange);
 
-    return Arrays.asList(accordionLayout, animatedTimeRange, mySelection, myScrollbar, myTimeAxis, myXRange, xGlobalRange, xSelectionRange);
+    return Arrays.asList(
+      mySegmentsLayout, animatedTimeRange, mySelection, myScrollbar, myTimeAxis, myXRange, xGlobalRange, xSelectionRange);
+  }
+
+  // TODO: refactor to use ActionToolbar, as we're going to have more actions in the toolbar
+  private void createToolbarComponent() {
+    JBPanel toolbar = new JBPanel(new HorizontalLayout(TOOLBAR_HORIZONTAL_GAP));
+    DeviceContext deviceContext = new DeviceContext();
+    DevicePanel devicePanel = new DevicePanel(myProject, deviceContext);
+    myCollapseSegmentsButton = new JButton();
+    // TODO: use proper icon
+    myCollapseSegmentsButton.setIcon(AllIcons.Actions.Back);
+    myCollapseSegmentsButton.addActionListener(event -> myEventDispatcher.getMulticaster().profilersReset());
+    myCollapseSegmentsButton.setVisible(false);
+
+    toolbar.add(HorizontalLayout.RIGHT, devicePanel.getComponent());
+    toolbar.add(HorizontalLayout.LEFT, myCollapseSegmentsButton);
+    myComponent.add(toolbar, BorderLayout.NORTH);
   }
 
   private void populateUi() {
-    DeviceContext deviceContext = new DeviceContext();
-    DevicePanel devicePanel = new DevicePanel(myProject, deviceContext);
-    myComponent.add(devicePanel.getComponent(), BorderLayout.NORTH);
+    createToolbarComponent();
 
     GridBagLayout gbl = new GridBagLayout();
     GridBagConstraints gbc = new GridBagConstraints();
@@ -173,8 +196,39 @@ public class AndroidMonitorToolWindow implements Disposable {
     gbc.gridwidth = 1;
     gbc.weightx = 0;
     gbc.weighty = 0;
-    gridBagPanel.add(new Box.Filler(rightSpacer, rightSpacer, rightSpacer), gbc);
+    Component rightSpacerFiller = new Box.Filler(rightSpacer, rightSpacer, rightSpacer);
+    gridBagPanel.add(rightSpacerFiller, gbc);
     myComponent.add(gridBagPanel);
+
+
+    // TODO construct/destroy Levels 2 and 3 extra segment/elements as we expand/collapse segments
+    myEventDispatcher.addListener(new ProfilerEventListener() {
+      @Override
+      public void profilerExpanded(@NotNull BaseSegment.SegmentType segmentType) {
+        switch (segmentType) {
+          case NETWORK:
+            mySegmentsLayout.setState(networkSegment, AccordionLayout.AccordionState.MAXIMIZE);
+            break;
+          case CPU:
+            mySegmentsLayout.setState(cpuSegment, AccordionLayout.AccordionState.MAXIMIZE);
+            break;
+          case MEMORY:
+            mySegmentsLayout.setState(memorySegment, AccordionLayout.AccordionState.MAXIMIZE);
+            break;
+          default:
+        }
+        rightSpacerFiller.setVisible(true);
+        myCollapseSegmentsButton.setVisible(true);
+      }
+
+      @Override
+      public void profilersReset() {
+        // Sets all the components back to their preferred states.
+        mySegmentsLayout.resetComponents();
+        rightSpacerFiller.setVisible(false);
+        myCollapseSegmentsButton.setVisible(false);
+      }
+    });
   }
 
   public JComponent getComponent() {
@@ -185,17 +239,17 @@ public class AndroidMonitorToolWindow implements Disposable {
     BaseSegment segment;
     switch (type) {
       case TIME:
-        segment = new TimeAxisSegment(myXRange, myTimeAxis, mEventDispatcher);
+        segment = new TimeAxisSegment(myXRange, myTimeAxis, myEventDispatcher);
         break;
       case CPU:
-        segment = new CpuUsageSegment(myXRange, myDataStore, mEventDispatcher);
+        segment = new CpuUsageSegment(myXRange, myDataStore, myEventDispatcher);
         break;
       case MEMORY:
-        segment = new MemorySegment(myXRange, myDataStore, mEventDispatcher);
+        segment = new MemorySegment(myXRange, myDataStore, myEventDispatcher);
         break;
       default:
         // TODO create corresponding segments based on type (e.g. GPU, events).
-        segment = new NetworkSegment(myXRange, myDataStore, mEventDispatcher);
+        segment = new NetworkSegment(myXRange, myDataStore, myEventDispatcher);
     }
 
     segment.setMinimumSize(new Dimension(0, minHeight));
