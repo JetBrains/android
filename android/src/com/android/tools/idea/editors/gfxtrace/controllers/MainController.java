@@ -78,6 +78,20 @@ public class MainController extends Controller {
     myMemoryTab = addTab(myLayoutUi, MemoryController.createUI(editor), "Memory", PlaceInGrid.center);
 
     splitter.setLastComponent(myLayoutUi.getComponent());
+
+    // remove a hack that sets top insets to -1, causing child height to be 1, even when its parent is 0
+    // and then it tries to squeeze all the components into that 1 pixel, if it was 0, it would not try
+    // squeezing everything into 1 pixel causes SplitPane type components to move there splitters to 0.
+    RunnerContentUi ui = RunnerContentUi.KEY.getData(((DataProvider)myLayoutUi.getComponent()));
+    if (ui != null) {
+      JComponent comp = ui.getComponent();
+      if (comp.getComponentCount() == 1) {
+        JComponent wrappper = (JComponent)comp.getComponent(0);
+        if (wrappper.getInsets().top < 0) {
+          wrappper.setBorder(null);
+        }
+      }
+    }
   }
 
   private static Content addTab(@NotNull RunnerLayoutUi layoutUi, @NotNull JComponent component, @NotNull String name, @NotNull PlaceInGrid defaultPlace) {
