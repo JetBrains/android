@@ -15,12 +15,16 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
+import com.android.tools.idea.configurations.Configuration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 
 public class Coordinates {
+
+  public static final int DEFAULT_DENSITY =  160;
+
   /**
    * Returns the Swing x coordinate (in the {@link DesignSurface} coordinate
    * system) of the given x coordinate in the Android screen coordinate system
@@ -46,6 +50,40 @@ public class Coordinates {
   @SwingCoordinate
   public static int getSwingDimension(@NotNull ScreenView view, @AndroidCoordinate int androidDimension) {
     return (int)(view.getScale() * androidDimension);
+  }
+
+  // DPI
+  public static int dpToPx(@NotNull ScreenView view, @AndroidDpCoordinate int androidDp) {
+    final Configuration configuration = view.getConfiguration();
+    final int dpiValue = configuration.getDensity().getDpiValue();
+    return Math.round(androidDp * (dpiValue / (float) DEFAULT_DENSITY));
+  }
+
+  /**
+   * Returns the Swing x coordinate (in the {@link DesignSurface} coordinate
+   * system) of the given x coordinate in the Android screen coordinate system in Dip
+   */
+  @SwingCoordinate
+  public static int getSwingXDip(@NotNull ScreenView view, @AndroidDpCoordinate int androidDpX) {
+    return getSwingX(view, dpToPx(view, androidDpX));
+  }
+
+  /**
+   * Returns the Swing x coordinate (in the {@link DesignSurface} coordinate
+   * system) of the given x coordinate in the Android screen coordinate system in Dip
+   */
+  @SwingCoordinate
+  public static int getSwingYDip(@NotNull ScreenView view, @AndroidDpCoordinate int androidDpY) {
+    return getSwingY(view, dpToPx(view, androidDpY));
+  }
+
+  /**
+   * Returns the Swing dimension (in the {@link DesignSurface} coordinate
+   * system) of the given dimension in the Android screen coordinate system in Dip
+   */
+  @SwingCoordinate
+  public static int getSwingDimensionDip(@NotNull ScreenView view, @AndroidCoordinate int androidDpDimension) {
+    return getSwingDimension(view, dpToPx(view, androidDpDimension));
   }
 
   /**
