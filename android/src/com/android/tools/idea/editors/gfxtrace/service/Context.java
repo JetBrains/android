@@ -47,6 +47,10 @@ public class Context implements BinaryObject {
     return Range.contains(myRanges, index);
   }
 
+  public Range[] getRanges(AtomList atoms) {
+    return myRanges;
+  }
+
   //<<<Start:Java.ClassBody:1>>>
   private ContextID myID;
   private String myName;
@@ -84,7 +88,7 @@ public class Context implements BinaryObject {
     return this;
   }
 
-  public Range[] getRanges(AtomList atoms) {
+  public Range[] getRanges() {
     return myRanges;
   }
 
