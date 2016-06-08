@@ -27,6 +27,11 @@ public class WelcomeFrameFixture extends ComponentFixture<WelcomeFrameFixture, F
     return new WelcomeFrameFixture(robot, GuiTests.waitUntilShowing(robot, GuiTests.matcherForType(FlatWelcomeFrame.class)));
   }
 
+  @NotNull
+  public static WelcomeFrameFixture find(@NotNull IdeFrameFixture ideFrameFixture) {
+    return find(ideFrameFixture.robot());
+  }
+
   private WelcomeFrameFixture(@NotNull Robot robot, @NotNull FlatWelcomeFrame target) {
     super(WelcomeFrameFixture.class, robot, target);
   }

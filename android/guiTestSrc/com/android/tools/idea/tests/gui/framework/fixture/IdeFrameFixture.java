@@ -33,7 +33,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleProjectEv
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleToolWindowFixture;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.intellij.ide.RecentProjectsManager;
 import com.intellij.ide.actions.ShowSettingsUtilImpl;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -58,7 +57,6 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
-import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
 import com.intellij.util.PathUtil;
 import com.intellij.util.ThreeState;
 import org.fest.swing.core.GenericTypeMatcher;
@@ -91,7 +89,6 @@ import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.tests.gui.framework.fixture.LibraryPropertiesDialogFixture.showPropertiesDialog;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.ide.impl.ProjectUtil.closeAndDispose;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
 import static junit.framework.Assert.assertNotNull;
@@ -657,24 +654,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     return project;
   }
 
-  public void closeProject() {
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        closeAndDispose(getProject());
-        RecentProjectsManager.getInstance().updateLastProjectPath();
-        WelcomeFrame.showIfNoProjectOpened();
-      }
-    });
-    Wait.seconds(30).expecting("'Welcome' page to show up")
-      .until(() -> {
-        for (Frame frame : Frame.getFrames()) {
-          if (frame == WelcomeFrame.getInstance() && frame.isShowing()) {
-            return true;
-          }
-        }
-        return false;
-      });
+  public WelcomeFrameFixture closeProject() {
+    return openFromMenu(WelcomeFrameFixture::find, "File", "Close Project");
   }
 
   @NotNull
