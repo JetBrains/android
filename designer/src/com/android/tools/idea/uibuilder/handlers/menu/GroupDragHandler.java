@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.handlers.menu;
 
-import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.api.DragHandler;
 import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
@@ -24,13 +23,19 @@ import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+import com.google.common.primitives.Ints;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+
+import static com.android.SdkConstants.*;
 
 /**
  * "Group" is used generically to refer to a menu or group element. Menus can contain item or group elements and group elements can only
@@ -61,6 +66,12 @@ final class GroupDragHandler extends DragHandler {
     myActionBarGroup = new ArrayList<>();
     myOverflowGroup = new ArrayList<>();
     addToActionBarOrOverflowGroups(group);
+
+    // noinspection SuspiciousNameCombination
+    myActionBarGroup.sort((item1, item2) -> Integer.compare(item1.x, item2.x));
+
+    // noinspection SuspiciousNameCombination
+    myOverflowGroup.sort((item1, item2) -> Integer.compare(item1.y, item2.y));
 
     myActionBarGroupBounds = getBounds(myActionBarGroup);
     myOverflowGroupBounds = getBounds(myOverflowGroup);
@@ -106,17 +117,99 @@ final class GroupDragHandler extends DragHandler {
 
   @Override
   public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers) {
+    updateOrderInCategoryAttributes();
+    updateShowAsActionAttribute();
+  }
+
+  private void updateOrderInCategoryAttributes() {
+    // TODO Handle more than one item
+    if (myActiveItem == null || myActiveItem == myItems.get(0)) {
+      return;
+    }
+
+    Integer order = getOrderInCategory(myActiveItem);
+
+    if (order == null) {
+      return;
+    }
+
     if (isActionBarGroupActive()) {
-      // TODO Handle more than one item
-      myItems.get(0).setAttribute(getNamespace(), SdkConstants.ATTR_SHOW_AS_ACTION, SdkConstants.VALUE_ALWAYS);
+      updateActionBarGroupOrderInCategoryAttributes(order);
     }
     else {
-      myItems.get(0).removeAttribute(getNamespace(), SdkConstants.ATTR_SHOW_AS_ACTION);
+      updateOverflowGroupOrderInCategoryAttributes(order);
+    }
+  }
+
+  private void updateActionBarGroupOrderInCategoryAttributes(int order) {
+    if (lastX >= myActiveItem.getMidpointX()) {
+      order++;
+    }
+
+    incrementOrderInCategoryAttributes(createOrderToItemMultimap(myActionBarGroup), order);
+
+    // TODO Handle more than one item
+    myItems.get(0).setAndroidAttribute(ATTR_ORDER_IN_CATEGORY, Integer.toString(order));
+  }
+
+  private void updateOverflowGroupOrderInCategoryAttributes(int order) {
+    if (lastY >= myActiveItem.getMidpointY()) {
+      order++;
+    }
+
+    incrementOrderInCategoryAttributes(createOrderToItemMultimap(myOverflowGroup), order);
+
+    // TODO Handle more than one item
+    myItems.get(0).setAndroidAttribute(ATTR_ORDER_IN_CATEGORY, Integer.toString(order));
+  }
+
+  private static void incrementOrderInCategoryAttributes(@NotNull Multimap<Integer, NlComponent> orderToItemMultimap, int order) {
+    Collection<NlComponent> items = orderToItemMultimap.get(order);
+
+    if (!items.isEmpty()) {
+      items.forEach(item -> item.setAndroidAttribute(ATTR_ORDER_IN_CATEGORY, Integer.toString(order + 1)));
+      incrementOrderInCategoryAttributes(orderToItemMultimap, order + 1);
+    }
+  }
+
+  @NotNull
+  private Multimap<Integer, NlComponent> createOrderToItemMultimap(@NotNull Iterable<NlComponent> group) {
+    Object draggedItem = myItems.get(0);
+    Multimap<Integer, NlComponent> orderToItemMultimap = ArrayListMultimap.create();
+
+    for (NlComponent item : group) {
+      if (item == draggedItem) {
+        continue;
+      }
+
+      Integer order = getOrderInCategory(item);
+
+      if (order != null) {
+        orderToItemMultimap.put(order, item);
+      }
+    }
+
+    return orderToItemMultimap;
+  }
+
+  @Nullable
+  private static Integer getOrderInCategory(@NotNull NlComponent item) {
+    String order = item.getAndroidAttribute(ATTR_ORDER_IN_CATEGORY);
+    return order == null ? null : Ints.tryParse(order);
+  }
+
+  private void updateShowAsActionAttribute() {
+    if (isActionBarGroupActive()) {
+      // TODO Handle more than one item
+      myItems.get(0).setAttribute(getNamespace(), ATTR_SHOW_AS_ACTION, VALUE_ALWAYS);
+    }
+    else {
+      myItems.get(0).removeAttribute(getNamespace(), ATTR_SHOW_AS_ACTION);
     }
   }
 
   private String getNamespace() {
-    return editor.isModuleDependency(SdkConstants.APPCOMPAT_LIB_ARTIFACT) ? SdkConstants.AUTO_URI : SdkConstants.ANDROID_URI;
+    return editor.isModuleDependency(APPCOMPAT_LIB_ARTIFACT) ? AUTO_URI : ANDROID_URI;
   }
 
   @Nullable
