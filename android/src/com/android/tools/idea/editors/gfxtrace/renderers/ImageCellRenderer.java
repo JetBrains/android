@@ -17,7 +17,6 @@ package com.android.tools.idea.editors.gfxtrace.renderers;
 
 import com.android.tools.idea.editors.gfxtrace.widgets.ImageCellList;
 import com.android.tools.idea.editors.gfxtrace.widgets.LoadingIndicator;
-import com.android.tools.idea.editors.gfxtrace.widgets.Repaintable;
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.RoundedLineBorder;
 import com.intellij.util.ui.JBUI;
@@ -27,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 
 public class ImageCellRenderer<T extends ImageCellList.Data> extends CellRenderer<T> {
   public static final int BORDER_SIZE = JBUI.scale(5);
@@ -96,10 +96,15 @@ public class ImageCellRenderer<T extends ImageCellList.Data> extends CellRendere
     }
   }
 
+  public void setFlipImage(boolean flipImage) {
+    myCellComponent.myFlipImage = flipImage;
+  }
+
   private static class ImageComponent extends JComponent {
     private Layout myLayout;
     private Dimension myImageSize;
     private ImageCellList.Data myCell;
+    private boolean myFlipImage;
 
     public ImageComponent(Layout layout, Dimension imageSize) {
       myLayout = layout;
@@ -152,11 +157,18 @@ public class ImageCellRenderer<T extends ImageCellList.Data> extends CellRendere
       }
 
       if (myCell.isLoaded()) {
+        AffineTransform transform = ((Graphics2D)graphics).getTransform();
+        if (myFlipImage) {
+          ((Graphics2D)graphics).transform(new AffineTransform(1, 0, 0, -1, 0, getHeight()));
+        }
+
         if (myLayout == Layout.CENTERED_WITH_OVERLAY) {
           RenderUtils.drawImage(this, graphics, myCell.icon.getImage(), BORDER_SIZE, BORDER_SIZE, imageWidth, imageHeight);
         } else {
           RenderUtils.drawCroppedImage(this, graphics, myCell.icon.getImage(), BORDER_SIZE, BORDER_SIZE, imageWidth, imageHeight);
         }
+
+        ((Graphics2D)graphics).setTransform(transform);
       }
       else if (myCell.hasFailed()) {
         RenderUtils.drawIcon(this, graphics, AllIcons.General.Warning, BORDER_SIZE, BORDER_SIZE, imageWidth, imageHeight);
