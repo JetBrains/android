@@ -41,6 +41,7 @@ public class GradleTaskExecutionContext {
 
   @Nullable private final ExternalSystemTaskNotificationListener myTaskNotificationListener;
   @Nullable private final File myBuildFilePath;
+  private final boolean myUseEmbeddedGradle;
 
   public GradleTaskExecutionContext(@NotNull GradleInvoker gradleInvoker,
                                     @NotNull Project project,
@@ -50,7 +51,8 @@ public class GradleTaskExecutionContext {
                                     @NotNull Map<ExternalSystemTaskId, CancellationTokenSource> cancellationMap,
                                     @NotNull ExternalSystemTaskId taskId,
                                     @Nullable ExternalSystemTaskNotificationListener taskNotificationListener,
-                                    @Nullable File buildFilePath) {
+                                    @Nullable File buildFilePath,
+                                    boolean useEmbeddedGradle) {
     myGradleInvoker = gradleInvoker;
     myProject = project;
     myGradleTasks = gradleTasks;
@@ -60,6 +62,7 @@ public class GradleTaskExecutionContext {
     myTaskId = taskId;
     myTaskNotificationListener = taskNotificationListener;
     myBuildFilePath = buildFilePath;
+    myUseEmbeddedGradle = useEmbeddedGradle;
   }
 
   @NotNull
@@ -100,6 +103,10 @@ public class GradleTaskExecutionContext {
   @Nullable
   public File getBuildFilePath() {
     return myBuildFilePath;
+  }
+
+  public boolean getUseEmbeddedGradle() {
+    return myUseEmbeddedGradle;
   }
 
   @Nullable
