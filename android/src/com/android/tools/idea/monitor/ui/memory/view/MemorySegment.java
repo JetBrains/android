@@ -20,8 +20,6 @@ import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.common.formatter.MemoryAxisFormatter;
 import com.android.tools.adtui.common.formatter.SingleUnitAxisFormatter;
-import com.android.tools.adtui.model.LegendRenderData;
-import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.datastore.SeriesDataType;
 import com.android.tools.idea.monitor.ui.BaseLineChartSegment;
@@ -31,8 +29,6 @@ import com.intellij.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.List;
 
 public class MemorySegment extends BaseLineChartSegment {
 
@@ -65,14 +61,8 @@ public class MemorySegment extends BaseLineChartSegment {
     return SegmentType.MEMORY;
   }
 
-  /**
-   * Toggle between L1/L2 view. The previous data will be removed from the LineChart and LegendComponent and be replaced
-   * by data series associated with the correct view.
-   */
   @Override
-  public void toggleView(boolean isExpanded) {
-    super.toggleView(isExpanded);
-
+  protected void updateChartLines(boolean isExpanded) {
     if (isExpanded) {
       addMemoryLevelLine(SeriesDataType.MEMORY_JAVA, MEMORY_TOTAL_COLOR);
       addMemoryLevelLine(SeriesDataType.MEMORY_NATIVE, MEMORY_NATIVE_COLOR);
@@ -85,24 +75,9 @@ public class MemorySegment extends BaseLineChartSegment {
     } else {
       addMemoryLevelLine(SeriesDataType.MEMORY_TOTAL, MEMORY_TOTAL_COLOR);
     }
-
-    updateLegend();
   }
 
   private void addMemoryLevelLine(SeriesDataType type, Color color) {
     addLine(type, type.toString(), new LineConfig(color).setFilled(true).setStacked(true), mLeftAxisRange);
-  }
-
-  /**
-   * Updates the LegendComponent based on the data series currently being rendered in the LineChart.
-   */
-  private void updateLegend() {
-    List<LegendRenderData> legendRenderDataList = new ArrayList<>();
-    for (RangedContinuousSeries series : mLineChart.getRangedContinuousSeries()) {
-      Color color = mLineChart.getLineConfig(series).getColor();
-      LegendRenderData renderData = new LegendRenderData(LegendRenderData.IconType.LINE, color, series);
-      legendRenderDataList.add(renderData);
-    }
-    mLegendComponent.setLegendData(legendRenderDataList);
   }
 }
