@@ -291,11 +291,13 @@ public class TutorialStep extends JPanel {
       if(scroll.getViewport().getView() != null) {
         scroll.getViewport().getView().setBackground(UIUtils.getBackgroundColor());
       }
-      // Disable vertical wheel scrolling if no vertical bars necessary. This removes the default behavior of applying vertical scroll to
-      // horizontal bars when no vertical bars present. Note that this does not appear to impact track-pad side scrolling.
-      if (getActualPreferredHeight() < MAX_HEIGHT) {
-        scroll.setWheelScrollingEnabled(false);
-      }
+      // TODO(b/28968368): When vertical scrolling over a scroll pane that only has horizontal scrolling, underlying system code will apply
+      // the vertical scroll as horizontal. This results in side scrolling of the code when the user is just trying to scroll up/down
+      // on the assistant window as a whole. While we can disable scrolling in the event that there is no vertical scrollbar, Mac hides
+      // scrollbars by default and makes it impossible to scroll the code. We need to find a solution that addresses both issues. Note that
+      // the prior (removed) shim was to test {@code getActualPreferredHeight()} against MAX_HEIGHT,
+      // setting {@code setWheelScrollingEnabled(false)} in that event. Whatever solution we use must not disable scrolling.
+
       // Add a custom listener to duplicate/bubble scroll events to the parent scroll context. This avoids the code samples capturing
       // the scroll events when a user is simply trying to move up and down the tutorial.
       scroll.addMouseWheelListener(new CodeMouseWheelListener(scroll));
