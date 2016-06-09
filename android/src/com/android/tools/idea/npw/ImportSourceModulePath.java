@@ -61,8 +61,8 @@ public class ImportSourceModulePath implements WizardPath {
   }
 
   @NotNull
-  protected static MetadataListItem createImportTemplateWithCustomName(@NotNull final String importTemplateName,
-                                                                       @Nullable final String description) {
+  public static MetadataListItem createImportTemplateWithCustomName(@NotNull final String importTemplateName,
+                                                                    @Nullable final String description) {
     // Now, we're going to add in two pointers to the same template
     File moduleTemplate = new File(TemplateManager.getTemplateRootFolder(),
                                    FileUtil.join(Template.CATEGORY_PROJECTS, "ImportExistingProject"));
@@ -71,7 +71,7 @@ public class ImportSourceModulePath implements WizardPath {
 
     assert metadata != null;
 
-    return new ChooseTemplateStep.MetadataListItem(moduleTemplate, metadata) {
+    return new MetadataListItem(moduleTemplate, metadata) {
       @Override
       public String toString() {
         return importTemplateName;
