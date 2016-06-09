@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.gfxtrace.controllers;
 
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
+import com.android.tools.idea.editors.gfxtrace.GfxTraceUtil;
 import com.android.tools.idea.editors.gfxtrace.actions.EditAtomParametersAction;
 import com.android.tools.idea.editors.gfxtrace.models.AtomStream;
 import com.android.tools.idea.editors.gfxtrace.renderers.Render;
@@ -30,6 +31,7 @@ import com.android.tools.idea.editors.gfxtrace.service.memory.MemoryProtos.PoolN
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.android.tools.idea.editors.gfxtrace.widgets.LoadableIcon;
 import com.android.tools.idea.logcat.RegexFilterComponent;
+import com.android.tools.idea.stats.UsageTracker;
 import com.google.common.base.Objects;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.FutureCallback;
@@ -263,6 +265,9 @@ public class AtomController extends TreeController implements AtomStream.Listene
         DefaultMutableTreeNode node = (DefaultMutableTreeNode)myTree.getLastSelectedPathComponent();
         if (node == null || node.getUserObject() == null) return;
         Object object = node.getUserObject();
+
+        GfxTraceUtil.trackEvent(UsageTracker.ACTION_GFX_TRACE_COMMAND_SELECTED, object.getClass().getSimpleName(), null);
+
         if (object instanceof Group) {
           atoms.selectAtoms(((Group)object).group.getRange(), AtomController.this);
         }
@@ -469,7 +474,11 @@ public class AtomController extends TreeController implements AtomStream.Listene
           Node node = (Node)object;
           // The user was hovering over a parameter, fire off the path activation event on click.
           if (node.hoveredParameter >= 0) {
-            myEditor.activatePath(node.getFollowPath(node.hoveredParameter), AtomController.this);
+            Path path = node.getFollowPath(node.hoveredParameter);
+
+            GfxTraceUtil.trackEvent(UsageTracker.ACTION_GFX_TRACE_LINK_CLICKED, path.toString(), null);
+
+            myEditor.activatePath(path, AtomController.this);
           }
         }
       }
