@@ -129,6 +129,18 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
     ProgramRunnerUtil.executeConfiguration(project, runSettings, DefaultDebugExecutor.getDebugExecutorInstance());
   }
 
+  public DebuggerSession getDebuggerSession(@NotNull Client client) {
+    String debugPort = getClientDebugPort(client);
+
+    for (Project openProject : ProjectManager.getInstance().getOpenProjects()) {
+      DebuggerSession debuggerSession = findJdwpDebuggerSession(openProject, debugPort);
+      if (debuggerSession != null) {
+        return debuggerSession;
+      }
+  }
+    return null;
+  }
+
   private static boolean hasExistingDebugSession(@NotNull Project project,
                                                  @NotNull final String debugPort,
                                                  @NotNull final String runConfigName) {
