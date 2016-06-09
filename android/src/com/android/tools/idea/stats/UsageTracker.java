@@ -17,17 +17,26 @@ package com.android.tools.idea.stats;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.startup.AndroidStudioInitializer;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.internal.statistic.StatisticsUploadAssistant;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.updateSettings.impl.UpdateChecker;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Android Studio Usage Tracker.
  */
 public abstract class UsageTracker {
+  /**
+   * A session id that is unique for every instance of Android Studio.
+   * Note: if you need an id that is unique per installation, use {@link UpdateChecker#getInstallationUID(PropertiesComponent)}.
+   */
+  public static final String SESSION_ID = UUID.randomUUID().toString();
+
   /**
    * Maximum length of the URL constructed when uploading data to tools.google.com. This is simply the max allowed HTTP URL length,
    * which depending on the source seems to be from 2k to 4k. We use a conservative value here.
