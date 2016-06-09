@@ -16,16 +16,22 @@
 package com.android.tools.idea.gradle.messages;
 
 import com.android.builder.model.SyncIssue;
+import com.android.ide.common.blame.SourceFile;
+import com.android.ide.common.blame.SourceFilePosition;
+import com.android.ide.common.blame.SourcePosition;
+import com.android.ide.common.blame.parser.PatternAwareOutputParser;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.SdkMavenRepository;
 import com.android.tools.idea.gradle.GradleModel;
 import com.android.tools.idea.gradle.customizer.dependency.DependencySetupErrors;
 import com.android.tools.idea.gradle.customizer.dependency.DependencySetupErrors.MissingModule;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.gradle.output.parser.BuildOutputParser;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.compatibility.VersionCompatibilityService;
 import com.android.tools.idea.gradle.project.compatibility.VersionCompatibilityService.VersionIncompatibilityMessage;
 import com.android.tools.idea.gradle.project.subset.ProjectSubset;
+import com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler;
 import com.android.tools.idea.gradle.service.notification.errors.UnsupportedGradleVersionErrorHandler;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenFileHyperlink;
@@ -34,10 +40,12 @@ import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.startup.AndroidStudioInitializer;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.base.Verify;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationManager;
 import com.intellij.openapi.externalSystem.service.notification.NotificationCategory;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
@@ -56,6 +64,7 @@ import com.intellij.psi.tree.IElementType;
 import com.intellij.util.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.jps.service.JpsServiceManager;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import org.jetbrains.plugins.groovy.lang.lexer.GroovyLexer;
 import org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes;
@@ -65,12 +74,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import static com.android.builder.model.SyncIssue.TYPE_EXTERNAL_NATIVE_BUILD_COMBINED_CONFIGURATION;
+import static com.android.builder.model.SyncIssue.TYPE_UNRESOLVED_DEPENDENCY;
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.*;
 import static com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler.updateNotification;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.Projects.*;
 import static com.intellij.openapi.externalSystem.service.notification.NotificationSource.PROJECT_SYNC;
 import static com.intellij.openapi.util.text.StringUtil.*;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.util.ArrayUtil.toStringArray;
 
@@ -129,8 +141,11 @@ public class ProjectSyncMessages {
         hasSyncErrors = true;
       }
       switch (syncIssue.getType()) {
-        case SyncIssue.TYPE_UNRESOLVED_DEPENDENCY:
+        case TYPE_UNRESOLVED_DEPENDENCY:
           reportUnresolvedDependency(Verify.verifyNotNull(syncIssue.getData()), module, buildFile);
+          break;
+        case TYPE_EXTERNAL_NATIVE_BUILD_COMBINED_CONFIGURATION:
+          reportExternalNativeBuildIssues(syncIssue, module.getProject());
           break;
         default:
           String group = UNHANDLED_SYNC_ISSUE_TYPE;
@@ -353,6 +368,75 @@ public class ProjectSyncMessages {
         text.append(", ");
       }
       text.append(String.format("'%1$s'", dependent));
+    }
+  }
+
+  private void reportExternalNativeBuildIssues(@NotNull SyncIssue syncIssue, @NotNull Project project) {
+    assert syncIssue.getType() == TYPE_EXTERNAL_NATIVE_BUILD_COMBINED_CONFIGURATION;
+
+    String group = EXTERNAL_NATIVE_BUILD_ISSUES;
+
+    String nativeToolOutput = syncIssue.getData();
+    if (nativeToolOutput != null) {
+      Iterable<PatternAwareOutputParser> parsers = JpsServiceManager.getInstance().getExtensions(PatternAwareOutputParser.class);
+      // Parse the native build tool output with the list of existing parsers.
+      List<com.android.ide.common.blame.Message> compilerMessages = new BuildOutputParser(parsers).parseGradleOutput(nativeToolOutput);
+      for (com.android.ide.common.blame.Message msg : compilerMessages) {
+        Message.Type severity = translateMessageKind(msg.getKind());
+
+        List<SourceFilePosition> sourceFilePositions = msg.getSourceFilePositions();
+        assert !sourceFilePositions.isEmpty();
+
+        VirtualFile sourceFile = null;
+        SourceFile source = sourceFilePositions.get(0).getFile();
+        if (source.getSourceFile() != null) {
+          sourceFile = findFileByIoFile(source.getSourceFile(), true);
+        }
+
+        SourcePosition position = sourceFilePositions.get(0).getPosition();
+        int line = position.getStartLine();
+        int column = position.getStartColumn();
+
+        String text = msg.getText();
+
+        if (severity != Message.Type.ERROR) {
+          Message message = sourceFile != null ? new Message(project, group, severity, sourceFile, line, column, text)
+                                               : new Message(group, severity, NonNavigatable.INSTANCE, text);
+          add(message);
+          continue;
+        }
+
+        String filePath = sourceFile != null ? sourceFile.getPath() : null;
+
+        NotificationCategory category = NotificationCategory.convert(severity.getValue());
+        NotificationData notification =
+          new NotificationData(group, text, category, NOTIFICATION_SOURCE, filePath, line, column, false);
+
+        // Try to parse the error messages using the list of existing error handlers to find any potential quick-fixes.
+        for (AbstractSyncErrorHandler handler : AbstractSyncErrorHandler.EP_NAME.getExtensions()) {
+          if (handler.handleError(ImmutableList.of(text), new ExternalSystemException(text), notification, project)) {
+            break;
+          }
+        }
+        myNotificationManager.showNotification(GRADLE_SYSTEM_ID, notification);
+      }
+    }
+
+    // Add a message with the SyncIssue summery.
+    Message.Type severity = syncIssue.getSeverity() == SyncIssue.SEVERITY_ERROR ? Message.Type.ERROR : Message.Type.WARNING;
+    add(new Message(group, severity, NonNavigatable.INSTANCE, syncIssue.getMessage()));
+  }
+
+  private static Message.Type translateMessageKind(@NotNull com.android.ide.common.blame.Message.Kind kind) {
+    switch (kind) {
+      case ERROR:
+        return Message.Type.ERROR;
+      case WARNING:
+        return Message.Type.WARNING;
+      case SIMPLE:
+        return Message.Type.SIMPLE;
+      default:
+        return Message.Type.INFO;
     }
   }
 
