@@ -213,6 +213,12 @@ public class AndroidIcons {
     public static final Icon Lint9plus = load("/icons/nele/lint9p.png");
   }
 
+  public static final class MenuIcons {
+    public static final Icon item = load("/icons/nele/item.png");
+    public static final Icon menu = load("/icons/nele/menu.png");
+    public static final Icon group = load("/icons/nele/group.png");
+  }
+
   public static class TextDecoration {
     // TODO: provide icons for these palette actions:
     public static final Icon Bold = load("/icons/dimension.png");
