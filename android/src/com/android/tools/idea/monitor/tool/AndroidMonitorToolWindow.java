@@ -26,6 +26,7 @@ import com.android.tools.idea.monitor.ui.BaseSegment;
 import com.android.tools.idea.monitor.ui.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.TimeAxisSegment;
 import com.android.tools.idea.monitor.ui.cpu.view.CpuUsageSegment;
+import com.android.tools.idea.monitor.ui.cpu.view.ThreadsSegment;
 import com.android.tools.idea.monitor.ui.memory.view.MemorySegment;
 import com.android.tools.idea.monitor.ui.network.view.NetworkSegment;
 import com.intellij.icons.AllIcons;
@@ -84,6 +85,8 @@ public class AndroidMonitorToolWindow implements Disposable {
   private AccordionLayout mySegmentsLayout;
 
   private JButton myCollapseSegmentsButton;
+
+  private BaseSegment myThreadsSegment;
 
   public AndroidMonitorToolWindow(@NotNull final Project project) {
     myProject = project;
@@ -172,6 +175,7 @@ public class AndroidMonitorToolWindow implements Disposable {
     BaseSegment networkSegment = createMonitorSegment(BaseSegment.SegmentType.NETWORK);
     BaseSegment memorySegment = createMonitorSegment(BaseSegment.SegmentType.MEMORY);
     BaseSegment cpuSegment = createMonitorSegment(BaseSegment.SegmentType.CPU);
+
     // Timeline segment
     BaseSegment timeSegment = createSegment(BaseSegment.SegmentType.TIME, TIME_AXIS_HEIGHT, TIME_AXIS_HEIGHT, TIME_AXIS_HEIGHT);
 
@@ -211,6 +215,12 @@ public class AndroidMonitorToolWindow implements Disposable {
             break;
           case CPU:
             mySegmentsLayout.setState(cpuSegment, AccordionLayout.AccordionState.MAXIMIZE);
+            // Create the threads segment if it's not already there
+            if (myThreadsSegment == null) {
+              myThreadsSegment = createMonitorSegment(BaseSegment.SegmentType.THREADS);
+              mySegmentsContainer.add(myThreadsSegment);
+              mySegmentsLayout.setState(myThreadsSegment, AccordionLayout.AccordionState.MAXIMIZE);
+            }
             break;
           case MEMORY:
             mySegmentsLayout.setState(memorySegment, AccordionLayout.AccordionState.MAXIMIZE);
@@ -225,6 +235,7 @@ public class AndroidMonitorToolWindow implements Disposable {
       public void profilersReset() {
         // Sets all the components back to their preferred states.
         mySegmentsLayout.resetComponents();
+        destroyDetailedComponents();
         rightSpacerFiller.setVisible(false);
         myCollapseSegmentsButton.setVisible(false);
       }
@@ -243,6 +254,9 @@ public class AndroidMonitorToolWindow implements Disposable {
         break;
       case CPU:
         segment = new CpuUsageSegment(myXRange, myDataStore, myEventDispatcher);
+        break;
+      case THREADS:
+        segment = new ThreadsSegment(myXRange, myDataStore, myEventDispatcher, null);
         break;
       case MEMORY:
         segment = new MemorySegment(myXRange, myDataStore, myEventDispatcher);
@@ -269,5 +283,16 @@ public class AndroidMonitorToolWindow implements Disposable {
 
   private BaseSegment createMonitorSegment(BaseSegment.SegmentType type) {
     return createSegment(type, 0, MONITOR_PREFERRED_HEIGHT, MONITOR_MAX_HEIGHT);
+  }
+
+  /**
+   * Destroy components that should not be displayed in level 1.
+   */
+  private void destroyDetailedComponents() {
+    // TODO: as we add more components to the UI, refactor this to destroy all elements at once in a loop, not one by one.
+    if (myThreadsSegment != null) {
+      mySegmentsContainer.remove(myThreadsSegment);
+      myThreadsSegment = null;
+    }
   }
 }
