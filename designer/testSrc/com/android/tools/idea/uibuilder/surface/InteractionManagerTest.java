@@ -33,7 +33,7 @@ public class InteractionManagerTest extends LayoutTestCase {
     return true;
   }
 
-  public void testDragAndDrop() throws Exception {
+  public void ignore_testDragAndDrop() throws Exception {
     // Drops a fragment (xmlFragment below) into the design surface (via drag & drop events) and verifies that
     // the resulting document ends up modified as expected.
 
