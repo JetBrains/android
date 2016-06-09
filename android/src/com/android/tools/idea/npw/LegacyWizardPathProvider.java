@@ -2,15 +2,12 @@ package com.android.tools.idea.npw;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
 import java.util.Collection;
 import java.util.List;
 
@@ -25,10 +22,6 @@ public class LegacyWizardPathProvider implements NewModuleDynamicPathFactory {
     return ImmutableSet.copyOf(wrappers);
   }
 
-  @Retention(RetentionPolicy.RUNTIME)
-  public @interface Migrated {
-  }
-
   private static class LegacyWizardModuleBuilder extends TemplateWizardModuleBuilder {
     private final Collection<LegacyPathWrapper> myWrappers;
 
@@ -40,9 +33,7 @@ public class LegacyWizardPathProvider implements NewModuleDynamicPathFactory {
     private Collection<LegacyPathWrapper> wrapPaths() {
       List<LegacyPathWrapper> wrappers = ContainerUtil.newLinkedList();
       for (WizardPath wizardPath : getPaths()) {
-        if (wizardPath.getClass().getAnnotation(Migrated.class) == null) {
-          wrappers.add(new LegacyPathWrapper(myWizardState, wizardPath));
-        }
+        wrappers.add(new LegacyPathWrapper(myWizardState, wizardPath));
       }
       return wrappers;
     }
