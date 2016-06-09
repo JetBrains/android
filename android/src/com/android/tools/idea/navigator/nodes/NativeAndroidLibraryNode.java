@@ -73,7 +73,9 @@ public class NativeAndroidLibraryNode extends ProjectViewNode<Collection<NativeA
       addSourceFiles(rootDirectories, artifact);
     }
 
-    groupDirectories(rootDirectories);
+    if (rootDirectories.size() > 1) {
+      groupDirectories(rootDirectories);
+    }
 
     if (rootDirectories.size() > 1) {
       mergeDirectories(rootDirectories);
