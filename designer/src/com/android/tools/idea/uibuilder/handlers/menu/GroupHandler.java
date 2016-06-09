@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.handlers.menu;
 
-import com.android.tools.idea.uibuilder.api.*;
+import com.android.tools.idea.uibuilder.api.DragHandler;
+import com.android.tools.idea.uibuilder.api.DragType;
+import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
@@ -25,7 +27,7 @@ import java.util.List;
 
 import static com.android.SdkConstants.*;
 
-public final class GroupHandler extends ViewGroupHandler {
+public final class GroupHandler extends MenuHandlerBase {
   @Override
   @NotNull
   public List<String> getInspectorProperties() {
@@ -43,16 +45,5 @@ public final class GroupHandler extends ViewGroupHandler {
                                        @NotNull List<NlComponent> items,
                                        @NotNull DragType type) {
     return new GroupDragHandler(editor, this, group, items, type);
-  }
-
-  @Override
-  public boolean onCreate(@NotNull ViewEditor editor,
-                          @Nullable NlComponent parent,
-                          @NotNull NlComponent newChild,
-                          @NotNull InsertType insertType) {
-    newChild.removeAndroidAttribute(ATTR_LAYOUT_WIDTH);
-    newChild.removeAndroidAttribute(ATTR_LAYOUT_HEIGHT);
-
-    return true;
   }
 }

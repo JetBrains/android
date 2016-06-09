@@ -15,17 +15,16 @@
  */
 package com.android.tools.idea.uibuilder.handlers.menu;
 
-import com.android.tools.idea.uibuilder.api.*;
+import com.android.tools.idea.uibuilder.api.DragHandler;
+import com.android.tools.idea.uibuilder.api.DragType;
+import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
-import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
-
-public final class MenuHandler extends ViewGroupHandler {
+public final class MenuHandler extends MenuHandlerBase {
   @Nullable
   @Override
   public DragHandler createDragHandler(@NotNull ViewEditor editor,
@@ -33,16 +32,5 @@ public final class MenuHandler extends ViewGroupHandler {
                                        @NotNull List<NlComponent> items,
                                        @NotNull DragType type) {
     return new GroupDragHandler(editor, this, menu, items, type);
-  }
-
-  @Override
-  public boolean onCreate(@NotNull ViewEditor editor,
-                          @Nullable NlComponent parent,
-                          @NotNull NlComponent newChild,
-                          @NotNull InsertType insertType) {
-    newChild.removeAndroidAttribute(ATTR_LAYOUT_WIDTH);
-    newChild.removeAndroidAttribute(ATTR_LAYOUT_HEIGHT);
-
-    return true;
   }
 }
