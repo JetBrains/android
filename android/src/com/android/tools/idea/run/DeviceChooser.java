@@ -21,6 +21,7 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.ddms.DeviceRenderer;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.run.util.LaunchUtils;
 import com.google.common.base.Predicate;
@@ -83,6 +84,7 @@ public class DeviceChooser implements Disposable, AndroidDebugBridge.IDebugBridg
   private final AndroidVersion myMinSdkVersion;
   private final IAndroidTarget myProjectTarget;
   private final EnumSet<IDevice.HardwareFeature> myRequiredHardwareFeatures;
+  private final Set<String> mySupportedAbis;
 
   private int[] mySelectedRows;
   private final AtomicBoolean myDevicesDetected = new AtomicBoolean();
@@ -95,6 +97,9 @@ public class DeviceChooser implements Disposable, AndroidDebugBridge.IDebugBridg
     myFilter = filter;
     myMinSdkVersion = AndroidModuleInfo.get(facet).getRuntimeMinSdkVersion();
     myProjectTarget = projectTarget;
+    mySupportedAbis = facet.getAndroidModel() instanceof AndroidGradleModel ?
+                      ((AndroidGradleModel)facet.getAndroidModel()).getSelectedVariant().getMainArtifact().getAbiFilters() :
+                      null;
 
     // Currently, we only look at whether the device supports the watch feature.
     // We may not want to search the device for every possible feature, but only a small subset of important
@@ -475,7 +480,7 @@ public class DeviceChooser implements Disposable, AndroidDebugBridge.IDebugBridg
         case COMPATIBILITY_COLUMN_INDEX:
           // This value is also used in the method isRowCompatible(). Update that if there's a change here.
           AndroidDevice connectedDevice = new ConnectedAndroidDevice(device, null);
-          return connectedDevice.canRun(myMinSdkVersion, myProjectTarget, myRequiredHardwareFeatures);
+          return connectedDevice.canRun(myMinSdkVersion, myProjectTarget, myRequiredHardwareFeatures, mySupportedAbis);
       }
       return null;
     }
