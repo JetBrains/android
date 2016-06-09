@@ -39,6 +39,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 
 public class ConnectedAndroidDevice implements AndroidDevice {
   private static final ExtensionPointName<DeviceNameRendererEx> EP_NAME = ExtensionPointName.create("com.android.run.deviceNameRenderer");
@@ -208,7 +209,8 @@ public class ConnectedAndroidDevice implements AndroidDevice {
   @NotNull
   public LaunchCompatibility canRun(@NotNull AndroidVersion minSdkVersion,
                                     @NotNull IAndroidTarget projectTarget,
-                                    @NotNull EnumSet<IDevice.HardwareFeature> requiredFeatures) {
-    return LaunchCompatibility.canRunOnDevice(minSdkVersion, projectTarget, requiredFeatures, this);
+                                    @NotNull EnumSet<IDevice.HardwareFeature> requiredFeatures,
+                                    @Nullable Set<String> supportedAbis) {
+    return LaunchCompatibility.canRunOnDevice(minSdkVersion, projectTarget, requiredFeatures, supportedAbis, this);
   }
 }

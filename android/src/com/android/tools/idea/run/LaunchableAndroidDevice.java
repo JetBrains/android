@@ -40,6 +40,7 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class LaunchableAndroidDevice implements AndroidDevice {
   private static final Map<Abi, List<Abi>> ABI_MAPPINGS = ImmutableMap.of(
@@ -158,7 +159,8 @@ public class LaunchableAndroidDevice implements AndroidDevice {
   @NotNull
   public LaunchCompatibility canRun(@NotNull AndroidVersion minSdkVersion,
                                     @NotNull IAndroidTarget projectTarget,
-                                    @NotNull EnumSet<IDevice.HardwareFeature> requiredFeatures) {
+                                    @NotNull EnumSet<IDevice.HardwareFeature> requiredFeatures,
+                                    @Nullable Set<String> supportedAbis) {
 
     LaunchCompatibility compatibility = LaunchCompatibility.YES;
 
@@ -172,7 +174,7 @@ public class LaunchableAndroidDevice implements AndroidDevice {
         compatibility = new LaunchCompatibility(ThreeState.NO, myAvdInfo.getErrorMessage());
       }
     }
-    return compatibility.combine(LaunchCompatibility.canRunOnDevice(minSdkVersion, projectTarget, requiredFeatures, this));
+    return compatibility.combine(LaunchCompatibility.canRunOnDevice(minSdkVersion, projectTarget, requiredFeatures, supportedAbis, this));
   }
 
   public AvdInfo getAvdInfo() {

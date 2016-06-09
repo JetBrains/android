@@ -15,13 +15,14 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.ISystemImage;
+import com.android.sdklib.devices.Abi;
+import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
-import com.intellij.ide.util.treeView.TreeState;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ThreeState;
 import org.jetbrains.annotations.NonNls;
@@ -30,6 +31,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 
 public class LaunchCompatibility {
   @NonNls private static final String GOOGLE_APIS_TARGET_NAME = "Google APIs";
@@ -97,6 +99,7 @@ public class LaunchCompatibility {
   public static LaunchCompatibility canRunOnDevice(@NotNull AndroidVersion minSdkVersion,
                                                    @NotNull IAndroidTarget projectTarget,
                                                    @NotNull EnumSet<IDevice.HardwareFeature> requiredFeatures,
+                                                   @Nullable Set<String> supportedAbis,
                                                    @NotNull AndroidDevice device) {
     // check if the device has the required minApi
     // note that in cases where targetSdk is a preview platform, gradle sets minsdk to be the same as targetsdk,
@@ -123,6 +126,19 @@ public class LaunchCompatibility {
     if (device.supportsFeature(IDevice.HardwareFeature.WATCH)) {
       if (!requiredFeatures.contains(IDevice.HardwareFeature.WATCH)) {
         return new LaunchCompatibility(ThreeState.NO, "missing uses-feature watch, non-watch apks cannot be launched on a watch");
+      }
+    }
+
+    // Verify that the device ABI matches one of the target ABIs for JNI apps.
+    if (supportedAbis != null) {
+      Set<String> deviceAbis = Sets.newLinkedHashSet();
+      for (Abi abi : device.getAbis()) {
+        deviceAbis.add(abi.toString());
+      }
+
+      if (!supportedAbis.isEmpty() && Sets.intersection(supportedAbis, deviceAbis).isEmpty()) {
+        return new LaunchCompatibility(ThreeState.NO, "Device supports " + Joiner.on(", ").join(deviceAbis) +
+                                                      ", but APK only supports " + Joiner.on(", ").join(supportedAbis));
       }
     }
 
