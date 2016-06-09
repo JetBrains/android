@@ -55,7 +55,8 @@ public abstract class Dependency {
   // IDEA thinks it can be null, contradicting '@NotNull'. In reality, the field is set in the constructor by calling 'setScope'. To avoid
   // this warning we can either use '@SuppressWarnings' or duplicate, in the constructor, what 'setScope' is doing.
   @SuppressWarnings("NullableProblems")
-  @NotNull private DependencyScope myScope;
+  @NotNull
+  private DependencyScope myScope;
 
   /**
    * Creates a new {@link Dependency} with {@link DependencyScope#COMPILE} scope.
@@ -127,24 +128,8 @@ public abstract class Dependency {
     addJavaLibraries(dependencies, artifactDependencies.getJavaLibraries(), scope, supportsDependencyGraph);
 
     Set<File> unique = Sets.newHashSet();
-    for (AndroidLibrary lib : artifactDependencies.getLibraries()) {
-      ModuleDependency mainDependency = null;
-
-      String gradleProjectPath = lib.getProject();
-      if (isNotEmpty(gradleProjectPath)) {
-        // This is a module.
-        mainDependency = addAndroidModule(lib, gradleProjectPath, dependencies, scope, unique, supportsDependencyGraph);
-      }
-      if (mainDependency == null) {
-        // This is a library, not a module.
-        addAndroidLibrary(lib, dependencies, scope, unique, supportsDependencyGraph);
-      }
-      else {
-        // Add the aar as dependency in case there is a module dependency that cannot be satisfied (e.g. the module is outside of the
-        // project.) If we cannot set the module dependency, we set a library dependency instead.
-        LibraryDependency backup = createLibraryDependency(lib, scope);
-        mainDependency.setBackupDependency(backup);
-      }
+    for (AndroidLibrary library : artifactDependencies.getLibraries()) {
+      addAndroidLibrary(library, dependencies, scope, unique, supportsDependencyGraph);
     }
 
     if (!supportsDependencyGraph) {
@@ -201,8 +186,24 @@ public abstract class Dependency {
     }
     unique.add(folder);
 
-    dependencies.add(createLibraryDependency(library, scope));
-    addTransitiveDependencies(library, dependencies, scope, unique, supportsDependencyGraph);
+    ModuleDependency mainDependency = null;
+
+    String gradleProjectPath = library.getProject();
+    if (isNotEmpty(gradleProjectPath)) {
+      // This is a module.
+      mainDependency = addAndroidModule(library, gradleProjectPath, dependencies, scope, unique, supportsDependencyGraph);
+    }
+    if (mainDependency == null) {
+      // This is a library, not a module.
+      dependencies.add(createLibraryDependency(library, scope));
+      addTransitiveDependencies(library, dependencies, scope, unique, supportsDependencyGraph);
+    }
+    else {
+      // Add the aar as dependency in case there is a module dependency that cannot be satisfied (e.g. the module is outside of the
+      // project.) If we cannot set the module dependency, we set a library dependency instead.
+      LibraryDependency backup = createLibraryDependency(library, scope);
+      mainDependency.setBackupDependency(backup);
+    }
   }
 
   private static void addTransitiveDependencies(@NotNull AndroidLibrary library,
