@@ -61,6 +61,7 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.problems.WolfTheProblemSolver;
 import com.intellij.psi.JavaPsiFacade;
@@ -1179,7 +1180,7 @@ public class RenderErrorPanel extends JPanel {
       }
     }
 
-    builder.add(throwable.toString()).newline();
+    builder.addHtml(StringUtil.replace(throwable.toString(), "\n", "<BR/>")).newline();
 
     boolean wasHidden = false;
     int indent = 2;

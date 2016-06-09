@@ -36,6 +36,7 @@ import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.codeStyle.CodeStyleSchemes;
 import com.intellij.testFramework.InspectionTestUtil;
+import com.intellij.testFramework.ThreadTracker;
 import com.intellij.testFramework.builders.JavaModuleFixtureBuilder;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
@@ -150,6 +151,9 @@ public abstract class AndroidTestCase extends AndroidTestBase {
 
     // If we do not need a recent target, we disable the studio embedded target to allow tests to pick the test SDK in the testData
     StudioEmbeddedRenderTarget.setDisableEmbeddedTarget(!requireRecentSdk());
+
+    // Layoutlib rendering thread will be shutdown when the app is closed so do not report it as a leak
+    ThreadTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "Layoutlib");
   }
 
   protected void collectAllowedRoots(List<String> roots) throws IOException {

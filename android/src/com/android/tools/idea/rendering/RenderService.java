@@ -41,6 +41,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.ShutDownTracker;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlTag;
 import org.intellij.lang.annotations.MagicConstant;
@@ -54,7 +55,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.Callable;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static com.android.SdkConstants.TAG_PREFERENCE_SCREEN;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
@@ -66,7 +69,27 @@ import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
  */
 public class RenderService {
   public static final boolean NELE_ENABLED = true;
-  private static final Object RENDERING_LOCK = new Object();
+
+  /** Number of ms that we will wait for the rendering thread to return before timing out */
+  private static final int DEFAULT_RENDER_THREAD_TIMEOUT_MS = Integer.getInteger("layoutlib.thread.timeout", 3000);
+
+  private static final AtomicReference<Thread> ourRenderingThread = new AtomicReference<>();
+  private static final ExecutorService ourRenderingExecutor = Executors.newSingleThreadExecutor((Runnable r) -> {
+    Thread renderingThread = new Thread(null, r, "Layoutlib Render Thread");
+    renderingThread.setDaemon(true);
+    ourRenderingThread.set(renderingThread);
+
+    return renderingThread;
+  });
+  private static final AtomicInteger ourTimeoutExceptionCounter = new AtomicInteger(0);
+
+  static {
+    // Register the executor to be shutdown on close
+    ShutDownTracker.getInstance().registerShutdownTask(() -> {
+      ourRenderingExecutor.shutdownNow();
+      ourRenderingThread.set(null);
+    });
+  }
 
   private static final String JDK_INSTALL_URL = "https://developer.android.com/preview/setup-sdk.html#java8";
 
@@ -362,13 +385,7 @@ public class RenderService {
    * method.
    */
   public static void runRenderAction(@NotNull final Runnable runnable) throws Exception {
-    runRenderAction(new Callable<Void>() {
-      @Override
-      public Void call() throws Exception {
-        runnable.run();
-        return null;
-      }
-    });
+    runRenderAction(Executors.callable(runnable));
   }
 
   /**
@@ -376,8 +393,29 @@ public class RenderService {
    * method.
    */
   public static <T> T runRenderAction(@NotNull Callable<T> callable) throws Exception {
-    synchronized (RENDERING_LOCK) {
-      return callable.call();
+    try {
+      // If the number of timeouts exceeds a certain threshold, stop waiting so the caller doesn't block. We try to submit a task that
+      // clean-up the timeout counter instead. If it goes through, it means the queue is free.
+      if (ourTimeoutExceptionCounter.get() > 3) {
+        ourRenderingExecutor.submit(() -> ourTimeoutExceptionCounter.set(0)).get(50, TimeUnit.MILLISECONDS);
+      }
+
+      T result = ourRenderingExecutor.submit(callable).get(DEFAULT_RENDER_THREAD_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+      // The executor seems to be taking tasks so reset the counter
+      ourTimeoutExceptionCounter.set(0);
+
+      return result;
+    } catch(TimeoutException e) {
+      ourTimeoutExceptionCounter.incrementAndGet();
+
+      Thread renderingThread = ourRenderingThread.get();
+      TimeoutException timeoutException = new TimeoutException("Preview timed out while rendering the layout.\n" +
+      "This typically happens when there is an infinite loop or unbounded recursion in one of the custom views.");
+      if (renderingThread != null) {
+        timeoutException.setStackTrace(renderingThread.getStackTrace());
+      }
+
+      throw timeoutException;
     }
   }
 
