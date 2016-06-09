@@ -42,19 +42,16 @@ public class GfxTracer {
   private static final long UPDATE_FREQUENCY_MS = 500;
 
   @NotNull private static final Logger LOG = Logger.getInstance(GfxTracer.class);
-  @NotNull private static final String PRELOAD_LIB = "/data/local/tmp/libgapii.so";
   private static final int GAPII_PORT = 9286;
   @NotNull private static final String GAPII_ABSTRACT_PORT = "gapii";
   private static final int GAPII_PROTOCOL_VERSION = 3;
   private static final int GAPII_FLAG_DISABLE_PRECOMPILED_SHADERS = 0x00000001;
 
-  @NotNull private static final Pattern ENFORCING_PATTERN = Pattern.compile("^Enforcing$", Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
-  @NotNull private static final Pattern PERMISSIVE_PATTERN = Pattern.compile("^Permissive$|^Disabled$", Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
-
   @NotNull private final IDevice myDevice;
   @NotNull final CaptureService myCaptureService;
   @NotNull final CaptureHandle myCapture;
   @NotNull final Listener myListener;
+  private final Project myProject;
 
   private volatile boolean myStopped = false;
 
@@ -106,7 +103,12 @@ public class GfxTracer {
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
       @Override
       public void run() {
-        tracer.launchAndCapture(pkg, act, options);
+        try {
+          tracer.launchAndCapture(pkg, act, options);
+        } catch (Exception ex) {
+          listener.onError(ex.getMessage()); // Update the trace dialog to let the user know something went wrong.
+          throw ex;
+        }
       }
     });
     return tracer;
@@ -130,6 +132,8 @@ public class GfxTracer {
     myCaptureService = CaptureService.getInstance(project);
     myDevice = device;
     myListener = listener;
+    myProject = project;
+
     try {
       myCapture = myCaptureService.startCaptureFile(GfxTraceCaptureType.class, options.myTraceName, true);
     }
@@ -150,50 +154,16 @@ public class GfxTracer {
       String component = pkg.myName + "/" + act.myName;
       // Switch adb to root mode, if not already
       myDevice.root();
-      // turn off selinux enforce if it is on, and remember the state so we can reset it when we are done
-      String enforced = captureAdbShell(myDevice, "getenforce");
-      boolean wasEnforcing;
-      if (ENFORCING_PATTERN.matcher(enforced).find()) {
-        wasEnforcing = true;
-      }
-      else if (PERMISSIVE_PATTERN.matcher(enforced).find()) {
-        wasEnforcing = false;
-      }
-      else {
-        LOG.error("Unexpected getenforce result'" + enforced + "'");
-        wasEnforcing = true;
-      }
-      if (wasEnforcing) {
-        captureAdbShell(myDevice, "setenforce 0");
-      }
-      try {
-        // The property name must have at most 31 characters and must not end with dot.
-        String propName = "wrap." + pkg.myName;
-        if (propName.length() > 31) {
-          propName = propName.substring(0, 31);
-        }
-        while (propName.endsWith(".")) {
-          propName = propName.substring(0, propName.length() - 1);
-        }
-        // push the spy down to the device
-        myDevice.pushFile(myGapii.getAbsolutePath(), PRELOAD_LIB);
-        // Put gapii in the library preload
-        captureAdbShell(myDevice, "setprop " + propName + " LD_PRELOAD=" + PRELOAD_LIB);
-        try {
-          // Launch the app with the spy enabled
-          captureAdbShell(myDevice, "am start -S -W -n " + component);
-          capture(options);
-        }
-        finally {
-          // Undo the preload wrapping
-          captureAdbShell(myDevice, "setprop " + propName + " \"\"");
-        }
-      }
-      finally {
-        if (wasEnforcing) {
-          captureAdbShell(myDevice, "setenforce 1");
-        }
-      }
+
+      // Launch the app in debug mode.
+      captureAdbShell(myDevice, "am start -S -D -W -n " + component);   //-D
+
+      // let's see what happens here. ==================================================================================================
+      myListener.onAction("Installing trace library...");
+      new GapiiLibraryLoader(myProject, myDevice).connectToProcessAndInstallLibraries(pkg, myGapii);
+      LOG.info("Finished installing library, capturing.");
+
+      capture(options);
     }
     catch (RuntimeException e) {
       throw e;
@@ -278,6 +248,7 @@ public class GfxTracer {
     long lastUpdateMS = 0;
     long total = 0;
     byte[] buffer = new byte[4096];
+    int retriesLeft = 60;
     try {
       // Now loop until we get a connection
       int len = 0;
@@ -288,7 +259,15 @@ public class GfxTracer {
           socket.setSoTimeout(500);
           sendHeader(socket, options);
         }
-        len = copyBlock(socket, myCapture, buffer);
+        try {
+          len = copyBlock(socket, myCapture, buffer);
+        } catch (IOException ex) {
+          if (total == 0 && retriesLeft > 0) {
+            len = -1;
+          } else {
+            throw ex;
+          }
+        }
         if (len > 0) {
           if (total == 0) {
             myListener.onAction("Tracing...");
@@ -303,7 +282,7 @@ public class GfxTracer {
         else if (len < 0) {
           socket.close();
           socket = null;
-          if (total == 0) {
+          if (total == 0 && retriesLeft-- > 0) {
             // If we have never read any data, just try again in a bit
             Thread.sleep(500);
           }
