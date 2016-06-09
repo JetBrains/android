@@ -18,11 +18,13 @@ package com.android.tools.idea.editors.gfxtrace.actions;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.DeviceInfo;
+import com.android.tools.idea.editors.gfxtrace.GfxTraceUtil;
 import com.android.tools.idea.editors.gfxtrace.GfxTracer;
 import com.android.tools.idea.editors.gfxtrace.forms.ActivitySelector;
 import com.android.tools.idea.editors.gfxtrace.forms.TraceDialog;
 import com.android.tools.idea.editors.gfxtrace.gapi.GapiPaths;
 import com.android.tools.idea.monitor.gpu.GpuMonitorView;
+import com.android.tools.idea.stats.UsageTracker;
 import com.intellij.concurrency.JobScheduler;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
@@ -155,11 +157,16 @@ public class GfxTraceCaptureAction extends ToggleAction {
     final TraceDialog dialog = new TraceDialog();
     dialog.setListener(new TraceDialog.Listener() {
       private GfxTracer myTracer = null;
+      private long myTraceStartTime;
 
       @Override
       public void onStartTrace(@NotNull String name) {
         GfxTracer.Options options = GfxTracer.Options.fromRunConfiguration(runConfig);
         options.myTraceName = name;
+
+        myTraceStartTime = System.currentTimeMillis();
+        GfxTraceUtil.trackEvent(UsageTracker.ACTION_GFX_TRACE_STARTED, null, null);
+
         myTracer = GfxTracer.launch(myView.getProject(), device, pkg, act, options, bindListener(dialog));
       }
 
@@ -167,6 +174,10 @@ public class GfxTraceCaptureAction extends ToggleAction {
       public void onStopTrace() {
         // myTracer may be null if for some reason we have crashed while starting taking a trace.
         if (myTracer != null) {
+
+          long totalTime = System.currentTimeMillis() - myTraceStartTime;
+          GfxTraceUtil.trackEvent(UsageTracker.ACTION_GFX_TRACE_STOPPED, null, (int)totalTime);
+
           myTracer.stop();
         }
         onStop();

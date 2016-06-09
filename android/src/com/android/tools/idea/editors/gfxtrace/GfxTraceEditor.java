@@ -30,6 +30,7 @@ import com.android.tools.idea.editors.gfxtrace.service.stringtable.Info;
 import com.android.tools.idea.editors.gfxtrace.service.stringtable.StringTable;
 import com.android.tools.idea.editors.gfxtrace.widgets.LoadablePanel;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
+import com.android.tools.idea.stats.UsageTracker;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
@@ -98,6 +99,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   @NotNull private final VirtualFile myFile;
   @NotNull private final JComponent myMainUi;
   @NotNull private final List<PathListener> myPathListeners = new ArrayList<PathListener>();
+  private final long myStartTime = System.currentTimeMillis();
 
   @Nullable private GapisConnection myGapisConnection;
   @Nullable private ServiceClient myClient;
@@ -110,6 +112,8 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
     myProject = project;
     myFile = file;
     myLoadingPanel.setLoadingText("Initializing GFX Trace System");
+
+    GfxTraceUtil.trackEvent(UsageTracker.ACTION_GFX_TRACE_OPEN, null, null);
 
     addPathListener(myAtomStream);
     addPathListener(myState);
@@ -424,6 +428,10 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
 
   @Override
   public void dispose() {
+
+    long totalTime = System.currentTimeMillis() - myStartTime;
+    GfxTraceUtil.trackEvent(UsageTracker.ACTION_GFX_TRACE_CLOSED, null, (int)totalTime);
+
     shutdown();
   }
 
