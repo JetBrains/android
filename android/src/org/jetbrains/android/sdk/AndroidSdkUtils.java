@@ -958,23 +958,6 @@ public final class AndroidSdkUtils {
     return bridge;
   }
 
-  /**
-   * @return URL for the Android SDK download for the current platform, or {@code null} if the platform was not recognized.
-   */
-  @Nullable
-  public static String getSdkDownloadUrl() {
-    if (SystemInfo.isLinux) {
-      return "https://dl.google.com/android/android-sdk_r22.6.2-linux.tgz";
-    }
-    else if (SystemInfo.isWindows) {
-      return "https://dl.google.com/android/android-sdk_r22.6.2-windows.zip";
-    }
-    else if (SystemInfo.isMac) {
-      return "https://dl.google.com/android/android-sdk_r22.6.2-macosx.zip";
-    }
-    return null;
-  }
-
   private static class MyMonitorBridgeConnectionTask extends Task.Modal {
     private final Future<AndroidDebugBridge> myFuture;
     private boolean myCancelled; // set/read only on EDT

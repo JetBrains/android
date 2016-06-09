@@ -76,36 +76,12 @@ public class FirstRunWizardDefaults {
   }
 
   /**
-   * @return Android SDK download URL
-   */
-  @NotNull
-  public static String getSdkDownloadUrl() {
-    String url = System.getProperty("android.sdkurl");
-    if (!StringUtil.isEmptyOrSpaces(url)) {
-      File file = new File(url);
-      if (file.isFile()) {
-        // Can't use any path => URL utilities as they don't add two slashes
-        // after the protocol as required by IJ downloader
-        return LocalFileSystem.PROTOCOL_PREFIX + PathUtil.toSystemIndependentName(file.getAbsolutePath());
-      }
-      else {
-        System.err.println("File " + file.getAbsolutePath() + " does not exist.");
-      }
-    }
-    String downloadUrl = AndroidSdkUtils.getSdkDownloadUrl();
-    if (downloadUrl == null) {
-      throw new IllegalStateException("Unsupported OS");
-    }
-    return downloadUrl;
-  }
-
-  /**
    * @return Default Android SDK install location
    */
   @NotNull
   private static File getDefaultSdkLocation() {
     String path = System.getenv(SdkConstants.ANDROID_HOME_ENV);
-    
+
     if (Strings.isNullOrEmpty(path)) {
       String userHome = System.getProperty("user.home");
       if (SystemInfo.isWindows) {
