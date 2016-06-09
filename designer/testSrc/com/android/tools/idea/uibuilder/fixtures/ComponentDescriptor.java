@@ -15,22 +15,19 @@
  */
 package com.android.tools.idea.uibuilder.fixtures;
 
-import com.android.tools.idea.rendering.TagSnapshot;
-import com.google.common.truth.Truth;
-import com.intellij.util.ArrayUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.tools.idea.rendering.TagSnapshot;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.utils.XmlUtils;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.util.Pair;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.ArrayUtil;
 import junit.framework.TestCase;
-import org.jetbrains.plugins.groovy.lang.psi.typeEnhancers.FirstParamHintProcessor;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -107,11 +104,13 @@ public class ComponentDescriptor {
   }
 
   public ComponentDescriptor withAttribute(@NotNull String namespace, @NotNull String name, @NotNull String value) {
-    if (ANDROID_URI.equals(namespace)) {
-      return withAttribute(PREFIX_ANDROID + name, value);
-    }
-    else if (TOOLS_URI.equals(namespace)) {
-      return withAttribute(TOOLS_PREFIX + ":" + name, value);
+    switch (namespace) {
+      case ANDROID_URI:
+        return withAttribute(PREFIX_ANDROID + name, value);
+      case TOOLS_URI:
+        return withAttribute(TOOLS_PREFIX + ":" + name, value);
+      case AUTO_URI:
+        return withAttribute(APP_PREFIX + ":" + name, value);
     }
     myAttributes.add(Pair.create(name, value));
     return this;
@@ -247,7 +246,12 @@ public class ComponentDescriptor {
     sb.append('<');
     sb.append(myTagName);
     if (depth == 0) {
-      sb.append(" xmlns:android=\"http://schemas.android.com/apk/res/android\"");
+      sb.append(" xmlns:android=\"http://schemas.android.com/apk/res/android\"\n");
+      sb.append(" ");
+      for (int i = 0; i < myTagName.length(); i++) {
+        sb.append(" ");
+      }
+      sb.append(" xmlns:app=\"http://schemas.android.com/apk/res-auto\"");
     }
     for (Pair<String, String> attribute : myAttributes) {
       sb.append("\n");

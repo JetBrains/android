@@ -115,6 +115,7 @@ public class AbsoluteLayoutHandlerTest extends AbstractViewHandlerTest {
       .release()
       .primary()
       .parent().expectXml("<AbsoluteLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                          "                xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
                           "                android:layout_width=\"match_parent\"\n" +
                           "                android:layout_height=\"match_parent\">\n" +
                           "\n" +
@@ -140,6 +141,7 @@ public class AbsoluteLayoutHandlerTest extends AbstractViewHandlerTest {
                                              component(TEXT_VIEW).withBounds(0, 850, 1000, 150).id("@id/myText").width("1000px")
                                                .height("150px")));
     @Language("XML") String xml = "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                  "              xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
                                   "  android:layout_width=\"match_parent\"\n" +
                                   "  android:layout_height=\"match_parent\"\n" +
                                   "  android:orientation=\"vertical\">\n" +
@@ -169,6 +171,7 @@ public class AbsoluteLayoutHandlerTest extends AbstractViewHandlerTest {
       .release()
       .primary().parent().parent()
       .expectXml("<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                 "              xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
                  "  android:layout_width=\"match_parent\"\n" +
                  "  android:layout_height=\"match_parent\"\n" +
                  "  android:orientation=\"vertical\">\n" +
@@ -217,6 +220,7 @@ public class AbsoluteLayoutHandlerTest extends AbstractViewHandlerTest {
       }
     });
     assertEquals("<AbsoluteLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                 "                xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
                  "                android:layout_width=\"match_parent\"\n" +
                  "                android:layout_height=\"match_parent\">\n" +
                  "\n" +

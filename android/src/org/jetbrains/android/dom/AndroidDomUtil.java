@@ -59,7 +59,8 @@ public class AndroidDomUtil {
 
 
   public static final StaticEnumConverter BOOLEAN_CONVERTER = new StaticEnumConverter(VALUE_TRUE, VALUE_FALSE);
-  public static final Map<String, ResourceType> SPECIAL_RESOURCE_TYPES = Maps.newHashMapWithExpectedSize(20);
+  // TODO: Make SPECIAL_RESOURCE_TYPES into an immutable map
+  public static final Map<String, ResourceType> SPECIAL_RESOURCE_TYPES = Maps.newHashMapWithExpectedSize(40);
   private static final PackageClassConverter ACTIVITY_CONVERTER = new PackageClassConverter(AndroidUtils.ACTIVITY_BASE_CLASS_NAME);
   private static final FragmentClassConverter FRAGMENT_CLASS_CONVERTER = new FragmentClassConverter();
 
@@ -82,7 +83,12 @@ public class AndroidDomUtil {
     addSpecialResourceType(ResourceType.ID, ATTR_ID, ATTR_LAYOUT_TO_RIGHT_OF, ATTR_LAYOUT_TO_LEFT_OF, ATTR_LAYOUT_ABOVE,
                            ATTR_LAYOUT_BELOW, ATTR_LAYOUT_ALIGN_BASELINE, ATTR_LAYOUT_ALIGN_LEFT, ATTR_LAYOUT_ALIGN_TOP,
                            ATTR_LAYOUT_ALIGN_RIGHT, ATTR_LAYOUT_ALIGN_BOTTOM, ATTR_LAYOUT_ALIGN_START, ATTR_LAYOUT_ALIGN_END,
-                           ATTR_LAYOUT_TO_START_OF, ATTR_LAYOUT_TO_END_OF);
+                           ATTR_LAYOUT_TO_START_OF, ATTR_LAYOUT_TO_END_OF, ATTR_CHECKED_BUTTON, ATTR_ACCESSIBILITY_TRAVERSAL_BEFORE,
+                           ATTR_ACCESSIBILITY_TRAVERSAL_AFTER, ATTR_LABEL_FOR,
+                           ATTR_LAYOUT_LEFT_TO_LEFT_OF, ATTR_LAYOUT_LEFT_TO_RIGHT_OF, ATTR_LAYOUT_RIGHT_TO_LEFT_OF,
+                           ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, ATTR_LAYOUT_TOP_TO_TOP_OF, ATTR_LAYOUT_TOP_TO_BOTTOM_OF,
+                           ATTR_LAYOUT_BOTTOM_TO_TOP_OF, ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, ATTR_LAYOUT_BASELINE_TO_BASELINE_OF,
+                           ATTR_LAYOUT_CENTER_X_TO_CENTER_X_OF, ATTR_LAYOUT_CENTER_Y_TO_CENTER_Y_OF);
     addSpecialResourceType(ResourceType.LAYOUT, ATTR_LISTITEM, ATTR_LAYOUT);
   }
 
