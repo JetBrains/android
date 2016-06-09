@@ -21,6 +21,7 @@ import com.android.tools.adtui.Range;
 import com.android.tools.adtui.chart.StateChart;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.RangedDiscreteSeries;
+import com.android.tools.idea.monitor.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.ui.BaseSegment;
 import com.android.tools.idea.monitor.ui.ProfilerEventListener;
 import com.intellij.ui.JBColor;
@@ -93,6 +94,9 @@ public class ThreadsSegment extends BaseSegment implements Animatable {
   @Nullable
   private final ThreadSelectedListener mThreadSelectedListener;
 
+  @NotNull
+  private SeriesDataStore mSeriesDataStore;
+
   /**
    * Stores the state series corresponding to each thread.
    * TODO: maybe it's safer to keep insertion order
@@ -100,10 +104,14 @@ public class ThreadsSegment extends BaseSegment implements Animatable {
   @NotNull
   private final Map<Thread, RangedDiscreteSeries<Thread.State>> mThreadsStateSeries;
 
-  public ThreadsSegment(@NotNull Range timeRange, @Nullable ThreadSelectedListener threadSelectedListener,
-                        @NotNull EventDispatcher<ProfilerEventListener> dispatcher) {
+  public ThreadsSegment(@NotNull Range timeRange,
+                        @NotNull SeriesDataStore dataStore,
+                        @NotNull EventDispatcher<ProfilerEventListener> dispatcher,
+                        @Nullable ThreadSelectedListener threadSelectedListener) {
     super(SEGMENT_NAME, timeRange, dispatcher);
     mTimeRange = timeRange;
+    // TODO: generate charts based on data from data store
+    mSeriesDataStore = dataStore;
     mThreadsStateSeries = new HashMap<>();
     mThreadSelectedListener = threadSelectedListener;
     initialize();
