@@ -18,20 +18,20 @@ package com.android.tools.idea.uibuilder.handlers.constraint;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.uibuilder.actions.SetZoomAction;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
 import com.android.tools.idea.uibuilder.model.ModelListener;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.surface.*;
 import com.android.tools.sherpa.drawing.BlueprintColorSet;
 import com.android.tools.sherpa.drawing.ColorSet;
-import com.intellij.icons.AllIcons;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.ui.popup.JBPopup;
+import com.intellij.openapi.ui.popup.JBPopupFactory;
+import com.intellij.openapi.ui.popup.JBPopupListener;
+import com.intellij.openapi.ui.popup.LightweightWindowEvent;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
-import com.intellij.util.ui.JBUI;
+import com.intellij.ui.awt.RelativePoint;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -49,29 +49,27 @@ import static com.android.tools.idea.uibuilder.surface.DesignSurface.ScreenMode.
  * The panel can be collapsed and expanded. The default state is collapsed
  */
 public class WidgetNavigatorPanel extends JPanel
-  implements DesignSurfaceListener, PanZoomListener, ModelListener, NlPropertiesManager.DesignSurfaceChangedListener {
+  implements DesignSurfaceListener, PanZoomListener, ModelListener, JBPopupListener, ComponentListener {
 
-  private static final String TITLE = "Zoom and pan";
+  public static final String TITLE = "Pan and Zoom";
+  public static final String HINT = "(Scroll to Zoom)";
   private static final int SCREEN_SPACE = NlConstants.SCREEN_DELTA;
-  private static final Dimension EXPENDED_PREFERRED_SIZE = new Dimension(200, 216);
-  private static final Dimension COLLAPSED_PREFERRED_SIZE = new Dimension(200, 20);
+  private static final Dimension PREFERRED_SIZE = new Dimension(250, 216);
 
   private static final BlueprintColorSet BLUEPRINT_COLOR_SET = new BlueprintColorSet();
-  private static final JBColor DRAWING_SURFACE_RECTANGLE_COLOR = new JBColor(Gray._160, Gray._160);
+  private static final JBColor DRAWING_SURFACE_RECTANGLE_COLOR = JBColor.red;
   private static final JBColor OVERLAY_COLOR = new JBColor(new Color(232, 232, 232, 127), new Color(80, 80, 80, 127));
-  private static final JBColor NORMAL_SCREEN_VIEW_COLOR = JBColor.WHITE;
+  private static final JBColor NORMAL_SCREEN_VIEW_COLOR = new JBColor(Gray._255, Gray._240);
   private static final Color BLUEPRINT_SCREEN_VIEW_COLOR = BLUEPRINT_COLOR_SET.getBackground();
   private static final Color COMPONENT_STROKE_COLOR = BLUEPRINT_COLOR_SET.getFrames();
 
   private static final Color BACKGROUND_COLOR = BLUEPRINT_COLOR_SET.getBackground();
   private final ColorSet myColorSet;
-  private final CardLayout myCenterLayout;
-  private final JPanel myCenterPanel;
-  private ActionButtonPanel myActionButtonPanel;
   private MiniMap myMiniMap;
 
   @Nullable private DesignSurface myDesignSurface;
-  private NlComponent myComponent;
+  @Nullable private NlComponent myComponent;
+  @Nullable private JBPopup myContainerPopup;
   private Dimension myCurrentScreenViewSize;
   private Dimension myDesignSurfaceSize;
   private Dimension myDeviceSize;
@@ -85,109 +83,30 @@ public class WidgetNavigatorPanel extends JPanel
   private int myXScreenNumber;
   private int myScaledScreenSpace;
 
-  public WidgetNavigatorPanel(@NotNull NlPropertiesManager propertiesManager) {
+  public WidgetNavigatorPanel(@NotNull DesignSurface surface) {
     super(new BorderLayout());
-
-    propertiesManager.addSurfaceChangedListener(this);
-
-    myColorSet = BLUEPRINT_COLOR_SET;
-
-    myCenterLayout = new CardLayout();
-    myCenterPanel = new JPanel(myCenterLayout);
-    myCenterPanel.add(new JLabel(TITLE));
-    setPreferredSize(COLLAPSED_PREFERRED_SIZE);
-
-    add(myCenterPanel, BorderLayout.CENTER);
-    add(new JSeparator(), BorderLayout.SOUTH);
-
-    final DesignSurface designSurface = propertiesManager.getDesignSurface();
-    if (designSurface == null) {
-      return;
-    }
-    setSurface(designSurface);
-
-    // Adding Action Buttons
-    myActionButtonPanel = new ActionButtonPanel();
-    add(myActionButtonPanel, BorderLayout.EAST);
+    myDesignSurfaceOffset = new Point();
+    mySecondScreenOffset = new Point();
     myMiniMap = new MiniMap();
-    myCenterPanel.add(myMiniMap);
+    myColorSet = BLUEPRINT_COLOR_SET;
+    setPreferredSize(PREFERRED_SIZE);
+    setSurface(surface);
+    updateComponents(null);
+
+    add(myMiniMap, BorderLayout.CENTER);
 
     // Listening to mouse event
     final MouseInteractionListener listener = new MouseInteractionListener();
     addMouseListener(listener);
     addMouseMotionListener(listener);
     addMouseWheelListener(listener);
-
-    myDesignSurfaceOffset = new Point();
-    mySecondScreenOffset = new Point();
-    setBorder(BorderFactory.createEmptyBorder(2, 2, 4, 2)); // Margins
-
-    configureUI(myComponent);
+    configureUI();
   }
 
   /**
-   * Panel Holding the Zoom and Collapse Actions
+   * Set up the UI
    */
-  private class ActionButtonPanel extends JPanel {
-
-    private final JComponent myCollapsedComponent;
-    private final JComponent myExpandedComponent;
-    private final DefaultActionGroup myExpandedActions;
-
-    public ActionButtonPanel() {
-      setOpaque(false);
-      ActionManager actionManager = ActionManager.getInstance();
-
-      // Collapse and Zoom Button
-      myExpandedActions = new DefaultActionGroup();
-      updateZoomAction(myDesignSurface);
-
-      ActionToolbar expandedToolbar = actionManager.createActionToolbar("WidgetNavigationPanel", myExpandedActions, false);
-      expandedToolbar.setMinimumButtonSize(JBUI.size(26, 24));
-      myExpandedComponent = expandedToolbar.getComponent();
-      myExpandedComponent.setOpaque(false);
-      add(myExpandedComponent, BorderLayout.EAST);
-
-      // Expand Button
-      DefaultActionGroup collapsedAction = new DefaultActionGroup(
-        new CollapseAction(CollapseAction.EXPAND)
-      );
-      ActionToolbar collapsedToolbar = actionManager.createActionToolbar("WidgetNavigationPanel", collapsedAction, false);
-      collapsedToolbar.setMinimumButtonSize(JBUI.size(26, 24));
-      myCollapsedComponent = collapsedToolbar.getComponent();
-      myCollapsedComponent.setOpaque(false);
-      myCollapsedComponent.setVisible(false);
-      add(myCollapsedComponent, BorderLayout.EAST);
-      setCollapsed(true);
-    }
-
-    private void updateZoomAction(@Nullable DesignSurface designSurface) {
-      myExpandedActions.removeAll();
-      myExpandedActions.addAll(new DefaultActionGroup(
-        new CollapseAction(CollapseAction.COLLAPSE)));
-
-      if (designSurface != null) {
-        myExpandedActions.addAll(new DefaultActionGroup(
-          new SetZoomAction(designSurface, ZoomType.IN),
-          new SetZoomAction(designSurface, ZoomType.OUT),
-          new SetZoomAction(designSurface, ZoomType.FIT)
-        ));
-      }
-    }
-
-    public void setCollapsed(boolean collapsed) {
-      myCollapsedComponent.setVisible(collapsed);
-      myExpandedComponent.setVisible(!collapsed);
-    }
-  }
-
-  /**
-   * Read the values off of the NLcomponent and set up the UI
-   *
-   * @param component
-   */
-  public void configureUI(NlComponent component) {
-    myComponent = component;
+  public void configureUI() {
     if (myDesignSurface == null) {
       return;
     }
@@ -209,7 +128,13 @@ public class WidgetNavigatorPanel extends JPanel
       // If not component are selected, displays the full screen
       myComponent = myComponent.getRoot();
     }
-    configureUI(myComponent);
+    else if (myDesignSurface != null) {
+      final ScreenView currentScreenView = myDesignSurface.getCurrentScreenView();
+      if (currentScreenView != null) {
+        final List<NlComponent> components = currentScreenView.getModel().getComponents();
+        myComponent = !components.isEmpty() ? components.get(0) : null;
+      }
+    }
     myMiniMap.repaint();
   }
 
@@ -217,6 +142,7 @@ public class WidgetNavigatorPanel extends JPanel
   @Override
   public void componentSelectionChanged(@NotNull DesignSurface surface, @NotNull List<NlComponent> selectedComponents) {
     updateComponents(selectedComponents);
+    configureUI();
   }
 
   @Override
@@ -273,13 +199,13 @@ public class WidgetNavigatorPanel extends JPanel
     if (myDesignSurface == null) {
       return;
     }
-    final ScreenView currentScreenView = myDesignSurface.getCurrentScreenView();
-    if (currentScreenView == null) return;
-
-    myCurrentScreenViewSize = currentScreenView.getSize(myCurrentScreenViewSize);
-    myDesignSurfaceSize = myDesignSurface.getSize(myDesignSurfaceSize);
-    computeScale(currentScreenView, myDesignSurfaceSize, myCurrentScreenViewSize);
     final Point scrollPosition = myDesignSurface.getScrollPosition();
+    final ScreenView currentScreenView = myDesignSurface.getCurrentScreenView();
+    if (currentScreenView != null) {
+      myDesignSurfaceSize = myDesignSurface.getSize(myDesignSurfaceSize);
+      final Dimension contentSize = myDesignSurface.getContentSize(null);
+      computeScale(currentScreenView, myDesignSurfaceSize, contentSize);
+    }
     myDesignSurfaceOffset.setLocation(
       scrollPosition.getX() * myScreenViewScale,
       scrollPosition.getY() * myScreenViewScale
@@ -287,27 +213,45 @@ public class WidgetNavigatorPanel extends JPanel
     repaint();
   }
 
-  /* Implement DesignSurfaceChangedListener */
+  /* Implements JBPopupListener */
   @Override
-  public void surfaceChanged(@Nullable DesignSurface surface) {
-    setSurface(surface);
-    if (surface != null) {
-      final ScreenView currentScreenView = surface.getCurrentScreenView();
-      if (currentScreenView != null) {
-        final List<NlComponent> selection = currentScreenView.getSelectionModel().getSelection();
-        if (selection.isEmpty()) {
-          updateComponents(currentScreenView.getModel().getComponents());
-        }
-        else {
-          updateComponents(selection);
-        }
+  public void beforeShown(LightweightWindowEvent event) {
+    myContainerPopup = event.asPopup();
+  }
 
-        if (myActionButtonPanel != null) {
-          myActionButtonPanel.updateZoomAction(myDesignSurface);
-        }
+  @Override
+  public void onClosed(LightweightWindowEvent event) {
+    if (myContainerPopup != null) {
+      myContainerPopup.removeListener(this);
+      myContainerPopup = null;
+    }
+  }
+
+  /* Implements ComponentListener */
+  @Override
+  public void componentResized(ComponentEvent e) {
+    // If either the width or the height of the DesignSurface is negative,
+    // that means that the DesignSurface is not shown, so we hide the dialog
+    // and no need to continue to paint.
+    // Since we do not receive any event to tell us that the DesignSurface is not
+    // shown, this the only way to check it.
+    if (myContainerPopup != null) {
+      if (e.getComponent().getWidth() <= 0 || e.getComponent().getHeight() <= 0) {
+        myContainerPopup.cancel();
       }
     }
-    myMiniMap.repaint();
+  }
+
+  @Override
+  public void componentMoved(ComponentEvent e) {
+  }
+
+  @Override
+  public void componentShown(ComponentEvent e) {
+  }
+
+  @Override
+  public void componentHidden(ComponentEvent e) {
   }
 
   /**
@@ -316,6 +260,7 @@ public class WidgetNavigatorPanel extends JPanel
    * @param surface
    */
   public void setSurface(@Nullable DesignSurface surface) {
+    updateScreenNumber(surface);
     if (surface == myDesignSurface) {
       return;
     }
@@ -324,6 +269,7 @@ public class WidgetNavigatorPanel extends JPanel
     if (myDesignSurface != null) {
       myDesignSurface.removeListener(this);
       myDesignSurface.removePanZoomListener(this);
+      myDesignSurface.removeComponentListener(this);
       final ScreenView currentScreenView = myDesignSurface.getCurrentScreenView();
       if (currentScreenView != null) {
         currentScreenView.getModel().removeListener(this);
@@ -336,6 +282,7 @@ public class WidgetNavigatorPanel extends JPanel
     }
     myDesignSurface.addListener(this);
     myDesignSurface.addPanZoomListener(this);
+    myDesignSurface.addComponentListener(this);
 
     final ScreenView currentScreenView = myDesignSurface.getCurrentScreenView();
     if (currentScreenView != null) {
@@ -346,7 +293,6 @@ public class WidgetNavigatorPanel extends JPanel
     if (configuration != null) {
       updateDeviceConfiguration(configuration);
     }
-    updateScreenNumber(surface);
   }
 
   /**
@@ -354,9 +300,11 @@ public class WidgetNavigatorPanel extends JPanel
    *
    * @param surface
    */
-  private void updateScreenNumber(@NotNull DesignSurface surface) {
-    myXScreenNumber = !surface.isStackVertically() && surface.getScreenMode() == BOTH ? 2 : 1;
-    myYScreenNumber = surface.isStackVertically() && surface.getScreenMode() == BOTH ? 2 : 1;
+  private void updateScreenNumber(@Nullable DesignSurface surface) {
+    if (surface != null) {
+      myXScreenNumber = !surface.isStackVertically() && surface.getScreenMode() == BOTH ? 2 : 1;
+      myYScreenNumber = surface.isStackVertically() && surface.getScreenMode() == BOTH ? 2 : 1;
+    }
   }
 
   /**
@@ -480,95 +428,31 @@ public class WidgetNavigatorPanel extends JPanel
   }
 
   /**
-   * Action Button to toggle the collapsed state
-   */
-  private class CollapseAction extends AnAction {
-
-    static final int COLLAPSE = 0;
-    static final int EXPAND = 1;
-
-    private final int myAction;
-
-    public CollapseAction(int action) {
-      myAction = action;
-      if (action == 0) {
-        getTemplatePresentation().setIcon(AllIcons.Ide.Notification.Collapse);
-        getTemplatePresentation().setHoveredIcon(AllIcons.Ide.Notification.CollapseHover);
-      }
-      else {
-        getTemplatePresentation().setIcon(AllIcons.Ide.Notification.Expand);
-        getTemplatePresentation().setHoveredIcon(AllIcons.Ide.Notification.ExpandHover);
-      }
-    }
-
-    @Override
-    public void actionPerformed(AnActionEvent e) {
-      if (myAction == 0) {
-        collapse();
-      }
-      else {
-        expand();
-      }
-    }
-  }
-
-  /**
-   * Collapse the whole panel and display the panel title
-   */
-  private void collapse() {
-    myMiniMap.setVisible(false);
-    setPreferredSize(COLLAPSED_PREFERRED_SIZE);
-    myCenterLayout.next(myCenterPanel);
-    myActionButtonPanel.setCollapsed(true);
-  }
-
-  /**
-   * Expand the whole panel
-   */
-  private void expand() {
-    myMiniMap.setVisible(true);
-    myActionButtonPanel.setCollapsed(false);
-    setPreferredSize(EXPENDED_PREFERRED_SIZE);
-    myCenterLayout.next(myCenterPanel);
-  }
-
-  /**
    * Set the scale ratio to display the miniature of the {@link ScreenView} and {@link DesignSurface} inside this panel.
    * The scale ratio is computed such as both the {@link ScreenView} and the {@link DesignSurface} are always totally visible
    * whatever the value of the zoom is.
    *
    * @param currentScreenView The active {@link ScreenView}
    * @param designSurfaceSize The real size of the {@link DesignSurface}
-   * @param screenViewSize    The total size of all the {@link ScreenView} in the {@link DesignSurface}
+   * @param contentSize       The total size of all the {@link ScreenView} in the {@link DesignSurface}
    */
   private void computeScale(@Nullable ScreenView currentScreenView,
                             @NotNull Dimension designSurfaceSize,
-                            @NotNull Dimension screenViewSize) {
+                            @NotNull Dimension contentSize) {
 
-    if (currentScreenView == null) {
+    if (currentScreenView == null || myMiniMap == null) {
       return;
     }
 
-    myIsZoomed = designSurfaceSize.getWidth() < currentScreenView.getX() + screenViewSize.getWidth()
-                 || designSurfaceSize.getHeight() < currentScreenView.getY() + screenViewSize.getHeight();
+    myIsZoomed = designSurfaceSize.getWidth() < currentScreenView.getX() + contentSize.getWidth()
+                 || designSurfaceSize.getHeight() < currentScreenView.getY() + contentSize.getHeight();
 
-    myScreenViewScale = Math.min(
-      myMiniMap.getWidth() / screenViewSize.getWidth(),
-      myMiniMap.getHeight() / screenViewSize.getHeight()
-    );
-
-    double surfaceScale = Math.min(
-      myMiniMap.getWidth() / designSurfaceSize.getWidth(),
-      myMiniMap.getHeight() / designSurfaceSize.getHeight()
-    );
-
+    double surfaceScale = PREFERRED_SIZE.height / designSurfaceSize.getHeight();
     myScaledScreenSpace = (int)Math.round(SCREEN_SPACE * surfaceScale);
 
-    myDeviceScale = Math.min(
-      myMiniMap.getWidth() / myDeviceSize.getWidth() / (double)myXScreenNumber,
-      myMiniMap.getHeight() / myDeviceSize.getHeight() / (double)myYScreenNumber
-    );
+    myScreenViewScale = PREFERRED_SIZE.height / contentSize.getHeight();
 
+    myDeviceScale = PREFERRED_SIZE.height / myDeviceSize.getHeight() / (double)myYScreenNumber;
     computeOffsets(currentScreenView);
   }
 
@@ -580,6 +464,9 @@ public class WidgetNavigatorPanel extends JPanel
   private void computeOffsets(@Nullable ScreenView currentScreenView) {
     if (myDesignSurface != null && currentScreenView != null) {
       myCurrentScreenViewSize = currentScreenView.getSize(myCurrentScreenViewSize);
+
+      // If there is two ScreenViews displayed,
+      // we compute the offset of the second ScreenView
       if (myDesignSurface.getScreenMode() == BOTH) {
         if (myDesignSurface.isStackVertically()) {
           mySecondScreenOffset.setLocation(0, myDeviceSize.getHeight() * myDeviceScale + myScaledScreenSpace);
@@ -589,9 +476,7 @@ public class WidgetNavigatorPanel extends JPanel
         }
       }
     }
-
-    myCenterOffset = (int)Math.round(
-      (myMiniMap.getWidth() - myXScreenNumber * myDeviceSize.getWidth() * myDeviceScale - myScaledScreenSpace) / 2.);
+    myCenterOffset = (int)Math.round((PREFERRED_SIZE.getWidth() - myXScreenNumber * myDeviceSize.getWidth() * myDeviceScale) / 2);
   }
 
   /**
@@ -613,15 +498,17 @@ public class WidgetNavigatorPanel extends JPanel
         if (currentScreenView != null) {
 
           myDesignSurfaceSize = myDesignSurface.getSize(myDesignSurfaceSize);
+
           final Dimension contentSize = myDesignSurface.getContentSize(null);
           final ScreenView blueprintView = myDesignSurface.getBlueprintView();
-
           computeScale(currentScreenView, myDesignSurfaceSize, contentSize);
-
           gc.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
           gc.setColor(BACKGROUND_COLOR);
+          drawContainers(gc, blueprintView);
 
-          drawContainers(gc, currentScreenView, blueprintView);
+          if (myIsZoomed) {
+            drawDesignSurface(gc, currentScreenView);
+          }
           gc.setColor(COMPONENT_STROKE_COLOR);
           if (myComponent != null) {
             drawAllComponents(gc, myComponent.getRoot(), blueprintView);
@@ -644,9 +531,9 @@ public class WidgetNavigatorPanel extends JPanel
 
       // Save the current color to highlight the selected component then reset the color
       Color color = gc.getColor();
-      if (component.getId() != null && component.getId().equals(myComponent.getId())) {
+      if (myComponent != null && component.getId() != null
+          && component.getId().equals(myComponent.getId())) {
         gc.setColor(myColorSet.getSelectedFrames());
-
       }
       drawComponent(gc, component, blueprintView);
       gc.setColor(color);
@@ -688,13 +575,10 @@ public class WidgetNavigatorPanel extends JPanel
     }
 
     /**
-     * @param gc                the {@link Graphics2D} to draw on
-     * @param currentScreenView the current {@link ScreenView}
-     * @param blueprintView     the blueprint {@link ScreenView} if it is availableView
+     * @param gc            the {@link Graphics2D} to draw on
+     * @param blueprintView the blueprint {@link ScreenView} if it is availableView
      */
-    private void drawContainers(Graphics2D gc,
-                                ScreenView currentScreenView,
-                                @Nullable ScreenView blueprintView) {
+    private void drawContainers(Graphics2D gc, @Nullable ScreenView blueprintView) {
 
       // Draw the first screen view
       assert myDesignSurface != null;
@@ -723,48 +607,72 @@ public class WidgetNavigatorPanel extends JPanel
           (int)Math.round(myDeviceSize.getHeight() * myDeviceScale)
         );
       }
-
-      if (myIsZoomed) {
-
-        // Rectangle of the drawing surface
-        gc.setColor(DRAWING_SURFACE_RECTANGLE_COLOR);
-
-        final Rectangle designSurfaceRect = new Rectangle(
-          myCenterOffset + myDesignSurfaceOffset.x,
-          myDesignSurfaceOffset.y,
-          (int)Math.round((myDesignSurfaceSize.getWidth() - currentScreenView.getX() / 2.) * myScreenViewScale),
-          (int)Math.round(myDesignSurfaceSize.getHeight() * myScreenViewScale));
-
-        gc.draw(designSurfaceRect);
-
-        // Darken the non visible parts
-        gc.setColor(OVERLAY_COLOR);
-
-        //left
-        gc.fillRect(0, 0, designSurfaceRect.x, getHeight());
-
-        //Top
-        gc.fillRect(designSurfaceRect.x,
-                    0,
-                    designSurfaceRect.width,
-                    designSurfaceRect.y
-        );
-
-        // Right
-        gc.fillRect(designSurfaceRect.x + designSurfaceRect.width,
-                    0,
-                    myMiniMap.getWidth() - designSurfaceRect.x - designSurfaceRect.width + myCenterOffset + myScaledScreenSpace,
-                    getHeight());
-
-        // Bottom
-        gc.fillRect(designSurfaceRect.x,
-                    designSurfaceRect.y + designSurfaceRect.height,
-                    designSurfaceRect.width,
-                    (int)Math.round(myDeviceSize.getHeight() * myDeviceScale) * myYScreenNumber -
-                    designSurfaceRect.y -
-                    designSurfaceRect.height
-        );
-      }
     }
+
+    private void drawDesignSurface(Graphics2D gc, ScreenView currentScreenView) {
+      // Rectangle of the drawing surface
+      gc.setColor(DRAWING_SURFACE_RECTANGLE_COLOR);
+
+      int x = (int)Math.round(myCenterOffset + myDesignSurfaceOffset.x - (currentScreenView.getX() / 2) * myScreenViewScale);
+      int y = (int)Math.round(myDesignSurfaceOffset.y - (currentScreenView.getX() / 2) * myScreenViewScale);
+      int width = (int)Math.round((myDesignSurfaceSize.getWidth() - currentScreenView.getX() / 2.) * myScreenViewScale);
+      int height = (int)Math.round((myDesignSurfaceSize.getHeight() - currentScreenView.getY() / 2.) * myScreenViewScale);
+
+      final Rectangle intersection = new Rectangle(x, y, width, height).intersection(getVisibleRect());
+      x = intersection.x;
+      y = intersection.y;
+      width = intersection.width - 1;
+      height = intersection.height - 1;
+
+      gc.drawRect(x, y, width, height);
+
+      // Darken the non visible parts
+      gc.setColor(OVERLAY_COLOR);
+
+      //left
+      gc.fillRect(0, 0, x, getHeight());
+
+      //Top
+      gc.fillRect(x, 0, width, y);
+
+      // Right
+      gc.fillRect(x + width,
+                  0,
+                  PREFERRED_SIZE.width,
+                  getHeight());
+
+      // Bottom
+      gc.fillRect(x,
+                  y + height,
+                  width,
+                  (int)Math.round(myDeviceSize.getHeight() * myDeviceScale) * myYScreenNumber - y - height);
+    }
+  }
+
+  public static JBPopup createPopup(DesignSurface surface) {
+
+    JComponent myPanel = new WidgetNavigatorPanel(surface);
+    final Dimension minSize = new Dimension(myPanel.getSize());
+    JBPopup builder = JBPopupFactory.getInstance().createComponentPopupBuilder(myPanel, myPanel)
+      .setTitle(TITLE)
+      .setMinSize(minSize)
+      .setResizable(false)
+      .setMovable(true)
+      .setRequestFocus(true)
+      .setCouldPin(jbPopup -> true)
+      .setLocateWithinScreenBounds(true)
+      .setShowBorder(true)
+      .setShowShadow(true)
+      .setCancelOnClickOutside(false)
+      .setCancelOnWindowDeactivation(false)
+      .setCancelOnOtherWindowOpen(false)
+      .addListener((JBPopupListener)myPanel)
+      .createPopup();
+
+    final int x = surface.getWidth() - PREFERRED_SIZE.width - surface.getScrollPane().getVerticalScrollBar().getWidth();
+    final int y = NlConstants.RULER_SIZE_PX;
+    RelativePoint position = new RelativePoint(surface, new Point(x, y));
+    builder.show(position);
+    return builder;
   }
 }
