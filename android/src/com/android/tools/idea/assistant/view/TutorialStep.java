@@ -176,15 +176,19 @@ public class TutorialStep extends JPanel {
 
   /**
    * A custom border used to create a circle around a specifically sized step number.
-   * TODO: Adjust values further to match specs.
    */
   class NumberBorder extends AbstractBorder {
+
+    /**
+     * Space needed to render border, used at this value to center the text in the component.
+     */
+    private static final int INSET = 3;
 
     @Override
     public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
       Graphics2D g2 = (Graphics2D)g.create();
       g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-      // Shrink the diameter by 1px as attempting to use full bounds results in clipping.
+      // Per documentation, the drawn oval covers an area of width + 1 and height + 1, account for this.
       int d = height - 1;
       g2.setColor(NUMBER_COLOR);
       g2.drawOval(x, y, d, d);
@@ -193,13 +197,12 @@ public class TutorialStep extends JPanel {
 
     @Override
     public Insets getBorderInsets(Component c) {
-      return new Insets(2, 2, 2, 2);
+      return new Insets(INSET, INSET, INSET, INSET);
     }
 
     @Override
     public Insets getBorderInsets(Component c, Insets insets) {
-      insets.left = insets.right = 2;
-      insets.top = insets.bottom = 2;
+      insets.left = insets.right = insets.top = insets.bottom = INSET;
       return insets;
     }
   }
