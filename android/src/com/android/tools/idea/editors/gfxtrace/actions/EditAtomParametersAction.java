@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.gfxtrace.actions;
 
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
+import com.android.tools.idea.editors.gfxtrace.GfxTraceUtil;
 import com.android.tools.idea.editors.gfxtrace.UiCallback;
 import com.android.tools.idea.editors.gfxtrace.controllers.AtomController;
 import com.android.tools.idea.editors.gfxtrace.renderers.Render;
@@ -23,6 +24,7 @@ import com.android.tools.idea.editors.gfxtrace.renderers.RenderUtils;
 import com.android.tools.idea.editors.gfxtrace.service.path.Path;
 import com.android.tools.idea.editors.gfxtrace.service.snippets.Labels;
 import com.android.tools.idea.editors.gfxtrace.service.snippets.SnippetObject;
+import com.android.tools.idea.stats.UsageTracker;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
 import com.android.tools.rpclib.schema.*;
@@ -86,6 +88,9 @@ public class EditAtomParametersAction extends AbstractAction {
       }
 
       final Path oldPath = myGfxTraceEditor.getAtomStream().getPath().index(myNode.index);
+
+      GfxTraceUtil.trackEvent(UsageTracker.ACTION_GFX_TRACE_PARAMETER_EDITED, oldPath.toString(), null);
+
       Rpc.listen(myGfxTraceEditor.getClient().set(oldPath, newAtom), LOG, new UiCallback<Path, Path>() {
         @Override
         protected Path onRpcThread(Rpc.Result<Path> result) throws RpcException, ExecutionException {

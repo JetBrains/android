@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.gfxtrace.controllers;
 
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
+import com.android.tools.idea.editors.gfxtrace.GfxTraceUtil;
 import com.android.tools.idea.editors.gfxtrace.UiErrorCallback;
 import com.android.tools.idea.editors.gfxtrace.actions.AtomComboAction;
 import com.android.tools.idea.editors.gfxtrace.models.AtomStream;
@@ -31,6 +32,7 @@ import com.android.tools.idea.editors.gfxtrace.service.image.Format;
 import com.android.tools.idea.editors.gfxtrace.service.image.ImageInfo;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.android.tools.idea.editors.gfxtrace.widgets.ImageCellList;
+import com.android.tools.idea.stats.UsageTracker;
 import com.android.tools.rpclib.futures.SingleInFlight;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
@@ -38,6 +40,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -54,6 +57,7 @@ public class TexturesController extends ImagePanelController {
   }
 
   @NotNull private AtomComboAction myJumpToAtomComboAction;
+  private Object myCurrentResourceId;
 
   public TexturesController(@NotNull GfxTraceEditor editor) {
     super(editor, GfxTraceEditor.SELECT_ATOM);
@@ -63,6 +67,18 @@ public class TexturesController extends ImagePanelController {
         setEmptyText(myList.isEmpty() ? GfxTraceEditor.NO_TEXTURES : GfxTraceEditor.SELECT_TEXTURE);
         setImage((item == null) ? null : FetchedImage.load(myEditor.getClient(), item.path));
         myJumpToAtomComboAction.setAtomIds(item == null ? Collections.emptyList() : Arrays.stream(item.info.getAccesses()).boxed().collect(Collectors.toList()));
+
+        // trackEvent for TEXTURE_VIEWED
+        if (item != null && myCurrentResourceId != item.info.getID()) {
+          myCurrentResourceId = item.info.getID();
+          String format = item.typeLabel;
+          Integer size = null;
+          if (item.imageInfo != null) {
+            size = item.imageInfo.getWidth() * item.imageInfo.getHeight();
+            format = format + "/" + item.imageInfo.getFormat().toString();
+          }
+          GfxTraceUtil.trackEvent(UsageTracker.ACTION_GFX_TRACE_TEXTURE_VIEWED, format, size);
+        }
       }
     }.myList, BorderLayout.NORTH);
 
@@ -84,18 +100,23 @@ public class TexturesController extends ImagePanelController {
       @NotNull public final SingleInFlight extraController = new SingleInFlight();
       @NotNull public final ResourceInfo info;
       @NotNull public final ResourcePath path;
-      public String extraLabel;
+      @NotNull public final String typeLabel;
 
+      @Nullable public ImageInfo imageInfo;
+      @Nullable public String extraLabel;
 
       public Data(@NotNull ResourceInfo info, @NotNull String typeLabel, @NotNull ResourcePath path) {
-        super(typeLabel + " " + info.getName());
+        super(info.getName());
+        this.typeLabel = typeLabel;
         this.info = info;
         this.path = path;
       }
 
       @Override
       public String getLabel() {
-        return super.getLabel() + (extraLabel == null ? "" : " " + extraLabel);
+        return typeLabel + " " + super.getLabel() +
+               (imageInfo == null ? "" : " - " + imageInfo.getFormat() + " - " + imageInfo.getWidth() + "x" + imageInfo.getHeight()) +
+               (extraLabel == null ? "" : " " + extraLabel);
       }
     }
 
@@ -121,31 +142,40 @@ public class TexturesController extends ImagePanelController {
     }
 
     private void loadCellMetadata(final Data cell) {
-      Rpc.listen(myEditor.getClient().get(cell.path), LOG, cell.extraController, new UiErrorCallback<Object, String, String>() {
+      Rpc.listen(myEditor.getClient().get(cell.path), LOG, cell.extraController, new UiErrorCallback<Object, Object, String>() {
         @Override
-        protected ResultOrError<String, String> onRpcThread(Rpc.Result<Object> result) throws RpcException, ExecutionException {
-          final Object resource;
+        protected ResultOrError<Object, String> onRpcThread(Rpc.Result<Object> result) throws RpcException, ExecutionException {
           try {
-            resource = result.get();
+            return success(result.get());
           } catch (ErrDataUnavailable e) {
             return error(e.getMessage());
-          }
-          if (resource instanceof Texture2D) {
-            Texture2D texture = (Texture2D)resource;
-            return success(getTextureDisplayLabel(cell, texture.getLevels()[0], texture.getLevels().length));
-          }
-          else if (resource instanceof Cubemap) {
-            final Cubemap texture = (Cubemap)resource;
-            return success(getTextureDisplayLabel(cell, texture.getLevels()[0].getNegativeZ(), texture.getLevels().length));
-          }
-          else {
-            return error("Unknown texture type: " + resource.getClass().getName());
           }
         }
 
         @Override
-        protected void onUiThreadSuccess(String label) {
-          cell.extraLabel = label;
+        protected void onUiThreadSuccess(Object resource) {
+          ImageInfo base = null;
+          int mipmapLevels = -1;
+
+          if (resource instanceof Texture2D) {
+            Texture2D texture = (Texture2D)resource;
+            base = texture.getLevels()[0];
+            mipmapLevels = texture.getLevels().length;
+          }
+          else if (resource instanceof Cubemap) {
+            Cubemap texture = (Cubemap)resource;
+            base = texture.getLevels()[0].getNegativeZ();
+            mipmapLevels = texture.getLevels().length;
+          }
+
+          if (base != null) {
+            cell.imageInfo = base;
+            cell.extraLabel = ((mipmapLevels > 1) ? " - " + mipmapLevels + " mip levels" : "") + " - Modified " + cell.info.getAccesses().length + " times";
+          }
+          else {
+            cell.extraLabel = "Unknown texture type: " + resource.getClass().getName();
+          }
+
           myList.repaint();
         }
 
@@ -155,11 +185,6 @@ public class TexturesController extends ImagePanelController {
           myList.repaint();
         }
       });
-    }
-
-    static String getTextureDisplayLabel(Data cell, ImageInfo base, int mipmapLevels) {
-      return " - " + base.getFormat() + " - " + base.getWidth() + "x" + base.getHeight() +
-             ((mipmapLevels > 1) ? " - " + mipmapLevels + " mip levels" : "") + " - Modified " + cell.info.getAccesses().length + " times";
     }
 
     protected void update(boolean resourcesChanged) {
