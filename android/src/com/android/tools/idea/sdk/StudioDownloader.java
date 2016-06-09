@@ -55,7 +55,14 @@ public class StudioDownloader implements Downloader {
     if (file == null) {
       return null;
     }
-    return new FileInputStream(file);
+    file.deleteOnExit();
+    return new FileInputStream(file) {
+      @Override
+      public void close() throws IOException {
+        super.close();
+        file.delete();
+      }
+    };
   }
 
   @Override
