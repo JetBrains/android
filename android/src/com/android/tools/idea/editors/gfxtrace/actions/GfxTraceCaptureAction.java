@@ -50,47 +50,6 @@ public abstract class GfxTraceCaptureAction extends ToggleAction {
   private static JDialog sActiveForm = null;
   private JDialog myActiveForm = null;
 
-  public static class Listen extends GfxTraceCaptureAction {
-    public Listen(@NotNull GpuMonitorView view) {
-      super(view, "Listen", "Listen for GFX traces", AndroidIcons.GfxTrace.ListenForTrace);
-    }
-
-    @Override
-    void start(@NotNull final Container window, @NotNull final IDevice device) {
-      final TraceDialog dialog = new TraceDialog();
-      dialog.setListener(new TraceDialog.Listener() {
-        private GfxTracer myTracer = null;
-
-        @Override
-        public void onStartTrace(@NotNull String name) {
-          GfxTracer.Options options = GfxTracer.Options.fromRunConfiguration(getSelectedRunConfiguration(myView));
-          options.myTraceName = name;
-          myTracer = GfxTracer.listen(myView.getProject(), device, options, bindListener(dialog));
-        }
-
-        @Override
-        public void onStopTrace() {
-          // myTracer may be null if for some reason we have crashed while starting taking a trace.
-          if (myTracer != null) {
-            myTracer.stop();
-          }
-          onStop();
-        }
-
-        @Override
-        public void onCancelTrace() {
-          onStop();
-        }
-      });
-      CaptureService service = CaptureService.getInstance(myView.getProject());
-      String name = service.getSuggestedName(myView.getDeviceContext().getSelectedClient());
-      dialog.setLocationRelativeTo(window);
-      dialog.setDefaultName(name);
-      dialog.setVisible(true);
-      setActiveForm(dialog);
-    }
-  }
-
   public static class Launch extends GfxTraceCaptureAction {
     private static final String NOTIFICATION_GROUP = "GPU trace";
     private static final String NOTIFICATION_LAUNCH_REQUIRES_ROOT_TITLE = "Rooted device required";
