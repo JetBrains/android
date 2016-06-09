@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture.avdmanager;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.Wait;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.intellij.ui.HyperlinkLabel;
@@ -125,6 +126,7 @@ public class AvdManagerDialogFixture extends ComponentFixture<AvdManagerDialogFi
   }
 
   public void close() {
-    robot().close(target());
+    robot().pressAndReleaseKey(27);  // Esc key, since the dialog has no button or other UI element to close it
+    Wait.seconds(5).expecting("dialog to disappear").until(() -> !target().isShowing());
   }
 }
