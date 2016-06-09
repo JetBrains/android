@@ -39,7 +39,8 @@ public abstract class BaseSegment extends JComponent implements ProfilerEventLis
     NETWORK,
     MEMORY,
     CPU,
-    GPU
+    GPU,
+    THREADS
   }
 
   private static final int SPACER_WIDTH = 100;
