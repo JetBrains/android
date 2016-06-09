@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw;
 
+import com.android.tools.idea.npw.deprecated.WrapArchiveWizardPath;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
