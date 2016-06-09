@@ -1203,20 +1203,18 @@ public class DesignSurface extends JPanel implements Disposable {
       g2d.setStroke(DASHED_STROKE);
 
       g2d.drawLine(x - 1, y - BOUNDS_RECT_DELTA, x - 1, y + size.height + BOUNDS_RECT_DELTA);
-      g2d.drawLine(x - BOUNDS_RECT_DELTA, y - 1, x + size.width + BOUNDS_RECT_DELTA, y - 1);
-      g2d.drawLine(x + size.width, y - BOUNDS_RECT_DELTA, x + size.width, y + size.height + BOUNDS_RECT_DELTA);
-      g2d.drawLine(x - BOUNDS_RECT_DELTA, y + size.height, x + size.width + BOUNDS_RECT_DELTA, y + size.height);
+      g2d.drawLine(x - BOUNDS_RECT_DELTA, y - 1, x + size.width, y - 1);
+      g2d.drawLine(x + size.width, y - 1, x + size.width, y + size.height);
+      g2d.drawLine(x - BOUNDS_RECT_DELTA, y + size.height, x + size.width, y + size.height);
 
       // Draw the canvas resize symbol at the bottom right of the screen view
       // TODO: make those numbers constants, or use an icon
-      g2d.setStroke(SOLID_STROKE);
-      g2d.drawLine(x + size.width + 4, y + size.height + 4, x + size.width + 9, y + size.height + 4);
-      g2d.drawLine(x + size.width + 4, y + size.height + 4, x + size.width + 4, y + size.height + 9);
-      g2d.drawLine(x + size.width + 4, y + size.height + 9, x + size.width + 9, y + size.height + 4);
-
-      g2d.drawLine(x + size.width + 3, y + size.height + 13, x + size.width + 13, y + size.height + 13);
-      g2d.drawLine(x + size.width + 13, y + size.height + 3, x + size.width + 13, y + size.height + 13);
-      g2d.drawLine(x + size.width + 3, y + size.height + 13, x + size.width + 13, y + size.height + 3);
+      g2d.setStroke(THICK_SOLID_STROKE);
+      g2d.setColor(RESIZING_CUE_COLOR);
+      int xCorner = x + size.width + 5;
+      int yCorner = y + size.height + 5;
+      g2d.drawLine(xCorner, yCorner, xCorner - RESIZING_CUE_SIZE, yCorner);
+      g2d.drawLine(xCorner, yCorner, xCorner, yCorner - RESIZING_CUE_SIZE);
 
       g2d.setStroke(prevStroke);
     }

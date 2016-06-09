@@ -348,8 +348,8 @@ public class InteractionManager {
       if (mySurface.getScreenMode() != DesignSurface.ScreenMode.BOTH || screenView.getScreenViewType() == ScreenView.ScreenViewType.NORMAL) {
         Dimension size = screenView.getSize();
         // TODO: use constants for those numbers
-        Rectangle resizeIcon = new Rectangle(screenView.getX() + size.width + 3, screenView.getY() + size.height + 3, 12, 12);
-        if (resizeIcon.contains(x, y)) {
+        Rectangle resizeZone = new Rectangle(screenView.getX() + size.width, screenView.getY() + size.height, 24, 24);
+        if (resizeZone.contains(x, y)) {
           mySurface.setCursor(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR));
           return;
         }
@@ -424,8 +424,8 @@ public class InteractionManager {
       if (mySurface.getScreenMode() != DesignSurface.ScreenMode.BOTH || screenView.getScreenViewType() == ScreenView.ScreenViewType.NORMAL) {
         Dimension size = screenView.getSize();
         // TODO: use constants for those numbers
-        Rectangle resizeIcon = new Rectangle(screenView.getX() + size.width + 3, screenView.getY() + size.height + 3, 12, 12);
-        if (resizeIcon.contains(myLastMouseX, myLastMouseY)) {
+        Rectangle resizeZone = new Rectangle(screenView.getX() + size.width, screenView.getY() + size.height, 24, 24);
+        if (resizeZone.contains(myLastMouseX, myLastMouseY)) {
           startInteraction(myLastMouseX, myLastMouseY, new CanvasResizeInteraction(mySurface), ourLastStateMask);
           return;
         }
