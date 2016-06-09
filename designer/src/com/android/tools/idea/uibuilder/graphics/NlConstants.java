@@ -22,6 +22,7 @@ import com.intellij.util.ui.UIUtil;
 
 import java.awt.*;
 
+@SuppressWarnings("UseJBColor")
 public class NlConstants {
   public static final int RULER_SIZE_PX = 20;
   public static final int RULER_MAJOR_TICK_PX = 19;
@@ -41,35 +42,36 @@ public class NlConstants {
 
   public static final int RESIZING_CORNER_SIZE = 32;
 
-  @SuppressWarnings("UseJBColor")
   public static final JBColor RULER_BG = new JBColor(Color.WHITE, ColorUtil.brighter(UIUtil.getListBackground(), 1));
-  @SuppressWarnings("UseJBColor")
   public static final JBColor BOUNDS_RECT_COLOR = new JBColor(Color.GRAY, UIUtil.getListForeground());
   public static final JBColor RULER_TICK_COLOR = new JBColor(0xdbdbdb, UIUtil.getListForeground().darker().getRGB());
   public static final JBColor RULER_TEXT_COLOR = new JBColor(0x959595, UIUtil.getListForeground().getRGB());
   public static final Font RULER_TEXT_FONT = JBUI.Fonts.miniFont();
 
   public static final Font BLUEPRINT_TEXT_FONT = RULER_TEXT_FONT;
-  @SuppressWarnings("UseJBColor")
   public static final Color BLUEPRINT_BG_COLOR = new Color(0x133572);
-  @SuppressWarnings("UseJBColor")
   public static final Color BLUEPRINT_GRID_COLOR = new Color(0x17397b);
-  @SuppressWarnings("UseJBColor") public static final Color BLUEPRINT_FG_COLOR = new Color(0x6196c8);
-  @SuppressWarnings("UseJBColor")
+  public static final Color BLUEPRINT_FG_COLOR = new Color(0x6196c8);
   public static final Color BLUEPRINT_COMPONENT_BG_COLOR = new Color(0, 0, 0, 0);
-  @SuppressWarnings("UseJBColor")
   public static final Color BLUEPRINT_COMPONENT_FG_COLOR = new Color(81, 103, 163, 100);
   public static final Stroke BLUEPRINT_COMPONENT_STROKE = NlDrawingStyle.THIN_SOLID_STROKE;
-  @SuppressWarnings("UseJBColor")
   public static final Color UNAVAILABLE_ZONE_COLOR = new Color(0, 0, 0, 100);
-  @SuppressWarnings("UseJBColor")
   public static final Color RESIZING_CONTOUR_COLOR = new Color(0x5082db);
-  @SuppressWarnings("UseJBColor")
   public static final Color RESIZING_CORNER_COLOR = new Color(0x03a9f4);
-  @SuppressWarnings("UseJBColor")
   public static final Color RESIZING_TEXT_COLOR = new Color(0, 0, 0, 128);
-  @SuppressWarnings("UseJBColor")
   public static final Color RESIZING_BUCKET_COLOR = new Color(0x03, 0xa9, 0xf4, 26);
+
+  public static final Color CYAN_100 = new Color(178, 235, 242, 100);
+  public static final Color CYAN_200 = new Color(128, 222, 234, 100);
+  public static final Color CYAN_300 = new Color(77, 208, 225, 100);
+  public static final Color CYAN_400 = new Color(38, 198, 218, 100);
+  public static final Color CYAN_500 = new Color(0, 188, 212, 100);
+  public static final Color CYAN_600 = new Color(0, 172, 193, 100);
+  public static final Color CYAN_700 = new Color(0, 151, 167, 100);
+  public static final Color CYAN_800 = new Color(0, 131, 143, 100);
+  public static final Color CYAN_900 = new Color(0, 96, 100, 100);
+  public static final Color[] RESIZING_OTHER_CONFIG_COLOR_ARRAY =
+    {CYAN_100, CYAN_200, CYAN_300, CYAN_400, CYAN_500, CYAN_600, CYAN_700, CYAN_800, CYAN_900};
 
 
   public static final JBColor DESIGN_SURFACE_BG = new JBColor(0xf2f2f2, UIUtil.getListBackground().getRGB());
