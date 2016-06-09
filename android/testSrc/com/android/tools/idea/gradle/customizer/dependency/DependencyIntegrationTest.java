@@ -23,11 +23,14 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.roots.LibraryOrderEntry;
+import com.intellij.openapi.roots.ModuleOrderEntry;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderEntry;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+
+import static org.fest.assertions.Assertions.assertThat;
 
 /**
  * Integration tests for {@link Dependency}.
@@ -37,40 +40,61 @@ public class DependencyIntegrationTest extends AndroidGradleTestCase {
   public void testTransitiveDependenciesFromJavaModule() throws Throwable {
     loadProject("projects/transitiveDependencies");
 
-    Module appModule = ModuleManager.getInstance(getProject()).findModuleByName("app");
-    assertNotNull(appModule);
-
-    AndroidGradleModel gradleModel = AndroidGradleModel.get(appModule);
-    assertNotNull(gradleModel);
-    assertTrue(gradleModel.supportsDependencyGraph());
-
-    AndroidProject androidProject = gradleModel.getAndroidProject();
-    List<String> unresolvedDependencies = Lists.newArrayList();
-    for (SyncIssue syncIssue : androidProject.getSyncIssues()) {
-      if (syncIssue.getType() == SyncIssue.TYPE_UNRESOLVED_DEPENDENCY) {
-        unresolvedDependencies.add(syncIssue.getData());
-      }
-    }
-    if (!unresolvedDependencies.isEmpty()) {
-      fail("Unresolved dependencies: " + unresolvedDependencies);
-    }
+    Module appModule = getAppModule();
+    verifyDependenciesAreResolved(appModule);
 
     // 'app' module should have 'guava' as dependency.
     // 'app' -> 'lib' -> 'guava'
-    String libraryName = "guava-17.0";
-    if (!hasLibraryDependency(appModule, libraryName)) {
-      fail("Unable to find library dependency '" + libraryName + "' " + collectExistingLibrariesIn(appModule));
-    }
+    assertThat(librariesIn(appModule)).contains("guava-17.0");
   }
 
   // See: https://code.google.com/p/android/issues/detail?id=212338
   public void testTransitiveDependenciesFromAndroidModule() throws Throwable {
     loadProject("projects/transitiveDependencies");
 
+    Module appModule = getAppModule();
+    verifyDependenciesAreResolved(appModule);
+
+    // 'app' module should have 'javawriter' as dependency.
+    // 'app' -> 'library2' -> 'library1' -> 'javawriter'
+    assertThat(librariesIn(appModule)).contains("javawriter-2.5.0");
+  }
+
+  @NotNull
+  private static List<String> librariesIn(@NotNull Module module) {
+    List<String> allLibraries = Lists.newArrayList();
+    OrderEntry[] orderEntries = ModuleRootManager.getInstance(module).getOrderEntries();
+    for (OrderEntry orderEntry : orderEntries) {
+      if (orderEntry instanceof LibraryOrderEntry) {
+        LibraryOrderEntry libraryEntry = (LibraryOrderEntry)orderEntry;
+        String name = libraryEntry.getLibraryName();
+        allLibraries.add(name);
+      }
+    }
+    return allLibraries;
+  }
+
+  // See: https://code.google.com/p/android/issues/detail?id=212557
+  public void testTransitiveAndroidModuleDependency() throws Throwable {
+    loadProject("projects/transitiveDependencies");
+
+    Module appModule = getAppModule();
+    verifyDependenciesAreResolved(appModule);
+
+    // 'app' module should have 'library1' as module dependency.
+    // 'app' -> 'library2' -> 'library1'
+    assertThat(moduleDependenciesIn(appModule)).contains("library1");
+  }
+
+  @NotNull
+  private Module getAppModule() {
     Module appModule = ModuleManager.getInstance(getProject()).findModuleByName("app");
     assertNotNull(appModule);
+    return appModule;
+  }
 
-    AndroidGradleModel gradleModel = AndroidGradleModel.get(appModule);
+  private static void verifyDependenciesAreResolved(@NotNull Module module) {
+    AndroidGradleModel gradleModel = AndroidGradleModel.get(module);
     assertNotNull(gradleModel);
     assertTrue(gradleModel.supportsDependencyGraph());
 
@@ -84,37 +108,16 @@ public class DependencyIntegrationTest extends AndroidGradleTestCase {
     if (!unresolvedDependencies.isEmpty()) {
       fail("Unresolved dependencies: " + unresolvedDependencies);
     }
-
-    // 'app' module should have 'javawriter' as dependency.
-    // 'app' -> 'library2' -> 'library1' -> 'javawriter'
-    String libraryName = "javawriter-2.5.0";
-    if (!hasLibraryDependency(appModule, libraryName)) {
-      fail("Unable to find library dependency '" + libraryName + "' " + collectExistingLibrariesIn(appModule));
-    }
-  }
-
-  private static boolean hasLibraryDependency(@NotNull Module module, @NotNull String libraryName) {
-    OrderEntry[] orderEntries = ModuleRootManager.getInstance(module).getOrderEntries();
-    for (OrderEntry orderEntry : orderEntries) {
-      if (orderEntry instanceof LibraryOrderEntry) {
-        LibraryOrderEntry libraryEntry = (LibraryOrderEntry)orderEntry;
-        String name = libraryEntry.getLibraryName();
-        if (libraryName.equals(name)) {
-          return true;
-        }
-      }
-    }
-    return false;
   }
 
   @NotNull
-  private static List<String> collectExistingLibrariesIn(@NotNull Module module) {
+  private static List<String> moduleDependenciesIn(@NotNull Module module) {
     List<String> allLibraries = Lists.newArrayList();
     OrderEntry[] orderEntries = ModuleRootManager.getInstance(module).getOrderEntries();
     for (OrderEntry orderEntry : orderEntries) {
-      if (orderEntry instanceof LibraryOrderEntry) {
-        LibraryOrderEntry libraryEntry = (LibraryOrderEntry)orderEntry;
-        String name = libraryEntry.getLibraryName();
+      if (orderEntry instanceof ModuleOrderEntry) {
+        ModuleOrderEntry entry = (ModuleOrderEntry)orderEntry;
+        String name = entry.getModuleName();
         allLibraries.add(name);
       }
     }
