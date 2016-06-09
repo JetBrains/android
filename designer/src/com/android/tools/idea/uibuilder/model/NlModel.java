@@ -86,6 +86,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Stream;
 
 import static com.android.SdkConstants.*;
 import static com.intellij.util.ui.update.Update.HIGH_PRIORITY;
@@ -598,6 +599,11 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   @NotNull
   public List<NlComponent> getComponents() {
     return myComponents;
+  }
+
+  @NotNull
+  public Stream<NlComponent> flattenComponents() {
+    return myComponents.stream().flatMap(NlComponent::flatten);
   }
 
   /**
