@@ -405,12 +405,13 @@ public class RenderService {
       ourTimeoutExceptionCounter.set(0);
 
       return result;
-    } catch(TimeoutException e) {
+    }
+    catch (TimeoutException e) {
       ourTimeoutExceptionCounter.incrementAndGet();
 
       Thread renderingThread = ourRenderingThread.get();
       TimeoutException timeoutException = new TimeoutException("Preview timed out while rendering the layout.\n" +
-      "This typically happens when there is an infinite loop or unbounded recursion in one of the custom views.");
+                                                               "This typically happens when there is an infinite loop or unbounded recursion in one of the custom views.");
       if (renderingThread != null) {
         timeoutException.setStackTrace(renderingThread.getStackTrace());
       }
