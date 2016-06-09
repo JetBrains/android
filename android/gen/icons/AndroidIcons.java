@@ -194,6 +194,7 @@ public class AndroidIcons {
     public static final Icon Elevation = load("/icons/nele/elevation.png"); // 16x16
     public static final Icon VirtualDevice = load("/icons/nele/virtualdevice.png"); // 16x16
     public static final Icon UiMode = load("/icons/nele/uimode.png"); // 16x16
+    public static final Icon Pan = load("/icons/nele/pantool.png"); // 16x16
 
     public static final Icon ToggleProperties = load("/icons/nele/toggle_props.png"); // 16x16
     public static final Icon DesignProperty = load("/icons/nele/design-property.png");  // 12x12

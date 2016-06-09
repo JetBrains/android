@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.editor;
 import com.android.tools.idea.configurations.*;
 import com.android.tools.idea.uibuilder.actions.LintNotificationAction;
 import com.android.tools.idea.uibuilder.actions.SetZoomAction;
+import com.android.tools.idea.uibuilder.actions.TogglePanningDialogAction;
 import com.android.tools.idea.uibuilder.actions.ZoomLabelAction;
 import com.android.tools.idea.uibuilder.model.ModelListener;
 import com.android.tools.idea.uibuilder.model.NlComponent;
@@ -115,6 +116,8 @@ public class NlActionsToolbar implements DesignSurfaceListener, ModelListener {
     group.add(new ZoomLabelAction(surface));
     group.add(new SetZoomAction(surface, ZoomType.IN));
     group.add(new SetZoomAction(surface, ZoomType.FIT));
+    group.add(new TogglePanningDialogAction(surface));
+    group.addSeparator();
     group.add(new LintNotificationAction(surface));
 
     return group;
