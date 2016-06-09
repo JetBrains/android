@@ -208,7 +208,7 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
     customLogger.setIndicator(indicator);
     myLogger.logInfo("To install:");
     for (UpdatablePackage p : myInstallRequests) {
-      myLogger.logInfo(String.format("- %1$s (%2$s)", p.getRepresentative().getDisplayName(), p.getRepresentative().getPath()));
+      myLogger.logInfo(String.format("- %1$s (%2$s)", p.getRemote().getDisplayName(), p.getRemote().getPath()));
     }
     myLogger.logInfo("");
     ProgressManager.getInstance().runProcessWithProgressAsynchronously(task, indicator);
