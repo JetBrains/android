@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.gfxtrace.controllers;
 
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
+import com.android.tools.idea.editors.gfxtrace.GfxTraceUtil;
 import com.android.tools.idea.editors.gfxtrace.actions.ViewTextAction;
 import com.android.tools.idea.editors.gfxtrace.models.GpuState;
 import com.android.tools.idea.editors.gfxtrace.renderers.Render;
@@ -27,6 +28,7 @@ import com.android.tools.idea.editors.gfxtrace.service.path.Path;
 import com.android.tools.idea.editors.gfxtrace.service.snippets.CanFollow;
 import com.android.tools.idea.editors.gfxtrace.service.snippets.KindredSnippets;
 import com.android.tools.idea.editors.gfxtrace.service.snippets.SnippetObject;
+import com.android.tools.idea.stats.UsageTracker;
 import com.android.tools.rpclib.schema.*;
 import com.android.tools.rpclib.schema.Map;
 import com.google.common.base.Objects;
@@ -119,6 +121,9 @@ public class StateController extends TreeController implements GpuState.Listener
         if (treePath != null) {
           Path path = ((Node)treePath.getLastPathComponent()).getFollowPath();
           if (path != null && path != Path.EMPTY) {
+
+            GfxTraceUtil.trackEvent(UsageTracker.ACTION_GFX_TRACE_LINK_CLICKED, path.toString(), null);
+
             myEditor.activatePath(path, StateController.this);
           }
           else {

@@ -130,8 +130,26 @@ public abstract class UsageTracker {
   public static final String CATEGORY_TEMPLATE = "template";
   public static final String ACTION_TEMPLATE_RENDER = "render";
 
+  /**
+   * Tracking category for the Theme Editor
+   */
   public static final String CATEGORY_THEME_EDITOR = "themeEditor";
   public static final String ACTION_THEME_EDITOR_OPEN = "themeEditorOpened";
+
+  /**
+   * Tracking category for the GPU Debugger
+   */
+  public static final String CATEGORY_GFX_TRACE = "gfxTrace";
+  public static final String ACTION_GFX_TRACE_OPEN = "gfxTraceOpened";
+  public static final String ACTION_GFX_TRACE_CLOSED = "gfxTraceClosed";
+  public static final String ACTION_GFX_TRACE_STARTED = "gfxTraceStarted";
+  public static final String ACTION_GFX_TRACE_STOPPED = "gfxTraceStopped";
+  public static final String ACTION_GFX_TRACE_COMMAND_SELECTED = "gfxTraceCommandSelected";
+  public static final String ACTION_GFX_TRACE_LINK_CLICKED = "gfxTraceLinkClicked";
+  public static final String ACTION_GFX_TRACE_PARAMETER_EDITED = "gfxTraceParameterEdited";
+  public static final String ACTION_GFX_TRACE_TEXTURE_VIEWED = "gfxTraceTextureViewed";
+  public static final String ACTION_GFX_TRACE_MEMORY_VIEWED = "gfxTraceMemoryViewed";
+  public static final String ACTION_GFX_TRACE_RPC = "gfxTraceRPC";
 
   /**
    * Tracking category for AppIndexing
