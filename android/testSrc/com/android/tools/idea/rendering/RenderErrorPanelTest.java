@@ -18,7 +18,7 @@ package com.android.tools.idea.rendering;
 
 import com.android.ide.common.rendering.RenderSecurityException;
 import com.android.sdklib.IAndroidTarget;
-import com.android.testutils.SdkTestCase;
+import com.android.testutils.TestUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.utils.SdkUtils;
@@ -775,7 +775,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
 
     if (!expected.equals(actual)) {
       System.out.println("Render unit test failed: " + getName());
-      System.out.println("Output diff:\n" + SdkTestCase.getDiff(expected, actual));
+      System.out.println("Output diff:\n" + TestUtils.getDiff(expected, actual));
     }
 
     // Visually diffing very long lines is hard. Let's insert some newlines in the deltas that we're
