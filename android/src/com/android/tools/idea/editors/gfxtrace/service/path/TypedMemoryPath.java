@@ -27,7 +27,7 @@ import java.io.IOException;
 public final class TypedMemoryPath extends Path {
   @Override
   public String getSegmentString() {
-    return "Type<" + myType + '>';
+    return "Type<" + myType + '>' + myRange.getSegmentString();
   }
 
   @Override
