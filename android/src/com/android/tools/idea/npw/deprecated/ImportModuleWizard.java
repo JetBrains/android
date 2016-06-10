@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.npw;
+package com.android.tools.idea.npw.deprecated;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.npw.NewModuleWizardDynamic;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.wizard.template.TemplateWizard;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;

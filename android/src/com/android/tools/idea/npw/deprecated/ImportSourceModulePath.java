@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.npw;
+package com.android.tools.idea.npw.deprecated;
 
 import com.android.tools.idea.gradle.project.ModuleImporter;
+import com.android.tools.idea.npw.NewModuleWizardState;
+import com.android.tools.idea.npw.WizardPath;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
@@ -40,6 +42,7 @@ import static com.android.tools.idea.npw.ChooseTemplateStep.MetadataListItem;
 /**
  * Create a new module using existing ADT or Gradle source files.
  */
+@Deprecated
 public class ImportSourceModulePath implements WizardPath {
   @NotNull private final NewModuleWizardState myWizardState;
   @NotNull private final WizardContext myContext;
@@ -61,8 +64,8 @@ public class ImportSourceModulePath implements WizardPath {
   }
 
   @NotNull
-  public static MetadataListItem createImportTemplateWithCustomName(@NotNull final String importTemplateName,
-                                                                    @Nullable final String description) {
+  protected static MetadataListItem createImportTemplateWithCustomName(@NotNull final String importTemplateName,
+                                                                       @Nullable final String description) {
     // Now, we're going to add in two pointers to the same template
     File moduleTemplate = new File(TemplateManager.getTemplateRootFolder(),
                                    FileUtil.join(Template.CATEGORY_PROJECTS, "ImportExistingProject"));

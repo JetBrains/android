@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw;
 
+import com.android.tools.idea.npw.deprecated.ImportWizardModuleBuilder;
 import com.android.tools.idea.npw.deprecated.WrapArchiveWizardPath;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -24,6 +25,7 @@ import com.intellij.openapi.project.Project;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
 import java.io.File;
@@ -95,5 +97,17 @@ public class TemplateWizardModuleBuilder extends ImportWizardModuleBuilder {
     list.addAll(templateList);
     chooseModuleStep.setListData(list);
     return chooseModuleStep;
+  }
+
+  // Temporary hack for tests while refactoring is in progress
+  @TestOnly
+  protected NewModuleWizardState getWizardState() {
+    return myWizardState;
+  }
+
+  // Temporary hack for tests while refactoring is in progress
+  @TestOnly
+  protected boolean getInitializationComplete() {
+    return myInitializationComplete;
   }
 }
