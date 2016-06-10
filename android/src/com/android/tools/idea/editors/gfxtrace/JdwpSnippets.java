@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.gfxtrace;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class JdwpSnippets {
@@ -25,10 +26,10 @@ public class JdwpSnippets {
 
   public static final String GAPII_HEADER = "GAPPI";
 
-  public static String getLoaderSnippet(File[] libs) {
+  public static String getLoaderSnippet(List<File> libs) {
 
-    String libraryNamesLiteral = Arrays.stream(libs).map(f -> '"' + f.getName() + '"').collect(Collectors.joining(", ", "{", "}"));
-    String librarySizesLiteral = Arrays.stream(libs).map(f -> String.valueOf(f.length())).collect(Collectors.joining(", ", "{", "}"));
+    String libraryNamesLiteral = libs.stream().map(f -> '"' + f.getName() + '"').collect(Collectors.joining(", ", "{", "}"));
+    String librarySizesLiteral = libs.stream().map(f -> String.valueOf(f.length())).collect(Collectors.joining(", ", "{", "}"));
 
     return
       "  String TAG = \"gapii-init\";\n" +
