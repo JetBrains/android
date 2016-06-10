@@ -71,7 +71,7 @@ public class RenderService {
   public static final boolean NELE_ENABLED = true;
 
   /** Number of ms that we will wait for the rendering thread to return before timing out */
-  private static final int DEFAULT_RENDER_THREAD_TIMEOUT_MS = Integer.getInteger("layoutlib.thread.timeout", 3000);
+  private static final int DEFAULT_RENDER_THREAD_TIMEOUT_MS = Integer.getInteger("layoutlib.thread.timeout", 6000);
 
   private static final AtomicReference<Thread> ourRenderingThread = new AtomicReference<>();
   private static final ExecutorService ourRenderingExecutor = Executors.newSingleThreadExecutor((Runnable r) -> {
