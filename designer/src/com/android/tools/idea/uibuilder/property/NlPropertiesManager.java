@@ -25,6 +25,7 @@ import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.util.PropertiesMap;
 import com.google.common.collect.Table;
 import com.intellij.designer.LightToolWindowContent;
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBLoadingPanel;
@@ -65,6 +66,13 @@ public class NlPropertiesManager implements DesignSurfaceListener, ModelListener
     myPropertiesPanel = new NlPropertiesPanel(project);
     myLoadingPanel.add(myPropertiesPanel);
     setDesignSurface(designSurface);
+  }
+
+  @NotNull
+  public AnAction[] getActions() {
+    return new AnAction[]{
+      new ShowExpertProperties(myPropertiesPanel)
+    };
   }
 
   public void setDesignSurface(@Nullable DesignSurface designSurface) {
