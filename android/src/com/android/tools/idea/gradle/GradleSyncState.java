@@ -64,6 +64,8 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
 
 public class GradleSyncState {
+  public static final Key<Boolean> PROJECT_EXTERNAL_BUILD_FILES_CHANGED = Key.create("android.gradle.project.external.build.files.changed");
+
   private static final Logger LOG = Logger.getInstance(GradleSyncState.class);
   private static final NotificationGroup LOGGING_NOTIFICATION = NotificationGroup.logOnlyGroup("Gradle sync");
 
@@ -290,6 +292,8 @@ public class GradleSyncState {
    * @throws AssertionError if the given time is less than or equal to zero.
    */
   private boolean isSyncNeeded(long referenceTimeInMillis) {
+    myProject.putUserData(PROJECT_EXTERNAL_BUILD_FILES_CHANGED, null);
+
     assert referenceTimeInMillis > 0;
     if (isSyncInProgress()) {
       return false;
@@ -320,7 +324,20 @@ public class GradleSyncState {
           return true;
         }
       }
+
+      NativeAndroidGradleModel nativeAndroidModel = NativeAndroidGradleModel.get(module);
+      if (nativeAndroidModel != null) {
+        for (File externalBuildFile : nativeAndroidModel.getNativeAndroidProject().getBuildFiles()) {
+          VirtualFile virtualFile = findFileByIoFile(externalBuildFile, true);
+          if ((virtualFile != null && fileDocumentManager.isFileModified(virtualFile)) ||
+              externalBuildFile.lastModified() > referenceTimeInMillis) {
+            myProject.putUserData(PROJECT_EXTERNAL_BUILD_FILES_CHANGED, true);
+            return true;
+          }
+        }
+      }
     }
+
     return false;
   }
 
