@@ -18,6 +18,7 @@ package com.android.tools.idea.run.activity;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.editor.AndroidDebuggerState;
+import com.android.tools.idea.run.editor.ProfilerState;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
@@ -30,6 +31,7 @@ public class DefaultStartActivityFlagsProvider implements StartActivityFlagsProv
 
   @Nullable private final AndroidDebugger myAndroidDebugger;
   @Nullable private final AndroidDebuggerState myAndroidDebuggerState;
+  @NotNull private final ProfilerState myProfilerState;
   private final boolean myWaitForDebugger;
   @NotNull private final String myExtraFlags;
   private final Project myProject;
@@ -39,8 +41,18 @@ public class DefaultStartActivityFlagsProvider implements StartActivityFlagsProv
                                            @NotNull Project project,
                                            boolean waitForDebugger,
                                            @NotNull String extraFlags) {
+    this(androidDebugger, androidDebuggerState, new ProfilerState(), project, waitForDebugger, extraFlags);
+  }
+
+  public DefaultStartActivityFlagsProvider(@Nullable AndroidDebugger androidDebugger,
+                                           @Nullable AndroidDebuggerState androidDebuggerState,
+                                           @NotNull ProfilerState profilerState,
+                                           @NotNull Project project,
+                                           boolean waitForDebugger,
+                                           @NotNull String extraFlags) {
     myAndroidDebugger = androidDebugger;
     myAndroidDebuggerState = androidDebuggerState;
+    myProfilerState = profilerState;
     myWaitForDebugger = waitForDebugger;
     myExtraFlags = extraFlags;
     myProject = project;
@@ -50,7 +62,8 @@ public class DefaultStartActivityFlagsProvider implements StartActivityFlagsProv
   @NotNull
   public String getFlags(@NotNull IDevice device) {
     List<String> flags = Lists.newLinkedList();
-    if (myWaitForDebugger) {
+    // The GAPID tracer requires the app to be started in debug mode.
+    if (myWaitForDebugger || myProfilerState.isGapidEnabled()) {
       flags.add("-D");
     }
     if (!myExtraFlags.isEmpty()) {

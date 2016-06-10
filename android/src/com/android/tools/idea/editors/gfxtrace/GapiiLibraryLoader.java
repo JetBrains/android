@@ -89,12 +89,12 @@ public class GapiiLibraryLoader {
     return errors;
   }
 
-  public void connectToProcessAndInstallLibraries(@NotNull final DeviceInfo.Package pkg, @NotNull final File... libs) throws Exception {
+  public void connectToProcessAndInstallLibraries(@NotNull String pkg, @NotNull final File... libs) throws Exception {
     long startTime = System.nanoTime();
 
-    LOG.debug("Attaching to " + pkg.myName);
+    LOG.debug("Attaching to " + pkg);
     AndroidJavaDebugger debugger = new AndroidJavaDebugger();
-    Client client = myDevice.getClient(pkg.myName);
+    Client client = myDevice.getClient(pkg);
 
     Future<?> clientAttachFuture = EdtExecutorService.getInstance().submit(() -> debugger.attachToClient(myProject, client));
     clientAttachFuture.get();
