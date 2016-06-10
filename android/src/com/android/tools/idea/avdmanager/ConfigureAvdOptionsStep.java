@@ -46,7 +46,6 @@ import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
@@ -55,7 +54,6 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.ui.EnumComboBoxModel;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
@@ -134,7 +132,6 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
   private JComboBox mySpeedCombo;
   private JComboBox myLatencyCombo;
   private SkinChooser mySkinComboBox;
-  private JComboBox myScalingComboBox;
   private JComboBox myBackCameraCombo;
   private JComboBox myFrontCameraCombo;
   private JCheckBox myQemu2CheckBox;
@@ -307,7 +304,6 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     mySpeedCombo.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Network Speed");
     myBackCameraCombo.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Back Camera");
     myLatencyCombo.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Network Latency");
-    myScalingComboBox.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Start-Up Size");
     myFrontCameraCombo.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Front Camera");
     myQemu2CheckBox.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Number of cores");
     myInternalStorage.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Internal Flash");
@@ -547,8 +543,6 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myBindings
       .bindTwoWay(new OptionalToValuePropertyAdapter<AvdNetworkLatency>(new SelectedItemProperty<AvdNetworkLatency>(myLatencyCombo)),
                   getModel().selectedNetworkLatency());
-
-    myBindings.bindTwoWay(new SelectedItemProperty<AvdScaleFactor>(myScalingComboBox), getModel().selectedAvdScale());
 
     myBindings.bindTwoWay(new SelectedProperty(myEnableComputerKeyboard), getModel().enableHardwareKeyboard());
     myBindings.bindTwoWay(new SelectedProperty(myExternalRadioButton), getModel().useExternalSdCard());
@@ -802,7 +796,6 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myOrientationToggle.setCellMargin(JBUI.insets(5, 20, 4, 20));
     myOrientationToggle.setBackground(JBColor.background());
     myOrientationToggle.setForeground(JBColor.foreground());
-    myScalingComboBox = new ComboBox(new EnumComboBoxModel<AvdScaleFactor>(AvdScaleFactor.class));
     myHardwareSkinHelpLabel = new HyperlinkLabel("How do I create a custom hardware skin?");
     myHardwareSkinHelpLabel.setHyperlinkTarget(AvdWizardUtils.CREATE_SKIN_HELP_LINK);
     mySkinComboBox = new SkinChooser(myProject);

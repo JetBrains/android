@@ -156,7 +156,6 @@ public class AndroidVirtualDevice extends InstallableComponent {
 
     result.put(AVD_INI_NETWORK_LATENCY, DEFAULT_NETWORK_LATENCY.getAsParameter());
     result.put(AVD_INI_NETWORK_SPEED, DEFAULT_NETWORK_SPEED.getAsParameter());
-    result.put(AVD_INI_SCALE_FACTOR, DEFAULT_SCALE.getValue());
     result.put(AVD_INI_AVD_ID, internalName);
     result.put(AvdManagerConnection.AVD_INI_HW_LCD_DENSITY, String.valueOf(Density.XXHIGH.getDpiValue()));
 
