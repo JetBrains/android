@@ -22,6 +22,7 @@ import com.android.tools.adtui.AnimatedTimeRange;
 import com.android.tools.adtui.Range;
 import com.android.tools.adtui.model.DefaultDataSeries;
 import com.android.tools.adtui.model.RangedSeries;
+import com.android.tools.idea.monitor.ui.network.view.RadioSegment;
 import com.android.tools.adtui.visual.VisualTest;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.ui.ProfilerEventListener;
@@ -46,11 +47,15 @@ public class NetworkProfilerVisualTest extends VisualTest {
 
   private NetworkSegment mSegment;
 
+  private RadioSegment mRadioSegment;
+
   private NetworkCaptureSegment mCaptureSegment;
 
   private long mStartTimeMs;
 
   private List<DefaultDataSeries<NetworkCaptureSegment.NetworkState>> mCaptureData;
+
+  private DefaultDataSeries<RadioSegment.RadioState> mRadioStateData;
 
   private Thread mSimulateTestDataThread;
 
@@ -94,11 +99,16 @@ public class NetworkProfilerVisualTest extends VisualTest {
     }
     mCaptureSegment = new NetworkCaptureSegment(timeRange, rangedSeries, dummyDispatcher);
 
-    List<Animatable> animatables = new ArrayList<>();
+    mRadioStateData = new DefaultDataSeries<>();
+    mRadioSegment = new RadioSegment(timeRange, dummyDispatcher);
 
+    List<Animatable> animatables = new ArrayList<>();
     animatables.add(animatedTimeRange);
     mSegment.createComponentsList(animatables);
     mCaptureSegment.createComponentsList(animatables);
+    mRadioSegment.createComponentsList(animatables);
+
+    mRadioSegment.addRadioStateSeries(new RangedSeries<>(timeRange,mRadioStateData));
     return animatables;
   }
 
@@ -114,6 +124,10 @@ public class NetworkProfilerVisualTest extends VisualTest {
     panel.add(mSegment, constraints);
 
     constraints.gridy = 1;
+    mRadioSegment.initializeComponents();
+    panel.add(mRadioSegment, constraints);
+
+    constraints.gridy = 2;
     mCaptureSegment.initializeComponents();
     panel.add(mCaptureSegment, constraints);
     simulateTestData();
@@ -125,6 +139,7 @@ public class NetworkProfilerVisualTest extends VisualTest {
       public void run() {
         try {
           Random rnd = new Random();
+          RadioSegment.RadioState[] radioStates = RadioSegment.RadioState.values();
           while (true) {
             //  Insert new data point at now.
             long now = System.currentTimeMillis() - mStartTimeMs;
@@ -134,6 +149,7 @@ public class NetworkProfilerVisualTest extends VisualTest {
               int index = rnd.nextInt(10);
               series.add(now, (index < states.length) ? states[index] : NetworkCaptureSegment.NetworkState.NONE);
             }
+            mRadioStateData.add(now, radioStates[rnd.nextInt(radioStates.length)]);
             Thread.sleep(1000);
           }
         }

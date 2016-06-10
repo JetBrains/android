@@ -59,6 +59,12 @@ public class RangedContinuousSeries extends RangedSeries<Long> implements Report
     return mYRange;
   }
 
+  @NotNull
+  @Override
+  public String getLabel() {
+    return mLabel;
+  }
+
   /**
    * Helper function for getting the maximum time and data value for a given series. This is used by the reporting data to determine how
    * values should be reported back to the UI.
@@ -93,7 +99,7 @@ public class RangedContinuousSeries extends RangedSeries<Long> implements Report
 
     String formattedY = mYAxisFormatter == null ? Long.toString(nearestY) : mYAxisFormatter.getFormattedString(maxY, nearestY);
     String formattedX = mXAxisFormatter == null ? Long.toString(nearestX) : mXAxisFormatter.getFormattedString(maxX, nearestX);
-    return new ReportingData(nearestX, mLabel, formattedX, formattedY);
+    return new ReportingData(nearestX, formattedX, formattedY);
   }
 
   @Override
