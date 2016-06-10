@@ -20,7 +20,8 @@ import com.android.annotations.NonNull;
 import com.android.tools.adtui.Animatable;
 import com.android.tools.adtui.AnimatedTimeRange;
 import com.android.tools.adtui.Range;
-import com.android.tools.adtui.model.RangedDiscreteSeries;
+import com.android.tools.adtui.model.DefaultDataSeries;
+import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.visual.VisualTest;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.ui.ProfilerEventListener;
@@ -49,7 +50,7 @@ public class NetworkProfilerVisualTest extends VisualTest {
 
   private long mStartTimeMs;
 
-  private List<RangedDiscreteSeries<NetworkCaptureSegment.NetworkState>> mCaptureData;
+  private List<DefaultDataSeries<NetworkCaptureSegment.NetworkState>> mCaptureData;
 
   private Thread mSimulateTestDataThread;
 
@@ -84,11 +85,14 @@ public class NetworkProfilerVisualTest extends VisualTest {
     EventDispatcher<ProfilerEventListener> dummyDispatcher = EventDispatcher.create(ProfilerEventListener.class);
     mSegment = new NetworkSegment(timeRange, mDataStore, dummyDispatcher);
 
+    ArrayList<RangedSeries<NetworkCaptureSegment.NetworkState>> rangedSeries = new ArrayList();
     mCaptureData = new ArrayList<>();
     for (int i = 0; i < CAPTURE_SIZE; ++i) {
-      mCaptureData.add(new RangedDiscreteSeries<>(NetworkCaptureSegment.NetworkState.class, timeRange));
+      DefaultDataSeries seriesData = new DefaultDataSeries<NetworkCaptureSegment.NetworkState>();
+      mCaptureData.add(seriesData);
+      rangedSeries.add(new RangedSeries<NetworkCaptureSegment.NetworkState>(timeRange, seriesData));
     }
-    mCaptureSegment = new NetworkCaptureSegment(timeRange, mCaptureData, dummyDispatcher);
+    mCaptureSegment = new NetworkCaptureSegment(timeRange, rangedSeries, dummyDispatcher);
 
     List<Animatable> animatables = new ArrayList<>();
 
@@ -124,11 +128,11 @@ public class NetworkProfilerVisualTest extends VisualTest {
           while (true) {
             //  Insert new data point at now.
             long now = System.currentTimeMillis() - mStartTimeMs;
-            for (RangedDiscreteSeries series : mCaptureData) {
+            for (DefaultDataSeries<NetworkCaptureSegment.NetworkState> series : mCaptureData) {
               NetworkCaptureSegment.NetworkState[] states = NetworkCaptureSegment.NetworkState.values();
               // Hard coded value 10 to make the 'NONE' state more frequent
               int index = rnd.nextInt(10);
-              series.getSeries().add(now, (index < states.length) ? states[index] : NetworkCaptureSegment.NetworkState.NONE);
+              series.add(now, (index < states.length) ? states[index] : NetworkCaptureSegment.NetworkState.NONE);
             }
             Thread.sleep(1000);
           }

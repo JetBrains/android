@@ -39,7 +39,7 @@ public class LineChartVisualTest extends VisualTest {
   private List<RangedContinuousSeries> mRangedData;
 
   @NonNull
-  private List<DefaultContinuousSeries> mData;
+  private List<DefaultDataSeries<Long>> mData;
 
   @NonNull
   private AnimatedTimeRange mAnimatedTimeRange;
@@ -67,7 +67,7 @@ public class LineChartVisualTest extends VisualTest {
         mYRange = new Range(0.0, 100.0);
         componentsList.add(mYRange);
       }
-      DefaultContinuousSeries series = new DefaultContinuousSeries();
+      DefaultDataSeries<Long> series = new DefaultDataSeries<>();
       RangedContinuousSeries ranged =
         new RangedContinuousSeries("Widgets", xRange, mYRange, series);
       mRangedData.add(ranged);
@@ -98,7 +98,7 @@ public class LineChartVisualTest extends VisualTest {
           while (true) {
             int v = variance.get();
             long now = System.currentTimeMillis();
-            for (DefaultContinuousSeries series : mData) {
+            for (DefaultDataSeries<Long> series : mData) {
               ImmutableList<SeriesData<Long>> data = series.getAllData();
               long last = data.isEmpty() ? 0 : data.get(data.size() - 1).value;
               float delta = ((float)Math.random() - 0.45f) * v;
