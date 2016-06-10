@@ -418,7 +418,7 @@ public class MenuPreviewRendererTest extends RenderTestBase {
     }
   }
 
-  public void testLightTheme() throws Exception {
+  public void ignore_testLightTheme() throws Exception {
     myFixture.copyFileToProject("menus/strings.xml", "res/menu/strings.xml");
     VirtualFile file = myFixture.copyFileToProject("menus/menu1.xml", "res/menu/menu1.xml");
     assertNotNull(file);
