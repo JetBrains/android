@@ -58,9 +58,6 @@ public class DefaultActivityLaunch extends LaunchOption<DefaultActivityLaunch.St
     @NotNull
     private static ActivityLocator getActivityLocatorForLaunch(@NotNull ProfilerState profilerState,
                                                                @NotNull AndroidFacet facet) {
-      if (profilerState.isGapidEnabled()) {
-        return new StaticActivityLocator(ProfilerState.GAPID_LAUNCH_ACTIVITY);
-      }
       return getActivityLocator(facet);
     }
 
