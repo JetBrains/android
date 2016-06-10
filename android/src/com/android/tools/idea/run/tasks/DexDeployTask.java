@@ -27,6 +27,8 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
+
 public class DexDeployTask implements LaunchTask {
   private final Project myProject;
   private final InstantRunContext myInstantRunContext;
@@ -58,7 +60,7 @@ public class DexDeployTask implements LaunchTask {
 
         return true;
       }
-      catch (InstantRunPushFailedException e) {
+      catch (InstantRunPushFailedException | IOException e) {
         launchStatus.terminateLaunch("Error installing cold swap patches: " + e);
         InstantRunManager.LOG.warn("Failed to push dex files: ", e);
 

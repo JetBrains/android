@@ -24,6 +24,8 @@ import com.android.tools.idea.run.util.LaunchStatus;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
+
 public class HotSwapTask implements LaunchTask {
   private final Project myProject;
   private final InstantRunContext myInstantRunContext;
@@ -52,7 +54,7 @@ public class HotSwapTask implements LaunchTask {
       myNeedsActivityLaunch = manager.pushArtifacts(device, myInstantRunContext, UpdateMode.HOT_SWAP);
       printer.stdout("Hot swapped changes");
     }
-    catch (InstantRunPushFailedException e) {
+    catch (InstantRunPushFailedException | IOException e) {
       launchStatus.terminateLaunch("Error installing hot swap patches: " + e);
       return false;
     }
