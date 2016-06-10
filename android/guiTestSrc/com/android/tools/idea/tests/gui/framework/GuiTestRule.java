@@ -161,10 +161,10 @@ public class GuiTestRule implements TestRule {
       errors.add(e);
     }
     errors.addAll(checkForModalDialogs());
-    if (myIdeFrameFixture != null && myIdeFrameFixture.target().isShowing()) {
-      myIdeFrameFixture.closeProject();
-    }
     if (myProjectPath != null) {
+      if (ideFrame().target().isShowing()) {
+        ideFrame().closeProject();
+      }
       FileUtilRt.delete(myProjectPath);
       GuiTests.refreshFiles();
     }
@@ -376,7 +376,7 @@ public class GuiTestRule implements TestRule {
 
   @NotNull
   public IdeFrameFixture ideFrame() {
-    if (myIdeFrameFixture == null) {
+    if (myIdeFrameFixture == null || myIdeFrameFixture.isClosed()) {
       // This call to find() creates a new IdeFrameFixture object every time. Each of these Objects creates a new gradleProjectEventListener
       // and registers it with GradleSyncState. This keeps adding more and more listeners, and the new recent listeners are only updated
       // with gradle State when that State changes. This means the listeners may have outdated info.
