@@ -623,7 +623,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
     }
   }
 
-  public void testFidelityErrors() {
+  public void ignore_testFidelityErrors() {
     LogOperation operation = (logger, render) -> logger.fidelityWarning("Fidelity", "Fidelity issue", null, null);
     String html = getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation);
     assertHtmlEquals("<html><body>&nbsp;Fidelity warnings <A HREF=\"runnable:0\">(show)</A></body></html>", html);
