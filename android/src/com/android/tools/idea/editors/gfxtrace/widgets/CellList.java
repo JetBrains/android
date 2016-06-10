@@ -85,6 +85,10 @@ public abstract class CellList<T extends CellWidget.Data> extends CellWidget<T, 
     return scrollPane;
   }
 
+  public void setEmptyText(String text) {
+    myList.getEmptyText().setText(text);
+  }
+
   @Override
   public void setData(@NotNull List<T> data) {
     super.setData(data);
