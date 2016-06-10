@@ -24,6 +24,8 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.HardwareProperties;
 import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.ide.ui.search.SearchUtil;
 import com.intellij.openapi.project.Project;
@@ -37,8 +39,12 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 
 public class LaunchableAndroidDevice implements AndroidDevice {
+  private static final Map<Abi, List<Abi>> ABI_MAPPINGS = ImmutableMap.of(
+    Abi.X86_64, ImmutableList.of(Abi.X86_64, Abi.X86),
+    Abi.ARM64_V8A, ImmutableList.of(Abi.ARM64_V8A, Abi.ARMEABI_V7A, Abi.ARMEABI));
   private final AvdInfo myAvdInfo;
 
   private final Object LOCK = new Object();
@@ -84,7 +90,14 @@ public class LaunchableAndroidDevice implements AndroidDevice {
   @Override
   public List<Abi> getAbis() {
     Abi abi = Abi.getEnum(myAvdInfo.getAbiType());
-    return abi == null ? Collections.<Abi>emptyList() : Collections.singletonList(abi);
+    if (abi == null) {
+      return Collections.emptyList();
+    }
+    List<Abi> abis = ABI_MAPPINGS.get(abi);
+    if (abis != null) {
+      return abis;
+    }
+    return Collections.singletonList(abi);
   }
 
   @NotNull
