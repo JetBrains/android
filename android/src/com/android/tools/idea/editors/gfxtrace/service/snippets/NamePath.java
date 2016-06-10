@@ -31,6 +31,11 @@ final class NamePath extends Pathway implements BinaryObject {
     this.myName = name;
   }
 
+  @Override
+  public String getSegmentString() {
+    return "Namepath(" + myCat + " " + myName + ")";
+  }
+
   //<<<Start:Java.ClassBody:1>>>
   private SymbolCategory myCat;
   private String myName;
