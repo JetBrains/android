@@ -104,6 +104,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   @NotNull private final GradleProjectEventListener myGradleProjectEventListener;
 
   private EditorFixture myEditor;
+  private boolean myIsClosed;
 
   @NotNull
   public static IdeFrameFixture find(@NotNull final Robot robot, @NotNull final File projectPath, @Nullable final String projectName) {
@@ -655,7 +656,12 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   public WelcomeFrameFixture closeProject() {
+    myIsClosed = true;
     return openFromMenu(WelcomeFrameFixture::find, "File", "Close Project");
+  }
+
+  public boolean isClosed() {
+    return myIsClosed;
   }
 
   @NotNull
