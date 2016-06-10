@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.property.inspector;
 
-import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlDesignProperties;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
@@ -98,10 +97,10 @@ public class InspectorPanel extends JPanel {
     myRow = 0;
 
     Map<String, NlProperty> propertiesByName = Maps.newHashMapWithExpectedSize(properties.size());
-    for (NlProperty property : properties.row(SdkConstants.ANDROID_URI).values()) {
+    for (NlProperty property : properties.row(ANDROID_URI).values()) {
       propertiesByName.put(property.getName(), property);
     }
-    for (NlProperty property : properties.row(SdkConstants.AUTO_URI).values()) {
+    for (NlProperty property : properties.row(AUTO_URI).values()) {
       propertiesByName.put(property.getName(), property);
     }
     for (NlProperty property : properties.row("").values()) {
@@ -109,7 +108,7 @@ public class InspectorPanel extends JPanel {
     }
     // Add access to known design properties
     for (NlProperty property : myDesignProperties.getKnownProperties(components)) {
-      propertiesByName.put(property.getName(), property);
+      propertiesByName.putIfAbsent(property.getName(), property);
     }
 
     List<InspectorComponent> inspectors = createInspectorComponents(components, propertiesManager, propertiesByName, myProviders);
