@@ -16,6 +16,8 @@
 package com.android.tools.idea.editors.gfxtrace.widgets;
 
 import com.android.tools.idea.editors.gfxtrace.UiCallback;
+import com.android.tools.idea.editors.gfxtrace.UiErrorCallback;
+import com.android.tools.idea.editors.gfxtrace.service.ErrDataUnavailable;
 import com.android.tools.idea.editors.gfxtrace.service.image.MultiLevelImage;
 import com.android.tools.rpclib.futures.FutureController;
 import com.android.tools.rpclib.rpccore.Rpc;
@@ -469,17 +471,33 @@ public class ImagePanel extends JPanel {
 
     private void loadLevel(int index) {
       index = Math.min(image.getLevelCount() - 1, index);
-      Rpc.listen(image.getLevel(index), LOG, imageRequestController, new UiCallback<BufferedImage, BufferedImage>() {
-        @Override
-        protected BufferedImage onRpcThread(Rpc.Result<BufferedImage> result) throws RpcException, ExecutionException {
-          return result.get();
-        }
+      Rpc.listen(
+        image.getLevel(index),
+        LOG,
+        imageRequestController,
+        new UiErrorCallback<BufferedImage, BufferedImage, String>() {
+          @Override
+          protected ResultOrError<BufferedImage, String> onRpcThread(Rpc.Result<BufferedImage> result)
+            throws RpcException, ExecutionException {
+            try {
+              return success(result.get());
+            }
+            catch (ErrDataUnavailable e) {
+              return error(e.getMessage());
+            }
+          }
 
-        @Override
-        protected void onUiThread(BufferedImage result) {
-          updateLevel(result);
-        }
-      });
+          @Override
+          protected void onUiThreadSuccess(BufferedImage image) {
+            updateLevel(image);
+          }
+
+          @Override
+          protected void onUiThreadError(String message) {
+            clearImage();
+            getEmptyText().setText(message);
+          }
+        });
     }
 
     protected void updateLevel(BufferedImage level) {
