@@ -17,30 +17,24 @@ package com.android.tools.idea.npw.template;
 
 
 import com.android.builder.model.SourceProvider;
-import com.android.tools.idea.actions.NewAndroidComponentAction;
 import com.android.tools.idea.npw.*;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.npw.project.AndroidProjectPaths;
-import com.android.tools.idea.templates.TemplateManager;
-import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.ui.ASGallery;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.swing.util.FormScalingUtil;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.util.ArrayUtil;
 import com.intellij.util.ui.accessibility.AccessibleContextUtil;
-import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.accessibility.AccessibleContext;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
@@ -104,10 +98,9 @@ public class ChooseActivityTypeStep extends ModelWizardStep<RenderTemplateModel>
   public Collection<? extends ModelWizardStep> createDependentSteps() {
     List<SourceProvider> sourceProviders = AndroidProjectPaths.getSourceProviders(getModel().getFacet(), myTargetDirectory);
     String initialPackageSuggestion = AndroidPackageUtils.getPackageForPath(getModel().getFacet(), sourceProviders, myTargetDirectory);
-    ConfigureTemplateParametersStep step =
-      new ConfigureTemplateParametersStep(getModel(), "Customize the Activity", initialPackageSuggestion, sourceProviders);
+    String title = AndroidBundle.message("android.wizard.config.activity.title");
 
-    return Lists.newArrayList(step);
+    return Lists.newArrayList(new ConfigureTemplateParametersStep(getModel(), title, initialPackageSuggestion, sourceProviders));
   }
 
   private static ASGallery<TemplateHandle> createGallery(String title) {
