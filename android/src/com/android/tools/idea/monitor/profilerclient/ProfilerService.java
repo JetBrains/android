@@ -16,6 +16,8 @@
 package com.android.tools.idea.monitor.profilerclient;
 
 import com.android.ddmlib.IDevice;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,61 +29,84 @@ import java.util.Map;
  * Global singleton service provider to obtain access to Studio Profiler-enabled devices and apps.
  */
 public class ProfilerService {
+  // TODO move this to a place where it can be shared between the native build system and Studio.
+  private static final String EXPECTED_VERSION = "15.1.876456";
+
   private static final Logger LOG = Logger.getInstance(ProfilerService.class.getCanonicalName());
 
-  private static ProfilerService INSTANCE;
+  @NotNull private final Map<IDevice, DeviceProfilerService> myDeviceClientServices = new HashMap<>();
 
-  @NotNull private final Map<IDevice, DeviceClientChannel> myConnectedDevices = new HashMap<IDevice, DeviceClientChannel>();
-
-  public static void setInstance(@NotNull ProfilerService instance) {
-    INSTANCE = instance;
-  }
-
+  @NotNull
   public static ProfilerService getInstance() {
-    return INSTANCE;
+    return ServiceManager.getService(ProfilerService.class);
   }
 
   /**
    * Creates a connection to a target device.
    *
+   * @param userKey any non-null key that will later be needed for {@link #disconnect(Disposable, DeviceProfilerService)}
    * @return an abstraction of a connection to a device, or null if a connection can not be established.
    */
   @Nullable
-  public synchronized DeviceClient connect(@NotNull IDevice device, @NotNull ProfilerClientListener profilerListener) {
+  public synchronized DeviceProfilerService connect(@NotNull Object userKey, @NotNull IDevice device) {
     if (device.getState() != IDevice.DeviceState.ONLINE) {
       return null;
     }
 
-    DeviceClientChannel connection;
-    if (!myConnectedDevices.containsKey(device)) {
-      connection = DeviceClientChannel.connect(device, profilerListener);
-      if (connection == null) {
-        return null;
-      }
-      myConnectedDevices.put(device, connection);
-    }
-    else {
-      connection = myConnectedDevices.get(device);
-      connection.addListener(profilerListener);
+    DeviceProfilerService deviceProfilerService;
+    if (myDeviceClientServices.containsKey(device)) {
+      deviceProfilerService = myDeviceClientServices.get(device);
+      deviceProfilerService.register(userKey);
+      return deviceProfilerService;
     }
 
-    return new DeviceClient(connection, profilerListener);
+    deviceProfilerService = DeviceProfilerService.createService(device);
+    if (deviceProfilerService == null) {
+      return null;
+    }
+    myDeviceClientServices.put(device, deviceProfilerService);
+    deviceProfilerService.register(userKey);
+
+    String versionResponse;
+    try {
+      // TODO Change getVersion be more asynchronous.
+      versionResponse = deviceProfilerService.getDeviceService().getVersion(
+        com.android.tools.profiler.proto.ProfilerService.VersionRequest.getDefaultInstance()).getVersion();
+    }
+    catch (RuntimeException e) {
+      LOG.info("Error connecting to profiler server: " + e.toString());
+      disconnect(userKey, deviceProfilerService);
+      return null;
+    }
+
+    if (!versionResponse.equals(EXPECTED_VERSION)) {
+      LOG.info("Device '" +
+               device.getAvdName() +
+               "' did not return the expected version. Expected: " +
+               EXPECTED_VERSION +
+               ", received: " +
+               versionResponse +
+               ".");
+      disconnect(userKey, deviceProfilerService);
+      return null;
+    }
+
+    return deviceProfilerService;
   }
 
   /**
-   * Disconnects cleanly from the target device.
+   * Disconnects from the target device.
    *
-   * @param appClient is the desired target as returned from {@link ProfilerService#connect(IDevice, ProfilerClientListener)}
+   * @param userKey the non-null key that was used in the {@link #connect(Object, IDevice)} call
+   * @param deviceProfilerService the return value of the {@link #connect(Object, IDevice)} call
    */
-  public synchronized void disconnect(@NotNull DeviceClient deviceClient) {
-    if (!myConnectedDevices.containsKey(deviceClient.getDeviceClientChannel().getDevice())) {
-      LOG.error("Caller attempted to disconnected from a device that was not connected.");
+  public void disconnect(@NotNull Object userKey, @NotNull DeviceProfilerService deviceProfilerService) {
+    if (deviceProfilerService.unregister(userKey)) {
+      myDeviceClientServices.remove(deviceProfilerService.getDevice());
     }
+  }
 
-    deviceClient.getDeviceClientChannel().removeListener(deviceClient.getProfilerClientListener());
-
-    if (deviceClient.getDeviceClientChannel().getProfilerClientListenersCount() == 0) {
-      myConnectedDevices.remove(deviceClient.getDeviceClientChannel().getDevice());
-    }
+  synchronized void stop(@NotNull DeviceProfilerService deviceProfilerService) {
+    myDeviceClientServices.remove(deviceProfilerService.getDevice());
   }
 }
