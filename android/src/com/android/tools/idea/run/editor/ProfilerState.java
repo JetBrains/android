@@ -22,8 +22,6 @@ import org.jdom.Element;
 
 import java.util.Properties;
 
-import static com.android.tools.idea.startup.AndroidStudioInitializer.ENABLE_EXPERIMENTAL_PROFILING;
-
 /**
  * Holds all the project persisted state variables for the profilers.
  */
@@ -64,9 +62,5 @@ public class ProfilerState {
     result.setProperty(INSTRUMENTATION_ENABLED_NAME, String.valueOf(INSTRUMENTATION_ENABLED));
     result.setProperty(ENABLE_ADVANCED_PROFILING_NAME, String.valueOf(ENABLE_ADVANCED_PROFILING));
     return result;
-  }
-
-  public boolean isGapidEnabled() {
-    return System.getProperty(ENABLE_EXPERIMENTAL_PROFILING) != null && GAPID_ENABLED;
   }
 }
