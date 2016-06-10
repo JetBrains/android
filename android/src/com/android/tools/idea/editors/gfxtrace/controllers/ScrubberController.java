@@ -124,7 +124,7 @@ public class ScrubberController extends ImageCellController<ScrubberController.D
     boolean doUpdate = false;
 
     ContextPath contextPath = event.findContextPath();
-    if (contextPath != null) {
+    if (contextPath != null && atoms.isLoaded()) {
       Context context = atoms.getContexts().find(contextPath.getID(), Context.ALL);
       doUpdate = !Objects.equals(context, mySelectedContext);
       mySelectedContext = context;
@@ -135,7 +135,7 @@ public class ScrubberController extends ImageCellController<ScrubberController.D
     }
 
     if (doUpdate) {
-      update(atoms);
+      update(atoms, false);
     }
   }
 
@@ -145,7 +145,7 @@ public class ScrubberController extends ImageCellController<ScrubberController.D
 
   @Override
   public void onAtomLoadingComplete(AtomStream atoms) {
-    update(atoms);
+    update(atoms, true);
   }
 
   @Override
@@ -160,10 +160,12 @@ public class ScrubberController extends ImageCellController<ScrubberController.D
     }
   }
 
-  private void update(AtomStream atoms) {
+  private void update(AtomStream atoms, boolean expectAtomsAreLoaded) {
     if (atoms.isLoaded()) {
       final List<Data> cells = prepareData(atoms.getPath(), atoms.getAtoms(), mySelectedContext);
       myList.setData(cells);
+    } else if (expectAtomsAreLoaded) {
+      ((ImageCellList<?>)myList).setEmptyText("Failed to load capture");
     }
   }
 }
