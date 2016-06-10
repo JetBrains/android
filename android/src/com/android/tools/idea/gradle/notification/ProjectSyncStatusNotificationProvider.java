@@ -32,6 +32,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 
+import static com.android.tools.idea.gradle.GradleSyncState.PROJECT_EXTERNAL_BUILD_FILES_CHANGED;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.Projects.*;
 import static com.intellij.ide.actions.ShowFilePathAction.openFile;
@@ -95,21 +96,21 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
       NONE() {
         @Nullable
         @Override
-        NotificationPanel create(Project project) {
+        NotificationPanel create(@NotNull Project project) {
           return null;
         }
       },
       IN_PROGRESS() {
         @NotNull
         @Override
-        NotificationPanel create(Project project) {
+        NotificationPanel create(@NotNull Project project) {
           return new NotificationPanel(this, "Gradle project sync in progress...");
         }
       },
       FAILED() {
         @NotNull
         @Override
-        NotificationPanel create(Project project) {
+        NotificationPanel create(@NotNull Project project) {
           return new SyncProblemNotificationPanel(
             project, this, "Gradle project sync failed. Basic functionality (e.g. editing, debugging) will not work properly.");
         }
@@ -117,7 +118,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
       ERRORS() {
         @NotNull
         @Override
-        NotificationPanel create(Project project) {
+        NotificationPanel create(@NotNull Project project) {
           return new SyncProblemNotificationPanel(
             project, this, "Gradle project sync completed with some errors. Open the 'Messages' view to see the errors found.");
         }
@@ -125,16 +126,19 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
       SYNC_NEEDED() {
         @NotNull
         @Override
-        NotificationPanel create(Project project) {
+        NotificationPanel create(@NotNull Project project) {
+          boolean areExternalBuildFilesChanged = PROJECT_EXTERNAL_BUILD_FILES_CHANGED.get(project, false);
+          String buildFiles = areExternalBuildFilesChanged ? "External build files" : "Gradle files";
+
           return new StaleGradleModelNotificationPanel(
             project, this,
-            "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.");
+            buildFiles + " have changed since last project sync. A project sync may be necessary for the IDE to work properly.");
         }
       },
       ;
 
       @Nullable
-      abstract NotificationPanel create(Project project);
+      abstract NotificationPanel create(@NotNull Project project);
     }
 
     @NotNull private final Type type;
