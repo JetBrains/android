@@ -24,6 +24,7 @@ import com.android.tools.pixelprobe.ShapeInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColorUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.awt.geom.*;
@@ -89,10 +90,10 @@ class LayeredImageConverter {
 
       Layer.Type type = layer.getType();
       if (type == Layer.Type.SHAPE) {
-        ShapeInfo shapeInfo = layer.getShapeInfo();
-        if (shapeInfo.getStyle() == ShapeInfo.Style.NONE) continue;
+        if (layer.getShapeInfo().getStyle() == ShapeInfo.Style.NONE) continue;
 
         Shape path = getTransformedPath(layer);
+        Area clipPath = null;
 
         float opacityModifier = 1.0f;
         boolean fullyClipped = false;
@@ -117,9 +118,10 @@ class LayeredImageConverter {
 
               opacityModifier = clipBase.getOpacity();
 
+              // TODO: use clip-path instead of areas
               Area source = new Area(path);
-              Area clip = new Area(getTransformedPath(clipBase));
-              source.intersect(clip);
+              clipPath = new Area(getTransformedPath(clipBase));
+              source.intersect(clipPath);
               path = source;
 
               break;
@@ -132,8 +134,8 @@ class LayeredImageConverter {
             .attribute("name", StringUtil.escapeXml(layer.getName()))
             .attribute("pathData", toPathData(path, myFormat));
 
-          extractFill(layer, shapeInfo, element, opacityModifier);
-          extractStroke(layer, shapeInfo, element, opacityModifier);
+          extractFill(layer, element, opacityModifier);
+          extractStroke(layer, path, clipPath, root, element, opacityModifier);
 
           root.childAtFront(element);
         }
@@ -152,34 +154,109 @@ class LayeredImageConverter {
     return path;
   }
 
-  private void extractStroke(@NotNull Layer layer, @NotNull ShapeInfo shapeInfo,
-                             @NotNull Element element, float opacityModifier) {
+  private void extractStroke(@NotNull Layer layer, @NotNull Shape path, @Nullable Area clipPath,
+                             @NotNull Element root, @NotNull Element element, float opacityModifier) {
+    ShapeInfo shapeInfo = layer.getShapeInfo();
     if (shapeInfo.getStyle() != ShapeInfo.Style.FILL) {
+      boolean isBasicStroke = shapeInfo.getStroke() instanceof BasicStroke;
+      if (isBasicStroke) {
+        BasicStroke stroke = (BasicStroke)shapeInfo.getStroke();
+        if (stroke.getDashArray() != null || clipPath != null ||
+            shapeInfo.getStrokeAlignment() != ShapeInfo.Alignment.CENTER) {
+          extractStrokeAsPath(layer, path, clipPath, root, opacityModifier);
+          return;
+        }
+      }
+
       Paint strokePaint = shapeInfo.getStrokePaint();
       //noinspection UseJBColor
       Color color = Color.BLACK;
       if (strokePaint instanceof Color) color = (Color)strokePaint;
       float strokeAlpha = layer.getOpacity() * shapeInfo.getStrokeOpacity() * opacityModifier;
 
-      element
-        .attribute("strokeColor", "#" + ColorUtil.toHex(color))
-        .attribute("strokeAlpha", myOpacityFormat.format(strokeAlpha));
+      element.attribute("strokeColor", "#" + ColorUtil.toHex(color));
+      if (strokeAlpha < 1.0f) {
+        element.attribute("strokeAlpha", myOpacityFormat.format(strokeAlpha));
+      }
 
-      if (shapeInfo.getStroke() instanceof BasicStroke) {
+      if (isBasicStroke) {
         BasicStroke stroke = (BasicStroke)shapeInfo.getStroke();
-        element
-          .attribute("strokeWidth", String.valueOf(stroke.getLineWidth()))
-          .attribute("strokeLineJoin", getJoinValue(stroke.getLineJoin()))
-          .attribute("strokeLineCap", getCapValue(stroke.getEndCap()))
-          .attribute("strokeMiterLimit", myMiterFormat.format(stroke.getMiterLimit()));
+        element.attribute("strokeWidth", myFormat.format(stroke.getLineWidth()));
+        if (stroke.getLineJoin() != BasicStroke.JOIN_MITER) {
+          element.attribute("strokeLineJoin", getJoinValue(stroke.getLineJoin()));
+        } else {
+          element.attribute("strokeMiterLimit", myMiterFormat.format(stroke.getMiterLimit()));
+        }
+        if (stroke.getEndCap() != BasicStroke.CAP_BUTT) {
+          element.attribute("strokeLineCap", getCapValue(stroke.getEndCap()));
+        }
       } else {
         element.attribute("strokeWidth", String.valueOf(0.0f));
       }
     }
   }
 
-  private void extractFill(@NotNull Layer layer, @NotNull ShapeInfo shapeInfo,
-                           @NotNull Element element, float opacityModifier) {
+  private void extractStrokeAsPath(@NotNull Layer layer, @NotNull Shape path, @Nullable Area clipPath,
+                                   @NotNull Element root, float opacityModifier) {
+    ShapeInfo shapeInfo = layer.getShapeInfo();
+    BasicStroke stroke = (BasicStroke)shapeInfo.getStroke();
+
+    Shape strokedPath = null;
+    switch (shapeInfo.getStrokeAlignment()) {
+      case INSIDE: {
+          strokedPath = copyStroke(stroke, 2.0f).createStrokedShape(path);
+          strokedPath = new Area(strokedPath);
+          ((Area) strokedPath).intersect(new Area(path));
+        }
+        break;
+      case CENTER:
+        strokedPath = stroke.createStrokedShape(path);
+        if (clipPath != null) {
+          strokedPath = new Area(strokedPath);
+        }
+        break;
+      case OUTSIDE:
+        strokedPath = copyStroke(stroke, 2.0f).createStrokedShape(path);
+        strokedPath = new Area(strokedPath);
+        ((Area) strokedPath).subtract(new Area(path));
+        break;
+    }
+
+    // TODO: use clip-path instead of areas
+    if (clipPath != null) {
+      ((Area) strokedPath).intersect(new Area(clipPath));
+    }
+
+    Paint strokePaint = shapeInfo.getStrokePaint();
+    //noinspection UseJBColor
+    Color color = Color.BLACK;
+    if (strokePaint instanceof Color) color = (Color)strokePaint;
+    float strokeAlpha = layer.getOpacity() * shapeInfo.getStrokeOpacity() * opacityModifier;
+
+    Element element = new Element("path")
+      .attribute("name", StringUtil.escapeXml(layer.getName()))
+      .attribute("pathData", toPathData(strokedPath, myFormat))
+      .attribute("fillColor", "#" + ColorUtil.toHex(color));
+
+    if (strokeAlpha < 1.0f) {
+      element.attribute("fillAlpha", myOpacityFormat.format(strokeAlpha));
+    }
+
+    root.childAtFront(element);
+  }
+
+  @NotNull
+  private static BasicStroke copyStroke(@NotNull BasicStroke stroke, float widthScale) {
+    return new BasicStroke(stroke.getLineWidth() * widthScale,
+                           stroke.getEndCap(),
+                           stroke.getLineJoin(),
+                           stroke.getMiterLimit(),
+                           stroke.getDashArray(),
+                           stroke.getDashPhase());
+  }
+
+  private void extractFill(@NotNull Layer layer, @NotNull Element element, float opacityModifier) {
+    ShapeInfo shapeInfo = layer.getShapeInfo();
     if (shapeInfo.getStyle() != ShapeInfo.Style.STROKE) {
       Paint fillPaint = shapeInfo.getFillPaint();
       //noinspection UseJBColor
@@ -187,9 +264,10 @@ class LayeredImageConverter {
       if (fillPaint instanceof Color) color = (Color)fillPaint;
       float fillAlpha = layer.getOpacity() * shapeInfo.getFillOpacity() * opacityModifier;
 
-      element
-        .attribute("fillColor", "#" + ColorUtil.toHex(color))
-        .attribute("fillAlpha", myOpacityFormat.format(fillAlpha));
+      element.attribute("fillColor", "#" + ColorUtil.toHex(color));
+      if (fillAlpha < 1.0f) {
+        element.attribute("fillAlpha", myOpacityFormat.format(fillAlpha));
+      }
     }
   }
 
@@ -211,6 +289,129 @@ class LayeredImageConverter {
       case BasicStroke.JOIN_MITER: return "miter";
     }
     return "inherit";
+  }
+
+  @NotNull
+  private static String toPathData(@NotNull Shape path, @NotNull DecimalFormat format) {
+    StringBuilder buffer = new StringBuilder(1024);
+
+    float[] coords = new float[6];
+    PathIterator iterator = path.getPathIterator(null);
+
+    float lastX = 0.0f;
+    float lastY = 0.0f;
+
+    boolean implicitLineTo = false;
+
+    while (!iterator.isDone()) {
+      int segment = iterator.currentSegment(coords);
+      switch (segment) {
+        case PathIterator.SEG_MOVETO:
+          buffer.append('M');
+          buffer.append(cleanup(coords[0], format));
+          buffer.append(' ');
+          buffer.append(cleanup(coords[1], format));
+          lastX = coords[0];
+          lastY = coords[1];
+          implicitLineTo = true;
+          break;
+        case PathIterator.SEG_LINETO:
+          if (coords[0] == lastX) {
+            if (coords[1] != lastY) {
+              buffer.append('v');
+              buffer.append(cleanup(coords[1] - lastY, format));
+              implicitLineTo = false;
+            }
+          } else if (coords[1] == lastY) {
+            if (coords[0] != lastX) {
+              buffer.append('h');
+              buffer.append(cleanup(coords[0] - lastX, format));
+              implicitLineTo = false;
+            }
+          } else if (coords[0] != lastX && coords[1] != lastY) {
+            buffer.append(implicitLineTo ? ' ' : 'l');
+            buffer.append(cleanup(coords[0] - (implicitLineTo ? 0.0f : lastX), format));
+            buffer.append(' ');
+            buffer.append(cleanup(coords[1] - (implicitLineTo ? 0.0f : lastY), format));
+          }
+          lastX = coords[0];
+          lastY = coords[1];
+          break;
+        case PathIterator.SEG_CUBICTO:
+          buffer.append('c');
+          buffer.append(cleanup(coords[0] - lastX, format));
+          buffer.append(' ');
+          buffer.append(cleanup(coords[1] - lastY, format));
+          buffer.append(' ');
+          buffer.append(cleanup(coords[2] - lastX, format));
+          buffer.append(' ');
+          buffer.append(cleanup(coords[3] - lastY, format));
+          buffer.append(' ');
+          buffer.append(cleanup(coords[4] - lastX, format));
+          buffer.append(' ');
+          buffer.append(cleanup(coords[5] - lastY, format));
+          implicitLineTo = false;
+          lastX = coords[4];
+          lastY = coords[5];
+          break;
+        case PathIterator.SEG_QUADTO:
+          buffer.append('q');
+          buffer.append(cleanup(coords[0] - lastX, format));
+          buffer.append(' ');
+          buffer.append(cleanup(coords[1] - lastY, format));
+          buffer.append(' ');
+          buffer.append(cleanup(coords[2] - lastX, format));
+          buffer.append(' ');
+          buffer.append(cleanup(coords[3] - lastY, format));
+          implicitLineTo = false;
+          lastX = coords[2];
+          lastY = coords[3];
+          break;
+        case PathIterator.SEG_CLOSE:
+          buffer.append('z');
+          break;
+      }
+
+      iterator.next();
+    }
+
+    return buffer.toString();
+  }
+
+  @NotNull
+  private static DecimalFormat createDecimalFormat(float viewportWidth, float viewportHeight) {
+    float minSize = Math.min(viewportHeight, viewportWidth);
+    float exponent = Math.round(Math.log10(minSize));
+
+    int decimalPlace = (int) Math.floor(exponent - 4);
+    String decimalFormatString = "#";
+    if (decimalPlace < 0) {
+      // Build a string with decimal places for "#.##...", and cap on 6 digits.
+      if (decimalPlace < -6) {
+        decimalPlace = -6;
+      }
+      decimalFormatString += ".";
+      for (int i = 0 ; i < -decimalPlace; i++) {
+        decimalFormatString += "#";
+      }
+    }
+
+    DecimalFormatSymbols fractionSeparator = new DecimalFormatSymbols();
+    fractionSeparator.setDecimalSeparator('.');
+
+    DecimalFormat decimalFormat = new DecimalFormat(decimalFormatString, fractionSeparator);
+    decimalFormat.setRoundingMode(RoundingMode.HALF_UP);
+
+    return decimalFormat;
+  }
+
+  @NotNull
+  private static String cleanup(float value, @NotNull DecimalFormat format) {
+    if (value == (long) value) {
+      return String.valueOf((long) value);
+    } else {
+      return format.format(value);
+    }
   }
 
   @NotNull
@@ -275,108 +476,6 @@ class LayeredImageConverter {
   private static void indent(@NotNull PrintWriter out, int indent) {
     for (int i = 0; i < indent; i++) {
       out.write("    ");
-    }
-  }
-
-  @NotNull
-  private static String toPathData(@NotNull Shape path, @NotNull DecimalFormat format) {
-    StringBuilder buffer = new StringBuilder(1024);
-
-    float[] coords = new float[6];
-    int previousSegment = -1;
-    PathIterator iterator = path.getPathIterator(null);
-
-    while (!iterator.isDone()) {
-      int segment = iterator.currentSegment(coords);
-      switch (segment) {
-        case PathIterator.SEG_MOVETO:
-          buffer.append('M');
-          buffer.append(cleanup(coords[0], format));
-          buffer.append(',');
-          buffer.append(cleanup(coords[1], format));
-          break;
-        case PathIterator.SEG_LINETO:
-          if (previousSegment != PathIterator.SEG_LINETO) {
-            buffer.append('L');
-          }
-          buffer.append(cleanup(coords[0], format));
-          buffer.append(',');
-          buffer.append(cleanup(coords[1], format));
-          break;
-        case PathIterator.SEG_CUBICTO:
-          if (previousSegment != PathIterator.SEG_CUBICTO) {
-            buffer.append('C');
-          }
-          buffer.append(cleanup(coords[0], format));
-          buffer.append(',');
-          buffer.append(cleanup(coords[1], format));
-          buffer.append(' ');
-          buffer.append(cleanup(coords[2], format));
-          buffer.append(',');
-          buffer.append(cleanup(coords[3], format));
-          buffer.append(' ');
-          buffer.append(cleanup(coords[4], format));
-          buffer.append(',');
-          buffer.append(cleanup(coords[5], format));
-          break;
-        case PathIterator.SEG_QUADTO:
-          if (previousSegment != PathIterator.SEG_QUADTO) {
-            buffer.append('Q');
-          }
-          buffer.append(cleanup(coords[0], format));
-          buffer.append(',');
-          buffer.append(cleanup(coords[1], format));
-          buffer.append(' ');
-          buffer.append(cleanup(coords[2], format));
-          buffer.append(',');
-          buffer.append(cleanup(coords[3], format));
-          break;
-        case PathIterator.SEG_CLOSE:
-          buffer.append('Z');
-          break;
-      }
-
-      previousSegment = segment;
-      iterator.next();
-      if (!iterator.isDone()) buffer.append(' ');
-    }
-
-    return buffer.toString();
-  }
-
-  @NotNull
-  private static DecimalFormat createDecimalFormat(float viewportWidth, float viewportHeight) {
-    float minSize = Math.min(viewportHeight, viewportWidth);
-    float exponent = Math.round(Math.log10(minSize));
-
-    int decimalPlace = (int) Math.floor(exponent - 4);
-    String decimalFormatString = "#";
-    if (decimalPlace < 0) {
-      // Build a string with decimal places for "#.##...", and cap on 6 digits.
-      if (decimalPlace < -6) {
-        decimalPlace = -6;
-      }
-      decimalFormatString += ".";
-      for (int i = 0 ; i < -decimalPlace; i++) {
-        decimalFormatString += "#";
-      }
-    }
-
-    DecimalFormatSymbols fractionSeparator = new DecimalFormatSymbols();
-    fractionSeparator.setDecimalSeparator('.');
-
-    DecimalFormat decimalFormat = new DecimalFormat(decimalFormatString, fractionSeparator);
-    decimalFormat.setRoundingMode(RoundingMode.HALF_UP);
-
-    return decimalFormat;
-  }
-
-  @NotNull
-  private static String cleanup(float value, @NotNull DecimalFormat format) {
-    if (value == (long) value) {
-      return String.valueOf((long) value);
-    } else {
-      return format.format(value);
     }
   }
 
