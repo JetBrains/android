@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ToggleAction;
