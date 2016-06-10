@@ -72,8 +72,8 @@ public class LegendComponent extends AnimatedComponent {
   public void setLegendData(List<LegendRenderData> data) {
     mLegendRenderData = new ArrayList<>(data);
     mLabelsToDraw = new ArrayList<>(mLegendRenderData.size());
-    for (LegendRenderData unused : mLegendRenderData) {
-      JBLabel label = new JBLabel();
+    for (LegendRenderData initialData : mLegendRenderData) {
+      JBLabel label = new JBLabel(initialData.getLabel());
       label.setFont(AdtUiUtils.DEFAULT_FONT);
       mLabelsToDraw.add(label);
     }
@@ -93,7 +93,7 @@ public class LegendComponent extends AnimatedComponent {
         if (series != null) {
           ReportingSeries.ReportingData report = series.getLatestReportingData();
           if (report != null) {
-            label.setText(String.format("%s: %s", report.label, report.formattedYData));
+            label.setText(String.format("%s: %s", series.getLabel(), report.formattedYData));
           }
         }
       }
