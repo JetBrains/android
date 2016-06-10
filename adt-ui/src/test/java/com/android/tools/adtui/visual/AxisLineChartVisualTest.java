@@ -59,7 +59,7 @@ public class AxisLineChartVisualTest extends VisualTest {
   private List<RangedContinuousSeries> mRangedData;
 
   @NonNull
-  private List<DefaultContinuousSeries> mData;
+  private List<LongDataSeries> mData;
 
   @NonNull
   private AxisComponent mMemoryAxis1;
@@ -106,7 +106,7 @@ public class AxisLineChartVisualTest extends VisualTest {
     mMemoryAxis1 = new AxisComponent(yRange1Animatable, yRange1Animatable, SERIES1_LABEL,
                                      AxisComponent.AxisOrientation.LEFT, AXIS_SIZE, AXIS_SIZE, true,
                                      MemoryAxisFormatter.DEFAULT);
-    DefaultContinuousSeries series1 = new DefaultContinuousSeries();
+    LongDataSeries series1 = new LongDataSeries();
     RangedContinuousSeries ranged1 = new RangedContinuousSeries(SERIES1_LABEL, xRange, yRange1Animatable, series1);
     mRangedData.add(ranged1);
     mData.add(series1);
@@ -116,7 +116,7 @@ public class AxisLineChartVisualTest extends VisualTest {
     mMemoryAxis2 = new AxisComponent(yRange2Animatable, yRange2Animatable, SERIES2_LABEL,
                                      AxisComponent.AxisOrientation.RIGHT, AXIS_SIZE, AXIS_SIZE, true,
                                      MemoryAxisFormatter.DEFAULT);
-    DefaultContinuousSeries series2 = new DefaultContinuousSeries();
+    LongDataSeries series2 = new LongDataSeries();
     RangedContinuousSeries ranged2 = new RangedContinuousSeries(SERIES2_LABEL, xRange, yRange2Animatable, series2);
     mRangedData.add(ranged2);
     mData.add(series2);
@@ -184,7 +184,7 @@ public class AxisLineChartVisualTest extends VisualTest {
         try {
           while (true) {
             long now = System.currentTimeMillis() - mStartTimeMs;
-            for (DefaultContinuousSeries series : mData) {
+            for (LongDataSeries series : mData) {
               ImmutableList<SeriesData<Long>> data = series.getAllData();
               long last = data.isEmpty() ? 0 : data.get(data.size() - 1).value;
               float delta = 10 * ((float)Math.random() - 0.45f);

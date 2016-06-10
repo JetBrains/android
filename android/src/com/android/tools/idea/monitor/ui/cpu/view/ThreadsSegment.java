@@ -20,8 +20,9 @@ import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.Range;
 import com.android.tools.adtui.chart.StateChart;
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.model.RangedDiscreteSeries;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
+import com.android.tools.adtui.model.DefaultDataSeries;
+import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.idea.monitor.ui.BaseSegment;
 import com.android.tools.idea.monitor.ui.ProfilerEventListener;
 import com.intellij.ui.JBColor;
@@ -99,10 +100,9 @@ public class ThreadsSegment extends BaseSegment implements Animatable {
 
   /**
    * Stores the state series corresponding to each thread.
-   * TODO: maybe it's safer to keep insertion order
    */
   @NotNull
-  private final Map<Thread, RangedDiscreteSeries<Thread.State>> mThreadsStateSeries;
+  private final Map<Thread, DefaultDataSeries<Thread.State>> mThreadsStateSeries;
 
   public ThreadsSegment(@NotNull Range timeRange,
                         @NotNull SeriesDataStore dataStore,
@@ -185,7 +185,7 @@ public class ThreadsSegment extends BaseSegment implements Animatable {
     createThreadStateChart(thread);
   }
 
-  public Map<Thread, RangedDiscreteSeries<Thread.State>> getThreadsStateSeries() {
+  public Map<Thread, DefaultDataSeries<Thread.State>> getThreadsStateSeries() {
     return mThreadsStateSeries;
   }
 
@@ -193,8 +193,9 @@ public class ThreadsSegment extends BaseSegment implements Animatable {
     StateChart<Thread.State> stateChart = new StateChart<>(getThreadStateColor());
     mThreadsStateCharts.put(thread, stateChart);
 
-    RangedDiscreteSeries<Thread.State> threadSeries = new RangedDiscreteSeries<>(Thread.State.class, mTimeRange);
-    mThreadsStateSeries.put(thread, threadSeries);
+    DefaultDataSeries<Thread.State> defaultData = new DefaultDataSeries();
+    RangedSeries<Thread.State> threadSeries = new RangedSeries<>(mTimeRange, defaultData);
+    mThreadsStateSeries.put(thread, defaultData);
     mThreadsStateCharts.get(thread).addSeries(threadSeries);
 
     mThreadsListModel.addElement(thread);

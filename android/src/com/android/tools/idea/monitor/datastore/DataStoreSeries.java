@@ -16,19 +16,19 @@
 package com.android.tools.idea.monitor.datastore;
 
 import com.android.tools.adtui.Range;
-import com.android.tools.adtui.model.ContinuousSeries;
+import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.SeriesData;
 import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
-public class DataStoreContinuousSeries implements ContinuousSeries {
+public class DataStoreSeries<E> implements DataSeries<E> {
   @NotNull
   private final SeriesDataStore mStore;
 
   @NotNull
   private final SeriesDataType mType;
 
-  public DataStoreContinuousSeries(@NotNull SeriesDataStore store, @NotNull SeriesDataType type) {
+  public DataStoreSeries(@NotNull SeriesDataStore store, @NotNull SeriesDataType type) {
     mStore = store;
     mType = type;
   }
@@ -39,14 +39,14 @@ public class DataStoreContinuousSeries implements ContinuousSeries {
   }
 
   @Override
-  public ImmutableList<SeriesData<Long>> getDataForXRange(@NotNull Range xRange) {
+  public ImmutableList<SeriesData<E>> getDataForXRange(@NotNull Range xRange) {
     return mStore.getSeriesData(mType, xRange);
   }
 
   @Override
-  public SeriesData<Long> getDataAtXValue(long x) {
+  public SeriesData<E> getDataAtXValue(long x) {
     int index = mStore.getClosestTimeIndex(mType, x);
-    SeriesData<Long> data = new SeriesData<>();
+    SeriesData<E> data = new SeriesData<>();
     data.x = mStore.getTimeAtIndex(mType, index);
     data.value = mStore.getValueAtIndex(mType, index);
     return data;
