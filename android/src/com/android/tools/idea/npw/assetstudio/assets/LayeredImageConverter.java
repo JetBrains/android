@@ -38,7 +38,11 @@ import java.util.List;
  * Loads a layered image from a file and converts it to a Vector Drawable XML representation.
  */
 class LayeredImageConverter {
-  private LayeredImageConverter() {
+  private DecimalFormat myFormat;
+  private final DecimalFormat myMiterFormat = new DecimalFormat("#.####");
+  private final DecimalFormat myOpacityFormat = new DecimalFormat("#.##");
+
+  LayeredImageConverter() {
   }
 
   /**
@@ -51,21 +55,15 @@ class LayeredImageConverter {
    * @throws IOException If an error occur while parsing the file
    */
   @NotNull
-  static String toVectorDrawableXml(@NotNull File path) throws IOException {
+  String toVectorDrawableXml(@NotNull File path) throws IOException {
     FileInputStream in = new FileInputStream(path);
     Image image = PixelProbe.probe(in);
 
-    // Find the total bounds of all the vector layers
-    Rectangle2D bounds = new Rectangle2D.Double();
-    extractBounds(image.getLayers(), bounds);
-
-    Rectangle2D.Double document = new Rectangle2D.Double(0.0, 0.0, image.getWidth(), image.getHeight());
-    bounds = bounds.createIntersection(document);
-
-    DecimalFormat format = createDecimalFormat((float) bounds.getWidth(), (float) bounds.getHeight());
+    Rectangle2D.Double bounds = new Rectangle2D.Double(0.0, 0.0, image.getWidth(), image.getHeight());
+    myFormat = createDecimalFormat((float) bounds.getWidth(), (float) bounds.getHeight());
 
     Element vector = new Element(SdkConstants.TAG_VECTOR);
-    extractPathLayers(vector, image.getLayers(), bounds, format);
+    extractPathLayers(vector, image.getLayers());
 
     vector
       .attribute("width", String.valueOf((int) bounds.getWidth()) + "dp")
@@ -79,40 +77,12 @@ class LayeredImageConverter {
   }
 
   /**
-   * Finds all vector layers and accumulate their bounds in the specified rectangle.
-   *
-   * @param layers List of layers to iterate
-   * @param bounds Total bounds of all vector layers
-   */
-  private static void extractBounds(@NotNull List<Layer> layers, @NotNull Rectangle2D bounds) {
-    for (Layer layer : layers) {
-      if (!layer.isVisible()) continue;
-
-      Layer.Type type = layer.getType();
-      if (type == Layer.Type.SHAPE) {
-        Rectangle2D layerBounds = layer.getBounds();
-        if (bounds.isEmpty()) {
-          bounds.setRect(layerBounds);
-        } else {
-          bounds.add(layerBounds);
-        }
-      }
-      else if (type == Layer.Type.GROUP) {
-        extractBounds(layer.getChildren(), bounds);
-      }
-    }
-  }
-
-  /**
    * Extracts all the vector layers from the specified list and transforms them into an
    * XML representation.
-   *  @param root Root element of the Vector Drawable XML representation
+   * @param root Root element of the Vector Drawable XML representation
    * @param layers List of layers to traverse
-   * @param bounds Total bounds of all vector layers
-   * @param format
    */
-  private static void extractPathLayers(@NotNull Element root, @NotNull List<Layer> layers,
-                                        @NotNull Rectangle2D bounds, @NotNull DecimalFormat format) {
+  private void extractPathLayers(@NotNull Element root, @NotNull List<Layer> layers) {
     for (int i = 0; i < layers.size(); i++) {
       Layer layer = layers.get(i);
       if (!layer.isVisible()) continue;
@@ -122,7 +92,7 @@ class LayeredImageConverter {
         ShapeInfo shapeInfo = layer.getShapeInfo();
         if (shapeInfo.getStyle() == ShapeInfo.Style.NONE) continue;
 
-        Shape path = getTransformedPath(layer, bounds);
+        Shape path = getTransformedPath(layer);
 
         float opacityModifier = 1.0f;
         boolean fullyClipped = false;
@@ -148,7 +118,7 @@ class LayeredImageConverter {
               opacityModifier = clipBase.getOpacity();
 
               Area source = new Area(path);
-              Area clip = new Area(getTransformedPath(clipBase, bounds));
+              Area clip = new Area(getTransformedPath(clipBase));
               source.intersect(clip);
               path = source;
 
@@ -160,31 +130,30 @@ class LayeredImageConverter {
         if (!fullyClipped) {
           Element element = new Element("path")
             .attribute("name", StringUtil.escapeXml(layer.getName()))
-            .attribute("pathData", toPathData(path, format));
+            .attribute("pathData", toPathData(path, myFormat));
 
           extractFill(layer, shapeInfo, element, opacityModifier);
-          extractStroke(layer, shapeInfo, element, opacityModifier, format);
+          extractStroke(layer, shapeInfo, element, opacityModifier);
 
           root.childAtFront(element);
         }
       }
       else if (type == Layer.Type.GROUP) {
-        extractPathLayers(root, layer.getChildren(), bounds, format);
+        extractPathLayers(root, layer.getChildren());
       }
     }
   }
 
   @NotNull
-  private static Path2D getTransformedPath(Layer layer, @NotNull Rectangle2D bounds) {
+  private static Path2D getTransformedPath(Layer layer) {
     Path2D path = layer.getShapeInfo().getPath();
     Rectangle2D layerBounds = layer.getBounds();
-    path.transform(AffineTransform.getTranslateInstance(
-      layerBounds.getX() - bounds.getX(), layerBounds.getY() - bounds.getY()));
+    path.transform(AffineTransform.getTranslateInstance(layerBounds.getX(), layerBounds.getY()));
     return path;
   }
 
-  private static void extractStroke(Layer layer, ShapeInfo shapeInfo, Element element,
-                                    float opacityModifier, DecimalFormat format) {
+  private void extractStroke(@NotNull Layer layer, @NotNull ShapeInfo shapeInfo,
+                             @NotNull Element element, float opacityModifier) {
     if (shapeInfo.getStyle() != ShapeInfo.Style.FILL) {
       Paint strokePaint = shapeInfo.getStrokePaint();
       //noinspection UseJBColor
@@ -194,7 +163,7 @@ class LayeredImageConverter {
 
       element
         .attribute("strokeColor", "#" + ColorUtil.toHex(color))
-        .attribute("strokeAlpha", String.valueOf(strokeAlpha));
+        .attribute("strokeAlpha", myOpacityFormat.format(strokeAlpha));
 
       if (shapeInfo.getStroke() instanceof BasicStroke) {
         BasicStroke stroke = (BasicStroke)shapeInfo.getStroke();
@@ -202,14 +171,15 @@ class LayeredImageConverter {
           .attribute("strokeWidth", String.valueOf(stroke.getLineWidth()))
           .attribute("strokeLineJoin", getJoinValue(stroke.getLineJoin()))
           .attribute("strokeLineCap", getCapValue(stroke.getEndCap()))
-          .attribute("strokeMiterLimit", format.format(stroke.getMiterLimit()));
+          .attribute("strokeMiterLimit", myMiterFormat.format(stroke.getMiterLimit()));
       } else {
         element.attribute("strokeWidth", String.valueOf(0.0f));
       }
     }
   }
 
-  private static void extractFill(Layer layer, ShapeInfo shapeInfo, Element element, float opacityModifier) {
+  private void extractFill(@NotNull Layer layer, @NotNull ShapeInfo shapeInfo,
+                           @NotNull Element element, float opacityModifier) {
     if (shapeInfo.getStyle() != ShapeInfo.Style.STROKE) {
       Paint fillPaint = shapeInfo.getFillPaint();
       //noinspection UseJBColor
@@ -219,10 +189,11 @@ class LayeredImageConverter {
 
       element
         .attribute("fillColor", "#" + ColorUtil.toHex(color))
-        .attribute("fillAlpha", String.valueOf(fillAlpha));
+        .attribute("fillAlpha", myOpacityFormat.format(fillAlpha));
     }
   }
 
+  @NotNull
   private static String getCapValue(int endCap) {
     switch (endCap) {
       case BasicStroke.CAP_BUTT: return "butt";
@@ -232,6 +203,7 @@ class LayeredImageConverter {
     return "inherit";
   }
 
+  @NotNull
   private static String getJoinValue(int lineJoin) {
     switch (lineJoin) {
       case BasicStroke.JOIN_BEVEL: return "bevel";
@@ -311,6 +283,7 @@ class LayeredImageConverter {
     StringBuilder buffer = new StringBuilder(1024);
 
     float[] coords = new float[6];
+    int previousSegment = -1;
     PathIterator iterator = path.getPathIterator(null);
 
     while (!iterator.isDone()) {
@@ -323,13 +296,17 @@ class LayeredImageConverter {
           buffer.append(cleanup(coords[1], format));
           break;
         case PathIterator.SEG_LINETO:
-          buffer.append('L');
+          if (previousSegment != PathIterator.SEG_LINETO) {
+            buffer.append('L');
+          }
           buffer.append(cleanup(coords[0], format));
           buffer.append(',');
           buffer.append(cleanup(coords[1], format));
           break;
         case PathIterator.SEG_CUBICTO:
-          buffer.append('C');
+          if (previousSegment != PathIterator.SEG_CUBICTO) {
+            buffer.append('C');
+          }
           buffer.append(cleanup(coords[0], format));
           buffer.append(',');
           buffer.append(cleanup(coords[1], format));
@@ -343,7 +320,9 @@ class LayeredImageConverter {
           buffer.append(cleanup(coords[5], format));
           break;
         case PathIterator.SEG_QUADTO:
-          buffer.append('Q');
+          if (previousSegment != PathIterator.SEG_QUADTO) {
+            buffer.append('Q');
+          }
           buffer.append(cleanup(coords[0], format));
           buffer.append(',');
           buffer.append(cleanup(coords[1], format));
@@ -357,6 +336,7 @@ class LayeredImageConverter {
           break;
       }
 
+      previousSegment = segment;
       iterator.next();
       if (!iterator.isDone()) buffer.append(' ');
     }

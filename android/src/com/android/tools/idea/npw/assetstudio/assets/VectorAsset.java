@@ -174,7 +174,7 @@ public final class VectorAsset extends BaseAsset {
     }
     else if (fileType.equals(FileType.LAYERED_IMAGE)) {
       try {
-        xmlFileContent = LayeredImageConverter.toVectorDrawableXml(path);
+        xmlFileContent = new LayeredImageConverter().toVectorDrawableXml(path);
       }
       catch (IOException e) {
         errorBuffer.append(e.getMessage());
