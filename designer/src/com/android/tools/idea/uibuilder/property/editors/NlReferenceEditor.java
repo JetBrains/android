@@ -29,6 +29,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.completion.PrefixMatcher;
 import com.intellij.codeInsight.completion.impl.CamelHumpMatcher;
+import com.intellij.openapi.command.undo.UndoConstants;
 import com.intellij.openapi.editor.HighlighterColors;
 import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.editor.ex.util.EmptyEditorHighlighter;
@@ -356,6 +357,7 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
       assert editor != null;
       editor.getColorsScheme().setAttributes(HighlighterColors.TEXT, myTextAttributes);
       editor.setHighlighter(new EmptyEditorHighlighter(myTextAttributes));
+      editor.getDocument().putUserData(UndoConstants.DONT_RECORD_UNDO, true);
     }
 
     public void setTextColor(@NotNull Color color) {
