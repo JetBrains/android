@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.npw;
+package com.android.tools.idea.npw.deprecated;
 
 import com.android.tools.idea.gradle.project.GradleModuleImportTest;
+import com.android.tools.idea.npw.NewModuleWizardState;
 import com.google.common.io.Files;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.ThrowableComputable;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
@@ -36,6 +36,7 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 /**
  * Test wizard page for specifying the location
  */
+@Deprecated
 public final class ImportSourceLocationStepTest extends AndroidTestBase {
   private VirtualFile myModule;
   private ImportSourceLocationStep myPage;
@@ -71,7 +72,7 @@ public final class ImportSourceLocationStepTest extends AndroidTestBase {
     VirtualFile moduleInProject = ApplicationManager.getApplication().runWriteAction(new ThrowableComputable<VirtualFile, IOException>() {
       @Override
       public VirtualFile compute() throws IOException {
-        return GradleModuleImportTest.createGradleProjectToImport(VfsUtilCore.virtualToIoFile(getProject().getBaseDir()), "gradlemodule");
+        return GradleModuleImportTest.createGradleProjectToImport(virtualToIoFile(getProject().getBaseDir()), "gradlemodule");
       }
     });
     moduleInProject.refresh(false, true);
