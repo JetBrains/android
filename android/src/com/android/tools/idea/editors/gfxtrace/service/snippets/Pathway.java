@@ -16,7 +16,6 @@
 package com.android.tools.idea.editors.gfxtrace.service.snippets;
 
 import com.android.tools.rpclib.binary.BinaryObject;
-import com.android.tools.idea.editors.gfxtrace.service.snippets.SnippetsProtos.SymbolCategory;
 import com.android.tools.idea.editors.gfxtrace.service.snippets.SnippetsProtos.PartKind;
 
 /**
@@ -110,6 +109,30 @@ public abstract class Pathway implements BinaryObject {
     }
     return false;  //equals(p);
   }
+
+  @Override
+  public String toString() {
+    return stringPath(new StringBuilder()).toString();
+  }
+
+  private StringBuilder stringPath(StringBuilder stringBuilder) {
+    Pathway parent = base();
+    if (parent != null) {
+      parent.stringPath(stringBuilder);
+      appendSegmentToPath(stringBuilder);
+    }
+    else {
+      stringBuilder.append(getSegmentString());
+    }
+    return stringBuilder;
+  }
+
+  public void appendSegmentToPath(StringBuilder builder) {
+    builder.append("/");
+    builder.append(getSegmentString());
+  }
+
+  public abstract String getSegmentString();
 
   /**
    * Computes the number of steps to reach the root of the pathway.

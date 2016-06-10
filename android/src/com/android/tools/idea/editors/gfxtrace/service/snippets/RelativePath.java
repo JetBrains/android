@@ -25,6 +25,12 @@ import com.android.tools.rpclib.schema.*;
 import java.io.IOException;
 
 final class RelativePath extends Pathway implements BinaryObject {
+
+  @Override
+  public String getSegmentString() {
+    return "RelativePath(" + myTypeName + ")";
+  }
+
   //<<<Start:Java.ClassBody:1>>>
   private String myTypeName;
 
