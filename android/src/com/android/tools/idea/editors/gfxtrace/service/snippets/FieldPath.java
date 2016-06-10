@@ -25,6 +25,12 @@ import com.android.tools.rpclib.schema.*;
 import java.io.IOException;
 
 final class FieldPath extends Pathway implements BinaryObject {
+
+  @Override
+  public String getSegmentString() {
+    return "FieldPath(" + myName +")";
+  }
+
   //<<<Start:Java.ClassBody:1>>>
   private Pathway myBase;
   private String myName;

@@ -26,6 +26,12 @@ import com.android.tools.idea.editors.gfxtrace.service.snippets.SnippetsProtos.P
 import java.io.IOException;
 
 final class PartPath extends Pathway implements BinaryObject {
+
+  @Override
+  public String getSegmentString() {
+    return "PartPath(" + myKind + ")";
+  }
+
   //<<<Start:Java.ClassBody:1>>>
   private Pathway myBase;
   private PartKind myKind;
