@@ -61,7 +61,7 @@ public class AndroidProfilersPanel {
   }
 
   private static boolean isGapidSdkComponentInstalled() {
-    return !EXPERIMENTAL_ENABLED || GapiPaths.findTracerAar().exists();
+    return !EXPERIMENTAL_ENABLED || GapiPaths.isValid();
   }
 
   /**
