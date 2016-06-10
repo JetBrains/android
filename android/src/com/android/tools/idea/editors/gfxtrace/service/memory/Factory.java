@@ -22,7 +22,7 @@ public final class Factory {
     //<<<Start:Java.FactoryBody:2>>>
     MemoryPointer.register();
     MemoryRange.register();
-    MemorySliceInfo.register();
+    SliceInfo.register();
     //<<<End:Java.FactoryBody:2>>>
   }
 }

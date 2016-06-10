@@ -27,53 +27,49 @@ import java.io.IOException;
 /**
  * MemorySliceInfo is the common data structure for each slice type.
  */
-public final class MemorySliceInfo implements BinaryObject {
+public final class SliceInfo implements BinaryObject {
   //<<<Start:Java.ClassBody:1>>>
   private long myRoot;
   private long myBase;
   private long myCount;
   private int myPool;
 
-  // Constructs a default-initialized {@link MemorySliceInfo}.
-  public MemorySliceInfo() {}
+  // Constructs a default-initialized {@link SliceInfo}.
+  public SliceInfo() {}
 
 
-  /** @return the original pointer this slice derives from (offset from base for sub-slices) */
   public long getRoot() {
     return myRoot;
   }
 
-  public MemorySliceInfo setRoot(long v) {
+  public SliceInfo setRoot(long v) {
     myRoot = v;
     return this;
   }
 
-  /** @return the address of the first element in this slice */
   public long getBase() {
     return myBase;
   }
 
-  public MemorySliceInfo setBase(long v) {
+  public SliceInfo setBase(long v) {
     myBase = v;
     return this;
   }
 
-  /** @return the number of elements in this slice */
   public long getCount() {
     return myCount;
   }
 
-  public MemorySliceInfo setCount(long v) {
+  public SliceInfo setCount(long v) {
     myCount = v;
     return this;
   }
 
-  /** @return the pool identifier for the root and base pointers */
   public int getPool() {
     return myPool;
   }
 
-  public MemorySliceInfo setPool(int v) {
+  public SliceInfo setPool(int v) {
     myPool = v;
     return this;
   }
@@ -103,11 +99,11 @@ public final class MemorySliceInfo implements BinaryObject {
     public Entity entity() { return ENTITY; }
 
     @Override @NotNull
-    public BinaryObject create() { return new MemorySliceInfo(); }
+    public BinaryObject create() { return new SliceInfo(); }
 
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
-      MemorySliceInfo o = (MemorySliceInfo)obj;
+      SliceInfo o = (SliceInfo)obj;
       e.uint64(o.myRoot);
       e.uint64(o.myBase);
       e.uint64(o.myCount);
@@ -116,7 +112,7 @@ public final class MemorySliceInfo implements BinaryObject {
 
     @Override
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
-      MemorySliceInfo o = (MemorySliceInfo)obj;
+      SliceInfo o = (SliceInfo)obj;
       o.myRoot = d.uint64();
       o.myBase = d.uint64();
       o.myCount = d.uint64();
