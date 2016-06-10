@@ -125,6 +125,26 @@ public class InferSupportAnnotationsTest extends CodeInsightTestCase {
            getVirtualFile(INFER_PATH + "C.java"),
            getVirtualFile(INFER_PATH + "D.java"));
   }
+
+  public void testPutValue() throws Exception {
+    if (!InferSupportAnnotationsAction.ENABLED) {
+      return;
+    }
+
+    // Ensure that if we see somebody putting a resource into
+    // an intent map, we don't then conclude that ALL values put
+    // into the map must be of that type
+    try {
+      doTest(false, "Nothing found.");
+      fail("Should infer nothing");
+    }
+    catch (RuntimeException e) {
+      if (!Comparing.strEqual(e.getMessage(), "Nothing found to infer")) {
+        fail();
+      }
+    }
+  }
+
   private void doTest(boolean annotateLocalVariables, String summary, VirtualFile... files) throws Exception  {
     if (!InferSupportAnnotationsAction.ENABLED) {
       System.out.println("Ignoring " + this.getClass().getSimpleName() + ": Functionality disabled");
