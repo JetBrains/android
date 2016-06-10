@@ -167,5 +167,17 @@
     </orderEntry>
     <orderEntry type="module" module-name="binary-resources" />
     <orderEntry type="module" module-name="pixelprobe" />
+    <orderEntry type="module-library">
+      <library name="profiler-grpc-java">
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../../../../out/studio/grpc-java/jarjar/studio-profiler-grpc-1.0-jarjar.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="jar://$MODULE_DIR$/../../../../out/studio/grpc-java/jarjar/studio-profiler-grpc-1.0-jarjar.jar!/" />
+        </SOURCES>
+      </library>
+    </orderEntry>
+    <orderEntry type="module" module-name="profilerclient" scope="TEST" />
   </component>
 </module>
