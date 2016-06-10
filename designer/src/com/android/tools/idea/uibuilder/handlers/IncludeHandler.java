@@ -100,7 +100,7 @@ public final class IncludeHandler extends ViewHandler {
     if (insertType == InsertType.CREATE) { // NOT InsertType.CREATE_PREVIEW
       String src = editor.displayResourceInput(EnumSet.of(ResourceType.LAYOUT));
       if (src != null) {
-        newChild.setAttribute(TOOLS_URI, ATTR_LAYOUT, src);
+        newChild.setAttribute(null, ATTR_LAYOUT, src);
         return true;
       }
       else {
