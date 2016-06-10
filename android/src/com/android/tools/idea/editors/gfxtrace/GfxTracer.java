@@ -36,7 +36,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
-import java.util.regex.Pattern;
 
 public class GfxTracer {
   private static final long UPDATE_FREQUENCY_MS = 500;
@@ -100,15 +99,12 @@ public class GfxTracer {
                                  @NotNull final Options options,
                                  @NotNull final Listener listener) {
     final GfxTracer tracer = new GfxTracer(project, device, options, listener);
-    ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          tracer.launchAndCapture(pkg, act, options);
-        } catch (Exception ex) {
-          listener.onError(ex.getMessage()); // Update the trace dialog to let the user know something went wrong.
-          throw ex;
-        }
+    ApplicationManager.getApplication().executeOnPooledThread(() -> {
+      try {
+        tracer.launchAndCapture(pkg, act, options);
+      } catch (Exception ex) {
+        listener.onError(ex.getMessage()); // Update the trace dialog to let the user know something went wrong.
+        throw ex;
       }
     });
     return tracer;
@@ -116,13 +112,16 @@ public class GfxTracer {
 
   public static GfxTracer listen(@NotNull final Project project,
                                  @NotNull final IDevice device,
+                                 @NotNull final String packageName,
                                  @NotNull final Options options,
                                  @NotNull final Listener listener) {
     final GfxTracer tracer = new GfxTracer(project, device, options, listener);
-    ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
-      @Override
-      public void run() {
-        tracer.capture(options);
+    ApplicationManager.getApplication().executeOnPooledThread(() -> {
+      try {
+        tracer.attachTracerAndCapture(packageName, null, options);
+      } catch (Exception ex) {
+        listener.onError(ex.getMessage());
+        throw ex;
       }
     });
     return tracer;
@@ -145,30 +144,38 @@ public class GfxTracer {
   private void launchAndCapture(@NotNull final DeviceInfo.Package pkg, @NotNull final DeviceInfo.Activity act, @NotNull Options options) {
     try {
       myListener.onAction("Launching application...");
-      String abi = pkg.myABI;
-      if (abi == null) {
-        // Package has no preferential ABI. Use device ABI instead.
-        abi = myDevice.getAbis().get(0);
-      }
-      final File myGapii = GapiPaths.findTraceLibrary(abi);
       String component = pkg.myName + "/" + act.myName;
       // Switch adb to root mode, if not already
       myDevice.root();
 
       // Launch the app in debug mode.
       captureAdbShell(myDevice, "am start -S -D -W -n " + component);   //-D
+      attachTracerAndCapture(pkg.myName, pkg.myABI, options);
+    }
+    catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
 
-      // let's see what happens here. ==================================================================================================
+  private void attachTracerAndCapture(@NotNull String pkg, @Nullable String abi, @NotNull Options options) {
+    try {
+      if (abi == null) {
+        abi = myDevice.getAbis().get(0);
+      }
+
       myListener.onAction("Installing trace library...");
-      new GapiiLibraryLoader(myProject, myDevice).connectToProcessAndInstallLibraries(pkg, myGapii);
+      File myGapii = GapiPaths.findTraceLibrary(abi);
+      try {
+        new GapiiLibraryLoader(myProject, myDevice).connectToProcessAndInstallLibraries(pkg, myGapii);
+      }
+      catch (Exception e) {
+        throw new RuntimeException(e);
+      }
       LOG.info("Finished installing library, capturing.");
 
       capture(options);
     }
-    catch (RuntimeException e) {
-      throw e;
-    }
-    catch (Exception e) {
+    catch (IOException e) {
       throw new RuntimeException(e);
     }
   }

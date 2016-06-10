@@ -61,7 +61,8 @@ public class GapidTraceTask implements LaunchTask {
           public void onStartTrace(@NotNull String name) {
             GfxTracer.Options options = GfxTracer.Options.fromRunConfiguration(myConfiguration);
             options.myTraceName = name;
-            myTracer = GfxTracer.listen(myConfiguration.getProject(), device, options, GfxTraceCaptureAction.bindListener(dialog));
+            myTracer = GfxTracer.listen(
+                myConfiguration.getProject(), device, myApplicationId, options, GfxTraceCaptureAction.bindListener(dialog));
           }
 
           @Override
