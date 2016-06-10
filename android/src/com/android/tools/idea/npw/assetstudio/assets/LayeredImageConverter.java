@@ -26,10 +26,7 @@ import com.intellij.ui.ColorUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Path2D;
-import java.awt.geom.PathIterator;
-import java.awt.geom.Rectangle2D;
+import java.awt.geom.*;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,6 +52,9 @@ class LayeredImageConverter {
     // Find the total bounds of all the vector layers
     Rectangle2D bounds = new Rectangle2D.Double();
     extractBounds(image.getLayers(), bounds);
+
+    Rectangle2D.Double document = new Rectangle2D.Double(0.0, 0.0, image.getWidth(), image.getHeight());
+    bounds = bounds.createIntersection(document);
 
     Element vector = new Element(SdkConstants.TAG_VECTOR);
     extractPathLayers(vector, image.getLayers(), bounds);
@@ -104,7 +104,8 @@ class LayeredImageConverter {
    * @param bounds Total bounds of all vector layers
    */
   private static void extractPathLayers(@NotNull Element root, @NotNull List<Layer> layers, @NotNull Rectangle2D bounds) {
-    for (Layer layer : layers) {
+    for (int i = 0; i < layers.size(); i++) {
+      Layer layer = layers.get(i);
       if (!layer.isVisible()) continue;
 
       Layer.Type type = layer.getType();
@@ -112,33 +113,74 @@ class LayeredImageConverter {
         ShapeInfo shapeInfo = layer.getShapeInfo();
         if (shapeInfo.getStyle() == ShapeInfo.Style.NONE) continue;
 
-        Path2D path = shapeInfo.getPath();
+        Shape path = getTransformedPath(layer, bounds);
 
-        Rectangle2D layerBounds = layer.getBounds();
-        path.transform(AffineTransform.getTranslateInstance(
-          layerBounds.getX() - bounds.getX(), layerBounds.getY() - bounds.getY()));
+        float opacityModifier = 1.0f;
+        boolean fullyClipped = false;
 
-        Element element = new Element("path")
-          .attribute("name", StringUtil.escapeXml(layer.getName()))
-          .attribute("pathData", toPathData(path));
+        // The layer is clipped by the next clipping base
+        // We only support shape clipping bases
+        if (!layer.isClipBase()) {
+          // The clipping base is only valid in the current group
+          // (it might be another group)
+          for (int j = i + 1; j < layers.size(); j++) {
+            Layer clipBase = layers.get(j);
+            if (clipBase.isClipBase()) {
+              if (!clipBase.isVisible()) {
+                fullyClipped = true;
+                break;
+              }
 
-        extractFill(layer, shapeInfo, element);
-        extractStroke(layer, shapeInfo, element);
+              // TODO: handle group clipping bases (take all their shapes)
+              if (clipBase.getType() != Layer.Type.SHAPE) {
+                break;
+              }
 
-        root.child(element);
-      } else if (type == Layer.Type.GROUP) {
+              opacityModifier = clipBase.getOpacity();
+
+              Area source = new Area(path);
+              Area clip = new Area(getTransformedPath(clipBase, bounds));
+              source.exclusiveOr(clip);
+              path = source;
+
+              break;
+            }
+          }
+        }
+
+        if (!fullyClipped) {
+          Element element = new Element("path")
+            .attribute("name", StringUtil.escapeXml(layer.getName()))
+            .attribute("pathData", toPathData(path));
+
+          extractFill(layer, shapeInfo, element, opacityModifier);
+          extractStroke(layer, shapeInfo, element, opacityModifier);
+
+          root.childAtFront(element);
+        }
+      }
+      else if (type == Layer.Type.GROUP) {
         extractPathLayers(root, layer.getChildren(), bounds);
       }
     }
   }
 
-  private static void extractStroke(Layer layer, ShapeInfo shapeInfo, Element element) {
+  @NotNull
+  private static Path2D getTransformedPath(Layer layer, @NotNull Rectangle2D bounds) {
+    Path2D path = layer.getShapeInfo().getPath();
+    Rectangle2D layerBounds = layer.getBounds();
+    path.transform(AffineTransform.getTranslateInstance(
+      layerBounds.getX() - bounds.getX(), layerBounds.getY() - bounds.getY()));
+    return path;
+  }
+
+  private static void extractStroke(Layer layer, ShapeInfo shapeInfo, Element element, float opacityModifier) {
     if (shapeInfo.getStyle() != ShapeInfo.Style.FILL) {
       Paint strokePaint = shapeInfo.getStrokePaint();
       //noinspection UseJBColor
       Color color = Color.BLACK;
       if (strokePaint instanceof Color) color = (Color)strokePaint;
-      float strokeAlpha = layer.getOpacity() * shapeInfo.getStrokeOpacity();
+      float strokeAlpha = layer.getOpacity() * shapeInfo.getStrokeOpacity() * opacityModifier;
 
       element
         .attribute("strokeColor", "#" + ColorUtil.toHex(color))
@@ -156,13 +198,13 @@ class LayeredImageConverter {
     }
   }
 
-  private static void extractFill(Layer layer, ShapeInfo shapeInfo, Element element) {
+  private static void extractFill(Layer layer, ShapeInfo shapeInfo, Element element, float opacityModifier) {
     if (shapeInfo.getStyle() != ShapeInfo.Style.STROKE) {
       Paint fillPaint = shapeInfo.getFillPaint();
       //noinspection UseJBColor
       Color color = Color.BLACK;
       if (fillPaint instanceof Color) color = (Color)fillPaint;
-      float fillAlpha = layer.getOpacity() * shapeInfo.getFillOpacity();
+      float fillAlpha = layer.getOpacity() * shapeInfo.getFillOpacity() * opacityModifier;
 
       element
         .attribute("fillColor", "#" + ColorUtil.toHex(color))
@@ -271,7 +313,12 @@ class LayeredImageConverter {
           buffer.append(coords[1]);
           break;
         case PathIterator.SEG_LINETO:
-          throw new IllegalStateException("Unexpected lineTo in path");
+          if (previousSegment != PathIterator.SEG_CUBICTO) {
+            buffer.append('L');
+          }
+          buffer.append(coords[2]);
+          buffer.append(',');
+          buffer.append(coords[3]);
         case PathIterator.SEG_CUBICTO:
           if (previousSegment != PathIterator.SEG_CUBICTO) {
             buffer.append('C');
@@ -289,7 +336,17 @@ class LayeredImageConverter {
           buffer.append(coords[5]);
           break;
         case PathIterator.SEG_QUADTO:
-          throw new IllegalStateException("Unexpected quadTo in path");
+          if (previousSegment != PathIterator.SEG_QUADTO) {
+            buffer.append('Q');
+          }
+          buffer.append(coords[0]);
+          buffer.append(',');
+          buffer.append(coords[1]);
+          buffer.append(' ');
+          buffer.append(coords[2]);
+          buffer.append(',');
+          buffer.append(coords[3]);
+          break;
         case PathIterator.SEG_CLOSE:
           buffer.append('z');
           break;
@@ -327,8 +384,8 @@ class LayeredImageConverter {
       return this;
     }
 
-    Element child(@NotNull Element child) {
-      children.add(child);
+    Element childAtFront(@NotNull Element child) {
+      children.add(0, child);
       return this;
     }
   }
