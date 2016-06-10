@@ -35,6 +35,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -55,23 +56,12 @@ public class NewAndroidComponentAction extends AnAction {
   private final boolean myRequireAppTheme;
 
   public NewAndroidComponentAction(@NotNull String templateCategory, @NotNull String templateName, @Nullable TemplateMetadata metadata) {
-    super(templateName, "Create a new " + templateName, null);
+    super(templateName, AndroidBundle.message("android.wizard.action.new.component", templateName), null);
     myTemplateCategory = templateCategory;
     myTemplateName = templateName;
-    if (isActivityTemplate()) {
-      getTemplatePresentation().setIcon(AndroidIcons.Activity);
-    }
-    else {
-      getTemplatePresentation().setIcon(AndroidIcons.AndroidFile);
-    }
-    if (metadata != null) {
-      myMinSdkVersion = metadata.getMinSdk();
-      myRequireAppTheme = metadata.isAppThemeRequired();
-    }
-    else {
-      myMinSdkVersion = 0;
-      myRequireAppTheme = false;
-    }
+    getTemplatePresentation().setIcon(isActivityTemplate() ? AndroidIcons.Activity : AndroidIcons.AndroidFile);
+    myMinSdkVersion = metadata == null ? 0 : metadata.getMinSdk();
+    myRequireAppTheme = metadata != null && metadata.isAppThemeRequired();
   }
 
   private boolean isActivityTemplate() {
@@ -93,16 +83,14 @@ public class NewAndroidComponentAction extends AnAction {
     Presentation presentation = e.getPresentation();
     int moduleMinSdkVersion = moduleInfo.getMinSdkVersion().getApiLevel();
     if (myMinSdkVersion > moduleMinSdkVersion) {
-      presentation.setText(myTemplateName + " (Requires minSdk >= " + myMinSdkVersion + ")");
+      presentation.setText(AndroidBundle.message("android.wizard.action.requires.minsdk", myTemplateName, myMinSdkVersion));
       presentation.setEnabled(false);
-      return;
     }
-    if (myRequireAppTheme) {
+    else if (myRequireAppTheme) {
       ThemeHelper themeHelper = new ThemeHelper(module);
       if (themeHelper.getAppThemeName() == null) {
-        presentation.setText(myTemplateName + " (No Application Theme Found)");
+        presentation.setText(AndroidBundle.message("android.wizard.action.no.app.theme", myTemplateName));
         presentation.setEnabled(false);
-        return;
       }
     }
   }
@@ -117,7 +105,6 @@ public class NewAndroidComponentAction extends AnAction {
     }
 
     Module module = LangDataKeys.MODULE.getData(dataContext);
-
     if (module == null) {
       return;
     }
@@ -142,8 +129,9 @@ public class NewAndroidComponentAction extends AnAction {
     List<SourceProvider> sourceProviders = AndroidProjectPaths.getSourceProviders(facet, targetDirectory);
     String initialPackageSuggestion = AndroidPackageUtils.getPackageForPath(facet, sourceProviders, targetDirectory);
 
-    String dialogTitle = isActivityTemplate() ? "New Android Activity" : "New Android Component";
-    String stepTitle = isActivityTemplate() ? "Configure Activity" : "Configure Component";
+    boolean isActivity = isActivityTemplate();
+    String dialogTitle = AndroidBundle.message(isActivity ? "android.wizard.new.activity.title" : "android.wizard.new.component.title");
+    String stepTitle = AndroidBundle.message(isActivity ? "android.wizard.config.activity.title" : "android.wizard.config.component.title");
 
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
     wizardBuilder
