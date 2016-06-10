@@ -163,7 +163,7 @@ class LayeredImageConverter {
             .attribute("pathData", toPathData(path, format));
 
           extractFill(layer, shapeInfo, element, opacityModifier);
-          extractStroke(layer, shapeInfo, element, opacityModifier);
+          extractStroke(layer, shapeInfo, element, opacityModifier, format);
 
           root.childAtFront(element);
         }
@@ -183,7 +183,8 @@ class LayeredImageConverter {
     return path;
   }
 
-  private static void extractStroke(Layer layer, ShapeInfo shapeInfo, Element element, float opacityModifier) {
+  private static void extractStroke(Layer layer, ShapeInfo shapeInfo, Element element,
+                                    float opacityModifier, DecimalFormat format) {
     if (shapeInfo.getStyle() != ShapeInfo.Style.FILL) {
       Paint strokePaint = shapeInfo.getStrokePaint();
       //noinspection UseJBColor
@@ -200,7 +201,8 @@ class LayeredImageConverter {
         element
           .attribute("strokeWidth", String.valueOf(stroke.getLineWidth()))
           .attribute("strokeLineJoin", getJoinValue(stroke.getLineJoin()))
-          .attribute("strokeLineCap", getCapValue(stroke.getEndCap()));
+          .attribute("strokeLineCap", getCapValue(stroke.getEndCap()))
+          .attribute("strokeMiterLimit", format.format(stroke.getMiterLimit()));
       } else {
         element.attribute("strokeWidth", String.valueOf(0.0f));
       }
@@ -309,7 +311,7 @@ class LayeredImageConverter {
     StringBuilder buffer = new StringBuilder(1024);
 
     float[] coords = new float[6];
-    PathIterator iterator = path.getPathIterator(new AffineTransform());
+    PathIterator iterator = path.getPathIterator(null);
 
     while (!iterator.isDone()) {
       int segment = iterator.currentSegment(coords);
