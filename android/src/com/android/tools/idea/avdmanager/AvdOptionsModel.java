@@ -27,12 +27,9 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.internal.avd.GpuMode;
 import com.android.sdklib.internal.avd.HardwareProperties;
-import com.android.tools.idea.ui.properties.InvalidationListener;
-import com.android.tools.idea.ui.properties.ObservableValue;
 import com.android.tools.idea.ui.properties.core.*;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.google.common.base.Objects;
-import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import com.intellij.icons.AllIcons;
@@ -69,39 +66,38 @@ public final class AvdOptionsModel extends WizardModel {
   private StringProperty myAvdId = new StringValueProperty();
   private StringProperty myAvdDisplayName = new StringValueProperty();
 
-  private ObjectProperty<Storage> myInternalStorage = new ObjectValueProperty<Storage>(AvdWizardUtils.DEFAULT_INTERNAL_STORAGE);
+  private ObjectProperty<Storage> myInternalStorage = new ObjectValueProperty<>(AvdWizardUtils.DEFAULT_INTERNAL_STORAGE);
   private ObjectProperty<ScreenOrientation> mySelectedAvdOrientation =
-    new ObjectValueProperty<ScreenOrientation>(ScreenOrientation.PORTRAIT);
-  private ObjectProperty<AvdCamera> mySelectedAvdFrontCamera = new ObjectValueProperty<AvdCamera>(AvdWizardUtils.DEFAULT_CAMERA);
-  private ObjectProperty<AvdCamera> mySelectedAvdBackCamera = new ObjectValueProperty<AvdCamera>(AvdWizardUtils.DEFAULT_CAMERA);
+    new ObjectValueProperty<>(ScreenOrientation.PORTRAIT);
+  private ObjectProperty<AvdCamera> mySelectedAvdFrontCamera = new ObjectValueProperty<>(AvdWizardUtils.DEFAULT_CAMERA);
+  private ObjectProperty<AvdCamera> mySelectedAvdBackCamera = new ObjectValueProperty<>(AvdWizardUtils.DEFAULT_CAMERA);
 
   private BoolProperty myHasDeviceFrame = new BoolValueProperty(true);
   private BoolProperty myUseExternalSdCard = new BoolValueProperty();
   private BoolProperty myUseBuiltInSdCard = new BoolValueProperty(true);
   private ObjectProperty<AvdNetworkSpeed> mySelectedNetworkSpeed =
-    new ObjectValueProperty<AvdNetworkSpeed>(AvdWizardUtils.DEFAULT_NETWORK_SPEED);
+    new ObjectValueProperty<>(AvdWizardUtils.DEFAULT_NETWORK_SPEED);
   private ObjectProperty<AvdNetworkLatency> mySelectedNetworkLatency =
-    new ObjectValueProperty<AvdNetworkLatency>(AvdWizardUtils.DEFAULT_NETWORK_LATENCY);
-  private OptionalProperty<AvdScaleFactor> mySelectedAvdScale = new OptionalValueProperty<AvdScaleFactor>(AvdWizardUtils.DEFAULT_SCALE);
+    new ObjectValueProperty<>(AvdWizardUtils.DEFAULT_NETWORK_LATENCY);
 
   private StringProperty mySystemImageName = new StringValueProperty();
   private StringProperty mySystemImageDetails = new StringValueProperty();
 
-  private OptionalProperty<Integer> myCpuCoreCount = new OptionalValueProperty<Integer>(MAX_NUMBER_OF_CORES);
-  private ObjectProperty<Storage> myVmHeapStorage = new ObjectValueProperty<Storage>(new Storage(16, Storage.Unit.MiB));
+  private OptionalProperty<Integer> myCpuCoreCount = new OptionalValueProperty<>(MAX_NUMBER_OF_CORES);
+  private ObjectProperty<Storage> myVmHeapStorage = new ObjectValueProperty<>(new Storage(16, Storage.Unit.MiB));
 
   private StringProperty myExternalSdCardLocation = new StringValueProperty();
-  private OptionalProperty<Storage> mySdCardStorage = new OptionalValueProperty<Storage>(new Storage(100, Storage.Unit.MiB));
+  private OptionalProperty<Storage> mySdCardStorage = new OptionalValueProperty<>(new Storage(100, Storage.Unit.MiB));
 
   private BoolProperty myUseHostGpu = new BoolValueProperty(true);
-  private OptionalProperty<GpuMode> myHostGpuMode = new OptionalValueProperty<GpuMode>(GpuMode.AUTO);
+  private OptionalProperty<GpuMode> myHostGpuMode = new OptionalValueProperty<>(GpuMode.AUTO);
   private BoolProperty myEnableHardwareKeyboard = new BoolValueProperty(true);
 
   private BoolProperty myIsInEditMode = new BoolValueProperty();
 
-  private OptionalProperty<File> myBackupSkinFile = new OptionalValueProperty<File>();
-  private OptionalProperty<SystemImageDescription> mySystemImage = new OptionalValueProperty<SystemImageDescription>();
-  private OptionalProperty<Device> myDevice = new OptionalValueProperty<Device>();
+  private OptionalProperty<File> myBackupSkinFile = new OptionalValueProperty<>();
+  private OptionalProperty<SystemImageDescription> mySystemImage = new OptionalValueProperty<>();
+  private OptionalProperty<Device> myDevice = new OptionalValueProperty<>();
 
   private ObservableString existingSdLocation = new StringValueProperty();
   private ObservableObject<Storage> myOriginalSdCard;
@@ -115,13 +111,10 @@ public final class AvdOptionsModel extends WizardModel {
     if (myAvdInfo != null) {
       updateValuesWithAvdInfo(myAvdInfo);
     }
-    myDevice.addListener(new InvalidationListener() {
-      @Override
-      public void onInvalidated(@NotNull ObservableValue<?> sender) {
-        if (myDevice.get().isPresent()) {
-          myAvdDeviceData.updateValuesFromDevice(myDevice.get().get());
-          myVmHeapStorage.set(calculateInitialVmHeap(myAvdDeviceData));
-        }
+    myDevice.addListener(sender -> {
+      if (myDevice.get().isPresent()) {
+        myAvdDeviceData.updateValuesFromDevice(myDevice.get().get());
+        myVmHeapStorage.set(calculateInitialVmHeap(myAvdDeviceData));
       }
     });
   }
@@ -171,14 +164,6 @@ public final class AvdOptionsModel extends WizardModel {
   @NotNull
   private static String toIniString(@NotNull File value) {
     return value.getPath();
-  }
-
-  /**
-   * Encode the given value as a string that can be placed in the AVD's INI file.
-   */
-  @NotNull
-  private static String toIniString(@NotNull AvdScaleFactor value) {
-    return value.getValue();
   }
 
   /**
@@ -251,11 +236,6 @@ public final class AvdOptionsModel extends WizardModel {
   @NotNull
   public ObjectProperty<AvdCamera> selectedBackCamera() {
     return mySelectedAvdBackCamera;
-  }
-
-  @NotNull
-  public OptionalProperty<AvdScaleFactor> selectedAvdScale() {
-    return mySelectedAvdScale;
   }
 
   @NotNull
@@ -418,7 +398,7 @@ public final class AvdOptionsModel extends WizardModel {
         Storage sdCardSize = new Storage(sdFile.length());
         myUseExternalSdCard.set(false);
         myUseBuiltInSdCard.set(true);
-        myOriginalSdCard = new ObjectValueProperty<Storage>(sdCardSize);
+        myOriginalSdCard = new ObjectValueProperty<>(sdCardSize);
         mySdCardStorage.setValue(sdCardSize);
       }
       else {
@@ -427,12 +407,6 @@ public final class AvdOptionsModel extends WizardModel {
         myUseBuiltInSdCard.set(false);
         externalSdCardLocation().set(sdCardLocation);
       }
-    }
-
-    String scale = properties.get(AvdWizardUtils.SCALE_SELECTION_KEY);
-    if (scale != null) {
-      AvdScaleFactor scaleFactor = AvdScaleFactor.findByValue(scale);
-      selectedAvdScale().setValue((scaleFactor == null) ? AvdScaleFactor.AUTO : scaleFactor);
     }
 
     myUseHostGpu.set(fromIniString(properties.get(AvdWizardUtils.USE_HOST_GPU_KEY)));
@@ -511,7 +485,7 @@ public final class AvdOptionsModel extends WizardModel {
    * Returns a map containing all of the properties editable on this wizard to be passed on to the AVD prior to serialization
    */
   private Map<String, Object> generateUserEditedPropertiesMap() {
-    HashMap<String, Object> map = new HashMap<String, Object>();
+    HashMap<String, Object> map = new HashMap<>();
     map.put(AvdWizardUtils.DEVICE_DEFINITION_KEY, myDevice);
     map.put(AvdWizardUtils.SYSTEM_IMAGE_KEY, mySystemImage);
     map.put(AvdWizardUtils.AVD_ID_KEY, myAvdId.get());
@@ -557,10 +531,6 @@ public final class AvdOptionsModel extends WizardModel {
     map.put(AvdWizardUtils.FRONT_CAMERA_KEY, mySelectedAvdFrontCamera.get().getAsParameter());
     map.put(AvdWizardUtils.BACK_CAMERA_KEY, mySelectedAvdBackCamera.get().getAsParameter());
 
-    if (mySelectedAvdScale.get().isPresent()) {
-      map.put(AvdWizardUtils.SCALE_SELECTION_KEY, mySelectedAvdScale.getValue());
-    }
-
     if(myAvdDeviceData.customSkinFile().get().isPresent()){
       map.put(AvdWizardUtils.CUSTOM_SKIN_FILE_KEY, myAvdDeviceData.customSkinFile().getValue());
     }
@@ -600,7 +570,7 @@ public final class AvdOptionsModel extends WizardModel {
 
       userEditedProperties.remove(AvdWizardUtils.EXISTING_SD_LOCATION);
       Storage storage = null;
-      myOriginalSdCard = new ObjectValueProperty<Storage>(mySdCardStorage.getValue());
+      myOriginalSdCard = new ObjectValueProperty<>(mySdCardStorage.getValue());
       if (mySdCardStorage.get().isPresent()) {
         storage = mySdCardStorage.getValue();
         sdCard = toIniString(storage, false);
@@ -614,43 +584,34 @@ public final class AvdOptionsModel extends WizardModel {
     }
     hardwareProperties.put(HardwareProperties.HW_SDCARD, toIniString(hasSdCard));
     // Remove any internal keys from the map
-    userEditedProperties = Maps.filterEntries(userEditedProperties, new Predicate<Map.Entry<String, Object>>() {
-      @Override
-      public boolean apply(Map.Entry<String, Object> input) {
-        return !input.getKey().startsWith(AvdWizardUtils.WIZARD_ONLY) && input.getValue() != null;
-      }
-    });
+    userEditedProperties = Maps.filterEntries(
+      userEditedProperties,
+      input -> !input.getKey().startsWith(AvdWizardUtils.WIZARD_ONLY) && input.getValue() != null);
 
     // Call toIniString() on all remaining values
-    hardwareProperties.putAll(Maps.transformEntries(userEditedProperties, new Maps.EntryTransformer<String, Object, String>() {
-      @Override
-      public String transformEntry(String key, Object value) {
-        if (value instanceof Storage) {
-          if (key.equals(AvdWizardUtils.RAM_STORAGE_KEY) || key.equals(AvdWizardUtils.VM_HEAP_STORAGE_KEY)) {
-            return toIniString((Storage)value, true);
-          }
-          else {
-            return toIniString((Storage)value, false);
-          }
-        }
-        else if (value instanceof Boolean) {
-          return toIniString((Boolean)value);
-        }
-        else if (value instanceof AvdScaleFactor) {
-          return toIniString((AvdScaleFactor)value);
-        }
-        else if (value instanceof File) {
-          return toIniString((File)value);
-        }
-        else if (value instanceof Double) {
-          return toIniString((Double)value);
-        }
-        else if (value instanceof GpuMode) {
-          return ((GpuMode)value).getGpuSetting();
+    hardwareProperties.putAll(Maps.transformEntries(userEditedProperties, (key, value) -> {
+      if (value instanceof Storage) {
+        if (key.equals(AvdWizardUtils.RAM_STORAGE_KEY) || key.equals(AvdWizardUtils.VM_HEAP_STORAGE_KEY)) {
+          return toIniString((Storage)value, true);
         }
         else {
-          return value.toString();
+          return toIniString((Storage)value, false);
         }
+      }
+      else if (value instanceof Boolean) {
+        return toIniString((Boolean)value);
+      }
+      else if (value instanceof File) {
+        return toIniString((File)value);
+      }
+      else if (value instanceof Double) {
+        return toIniString((Double)value);
+      }
+      else if (value instanceof GpuMode) {
+        return ((GpuMode)value).getGpuSetting();
+      }
+      else {
+        return value.toString();
       }
     }));
 
@@ -688,17 +649,14 @@ public final class AvdOptionsModel extends WizardModel {
         final String newApiName = systemImage.getVersion().getApiString();
         if (oldApiLevel > newApiLevel ||
             (oldApiLevel == newApiLevel && image.getAndroidVersion().isPreview() && !systemImage.getVersion().isPreview())) {
-          final AtomicReference<Boolean> shouldContinue = new AtomicReference<Boolean>();
-          ApplicationManager.getApplication().invokeAndWait(new Runnable() {
-            @Override
-            public void run() {
-              String message =
-                String.format(Locale.getDefault(), "You are about to downgrade %1$s from API level %2$s to API level %3$s.\n" +
-                                                   "This requires a wipe of the userdata partition of the AVD.\nDo you wish to " +
-                                                   "continue with the data wipe?", avdName, oldApiName, newApiName);
-              int result = Messages.showYesNoDialog((Project)null, message, "Confirm Data Wipe", AllIcons.General.QuestionDialog);
-              shouldContinue.set(result == Messages.YES);
-            }
+          final AtomicReference<Boolean> shouldContinue = new AtomicReference<>();
+          ApplicationManager.getApplication().invokeAndWait(() -> {
+            String message =
+              String.format(Locale.getDefault(), "You are about to downgrade %1$s from API level %2$s to API level %3$s.\n" +
+                                                 "This requires a wipe of the userdata partition of the AVD.\nDo you wish to " +
+                                                 "continue with the data wipe?", avdName, oldApiName, newApiName);
+            int result = Messages.showYesNoDialog((Project)null, message, "Confirm Data Wipe", AllIcons.General.QuestionDialog);
+            shouldContinue.set(result == Messages.YES);
           }, ModalityState.any());
           if (shouldContinue.get()) {
             AvdManagerConnection.getDefaultAvdManagerConnection().wipeUserData(myAvdInfo);
