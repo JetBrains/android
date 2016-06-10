@@ -28,6 +28,9 @@ import org.jetbrains.annotations.NotNull;
 import java.awt.*;
 import java.awt.geom.*;
 import java.io.*;
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,6 +38,9 @@ import java.util.List;
  * Loads a layered image from a file and converts it to a Vector Drawable XML representation.
  */
 class LayeredImageConverter {
+  private LayeredImageConverter() {
+  }
+
   /**
    * Loads the specified file as a pixelprobe {@link Image}, finds its vector layers
    * and converts them to a Vector Drawable XML representation.
@@ -56,8 +62,10 @@ class LayeredImageConverter {
     Rectangle2D.Double document = new Rectangle2D.Double(0.0, 0.0, image.getWidth(), image.getHeight());
     bounds = bounds.createIntersection(document);
 
+    DecimalFormat format = createDecimalFormat((float) bounds.getWidth(), (float) bounds.getHeight());
+
     Element vector = new Element(SdkConstants.TAG_VECTOR);
-    extractPathLayers(vector, image.getLayers(), bounds);
+    extractPathLayers(vector, image.getLayers(), bounds, format);
 
     vector
       .attribute("width", String.valueOf((int) bounds.getWidth()) + "dp")
@@ -98,12 +106,13 @@ class LayeredImageConverter {
   /**
    * Extracts all the vector layers from the specified list and transforms them into an
    * XML representation.
-   *
-   * @param root Root element of the Vector Drawable XML representation
+   *  @param root Root element of the Vector Drawable XML representation
    * @param layers List of layers to traverse
    * @param bounds Total bounds of all vector layers
+   * @param format
    */
-  private static void extractPathLayers(@NotNull Element root, @NotNull List<Layer> layers, @NotNull Rectangle2D bounds) {
+  private static void extractPathLayers(@NotNull Element root, @NotNull List<Layer> layers,
+                                        @NotNull Rectangle2D bounds, @NotNull DecimalFormat format) {
     for (int i = 0; i < layers.size(); i++) {
       Layer layer = layers.get(i);
       if (!layer.isVisible()) continue;
@@ -140,7 +149,7 @@ class LayeredImageConverter {
 
               Area source = new Area(path);
               Area clip = new Area(getTransformedPath(clipBase, bounds));
-              source.exclusiveOr(clip);
+              source.intersect(clip);
               path = source;
 
               break;
@@ -151,7 +160,7 @@ class LayeredImageConverter {
         if (!fullyClipped) {
           Element element = new Element("path")
             .attribute("name", StringUtil.escapeXml(layer.getName()))
-            .attribute("pathData", toPathData(path));
+            .attribute("pathData", toPathData(path, format));
 
           extractFill(layer, shapeInfo, element, opacityModifier);
           extractStroke(layer, shapeInfo, element, opacityModifier);
@@ -160,7 +169,7 @@ class LayeredImageConverter {
         }
       }
       else if (type == Layer.Type.GROUP) {
-        extractPathLayers(root, layer.getChildren(), bounds);
+        extractPathLayers(root, layer.getChildren(), bounds, format);
       }
     }
   }
@@ -296,11 +305,10 @@ class LayeredImageConverter {
   }
 
   @NotNull
-  private static String toPathData(@NotNull Shape path) {
+  private static String toPathData(@NotNull Shape path, @NotNull DecimalFormat format) {
     StringBuilder buffer = new StringBuilder(1024);
 
     float[] coords = new float[6];
-    int previousSegment = -1;
     PathIterator iterator = path.getPathIterator(new AffineTransform());
 
     while (!iterator.isDone()) {
@@ -308,56 +316,86 @@ class LayeredImageConverter {
       switch (segment) {
         case PathIterator.SEG_MOVETO:
           buffer.append('M');
-          buffer.append(coords[0]);
+          buffer.append(cleanup(coords[0], format));
           buffer.append(',');
-          buffer.append(coords[1]);
+          buffer.append(cleanup(coords[1], format));
           break;
         case PathIterator.SEG_LINETO:
-          if (previousSegment != PathIterator.SEG_CUBICTO) {
-            buffer.append('L');
-          }
-          buffer.append(coords[2]);
+          buffer.append('L');
+          buffer.append(cleanup(coords[0], format));
           buffer.append(',');
-          buffer.append(coords[3]);
+          buffer.append(cleanup(coords[1], format));
+          break;
         case PathIterator.SEG_CUBICTO:
-          if (previousSegment != PathIterator.SEG_CUBICTO) {
-            buffer.append('C');
-          }
-          buffer.append(coords[0]);
+          buffer.append('C');
+          buffer.append(cleanup(coords[0], format));
           buffer.append(',');
-          buffer.append(coords[1]);
+          buffer.append(cleanup(coords[1], format));
           buffer.append(' ');
-          buffer.append(coords[2]);
+          buffer.append(cleanup(coords[2], format));
           buffer.append(',');
-          buffer.append(coords[3]);
+          buffer.append(cleanup(coords[3], format));
           buffer.append(' ');
-          buffer.append(coords[4]);
+          buffer.append(cleanup(coords[4], format));
           buffer.append(',');
-          buffer.append(coords[5]);
+          buffer.append(cleanup(coords[5], format));
           break;
         case PathIterator.SEG_QUADTO:
-          if (previousSegment != PathIterator.SEG_QUADTO) {
-            buffer.append('Q');
-          }
-          buffer.append(coords[0]);
+          buffer.append('Q');
+          buffer.append(cleanup(coords[0], format));
           buffer.append(',');
-          buffer.append(coords[1]);
+          buffer.append(cleanup(coords[1], format));
           buffer.append(' ');
-          buffer.append(coords[2]);
+          buffer.append(cleanup(coords[2], format));
           buffer.append(',');
-          buffer.append(coords[3]);
+          buffer.append(cleanup(coords[3], format));
           break;
         case PathIterator.SEG_CLOSE:
-          buffer.append('z');
+          buffer.append('Z');
           break;
       }
 
-      previousSegment = segment;
       iterator.next();
       if (!iterator.isDone()) buffer.append(' ');
     }
 
     return buffer.toString();
+  }
+
+  @NotNull
+  private static DecimalFormat createDecimalFormat(float viewportWidth, float viewportHeight) {
+    float minSize = Math.min(viewportHeight, viewportWidth);
+    float exponent = Math.round(Math.log10(minSize));
+
+    int decimalPlace = (int) Math.floor(exponent - 4);
+    String decimalFormatString = "#";
+    if (decimalPlace < 0) {
+      // Build a string with decimal places for "#.##...", and cap on 6 digits.
+      if (decimalPlace < -6) {
+        decimalPlace = -6;
+      }
+      decimalFormatString += ".";
+      for (int i = 0 ; i < -decimalPlace; i++) {
+        decimalFormatString += "#";
+      }
+    }
+
+    DecimalFormatSymbols fractionSeparator = new DecimalFormatSymbols();
+    fractionSeparator.setDecimalSeparator('.');
+
+    DecimalFormat decimalFormat = new DecimalFormat(decimalFormatString, fractionSeparator);
+    decimalFormat.setRoundingMode(RoundingMode.HALF_UP);
+
+    return decimalFormat;
+  }
+
+  @NotNull
+  private static String cleanup(float value, @NotNull DecimalFormat format) {
+    if (value == (long) value) {
+      return String.valueOf((long) value);
+    } else {
+      return format.format(value);
+    }
   }
 
   private static class Attribute {
