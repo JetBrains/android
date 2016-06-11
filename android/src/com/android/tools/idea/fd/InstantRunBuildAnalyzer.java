@@ -44,10 +44,12 @@ public class InstantRunBuildAnalyzer {
     myProject = project;
     myContext = context;
     myCurrentSession = currentSession;
+
     myBuildInfo = myContext.getInstantRunBuildInfo();
     if (myBuildInfo == null) {
       throw new IllegalArgumentException("Instant Run Build Information must be available post build");
     }
+
     if (!myBuildInfo.isCompatibleFormat()) {
       throw new IllegalStateException("This version of Android Studio is incompatible with the Gradle Plugin used. " +
                                          "Try disabling Instant Run (or updating either the IDE or the Gradle plugin to " +
@@ -81,9 +83,11 @@ public class InstantRunBuildAnalyzer {
     DeployType deployType = getDeployType();
     switch (deployType) {
       case NO_CHANGES:
-        return ImmutableList.of(updateStateTask);
+        return ImmutableList.of(new NoChangesTask(myProject, myContext), updateStateTask);
       case HOTSWAP:
-        return ImmutableList.of(new HotSwapTask(myProject, myContext), updateStateTask);
+      case WARMSWAP:
+        return ImmutableList
+          .of(new HotSwapTask(myProject, myContext, deployType == DeployType.WARMSWAP), updateStateTask);
       case SPLITAPK:
         return ImmutableList.of(new SplitApkDeployTask(myProject, myContext), updateStateTask);
       case DEX:
@@ -98,18 +102,11 @@ public class InstantRunBuildAnalyzer {
   }
 
   @NotNull
-  public String getNotificationText() {
-    switch (getDeployType()) {
-      case NO_CHANGES:
-        return "No changes to deploy";
-      case HOTSWAP:
-        return "Instant Run applied code changes and restarted activity";
-      case SPLITAPK:
-      case DEX:
-        return "Instant Run applied code changes and restarted the app.";
-      default:
-        return "Instant Run re-installed and restarted the app";
-    }
+  public LaunchTask getNotificationTask() {
+    DeployType deployType = getDeployType();
+    InstantRunNotificationProvider notificationProvider =
+      new InstantRunNotificationProvider(myContext.getBuildSelection(), deployType, myBuildInfo.getVerifierStatus());
+    return new InstantRunNotificationTask(myProject, myContext, notificationProvider);
   }
 
   @NotNull
@@ -119,7 +116,7 @@ public class InstantRunBuildAnalyzer {
         return DeployType.NO_CHANGES;
       }
       else if (myBuildInfo.canHotswap()) {
-        return DeployType.HOTSWAP;
+        return InstantRunSettings.isRestartActivity() ? DeployType.WARMSWAP : DeployType.HOTSWAP;
       }
     }
 

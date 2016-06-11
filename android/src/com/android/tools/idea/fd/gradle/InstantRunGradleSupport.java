@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.fd;
+package com.android.tools.idea.fd.gradle;
 
-import org.jetbrains.annotations.NotNull;
+/** {@link InstantRunGradleSupport} indicates whether the current version of the gradle plugin supports an instant run build. */
+public enum InstantRunGradleSupport {
+  SUPPORTED,
+  DISABLED,
 
-public class BuildSelection {
-  @NotNull public final BuildMode mode;
-  @NotNull public final BuildCause why;
+  NO_GRADLE_MODEL,
+  GRADLE_PLUGIN_TOO_OLD,
+  VARIANT_DOES_NOT_SUPPORT_INSTANT_RUN,
+  LEGACY_MULTIDEX_REQUIRES_ART,
 
-  BuildSelection(@NotNull BuildMode mode, @NotNull BuildCause why) {
-    this.mode = mode;
-    this.why = why;
-  }
+  CANNOT_BUILD_FOR_MULTIPLE_DEVICES,
 }
