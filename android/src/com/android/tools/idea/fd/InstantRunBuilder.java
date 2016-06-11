@@ -39,6 +39,7 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -330,7 +331,13 @@ public class InstantRunBuilder implements BeforeRunBuilder {
      */
     default boolean isAppInForeground(@NotNull IDevice device, @NotNull InstantRunContext context) {
       InstantRunClient instantRunClient = InstantRunManager.getInstantRunClient(context);
-      return instantRunClient != null && instantRunClient.getAppState(device) == AppState.FOREGROUND;
+      try {
+        return instantRunClient != null && instantRunClient.getAppState(device) == AppState.FOREGROUND;
+      }
+      catch (IOException e) {
+        InstantRunManager.LOG.warn("Exception while attempting to determine if app is in foreground", e);
+        return false;
+      }
     }
   }
 }

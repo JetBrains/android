@@ -20,6 +20,7 @@ import com.android.tools.idea.fd.InstantRunBuildAnalyzer;
 import com.android.tools.idea.fd.InstantRunUserFeedback;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
+import com.intellij.notification.NotificationType;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
 
@@ -45,10 +46,7 @@ public class InstantRunNotificationTask implements LaunchTask {
 
   @Override
   public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
-    String notificationText = myBuildAnalyzer.getNotificationText();
-    if (notificationText != null) {
-      new InstantRunUserFeedback(myModule).info(notificationText);
-    }
+    new InstantRunUserFeedback(myModule).postText(NotificationType.INFORMATION, myBuildAnalyzer.getNotificationText());
     return true;
   }
 }

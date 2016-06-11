@@ -54,6 +54,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
 
@@ -182,7 +183,7 @@ public final class InstantRunManager implements ProjectComponent {
       return null;
     }
 
-    return new InstantRunClient(context.getApplicationId(), null, ILOGGER, buildInfo.getSecretToken());
+    return new InstantRunClient(context.getApplicationId(), ILOGGER, buildInfo.getSecretToken());
   }
 
   /**
@@ -194,7 +195,7 @@ public final class InstantRunManager implements ProjectComponent {
    */
   public boolean pushArtifacts(@NotNull IDevice device,
                                @NotNull InstantRunContext context,
-                               @NotNull UpdateMode updateMode) throws InstantRunPushFailedException {
+                               @NotNull UpdateMode updateMode) throws InstantRunPushFailedException, IOException {
     InstantRunClient client = getInstantRunClient(context);
     assert client != null;
 

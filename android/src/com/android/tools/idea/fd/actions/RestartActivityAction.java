@@ -37,6 +37,7 @@ import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.xdebugger.XDebugSession;
 import com.intellij.xdebugger.XDebuggerManager;
 import icons.AndroidIcons;
@@ -44,6 +45,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
@@ -134,11 +136,16 @@ public class RestartActivityAction extends AnAction {
         return;
       }
 
-      if (instantRunClient.getAppState(device) == AppState.FOREGROUND) {
-        if (InstantRunSettings.isShowToastEnabled()) {
-          showToast(device, module, "Activity Restarted");
+      try {
+        if (instantRunClient.getAppState(device) == AppState.FOREGROUND) {
+          instantRunClient.restartActivity(device);
+          if (InstantRunSettings.isShowToastEnabled()) {
+            showToast(device, module, "Activity Restarted");
+          }
         }
-        instantRunClient.restartActivity(device);
+      } catch (IOException e) {
+        Messages.showErrorDialog(module.getProject(), "Unable to restart activity: " + e, "Instant Run");
+        InstantRunManager.LOG.warn("Unable to restart activity", e);
       }
     }
   }
