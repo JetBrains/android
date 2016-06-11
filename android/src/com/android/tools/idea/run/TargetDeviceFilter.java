@@ -16,6 +16,7 @@
 package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.google.common.base.Predicate;
 import com.intellij.openapi.diagnostic.Logger;
@@ -26,6 +27,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.EnumSet;
+import java.util.Set;
 
 public abstract class TargetDeviceFilter implements Predicate<IDevice> {
   @Override
@@ -60,9 +62,14 @@ public abstract class TargetDeviceFilter implements Predicate<IDevice> {
         return false;
       } else {
         AndroidDevice connectedDevice = new ConnectedAndroidDevice(device, null);
+        Set<String> supportedAbis = myFacet.getAndroidModel() instanceof AndroidGradleModel ?
+                                 ((AndroidGradleModel)myFacet.getAndroidModel()).getSelectedVariant().getMainArtifact().getAbiFilters() :
+                                 null;
+
         LaunchCompatibility compatibility = connectedDevice.canRun(AndroidModuleInfo.get(myFacet).getRuntimeMinSdkVersion(),
                                                                    androidPlatform.getTarget(),
-                                                                   EnumSet.noneOf(IDevice.HardwareFeature.class));
+                                                                   EnumSet.noneOf(IDevice.HardwareFeature.class),
+                                                                   supportedAbis);
         return compatibility.isCompatible() != ThreeState.NO;
       }
     }
