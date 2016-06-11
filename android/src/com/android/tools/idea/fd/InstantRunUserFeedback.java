@@ -16,7 +16,6 @@
 package com.android.tools.idea.fd;
 
 import com.android.tools.fd.client.UpdateMode;
-import com.android.tools.fd.client.UserFeedback;
 import com.android.tools.idea.fd.actions.RestartActivityAction;
 import com.google.common.html.HtmlEscapers;
 import com.intellij.ide.BrowserUtil;
@@ -35,7 +34,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.event.HyperlinkEvent;
 
-public class InstantRunUserFeedback implements UserFeedback {
+public class InstantRunUserFeedback {
   @Language("HTML") public static String LEARN_MORE_LINK = " <a href=\"http://developer.android.com/r/studio-ui/instant-run.html\">Learn More</a>.";
 
   @NotNull private final Module myModule;
@@ -44,27 +43,6 @@ public class InstantRunUserFeedback implements UserFeedback {
     myModule = module;
   }
 
-  @Override
-  public void error(String message) {
-    postText(NotificationType.ERROR, message);
-  }
-
-  @Override
-  public void warning(String message) {
-    postText(NotificationType.WARNING, message);
-  }
-
-  @Override
-  public void info(String message) {
-    postText(NotificationType.INFORMATION, message);
-  }
-
-  @Override
-  public void noChanges() {
-    postText(NotificationType.INFORMATION, "No Changes.");
-  }
-
-  @Override
   public void notifyEnd(UpdateMode updateMode) {
     if (updateMode == UpdateMode.HOT_SWAP && !InstantRunSettings.isRestartActivity()) {
       StringBuilder sb = new StringBuilder(300);
