@@ -18,31 +18,37 @@ package com.android.tools.idea.run;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.run.util.LaunchUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.EnumSet;
+import java.util.Set;
 
 public class LaunchCompatibilityCheckerImpl implements LaunchCompatibilityChecker {
   private final AndroidVersion myMinSdkVersion;
   private final IAndroidTarget myProjectTarget;
   private final EnumSet<IDevice.HardwareFeature> myRequiredHardwareFeatures;
+  private final Set<String> mySupportedAbis;
 
   public LaunchCompatibilityCheckerImpl(@NotNull AndroidVersion minSdkVersion,
                                         @NotNull IAndroidTarget target,
-                                        @NotNull EnumSet<IDevice.HardwareFeature> requiredHardwareFeatures) {
+                                        @NotNull EnumSet<IDevice.HardwareFeature> requiredHardwareFeatures,
+                                        @Nullable Set<String> supportedAbis) {
     myMinSdkVersion = minSdkVersion;
     myProjectTarget = target;
     myRequiredHardwareFeatures = requiredHardwareFeatures;
+    mySupportedAbis = supportedAbis;
   }
 
   @NotNull
   @Override
   public LaunchCompatibility validate(@NotNull AndroidDevice device) {
-    return device.canRun(myMinSdkVersion, myProjectTarget, myRequiredHardwareFeatures);
+    return device.canRun(myMinSdkVersion, myProjectTarget, myRequiredHardwareFeatures, mySupportedAbis);
   }
 
   public static LaunchCompatibilityChecker create(@NotNull AndroidFacet facet) {
@@ -64,6 +70,10 @@ public class LaunchCompatibilityCheckerImpl implements LaunchCompatibilityChecke
       requiredHardwareFeatures = EnumSet.noneOf(IDevice.HardwareFeature.class);
     }
 
-    return new LaunchCompatibilityCheckerImpl(minSdkVersion, platform.getTarget(), requiredHardwareFeatures);
+    Set<String> supportedAbis = facet.getAndroidModel() instanceof AndroidGradleModel ?
+                                ((AndroidGradleModel)facet.getAndroidModel()).getSelectedVariant().getMainArtifact().getAbiFilters() :
+                                null;
+
+    return new LaunchCompatibilityCheckerImpl(minSdkVersion, platform.getTarget(), requiredHardwareFeatures, supportedAbis);
   }
 }
