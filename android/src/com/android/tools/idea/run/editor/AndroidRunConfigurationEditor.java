@@ -16,7 +16,7 @@
 package com.android.tools.idea.run.editor;
 
 import com.android.tools.idea.fd.InstantRunConfigurable;
-import com.android.tools.idea.fd.InstantRunGradleUtils;
+import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;

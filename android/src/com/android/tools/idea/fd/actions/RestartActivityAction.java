@@ -20,9 +20,10 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.fd.client.AppState;
 import com.android.tools.fd.client.InstantRunClient;
 import com.android.tools.idea.fd.InstantRunContext;
-import com.android.tools.idea.fd.InstantRunGradleUtils;
 import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.fd.InstantRunSettings;
+import com.android.tools.idea.fd.gradle.InstantRunGradleSupport;
+import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.run.AndroidProcessHandler;
 import com.android.tools.idea.run.AndroidProgramRunner;
@@ -41,7 +42,6 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.xdebugger.XDebugSession;
 import com.intellij.xdebugger.XDebuggerManager;
 import icons.AndroidIcons;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -79,7 +79,7 @@ public class RestartActivityAction extends AnAction {
 
     Project project = module.getProject();
     boolean enabled = InstantRunSettings.isInstantRunEnabled() &&
-                      InstantRunGradleUtils.getIrSupportStatus(model, null).success &&
+                      (InstantRunGradleUtils.getIrSupportStatus(model, null) == InstantRunGradleSupport.SUPPORTED) &&
                       !getActiveSessions(project).isEmpty() &&
                       !isDebuggerPaused(project);
     e.getPresentation().setEnabled(enabled);
@@ -114,23 +114,21 @@ public class RestartActivityAction extends AnAction {
     if (module == null) {
       return;
     }
-    restartActivity(module);
-  }
-
-  /**
-   * Restarts the activity associated with the given module
-   */
-  public static void restartActivity(@NotNull Module module) {
-    Project project = module.getProject();
 
     InstantRunContext context = InstantRunGradleUtils.createGradleProjectContext(module);
     if (context == null) {
       Logger.getInstance(RestartActivityAction.class).info("Unable to obtain instant run context for module: " + module.getName());
       return;
     }
+    restartActivity(module.getProject(), context);
+  }
 
+  /**
+   * Restarts the activity associated with the given module
+   */
+  public static void restartActivity(@NotNull Project project, @NotNull InstantRunContext instantRunContext) {
     for (IDevice device : findDevices(project)) {
-      InstantRunClient instantRunClient = InstantRunManager.getInstantRunClient(context);
+      InstantRunClient instantRunClient = InstantRunManager.getInstantRunClient(instantRunContext);
       if (instantRunClient == null) {
         Logger.getInstance(RestartActivityAction.class).warn("Unable to connect to to app running on device, not restarting.");
         return;
@@ -140,11 +138,11 @@ public class RestartActivityAction extends AnAction {
         if (instantRunClient.getAppState(device) == AppState.FOREGROUND) {
           instantRunClient.restartActivity(device);
           if (InstantRunSettings.isShowToastEnabled()) {
-            showToast(device, module, "Activity Restarted");
+            showToast(device, instantRunContext, "Activity Restarted");
           }
         }
       } catch (IOException e) {
-        Messages.showErrorDialog(module.getProject(), "Unable to restart activity: " + e, "Instant Run");
+        Messages.showErrorDialog(project, "Unable to restart activity: " + e, "Instant Run");
         InstantRunManager.LOG.warn("Unable to restart activity", e);
       }
     }
@@ -195,9 +193,9 @@ public class RestartActivityAction extends AnAction {
     return Collections.emptyList();
   }
 
-  private static void showToast(@NotNull IDevice device, @NotNull Module module, @NotNull final String message) {
+  private static void showToast(@NotNull IDevice device, @NotNull InstantRunContext context, @NotNull final String message) {
     try {
-      InstantRunClient instantRunClient = getInstantRunClient(module);
+      InstantRunClient instantRunClient = InstantRunManager.getInstantRunClient(context);
       if (instantRunClient == null) {
         InstantRunManager.LOG.warn("Cannot connect to app, not showing toast");
         return;
@@ -207,12 +205,5 @@ public class RestartActivityAction extends AnAction {
     catch (Throwable e) {
       InstantRunManager.LOG.warn(e);
     }
-  }
-
-  @Nullable
-  private static InstantRunClient getInstantRunClient(@NotNull Module module) {
-    AndroidFacet facet = InstantRunGradleUtils.findAppModule(module, module.getProject());
-    InstantRunContext context = facet == null ? null : InstantRunGradleUtils.createGradleProjectContext(facet);
-    return context == null ? null : InstantRunManager.getInstantRunClient(context);
   }
 }
