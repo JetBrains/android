@@ -93,7 +93,7 @@ public class InstantRunBuilder implements BeforeRunBuilder {
   @Override
   public boolean build(@NotNull GradleTaskRunner taskRunner, @NotNull List<String> commandLineArguments) throws InterruptedException,
                                                                                                                 InvocationTargetException {
-    BuildSelection buildSelection = getBuildMode();
+    BuildSelection buildSelection = getBuildSelection();
     myInstantRunContext.setBuildSelection(buildSelection);
     if (buildSelection.mode != BuildMode.HOT) {
       LOG.info(buildSelection.mode + ": " + buildSelection.why);
@@ -114,58 +114,57 @@ public class InstantRunBuilder implements BeforeRunBuilder {
   }
 
   @NotNull
-  private BuildSelection getBuildMode() {
-    String cleanBuildReason = needsCleanBuild(myDevice);
-    if (cleanBuildReason != null) {
-      return new BuildSelection(BuildMode.CLEAN, cleanBuildReason);
+  private BuildSelection getBuildSelection() {
+    BuildCause buildCause = needsCleanBuild(myDevice);
+    if (buildCause != null) {
+      return new BuildSelection(BuildMode.CLEAN, buildCause);
     }
 
-    String fullBuildReason = needsFullBuild(myDevice);
-    if (fullBuildReason != null) {
-      return new BuildSelection(BuildMode.FULL, fullBuildReason);
+    buildCause = needsFullBuild(myDevice);
+    if (buildCause != null) {
+      return new BuildSelection(BuildMode.FULL, buildCause);
     }
 
-    String coldSwapReason = needsColdswapPatches(myDevice);
-    if (coldSwapReason != null) {
-      return new BuildSelection(BuildMode.COLD, coldSwapReason);
+    buildCause = needsColdswapPatches(myDevice);
+    if (buildCause != null) {
+      return new BuildSelection(BuildMode.COLD, buildCause);
     }
 
-    return new BuildSelection(BuildMode.HOT, "");
+    return new BuildSelection(BuildMode.HOT, BuildCause.INCREMENTAL_BUILD);
   }
 
   @Nullable
-  private String needsCleanBuild(@Nullable IDevice device) {
+  @Contract("null -> !null")
+  private BuildCause needsCleanBuild(@Nullable IDevice device) {
     if (device == null) {
-      return InstantRunBuildCauses.NO_DEVICE;
+      return BuildCause.NO_DEVICE;
     }
 
     if (myRunContext.isCleanRerun()) {
-      return InstantRunBuildCauses.USER_REQUESTED_CLEAN_RERUN;
+      return BuildCause.USER_REQUESTED_CLEAN_BUILD;
     }
 
     if (!buildTimestampsMatch(device)) {
-      return InstantRunBuildCauses.MISMATCHING_TIMESTAMPS;
+      if (myInstalledApkCache.getInstallState(device, myInstantRunContext.getApplicationId()) == null) {
+        return BuildCause.FIRST_INSTALLATION_TO_DEVICE;
+      }
+      else {
+        return BuildCause.MISMATCHING_TIMESTAMPS;
+      }
     }
 
     return null;
   }
 
   @Nullable
-  @Contract("null -> !null")
-  private String needsFullBuild(@Nullable IDevice device) {
-    if (device == null) {
-      return InstantRunBuildCauses.NO_DEVICE;
-    }
-
+  private BuildCause needsFullBuild(@NotNull IDevice device) {
     AndroidVersion deviceVersion = device.getVersion();
     if (!InstantRunManager.isInstantRunCapableDeviceVersion(deviceVersion)) {
-      return "Instant Run is disabled: <br>" +
-             "Instant Run does not support deployment to targets with API levels 14 or below.<br><br>" +
-             "To use Instant Run, deploy to a target with API level 15 or higher.";
+      return BuildCause.API_TOO_LOW_FOR_INSTANT_RUN;
     }
 
     if (!InstantRunManager.hasLocalCacheOfDeviceData(device, myInstantRunContext)) {
-      return InstantRunBuildCauses.FIRST_INSTALLATION_TO_DEVICE;
+      return BuildCause.FIRST_INSTALLATION_TO_DEVICE;
     }
 
     // Normally, all files are saved when Gradle runs (in GradleInvoker#executeTasks). However, we need to save the files
@@ -176,16 +175,16 @@ public class InstantRunBuilder implements BeforeRunBuilder {
     }
 
     if (manifestResourceChanged(device)) {
-      return InstantRunBuildCauses.MANIFEST_RESOURCE_CHANGED;
+      return BuildCause.MANIFEST_RESOURCE_CHANGED;
     }
 
     if (!isAppRunning(device)) { // freeze-swap scenario
       if (!deviceVersion.isGreaterOrEqualThan(21)) { // don't support cold swap on API < 21
-        return InstantRunBuildCauses.COLD_SWAP_REQUIRES_API21;
+        return BuildCause.FREEZE_SWAP_REQUIRES_API21;
       }
 
       if (!myRunAsValidator.hasWorkingRunAs(device)) {
-        return InstantRunBuildCauses.NO_RUN_AS;
+        return BuildCause.FREEZE_SWAP_REQUIRES_WORKING_RUN_AS;
       }
     }
 
@@ -193,13 +192,13 @@ public class InstantRunBuilder implements BeforeRunBuilder {
   }
 
   @Nullable
-  private String needsColdswapPatches(@NotNull IDevice device) {
+  private BuildCause needsColdswapPatches(@NotNull IDevice device) {
     if (!isAppRunning(device)) {
-      return InstantRunBuildCauses.APP_NOT_RUNNING;
+      return BuildCause.APP_NOT_RUNNING;
     }
 
     if (myInstantRunContext.usesMultipleProcesses()) {
-      return InstantRunBuildCauses.MULTI_PROCESS_APP;
+      return BuildCause.APP_USES_MULTIPLE_PROCESSES;
     }
 
     // TODO: we also need to assert that the same process handler is still alive

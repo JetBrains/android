@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.gradle.run;
 
-import com.android.tools.idea.fd.InstantRunGradleUtils;
 import com.android.tools.idea.fd.InstantRunTasksProvider;
-import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.google.common.collect.Lists;
@@ -27,7 +25,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collections;
 import java.util.List;
 
 public class GradleModuleTasksProvider implements InstantRunTasksProvider {

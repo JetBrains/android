@@ -206,6 +206,7 @@ public class InstantRunBuilderTest {
 
   @Test
   public void cleanBuildIfNoLocalTimestamp() throws Exception {
+    myDumpsysPackageOutput = DUMPSYS_NO_SUCH_PACKAGE;
     when(myInstantRunContext.getInstantRunBuildInfo()).thenReturn(null);
     when(myDevice.getVersion()).thenReturn(new AndroidVersion(23, null));
     myBuilder.build(myTaskRunner, Collections.emptyList());

@@ -16,24 +16,37 @@
 package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.fd.client.AppState;
+import com.android.tools.fd.client.InstantRunClient;
 import com.android.tools.fd.client.InstantRunPushFailedException;
 import com.android.tools.fd.client.UpdateMode;
 import com.android.tools.idea.fd.*;
+import com.android.tools.idea.fd.actions.RestartActivityAction;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
+import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationListener;
+import com.intellij.notification.NotificationType;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.Shortcut;
+import com.intellij.openapi.keymap.KeymapUtil;
+import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
+import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.event.HyperlinkEvent;
 import java.io.IOException;
 
 public class HotSwapTask implements LaunchTask {
   private final Project myProject;
   private final InstantRunContext myInstantRunContext;
-  private boolean myNeedsActivityLaunch;
+  private final boolean myRestartActivity;
 
-  public HotSwapTask(@NotNull Project project, @NotNull InstantRunContext context) {
+  public HotSwapTask(@NotNull Project project, @NotNull InstantRunContext context, boolean restartActivity) {
     myProject = project;
     myInstantRunContext = context;
+    myRestartActivity = restartActivity;
   }
 
   @NotNull
@@ -50,20 +63,27 @@ public class HotSwapTask implements LaunchTask {
   @Override
   public boolean perform(@NotNull final IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
     InstantRunManager manager = InstantRunManager.get(myProject);
+    UpdateMode updateMode = null;
     try {
-      myNeedsActivityLaunch = manager.pushArtifacts(device, myInstantRunContext, UpdateMode.HOT_SWAP);
-      printer.stdout("Hot swapped changes");
+      InstantRunClient instantRunClient = InstantRunManager.getInstantRunClient(myInstantRunContext);
+      if (instantRunClient == null) {
+        return terminateLaunch(launchStatus, "Unable to connect to application. Press Run or Debug to rebuild and install the app.");
+      }
+
+      updateMode = manager.pushArtifacts(device, myInstantRunContext, myRestartActivity ? UpdateMode.WARM_SWAP : UpdateMode.HOT_SWAP);
+      printer.stdout("Hot swapped changes, activity " + (updateMode == UpdateMode.HOT_SWAP ? "not restarted" : "restarted"));
     }
     catch (InstantRunPushFailedException | IOException e) {
-      launchStatus.terminateLaunch("Error installing hot swap patches: " + e);
-      return false;
+      return terminateLaunch(launchStatus, "Error installing hot swap patches: " + e);
     }
 
     InstantRunStatsService.get(myProject).notifyDeployType(DeployType.HOTSWAP);
     return true;
   }
 
-  public boolean needsActivityLaunch() {
-    return myNeedsActivityLaunch;
+  private static boolean terminateLaunch(LaunchStatus launchStatus, String msg) {
+    launchStatus.terminateLaunch(msg);
+    InstantRunManager.LOG.info("Terminating launch: " + msg);
+    return false;
   }
 }
