@@ -57,6 +57,7 @@ public class DefaultGradleConsoleView extends GradleConsoleView {
     //Create runner UI layout
     RunnerLayoutUi.Factory factory = RunnerLayoutUi.Factory.getInstance(myProject);
     RunnerLayoutUi layoutUi = factory.create("", "", "session", myProject);
+    JComponent layoutComponent = layoutUi.getComponent();
 
     // Adding actions
     DefaultActionGroup group = new DefaultActionGroup();
@@ -71,7 +72,6 @@ public class DefaultGradleConsoleView extends GradleConsoleView {
     }
     layoutUi.addContent(console, 0, PlaceInGrid.right, false);
 
-    JComponent layoutComponent = layoutUi.getComponent();
     myConsolePanel.add(layoutComponent, BorderLayout.CENTER);
 
     //noinspection ConstantConditions
