@@ -16,9 +16,8 @@
 
 package com.android.tools.adtui;
 
-import com.android.tools.adtui.model.EventAction;
-import com.android.tools.adtui.model.EventRenderData;
-import com.android.tools.adtui.model.RangedSimpleSeries;
+import com.android.tools.adtui.model.*;
+import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -48,7 +47,7 @@ public class SimpleEventComponent<E extends Enum<E>> extends AnimatedComponent {
   private static final int HOLD_DELAY_MS = 150;
 
   @NotNull
-  private final RangedSimpleSeries<EventAction<Action, E>> mData;
+  private final RangedSeries<EventAction<Action, E>> mData;
 
   @NotNull
   private final BufferedImage[] mIcons;
@@ -69,7 +68,7 @@ public class SimpleEventComponent<E extends Enum<E>> extends AnimatedComponent {
    * Component that renders EventActions as a series of icons.
    */
   public SimpleEventComponent(
-    @NotNull RangedSimpleSeries<EventAction<Action, E>> data,
+    @NotNull RangedSeries<EventAction<Action, E>> data,
     @NotNull BufferedImage[] icons) {
     mData = data;
     mIcons = icons;
@@ -82,14 +81,19 @@ public class SimpleEventComponent<E extends Enum<E>> extends AnimatedComponent {
   @Override
   protected void updateData() {
     //TODO Pull logic of combining events out of component and into EventHandler
-    double min = mData.getRange().getMin();
-    double max = mData.getRange().getMax();
+    double min = mData.getXRange().getMin();
+    double max = mData.getXRange().getMax();
     EventAction<Action, ? extends Enum> downEvent = null;
     mIconsToDraw.clear();
     mPaths.clear();
     long now = System.currentTimeMillis();
-    for (int i = 0; i < mData.getSeries().size(); i++) {
-      EventAction<Action, ? extends Enum> data = mData.getSeries().get(i);
+    ImmutableList<SeriesData<EventAction<Action, E>>> series = mData.getSeries();
+    int size = series.size();
+
+    for (int i = 0; i < size; i++) {
+      SeriesData<EventAction<Action, E>> seriesData = series.get(i);
+      EventAction<Action, ? extends Enum> data = seriesData.value;
+
       if (data.getValue() == Action.DOWN) {
         downEvent = data;
       }
@@ -127,8 +131,8 @@ public class SimpleEventComponent<E extends Enum<E>> extends AnimatedComponent {
   protected void draw(Graphics2D g2d) {
     Dimension dim = getSize();
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-    double min = mData.getRange().getMin();
-    double max = mData.getRange().getMax();
+    double min = mData.getXRange().getMin();
+    double max = mData.getXRange().getMax();
     double scaleFactor = dim.getWidth();
     AffineTransform scale = AffineTransform.getScaleInstance(scaleFactor, 1);
     for (int i = 0; i < mIconsToDraw.size(); i++) {
