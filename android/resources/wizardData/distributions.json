@@ -3,7 +3,7 @@
   "name": "Gingerbread",
   "version": "2.3",
   "apiLevel": 10,
-  "distributionPercentage": 0.026,
+  "distributionPercentage": 0.020,
   "url": "https://developer.android.com/about/versions/android-2.3.3.html",
   "descriptionBlocks" :[
                            {
@@ -25,7 +25,7 @@
   "name": "Ice Cream Sandwich",
   "version": "4.0",
   "apiLevel": 15,
-  "distributionPercentage": 0.022,
+  "distributionPercentage": 0.019,
   "url": "https://developer.android.com/about/versions/android-4.0.html",
   "descriptionBlocks" : [
                           {
@@ -74,7 +74,7 @@
   "name": "Jelly Bean",
   "version": "4.1",
   "apiLevel": 16,
-  "distributionPercentage": 0.078,
+  "distributionPercentage": 0.068,
   "url": "https://developer.android.com/about/versions/android-4.1.html",
   "descriptionBlocks" : [
                           {
@@ -123,7 +123,7 @@
   "name": "Jelly Bean",
   "version": "4.2",
   "apiLevel": 17,
-  "distributionPercentage": 0.105,
+  "distributionPercentage": 0.094,
   "url": "https://developer.android.com/about/versions/android-4.2.html",
   "descriptionBlocks" : [
                           {
@@ -156,7 +156,7 @@
   "name": "Jelly Bean",
   "version": "4.3",
   "apiLevel": 18,
-  "distributionPercentage": 0.03,
+  "distributionPercentage": 0.027,
   "url": "https://developer.android.com/about/versions/android-4.3.html",
   "descriptionBlocks" : [
                           {
@@ -213,7 +213,7 @@
   "name": "KitKat",
   "version": "4.4",
   "apiLevel": 19,
-  "distributionPercentage": 0.334,
+  "distributionPercentage": 0.316,
   "url": "https://developer.android.com/about/versions/android-4.4.html",
   "descriptionBlocks" : [
                             {
@@ -254,7 +254,7 @@
   "name": "Lollipop",
   "version": "5.0",
   "apiLevel": 21,
-  "distributionPercentage": 0.164,
+  "distributionPercentage": 0.154,
   "url": "https://developer.android.com/about/versions/android-5.0.html",
   "descriptionBlocks" : [
 
@@ -316,7 +316,7 @@
   "name": "Lollipop",
   "version": "5.1",
   "apiLevel": 22,
-  "distributionPercentage": 0.194,
+  "distributionPercentage": 0.200,
   "url": "https://developer.android.com/about/versions/android-5.1.html",
   "descriptionBlocks" : [
                           {
@@ -333,7 +333,7 @@
   "name": "Marshmallow",
   "version": "6.0",
   "apiLevel": 23,
-  "distributionPercentage": 0.046,
+  "distributionPercentage": 0.101,
   "url": "https://developer.android.com/about/versions/marshmallow/android-6.0.html",
   "descriptionBlocks" : [
                           {
