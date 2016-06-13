@@ -61,7 +61,6 @@ public final class GapiPaths {
   @NotNull private static final String STRINGS_DIR_NAME = "strings";
   @NotNull private static final String GAPII_LIBRARY_NAME;
   @NotNull private static final String PKG_INFO_NAME = "pkginfo.apk";
-  @NotNull private static final String TRACER_NAME = "gfxtracer.aar";
   @NotNull private static final String EXE_EXTENSION;
   @NotNull private static final String SDK_PATH = "gapid";
   @NotNull private static final String OS_ANDROID = "android";
@@ -92,7 +91,6 @@ public final class GapiPaths {
   private static File myGapirPath;
   private static File myStringsPath;
   private static File myPkgInfoPath;
-  private static File myTracerPath;
 
   public static boolean isValid() {
     findTools();
@@ -143,12 +141,6 @@ public final class GapiPaths {
   public static File findPkgInfoApk() {
     findTools();
     return myPkgInfoPath;
-  }
-
-  @NotNull
-  public static File findTracerAar() {
-    findTools();
-    return myTracerPath;
   }
 
   /**
@@ -211,7 +203,6 @@ public final class GapiPaths {
     myGapisPath = findPath(HOST_OS, HOST_ARCH, GAPIS_EXECUTABLE_NAME);
     myGapirPath = findPath(HOST_OS, HOST_ARCH, GAPIR_EXECUTABLE_NAME);
     myPkgInfoPath = findPath(OS_ANDROID, null, PKG_INFO_NAME);
-    myTracerPath = findPath(OS_ANDROID, null, TRACER_NAME);
     myStringsPath = new File(myBaseDir, STRINGS_DIR_NAME);
     return myGapisPath.exists();
   }

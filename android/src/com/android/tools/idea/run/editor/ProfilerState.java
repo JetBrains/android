@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run.editor;
 
-import com.android.tools.idea.editors.gfxtrace.gapi.GapiPaths;
 import com.intellij.openapi.util.DefaultJDOMExternalizer;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.WriteExternalException;
@@ -23,27 +22,19 @@ import org.jdom.Element;
 
 import java.util.Properties;
 
-import static com.android.tools.idea.startup.AndroidStudioInitializer.ENABLE_EXPERIMENTAL_PROFILING;
-
 /**
  * Holds all the project persisted state variables for the profilers.
  */
 public class ProfilerState {
-  public static final String GAPID_LAUNCH_ACTIVITY = "com.google.android.gfxtracer.GfxTracer";
-
   /** Whether to apply the profiling plugin. */
   public boolean ENABLE_ADVANCED_PROFILING = true;
   public static final String ENABLE_ADVANCED_PROFILING_NAME = "android.profiler.enabled";
 
   /** Enable GAPID (GPU) tracing. */
   public boolean GAPID_ENABLED = false;
-  public static final String GAPID_ENABLED_NAME = "android.profiler.gapid.enabled";
 
   /** GAPID disable pre-compiled shader support. */
   public boolean GAPID_DISABLE_PCS = false;
-  public static final String GAPID_DISABLE_PCS_NAME = "android.profiler.gapid.disable_pcs";
-
-  public static final String GAPID_AAR_PATH_NAME = "android.profiler.gapid.tracer_aar";  // Hidden setting.
 
   public boolean SUPPORT_LIB_ENABLED = true;
   private static final String SUPPORT_LIB_ENABLED_NAME = "android.profiler.supportLib.enabled";
@@ -70,13 +61,6 @@ public class ProfilerState {
     result.setProperty(SUPPORT_LIB_ENABLED_NAME, String.valueOf(SUPPORT_LIB_ENABLED));
     result.setProperty(INSTRUMENTATION_ENABLED_NAME, String.valueOf(INSTRUMENTATION_ENABLED));
     result.setProperty(ENABLE_ADVANCED_PROFILING_NAME, String.valueOf(ENABLE_ADVANCED_PROFILING));
-    result.setProperty(GAPID_ENABLED_NAME, String.valueOf(GAPID_ENABLED));
-    result.setProperty(GAPID_DISABLE_PCS_NAME, String.valueOf(GAPID_DISABLE_PCS));
-    result.setProperty(GAPID_AAR_PATH_NAME, GapiPaths.findTracerAar().getAbsolutePath());
     return result;
-  }
-
-  public boolean isGapidEnabled() {
-    return System.getProperty(ENABLE_EXPERIMENTAL_PROFILING) != null && GAPID_ENABLED;
   }
 }
