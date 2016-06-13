@@ -31,6 +31,7 @@ import com.intellij.ui.components.JBCheckBox;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.xml.XmlAttributeDescriptor;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
+import org.jetbrains.android.dom.wrappers.ValueResourceElementWrapper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,7 +42,6 @@ import java.util.List;
 
 import static com.android.SdkConstants.ID_PREFIX;
 import static com.android.SdkConstants.NEW_ID_PREFIX;
-import static com.android.tools.lint.detector.api.LintUtils.stripIdPrefix;
 
 public class NlIdPropertyItem extends NlPropertyItem {
   private static final int REFACTOR_ASK = 0;
@@ -102,7 +102,8 @@ public class NlIdPropertyItem extends NlPropertyItem {
         XmlAttributeValue valueElement = attribute.getValueElement();
         if (valueElement != null && valueElement.isValid()) {
           // Exact replace only, no comment/text occurrence changes since it is non-interactive
-          RenameProcessor processor = new RenameProcessor(project, valueElement, newId, false /*comments*/, false /*text*/);
+          ValueResourceElementWrapper wrapper = new ValueResourceElementWrapper(valueElement);
+          RenameProcessor processor = new RenameProcessor(project, wrapper, NEW_ID_PREFIX + newId, false /*comments*/, false /*text*/);
           processor.setPreviewUsages(false);
           // Do a quick usage search to see if we need to ask about renaming
           UsageInfo[] usages = processor.findUsages();
@@ -149,7 +150,7 @@ public class NlIdPropertyItem extends NlPropertyItem {
 
             if (choice == REFACTOR_YES) {
               processor.run();
-              // Fall through to also set the value in the layout editor property; otherwise we'll be out of sync
+              return;
             }
           }
         }
