@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
 
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
@@ -24,10 +25,10 @@ import javax.swing.*;
 public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWizardFixture> {
   @NotNull
   public static NewProjectWizardFixture find(@NotNull Robot robot) {
-    JDialog dialog = robot.finder().find(new GenericTypeMatcher<JDialog>(JDialog.class) {
+    JDialog dialog = GuiTests.waitUntilFound(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
       protected boolean isMatching(@NotNull JDialog dialog) {
-        return "Create New Project".equals(dialog.getTitle()) && dialog.isShowing();
+        return "Create New Project".equals(dialog.getTitle());
       }
     });
     return new NewProjectWizardFixture(robot, dialog);
