@@ -26,6 +26,7 @@
     <target name="profiler">
         <exec executable="${gradle.wrapper.executable}" dir="${android.basedir}/../../../base/profiler">
             <arg value="build" />
+            <env key="JAVA_HOME" value="${java.home}"/>
         </exec>
     </target>
 </project>
