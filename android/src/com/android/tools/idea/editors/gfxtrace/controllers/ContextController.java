@@ -38,9 +38,12 @@ public class ContextController extends Controller implements AtomStream.Listener
 
   private final JComboBox myComboBox = new ComboBox();
 
+  @NotNull private Context mySelectedContext = Context.ALL;
+
   private ContextList myContexts;
   private CapturePath myCapturePath;
-  private Context mySelectedContext;
+  private boolean mySuspendUiUpdates;
+
 
   private ContextController(@NotNull GfxTraceEditor editor) {
     super(editor);
@@ -53,7 +56,7 @@ public class ContextController extends Controller implements AtomStream.Listener
   }
 
   private void selectContext(Context context) {
-    if (Objects.equals(context, mySelectedContext)) {
+    if (mySuspendUiUpdates || Objects.equals(context, mySelectedContext)) {
       return;
     }
     mySelectedContext = context;
@@ -76,15 +79,22 @@ public class ContextController extends Controller implements AtomStream.Listener
       return;
     }
 
-    myCapturePath = atoms.getPath().getCapture();
-    myContexts = atoms.getContexts();
-    myComboBox.removeAllItems();
-    myComboBox.addItem(Context.ALL);
-    for (Context context : myContexts) {
-      myComboBox.addItem(context);
+    mySuspendUiUpdates = true;
+    try {
+      myCapturePath = atoms.getPath().getCapture();
+      myContexts = atoms.getContexts();
+      myComboBox.removeAllItems();
+      myComboBox.addItem(Context.ALL);
+      for (Context context : myContexts) {
+        myComboBox.addItem(context);
+      }
+      myComboBox.setSelectedItem(mySelectedContext);
+      myComboBox.setVisible(myContexts.count() > 0);
+    } finally {
+      mySuspendUiUpdates = false;
     }
-    myComboBox.setSelectedItem(mySelectedContext);
-    myComboBox.setVisible(myContexts.count() > 0);
+
+    selectContext(myContexts.find(mySelectedContext.getID(), Context.ALL));
   }
 
   @Override
