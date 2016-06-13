@@ -22,7 +22,7 @@ import java.util.Random;
 public class LongTestDataGenerator implements TestDataGenerator<Long> {
 
   private Random mRandom = new Random();
-  private TLongArrayList data = new TLongArrayList();
+  private TLongArrayList mData = new TLongArrayList();
   private int mMin;
   private int mMax;
   private boolean mUseLast;
@@ -36,17 +36,17 @@ public class LongTestDataGenerator implements TestDataGenerator<Long> {
 
   @Override
   public Long get(int index) {
-    return data.get(index);
+    return mData.get(index);
   }
 
   @Override
-  public void generateData() {
+  public void generateData(long currentTime) {
     if (mUseLast) {
-      long x = (data.isEmpty() ? 0 : data.get(data.size() - 1)) + randLong(-20, 100);
-      data.add(Math.max(0, x));
+      long x = (mData.isEmpty() ? 0 : mData.get(mData.size() - 1)) + randLong(-20, 100);
+      mData.add(Math.max(0, x));
     }
     else {
-      data.add(randLong(mMin, mMax));
+      mData.add(randLong(mMin, mMax));
     }
   }
 

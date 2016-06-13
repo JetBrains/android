@@ -20,7 +20,10 @@ import com.android.tools.adtui.Range;
 import com.android.tools.adtui.SimpleEventComponent;
 import com.android.tools.adtui.StackedEventComponent;
 import com.android.tools.adtui.model.EventAction;
-import com.android.tools.adtui.model.RangedSimpleSeries;
+import com.android.tools.adtui.model.RangedSeries;
+import com.android.tools.idea.monitor.datastore.DataStoreSeries;
+import com.android.tools.idea.monitor.datastore.SeriesDataStore;
+import com.android.tools.idea.monitor.datastore.SeriesDataType;
 import com.android.tools.idea.monitor.ui.BaseSegment;
 import com.android.tools.idea.monitor.ui.ProfilerEventListener;
 import com.intellij.util.EventDispatcher;
@@ -31,11 +34,17 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.List;
 
-public class EventSegment<E extends Enum<E>> extends BaseSegment {
+public class EventSegment extends BaseSegment {
 
   private static final String SEGMENT_NAME = "Events";
   private static final int ACTIVITY_GRAPH_SIZE = 25;
   private static final int FRAGMENT_GRAPH_SIZE = 25;
+
+  public enum EventActionType {
+    TOUCH,
+    HOLD,
+    DOUBLE_TAP;
+  }
 
   @NotNull
   private SimpleEventComponent mSystemEvents;
@@ -47,13 +56,7 @@ public class EventSegment<E extends Enum<E>> extends BaseSegment {
   private StackedEventComponent mActivityEvents;
 
   @NotNull
-  private final RangedSimpleSeries<EventAction<SimpleEventComponent.Action, E>> mSystemEventData;
-
-  @NotNull
-  private final RangedSimpleSeries<EventAction<StackedEventComponent.Action, String>> mFragmentEventData;
-
-  @NotNull
-  private final RangedSimpleSeries<EventAction<StackedEventComponent.Action, String>> mActivityEventData;
+  private final SeriesDataStore mDataStore;
 
   @NotNull
   private BufferedImage[] mIcons;
@@ -61,23 +64,26 @@ public class EventSegment<E extends Enum<E>> extends BaseSegment {
   //TODO Add labels for series data.
 
   public EventSegment(@NotNull Range scopedRange,
-                      @NotNull RangedSimpleSeries<EventAction<SimpleEventComponent.Action, E>> systemData,
-                      @NotNull RangedSimpleSeries<EventAction<StackedEventComponent.Action, String>> fragmentData,
-                      @NotNull RangedSimpleSeries<EventAction<StackedEventComponent.Action, String>> activityData,
+                      @NotNull SeriesDataStore dataStore,
                       @NotNull BufferedImage[] icons,
                       @NotNull EventDispatcher<ProfilerEventListener> dispatcher) {
     super(SEGMENT_NAME, scopedRange, dispatcher);
-    mSystemEventData = systemData;
-    mFragmentEventData = fragmentData;
-    mActivityEventData = activityData;
+    mDataStore = dataStore;
     mIcons = icons;
   }
 
   @Override
   public void createComponentsList(@NotNull List<Animatable> animatables) {
-    mSystemEvents = new SimpleEventComponent(mSystemEventData, mIcons);
-    mFragmentEvents = new StackedEventComponent(FRAGMENT_GRAPH_SIZE, mFragmentEventData);
-    mActivityEvents = new StackedEventComponent(ACTIVITY_GRAPH_SIZE, mActivityEventData);
+    DataStoreSeries<EventAction<SimpleEventComponent.Action, EventActionType>> systemEventData = new DataStoreSeries<>(mDataStore,
+                                                                                                                       SeriesDataType.EVENT_SIMPLE_ACTION);
+    DataStoreSeries<EventAction<StackedEventComponent.Action, String>> fragmentEventData = new DataStoreSeries<>(mDataStore,
+                                                                                                                 SeriesDataType.EVENT_FRAGMENT_ACTION);
+    DataStoreSeries<EventAction<StackedEventComponent.Action, String>> activityEventData = new DataStoreSeries<>(mDataStore,
+                                                                                                                 SeriesDataType.EVENT_ACTIVITY_ACTION);
+
+    mSystemEvents = new SimpleEventComponent(new RangedSeries<>(mXRange, systemEventData), mIcons);
+    mFragmentEvents = new StackedEventComponent(new RangedSeries<>(mXRange, fragmentEventData), FRAGMENT_GRAPH_SIZE);
+    mActivityEvents = new StackedEventComponent(new RangedSeries<>(mXRange, activityEventData), ACTIVITY_GRAPH_SIZE);
 
     animatables.add(mSystemEvents);
     animatables.add(mFragmentEvents);

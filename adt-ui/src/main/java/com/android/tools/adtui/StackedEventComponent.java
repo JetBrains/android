@@ -17,9 +17,8 @@
 package com.android.tools.adtui;
 
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.model.EventAction;
-import com.android.tools.adtui.model.EventRenderData;
-import com.android.tools.adtui.model.RangedSimpleSeries;
+import com.android.tools.adtui.model.*;
+import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -54,7 +53,7 @@ public class StackedEventComponent extends AnimatedComponent {
   private static final float EPSILON = .99f;
 
   @NotNull
-  private final RangedSimpleSeries<EventAction<Action, String>> mData;
+  private final RangedSeries<EventAction<Action, String>> mData;
 
   @NotNull
   private final ArrayList<Shape> mPaths;
@@ -71,8 +70,8 @@ public class StackedEventComponent extends AnimatedComponent {
   /**
    * @param data The state chart data.
    */
-  public StackedEventComponent(int maxHeight,
-                               @NotNull RangedSimpleSeries<EventAction<Action, String>> data) {
+  public StackedEventComponent(@NotNull RangedSeries<EventAction<Action, String>> data,
+                               int maxHeight) {
     mData = data;
     myMaxHeight = maxHeight;
     mPaths = new ArrayList<Shape>();
@@ -80,8 +79,8 @@ public class StackedEventComponent extends AnimatedComponent {
 
   @Override
   protected void updateData() {
-    double min = mData.getRange().getMin();
-    double max = mData.getRange().getMax();
+    double min = mData.getXRange().getMin();
+    double max = mData.getXRange().getMax();
 
     // A map of EventAction started events to their start time, so we can correlate these to
     // EventAction competed events with the EventAction start events. This is done this way as
@@ -104,13 +103,16 @@ public class StackedEventComponent extends AnimatedComponent {
     int lastIndex = 0;
     EventAction<Action, String> lastStart = null;
     int lastStartIndex = 0;
+    ImmutableList<SeriesData<EventAction<Action, String>>> series = mData.getSeries();
+    int size = series.size();
 
     // Loop through the data series looking at all of the start events, and stop events.
     // For each start event we store off its EventAction until we find an associated stop event.
     // Once we find a stop event we determine the draw order, name, start and stop locations and
     // cache off a path to draw.
-    for (int i = 0; i < mData.getSeries().size(); i++) {
-      EventAction<Action, String> data = mData.getSeries().get(i);
+    for (int i = 0; i < size; i++) {
+      SeriesData<EventAction<Action, String>> seriesData = series.get(i);
+      EventAction<Action, String> data = seriesData.value;
       if (!drawOrderIndex.containsKey(data.getStart())) {
 
         // The index is used to determine what height we want to draw the activity line at.
@@ -193,8 +195,8 @@ public class StackedEventComponent extends AnimatedComponent {
   protected void draw(Graphics2D g2d) {
     Dimension dim = getSize();
     int scaleFactor = dim.width;
-    double min = mData.getRange().getMin();
-    double max = mData.getRange().getMax();
+    double min = mData.getXRange().getMin();
+    double max = mData.getXRange().getMax();
     Stroke current = g2d.getStroke();
     BasicStroke str = new BasicStroke(2.0f);
     g2d.setStroke(str);
