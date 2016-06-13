@@ -19,6 +19,7 @@ import com.android.tools.adtui.*;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
+import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.LegendRenderData;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.idea.monitor.datastore.DataStoreSeries;
@@ -347,7 +348,7 @@ public abstract class BaseLineChartSegment extends BaseSegment {
    * Adds a line to {@link #mLineChart}.
    */
   protected void addLine(SeriesDataType type, String label, LineConfig lineConfig, Range yRange) {
-    mLineChart.addLine(new RangedContinuousSeries(label, mXRange, yRange, new DataStoreSeries(mSeriesDataStore, type)),
-                       lineConfig);
+    mLineChart.addLine(new RangedContinuousSeries(label, mXRange, yRange, new DataStoreSeries(mSeriesDataStore, type),
+                                                  TimeAxisFormatter.DEFAULT, mLeftAxisFormatter), lineConfig);
   }
 }
