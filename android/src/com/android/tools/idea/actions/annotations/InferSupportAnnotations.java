@@ -1035,9 +1035,22 @@ public class InferSupportAnnotations {
             PsiExpression argument = arguments[i];
             ResourceType resourceType = AndroidPsiUtils.getResourceType(argument);
             if (resourceType != null) {
+              PsiParameter parameter = parameters[i];
+              // If we see a call to some generic method, such as
+              //    prettyPrint(R.id.foo)
+              // or
+              //    intent.putExtra(key, R.id.foo)
+              // we shouldn't conclude that ALL calls to that method must also
+              // use the same resource type! In other words, if we
+              // see a method that takes non-integers, or an actual put method
+              // (2 parameter method where our target is the second parameter and
+              // the name begins with put) we ignore it.
+              if (!PsiType.INT.equals(parameter.getType()) || i == 1 && parameters.length == 2 && method.getName().startsWith("put")) {
+                continue;
+              }
+
               Constraints newConstraint = new Constraints();
               newConstraint.addResourceType(resourceType);
-              PsiParameter parameter = parameters[i];
               Constraints constraints = storeConstraints(parameter, newConstraint);
               if (CREATE_INFERENCE_REPORT && constraints != null && !constraints.readOnly) {
                 constraints.addReport(parameter, newConstraint.getResourceTypeAnnotationsString() +
