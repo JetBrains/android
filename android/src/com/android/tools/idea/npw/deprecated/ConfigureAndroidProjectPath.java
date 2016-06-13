@@ -119,7 +119,7 @@ public class ConfigureAndroidProjectPath extends DynamicWizardPath {
         state.listPush(WizardConstants.INSTALL_REQUESTS_KEY, constraintPackage.getPath());
       }
     }
-    
+
     if (buildTool != null && buildTool.getRevision().compareTo(minimumRequiredBuildToolVersion) >= 0) {
       state.put(WizardConstants.BUILD_TOOLS_VERSION_KEY, buildTool.getRevision().toString());
     }
@@ -132,7 +132,7 @@ public class ConfigureAndroidProjectPath extends DynamicWizardPath {
     File location = sdkHandler.getLocation();
     if (location != null) {
       // Gradle expects a platform-neutral path
-      state.put(WizardConstants.SDK_HOME_KEY, FileUtil.toSystemIndependentName(location.getPath()));
+      state.put(WizardConstants.SDK_DIR_KEY, FileUtil.toSystemIndependentName(location.getPath()));
     }
   }
 
