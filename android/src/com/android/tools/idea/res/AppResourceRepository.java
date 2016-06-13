@@ -20,6 +20,7 @@ import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.Variant;
 import com.android.ide.common.rendering.api.AttrResourceValue;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.common.repository.ResourceVisibilityLookup;
 import com.android.ide.common.resources.IntArrayWrapper;
 import com.android.resources.ResourceType;
@@ -163,7 +164,7 @@ public class AppResourceRepository extends MultiResourceRepository {
           addGradleLibraries(libraries, dependentGradleModel);
         }
       }
-      return findAarLibrariesFromGradle(dependentFacets, libraries);
+      return findAarLibrariesFromGradle(androidGradleModel.getModelVersion(), dependentFacets, libraries);
     }
     return findAarLibrariesFromIntelliJ(facet, dependentFacets);
   }
@@ -206,7 +207,9 @@ public class AppResourceRepository extends MultiResourceRepository {
    * resource directories.
    */
   @NotNull
-  private static Map<File, String> findAarLibrariesFromGradle(List<AndroidFacet> dependentFacets, List<AndroidLibrary> libraries) {
+  private static Map<File, String> findAarLibrariesFromGradle(@NotNull GradleVersion modelVersion,
+                                                              List<AndroidFacet> dependentFacets,
+                                                              List<AndroidLibrary> libraries) {
     // Pull out the unique directories, in case multiple modules point to the same .aar folder
     Map<File, String> files = new HashMap<>(libraries.size());
 
@@ -241,7 +244,12 @@ public class AppResourceRepository extends MultiResourceRepository {
         if (libraryName != null && !moduleNames.contains(libraryName)) {
           File resFolder = library.getResFolder();
           if (resFolder.exists()) {
-            files.put(resFolder, library.getName());
+            String name = libraryName;
+            if (modelVersion.getMajor() > 2 || modelVersion.getMajor() == 2 && modelVersion.getMinor() >= 2) {
+              // Library.getName() was added in 2.2
+              name = library.getName();
+            }
+            files.put(resFolder, name);
 
             // Don't add it again!
             moduleNames.add(libraryName);
