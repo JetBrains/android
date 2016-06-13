@@ -72,6 +72,10 @@ public class ContextController extends Controller implements AtomStream.Listener
 
   @Override
   public void onAtomLoadingComplete(AtomStream atoms) {
+    if (!atoms.isLoaded()) {
+      return;
+    }
+
     myCapturePath = atoms.getPath().getCapture();
     myContexts = atoms.getContexts();
     myComboBox.removeAllItems();

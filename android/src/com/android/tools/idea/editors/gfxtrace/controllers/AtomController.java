@@ -659,11 +659,15 @@ public class AtomController extends TreeController implements AtomStream.Listene
 
   @Override
   public void onAtomLoadingComplete(AtomStream atoms) {
-    myLoadingPanel.stopLoading();
-    // Map all hierarchy selections into something equivalent.
-    Maps.transformValues(mySelectedHierarchies,
-                         hierarchy -> atoms.getHierarchies().findSimilar(hierarchy));
-    updateTree(atoms);
+    if (atoms.isLoaded()) {
+      myLoadingPanel.stopLoading();
+      // Map all hierarchy selections into something equivalent.
+      Maps.transformValues(mySelectedHierarchies,
+                           hierarchy -> atoms.getHierarchies().findSimilar(hierarchy));
+      updateTree(atoms);
+    } else {
+      myLoadingPanel.showLoadingError("Failed to load GPU commands");
+    }
   }
 
   @Nullable("if this path can not be found in this tree")
