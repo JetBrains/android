@@ -25,7 +25,7 @@ import javax.swing.*;
 public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWizardFixture> {
   @NotNull
   public static NewProjectWizardFixture find(@NotNull Robot robot) {
-    JDialog dialog = GuiTests.waitUntilFound(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
+    JDialog dialog = GuiTests.waitUntilShowing(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
       protected boolean isMatching(@NotNull JDialog dialog) {
         return "Create New Project".equals(dialog.getTitle());
