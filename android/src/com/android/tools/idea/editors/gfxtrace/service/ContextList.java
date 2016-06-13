@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.Objects;
 
 public final class ContextList implements BinaryObject, Iterable<Context> {
   @Override
@@ -44,7 +45,7 @@ public final class ContextList implements BinaryObject, Iterable<Context> {
    */
   public Context find(ContextID id, Context ifNotFound) {
     for (Context context : this) {
-      if (context.getID() == id) {
+      if (Objects.equals(context.getID(), id)) {
         return context;
       }
     }
