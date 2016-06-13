@@ -28,9 +28,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.CLASSPATH;
-import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.COMPILE;
-import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.RUNTIME;
+import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.*;
 import static com.google.common.truth.Truth.assertThat;
 
 /**
@@ -697,6 +695,33 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertEquals("ext.guavaVersion", guavaVersionVariable.getPropertyName());
     assertEquals("guavaVersion = '18.0'", guavaVersionVariable.getDslText());
     assertEquals(0, guavaVersionVariable.getResolvedVariables().size());
+  }
+
+  public void testNonDependencyCodeInDependenciesSection() throws IOException {
+    String text = "dependencies {\n" +
+                  "  compile 'com.android.support:appcompat-v7:22.1.1'\n" +
+                  "  runtime group: 'com.google.guava', name: 'guava', version: '18.0'\n" +
+                  "  apply plugin:'com.test.xyz'\n" + // this line should not affect the dependencies parsing
+                  "  testCompile('org.hibernate:hibernate:3.1') { \n" +
+                  "    force = true\n" +
+                  "  }\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependenciesModel = buildModel.dependencies();
+
+    List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
+    assertThat(dependencies).hasSize(3);
+
+    ExpectedArtifactDependency expected = new ExpectedArtifactDependency(COMPILE, "appcompat-v7", "com.android.support", "22.1.1");
+    expected.assertMatches(dependencies.get(0));
+
+    expected = new ExpectedArtifactDependency(RUNTIME, "guava", "com.google.guava", "18.0");
+    expected.assertMatches(dependencies.get(1));
+
+    expected = new ExpectedArtifactDependency(TEST_COMPILE, "hibernate", "org.hibernate", "3.1");
+    expected.assertMatches(dependencies.get(2));
   }
 
   public static class ExpectedArtifactDependency extends ArtifactDependencySpec {
