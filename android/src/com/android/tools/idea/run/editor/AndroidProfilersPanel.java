@@ -41,27 +41,22 @@ public class AndroidProfilersPanel {
 
   AndroidProfilersPanel(ProfilerState state) {
     myAdvancedProfilingCheckBox.setVisible(EXPERIMENTAL_ENABLED);
-    myGapidEnabled.setVisible(EXPERIMENTAL_ENABLED);
 
-    ChangeListener checkboxChangeListener = new ChangeListener() {
-      @Override
-      public void stateChanged(ChangeEvent e) {
-        boolean enabled = !EXPERIMENTAL_ENABLED || myAdvancedProfilingCheckBox.isSelected();
-        myGapidEnabled.setEnabled(enabled && isGapidSdkComponentInstalled());
-
-        boolean gapidEnabled = !EXPERIMENTAL_ENABLED || (enabled && isGapidSdkComponentInstalled() && myGapidEnabled.isSelected());
-        myGapidDisablePCS.setEnabled(gapidEnabled);
+    myGapidEnabled.addChangeListener(e -> {
+      if (!isGapidSdkComponentInstalled()) {
+        myGapidEnabled.setEnabled(false);
+        myGapidDisablePCS.setEnabled(false);
+      } else {
+        myGapidEnabled.setEnabled(true);
+        myGapidDisablePCS.setEnabled(myGapidEnabled.isSelected());
       }
-    };
-
-    myAdvancedProfilingCheckBox.addChangeListener(checkboxChangeListener);
-    myGapidEnabled.addChangeListener(checkboxChangeListener);
+    });
 
     resetFrom(state);
   }
 
   private static boolean isGapidSdkComponentInstalled() {
-    return !EXPERIMENTAL_ENABLED || GapiPaths.findTracerAar().exists();
+    return !EXPERIMENTAL_ENABLED || GapiPaths.isValid();
   }
 
   /**
@@ -71,6 +66,7 @@ public class AndroidProfilersPanel {
     myAdvancedProfilingCheckBox.setSelected(state.ENABLE_ADVANCED_PROFILING);
     myGapidEnabled.setSelected(state.GAPID_ENABLED);
     myGapidDisablePCS.setSelected(state.GAPID_DISABLE_PCS);
+    myGapidDisablePCS.setEnabled(state.GAPID_ENABLED);
 
     if (isGapidSdkComponentInstalled()) {
       myGapidEnabled.setToolTipText(null);
@@ -86,9 +82,9 @@ public class AndroidProfilersPanel {
    * Assigns the current UI state to the specified {@link ProfilerState}.
    */
   void applyTo(ProfilerState state) {
-
     boolean enabled = System.getProperty(ENABLE_EXPERIMENTAL_PROFILING) != null;
     state.ENABLE_ADVANCED_PROFILING = myAdvancedProfilingCheckBox.isSelected() && enabled;
+
     state.GAPID_ENABLED = myGapidEnabled.isSelected();
     state.GAPID_DISABLE_PCS = myGapidDisablePCS.isSelected();
   }
