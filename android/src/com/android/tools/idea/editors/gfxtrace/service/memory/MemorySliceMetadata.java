@@ -24,53 +24,20 @@ import com.android.tools.rpclib.schema.*;
 
 import java.io.IOException;
 
-/**
- * MemorySliceInfo is the common data structure for each slice type.
- */
-public final class SliceInfo implements BinaryObject {
+public final class MemorySliceMetadata implements BinaryObject {
   //<<<Start:Java.ClassBody:1>>>
-  private long myRoot;
-  private long myBase;
-  private long myCount;
-  private int myPool;
+  private String myElementTypeName;
 
-  // Constructs a default-initialized {@link SliceInfo}.
-  public SliceInfo() {}
+  // Constructs a default-initialized {@link MemorySliceMetadata}.
+  public MemorySliceMetadata() {}
 
 
-  public long getRoot() {
-    return myRoot;
+  public String getElementTypeName() {
+    return myElementTypeName;
   }
 
-  public SliceInfo setRoot(long v) {
-    myRoot = v;
-    return this;
-  }
-
-  public long getBase() {
-    return myBase;
-  }
-
-  public SliceInfo setBase(long v) {
-    myBase = v;
-    return this;
-  }
-
-  public long getCount() {
-    return myCount;
-  }
-
-  public SliceInfo setCount(long v) {
-    myCount = v;
-    return this;
-  }
-
-  public int getPool() {
-    return myPool;
-  }
-
-  public SliceInfo setPool(int v) {
-    myPool = v;
+  public MemorySliceMetadata setElementTypeName(String v) {
+    myElementTypeName = v;
     return this;
   }
 
@@ -78,14 +45,11 @@ public final class SliceInfo implements BinaryObject {
   public BinaryClass klass() { return Klass.INSTANCE; }
 
 
-  private static final Entity ENTITY = new Entity("memory", "SliceInfo", "", "");
+  private static final Entity ENTITY = new Entity("memory", "SliceMetadata", "", "");
 
   static {
     ENTITY.setFields(new Field[]{
-      new Field("Root", new Primitive("uint64", Method.Uint64)),
-      new Field("Base", new Primitive("uint64", Method.Uint64)),
-      new Field("Count", new Primitive("uint64", Method.Uint64)),
-      new Field("Pool", new Primitive("PoolID", Method.Uint32)),
+      new Field("ElementTypeName", new Primitive("string", Method.String)),
     });
     Namespace.register(Klass.INSTANCE);
   }
@@ -99,24 +63,18 @@ public final class SliceInfo implements BinaryObject {
     public Entity entity() { return ENTITY; }
 
     @Override @NotNull
-    public BinaryObject create() { return new SliceInfo(); }
+    public BinaryObject create() { return new MemorySliceMetadata(); }
 
     @Override
     public void encode(@NotNull Encoder e, BinaryObject obj) throws IOException {
-      SliceInfo o = (SliceInfo)obj;
-      e.uint64(o.myRoot);
-      e.uint64(o.myBase);
-      e.uint64(o.myCount);
-      e.uint32(o.myPool);
+      MemorySliceMetadata o = (MemorySliceMetadata)obj;
+      e.string(o.myElementTypeName);
     }
 
     @Override
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
-      SliceInfo o = (SliceInfo)obj;
-      o.myRoot = d.uint64();
-      o.myBase = d.uint64();
-      o.myCount = d.uint64();
-      o.myPool = d.uint32();
+      MemorySliceMetadata o = (MemorySliceMetadata)obj;
+      o.myElementTypeName = d.string();
     }
     //<<<End:Java.KlassBody:2>>>
   }
