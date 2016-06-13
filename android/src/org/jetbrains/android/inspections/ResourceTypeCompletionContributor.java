@@ -40,6 +40,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
+import static com.android.tools.lint.detector.api.ResourceEvaluator.COLOR_INT_MARKER_TYPE;
+import static com.android.tools.lint.detector.api.ResourceEvaluator.PX_MARKER_TYPE;
 import static com.intellij.patterns.PlatformPatterns.psiElement;
 
 /**
@@ -105,6 +107,11 @@ public class ResourceTypeCompletionContributor extends CompletionContributor {
     // Suggest resource types
     if (allowedValues instanceof ResourceTypeInspection.ResourceTypeAllowedValues) {
       for (ResourceType resourceType : ((ResourceTypeInspection.ResourceTypeAllowedValues)allowedValues).types) {
+        // We should *not* offer completion for non-resource type resource types such as "public"; these
+        // are markers for @ColorInt and @Px
+        if (resourceType == COLOR_INT_MARKER_TYPE || resourceType == PX_MARKER_TYPE) {
+          continue;
+        }
         PsiElementFactory factory = JavaPsiFacade.getElementFactory(pos.getProject());
         String code = "R." + resourceType.getName();
         // Look up the fully qualified name of the application package
