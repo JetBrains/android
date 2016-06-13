@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw;
 
 import com.android.SdkConstants;
+import com.android.repository.io.FileOpUtils;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
@@ -24,9 +25,7 @@ import com.android.tools.idea.npw.deprecated.ConfigureAndroidProjectPath;
 import com.android.tools.idea.npw.deprecated.NewFormFactorModulePath;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.startup.AndroidStudioInitializer;
-import com.android.tools.idea.templates.KeystoreUtils;
-import com.android.tools.idea.templates.TemplateManager;
-import com.android.tools.idea.templates.TemplateUtils;
+import com.android.tools.idea.templates.*;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardHost;
@@ -58,6 +57,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 
 import static com.android.tools.idea.wizard.WizardConstants.APPLICATION_NAME_KEY;
+import static com.android.tools.idea.wizard.WizardConstants.ESPRESSO_VERSION_KEY;
 import static com.android.tools.idea.wizard.WizardConstants.PROJECT_LOCATION_KEY;
 
 /**
@@ -142,7 +142,16 @@ public class NewProjectWizardDynamic extends DynamicWizard {
     AndroidSdkData data = AndroidSdkUtils.tryToChooseAndroidSdk();
 
     if (data != null) {
-      state.put(WizardConstants.SDK_DIR_KEY, data.getLocation().getPath());
+      File sdkLocation = data.getLocation();
+      state.put(WizardConstants.SDK_DIR_KEY, sdkLocation.getPath());
+
+      String espressoVersion = RepositoryUrlManager.get().getLibraryRevision(SupportLibrary.ESPRESSO_CORE.getGroupId(),
+                                                                             SupportLibrary.ESPRESSO_CORE.getArtifactId(),
+                                                                             null, false, sdkLocation, FileOpUtils.create());
+
+      if (espressoVersion != null) {
+        state.put(ESPRESSO_VERSION_KEY, espressoVersion);
+      }
     }
   }
 
