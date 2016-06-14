@@ -86,7 +86,7 @@ public class AtomController extends TreeController implements AtomStream.Listene
     public int hoveredParameter = -1;
 
     // Follow paths index by atom.fieldIndex. Null means don't know if followable and empty path means it's not followable.
-    private Path[] followPaths;
+    private final Path[] followPaths;
 
     public Node(long index, Atom atom) {
       this.index = index;
@@ -376,7 +376,7 @@ public class AtomController extends TreeController implements AtomStream.Listene
           // Check if hovering an atom parameter.
           int index = -1;
           if (userObject instanceof Node) {
-            index = Render.getNodeFieldIndex(myTree, node, x);
+            index = Render.getNodeFieldIndex(myTree, node, x, false);
           }
           if (index >= 0) {
             setHoveringNode((Node)userObject, index);

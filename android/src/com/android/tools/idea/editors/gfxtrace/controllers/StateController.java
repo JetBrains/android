@@ -57,6 +57,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.*;
 import java.util.List;
+import java.util.stream.Stream;
 
 public class StateController extends TreeController implements GpuState.Listener {
   public static JComponent createUI(@NotNull GfxTraceEditor editor) {
@@ -81,31 +82,26 @@ public class StateController extends TreeController implements GpuState.Listener
       private JPopupMenu popupMenu = new JPopupMenu();
       @Override
       public void mouseMoved(MouseEvent event) {
-        TreePath treePath = myTree.getClosestPathForLocation(event.getX(), event.getY());
+        TreePath treePath = getFollowAt(event.getX(), event.getY());
         Path followPath = null;
         if (treePath != null) {
-          final Node node = (Node)treePath.getLastPathComponent();
-          if (node.canFollow()) {
-            followPath = node.getFollowPath();
-            if (followPath == null) {
-              // set empty path so we do not make any more calls to the server for this path
-              node.setFollowPath(Path.EMPTY);
-              Futures.addCallback(myEditor.getClient().follow(getPath(treePath)), new FutureCallback<Path>() {
-                @Override
-                public void onSuccess(Path result) {
-                  node.setFollowPath(result);
-                }
+          Node node = (Node)treePath.getLastPathComponent();
+          followPath = node.getFollowPath();
+          if (followPath == null) {
+            // set empty path so we do not make any more calls to the server for this path
+            node.setFollowPath(Path.EMPTY);
+            Path path = getPath(treePath);
+            Futures.addCallback(myEditor.getClient().follow(path), new FutureCallback<Path>() {
+              @Override
+              public void onSuccess(Path result) {
+                node.setFollowPath(result);
+              }
 
-                @Override
-                public void onFailure(Throwable t) {
-                  LOG.warn("Error: " + t);
-                }
-              });
-            }
-            // if the mouse if not over the correct bit of the link, do not show hand/statusbar text
-            if (!canFollow(treePath, event.getX())) {
-              followPath = null;
-            }
+              @Override
+              public void onFailure(Throwable t) {
+                LOG.warn("Error: " + t + " for path " + path);
+              }
+            });
           }
         }
 
@@ -119,8 +115,8 @@ public class StateController extends TreeController implements GpuState.Listener
 
       @Override
       public void mouseClicked(MouseEvent event) {
-        TreePath treePath = myTree.getPathForLocation(event.getX(), event.getY());
-        if (canFollow(treePath, event.getX())) {
+        TreePath treePath = getFollowAt(event.getX(), event.getY());
+        if (treePath != null) {
           Path path = ((Node)treePath.getLastPathComponent()).getFollowPath();
           if (path != null && path != Path.EMPTY) {
             myEditor.activatePath(path, StateController.this);
@@ -191,13 +187,24 @@ public class StateController extends TreeController implements GpuState.Listener
     });
   }
 
-  private boolean canFollow(@Nullable TreePath treePath, int mouseX) {
-    if (treePath == null) return false;
+  @Nullable("nothing to follow at this location")
+  private TreePath getFollowAt(int mouseX, int mouseY) {
+    TreePath treePath = myTree.getPathForLocation(mouseX, mouseY);
+    if (treePath == null) return null;
     Node node = (Node)treePath.getLastPathComponent();
-    if (!node.canFollow()) return false;
+    if (node.isLeaf() && !node.canFollow()) return null;
     Rectangle bounds = myTree.getPathBounds(treePath);
     assert bounds != null; // can't be null, as our path is valid
-    return Render.getNodeFieldIndex(myTree, node, mouseX - bounds.x) == Render.STATE_VALUE_TAG;
+    int tag = Render.getNodeFieldIndex(myTree, node, mouseX - bounds.x, myTree.isExpanded(treePath));
+    if (tag == Render.NO_TAG) {
+      return null;
+    }
+    if (node.isLeaf() && tag == Render.STATE_VALUE_TAG) {
+      // we already know we can follow this Node
+      return treePath;
+    }
+    Node child = node.getChild(tag);
+    return child.canFollow() ? new TreePath(Stream.concat(Arrays.stream(treePath.getPath()), Arrays.stream(new Object[] {child})).toArray()) : null;
   }
 
   private @NotNull Path getPath(@NotNull TreePath treePath) {
@@ -504,6 +511,19 @@ public class StateController extends TreeController implements GpuState.Listener
     public void setFollowPath(@NotNull Path followPath) {
       this.followPath = followPath;
     }
+
+    public boolean canBeRenderedAsLeaf() {
+      if (!isLeaf() && getChildCount() <= 4) {
+        for (int c = 0; c < getChildCount(); c++) {
+          Node child = getChild(c);
+          if (!child.isLeaf()) {
+            return false;
+          }
+        }
+        return true;
+      }
+      return isLeaf();
+    }
   }
 
   private static class StateTreeModel implements TreeModel {
@@ -609,7 +629,7 @@ public class StateController extends TreeController implements GpuState.Listener
       public void customizeCellRenderer(@NotNull JTree tree, Object value,
                                         boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
         if (value instanceof StateController.Node) {
-          Render.render((StateController.Node)value, this, SimpleTextAttributes.REGULAR_ATTRIBUTES);
+          Render.render((StateController.Node)value, this, SimpleTextAttributes.REGULAR_ATTRIBUTES, expanded);
         }
         else {
           assert false;
