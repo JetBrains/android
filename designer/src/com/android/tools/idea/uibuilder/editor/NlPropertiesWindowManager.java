@@ -56,7 +56,9 @@ public class NlPropertiesWindowManager extends NlAbstractWindowManager {
     else {
       if (myPropertiesManager == null) {
         myPropertiesManager = new NlPropertiesManager(myProject, null);
-        createWindowContent(myPropertiesManager.getConfigurationPanel(), myPropertiesManager.getConfigurationPanel(), null);
+        createWindowContent(myPropertiesManager.getConfigurationPanel(),
+                            myPropertiesManager.getConfigurationPanel(),
+                            myPropertiesManager.getActions());
       }
       myPropertiesManager.setDesignSurface(getDesignSurface(designer));
       myToolWindow.setAvailable(true, null);
@@ -96,7 +98,7 @@ public class NlPropertiesWindowManager extends NlAbstractWindowManager {
     return new LightToolWindow(properties, PROPERTIES_WINDOW_ID, AllIcons.Toolwindows.ToolWindowStructure,
                                properties.getConfigurationPanel(), properties.getConfigurationPanel(),
                                designer.getContentSplitter(), anchor, this, myProject, propertiesComponent,
-                               getVisibilityKeyName(designer), 320, null);
+                               getVisibilityKeyName(designer), 320, properties.getActions());
   }
 
   public void activatePreferredEditor() {

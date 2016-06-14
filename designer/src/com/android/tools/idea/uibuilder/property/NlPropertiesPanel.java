@@ -24,13 +24,9 @@ import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
 import com.android.tools.idea.uibuilder.property.ptable.PTableModel;
 import com.android.util.PropertiesMap;
 import com.google.common.collect.Table;
-import com.intellij.openapi.actionSystem.ActionPlaces;
-import com.intellij.openapi.actionSystem.ActionToolbar;
-import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBCardLayout;
 import com.intellij.ui.ScrollPaneFactory;
-import com.intellij.ui.components.JBPanel;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -45,7 +41,6 @@ import java.util.Map;
 import static com.android.SdkConstants.TOOLS_URI;
 
 public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Model {
-  private static final int HORIZONTAL_SPACING = 4;
   private static final String CARD_ADVANCED = "table";
   private static final String CARD_DEFAULT = "default";
 
@@ -75,8 +70,6 @@ public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Mo
 
     myCardPanel = new JPanel(new JBCardLayout());
 
-    JPanel headerPanel = createHeaderPanel();
-    add(headerPanel, BorderLayout.NORTH);
     add(myCardPanel, BorderLayout.CENTER);
 
     myCardPanel.add(CARD_DEFAULT, ScrollPaneFactory.createScrollPane(myInspectorPanel,
@@ -85,21 +78,6 @@ public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Mo
     myCardPanel.add(CARD_ADVANCED, ScrollPaneFactory.createScrollPane(myTable));
     myComponents = Collections.emptyList();
     myProperties = Collections.emptyList();
-  }
-
-  @NotNull
-  private JPanel createHeaderPanel() {
-    JBPanel panel = new JBPanel(new BorderLayout());
-    panel.setBorder(BorderFactory.createEmptyBorder(0, HORIZONTAL_SPACING, 0, 0));
-
-    ShowExpertProperties showExpertAction = new ShowExpertProperties(this);
-
-    Component showExpertPropertiesButton = new ActionButton(
-      showExpertAction, showExpertAction.getTemplatePresentation(), ActionPlaces.UNKNOWN, ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE);
-
-    panel.add(showExpertPropertiesButton, BorderLayout.LINE_END);
-
-    return panel;
   }
 
   public void setItems(@NotNull List<NlComponent> components,
