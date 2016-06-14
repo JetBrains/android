@@ -93,6 +93,8 @@ class LayeredImageConverter {
         if (layer.getShapeInfo().getStyle() == ShapeInfo.Style.NONE) continue;
 
         Shape path = getTransformedPath(layer);
+        if (path.getBounds2D().isEmpty()) continue;
+
         Area clipPath = null;
 
         float opacityModifier = 1.0f;
@@ -147,11 +149,49 @@ class LayeredImageConverter {
   }
 
   @NotNull
-  private static Path2D getTransformedPath(Layer layer) {
-    Path2D path = layer.getShapeInfo().getPath();
+  private static Shape getTransformedPath(Layer layer) {
+    List<ShapeInfo.SubPath> paths = layer.getShapeInfo().getPaths();
+    if (paths.isEmpty()) return new Path2D.Float();
+
     Rectangle2D layerBounds = layer.getBounds();
-    path.transform(AffineTransform.getTranslateInstance(layerBounds.getX(), layerBounds.getY()));
-    return path;
+    AffineTransform transform = AffineTransform.getTranslateInstance(layerBounds.getX(), layerBounds.getY());
+
+    Area area;
+    ShapeInfo.SubPath subPath = paths.get(0);
+    // Peek to see if the first sub path is a subtract operation
+    if (subPath.getOp() == ShapeInfo.PathOp.SUBTRACT) {
+      area = new Area(new Rectangle2D.Double(0.0, 0.0, layerBounds.getWidth(), layerBounds.getHeight()));
+      area.subtract(new Area(subPath.getPath()));
+    } else {
+      Path2D path = subPath.getPath();
+      if (paths.size() == 1) {
+        path.transform(transform);
+        return path;
+      }
+      area = new Area(path);
+    }
+
+    for (int i = 1; i < paths.size(); i++) {
+      subPath = paths.get(i);
+      switch (subPath.getOp()) {
+        case ADD:
+          area.add(new Area(subPath.getPath()));
+          break;
+        case SUBTRACT:
+          area.subtract(new Area(subPath.getPath()));
+          break;
+        case INTERSECT:
+          area.intersect(new Area(subPath.getPath()));
+          break;
+        case EXCLUSIVE_OR:
+          area.exclusiveOr(new Area(subPath.getPath()));
+          break;
+      }
+    }
+
+    area.transform(transform);
+
+    return area;
   }
 
   private void extractStroke(@NotNull Layer layer, @NotNull Shape path, @Nullable Area clipPath,
@@ -174,7 +214,7 @@ class LayeredImageConverter {
       if (strokePaint instanceof Color) color = (Color)strokePaint;
       float strokeAlpha = layer.getOpacity() * shapeInfo.getStrokeOpacity() * opacityModifier;
 
-      element.attribute("strokeColor", "#" + ColorUtil.toHex(color));
+      element.attribute("strokeColor", "#" + optimizedHex(color));
       if (strokeAlpha < 1.0f) {
         element.attribute("strokeAlpha", myOpacityFormat.format(strokeAlpha));
       }
@@ -236,13 +276,21 @@ class LayeredImageConverter {
     Element element = new Element("path")
       .attribute("name", StringUtil.escapeXml(layer.getName()))
       .attribute("pathData", toPathData(strokedPath, myFormat))
-      .attribute("fillColor", "#" + ColorUtil.toHex(color));
+      .attribute("fillColor", "#" + optimizedHex(color));
 
     if (strokeAlpha < 1.0f) {
       element.attribute("fillAlpha", myOpacityFormat.format(strokeAlpha));
     }
 
     root.childAtFront(element);
+  }
+
+  private static String optimizedHex(Color color) {
+    if (color.getRed() == color.getGreen() && color.getRed() == color.getBlue()) {
+      char r = Integer.toHexString(color.getRed()).charAt(0);
+      return new String(new char[] { r, r, r });
+    }
+    return ColorUtil.toHex(color);
   }
 
   @NotNull
@@ -264,7 +312,7 @@ class LayeredImageConverter {
       if (fillPaint instanceof Color) color = (Color)fillPaint;
       float fillAlpha = layer.getOpacity() * shapeInfo.getFillOpacity() * opacityModifier;
 
-      element.attribute("fillColor", "#" + ColorUtil.toHex(color));
+      element.attribute("fillColor", "#" + optimizedHex(color));
       if (fillAlpha < 1.0f) {
         element.attribute("fillAlpha", myOpacityFormat.format(fillAlpha));
       }
@@ -300,6 +348,8 @@ class LayeredImageConverter {
 
     float lastX = 0.0f;
     float lastY = 0.0f;
+    float firstX = 0.0f;
+    float firstY = 0.0f;
 
     boolean implicitLineTo = false;
 
@@ -307,12 +357,12 @@ class LayeredImageConverter {
       int segment = iterator.currentSegment(coords);
       switch (segment) {
         case PathIterator.SEG_MOVETO:
-          buffer.append('M');
-          buffer.append(cleanup(coords[0], format));
+          buffer.append('m');
+          buffer.append(cleanup(coords[0] - lastX, format));
           buffer.append(' ');
-          buffer.append(cleanup(coords[1], format));
-          lastX = coords[0];
-          lastY = coords[1];
+          buffer.append(cleanup(coords[1] - lastY, format));
+          firstX = lastX = coords[0];
+          firstY = lastY = coords[1];
           implicitLineTo = true;
           break;
         case PathIterator.SEG_LINETO:
@@ -330,9 +380,9 @@ class LayeredImageConverter {
             }
           } else if (coords[0] != lastX && coords[1] != lastY) {
             buffer.append(implicitLineTo ? ' ' : 'l');
-            buffer.append(cleanup(coords[0] - (implicitLineTo ? 0.0f : lastX), format));
+            buffer.append(cleanup(coords[0] - lastX, format));
             buffer.append(' ');
-            buffer.append(cleanup(coords[1] - (implicitLineTo ? 0.0f : lastY), format));
+            buffer.append(cleanup(coords[1] - lastY, format));
           }
           lastX = coords[0];
           lastY = coords[1];
@@ -369,6 +419,8 @@ class LayeredImageConverter {
           break;
         case PathIterator.SEG_CLOSE:
           buffer.append('z');
+          lastX = firstX;
+          lastY = firstY;
           break;
       }
 
