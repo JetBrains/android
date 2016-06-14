@@ -64,19 +64,16 @@ public class ScreenshotAction extends AbstractDeviceAction {
 
           final ScreenshotViewer viewer = new ScreenshotViewer(project, getScreenshot(), backingFile, device,
                                                          device.getProperty(IDevice.PROP_DEVICE_MODEL));
-          viewer.showAndGetOk().doWhenDone(new Consumer<Boolean>() {
-                  @Override
-                  public void consume(Boolean ok) {
-                    if (ok) {
-                      File screenshot = viewer.getScreenshot();
-                      VirtualFile vf = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(screenshot);
-                      if (vf != null) {
-                        vf.refresh(false, false);
-                        FileEditorManager.getInstance(project).openFile(vf, true);
-                      }
-                    }
-                  }
-                });
+          viewer.showAndGetOk().doWhenDone((Consumer<Boolean>)ok -> {
+            if (ok) {
+              File screenshot = viewer.getScreenshot();
+              VirtualFile vf = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(screenshot);
+              if (vf != null) {
+                vf.refresh(false, false);
+                FileEditorManager.getInstance(project).openFile(vf, true);
+              }
+            }
+          });
         }
         catch (Exception e) {
           Messages.showErrorDialog(project,
