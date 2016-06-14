@@ -56,6 +56,11 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
   }
 
   @Override
+  public DeviceProfilerService getDeviceProfilerService() {
+    return myDeviceProfilerService;
+  }
+
+  @Override
   public void reset() {
     synchronizeStartTime();
     for (DataAdapter<?> adapter : myDataSeriesMap.values()) {

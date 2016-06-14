@@ -26,7 +26,7 @@ public interface ProfilerEventListener extends EventListener {
   /**
    * Notifies that a profiler has been requested to expand (either from L1 -> L2, or L2 -> L3).
    */
-  default void profilerExpanded(@NotNull BaseSegment.SegmentType segmentType) {
+  default void profilerExpanded(@NotNull BaseProfilerUiManager.ProfilerType profilerType) {
   }
 
   /**

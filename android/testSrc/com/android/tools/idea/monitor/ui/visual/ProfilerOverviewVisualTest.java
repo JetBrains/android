@@ -19,11 +19,9 @@ package com.android.tools.idea.monitor.ui.visual;
 import com.android.tools.adtui.*;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
-import com.android.tools.adtui.model.EventAction;
-import com.android.tools.adtui.model.RangedSimpleSeries;
-import com.android.tools.adtui.visual.EventVisualTest;
 import com.android.tools.adtui.visual.VisualTest;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
+import com.android.tools.idea.monitor.ui.BaseProfilerUiManager;
 import com.android.tools.idea.monitor.ui.BaseSegment;
 import com.android.tools.idea.monitor.ui.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.TimeAxisSegment;
@@ -37,9 +35,10 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.android.tools.idea.monitor.ui.events.view.EventProfilerUiManager.MOCK_ICONS;
 
 public class ProfilerOverviewVisualTest extends VisualTest {
 
@@ -48,28 +47,6 @@ public class ProfilerOverviewVisualTest extends VisualTest {
   private static final int MONITOR_MAX_HEIGHT = Short.MAX_VALUE;
   private static final int MONITOR_PREFERRED_HEIGHT = 200;
   private static final int TIME_AXIS_HEIGHT = 20;
-
-  // Event data generation constants.
-  private static final int IMAGE_WIDTH = 16;
-  private static final int IMAGE_HEIGHT = 16;
-
-  //TODO replace this with AndroidIcons
-  private static BufferedImage buildStaticImage(Color color) {
-    BufferedImage image = new BufferedImage(IMAGE_WIDTH, IMAGE_HEIGHT,
-                                            BufferedImage.TYPE_4BYTE_ABGR);
-    for (int y = 0; y < IMAGE_HEIGHT; y++) {
-      for (int x = 0; x < IMAGE_WIDTH; x++) {
-        image.setRGB(x, y, color.getRGB());
-      }
-    }
-    return image;
-  }
-
-  private static final BufferedImage[] MOCK_ICONS = {
-    buildStaticImage(Color.red),
-    buildStaticImage(Color.green),
-    buildStaticImage(Color.blue),
-  };
 
   private SeriesDataStore mDataStore;
 
@@ -207,19 +184,22 @@ public class ProfilerOverviewVisualTest extends VisualTest {
     gridBagPanel.add(mScrollbar, gbc);
 
     // Mock event segment
-    BaseSegment eventSegment = createSegment(BaseSegment.SegmentType.EVENT, EVENT_MIN_HEIGHT, MONITOR_PREFERRED_HEIGHT, MONITOR_MAX_HEIGHT);
-    // Mock monitor segments
-    BaseSegment networkSegment = createSegment(BaseSegment.SegmentType.NETWORK, 0, MONITOR_PREFERRED_HEIGHT, MONITOR_MAX_HEIGHT);
-    BaseSegment memorySegment = createSegment(BaseSegment.SegmentType.MEMORY, 0, MONITOR_PREFERRED_HEIGHT, MONITOR_MAX_HEIGHT);
-    BaseSegment cpuSegment = createSegment(BaseSegment.SegmentType.CPU, 0, MONITOR_PREFERRED_HEIGHT, MONITOR_MAX_HEIGHT);
-    // Timeline segment
-    BaseSegment timeSegment = createSegment(BaseSegment.SegmentType.TIME, TIME_AXIS_HEIGHT, TIME_AXIS_HEIGHT, TIME_AXIS_HEIGHT);
+    BaseSegment eventSegment = new EventSegment(mXRange, mDataStore, MOCK_ICONS, mEventDispatcher);
+    setupAndRegisterSegment(eventSegment, EVENT_MIN_HEIGHT, MONITOR_PREFERRED_HEIGHT, MONITOR_MAX_HEIGHT);
 
-    mSegmentsContainer.add(eventSegment);
-    mSegmentsContainer.add(networkSegment);
-    mSegmentsContainer.add(memorySegment);
-    mSegmentsContainer.add(cpuSegment);
-    mSegmentsContainer.add(timeSegment);
+    // Mock monitor segments
+    BaseSegment networkSegment = new NetworkSegment(mXRange, mDataStore, mEventDispatcher);
+    setupAndRegisterSegment(networkSegment, 0, MONITOR_PREFERRED_HEIGHT, MONITOR_MAX_HEIGHT);
+
+    BaseSegment memorySegment = new MemorySegment(mXRange, mDataStore, mEventDispatcher);
+    setupAndRegisterSegment(memorySegment, 0, MONITOR_PREFERRED_HEIGHT, MONITOR_MAX_HEIGHT);
+
+    BaseSegment cpuSegment = new CpuUsageSegment(mXRange, mDataStore, mEventDispatcher);
+    setupAndRegisterSegment(cpuSegment, 0, MONITOR_PREFERRED_HEIGHT, MONITOR_MAX_HEIGHT);
+
+    // Timeline segment
+    BaseSegment timeSegment = new TimeAxisSegment(mXRange, mTimeAxis, mEventDispatcher);
+    setupAndRegisterSegment(timeSegment, TIME_AXIS_HEIGHT, TIME_AXIS_HEIGHT, TIME_AXIS_HEIGHT);
 
     // Add left spacer
     Dimension leftSpacer = new Dimension(BaseSegment.getSpacerWidth() + eventSegment.getLabelColumnWidth(), 0);
@@ -245,8 +225,8 @@ public class ProfilerOverviewVisualTest extends VisualTest {
     // TODO construct/destroyed Level3 segment/elements as we expand/collapse segments
     mEventDispatcher.addListener(new ProfilerEventListener() {
       @Override
-      public void profilerExpanded(@NotNull BaseSegment.SegmentType segmentType) {
-        switch (segmentType) {
+      public void profilerExpanded(@NotNull BaseProfilerUiManager.ProfilerType profilerType) {
+        switch (profilerType) {
           case NETWORK:
             mLayout.setState(networkSegment, AccordionLayout.AccordionState.MAXIMIZE);
             break;
@@ -292,27 +272,7 @@ public class ProfilerOverviewVisualTest extends VisualTest {
     return panel;
   }
 
-  private BaseSegment createSegment(BaseSegment.SegmentType type, int minHeight, int preferredHeight, int maxHeight) {
-    BaseSegment segment;
-    switch (type) {
-      case TIME:
-        segment = new TimeAxisSegment(mXRange, mTimeAxis, mEventDispatcher);
-        break;
-      case EVENT:
-        segment = new EventSegment(mXRange, mDataStore, MOCK_ICONS, mEventDispatcher);
-        break;
-      case CPU:
-        segment = new CpuUsageSegment(mXRange, mDataStore, mEventDispatcher);
-        break;
-      case NETWORK:
-        segment = new NetworkSegment(mXRange, mDataStore, mEventDispatcher);
-        break;
-      case MEMORY:
-      default:
-        segment = new MemorySegment(mXRange, mDataStore, mEventDispatcher);
-        break;
-    }
-
+  private void setupAndRegisterSegment(@NotNull BaseSegment segment, int minHeight, int preferredHeight, int maxHeight) {
     segment.setMinimumSize(new Dimension(0, minHeight));
     segment.setPreferredSize(new Dimension(0, preferredHeight));
     segment.setMaximumSize(new Dimension(0, maxHeight));
@@ -323,7 +283,6 @@ public class ProfilerOverviewVisualTest extends VisualTest {
     addToChoreographer(segmentAnimatables);
 
     segment.initializeComponents();
-
-    return segment;
+    mSegmentsContainer.add(segment);
   }
 }
