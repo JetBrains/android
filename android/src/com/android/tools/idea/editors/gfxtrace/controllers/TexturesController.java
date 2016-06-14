@@ -158,7 +158,7 @@ public class TexturesController extends ImagePanelController {
     }
 
     static String getTextureDisplayLabel(Data cell, ImageInfo base, int mipmapLevels) {
-      return " - " + base.getFormat().getDisplayName() + " - " + base.getWidth() + "x" + base.getHeight() +
+      return " - " + base.getFormat() + " - " + base.getWidth() + "x" + base.getHeight() +
              ((mipmapLevels > 1) ? " - " + mipmapLevels + " mip levels" : "") + " - Modified " + cell.info.getAccesses().length + " times";
     }
 

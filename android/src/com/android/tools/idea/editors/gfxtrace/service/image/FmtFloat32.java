@@ -24,11 +24,6 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 final class FmtFloat32 extends Format {
-  @Override
-  public String getDisplayName() {
-    return "FLOAT";
-  }
-
   //<<<Start:Java.ClassBody:1>>>
 
   // Constructs a default-initialized {@link FmtFloat32}.

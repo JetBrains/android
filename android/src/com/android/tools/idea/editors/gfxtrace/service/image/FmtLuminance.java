@@ -24,11 +24,6 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 final class FmtLuminance extends Format {
-  @Override
-  public String getDisplayName() {
-    return "LUMINANCE";
-  }
-
   //<<<Start:Java.ClassBody:1>>>
 
   // Constructs a default-initialized {@link FmtLuminance}.

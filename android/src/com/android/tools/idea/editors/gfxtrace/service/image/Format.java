@@ -18,7 +18,11 @@ package com.android.tools.idea.editors.gfxtrace.service.image;
 
 import com.android.tools.rpclib.binary.BinaryClass;
 import com.android.tools.rpclib.binary.BinaryObject;
+import com.google.common.base.CaseFormat;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Locale;
 
 public abstract class Format implements BinaryObject {
   public final static Format ALPHA = new FmtAlpha();
@@ -54,14 +58,14 @@ public abstract class Format implements BinaryObject {
   }
 
   @Override
+  @NotNull
   public String toString() {
-    return getClass().getSimpleName();
-  }
-
-  public String getDisplayName() {
     String result = klass().entity().getName();
-    if (result.toLowerCase().startsWith("fmt")) {
+    if (result.toLowerCase(Locale.US).startsWith("fmt")) {
       result = result.substring(3);
+    }
+    if (StringUtil.hasLowerCaseChar(result)) {
+      return CaseFormat.UPPER_CAMEL.to(CaseFormat.UPPER_UNDERSCORE, result);
     }
     return result;
   }
