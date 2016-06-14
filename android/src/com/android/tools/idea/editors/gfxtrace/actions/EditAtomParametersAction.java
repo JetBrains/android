@@ -75,7 +75,7 @@ public class EditAtomParametersAction extends AbstractAction {
     final Container parent = myGfxTraceEditor.getComponent();
     final String title = "Edit " + myNode.atom.getName();
     int result = JOptionPane.showOptionDialog(parent, buildDialog(), title,
-                                              JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE,
+                                              JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE,
                                               null, null, null);
     if (result == JOptionPane.OK_OPTION) {
       Dynamic newAtom = ((Dynamic)myNode.atom.unwrap()).copy();
