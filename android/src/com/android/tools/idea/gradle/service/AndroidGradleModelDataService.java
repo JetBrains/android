@@ -55,6 +55,9 @@ import com.intellij.openapi.vfs.encoding.EncodingProjectManager;
 import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
+import org.jetbrains.plugins.gradle.settings.GradleSettings;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
 import java.nio.charset.Charset;
@@ -116,6 +119,19 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
                          @NotNull final IdeModifiableModelsProvider modelsProvider) {
     if (!toImport.isEmpty()) {
       try {
+        // disable 'Create separate module per source set' feature option, since android import doesn't support it
+        if (projectData != null) {
+          GradleProjectSettings gradleProjectSettings =
+            GradleSettings.getInstance(project).getLinkedProjectSettings(projectData.getLinkedExternalProjectPath());
+          if (gradleProjectSettings != null && gradleProjectSettings.isResolveModulePerSourceSet()) {
+            gradleProjectSettings.setResolveModulePerSourceSet(false);
+            NotificationData notificationData = new NotificationData("Gradle settings were updated",
+                                                                     "'Create separate module per source set' feature was disabled. \n" +
+                                                                     "It doesn't supported by android projects",
+                                                                     NotificationCategory.WARNING, PROJECT_SYNC);
+            ExternalSystemNotificationManager.getInstance(project).showNotification(GradleConstants.SYSTEM_ID, notificationData);
+          }
+        }
         doImport(toImport, project, modelsProvider);
       }
       catch (Throwable e) {
