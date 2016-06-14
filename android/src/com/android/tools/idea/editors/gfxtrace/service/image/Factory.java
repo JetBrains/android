@@ -50,6 +50,10 @@ public final class Factory {
     FmtRGBF32.register();
     FmtRed.register();
     FmtRedF32.register();
+    FmtS3DXT1RGB.register();
+    FmtS3DXT1RGBA.register();
+    FmtS3DXT3RGBA.register();
+    FmtS3DXT5RGBA.register();
     //<<<End:Java.FactoryBody:2>>>
   }
 }
