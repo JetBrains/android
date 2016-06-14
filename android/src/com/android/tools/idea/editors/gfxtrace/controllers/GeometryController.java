@@ -186,7 +186,10 @@ public class GeometryController extends Controller implements AtomStream.Listene
   @Override
   public void onAtomsSelected(AtomRangePath path) {
     CardLayout layout = (CardLayout)myPanel.getLayout();
-    if (myEditor.getAtomStream().getLastSelectedAtom().isDrawCall()) {
+    if (!myEditor.getFeatures().hasMeshes()) {
+      myEmptyPanel.setEmptyText("Not supported in this version.");
+    }
+    else if (myEditor.getAtomStream().getLastSelectedAtom().isDrawCall()) {
       layout.show(myPanel, CARD_GEOMETRY);
       fetchMeshes(path.getPathToLast());
     }
@@ -289,6 +292,10 @@ public class GeometryController extends Controller implements AtomStream.Listene
     public EmptyPanel() {
       myEmptyText.setText(GfxTraceEditor.SELECT_DRAW_CALL);
       myEmptyText.attachTo(this);
+    }
+
+    public void setEmptyText(String text) {
+      myEmptyText.setText(text);
     }
 
     @Override

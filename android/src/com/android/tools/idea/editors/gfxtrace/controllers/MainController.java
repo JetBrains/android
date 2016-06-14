@@ -43,6 +43,7 @@ public class MainController extends Controller {
   @NotNull private final Content myAtomTab;
   @NotNull private final Content myStateTab;
   @NotNull private final Content myMemoryTab;
+  @NotNull private final Content myGeoTab;
 
   private MainController(@NotNull GfxTraceEditor editor) {
     super(editor);
@@ -73,7 +74,7 @@ public class MainController extends Controller {
     myAtomTab = addTab(myLayoutUi, AtomController.createUI(editor), "GPU Commands", PlaceInGrid.left);
     addTab(myLayoutUi, FrameBufferController.createUI(editor), "Framebuffer", PlaceInGrid.center);
     addTab(myLayoutUi, TexturesController.createUI(editor), "Textures", PlaceInGrid.center);
-    addTab(myLayoutUi, GeometryController.createUI(editor), "Geometry", PlaceInGrid.center);
+    myGeoTab = addTab(myLayoutUi, GeometryController.createUI(editor), "Geometry", PlaceInGrid.center);
     myStateTab = addTab(myLayoutUi, StateController.createUI(editor), "GPU State", PlaceInGrid.center);
     myMemoryTab = addTab(myLayoutUi, MemoryController.createUI(editor), "Memory", PlaceInGrid.center);
 
