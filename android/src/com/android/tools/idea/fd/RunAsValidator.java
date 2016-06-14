@@ -19,5 +19,5 @@ import com.android.ddmlib.IDevice;
 import org.jetbrains.annotations.NotNull;
 
 public interface RunAsValidator {
-  boolean hasWorkingRunAs(@NotNull IDevice device);
+  boolean hasWorkingRunAs(@NotNull IDevice device, @NotNull String applicationId);
 }
