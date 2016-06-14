@@ -60,6 +60,7 @@ import com.intellij.execution.impl.RunManagerImpl;
 import com.intellij.execution.junit.JUnitConfigurationType;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.Extensions;
@@ -77,8 +78,8 @@ import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.ui.OrderRoot;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.NonNavigatable;
+import com.intellij.ui.GuiUtils;
 import com.intellij.util.SystemProperties;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
@@ -752,14 +753,14 @@ public class PostProjectSetupTasksExecutor {
           }
         }
 
-        UIUtil.invokeLaterIfNeeded(new Runnable() {
+        GuiUtils.invokeLaterIfNeeded(new Runnable() {
           @Override
           public void run() {
             // The model data is not persisted if the project.save() was already executed between the sync completion and now.
             // TODO: Investigate it further and update it to always persist the model data here.
             myProject.save();
           }
-        });
+        }, ModalityState.defaultModalityState());
       }
     });
   }
