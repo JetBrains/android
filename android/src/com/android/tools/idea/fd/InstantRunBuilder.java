@@ -183,7 +183,7 @@ public class InstantRunBuilder implements BeforeRunBuilder {
         return BuildCause.FREEZE_SWAP_REQUIRES_API21;
       }
 
-      if (!myRunAsValidator.hasWorkingRunAs(device)) {
+      if (!myRunAsValidator.hasWorkingRunAs(device, myInstantRunContext.getApplicationId())) {
         return BuildCause.FREEZE_SWAP_REQUIRES_WORKING_RUN_AS;
       }
     }
