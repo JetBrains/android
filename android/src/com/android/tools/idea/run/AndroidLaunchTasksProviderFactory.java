@@ -66,7 +66,7 @@ public class AndroidLaunchTasksProviderFactory implements LaunchTasksProviderFac
     }
 
     if (analyzer != null && analyzer.canReuseProcessHandler()) {
-      return new UpdateSessionTasksProvider(myFacet.getModule(), analyzer);
+      return new UpdateSessionTasksProvider(analyzer);
     }
 
     return new AndroidLaunchTasksProvider(myRunConfig, myEnv, myFacet, analyzer, myApplicationIdProvider, myApkProvider, myLaunchOptions);

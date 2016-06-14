@@ -19,7 +19,9 @@ import com.android.ddmlib.IDevice;
 import com.android.resources.Density;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.Abi;
-import com.android.tools.idea.fd.*;
+import com.android.tools.idea.fd.InstantRunBuilder;
+import com.android.tools.idea.fd.InstantRunContext;
+import com.android.tools.idea.fd.RunAsValidityService;
 import com.android.tools.idea.gradle.GradleModel;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
@@ -40,7 +42,6 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.intellij.compiler.options.CompileStepBeforeRun;
 import com.intellij.execution.BeforeRunTaskProvider;
-import com.intellij.execution.configurations.ModuleBasedConfiguration;
 import com.intellij.execution.configurations.ModuleRunProfile;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.junit.JUnitConfiguration;
@@ -54,7 +55,6 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ThreeState;
 import icons.AndroidIcons;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -363,30 +363,14 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       return new DefaultGradleBuilder(gradleTasksProvider.getUnitTestTasks(buildMode), buildMode);
     }
 
+    InstantRunContext irContext = env.getCopyableUserData(InstantRunContext.KEY);
     DeviceFutures deviceFutures = runConfigContext == null ? null : runConfigContext.getTargetDevices();
-    if (deviceFutures == null || !canInstantRun(modules[0], configuration, env, testCompileType, deviceFutures.getDevices())) {
+    if (deviceFutures == null || irContext == null) {
       return new DefaultGradleBuilder(gradleTasksProvider.getTasksFor(BuildMode.ASSEMBLE, testCompileType), BuildMode.ASSEMBLE);
     }
 
     List<AndroidDevice> targetDevices = deviceFutures.getDevices();
-    assert targetDevices.size() == 1; // enforced by canInstantRun above
-
-    Module mainModule = null;
-    if (configuration instanceof ModuleBasedConfiguration) {
-      mainModule = ((ModuleBasedConfiguration)configuration).getConfigurationModule().getModule();
-    }
-    if (mainModule == null) {
-      mainModule = modules[0];
-    }
-
-    AndroidFacet appFacet = InstantRunGradleUtils.findAppModule(mainModule, mainModule.getProject());
-    if (appFacet == null) {
-      return new DefaultGradleBuilder(gradleTasksProvider.getTasksFor(BuildMode.ASSEMBLE, testCompileType), BuildMode.ASSEMBLE);
-    }
-
-    InstantRunContext irContext = env.getCopyableUserData(InstantRunContext.KEY);
-    assert irContext != null;
-
+    assert targetDevices.size() == 1 : "instant run context available, but deploying to > 1 device";
     return new InstantRunBuilder(getLaunchedDevice(targetDevices.get(0)), irContext, runConfigContext, gradleTasksProvider,
                                  RunAsValidityService.getInstance());
   }
@@ -420,33 +404,5 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     catch (ExecutionException | TimeoutException e) {
       return null;
     }
-  }
-
-  public static boolean canInstantRun(@NotNull Module module,
-                                      @NotNull RunConfiguration configuration,
-                                      @NotNull ExecutionEnvironment env,
-                                      @NotNull GradleInvoker.TestCompileType testCompileType,
-                                      @NotNull List<AndroidDevice> targetDevices) {
-    if (!InstantRunUtils.isInstantRunEnabled(env)) {
-      return false;
-    }
-
-    if (!(configuration instanceof AndroidRunConfigurationBase)) {
-      return false;
-    }
-
-    if (!((AndroidRunConfigurationBase)configuration).supportsInstantRun()) {
-      return false;
-    }
-
-    if (targetDevices.size() != 1) {
-      return false;
-    }
-
-    if (!InstantRunGradleUtils.getIrSupportStatus(module, targetDevices.get(0).getVersion()).success) {
-      return false;
-    }
-
-    return testCompileType == GradleInvoker.TestCompileType.NONE;
   }
 }

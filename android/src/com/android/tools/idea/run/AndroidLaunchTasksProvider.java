@@ -18,6 +18,8 @@ package com.android.tools.idea.run;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.fd.*;
+import com.android.tools.idea.fd.gradle.InstantRunGradleSupport;
+import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.editor.AndroidDebuggerState;
 import com.android.tools.idea.run.tasks.*;
@@ -102,7 +104,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     }
 
     if (myInstantRunBuildAnalyzer != null) {
-      launchTasks.add(new InstantRunNotificationTask(myFacet.getModule(), myInstantRunBuildAnalyzer));
+      launchTasks.add(myInstantRunBuildAnalyzer.getNotificationTask());
     }
 
     return launchTasks;
@@ -112,7 +114,8 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     boolean instantRunAware =
       InstantRunUtils.isInstantRunEnabled(myEnv) &&
       InstantRunSettings.isInstantRunEnabled() &&
-      InstantRunGradleUtils.getIrSupportStatus(myFacet.getModule(), device.getVersion()).success;
+      InstantRunGradleUtils.getIrSupportStatus(InstantRunGradleUtils.getAppModel(myFacet.getModule()), device.getVersion()) ==
+       InstantRunGradleSupport.SUPPORTED;
     DeployApkTask apkDeployTask = new DeployApkTask(myFacet, myLaunchOptions, myApkProvider, instantRunAware);
 
     if (myInstantRunBuildAnalyzer != null) {
