@@ -20,6 +20,7 @@ import com.android.ddmlib.IDevice;
 import com.android.resources.ScreenOrientation;
 import com.android.tools.idea.rendering.ImageUtils;
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.diagnostic.Logger;
@@ -33,8 +34,10 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.Condition;
-import com.intellij.openapi.vfs.*;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileWrapper;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.containers.ContainerUtil;
 import org.intellij.images.editor.ImageEditor;
@@ -47,7 +50,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -58,8 +60,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   @NonNls private static final String SCREENSHOT_VIEWER_DIMENSIONS_KEY = "ScreenshotViewer.Dimensions";
-
-  private static VirtualFile ourLastSavedFolder = null;
+  @NonNls private static final String SCREENSHOT_SAVE_PATH_KEY = "ScreenshotViewer.SavePath";
 
   private final Project myProject;
   private final IDevice myDevice;
@@ -75,7 +76,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   private JButton myRotateButton;
   private JBScrollPane myScrollPane;
   private JCheckBox myFrameScreenshotCheckBox;
-  private JComboBox myDeviceArtCombo;
+  private JComboBox<String> myDeviceArtCombo;
   private JCheckBox myDropShadowCheckBox;
   private JCheckBox myScreenGlareCheckBox;
 
@@ -86,10 +87,10 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
    * Reference to the screenshot obtained from the device and then rotated by {@link #myRotationAngle} degrees.
    * Accessed from both EDT and background threads.
    */
-  private AtomicReference<BufferedImage> mySourceImageRef = new AtomicReference<BufferedImage>();
+  private AtomicReference<BufferedImage> mySourceImageRef = new AtomicReference<>();
 
   /** Reference to the framed screenshot displayed on screen. Accessed from both EDT and background threads. */
-  private AtomicReference<BufferedImage> myDisplayedImageRef = new AtomicReference<BufferedImage>();
+  private AtomicReference<BufferedImage> myDisplayedImageRef = new AtomicReference<>();
 
   /** User specified destination where the screenshot is saved. */
   private File myScreenshotFile;
@@ -117,19 +118,16 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     myImageFileEditor = (ImageFileEditor)myProvider.createEditor(myProject, myBackingVirtualFile);
     myScrollPane.getViewport().add(myImageFileEditor.getComponent());
 
-    ActionListener l = new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent actionEvent) {
-        if (actionEvent.getSource() == myRefreshButton) {
-          doRefreshScreenshot();
-        } else if (actionEvent.getSource() == myRotateButton) {
-          doRotateScreenshot();
-        } else if (actionEvent.getSource() == myFrameScreenshotCheckBox
-                   || actionEvent.getSource() == myDeviceArtCombo
-                   || actionEvent.getSource() == myDropShadowCheckBox
-                   || actionEvent.getSource() == myScreenGlareCheckBox) {
-          doFrameScreenshot();
-        }
+    ActionListener l = actionEvent -> {
+      if (actionEvent.getSource() == myRefreshButton) {
+        doRefreshScreenshot();
+      } else if (actionEvent.getSource() == myRotateButton) {
+        doRotateScreenshot();
+      } else if (actionEvent.getSource() == myFrameScreenshotCheckBox
+                 || actionEvent.getSource() == myDeviceArtCombo
+                 || actionEvent.getSource() == myDropShadowCheckBox
+                 || actionEvent.getSource() == myScreenGlareCheckBox) {
+        doFrameScreenshot();
       }
     };
 
@@ -145,7 +143,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     for (int i = 0; i < myDeviceArtDescriptors.size(); i++) {
       titles[i] = myDeviceArtDescriptors.get(i).getName();
     }
-    DefaultComboBoxModel model = new DefaultComboBoxModel(titles);
+    DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>(titles);
     myDeviceArtCombo.setModel(model);
 
     // Set the default device art descriptor selection
@@ -156,17 +154,14 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   }
 
   // returns the list of descriptors capable of framing the given image
-  private List<DeviceArtDescriptor> getDescriptorsToFrame(final BufferedImage image) {
+  private static List<DeviceArtDescriptor> getDescriptorsToFrame(final BufferedImage image) {
     double imgAspectRatio = image.getWidth() / (double) image.getHeight();
     final ScreenOrientation orientation =
       imgAspectRatio >= (1 - ImageUtils.EPSILON) ? ScreenOrientation.LANDSCAPE : ScreenOrientation.PORTRAIT;
 
     List<DeviceArtDescriptor> allDescriptors = DeviceArtDescriptor.getDescriptors(null);
-    return ContainerUtil.filter(allDescriptors, new Condition<DeviceArtDescriptor>() {
-      @Override
-      public boolean value(DeviceArtDescriptor descriptor) {
-        return descriptor.canFrameImage(image, orientation);
-      }
+    return ContainerUtil.filter(allDescriptors, descriptor -> {
+      return descriptor.canFrameImage(image, orientation);
     });
   }
 
@@ -389,7 +384,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     FileSaverDescriptor descriptor =
       new FileSaverDescriptor(AndroidBundle.message("android.ddms.screenshot.save.title"), "", SdkConstants.EXT_PNG);
     FileSaverDialog saveFileDialog = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, myProject);
-    VirtualFile baseDir = ourLastSavedFolder != null ? ourLastSavedFolder : myProject.getBaseDir();
+    VirtualFile baseDir = loadScreenshotPath();
     VirtualFileWrapper fileWrapper = saveFileDialog.save(baseDir, getDefaultFileName());
     if (fileWrapper == null) {
       return;
@@ -408,8 +403,8 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
 
     VirtualFile virtualFile = fileWrapper.getVirtualFile();
     if (virtualFile != null) {
-      //noinspection AssignmentToStaticFieldFromInstanceMethod
-      ourLastSavedFolder = virtualFile.getParent();
+      PropertiesComponent properties = PropertiesComponent.getInstance(myProject);
+      properties.setValue(SCREENSHOT_SAVE_PATH_KEY, virtualFile.getParent().getPath());
     }
 
     super.doOKAction();
@@ -422,5 +417,16 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
 
   public File getScreenshot() {
     return myScreenshotFile;
+  }
+
+  private VirtualFile loadScreenshotPath() {
+    PropertiesComponent properties = PropertiesComponent.getInstance(myProject);
+    String lastPath = properties.getValue(SCREENSHOT_SAVE_PATH_KEY);
+
+    if (lastPath != null) {
+      return LocalFileSystem.getInstance().findFileByPath(lastPath);
+    } else {
+      return myProject.getBaseDir();
+    }
   }
 }
