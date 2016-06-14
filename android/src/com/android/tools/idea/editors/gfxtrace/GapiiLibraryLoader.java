@@ -89,7 +89,7 @@ public class GapiiLibraryLoader {
     return errors;
   }
 
-  public void connectToProcessAndInstallLibraries(@NotNull String pkg, @NotNull final File... libs) throws Exception {
+  public void connectToProcessAndInstallLibraries(@NotNull String pkg, @NotNull final List<File> libs) throws Exception {
     long startTime = System.nanoTime();
 
     LOG.debug("Attaching to " + pkg);
@@ -184,7 +184,7 @@ public class GapiiLibraryLoader {
     );
   }
 
-  private Void createForwardAndSendFiles(File[] files) throws Exception {
+  private Void createForwardAndSendFiles(List<File> files) throws Exception {
     byte[] expectedHeader = JdwpSnippets.GAPII_HEADER.getBytes(Charsets.UTF_8);
 
     try {
