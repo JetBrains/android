@@ -126,21 +126,7 @@ public abstract class BaseLineChartSegment extends BaseSegment {
     this(name, xRange, dataStore, leftAxisFormatter, rightAxisFormatter, null, null, dispatcher);
   }
 
-  public abstract SegmentType getSegmentType();
-
-  @Override
-  public void profilerExpanded(@NotNull SegmentType segmentType) {
-    if (getSegmentType() == segmentType) {
-      toggleView(true);
-    } else {
-      // TODO stop pulling data?
-    }
-  }
-
-  @Override
-  public void profilersReset() {
-    toggleView(false);
-  }
+  public abstract BaseProfilerUiManager.ProfilerType getProfilerType();
 
   @Override
   public void createComponentsList(@NotNull List<Animatable> animatables) {
@@ -161,6 +147,7 @@ public abstract class BaseLineChartSegment extends BaseSegment {
     mLineChart = new LineChart();
     mGrid = new GridComponent();
     mGrid.addAxis(mLeftAxis);
+    mGrid.setVisible(false);
 
     mLegendComponent = new LegendComponent(LegendComponent.Orientation.HORIZONTAL, 100);
 
@@ -234,7 +221,7 @@ public abstract class BaseLineChartSegment extends BaseSegment {
           // If a multi-click event has arrived and the dispatch timer below has not run to dispatch the queue events,
           // then process the multi-click.
           mMultiClicked = true;
-          mEventDispatcher.getMulticaster().profilerExpanded(getSegmentType());
+          mEventDispatcher.getMulticaster().profilerExpanded(getProfilerType());
         } else {
           mMultiClicked = false;
           mDelayedEvents.add(e);
@@ -321,6 +308,7 @@ public abstract class BaseLineChartSegment extends BaseSegment {
   @Override
   public void toggleView(boolean isExpanded) {
     super.toggleView(isExpanded);
+    mGrid.setVisible(isExpanded);
     mLineChart.clearLineConfigs();
     updateChartLines(isExpanded);
     mLegendComponent.setLegendData(getLegendRenderDataList());

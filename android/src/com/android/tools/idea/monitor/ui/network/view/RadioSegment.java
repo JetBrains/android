@@ -16,7 +16,6 @@
 package com.android.tools.idea.monitor.ui.network.view;
 
 import com.android.tools.adtui.Animatable;
-import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.Range;
 import com.android.tools.adtui.chart.StateChart;

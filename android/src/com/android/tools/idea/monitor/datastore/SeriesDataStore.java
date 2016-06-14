@@ -17,12 +17,15 @@ package com.android.tools.idea.monitor.datastore;
 
 import com.android.tools.adtui.Range;
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.idea.monitor.profilerclient.DeviceProfilerService;
 
 /**
  * This interface is the minimal interface required for defining an object that
  * provides data to the UI. Each {@link SeriesDataType} expects to be backed by a {@link SeriesDataList}.
  */
 public interface SeriesDataStore {
+
+  DeviceProfilerService getDeviceProfilerService();
 
   /**
    * Resets all data sources to an empty state.
@@ -36,9 +39,10 @@ public interface SeriesDataStore {
 
   /**
    * Function to return a typed {@link SeriesDataList} that is scoped to allow access to data within a specific range.
-   * @param type The type of data being requested
+   *
+   * @param type  The type of data being requested
    * @param range The range the list is scoped to
-   * @param <T> The template type the raw data is formatted as.
+   * @param <T>   The template type the raw data is formatted as.
    * @return An immutable list that acts as a view into the data found in the data store.
    */
   <T> SeriesDataList<T> getSeriesData(SeriesDataType type, Range range);
