@@ -58,8 +58,8 @@ public class InstantRunBuilderTest {
   private static final String DUMPSYS_PACKAGE_EXISTS = "Package [" + APPLICATION_ID + "]";
   private static final String DUMPSYS_NO_SUCH_PACKAGE = "";
 
-  private static final RunAsValidator ourRunAsSupported = device -> true;
-  private static final RunAsValidator ourRunAsNotSupported = device -> false;
+  private static final RunAsValidator ourRunAsSupported = (device, applicationId) -> true;
+  private static final RunAsValidator ourRunAsNotSupported = (device, applicationId) -> false;
 
   @Language("XML")
   private static final String BUILD_INFO =
