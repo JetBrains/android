@@ -125,6 +125,11 @@ public class AvdManagerDialogFixture extends ComponentFixture<AvdManagerDialogFi
     MessagesFixture.findByTitle(robot(), target(), "Confirm Deletion").clickYes();
   }
 
+  public void stopAvdByName(String name) {
+    new JTableFixture(robot(), robot().finder().findByType(target(), TableView.class, true)).cell(name).click(RIGHT_BUTTON);
+    new JPopupMenuFixture(robot(), robot().findActivePopupMenu()).menuItemWithPath("Stop").click();
+  }
+
   public void close() {
     robot().pressAndReleaseKey(27);  // Esc key, since the dialog has no button or other UI element to close it
     Wait.seconds(5).expecting("dialog to disappear").until(() -> !target().isShowing());
