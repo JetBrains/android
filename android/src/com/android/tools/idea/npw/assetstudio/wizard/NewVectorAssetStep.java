@@ -21,7 +21,6 @@ import com.android.tools.idea.npw.assetstudio.ui.VectorAssetBrowser;
 import com.android.tools.idea.npw.assetstudio.ui.VectorIconButton;
 import com.android.tools.idea.ui.VectorImageComponent;
 import com.android.tools.idea.ui.properties.BindingsManager;
-import com.android.tools.idea.ui.properties.InvalidationListener;
 import com.android.tools.idea.ui.properties.ListenerManager;
 import com.android.tools.idea.ui.properties.adapters.StringToIntAdapterProperty;
 import com.android.tools.idea.ui.properties.core.*;
@@ -34,13 +33,15 @@ import com.android.tools.idea.ui.properties.swing.SliderValueProperty;
 import com.android.tools.idea.ui.properties.swing.TextProperty;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.util.Consumer;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -63,6 +64,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
   private final static String HELP_LINK = "http://developer.android.com/tools/help/vector-asset-studio.html";
   private static final int DEFAULT_MATERIAL_ICON_SIZE = 24;
   private static final String ICON_PREFIX = "ic_";
+  private static final String VECTOR_ASSET_PATH_PROPERTY = "VectorAssetImportPath";
 
   private final AndroidVectorIconGenerator myIconGenerator = new AndroidVectorIconGenerator();
   private final ObjectProperty<VectorAsset> myActiveAsset;
@@ -123,13 +125,18 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
   protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
     final Runnable onAssetModified = myPreviewUpdater::enqueueUpdate;
 
+    loadAssetPath();
+
     SelectedProperty iconSelected = new SelectedProperty(myMaterialIconRadioButton);
     myListeners.receiveAndFire(iconSelected, isIconActive -> {
       myIconPickerPanel.setVisible(isIconActive);
       myBrowserPanel.setVisible(!isIconActive);
       myActiveAsset.set(isIconActive ? myIconButton.getAsset() : myBrowser.getAsset());
     });
-    ActionListener assetListener = actionEvent -> onAssetModified.run();
+    ActionListener assetListener = actionEvent -> {
+      onAssetModified.run();
+      saveAssetPath();
+    };
     myIconButton.addAssetListener(assetListener);
     myBrowser.addAssetListener(assetListener);
     Disposer.register(this, myIconButton);
@@ -161,7 +168,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
     myListeners.listenAll(myActiveAsset, overrideSize, width, height, opacityValue, autoMirrored).with(onAssetModified);
 
     final StringProperty name = new TextProperty(myOutputNameField);
-    myListeners.listenAndFire(myActiveAsset, (InvalidationListener)sender -> {
+    myListeners.listenAndFire(myActiveAsset, sender -> {
       myActiveAssetBindings.releaseAll();
 
       myActiveAssetBindings.bind(name, new Expression<String>(myActiveAsset.get().path()) {
@@ -218,6 +225,31 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
     myGeneralBindings.releaseAll();
     myActiveAssetBindings.releaseAll();
     myListeners.releaseAll();
+  }
+
+  private void saveAssetPath() {
+    Module module = getModel().getFacet().getModule();
+    PropertiesComponent properties = PropertiesComponent.getInstance(module.getProject());
+    File path = myBrowser.getAsset().path().get();
+    properties.setValue(VECTOR_ASSET_PATH_PROPERTY, path.getParent());
+  }
+
+  private void loadAssetPath() {
+    Module module = getModel().getFacet().getModule();
+    Project project = module.getProject();
+    PropertiesComponent properties = PropertiesComponent.getInstance(project);
+    String lastPath = properties.getValue(VECTOR_ASSET_PATH_PROPERTY);
+
+    if (lastPath != null) {
+      String defaultPath = FileUtil.toSystemDependentName(lastPath);
+      myBrowser.getAsset().path().set(new File(defaultPath));
+    } else {
+      String projectPath = project.getBasePath();
+      if (projectPath != null) {
+        String defaultPath = FileUtil.toSystemDependentName(projectPath);
+        myBrowser.getAsset().path().set(new File(defaultPath));
+      }
+    }
   }
 
   /**
