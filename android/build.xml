@@ -24,7 +24,7 @@
     </target>
 
     <target name="profiler">
-        <exec executable="${gradle.wrapper.executable}" dir="${android.basedir}/../../../base/profiler">
+        <exec executable="${gradle.wrapper.executable}" dir="${android.basedir}/../../../base/profiler" failonerror="true">
             <arg value="build" />
             <env key="JAVA_HOME" value="${java.home}"/>
         </exec>
