@@ -56,7 +56,7 @@ public class AndroidProfilersPanel {
   }
 
   private static boolean isGapidSdkComponentInstalled() {
-    return !EXPERIMENTAL_ENABLED || GapiPaths.isValid();
+    return GapiPaths.isValid();
   }
 
   /**
@@ -75,6 +75,7 @@ public class AndroidProfilersPanel {
       myGapidEnabled.setEnabled(false);
       myGapidDisablePCS.setEnabled(false);
       myGapidEnabled.setToolTipText("GPU debugger tools not installed or out of date.");
+      myGapidEnabled.setSelected(false);
     }
   }
 
