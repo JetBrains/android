@@ -22,7 +22,13 @@
 
     <target name="preBuild" depends="profiler">
     </target>
-
+    <target name="rebuild">
+        <exec executable="${gradle.wrapper.executable}" dir="${android.basedir}/../../../base/profiler" failonerror="true">
+            <arg value="clean" />
+            <arg value="build" />
+            <env key="JAVA_HOME" value="${java.home}"/>
+        </exec>
+    </target>
     <target name="profiler">
         <exec executable="${gradle.wrapper.executable}" dir="${android.basedir}/../../../base/profiler" failonerror="true">
             <arg value="build" />
