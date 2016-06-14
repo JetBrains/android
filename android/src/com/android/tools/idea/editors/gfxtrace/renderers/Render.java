@@ -84,14 +84,18 @@ public final class Render {
       return;
     }
 
-    component.append("{", SimpleTextAttributes.GRAY_ATTRIBUTES);
+    component.append("{", SimpleTextAttributes.GRAY_ATTRIBUTES, NO_TAG);
     for (int index = 0; index < dynamic.getFieldCount(); ++index) {
       if (index > 0) {
-        component.append(",", SimpleTextAttributes.GRAY_ATTRIBUTES);
+        component.append(", ", SimpleTextAttributes.GRAY_ATTRIBUTES, NO_TAG);
       }
-      render(obj.field(dynamic, index), dynamic.getFieldInfo(index).getType(), component, attributes, tag);
+      Field field = dynamic.getFieldInfo(index);
+      component.append(field.getName() + ":", SimpleTextAttributes.GRAY_ATTRIBUTES, index);
+      SnippetObject paramValue = obj.field(dynamic, index);
+      SimpleTextAttributes attr = paramAttributes(NO_TAG, index, paramValue, attributes);
+      render(paramValue, field.getType(), component, attr, index);
     }
-    component.append("}", SimpleTextAttributes.GRAY_ATTRIBUTES);
+    component.append("}", SimpleTextAttributes.GRAY_ATTRIBUTES, NO_TAG);
   }
 
   @Nullable
@@ -135,14 +139,15 @@ public final class Render {
 
   public static void render(@NotNull StateController.Node node,
                             @NotNull SimpleColoredComponent component,
-                            @NotNull SimpleTextAttributes attributes) {
+                            @NotNull SimpleTextAttributes attributes,
+                            boolean expanded) {
     if (node.key.type != null) {
       render(node.key.value, node.key.type, component, attributes, NO_TAG);
     }
     else {
       component.append(String.valueOf(node.key.value.getObject()), attributes);
     }
-    if (node.isLeaf() && node.value != null && node.value.value != null) {
+    if ((node.isLeaf() || (!expanded && node.canBeRenderedAsLeaf())) && node.value != null && node.value.value != null) {
       component.append(": ", attributes);
       if (node.value.value.getObject() != null) {
         SimpleTextAttributes style = node.canFollow() ? SimpleTextAttributes.LINK_ATTRIBUTES : SimpleTextAttributes.SYNTHETIC_ATTRIBUTES;
@@ -324,7 +329,7 @@ public final class Render {
       return;
     }
     if (type instanceof Map) {
-      render(value, (Map)type, component, attributes, tag);
+      render(value, (Map)type, component, attributes);
       return;
     }
     if (type instanceof AnyType) {
@@ -386,9 +391,23 @@ public final class Render {
   public static void render(@NotNull SnippetObject value,
                             @NotNull Map type,
                             @NotNull SimpleColoredComponent component,
-                            @NotNull SimpleTextAttributes attributes,
-                            int tag) {
-    render(value, component, attributes, tag);
+                            @NotNull SimpleTextAttributes attributes) {
+    java.util.Map map = (java.util.Map)value.getObject();
+    Iterator<java.util.Map.Entry<Object, Object>> it = map.entrySet().iterator();
+
+    component.append("{", SimpleTextAttributes.GRAY_ATTRIBUTES, NO_TAG);
+    for (int index = 0; it.hasNext(); ++index) {
+      java.util.Map.Entry<Object, Object> entry = it.next();
+      render(value.key(entry), type.getKeyType(), component, attributes, index);
+      component.append("=", SimpleTextAttributes.GRAY_ATTRIBUTES, index);
+      SnippetObject paramValue = value.elem(entry);
+      SimpleTextAttributes attr = paramAttributes(NO_TAG, index, paramValue, attributes);
+      render(paramValue, type.getValueType(), component, attr, index);
+      if (it.hasNext()) {
+        component.append(", ", SimpleTextAttributes.GRAY_ATTRIBUTES, NO_TAG);
+      }
+    }
+    component.append("}", SimpleTextAttributes.GRAY_ATTRIBUTES, NO_TAG);
   }
 
   public static void render(@NotNull SnippetObject value,
@@ -424,10 +443,11 @@ public final class Render {
   public static boolean tryConstantRender(@NotNull SnippetObject obj,
                                           @NotNull Primitive type,
                                           @NotNull SimpleColoredComponent component,
-                                          @NotNull SimpleTextAttributes attributes) {
+                                          @NotNull SimpleTextAttributes attributes,
+                                          int tag) {
     Collection<Constant> value = findConstant(obj, type);
     if (!value.isEmpty()) {
-      component.append(value.stream().map(Constant::getName).collect(Collectors.joining(" | ")), attributes);
+      component.append(value.stream().map(Constant::getName).collect(Collectors.joining(" | ")), attributes, tag);
       return true;
     }
     return false;
@@ -538,7 +558,7 @@ public final class Render {
                             @NotNull SimpleColoredComponent component,
                             @NotNull SimpleTextAttributes attributes,
                             int tag) {
-    if (tryConstantRender(obj, type, component, attributes)) {
+    if (tryConstantRender(obj, type, component, attributes, tag)) {
       // successfully rendered as a constant.
       return;
     }
@@ -605,8 +625,7 @@ public final class Render {
 
   public static void render(@NotNull SnippetObject obj, @NotNull SimpleColoredComponent component, @NotNull SimpleTextAttributes attributes, int tag) {
     if (obj.getObject() instanceof Dynamic) {
-      Dynamic dynamic = (Dynamic)obj.getObject();
-      render(obj, dynamic, component, attributes, tag);
+      render(obj, (Dynamic)obj.getObject(), component, attributes, tag);
       return;
     }
     render(obj.getObject(), component, attributes, tag);
@@ -615,10 +634,10 @@ public final class Render {
   /**
    * See {@link #render(DynamicAtom, SimpleColoredComponent, SimpleTextAttributes, int)}
    */
-  public static int getNodeFieldIndex(@NotNull JTree tree, @NotNull Object node, int x) {
+  public static int getNodeFieldIndex(@NotNull JTree tree, @NotNull Object node, int x, boolean expanded) {
     ColoredTreeCellRenderer renderer = (ColoredTreeCellRenderer)tree.getCellRenderer();
     // setup the renderer to have the Node we have selected as its value
-    renderer.getTreeCellRendererComponent(tree, node, false, false, false, 0, false);
+    renderer.getTreeCellRendererComponent(tree, node, false, expanded, false, 0, false);
     for (int index = renderer.findFragmentAt(x); index >= 2; index--) {
       Object tag = renderer.getFragmentTag(index);
       if (tag != null && tag instanceof Integer) {
