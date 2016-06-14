@@ -15,14 +15,22 @@
  */
 package com.android.tools.idea.fd;
 
-import org.jetbrains.annotations.NotNull;
+public enum BuildCause {
+  // reasons for clean build
+  NO_DEVICE,
+  MISMATCHING_TIMESTAMPS,
+  USER_REQUESTED_CLEAN_BUILD,
 
-public class BuildSelection {
-  @NotNull public final BuildMode mode;
-  @NotNull public final BuildCause why;
+  // reasons for full build
+  API_TOO_LOW_FOR_INSTANT_RUN,
+  FIRST_INSTALLATION_TO_DEVICE,
+  MANIFEST_RESOURCE_CHANGED,
+  FREEZE_SWAP_REQUIRES_API21,
+  FREEZE_SWAP_REQUIRES_WORKING_RUN_AS,
 
-  BuildSelection(@NotNull BuildMode mode, @NotNull BuildCause why) {
-    this.mode = mode;
-    this.why = why;
-  }
+  // reasons for forced cold swap build
+  APP_NOT_RUNNING,
+  APP_USES_MULTIPLE_PROCESSES,
+
+  INCREMENTAL_BUILD
 }

@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.fd;
+package com.android.tools.idea.fd.gradle;
 
 import com.android.annotations.NonNull;
 import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.fd.client.InstantRunBuildInfo;
+import com.android.tools.idea.fd.InstantRunContext;
+import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.run.GradleInstantRunContext;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.run.ApkProviderUtil;
 import com.android.tools.idea.run.ApkProvisionException;
 import com.google.common.base.Charsets;
@@ -38,30 +39,22 @@ import java.io.File;
 import java.io.IOException;
 
 public class InstantRunGradleUtils {
-  /**
-   * Returns whether the currently selected variant can be used with Instant Run on a device with the given API level.
-   */
-  public static BooleanStatus getIrSupportStatus(@NotNull Module module, @NotNull AndroidVersion deviceVersion) {
-    if (!InstantRunSettings.isInstantRunEnabled()) {
-      return BooleanStatus.failure("not enabled in settings");
-    }
-
-    return getIrSupportStatus(getAppModel(module), deviceVersion);
-  }
-
   @NotNull
-  public static BooleanStatus getIrSupportStatus(@Nullable AndroidGradleModel model, @Nullable AndroidVersion deviceVersion) {
+  public static InstantRunGradleSupport getIrSupportStatus(@Nullable AndroidGradleModel model, @Nullable AndroidVersion deviceVersion) {
     if (model == null) {
-      return BooleanStatus.failure("no gradle model");
+      return InstantRunGradleSupport.NO_GRADLE_MODEL;
     }
 
-    BooleanStatus status = getIrSupportStatus(model);
-    if (!status.success) {
-      return status;
+    if (!modelSupportsInstantRun(model)) {
+      return InstantRunGradleSupport.GRADLE_PLUGIN_TOO_OLD;
+    }
+
+    if (!variantSupportsInstantRun(model)) {
+      return InstantRunGradleSupport.VARIANT_DOES_NOT_SUPPORT_INSTANT_RUN;
     }
 
     if (deviceVersion == null) {
-      return BooleanStatus.SUCCESS;
+      return InstantRunGradleSupport.SUPPORTED;
     }
 
     Variant variant = model.getSelectedVariant();
@@ -72,35 +65,12 @@ public class InstantRunGradleUtils {
 
     if (isLegacyMultiDex(buildType, mergedFlavor)) {
       // We don't support legacy multi-dex on Dalvik.
-      if (deviceVersion.isGreaterOrEqualThan(AndroidVersion.ART_RUNTIME.getApiLevel())) {
-        return BooleanStatus.SUCCESS;
-      }
-      else {
-        return BooleanStatus.failure(
-          "Instant Run does not support deploying build variants with multidex enabled, to a target with API level 20 or below.<br><br>" +
-          "To use Instant Run with a multidex enabled build variant, deploy to a target with API level 21 or higher.");
+      if (!deviceVersion.isGreaterOrEqualThan(AndroidVersion.ART_RUNTIME.getApiLevel())) {
+        return InstantRunGradleSupport.LEGACY_MULTIDEX_REQUIRES_ART;
       }
     }
 
-    return BooleanStatus.SUCCESS;
-  }
-
-  @NotNull
-  private static BooleanStatus getIrSupportStatus(@NotNull AndroidGradleModel model) {
-    String version = model.getAndroidProject().getModelVersion();
-    if (!modelSupportsInstantRun(model)) {
-      String msg = "Android Plugin for Gradle version " + version + " does not support Instant Run. Please update to version " +
-                   InstantRunManager.MINIMUM_GRADLE_PLUGIN_VERSION_STRING;
-      return BooleanStatus.failure(msg);
-    }
-
-    if (variantSupportsInstantRun(model)) {
-      return BooleanStatus.SUCCESS;
-    }
-    else {
-      String msg = "variant '" + model.getSelectedVariant().getName() + "' uses an unsupported feature (e.g. ProGuard)";
-      return BooleanStatus.failure(msg);
-    }
+    return InstantRunGradleSupport.SUPPORTED;
   }
 
   // TODO: Move this logic to Variant, so we don't have to duplicate it in AS.

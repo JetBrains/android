@@ -24,12 +24,8 @@ import com.android.tools.fd.client.InstantRunBuildInfo;
 import com.android.tools.fd.client.InstantRunClient;
 import com.android.tools.fd.client.InstantRunPushFailedException;
 import com.android.tools.fd.client.UpdateMode;
-import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.run.AndroidProgramRunner;
-import com.android.tools.idea.run.ApkProviderUtil;
-import com.android.tools.idea.run.ApkProvisionException;
 import com.android.tools.idea.run.InstalledPatchCache;
-import com.android.tools.idea.stats.UsageTracker;
 import com.android.utils.ILogger;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.debugger.DebuggerManagerEx;
@@ -49,16 +45,11 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.ToolWindowId;
 import com.intellij.xdebugger.XDebugSession;
 import com.intellij.xdebugger.frame.XExecutionStack;
-import org.intellij.lang.annotations.Language;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Locale;
-
-import static com.android.tools.fd.client.InstantRunBuildInfo.VALUE_VERIFIER_STATUS_COMPATIBLE;
 
 /**
  * The {@linkplain InstantRunManager} is responsible for handling Instant Run related functionality
@@ -187,15 +178,13 @@ public final class InstantRunManager implements ProjectComponent {
   }
 
   /**
-   * Pushes the artifacts in the given {@link InstantRunBuildInfo} to the given device.
+   * Pushes the artifacts obtained from the {@link InstantRunContext} to the given device.
    * If the app is running, the artifacts are sent directly to the server running as part of the app.
    * Otherwise, we save it to a file on the device.
-   *
-   * @return true if the caller needs to manually start the app.
    */
-  public boolean pushArtifacts(@NotNull IDevice device,
-                               @NotNull InstantRunContext context,
-                               @NotNull UpdateMode updateMode) throws InstantRunPushFailedException, IOException {
+  public UpdateMode pushArtifacts(@NotNull IDevice device,
+                                  @NotNull InstantRunContext context,
+                                  @NotNull UpdateMode updateMode) throws InstantRunPushFailedException, IOException {
     InstantRunClient client = getInstantRunClient(context);
     assert client != null;
 
@@ -212,7 +201,7 @@ public final class InstantRunManager implements ProjectComponent {
       refreshDebugger(context.getApplicationId());
     }
 
-    return updateMode == UpdateMode.COLD_SWAP;
+    return updateMode;
   }
 
   private void refreshDebugger(@NotNull String packageName) {
@@ -263,51 +252,6 @@ public final class InstantRunManager implements ProjectComponent {
           }
         });
       }
-    }
-  }
-
-  public static void displayVerifierStatus(@NotNull AndroidFacet facet, @NotNull InstantRunBuildInfo buildInfo) {
-    @Language("HTML") String message = getVerifierMessage(buildInfo);
-    if (message != null) {
-      new InstantRunUserFeedback(facet.getModule()).verifierFailure(message);
-      String status = buildInfo.getVerifierStatus();
-      LOG.info("Instant run verifier failure: " + status);
-      UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_INSTANTRUN, UsageTracker.ACTION_INSTANTRUN_FULLBUILD, status, null);
-    } else {
-      UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_INSTANTRUN, UsageTracker.ACTION_INSTANTRUN_FULLBUILD,
-                                            VALUE_VERIFIER_STATUS_COMPATIBLE, null);
-    }
-  }
-
-  @Language("HTML")
-  @Nullable
-  public static String getVerifierMessage(@NotNull InstantRunBuildInfo buildInfo) {
-    if (!buildInfo.canHotswap()) {
-      String status = buildInfo.getVerifierStatus();
-      if (status.isEmpty()) {
-        return null;
-      }
-
-      // Convert tokens like "FIELD_REMOVED" to "Field Removed" for better readability
-      status = StringUtil.capitalizeWords(status.toLowerCase(Locale.US).replace('_', ' '), true);
-      //noinspection LanguageMismatch
-      return "Instant Run restarted app to apply changes: " + status;
-    }
-
-    return null;
-  }
-
-  @Nullable
-  private static String getPackageName(@Nullable AndroidFacet facet) {
-    if (facet == null) {
-      return null;
-    }
-
-    try {
-      return ApkProviderUtil.computePackageName(facet);
-    }
-    catch (ApkProvisionException e) {
-      return null;
     }
   }
 }
