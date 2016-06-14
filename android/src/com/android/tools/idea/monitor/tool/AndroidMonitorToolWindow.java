@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.monitor.tool;
 
+import com.android.ddmlib.Client;
+import com.android.ddmlib.IDevice;
 import com.android.tools.adtui.*;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
@@ -23,16 +25,17 @@ import com.android.tools.idea.ddms.DevicePanel;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.datastore.SeriesDataStoreImpl;
 import com.android.tools.idea.monitor.profilerclient.DeviceProfilerService;
+import com.android.tools.idea.monitor.profilerclient.ProfilerService;
 import com.android.tools.idea.monitor.ui.BaseSegment;
 import com.android.tools.idea.monitor.ui.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.TimeAxisSegment;
+import com.android.tools.idea.monitor.ui.cpu.model.CpuDataPoller;
 import com.android.tools.idea.monitor.ui.cpu.view.CpuUsageSegment;
 import com.android.tools.idea.monitor.ui.cpu.view.ThreadsSegment;
 import com.android.tools.idea.monitor.ui.memory.view.MemorySegment;
 import com.android.tools.idea.monitor.ui.network.view.NetworkSegment;
-import com.android.ddmlib.Client;
-import com.android.ddmlib.IDevice;
-import com.android.tools.idea.monitor.profilerclient.ProfilerService;
+import com.android.tools.profiler.proto.CpuProfiler;
+import com.android.tools.profiler.proto.CpuProfilerServiceGrpc;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
@@ -87,6 +90,9 @@ public class AndroidMonitorToolWindow implements Disposable {
   @NotNull
   private SeriesDataStore myDataStore;
 
+  @NotNull
+  private CpuDataPoller myCpuDataPoller;
+
   private SelectionComponent mySelection;
 
   private Range myXRange;
@@ -109,6 +115,7 @@ public class AndroidMonitorToolWindow implements Disposable {
     myProject = project;
     myComponent = new JPanel(new BorderLayout());
     myDataStore = new SeriesDataStoreImpl();
+    myCpuDataPoller = new CpuDataPoller();
     myChoreographer = new Choreographer(CHOREOGRAPHER_FPS, myComponent);
     myChoreographer.register(createComponentsList());
     myEventDispatcher = EventDispatcher.create(ProfilerEventListener.class);
@@ -355,6 +362,7 @@ public class AndroidMonitorToolWindow implements Disposable {
   private void disconnectFromDevice() {
     if (mySelectedDeviceProfilerService != null) {
       ProfilerService.getInstance().disconnect(this, mySelectedDeviceProfilerService);
+      stopMonitoring();
       mySelectedDeviceProfilerService = null;
     }
   }
@@ -370,5 +378,42 @@ public class AndroidMonitorToolWindow implements Disposable {
 
     assert mySelectedDevice.isOnline();
     mySelectedDeviceProfilerService = ProfilerService.getInstance().connect(this, mySelectedDevice);
+
+    if (mySelectedDeviceProfilerService != null) {
+      startMonitoring();
+    }
+  }
+
+  private void startMonitoring() {
+    startCpuMonitoring();
+    // TODO: start other profilers
+  }
+
+  private void stopMonitoring() {
+    stopCpuMonitoring();
+    // TODO: stop other profilers
+  }
+
+  private void startCpuMonitoring() {
+    if (mySelectedClient == null) {
+      return;
+    }
+    int pid = mySelectedClient.getClientData().getPid();
+    CpuProfilerServiceGrpc.CpuProfilerServiceBlockingStub cpuService = mySelectedDeviceProfilerService.getCpuService();
+    CpuProfiler.CpuStartRequest.Builder requestBuilder = CpuProfiler.CpuStartRequest.newBuilder().setAppId(pid);
+    cpuService.startMonitoringApp(requestBuilder.build());
+
+    // Start collecting data
+    myCpuDataPoller.startDataRequest(pid, cpuService);
+  }
+
+  private void stopCpuMonitoring() {
+    if (mySelectedClient == null) {
+      return;
+    }
+    myCpuDataPoller.stopDataRequest();
+    CpuProfiler.CpuStopRequest.Builder requestBuilder = CpuProfiler.CpuStopRequest.newBuilder();
+    requestBuilder.setAppId(mySelectedClient.getClientData().getPid());
+    mySelectedDeviceProfilerService.getCpuService().stopMonitoringApp(requestBuilder.build());
   }
 }
