@@ -19,6 +19,7 @@ import com.android.tools.idea.uibuilder.api.StructurePaneComponentHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.lint.detector.api.LintUtils;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredTextContainer;
 import com.intellij.ui.SimpleTextAttributes;
@@ -98,6 +99,11 @@ public class StructureTreeDecorator {
 
     if (!attributes.isEmpty()) {
       container.append(' ' + attributes, SimpleTextAttributes.GRAYED_ATTRIBUTES);
+    }
+
+    if (PropertiesComponent.getInstance().getBoolean(ToggleBoundsVisibility.BOUNDS_VISIBLE_PROPERTY)) {
+      String fragment = " (" + component.x + ", " + component.y + ") " + component.w + " × " + component.h;
+      container.append(fragment, SimpleTextAttributes.REGULAR_ATTRIBUTES);
     }
   }
 
