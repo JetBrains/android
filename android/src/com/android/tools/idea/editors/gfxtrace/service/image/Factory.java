@@ -38,6 +38,7 @@ public final class Factory {
     FmtLuminance.register();
     FmtLuminanceAlpha.register();
     FmtPNG.register();
+    FmtRG.register();
     FmtRGB.register();
     FmtRGB565.register();
     FmtRGBA.register();
@@ -48,7 +49,10 @@ public final class Factory {
     FmtRGBAF32.register();
     FmtRGBF16.register();
     FmtRGBF32.register();
+    FmtRGF16.register();
+    FmtRGF32.register();
     FmtRed.register();
+    FmtRedF16.register();
     FmtRedF32.register();
     FmtS3DXT1RGB.register();
     FmtS3DXT1RGBA.register();
