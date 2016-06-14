@@ -27,7 +27,6 @@ import com.android.tools.idea.run.AndroidProgramRunner;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.intellij.debugger.engine.DebugProcessImpl;
 import com.intellij.debugger.engine.PositionManagerImpl;
 import com.intellij.debugger.settings.DebuggerSettings;
@@ -50,7 +49,8 @@ import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Map;
 
 public class InstantRunPositionManager extends PositionManagerImpl {
   private static final boolean DISABLED = true;

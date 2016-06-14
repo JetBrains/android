@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.fd;
 
+import com.android.tools.idea.fd.gradle.InstantRunGradleSupport;
+import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
+
 public class InstantRunSettings {
   /**
    * Returns whether instant run is enabled in the given project.
    * Note: Even if instant run is enabled for the project, instant run related information should not be accessed
-   * unless {@link InstantRunGradleUtils#getIrSupportStatus} returns true.
+   * unless {@link InstantRunGradleUtils#getIrSupportStatus} returns {@link InstantRunGradleSupport#SUPPORTED}.
    */
   public static boolean isInstantRunEnabled() {
     InstantRunConfiguration configuration = InstantRunConfiguration.getInstance();

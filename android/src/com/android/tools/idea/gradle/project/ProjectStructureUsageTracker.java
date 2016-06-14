@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project;
 
 import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.fd.InstantRunGradleUtils;
+import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
 import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.NativeAndroidGradleModel;

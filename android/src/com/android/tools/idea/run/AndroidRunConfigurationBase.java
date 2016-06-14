@@ -19,8 +19,11 @@ package com.android.tools.idea.run;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.fd.*;
+import com.android.tools.idea.fd.gradle.InstantRunGradleSupport;
+import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.run.editor.*;
+import com.android.tools.idea.run.tasks.InstantRunNotificationTask;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTasksProviderFactory;
 import com.android.tools.idea.run.util.LaunchStatus;
@@ -49,7 +52,6 @@ import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.WriteExternalException;
 import icons.AndroidIcons;
-import org.intellij.lang.annotations.Language;
 import org.jdom.Element;
 import org.jetbrains.android.actions.AndroidEnableAdbServiceAction;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -301,8 +303,9 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
     // Make sure instant run is supported on the relevant device, if found.
     AndroidVersion androidVersion = InstantRunManager.getMinDeviceApiLevel(info.getProcessHandler());
-    if (InstantRunManager.isInstantRunCapableDeviceVersion(androidVersion)
-        && InstantRunGradleUtils.getIrSupportStatus(module, androidVersion).success) {
+    if (InstantRunManager.isInstantRunCapableDeviceVersion(androidVersion) &&
+        (InstantRunGradleUtils.getIrSupportStatus(InstantRunGradleUtils.getAppModel(module), androidVersion) ==
+         InstantRunGradleSupport.SUPPORTED)) {
       return executor instanceof DefaultRunExecutor ? AndroidIcons.RunIcons.Replay : AndroidIcons.RunIcons.DebugReattach;
     }
 
@@ -400,22 +403,32 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     InstantRunContext instantRunContext = null;
 
     if (supportsInstantRun() && InstantRunSettings.isInstantRunEnabled()) {
-      List<AndroidDevice> devices = deviceFutures.getDevices();
-      if (devices.size() > 1) {
-        @Language("HTML") String message = "Instant Run is disabled:<br>" +
-                                           "Instant Run does not support deploying to multiple targets.<br>" +
-                                           "To enable Instant Run, deploy to a single target.";
-        new InstantRunUserFeedback(module).notifyDisabledForLaunch(message);
-        LOG.info(message);
-      }
-      else if (InstantRunGradleUtils.getIrSupportStatus(module, devices.get(0).getVersion()).success) {
-        InstantRunUtils.setInstantRunEnabled(env, true);
-        instantRunContext = InstantRunGradleUtils.createGradleProjectContext(facet);
-
+      InstantRunGradleSupport gradleSupport = canInstantRun(module, deviceFutures.getDevices());
+      if (gradleSupport == InstantRunGradleSupport.SUPPORTED) {
         if (!AndroidEnableAdbServiceAction.isAdbServiceEnabled()) {
           throw new ExecutionException("Instant Run requires 'Tools | Android | Enable ADB integration' to be enabled.");
         }
+
+        InstantRunUtils.setInstantRunEnabled(env, true);
+        instantRunContext = InstantRunGradleUtils.createGradleProjectContext(facet);
       }
+      else {
+        InstantRunManager.LOG.warn("Instant Run enabled, but not doing an instant run build since: " + gradleSupport);
+        String notificationText = getUserNotificationText(gradleSupport);
+        if (notificationText != null) {
+          InstantRunNotificationTask.showNotification(env.getProject(), null, notificationText);
+        }
+      }
+    }
+    else {
+      String msg = "Not using instant run for this launch: ";
+      if (InstantRunSettings.isInstantRunEnabled()) {
+        msg += getType().getDisplayName() + " does not support instant run";
+      }
+      else {
+        msg += "instant run is disabled";
+      }
+      InstantRunManager.LOG.info(msg);
     }
 
     // Store the chosen target on the execution environment so before-run tasks can access it.
@@ -483,10 +496,9 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
     AndroidGradleModel model = AndroidGradleModel.get(facet);
     AndroidVersion version = devices.get(0).getVersion();
-    BooleanStatus status = InstantRunGradleUtils.getIrSupportStatus(model, version);
-    if (!status.success) {
-      InstantRunManager.LOG.info("Cannot Instant Run: " + status.getCause());
-      new InstantRunUserFeedback(facet.getModule()).notifyDisabledForLaunch("Instant Run is disabled:<br>" + status.getCause());
+    InstantRunGradleSupport status = InstantRunGradleUtils.getIrSupportStatus(model, version);
+    if (status != InstantRunGradleSupport.SUPPORTED) {
+      InstantRunManager.LOG.info("Cannot Instant Run: " + status);
       return null;
     }
 
@@ -608,6 +620,46 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
    */
   public boolean supportsInstantRun() {
     return false;
+  }
+
+  private InstantRunGradleSupport canInstantRun(@NotNull Module module,
+                                                @NotNull List<AndroidDevice> targetDevices) {
+    if (targetDevices.size() != 1) {
+      return InstantRunGradleSupport.CANNOT_BUILD_FOR_MULTIPLE_DEVICES;
+    }
+
+    InstantRunGradleSupport irSupportStatus =
+      InstantRunGradleUtils.getIrSupportStatus(InstantRunGradleUtils.getAppModel(module), targetDevices.get(0).getVersion());
+    if (irSupportStatus != InstantRunGradleSupport.SUPPORTED) {
+      return irSupportStatus;
+    }
+
+    return InstantRunGradleSupport.SUPPORTED;
+  }
+
+  @Nullable
+  private static String getUserNotificationText(@NotNull InstantRunGradleSupport gradleSupport) {
+    assert gradleSupport != InstantRunGradleSupport.SUPPORTED;
+
+    if (gradleSupport == InstantRunGradleSupport.DISABLED || gradleSupport == InstantRunGradleSupport.NO_GRADLE_MODEL) {
+      return null;
+    }
+
+    if (gradleSupport == InstantRunGradleSupport.GRADLE_PLUGIN_TOO_OLD) {
+      return AndroidBundle.message("instant.run.notification.ir.disabled.plugin.too.old",
+                                   InstantRunManager.MINIMUM_GRADLE_PLUGIN_VERSION_STRING);
+    }
+    else if (gradleSupport == InstantRunGradleSupport.VARIANT_DOES_NOT_SUPPORT_INSTANT_RUN) {
+      return AndroidBundle.message("instant.run.notification.ir.disabled.for.current.variant");
+    }
+    else if (gradleSupport == InstantRunGradleSupport.LEGACY_MULTIDEX_REQUIRES_ART) {
+      return AndroidBundle.message("instant.run.notification.ir.disabled.multidex.requires.21");
+    }
+    else if (gradleSupport == InstantRunGradleSupport.CANNOT_BUILD_FOR_MULTIPLE_DEVICES) {
+      return AndroidBundle.message("instant.run.notification.ir.disabled.multiple.devices");
+    }
+
+    return null;
   }
 
   @Override

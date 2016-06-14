@@ -20,31 +20,28 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.fd.InstantRunBuildAnalyzer;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class UpdateSessionTasksProvider implements LaunchTasksProvider {
-  private final Module myModule;
   private final InstantRunBuildAnalyzer myBuildAnalyzer;
 
-  public UpdateSessionTasksProvider(@NotNull Module module, @NotNull InstantRunBuildAnalyzer buildAnalyzer) {
-    myModule = module;
+  public UpdateSessionTasksProvider(@NotNull InstantRunBuildAnalyzer buildAnalyzer) {
     myBuildAnalyzer = buildAnalyzer;
   }
 
   @NotNull
   @Override
   public List<LaunchTask> getTasks(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter consolePrinter) {
-    consolePrinter.stdout(myBuildAnalyzer.getNotificationText());
-
-    List<LaunchTask> launchTasks = Lists.newArrayList();
-    launchTasks.addAll(myBuildAnalyzer.getDeployTasks(null));
-    launchTasks.add(new InstantRunNotificationTask(myModule, myBuildAnalyzer));
-    return launchTasks;
+    List<LaunchTask> tasks = new ArrayList<>(myBuildAnalyzer.getDeployTasks(null));
+    tasks.add(myBuildAnalyzer.getNotificationTask());
+    return ImmutableList.copyOf(tasks);
   }
 
   @Nullable
