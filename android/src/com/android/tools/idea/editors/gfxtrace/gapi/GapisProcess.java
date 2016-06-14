@@ -37,7 +37,6 @@ import static com.android.tools.idea.editors.gfxtrace.gapi.Version.*;
 public final class GapisProcess extends ChildProcess {
   @NotNull private static final Logger LOG = Logger.getInstance(GapisProcess.class);
   private static final Object myInstanceLock = new Object();
-  private static String myAuthToken = null;
   private static GapisProcess myInstance;
   private static final GapisConnection NOT_CONNECTED = new GapisConnection(null, null);
 
@@ -50,6 +49,8 @@ public final class GapisProcess extends ChildProcess {
   private final Set<GapisConnection> myConnections = Sets.newIdentityHashSet();
   private final GapirProcess myGapir;
   private final SettableFuture<Integer> myPortF;
+
+  private String myAuthToken = null;
   private Version myVersion = NULL_VERSION;
 
   static {
@@ -102,8 +103,9 @@ public final class GapisProcess extends ChildProcess {
     }
 
     if (myVersion.isAtLeast(VERSION_3)) {
+      myAuthToken = generateAuthToken();
       args.add("--gapis-auth-token");
-      args.add(getAuthToken());
+      args.add(myAuthToken);
       args.add("--gapir-auth-token");
       args.add(GapirProcess.getAuthToken());
     }
@@ -121,16 +123,6 @@ public final class GapisProcess extends ChildProcess {
       LOG.info("gapis exited cleanly");
     }
     shutdown();
-  }
-  
-  /** @return the auth-token for the GAPIS process. */
-  public static String getAuthToken() {
-    synchronized (myInstanceLock) {
-      if (myAuthToken == null) {
-        myAuthToken = generateAuthToken();
-      }
-      return myAuthToken;
-    }
   }
 
   /**
@@ -157,7 +149,9 @@ public final class GapisProcess extends ChildProcess {
     try {
       int port = myPortF.get(SERVER_LAUNCH_TIMEOUT_MS, TimeUnit.MILLISECONDS);
       GapisConnection connection = new GapisConnection(this, new Socket(SERVER_HOST, port));
-      connection.sendAuth(getAuthToken());
+      if (myAuthToken != null) {
+        connection.sendAuth(myAuthToken);
+      }
       LOG.info("Established a new client connection to " + port);
       synchronized (myConnections) {
         myConnections.add(connection);
