@@ -43,6 +43,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
@@ -61,11 +62,7 @@ public class TexturesController extends ImagePanelController {
       public void selected(Data item) {
         setEmptyText(myList.isEmpty() ? GfxTraceEditor.NO_TEXTURES : GfxTraceEditor.SELECT_TEXTURE);
         setImage((item == null) ? null : FetchedImage.load(myEditor.getClient(), item.path));
-
-        if (item != null) {
-          List<Long> accesses = Arrays.stream(item.info.getAccesses()).boxed().collect(Collectors.toList());
-          myJumpToAtomComboAction.setAtomIds(accesses);
-        }
+        myJumpToAtomComboAction.setAtomIds(item == null ? Collections.emptyList() : Arrays.stream(item.info.getAccesses()).boxed().collect(Collectors.toList()));
       }
     }.myList, BorderLayout.NORTH);
 
