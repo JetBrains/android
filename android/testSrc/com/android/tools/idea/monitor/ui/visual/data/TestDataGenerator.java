@@ -15,20 +15,74 @@
  */
 package com.android.tools.idea.monitor.ui.visual.data;
 
+import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.idea.monitor.datastore.DataAdapter;
+import gnu.trove.TLongArrayList;
+
+import javax.swing.*;
+
 /**
- * Interface to use when generating test data.
- * @param <T> The type of data to be returned when requested by the test framework.
+ * Simulated data generator.
  */
-public interface TestDataGenerator<T> {
+public abstract class TestDataGenerator<T> implements DataAdapter<T> {
+
+  private static final int GENERATE_DATA_THREAD_DELAY = 100;
+
+  protected TLongArrayList mTime = new TLongArrayList();
+
+  protected long mStartTime;
+
+  private Thread mDataThread;
+
+  TestDataGenerator() {
+    reset();
+  }
+
+  @Override
+  public void reset() {
+    if (mDataThread != null) {
+      mDataThread.interrupt();
+      mDataThread = null;
+    }
+    mDataThread = new Thread() {
+      @Override
+      public void run() {
+        try {
+          while (true) {
+            // TODO: come up with a better way of handling thread issues
+            SwingUtilities.invokeLater(() -> generateData());
+
+            Thread.sleep(GENERATE_DATA_THREAD_DELAY);
+          }
+        }
+        catch (InterruptedException ignored) {
+        }
+      }
+    };
+    mDataThread.start();
+  }
+
+  @Override
+  public int getClosestTimeIndex(long time) {
+    int index = mTime.binarySearch(time + mStartTime);
+    if (index < 0) {
+      // No exact match, returns position to the left of the insertion point.
+      // NOTE: binarySearch returns -(insertion point + 1) if not found.
+      index = -index - 2;
+    }
+
+    return Math.max(0, Math.min(mTime.size() - 1, index));
+  }
+
+  @Override
+  public void setStartTime(long startTime) {
+    mStartTime = startTime;
+  }
 
   /**
-   * Access generated data at specified index.
-   */
-  T get(int index);
-
-  /**
-   * Generate data, this will be called for each DataGenerator to signal new data should be created and stored internally.
+   * Function for test to override, this function gets called on its own thread and is used to simulate
+   * new data coming from the device.
    */
   //TODO refactor to move time into DataGenerators.
-  void generateData(long currentTime);
+  abstract void generateData();
 }

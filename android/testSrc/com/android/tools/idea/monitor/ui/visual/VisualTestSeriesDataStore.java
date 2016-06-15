@@ -16,75 +16,52 @@
 package com.android.tools.idea.monitor.ui.visual;
 
 import com.android.tools.adtui.Range;
+import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.idea.monitor.datastore.DataAdapter;
 import com.android.tools.idea.monitor.datastore.SeriesDataList;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.datastore.SeriesDataType;
 import com.android.tools.idea.monitor.ui.visual.data.*;
-import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.Table;
 import gnu.trove.TLongArrayList;
 
-import javax.swing.*;
 import java.util.*;
 
 public final class VisualTestSeriesDataStore implements SeriesDataStore {
 
-  // The following Table data structure just provides an example implementation on how we can achieve having different timestamps for
-  // different series. The profiler datastore implementation should not rely on using generic List<?> to store numerical arrays as that
-  // is memory-inefficient.
-  private Table<SeriesDataType, TLongArrayList, TestDataGenerator<?>> mDataSeriesMap = HashBasedTable.create();
-  private Thread mDataThread;
+  private Map<SeriesDataType, DataAdapter<?>> myDataSeriesMap = new HashMap<>();
+
   private long mStartTime;
-  private long mCurrentTime;
 
   public VisualTestSeriesDataStore() {
+    mStartTime = System.currentTimeMillis();
     startGeneratingData();
   }
 
   @Override
   public void reset() {
-    if(mDataThread != null) {
-      mDataThread.interrupt();
+    for(DataAdapter<?> adapter : myDataSeriesMap.values()) {
+      adapter.reset();
     }
   }
 
   @Override
   public long getLatestTime() {
-    return mCurrentTime;
-  }
-
-  @Override
-  public long getTimeAtIndex(SeriesDataType type, int index) {
-    Map<TLongArrayList, TestDataGenerator<?>> dataMap = mDataSeriesMap.row(type);
-    assert dataMap.size() == 1;
-
-    TLongArrayList timeData = dataMap.keySet().iterator().next();
-    return timeData.get(index);
+    long now = System.currentTimeMillis();
+    return now - mStartTime;
   }
 
   @Override
   public int getClosestTimeIndex(SeriesDataType type, long timeValue) {
-    Map<TLongArrayList, TestDataGenerator<?>> dataMap = mDataSeriesMap.row(type);
-    assert dataMap.size() == 1;
-
-    TLongArrayList timeData = dataMap.keySet().iterator().next();
-    int index = timeData.binarySearch(timeValue);
-    if (index < 0) {
-      // No exact match, returns position to the left of the insertion point.
-      // NOTE: binarySearch returns -(insertion point + 1) if not found.
-      index = -index - 1;
-    }
-
-    return Math.max(0, Math.min(timeData.size() - 1, index));
+    DataAdapter<?> adapter = myDataSeriesMap.get(type);
+    assert adapter != null;
+    return adapter.getClosestTimeIndex(timeValue);
   }
 
   @Override
-  public <T> T getValueAtIndex(SeriesDataType type, int index) {
-    Map<TLongArrayList, TestDataGenerator<?>> dataMap = mDataSeriesMap.row(type);
-    assert dataMap.size() == 1;
-
-    TestDataGenerator<?> seriesData = dataMap.values().iterator().next();
-    return (T)seriesData.get(index);
+  public <T> SeriesData<T> getDataAt(SeriesDataType type, int index) {
+    DataAdapter<?> adapter = myDataSeriesMap.get(type);
+    assert adapter != null;
+    return (SeriesData<T>)adapter.get(index);
   }
 
   @Override
@@ -92,74 +69,45 @@ public final class VisualTestSeriesDataStore implements SeriesDataStore {
     return new SeriesDataList<>(range, this, type);
   }
 
-  private void generateData() {
-    long now = System.currentTimeMillis();
-    mCurrentTime = now - mStartTime;
-
-    Map<SeriesDataType, Map<TLongArrayList, TestDataGenerator<?>>> rowMap = mDataSeriesMap.rowMap();
-    for (SeriesDataType dataType : rowMap.keySet()) {
-      Map<TLongArrayList, TestDataGenerator<?>> series = rowMap.get(dataType);
-      for (Map.Entry<TLongArrayList, TestDataGenerator<?>> dataList : series.entrySet()) {
-        // TODO: come up with cleaner API, as this casting is wrong, i.e mDataSeriesMap returns a generic list
-        dataList.getKey().add(mCurrentTime);
-        dataList.getValue().generateData(mCurrentTime);
-      }
-    }
+  public void registerAdapter(SeriesDataType type, DataAdapter adapter) {
+    myDataSeriesMap.put(type,adapter);
+    adapter.setStartTime(mStartTime);
   }
 
   private void startGeneratingData() {
     for (SeriesDataType type : SeriesDataType.values()) {
       switch (type) {
         case CPU_MY_PROCESS:
-          mDataSeriesMap.put(type, new TLongArrayList(), new LongTestDataGenerator(0, 60, false));
+          registerAdapter(type, new LongTestDataGenerator(0, 60, false));
           break;
         case CPU_OTHER_PROCESSES:
-          mDataSeriesMap.put(type, new TLongArrayList(), new LongTestDataGenerator(0, 20, false));
+          registerAdapter(type, new LongTestDataGenerator(0, 20, false));
           break;
         case CPU_THREADS:
         case NETWORK_CONNECTIONS:
-          mDataSeriesMap.put(type, new TLongArrayList(), new LongTestDataGenerator(0, 10, false));
+          registerAdapter(type, new LongTestDataGenerator(0, 10, false));
           break;
         case MEMORY_TOTAL:
         case MEMORY_JAVA:
-          mDataSeriesMap.put(type, new TLongArrayList(), new MemoryTestDataGenerator(true));
+          registerAdapter(type, new MemoryTestDataGenerator(true));
           break;
         case MEMORY_OTHERS:
-          mDataSeriesMap.put(type, new TLongArrayList(), new MemoryTestDataGenerator(false));
+          registerAdapter(type, new MemoryTestDataGenerator(false));
           break;
         case EVENT_ACTIVITY_ACTION:
-          mDataSeriesMap.put(type, new TLongArrayList(), new StackedEventTestDataGenerator("Activities"));
+          registerAdapter(type, new StackedEventTestDataGenerator("Activities"));
           break;
         case EVENT_FRAGMENT_ACTION:
-          mDataSeriesMap.put(type, new TLongArrayList(), new StackedEventTestDataGenerator("Fragments"));
+          registerAdapter(type, new StackedEventTestDataGenerator("Fragments"));
           break;
         case EVENT_SIMPLE_ACTION:
-          mDataSeriesMap.put(type, new TLongArrayList(), new SimpleEventTestDataGenerator());
+          registerAdapter(type, new SimpleEventTestDataGenerator());
           break;
         default:
-          mDataSeriesMap.put(type, new TLongArrayList(), new LongTestDataGenerator(-20, 100, true));
+          registerAdapter(type, new LongTestDataGenerator(-20, 100, true));
           break;
       }
     }
-    mStartTime = System.currentTimeMillis();
-
-    mDataThread = new Thread() {
-      @Override
-      public void run() {
-        try {
-          while (true) {
-            // TODO: come up with better thread issues handling
-            SwingUtilities.invokeLater(() -> generateData());
-
-            // TODO support configurable timing
-            Thread.sleep(100);
-          }
-        }
-        catch (InterruptedException e) {
-        }
-      }
-    };
-    mDataThread.start();
   }
 
 }
