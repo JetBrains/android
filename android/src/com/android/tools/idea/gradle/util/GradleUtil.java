@@ -1251,7 +1251,7 @@ public final class GradleUtil {
         GradleBuildModel buildModel = GradleBuildModel.get(module);
         if (buildModel != null) {
           AndroidModel android = buildModel.android();
-          if (!version.equals(android.buildToolsVersion())) {
+          if (android != null && !version.equals(android.buildToolsVersion())) {
             android.setBuildToolsVersion(version);
             modelsToUpdate.add(buildModel);
           }

@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle;
 import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.model.android.CompileOptionsModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
@@ -178,7 +179,11 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
     }
 
     if (getAndroidModel(module) != null) {
-      CompileOptionsModel compileOptions = buildModel.android().compileOptions();
+      AndroidModel android = buildModel.android();
+      if (android == null) {
+        return null;
+      }
+      CompileOptionsModel compileOptions = android.compileOptions();
       compileOptions.setSourceCompatibility(level);
       compileOptions.setTargetCompatibility(level);
     }
