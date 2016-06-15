@@ -17,12 +17,14 @@ package com.android.tools.idea.monitor.ui.network.view;
 
 import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.Range;
+import com.android.tools.idea.monitor.datastore.Poller;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.ui.BaseProfilerUiManager;
 import com.android.tools.idea.monitor.ui.BaseSegment;
 import com.android.tools.idea.monitor.ui.ProfilerEventListener;
 import com.intellij.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class NetworkProfilerUiManager extends BaseProfilerUiManager {
 
@@ -31,12 +33,10 @@ public final class NetworkProfilerUiManager extends BaseProfilerUiManager {
     super(xRange, choreographer, datastore, eventDispatcher);
   }
 
+  @Nullable
   @Override
-  public void startMonitoring(int pid) {
-  }
-
-  @Override
-  public void stopMonitoring(int pid) {
+  public Poller createPoller(int pid) {
+    return null;
   }
 
   @Override
