@@ -117,17 +117,22 @@ public class NetworkProfilerVisualTest extends VisualTest {
     panel.setLayout(new GridBagLayout());
     GridBagConstraints constraints = new GridBagConstraints();
     constraints.fill = GridBagConstraints.BOTH;
-    constraints.weighty = .5;
-    constraints.weightx = 1;
-    constraints.gridy = 0;
-    mSegment.initializeComponents();
-    panel.add(mSegment, constraints);
 
-    constraints.gridy = 1;
+    constraints.gridy = 0;
+    constraints.weighty = 0.05;
+    constraints.weightx = 1;
     mRadioSegment.initializeComponents();
     panel.add(mRadioSegment, constraints);
 
+    constraints.weighty = .5;
+    constraints.gridy = 1;
+    mSegment.initializeComponents();
+    mSegment.toggleView(true);
+    panel.add(mSegment, constraints);
+
+
     constraints.gridy = 2;
+    constraints.weighty = 0.45;
     mCaptureSegment.initializeComponents();
     panel.add(mCaptureSegment, constraints);
     simulateTestData();
@@ -149,7 +154,8 @@ public class NetworkProfilerVisualTest extends VisualTest {
               int index = rnd.nextInt(10);
               series.add(now, (index < states.length) ? states[index] : NetworkCaptureSegment.NetworkState.NONE);
             }
-            mRadioStateData.add(now, radioStates[rnd.nextInt(radioStates.length)]);
+            int index = rnd.nextInt(10);
+            mRadioStateData.add(now, (index < radioStates.length) ? radioStates[index] : RadioSegment.RadioState.NONE);
             Thread.sleep(1000);
           }
         }
