@@ -84,13 +84,13 @@ public class AndroidMonitorToolWindow implements Disposable {
   @NotNull
   private final JPanel myComponent;
 
-  @NotNull
-  private final Choreographer myChoreographer;
+  @Nullable
+  private Choreographer myChoreographer;
 
-  @NotNull
+  @Nullable
   private SeriesDataStore myDataStore;
 
-  @NotNull
+  @Nullable
   private CpuDataPoller myCpuDataPoller;
 
   private SelectionComponent mySelection;
@@ -114,15 +114,9 @@ public class AndroidMonitorToolWindow implements Disposable {
   public AndroidMonitorToolWindow(@NotNull final Project project) {
     myProject = project;
     myComponent = new JPanel(new BorderLayout());
-    myDataStore = new SeriesDataStoreImpl();
-    myCpuDataPoller = new CpuDataPoller();
-    myChoreographer = new Choreographer(CHOREOGRAPHER_FPS, myComponent);
-    myChoreographer.register(createComponentsList());
-    myEventDispatcher = EventDispatcher.create(ProfilerEventListener.class);
-
     myDeviceContext = new DeviceContext();
     setupDevice();
-    populateUi();
+    createToolbarComponent();
   }
 
   @Override
@@ -130,8 +124,7 @@ public class AndroidMonitorToolWindow implements Disposable {
   }
 
   private List<Animatable> createComponentsList() {
-    Range xGlobalRange = new Range();
-    AnimatedTimeRange animatedTimeRange = new AnimatedTimeRange(xGlobalRange, System.currentTimeMillis());
+    Range xGlobalRange = new Range(-RangeScrollbar.DEFAULT_VIEW_LENGTH_MS, 0);
     Range xSelectionRange = new Range();
 
     myXRange = new Range();
@@ -146,8 +139,17 @@ public class AndroidMonitorToolWindow implements Disposable {
     mySegmentsContainer.setLayout(mySegmentsLayout);
     mySelection = new SelectionComponent(mySegmentsContainer, myTimeAxis, xSelectionRange, xGlobalRange, myXRange);
 
-    return Arrays.asList(
-      mySegmentsLayout, animatedTimeRange, mySelection, myScrollbar, myTimeAxis, myXRange, xGlobalRange, xSelectionRange);
+    return Arrays.asList(mySegmentsLayout,
+                         frameLength -> {
+                           // Updates the global range's max to match the device's current time.
+                           xGlobalRange.setMaxTarget(myDataStore.getLatestTime());
+                         },
+                         mySelection,
+                         myScrollbar,
+                         myTimeAxis,
+                         myXRange,
+                         xGlobalRange,
+                         xSelectionRange);
   }
 
   private void setupDevice() {
@@ -180,9 +182,41 @@ public class AndroidMonitorToolWindow implements Disposable {
         }
       }
 
+      /**
+       * If a valid Client is selected, (re)initialize the UI/datastore and everything along with it.
+       *
+       * TODO for now, the UI/datastore is destroyed if the Client is null. We should come up with a better approach
+       *      to keep the existing information present and have some visuals to indicate a "disconnected" status.
+       */
       @Override
       public void clientSelected(@Nullable Client c) {
         mySelectedClient = c;
+
+        synchronized (myComponent.getTreeLock()) {
+          // Empties the entire UI except the toolbar.
+          for (int i = myComponent.getComponentCount() - 1; i > 0; i--) {
+            myComponent.remove(i);
+          }
+        }
+        if (myCpuDataPoller != null) {
+          myCpuDataPoller.stopDataRequest();
+          myCpuDataPoller = null;
+        }
+        if (myDataStore != null) {
+          myDataStore.reset();
+          myDataStore = null;
+        }
+        myChoreographer = null;
+        myEventDispatcher = null;
+
+        if (mySelectedClient != null && mySelectedDeviceProfilerService != null) {
+          myDataStore = new SeriesDataStoreImpl(mySelectedDeviceProfilerService);
+          myCpuDataPoller = new CpuDataPoller();
+          myChoreographer = new Choreographer(CHOREOGRAPHER_FPS, myComponent);
+          myChoreographer.register(createComponentsList());
+          myEventDispatcher = EventDispatcher.create(ProfilerEventListener.class);
+          populateProfilerUi();
+        }
       }
     }, this);
   }
@@ -202,9 +236,7 @@ public class AndroidMonitorToolWindow implements Disposable {
     myComponent.add(toolbar, BorderLayout.NORTH);
   }
 
-  private void populateUi() {
-    createToolbarComponent();
-
+  private void populateProfilerUi() {
     GridBagLayout gbl = new GridBagLayout();
     GridBagConstraints gbc = new GridBagConstraints();
     JBPanel gridBagPanel = new JBPanel();
