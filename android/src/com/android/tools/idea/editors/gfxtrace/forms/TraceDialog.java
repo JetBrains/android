@@ -184,8 +184,11 @@ public class TraceDialog extends JDialog {
         onStop();
         break;
       case ERROR:
+        myListener.onCancelTrace();
         onClose();
         break;
+      default:
+        throw new IllegalStateException(myState.name());
     }
   }
 
