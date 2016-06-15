@@ -24,7 +24,6 @@ import com.android.tools.idea.editors.gfxtrace.forms.TraceDialog;
 import com.android.tools.idea.editors.gfxtrace.gapi.GapiPaths;
 import com.android.tools.idea.monitor.gpu.GpuMonitorView;
 import com.intellij.concurrency.JobScheduler;
-import com.android.tools.idea.profiling.capture.CaptureService;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.RunConfiguration;
@@ -44,157 +43,147 @@ import javax.swing.*;
 import java.util.concurrent.TimeUnit;
 import java.awt.*;
 
-public abstract class GfxTraceCaptureAction extends ToggleAction {
+public class GfxTraceCaptureAction extends ToggleAction {
+
+  private static final String BUTTON_TEXT = "Launch";
+  private static final String NOTIFICATION_GROUP = "GPU trace";
+  private static final String NOTIFICATION_LAUNCH_REQUIRES_ROOT_TITLE = "Rooted device required";
+  private static final String NOTIFICATION_LAUNCH_REQUIRES_ROOT_CONTENT =
+    "The device needs to be rooted in order to launch an application for GPU tracing.<br/>" +
+    "To trace your own application on a non-rooted device, build your application with the GPU tracing library.";
+
   @NotNull protected final GpuMonitorView myView;
-  @NotNull protected final String myText;
-  private static JDialog sActiveForm = null;
   private JDialog myActiveForm = null;
+  private static JDialog sActiveForm = null;
 
-  public static class Launch extends GfxTraceCaptureAction {
-    private static final String NOTIFICATION_GROUP = "GPU trace";
-    private static final String NOTIFICATION_LAUNCH_REQUIRES_ROOT_TITLE = "Rooted device required";
-    private static final String NOTIFICATION_LAUNCH_REQUIRES_ROOT_CONTENT =
-      "The device needs to be rooted in order to launch an application for GPU tracing.<br/>" +
-      "To trace your own application on a non-rooted device, build your application with the GPU tracing library.";
-
-    public Launch(@NotNull GpuMonitorView view) {
-      super(view, "Launch", "Launch in GFX trace mode", AndroidIcons.GfxTrace.InjectSpy);
-    }
-
-    @Override
-    void start(@NotNull final Container window, @NotNull final IDevice device) {
-      ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
-        private static final int ROOT_QUERY_TIMEOUT = 3000;
-        private static final int ROOT_QUERY_INTERVAL = 250;
-
-        @Override
-        public void run() {
-          try {
-            if (device.root()) {
-              rootingSucceeded();
-            }
-            else {
-              rootingFailed();
-            }
-            return;
-          }
-          catch (Exception ignored) {
-          }
-
-          // adb root may need some time to restart. Keep on trying to query for a few seconds.
-          new Runnable() {
-            long start = System.currentTimeMillis();
-
-            @Override
-            public void run() {
-              try {
-                if (device.isRoot()) {
-                  rootingSucceeded();
-                }
-                else {
-                  rootingFailed();
-                }
-              }
-              catch (Exception ignored) {
-                if ((System.currentTimeMillis() - start) < ROOT_QUERY_TIMEOUT) {
-                  JobScheduler.getScheduler().schedule(this, ROOT_QUERY_INTERVAL, TimeUnit.MILLISECONDS);
-                }
-                else {
-                  rootingFailed();
-                }
-              }
-            }
-          }.run();
-        }
-
-        private void rootingFailed() {
-          // Failed to restart adb as root.
-          // Display message and abort.
-          ApplicationManager.getApplication().invokeLater(new Runnable() {
-            @Override
-            public void run() {
-              Notifications.Bus.notify(
-                new Notification(NOTIFICATION_GROUP, NOTIFICATION_LAUNCH_REQUIRES_ROOT_TITLE, NOTIFICATION_LAUNCH_REQUIRES_ROOT_CONTENT,
-                                 NotificationType.ERROR));
-            }
-          });
-          onStop();
-        }
-
-        private void rootingSucceeded() {
-          showLauncher(window, device, getSelectedRunConfiguration(myView));
-        }
-      });
-    }
-
-    private void showLauncher(final Component owner, final IDevice device, final RunConfiguration runConfig) {
-      DeviceInfo.Provider provider = new DeviceInfo.PkgInfoProvider(device);
-      final ActivitySelector selector = new ActivitySelector(provider);
-      selector.setListener(new ActivitySelector.Listener() {
-        @Override
-        public void OnLaunch(DeviceInfo.Package pkg, DeviceInfo.Activity act, String name) {
-          showTraceDialog(selector, device, pkg, act, runConfig, name);
-        }
-
-        @Override
-        public void OnCancel() {
-          onStop();
-        }
-      });
-      selector.setLocationRelativeTo(owner);
-      selector.setTitle("Launch activity...");
-      selector.setVisible(true);
-      setActiveForm(selector);
-    }
-
-    private void showTraceDialog(final Component owner,
-                                 final IDevice device,
-                                 final DeviceInfo.Package pkg,
-                                 final DeviceInfo.Activity act,
-                                 final RunConfiguration runConfig,
-                                 String name) {
-      final TraceDialog dialog = new TraceDialog();
-      dialog.setListener(new TraceDialog.Listener() {
-        private GfxTracer myTracer = null;
-
-        @Override
-        public void onStartTrace(@NotNull String name) {
-          GfxTracer.Options options = GfxTracer.Options.fromRunConfiguration(runConfig);
-          options.myTraceName = name;
-          myTracer = GfxTracer.launch(myView.getProject(), device, pkg, act, options, bindListener(dialog));
-        }
-
-        @Override
-        public void onStopTrace() {
-          // myTracer may be null if for some reason we have crashed while starting taking a trace.
-          if (myTracer != null) {
-            myTracer.stop();
-          }
-          onStop();
-        }
-
-        @Override
-        public void onCancelTrace() {
-          onStop();
-        }
-      });
-
-      dialog.setLocationRelativeTo(owner);
-      // Use the package name as the suggested trace name if none was provided.
-      dialog.setDefaultName(name.isEmpty() ? pkg.getDisplayName() : name);
-      dialog.setVisible(true);
-      setActiveForm(dialog);
-      dialog.onBegin();
-    }
+  public GfxTraceCaptureAction(@NotNull GpuMonitorView view) {
+    super(BUTTON_TEXT, "Launch in GFX trace mode", AndroidIcons.GfxTrace.InjectSpy);
+    myView = view;
   }
 
-  public GfxTraceCaptureAction(@NotNull GpuMonitorView view,
-                               @Nullable final String text,
-                               @Nullable final String description,
-                               @Nullable final Icon icon) {
-    super(text, description, icon);
-    myView = view;
-    myText = text;
+  void start(@NotNull final Container window, @NotNull final IDevice device) {
+    ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
+      private static final int ROOT_QUERY_TIMEOUT = 3000;
+      private static final int ROOT_QUERY_INTERVAL = 250;
+
+      @Override
+      public void run() {
+        try {
+          if (device.root()) {
+            rootingSucceeded();
+          }
+          else {
+            rootingFailed();
+          }
+          return;
+        }
+        catch (Exception ignored) {
+        }
+
+        // adb root may need some time to restart. Keep on trying to query for a few seconds.
+        new Runnable() {
+          long start = System.currentTimeMillis();
+
+          @Override
+          public void run() {
+            try {
+              if (device.isRoot()) {
+                rootingSucceeded();
+              }
+              else {
+                rootingFailed();
+              }
+            }
+            catch (Exception ignored) {
+              if ((System.currentTimeMillis() - start) < ROOT_QUERY_TIMEOUT) {
+                JobScheduler.getScheduler().schedule(this, ROOT_QUERY_INTERVAL, TimeUnit.MILLISECONDS);
+              }
+              else {
+                rootingFailed();
+              }
+            }
+          }
+        }.run();
+      }
+
+      private void rootingFailed() {
+        // Failed to restart adb as root.
+        // Display message and abort.
+        ApplicationManager.getApplication().invokeLater(new Runnable() {
+          @Override
+          public void run() {
+            Notifications.Bus.notify(
+              new Notification(NOTIFICATION_GROUP, NOTIFICATION_LAUNCH_REQUIRES_ROOT_TITLE, NOTIFICATION_LAUNCH_REQUIRES_ROOT_CONTENT,
+                               NotificationType.ERROR));
+          }
+        });
+        onStop();
+      }
+
+      private void rootingSucceeded() {
+        showLauncher(window, device, getSelectedRunConfiguration(myView));
+      }
+    });
+  }
+
+  private void showLauncher(final Component owner, final IDevice device, final RunConfiguration runConfig) {
+    DeviceInfo.Provider provider = new DeviceInfo.PkgInfoProvider(device);
+    final ActivitySelector selector = new ActivitySelector(provider);
+    selector.setListener(new ActivitySelector.Listener() {
+      @Override
+      public void OnLaunch(DeviceInfo.Package pkg, DeviceInfo.Activity act, String name) {
+        showTraceDialog(selector, device, pkg, act, runConfig, name);
+      }
+
+      @Override
+      public void OnCancel() {
+        onStop();
+      }
+    });
+    selector.setLocationRelativeTo(owner);
+    selector.setTitle("Launch activity...");
+    selector.setVisible(true);
+    setActiveForm(selector);
+  }
+
+  private void showTraceDialog(final Component owner,
+                               final IDevice device,
+                               final DeviceInfo.Package pkg,
+                               final DeviceInfo.Activity act,
+                               final RunConfiguration runConfig,
+                               String name) {
+    final TraceDialog dialog = new TraceDialog();
+    dialog.setListener(new TraceDialog.Listener() {
+      private GfxTracer myTracer = null;
+
+      @Override
+      public void onStartTrace(@NotNull String name) {
+        GfxTracer.Options options = GfxTracer.Options.fromRunConfiguration(runConfig);
+        options.myTraceName = name;
+        myTracer = GfxTracer.launch(myView.getProject(), device, pkg, act, options, bindListener(dialog));
+      }
+
+      @Override
+      public void onStopTrace() {
+        // myTracer may be null if for some reason we have crashed while starting taking a trace.
+        if (myTracer != null) {
+          myTracer.stop();
+        }
+        onStop();
+      }
+
+      @Override
+      public void onCancelTrace() {
+        onStop();
+      }
+    });
+
+    dialog.setLocationRelativeTo(owner);
+    // Use the package name as the suggested trace name if none was provided.
+    dialog.setDefaultName(name.isEmpty() ? pkg.getDisplayName() : name);
+    dialog.setVisible(true);
+    setActiveForm(dialog);
+    dialog.onBegin();
   }
 
   @Override
@@ -225,11 +214,11 @@ public abstract class GfxTraceCaptureAction extends ToggleAction {
     Presentation presentation = e.getPresentation();
     if (!GapiPaths.isValid()) {
       presentation.setEnabled(false);
-      presentation.setText(myText + " : GPU debugger tools not installed");
+      presentation.setText(BUTTON_TEXT + " : GPU debugger tools not installed");
     }
     else {
       presentation.setEnabled(isEnabled());
-      presentation.setText(myText);
+      presentation.setText(BUTTON_TEXT);
     }
   }
 
@@ -339,6 +328,4 @@ public abstract class GfxTraceCaptureAction extends ToggleAction {
       }
     };
   }
-
-  abstract void start(@NotNull Container window, @NotNull IDevice device);
 }
