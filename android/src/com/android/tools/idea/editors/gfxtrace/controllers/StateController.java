@@ -66,7 +66,7 @@ public class StateController extends TreeController implements GpuState.Listener
   private static final @NotNull Logger LOG = Logger.getInstance(StateController.class);
   private static final @NotNull TypedValue ROOT_TYPE = new TypedValue(null, SnippetObject.symbol("state"));
 
-  private final @NotNull StateTreeModel myModel = new StateTreeModel(new Node(ROOT_TYPE, null));
+  private final @NotNull StateTreeModel myModel = new StateTreeModel(new Node(ROOT_TYPE, null, false));
 
   private @Nullable TreePath myLastSelectedBreadcrumb;
 
@@ -221,16 +221,16 @@ public class StateController extends TreeController implements GpuState.Listener
 
   private static @NotNull Path getPathSegmentFor(@Nullable Path parent, @NotNull Node node) {
     Object obj = node.key.value.getObject();
+    if (node.isMapKey) {
+      MapIndexPath path = new MapIndexPath();
+      path.setKey(obj);
+      path.setMap(parent);
+      return path;
+    }
     if (obj instanceof String) {
       FieldPath path = new FieldPath();
       path.setName((String)obj);
       path.setStruct(parent);
-      return path;
-    }
-    if (obj instanceof Number || obj instanceof Dynamic) {
-      MapIndexPath path = new MapIndexPath();
-      path.setKey(obj);
-      path.setMap(parent);
       return path;
     }
     throw new IllegalArgumentException("unknown type: " + obj.getClass().getSimpleName());
@@ -259,7 +259,7 @@ public class StateController extends TreeController implements GpuState.Listener
     if (getModel() != myModel) {
       setModel(myModel);
     }
-    myModel.setRoot(convert(ROOT_TYPE, new TypedValue(null, SnippetObject.root(state.getState(), getSnippets(state)))));
+    myModel.setRoot(convert(ROOT_TYPE, new TypedValue(null, SnippetObject.root(state.getState(), getSnippets(state))), false));
   }
 
   @Override
@@ -310,8 +310,8 @@ public class StateController extends TreeController implements GpuState.Listener
     return KindredSnippets.fromMetadata(state.getState().klass().entity().getMetadata());
   }
 
-  private static Node convert(TypedValue key, TypedValue value) {
-    final Node result = new Node(key, value);
+  private static Node convert(TypedValue key, TypedValue value, boolean isMapKey) {
+    final Node result = new Node(key, value, isMapKey);
     final SnippetObject obj = value.value;
     final Object underlying = obj.getObject();
     if (underlying instanceof Dynamic || value.type instanceof Map) {
@@ -320,24 +320,24 @@ public class StateController extends TreeController implements GpuState.Listener
         for (int i = 0; i < dynamic.getFieldCount(); i++) {
           final Field field = dynamic.getFieldInfo(i);
           final SnippetObject fieldObj = obj.field(dynamic, i);
-          addChildNode(result,null, SnippetObject.symbol(field.getDeclared()), field.getType(), fieldObj);
+          addChildNode(result,null, SnippetObject.symbol(field.getDeclared()), field.getType(), fieldObj, false);
         }
       }
       else {
         final java.util.Map<Object, Object> map = (java.util.Map<Object, Object>)underlying;
         final Type keyType = ((Map)value.type).getKeyType(), valueType = ((Map)value.type).getValueType();
         for (java.util.Map.Entry<Object, Object> e : map.entrySet()) {
-          addChildNode(result, keyType, obj.key(e), valueType, obj.elem(e));
+          addChildNode(result, keyType, obj.key(e), valueType, obj.elem(e), true);
         }
       }
     }
     return result;
   }
 
-  private static void addChildNode(Node parent, Type keyType, SnippetObject keyValue, Type valueType, SnippetObject valueValue) {
+  private static void addChildNode(Node parent, Type keyType, SnippetObject keyValue, Type valueType, SnippetObject valueValue, boolean isMapKey) {
     // we dont want to create child Nodes for MemorySliceInfo, as they are shown simply as a inline values
     if (!(valueValue.getObject() instanceof MemorySliceInfo)) {
-      parent.addChild(convert(new TypedValue(keyType, keyValue), new TypedValue(valueType, valueValue)));
+      parent.addChild(convert(new TypedValue(keyType, keyValue), new TypedValue(valueType, valueValue), isMapKey));
     }
   }
 
@@ -391,15 +391,17 @@ public class StateController extends TreeController implements GpuState.Listener
   }
 
   public static class Node {
+    public final boolean isMapKey;
     public final TypedValue key;
     public TypedValue value;
     private final List<Node> childrenByIndex = Lists.newArrayList();
     private final HashMap<TypedValue, Node> childrenByKey = Maps.newHashMap();
     private @Nullable("not made server request yet") Path followPath;
 
-    public Node(TypedValue key, TypedValue value) {
+    public Node(TypedValue key, TypedValue value, boolean isMapKey) {
       this.key = key;
       this.value = value;
+      this.isMapKey = isMapKey;
     }
 
     public void addChild(Node node) {
