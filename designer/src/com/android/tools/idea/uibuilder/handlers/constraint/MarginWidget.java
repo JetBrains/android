@@ -140,7 +140,11 @@ public class MarginWidget extends JPanel {
   }
 
   public int getMargin() {
-    return Integer.parseInt(label.getText());
+    try {
+      return Integer.parseInt(label.getText());
+    } catch (NumberFormatException e) {
+      return 0;
+    }
   }
 
   public void addActionListener(ActionListener actionListener) {
