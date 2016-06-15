@@ -18,7 +18,6 @@ package com.android.tools.adtui;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.ReportingSeries;
 import com.android.tools.adtui.model.ReportingSeriesRenderer;
-import gnu.trove.TIntArrayList;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -32,6 +31,7 @@ import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -43,6 +43,11 @@ public final class SelectionComponent extends AnimatedComponent {
    * Percentage of the current range to apply on each zoom in/out operation.
    */
   public static final float ZOOM_FACTOR = 0.1f;
+
+  /**
+   * Minimum range the user can zoom into the profilers.
+   */
+  private static final double MINIMUM_VIEW_LENGTH_MS = TimeUnit.SECONDS.toMillis(1);
 
   /**
    * Default drawing Dimension for the handles.
@@ -479,6 +484,26 @@ public final class SelectionComponent extends AnimatedComponent {
   private void requestZoom(double minTarget, double maxTarget) {
     mZoomMinTarget = Math.max(mDataRange.getMin(), minTarget);
     mZoomMaxTarget = Math.min(mDataRange.getMax(), maxTarget);
+
+    // Clamp zoom to minimum range by distributing the delta evenly between the min and max.
+    double zoomLength = mZoomMaxTarget - mZoomMinTarget;
+    if (zoomLength < MINIMUM_VIEW_LENGTH_MS) {
+      double delta = (MINIMUM_VIEW_LENGTH_MS - zoomLength) / 2;
+      double clampedZoomMin = Math.max(mDataRange.getMin(), mZoomMinTarget - delta);
+      double clampedZoomMax = Math.min(mDataRange.getMax(), mZoomMaxTarget + delta);
+
+      // Distribute any extra delta to the other side if the clamped zooms were bounded by mDataRange.
+      if (mZoomMinTarget - clampedZoomMin < delta) {
+        clampedZoomMax += delta - (mZoomMinTarget - clampedZoomMin);
+      }
+      else if (clampedZoomMax - mZoomMaxTarget < delta) {
+        clampedZoomMin -= delta - (clampedZoomMax - mZoomMaxTarget);
+      }
+
+      mZoomMinTarget = clampedZoomMin;
+      mZoomMaxTarget = clampedZoomMax;
+    }
+
     mZoomRequested = true;
   }
 

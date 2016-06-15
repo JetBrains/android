@@ -17,10 +17,15 @@ package com.android.tools.idea.monitor.datastore;
 
 import com.android.tools.adtui.Range;
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.idea.monitor.profilerclient.DeviceProfilerService;
+import com.android.tools.profiler.proto.ProfilerService;
 import gnu.trove.TLongArrayList;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public final class SeriesDataStoreImpl implements SeriesDataStore {
 
@@ -38,16 +43,22 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
 
   private Map<SeriesDataType, DataAdapter<?>> myDataSeriesMap = new HashMap<>();
 
+  private long myDeviceStartTime;
+
   private long myStartTime;
 
-  public SeriesDataStoreImpl() {
+  @NotNull
+  private final DeviceProfilerService myDeviceProfilerService;
+
+  public SeriesDataStoreImpl(@NotNull DeviceProfilerService deviceProfilerService) {
+    myDeviceProfilerService = deviceProfilerService;
     startGeneratingData();
   }
 
   @Override
   public void reset() {
-    myStartTime = System.currentTimeMillis();
-    for(DataAdapter<?> adapter : myDataSeriesMap.values()) {
+    synchronizeStartTime();
+    for (DataAdapter<?> adapter : myDataSeriesMap.values()) {
       adapter.reset();
       adapter.setStartTime(myStartTime);
     }
@@ -85,7 +96,7 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
   }
 
   private void startGeneratingData() {
-    myStartTime = System.currentTimeMillis();
+    synchronizeStartTime();
     for (SeriesDataType type : SeriesDataType.values()) {
       switch (type) {
         case CPU_MY_PROCESS:
@@ -105,6 +116,17 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
           break;
       }
     }
+  }
+
+  /**
+   * Initialize and synchronize the system start time with the device time. That way we can use (current time - start time) as the offset
+   * when converting studio time to device time when making data requests.
+   */
+  private void synchronizeStartTime() {
+    ProfilerService.TimesResponse response = myDeviceProfilerService.getDeviceService().getTimes(
+      ProfilerService.TimesRequest.getDefaultInstance());
+    myStartTime = System.currentTimeMillis();
+    myDeviceStartTime = TimeUnit.NANOSECONDS.toMillis(response.getTimestamp());
   }
 
   /**
@@ -157,7 +179,7 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
 
     @Override
     public void reset() {
-      if(myDataThread != null) {
+      if (myDataThread != null) {
         myDataThread.interrupt();
         myTime.clear();
         myData.clear();
@@ -206,7 +228,7 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
      * @param max upper bound of the interval (inclusive)
      */
     private static long randomInInterval(long min, long max) {
-      return (long) Math.floor(Math.random() * (max - min + 1) + min);
+      return (long)Math.floor(Math.random() * (max - min + 1) + min);
     }
   }
 }

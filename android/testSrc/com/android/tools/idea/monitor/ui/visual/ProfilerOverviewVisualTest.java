@@ -118,7 +118,7 @@ public class ProfilerOverviewVisualTest extends VisualTest {
   @Override
   protected List<Animatable> createComponentsList() {
     mXRange = new Range();
-    mXGlobalRange = new Range();
+    mXGlobalRange = new Range(-RangeScrollbar.DEFAULT_VIEW_LENGTH_MS, 0);
     mXSelectionRange = new Range();
 
     mScrollbar = new RangeScrollbar(mXGlobalRange, mXRange);
@@ -299,7 +299,7 @@ public class ProfilerOverviewVisualTest extends VisualTest {
         segment = new TimeAxisSegment(mXRange, mTimeAxis, mEventDispatcher);
         break;
       case EVENT:
-        segment = new EventSegment(mXGlobalRange, mDataStore, MOCK_ICONS, mEventDispatcher);
+        segment = new EventSegment(mXRange, mDataStore, MOCK_ICONS, mEventDispatcher);
         break;
       case CPU:
         segment = new CpuUsageSegment(mXRange, mDataStore, mEventDispatcher);
