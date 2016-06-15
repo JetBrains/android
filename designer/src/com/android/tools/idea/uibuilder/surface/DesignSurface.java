@@ -598,15 +598,29 @@ public class DesignSurface extends JPanel implements Disposable {
 
     switch (type) {
       case IN: {
-        int current = (int)(myScale * 100);
+        double currentScale = myScale;
+        if (SystemInfo.isMac && UIUtil.isRetina()) {
+          currentScale *= 2;
+        }
+        int current = (int)(currentScale * 100);
         double scale = ZoomType.zoomIn(current) / 100.0;
+        if (SystemInfo.isMac && UIUtil.isRetina()) {
+          scale /= 2;
+        }
         setScale(scale);
         repaint();
         break;
       }
       case OUT: {
-        int current = (int)(myScale * 100);
+        double currentScale = myScale;
+        if (SystemInfo.isMac && UIUtil.isRetina()) {
+          currentScale *= 2;
+        }
+        int current = (int)(currentScale * 100);
         double scale = ZoomType.zoomOut(current) / 100.0;
+        if (SystemInfo.isMac && UIUtil.isRetina()) {
+          scale /= 2;
+        }
         setScale(scale);
         repaint();
         break;
