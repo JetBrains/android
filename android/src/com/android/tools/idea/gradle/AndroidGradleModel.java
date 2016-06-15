@@ -160,10 +160,13 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
     return getDependencies(mainArtifact, getModelVersion());
   }
 
-  @NotNull
+  @Nullable
   public Dependencies getSelectedAndroidTestCompileDependencies() {
     AndroidArtifact androidTestArtifact = getAndroidTestArtifactInSelectedVariant();
-    assert androidTestArtifact != null;
+    if (androidTestArtifact == null) {
+      // Only variants in the debug build type have an androidTest artifact.
+      return null;
+    }
     return getDependencies(androidTestArtifact, getModelVersion());
   }
 
