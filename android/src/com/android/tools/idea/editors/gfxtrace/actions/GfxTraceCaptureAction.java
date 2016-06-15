@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.editors.gfxtrace.actions;
 
+import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
+import com.android.ddmlib.Log;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.DeviceInfo;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
@@ -43,8 +45,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.concurrent.TimeUnit;
+import java.util.Arrays;
+import java.util.Optional;
 import java.awt.*;
+import java.util.function.Consumer;
 
 public class GfxTraceCaptureAction extends ToggleAction {
 
@@ -53,6 +57,9 @@ public class GfxTraceCaptureAction extends ToggleAction {
   private static final String NOTIFICATION_LAUNCH_REQUIRES_ROOT_CONTENT =
     "The device needs to be rooted in order to launch an application for GPU tracing.<br/>" +
     "To trace your own application on a non-rooted device, enable tracing in the run configuration.";
+
+  private static final int ROOT_CHECK_RETRY_INTERVAL_MS = 250;
+  private static final int ROOT_CHECK_ATTEMPTS = 15;
 
   @NotNull protected final GpuMonitorView myView;
   private JDialog myActiveForm = null;
@@ -63,69 +70,81 @@ public class GfxTraceCaptureAction extends ToggleAction {
     myView = view;
   }
 
-  void start(@NotNull final Container window, @NotNull final IDevice device) {
-    ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
-      private static final int ROOT_QUERY_TIMEOUT = 3000;
-      private static final int ROOT_QUERY_INTERVAL = 250;
+  private void ensureRoot(IDevice device, Consumer<IDevice> onSuccess, Runnable onFailure) {
+    ApplicationManager.getApplication().executeOnPooledThread(() -> {
 
-      @Override
-      public void run() {
-        try {
-          if (device.root()) {
-            rootingSucceeded();
-          }
-          else {
-            rootingFailed();
-          }
+      try {
+        if (device.isRoot()) {
+          onSuccess.accept(device);
           return;
         }
-        catch (Exception ignored) {
+      } catch (Exception ex) {
+        // If we can't find out whether the device is rooted or not, we have more serious problems.
+        onFailure.run();
+        return;
+      }
+
+      // Fail fast if we know the device isn't rooted.
+      String deviceDebuggable = device.getProperty(IDevice.PROP_DEBUGGABLE);
+      if (deviceDebuggable != null && "0".equals(deviceDebuggable)) {
+        onFailure.run();
+        return;
+      }
+
+      try {
+        device.root();
+      } catch (Exception ex) {
+        // Let's ignore this for now, Device.root() can be fickle.
+      }
+
+      AndroidDebugBridge bridge = AndroidDebugBridge.getBridge();
+      for (int attempt = 1; attempt <= ROOT_CHECK_ATTEMPTS; attempt++) {
+        // When we call root() the device disconnects for a bit and AndroidDebugBridge writes it off. What comes back rooted is a
+        // different IDevice instance. All the Clients are added to this new instance as they connect, and so that's the one we need.
+        Optional<IDevice> rootedDevice = Arrays.stream(bridge.getDevices())
+          .filter(d -> {
+            try {
+              return
+                d.getSerialNumber().equals(device.getSerialNumber()) &&
+                d.isOnline() &&
+                d.isRoot() &&
+                d.hasClients();
+            }
+            catch (Exception ex) {
+              return false;
+            }
+          }).findFirst();
+
+        if (rootedDevice.isPresent()) {
+          onSuccess.accept(rootedDevice.get());
+          return;
         }
 
-        // adb root may need some time to restart. Keep on trying to query for a few seconds.
-        new Runnable() {
-          long start = System.currentTimeMillis();
-
-          @Override
-          public void run() {
-            try {
-              if (device.isRoot()) {
-                rootingSucceeded();
-              }
-              else {
-                rootingFailed();
-              }
-            }
-            catch (Exception ignored) {
-              if ((System.currentTimeMillis() - start) < ROOT_QUERY_TIMEOUT) {
-                JobScheduler.getScheduler().schedule(this, ROOT_QUERY_INTERVAL, TimeUnit.MILLISECONDS);
-              }
-              else {
-                rootingFailed();
-              }
-            }
-          }
-        }.run();
+        try {
+          Thread.sleep(ROOT_CHECK_RETRY_INTERVAL_MS);
+        }
+        catch (InterruptedException ex) {
+          throw new RuntimeException(ex);
+        }
       }
 
-      private void rootingFailed() {
-        // Failed to restart adb as root.
-        // Display message and abort.
-        ApplicationManager.getApplication().invokeLater(new Runnable() {
-          @Override
-          public void run() {
-            Notifications.Bus.notify(
-              new Notification(GfxTraceEditor.NOTIFICATION_GROUP, NOTIFICATION_LAUNCH_REQUIRES_ROOT_TITLE,
-                               NOTIFICATION_LAUNCH_REQUIRES_ROOT_CONTENT, NotificationType.ERROR));
-          }
-        });
-        onStop();
-      }
-
-      private void rootingSucceeded() {
-        showLauncher(window, device, getSelectedRunConfiguration(myView));
-      }
+      onFailure.run();
     });
+  }
+
+  private void rootingFailed() {
+    // Failed to restart adb as root.
+    // Display message and abort.
+    ApplicationManager.getApplication().invokeLater(() -> {
+      Notifications.Bus.notify(
+        new Notification(GfxTraceEditor.NOTIFICATION_GROUP, NOTIFICATION_LAUNCH_REQUIRES_ROOT_TITLE,
+                                         NOTIFICATION_LAUNCH_REQUIRES_ROOT_CONTENT, NotificationType.ERROR));
+    });
+    onStop();
+  }
+
+  void start(@NotNull final Container window, @NotNull final IDevice device) {
+    ensureRoot(device, (rootedDevice) -> showLauncher(window, rootedDevice, getSelectedRunConfiguration(myView)), this::rootingFailed);
   }
 
   private void showLauncher(final Component owner, final IDevice device, final RunConfiguration runConfig) {
