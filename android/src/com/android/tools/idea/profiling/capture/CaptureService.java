@@ -463,7 +463,11 @@ public class CaptureService {
       public File compute() throws IOException {
         VirtualFile dir = createCapturesDirectory();
         String captureFileName = getCaptureFileName(name, type.getCaptureExtension(), writeToTempFile);
-        return new File(dir.createChildData(null, captureFileName).getPath());
+        File captureFile = new File(dir.createChildData(null, captureFileName).getPath());
+        if (writeToTempFile) {
+          captureFile.deleteOnExit();
+        }
+        return captureFile;
       }
     });
 
