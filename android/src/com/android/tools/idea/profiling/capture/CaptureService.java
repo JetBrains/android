@@ -462,10 +462,7 @@ public class CaptureService {
       @Override
       public File compute() throws IOException {
         VirtualFile dir = createCapturesDirectory();
-        String captureFileName = getCaptureFileName(name, type.getCaptureExtension());
-        if (writeToTempFile) {
-          captureFileName += TEMP_FILE_EXTENSION;
-        }
+        String captureFileName = getCaptureFileName(name, type.getCaptureExtension(), writeToTempFile);
         return new File(dir.createChildData(null, captureFileName).getPath());
       }
     });
@@ -477,24 +474,20 @@ public class CaptureService {
    * Returns the filename of a capture based on its name and extension.
    * If the capture file name is already taken by an existing capture then it is suffixed with a unique number.
    *
-   * @param name      the capture name.
-   * @param extension the capture file extension including the '.' prefix.
+   * @param name            the capture name.
+   * @param extension       the capture file extension including the '.' prefix.
+   * @param writeToTempFile whether to add a '.temp' extension during capture.
    * @return the unique capture file name.
    */
   @NotNull
-  private String getCaptureFileName(@Nullable String name, @NotNull String extension) throws IOException {
+  private String getCaptureFileName(@Nullable String name, @NotNull String extension, boolean writeToTempFile) throws IOException {
     // Try the name unaltered.
     String filename = name + extension;
-    if (!captureExists(filename)) {
-      return filename;
+    int i = 1;
+    while (captureExists(filename) || (writeToTempFile && captureExists(filename + TEMP_FILE_EXTENSION))) {
+      filename = String.format("%s-%d%s", name, i++, extension);
     }
-    // Name taken. Add a number suffix.
-    for (int i = 1; true; i++) {
-      filename = String.format("%s-%d%s", name, i, extension);
-      if (!captureExists(filename)) {
-        return filename;
-      }
-    }
+    return writeToTempFile ? filename + TEMP_FILE_EXTENSION : filename;
   }
 
   /**
