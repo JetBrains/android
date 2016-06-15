@@ -68,6 +68,7 @@ public class NewProjectTest {
    *   Successfully created new project with name containing a space.
    *   </pre>
    */
+  @Ignore("http://b.android.com/213056")
   @Test
   public void createNewProjectNameWithSpace() {
     EditorFixture editor = newProject("Test Application").withMinSdk("23").create()
