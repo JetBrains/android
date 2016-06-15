@@ -116,6 +116,12 @@ public class AndroidViewProjectNode extends ProjectViewNode<Project> {
     return String.format("%1$s", getProject().getName());
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (o == null || getClass() != o.getClass()) return false;
+    return super.equals(o);
+  }
+
   /** Copy of {@link com.intellij.ide.projectView.impl.nodes.AbstractProjectNode#update(com.intellij.ide.projectView.PresentationData)} */
   @Override
   protected void update(PresentationData presentation) {
