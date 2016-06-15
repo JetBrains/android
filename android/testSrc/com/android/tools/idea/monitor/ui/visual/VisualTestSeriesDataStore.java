@@ -16,10 +16,12 @@
 package com.android.tools.idea.monitor.ui.visual;
 
 import com.android.tools.adtui.Range;
-import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.idea.monitor.datastore.SeriesDataList;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.datastore.SeriesDataType;
+import com.android.tools.idea.monitor.ui.visual.data.LongTestDataGenerator;
+import com.android.tools.idea.monitor.ui.visual.data.MemoryTestDataGenerator;
+import com.android.tools.idea.monitor.ui.visual.data.TestDataGenerator;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 import gnu.trove.TLongArrayList;
@@ -32,9 +34,8 @@ public final class VisualTestSeriesDataStore implements SeriesDataStore {
   // The following Table data structure just provides an example implementation on how we can achieve having different timestamps for
   // different series. The profiler datastore implementation should not rely on using generic List<?> to store numerical arrays as that
   // is memory-inefficient.
-  private Table<SeriesDataType, TLongArrayList, List<?>> mDataSeriesMap = HashBasedTable.create();
+  private Table<SeriesDataType, TLongArrayList, TestDataGenerator<?>> mDataSeriesMap = HashBasedTable.create();
   private Thread mDataThread;
-  private Random mRandom = new Random();
   private long mStartTime;
   private long mCurrentTime;
 
@@ -56,7 +57,7 @@ public final class VisualTestSeriesDataStore implements SeriesDataStore {
 
   @Override
   public long getTimeAtIndex(SeriesDataType type, int index) {
-    Map<TLongArrayList, List<?>> dataMap = mDataSeriesMap.row(type);
+    Map<TLongArrayList, TestDataGenerator<?>> dataMap = mDataSeriesMap.row(type);
     assert dataMap.size() == 1;
 
     TLongArrayList timeData = dataMap.keySet().iterator().next();
@@ -65,7 +66,7 @@ public final class VisualTestSeriesDataStore implements SeriesDataStore {
 
   @Override
   public int getClosestTimeIndex(SeriesDataType type, long timeValue) {
-    Map<TLongArrayList, List<?>> dataMap = mDataSeriesMap.row(type);
+    Map<TLongArrayList, TestDataGenerator<?>> dataMap = mDataSeriesMap.row(type);
     assert dataMap.size() == 1;
 
     TLongArrayList timeData = dataMap.keySet().iterator().next();
@@ -81,10 +82,10 @@ public final class VisualTestSeriesDataStore implements SeriesDataStore {
 
   @Override
   public <T> T getValueAtIndex(SeriesDataType type, int index) {
-    Map<TLongArrayList, List<?>> dataMap = mDataSeriesMap.row(type);
+    Map<TLongArrayList, TestDataGenerator<?>> dataMap = mDataSeriesMap.row(type);
     assert dataMap.size() == 1;
 
-    List<?> seriesData = dataMap.values().iterator().next();
+    TestDataGenerator<?> seriesData = dataMap.values().iterator().next();
     return (T)seriesData.get(index);
   }
 
@@ -97,45 +98,41 @@ public final class VisualTestSeriesDataStore implements SeriesDataStore {
     long now = System.currentTimeMillis();
     mCurrentTime = now - mStartTime;
 
-    Map<SeriesDataType, Map<TLongArrayList, List<?>>> rowMap = mDataSeriesMap.rowMap();
+    Map<SeriesDataType, Map<TLongArrayList, TestDataGenerator<?>>> rowMap = mDataSeriesMap.rowMap();
     for (SeriesDataType dataType : rowMap.keySet()) {
-      Map<TLongArrayList, List<?>> series = rowMap.get(dataType);
-      for (Map.Entry<TLongArrayList, List<?>> dataList : series.entrySet()) {
+      Map<TLongArrayList, TestDataGenerator<?>> series = rowMap.get(dataType);
+      for (Map.Entry<TLongArrayList, TestDataGenerator<?>> dataList : series.entrySet()) {
         // TODO: come up with cleaner API, as this casting is wrong, i.e mDataSeriesMap returns a generic list
         dataList.getKey().add(mCurrentTime);
-        List<Long> castedData = (List<Long>)dataList.getValue();
-        Runtime rt = Runtime.getRuntime();
-        switch (dataType) {
-          case CPU_MY_PROCESS:
-            castedData.add(randLong(0, 60));
-            break;
-          case CPU_OTHER_PROCESSES:
-            castedData.add(randLong(0, 20));
-            break;
-          case CPU_THREADS:
-          case NETWORK_CONNECTIONS:
-            castedData.add(randLong(0, 10));
-            break;
-          case MEMORY_TOTAL:
-          case MEMORY_JAVA:
-            long usedMem = rt.totalMemory() - rt.freeMemory();
-            castedData.add(usedMem);
-            break;
-          case MEMORY_OTHERS:
-            castedData.add(rt.freeMemory());
-            break;
-          default:
-            long x = (castedData.isEmpty() ? 0 : castedData.get(castedData.size() - 1)) + randLong(-20, 100);
-            castedData.add(Math.max(0, x));
-            break;
-        }
+        dataList.getValue().generateData();
       }
     }
   }
 
   private void startGeneratingData() {
     for (SeriesDataType type : SeriesDataType.values()) {
-      mDataSeriesMap.put(type, new TLongArrayList(), new ArrayList<>());
+      switch (type) {
+        case CPU_MY_PROCESS:
+          mDataSeriesMap.put(type, new TLongArrayList(), new LongTestDataGenerator(0, 60, false));
+          break;
+        case CPU_OTHER_PROCESSES:
+          mDataSeriesMap.put(type, new TLongArrayList(), new LongTestDataGenerator(0, 20, false));
+          break;
+        case CPU_THREADS:
+        case NETWORK_CONNECTIONS:
+          mDataSeriesMap.put(type, new TLongArrayList(), new LongTestDataGenerator(0, 10, false));
+          break;
+        case MEMORY_TOTAL:
+        case MEMORY_JAVA:
+          mDataSeriesMap.put(type, new TLongArrayList(), new MemoryTestDataGenerator(true));
+          break;
+        case MEMORY_OTHERS:
+          mDataSeriesMap.put(type, new TLongArrayList(), new MemoryTestDataGenerator(false));
+          break;
+        default:
+          mDataSeriesMap.put(type, new TLongArrayList(), new LongTestDataGenerator(-20, 100, true));
+          break;
+      }
     }
     mStartTime = System.currentTimeMillis();
 
@@ -158,7 +155,4 @@ public final class VisualTestSeriesDataStore implements SeriesDataStore {
     mDataThread.start();
   }
 
-  private long randLong(int l, int r) {
-    return mRandom.nextInt(r - l + 1) + l;
-  }
 }
