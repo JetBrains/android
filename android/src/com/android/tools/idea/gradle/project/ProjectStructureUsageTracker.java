@@ -31,6 +31,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collection;
@@ -45,7 +46,7 @@ import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 /**
  * Tracks, using {@link UsageTracker}, the structure of a project.
  */
-class ProjectStructureUsageTracker {
+public class ProjectStructureUsageTracker {
   private static final Logger LOG = Logger.getInstance(ProjectStructureUsageTracker.class);
 
   @NotNull private final Project myProject;
@@ -218,5 +219,20 @@ class ProjectStructureUsageTracker {
   private static class DependencyFiles {
     final Set<File> aars = Sets.newHashSet();
     final Set<File> jars = Sets.newHashSet();
+  }
+
+  @Nullable
+  public static String getApplicationId(@NotNull Project project) {
+    ModuleManager moduleManager = ModuleManager.getInstance(project);
+    for (Module module : moduleManager.getModules()) {
+      AndroidGradleModel androidModel = AndroidGradleModel.get(module);
+      if (androidModel != null) {
+        AndroidProject androidProject = androidModel.getAndroidProject();
+        if (!androidProject.isLibrary()) {
+          return androidModel.getApplicationId();
+        }
+      }
+    }
+    return null;
   }
 }
