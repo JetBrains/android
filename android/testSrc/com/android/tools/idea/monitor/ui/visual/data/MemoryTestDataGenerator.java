@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.monitor.ui.visual.data;
 
+import com.android.tools.adtui.model.SeriesData;
 import gnu.trove.TLongArrayList;
 
-public class MemoryTestDataGenerator implements TestDataGenerator<Long> {
+public class MemoryTestDataGenerator extends TestDataGenerator<Long> {
 
   private TLongArrayList mData = new TLongArrayList();
   private boolean mUseFreeMemory;
@@ -29,16 +30,19 @@ public class MemoryTestDataGenerator implements TestDataGenerator<Long> {
   }
 
   @Override
-  public Long get(int index) {
-    return mData.get(index);
+  public SeriesData<Long> get(int index) {
+    SeriesData<Long> data = new SeriesData<>();
+    data.x = mTime.get(index) - mStartTime;
+    data.value = mData.get(index);
+    return data;
   }
 
   @Override
-  public void generateData(long currentTime) {
+  public void generateData() {
+    mTime.add(System.currentTimeMillis());
     if (mUseFreeMemory) {
       mData.add(mRuntime.freeMemory());
-    }
-    else {
+    } else {
       long usedMem = mRuntime.totalMemory() - mRuntime.freeMemory();
       mData.add(usedMem);
     }

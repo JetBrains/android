@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.monitor.ui.visual.data;
 
+import com.android.tools.adtui.model.SeriesData;
 import gnu.trove.TLongArrayList;
 
 import java.util.Random;
 
-public class LongTestDataGenerator implements TestDataGenerator<Long> {
+public class LongTestDataGenerator extends TestDataGenerator<Long> {
 
   private Random mRandom = new Random();
   private TLongArrayList mData = new TLongArrayList();
@@ -27,7 +28,9 @@ public class LongTestDataGenerator implements TestDataGenerator<Long> {
   private int mMax;
   private boolean mUseLast;
 
-
+  /**
+   * Generates simulated data from {@code min} to {@code max} (inclusive).
+   */
   public LongTestDataGenerator(int min, int max, boolean useLast) {
     mMin = min;
     mMax = max;
@@ -35,17 +38,20 @@ public class LongTestDataGenerator implements TestDataGenerator<Long> {
   }
 
   @Override
-  public Long get(int index) {
-    return mData.get(index);
+  public SeriesData<Long> get(int index) {
+    SeriesData<Long> data = new SeriesData<>();
+    data.x = mTime.get(index) - mStartTime;
+    data.value = mData.get(index);
+    return data;
   }
 
   @Override
-  public void generateData(long currentTime) {
+  public void generateData() {
+    mTime.add(System.currentTimeMillis());
     if (mUseLast) {
       long x = (mData.isEmpty() ? 0 : mData.get(mData.size() - 1)) + randLong(-20, 100);
       mData.add(Math.max(0, x));
-    }
-    else {
+    } else {
       mData.add(randLong(mMin, mMax));
     }
   }

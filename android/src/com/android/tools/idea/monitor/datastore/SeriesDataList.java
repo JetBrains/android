@@ -56,10 +56,7 @@ public class SeriesDataList<E> extends ImmutableList<SeriesData<E>> {
     if (index < 0 || index >= size()) {
       throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + size());
     }
-    SeriesData<E> data = new SeriesData<>();
-    data.x = mDataStore.getTimeAtIndex(mDataType, mStartIndex + index);
-    data.value = mDataStore.getValueAtIndex(mDataType, mStartIndex + index);
-    return data;
+    return mDataStore.getDataAt(mDataType, mStartIndex + index);
   }
 
   public int getIndexForTime(long time) {
