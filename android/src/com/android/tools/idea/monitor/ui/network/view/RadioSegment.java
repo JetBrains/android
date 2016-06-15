@@ -20,6 +20,7 @@ import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.Range;
 import com.android.tools.adtui.chart.StateChart;
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.LegendRenderData;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.idea.monitor.ui.BaseSegment;
@@ -37,6 +38,7 @@ import java.util.List;
 public class RadioSegment extends BaseSegment {
 
   public enum RadioState {
+    NONE,
     FULL,
     LOW,
     IDLE
@@ -56,6 +58,7 @@ public class RadioSegment extends BaseSegment {
   // TODO change it to use the proper colors
   private static EnumMap<RadioState, Color> getRadioStateColor() {
     EnumMap<RadioState, Color> colors = new EnumMap<>(RadioState.class);
+    colors.put(RadioState.NONE, AdtUiUtils.DEFAULT_BACKGROUND_COLOR);
     colors.put(RadioState.FULL, JBColor.BLUE.darker());
     colors.put(RadioState.LOW, JBColor.BLUE);
     colors.put(RadioState.IDLE, JBColor.BLUE.brighter());
@@ -64,6 +67,7 @@ public class RadioSegment extends BaseSegment {
 
   private static EnumMap<RadioState, String> getRadioStateLabel() {
     EnumMap<RadioState, String> labels = new EnumMap<>(RadioState.class);
+    labels.put(RadioState.NONE, "Radio None");
     labels.put(RadioState.FULL, "Radio Full");
     labels.put(RadioState.LOW, "Radio Low");
     labels.put(RadioState.IDLE, "Radio Idle");
@@ -78,16 +82,15 @@ public class RadioSegment extends BaseSegment {
     EnumMap<RadioState, String> labelsMap = getRadioStateLabel();
 
     mStateChart = new StateChart(colorsMap);
+    mStateChart.setHeightGap(0.5f);
     List<LegendRenderData> legendRenderDataList = new ArrayList<>();
     for (RadioState state : RadioState.values()) {
-      int ordinal = state.ordinal();
       LegendRenderData renderData = new LegendRenderData(LegendRenderData.IconType.LINE, colorsMap.get(state), labelsMap.get(state));
       legendRenderDataList.add(renderData);
     }
 
     mLegendComponent = new LegendComponent(LegendComponent.Orientation.HORIZONTAL, 100);
     mLegendComponent.setLegendData(legendRenderDataList);
-
     animatables.add(mStateChart);
     animatables.add(mLegendComponent);
   }
