@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.gfxtrace.service.image;
 
 
+import com.android.tools.rpclib.binary.BinaryClass;
 import com.android.tools.rpclib.binary.BinaryObject;
 import org.jetbrains.annotations.NotNull;
 
@@ -44,7 +45,7 @@ public abstract class Format implements BinaryObject {
 
   @NotNull
   public static Format wrap(BinaryObject object) {
-    return (Format)object;
+    return (object instanceof Format) ? (Format)object : new UnknownFormat(object);
   }
 
   @NotNull
@@ -63,5 +64,25 @@ public abstract class Format implements BinaryObject {
       result = result.substring(3);
     }
     return result;
+  }
+
+  private static class UnknownFormat extends Format {
+    private final BinaryObject myFormat;
+
+    public UnknownFormat(@NotNull BinaryObject format) {
+      myFormat = format;
+    }
+
+    @NotNull
+    @Override
+    public BinaryClass klass() {
+      return myFormat.klass();
+    }
+
+    @NotNull
+    @Override
+    public BinaryObject unwrap() {
+      return myFormat;
+    }
   }
 }
