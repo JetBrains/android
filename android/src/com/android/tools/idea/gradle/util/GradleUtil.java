@@ -1107,6 +1107,9 @@ public final class GradleUtil {
    */
   public static boolean dependsOnAndroidTest(@NonNull AndroidGradleModel androidModel, @NonNull String artifact) {
     Dependencies dependencies = androidModel.getSelectedAndroidTestCompileDependencies();
+    if (dependencies == null) {
+      return false;
+    }
     return dependsOn(dependencies, artifact);
   }
 
