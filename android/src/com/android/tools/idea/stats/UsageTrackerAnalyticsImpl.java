@@ -202,6 +202,23 @@ public class UsageTrackerAnalyticsImpl extends UsageTracker {
     myUploader.trackEvent(GLOGS_CATEGORY_SYSTEM_INFO, kv);
   }
 
+  @Override
+  public void trackPSDEvent(@NotNull String applicationId, @NotNull String eventAction, @Nullable String eventLabel) {
+    if (!trackingEnabled()) {
+      return;
+    }
+    // @formatter:off
+    Builder<String, String> builder = ImmutableMap.<String, String>builder()
+      .put("appId", anonymize(applicationId))
+      .put("eventAction", eventAction);
+
+    if (eventLabel != null) {
+      builder.put("eventLabel", eventLabel);
+    }
+    myUploader.trackEvent(CATEGORY_PROJECT_STRUCTURE_DIALOG, builder.build());
+    // @formatter:on
+  }
+
   @NotNull
   private static String anonymize(@NotNull String applicationId) {
     return Hashing.md5().hashString(applicationId, Charsets.UTF_8).toString();
