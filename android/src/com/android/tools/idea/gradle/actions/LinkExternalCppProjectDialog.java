@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.actions;
 
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.google.common.base.Strings;
 import com.intellij.openapi.application.Result;
@@ -176,11 +177,14 @@ public class LinkExternalCppProjectDialog extends DialogWrapper {
     GradleBuildModel buildModel = GradleBuildModel.get(myModule);
     assert buildModel != null;
 
+    AndroidModel android = buildModel.android();
+    assert android != null;
+
     if (myBuildSystemCombo.getSelectedItem() == BuildSystem.CMAKE) {
-      buildModel.android().externalNativeBuild().cmake().setPath(new File(relativePath));
+      android.externalNativeBuild().cmake().setPath(new File(relativePath));
     }
     else {
-      buildModel.android().externalNativeBuild().ndkBuild().setPath(new File(relativePath));
+      android.externalNativeBuild().ndkBuild().setPath(new File(relativePath));
     }
 
     Project project = myModule.getProject();

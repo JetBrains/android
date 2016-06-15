@@ -35,6 +35,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslReference;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement;
 import com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement;
+import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.module.Module;
@@ -191,8 +192,19 @@ public class GradleBuildModel extends GradleFileModel {
     return this;
   }
 
-  @NotNull
+  /**
+   * Returns {@link AndroidModel} to read and update android block contents in the build.gradle file.
+   *
+   * <p>Returns {@code null} when experimental plugin is used as reading and updating android section is not supported for the
+   * experimental dsl.</p>
+   */
+  @Nullable
   public AndroidModel android() {
+    AndroidPluginInfo androidPluginInfo = AndroidPluginInfo.find(myGradleDslFile.getProject());
+    if (androidPluginInfo != null && androidPluginInfo.isExperimental()) {
+      return null; // Reading or updating Android block contents is not supported when experimental plugin is used.
+    }
+
     AndroidDslElement androidDslElement = myGradleDslFile.getProperty(ANDROID_BLOCK_NAME, AndroidDslElement.class);
     if (androidDslElement == null) {
       androidDslElement = new AndroidDslElement(myGradleDslFile);

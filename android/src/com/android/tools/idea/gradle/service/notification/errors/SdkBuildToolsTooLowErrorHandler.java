@@ -21,6 +21,7 @@ import com.android.repository.api.ProgressIndicator;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.meta.DetailsTypes;
+import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.service.notification.hyperlink.FixBuildToolsVersionHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.InstallBuildToolsHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
@@ -75,10 +76,16 @@ public class SdkBuildToolsTooLowErrorHandler extends AbstractSyncErrorHandler {
       if (module != null) {
         VirtualFile buildFile = GradleUtil.getGradleBuildFile(module);
         List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
+        AndroidPluginInfo androidPluginInfo = AndroidPluginInfo.find(project);
         if (!buildToolInstalled) {
-          hyperlinks.add(new InstallBuildToolsHyperlink(minimumVersion, buildFile));
+          if (androidPluginInfo != null && androidPluginInfo.isExperimental()) {
+            hyperlinks.add(new InstallBuildToolsHyperlink(minimumVersion, null));
+          }
+          else {
+            hyperlinks.add(new InstallBuildToolsHyperlink(minimumVersion, buildFile));
+          }
         }
-        else if (buildFile != null) {
+        else if (buildFile != null && androidPluginInfo!= null && !androidPluginInfo.isExperimental()) {
           hyperlinks.add(new FixBuildToolsVersionHyperlink(buildFile, minimumVersion));
         }
         if (buildFile != null) {

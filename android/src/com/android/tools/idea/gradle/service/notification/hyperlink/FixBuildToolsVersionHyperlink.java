@@ -42,20 +42,22 @@ public class FixBuildToolsVersionHyperlink extends NotificationHyperlink {
 
   static void setBuildToolsVersion(@NotNull Project project, @NotNull VirtualFile buildFile, @NotNull String version, boolean requestSync) {
     // TODO check that the build file has the 'android' plugin applied.
-    final GradleBuildModel buildModel = parseBuildFile(buildFile, project);
-    AndroidModel android = buildModel.android();
+    GradleBuildModel buildModel = parseBuildFile(buildFile, project);
 
-    if (!version.equals(android.buildToolsVersion())) {
-      android.setBuildToolsVersion(version);
-      runWriteCommandAction(project, new Runnable() {
-        @Override
-        public void run() {
-          buildModel.applyChanges();
-        }
-      });
-      if (requestSync) {
-        GradleProjectImporter.getInstance().requestProjectSync(project, null);
-      }
+    AndroidModel android = buildModel.android();
+    if (android == null) {
+      return;
+    }
+
+    if (version.equals(android.buildToolsVersion())) {
+      return;
+    }
+
+    android.setBuildToolsVersion(version);
+    runWriteCommandAction(project, buildModel::applyChanges);
+
+    if (requestSync) {
+      GradleProjectImporter.getInstance().requestProjectSync(project, null);
     }
   }
 }

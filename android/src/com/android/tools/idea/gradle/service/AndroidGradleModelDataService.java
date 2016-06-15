@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.android.*;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.reporter.SyncMessages;
@@ -249,8 +250,18 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
     if (isOneDotThreeOrLater(project)) {
       return;
     }
+
     GradleBuildModel buildModel = GradleBuildModel.get(module);
-    if (buildModel != null && "23.0.0 rc1".equals(buildModel.android().buildToolsVersion())) {
+    if (buildModel == null) {
+      return;
+    }
+
+    AndroidModel android = buildModel.android();
+    if (android == null) {
+      return;
+    }
+
+    if ("23.0.0 rc1".equals(android.buildToolsVersion())) {
       moduleNames.add(module.getName());
     }
   }
