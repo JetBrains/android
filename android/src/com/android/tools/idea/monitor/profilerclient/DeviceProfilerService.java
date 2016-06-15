@@ -16,6 +16,7 @@
 package com.android.tools.idea.monitor.profilerclient;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.profiler.proto.CpuProfilerServiceGrpc;
 import com.android.tools.profiler.proto.DeviceServiceGrpc;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.intellij.openapi.application.ApplicationManager;
@@ -43,6 +44,7 @@ public class DeviceProfilerService {
   @NotNull private final ManagedChannel myChannel;
   @NotNull private final DeviceServiceGrpc.DeviceServiceBlockingStub myDeviceService;
   @NotNull private final MemoryServiceGrpc.MemoryServiceBlockingStub myMemoryService;
+  @NotNull private final CpuProfilerServiceGrpc.CpuProfilerServiceBlockingStub myCpuService;
   private final int myPort;
 
   private DeviceProfilerService(@NotNull IDevice device, int port) {
@@ -51,6 +53,7 @@ public class DeviceProfilerService {
     myChannel = ManagedChannelBuilder.forAddress("localhost", myPort).usePlaintext(true).build();
     myDeviceService = DeviceServiceGrpc.newBlockingStub(myChannel);
     myMemoryService = MemoryServiceGrpc.newBlockingStub(myChannel);
+    myCpuService = CpuProfilerServiceGrpc.newBlockingStub(myChannel);
     Disposer.register(ApplicationManager.getApplication(), () -> {
       if (!myUserKeys.isEmpty()) {
         for (Object userKey : myUserKeys) {
@@ -103,6 +106,11 @@ public class DeviceProfilerService {
   @NotNull
   MemoryServiceGrpc.MemoryServiceBlockingStub getMemoryService() {
     return myMemoryService;
+  }
+
+  @NotNull
+  public CpuProfilerServiceGrpc.CpuProfilerServiceBlockingStub getCpuService() {
+    return myCpuService;
   }
 
   @NotNull
