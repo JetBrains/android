@@ -40,11 +40,11 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.android.tools.idea.gradle.project.ProjectStructureUsageTracker.getApplicationId;
 import static com.android.tools.idea.gradle.util.GradleUtil.isUsingExperimentalPlugin;
 import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
 import static com.android.tools.idea.stats.UsageTracker.ACTION_PROJECT_STRUCTURE_DIALOG_TOP_TAB_CLICK;
 import static com.android.tools.idea.stats.UsageTracker.ACTION_PROJECT_STRUCTURE_DIALOG_TOP_TAB_SAVE;
-import static com.android.tools.idea.stats.UsageTracker.CATEGORY_PROJECT_STRUCTURE_DIALOG;
 import static javax.swing.SwingConstants.TOP;
 
 /**
@@ -125,10 +125,11 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
       }
       myTabbedPane.addChangeListener(e -> {
         String tabName = myEditors.get(myTabbedPane.getSelectedIndex()).getDisplayName();
-        UsageTracker.getInstance().trackEvent(CATEGORY_PROJECT_STRUCTURE_DIALOG,
-                                              ACTION_PROJECT_STRUCTURE_DIALOG_TOP_TAB_CLICK,
-                                              tabName,
-                                              null);
+
+        String appId = getApplicationId(myProject);
+        if (appId != null) {
+          UsageTracker.getInstance().trackPSDEvent(ACTION_PROJECT_STRUCTURE_DIALOG_TOP_TAB_CLICK, tabName, null);
+        }
       });
 
       myGenericSettingsPanel = myTabbedPane;
@@ -155,11 +156,11 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
   }
 
   public void apply() throws ConfigurationException {
+    String appId = getApplicationId(myProject);
     for (ModuleConfigurationEditor editor : myEditors) {
-      UsageTracker.getInstance().trackEvent(CATEGORY_PROJECT_STRUCTURE_DIALOG,
-                                            ACTION_PROJECT_STRUCTURE_DIALOG_TOP_TAB_SAVE,
-                                            editor.getDisplayName(),
-                                            null);
+      if (appId != null) {
+        UsageTracker.getInstance().trackPSDEvent(appId, ACTION_PROJECT_STRUCTURE_DIALOG_TOP_TAB_SAVE, editor.getDisplayName());
+      }
       editor.saveData();
       editor.apply();
     }
