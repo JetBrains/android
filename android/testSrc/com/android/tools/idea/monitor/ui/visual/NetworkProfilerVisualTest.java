@@ -22,6 +22,7 @@ import com.android.tools.adtui.AnimatedTimeRange;
 import com.android.tools.adtui.Range;
 import com.android.tools.adtui.model.DefaultDataSeries;
 import com.android.tools.adtui.model.RangedSeries;
+import com.android.tools.idea.monitor.ui.network.view.NetworkDetailedView;
 import com.android.tools.idea.monitor.ui.network.view.RadioSegment;
 import com.android.tools.adtui.visual.VisualTest;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
@@ -37,7 +38,6 @@ import java.util.List;
 import java.util.Random;
 
 public class NetworkProfilerVisualTest extends VisualTest {
-
   private static final String NETWORK_PROFILER_NAME = "Network Profiler";
 
   // Number of fake network capture data
@@ -58,6 +58,8 @@ public class NetworkProfilerVisualTest extends VisualTest {
   private DefaultDataSeries<RadioSegment.RadioState> mRadioStateData;
 
   private Thread mSimulateTestDataThread;
+
+  private NetworkDetailedView mDetailedView;
 
   @Override
   protected void initialize() {
@@ -89,15 +91,21 @@ public class NetworkProfilerVisualTest extends VisualTest {
 
     EventDispatcher<ProfilerEventListener> dummyDispatcher = EventDispatcher.create(ProfilerEventListener.class);
     mSegment = new NetworkSegment(timeRange, mDataStore, dummyDispatcher);
+    mDetailedView = new NetworkDetailedView();
 
     ArrayList<RangedSeries<NetworkCaptureSegment.NetworkState>> rangedSeries = new ArrayList();
     mCaptureData = new ArrayList<>();
     for (int i = 0; i < CAPTURE_SIZE; ++i) {
       DefaultDataSeries seriesData = new DefaultDataSeries<NetworkCaptureSegment.NetworkState>();
       mCaptureData.add(seriesData);
-      rangedSeries.add(new RangedSeries<NetworkCaptureSegment.NetworkState>(timeRange, seriesData));
+      rangedSeries.add(new RangedSeries<>(timeRange, seriesData));
     }
-    mCaptureSegment = new NetworkCaptureSegment(timeRange, rangedSeries, dummyDispatcher);
+    mDetailedView.setVisible(false);
+
+    mCaptureSegment = new NetworkCaptureSegment(timeRange, rangedSeries, connectionId -> {
+      mDetailedView.showConnectionDetails(connectionId);
+      mDetailedView.setVisible(true);
+    }, dummyDispatcher);
 
     mRadioStateData = new DefaultDataSeries<>();
     mRadioSegment = new RadioSegment(timeRange, dummyDispatcher);
@@ -118,23 +126,36 @@ public class NetworkProfilerVisualTest extends VisualTest {
     GridBagConstraints constraints = new GridBagConstraints();
     constraints.fill = GridBagConstraints.BOTH;
 
+
+    constraints.gridx = 0;
     constraints.gridy = 0;
-    constraints.weighty = 0.05;
+    constraints.weighty = 0;
     constraints.weightx = 1;
     mRadioSegment.initializeComponents();
+    mRadioSegment.setPreferredSize(new Dimension(0, 35));
     panel.add(mRadioSegment, constraints);
 
     constraints.weighty = .5;
+    constraints.gridx = 0;
     constraints.gridy = 1;
     mSegment.initializeComponents();
     mSegment.toggleView(true);
     panel.add(mSegment, constraints);
 
 
+    constraints.gridx = 0;
     constraints.gridy = 2;
-    constraints.weighty = 0.45;
+    constraints.weighty = 1;
     mCaptureSegment.initializeComponents();
     panel.add(mCaptureSegment, constraints);
+
+    constraints.gridx = 1;
+    constraints.gridy = 0;
+    constraints.gridheight = 3;
+    constraints.weightx = 0;
+    constraints.weighty = 0;
+    panel.add(mDetailedView, constraints);
+
     simulateTestData();
   }
 

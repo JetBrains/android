@@ -39,6 +39,9 @@ import java.util.EnumMap;
 import java.util.List;
 
 public class NetworkCaptureSegment extends BaseSegment {
+  public interface DetailedViewListener {
+    void showDetailedConnection(String connectionId);
+  }
 
   private static final String SEGMENT_NAME = "Network Capture";
 
@@ -65,9 +68,15 @@ public class NetworkCaptureSegment extends BaseSegment {
   @NotNull
   private final List<RangedSeries<NetworkState>> mData;
 
-  public NetworkCaptureSegment(@NotNull Range timeRange, @NotNull List<RangedSeries<NetworkState>> data,
+  @NotNull
+  private final DetailedViewListener mDetailedViewListener;
+
+  public NetworkCaptureSegment(@NotNull Range timeRange,
+                               @NotNull List<RangedSeries<NetworkState>> data,
+                               @NotNull DetailedViewListener detailedViewListener,
                                @NotNull EventDispatcher<ProfilerEventListener> dispatcher) {
     super(SEGMENT_NAME, timeRange, dispatcher);
+    mDetailedViewListener = detailedViewListener;
     mCharts = new ArrayList<>();
     mData = data;
 
@@ -107,6 +116,10 @@ public class NetworkCaptureSegment extends BaseSegment {
         }
         return SAMPLE[columnIndex];
       }
+    });
+    table.setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION);
+    table.getSelectionModel().addListSelectionListener(e -> {
+      mDetailedViewListener.showDetailedConnection(String.valueOf(table.getSelectedRow()));
     });
     table.setFont(AdtUiUtils.DEFAULT_FONT);
     table.setOpaque(false);
