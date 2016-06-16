@@ -41,6 +41,7 @@ import com.sun.jdi.request.MethodEntryRequest;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.util.List;
 import java.util.concurrent.*;
 
 public class GapiiLibraryLoader {
@@ -58,7 +59,7 @@ public class GapiiLibraryLoader {
     myDevice = device;
   }
 
-  public void connectToProcessAndInstallLibraries(@NotNull String pkg, @NotNull final File... libs) throws Exception {
+  public void connectToProcessAndInstallLibraries(@NotNull String pkg, @NotNull final List<File> libs) throws Exception {
     long startTime = System.nanoTime();
 
     LOG.debug("Attaching to " + pkg);

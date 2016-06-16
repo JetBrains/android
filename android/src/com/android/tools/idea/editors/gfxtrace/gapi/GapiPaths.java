@@ -59,7 +59,8 @@ public final class GapiPaths {
   @NotNull private static final String GAPIS_EXECUTABLE_NAME;
   @NotNull private static final String GAPIR_EXECUTABLE_NAME;
   @NotNull private static final String STRINGS_DIR_NAME = "strings";
-  @NotNull private static final String GAPII_LIBRARY_NAME;
+  @NotNull private static final String GAPII_LIBRARY_NAME = "libgapii.so";
+  @NotNull private static final String INTERCEPTOR_LIBRARY_NAME = "libinterceptor.so";
   @NotNull private static final String PKG_INFO_NAME = "pkginfo.apk";
   @NotNull private static final String EXE_EXTENSION;
   @NotNull private static final String SDK_PATH = "gapid";
@@ -82,7 +83,6 @@ public final class GapiPaths {
     HOST_ARCH = remap(ARCH_REMAP, SystemInfo.OS_ARCH);
     GAPIS_EXECUTABLE_NAME = "gapis" + EXE_EXTENSION;
     GAPIR_EXECUTABLE_NAME = "gapir" + EXE_EXTENSION;
-    GAPII_LIBRARY_NAME = "libgapii.so";
   }
 
   @NotNull private static final Object myPathLock = new Object();
@@ -122,19 +122,29 @@ public final class GapiPaths {
   }
 
   @NotNull
-  public static File findTraceLibrary(@NotNull String abi) throws IOException {
+  private static File findLibrary(@NotNull String libraryName, @NotNull String abi) throws IOException {
     findTools();
     String remappedAbi = remap(ABI_REMAP, abi);
-    File lib = findPath(OS_ANDROID, remappedAbi, GAPII_LIBRARY_NAME);
+    File lib = findPath(OS_ANDROID, remappedAbi, libraryName);
     if (lib.exists()) {
       return lib;
     }
     remappedAbi = remap(ABI_TARGET, remappedAbi);
-    lib = findPath(OS_ANDROID, remappedAbi, GAPII_LIBRARY_NAME);
+    lib = findPath(OS_ANDROID, remappedAbi, libraryName);
     if (lib.exists()) {
       return lib;
     }
-    throw new IOException("Unsupported " + GAPII_LIBRARY_NAME + " abi '" + abi + "'");
+    throw new IOException("Unsupported " + libraryName + " abi '" + abi + "'");
+  }
+
+  @NotNull
+  public static File findTraceLibrary(@NotNull String abi) throws IOException {
+    return findLibrary(GAPII_LIBRARY_NAME, abi);
+  }
+
+  @NotNull
+  public static File findInterceptorLibrary(@NotNull String abi) throws IOException {
+    return findLibrary(INTERCEPTOR_LIBRARY_NAME, abi);
   }
 
   @NotNull
