@@ -17,6 +17,7 @@ package com.android.tools.idea.monitor.ui.visual.data;
 
 import com.android.tools.adtui.SimpleEventComponent;
 import com.android.tools.adtui.model.EventAction;
+import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.idea.monitor.ui.events.view.EventSegment;
 import gnu.trove.TLongArrayList;
 
@@ -25,33 +26,39 @@ import java.util.List;
 import java.util.Random;
 
 public class SimpleEventTestDataGenerator
-  implements TestDataGenerator<EventAction<SimpleEventComponent.Action, EventSegment.EventActionType>> {
+  extends TestDataGenerator<EventAction<SimpleEventComponent.Action, EventSegment.EventActionType>> {
 
-  private Random mRandom = new Random();
   private ArrayList<EventAction<SimpleEventComponent.Action, EventSegment.EventActionType>> mData = new ArrayList<>();
 
   @Override
-  public EventAction<SimpleEventComponent.Action, EventSegment.EventActionType> get(int index) {
-    return mData.get(index);
+  public SeriesData<EventAction<SimpleEventComponent.Action, EventSegment.EventActionType>> get(int index) {
+    SeriesData<EventAction<SimpleEventComponent.Action, EventSegment.EventActionType>> data = new SeriesData<>();
+    data.x = mTime.get(index) - mStartTime;
+    data.value = mData.get(index);
+    return data;
   }
 
   @Override
-  public void generateData(long currentTime) {
+  public void generateData() {
     boolean downAction = true;
+    long currentTime = System.currentTimeMillis() - mStartTime;
     long startTime = currentTime;
     long endTime = 0;
-    if (mData.size() > 0) {
-      EventAction<SimpleEventComponent.Action, EventSegment.EventActionType> lastAction = mData.get(mData.size() - 1);
-      // If our last action was a down action, our next action should be an up action.
-      if (lastAction.getValue() == SimpleEventComponent.Action.DOWN) {
-        downAction = false;
-        endTime = currentTime;
-        startTime = lastAction.getStart();
+    if (mStartTime != 0) {
+      mTime.add(System.currentTimeMillis());
+      if (mData.size() > 0) {
+        EventAction<SimpleEventComponent.Action, EventSegment.EventActionType> lastAction = mData.get(mData.size() - 1);
+        // If our last action was a down action, our next action should be an up action.
+        if (lastAction.getValue() == SimpleEventComponent.Action.DOWN) {
+          downAction = false;
+          endTime = System.currentTimeMillis() - mStartTime;
+          startTime = lastAction.getStart();
+        }
       }
-    }
-    mData.add(new EventAction<>(startTime, endTime,
-                                downAction ? SimpleEventComponent.Action.DOWN : SimpleEventComponent.Action.UP,
-                                EventSegment.EventActionType.HOLD));
+      mData.add(new EventAction<>(startTime, endTime,
+                                  downAction ? SimpleEventComponent.Action.DOWN : SimpleEventComponent.Action.UP,
+                                  EventSegment.EventActionType.HOLD));
 
+    }
   }
 }

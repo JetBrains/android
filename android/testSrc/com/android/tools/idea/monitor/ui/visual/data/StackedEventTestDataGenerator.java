@@ -17,12 +17,13 @@ package com.android.tools.idea.monitor.ui.visual.data;
 
 import com.android.tools.adtui.StackedEventComponent;
 import com.android.tools.adtui.model.EventAction;
+import com.android.tools.adtui.model.SeriesData;
 import gnu.trove.TLongArrayList;
 
 import java.util.ArrayList;
 import java.util.Random;
 
-public class StackedEventTestDataGenerator implements TestDataGenerator<EventAction<StackedEventComponent.Action, String>> {
+public class StackedEventTestDataGenerator extends TestDataGenerator<EventAction<StackedEventComponent.Action, String>> {
 
   private Random mRandom = new Random();
   private ArrayList<EventAction<StackedEventComponent.Action, String>> mData = new ArrayList<>();
@@ -34,29 +35,37 @@ public class StackedEventTestDataGenerator implements TestDataGenerator<EventAct
   }
 
   @Override
-  public EventAction<StackedEventComponent.Action, String> get(int index) {
-    return mData.get(index);
+  public SeriesData<EventAction<StackedEventComponent.Action, String>> get(int index) {
+    SeriesData<EventAction<StackedEventComponent.Action, String>> data = new SeriesData<>();
+    data.x = mTime.get(index) - mStartTime;
+    data.value = mData.get(index);
+    return data;
   }
 
   @Override
-  public void generateData(long currentTime) {
+  public void generateData() {
     boolean createAction = true;
     long endTime = 0;
+    long currentTime = System.currentTimeMillis() - mStartTime;
     long startTime = currentTime;
-    if (mData.size() > 0) {
-      EventAction<StackedEventComponent.Action, String> lastAction = mData.get(mData.size() - 1);
-      // If our last action was an activity started action, our next should be an activity completed.
-      if (lastAction.getValue() == StackedEventComponent.Action.ACTIVITY_STARTED) {
-        createAction = false;
-        endTime = currentTime;
-        startTime = lastAction.getStart();
+    if(mStartTime != 0) {
+      mTime.add(System.currentTimeMillis());
+
+      if (mData.size() > 0) {
+        EventAction<StackedEventComponent.Action, String> lastAction = mData.get(mData.size() - 1);
+        // If our last action was an activity started action, our next should be an activity completed.
+        if (lastAction.getValue() == StackedEventComponent.Action.ACTIVITY_STARTED) {
+          createAction = false;
+          endTime = currentTime;
+          startTime = lastAction.getStart();
+        }
       }
+      mData.add(new EventAction<>(startTime, endTime,
+                                  createAction
+                                  ? StackedEventComponent.Action.ACTIVITY_STARTED
+                                  : StackedEventComponent.Action.ACTIVITY_COMPLETED,
+                                  mName));
     }
-    mData.add(new EventAction<>(startTime, endTime,
-                                createAction
-                                ? StackedEventComponent.Action.ACTIVITY_STARTED
-                                : StackedEventComponent.Action.ACTIVITY_COMPLETED,
-                                mName));
 
   }
 }
