@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.run.editor;
 
+import com.android.tools.idea.editors.gfxtrace.GfxTraceUtil;
 import com.android.tools.idea.editors.gfxtrace.gapi.GapiPaths;
+import com.intellij.openapi.project.Project;
 
 import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
 import static com.android.tools.idea.startup.AndroidStudioInitializer.ENABLE_EXPERIMENTAL_PROFILING;
 
@@ -39,24 +39,18 @@ public class AndroidProfilersPanel {
     return myPanel;
   }
 
-  AndroidProfilersPanel(ProfilerState state) {
+  AndroidProfilersPanel(Project project, ProfilerState state) {
     myAdvancedProfilingCheckBox.setVisible(EXPERIMENTAL_ENABLED);
 
-    myGapidEnabled.addChangeListener(e -> {
-      if (!isGapidSdkComponentInstalled()) {
-        myGapidEnabled.setEnabled(false);
-        myGapidDisablePCS.setEnabled(false);
-      } else {
-        myGapidEnabled.setEnabled(true);
-        myGapidDisablePCS.setEnabled(myGapidEnabled.isSelected());
+    myGapidEnabled.addChangeListener(e -> myGapidDisablePCS.setEnabled(myGapidEnabled.isSelected()));
+
+    myGapidEnabled.addActionListener(e -> {
+      if (!GfxTraceUtil.checkAndTryInstallGapidSdkComponent(project)) {
+        myGapidEnabled.setSelected(false);
       }
     });
 
     resetFrom(state);
-  }
-
-  private static boolean isGapidSdkComponentInstalled() {
-    return GapiPaths.isValid();
   }
 
   /**
@@ -68,12 +62,10 @@ public class AndroidProfilersPanel {
     myGapidDisablePCS.setSelected(state.GAPID_DISABLE_PCS);
     myGapidDisablePCS.setEnabled(state.GAPID_ENABLED);
 
-    if (isGapidSdkComponentInstalled()) {
+    if (GapiPaths.isValid()) {
       myGapidEnabled.setToolTipText(null);
     }
     else {
-      myGapidEnabled.setEnabled(false);
-      myGapidDisablePCS.setEnabled(false);
       myGapidEnabled.setToolTipText("GPU debugger tools not installed or out of date.");
       myGapidEnabled.setSelected(false);
     }

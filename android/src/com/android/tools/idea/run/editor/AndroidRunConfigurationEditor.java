@@ -137,7 +137,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
       myTabbedPane.add("Debugger", myAndroidDebuggerPanel.getComponent());
     }
 
-    myAndroidProfilersPanel = new AndroidProfilersPanel(config.getProfilerState());
+    myAndroidProfilersPanel = new AndroidProfilersPanel(project, config.getProfilerState());
     myTabbedPane.add("Profiling", myAndroidProfilersPanel.getComponent());
   }
 
