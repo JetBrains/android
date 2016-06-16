@@ -150,20 +150,20 @@ class LayeredImageConverter {
 
   @NotNull
   private static Shape getTransformedPath(Layer layer) {
-    List<ShapeInfo.SubPath> paths = layer.getShapeInfo().getPaths();
+    List<ShapeInfo.Path> paths = layer.getShapeInfo().getPaths();
     if (paths.isEmpty()) return new Path2D.Float();
 
     Rectangle2D layerBounds = layer.getBounds();
     AffineTransform transform = AffineTransform.getTranslateInstance(layerBounds.getX(), layerBounds.getY());
 
     Area area;
-    ShapeInfo.SubPath subPath = paths.get(0);
-    // Peek to see if the first sub path is a subtract operation
-    if (subPath.getOp() == ShapeInfo.PathOp.SUBTRACT) {
+    ShapeInfo.Path shapePath = paths.get(0);
+    // Peek to see if the first path is a subtract operation
+    if (shapePath.getOp() == ShapeInfo.PathOp.SUBTRACT) {
       area = new Area(new Rectangle2D.Double(0.0, 0.0, layerBounds.getWidth(), layerBounds.getHeight()));
-      area.subtract(new Area(subPath.getPath()));
+      area.subtract(new Area(shapePath.getPath()));
     } else {
-      Path2D path = subPath.getPath();
+      Path2D path = shapePath.getPath();
       if (paths.size() == 1) {
         path.transform(transform);
         return path;
@@ -172,19 +172,19 @@ class LayeredImageConverter {
     }
 
     for (int i = 1; i < paths.size(); i++) {
-      subPath = paths.get(i);
-      switch (subPath.getOp()) {
+      shapePath = paths.get(i);
+      switch (shapePath.getOp()) {
         case ADD:
-          area.add(new Area(subPath.getPath()));
+          area.add(new Area(shapePath.getPath()));
           break;
         case SUBTRACT:
-          area.subtract(new Area(subPath.getPath()));
+          area.subtract(new Area(shapePath.getPath()));
           break;
         case INTERSECT:
-          area.intersect(new Area(subPath.getPath()));
+          area.intersect(new Area(shapePath.getPath()));
           break;
         case EXCLUSIVE_OR:
-          area.exclusiveOr(new Area(subPath.getPath()));
+          area.exclusiveOr(new Area(shapePath.getPath()));
           break;
       }
     }
