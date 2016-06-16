@@ -16,11 +16,13 @@
 
 package com.android.tools.adtui.visual;
 
-import com.android.annotations.NonNull;
 import com.android.tools.adtui.*;
 import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
+import com.android.tools.adtui.model.DefaultDataSeries;
 import com.android.tools.adtui.model.EventAction;
+import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.RangedSimpleSeries;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -54,10 +56,11 @@ public class EventVisualTest extends VisualTest {
     }
 
     private void addSelf() {
+      long now = System.currentTimeMillis();
       EventAction<StackedEventComponent.Action, String> event =
         new EventAction<StackedEventComponent.Action, String>(myStartTime, 0,
                                                               StackedEventComponent.Action.ACTIVITY_STARTED, myName);
-      mActivityData.getSeries().add(event);
+      mActivityData.add(now, event);
     }
 
     public void tearDown() {
@@ -65,7 +68,7 @@ public class EventVisualTest extends VisualTest {
       EventAction<StackedEventComponent.Action, String> event =
         new EventAction<StackedEventComponent.Action, String>(myStartTime, now,
                                                               StackedEventComponent.Action.ACTIVITY_COMPLETED, myName);
-      mActivityData.getSeries().add(event);
+      mActivityData.add(now, event);
     }
   }
 
@@ -95,24 +98,19 @@ public class EventVisualTest extends VisualTest {
     DOUBLE_TAP;
   }
 
-  @NonNull
+
   private ArrayList<MockActivity> myOpenActivites;
 
-  @NonNull
   private SimpleEventComponent mSimpleEventComponent;
 
-  @NonNull
   private StackedEventComponent myStackedEventComponent;
 
-  @NonNull
   private AxisComponent mTimeAxis;
 
-  @NonNull
-  private RangedSimpleSeries<EventAction<SimpleEventComponent.Action, ActionType>>
+  private DefaultDataSeries<EventAction<SimpleEventComponent.Action, ActionType>>
     mData;
 
-  @NonNull
-  private RangedSimpleSeries<EventAction<StackedEventComponent.Action, String>>
+  private DefaultDataSeries<EventAction<StackedEventComponent.Action, String>>
     mActivityData;
 
   private AnimatedTimeRange mAnimatedRange;
@@ -120,27 +118,19 @@ public class EventVisualTest extends VisualTest {
   private static final int AXIS_SIZE = 100;
   private static final int ACTIVITY_GRAPH_SIZE = 31;
 
-  public EventVisualTest() {
-
-  }
-
   @Override
   protected List<Animatable> createComponentsList() {
     long now = System.currentTimeMillis();
     Range xRange = new Range(now, now + 60000);
     Range xTimelineRange = new Range(0, 0);
 
-    mData
-      = new RangedSimpleSeries<EventAction<SimpleEventComponent.Action, ActionType>>(
-      xRange);
-    mActivityData
-      = new RangedSimpleSeries<EventAction<StackedEventComponent.Action, String>>(
-      xRange);
-    mSimpleEventComponent = new SimpleEventComponent(mData, MOCK_ICONS);
-    myStackedEventComponent = new StackedEventComponent(ACTIVITY_GRAPH_SIZE, mActivityData);
+    mData = new DefaultDataSeries<>();
+    mActivityData = new DefaultDataSeries<>();
+    mSimpleEventComponent = new SimpleEventComponent(new RangedSeries<>(xRange, mData), MOCK_ICONS);
+    myStackedEventComponent = new StackedEventComponent(new RangedSeries(xRange, mActivityData), ACTIVITY_GRAPH_SIZE);
     mAnimatedRange = new AnimatedTimeRange(xRange, 0);
     mTimelineRange = new AnimatedTimeRange(xTimelineRange, now);
-    myOpenActivites = new ArrayList<MockActivity>();
+    myOpenActivites = new ArrayList<>();
     // add horizontal time axis
     mTimeAxis = new AxisComponent(xTimelineRange, xTimelineRange, "TIME",
                                   AxisComponent.AxisOrientation.BOTTOM,
@@ -168,10 +158,10 @@ public class EventVisualTest extends VisualTest {
     EventAction<SimpleEventComponent.Action, ActionType> event =
       new EventAction<SimpleEventComponent.Action, ActionType>(now,
                                                                0, SimpleEventComponent.Action.DOWN, ActionType.HOLD);
-    mData.getSeries().add(event);
+    mData.add(now, event);
     event = new EventAction<SimpleEventComponent.Action, ActionType>(now,
                                                                      now, SimpleEventComponent.Action.UP, ActionType.TOUCH);
-    mData.getSeries().add(event);
+    mData.add(now, event);
   }
 
   private void addActivityCreatedEvent() {
@@ -189,7 +179,7 @@ public class EventVisualTest extends VisualTest {
   }
 
   @Override
-  protected void populateUi(@NonNull JPanel panel) {
+  protected void populateUi(@NotNull JPanel panel) {
     panel.setLayout(new BorderLayout());
     JLayeredPane timelinePane = createMockTimeline();
     panel.add(timelinePane, BorderLayout.CENTER);
@@ -214,9 +204,11 @@ public class EventVisualTest extends VisualTest {
       @Override
       public void actionPerformed(ActionEvent e) {
         int size = myOpenActivites.size();
-        MockActivity m = myOpenActivites.remove((int)(Math.random() * size));
-        m.tearDown();
-        performTapAction();
+        if(size != 0) {
+          MockActivity m = myOpenActivites.remove((int)(Math.random() * size));
+          m.tearDown();
+          performTapAction();
+        }
       }
     }));
     JButton tapButton = VisualTest.createButton("Tap Me");
@@ -225,18 +217,16 @@ public class EventVisualTest extends VisualTest {
       public void mousePressed(MouseEvent e) {
         long now = System.currentTimeMillis();
         EventAction<SimpleEventComponent.Action, ActionType> event =
-          new EventAction<SimpleEventComponent.Action, ActionType>(now,
-                                                                   0, SimpleEventComponent.Action.DOWN, ActionType.HOLD);
-        mData.getSeries().add(event);
+          new EventAction<>(now, 0, SimpleEventComponent.Action.DOWN, ActionType.HOLD);
+        mData.add(now, event);
       }
 
       @Override
       public void mouseReleased(MouseEvent e) {
         long now = System.currentTimeMillis();
         EventAction<SimpleEventComponent.Action, ActionType> event =
-          new EventAction<SimpleEventComponent.Action, ActionType>(now,
-                                                                   now, SimpleEventComponent.Action.UP, ActionType.TOUCH);
-        mData.getSeries().add(event);
+          new EventAction<>(now, now, SimpleEventComponent.Action.UP, ActionType.TOUCH);
+        mData.add(now, event);
       }
     });
     controls.add(tapButton);

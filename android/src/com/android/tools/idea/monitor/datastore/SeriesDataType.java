@@ -36,5 +36,9 @@ public enum SeriesDataType {
   MEMORY_GRAPHICS, //long
   MEMORY_CODE, //long
   MEMORY_OTHERS, //long
-  MEMORY_OBJECT_COUNT //long
+  MEMORY_OBJECT_COUNT, //long
+
+  EVENT_SIMPLE_ACTION, //EventAction
+  EVENT_FRAGMENT_ACTION, //EventAction
+  EVENT_ACTIVITY_ACTION, //EventAction
 }
