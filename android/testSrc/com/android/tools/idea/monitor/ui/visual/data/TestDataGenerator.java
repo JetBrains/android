@@ -29,5 +29,6 @@ public interface TestDataGenerator<T> {
   /**
    * Generate data, this will be called for each DataGenerator to signal new data should be created and stored internally.
    */
-  void generateData();
+  //TODO refactor to move time into DataGenerators.
+  void generateData(long currentTime);
 }

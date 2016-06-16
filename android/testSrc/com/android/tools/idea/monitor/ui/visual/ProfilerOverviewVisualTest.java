@@ -52,11 +52,8 @@ public class ProfilerOverviewVisualTest extends VisualTest {
   // Event data generation constants.
   private static final int IMAGE_WIDTH = 16;
   private static final int IMAGE_HEIGHT = 16;
-  private static final float CLICK_PROBABILITY = 1 / 5.0f; // 1 in 5 chance to click and release
-  private static final double CREATE_DESTROY_PROBABILITY = .5; // 50% chance to create a new fragment/activity
-  private static final int EVENT_LIMIT = 5; // create a maximum of X fragment/activities;
 
-  //TODO refactor this to a common location.
+  //TODO replace this with AndroidIcons
   private static BufferedImage buildStaticImage(Color color) {
     BufferedImage image = new BufferedImage(IMAGE_WIDTH, IMAGE_HEIGHT,
                                             BufferedImage.TYPE_4BYTE_ABGR);
@@ -98,12 +95,6 @@ public class ProfilerOverviewVisualTest extends VisualTest {
 
   private AccordionLayout mLayout;
 
-  private RangedSimpleSeries<EventAction<SimpleEventComponent.Action, EventVisualTest.ActionType>> mSystemEventData;
-
-  private RangedSimpleSeries<EventAction<StackedEventComponent.Action, String>> mFragmentEventData;
-
-  private RangedSimpleSeries<EventAction<StackedEventComponent.Action, String>> mActivityEventData;
-
   private EventDispatcher<ProfilerEventListener> mEventDispatcher;
 
   private Component mResetProfilersButton;
@@ -132,9 +123,6 @@ public class ProfilerOverviewVisualTest extends VisualTest {
 
     mScrollbar = new RangeScrollbar(mXGlobalRange, mXRange);
 
-    mSystemEventData = new RangedSimpleSeries<>(mXGlobalRange);
-    mFragmentEventData = new RangedSimpleSeries<>(mXGlobalRange);
-    mActivityEventData = new RangedSimpleSeries<>(mXGlobalRange);
 
     // add horizontal time axis
     mTimeAxis = new AxisComponent(mXRange,
@@ -311,7 +299,7 @@ public class ProfilerOverviewVisualTest extends VisualTest {
         segment = new TimeAxisSegment(mXRange, mTimeAxis, mEventDispatcher);
         break;
       case EVENT:
-        segment = new EventSegment<>(mXGlobalRange, mSystemEventData, mFragmentEventData, mActivityEventData, MOCK_ICONS, mEventDispatcher);
+        segment = new EventSegment(mXGlobalRange, mDataStore, MOCK_ICONS, mEventDispatcher);
         break;
       case CPU:
         segment = new CpuUsageSegment(mXRange, mDataStore, mEventDispatcher);
@@ -337,44 +325,5 @@ public class ProfilerOverviewVisualTest extends VisualTest {
     segment.initializeComponents();
 
     return segment;
-  }
-
-  // TODO refactor to VisualTestSeriesDataStore.
-  private void generateStackedEventData(RangedSimpleSeries<EventAction<StackedEventComponent.Action, String>> rangedSeries,
-                                        List<Long> activeEvents,
-                                        long deltaTime,
-                                        float probability) {
-    //Determine if we are going to generate an event.
-    if (Math.random() < probability) {
-      //If we decide we can generate an event, we can generate either a started event, or completed event.
-      //If we do not have any events we will generate a started event.
-      //If we are at our event limit we will generate a completed event.
-      if ((Math.random() < CREATE_DESTROY_PROBABILITY || activeEvents.size() == 0) && activeEvents.size() != EVENT_LIMIT) {
-        rangedSeries.getSeries().add(new EventAction<>(deltaTime, 0, StackedEventComponent.Action.ACTIVITY_STARTED, "Widgets"));
-        activeEvents.add(deltaTime);
-      } else {
-        long startTime = activeEvents.remove(activeEvents.size() - 1);
-        rangedSeries.getSeries().add(new EventAction<>(startTime, deltaTime, StackedEventComponent.Action.ACTIVITY_COMPLETED, "Widgets"));
-      }
-    }
-  }
-
-  // TODO refactor to VisualTestSeriesDataStore.
-  private boolean generateEventData(boolean downEvent, List<Long> fragments, List<Long> activities, long deltaTime) {
-    boolean downState = downEvent;
-    if (Math.random() < CLICK_PROBABILITY) {
-      if (!downEvent) {
-        mSystemEventData.getSeries()
-          .add(new EventAction<SimpleEventComponent.Action, EventVisualTest.ActionType>(deltaTime, 0, SimpleEventComponent.Action.DOWN,
-                                                                                        EventVisualTest.ActionType.HOLD));
-      } else {
-        mSystemEventData.getSeries()
-          .add(
-            new EventAction<SimpleEventComponent.Action, EventVisualTest.ActionType>(deltaTime, deltaTime, SimpleEventComponent.Action.UP,
-                                                                                     EventVisualTest.ActionType.TOUCH));
-      }
-      downState = !downEvent;
-    }
-    return downState;
   }
 }

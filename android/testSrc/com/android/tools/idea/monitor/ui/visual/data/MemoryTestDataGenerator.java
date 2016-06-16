@@ -19,7 +19,7 @@ import gnu.trove.TLongArrayList;
 
 public class MemoryTestDataGenerator implements TestDataGenerator<Long> {
 
-  private TLongArrayList data = new TLongArrayList();
+  private TLongArrayList mData = new TLongArrayList();
   private boolean mUseFreeMemory;
   private Runtime mRuntime;
 
@@ -30,17 +30,17 @@ public class MemoryTestDataGenerator implements TestDataGenerator<Long> {
 
   @Override
   public Long get(int index) {
-    return data.get(index);
+    return mData.get(index);
   }
 
   @Override
-  public void generateData() {
+  public void generateData(long currentTime) {
     if (mUseFreeMemory) {
-      data.add(mRuntime.freeMemory());
+      mData.add(mRuntime.freeMemory());
     }
     else {
       long usedMem = mRuntime.totalMemory() - mRuntime.freeMemory();
-      data.add(usedMem);
+      mData.add(usedMem);
     }
   }
 }

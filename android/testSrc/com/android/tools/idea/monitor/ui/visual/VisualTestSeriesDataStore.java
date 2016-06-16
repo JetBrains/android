@@ -19,9 +19,7 @@ import com.android.tools.adtui.Range;
 import com.android.tools.idea.monitor.datastore.SeriesDataList;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.datastore.SeriesDataType;
-import com.android.tools.idea.monitor.ui.visual.data.LongTestDataGenerator;
-import com.android.tools.idea.monitor.ui.visual.data.MemoryTestDataGenerator;
-import com.android.tools.idea.monitor.ui.visual.data.TestDataGenerator;
+import com.android.tools.idea.monitor.ui.visual.data.*;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 import gnu.trove.TLongArrayList;
@@ -104,7 +102,7 @@ public final class VisualTestSeriesDataStore implements SeriesDataStore {
       for (Map.Entry<TLongArrayList, TestDataGenerator<?>> dataList : series.entrySet()) {
         // TODO: come up with cleaner API, as this casting is wrong, i.e mDataSeriesMap returns a generic list
         dataList.getKey().add(mCurrentTime);
-        dataList.getValue().generateData();
+        dataList.getValue().generateData(mCurrentTime);
       }
     }
   }
@@ -128,6 +126,15 @@ public final class VisualTestSeriesDataStore implements SeriesDataStore {
           break;
         case MEMORY_OTHERS:
           mDataSeriesMap.put(type, new TLongArrayList(), new MemoryTestDataGenerator(false));
+          break;
+        case EVENT_ACTIVITY_ACTION:
+          mDataSeriesMap.put(type, new TLongArrayList(), new StackedEventTestDataGenerator("Activities"));
+          break;
+        case EVENT_FRAGMENT_ACTION:
+          mDataSeriesMap.put(type, new TLongArrayList(), new StackedEventTestDataGenerator("Fragments"));
+          break;
+        case EVENT_SIMPLE_ACTION:
+          mDataSeriesMap.put(type, new TLongArrayList(), new SimpleEventTestDataGenerator());
           break;
         default:
           mDataSeriesMap.put(type, new TLongArrayList(), new LongTestDataGenerator(-20, 100, true));
