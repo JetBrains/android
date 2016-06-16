@@ -122,10 +122,10 @@ public final class AvdDeviceData {
   /**
    * @param device Optional source device from which to derive values from, if present
    */
-  public AvdDeviceData(@Nullable Device device) {
+  public AvdDeviceData(@Nullable Device device, @Nullable SystemImageDescription systemImage) {
     this();
     if (device != null) {
-      updateValuesFromDevice(device);
+      updateValuesFromDevice(device, systemImage);
     }
   }
 
@@ -333,7 +333,7 @@ public final class AvdDeviceData {
     return new Dimension(width, height);
   }
 
-  public void updateValuesFromDevice(@NotNull Device device) {
+  public void updateValuesFromDevice(@NotNull Device device, @Nullable SystemImageDescription systemImage) {
     myName.set(device.getDisplayName());
     String tagId = device.getTagId();
     if (myTagId.get().isEmpty()) {
@@ -387,13 +387,18 @@ public final class AvdDeviceData {
     myHasGps.set(defaultHardware.getSensors().contains(Sensor.GPS));
     myHasProximitySensor.set(defaultHardware.getSensors().contains(Sensor.PROXIMITY_SENSOR));
 
-    File skinFile = AvdWizardUtils.resolveSkinPath(defaultHardware.getSkinFile(), null, FileOpUtils.create());
-    myCustomSkinFile.setValue((skinFile == null) ? AvdWizardUtils.NO_SKIN : skinFile);
-
     myIsTv.set(HardwareConfigHelper.isTv(device));
     myIsWear.set(HardwareConfigHelper.isWear(device));
     myIsScreenRound.set(device.isScreenRound());
     myScreenChinSize.set(device.getChinSize());
+
+    updateSkinFromDeviceAndSystemImage(device, systemImage);
+  }
+
+  public void updateSkinFromDeviceAndSystemImage(@NotNull Device device, @Nullable SystemImageDescription systemImage) {
+    Hardware defaultHardware = device.getDefaultHardware();
+    File skinFile = AvdWizardUtils.resolveSkinPath(defaultHardware.getSkinFile(), systemImage, FileOpUtils.create());
+    myCustomSkinFile.setValue((skinFile == null) ? AvdWizardUtils.NO_SKIN : skinFile);
   }
 
   @SuppressWarnings("SuspiciousNameCombination") // We sometimes deliberately swap x/width y/height relationships depending on orientation
