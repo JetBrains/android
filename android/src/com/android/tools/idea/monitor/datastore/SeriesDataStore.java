@@ -16,6 +16,7 @@
 package com.android.tools.idea.monitor.datastore;
 
 import com.android.tools.adtui.Range;
+import com.android.tools.adtui.model.SeriesData;
 
 /**
  * This interface is the minimal interface required for defining an object that
@@ -43,14 +44,9 @@ public interface SeriesDataStore {
   <T> SeriesDataList<T> getSeriesData(SeriesDataType type, Range range);
 
   /**
-   * Returns the time at a given index, used by the SeriesDataList to retrieve timestamps.
+   * Returns the {@link SeriesData} at a given index, used by the {@link SeriesDataList}.
    */
-  long getTimeAtIndex(SeriesDataType type, int index);
-
-  /**
-   * Returns the value at the specified index for a given data type, used by the SeriesDataList to retrieve series specific data.
-   */
-  <T> T getValueAtIndex(SeriesDataType type, int index);
+  <T> SeriesData<T> getDataAt(SeriesDataType type, int index);
 
   /**
    * Returns the closest index less than or equal to the time value.

@@ -46,9 +46,6 @@ public class DataStoreSeries<E> implements DataSeries<E> {
   @Override
   public SeriesData<E> getDataAtXValue(long x) {
     int index = mStore.getClosestTimeIndex(mType, x);
-    SeriesData<E> data = new SeriesData<>();
-    data.x = mStore.getTimeAtIndex(mType, index);
-    data.value = mStore.getValueAtIndex(mType, index);
-    return data;
+    return mStore.getDataAt(mType, index);
   }
 }
