@@ -620,7 +620,7 @@ public class AtomController extends TreeController implements AtomStream.Listene
       hierarchy = atoms.getHierarchies().firstWithContext(mySelectedContext.getID());
       mySelectedHierarchies.put(mySelectedContext.getID(), hierarchy);
     }
-    hierarchy.getRoot().addChildren(root, atoms.getAtoms(), mySelectedContext);
+    hierarchy.getRoot().addChildren(root, atoms.getAtoms(), atoms.getContexts().count() > 1 ? mySelectedContext : Context.ALL);
     Enumeration<TreePath> treeState = myTree.getExpandedDescendants(new TreePath(myTree.getModel().getRoot()));
     setRoot(root);
     if (treeState != null) {
