@@ -18,10 +18,7 @@ package com.android.tools.idea.editors.gfxtrace.actions;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.ddms.EdtExecutor;
-import com.android.tools.idea.editors.gfxtrace.DeviceInfo;
-import com.android.tools.idea.editors.gfxtrace.GapiiLibraryLoader;
-import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
-import com.android.tools.idea.editors.gfxtrace.GfxTracer;
+import com.android.tools.idea.editors.gfxtrace.*;
 import com.android.tools.idea.editors.gfxtrace.forms.ActivitySelector;
 import com.android.tools.idea.editors.gfxtrace.forms.TraceDialog;
 import com.android.tools.idea.editors.gfxtrace.gapi.GapiPaths;
@@ -212,6 +209,10 @@ public class GfxTraceCaptureAction extends ToggleAction {
 
   @Override
   public final void setSelected(AnActionEvent e, boolean state) {
+    if (!GfxTraceUtil.checkAndTryInstallGapidSdkComponent(myView.getProject())) {
+      return;
+    }
+
     IDevice device = myView.getDeviceContext().getSelectedDevice();
     if (device == null) {
       return; // Button shouldn't be enabled, but let's play safe.
@@ -232,7 +233,6 @@ public class GfxTraceCaptureAction extends ToggleAction {
     super.update(e);
     Presentation presentation = e.getPresentation();
     if (!GapiPaths.isValid()) {
-      presentation.setEnabled(false);
       presentation.setText(BUTTON_TEXT + " : GPU debugger tools not installed");
     }
     else {
