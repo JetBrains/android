@@ -26,6 +26,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -52,10 +54,30 @@ abstract class AndroidDomTest extends AndroidTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
+    ensureWebserverAccess();
     myFixture.copyFileToProject("R.java", "gen/p1/p2/R.java");
     myFixture.enableInspections(AndroidDomInspection.class,
                                 AndroidUnknownAttributeInspection.class,
                                 AndroidElementNotAllowedInspection.class);
+  }
+
+  private static void ensureWebserverAccess() {
+    try {
+      Class builtinWebServerAccess = Class.forName("com.intellij.util.BuiltinWebServerAccess");
+      if (builtinWebServerAccess != null) {
+        Method ensureUserAuthenticationToken =
+          builtinWebServerAccess.getMethod("ensureUserAuthenticationToken");
+        if (ensureUserAuthenticationToken != null) {
+          ensureUserAuthenticationToken.invoke(null);
+        }
+      }
+    }
+    catch (ClassNotFoundException |
+      NoSuchMethodException |
+      InvocationTargetException |
+      IllegalAccessException ignore) {
+      // that's ok, it indicates we're not running in Android Studio, but in IntelliJ ultimate.
+    }
   }
 
   @Override
