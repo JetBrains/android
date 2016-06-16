@@ -22,7 +22,6 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.Wait;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.FileFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.InspectCodeDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
@@ -68,7 +67,6 @@ public class NewProjectTest {
    *   Successfully created new project with name containing a space.
    *   </pre>
    */
-  @Ignore("http://b.android.com/213056")
   @Test
   public void createNewProjectNameWithSpace() {
     EditorFixture editor = newProject("Test Application").withMinSdk("23").create()
@@ -184,7 +182,6 @@ public class NewProjectTest {
     guiTest.waitForBackgroundTasks();
   }
 
-  @Ignore("http://wpie20.hot.corp.google.com:8200/builders/ubuntu-studio-master-dev-uitests/builds/28/")
   @Test
   public void testLanguageLevelForApi21() {
     newProject("Test Application").withBriefNames().withMinSdk("21").create();
