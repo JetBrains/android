@@ -622,8 +622,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     return false;
   }
 
-  private InstantRunGradleSupport canInstantRun(@NotNull Module module,
-                                                @NotNull List<AndroidDevice> targetDevices) {
+  private static InstantRunGradleSupport canInstantRun(@NotNull Module module,
+                                                       @NotNull List<AndroidDevice> targetDevices) {
     if (targetDevices.size() != 1) {
       return InstantRunGradleSupport.CANNOT_BUILD_FOR_MULTIPLE_DEVICES;
     }
