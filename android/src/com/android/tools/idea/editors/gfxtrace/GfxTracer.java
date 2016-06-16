@@ -22,6 +22,7 @@ import com.android.tools.idea.profiling.capture.CaptureHandle;
 import com.android.tools.idea.profiling.capture.CaptureService;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.editor.ProfilerState;
+import com.google.api.client.util.Lists;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.execution.configurations.RunConfiguration;
@@ -36,6 +37,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
+import java.util.List;
 
 public class GfxTracer {
   private static final long UPDATE_FREQUENCY_MS = 500;
@@ -158,26 +160,27 @@ public class GfxTracer {
   }
 
   private void attachTracerAndCapture(@NotNull String pkg, @Nullable String abi, @NotNull Options options) {
-    try {
-      if (abi == null) {
-        abi = myDevice.getAbis().get(0);
-      }
-
-      myListener.onAction("Installing trace library...");
-      File myGapii = GapiPaths.findTraceLibrary(abi);
-      try {
-        new GapiiLibraryLoader(myProject, myDevice).connectToProcessAndInstallLibraries(pkg, myGapii);
-      }
-      catch (Exception e) {
-        throw new RuntimeException(e);
-      }
-      LOG.info("Finished installing library, capturing.");
-
-      capture(options);
+    if (abi == null) {
+      abi = myDevice.getAbis().get(0);
     }
-    catch (IOException e) {
+
+    myListener.onAction("Installing trace library...");
+    try {
+      List<File> libsToInstall = Lists.newArrayList();
+      try {
+        libsToInstall.add(GapiPaths.findInterceptorLibrary(abi));
+      } catch (IOException ex) {
+        LOG.info("Skipping libinterceptor.so: " + ex.getMessage());
+      }
+      libsToInstall.add(GapiPaths.findTraceLibrary(abi));
+
+      new GapiiLibraryLoader(myProject, myDevice).connectToProcessAndInstallLibraries(pkg, libsToInstall);
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
+    LOG.info("Finished installing libraries, capturing.");
+
+    capture(options);
   }
 
   private void capture(@NotNull Options options) {
