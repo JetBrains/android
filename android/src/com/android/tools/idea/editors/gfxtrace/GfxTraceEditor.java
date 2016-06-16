@@ -99,6 +99,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   @NotNull private final VirtualFile myFile;
   @NotNull private final JComponent myMainUi;
   @NotNull private final List<PathListener> myPathListeners = new ArrayList<PathListener>();
+  @NotNull private final List<ConnectionListener> myConnectionListeners = new ArrayList<ConnectionListener>();
   private final long myStartTime = System.currentTimeMillis();
 
   @Nullable private GapisConnection myGapisConnection;
@@ -193,6 +194,15 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
 
     fetchReplayDevice();
     fetchTrace(myFile);
+
+    // Inform the listeners that we've connected.
+    ApplicationManager.getApplication().invokeLater(() -> {
+      synchronized (myConnectionListeners) {
+        for (ConnectionListener listener : myConnectionListeners) {
+          listener.onConnection(myGapisConnection);
+        }
+      }
+    });
   }
 
   /**
@@ -351,6 +361,10 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
     myPathListeners.add(listener);
   }
 
+  public void addConnectionListener(@NotNull ConnectionListener listener) {
+    myConnectionListeners.add(listener);
+  }
+
   @NotNull
   @Override
   public FileEditorState getState(@NotNull FileEditorStateLevel level) {
@@ -503,4 +517,11 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
       return new GapisInitException("Failed to load trace file " + file.getPresentableName());
     }
   }
+
+  /** Listener interface for GAPIS connection events. */
+  public interface ConnectionListener {
+    /** Called when the editor finalizes the connection to GAPIS. */
+    void onConnection(GapisConnection connection);
+  }
+
 }
