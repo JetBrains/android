@@ -23,6 +23,7 @@ import com.android.tools.adtui.common.formatter.SingleUnitAxisFormatter;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.datastore.SeriesDataType;
 import com.android.tools.idea.monitor.ui.BaseLineChartSegment;
+import com.android.tools.idea.monitor.ui.BaseProfilerUiManager;
 import com.android.tools.idea.monitor.ui.ProfilerEventListener;
 import com.intellij.ui.JBColor;
 import com.intellij.util.EventDispatcher;
@@ -57,8 +58,8 @@ public class MemorySegment extends BaseLineChartSegment {
   }
 
   @Override
-  public SegmentType getSegmentType() {
-    return SegmentType.MEMORY;
+  public BaseProfilerUiManager.ProfilerType getProfilerType() {
+    return BaseProfilerUiManager.ProfilerType.MEMORY;
   }
 
   @Override

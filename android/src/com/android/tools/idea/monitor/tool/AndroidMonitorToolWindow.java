@@ -26,16 +26,14 @@ import com.android.tools.idea.monitor.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.datastore.SeriesDataStoreImpl;
 import com.android.tools.idea.monitor.profilerclient.DeviceProfilerService;
 import com.android.tools.idea.monitor.profilerclient.ProfilerService;
+import com.android.tools.idea.monitor.ui.BaseProfilerUiManager;
 import com.android.tools.idea.monitor.ui.BaseSegment;
 import com.android.tools.idea.monitor.ui.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.TimeAxisSegment;
-import com.android.tools.idea.monitor.ui.cpu.model.CpuDataPoller;
-import com.android.tools.idea.monitor.ui.cpu.view.CpuUsageSegment;
-import com.android.tools.idea.monitor.ui.cpu.view.ThreadsSegment;
-import com.android.tools.idea.monitor.ui.memory.view.MemorySegment;
-import com.android.tools.idea.monitor.ui.network.view.NetworkSegment;
-import com.android.tools.profiler.proto.CpuProfiler;
-import com.android.tools.profiler.proto.CpuProfilerServiceGrpc;
+import com.android.tools.idea.monitor.ui.cpu.view.CpuProfilerUiManager;
+import com.android.tools.idea.monitor.ui.events.view.EventProfilerUiManager;
+import com.android.tools.idea.monitor.ui.memory.view.MemoryProfilerUiManager;
+import com.android.tools.idea.monitor.ui.network.view.NetworkProfilerUiManager;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
@@ -49,20 +47,16 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 public class AndroidMonitorToolWindow implements Disposable {
 
   private static final int CHOREOGRAPHER_FPS = 60;
 
   private static final int TOOLBAR_HORIZONTAL_GAP = JBUI.scale(5);
-
-  // Segment dimensions.
-  private static final int MONITOR_MAX_HEIGHT = JBUI.scale(Short.MAX_VALUE);
-
-  private static final int MONITOR_PREFERRED_HEIGHT = JBUI.scale(200);
 
   private static final int TIME_AXIS_HEIGHT = JBUI.scale(20);
 
@@ -84,14 +78,11 @@ public class AndroidMonitorToolWindow implements Disposable {
   @NotNull
   private final JPanel myComponent;
 
-  @NotNull
-  private final Choreographer myChoreographer;
+  @Nullable
+  private Choreographer myChoreographer;
 
-  @NotNull
+  @Nullable
   private SeriesDataStore myDataStore;
-
-  @NotNull
-  private CpuDataPoller myCpuDataPoller;
 
   private SelectionComponent mySelection;
 
@@ -103,51 +94,60 @@ public class AndroidMonitorToolWindow implements Disposable {
 
   private JPanel mySegmentsContainer;
 
-  private EventDispatcher<ProfilerEventListener> myEventDispatcher;
+  private JPanel myDetailedViewContainer;
 
-  private AccordionLayout mySegmentsLayout;
+  private EventDispatcher<ProfilerEventListener> myEventDispatcher;
 
   private JButton myCollapseSegmentsButton;
 
-  private BaseSegment myThreadsSegment;
+  private TreeMap<BaseProfilerUiManager.ProfilerType, BaseProfilerUiManager> myProfilerManagers;
+
+  private BaseProfilerUiManager.ProfilerType myExpandedProfiler;
 
   public AndroidMonitorToolWindow(@NotNull final Project project) {
     myProject = project;
     myComponent = new JPanel(new BorderLayout());
-    myDataStore = new SeriesDataStoreImpl();
-    myCpuDataPoller = new CpuDataPoller();
-    myChoreographer = new Choreographer(CHOREOGRAPHER_FPS, myComponent);
-    myChoreographer.register(createComponentsList());
-    myEventDispatcher = EventDispatcher.create(ProfilerEventListener.class);
-
     myDeviceContext = new DeviceContext();
+    myProfilerManagers = new TreeMap<>();
+
     setupDevice();
-    populateUi();
+    createToolbarComponent();
   }
 
   @Override
   public void dispose() {
   }
 
-  private List<Animatable> createComponentsList() {
-    Range xGlobalRange = new Range();
-    AnimatedTimeRange animatedTimeRange = new AnimatedTimeRange(xGlobalRange, System.currentTimeMillis());
+  private List<Animatable> createCommonAnimatables() {
+    Range xGlobalRange = new Range(-RangeScrollbar.DEFAULT_VIEW_LENGTH_MS, 0);
     Range xSelectionRange = new Range();
-
     myXRange = new Range();
+
     myScrollbar = new RangeScrollbar(xGlobalRange, myXRange);
 
-    // add horizontal time axis
     myTimeAxis = new AxisComponent(myXRange, xGlobalRange, "TIME", AxisComponent.AxisOrientation.BOTTOM, 0, 0, false,
                                    TimeAxisFormatter.DEFAULT);
+    myTimeAxis.setLabelVisible(false);
 
+    myDetailedViewContainer = new JBPanel();
     mySegmentsContainer = new JBPanel();
-    mySegmentsLayout = new AccordionLayout(mySegmentsContainer, AccordionLayout.Orientation.VERTICAL);
-    mySegmentsContainer.setLayout(mySegmentsLayout);
+    AccordionLayout accordion = new AccordionLayout(mySegmentsContainer, AccordionLayout.Orientation.VERTICAL);
+    mySegmentsContainer.setLayout(accordion);
+    accordion.setLerpFraction(1f);
+
     mySelection = new SelectionComponent(mySegmentsContainer, myTimeAxis, xSelectionRange, xGlobalRange, myXRange);
 
-    return Arrays.asList(
-      mySegmentsLayout, animatedTimeRange, mySelection, myScrollbar, myTimeAxis, myXRange, xGlobalRange, xSelectionRange);
+    return Arrays.asList(accordion,
+                         frameLength -> {
+                           // Updates the global range's max to match the device's current time.
+                           xGlobalRange.setMaxTarget(myDataStore.getLatestTime());
+                         },
+                         mySelection,
+                         myScrollbar,
+                         myTimeAxis,
+                         myXRange,
+                         xGlobalRange,
+                         xSelectionRange);
   }
 
   private void setupDevice() {
@@ -180,9 +180,40 @@ public class AndroidMonitorToolWindow implements Disposable {
         }
       }
 
+      /**
+       * If a valid Client is selected, (re)initialize the UI/datastore and everything along with it.
+       *
+       * TODO for now, the UI/datastore is destroyed if the Client is null. We should come up with a better approach
+       *      to keep the existing information present and have some visuals to indicate a "disconnected" status.
+       */
       @Override
       public void clientSelected(@Nullable Client c) {
+        if (mySelectedClient == c) {
+          return;
+        }
+
+        deinitializeProfilers();
         mySelectedClient = c;
+        if (mySelectedClient != null && mySelectedDeviceProfilerService != null) {
+          myDataStore = new SeriesDataStoreImpl(mySelectedDeviceProfilerService);
+          myChoreographer = new Choreographer(CHOREOGRAPHER_FPS, myComponent);
+          myChoreographer.register(createCommonAnimatables());
+          myEventDispatcher = EventDispatcher.create(ProfilerEventListener.class);
+
+          myProfilerManagers.put(BaseProfilerUiManager.ProfilerType.EVENT,
+                                 new EventProfilerUiManager(myXRange, myChoreographer, myDataStore, myEventDispatcher));
+          myProfilerManagers.put(BaseProfilerUiManager.ProfilerType.NETWORK,
+                                 new NetworkProfilerUiManager(myXRange, myChoreographer, myDataStore, myEventDispatcher));
+          myProfilerManagers.put(BaseProfilerUiManager.ProfilerType.MEMORY,
+                                 new MemoryProfilerUiManager(myXRange, myChoreographer, myDataStore, myEventDispatcher));
+          myProfilerManagers.put(BaseProfilerUiManager.ProfilerType.CPU,
+                                 new CpuProfilerUiManager(myXRange, myChoreographer, myDataStore, myEventDispatcher));
+          for (BaseProfilerUiManager manager : myProfilerManagers.values()) {
+            manager.startMonitoring(mySelectedClient.getClientData().getPid());
+          }
+
+          populateProfilerUi();
+        }
       }
     }, this);
   }
@@ -202,9 +233,7 @@ public class AndroidMonitorToolWindow implements Disposable {
     myComponent.add(toolbar, BorderLayout.NORTH);
   }
 
-  private void populateUi() {
-    createToolbarComponent();
-
+  private void populateProfilerUi() {
     GridBagLayout gbl = new GridBagLayout();
     GridBagConstraints gbc = new GridBagConstraints();
     JBPanel gridBagPanel = new JBPanel();
@@ -232,23 +261,22 @@ public class AndroidMonitorToolWindow implements Disposable {
     gbc.gridy = 1;
     gridBagPanel.add(myScrollbar, gbc);
 
-    // TODO: add events segment
-
-    // Monitor segments
-    BaseSegment networkSegment = createMonitorSegment(BaseSegment.SegmentType.NETWORK);
-    BaseSegment memorySegment = createMonitorSegment(BaseSegment.SegmentType.MEMORY);
-    BaseSegment cpuSegment = createMonitorSegment(BaseSegment.SegmentType.CPU);
+    // Setup profiler segments
+    for (BaseProfilerUiManager manager : myProfilerManagers.values()) {
+      manager.setupOverviewUi(mySegmentsContainer);
+    }
 
     // Timeline segment
-    BaseSegment timeSegment = createSegment(BaseSegment.SegmentType.TIME, TIME_AXIS_HEIGHT, TIME_AXIS_HEIGHT, TIME_AXIS_HEIGHT);
-
-    mySegmentsContainer.add(networkSegment);
-    mySegmentsContainer.add(memorySegment);
-    mySegmentsContainer.add(cpuSegment);
+    TimeAxisSegment timeSegment = new TimeAxisSegment(myXRange, myTimeAxis, myEventDispatcher);
+    timeSegment.setMinimumSize(new Dimension(0, TIME_AXIS_HEIGHT));
+    timeSegment.setPreferredSize(new Dimension(0, TIME_AXIS_HEIGHT));
+    timeSegment.setMaximumSize(new Dimension(0, TIME_AXIS_HEIGHT));
+    timeSegment.setBorder(BorderFactory.createLineBorder(JBColor.GRAY));
+    timeSegment.initializeComponents();
     mySegmentsContainer.add(timeSegment);
 
     // Add left spacer
-    Dimension leftSpacer = new Dimension(BaseSegment.getSpacerWidth() + networkSegment.getLabelColumnWidth(), 0);
+    Dimension leftSpacer = new Dimension(BaseSegment.getSpacerWidth() + timeSegment.getLabelColumnWidth(), 0);
     gbc.gridy = 0;
     gbc.gridx = 0;
     gbc.gridwidth = 2;
@@ -265,42 +293,47 @@ public class AndroidMonitorToolWindow implements Disposable {
     gbc.weighty = 0;
     Component rightSpacerFiller = new Box.Filler(rightSpacer, rightSpacer, rightSpacer);
     gridBagPanel.add(rightSpacerFiller, gbc);
+    rightSpacerFiller.setVisible(false);
+
     myComponent.add(gridBagPanel);
 
-
-    // TODO construct/destroy Levels 2 and 3 extra segment/elements as we expand/collapse segments
     myEventDispatcher.addListener(new ProfilerEventListener() {
       @Override
-      public void profilerExpanded(@NotNull BaseSegment.SegmentType segmentType) {
-        switch (segmentType) {
-          case NETWORK:
-            mySegmentsLayout.setState(networkSegment, AccordionLayout.AccordionState.MAXIMIZE);
-            break;
-          case CPU:
-            mySegmentsLayout.setState(cpuSegment, AccordionLayout.AccordionState.MAXIMIZE);
-            // Create the threads segment if it's not already there
-            if (myThreadsSegment == null) {
-              myThreadsSegment = createMonitorSegment(BaseSegment.SegmentType.THREADS);
-              mySegmentsContainer.add(myThreadsSegment);
-              mySegmentsLayout.setState(myThreadsSegment, AccordionLayout.AccordionState.MAXIMIZE);
+      public void profilerExpanded(@NotNull BaseProfilerUiManager.ProfilerType profilerType) {
+        // No other profiler should request expansion if a profiler is already expanded
+        assert (myExpandedProfiler == null || myExpandedProfiler == profilerType);
+
+        for (Map.Entry<BaseProfilerUiManager.ProfilerType, BaseProfilerUiManager> entry : myProfilerManagers.entrySet()) {
+          if (entry.getKey() == profilerType) {
+            if (myExpandedProfiler == null) {
+              entry.getValue().setupExtendedOverviewUi(mySegmentsContainer);
+              myExpandedProfiler = profilerType;
             }
-            break;
-          case MEMORY:
-            mySegmentsLayout.setState(memorySegment, AccordionLayout.AccordionState.MAXIMIZE);
-            break;
-          default:
+            else {
+              entry.getValue().setupDetailedViewUi(myDetailedViewContainer);
+            }
+          }
+          else if (entry.getKey() == BaseProfilerUiManager.ProfilerType.EVENT) {
+            // Special case for Events profiler, as it is always visible.
+            entry.getValue().setupExtendedOverviewUi(mySegmentsContainer);
+          }
+          else {
+            // TODO disable polling data from device.
+          }
         }
+
+        timeSegment.toggleView(true);
         rightSpacerFiller.setVisible(true);
         myCollapseSegmentsButton.setVisible(true);
       }
 
       @Override
       public void profilersReset() {
-        // Sets all the components back to their preferred states.
-        mySegmentsLayout.resetComponents();
-        destroyDetailedComponents();
+        myProfilerManagers.get(myExpandedProfiler).resetProfiler(mySegmentsContainer, myDetailedViewContainer);
+        timeSegment.toggleView(false);
         rightSpacerFiller.setVisible(false);
         myCollapseSegmentsButton.setVisible(false);
+        myExpandedProfiler = null;
       }
     });
   }
@@ -309,60 +342,10 @@ public class AndroidMonitorToolWindow implements Disposable {
     return myComponent;
   }
 
-  private BaseSegment createSegment(BaseSegment.SegmentType type, int minHeight, int preferredHeight, int maxHeight) {
-    BaseSegment segment;
-    switch (type) {
-      case TIME:
-        segment = new TimeAxisSegment(myXRange, myTimeAxis, myEventDispatcher);
-        break;
-      case CPU:
-        segment = new CpuUsageSegment(myXRange, myDataStore, myEventDispatcher);
-        break;
-      case THREADS:
-        segment = new ThreadsSegment(myXRange, myDataStore, myEventDispatcher, null);
-        break;
-      case MEMORY:
-        segment = new MemorySegment(myXRange, myDataStore, myEventDispatcher);
-        break;
-      default:
-        // TODO create corresponding segments based on type (e.g. GPU, events).
-        segment = new NetworkSegment(myXRange, myDataStore, myEventDispatcher);
-    }
-
-    segment.setMinimumSize(new Dimension(0, minHeight));
-    segment.setPreferredSize(new Dimension(0, preferredHeight));
-    segment.setMaximumSize(new Dimension(0, maxHeight));
-    segment.setBorder(BorderFactory.createLineBorder(JBColor.GRAY));
-
-    List<Animatable> segmentAnimatables = new ArrayList<>();
-    segment.createComponentsList(segmentAnimatables);
-
-    // LineChart needs to animate before y ranges so add them to the Choreographer in order.
-    myChoreographer.register(segmentAnimatables);
-    segment.initializeComponents();
-
-    return segment;
-  }
-
-  private BaseSegment createMonitorSegment(BaseSegment.SegmentType type) {
-    return createSegment(type, 0, MONITOR_PREFERRED_HEIGHT, MONITOR_MAX_HEIGHT);
-  }
-
-  /**
-   * Destroy components that should not be displayed in level 1.
-   */
-  private void destroyDetailedComponents() {
-    // TODO: as we add more components to the UI, refactor this to destroy all elements at once in a loop, not one by one.
-    if (myThreadsSegment != null) {
-      mySegmentsContainer.remove(myThreadsSegment);
-      myThreadsSegment = null;
-    }
-  }
-
   private void disconnectFromDevice() {
     if (mySelectedDeviceProfilerService != null) {
       ProfilerService.getInstance().disconnect(this, mySelectedDeviceProfilerService);
-      stopMonitoring();
+      deinitializeProfilers();
       mySelectedDeviceProfilerService = null;
     }
   }
@@ -377,42 +360,29 @@ public class AndroidMonitorToolWindow implements Disposable {
     }
 
     mySelectedDeviceProfilerService = ProfilerService.getInstance().connect(this, mySelectedDevice);
+  }
 
-    if (mySelectedDeviceProfilerService != null) {
-      startMonitoring();
+  private void deinitializeProfilers() {
+    if (mySelectedClient != null) {
+      synchronized (myComponent.getTreeLock()) {
+        // Empties the entire UI except the toolbar.
+        for (int i = myComponent.getComponentCount() - 1; i > 0; i--) {
+          myComponent.remove(i);
+        }
+      }
+
+      for (BaseProfilerUiManager manager : myProfilerManagers.values()) {
+        manager.stopMonitoring(mySelectedClient.getClientData().getPid());
+      }
+      myProfilerManagers.clear();
+
+      if (myDataStore != null) {
+        myDataStore.reset();
+        myDataStore = null;
+      }
+      myChoreographer = null;
+      myEventDispatcher = null;
+      mySelectedClient = null;
     }
-  }
-
-  private void startMonitoring() {
-    startCpuMonitoring();
-    // TODO: start other profilers
-  }
-
-  private void stopMonitoring() {
-    stopCpuMonitoring();
-    // TODO: stop other profilers
-  }
-
-  private void startCpuMonitoring() {
-    if (mySelectedClient == null) {
-      return;
-    }
-    int pid = mySelectedClient.getClientData().getPid();
-    CpuProfilerServiceGrpc.CpuProfilerServiceBlockingStub cpuService = mySelectedDeviceProfilerService.getCpuService();
-    CpuProfiler.CpuStartRequest.Builder requestBuilder = CpuProfiler.CpuStartRequest.newBuilder().setAppId(pid);
-    cpuService.startMonitoringApp(requestBuilder.build());
-
-    // Start collecting data
-    myCpuDataPoller.startDataRequest(pid, cpuService);
-  }
-
-  private void stopCpuMonitoring() {
-    if (mySelectedClient == null) {
-      return;
-    }
-    myCpuDataPoller.stopDataRequest();
-    CpuProfiler.CpuStopRequest.Builder requestBuilder = CpuProfiler.CpuStopRequest.newBuilder();
-    requestBuilder.setAppId(mySelectedClient.getClientData().getPid());
-    mySelectedDeviceProfilerService.getCpuService().stopMonitoringApp(requestBuilder.build());
   }
 }

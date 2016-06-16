@@ -21,10 +21,14 @@ import com.android.tools.idea.monitor.datastore.DataAdapter;
 import com.android.tools.idea.monitor.datastore.SeriesDataList;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.datastore.SeriesDataType;
-import com.android.tools.idea.monitor.ui.visual.data.*;
-import gnu.trove.TLongArrayList;
+import com.android.tools.idea.monitor.profilerclient.DeviceProfilerService;
+import com.android.tools.idea.monitor.ui.visual.data.LongTestDataGenerator;
+import com.android.tools.idea.monitor.ui.visual.data.MemoryTestDataGenerator;
+import com.android.tools.idea.monitor.ui.visual.data.SimpleEventTestDataGenerator;
+import com.android.tools.idea.monitor.ui.visual.data.StackedEventTestDataGenerator;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 public final class VisualTestSeriesDataStore implements SeriesDataStore {
 
@@ -38,8 +42,13 @@ public final class VisualTestSeriesDataStore implements SeriesDataStore {
   }
 
   @Override
+  public DeviceProfilerService getDeviceProfilerService() {
+    return null;
+  }
+
+  @Override
   public void reset() {
-    for(DataAdapter<?> adapter : myDataSeriesMap.values()) {
+    for (DataAdapter<?> adapter : myDataSeriesMap.values()) {
       adapter.reset();
     }
   }
@@ -70,7 +79,7 @@ public final class VisualTestSeriesDataStore implements SeriesDataStore {
   }
 
   public void registerAdapter(SeriesDataType type, DataAdapter adapter) {
-    myDataSeriesMap.put(type,adapter);
+    myDataSeriesMap.put(type, adapter);
     adapter.setStartTime(mStartTime);
   }
 

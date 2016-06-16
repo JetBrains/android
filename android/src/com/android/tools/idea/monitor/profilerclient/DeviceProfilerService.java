@@ -99,12 +99,12 @@ public class DeviceProfilerService {
   }
 
   @NotNull
-  DeviceServiceGrpc.DeviceServiceBlockingStub getDeviceService() {
+  public DeviceServiceGrpc.DeviceServiceBlockingStub getDeviceService() {
     return myDeviceService;
   }
 
   @NotNull
-  MemoryServiceGrpc.MemoryServiceBlockingStub getMemoryService() {
+  public MemoryServiceGrpc.MemoryServiceBlockingStub getMemoryService() {
     return myMemoryService;
   }
 

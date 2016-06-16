@@ -91,16 +91,6 @@ public class EventSegment extends BaseSegment {
   }
 
   @Override
-  public void profilerExpanded(@NotNull SegmentType segment) {
-    toggleView(true);
-  }
-
-  @Override
-  public void profilersReset() {
-    toggleView(false);
-  }
-
-  @Override
   protected void setCenterContent(@NotNull JPanel panel) {
     JPanel layeredPane = new JPanel();
     layeredPane.setLayout(new GridBagLayout());
