@@ -52,7 +52,7 @@ public class GfxTraceCaptureAction extends ToggleAction {
   private static final String NOTIFICATION_LAUNCH_REQUIRES_ROOT_TITLE = "Rooted device required";
   private static final String NOTIFICATION_LAUNCH_REQUIRES_ROOT_CONTENT =
     "The device needs to be rooted in order to launch an application for GPU tracing.<br/>" +
-    "To trace your own application on a non-rooted device, build your application with the GPU tracing library.";
+    "To trace your own application on a non-rooted device, enable tracing in the run configuration.";
 
   @NotNull protected final GpuMonitorView myView;
   private JDialog myActiveForm = null;
