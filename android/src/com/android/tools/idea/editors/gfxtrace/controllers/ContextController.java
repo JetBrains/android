@@ -18,6 +18,7 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.models.AtomStream;
 import com.android.tools.idea.editors.gfxtrace.service.Context;
+import com.android.tools.idea.editors.gfxtrace.service.ContextID;
 import com.android.tools.idea.editors.gfxtrace.service.ContextList;
 import com.android.tools.idea.editors.gfxtrace.service.path.AtomRangePath;
 import com.android.tools.idea.editors.gfxtrace.service.path.CapturePath;
@@ -79,12 +80,18 @@ public class ContextController extends Controller implements AtomStream.Listener
       return;
     }
 
+    ContextID contextToSelect = mySelectedContext.getID();
     mySuspendUiUpdates = true;
     try {
       myCapturePath = atoms.getPath().getCapture();
       myContexts = atoms.getContexts();
       myComboBox.removeAllItems();
-      myComboBox.addItem(Context.ALL);
+      if (myContexts.count() > 1) {
+        myComboBox.addItem(Context.ALL);
+      }
+      else {
+        contextToSelect = myContexts.getContexts()[0].getID();
+      }
       for (Context context : myContexts) {
         myComboBox.addItem(context);
       }
@@ -94,7 +101,7 @@ public class ContextController extends Controller implements AtomStream.Listener
       mySuspendUiUpdates = false;
     }
 
-    selectContext(myContexts.find(mySelectedContext.getID(), Context.ALL));
+    selectContext(myContexts.find(contextToSelect, Context.ALL));
   }
 
   @Override
