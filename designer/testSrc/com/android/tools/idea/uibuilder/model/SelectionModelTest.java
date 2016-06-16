@@ -51,7 +51,7 @@ public class SelectionModelTest extends LayoutTestCase {
     assertTrue(called.get());
     called.set(false);
     assertEquals(Collections.singletonList(component1), model.getSelection());
-    assertNull(model.getPrimary());
+    assertEquals(component1, model.getPrimary());
 
     // Check multi-selection
     model.setSelection(Arrays.asList(component1, component2), component2);

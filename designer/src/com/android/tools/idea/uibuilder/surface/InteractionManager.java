@@ -282,7 +282,7 @@ public class InteractionManager {
 
       if (!selectionModel.isEmpty()) {
         NlComponent primary = selectionModel.getPrimary();
-        NlComponent parent = primary.getParent();
+        NlComponent parent = primary != null ? primary.getParent() : null;
         if (parent != null) {
           ViewGroupHandler handler = parent.getViewGroupHandler();
           if (handler != null) {
@@ -443,7 +443,7 @@ public class InteractionManager {
           return;
         }
       }
-      ViewGroupHandler viewGroupHandler = component.getViewGroupHandler();
+      ViewGroupHandler viewGroupHandler = component != null ? component.getViewGroupHandler() : null;
       if (viewGroupHandler == null) {
         return;
       }
@@ -452,7 +452,7 @@ public class InteractionManager {
       // Give a chance to the current selection's parent handler
       if (interaction == null && !selectionModel.isEmpty()) {
         NlComponent primary = screenView.getSelectionModel().getPrimary();
-        NlComponent parent = primary.getParent();
+        NlComponent parent = primary != null ? primary.getParent() : null;
         if (parent != null) {
           int ax = Coordinates.getAndroidX(screenView, myLastMouseX);
           int ay = Coordinates.getAndroidY(screenView, myLastMouseY);
@@ -588,7 +588,7 @@ public class InteractionManager {
         int ax = Coordinates.getAndroidX(screenView, x);
         int ay = Coordinates.getAndroidY(screenView, y);
 
-        Interaction interaction = null;
+        Interaction interaction;
         // Dragging on top of a selection handle: start a resize operation
         int max = Coordinates.getAndroidDimension(screenView, PIXEL_RADIUS + PIXEL_MARGIN);
         SelectionHandle handle = selectionModel.findHandle(ax, ay, max);
