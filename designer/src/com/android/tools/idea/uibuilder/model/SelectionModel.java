@@ -76,6 +76,7 @@ public class SelectionModel {
       }
     } else if (mySelection.isEmpty()) { // read-only Collections.emptyList
       mySelection = Lists.newArrayList(component);
+      myPrimary = component;
     } else {
       mySelection.add(component);
     }
