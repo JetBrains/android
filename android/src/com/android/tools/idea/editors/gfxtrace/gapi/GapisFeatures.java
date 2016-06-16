@@ -24,6 +24,7 @@ import java.util.Set;
 public class GapisFeatures {
   private static final String FEATURE_RPC_STRING_TABLES = "rpc-string-tables";
   private static final String FEATURE_CONTEXTS_AND_HIERACHIES = "contexts-hierachies";
+  private static final String FEATURE_MESHES = "meshes";
 
   private final Set<String> myFeatures = new HashSet<String>();
 
@@ -53,5 +54,16 @@ public class GapisFeatures {
    */
   public boolean hasContextsAndHierachies() {
     return myFeatures.contains(FEATURE_CONTEXTS_AND_HIERACHIES);
+  }
+
+  /**
+   * Returns true if the GAPIS instance supports getting the following paths:
+   * <ul>
+   *   <li>{@link com.android.tools.idea.editors.gfxtrace.service.path.MeshPath}
+   *   <li>{@link com.android.tools.idea.editors.gfxtrace.service.path.VertexStreamDataPath}
+   * </ul>
+   */
+  public boolean hasMeshes() {
+    return myFeatures.contains(FEATURE_MESHES);
   }
 }
