@@ -53,7 +53,7 @@ public final class ChooseDeviceDefinitionPanel extends JPanel implements DeviceU
     updateEditButton(initialDevice);
     myDeviceDefinitionList.addSelectionListener(selectedDevice -> {
       if (selectedDevice != null) {
-        myDeviceDefinitionPreview.getDeviceData().updateValuesFromDevice(selectedDevice);
+        myDeviceDefinitionPreview.getDeviceData().updateValuesFromDevice(selectedDevice, null);
       }
       else {
         myDeviceDefinitionPreview.getDeviceData().name().set(DeviceDefinitionPreview.DO_NOT_DISPLAY);
