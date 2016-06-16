@@ -34,7 +34,7 @@ public final class MergeHandler extends FrameLayoutHandler {
   @Override
   @NotNull
   public List<String> getInspectorProperties() {
-    return ImmutableList.of(ATTR_SHOW_IN);
+    return ImmutableList.of(ATTR_SHOW_IN, ATTR_PARENT_TAG);
   }
 
   @Override

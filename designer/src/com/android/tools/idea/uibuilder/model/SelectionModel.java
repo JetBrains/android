@@ -83,7 +83,7 @@ public class SelectionModel {
     updateListeners();
   }
 
-  private void updateListeners() {
+  public void updateListeners() {
     if (myListeners != null) {
       List<NlComponent> selection = getSelection();
       for (SelectionListener listener : myListeners) {
