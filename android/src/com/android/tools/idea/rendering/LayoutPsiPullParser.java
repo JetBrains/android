@@ -63,7 +63,7 @@ public class LayoutPsiPullParser extends LayoutPullParser {
   private final LayoutLog myLogger;
 
   @NotNull
-  private final List<TagSnapshot> myNodeStack = new ArrayList<TagSnapshot>();
+  private final List<TagSnapshot> myNodeStack = new ArrayList<>();
 
   @Nullable
   protected final TagSnapshot myRoot;
@@ -144,17 +144,13 @@ public class LayoutPsiPullParser extends LayoutPullParser {
           myRoot = null;
         }
       } else {
-        myRoot = ApplicationManager.getApplication().runReadAction(new Computable<TagSnapshot>() {
-
-          @Override
-          public TagSnapshot compute() {
-            if (root.isValid()) {
-              myAndroidPrefix = root.getPrefixByNamespace(ANDROID_URI);
-              myToolsPrefix = root.getPrefixByNamespace(TOOLS_URI);
-              return createSnapshot(root);
-            } else {
-              return null;
-            }
+        myRoot = ApplicationManager.getApplication().runReadAction((Computable<TagSnapshot>)() -> {
+          if (root.isValid()) {
+            myAndroidPrefix = root.getPrefixByNamespace(ANDROID_URI);
+            myToolsPrefix = root.getPrefixByNamespace(TOOLS_URI);
+            return createSnapshot(root);
+          } else {
+            return null;
           }
         });
       }
@@ -576,96 +572,121 @@ public class LayoutPsiPullParser extends LayoutPullParser {
     }
 
     String rootTag = tag.getName();
-    if (rootTag.equals(VIEW_FRAGMENT)) {
-      XmlAttribute[] psiAttributes = tag.getAttributes();
-      List<AttributeSnapshot> attributes = Lists.newArrayListWithCapacity(psiAttributes.length);
-      for (XmlAttribute psiAttribute : psiAttributes) {
-        AttributeSnapshot attribute = AttributeSnapshot.createAttributeSnapshot(psiAttribute);
-        if (attribute != null) {
-          attributes.add(attribute);
-        }
-      }
+    switch (rootTag) {
+      case VIEW_FRAGMENT:
+        return createSnapshotForViewFragment(tag);
 
-      List<AttributeSnapshot> includeAttributes = Lists.newArrayListWithCapacity(psiAttributes.length);
-      for (XmlAttribute psiAttribute : psiAttributes) {
-        String name = psiAttribute.getName();
-        if (name.startsWith(XMLNS_PREFIX)) {
-          continue;
-        }
-        String localName = psiAttribute.getLocalName();
-        if (localName.startsWith(ATTR_LAYOUT_MARGIN) || localName.startsWith(ATTR_PADDING) ||
-            localName.equals(ATTR_ID)) {
-          continue;
-        }
-        AttributeSnapshot attribute = AttributeSnapshot.createAttributeSnapshot(psiAttribute);
-        if (attribute != null) {
-          includeAttributes.add(attribute);
-        }
-      }
+      case FRAME_LAYOUT:
+        return createSnapshotForFrameLayout(tag);
 
-      TagSnapshot include = TagSnapshot.createSyntheticTag(null, VIEW_FRAGMENT, "", "", includeAttributes,
-                                                           Collections.<TagSnapshot>emptyList());
-      return TagSnapshot.createSyntheticTag(tag, FRAME_LAYOUT, "", "", attributes, Collections.singletonList(include));
-    } else if (rootTag.equals(FRAME_LAYOUT)) {
-      TagSnapshot root = TagSnapshot.createTagSnapshot(tag);
+      case VIEW_MERGE:
+        return createSnapshotForMerge(tag);
 
-      // tools:layout on a <FrameLayout> acts like an <include> child. This
-      // lets you preview runtime additions on FrameLayouts.
-      String layout = tag.getAttributeValue(ATTR_LAYOUT, TOOLS_URI);
-      if (layout != null && root.children.isEmpty()) {
-        String prefix = tag.getPrefixByNamespace(ANDROID_URI);
-        if (prefix != null) {
-          List<TagSnapshot> children = Lists.newArrayList();
-          root.children = children;
-          List<AttributeSnapshot> attributes = Lists.newArrayListWithExpectedSize(3);
-          attributes.add(new AttributeSnapshot("", "", ATTR_LAYOUT, layout));
-          attributes.add(new AttributeSnapshot(ANDROID_URI, prefix, ATTR_LAYOUT_WIDTH, VALUE_FILL_PARENT));
-          attributes.add(new AttributeSnapshot(ANDROID_URI, prefix, ATTR_LAYOUT_HEIGHT, VALUE_FILL_PARENT));
-          TagSnapshot element = TagSnapshot.createSyntheticTag(null, VIEW_INCLUDE, "", "", attributes,
-                                                               Collections.<TagSnapshot>emptyList());
-          children.add(element);
-        }
-      }
+      default:
+        TagSnapshot root = TagSnapshot.createTagSnapshot(tag);
 
-      // Allow <FrameLayout tools:visibleChildren="1,3,5"> to make all but the given children visible
-      String visibleChild = tag.getAttributeValue("visibleChildren", TOOLS_URI);
-      if (visibleChild != null) {
-        Set<Integer> indices = Sets.newHashSet();
-        for (String s : Splitter.on(',').trimResults().omitEmptyStrings().split(visibleChild)) {
-          try {
-            indices.add(Integer.parseInt(s));
-          } catch (NumberFormatException e) {
-            // ignore metadata if it's incorrect
+        // Ensure that root tags that qualify for adapter binding specify an id attribute, since that is required for
+        // attribute binding to work. (Without this, a <ListView> at the root level will not show Item 1, Item 2, etc.
+        if (rootTag.equals(LIST_VIEW) || rootTag.equals(EXPANDABLE_LIST_VIEW) || rootTag.equals(GRID_VIEW) || rootTag.equals(SPINNER)) {
+          XmlAttribute id = tag.getAttribute(ATTR_ID, ANDROID_URI);
+          if (id == null) {
+            String prefix = tag.getPrefixByNamespace(ANDROID_URI);
+            if (prefix != null) {
+              root.setAttribute(ATTR_ID, ANDROID_URI, prefix, "@+id/_dynamic");
+            }
           }
         }
-        String prefix = tag.getPrefixByNamespace(ANDROID_URI);
-        if (prefix != null) {
-          for (int i = 0, n = root.children.size(); i < n; i++) {
-            TagSnapshot child = root.children.get(i);
-            boolean visible = indices.contains(i);
-            child.setAttribute(ATTR_VISIBILITY, ANDROID_URI, prefix, visible ? "visible" : "gone");
-          }
+
+        return root;
+    }
+  }
+
+  @NotNull
+  private static TagSnapshot createSnapshotForViewFragment(@NotNull XmlTag rootTag) {
+    XmlAttribute[] psiAttributes = rootTag.getAttributes();
+    List<AttributeSnapshot> attributes = Lists.newArrayListWithCapacity(psiAttributes.length);
+    for (XmlAttribute psiAttribute : psiAttributes) {
+      AttributeSnapshot attribute = AttributeSnapshot.createAttributeSnapshot(psiAttribute);
+      if (attribute != null) {
+        attributes.add(attribute);
+      }
+    }
+
+    List<AttributeSnapshot> includeAttributes = Lists.newArrayListWithCapacity(psiAttributes.length);
+    for (XmlAttribute psiAttribute : psiAttributes) {
+      String name = psiAttribute.getName();
+      if (name.startsWith(XMLNS_PREFIX)) {
+        continue;
+      }
+      String localName = psiAttribute.getLocalName();
+      if (localName.startsWith(ATTR_LAYOUT_MARGIN) || localName.startsWith(ATTR_PADDING) ||
+          localName.equals(ATTR_ID)) {
+        continue;
+      }
+      AttributeSnapshot attribute = AttributeSnapshot.createAttributeSnapshot(psiAttribute);
+      if (attribute != null) {
+        includeAttributes.add(attribute);
+      }
+    }
+
+    TagSnapshot include = TagSnapshot.createSyntheticTag(null, VIEW_FRAGMENT, "", "", includeAttributes,
+                                                         Collections.emptyList());
+    return TagSnapshot.createSyntheticTag(rootTag, FRAME_LAYOUT, "", "", attributes, Collections.singletonList(include));
+  }
+
+  @NotNull
+  private static TagSnapshot createSnapshotForFrameLayout(@NotNull XmlTag rootTag) {
+    TagSnapshot root = TagSnapshot.createTagSnapshot(rootTag);
+
+    // tools:layout on a <FrameLayout> acts like an <include> child. This
+    // lets you preview runtime additions on FrameLayouts.
+    String layout = rootTag.getAttributeValue(ATTR_LAYOUT, TOOLS_URI);
+    if (layout != null && root.children.isEmpty()) {
+      String prefix = rootTag.getPrefixByNamespace(ANDROID_URI);
+      if (prefix != null) {
+        List<TagSnapshot> children = Lists.newArrayList();
+        root.children = children;
+        List<AttributeSnapshot> attributes = Lists.newArrayListWithExpectedSize(3);
+        attributes.add(new AttributeSnapshot("", "", ATTR_LAYOUT, layout));
+        attributes.add(new AttributeSnapshot(ANDROID_URI, prefix, ATTR_LAYOUT_WIDTH, VALUE_FILL_PARENT));
+        attributes.add(new AttributeSnapshot(ANDROID_URI, prefix, ATTR_LAYOUT_HEIGHT, VALUE_FILL_PARENT));
+        TagSnapshot element = TagSnapshot.createSyntheticTag(null, VIEW_INCLUDE, "", "", attributes, Collections.emptyList());
+        children.add(element);
+      }
+    }
+
+    // Allow <FrameLayout tools:visibleChildren="1,3,5"> to make all but the given children visible
+    String visibleChild = rootTag.getAttributeValue("visibleChildren", TOOLS_URI);
+    if (visibleChild != null) {
+      Set<Integer> indices = Sets.newHashSet();
+      for (String s : Splitter.on(',').trimResults().omitEmptyStrings().split(visibleChild)) {
+        try {
+          indices.add(Integer.parseInt(s));
+        } catch (NumberFormatException e) {
+          // ignore metadata if it's incorrect
         }
       }
-
-      return root;
-    } else {
-      TagSnapshot root = TagSnapshot.createTagSnapshot(tag);
-
-      // Ensure that root tags that qualify for adapter binding specify an id attribute, since that is required for
-      // attribute binding to work. (Without this, a <ListView> at the root level will not show Item 1, Item 2, etc.
-      if (rootTag.equals(LIST_VIEW) || rootTag.equals(EXPANDABLE_LIST_VIEW) || rootTag.equals(GRID_VIEW) || rootTag.equals(SPINNER)) {
-        XmlAttribute id = tag.getAttribute(ATTR_ID, ANDROID_URI);
-        if (id == null) {
-          String prefix = tag.getPrefixByNamespace(ANDROID_URI);
-          if (prefix != null) {
-            root.setAttribute(ATTR_ID, ANDROID_URI, prefix, "@+id/_dynamic");
-          }
+      String prefix = rootTag.getPrefixByNamespace(ANDROID_URI);
+      if (prefix != null) {
+        for (int i = 0, n = root.children.size(); i < n; i++) {
+          TagSnapshot child = root.children.get(i);
+          boolean visible = indices.contains(i);
+          child.setAttribute(ATTR_VISIBILITY, ANDROID_URI, prefix, visible ? "visible" : "gone");
         }
       }
+    }
 
+    return root;
+  }
+
+  @NotNull
+  private static TagSnapshot createSnapshotForMerge(@NotNull XmlTag rootTag) {
+    TagSnapshot root = TagSnapshot.createTagSnapshot(rootTag);
+    String parentTag = rootTag.getAttributeValue(ATTR_PARENT_TAG, TOOLS_URI);
+    if (parentTag == null) {
       return root;
     }
+    return TagSnapshot.createSyntheticTag(rootTag, parentTag, "", "", AttributeSnapshot.createAttributesForTag(rootTag), root.children);
   }
 
   @Nullable
@@ -714,13 +735,8 @@ public class LayoutPsiPullParser extends LayoutPullParser {
               value = myFilter.getAttribute(tag, namespace, localName);
             }
             else {
-              value = ApplicationManager.getApplication().runReadAction(new Computable<String>() {
-                @Override
-                @Nullable
-                public String compute() {
-                  return myFilter.getAttribute(tag, namespace, localName);
-                }
-              });
+              value = ApplicationManager.getApplication()
+                .runReadAction((Computable<String>)() -> myFilter.getAttribute(tag, namespace, localName));
             }
             if (value != null) {
               if (value.isEmpty()) { // empty means unset
