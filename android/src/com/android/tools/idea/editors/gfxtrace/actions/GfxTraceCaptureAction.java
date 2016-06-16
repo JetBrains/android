@@ -246,7 +246,8 @@ public class GfxTraceCaptureAction extends ToggleAction {
 
   boolean isEnabled() {
     if (sActiveForm == null || sActiveForm == myActiveForm) {
-      return getDevice() != null;
+      IDevice device = getDevice();
+      return device != null && device.isOnline();
     }
     return false;
   }
