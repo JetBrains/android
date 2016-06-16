@@ -46,8 +46,11 @@ import com.intellij.util.messages.Topic;
 import net.jcip.annotations.GuardedBy;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.service.settings.GradleConfigurable;
+import org.jetbrains.plugins.gradle.settings.GradleRunnerConfigurable;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
@@ -354,6 +357,34 @@ public class GradleSyncState {
     catch (Throwable e) {
       String msg = String.format("Failed to clean up preferences for project '%1$s'", myProject.getName());
       LOG.info(msg, e);
+    }
+
+    try {
+      cleanUpGradleRunnerPreference(myProject);
+    }
+    catch (Throwable e) {
+      String msg = String.format("Failed to clean up Gradle Runner preferences for project '%1$s'",
+                                 myProject.getName());
+      LOG.info(msg, e);
+    }
+  }
+
+  private static void cleanUpGradleRunnerPreference(@NotNull Project project) {
+    ExtensionPoint<ConfigurableEP<Configurable>> projectConfigurable =
+      Extensions.getArea(project).getExtensionPoint(PROJECT_CONFIGURABLE);
+
+    // https://code.google.com/p/android/issues/detail?id=213178
+    // Disable the Gradle -> Runner settings.
+    for (ConfigurableEP<Configurable> configurableEP : projectConfigurable.getExtensions()) {
+      if (GradleConfigurable.class.getName().equals(configurableEP.instanceClass)) {
+        List<ConfigurableEP> children = new ArrayList<>();
+        for (ConfigurableEP child : configurableEP.children) {
+          if (!GradleRunnerConfigurable.class.getName().equals(child.instanceClass)) {
+            children.add(child);
+          }
+        }
+        configurableEP.children = children.toArray(new ConfigurableEP[children.size()]);
+      }
     }
   }
 }
