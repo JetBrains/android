@@ -165,6 +165,11 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
   public void setEnabled(boolean enabled) {
     myTextFieldWithAutoCompletion.setEnabled(enabled);
     myBrowsePanel.setVisible(enabled && myIncludeBrowseButton);
+    if (!enabled) {
+      myLastReadValue = "";
+      myLastWriteValue = "";
+      myTextFieldWithAutoCompletion.setText("");
+    }
   }
 
   @Override
