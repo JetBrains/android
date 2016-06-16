@@ -69,6 +69,7 @@ public class ToolsAttributeUtil {
     .put(ATTR_LOCALE, NO_FORMATS)
     .put(ATTR_MENU, NO_FORMATS)
     .put(ATTR_OPEN_DRAWER, singletonList(AttributeFormat.Enum))
+    .put(ATTR_PARENT_TAG, singletonList(AttributeFormat.String))
     .put(ATTR_SHOW_IN, singletonList(AttributeFormat.Reference))
     .put(ATTR_TARGET_API, NO_FORMATS)
     // Manifest merger attributes
