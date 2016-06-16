@@ -57,18 +57,16 @@ public class NativeAndroidGradleModelDataService extends AbstractProjectDataServ
                          @Nullable ProjectData projectData,
                          @NotNull Project project,
                          @NotNull IdeModifiableModelsProvider modelsProvider) {
-    if (!toImport.isEmpty()) {
-      try {
-        doImport(toImport, project, modelsProvider);
+    try {
+      doImport(toImport, project, modelsProvider);
+    }
+    catch (Throwable e) {
+      LOG.error(String.format("Failed to set up Native Android Gradle modules in project '%1$s'", project.getName()), e);
+      String msg = e.getMessage();
+      if (msg == null) {
+        msg = e.getClass().getCanonicalName();
       }
-      catch (Throwable e) {
-        LOG.error(String.format("Failed to set up Native Android Gradle modules in project '%1$s'", project.getName()), e);
-        String msg = e.getMessage();
-        if (msg == null) {
-          msg = e.getClass().getCanonicalName();
-        }
-        GradleSyncState.getInstance(project).syncFailed(msg);
-      }
+      GradleSyncState.getInstance(project).syncFailed(msg);
     }
   }
 
