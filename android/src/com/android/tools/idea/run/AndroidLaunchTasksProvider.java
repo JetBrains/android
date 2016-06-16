@@ -99,7 +99,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       launchTasks.add(new SetFirebaseLogTagsTask());
     }
 
-    if (myRunConfig.getProfilerState().GAPID_ENABLED) {
+    if (myRunConfig.getProfilerState().GAPID_ENABLED && GapidTraceTask.checkIfOkToTrace(myProject, myLaunchOptions)) {
       launchTasks.add(new GapidTraceTask(myRunConfig, packageName));
     }
 
