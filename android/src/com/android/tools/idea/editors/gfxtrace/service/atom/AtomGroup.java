@@ -41,7 +41,9 @@ public final class AtomGroup implements BinaryObject {
       DefaultMutableTreeNode subNode = new DefaultMutableTreeNode(
         new AtomController.Group(subGroup, atoms.get(subGroup.getRange().getLast()), subGroup.getRange().getLast()), true);
       subGroup.addChildren(subNode, atoms, context);
-      parent.add(subNode);
+      if (subNode.getChildCount() != 0) {
+        parent.add(subNode);
+      }
       next = subGroup.getRange().getEnd();
     }
     // Add all the trailing atoms
