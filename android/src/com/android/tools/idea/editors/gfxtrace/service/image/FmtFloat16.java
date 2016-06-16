@@ -25,11 +25,6 @@ import com.android.tools.rpclib.schema.*;
 import java.io.IOException;
 
 final class FmtFloat16 extends Format {
-  @Override
-  public String getDisplayName() {
-    return "HALF_FLOAT";
-  }
-
   //<<<Start:Java.ClassBody:1>>>
 
   // Constructs a default-initialized {@link FmtFloat16}.

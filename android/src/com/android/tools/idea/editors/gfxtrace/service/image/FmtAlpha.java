@@ -24,11 +24,6 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 final class FmtAlpha extends Format {
-  @Override
-  public String getDisplayName() {
-    return "ALPHA";
-  }
-
   //<<<Start:Java.ClassBody:1>>>
 
   // Constructs a default-initialized {@link FmtAlpha}.
