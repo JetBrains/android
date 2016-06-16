@@ -204,6 +204,10 @@ public class GfxTraceCaptureAction extends ToggleAction {
 
   @Override
   public final void setSelected(AnActionEvent e, boolean state) {
+    if (!GfxTraceUtil.checkAndTryInstallGapidSdkComponent(myView.getProject())) {
+      return;
+    }
+
     IDevice device = myView.getDeviceContext().getSelectedDevice();
     if (device == null) {
       return; // Button shouldn't be enabled, but let's play safe.
@@ -224,7 +228,6 @@ public class GfxTraceCaptureAction extends ToggleAction {
     super.update(e);
     Presentation presentation = e.getPresentation();
     if (!GapiPaths.isValid()) {
-      presentation.setEnabled(false);
       presentation.setText(BUTTON_TEXT + " : GPU debugger tools not installed");
     }
     else {
