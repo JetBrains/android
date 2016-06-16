@@ -451,27 +451,27 @@ public class ConstraintUtilities {
   static void commitGuideline(@NotNull NlComponent component, @NotNull Guideline guideline) {
     int behaviour = guideline.getRelativeBehaviour();
     component.setAttribute(SdkConstants.SHERPA_URI,
-                           SdkConstants.ATTR_GUIDELINE_RELATIVE_BEGIN, null);
+                           SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN, null);
     component.setAttribute(SdkConstants.SHERPA_URI,
-                           SdkConstants.ATTR_GUIDELINE_RELATIVE_END, null);
+                           SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END, null);
     component.setAttribute(SdkConstants.SHERPA_URI,
-                           SdkConstants.ATTR_GUIDELINE_RELATIVE_PERCENT, null);
+                           SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT, null);
     if (behaviour == Guideline.RELATIVE_PERCENT) {
       String value = String.valueOf(guideline.getRelativePercent());
       component.setAttribute(SdkConstants.SHERPA_URI,
-                             SdkConstants.ATTR_GUIDELINE_RELATIVE_PERCENT,
+                             SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT,
                              value);
     }
     else if (behaviour == Guideline.RELATIVE_BEGIN) {
       String value = String.format(SdkConstants.VALUE_N_DP, guideline.getRelativeBegin());
       component.setAttribute(SdkConstants.SHERPA_URI,
-                             SdkConstants.ATTR_GUIDELINE_RELATIVE_BEGIN,
+                             SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN,
                              value);
     }
     else if (behaviour == Guideline.RELATIVE_END) {
       String value = String.format(SdkConstants.VALUE_N_DP, guideline.getRelativeEnd());
       component.setAttribute(SdkConstants.SHERPA_URI,
-                             SdkConstants.ATTR_GUIDELINE_RELATIVE_END,
+                             SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END,
                              value);
     }
   }
@@ -966,9 +966,9 @@ public class ConstraintUtilities {
    * @param guideline the guideline widget we want to update with the values
    */
   private static void setGuideline(NlComponent component, Guideline guideline) {
-    String relativeBegin = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_GUIDELINE_RELATIVE_BEGIN);
-    String relativeEnd = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_GUIDELINE_RELATIVE_END);
-    String relativePercent = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_GUIDELINE_RELATIVE_PERCENT);
+    String relativeBegin = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN);
+    String relativeEnd = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END);
+    String relativePercent = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT);
     if (relativePercent != null && relativePercent.length() > 0) {
       int value = 0;
       try {
@@ -976,12 +976,12 @@ public class ConstraintUtilities {
       } catch (NumberFormatException e) {
         // ignore
       }
-      guideline.setRelativePercent(value);
+      guideline.setGuidePercent(value);
     }
     else if (relativeBegin != null && relativeBegin.length() > 0) {
       try {
         int value = getDpValue(component, relativeBegin);
-        guideline.setRelativeBegin(value);
+        guideline.setGuideBegin(value);
       }
       catch (NumberFormatException e) {
       }
@@ -989,7 +989,7 @@ public class ConstraintUtilities {
     else if (relativeEnd != null && relativeEnd.length() > 0) {
       try {
         int value = getDpValue(component, relativeEnd);
-        guideline.setRelativeEnd(value);
+        guideline.setGuideEnd(value);
       }
       catch (NumberFormatException e) {
       }
