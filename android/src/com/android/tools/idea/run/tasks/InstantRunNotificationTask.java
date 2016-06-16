@@ -73,6 +73,10 @@ public class InstantRunNotificationTask implements LaunchTask {
   }
 
   public static void showNotification(@NotNull Project project, @Nullable InstantRunContext context, @NotNull String notificationText) {
+    if (!InstantRunSettings.isShowNotificationsEnabled()) {
+      return;
+    }
+
     @Language("HTML")
     String message = AndroidBundle.message("instant.run.notification.template", notificationText);
 
