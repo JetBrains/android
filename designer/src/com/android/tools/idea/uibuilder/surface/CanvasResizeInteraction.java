@@ -56,6 +56,8 @@ public class CanvasResizeInteraction extends Interaction {
   private final UnavailableSizesLayer myUnavailableLayer = new UnavailableSizesLayer();
   private final OrientationLayer myOrientationLayer;
   private final List<DeviceLayer> myDeviceLayers = Lists.newArrayList();
+  private final Device myOriginalDevice;
+  private final State myOriginalDeviceState;
 
   private int myCurrentX;
   private int myCurrentY;
@@ -67,6 +69,9 @@ public class CanvasResizeInteraction extends Interaction {
 
     Configuration config = myDesignSurface.getConfiguration();
     assert config != null;
+    myOriginalDevice = config.getDevice();
+    myOriginalDeviceState = config.getDeviceState();
+
     VirtualFile file = config.getFile();
     assert file != null;
     String layoutName = file.getNameWithoutExtension();
@@ -296,7 +301,16 @@ public class CanvasResizeInteraction extends Interaction {
       }
     });
 
-    updatePosition(x, y);
+    if (canceled) {
+      Configuration configuration = screenView.getConfiguration();
+      configuration.startBulkEditing();
+      configuration.setDevice(myOriginalDevice, false);
+      configuration.setDeviceState(myOriginalDeviceState);
+      configuration.finishBulkEditing();
+    }
+    else {
+      updatePosition(x, y);
+    }
   }
 
   @Override
