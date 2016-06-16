@@ -372,11 +372,10 @@ public class AndroidMonitorToolWindow implements Disposable {
       return;
     }
 
-    if (mySelectedDevice.isOffline()) {
+    if (!mySelectedDevice.isOnline()) {
       return;
     }
 
-    assert mySelectedDevice.isOnline();
     mySelectedDeviceProfilerService = ProfilerService.getInstance().connect(this, mySelectedDevice);
 
     if (mySelectedDeviceProfilerService != null) {
