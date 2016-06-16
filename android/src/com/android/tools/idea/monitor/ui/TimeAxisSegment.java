@@ -40,16 +40,6 @@ public final class TimeAxisSegment extends BaseSegment {
   }
 
   @Override
-  public void profilerExpanded(@NotNull SegmentType segment) {
-    toggleView(true);
-  }
-
-  @Override
-  public void profilersReset() {
-    toggleView(false);
-  }
-
-  @Override
   protected void setCenterContent(@NonNull JPanel panel) {
     panel.add(mTimeAxis);
   }

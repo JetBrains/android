@@ -23,6 +23,7 @@ import com.android.tools.adtui.common.formatter.SingleUnitAxisFormatter;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.datastore.SeriesDataType;
 import com.android.tools.idea.monitor.ui.BaseLineChartSegment;
+import com.android.tools.idea.monitor.ui.BaseProfilerUiManager;
 import com.android.tools.idea.monitor.ui.ProfilerEventListener;
 import com.intellij.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;
@@ -48,8 +49,8 @@ public class NetworkSegment extends BaseLineChartSegment {
   }
 
   @Override
-  public SegmentType getSegmentType() {
-    return SegmentType.NETWORK;
+  public BaseProfilerUiManager.ProfilerType getProfilerType() {
+    return BaseProfilerUiManager.ProfilerType.NETWORK;
   }
 
   @Override

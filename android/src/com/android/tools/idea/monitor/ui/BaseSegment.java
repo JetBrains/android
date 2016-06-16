@@ -31,17 +31,7 @@ import javax.swing.border.MatteBorder;
 import java.awt.*;
 import java.util.List;
 
-public abstract class BaseSegment extends JComponent implements ProfilerEventListener {
-
-  public enum SegmentType {
-    TIME,
-    EVENT,
-    NETWORK,
-    MEMORY,
-    CPU,
-    GPU,
-    THREADS
-  }
+public abstract class BaseSegment extends JComponent {
 
   private static final int SPACER_WIDTH = 100;
 
@@ -62,7 +52,8 @@ public abstract class BaseSegment extends JComponent implements ProfilerEventLis
 
   private JPanel mLeftPanel;
 
-  @NotNull
+  private JPanel mLabelPanel;
+
   private RotatedLabel mLabel;
 
   @NotNull
@@ -78,7 +69,6 @@ public abstract class BaseSegment extends JComponent implements ProfilerEventLis
     myName = name;
     mXRange = xRange;
     mEventDispatcher = dispatcher;
-    mEventDispatcher.addListener(this);
   }
 
   public static int getSpacerWidth() {
@@ -89,14 +79,14 @@ public abstract class BaseSegment extends JComponent implements ProfilerEventLis
     setLayout(new BorderLayout());
 
     FontMetrics metrics = getFontMetrics(AdtUiUtils.DEFAULT_FONT);
-    JPanel labelPanel = createSpacerPanel(metrics.getHeight() + LABEL_BORDER_WIDTH);
-    labelPanel.setBorder(LABEL_BORDER);
+    mLabelPanel = createSpacerPanel(metrics.getHeight() + LABEL_BORDER_WIDTH);
+    mLabelPanel.setBorder(LABEL_BORDER);
     mLabel = new RotatedLabel();
     mLabel.setFont(AdtUiUtils.DEFAULT_FONT);
     mLabel.setText(myName);
     mLabel.setBorder(SEGMENT_BORDER);
-    labelPanel.add(mLabel);
-    this.add(labelPanel, BorderLayout.WEST);
+    mLabelPanel.add(mLabel);
+    this.add(mLabelPanel, BorderLayout.WEST);
 
     JBPanel panels = new JBPanel();
     panels.setBorder(SEGMENT_BORDER);
@@ -151,7 +141,7 @@ public abstract class BaseSegment extends JComponent implements ProfilerEventLis
   }
 
   public int getLabelColumnWidth() {
-    return mLabel == null ? LABEL_BORDER_WIDTH : mLabel.getPreferredSize().width + LABEL_BORDER_WIDTH;
+    return mLabelPanel.getPreferredSize().width;
   }
 
   private JPanel createSpacerPanel(int spacerWidth) {
