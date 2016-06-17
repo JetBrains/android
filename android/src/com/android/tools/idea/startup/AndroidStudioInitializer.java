@@ -75,6 +75,7 @@ import static com.intellij.util.PlatformUtils.getPlatformPrefix;
 public class AndroidStudioInitializer implements Runnable {
 
   @NonNls public static final String ENABLE_EXPERIMENTAL_PROFILING = "enable.experimental.profiling";
+  @NonNls public static final String ENABLE_ENERGY_PROFILER = "enable.energy.profiler";
 
   private static final Logger LOG = Logger.getInstance(AndroidStudioInitializer.class);
 
