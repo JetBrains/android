@@ -35,7 +35,7 @@ import java.util.Map;
 import static com.intellij.idea.IdeaApplication.IDEA_IS_INTERNAL_PROPERTY;
 
 public final class GapiPaths {
-  public static final Version REQUIRED_GAPI_VERSION = Version.VERSION_1;
+  public static final Version REQUIRED_GAPI_VERSION = Version.VERSION_3;
 
   private static final Map<String, String> ABI_REMAP = ImmutableMap.<String, String>builder()
     .put("32-bit (arm)", "armeabi-v7a") // Not a valid abi, but returned anyway by ClientData.getAbi
