@@ -65,6 +65,9 @@ public class GapiiLibraryLoader {
     LOG.debug("Attaching to " + pkg);
     AndroidJavaDebugger debugger = new AndroidJavaDebugger();
     Client client = myDevice.getClient(pkg);
+    if (client == null) {
+      throw new RuntimeException("Failed to attach to process.");
+    }
 
     Future<?> clientAttachFuture = EdtExecutorService.getInstance().submit(() -> debugger.attachToClient(myProject, client));
     clientAttachFuture.get();
