@@ -10,6 +10,9 @@ public final class ThreadStatesDataModel {
 
   private final String myName;
 
+  // Process ID (a.k.a: tid)
+  private final int myPid;
+
   private final List<Cpu.ThreadActivity.State> myThreadStates = new ArrayList<>();
 
   /**
@@ -17,8 +20,9 @@ public final class ThreadStatesDataModel {
    */
   private final TLongArrayList myTimestamps = new TLongArrayList();
 
-  public ThreadStatesDataModel(String name) {
+  public ThreadStatesDataModel(String name, int pid) {
     myName = name;
+    myPid = pid;
   }
 
   public void addState(Cpu.ThreadActivity.State newState, long timestamp) {
@@ -36,5 +40,9 @@ public final class ThreadStatesDataModel {
 
   public String getName() {
     return myName;
+  }
+
+  public int getPid() {
+    return myPid;
   }
 }

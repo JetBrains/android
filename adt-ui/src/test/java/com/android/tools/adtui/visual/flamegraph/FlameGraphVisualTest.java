@@ -20,6 +20,8 @@ import com.android.annotations.NonNull;
 import com.android.tools.adtui.*;
 import com.android.tools.adtui.chart.hchart.HNode;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
+import com.android.tools.adtui.chart.hchart.MethodUsage;
+import com.android.tools.adtui.chart.hchart.MethodUsageHRenderer;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.*;
@@ -44,13 +46,13 @@ public class FlameGraphVisualTest extends VisualTest implements ActionListener {
   private static final String ACTION_THREAD_SELECTED = "thread_selected";
 
   private HTreeChart mChart;
-  private HashMap<String, HNode<MethodUsage>> furnace;
+  private HashMap<String, HNode<SampledMethodUsage>> furnace;
   private JButton mRecordButton;
   private JButton mSaveButton;
   private JButton mLoadButton;
   private JComboBox mComboBox;
   private Sampler mSampler;
-  private HNode<MethodUsage> mtree;
+  private HNode<SampledMethodUsage> mtree;
 
   private Range mSelectionRange;
   private Range mDataRange;
@@ -75,8 +77,8 @@ public class FlameGraphVisualTest extends VisualTest implements ActionListener {
     this.mLineChart = new LineChart();
     this.mSelector = new SelectionComponent(mLineChart, mAxis, mSelectionRange, mDataRange, mDataRange);
 
-    this.mChart = new HTreeChart<MethodUsage>(HTreeChart.Orientation.BOTTOM_UP);
-    this.mChart.setHRenderer(new MethodUsageHRenderer());
+    this.mChart = new HTreeChart<SampledMethodUsage>(HTreeChart.Orientation.BOTTOM_UP);
+    this.mChart.setHRenderer(new SampledMethodUsageHRenderer());
     this.mChart.setXRange(mSelectionRange);
   }
 
@@ -217,7 +219,7 @@ public class FlameGraphVisualTest extends VisualTest implements ActionListener {
     }
   }
 
-  public void setData(HashMap<String, HNode<MethodUsage>> furnace) {
+  public void setData(HashMap<String, HNode<SampledMethodUsage>> furnace) {
     this.furnace = furnace;
     mComboBox.removeAllItems();
     for (String threadName : furnace.keySet()) {

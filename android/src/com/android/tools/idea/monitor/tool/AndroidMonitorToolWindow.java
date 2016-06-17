@@ -102,7 +102,11 @@ public class AndroidMonitorToolWindow implements Disposable {
 
   private SelectionComponent mySelection;
 
-  private Range myXRange;
+
+  private Range myTimeViewRange;
+
+  // Range currently selected in the GUI.
+  private Range myTimeSelectionRange;
 
   private AxisComponent myTimeAxis;
 
@@ -141,19 +145,19 @@ public class AndroidMonitorToolWindow implements Disposable {
 
   private List<Animatable> createCommonAnimatables() {
     final long deviceStartTimeUs = myDataStore.getLatestTimeUs();
-    Range xGlobalRange = new Range(deviceStartTimeUs - RangeScrollbar.DEFAULT_VIEW_LENGTH_US, deviceStartTimeUs);
-    Range xSelectionRange = new Range();
-    myXRange = new Range();
+    Range monotonicTimeUsRangeUs = new Range(deviceStartTimeUs - RangeScrollbar.DEFAULT_VIEW_LENGTH_US, deviceStartTimeUs);
+    myTimeSelectionRange = new Range();
+    myTimeViewRange = new Range();
 
     // Align offsets on the ranges.
-    xGlobalRange.setOffset(deviceStartTimeUs);
-    xSelectionRange.setOffset(deviceStartTimeUs);
-    myXRange.setOffset(deviceStartTimeUs);
+    monotonicTimeUsRangeUs.setOffset(deviceStartTimeUs);
+    myTimeSelectionRange.setOffset(deviceStartTimeUs);
+    myTimeViewRange.setOffset(deviceStartTimeUs);
 
-    myScrollbar = new RangeScrollbar(xGlobalRange, myXRange);
+    myScrollbar = new RangeScrollbar(monotonicTimeUsRangeUs, myTimeViewRange);
 
     myTimeAxis =
-      new AxisComponent(myXRange, xGlobalRange, "TIME", AxisComponent.AxisOrientation.BOTTOM, 0, 0, false, TimeAxisFormatter.DEFAULT);
+      new AxisComponent(myTimeViewRange, monotonicTimeUsRangeUs, "TIME", AxisComponent.AxisOrientation.BOTTOM, 0, 0, false, TimeAxisFormatter.DEFAULT);
     myTimeAxis.setLabelVisible(false);
 
     myDetailedViewContainer = new JBPanel(new BorderLayout());
@@ -162,7 +166,7 @@ public class AndroidMonitorToolWindow implements Disposable {
     mySegmentsContainer.setLayout(accordion);
     accordion.setLerpFraction(1f);
 
-    mySelection = new SelectionComponent(mySegmentsContainer, myTimeAxis, xSelectionRange, xGlobalRange, myXRange);
+    mySelection = new SelectionComponent(mySegmentsContainer, myTimeAxis, myTimeSelectionRange, monotonicTimeUsRangeUs, myTimeViewRange);
 
     assert myDataStore != null;
     return Arrays.asList(accordion,
@@ -170,16 +174,16 @@ public class AndroidMonitorToolWindow implements Disposable {
                            long currentTimeUs = myDataStore.getLatestTimeUs();
                            // Once elapsedTime is greater than DEFAULT_VIEW_LENGTH_US, set global min to 0 so that user can
                            // not scroll back to negative time.
-                           xGlobalRange.setMinTarget(Math.min(currentTimeUs - RangeScrollbar.DEFAULT_VIEW_LENGTH_US, deviceStartTimeUs));
+                           monotonicTimeUsRangeUs.setMinTarget(Math.min(currentTimeUs - RangeScrollbar.DEFAULT_VIEW_LENGTH_US, deviceStartTimeUs));
                            // Updates the global range's max to match the device's current time.
-                           xGlobalRange.setMaxTarget(currentTimeUs - Poller.POLLING_DELAY_NS);
+                           monotonicTimeUsRangeUs.setMaxTarget(currentTimeUs - Poller.POLLING_DELAY_NS);
                          },
                          mySelection,
                          myScrollbar,
                          myTimeAxis,
-                         myXRange,
-                         xGlobalRange,
-                         xSelectionRange);
+                         myTimeViewRange,
+                         monotonicTimeUsRangeUs,
+                         myTimeSelectionRange);
   }
 
   private void setupDevice() {
@@ -269,6 +273,7 @@ public class AndroidMonitorToolWindow implements Disposable {
     myComponent.add(myProfilerToolbar, BorderLayout.NORTH);
   }
 
+
   private void populateProfilerUi() {
     GridBagLayout gbl = new GridBagLayout();
     GridBagConstraints gbc = new GridBagConstraints();
@@ -303,7 +308,7 @@ public class AndroidMonitorToolWindow implements Disposable {
     }
 
     // Timeline segment
-    TimeAxisSegment timeSegment = new TimeAxisSegment(myXRange, myTimeAxis, myEventDispatcher);
+    TimeAxisSegment timeSegment = new TimeAxisSegment(myTimeViewRange, myTimeAxis, myEventDispatcher);
     timeSegment.setMinimumSize(new Dimension(0, TIME_AXIS_HEIGHT));
     timeSegment.setPreferredSize(new Dimension(0, TIME_AXIS_HEIGHT));
     timeSegment.setMaximumSize(new Dimension(0, TIME_AXIS_HEIGHT));
@@ -433,13 +438,14 @@ public class AndroidMonitorToolWindow implements Disposable {
 
     // TODO: add event manager to myProfilerManagers
     myProfilerManagers.put(BaseProfilerUiManager.ProfilerType.EVENT,
-                           new EventProfilerUiManager(myXRange, myChoreographer, myDataStore, myEventDispatcher));
+                           new EventProfilerUiManager(myTimeViewRange, myChoreographer, myDataStore, myEventDispatcher));
     myProfilerManagers.put(BaseProfilerUiManager.ProfilerType.NETWORK,
-                           new NetworkProfilerUiManager(myXRange, myChoreographer, myDataStore, myEventDispatcher));
+                           new NetworkProfilerUiManager(myTimeViewRange, myChoreographer, myDataStore, myEventDispatcher));
     myProfilerManagers.put(BaseProfilerUiManager.ProfilerType.MEMORY,
-                           new MemoryProfilerUiManager(myXRange, myChoreographer, myDataStore, myEventDispatcher));
+                           new MemoryProfilerUiManager(myTimeViewRange, myChoreographer, myDataStore, myEventDispatcher));
     myProfilerManagers.put(BaseProfilerUiManager.ProfilerType.CPU,
-                           new CpuProfilerUiManager(myXRange, myChoreographer, myDataStore, myEventDispatcher));
+                           new CpuProfilerUiManager(myTimeViewRange, myTimeSelectionRange, myChoreographer, myDataStore, myEventDispatcher,
+                                                    mySelectedDeviceProfilerService, myDeviceContext, myProject));
     for (BaseProfilerUiManager manager : myProfilerManagers.values()) {
       manager.startMonitoring(mySelectedClient.getClientData().getPid());
     }

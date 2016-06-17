@@ -30,14 +30,17 @@ import java.util.Stack;
 
 public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListener {
 
-  private Orientation mOrientation;
+  private static final String NO_HTREE = "No data available.";
+  private static final String NO_RANGE = "X range width is zero: Please use a wider range.";;
+  private static final int BORDER_PLUS_PADDING = 2;
+  private static final int ZOOM_FACTOR = 20;
 
-  public enum Orientation {TOP_DOWN, BOTTOM_UP};
+  private Orientation mOrientation;
 
   @Nullable
   private HRenderer<T> mHRenderer;
 
-  @NotNull
+  @Nullable
   private HNode<T> mRoot;
 
   @Nullable
@@ -48,11 +51,6 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
 
   @NotNull
   private Rectangle2D.Float mRect;
-
-  private static final String NO_HTREE = "No HTree selected.";
-  private static final String NO_RANGE = "X range width is zero: Please use a wider range.";
-  private static final int BORDER_PLUS_PADDING = 2;
-  private static final int ZOOM_FACTOR = 20;
 
   public HTreeChart() {
     mRoot = new HNode<>();
@@ -76,13 +74,13 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
 
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-    if (mRoot.getChildren().size() == 0) {
+    if (mRoot == null || mRoot.getChildren().size() == 0) {
       g.drawString(NO_HTREE, getWidth() / 2 - mDefaultFontMetrics.stringWidth(NO_HTREE),
                    getHeight() / 2);
       return;
     }
 
-    if (getXRange().getLength() == 0) {
+    if (mXRange == null || mXRange.getLength() == 0) {
       g.drawString(NO_RANGE, getWidth() / 2 - mDefaultFontMetrics.stringWidth(NO_RANGE),
                    getHeight() / 2);
       return;
@@ -126,7 +124,7 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
     mRect.height = mDefaultFontMetrics.getHeight();
 
     if (mOrientation == HTreeChart.Orientation.BOTTOM_UP) {
-      mRect.y = getHeight() - mRect.y;
+      mRect.y = (float)(getHeight() - mRect.y - mRect.getHeight());
     }
 
     // 4. Render node
@@ -149,7 +147,7 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
     this.mHRenderer.setFont(AdtUiUtils.DEFAULT_FONT);
   }
 
-  public void setHTree(HNode<T> root) {
+  public void setHTree(@Nullable HNode<T> root) {
     this.mRoot = root;
   }
 
@@ -166,6 +164,10 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
   }
 
   public int getMaximumHeight() {
+    if (mRoot == null) {
+      return 0;
+    }
+
     int maxDepth = -1;
     // Traverse the tree FIFO instead of recursion to limit the depth of the Java call
     // stack.
@@ -194,4 +196,6 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
     getXRange().setMin(getXRange().getMin() - leftDelta);
     getXRange().setMax(getXRange().getMax() + rightDelta);
   }
+
+public enum Orientation {TOP_DOWN, BOTTOM_UP}
 }

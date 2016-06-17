@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.tools.adtui.visual.threadgraph;
+package com.android.tools.adtui.chart.hchart;
 
 public class Method {
 

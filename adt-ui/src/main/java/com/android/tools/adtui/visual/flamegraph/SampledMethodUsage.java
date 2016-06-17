@@ -16,16 +16,13 @@
 
 package com.android.tools.adtui.visual.flamegraph;
 
-public class MethodUsage {
+public class SampledMethodUsage {
 
   private String mNamespace;
   private String mName;
   private String mFilename;
-  private int invocationCounter;
+  private long invocationCounter;
   private float mPercentage;
-
-  public MethodUsage() {
-  }
 
   public String getNameSpace() {
     return this.mNamespace;
@@ -51,11 +48,11 @@ public class MethodUsage {
     this.mFilename = filename;
   }
 
-  public int getInvocationCount() {
+  public long getInvocationCount() {
     return invocationCounter;
   }
 
-  public void setInvocationCount(int count) {
+  public void setInvocationCount(long count) {
     this.invocationCounter = count;
   }
 

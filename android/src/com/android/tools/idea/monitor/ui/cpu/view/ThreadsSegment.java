@@ -185,7 +185,7 @@ public class ThreadsSegment extends BaseSegment implements Animatable {
         int[] selectedThreadsIndices = mThreadsList.getSelectedIndices();
         List<ThreadStatesDataModel> selectedThreads = new ArrayList<>();
         for (int i = 0; i < selectedThreadsIndices.length; i++) {
-          selectedThreads.add(mThreadsListModel.get(i));
+          selectedThreads.add(mThreadsListModel.get(selectedThreadsIndices[i]));
         }
         mThreadSelectedListener.onSelected(selectedThreads);
       });

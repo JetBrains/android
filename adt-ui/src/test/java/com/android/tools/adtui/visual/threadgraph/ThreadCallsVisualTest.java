@@ -18,6 +18,8 @@ package com.android.tools.adtui.visual.threadgraph;
 
 import com.android.annotations.NonNull;
 import com.android.tools.adtui.*;
+import com.android.tools.adtui.chart.hchart.Method;
+import com.android.tools.adtui.chart.hchart.MethodHRenderer;
 import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.chart.hchart.HNode;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
