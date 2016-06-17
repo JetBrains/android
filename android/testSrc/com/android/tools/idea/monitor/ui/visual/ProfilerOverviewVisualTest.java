@@ -228,13 +228,13 @@ public class ProfilerOverviewVisualTest extends VisualTest {
       public void profilerExpanded(@NotNull BaseProfilerUiManager.ProfilerType profilerType) {
         switch (profilerType) {
           case NETWORK:
-            mLayout.setState(networkSegment, AccordionLayout.AccordionState.MAXIMIZE);
+            maximizeSegment(networkSegment);
             break;
           case CPU:
-            mLayout.setState(cpuSegment, AccordionLayout.AccordionState.MAXIMIZE);
+            maximizeSegment(cpuSegment);
             break;
           case MEMORY:
-            mLayout.setState(memorySegment, AccordionLayout.AccordionState.MAXIMIZE);
+            maximizeSegment(memorySegment);
             break;
         }
 
@@ -248,6 +248,18 @@ public class ProfilerOverviewVisualTest extends VisualTest {
         mLayout.resetComponents();
         rightSpacer.setVisible(false);
         mResetProfilersButton.setEnabled(false);
+        backProfilersToL1();
+      }
+
+      private void maximizeSegment(BaseSegment segment) {
+        mLayout.setState(segment, AccordionLayout.AccordionState.MAXIMIZE);
+        segment.toggleView(true);
+      }
+
+      private void backProfilersToL1() {
+        networkSegment.toggleView(false);
+        cpuSegment.toggleView(false);
+        memorySegment.toggleView(false);
       }
     });
   }
