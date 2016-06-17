@@ -273,11 +273,21 @@ public class WidgetConstraintPanel extends JPanel {
 
     float horizBias = 0.5f;
     if (hbias != null && hbias.length() > 0) {
-      horizBias = Float.parseFloat(hbias);
+      try {
+        horizBias = Float.parseFloat(hbias);
+      }
+      catch (NumberFormatException e) {
+        horizBias = 0.5f;
+      }
     }
     float vertBias = 0.5f;
     if (vbias != null && vbias.length() > 0) {
-      vertBias = Float.parseFloat(vbias);
+      try {
+        vertBias = Float.parseFloat(vbias);
+      }
+      catch (NumberFormatException e) {
+        vertBias = 0.5f;
+      }
     }
     mHorizontalSlider.setValue((int)(horizBias * 100));
     mVerticalSlider.setValue(100 - (int)(vertBias * 100));
