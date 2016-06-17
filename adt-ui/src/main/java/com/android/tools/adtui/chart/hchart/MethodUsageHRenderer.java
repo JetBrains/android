@@ -13,39 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package com.android.tools.adtui.visual.threadgraph;
+package com.android.tools.adtui.chart.hchart;
 
 import com.android.annotations.NonNull;
-import com.android.tools.adtui.chart.hchart.HRenderer;
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.intellij.ui.JBColor;
 
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
+import java.awt.geom.RoundRectangle2D;
 import java.util.regex.Pattern;
 
-public class MethodHRenderer implements HRenderer<Method> {
-
+public class MethodUsageHRenderer implements HRenderer<MethodUsage> {
   Font mFont;
 
-  // TODO Use a colorScheme object to retrieve colors. Hard-coded for now.
-  private static final JBColor fillJavaColor = new JBColor(new Color(146, 215, 248), new Color(146, 215, 248));
-  private static final JBColor bordJavaColor = new JBColor(new Color(115, 190, 233), new Color(115, 190, 233));
+  private static final Color END_COLOR = new Color(0xFF6F00);
+  private static final Color START_COLOR = new Color(0xF0CB35);
+  private final int mRedDelta;
+  private final int mGreenDelta;
+  private final int mBlueDelta;
 
-  private static final JBColor fillAppColor = new JBColor(new Color(190, 225, 154), new Color(190, 225, 154));
-  private static final JBColor bordAppColor = new JBColor(new Color(159, 208, 110), new Color(159, 208, 110));
 
   // To limit the number of object allocation we reuse the same Rectangle.
-  // RoundRectangle kills performance (from 60fps to 6fps) when many nodes are displayed
-  // TODO: Either switch to straight angles or find an other way to implement round corners
   @NonNull
-  private Rectangle2D.Float mRect;
+  private RoundRectangle2D.Float mRect;
 
   private static final Pattern dotPattern = Pattern.compile("\\.");
 
-  public MethodHRenderer() {
-    mRect = new Rectangle2D.Float();
+  public MethodUsageHRenderer() {
+    mRect = new RoundRectangle2D.Float();
+    mRect.archeight = 5;
+    mRect.arcwidth = 5;
+    mRedDelta = END_COLOR.getRed() - START_COLOR.getRed();
+    mGreenDelta = END_COLOR.getGreen() - START_COLOR.getGreen();
+    mBlueDelta = END_COLOR.getBlue() - START_COLOR.getBlue();
   }
 
   @Override
@@ -55,34 +55,16 @@ public class MethodHRenderer implements HRenderer<Method> {
 
   @Override
   // This method is not thread-safe. In order to limit object allocation, mRect is being re-used.
-  public void render(Graphics2D g, Method method, Rectangle2D drawingArea) {
+  public void render(Graphics2D g, MethodUsage method, Rectangle2D drawingArea) {
     mRect.x = (float)drawingArea.getX();
     mRect.y = (float)drawingArea.getY();
     mRect.width = (float)drawingArea.getWidth();
     mRect.height = (float)drawingArea.getHeight();
 
-    Color fillColor;
-    Color bordColor;
-    if (method.getNameSpace().startsWith("java.") ||
-        method.getNameSpace().startsWith("sun.") ||
-        method.getNameSpace().startsWith("javax.") ||
-        method.getNameSpace().startsWith("apple.") ||
-        method.getNameSpace().startsWith("com.apple.")) {
-      fillColor = fillJavaColor;
-      bordColor = bordJavaColor;
-    }
-    else {
-      fillColor = fillAppColor;
-      bordColor = bordAppColor;
-    }
-
+    Color color = getColor(method);
     // Draw rectangle background
-    g.setPaint(fillColor);
+    g.setPaint(color);
     g.fill(mRect);
-
-    // Draw rectangle outline.
-    g.setPaint(bordColor);
-    g.draw(mRect);
 
     // Draw text
     FontMetrics fontMetrics = g.getFontMetrics(mFont);
@@ -99,10 +81,18 @@ public class MethodHRenderer implements HRenderer<Method> {
     g.setFont(prevFont);
   }
 
+  Color getColor(MethodUsage method) {
+    return new Color(
+      (int)(START_COLOR.getRed() + method.getInclusivePercentage() * mRedDelta),
+      (int)(START_COLOR.getGreen() + method.getInclusivePercentage() * mGreenDelta),
+      (int)(START_COLOR.getBlue() + method.getInclusivePercentage() * mBlueDelta));
+  }
+
   /**
    * Find the best text for the given rectangle constraints.
    */
-  private String generateFittingText(Method method, Rectangle2D rect, FontMetrics fontMetrics) {
+  private String generateFittingText(MethodUsage method, Rectangle2D rect,
+                                     FontMetrics fontMetrics) {
 
     if (rect.getWidth() < fontMetrics.stringWidth("...")) {
       return "";

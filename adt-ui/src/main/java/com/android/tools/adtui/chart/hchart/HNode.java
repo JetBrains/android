@@ -85,4 +85,8 @@ public class HNode<T> {
   public int getDepth() {
     return this.mDepth;
   }
+
+  public long duration() {
+    return mEnd - mStart;
+  }
 }

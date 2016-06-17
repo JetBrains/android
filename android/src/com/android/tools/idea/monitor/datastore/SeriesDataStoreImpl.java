@@ -180,7 +180,7 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
     try {
       ProfilerService.TimesResponse response = myDeviceProfilerService.getDeviceService().getTimes(
         ProfilerService.TimesRequest.getDefaultInstance());
-      myDeviceStartTimeNs = response.getTimestamp();
+      myDeviceStartTimeNs = response.getTimestampNs();
       myStudioOffsetTimeNs = System.nanoTime();
     }
     catch (StatusRuntimeException e) {
