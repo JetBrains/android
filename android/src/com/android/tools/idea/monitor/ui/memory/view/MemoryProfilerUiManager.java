@@ -17,26 +17,25 @@ package com.android.tools.idea.monitor.ui.memory.view;
 
 import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.Range;
+import com.android.tools.idea.monitor.datastore.Poller;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.ui.BaseProfilerUiManager;
 import com.android.tools.idea.monitor.ui.BaseSegment;
 import com.android.tools.idea.monitor.ui.ProfilerEventListener;
+import com.android.tools.idea.monitor.ui.memory.model.MemoryPoller;
 import com.intellij.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;
 
 public final class MemoryProfilerUiManager extends BaseProfilerUiManager {
-
   public MemoryProfilerUiManager(@NotNull Range xRange, @NotNull Choreographer choreographer,
                                  @NotNull SeriesDataStore datastore, @NotNull EventDispatcher<ProfilerEventListener> eventDispatcher) {
     super(xRange, choreographer, datastore, eventDispatcher);
   }
 
+  @NotNull
   @Override
-  public void startMonitoring(int pid) {
-  }
-
-  @Override
-  public void stopMonitoring(int pid) {
+  public Poller createPoller(int pid) {
+    return new MemoryPoller(myDataStore.getDeviceProfilerService(), pid);
   }
 
   @Override

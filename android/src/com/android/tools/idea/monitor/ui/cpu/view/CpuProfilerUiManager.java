@@ -18,45 +18,31 @@ package com.android.tools.idea.monitor.ui.cpu.view;
 import com.android.tools.adtui.AccordionLayout;
 import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.Range;
+import com.android.tools.idea.monitor.datastore.Poller;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.ui.BaseProfilerUiManager;
 import com.android.tools.idea.monitor.ui.BaseSegment;
 import com.android.tools.idea.monitor.ui.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.cpu.model.CpuDataPoller;
-import com.android.tools.profiler.proto.CpuProfiler;
-import com.android.tools.profiler.proto.CpuProfilerServiceGrpc;
 import com.intellij.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
 public final class CpuProfilerUiManager extends BaseProfilerUiManager {
-
-  @NotNull
-  private final CpuDataPoller myCpuDataPoller;
-
   private BaseSegment myThreadSegment;
 
-  public CpuProfilerUiManager(@NotNull Range xRange, @NotNull Choreographer choreographer,
-                       @NotNull SeriesDataStore datastore, @NotNull EventDispatcher<ProfilerEventListener> eventDispatcher) {
+  public CpuProfilerUiManager(@NotNull Range xRange,
+                              @NotNull Choreographer choreographer,
+                              @NotNull SeriesDataStore datastore,
+                              @NotNull EventDispatcher<ProfilerEventListener> eventDispatcher) {
     super(xRange, choreographer, datastore, eventDispatcher);
-    myCpuDataPoller = new CpuDataPoller();
   }
 
+  @NotNull
   @Override
-  public void startMonitoring(int pid) {
-    CpuProfilerServiceGrpc.CpuProfilerServiceBlockingStub cpuService = myDataStore.getDeviceProfilerService().getCpuService();
-    CpuProfiler.CpuStartRequest.Builder requestBuilder = CpuProfiler.CpuStartRequest.newBuilder().setAppId(pid);
-    cpuService.startMonitoringApp(requestBuilder.build());
-    myCpuDataPoller.startDataRequest(pid, cpuService);
-  }
-
-  @Override
-  public void stopMonitoring(int pid) {
-    myCpuDataPoller.stopDataRequest();
-    CpuProfiler.CpuStopRequest.Builder requestBuilder = CpuProfiler.CpuStopRequest.newBuilder();
-    requestBuilder.setAppId(pid);
-    myDataStore.getDeviceProfilerService().getCpuService().stopMonitoringApp(requestBuilder.build());
+  public Poller createPoller(int pid) {
+    return new CpuDataPoller(myDataStore.getDeviceProfilerService(), pid);
   }
 
   @Override

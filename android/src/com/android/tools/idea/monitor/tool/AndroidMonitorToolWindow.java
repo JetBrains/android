@@ -137,6 +137,7 @@ public class AndroidMonitorToolWindow implements Disposable {
 
     mySelection = new SelectionComponent(mySegmentsContainer, myTimeAxis, xSelectionRange, xGlobalRange, myXRange);
 
+    assert myDataStore != null;
     return Arrays.asList(accordion,
                          frameLength -> {
                            // Updates the global range's max to match the device's current time.
@@ -194,26 +195,9 @@ public class AndroidMonitorToolWindow implements Disposable {
 
         deinitializeProfilers();
         mySelectedClient = c;
-        if (mySelectedClient != null && mySelectedDeviceProfilerService != null) {
-          myDataStore = new SeriesDataStoreImpl(mySelectedDeviceProfilerService);
-          myChoreographer = new Choreographer(CHOREOGRAPHER_FPS, myComponent);
-          myChoreographer.register(createCommonAnimatables());
-          myEventDispatcher = EventDispatcher.create(ProfilerEventListener.class);
 
-          myProfilerManagers.put(BaseProfilerUiManager.ProfilerType.EVENT,
-                                 new EventProfilerUiManager(myXRange, myChoreographer, myDataStore, myEventDispatcher));
-          myProfilerManagers.put(BaseProfilerUiManager.ProfilerType.NETWORK,
-                                 new NetworkProfilerUiManager(myXRange, myChoreographer, myDataStore, myEventDispatcher));
-          myProfilerManagers.put(BaseProfilerUiManager.ProfilerType.MEMORY,
-                                 new MemoryProfilerUiManager(myXRange, myChoreographer, myDataStore, myEventDispatcher));
-          myProfilerManagers.put(BaseProfilerUiManager.ProfilerType.CPU,
-                                 new CpuProfilerUiManager(myXRange, myChoreographer, myDataStore, myEventDispatcher));
-          for (BaseProfilerUiManager manager : myProfilerManagers.values()) {
-            manager.startMonitoring(mySelectedClient.getClientData().getPid());
-          }
-
-          populateProfilerUi();
-        }
+        initializeProfilers();
+        populateProfilerUi();
       }
     }, this);
   }
@@ -344,8 +328,8 @@ public class AndroidMonitorToolWindow implements Disposable {
 
   private void disconnectFromDevice() {
     if (mySelectedDeviceProfilerService != null) {
-      ProfilerService.getInstance().disconnect(this, mySelectedDeviceProfilerService);
       deinitializeProfilers();
+      ProfilerService.getInstance().disconnect(this, mySelectedDeviceProfilerService);
       mySelectedDeviceProfilerService = null;
     }
   }
@@ -362,6 +346,29 @@ public class AndroidMonitorToolWindow implements Disposable {
     mySelectedDeviceProfilerService = ProfilerService.getInstance().connect(this, mySelectedDevice);
   }
 
+  private void initializeProfilers() {
+    if (mySelectedDeviceProfilerService == null || mySelectedClient == null) {
+      return;
+    }
+
+    myDataStore = new SeriesDataStoreImpl(mySelectedDeviceProfilerService);
+    myChoreographer = new Choreographer(CHOREOGRAPHER_FPS, myComponent);
+    myChoreographer.register(createCommonAnimatables());
+    myEventDispatcher = EventDispatcher.create(ProfilerEventListener.class);
+
+    myProfilerManagers.put(BaseProfilerUiManager.ProfilerType.EVENT,
+                           new EventProfilerUiManager(myXRange, myChoreographer, myDataStore, myEventDispatcher));
+    myProfilerManagers.put(BaseProfilerUiManager.ProfilerType.NETWORK,
+                           new NetworkProfilerUiManager(myXRange, myChoreographer, myDataStore, myEventDispatcher));
+    myProfilerManagers.put(BaseProfilerUiManager.ProfilerType.MEMORY,
+                           new MemoryProfilerUiManager(myXRange, myChoreographer, myDataStore, myEventDispatcher));
+    myProfilerManagers.put(BaseProfilerUiManager.ProfilerType.CPU,
+                           new CpuProfilerUiManager(myXRange, myChoreographer, myDataStore, myEventDispatcher));
+    for (BaseProfilerUiManager manager : myProfilerManagers.values()) {
+      manager.startMonitoring(mySelectedClient.getClientData().getPid());
+    }
+  }
+
   private void deinitializeProfilers() {
     if (mySelectedClient != null) {
       synchronized (myComponent.getTreeLock()) {
@@ -372,7 +379,7 @@ public class AndroidMonitorToolWindow implements Disposable {
       }
 
       for (BaseProfilerUiManager manager : myProfilerManagers.values()) {
-        manager.stopMonitoring(mySelectedClient.getClientData().getPid());
+        manager.stopMonitoring();
       }
       myProfilerManagers.clear();
 
