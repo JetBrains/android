@@ -54,7 +54,7 @@ public class DeviceMenuAction extends FlatComboAction {
     myRenderContext = renderContext;
     myClassicStyle = classicStyle;
     Presentation presentation = getTemplatePresentation();
-    presentation.setDescription("The virtual device to render the layout with");
+    presentation.setDescription("Device in Editor");
     if (classicStyle) {
       presentation.setIcon(AndroidIcons.Display);
     }
