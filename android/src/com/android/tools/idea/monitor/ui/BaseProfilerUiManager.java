@@ -19,11 +19,14 @@ import com.android.tools.adtui.AccordionLayout;
 import com.android.tools.adtui.Animatable;
 import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.Range;
+import com.android.tools.idea.monitor.datastore.Poller;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.ui.JBColor;
 import com.intellij.util.EventDispatcher;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -61,6 +64,8 @@ public abstract class BaseProfilerUiManager {
   @NotNull
   protected final EventDispatcher<ProfilerEventListener> myEventDispatcher;
 
+  protected Poller myPoller;
+
   public BaseProfilerUiManager(@NotNull Range xRange, @NotNull Choreographer choreographer,
                                @NotNull SeriesDataStore datastore, @NotNull EventDispatcher<ProfilerEventListener> eventDispatcher) {
     myXRange = xRange;
@@ -69,9 +74,24 @@ public abstract class BaseProfilerUiManager {
     myEventDispatcher = eventDispatcher;
   }
 
-  public abstract void startMonitoring(int pid);
+  @Nullable
+  public abstract Poller createPoller(int pid);
 
-  public abstract void stopMonitoring(int pid);
+  public void startMonitoring(int pid) {
+    assert myPoller == null;
+    myPoller = createPoller(pid);
+    if (myPoller != null) {
+      ApplicationManager.getApplication().executeOnPooledThread(myPoller);
+    }
+  }
+
+  public void stopMonitoring() {
+    if (myPoller == null) {
+      return;
+    }
+    myPoller.stop();
+    myPoller = null;
+  }
 
   /**
    * Sets up the profiler's Level1 view in the overviewPanel.
