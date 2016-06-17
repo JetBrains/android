@@ -18,6 +18,7 @@ package com.android.tools.idea.editors.gfxtrace.actions;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.DeviceInfo;
+import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceUtil;
 import com.android.tools.idea.editors.gfxtrace.GfxTracer;
 import com.android.tools.idea.editors.gfxtrace.forms.ActivitySelector;
@@ -48,7 +49,6 @@ import java.awt.*;
 public class GfxTraceCaptureAction extends ToggleAction {
 
   private static final String BUTTON_TEXT = "Launch";
-  private static final String NOTIFICATION_GROUP = "GPU trace";
   private static final String NOTIFICATION_LAUNCH_REQUIRES_ROOT_TITLE = "Rooted device required";
   private static final String NOTIFICATION_LAUNCH_REQUIRES_ROOT_CONTENT =
     "The device needs to be rooted in order to launch an application for GPU tracing.<br/>" +
@@ -115,8 +115,8 @@ public class GfxTraceCaptureAction extends ToggleAction {
           @Override
           public void run() {
             Notifications.Bus.notify(
-              new Notification(NOTIFICATION_GROUP, NOTIFICATION_LAUNCH_REQUIRES_ROOT_TITLE, NOTIFICATION_LAUNCH_REQUIRES_ROOT_CONTENT,
-                               NotificationType.ERROR));
+              new Notification(GfxTraceEditor.NOTIFICATION_GROUP, NOTIFICATION_LAUNCH_REQUIRES_ROOT_TITLE,
+                               NOTIFICATION_LAUNCH_REQUIRES_ROOT_CONTENT, NotificationType.ERROR));
           }
         });
         onStop();
