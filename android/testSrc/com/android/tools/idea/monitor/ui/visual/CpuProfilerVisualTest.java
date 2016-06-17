@@ -110,6 +110,7 @@ public class CpuProfilerVisualTest extends VisualTest {
     constraints.weightx = 1;
     constraints.gridy = 0;
     mCPULevel2Segment.initializeComponents();
+    mCPULevel2Segment.toggleView(true);
     panel.add(mCPULevel2Segment, constraints);
     constraints.gridy = 1;
     mThreadsSegment.initializeComponents();
