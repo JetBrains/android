@@ -96,21 +96,19 @@ public class SimpleEventComponent<E extends Enum<E>> extends AnimatedComponent {
 
       if (data.getValue() == Action.DOWN) {
         downEvent = data;
-      }
-      else if (data.getValue() == Action.UP) {
-        assert downEvent != null;
+      } else if (data.getValue() == Action.UP) {
+        downEvent = null;
         Integer toDraw = data.getValueData().ordinal();
-        if (data.getEnd() - downEvent.getStart() >= HOLD_DELAY_MS) {
-          toDraw = downEvent.getValueData().ordinal();
+        if (data.getEnd() - data.getStart() >= HOLD_DELAY_MS) {
+          toDraw = data.getValueData().ordinal();
           Path2D.Float path = new Path2D.Float();
-          double start = (downEvent.getStart() - min) / (max - min);
+          double start = (data.getStart() - min) / (max - min);
           double end = (data.getEnd() - min) / (max - min);
           path.moveTo(start, LINE_OFFSET);
           path.lineTo(end, LINE_OFFSET);
           mPaths.add(path);
         }
         mIconsToDraw.add(new EventRenderData(toDraw, data.getEnd()));
-        downEvent = null;
       }
     }
     if (downEvent != null) {
@@ -122,8 +120,8 @@ public class SimpleEventComponent<E extends Enum<E>> extends AnimatedComponent {
         path.moveTo(start, LINE_OFFSET);
         path.lineTo(end, LINE_OFFSET);
         mPaths.add(path);
-        mIconsToDraw.add(new EventRenderData(toDraw, downEvent.getEnd()));
       }
+      mIconsToDraw.add(new EventRenderData(toDraw, 0));
     }
   }
 
