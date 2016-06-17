@@ -235,7 +235,7 @@ public class TextWidget extends WidgetDecorator {
         }
 
         Shape clip = g.getClip();
-        g.setClip(tx, ty, w, h);
+        g.clipRect(tx, ty, w, h);
         g.drawString(string, ftx, fty);
         g.setClip(clip);
     }
