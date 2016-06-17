@@ -153,7 +153,11 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
 
     private long myStartTime;
 
-    private Thread myDataThread;
+    // TODO: we should change this and the other "generate*" names
+    // when we change this class to get actual data.
+    private Runnable myDataGenerator;
+
+    private Thread myDataGeneratorThread;
 
     /**
      * Generates simulated data from {@code min} to {@code max} (inclusive).
@@ -164,9 +168,7 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
       myMax = max;
       myMaxVariance = maxVariance;
       myNext = randomInInterval(min, max);
-      myDataThread = new Thread() {
-        @Override
-        public void run() {
+      myDataGenerator = () -> {
           try {
             while (true) {
               // TODO: come up with a better way of handling thread issues
@@ -177,18 +179,19 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
           }
           catch (InterruptedException ignored) {
           }
-        }
       };
+      myDataGeneratorThread = new Thread(myDataGenerator);
       reset();
     }
 
     @Override
     public void reset() {
-      if (myDataThread != null) {
-        myDataThread.interrupt();
+      if (myDataGeneratorThread != null) {
+        myDataGeneratorThread.interrupt();
         myTime.clear();
         myData.clear();
-        myDataThread.start();
+        myDataGeneratorThread = new Thread(myDataGenerator);
+        myDataGeneratorThread.start();
       }
     }
 
