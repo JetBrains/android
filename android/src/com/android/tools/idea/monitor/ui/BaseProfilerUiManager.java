@@ -98,7 +98,7 @@ public abstract class BaseProfilerUiManager {
   /**
    * Sets up the profiler's Level1 view in the overviewPanel.
    */
-  public void setupOverviewUi(@NotNull JPanel overviewPanel) {
+  public void setupOverviewUi(@NotNull JPanel toolbar, @NotNull JPanel overviewPanel) {
     myOverviewSegment = createOverviewSegment(myXRange, myDataStore, myEventDispatcher);
 
     setupAndRegisterSegment(myOverviewSegment, DEFAULT_MONITOR_MIN_HEIGHT, DEFAULT_MONITOR_PREFERRED_HEIGHT, DEFAULT_MONITOR_MAX_HEIGHT);
@@ -108,7 +108,7 @@ public abstract class BaseProfilerUiManager {
   /**
    * Sets up the profiler's Level2 view in the overviewPanel.
    */
-  public void setupExtendedOverviewUi(@NotNull JPanel overviewPanel) {
+  public void setupExtendedOverviewUi(@NotNull JPanel toolbar, @NotNull JPanel overviewPanel) {
     if (myOverviewSegment == null) {
       return;
     }
@@ -120,14 +120,14 @@ public abstract class BaseProfilerUiManager {
   /**
    * Sets up the profiler's Level3 view in the detailPanel which should appear under the overviewPanel.
    */
-  public void setupDetailedViewUi(@NotNull JPanel detailPanel) {
+  public void setupDetailedViewUi(@NotNull JPanel toolbar, @NotNull JPanel detailPanel) {
   }
 
   /**
    * Resets the profiler back to its Level1 view. Each manager is responsible for destroying and de-referencing any UI content
    * in the overviewPanel/detailPanel that should not appear in Level1.
    */
-  public void resetProfiler(@NotNull JPanel overviewPanel, @NotNull JPanel detailPanel) {
+  public void resetProfiler(@NotNull JPanel toolbar, @NotNull JPanel overviewPanel, @NotNull JPanel detailPanel) {
     if (myOverviewSegment == null) {
       return;
     }

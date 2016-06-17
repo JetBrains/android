@@ -121,6 +121,8 @@ public class AndroidMonitorToolWindow implements Disposable {
 
   private boolean myProfilersInitialized;
 
+  private JPanel myProfilerToolbar;
+
   public AndroidMonitorToolWindow(@NotNull final Project project) {
     myProject = project;
     myComponent = new JPanel(new BorderLayout());
@@ -249,7 +251,7 @@ public class AndroidMonitorToolWindow implements Disposable {
 
   // TODO: refactor to use ActionToolbar, as we're going to have more actions in the toolbar
   private void createToolbarComponent() {
-    JBPanel toolbar = new JBPanel(new HorizontalLayout(TOOLBAR_HORIZONTAL_GAP));
+    myProfilerToolbar = new JBPanel(new HorizontalLayout(TOOLBAR_HORIZONTAL_GAP));
     DevicePanel devicePanel = new DevicePanel(myProject, myDeviceContext);
     myCollapseSegmentsButton = new JButton();
     // TODO: use proper icon
@@ -257,9 +259,9 @@ public class AndroidMonitorToolWindow implements Disposable {
     myCollapseSegmentsButton.addActionListener(event -> myEventDispatcher.getMulticaster().profilersReset());
     myCollapseSegmentsButton.setVisible(false);
 
-    toolbar.add(HorizontalLayout.RIGHT, devicePanel.getComponent());
-    toolbar.add(HorizontalLayout.LEFT, myCollapseSegmentsButton);
-    myComponent.add(toolbar, BorderLayout.NORTH);
+    myProfilerToolbar.add(HorizontalLayout.RIGHT, devicePanel.getComponent());
+    myProfilerToolbar.add(HorizontalLayout.LEFT, myCollapseSegmentsButton);
+    myComponent.add(myProfilerToolbar, BorderLayout.NORTH);
   }
 
   private void populateProfilerUi() {
@@ -292,7 +294,7 @@ public class AndroidMonitorToolWindow implements Disposable {
 
     // Setup profiler segments
     for (BaseProfilerUiManager manager : myProfilerManagers.values()) {
-      manager.setupOverviewUi(mySegmentsContainer);
+      manager.setupOverviewUi(myProfilerToolbar, mySegmentsContainer);
     }
 
     // Timeline segment
@@ -335,23 +337,24 @@ public class AndroidMonitorToolWindow implements Disposable {
 
         boolean firstExpansion = myExpandedProfiler == null; // Whether the profiler is expanded for the first time. e.g. L1 -> L2
         for (Map.Entry<BaseProfilerUiManager.ProfilerType, BaseProfilerUiManager> entry : myProfilerManagers.entrySet()) {
+          BaseProfilerUiManager manager = entry.getValue();
           if (entry.getKey() == profilerType) {
             if (firstExpansion) {
               // The profiler is expanded for the first time. e.g. L1 -> L2
-              entry.getValue().setupExtendedOverviewUi(mySegmentsContainer);
+              manager.setupExtendedOverviewUi(myProfilerToolbar, mySegmentsContainer);
               myExpandedProfiler = profilerType;
             }
             else if (mySpliiter.getSecondComponent() == null) {
               // The profiler is expanded for the second time. e.g. L2 -> L3
               // Note that subsequent expansion call should not trigger this code block.
-              entry.getValue().setupDetailedViewUi(myDetailedViewContainer);
+              manager.setupDetailedViewUi(myProfilerToolbar, myDetailedViewContainer);
               mySpliiter.setSecondComponent(myDetailedViewContainer);
               mySpliiter.setProportion(0.5f);
             }
           }
           else if (entry.getKey() == BaseProfilerUiManager.ProfilerType.EVENT && firstExpansion) {
             // Special handle to expand the Event monitor from L1 -> L2 during the first expansion.
-            entry.getValue().setupExtendedOverviewUi(mySegmentsContainer);
+            manager.setupExtendedOverviewUi(myProfilerToolbar, mySegmentsContainer);
           }
           else {
             // TODO disable polling data from device.
@@ -367,11 +370,14 @@ public class AndroidMonitorToolWindow implements Disposable {
 
       @Override
       public void profilersReset() {
-        myProfilerManagers.get(myExpandedProfiler).resetProfiler(mySegmentsContainer, myDetailedViewContainer);
+        myProfilerManagers.get(myExpandedProfiler).resetProfiler(myProfilerToolbar, mySegmentsContainer, myDetailedViewContainer);
         // Also reset event segment to avoid it taking the whole panel after reset.
-        myProfilerManagers.get(BaseProfilerUiManager.ProfilerType.EVENT).resetProfiler(mySegmentsContainer, myDetailedViewContainer);
+        myProfilerManagers.get(BaseProfilerUiManager.ProfilerType.EVENT)
+          .resetProfiler(myProfilerToolbar, mySegmentsContainer, myDetailedViewContainer);
+
         mySpliiter.setSecondComponent(null);
         mySpliiter.setProportion(1f);
+
         timeSegment.toggleView(false);
         rightSpacerFiller.setVisible(false);
         myCollapseSegmentsButton.setVisible(false);
