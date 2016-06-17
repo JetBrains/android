@@ -98,11 +98,24 @@ public class DependencyIntegrationTest extends AndroidGradleTestCase {
     assertThat(librariesIn(appModule)).excludes("lib");
   }
 
+  public void testDependencySetUpInJavaModule() throws Throwable {
+    loadProject("projects/transitiveDependencies");
+
+    Module libModule = getModule("lib");
+    assertThat(librariesIn(libModule)).excludes("lib.lib");
+  }
+
   @NotNull
   private Module getAppModule() {
-    Module appModule = ModuleManager.getInstance(getProject()).findModuleByName("app");
-    assertNotNull(appModule);
-    return appModule;
+    String name = "app";
+    return getModule(name);
+  }
+
+  @NotNull
+  private Module getModule(@NotNull String name) {
+    Module module = ModuleManager.getInstance(getProject()).findModuleByName(name);
+    assertNotNull(module);
+    return module;
   }
 
   private static void verifyDependenciesAreResolved(@NotNull Module module) {
