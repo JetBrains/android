@@ -141,16 +141,15 @@ public class StackedEventComponent extends AnimatedComponent {
       if (data.getValue() == Action.ACTIVITY_STARTED) {
         downEvents.put(data.getStart(), data);
       } else if (data.getValue() == Action.ACTIVITY_COMPLETED) {
-        assert downEvents.containsKey(data.getStart());
-        EventAction<Action, String> event = downEvents.get(data.getStart());
-        int index = drawOrderIndex.get(event.getStart());
-        drawOrderIndex.remove(event.getStart());
+        assert drawOrderIndex.containsKey(data.getStart());
+        int index = drawOrderIndex.get(data.getStart());
+        drawOrderIndex.remove(data.getStart());
         offsetValues.add(index);
         Path2D.Float path = new Path2D.Float();
         // Here we normalize the position to a value between 0 and 1. This allows us to scale the width of the line based on the
         // width of our chart.
         double normalizedEndPosition = ((data.getEnd() - min) / (max - min));
-        double normalizedstartPosition = ((event.getStart() - min) / (max - min));
+        double normalizedstartPosition = ((data.getStart() - min) / (max - min));
         double baseHeight = myMaxHeight - (index * SEGMENT_SPACING);
         double tailHeight = myMaxHeight - (index * SEGMENT_SPACING - TAIL_HEIGHT);
         path.moveTo(normalizedEndPosition, baseHeight);
@@ -171,8 +170,6 @@ public class StackedEventComponent extends AnimatedComponent {
     if (lastStart != null) {
       myActionToDrawLocationMap.put(lastStart,
                                     new EventRenderData(lastStartIndex, (long)max - lastStart.getStart()));
-      lastStart = null;
-      lastStartIndex = 0;
     }
     for (Long key : downEvents.keySet()) {
       EventAction<Action, String> event = downEvents.get(key);

@@ -39,12 +39,17 @@ public class SimpleEventTestDataGenerator
   }
 
   @Override
+  public int getSleepTime() {
+    //Sleep for up to 1 second.
+    return (int)(1000 * Math.random());
+  }
+
+  @Override
   public void generateData() {
     boolean downAction = true;
     long currentTime = System.currentTimeMillis() - mStartTime;
-    long startTime = currentTime;
     long endTime = 0;
-    if (mStartTime != 0) {
+    if (mStartTime != 0 && Math.random() > 0.5) {
       mTime.add(System.currentTimeMillis());
       if (mData.size() > 0) {
         EventAction<SimpleEventComponent.Action, EventSegment.EventActionType> lastAction = mData.get(mData.size() - 1);
@@ -52,10 +57,10 @@ public class SimpleEventTestDataGenerator
         if (lastAction.getValue() == SimpleEventComponent.Action.DOWN) {
           downAction = false;
           endTime = System.currentTimeMillis() - mStartTime;
-          startTime = lastAction.getStart();
+          currentTime = lastAction.getStart();
         }
       }
-      mData.add(new EventAction<>(startTime, endTime,
+      mData.add(new EventAction<>(currentTime, endTime,
                                   downAction ? SimpleEventComponent.Action.DOWN : SimpleEventComponent.Action.UP,
                                   EventSegment.EventActionType.HOLD));
 
