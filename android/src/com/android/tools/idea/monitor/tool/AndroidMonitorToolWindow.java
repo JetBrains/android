@@ -31,7 +31,6 @@ import com.android.tools.idea.monitor.ui.BaseSegment;
 import com.android.tools.idea.monitor.ui.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.TimeAxisSegment;
 import com.android.tools.idea.monitor.ui.cpu.view.CpuProfilerUiManager;
-import com.android.tools.idea.monitor.ui.events.view.EventProfilerUiManager;
 import com.android.tools.idea.monitor.ui.memory.view.MemoryProfilerUiManager;
 import com.android.tools.idea.monitor.ui.network.view.NetworkProfilerUiManager;
 import com.intellij.icons.AllIcons;
@@ -104,6 +103,8 @@ public class AndroidMonitorToolWindow implements Disposable {
 
   private BaseProfilerUiManager.ProfilerType myExpandedProfiler;
 
+  private boolean myProfilersInitialized;
+
   public AndroidMonitorToolWindow(@NotNull final Project project) {
     myProject = project;
     myComponent = new JPanel(new BorderLayout());
@@ -160,7 +161,10 @@ public class AndroidMonitorToolWindow implements Disposable {
     myDeviceContext.addListener(new DeviceContext.DeviceSelectionListener() {
       @Override
       public void deviceSelected(@Nullable IDevice device) {
-        if (device == mySelectedDevice) {
+        // Return early if selecting the same device selected previously
+        // We shouldn't return early, however, if there's no connection with the device.
+        // In this case, we want to make sure that connectToDevice() is called.
+        if (device == mySelectedDevice && mySelectedDeviceProfilerService != null) {
           return;
         }
 
@@ -189,15 +193,18 @@ public class AndroidMonitorToolWindow implements Disposable {
        */
       @Override
       public void clientSelected(@Nullable Client c) {
-        if (mySelectedClient == c) {
-          return;
+        if (mySelectedClient != c) {
+          deinitializeProfilers();
+          mySelectedClient = c;
         }
 
-        deinitializeProfilers();
-        mySelectedClient = c;
-
-        initializeProfilers();
-        populateProfilerUi();
+        if (!myProfilersInitialized) {
+          // Make sure the device is connected before initializing the profilers.
+          if (mySelectedDeviceProfilerService == null) {
+            connectToDevice();
+          }
+          initializeProfilers();
+        }
       }
     }, this);
   }
@@ -350,14 +357,14 @@ public class AndroidMonitorToolWindow implements Disposable {
     if (mySelectedDeviceProfilerService == null || mySelectedClient == null) {
       return;
     }
-
     myDataStore = new SeriesDataStoreImpl(mySelectedDeviceProfilerService);
     myChoreographer = new Choreographer(CHOREOGRAPHER_FPS, myComponent);
     myChoreographer.register(createCommonAnimatables());
     myEventDispatcher = EventDispatcher.create(ProfilerEventListener.class);
 
-    myProfilerManagers.put(BaseProfilerUiManager.ProfilerType.EVENT,
-                           new EventProfilerUiManager(myXRange, myChoreographer, myDataStore, myEventDispatcher));
+    // TODO: add event manager to myProfilerManagers
+    //myProfilerManagers.put(BaseProfilerUiManager.ProfilerType.EVENT,
+    //                       new EventProfilerUiManager(myXRange, myChoreographer, myDataStore, myEventDispatcher));
     myProfilerManagers.put(BaseProfilerUiManager.ProfilerType.NETWORK,
                            new NetworkProfilerUiManager(myXRange, myChoreographer, myDataStore, myEventDispatcher));
     myProfilerManagers.put(BaseProfilerUiManager.ProfilerType.MEMORY,
@@ -367,6 +374,9 @@ public class AndroidMonitorToolWindow implements Disposable {
     for (BaseProfilerUiManager manager : myProfilerManagers.values()) {
       manager.startMonitoring(mySelectedClient.getClientData().getPid());
     }
+
+    populateProfilerUi();
+    myProfilersInitialized = true;
   }
 
   private void deinitializeProfilers() {
@@ -390,6 +400,7 @@ public class AndroidMonitorToolWindow implements Disposable {
       myChoreographer = null;
       myEventDispatcher = null;
       mySelectedClient = null;
+      myProfilersInitialized = false;
     }
   }
 }
