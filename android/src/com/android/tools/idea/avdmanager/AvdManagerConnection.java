@@ -26,7 +26,7 @@ import com.android.repository.api.RepoPackage;
 import com.android.repository.io.FileOp;
 import com.android.repository.io.FileOpUtils;
 import com.android.resources.ScreenOrientation;
-import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.ISystemImage;
 import com.android.sdklib.devices.Abi;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Storage;
@@ -593,22 +593,27 @@ public class AvdManagerConnection {
     return null;
   }
 
-  public static boolean doesSystemImageSupportQemu2(SystemImageDescription description) {
-    AndroidVersion version = description.getVersion();
-    IdDisplay tag = description.getTag();
-    String abiType = description.getAbiType();
-    Revision revision = description.getRevision();
-
-    int apiLevel = version.getApiLevel();
-    if (apiLevel < 22) {
+  public static boolean doesSystemImageSupportQemu2(@Nullable SystemImageDescription description, @NotNull FileOp fileOp) {
+    if (description == null) {
       return false;
     }
-    for (SystemImageUpdateDependency dependency : SYSTEM_IMAGE_DEPENCENCY_WITH_FIRST_QEMU2) {
-      if (dependency.updateRequired(abiType, apiLevel, tag, revision)) {
-        return false;
+    ISystemImage systemImage = description.getSystemImage();
+    if (systemImage == null) {
+      return false;
+    }
+    File location = systemImage.getLocation();
+    if (!fileOp.isDirectory(location)) {
+      return false;
+    }
+    String[] files = fileOp.list(location, null);
+    if (files != null) {
+      for (String filename : files) {
+        if (FileUtil.getNameWithoutExtension(filename).equals("kernel-ranchu")) {
+          return true;
+        }
       }
     }
-    return true;
+    return false;
   }
 
   public boolean avdExists(String candidate) {
