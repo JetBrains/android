@@ -456,7 +456,7 @@ public class WidgetDraw {
             int h = transform.getSwingDimension(widget.getDrawHeight());
             int b = transform.getSwingY(widget.getDrawY() + widget.getDrawHeight());
             Graphics2D g2 = (Graphics2D) g.create();
-            g2.setClip(l, t, w, h);
+            g2.clipRect(l, t, w, h);
             g2.drawString(debugName, l + 2, b - 2);
             g2.dispose();
         }
