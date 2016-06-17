@@ -27,8 +27,8 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.GradleSyncState;
-import com.android.tools.idea.gradle.customizer.android.DependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.dependency.LibraryDependency;
+import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
@@ -89,6 +89,7 @@ import java.util.*;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer.pathToUrl;
+import static com.android.tools.idea.gradle.customizer.android.DependenciesModuleCustomizer.updateLibraryDependency;
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.FAILED_TO_SET_UP_SDK;
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.UNHANDLED_SYNC_ISSUE_TYPE;
 import static com.android.tools.idea.gradle.messages.Message.Type.ERROR;
@@ -389,13 +390,25 @@ public class PostProjectSetupTasksExecutor {
       return;
     }
 
+    updateAarDependencies(module, modelsProvider, androidProject);
+  }
+
+  // See: https://code.google.com/p/android/issues/detail?id=163888
+  private static void updateAarDependencies(@NotNull Module module,
+                                            @NotNull IdeModifiableModelsProvider modelsProvider,
+                                            @NotNull AndroidProject androidProject) {
     ModifiableRootModel modifiableModel = modelsProvider.getModifiableRootModel(module);
     for (Module dependency : modifiableModel.getModuleDependencies()) {
+      JavaGradleFacet javaGradleFacet = JavaGradleFacet.getInstance(dependency);
+      if (javaGradleFacet != null) {
+        // Ignore Java modules. They are already set up properly.
+        continue;
+      }
       AndroidProject dependencyAndroidProject = getAndroidProject(dependency);
       if (dependencyAndroidProject == null) {
         LibraryDependency backup = getModuleCompiledArtifact(dependency);
         if (backup != null) {
-          DependenciesModuleCustomizer.updateLibraryDependency(module, modelsProvider, backup, androidProject);
+          updateLibraryDependency(module, modelsProvider, backup, androidProject);
         }
       }
     }

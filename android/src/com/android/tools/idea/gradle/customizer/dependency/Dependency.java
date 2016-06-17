@@ -242,32 +242,32 @@ public abstract class Dependency {
                                        @NotNull Collection<? extends JavaLibrary> libraries,
                                        @NotNull DependencyScope scope,
                                        boolean supportsDependencyGraph) {
-    for (JavaLibrary lib : libraries) {
+    for (JavaLibrary library : libraries) {
       if (supportsDependencyGraph) {
         ModuleDependency mainDependency = null;
 
-        String gradleProjectPath = lib.getProject();
+        String gradleProjectPath = library.getProject();
         if (isNotEmpty(gradleProjectPath)) {
           // This is a module.
           mainDependency = new ModuleDependency(gradleProjectPath, scope);
           dependencies.add(mainDependency);
           // Add the dependencies of the module as well.
           // See https://code.google.com/p/android/issues/detail?id=210172
-          addJavaLibraries(dependencies, lib.getDependencies(), scope, true);
+          addJavaLibraries(dependencies, library.getDependencies(), scope, true);
         }
         if (mainDependency == null) {
           // This is a library, not a module.
-          addJavaLibrary(lib, dependencies, scope, true);
+          addJavaLibrary(library, dependencies, scope, true);
         }
         else {
           // Add the jar as dependency in case there is a module dependency that cannot be satisfied (e.g. the module is outside of the
           // project.) If we cannot set the module dependency, we set a library dependency instead.
-          LibraryDependency backup = createLibraryDependency(lib, scope);
+          LibraryDependency backup = createLibraryDependency(library, scope);
           mainDependency.setBackupDependency(backup);
         }
       }
       else {
-        addJavaLibrary(lib, dependencies, scope, false);
+        addJavaLibrary(library, dependencies, scope, false);
       }
     }
   }
