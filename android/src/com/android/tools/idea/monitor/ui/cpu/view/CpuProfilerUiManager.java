@@ -47,8 +47,8 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager {
   }
 
   @Override
-  public void setupExtendedOverviewUi(@NotNull JPanel overviewPanel) {
-    super.setupExtendedOverviewUi(overviewPanel);
+  public void setupExtendedOverviewUi(@NotNull JPanel toolbar, @NotNull JPanel overviewPanel) {
+    super.setupExtendedOverviewUi(toolbar, overviewPanel);
 
     myThreadSegment = new ThreadsSegment(myXRange, myDataStore, myEventDispatcher, null);
     setupAndRegisterSegment(myThreadSegment, DEFAULT_MONITOR_MIN_HEIGHT, DEFAULT_MONITOR_PREFERRED_HEIGHT, DEFAULT_MONITOR_MAX_HEIGHT);
@@ -57,8 +57,8 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager {
   }
 
   @Override
-  public void resetProfiler(@NotNull JPanel overviewPanel, @NotNull JPanel detailPanel) {
-    super.resetProfiler(overviewPanel, detailPanel);
+  public void resetProfiler(@NotNull JPanel toolbar, @NotNull JPanel overviewPanel, @NotNull JPanel detailPanel) {
+    super.resetProfiler(toolbar, overviewPanel, detailPanel);
 
     // TODO un-register thread segment components from choreographer
     overviewPanel.remove(myThreadSegment);

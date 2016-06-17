@@ -55,8 +55,8 @@ public final class NetworkProfilerUiManager extends BaseProfilerUiManager {
   }
 
   @Override
-  public void setupExtendedOverviewUi(@NotNull JPanel overviewPanel) {
-    super.setupExtendedOverviewUi(overviewPanel);
+  public void setupExtendedOverviewUi(@NotNull JPanel toolbar, @NotNull JPanel overviewPanel) {
+    super.setupExtendedOverviewUi(toolbar, overviewPanel);
     myRadioSegment = new NetworkRadioSegment(myXRange, myDataStore, myEventDispatcher);
     setupAndRegisterSegment(myRadioSegment, NETWORK_CONNECTIVITY_HEIGHT, NETWORK_CONNECTIVITY_HEIGHT, NETWORK_CONNECTIVITY_HEIGHT);
     overviewPanel.add(myRadioSegment);
@@ -64,8 +64,8 @@ public final class NetworkProfilerUiManager extends BaseProfilerUiManager {
   }
 
   @Override
-  public void resetProfiler(@NotNull JPanel overviewPanel, @NotNull JPanel detailPanel) {
-    super.resetProfiler(overviewPanel, detailPanel);
+  public void resetProfiler(@NotNull JPanel toolbar, @NotNull JPanel overviewPanel, @NotNull JPanel detailPanel) {
+    super.resetProfiler(toolbar, overviewPanel, detailPanel);
 
     // TODO: un-register segments from choreographer
     overviewPanel.remove(myRadioSegment);
