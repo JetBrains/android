@@ -22,6 +22,7 @@ import java.util.Set;
  * This class exposes the set of features supported by the GAPIS instance.
  */
 public class GapisFeatures {
+  private static final String FEATURE_STABLE = "stable";
   private static final String FEATURE_RPC_STRING_TABLES = "rpc-string-tables";
   private static final String FEATURE_CONTEXTS_AND_HIERACHIES = "contexts-hierachies";
   private static final String FEATURE_MESHES = "meshes";
@@ -32,6 +33,13 @@ public class GapisFeatures {
     for (String feature : featureList) {
       myFeatures.add(feature);
     }
+  }
+
+  /**
+   * Returns true if GAPIS is considered stable (non-experimental):
+   */
+  public boolean isStable() {
+    return myFeatures.contains(FEATURE_STABLE);
   }
 
   /**
