@@ -19,12 +19,12 @@ import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.Range;
 import com.android.tools.idea.monitor.datastore.Poller;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
+import com.android.tools.idea.monitor.datastore.SeriesDataType;
 import com.android.tools.idea.monitor.ui.BaseProfilerUiManager;
 import com.android.tools.idea.monitor.ui.BaseSegment;
 import com.android.tools.idea.monitor.ui.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.energy.model.EnergyPoller;
 import com.google.common.collect.Sets;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.components.panels.HorizontalLayout;
 import com.intellij.util.EventDispatcher;
 import icons.AndroidIcons;
@@ -41,6 +41,11 @@ public class EnergyProfilerUiManager extends BaseProfilerUiManager {
   private JButton myToggleDeltaButton;
   private EnergyPoller myEnergyPoller;
 
+  // Whether or not the energy component usage graph is showing instantaneous power usage or total power usage.
+  // The energy data adapter is able to represent it's stored energy data in two ways: instantaneous power usage
+  // and total power usage.  We use this variable to keep track which one it's currently displaying.
+  private boolean myIsDisplayingInstantaneousEnergyUsage = true;
+
   public EnergyProfilerUiManager(@NotNull Range xRange, @NotNull Choreographer choreographer,
                                  @NotNull SeriesDataStore datastore, @NotNull EventDispatcher<ProfilerEventListener> eventDispatcher) {
     super(xRange, choreographer, datastore, eventDispatcher);
@@ -49,8 +54,15 @@ public class EnergyProfilerUiManager extends BaseProfilerUiManager {
   @Nullable
   @Override
   public Set<Poller> createPollers(int pid) {
-    myEnergyPoller = new EnergyPoller(myDataStore, pid);
+    myEnergyPoller = new EnergyPoller(myDataStore, pid, myIsDisplayingInstantaneousEnergyUsage);
     return Sets.newHashSet(myEnergyPoller);
+  }
+
+  public void toggleDisplayInstantaneousEnergyUsage() {
+    myIsDisplayingInstantaneousEnergyUsage = !myIsDisplayingInstantaneousEnergyUsage;
+    for (SeriesDataType type : EnergyPoller.ENERGY_DATA_TYPES) {
+      myEnergyPoller.getEnergyAdapter(type).setReturnInstantaneousData(myIsDisplayingInstantaneousEnergyUsage);
+    }
   }
 
   @Override
@@ -59,7 +71,7 @@ public class EnergyProfilerUiManager extends BaseProfilerUiManager {
 
     myToggleDeltaButton = new JButton(AndroidIcons.Ddms.SysInfo);
     myToggleDeltaButton.addActionListener(e -> {
-      myEnergyPoller.toggleDataDisplay();
+      toggleDisplayInstantaneousEnergyUsage();
     });
     toolbar.add(myToggleDeltaButton, HorizontalLayout.LEFT);
   }
