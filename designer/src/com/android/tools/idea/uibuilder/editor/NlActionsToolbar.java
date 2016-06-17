@@ -146,6 +146,7 @@ public class NlActionsToolbar implements DesignSurfaceListener, ModelListener {
     group.add(new DesignModeAction(surface));
     group.add(new BlueprintModeAction(surface));
 
+    group.addSeparator();
     ConfigurationMenuAction configAction = new ConfigurationMenuAction(surface);
     group.add(configAction);
 

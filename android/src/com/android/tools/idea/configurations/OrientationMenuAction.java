@@ -38,6 +38,7 @@ public class OrientationMenuAction extends FlatComboAction {
   public OrientationMenuAction(ConfigurationHolder renderContext) {
     myRenderContext = renderContext;
     Presentation presentation = getTemplatePresentation();
+    presentation.setDescription("Orientation in Editor");
     presentation.setIcon(AndroidIcons.NeleIcons.Rotate);
   }
 

@@ -29,7 +29,7 @@ public class ThemeMenuAction extends FlatAction {
   public ThemeMenuAction(@NotNull ConfigurationHolder renderContext) {
     myRenderContext = renderContext;
     Presentation presentation = getTemplatePresentation();
-    presentation.setDescription("Theme to render layout with");
+    presentation.setDescription("Theme in Editor");
     presentation.setIcon(RenderService.NELE_ENABLED ? AndroidIcons.NeleIcons.Theme : AndroidIcons.Themes);
     updatePresentation(presentation);
   }
@@ -51,7 +51,6 @@ public class ThemeMenuAction extends FlatAction {
     if (visible) {
       String brief = getThemeLabel(configuration.getTheme(), true);
       presentation.setText(brief, false);
-      presentation.setDescription(getThemeLabel(configuration.getTheme(), false));
     }
     if (visible != presentation.isVisible()) {
       presentation.setVisible(visible);
