@@ -1375,6 +1375,10 @@ public class DesignSurface extends JPanel implements Disposable {
   private final MyProgressPanel myProgressPanel;
 
   public void registerIndicator(@NotNull ProgressIndicator indicator) {
+    if (myProject.isDisposed()) {
+      return;
+    }
+
     synchronized (myProgressIndicators) {
       myProgressIndicators.add(indicator);
       myProgressPanel.showProgressIcon();
