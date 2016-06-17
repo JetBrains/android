@@ -86,6 +86,18 @@ public class DependencyIntegrationTest extends AndroidGradleTestCase {
     assertThat(moduleDependenciesIn(appModule)).contains("library1");
   }
 
+  public void testJavaLibraryModuleDependencies() throws Throwable {
+    loadProject("projects/transitiveDependencies");
+
+    Module appModule = getAppModule();
+    verifyDependenciesAreResolved(appModule);
+
+    // 'app' module should have 'guava' as dependency.
+    // 'app' -> 'lib' -> 'guava'
+    assertThat(moduleDependenciesIn(appModule)).contains("lib");
+    assertThat(librariesIn(appModule)).excludes("lib");
+  }
+
   @NotNull
   private Module getAppModule() {
     Module appModule = ModuleManager.getInstance(getProject()).findModuleByName("app");
