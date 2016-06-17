@@ -132,14 +132,17 @@ class LayeredImageConverter {
         }
 
         if (!fullyClipped) {
-          Element element = new Element("path")
-            .attribute("name", StringUtil.escapeXml(layer.getName()))
-            .attribute("pathData", toPathData(path, myFormat));
+          Element element = new Element("path");
 
-          extractFill(layer, element, opacityModifier);
-          extractStroke(layer, path, clipPath, root, element, opacityModifier);
+          boolean hasFillOrStroke;
+          hasFillOrStroke = extractFill(layer, element, opacityModifier);
+          hasFillOrStroke |= extractStroke(layer, path, clipPath, root, element, opacityModifier);
 
-          root.childAtFront(element);
+          if (hasFillOrStroke) {
+            element.attribute("name", StringUtil.escapeXml(layer.getName()));
+            element.attribute("pathData", toPathData(path, myFormat));
+            root.childAtFront(element);
+          }
         }
       }
       else if (type == Layer.Type.GROUP) {
@@ -194,8 +197,8 @@ class LayeredImageConverter {
     return area;
   }
 
-  private void extractStroke(@NotNull Layer layer, @NotNull Shape path, @Nullable Area clipPath,
-                             @NotNull Element root, @NotNull Element element, float opacityModifier) {
+  private boolean extractStroke(@NotNull Layer layer, @NotNull Shape path, @Nullable Area clipPath,
+                                @NotNull Element root, @NotNull Element element, float opacityModifier) {
     ShapeInfo shapeInfo = layer.getShapeInfo();
     if (shapeInfo.getStyle() != ShapeInfo.Style.FILL) {
       boolean isBasicStroke = shapeInfo.getStroke() instanceof BasicStroke;
@@ -204,7 +207,7 @@ class LayeredImageConverter {
         if (stroke.getDashArray() != null || clipPath != null ||
             shapeInfo.getStrokeAlignment() != ShapeInfo.Alignment.CENTER) {
           extractStrokeAsPath(layer, path, clipPath, root, opacityModifier);
-          return;
+          return false;
         }
       }
 
@@ -233,7 +236,11 @@ class LayeredImageConverter {
       } else {
         element.attribute("strokeWidth", String.valueOf(0.0f));
       }
+
+      return true;
     }
+
+    return false;
   }
 
   private void extractStrokeAsPath(@NotNull Layer layer, @NotNull Shape path, @Nullable Area clipPath,
@@ -303,7 +310,7 @@ class LayeredImageConverter {
                            stroke.getDashPhase());
   }
 
-  private void extractFill(@NotNull Layer layer, @NotNull Element element, float opacityModifier) {
+  private boolean extractFill(@NotNull Layer layer, @NotNull Element element, float opacityModifier) {
     ShapeInfo shapeInfo = layer.getShapeInfo();
     if (shapeInfo.getStyle() != ShapeInfo.Style.STROKE) {
       Paint fillPaint = shapeInfo.getFillPaint();
@@ -316,7 +323,9 @@ class LayeredImageConverter {
       if (fillAlpha < 1.0f) {
         element.attribute("fillAlpha", myOpacityFormat.format(fillAlpha));
       }
+      return true;
     }
+    return false;
   }
 
   @NotNull
