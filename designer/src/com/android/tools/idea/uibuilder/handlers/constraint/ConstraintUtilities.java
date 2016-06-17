@@ -694,7 +694,12 @@ public class ConstraintUtilities {
         String creatorAttribute = getConnectionAttributeCreator(widgetSrc.getAnchor(constraintA));
         String creatorValue = component.getAttribute(SdkConstants.TOOLS_URI, creatorAttribute);
         if (creatorValue != null) {
-          connectionCreator = Integer.parseInt(creatorValue);
+          try {
+            connectionCreator = Integer.parseInt(creatorValue);
+          }
+          catch (NumberFormatException e) {
+            connectionCreator = 0;
+          }
         }
         if (constraintA == constraintB && constraintA == ConstraintAnchor.Type.BASELINE) {
           widgetSrc.getAnchor(constraintA).connect(widget.getAnchor(constraintB), 0,
