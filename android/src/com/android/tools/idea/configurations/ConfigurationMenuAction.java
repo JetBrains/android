@@ -53,7 +53,7 @@ public class ConfigurationMenuAction extends FlatComboAction {
   public ConfigurationMenuAction(DesignSurface surface) {
     mySurface = surface;
     Presentation presentation = getTemplatePresentation();
-    presentation.setDescription("Configuration to render this layout with inside the IDE");
+    presentation.setDescription("Layout Variants");
     /* TODO: We'll have a preview action here later;
     if (RenderService.NELE_ENABLED) {
       presentation.setText("Variations");
