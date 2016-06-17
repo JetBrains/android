@@ -170,6 +170,11 @@ public class GapiiLibraryLoader {
       "  inChannel.close();\n" +
       "\n" +
       "  android.util.Log.d(TAG, \"Library copied, loading.\");\n" +
-      "  System.load(outFile.toString());\n";
+      // Work around for loading libraries in the N previews. See http://b/29441142.
+      "  if (android.os.Build.VERSION.SDK_INT == 24) {\n" + // 24 is N
+      "    Runtime.getRuntime().doLoad(outFile.toString(), null);\n" +
+      "  } else {\n" +
+      "    System.load(outFile.toString());\n" +
+      "  }\n";
   }
 }
