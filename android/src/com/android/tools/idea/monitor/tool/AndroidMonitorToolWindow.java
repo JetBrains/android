@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.monitor.tool;
 
+import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.tools.adtui.*;
@@ -22,6 +23,9 @@ import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.ddms.DevicePanel;
+import com.android.tools.idea.ddms.EdtExecutor;
+import com.android.tools.idea.ddms.adb.AdbService;
+import com.android.tools.idea.monitor.AndroidToolWindowFactory;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.datastore.SeriesDataStoreImpl;
 import com.android.tools.idea.monitor.profilerclient.DeviceProfilerService;
@@ -34,19 +38,25 @@ import com.android.tools.idea.monitor.ui.cpu.view.CpuProfilerUiManager;
 import com.android.tools.idea.monitor.ui.events.view.EventProfilerUiManager;
 import com.android.tools.idea.monitor.ui.memory.view.MemoryProfilerUiManager;
 import com.android.tools.idea.monitor.ui.network.view.NetworkProfilerUiManager;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.panels.HorizontalLayout;
 import com.intellij.util.EventDispatcher;
 import com.intellij.util.ui.JBUI;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -110,8 +120,8 @@ public class AndroidMonitorToolWindow implements Disposable {
     myDeviceContext = new DeviceContext();
     myProfilerManagers = new TreeMap<>();
 
-    setupDevice();
     createToolbarComponent();
+    setupDevice();
   }
 
   @Override
@@ -216,6 +226,24 @@ public class AndroidMonitorToolWindow implements Disposable {
         }
       }
     }, this);
+
+    // TODO the logic below is copied partially from the old Android Monitor. Refactor/reimplement to show proper statuses in the UI.
+    final File adb = AndroidSdkUtils.getAdb(myProject);
+    if (adb == null) {
+      return;
+    }
+    ListenableFuture<AndroidDebugBridge> future = AdbService.getInstance().getDebugBridge(adb);
+    Futures.addCallback(future, new FutureCallback<AndroidDebugBridge>() {
+      @Override
+      public void onSuccess(@Nullable AndroidDebugBridge bridge) {
+        Logger.getInstance(AndroidToolWindowFactory.class).info("Successfully obtained debug bridge");
+      }
+
+      @Override
+      public void onFailure(@NotNull Throwable t) {
+        Logger.getInstance(AndroidToolWindowFactory.class).info("Unable to obtain debug bridge", t);
+      }
+    }, EdtExecutor.INSTANCE);
   }
 
   // TODO: refactor to use ActionToolbar, as we're going to have more actions in the toolbar
