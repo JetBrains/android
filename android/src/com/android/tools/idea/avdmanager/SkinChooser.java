@@ -39,9 +39,9 @@ import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
-import java.util.Collections;
+import java.util.*;
 import java.util.List;
-import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.android.tools.idea.avdmanager.AvdWizardUtils.NO_SKIN;
 
@@ -51,9 +51,12 @@ import static com.android.tools.idea.avdmanager.AvdWizardUtils.NO_SKIN;
  */
 public class SkinChooser extends ComboboxWithBrowseButton implements ItemListener, ItemSelectable {
   private List<ItemListener> myListeners = Lists.newArrayList();
+  private boolean myResolveSystemImageSkins;
 
-  public SkinChooser(@Nullable Project project) {
+  public SkinChooser(@Nullable Project project, boolean resolveSystemImageSkins) {
+    myResolveSystemImageSkins = resolveSystemImageSkins;
     setItems(getSkins());
+    //noinspection unchecked
     getComboBox().setRenderer(new ColoredListCellRenderer() {
       @Override
       protected void customizeCellRenderer(JList list, Object value, int index, boolean selected, boolean hasFocus) {
@@ -96,10 +99,11 @@ public class SkinChooser extends ComboboxWithBrowseButton implements ItemListene
   }
 
   private void setItems(List<File> items) {
-    getComboBox().setModel(new CollectionComboBoxModel<File>(items));
+    //noinspection unchecked
+    getComboBox().setModel(new CollectionComboBoxModel<>(items));
   }
 
-  private static List<File> getSkins() {
+  private List<File> getSkins() {
     List<Device> devices = DeviceManagerConnection.getDefaultDeviceManagerConnection().getDevices();
 
     Set<File> result = Sets.newTreeSet();
@@ -112,10 +116,14 @@ public class SkinChooser extends ComboboxWithBrowseButton implements ItemListene
     StudioLoggerProgressIndicator progress = new StudioLoggerProgressIndicator(SkinChooser.class);
     AndroidSdkHandler sdkHandler = AndroidSdkUtils.tryToChooseSdkHandler();
     for (IAndroidTarget target : sdkHandler.getAndroidTargetManager(progress).getTargets(progress)) {
-      Collections.addAll(result, target.getSkins());
+      Arrays.stream(target.getSkins())
+        .map(this::resolve)
+        .forEach(result::add);
     }
     for (ISystemImage img : sdkHandler.getSystemImageManager(progress).getImages()) {
-      Collections.addAll(result, img.getSkins());
+      Arrays.stream(img.getSkins())
+        .map(this::resolve)
+        .forEach(result::add);
     }
 
     List<File> resultList = Lists.newArrayList();
@@ -145,5 +153,18 @@ public class SkinChooser extends ComboboxWithBrowseButton implements ItemListene
   @Override
   public void removeItemListener(ItemListener l) {
     getComboBox().removeItemListener(l);
+  }
+
+  @Nullable
+  private File resolve(@Nullable File skinFile) {
+    if (skinFile == null) {
+      return null;
+    }
+    if (myResolveSystemImageSkins) {
+      return AvdWizardUtils.resolveSkinPath(skinFile, null, FileOpUtils.create());
+    }
+    else {
+      return new File(skinFile.getName());
+    }
   }
 }

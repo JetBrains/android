@@ -214,7 +214,8 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
 
     myValidatorPanel.registerValidator(deviceModel.customSkinFile(), value -> {
       File skinPath = value.orNull();
-      if (skinPath != null && !FileUtil.filesEqual(skinPath, AvdWizardUtils.NO_SKIN)) {
+      if (skinPath != null && !FileUtil.filesEqual(skinPath, AvdWizardUtils.NO_SKIN) &&
+          !skinPath.getPath().equals(skinPath.getName())) {
         File layoutFile = new File(skinPath, SdkConstants.FN_SKIN_LAYOUT);
         if (!layoutFile.isFile()) {
           return new Result(Validator.Severity.ERROR, "The skin directory does not point to a valid skin.");
@@ -242,7 +243,7 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
 
     myHardwareSkinHelpLabel = new HyperlinkLabel("How do I create a custom hardware skin?");
     myHardwareSkinHelpLabel.setHyperlinkTarget(AvdWizardUtils.CREATE_SKIN_HELP_LINK);
-    myCustomSkinPath = new SkinChooser(null);
+    myCustomSkinPath = new SkinChooser(null, false);
     myDeviceDefinitionPreview = new DeviceDefinitionPreview(getModel().getDeviceData());
   }
 
