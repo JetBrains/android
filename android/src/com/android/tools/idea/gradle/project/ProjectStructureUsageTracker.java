@@ -21,6 +21,7 @@ import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
 import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.NativeAndroidGradleModel;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.stats.UsageTracker;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
@@ -38,8 +39,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
+import static com.android.builder.model.NativeAndroidProject.BUILD_SYSTEM_GRADLE;
 import static com.android.tools.idea.gradle.util.GradleUtil.getDependencies;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleVersion;
+import static com.android.tools.idea.gradle.util.GradleUtil.isUsingExperimentalPlugin;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 
@@ -128,9 +131,34 @@ public class ProjectStructureUsageTracker {
               UsageTracker.getInstance().trackNativeBuildSystem(appId, module.getName(), buildSystem);
             }
           }
+          else {
+            UsageTracker.getInstance().trackNativeBuildSystem(appId, module.getName(), BUILD_SYSTEM_GRADLE);
+          }
+        }
+        else if (androidModel != null && areNativeLibrariesPresent(androidModel.getAndroidProject())) {
+          if (isUsingExperimentalPlugin(module)) {
+            UsageTracker.getInstance().trackNativeBuildSystem(appId, module.getName(), BUILD_SYSTEM_GRADLE);
+          }
+          else {
+            UsageTracker.getInstance().trackNativeBuildSystem(appId, module.getName(), "ndkCompile");
+          }
         }
       }
     }
+  }
+
+  private static boolean areNativeLibrariesPresent(@NotNull AndroidProject androidProject) {
+    String modelVersion = androidProject.getModelVersion();
+    // getApiVersion doesn't work prior to 1.2, and API level must be at least 3
+    if (modelVersion.startsWith("1.0") || modelVersion.startsWith("1.1") || androidProject.getApiVersion() < 3) {
+      return false;
+    }
+    for (Variant variant : androidProject.getVariants()) {
+      if (!variant.getMainArtifact().getNativeLibraries().isEmpty()) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @NotNull
