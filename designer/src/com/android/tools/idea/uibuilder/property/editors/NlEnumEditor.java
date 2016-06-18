@@ -18,12 +18,14 @@ package com.android.tools.idea.uibuilder.property.editors;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.ui.laf.darcula.ui.DarculaComboBoxUI;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
@@ -394,7 +396,17 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
     JavaPsiFacade facade = JavaPsiFacade.getInstance(module.getProject());
     Collection<PsiClass> classes;
     if (activityClassName != null) {
-      classes = Collections.singleton(facade.findClass(activityClassName, module.getModuleScope()));
+      if (activityClassName.startsWith(".")) {
+        MergedManifest manifest = MergedManifest.get(module);
+        String pkg = StringUtil.notNullize(manifest.getPackage());
+        activityClassName = pkg + activityClassName;
+      }
+      PsiClass aClass = facade.findClass(activityClassName, module.getModuleScope());
+      if (aClass != null) {
+        classes = Collections.singleton(aClass);
+      } else {
+        classes = Collections.emptyList();
+      }
     }
     else {
       GlobalSearchScope scope = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module, false);
