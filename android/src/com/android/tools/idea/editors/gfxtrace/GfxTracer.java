@@ -22,7 +22,7 @@ import com.android.tools.idea.profiling.capture.CaptureHandle;
 import com.android.tools.idea.profiling.capture.CaptureService;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.editor.ProfilerState;
-import com.google.api.client.util.Lists;
+import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.execution.configurations.RunConfiguration;
