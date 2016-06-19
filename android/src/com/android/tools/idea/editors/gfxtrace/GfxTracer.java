@@ -16,13 +16,11 @@
 package com.android.tools.idea.editors.gfxtrace;
 
 import com.android.ddmlib.*;
-import com.android.tools.idea.editors.gfxtrace.gapi.GapiPaths;
 import com.android.tools.idea.profiling.capture.Capture;
 import com.android.tools.idea.profiling.capture.CaptureHandle;
 import com.android.tools.idea.profiling.capture.CaptureService;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.editor.ProfilerState;
-import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.execution.configurations.RunConfiguration;
@@ -32,12 +30,10 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
-import java.util.List;
 
 public class GfxTracer {
   private static final long UPDATE_FREQUENCY_MS = 500;
@@ -120,7 +116,7 @@ public class GfxTracer {
     final GfxTracer tracer = new GfxTracer(project, device, options, listener);
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
       try {
-        tracer.attachTracerAndCapture(packageName, null, options);
+        tracer.attachTracerAndCapture(packageName, options);
       } catch (Exception ex) {
         listener.onError(ex.getMessage());
         throw ex;
@@ -152,29 +148,17 @@ public class GfxTracer {
 
       // Launch the app in debug mode.
       captureAdbShell(myDevice, "am start -S -D -W -n " + component);   //-D
-      attachTracerAndCapture(pkg.myName, pkg.myABI, options);
+      attachTracerAndCapture(pkg.myName, options);
     }
     catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
 
-  private void attachTracerAndCapture(@NotNull String pkg, @Nullable String abi, @NotNull Options options) {
-    if (abi == null) {
-      abi = myDevice.getAbis().get(0);
-    }
-
+  private void attachTracerAndCapture(@NotNull String pkg, @NotNull Options options) {
     myListener.onAction("Installing trace library...");
     try {
-      List<File> libsToInstall = Lists.newArrayList();
-      try {
-        libsToInstall.add(GapiPaths.findInterceptorLibrary(abi));
-      } catch (IOException ex) {
-        LOG.info("Skipping libinterceptor.so: " + ex.getMessage());
-      }
-      libsToInstall.add(GapiPaths.findTraceLibrary(abi));
-
-      new GapiiLibraryLoader(myProject, myDevice).connectToProcessAndInstallLibraries(pkg, libsToInstall);
+      new GapiiLibraryLoader(myProject, myDevice).connectToProcessAndInstallLibraries(pkg);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
