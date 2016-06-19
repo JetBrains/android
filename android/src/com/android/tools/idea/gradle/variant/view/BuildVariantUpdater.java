@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.NativeAndroidGradleModel;
 import com.android.tools.idea.gradle.NativeAndroidGradleModel.NativeVariant;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.android.tools.idea.gradle.facet.NativeAndroidGradleFacet;
+import com.android.tools.idea.gradle.project.PostProjectSetupTasksExecutor;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
 import com.google.common.annotations.VisibleForTesting;
@@ -35,7 +36,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ExceptionUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -46,6 +46,8 @@ import java.util.List;
 import static com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePath;
 import static com.android.tools.idea.gradle.util.Projects.executeProjectChanges;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictSet.findConflicts;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 /**
  * Updates the contents/settings of a module when a build variant changes.
@@ -61,11 +63,11 @@ class BuildVariantUpdater {
    * @param buildVariantName the name of the selected build variant.
    * @return {@code true} if the module update was successful, {@code false} otherwise.
    */
-  boolean updateSelectedVariant(@NotNull final Project project,
-                                @NotNull final String moduleName,
-                                @NotNull final String buildVariantName) {
-    final List<AndroidFacet> affectedAndroidFacets = Lists.newArrayList();
-    final List<NativeAndroidGradleFacet> affectedNativeAndroidFacets = Lists.newArrayList();
+  boolean updateSelectedVariant(@NotNull Project project,
+                                @NotNull String moduleName,
+                                @NotNull String buildVariantName) {
+    List<AndroidFacet> affectedAndroidFacets = Lists.newArrayList();
+    List<NativeAndroidGradleFacet> affectedNativeAndroidFacets = Lists.newArrayList();
     executeProjectChanges(project, () -> {
       Module updatedModule = doUpdate(project, moduleName, buildVariantName, affectedAndroidFacets, affectedNativeAndroidFacets);
       if (updatedModule != null) {
@@ -73,43 +75,12 @@ class BuildVariantUpdater {
         conflicts.showSelectionConflicts();
       }
 
+      PostProjectSetupTasksExecutor executor = PostProjectSetupTasksExecutor.getInstance(project);
+      executor.setGenerateSourcesAfterSync(false, false);
+      executor.onProjectSyncCompletion();
       generateSourcesIfNeeded(affectedAndroidFacets);
     });
     return !affectedAndroidFacets.isEmpty() || !affectedNativeAndroidFacets.isEmpty();
-  }
-
-  /**
-   * Updates the given modules to use the new test artifact name.
-   *
-   * @param modules          modules to be updated. All have to have a corresponding facet and android project.
-   * @param testArtifactName new test artifact name.
-   * @return {@code true} if the module update was successful, {@code false} otherwise.
-   */
-  boolean updateTestArtifactsNames(@NotNull Project project,
-                                   @NotNull final Iterable<Module> modules,
-                                   @NotNull final String testArtifactName) {
-    final List<AndroidFacet> affectedFacets = Lists.newArrayList();
-    executeProjectChanges(project, () -> {
-      for (Module module : modules) {
-        AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-        if (androidFacet == null) {
-          continue;
-        }
-
-        AndroidGradleModel androidModel = AndroidGradleModel.get(androidFacet);
-        assert androidModel != null;
-
-        if (!androidModel.getSelectedTestArtifactName().equals(testArtifactName)) {
-          androidModel.setSelectedTestArtifactName(testArtifactName);
-          androidModel.syncSelectedVariantAndTestArtifact(androidFacet);
-          invokeCustomizers(androidFacet.getModule(), androidModel);
-          affectedFacets.add(androidFacet);
-        }
-      }
-
-      generateSourcesIfNeeded(affectedFacets);
-    });
-    return !affectedFacets.isEmpty();
   }
 
   @Nullable
@@ -128,27 +99,19 @@ class BuildVariantUpdater {
     NativeAndroidGradleFacet nativeAndroidFacet = NativeAndroidGradleFacet.getInstance(moduleToUpdate);
 
     if (androidFacet == null && nativeAndroidFacet == null) {
-      logAndShowUpdateFailure(variant,
-                              String.format("Cannot find 'Android' or 'Native-Android-Gradle' facets in module '%1$s'.",
-                                            moduleToUpdate.getName()));
+      String msg = String.format("Cannot find 'Android' or 'Native-Android-Gradle' facets in module '%1$s'.", moduleToUpdate.getName());
+      logAndShowUpdateFailure(variant, msg);
     }
     if (nativeAndroidFacet != null) {
       NativeAndroidGradleModel nativeAndroidModel = getNativeAndroidModel(nativeAndroidFacet, variant);
-      if (nativeAndroidModel == null) {
-        return null;
-      }
-      if (!updateSelectedVariant(nativeAndroidFacet, nativeAndroidModel, variant)) {
+      if (nativeAndroidModel == null || !updateSelectedVariant(nativeAndroidFacet, nativeAndroidModel, variant)) {
         return null;
       }
       affectedNativeAndroidFacets.add(nativeAndroidFacet);
     }
     if (androidFacet != null) {
       AndroidGradleModel androidModel = getAndroidModel(androidFacet, variant);
-      if (androidModel == null) {
-        return null;
-      }
-
-      if (!updateSelectedVariant(androidFacet, androidModel, variant, affectedAndroidFacets)) {
+      if (androidModel == null || !updateSelectedVariant(androidFacet, androidModel, variant, affectedAndroidFacets)) {
         return null;
       }
       affectedAndroidFacets.add(androidFacet);
@@ -176,11 +139,11 @@ class BuildVariantUpdater {
 
     for (AndroidLibrary library : androidModel.getSelectedMainCompileDependencies().getLibraries()) {
       String gradlePath = library.getProject();
-      if (StringUtil.isEmpty(gradlePath)) {
+      if (isEmpty(gradlePath)) {
         continue;
       }
       String projectVariant = library.getProjectVariant();
-      if (StringUtil.isNotEmpty(projectVariant)) {
+      if (isNotEmpty(projectVariant)) {
         ensureVariantIsSelected(module.getProject(), gradlePath, projectVariant, affectedFacets);
       }
     }
@@ -215,7 +178,7 @@ class BuildVariantUpdater {
 
   @NotNull
   private static Module invokeCustomizers(@NotNull Module module, @NotNull AndroidGradleModel androidModel) {
-    final IdeModifiableModelsProviderImpl modelsProvider = new IdeModifiableModelsProviderImpl(module.getProject());
+    IdeModifiableModelsProviderImpl modelsProvider = new IdeModifiableModelsProviderImpl(module.getProject());
     try {
       for (ModuleCustomizer<AndroidGradleModel> customizer : getCustomizers(androidModel.getProjectSystemId())) {
         customizer.customizeModule(module.getProject(), module, modelsProvider, androidModel);
@@ -255,7 +218,7 @@ class BuildVariantUpdater {
 
   @NotNull
   private static Module invokeCustomizers(@NotNull Module module, @NotNull NativeAndroidGradleModel nativeAndroidModel) {
-    final IdeModifiableModelsProviderImpl modelsProvider = new IdeModifiableModelsProviderImpl(module.getProject());
+    IdeModifiableModelsProviderImpl modelsProvider = new IdeModifiableModelsProviderImpl(module.getProject());
     try {
       for (ModuleCustomizer<NativeAndroidGradleModel> customizer : getNativeAndroidCustomizers(nativeAndroidModel.getProjectSystemId())) {
         customizer.customizeModule(module.getProject(), module, modelsProvider, nativeAndroidModel);

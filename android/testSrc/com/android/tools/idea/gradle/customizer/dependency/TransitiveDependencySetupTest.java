@@ -22,20 +22,18 @@ import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.roots.LibraryOrderEntry;
-import com.intellij.openapi.roots.ModuleOrderEntry;
-import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.OrderEntry;
+import com.intellij.openapi.roots.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
+import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static org.fest.assertions.Assertions.assertThat;
 
 /**
- * Integration tests for {@link Dependency}.
+ * Integration test that verifies that transitive dependencies are set up correctly.
  */
-public class DependencyIntegrationTest extends AndroidGradleTestCase {
+public class TransitiveDependencySetupTest extends AndroidGradleTestCase {
   // See: https://code.google.com/p/android/issues/detail?id=210172
   public void testTransitiveDependenciesFromJavaModule() throws Throwable {
     loadProject("projects/transitiveDependencies");
@@ -45,7 +43,7 @@ public class DependencyIntegrationTest extends AndroidGradleTestCase {
 
     // 'app' module should have 'guava' as dependency.
     // 'app' -> 'lib' -> 'guava'
-    assertThat(librariesIn(appModule)).contains("guava-17.0");
+    assertThat(getLibraries(appModule, COMPILE)).contains("guava-17.0");
   }
 
   // See: https://code.google.com/p/android/issues/detail?id=212338
@@ -57,15 +55,15 @@ public class DependencyIntegrationTest extends AndroidGradleTestCase {
 
     // 'app' module should have 'javawriter' as dependency.
     // 'app' -> 'library2' -> 'library1' -> 'javawriter'
-    assertThat(librariesIn(appModule)).contains("javawriter-2.5.0");
+    assertThat(getLibraries(appModule, COMPILE)).contains("javawriter-2.5.0");
   }
 
   @NotNull
-  private static List<String> librariesIn(@NotNull Module module) {
+  private static List<String> getLibraries(@NotNull Module module, @NotNull DependencyScope scope) {
     List<String> allLibraries = Lists.newArrayList();
     OrderEntry[] orderEntries = ModuleRootManager.getInstance(module).getOrderEntries();
     for (OrderEntry orderEntry : orderEntries) {
-      if (orderEntry instanceof LibraryOrderEntry) {
+      if (orderEntry instanceof LibraryOrderEntry && scope.equals(((LibraryOrderEntry)orderEntry).getScope())) {
         LibraryOrderEntry libraryEntry = (LibraryOrderEntry)orderEntry;
         String name = libraryEntry.getLibraryName();
         allLibraries.add(name);
@@ -83,7 +81,7 @@ public class DependencyIntegrationTest extends AndroidGradleTestCase {
 
     // 'app' module should have 'library1' as module dependency.
     // 'app' -> 'library2' -> 'library1'
-    assertThat(moduleDependenciesIn(appModule)).contains("library1");
+    assertThat(moduleDependencies(appModule, COMPILE)).contains("library1");
   }
 
   public void testJavaLibraryModuleDependencies() throws Throwable {
@@ -94,15 +92,32 @@ public class DependencyIntegrationTest extends AndroidGradleTestCase {
 
     // 'app' module should have 'guava' as dependency.
     // 'app' -> 'lib' -> 'guava'
-    assertThat(moduleDependenciesIn(appModule)).contains("lib");
-    assertThat(librariesIn(appModule)).excludes("lib");
+    assertThat(moduleDependencies(appModule, COMPILE)).contains("lib");
+    assertThat(getLibraries(appModule, COMPILE)).excludes("lib");
   }
 
   public void testDependencySetUpInJavaModule() throws Throwable {
     loadProject("projects/transitiveDependencies");
 
     Module libModule = getModule("lib");
-    assertThat(librariesIn(libModule)).excludes("lib.lib");
+    assertThat(getLibraries(libModule, COMPILE)).excludes("lib.lib");
+  }
+
+  // See: https://code.google.com/p/android/issues/detail?id=213627
+  // Disabled. It fails on CI. It passes when running locally.
+  public void /*test*/JarsInLibsFolder() throws Throwable {
+    loadProject("projects/transitiveDependencies");
+
+    // 'fakelib' is in 'libs' directory in 'library2' module.
+    Module library2Module = getModule("library2");
+    verifyDependenciesAreResolved(library2Module);
+    assertThat(getLibraries(library2Module, COMPILE)).contains("fakelib");
+
+    // 'app' module should have 'fakelib' as dependency.
+    // 'app' -> 'library2' -> 'fakelib'
+    Module appModule = getAppModule();
+    verifyDependenciesAreResolved(appModule);
+    assertThat(getLibraries(appModule, COMPILE)).contains("fakelib");
   }
 
   @NotNull
@@ -136,11 +151,11 @@ public class DependencyIntegrationTest extends AndroidGradleTestCase {
   }
 
   @NotNull
-  private static List<String> moduleDependenciesIn(@NotNull Module module) {
+  private static List<String> moduleDependencies(@NotNull Module module, @NotNull DependencyScope scope) {
     List<String> allLibraries = Lists.newArrayList();
     OrderEntry[] orderEntries = ModuleRootManager.getInstance(module).getOrderEntries();
     for (OrderEntry orderEntry : orderEntries) {
-      if (orderEntry instanceof ModuleOrderEntry) {
+      if (orderEntry instanceof ModuleOrderEntry && scope.equals(((ModuleOrderEntry)orderEntry).getScope())) {
         ModuleOrderEntry entry = (ModuleOrderEntry)orderEntry;
         String name = entry.getModuleName();
         allLibraries.add(name);
