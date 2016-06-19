@@ -53,7 +53,7 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
                                    @NotNull IdeModifiableModelsProvider modelsProvider,
                                    @NotNull JavaProject javaProject) {
 
-    final ModifiableRootModel moduleModel = modelsProvider.getModifiableRootModel(module);
+    ModifiableRootModel moduleModel = modelsProvider.getModifiableRootModel(module);
     List<String> unresolved = Lists.newArrayList();
     for (JavaModuleDependency dependency : javaProject.getJavaModuleDependencies()) {
       updateDependency(module, modelsProvider, dependency);
@@ -98,7 +98,7 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
       }
     }
 
-    final ModifiableRootModel moduleModel = modelsProvider.getModifiableRootModel(module);
+    ModifiableRootModel moduleModel = modelsProvider.getModifiableRootModel(module);
     if (found != null) {
       AndroidFacet androidFacet = findFacet(found, modelsProvider, AndroidFacet.ID);
       if (androidFacet == null) {
