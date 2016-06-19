@@ -65,10 +65,7 @@ class PsiResourceItem extends ResourceItem {
       }
 
       String qualifiers = getQualifiers();
-      if (qualifiers.isEmpty()) {
-        return new FolderConfiguration();
-      }
-      FolderConfiguration fromQualifiers = FolderConfiguration.getConfigFromQualifiers(Splitter.on('-').split(qualifiers));
+      FolderConfiguration fromQualifiers = FolderConfiguration.getConfigForQualifierString(qualifiers);
       if (fromQualifiers == null) {
         return new FolderConfiguration();
       }

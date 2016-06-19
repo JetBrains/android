@@ -468,7 +468,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       String name = ResourceHelper.getResourceName(file);
       ResourceItem item = new ResourceItem(name, type, null, myLibraryName);
       map.put(name, item);
-      resourceFile = new ResourceFile(VfsUtilCore.virtualToIoFile(file), item, qualifiers);
+      resourceFile = new ResourceFile(VfsUtilCore.virtualToIoFile(file), item, qualifiers, folderConfiguration);
       item.setIgnoredFromDiskMerge(true);
     }
     myResourceFiles.put(file, resourceFile);
