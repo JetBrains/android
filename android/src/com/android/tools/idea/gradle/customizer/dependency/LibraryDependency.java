@@ -72,7 +72,7 @@ public class LibraryDependency extends Dependency {
   @NotNull
   public Collection<String> getPaths(@NotNull PathType type) {
     Collection<String> paths = myPathsByType.get(type);
-    return paths == null ? Collections.<String>emptyList() : paths;
+    return paths == null ? Collections.emptyList() : paths;
   }
 
   @NotNull
