@@ -125,6 +125,16 @@ public abstract class AbstractDependenciesModuleCustomizer<T> implements ModuleC
       }
     }
 
+    for (OrderEntry orderEntry : modelsProvider.getModifiableRootModel(module).getOrderEntries()) {
+      if (orderEntry instanceof LibraryOrderEntry) {
+        Library entryLibrary = ((LibraryOrderEntry)orderEntry).getLibrary();
+        if (entryLibrary != null && libraryName.equals(entryLibrary.getName())) {
+          // Dependency already set up.
+          return;
+        }
+      }
+    }
+
     LibraryOrderEntry orderEntry = modelsProvider.getModifiableRootModel(module).addLibraryEntry(library);
     orderEntry.setScope(scope);
     orderEntry.setExported(true);

@@ -25,7 +25,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.SearchScope;
 import gnu.trove.TObjectIntHashMap;
-import gnu.trove.TObjectProcedure;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,7 +41,7 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
  * uses {@code ProjectFileIndex} to locate the file root of a file and then check if the root is included by this scope.
  */
 public class FileRootSearchScope extends GlobalSearchScope {
-  @NotNull private final TObjectIntHashMap<File> myDirRootPaths = new TObjectIntHashMap<File>();
+  @NotNull private final TObjectIntHashMap<File> myDirRootPaths = new TObjectIntHashMap<>();
   @NotNull private final ProjectFileIndex myProjectFileIndex;
 
   public FileRootSearchScope(@NotNull Project project, @NotNull Collection<File> rootDirPaths) {
@@ -161,26 +160,20 @@ public class FileRootSearchScope extends GlobalSearchScope {
   }
 
   @NotNull
-  private FileRootSearchScope calculate(@NotNull FileRootSearchScope scope, final boolean merge) {
-    final Set<File> roots = Sets.newHashSet();
-    myDirRootPaths.forEach(new TObjectProcedure<File>() {
-      @Override
-      public boolean execute(File file) {
-        roots.add(file);
-        return true;
-      }
+  private FileRootSearchScope calculate(@NotNull FileRootSearchScope scope, boolean merge) {
+    Set<File> roots = Sets.newHashSet();
+    myDirRootPaths.forEach(file -> {
+      roots.add(file);
+      return true;
     });
 
-    scope.myDirRootPaths.forEach(new TObjectProcedure<File>() {
-      @Override
-      public boolean execute(File file) {
-        if (merge) {
-          roots.add(file);
-        } else {
-          roots.remove(file);
-        }
-        return true;
+    scope.myDirRootPaths.forEach(file -> {
+      if (merge) {
+        roots.add(file);
+      } else {
+        roots.remove(file);
       }
+      return true;
     });
 
     Project project = getProject();
