@@ -340,9 +340,15 @@ public final class ModuleClassLoader extends RenderClassLoader {
 
             File aarDir = file.getParentFile();
             if (aarDir != null && (aarDir.getPath().endsWith(DOT_AAR) || aarDir.getPath().contains(EXPLODED_AAR))) {
-              if (aarDir.getPath().contains(EXPLODED_AAR) && FD_JARS.equals(aarDir.getName())) {
+              if (aarDir.getPath().contains(EXPLODED_AAR)) {
+                if (aarDir.getPath().endsWith(LIBS_FOLDER)) {
+                  // Some libraries recently started packaging jars inside a sub libs folder inside jars
+                  aarDir = aarDir.getParentFile();
+                }
                 // Gradle plugin version 1.2.x and later has classes in aar-dir/jars/
-                aarDir = aarDir.getParentFile();
+                if (aarDir.getPath().endsWith(FD_JARS)) {
+                  aarDir = aarDir.getParentFile();
+                }
               }
               AppResourceRepository appResources = AppResourceRepository.getAppResources(module, true);
               if (appResources != null) {
