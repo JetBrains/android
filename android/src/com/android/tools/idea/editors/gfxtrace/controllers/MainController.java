@@ -23,6 +23,7 @@ import com.intellij.execution.ui.layout.impl.ViewImpl;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
@@ -70,6 +71,7 @@ public class MainController extends Controller {
         }
       }
     };
+    Disposer.register(this, splitter);
     myPanel.add(splitter, BorderLayout.CENTER);
     splitter.setDividerWidth(5);
 
