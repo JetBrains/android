@@ -145,7 +145,14 @@ public class InstantRunBuilder implements BeforeRunBuilder {
       return BuildCause.USER_REQUESTED_CLEAN_BUILD;
     }
 
-    if (!buildTimestampsMatch(device)) {
+    // We assume that the deployment happens to the default user, and in here, we check whether it is still installed for the default user
+    // (Note: this could be done in a better way if we knew the user for whom the installation actually took place).
+    int defaultUserId = 0;
+    if (!isAppInstalledForUser(device, myInstantRunContext.getApplicationId(), defaultUserId)) {
+      return BuildCause.APP_NOT_INSTALLED;
+    }
+
+    if (!buildTimestampsMatch(device, defaultUserId)) {
       if (myInstalledApkCache.getInstallState(device, myInstantRunContext.getApplicationId()) == null) {
         return BuildCause.FIRST_INSTALLATION_TO_DEVICE;
       }
@@ -267,7 +274,7 @@ public class InstantRunBuilder implements BeforeRunBuilder {
   /**
    * Returns whether the device has the same timestamp as the existing build on disk.
    */
-  private boolean buildTimestampsMatch(@NotNull IDevice device) {
+  private boolean buildTimestampsMatch(@NotNull IDevice device, @Nullable Integer userId) {
     InstantRunBuildInfo instantRunBuildInfo = myInstantRunContext.getInstantRunBuildInfo();
     String localTimestamp = instantRunBuildInfo == null ? null : instantRunBuildInfo.getTimeStamp();
     if (StringUtil.isEmpty(localTimestamp)) {
@@ -280,13 +287,7 @@ public class InstantRunBuilder implements BeforeRunBuilder {
       // So we first check that the app is still installed. Note: this doesn't yet guarantee that you have uninstalled and then
       // re-installed a different apk with the same package name..
       // https://code.google.com/p/android/issues/detail?id=198715
-
-      String pkgName = myInstantRunContext.getApplicationId();
-
-      // check whether the package is installed on the device: we do this by checking the package manager for whether the app exists,
-      // but we could potentially simplify this to just checking whether the package folder exists
-      if (myInstalledApkCache.getInstallState(device, pkgName) == null) {
-        InstantRunManager.LOG.info("Package " + pkgName + " was not detected on the device.");
+      if (!isAppInstalledForUser(device, myInstantRunContext.getApplicationId(), userId)) {
         return false;
       }
     }
@@ -295,6 +296,25 @@ public class InstantRunBuilder implements BeforeRunBuilder {
 
     InstantRunManager.LOG.info(String.format("Build timestamps: Local: %1$s, Device: %2$s", localTimestamp, deviceBuildTimestamp));
     return localTimestamp.equals(deviceBuildTimestamp);
+  }
+
+  private boolean isAppInstalledForUser(@NotNull IDevice device, @NotNull String pkgName, @Nullable Integer userId) {
+    // check whether the package is installed on the device: we do this by checking the package manager for whether the app exists,
+    // but we could potentially simplify this to just checking whether the package folder exists
+    InstalledApkCache.InstallState installState = myInstalledApkCache.getInstallState(device, pkgName);
+    if (installState == null) {
+      InstantRunManager.LOG.info("Package " + pkgName + " was not detected on the device.");
+      return false;
+    }
+
+    // Note: the installState.users is not always available, so the check below computes whether it is installed for some users, but
+    // not the default user.
+    if (userId != null && !installState.users.isEmpty() && !installState.users.contains(userId)) {
+      LOG.info("Package " + pkgName + " was not installed for default user.");
+      return false;
+    }
+
+    return true;
   }
 
   /**

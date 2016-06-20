@@ -18,12 +18,13 @@ package com.android.tools.idea.fd;
 public enum BuildCause {
   // reasons for clean build
   NO_DEVICE,
+  APP_NOT_INSTALLED,
   MISMATCHING_TIMESTAMPS,
   USER_REQUESTED_CLEAN_BUILD,
 
   // reasons for full build
   API_TOO_LOW_FOR_INSTANT_RUN,
-  FIRST_INSTALLATION_TO_DEVICE,
+  FIRST_INSTALLATION_TO_DEVICE, // first installation in this Android Studio session
   MANIFEST_RESOURCE_CHANGED,
   FREEZE_SWAP_REQUIRES_API21,
   FREEZE_SWAP_REQUIRES_WORKING_RUN_AS,
