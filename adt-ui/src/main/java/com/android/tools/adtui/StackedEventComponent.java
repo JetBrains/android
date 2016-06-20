@@ -40,6 +40,7 @@ public class StackedEventComponent extends AnimatedComponent {
    * activity completed action.
    */
   public enum Action {
+    NONE,
     ACTIVITY_STARTED,
     ACTIVITY_COMPLETED,
   }

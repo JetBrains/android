@@ -41,6 +41,7 @@ public class SimpleEventComponent<E extends Enum<E>> extends AnimatedComponent {
    * as MouseClick
    */
   public enum Action {
+    NONE,
     DOWN,
     UP
   }
