@@ -25,7 +25,6 @@ import java.util.Random;
 
 public class StackedEventTestDataGenerator extends TestDataGenerator<EventAction<StackedEventComponent.Action, String>> {
 
-  private Random mRandom = new Random();
   private ArrayList<EventAction<StackedEventComponent.Action, String>> mData = new ArrayList<>();
   private String mName;
 
@@ -41,6 +40,11 @@ public class StackedEventTestDataGenerator extends TestDataGenerator<EventAction
     data.value = mData.get(index);
     return data;
   }
+  @Override
+  public int getSleepTime() {
+    //Sleep for up to 1 second.
+    return (int)(1000 * Math.random());
+  }
 
   @Override
   public void generateData() {
@@ -48,7 +52,12 @@ public class StackedEventTestDataGenerator extends TestDataGenerator<EventAction
     long endTime = 0;
     long currentTime = System.currentTimeMillis() - mStartTime;
     long startTime = currentTime;
-    if(mStartTime != 0) {
+    //Generate a new event 50% of the time we generate data. Doing this gives us event streams show like
+    //real data, instead of just starting and stopping.
+    if(mStartTime != 0 && Math.random() > .5) {
+      //Only when we generate a new event, do we also at the same time add a new entry
+      //into our time array to keep our event data
+      //consistent with our time lookup.
       mTime.add(System.currentTimeMillis());
 
       if (mData.size() > 0) {
@@ -66,6 +75,5 @@ public class StackedEventTestDataGenerator extends TestDataGenerator<EventAction
                                   : StackedEventComponent.Action.ACTIVITY_COMPLETED,
                                   mName));
     }
-
   }
 }
