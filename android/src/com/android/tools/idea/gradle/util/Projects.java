@@ -348,11 +348,24 @@ public final class Projects {
   public static boolean isLegacyIdeaAndroidProject(@NotNull Project project) {
     ModuleManager moduleManager = ModuleManager.getInstance(project);
     for (Module module : moduleManager.getModules()) {
-      AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null && !facet.requiresAndroidModel()) {
-        // If a module has the Android facet, but it does not require a model from the build system, it is a legacy IDEA project.
+      if (isLegacyIdeaAndroidModule(module)) {
         return true;
       }
+    }
+    return false;
+  }
+
+  /**
+   * Indicates whether the given module is a legacy IDEA Android module (which is deprecated in Android Studio.)
+   *
+   * @param module the given module.
+   * @return {@code true} if the given module is a legacy IDEA Android module; {@code false} otherwise.
+   */
+  public static boolean isLegacyIdeaAndroidModule(@NotNull Module module) {
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet != null && !facet.requiresAndroidModel()) {
+      // If a module has the Android facet, but it does not require a model from the build system, it is a legacy IDEA project.
+      return true;
     }
     return false;
   }
