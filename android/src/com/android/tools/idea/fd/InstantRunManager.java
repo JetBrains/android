@@ -71,7 +71,9 @@ public final class InstantRunManager implements ProjectComponent {
    * a 3rd party library (e.g. leakcanary). In this case, we are ok doing a hotswap to just the main process (assuming that the
    * main process starts up first).
    */
-  public static final ImmutableSet<String> ALLOWED_MULTI_PROCESSES = ImmutableSet.of(":leakcanary");
+  public static final ImmutableSet<String> ALLOWED_MULTI_PROCESSES =
+    ImmutableSet.of(":leakcanary",
+                    ":background_crash"); // firebase uses a :background_crash process for crash reporting
 
   @NotNull private final Project myProject;
   @NotNull private final FileChangeListener myFileChangeListener;
