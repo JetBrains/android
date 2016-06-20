@@ -51,6 +51,20 @@ public class Context implements BinaryObject {
     return myRanges;
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    Context context = (Context)o;
+    if (myID != null ? !myID.equals(context.myID) : context.myID != null) return false;
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    return myID != null ? myID.hashCode() : 0;
+  }
+
   //<<<Start:Java.ClassBody:1>>>
   private ContextID myID;
   private String myName;
