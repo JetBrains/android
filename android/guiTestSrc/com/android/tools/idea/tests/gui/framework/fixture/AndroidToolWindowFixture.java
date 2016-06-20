@@ -26,7 +26,7 @@ import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JLabelMatcher;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.exception.ComponentLookupException;
-import org.fest.swing.fixture.JListFixture;
+import org.fest.swing.fixture.JComboBoxFixture;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -55,7 +55,8 @@ public class AndroidToolWindowFixture extends ToolWindowFixture {
         }
         return false;
       });
-    myProcessListFixture = new ProcessListFixture(robot, robot.finder().findByType(getContentPanel(), JList.class, false));
+
+    myProcessListFixture = new ProcessListFixture(robot, robot.finder().findByName(contentPanel, "Processes", JComboBox.class));
   }
 
   @NotNull
@@ -67,13 +68,13 @@ public class AndroidToolWindowFixture extends ToolWindowFixture {
   @NotNull
   public AndroidToolWindowFixture selectDevicesTab() {
     show();
-    selectTab("Devices | logcat");
+    selectTab("logcat");
     return this;
   }
 
   public void clickTerminateApplication() {
     ActionButtonFixture action = findAction("Terminate Application");
-    action.click();
+    action.waitUntilEnabledAndShowing().click();
   }
 
   private void selectTab(@NotNull final String tabName) {
@@ -81,7 +82,7 @@ public class AndroidToolWindowFixture extends ToolWindowFixture {
     TabLabel tabLabel = myRobot.finder().find(tabs, new GenericTypeMatcher<TabLabel>(TabLabel.class) {
       @Override
       protected boolean isMatching(@NotNull TabLabel component) {
-        return tabName.equals(component.toString());
+        return tabName.equals(component.toString()) && component.getParent() == tabs;
       }
     });
     myRobot.click(tabLabel);
@@ -102,8 +103,8 @@ public class AndroidToolWindowFixture extends ToolWindowFixture {
     waitUntilIsVisible();
   }
 
-  private static class ProcessListFixture extends JListFixture {
-    ProcessListFixture(@NotNull Robot robot, @NotNull JList target) {
+  private static class ProcessListFixture extends JComboBoxFixture {
+    ProcessListFixture(@NotNull Robot robot, @NotNull JComboBox target) {
       super(robot, target);
     }
 
@@ -114,7 +115,7 @@ public class AndroidToolWindowFixture extends ToolWindowFixture {
           new GuiQuery<Boolean>() {
             @Override
             protected Boolean executeInEDT() throws Throwable {
-              ListModel model = target().getModel();
+              ComboBoxModel model = target().getModel();
               int size = model.getSize();
               for (int i = 0; i < size; ++i) {
                 Client client = (Client)model.getElementAt(i);
