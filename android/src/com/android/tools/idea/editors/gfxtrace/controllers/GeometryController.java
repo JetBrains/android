@@ -184,7 +184,7 @@ public class GeometryController extends Controller implements AtomStream.Listene
   }
 
   @Override
-  public void onAtomsSelected(AtomRangePath path) {
+  public void onAtomsSelected(AtomRangePath path, Object source) {
     CardLayout layout = (CardLayout)myPanel.getLayout();
     if (!myEditor.getFeatures().hasMeshes()) {
       myEmptyPanel.setEmptyText("Not supported in this version.");

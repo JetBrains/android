@@ -107,5 +107,5 @@ public class ContextController extends Controller implements AtomStream.Listener
   }
 
   @Override
-  public void onAtomsSelected(AtomRangePath path) {}
+  public void onAtomsSelected(AtomRangePath path, Object source) {}
 }

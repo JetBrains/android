@@ -731,9 +731,14 @@ public class AtomController extends TreeController implements AtomStream.Listene
   }
 
   @Override
-  public void onAtomsSelected(AtomRangePath path) {
-    DefaultMutableTreeNode root = (DefaultMutableTreeNode)myTree.getModel().getRoot();
-    updateSelectionRange(root, new TreePath(root), path.getRange());
+  public void onAtomsSelected(AtomRangePath path, Object source) {
+    // we NEED this check here as if the user selects a memory observation (a child of a Atom)
+    // we want other controllers to update to the new Atom position, but we dont want to move
+    // our own selection to the Atom, we want to keep it on the child.
+    if (source != this) {
+      DefaultMutableTreeNode root = (DefaultMutableTreeNode)myTree.getModel().getRoot();
+      updateSelectionRange(root, new TreePath(root), path.getRange());
+    }
   }
 
   /**
