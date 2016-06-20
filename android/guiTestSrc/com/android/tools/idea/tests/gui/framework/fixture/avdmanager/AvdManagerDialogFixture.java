@@ -98,14 +98,15 @@ public class AvdManagerDialogFixture extends ComponentFixture<AvdManagerDialogFi
     return robot().finder().find(target(), JButtonMatcher.withText(text).andShowing());
   }
 
-  public void selectAvdByName(@NotNull String name) {
+  public AvdManagerDialogFixture selectAvd(@NotNull String name) {
     TableView tableView = robot().finder().findByType(target(), TableView.class, true);
     JTableFixture tableFixture = new JTableFixture(robot(), tableView);
 
     tableFixture.cell(name).select();
+    return this;
   }
 
-  public void deleteAvdByName(String name) {
+  public AvdManagerDialogFixture deleteAvd(String name) {
     TableView tableView = robot().finder().findByType(target(), TableView.class, true);
     JTableFixture tableFixture = new JTableFixture(robot(), tableView);
 
@@ -118,11 +119,13 @@ public class AvdManagerDialogFixture extends ComponentFixture<AvdManagerDialogFi
     contextMenuFixture.menuItemWithPath("Delete").click();
 
     MessagesFixture.findByTitle(robot(), target(), "Confirm Deletion").clickYes();
+    return this;
   }
 
-  public void stopAvdByName(String name) {
+  public AvdManagerDialogFixture stopAvd(String name) {
     new JTableFixture(robot(), robot().finder().findByType(target(), TableView.class, true)).cell(name).click(RIGHT_BUTTON);
     new JPopupMenuFixture(robot(), robot().findActivePopupMenu()).menuItemWithPath("Stop").click();
+    return this;
   }
 
   public void close() {
