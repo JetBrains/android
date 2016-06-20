@@ -98,17 +98,6 @@ public final class InstantRunManager implements ProjectComponent {
   }
 
   /**
-   * Returns the build id in the project as seen by the IDE
-   *
-   * @return the build id, if found
-   */
-  @Nullable
-  private static String getLocalBuildTimestamp(@NotNull InstantRunContext context) {
-    InstantRunBuildInfo buildInfo = context.getInstantRunBuildInfo();
-    return buildInfo == null ? null : buildInfo.getTimeStamp();
-  }
-
-  /**
    * Called after a build &amp; successful push to device: updates the build id on the device to whatever the
    * build id was assigned by Gradle.
    *
@@ -117,10 +106,12 @@ public final class InstantRunManager implements ProjectComponent {
    *               the infrastructure will look for other app modules
    */
   public static void transferLocalIdToDeviceId(@NotNull IDevice device, @NotNull InstantRunContext context) {
-    String buildId = getLocalBuildTimestamp(context);
-    assert !StringUtil.isEmpty(buildId) : "Unable to detect build timestamp";
+    InstantRunBuildInfo buildInfo = context.getInstantRunBuildInfo();
+    assert buildInfo != null;
+    String localTimestamp = buildInfo.getTimeStamp();
+    assert !StringUtil.isEmpty(localTimestamp) : "Unable to detect build timestamp";
 
-    InstantRunClient.transferBuildIdToDevice(device, buildId, context.getApplicationId(), ILOGGER);
+    InstantRunClient.transferBuildIdToDevice(device, localTimestamp, context.getApplicationId(), ILOGGER);
   }
 
   /** Returns true if the device is capable of running Instant Run */
