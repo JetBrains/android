@@ -19,38 +19,40 @@ import com.android.tools.idea.assistant.AssistActionStateManager;
 import com.android.tools.idea.assistant.StatefulButtonNotifier;
 import com.android.tools.idea.assistant.datamodel.ActionData;
 import com.android.tools.idea.structure.services.DeveloperService;
+import com.android.tools.idea.structure.services.DeveloperServiceMap.DeveloperServiceList;
 import com.intellij.openapi.module.Module;
+import com.intellij.ui.components.panels.VerticalLayout;
 import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.plaf.ButtonUI;
-import java.awt.*;
 import java.awt.event.ActionListener;
 
 /**
  * A wrapper presentation on {@link ActionButton} that allows for the button to maintain state. In practice this means that either a button
  * is displayed or a message indicating why the action was not available is displayed. A common example is adding dependencies. If the
  * dependency has already been added, displaying a success message instead of an "add" button is appropriate.
- *
- * TODO: Determine how we want to listen for project and module changes and refresh display/replace the serviceMap
  */
 public class StatefulButton extends JPanel {
 
   private ActionButton myButton;
+
+  private String mySuccessMessage;
   private StatefulButtonMessage myMessage;
   private AssistActionStateManager myStateManager;
-  private DeveloperService myDeveloperService;
+  private DeveloperServiceList myServices;
 
-  public StatefulButton(@NotNull ActionData action, @NotNull ActionListener listener, @NotNull DeveloperService service) {
-    super(new FlowLayout(FlowLayout.LEADING));
+  public StatefulButton(@NotNull ActionData action, @NotNull ActionListener listener, @NotNull DeveloperServiceList services) {
+    super(new VerticalLayout(5, SwingConstants.LEFT));
     setBorder(BorderFactory.createEmptyBorder());
     setOpaque(false);
-    FlowLayout layout = (FlowLayout)getLayout();
-    layout.setVgap(0);
-    layout.setHgap(0);
 
-    myDeveloperService = service;
+    myServices = services;
+    // TODO: Don't cache this, restructure messaging to be more centralized with state-dependent templates. For example, allow the bundle
+    // to express the "partial" state with a message "{0} of {1} modules have Foo added", "complete" state with "All modules with Foo added"
+    // etc.
+    mySuccessMessage = action.getSuccessMessage();
 
     myButton = new ActionButton(action, listener, this);
     // Override the button's ui to avoid white-on-white that appears with Mac rendering.
@@ -66,29 +68,31 @@ public class StatefulButton extends JPanel {
       }
     }
     if (myStateManager != null) {
-      myStateManager.init(myDeveloperService);
-      myMessage = myStateManager.getStateDisplay(myDeveloperService, action.getSuccessMessage());
+      myStateManager.init(myServices);
+      myMessage = myStateManager.getStateDisplay(myServices, mySuccessMessage);
       add(myMessage);
       // Initialize to hidden until state management is completed.
       myMessage.setVisible(false);
 
       // Listen for notifications that the state has been updated.
-      Module module = myDeveloperService.getModule();
-      MessageBusConnection connection = module.getMessageBus().connect(module);
-      connection.subscribe(StatefulButtonNotifier.BUTTON_STATE_TOPIC, () -> updateButtonState());
+      for (DeveloperService service : myServices) {
+        Module module = service.getModule();
+        MessageBusConnection connection = module.getMessageBus().connect(module);
+        connection.subscribe(StatefulButtonNotifier.BUTTON_STATE_TOPIC, () -> updateButtonState());
+      }
     }
 
     // Initialize the button state. This includes making the proper element visible.
     updateButtonState();
   }
 
-  public DeveloperService getDeveloperService() {
-    return myDeveloperService;
+  public DeveloperServiceList getServices() {
+    return myServices;
   }
 
   /**
-   * Updates the state of the button display based on the associated {@code AssistActionStateManager} if present. This should be called whenever
-   * there may have been a state change.
+   * Updates the state of the button display based on the associated {@code AssistActionStateManager} if present. This should be called
+   * whenever there may have been a state change.
    *
    * TODO: Determine how to update the state on card view change at minimum.
    */
@@ -103,16 +107,37 @@ public class StatefulButton extends JPanel {
       myButton.setVisible(true);
       return;
     }
-    boolean activate = myStateManager.isCompletable(myDeveloperService);
+
+    AssistActionStateManager.ActionState state = myStateManager.getState(myServices);
+    // HACK ALERT: Getting state may have the side effect of updating the underlying state display, re-fetch.
+    // TODO: Refactor button related code and state management such that state can express arbitrary completion details (such as N of M
+    // modules being complete) and allow the button message to be refreshed on state change.
+    remove(myMessage);
+    myMessage = myStateManager.getStateDisplay(myServices, mySuccessMessage);
+    add(myMessage);
+    revalidate();
+    repaint();
 
     if (myMessage != null) {
-      myButton.setVisible(activate);
-      myMessage.setVisible(!activate);
+      switch (state) {
+        case ERROR:
+        case COMPLETE:
+          myButton.setVisible(false);
+          myMessage.setVisible(true);
+          break;
+        case INCOMPLETE:
+          myButton.setVisible(true);
+          myMessage.setVisible(false);
+          break;
+        default:
+          myButton.setVisible(true);
+          myMessage.setVisible(true);
+      }
       return;
     }
 
-    // If there's no message display, just disable/enable the button.
-    myButton.setEnabled(activate);
+    // If there's no message display, just disable/enable the button. Show in error state since there's no message to explain the issue.
+    myButton.setEnabled(!state.equals(AssistActionStateManager.ActionState.COMPLETE));
   }
 
   /**
@@ -153,8 +178,8 @@ public class StatefulButton extends JPanel {
       myButtonWrapper.updateButtonState();
     }
 
-    public DeveloperService getDeveloperService() {
-      return myButtonWrapper.getDeveloperService();
+    public DeveloperServiceList getDeveloperServices() {
+      return myButtonWrapper.getServices();
     }
 
   }
