@@ -18,11 +18,9 @@ package com.android.tools.idea.ui;
 import com.android.ide.common.util.AssetUtil;
 import com.android.tools.swing.util.GraphicsUtil;
 import com.intellij.ui.Gray;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
-import java.awt.image.BufferedImage;
 
 /**
  * VectorImageComponent is a Swing component that displays an image.
@@ -41,18 +39,11 @@ public class VectorImageComponent extends ImageComponent {
     GraphicsUtil.paintCheckeredBackground(g, Gray.xAA, Gray.xEE, myRectangle, CELL_SIZE);
 
     // Then draw the icon to the center.
-    if (myIcon == null) return;
-
-    // We don't want Retina double-resolution icons here (http://b.android.com/187153)
-    //noinspection UndesirableClassUsage
-    final BufferedImage image = new BufferedImage(myIcon.getIconWidth(), myIcon.getIconHeight(),
-                                                  BufferedImage.TYPE_INT_ARGB);
-    final Graphics2D imageGraphics = image.createGraphics();
-    myIcon.paintIcon(this, imageGraphics, 0, 0);
+    if (myImage == null) return;
 
     g.draw3DRect(0, 0, getWidth() - 1, getHeight() - 1, false);
 
     Rectangle rect = new Rectangle(0, 0, getWidth(), getHeight());
-    AssetUtil.drawCenterInside(g2d, image, rect);
+    AssetUtil.drawCenterInside(g2d, myImage, rect);
   }
 }
