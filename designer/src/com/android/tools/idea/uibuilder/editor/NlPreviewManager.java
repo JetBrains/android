@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
+import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.res.ResourceNotificationManager;
@@ -334,6 +335,19 @@ public class NlPreviewManager implements ProjectComponent {
     final Document document = textEditor.getEditor().getDocument();
     final PsiFile psiFile = PsiDocumentManager.getInstance(myProject).getPsiFile(document);
 
+    if (psiFile == null) {
+      return false;
+    }
+    AndroidFacet facet = AndroidFacet.getInstance(psiFile);
+    if (facet == null) {
+      return false;
+    }
+    // The preview editor currently works best with Gradle (see: b/29447486, and b/28110820), but we want to have support for
+    // legacy android projects as well. Only enable for those two cases for now.
+    if (!Projects.isBuildWithGradle(facet.getModule()) && !Projects.isLegacyIdeaAndroidModule(facet.getModule())) {
+      return false;
+    }
+
     // In theory, we should just check
     //   LayoutDomFileDescription.isLayoutFile((XmlFile)psiFile);
     // here, but there are problems where files don't show up with layout preview
@@ -351,7 +365,7 @@ public class NlPreviewManager implements ProjectComponent {
   }
 
   private static boolean isInResourceFolder(@Nullable PsiFile psiFile) {
-    if (psiFile instanceof XmlFile && AndroidFacet.getInstance(psiFile) != null) {
+    if (psiFile instanceof XmlFile) {
       return RenderService.canRender(psiFile);
     }
     return false;
