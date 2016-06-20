@@ -226,6 +226,23 @@ public class InstantRunBuilderTest {
   }
 
   @Test
+  public void cleanBuildWhenPackageNotInstalledForDefaultUser() throws Exception {
+    myDumpsysPackageOutput =
+      "Packages:\n" +
+      "  Package [instant.run] (a1df9a8):\n" +
+      "    User 0:  installed=false hidden=false stopped=true notLaunched=true enabled=0\n" +
+      "      runtime permissions:\n" +
+      "    User 10:  installed=true hidden=false stopped=true notLaunched=false enabled=0\n" +
+      "      runtime permissions:\n";
+    myDeviceBuildTimetamp = "100";
+    when(myDevice.getVersion()).thenReturn(new AndroidVersion(23, null));
+    myBuilder.build(myTaskRunner, Collections.emptyList());
+    assertEquals(
+      "gradlew -Pandroid.injected.version.code=2147483647 -Pandroid.injected.version.name=INSTANT_RUN -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK clean :app:gen :app:assemble",
+      myTaskRunner.getBuilds());
+  }
+
+  @Test
   public void cleanBuildIfBuildTimestampsDoNotMatch() throws Exception {
     myDumpsysPackageOutput = DUMPSYS_PACKAGE_EXISTS;
     myDeviceBuildTimetamp = "123";
