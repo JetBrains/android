@@ -20,15 +20,12 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MergedManifestFixture;
-import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.fixture.JPopupMenuFixture;
 import org.fest.swing.fixture.JTreeFixture;
-import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
 
@@ -146,12 +143,7 @@ public class ManifestEditorTest {
     JTreeFixture tree = mergedManifestFixture.getTree();
     // row 28 = "manifest/application/activity/android:name = com.android.mylibrary.MainActivity"
     JPopupMenuFixture popup = tree.showPopupMenuAt(22);
-    popup.menuItem(new GenericTypeMatcher<JMenuItem>(JMenuItem.class) {
-      @Override
-      protected boolean isMatching(@NotNull JMenuItem component) {
-        return "Remove".equals(component.getText());
-      }
-    }).click();
+    popup.menuItemWithPath("Remove").click();
     editor.selectEditorTab(EditorFixture.Tab.EDITOR);
     assertThat(editor.getCurrentFileContents()).contains(addedText);
   }

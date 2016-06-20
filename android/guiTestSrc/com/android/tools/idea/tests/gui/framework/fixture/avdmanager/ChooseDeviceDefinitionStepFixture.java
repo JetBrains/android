@@ -67,12 +67,7 @@ public class ChooseDeviceDefinitionStepFixture extends AbstractWizardStepFixture
     JPopupMenu popupMenu = robot().findActivePopupMenu();
     assertNotNull(popupMenu);
     JPopupMenuFixture contextMenuFixture = new JPopupMenuFixture(robot(), popupMenu);
-    contextMenuFixture.menuItem(new GenericTypeMatcher<JMenuItem>(JMenuItem.class) {
-      @Override
-      protected boolean isMatching(@NotNull JMenuItem component) {
-        return "Delete".equals(component.getText());
-      }
-    }).click();
+    contextMenuFixture.menuItemWithPath("Delete").click();
 
     MessagesFixture.findByTitle(robot(), target(), "Confirm Deletion").clickYes();
 
