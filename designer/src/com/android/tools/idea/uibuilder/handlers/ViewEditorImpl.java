@@ -33,6 +33,8 @@ import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.util.Condition;
+import com.intellij.psi.PsiClass;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ArrayUtil;
@@ -46,8 +48,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
-
-import static com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT;
+import java.util.function.Predicate;
 
 /**
  * Implementation of the {@link ViewEditor} abstraction presented
@@ -169,11 +170,24 @@ public class ViewEditorImpl extends ViewEditor {
 
   @Nullable
   @Override
-  public String displayClassInput(@NotNull Set<String> superTypes, @Nullable String currentValue) {
+  public String displayClassInput(@NotNull Set<String> superTypes,
+                                  @Nullable final Predicate<String> filter,
+                                  @Nullable String currentValue) {
     Module module = myScreen.getModel().getModule();
     String[] superTypesArray = ArrayUtil.toStringArray(superTypes);
 
-    return ChooseClassDialog.openDialog(module, "Classes", true, superTypesArray);
+    Condition<PsiClass> psiFilter = null;
+    if (filter != null) {
+      psiFilter = psiClass -> {
+        String qualifiedName = psiClass.getQualifiedName();
+        if (qualifiedName == null) {
+          return false;
+        }
+        return filter.test(qualifiedName);
+      };
+    }
+
+    return ChooseClassDialog.openDialog(module, "Classes", true, psiFilter, superTypesArray);
   }
 
   @NotNull
