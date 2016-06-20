@@ -32,7 +32,6 @@ import com.android.tools.rpclib.rpccore.RpcException;
 import com.google.common.base.Function;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.openapi.diagnostic.Logger;
 
 import javax.annotation.Nullable;
@@ -96,7 +95,7 @@ public class AtomStream implements PathListener {
     }
 
     if (myAtomPath.updateIfNotNull(event.findAtomPath())) {
-      myListeners.onAtomsSelected(myAtomPath.getPath());
+      myListeners.onAtomsSelected(myAtomPath.getPath(), event.source);
     }
   }
 
@@ -232,7 +231,7 @@ public class AtomStream implements PathListener {
 
     void onAtomLoadingComplete(AtomStream atoms);
 
-    void onAtomsSelected(AtomRangePath path);
+    void onAtomsSelected(AtomRangePath path, Object source);
   }
 
   private static class Listeners extends ArrayList<Listener> implements Listener {
@@ -254,9 +253,9 @@ public class AtomStream implements PathListener {
     }
 
     @Override
-    public void onAtomsSelected(AtomRangePath path) {
+    public void onAtomsSelected(AtomRangePath path, Object source) {
       for (Listener listener : toArray(new Listener[size()])) {
-        listener.onAtomsSelected(path);
+        listener.onAtomsSelected(path, source);
       }
     }
 

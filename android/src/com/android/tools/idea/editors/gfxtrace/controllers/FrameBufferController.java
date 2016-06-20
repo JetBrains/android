@@ -118,7 +118,7 @@ public class FrameBufferController extends ImagePanelController implements AtomS
   }
 
   @Override
-  public void onAtomsSelected(AtomRangePath path) {
+  public void onAtomsSelected(AtomRangePath path, Object source) {
     updateBuffer();
   }
 
