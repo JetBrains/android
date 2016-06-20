@@ -70,6 +70,10 @@
     </component>
   </project-components>
   <actions>
+    <group id="Project.SampleMenu" text="_Sample Menu" description="Sample Menu">
+      <add-to-group group-id="MainMenu" anchor="last" />
+      <action class="com.android.tools.idea.experimental.actions.CodeAnalysisActionWDlg" id="Project.CodeAnalysisSampleWDlg" text="_Code Analysis" description="A test menu item"/>
+    </group>
     <group id="Project.Subview" text="Project Subview" class="com.android.tools.idea.gradle.project.subset.ProjectSubsetGroup">
       <separator/>
       <action id="ConfigureSubView" class="com.android.tools.idea.gradle.project.subset.ConfigureProjectSubsetAction"/>
