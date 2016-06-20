@@ -20,8 +20,8 @@ import com.android.tools.idea.assistant.AssistActionHandler;
 import com.android.tools.idea.assistant.datamodel.FeatureData;
 import com.android.tools.idea.assistant.datamodel.TutorialBundleData;
 import com.android.tools.idea.assistant.datamodel.TutorialData;
-import com.android.tools.idea.structure.services.DeveloperService;
 import com.android.tools.idea.structure.services.DeveloperServiceMap;
+import com.android.tools.idea.structure.services.DeveloperServiceMap.DeveloperServiceList;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
@@ -65,9 +65,9 @@ public class FeaturesPanel extends JPanel implements ItemListener, ActionListene
 
     // Add all tutorial cards.
     for (FeatureData feature : myTutorialBundle.getFeatures()) {
-      DeveloperService service = serviceMap.get(feature.getServiceId());
+      DeveloperServiceList services = serviceMap.get(feature.getServiceId());
       for (TutorialData tutorial : feature.getTutorials()) {
-        addCard(new TutorialCard(this, tutorial, feature.getName(), bundle.getName(), service), tutorial.getKey());
+        addCard(new TutorialCard(this, tutorial, feature, bundle.getName(), services), tutorial.getKey());
       }
     }
     add(myCards);
@@ -120,12 +120,12 @@ public class FeaturesPanel extends JPanel implements ItemListener, ActionListene
         throw new IllegalArgumentException("Unhandled action, no handler found for key \"" + actionId + "\".");
       }
 
-      DeveloperService service = a.getDeveloperService();
-      if (service == null) {
+      DeveloperServiceList services = a.getDeveloperServices();
+      if (services == null) {
         throw new RuntimeException("Unable to find a service to to complete the requested action.");
       }
 
-      handler.handleAction(a.getActionArgument(), service);
+      handler.handleAction(a.getActionArgument(), services);
       a.updateState();
     }
     else {
