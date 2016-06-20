@@ -55,9 +55,9 @@ public class AvdListDialogTest {
     guiTest.waitForBackgroundTasks();
 
     // Ensure the AVD was created
-    avdManagerDialog.selectAvdByName("Testsuite AVD");
+    avdManagerDialog.selectAvd("Testsuite AVD");
     // Then clean it up
-    avdManagerDialog.deleteAvdByName("Testsuite AVD");
+    avdManagerDialog.deleteAvd("Testsuite AVD");
 
     avdManagerDialog.close();
   }
@@ -99,6 +99,6 @@ public class AvdListDialogTest {
 
   private void removeNexus5() {
     AvdManagerDialogFixture avdManagerDialog = guiTest.ideFrame().invokeAvdManager();
-    avdManagerDialog.deleteAvdByName("Nexus 5 API 19");
+    avdManagerDialog.deleteAvd("Nexus 5 API 19");
   }
 }
