@@ -43,6 +43,7 @@ import java.io.File;
 import java.util.*;
 
 import static com.android.SdkConstants.DOT_AAR;
+import static com.android.SdkConstants.FD_RES;
 import static org.jetbrains.android.facet.ResourceFolderManager.addAarsFromModuleLibraries;
 
 /**
@@ -386,6 +387,30 @@ public class AppResourceRepository extends MultiResourceRepository {
         assert false : r.getClass();
       }
     }
+
+    // If we're looking for an AAR archive and didn't find it above, also
+    // attempt searching by suffix alone. This is helpful scenarios like
+    // http://b.android.com/210062 where we can end up in a scenario where
+    // we're rendering in a library module, and Gradle sync has mapped an
+    // AAR library to an existing library definition in the main module. In
+    // that case we need to find the corresponding resources there.
+    int exploded = aarPath.indexOf(AndroidGradleModel.EXPLODED_AAR);
+    if (exploded != -1) {
+      String suffix = aarPath.substring(exploded) + File.separator + FD_RES;
+      for (LocalResourceRepository r : myLibraries) {
+        if (r instanceof FileResourceRepository) {
+          FileResourceRepository repository = (FileResourceRepository)r;
+          String path = repository.getResourceDirectory().getPath();
+          if (path.endsWith(suffix)) {
+            return repository;
+          }
+        }
+        else {
+          assert false : r.getClass();
+        }
+      }
+    }
+
     return null;
   }
 
