@@ -115,12 +115,7 @@ public class AvdManagerDialogFixture extends ComponentFixture<AvdManagerDialogFi
     JPopupMenu contextMenu = robot().findActivePopupMenu();
     assertNotNull(contextMenu);
     JPopupMenuFixture contextMenuFixture = new JPopupMenuFixture(robot(), contextMenu);
-    contextMenuFixture.menuItem(new GenericTypeMatcher<JMenuItem>(JMenuItem.class) {
-      @Override
-      protected boolean isMatching(@NotNull JMenuItem component) {
-        return "Delete".equals(component.getText());
-      }
-    }).click();
+    contextMenuFixture.menuItemWithPath("Delete").click();
 
     MessagesFixture.findByTitle(robot(), target(), "Confirm Deletion").clickYes();
   }

@@ -336,12 +336,7 @@ public class ThemeEditorTableTest {
     colorCell.startEditing();
     JPopupMenuFixture popupMenu = resourceComponent.showPopupMenu();
 
-    popupMenu.menuItem(new GenericTypeMatcher<JMenuItem>(JMenuItem.class) {
-      @Override
-      protected boolean isMatching(@NotNull JMenuItem component) {
-        return "Reset value".equals(component.getText());
-      }
-    }).click();
+    popupMenu.menuItemWithPath("Reset value").click();
 
     themeEditorTable.requireValueAt(cell, "@android:color/holo_light_primary");
   }
@@ -364,12 +359,7 @@ public class ThemeEditorTableTest {
     colorCell.startEditing();
     JPopupMenuFixture popupMenu = resourceComponent.showPopupMenu();
 
-    popupMenu.menuItem(new GenericTypeMatcher<JMenuItem>(JMenuItem.class) {
-      @Override
-      protected boolean isMatching(@NotNull JMenuItem component) {
-        return "Show documentation".equals(component.getText());
-      }
-    }).click();
+    popupMenu.menuItemWithPath("Show documentation").click();
 
     JWindow docWindow = GuiTests.waitUntilShowing(guiTest.robot(), GuiTests.matcherForType(JWindow.class));
 
