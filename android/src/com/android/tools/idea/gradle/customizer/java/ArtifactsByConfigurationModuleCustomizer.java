@@ -35,6 +35,7 @@ import static com.android.tools.idea.gradle.customizer.AbstractDependenciesModul
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
+import static com.intellij.openapi.util.io.FileUtil.isAncestor;
 import static com.intellij.openapi.util.text.StringUtil.endsWithIgnoreCase;
 
 public class ArtifactsByConfigurationModuleCustomizer implements ModuleCustomizer<JavaProject> {
@@ -54,7 +55,17 @@ public class ArtifactsByConfigurationModuleCustomizer implements ModuleCustomize
               // We only expose artifacts that are jar files.
               continue;
             }
-            String libraryName = module.getName() + "." + getNameWithoutExtension(artifact);
+            File buildFolderPath = javaProject.getBuildFolderPath();
+            String artifactName = getNameWithoutExtension(artifact);
+
+            if (buildFolderPath != null &&
+                buildFolderPath.isDirectory() &&
+                isAncestor(buildFolderPath, artifact, true) &&
+                module.getName().equals(artifactName)) {
+              // This is the jar obtained by compiling the module, no need to add it as dependency.
+              continue;
+            }
+            String libraryName = module.getName() + "." + artifactName;
             Library library = modelsProvider.getLibraryByName(libraryName);
             if (library == null) {
               // Create library.
