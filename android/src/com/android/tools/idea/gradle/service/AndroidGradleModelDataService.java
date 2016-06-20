@@ -127,7 +127,7 @@ public class AndroidGradleModelDataService extends AbstractProjectDataService<An
             gradleProjectSettings.setResolveModulePerSourceSet(false);
             NotificationData notificationData = new NotificationData("Gradle settings were updated",
                                                                      "'Create separate module per source set' feature was disabled. \n" +
-                                                                     "It doesn't supported by android projects",
+                                                                     "It isn't supported by android projects",
                                                                      NotificationCategory.WARNING, PROJECT_SYNC);
             ExternalSystemNotificationManager.getInstance(project).showNotification(GradleConstants.SYSTEM_ID, notificationData);
           }
