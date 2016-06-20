@@ -52,7 +52,7 @@ public abstract class TestDataGenerator<T> implements DataAdapter<T> {
             // TODO: come up with a better way of handling thread issues
             SwingUtilities.invokeLater(() -> generateData());
 
-            Thread.sleep(GENERATE_DATA_THREAD_DELAY);
+            Thread.sleep(getSleepTime());
           }
         }
         catch (InterruptedException ignored) {
@@ -80,9 +80,15 @@ public abstract class TestDataGenerator<T> implements DataAdapter<T> {
   }
 
   /**
+   * Returns the amount of time before the next iteration of the generateData thread.
+   */
+  public int getSleepTime() {
+    return GENERATE_DATA_THREAD_DELAY;
+  }
+
+  /**
    * Function for test to override, this function gets called on its own thread and is used to simulate
    * new data coming from the device.
    */
-  //TODO refactor to move time into DataGenerators.
   abstract void generateData();
 }
