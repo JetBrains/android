@@ -17,7 +17,7 @@ package com.android.tools.idea.assistant.view;
 
 import com.android.tools.idea.assistant.datamodel.StepData;
 import com.android.tools.idea.assistant.datamodel.StepElementData;
-import com.android.tools.idea.structure.services.DeveloperService;
+import com.android.tools.idea.structure.services.DeveloperServiceMap.DeveloperServiceList;
 import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.project.Project;
@@ -46,18 +46,18 @@ public class TutorialStep extends JPanel {
   private static final Logger logger = Logger.getLogger(TutorialStep.class.getName());
 
   // TODO: Refactor number related code to be an inner class + revisit colors.
-  public  final JBColor NUMBER_COLOR = new JBColor(0x52639B , 0x589df6);
+  public final JBColor NUMBER_COLOR = new JBColor(0x52639B, 0x589df6);
 
   private final int myIndex;
   private final StepData myStep;
   private final JPanel myContents;
   private final Project myProject;
 
-  TutorialStep(StepData step, int index, ActionListener listener, DeveloperService service) {
+  TutorialStep(StepData step, int index, ActionListener listener, DeveloperServiceList services) {
     super(new GridBagLayout());
     myIndex = index;
     myStep = step;
-    myProject = service.getModule().getProject();
+    myProject = services.getProject();
     myContents = new JPanel(new VerticalFlowLayout(VerticalFlowLayout.TOP, 0, 0, true, true));
     setOpaque(false);
 
@@ -80,7 +80,7 @@ public class TutorialStep extends JPanel {
           myContents.add(section);
           break;
         case ACTION:
-          myContents.add(new StatefulButton(element.getAction(), listener, service));
+          myContents.add(new StatefulButton(element.getAction(), listener, services));
           break;
         case CODE:
           myContents.add(new CodePane(element));
@@ -288,7 +288,7 @@ public class TutorialStep extends JPanel {
       }
       // Set the background manually as it appears to persist as an old color on theme change.
       scroll.getViewport().setBackground(UIUtils.getBackgroundColor());
-      if(scroll.getViewport().getView() != null) {
+      if (scroll.getViewport().getView() != null) {
         scroll.getViewport().getView().setBackground(UIUtils.getBackgroundColor());
       }
       // TODO(b/28968368): When vertical scrolling over a scroll pane that only has horizontal scrolling, underlying system code will apply
