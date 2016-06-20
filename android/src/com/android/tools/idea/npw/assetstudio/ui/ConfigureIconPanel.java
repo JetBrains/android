@@ -155,6 +155,7 @@ public final class ConfigureIconPanel extends JPanel implements Disposable {
   private JBLabel myShapeLabel;
   private JBLabel myEffectLabel;
 
+  private BoolProperty myIgnoreForegroundColor;
   private AbstractProperty<Color> myForegroundColor;
   private AbstractProperty<Color> myBackgroundColor;
   private BoolProperty myCropped;
@@ -244,6 +245,7 @@ public final class ConfigureIconPanel extends JPanel implements Disposable {
     final StringProperty paddingValueString = new TextProperty(myPaddingValueLabel);
     myGeneralBindings.bind(paddingValueString, new FormatExpression("%d %%", paddingPercent));
 
+    myIgnoreForegroundColor = new SelectedProperty(myImageRadioButton);
     myForegroundColor = new OptionalToValuePropertyAdapter<>(new ColorProperty(myForegroundColorPanel));
     myBackgroundColor = new OptionalToValuePropertyAdapter<>(new ColorProperty(myBackgroundColorPanel));
     myCropped = new SelectedProperty(myCropRadioButton);
@@ -257,13 +259,10 @@ public final class ConfigureIconPanel extends JPanel implements Disposable {
 
     updateBindingsAndUiForActiveIconType();
 
-    ActionListener radioSelectedListener = new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        JRadioButton source = ((JRadioButton)e.getSource());
-        AssetComponent assetComponent = myAssetPanelMap.get(source);
-        myActiveAsset.set(assetComponent.getAsset());
-      }
+    ActionListener radioSelectedListener = e -> {
+      JRadioButton source = ((JRadioButton)e.getSource());
+      AssetComponent assetComponent = myAssetPanelMap.get(source);
+      myActiveAsset.set(assetComponent.getAsset());
     };
     myClipartRadioButton.addActionListener(radioSelectedListener);
     myImageRadioButton.addActionListener(radioSelectedListener);
@@ -271,12 +270,7 @@ public final class ConfigureIconPanel extends JPanel implements Disposable {
 
     // If any of our underlying asset panels change, we should pass that on to anyone listening to
     // us as well.
-    ActionListener assetPanelListener = new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        fireAssetListeners();
-      }
-    };
+    ActionListener assetPanelListener = e -> fireAssetListeners();
     for (AssetComponent assetComponent : myAssetPanelMap.values()) {
       assetComponent.addAssetListener(assetPanelListener);
     }
@@ -286,17 +280,14 @@ public final class ConfigureIconPanel extends JPanel implements Disposable {
       .listenAll(trimmed, paddingPercent, myForegroundColor, myBackgroundColor, myCropped, myDogEared, myTheme, myThemeColor, myShape)
       .with(onAssetModified);
 
-    myListeners.listenAndFire(myActiveAsset, new InvalidationListener() {
-      @Override
-      public void onInvalidated(@NotNull ObservableValue<?> sender) {
-        myActiveAssetBindings.releaseAll();
-        myActiveAssetBindings.bindTwoWay(trimmed, myActiveAsset.get().trimmed());
-        myActiveAssetBindings.bindTwoWay(paddingPercent, myActiveAsset.get().paddingPercent());
-        myActiveAssetBindings.bindTwoWay(myForegroundColor, myActiveAsset.get().color());
+    myListeners.listenAndFire(myActiveAsset, sender -> {
+      myActiveAssetBindings.releaseAll();
+      myActiveAssetBindings.bindTwoWay(trimmed, myActiveAsset.get().trimmed());
+      myActiveAssetBindings.bindTwoWay(paddingPercent, myActiveAsset.get().paddingPercent());
+      myActiveAssetBindings.bindTwoWay(myForegroundColor, myActiveAsset.get().color());
 
-        getIconGenerator().sourceAsset().setValue(myActiveAsset.get());
-        onAssetModified.run();
-      }
+      getIconGenerator().sourceAsset().setValue(myActiveAsset.get());
+      onAssetModified.run();
     });
 
     ObservableBool isLauncherIcon = new BoolValueProperty(myIconType.equals(AndroidIconType.LAUNCHER));
@@ -345,12 +336,7 @@ public final class ConfigureIconPanel extends JPanel implements Disposable {
       e.getKey().set(false);
       myGeneralBindings.bind(e.getKey(), e.getValue());
     }
-    myListeners.listenAll(layoutProperties.keySet()).with(new Runnable() {
-      @Override
-      public void run() {
-        SwingUtilities.updateComponentTreeUI(myAllOptionsPanel);
-      }
-    });
+    myListeners.listenAll(layoutProperties.keySet()).with(() -> SwingUtilities.updateComponentTreeUI(myAllOptionsPanel));
   }
 
   @NotNull
@@ -395,6 +381,7 @@ public final class ConfigureIconPanel extends JPanel implements Disposable {
     switch (myIconType) {
       case LAUNCHER:
         AndroidLauncherIconGenerator launcherIconGenerator = (AndroidLauncherIconGenerator)myIconGenerator;
+        myGeneralBindings.bind(launcherIconGenerator.useForegroundColor(), myIgnoreForegroundColor.not());
         myGeneralBindings.bindTwoWay(myForegroundColor, launcherIconGenerator.foregroundColor());
         myGeneralBindings.bindTwoWay(myBackgroundColor, launcherIconGenerator.backgroundColor());
         myGeneralBindings.bindTwoWay(myCropped, launcherIconGenerator.cropped());
