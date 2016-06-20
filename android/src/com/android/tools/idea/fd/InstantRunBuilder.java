@@ -17,6 +17,7 @@ package com.android.tools.idea.fd;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.OptionalCompilationStep;
+import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.fd.client.AppState;
@@ -334,7 +335,13 @@ public class InstantRunBuilder implements BeforeRunBuilder {
         return instantRunClient != null && instantRunClient.getAppState(device) == AppState.FOREGROUND;
       }
       catch (IOException e) {
-        InstantRunManager.LOG.warn("Exception while attempting to determine if app is in foreground", e);
+        Client client = device.getClient(context.getApplicationId());
+        if (client == null) {
+          InstantRunManager.LOG.info("Application not running");
+          return false;
+        }
+
+        InstantRunManager.LOG.warn("IOException while attempting to determine if app is in foreground, assuming app not alive");
         return false;
       }
     }
