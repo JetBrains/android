@@ -209,7 +209,7 @@ public class StateController extends TreeController implements GpuState.Listener
       return treePath;
     }
     Node child = node.getChild(tag);
-    return child.canFollow() ? new TreePath(Stream.concat(Arrays.stream(treePath.getPath()), Arrays.stream(new Object[] {child})).toArray()) : null;
+    return child.canFollow() ? treePath.pathByAddingChild(child) : null;
   }
 
   private @NotNull Path getPath(@NotNull TreePath treePath) {
