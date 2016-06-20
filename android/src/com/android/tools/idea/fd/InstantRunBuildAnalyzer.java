@@ -67,7 +67,9 @@ public class InstantRunBuildAnalyzer {
       return false;
     }
 
-    return myBuildInfo.hasNoChanges() || myBuildInfo.canHotswap();
+    BuildSelection buildSelection = myContext.getBuildSelection();
+    assert buildSelection != null : "Build must have completed before results are analyzed";
+    return buildSelection.mode == BuildMode.HOT && (myBuildInfo.hasNoChanges() || myBuildInfo.canHotswap());
   }
 
   /**
