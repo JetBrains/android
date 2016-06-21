@@ -31,6 +31,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseEvent;
 import java.util.EnumSet;
 import java.util.Set;
 
@@ -38,8 +39,8 @@ import static com.android.SdkConstants.TOOLS_URI;
 
 public class BrowsePanel extends JPanel {
   private final Context myContext;
-  private final Component myBrowseButton;
-  private final Component myDesignButton;
+  private final ActionButton myBrowseButton;
+  private final ActionButton myDesignButton;
 
   public interface Context {
     @Nullable
@@ -80,18 +81,26 @@ public class BrowsePanel extends JPanel {
 
   public BrowsePanel(@NotNull Context context, boolean showDesignButton) {
     myContext = context;
+    myBrowseButton = createActionButton(createBrowseAction());
+    myDesignButton = showDesignButton ? createActionButton(createDesignAction()) : null;
     setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
-    myBrowseButton = add(createActionButton(createBrowseAction()));
-    if (showDesignButton) {
-      myDesignButton = add(createActionButton(createDesignAction()));
-    }
-    else {
-      myDesignButton = null;
+    add(myBrowseButton);
+    if (myDesignButton != null) {
+      add(myDesignButton);
     }
   }
 
   public void setProperty(@NotNull NlProperty property) {
     myBrowseButton.setVisible(hasResourceChooser(property));
+  }
+
+  public void mousePressed(@NotNull MouseEvent event, @NotNull Rectangle rectRightColumn) {
+    if (event.getX() > rectRightColumn.getX() + rectRightColumn.getWidth() - myDesignButton.getWidth()) {
+      myDesignButton.click();
+    }
+    else if (event.getX() > rectRightColumn.getX() + rectRightColumn.getWidth() - myDesignButton.getWidth() - myBrowseButton.getWidth()) {
+      myBrowseButton.click();
+    }
   }
 
   private static ActionButton createActionButton(@NotNull AnAction action) {
