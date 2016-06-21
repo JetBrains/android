@@ -31,14 +31,13 @@ import com.android.tools.idea.monitor.ui.memory.view.MemorySegment;
 import com.android.tools.idea.monitor.ui.network.view.NetworkSegment;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.EventDispatcher;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.android.tools.idea.monitor.ui.events.view.EventProfilerUiManager.MOCK_ICONS;
 
 public class ProfilerOverviewVisualTest extends VisualTest {
 
@@ -47,6 +46,13 @@ public class ProfilerOverviewVisualTest extends VisualTest {
   private static final int MONITOR_MAX_HEIGHT = Short.MAX_VALUE;
   private static final int MONITOR_PREFERRED_HEIGHT = 200;
   private static final int TIME_AXIS_HEIGHT = 20;
+
+  // TODO: Replace with actual icons.
+  private static final Icon[] ICONS = {
+    AndroidIcons.ToolWindows.Warning,
+    AndroidIcons.ToolWindows.Warning,
+    AndroidIcons.ToolWindows.Warning
+  };
 
   private SeriesDataStore mDataStore;
 
@@ -184,7 +190,7 @@ public class ProfilerOverviewVisualTest extends VisualTest {
     gridBagPanel.add(mScrollbar, gbc);
 
     // Mock event segment
-    BaseSegment eventSegment = new EventSegment(mXRange, mDataStore, MOCK_ICONS, mEventDispatcher);
+    BaseSegment eventSegment = new EventSegment(mXRange, mDataStore, ICONS, mEventDispatcher);
     setupAndRegisterSegment(eventSegment, EVENT_MIN_HEIGHT, MONITOR_PREFERRED_HEIGHT, MONITOR_MAX_HEIGHT);
 
     // Mock monitor segments

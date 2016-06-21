@@ -23,34 +23,22 @@ import com.android.tools.idea.monitor.ui.BaseProfilerUiManager;
 import com.android.tools.idea.monitor.ui.BaseSegment;
 import com.android.tools.idea.monitor.ui.ProfilerEventListener;
 import com.intellij.util.EventDispatcher;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
 public final class EventProfilerUiManager extends BaseProfilerUiManager {
 
-  //TODO replace the icon generation logic below with actual icons.
-  private static final int IMAGE_WIDTH = 16;
-  private static final int IMAGE_HEIGHT = 16;
-
-  public static final BufferedImage[] MOCK_ICONS = {
-    buildStaticImage(Color.red),
-    buildStaticImage(Color.green),
-    buildStaticImage(Color.blue),
+  // TODO: Replace with actual icons.
+  private static final Icon[] ICONS = {
+    AndroidIcons.ToolWindows.Warning,
+    AndroidIcons.ToolWindows.Warning,
+    AndroidIcons.ToolWindows.Warning
   };
-
-  private static BufferedImage buildStaticImage(Color color) {
-    BufferedImage image = new BufferedImage(IMAGE_WIDTH, IMAGE_HEIGHT,
-                                            BufferedImage.TYPE_4BYTE_ABGR);
-    for (int y = 0; y < IMAGE_HEIGHT; y++) {
-      for (int x = 0; x < IMAGE_WIDTH; x++) {
-        image.setRGB(x, y, color.getRGB());
-      }
-    }
-    return image;
-  }
 
   public EventProfilerUiManager(@NotNull Range xRange, @NotNull Choreographer choreographer,
                                 @NotNull SeriesDataStore datastore, @NotNull EventDispatcher<ProfilerEventListener> eventDispatcher) {
@@ -68,6 +56,6 @@ public final class EventProfilerUiManager extends BaseProfilerUiManager {
   protected BaseSegment createOverviewSegment(@NotNull Range xRange,
                                               @NotNull SeriesDataStore dataStore,
                                               @NotNull EventDispatcher<ProfilerEventListener> eventDispatcher) {
-    return new EventSegment(xRange, dataStore, MOCK_ICONS, eventDispatcher);
+    return new EventSegment(xRange, dataStore, ICONS, eventDispatcher);
   }
 }

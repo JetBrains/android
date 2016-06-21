@@ -35,6 +35,7 @@ import com.android.tools.idea.monitor.ui.BaseSegment;
 import com.android.tools.idea.monitor.ui.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.TimeAxisSegment;
 import com.android.tools.idea.monitor.ui.cpu.view.CpuProfilerUiManager;
+import com.android.tools.idea.monitor.ui.events.view.EventProfilerUiManager;
 import com.android.tools.idea.monitor.ui.memory.view.MemoryProfilerUiManager;
 import com.android.tools.idea.monitor.ui.network.view.NetworkProfilerUiManager;
 import com.google.common.util.concurrent.FutureCallback;
@@ -391,8 +392,8 @@ public class AndroidMonitorToolWindow implements Disposable {
     myEventDispatcher = EventDispatcher.create(ProfilerEventListener.class);
 
     // TODO: add event manager to myProfilerManagers
-    //myProfilerManagers.put(BaseProfilerUiManager.ProfilerType.EVENT,
-    //                       new EventProfilerUiManager(myXRange, myChoreographer, myDataStore, myEventDispatcher));
+    myProfilerManagers.put(BaseProfilerUiManager.ProfilerType.EVENT,
+                           new EventProfilerUiManager(myXRange, myChoreographer, myDataStore, myEventDispatcher));
     myProfilerManagers.put(BaseProfilerUiManager.ProfilerType.NETWORK,
                            new NetworkProfilerUiManager(myXRange, myChoreographer, myDataStore, myEventDispatcher));
     myProfilerManagers.put(BaseProfilerUiManager.ProfilerType.MEMORY,
