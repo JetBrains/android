@@ -78,9 +78,15 @@ public final class VisualTestSeriesDataStore implements SeriesDataStore {
     return new SeriesDataList<>(range, this, type);
   }
 
+  @Override
   public void registerAdapter(SeriesDataType type, DataAdapter adapter) {
     myDataSeriesMap.put(type, adapter);
     adapter.setStartTime(mStartTime);
+  }
+
+  @Override
+  public long getDeviceTimeOffset() {
+    return 0;
   }
 
   private void startGeneratingData() {
