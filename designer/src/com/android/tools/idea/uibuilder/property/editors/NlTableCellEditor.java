@@ -81,7 +81,13 @@ public class NlTableCellEditor extends PTableCellEditor implements NlEditingList
   @Nullable
   @Override
   public NlProperty getDesignProperty() {
-    return getPropertyAt(myTable, myRow + 1);
+    return getDesignProperty(myTable, myRow);
+  }
+
+  @Nullable
+  @Override
+  public NlProperty getRuntimeProperty() {
+    return getRuntimeProperty(myTable, myRow);
   }
 
   @Override
@@ -114,12 +120,40 @@ public class NlTableCellEditor extends PTableCellEditor implements NlEditingList
 
   @Nullable
   public static NlPropertyItem getPropertyAt(@NotNull JTable table, int row) {
-    if (!(table instanceof PTable && row < table.getRowCount())) {
+    if (!(table instanceof PTable && row >= 0 && row < table.getRowCount())) {
       return null;
     }
     Object value = table.getValueAt(row, 1);
     if (value instanceof NlPropertyItem) {
       return (NlPropertyItem)value;
+    }
+    return null;
+  }
+
+  @Nullable
+  public static NlProperty getRuntimeProperty(@NotNull JTable table, int row) {
+    NlProperty currentProperty = getPropertyAt(table, row);
+    NlProperty previousProperty = getPropertyAt(table, row - 1);
+    if (currentProperty != null &&
+        previousProperty != null &&
+        previousProperty.getName().equals(currentProperty.getName()) &&
+        TOOLS_URI.equals(currentProperty.getNamespace()) &&
+        !TOOLS_URI.equals(previousProperty.getNamespace())) {
+      return previousProperty;
+    }
+    return null;
+  }
+
+  @Nullable
+  public static NlProperty getDesignProperty(@NotNull JTable table, int row) {
+    NlProperty currentProperty = getPropertyAt(table, row);
+    NlProperty nextProperty = getPropertyAt(table, row + 1);
+    if (currentProperty != null &&
+        nextProperty != null &&
+        nextProperty.getName().equals(currentProperty.getName()) &&
+        !TOOLS_URI.equals(currentProperty.getNamespace()) &&
+        TOOLS_URI.equals(nextProperty.getNamespace())) {
+      return nextProperty;
     }
     return null;
   }
