@@ -98,6 +98,12 @@ public abstract class NlAttributeRenderer implements TableCellRenderer, BrowsePa
   @Nullable
   @Override
   public NlProperty getDesignProperty() {
-    return NlTableCellEditor.getPropertyAt(myTable, myRow + 1);
+    return NlTableCellEditor.getDesignProperty(myTable, myRow);
+  }
+
+  @Nullable
+  @Override
+  public NlProperty getRuntimeProperty() {
+    return NlTableCellEditor.getRuntimeProperty(myTable, myRow);
   }
 }
