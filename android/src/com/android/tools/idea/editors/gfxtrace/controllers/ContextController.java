@@ -86,11 +86,11 @@ public class ContextController extends Controller implements AtomStream.Listener
       myCapturePath = atoms.getPath().getCapture();
       myContexts = atoms.getContexts();
       myComboBox.removeAllItems();
-      if (myContexts.count() > 1) {
-        myComboBox.addItem(Context.ALL);
+      if (myContexts.count() == 1) {
+        contextToSelect = myContexts.getContexts()[0].getID();
       }
       else {
-        contextToSelect = myContexts.getContexts()[0].getID();
+        myComboBox.addItem(Context.ALL);
       }
       for (Context context : myContexts) {
         myComboBox.addItem(context);
