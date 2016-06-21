@@ -20,17 +20,19 @@ import com.android.dvlib.DeviceSchemaTest;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceParser;
-import com.android.testutils.SdkTestCase;
 import com.android.tools.idea.rendering.ImageUtils;
 import com.google.common.base.Charsets;
 import com.google.common.base.Function;
 import com.google.common.io.Files;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
-import junit.framework.TestCase;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.junit.Ignore;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -43,6 +45,9 @@ import java.util.List;
 
 import static com.android.tools.idea.ddms.screenshot.DeviceArtPainter.DeviceData;
 import static com.android.tools.idea.ddms.screenshot.DeviceArtPainter.FrameData;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * If adding a new device (new device art), run the tests to generate crop data and insert
@@ -50,7 +55,12 @@ import static com.android.tools.idea.ddms.screenshot.DeviceArtPainter.FrameData;
  * and remove the early exit to have that method generate new, updated (cropped) images
  * and adjusted device-art descriptors.
  */
-public class DeviceArtPainterTest extends TestCase {
+public class DeviceArtPainterTest {
+
+  @Rule
+  public TemporaryFolder myTemporaryFolder = new TemporaryFolder();
+
+  @Test
   public void testGenerateCropData() throws Exception {
     // TODO: Assert that the crop data is right
     generateCropData();
@@ -58,7 +68,9 @@ public class DeviceArtPainterTest extends TestCase {
 
   // This test is disabled but code is preserved here; this is handy for quickly checking rendering results when tweaking the code to
   // assemble composite images. (Make sure you also turn off the thumbnail cache first! Return null from DeviceArtPainter#getCachedImage.)
-  public void ignore_testRendering() throws Exception {
+  @Test
+  @Ignore
+  public void testRendering() throws Exception {
     DeviceArtPainter framePainter = DeviceArtPainter.getInstance();
     for (DeviceArtDescriptor spec : framePainter.getDescriptors()) {
       if ("wear_round".equals(spec.getId())) {
@@ -78,6 +90,7 @@ public class DeviceArtPainterTest extends TestCase {
     }
   }
 
+  @Test
   public void testCroppedRendering() throws Exception {
     File deviceArtPath = new File(AndroidTestBase.getAbsoluteTestDataPath(), FileUtil.join("..", "device-art-resources"));
     List<DeviceArtDescriptor> descriptors = DeviceArtDescriptor.getDescriptors(new File[]{deviceArtPath});
@@ -248,15 +261,16 @@ public class DeviceArtPainterTest extends TestCase {
 
   // This test no longer applies; it was used to convert assets with a lot of padding into more tightly cropped screenshots.
   // We're preserving the code since for future device releases we might get new artwork which includes padding.
-  public void ignore_testCropData() throws Exception {
+  @Test
+  @Ignore
+  public void testCropData() throws Exception {
 
     // Apply crop
     DeviceArtPainter framePainter = DeviceArtPainter.getInstance();
     Device device = newDevice();
 
     File srcDir = DeviceArtDescriptor.getBundledDescriptorsFolder();
-    SdkTestCase.getTempDir();
-    File destDir = new File(SdkTestCase.getTempDir(), "device-art");
+    File destDir = new File(myTemporaryFolder.newFolder(), "device-art");
     if (!destDir.exists()) {
       boolean ok = destDir.mkdirs();
       assertTrue(ok);
