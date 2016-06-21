@@ -35,7 +35,7 @@ public class MemorySegment extends BaseLineChartSegment {
 
   private static final String SEGMENT_NAME = "Memory";
 
-  private static final BaseAxisFormatter MEMORY_AXIS_FORMATTER = MemoryAxisFormatter.DEFAULT;
+  private static final BaseAxisFormatter MEMORY_AXIS_FORMATTER_L1 = new MemoryAxisFormatter(1, 5, 5); // Do not show minor ticks in L1.
 
   private static final BaseAxisFormatter COUNT_AXIS_FORMATTER = new SingleUnitAxisFormatter(1, 10, 1, "");
 
@@ -54,7 +54,7 @@ public class MemorySegment extends BaseLineChartSegment {
   public MemorySegment(@NotNull Range timeRange,
                        @NotNull SeriesDataStore dataStore,
                        @NotNull EventDispatcher<ProfilerEventListener> dispatcher) {
-    super(SEGMENT_NAME, timeRange, dataStore, MEMORY_AXIS_FORMATTER, COUNT_AXIS_FORMATTER, dispatcher);
+    super(SEGMENT_NAME, timeRange, dataStore, MEMORY_AXIS_FORMATTER_L1, MemoryAxisFormatter.DEFAULT, COUNT_AXIS_FORMATTER, dispatcher);
   }
 
   @Override
@@ -65,20 +65,29 @@ public class MemorySegment extends BaseLineChartSegment {
   @Override
   protected void updateChartLines(boolean isExpanded) {
     if (isExpanded) {
+      // Left axis series
       addMemoryLevelLine(SeriesDataType.MEMORY_JAVA, MEMORY_TOTAL_COLOR);
       addMemoryLevelLine(SeriesDataType.MEMORY_NATIVE, MEMORY_NATIVE_COLOR);
       addMemoryLevelLine(SeriesDataType.MEMORY_GRAPHICS, MEMORY_GRAPHICS_COLOR);
       addMemoryLevelLine(SeriesDataType.MEMORY_CODE, MEMORY_CODE_COLOR);
       addMemoryLevelLine(SeriesDataType.MEMORY_OTHERS, MEMORY_OTHER_COLOR);
 
-      addLine(SeriesDataType.MEMORY_OBJECT_COUNT, SeriesDataType.MEMORY_OBJECT_COUNT.toString(), new LineConfig(MEMORY_COUNT_COLOR),
-              mRightAxisRange);
-    } else {
+      // TODO Computing the max value for the stacked memory levels as we need to add up all the categories at each sample point to find
+      // the overall max. MEMORY_TOTAL already encapsulates that information and is readily available, so simply include that in the
+      // Level 2/3 views as well.
+      addLeftAxisLine(SeriesDataType.MEMORY_TOTAL, SeriesDataType.MEMORY_TOTAL.toString(), new LineConfig(MEMORY_TOTAL_COLOR));
+
+      // Right axis series
+      addRightAxisLine(SeriesDataType.MEMORY_OBJECT_COUNT,
+                       SeriesDataType.MEMORY_OBJECT_COUNT.toString(),
+                       new LineConfig(MEMORY_COUNT_COLOR));
+    }
+    else {
       addMemoryLevelLine(SeriesDataType.MEMORY_TOTAL, MEMORY_TOTAL_COLOR);
     }
   }
 
   private void addMemoryLevelLine(SeriesDataType type, Color color) {
-    addLine(type, type.toString(), new LineConfig(color).setFilled(true).setStacked(true), mLeftAxisRange);
+    addLeftAxisLine(type, type.toString(), new LineConfig(color).setFilled(true).setStacked(true));
   }
 }

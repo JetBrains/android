@@ -107,7 +107,7 @@ public final class AxisComponent extends AnimatedComponent {
    * Axis formatter.
    */
   @NotNull
-  private final BaseAxisFormatter mFormatter;
+  private BaseAxisFormatter mFormatter;
 
   /**
    * Interpolated/Animated max value.
@@ -213,6 +213,13 @@ public final class AxisComponent extends AnimatedComponent {
 
   public void setClampToMajorTicks(boolean clamp) {
     mClampToMajorTicks = clamp;
+  }
+
+  /**
+   * Updates the BaseAxisFormatter for this axis which affects how its ticks/labels are calculated and rendered.
+   */
+  public void setAxisFormatter(BaseAxisFormatter formatter) {
+    mFormatter = formatter;
   }
 
   /**

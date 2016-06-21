@@ -55,7 +55,6 @@ public final class VisualTestSeriesDataStore implements SeriesDataStore {
 
   @Override
   public void stop() {
-
   }
 
   @Override

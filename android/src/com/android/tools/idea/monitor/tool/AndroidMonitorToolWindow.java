@@ -152,8 +152,12 @@ public class AndroidMonitorToolWindow implements Disposable {
     assert myDataStore != null;
     return Arrays.asList(accordion,
                          frameLength -> {
+                           long currentTime = myDataStore.getLatestTime();
+                           // Once elapsedTime is greater than DEFAULT_VIEW_LENGTH_MS, set global min to 0 so that user can
+                           // not scroll back to negative time.
+                           xGlobalRange.setMinTarget(Math.min(currentTime - RangeScrollbar.DEFAULT_VIEW_LENGTH_MS, 0));
                            // Updates the global range's max to match the device's current time.
-                           xGlobalRange.setMaxTarget(myDataStore.getLatestTime());
+                           xGlobalRange.setMaxTarget(currentTime);
                          },
                          mySelection,
                          myScrollbar,
