@@ -30,6 +30,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.*;
 import java.util.EnumSet;
 import java.util.Set;
 
@@ -37,6 +38,7 @@ import static com.android.SdkConstants.TOOLS_URI;
 
 public class BrowsePanel extends JPanel {
   private final Context myContext;
+  private final Component myBrowseButton;
 
   public interface Context {
     @Nullable
@@ -73,10 +75,14 @@ public class BrowsePanel extends JPanel {
   public BrowsePanel(@NotNull Context context, boolean showDesignButton) {
     myContext = context;
     setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
-    add(createActionButton(createBrowseAction()));
+    myBrowseButton = add(createActionButton(createBrowseAction()));
     if (showDesignButton) {
       add(createActionButton(createDesignAction()));
     }
+  }
+
+  public void setProperty(@NotNull NlProperty property) {
+    myBrowseButton.setVisible(hasResourceChooser(property));
   }
 
   private static ActionButton createActionButton(@NotNull AnAction action) {
