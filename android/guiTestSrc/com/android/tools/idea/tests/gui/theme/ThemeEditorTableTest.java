@@ -23,7 +23,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.theme.*;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.fixture.*;
-import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -230,7 +229,7 @@ public class ThemeEditorTableTest {
         return !component.equals(dialog.target());
       }
     });
-    secondDialog.getResourceNameTable().cell("disabledAlpha").click();
+    secondDialog.getResourceNameTable().cell("android:disabledAlpha").click();
     secondDialog.clickOK();
     Wait.seconds(30).expecting("component update").until(() -> "?android:attr/disabledAlpha".equals(state0.getAlphaValue()));
 
