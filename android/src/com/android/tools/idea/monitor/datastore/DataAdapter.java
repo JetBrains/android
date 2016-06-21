@@ -33,6 +33,8 @@ public interface DataAdapter<T> {
    * This function should return the closest index to the left for a specific time. The time passed in here will be the delta time
    * between the start time and the time requested. For example if the UI requested the first point in time it would pass 0.
    */
+  // TODO: think about a refactoring that allows this method to be reused across classes that implement this interface.
+  // All the implementations look like the same now.
   int getClosestTimeIndex(long time);
 
   /**
