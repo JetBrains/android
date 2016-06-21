@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.editor;
 
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.uibuilder.model.NlLayoutType;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorPolicy;
@@ -31,7 +32,6 @@ import org.jdom.Element;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.AndroidEditorSettings;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class NlEditorProvider implements FileEditorProvider, DumbAware {
   /**
@@ -39,21 +39,17 @@ public class NlEditorProvider implements FileEditorProvider, DumbAware {
    */
   public static final String DESIGNER_ID = "android-designer2";
 
-  @Nullable
-  private static AndroidFacet getFacet(@NotNull Project project, @NotNull VirtualFile file) {
-    PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(project, file);
-    return psiFile instanceof XmlFile ? AndroidFacet.getInstance(psiFile) : null;
-  }
-
   @Override
   public boolean accept(@NotNull Project project, @NotNull VirtualFile file) {
-    if (getFacet(project, file) == null) {
+    PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(project, file);
+    AndroidFacet facet = psiFile instanceof XmlFile ? AndroidFacet.getInstance(psiFile) : null;
+    if (facet == null) {
       return false;
     }
 
-    PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(project, file);
-
-    if (!(psiFile instanceof XmlFile)) {
+    // The preview editor currently works best with Gradle (see: b/29447486, and b/28110820), but we want to have support for
+    // legacy android projects as well. Only enable for those two cases for now.
+    if (!Projects.isBuildWithGradle(facet.getModule()) && !Projects.isLegacyIdeaAndroidModule(facet.getModule())) {
       return false;
     }
 
@@ -63,8 +59,9 @@ public class NlEditorProvider implements FileEditorProvider, DumbAware {
   @NotNull
   @Override
   public FileEditor createEditor(@NotNull Project project, @NotNull VirtualFile file) {
-    AndroidFacet facet = getFacet(project, file);
-    assert facet != null; // checked by acceptLayout
+    PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(project, file);
+    AndroidFacet facet = psiFile instanceof XmlFile ? AndroidFacet.getInstance(psiFile) : null;
+    assert facet != null; // checked by accept
     return new NlEditor(facet, file, project);
   }
 
