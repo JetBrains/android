@@ -112,15 +112,9 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
     myTextFieldWithAutoCompletion = new TextEditor(project, myCompletionProvider);
     myTextFieldWithAutoCompletion.setBorder(
       BorderFactory.createEmptyBorder(VERTICAL_SPACING, HORIZONTAL_SPACING, VERTICAL_SPACING, HORIZONTAL_SPACING));
+    myBrowsePanel = createBrowsePanel(context);
     myPanel.add(myTextFieldWithAutoCompletion, BorderLayout.CENTER);
-
-    boolean showDesignButton = context != null;
-    if (!showDesignButton) {
-      context = this;
-    }
-    myBrowsePanel = new BrowsePanel(context, showDesignButton);
     myPanel.add(myBrowsePanel, BorderLayout.LINE_END);
-
     myPanel.addComponentListener(new ComponentAdapter() {
       @Override
       public void componentResized(ComponentEvent event) {
