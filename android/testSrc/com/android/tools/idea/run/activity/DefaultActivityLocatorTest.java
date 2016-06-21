@@ -18,6 +18,7 @@ package com.android.tools.idea.run.activity;
 import com.android.SdkConstants;
 import com.android.ddmlib.IDevice;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.dom.manifest.Manifest;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -70,5 +71,17 @@ public class DefaultActivityLocatorTest extends AndroidTestCase {
     IDevice device = mock(IDevice.class);
     when(tv.supportsFeature(IDevice.HardwareFeature.TV)).thenReturn(false);
     assertEquals("com.example.unittest.DefaultLauncher", DefaultActivityLocator.computeDefaultActivity(myFacet, device));
+  }
+
+  // tests that when there are multiple launcher activities, we exclude the ones with android:enabled="false"
+  public void testEnabledActivities() throws Exception {
+    myFixture.copyFileToProject("projects/runConfig/enabled/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    myFixture.copyFileToProject("projects/runConfig/alias/src/debug/java/com/example/unittest/Launcher.java",
+                                "src/com/example/unittest/Launcher.java");
+    assertEquals("LaunchActivity", DefaultActivityLocator.computeDefaultActivity(myFacet, null));
+
+    // make sure that the dom based approach to getting values works as well
+    final Manifest manifest = myFacet.getManifest();
+    assertEquals("LaunchActivity", DefaultActivityLocator.getDefaultLauncherActivityName(myFacet.getModule().getProject(), manifest));
   }
 }

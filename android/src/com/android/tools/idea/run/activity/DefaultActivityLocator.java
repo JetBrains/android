@@ -15,14 +15,16 @@
  */
 package com.android.tools.idea.run.activity;
 
+import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.model.MergedManifest;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.containers.ContainerUtil;
+import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.manifest.*;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -68,29 +70,21 @@ public class DefaultActivityLocator extends ActivityLocator {
   @VisibleForTesting
   static String computeDefaultActivity(@NotNull final AndroidFacet facet, @Nullable final IDevice device) {
     assert !facet.getProperties().USE_CUSTOM_COMPILER_MANIFEST;
-    final MergedManifest manifestInfo = MergedManifest.get(facet);
+    final MergedManifest mergedManifest = MergedManifest.get(facet);
 
-    return DumbService.getInstance(facet.getModule().getProject()).runReadActionInSmartMode(new Computable<String>() {
-      @Override
-      public String compute() {
-        return computeDefaultActivity(ActivityWrapper.get(manifestInfo.getActivities(), manifestInfo.getActivityAliases()),
-                                      device);
-      }
-    });
+    return DumbService.getInstance(facet.getModule().getProject()).runReadActionInSmartMode(
+      () -> computeDefaultActivity(ActivityWrapper.get(mergedManifest.getActivities(), mergedManifest.getActivityAliases()), device));
   }
 
   @Nullable
   public static String getDefaultLauncherActivityName(@NotNull Project project, @NotNull final Manifest manifest) {
-    return DumbService.getInstance(project).runReadActionInSmartMode(new Computable<String>() {
-      @Override
-      public String compute() {
-        Application application = manifest.getApplication();
-        if (application == null) {
-          return null;
-        }
-
-        return computeDefaultActivity(merge(application.getActivities(), application.getActivityAliass()), null);
+    return DumbService.getInstance(project).runReadActionInSmartMode(() -> {
+      Application application = manifest.getApplication();
+      if (application == null) {
+        return null;
       }
+
+      return computeDefaultActivity(merge(application.getActivities(), application.getActivityAliass()), null);
     });
   }
 
@@ -120,8 +114,11 @@ public class DefaultActivityLocator extends ActivityLocator {
       return defaultLauncher.getQualifiedName();
     }
 
+    // filter out the ones that are not enabled
+    launchableActivities = ContainerUtil.filter(launchableActivities, ActivityWrapper::isEnabled);
+
     // Just return the first one we find
-    return launchableActivities.get(0).getQualifiedName();
+    return launchableActivities.isEmpty() ? null : launchableActivities.get(0).getQualifiedName();
   }
 
   /** Returns a launchable activity specific to the given device. */
@@ -178,6 +175,7 @@ public class DefaultActivityLocator extends ActivityLocator {
   public static abstract class ActivityWrapper {
     public abstract boolean hasCategory(@NotNull String name);
     public abstract boolean hasAction(@NotNull String name);
+    public abstract boolean isEnabled();
 
     @Nullable
     public abstract String getQualifiedName();
@@ -235,6 +233,13 @@ public class DefaultActivityLocator extends ActivityLocator {
       return false;
     }
 
+    @Override
+    public boolean isEnabled() {
+      AndroidAttributeValue<String> enabled = myActivity.getEnabled();
+      return enabled == null || enabled.getValue() == null // true if not specified
+             || Boolean.valueOf(enabled.getValue());
+    }
+
     @Nullable
     @Override
     public String getQualifiedName() {
@@ -269,6 +274,13 @@ public class DefaultActivityLocator extends ActivityLocator {
       }
 
       return false;
+    }
+
+    @Override
+    public boolean isEnabled() {
+      AndroidAttributeValue<String> enabled = myAlias.getEnabled();
+      return enabled == null || enabled.getValue() == null // true if not specified
+             || Boolean.valueOf(enabled.getValue());
     }
 
     @Nullable
@@ -315,6 +327,13 @@ public class DefaultActivityLocator extends ActivityLocator {
       }
 
       return false;
+    }
+
+    @Override
+    public boolean isEnabled() {
+      String enabledAttr = myActivity.getAttributeNS(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ENABLED);
+      return StringUtil.isEmpty(enabledAttr) // true if not specified
+             || Boolean.valueOf(enabledAttr);
     }
 
     @Nullable
