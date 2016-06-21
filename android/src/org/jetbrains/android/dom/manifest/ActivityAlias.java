@@ -22,6 +22,7 @@ import com.intellij.util.xml.ExtendClass;
 import com.intellij.util.xml.Required;
 import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.Styleable;
+import org.jetbrains.android.dom.converters.AndroidBooleanValueConverter;
 import org.jetbrains.android.dom.converters.PackageClassConverter;
 
 import java.util.List;
@@ -33,6 +34,10 @@ public interface ActivityAlias extends ManifestElementWithRequiredName {
   @ExtendClass("android.app.Activity")
   @Attribute("targetActivity")
   AndroidAttributeValue<PsiClass> getTargetActivity();
+
+  @Attribute("enabled")
+  @Convert(AndroidBooleanValueConverter.class)
+  AndroidAttributeValue<String> getEnabled();
 
   List<IntentFilter> getIntentFilters();
 
