@@ -24,12 +24,6 @@ import com.android.tools.adtui.model.SeriesData;
 public interface DataAdapter<T> {
 
   /**
-   * It is important that all adapters are synchronized to the same point as the adapters
-   * a {@link SeriesDataStore} the start time gets set on that adapter.
-   */
-  void setStartTime(long time);
-
-  /**
    * This function should return the closest index to the left for a specific time. The time passed in here will be the delta time
    * between the start time and the time requested. For example if the UI requested the first point in time it would pass 0.
    */
@@ -43,7 +37,12 @@ public interface DataAdapter<T> {
   SeriesData<T> get(int index);
 
   /**
-   * If the UI gets reset, this function will get called followed by a setStartTime indicating that all previous data should be cleared.
+   * Clears any previous data and resets any new/incoming data to be relative to the new startTime.
    */
-  void reset();
+  void reset(long startTime);
+
+  /**
+   * Stops any ongoing data polls.
+   */
+  void stop();
 }

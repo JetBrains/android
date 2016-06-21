@@ -34,16 +34,18 @@ public abstract class TestDataGenerator<T> implements DataAdapter<T> {
 
   private Thread mDataThread;
 
-  TestDataGenerator() {
-    reset();
-  }
-
   @Override
-  public void reset() {
+  public void stop() {
     if (mDataThread != null) {
       mDataThread.interrupt();
       mDataThread = null;
     }
+  }
+
+  @Override
+  public void reset(long startTime) {
+    stop();
+    mStartTime = startTime;
     mDataThread = new Thread() {
       @Override
       public void run() {
@@ -72,11 +74,6 @@ public abstract class TestDataGenerator<T> implements DataAdapter<T> {
     }
 
     return Math.max(0, Math.min(mTime.size() - 1, index));
-  }
-
-  @Override
-  public void setStartTime(long startTime) {
-    mStartTime = startTime;
   }
 
   /**

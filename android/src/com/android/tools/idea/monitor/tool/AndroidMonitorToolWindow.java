@@ -25,7 +25,6 @@ import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.ddms.DevicePanel;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.ddms.adb.AdbService;
-import com.android.tools.idea.monitor.AndroidToolWindowFactory;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.datastore.SeriesDataStoreImpl;
 import com.android.tools.idea.monitor.profilerclient.DeviceProfilerService;
@@ -62,6 +61,8 @@ import java.util.Map;
 import java.util.TreeMap;
 
 public class AndroidMonitorToolWindow implements Disposable {
+
+  private static final Logger LOG = Logger.getInstance(AndroidMonitorToolWindow.class);
 
   private static final int CHOREOGRAPHER_FPS = 60;
 
@@ -164,17 +165,13 @@ public class AndroidMonitorToolWindow implements Disposable {
 
   private void setupDevice() {
     mySelectedDevice = myDeviceContext.getSelectedDevice();
-    if (mySelectedDevice != null) {
-      connectToDevice();
-    }
+    connectToDevice();
 
     myDeviceContext.addListener(new DeviceContext.DeviceSelectionListener() {
       @Override
       public void deviceSelected(@Nullable IDevice device) {
-        // Return early if selecting the same device selected previously
-        // We shouldn't return early, however, if there's no connection with the device.
-        // In this case, we want to make sure that connectToDevice() is called.
-        if (device == mySelectedDevice && mySelectedDeviceProfilerService != null) {
+        // Early return if the DeviceProfilerService for the selected device is already running.
+        if (mySelectedDeviceProfilerService != null && mySelectedDeviceProfilerService.getDevice() == device) {
           return;
         }
 
@@ -213,6 +210,7 @@ public class AndroidMonitorToolWindow implements Disposable {
           if (mySelectedDeviceProfilerService == null) {
             connectToDevice();
           }
+
           initializeProfilers();
         }
       }
@@ -227,12 +225,12 @@ public class AndroidMonitorToolWindow implements Disposable {
     Futures.addCallback(future, new FutureCallback<AndroidDebugBridge>() {
       @Override
       public void onSuccess(@Nullable AndroidDebugBridge bridge) {
-        Logger.getInstance(AndroidToolWindowFactory.class).info("Successfully obtained debug bridge");
+        LOG.info("Successfully obtained debug bridge");
       }
 
       @Override
       public void onFailure(@NotNull Throwable t) {
-        Logger.getInstance(AndroidToolWindowFactory.class).info("Unable to obtain debug bridge", t);
+        LOG.info("Unable to obtain debug bridge", t);
       }
     }, EdtExecutor.INSTANCE);
   }
@@ -354,6 +352,12 @@ public class AndroidMonitorToolWindow implements Disposable {
         myCollapseSegmentsButton.setVisible(false);
         myExpandedProfiler = null;
       }
+
+      @Override
+      public void profilerServerDisconnected() {
+        LOG.info("Attempt to communicate with Device Profiler Service failed. Disconnecting...");
+        disconnectFromDevice();
+      }
     });
   }
 
@@ -366,6 +370,7 @@ public class AndroidMonitorToolWindow implements Disposable {
       deinitializeProfilers();
       ProfilerService.getInstance().disconnect(this, mySelectedDeviceProfilerService);
       mySelectedDeviceProfilerService = null;
+      LOG.info("Successfully disconnected from Device Profiler Service.");
     }
   }
 
@@ -374,21 +379,20 @@ public class AndroidMonitorToolWindow implements Disposable {
       return;
     }
 
-    if (!mySelectedDevice.isOnline()) {
-      return;
-    }
-
     mySelectedDeviceProfilerService = ProfilerService.getInstance().connect(this, mySelectedDevice);
+    LOG.info(mySelectedDeviceProfilerService == null ?
+             "Attempt to connect to Device Profiler Service failed." : "Successfully connected to Device Profiler Service.");
   }
 
   private void initializeProfilers() {
     if (mySelectedDeviceProfilerService == null || mySelectedClient == null) {
       return;
     }
-    myDataStore = new SeriesDataStoreImpl(mySelectedDeviceProfilerService);
+
+    myEventDispatcher = EventDispatcher.create(ProfilerEventListener.class);
+    myDataStore = new SeriesDataStoreImpl(mySelectedDeviceProfilerService, myEventDispatcher);
     myChoreographer = new Choreographer(CHOREOGRAPHER_FPS, myComponent);
     myChoreographer.register(createCommonAnimatables());
-    myEventDispatcher = EventDispatcher.create(ProfilerEventListener.class);
 
     // TODO: add event manager to myProfilerManagers
     //myProfilerManagers.put(BaseProfilerUiManager.ProfilerType.EVENT,
@@ -422,13 +426,14 @@ public class AndroidMonitorToolWindow implements Disposable {
       myProfilerManagers.clear();
 
       if (myDataStore != null) {
-        myDataStore.reset();
+        myDataStore.stop();
         myDataStore = null;
       }
       myChoreographer = null;
       myEventDispatcher = null;
       mySelectedClient = null;
       myProfilersInitialized = false;
+      myExpandedProfiler = null;
     }
   }
 }

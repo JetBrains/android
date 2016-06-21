@@ -16,25 +16,38 @@
 package com.android.tools.idea.monitor.datastore;
 
 import com.android.tools.idea.monitor.profilerclient.DeviceProfilerService;
+import com.android.tools.idea.monitor.ui.ProfilerEventListener;
+import com.intellij.util.EventDispatcher;
+import io.grpc.StatusRuntimeException;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.TimeUnit;
 
 public abstract class Poller implements RunnableFuture<Void> {
+
   @NotNull
   protected final DeviceProfilerService myService;
 
+  @NotNull
+  protected final SeriesDataStore myDataStore;
+
+  protected final long myDeviceTimeOffset;
+
   private long myPollPeriodNs;
+
 
   private CountDownLatch myRunning = new CountDownLatch(1);
 
   private CountDownLatch myIsDone = new CountDownLatch(1);
 
-  public Poller(@NotNull DeviceProfilerService service, long pollPeriodNs) {
-    myService = service;
+  public Poller(@NotNull SeriesDataStore dataStore, long pollPeriodNs) {
+    myDataStore = dataStore;
+    myService = myDataStore.getDeviceProfilerService();
     myPollPeriodNs = pollPeriodNs;
+    myDeviceTimeOffset = dataStore.getDeviceTimeOffset();
   }
 
   protected abstract void asyncInit();
@@ -60,9 +73,14 @@ public abstract class Poller implements RunnableFuture<Void> {
           Thread.currentThread().interrupt();
         }
       }
-    } finally {
+    }
+    finally {
       try {
         asyncShutdown();
+      }
+      catch (StatusRuntimeException e) {
+        // Delegate back to the EDT thread to deinitialize the UI and disconnect the profiler service.
+        SwingUtilities.invokeLater(() -> myDataStore.getEventDispatcher().getMulticaster().profilerServerDisconnected());
       }
       finally {
         myIsDone.countDown();

@@ -16,9 +16,12 @@
 package com.android.tools.idea.monitor.ui.memory.model;
 
 import com.android.tools.idea.monitor.datastore.Poller;
+import com.android.tools.idea.monitor.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.profilerclient.DeviceProfilerService;
+import com.android.tools.idea.monitor.ui.ProfilerEventListener;
 import com.android.tools.profiler.proto.MemoryProfilerService;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.util.EventDispatcher;
 import io.grpc.StatusRuntimeException;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,8 +35,8 @@ public class MemoryPoller extends Poller {
   private long myStartTimestamp;
   private int myAppId;
 
-  public MemoryPoller(@NotNull DeviceProfilerService service, int appId) {
-    super(service, POLL_PERIOD_NS);
+  public MemoryPoller(@NotNull SeriesDataStore dataStore, int appId) {
+    super(dataStore, POLL_PERIOD_NS);
     myAppId = appId;
   }
 

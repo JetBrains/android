@@ -34,4 +34,11 @@ public interface ProfilerEventListener extends EventListener {
    */
   default void profilersReset() {
   }
+
+  /**
+   * Notifies that connection to the device server has failed.
+   */
+  default void profilerServerDisconnected() {
+
+  }
 }
