@@ -87,7 +87,7 @@ public class GfxTracer {
 
     void onStopped();
 
-    void onError(@NotNull String error);
+    void onError(@NotNull Exception error);
   }
 
   public static GfxTracer launch(@NotNull final Project project,
@@ -101,8 +101,7 @@ public class GfxTracer {
       try {
         tracer.launchAndCapture(pkg, act, options);
       } catch (Exception ex) {
-        listener.onError(ex.getMessage()); // Update the trace dialog to let the user know something went wrong.
-        throw ex;
+        listener.onError(ex); // Update the trace dialog to let the user know something went wrong.
       }
     });
     return tracer;
@@ -118,8 +117,7 @@ public class GfxTracer {
       try {
         tracer.attachTracerAndCapture(packageName, options);
       } catch (Exception ex) {
-        listener.onError(ex.getMessage());
-        throw ex;
+        listener.onError(ex);
       }
     });
     return tracer;
@@ -139,31 +137,21 @@ public class GfxTracer {
     }
   }
 
-  private void launchAndCapture(@NotNull final DeviceInfo.Package pkg, @NotNull final DeviceInfo.Activity act, @NotNull Options options) {
-    try {
-      myListener.onAction("Launching application...");
-      String component = pkg.myName + "/" + act.myName;
-      // Switch adb to root mode, if not already
-      myDevice.root();
+  private void launchAndCapture(@NotNull final DeviceInfo.Package pkg, @NotNull final DeviceInfo.Activity act, @NotNull Options options) throws Exception {
+    myListener.onAction("Launching application...");
+    String component = pkg.myName + "/" + act.myName;
+    // Switch adb to root mode, if not already
+    myDevice.root();
 
-      // Launch the app in debug mode.
-      captureAdbShell(myDevice, "am start -S -D -W -n " + component);   //-D
-      attachTracerAndCapture(pkg.myName, options);
-    }
-    catch (Exception e) {
-      throw new RuntimeException(e);
-    }
+    // Launch the app in debug mode.
+    captureAdbShell(myDevice, "am start -S -D -W -n " + component);   //-D
+    attachTracerAndCapture(pkg.myName, options);
   }
 
-  private void attachTracerAndCapture(@NotNull String pkg, @NotNull Options options) {
+  private void attachTracerAndCapture(@NotNull String pkg, @NotNull Options options) throws Exception {
     myListener.onAction("Installing trace library...");
-    try {
-      new GapiiLibraryLoader(myProject, myDevice).connectToProcessAndInstallLibraries(pkg);
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
+    new GapiiLibraryLoader(myProject, myDevice).connectToProcessAndInstallLibraries(pkg);
     LOG.info("Finished installing libraries, capturing.");
-
     capture(options);
   }
 
