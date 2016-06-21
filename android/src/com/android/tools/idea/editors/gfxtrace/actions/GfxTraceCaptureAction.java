@@ -17,9 +17,9 @@ package com.android.tools.idea.editors.gfxtrace.actions;
 
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
-import com.android.ddmlib.Log;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.DeviceInfo;
+import com.android.tools.idea.editors.gfxtrace.GapiiLibraryLoader;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceUtil;
 import com.android.tools.idea.editors.gfxtrace.GfxTracer;
@@ -28,7 +28,6 @@ import com.android.tools.idea.editors.gfxtrace.forms.TraceDialog;
 import com.android.tools.idea.editors.gfxtrace.gapi.GapiPaths;
 import com.android.tools.idea.monitor.gpu.GpuMonitorView;
 import com.android.tools.idea.stats.UsageTracker;
-import com.intellij.concurrency.JobScheduler;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.RunConfiguration;
@@ -39,6 +38,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
@@ -334,8 +334,18 @@ public class GfxTraceCaptureAction extends ToggleAction {
       }
 
       @Override
-      public void onError(@NotNull String error) {
-        EdtExecutor.INSTANCE.execute(() -> dialog.onError(error));
+      public void onError(@NotNull Exception error) {
+        String message;
+        if (error instanceof GapiiLibraryLoader.DeviceNotSupportedException) {
+          message = "The GPU debugger does not currently support tracing on this device";
+          Logger.getInstance(GfxTraceCaptureAction.class).warn(error);
+        }
+        else {
+          message = error.getMessage();
+          Logger.getInstance(GfxTraceCaptureAction.class).error(error);
+        }
+
+        EdtExecutor.INSTANCE.execute(() -> dialog.onError(message));
       }
 
       private void update() {
