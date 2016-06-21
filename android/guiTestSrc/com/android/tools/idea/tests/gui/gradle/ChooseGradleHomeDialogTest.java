@@ -47,7 +47,7 @@ public class ChooseGradleHomeDialogTest {
 
   @Test
   public void testValidationWithInvalidMinimumGradleVersion() {
-    File unsupportedGradleHome = getUnsupportedGradleHome();
+    File unsupportedGradleHome = getUnsupportedGradleHomeOrSkipTest();
     assume().that(unsupportedGradleHome).isNotNull();
 
     ChooseGradleHomeDialogFixture dialog = launchChooseGradleHomeDialog();
@@ -59,7 +59,7 @@ public class ChooseGradleHomeDialogTest {
 
   @Test
   public void testValidateWithValidMinimumGradleVersion() {
-    File gradleHomePath = getGradleHomePath();
+    File gradleHomePath = getGradleHomePathOrSkipTest();
     assume().that(gradleHomePath).isNotNull();
 
     ChooseGradleHomeDialogFixture dialog = launchChooseGradleHomeDialog();

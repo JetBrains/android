@@ -23,13 +23,12 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
-import com.intellij.openapi.project.ProjectCoreUtil;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.ReflectionUtil;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiTask;
@@ -62,6 +61,8 @@ import java.util.concurrent.TimeUnit;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.truth.TruthJUnit.assume;
+import static org.fest.reflect.core.Reflection.*;
+import static org.junit.Assert.assertNotNull;
 
 public class GuiTestRule implements TestRule {
 
@@ -153,7 +154,7 @@ public class GuiTestRule implements TestRule {
     }
   }
 
-  private void tearDown(List<Throwable> errors) throws Exception {
+  private void tearDown(@NotNull List<Throwable> errors) {
     try {
       waitForBackgroundTasks();
     }
@@ -200,14 +201,20 @@ public class GuiTestRule implements TestRule {
     return null;
   }
 
-  private void fixMemLeaks() throws Exception {
+  private void fixMemLeaks() {
     myIdeFrameFixture = null;
 
     // Work-around for https://youtrack.jetbrains.com/issue/IDEA-153492
-    Object manager = ReflectionUtil.getDeclaredMethod(Class.forName("javax.swing.KeyboardManager"), "getCurrentManager").invoke(null);
-    Map componentKeyStrokeMap = ReflectionUtil.getField(manager.getClass(), manager, Hashtable.class, "componentKeyStrokeMap");
+    Class<?> keyboardManagerType = type("javax.swing.KeyboardManager").load();
+    Object manager = method("getCurrentManager").withReturnType(Object.class).in(keyboardManagerType).invoke();
+    assertNotNull(manager);
+
+    Map componentKeyStrokeMap = field("componentKeyStrokeMap").ofType(Hashtable.class).in(manager).get();
+    assertNotNull(componentKeyStrokeMap);
     componentKeyStrokeMap.clear();
-    Map containerMap = ReflectionUtil.getField(manager.getClass(), manager, Hashtable.class, "containerMap");
+
+    Map containerMap = field("containerMap").ofType(Hashtable.class).in(manager).get();
+    assertNotNull(containerMap);
     containerMap.clear();
   }
 
@@ -320,7 +327,7 @@ public class GuiTestRule implements TestRule {
   }
 
   public void cleanUpProjectForImport(@NotNull File projectPath) {
-    File dotIdeaFolderPath = new File(projectPath, ProjectCoreUtil.DIRECTORY_BASED_PROJECT_DIR);
+    File dotIdeaFolderPath = new File(projectPath, Project.DIRECTORY_STORE_FOLDER);
     if (dotIdeaFolderPath.isDirectory()) {
       File modulesXmlFilePath = new File(dotIdeaFolderPath, "modules.xml");
       if (modulesXmlFilePath.isFile()) {
