@@ -107,7 +107,8 @@ public class GapiiLibraryLoader {
     // Wait for the debugger to connect and the libraries to be installed.
     try {
       evalCompletion.get(LIB_INSTALLATION_TIMEOUT_MS, TimeUnit.MILLISECONDS);
-    } catch (TimeoutException ex) {
+    }
+    catch (TimeoutException timeout) {
       // Timeout waiting for the debugger to connect or libraries to be installed.
       // Stop the debugger process.
       EdtExecutorService.getInstance().submit(() -> {
@@ -117,8 +118,15 @@ public class GapiiLibraryLoader {
           process.getManagerThread().terminateAndInvoke(process.createStopCommand(true), 1000);
         }
       });
+      throw timeout;
+    }
+    catch (ExecutionException ex) {
+      if (ex.getCause() instanceof Exception) {
+        throw (Exception)ex.getCause();
+      }
       throw ex;
-    } finally {
+    }
+    finally {
       // Success or failure, we should terminate the debugger session we created.
       EdtExecutorService.getInstance().submit(() -> {
         DebuggerSession session = debugger.getDebuggerSession(client);
@@ -194,9 +202,9 @@ public class GapiiLibraryLoader {
       // libgapii.so must be found.
       try {
         libraries.add(GapiPaths.findTraceLibrary(abi));
-      } catch (IOException ex) {
-        Exception e = new RuntimeException("Couldn't find libgapii.so for target ABI '" + abi + "'", ex);
-        LOG.error(e);
+      }
+      catch (IOException ex) {
+        Exception e = new DeviceNotSupportedException("Couldn't find libgapii.so for target ABI '" + abi + "'", ex);
         myEvalCompletion.setException(e);
         return false;
       }
@@ -268,4 +276,10 @@ public class GapiiLibraryLoader {
         "  }\n";
     }
   };
+
+  public static class DeviceNotSupportedException extends Exception {
+    public DeviceNotSupportedException(String message, Throwable cause) {
+      super(message, cause);
+    }
+  }
 }
