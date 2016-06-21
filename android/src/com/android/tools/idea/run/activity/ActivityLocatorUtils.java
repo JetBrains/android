@@ -63,17 +63,6 @@ public class ActivityLocatorUtils {
     return false;
   }
 
-  public static boolean containsLauncherIntent(@NotNull List<IntentFilter> intentFilters) {
-    for (IntentFilter filter : intentFilters) {
-      if (AndroidDomUtil.containsAction(filter, AndroidUtils.LAUNCH_ACTION_NAME) &&
-          (AndroidDomUtil.containsCategory(filter, AndroidUtils.LAUNCH_CATEGORY_NAME) ||
-           AndroidDomUtil.containsCategory(filter, AndroidUtils.LEANBACK_LAUNCH_CATEGORY_NAME))) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   public static boolean containsLauncherIntent(@NotNull DefaultActivityLocator.ActivityWrapper activity) {
     return activity.hasAction(AndroidUtils.LAUNCH_ACTION_NAME)
         || activity.hasCategory(AndroidUtils.LAUNCH_CATEGORY_NAME)

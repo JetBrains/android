@@ -23,6 +23,7 @@ import com.intellij.util.xml.ExtendClass;
 import com.intellij.util.xml.Required;
 import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.Styleable;
+import org.jetbrains.android.dom.converters.AndroidBooleanValueConverter;
 import org.jetbrains.android.dom.converters.PackageClassConverter;
 import org.jetbrains.android.dom.structure.manifest.ActivityPresentationProvider;
 
@@ -38,9 +39,13 @@ public interface Activity extends ApplicationComponent {
   AndroidAttributeValue<PsiClass> getActivityClass();
 
   @Attribute("parentActivityName")
-  @Convert(value = PackageClassConverter.class)
+  @Convert(PackageClassConverter.class)
   @ExtendClass("android.app.Activity")
   AndroidAttributeValue<PsiClass> getParentActivityName();
+
+  @Attribute("enabled")
+  @Convert(AndroidBooleanValueConverter.class)
+  AndroidAttributeValue<String> getEnabled();
 
   List<IntentFilter> getIntentFilters();
 
