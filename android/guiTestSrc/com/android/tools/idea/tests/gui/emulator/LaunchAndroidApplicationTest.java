@@ -69,7 +69,7 @@ public class LaunchAndroidApplicationTest {
 
     guiTest.ideFrame()
       .debugApp(APP_NAME)
-      .selectEmulator("Nexus7")
+      .selectDevice("Nexus7")
       .clickOk();
 
     // Make sure the right app is being used. This also serves as the sync point for the package to get uploaded to the device/emulator.
