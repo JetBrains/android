@@ -51,7 +51,7 @@ public final class Render {
   @NotNull private static final Logger LOG = Logger.getInstance(Render.class);
   // object rendering functions
 
-  private static void render(@NotNull Object value, @NotNull SimpleColoredComponent component, @NotNull SimpleTextAttributes attributes, int tag) {
+  private static void render(@Nullable Object value, @NotNull SimpleColoredComponent component, @NotNull SimpleTextAttributes attributes, int tag) {
     if (value instanceof SnippetObject) {
       render((SnippetObject)value, component, attributes, tag);
       return;
@@ -68,7 +68,7 @@ public final class Render {
       render((MemoryRange)value, component, attributes, tag);
       return;
     }
-    component.append(value.toString(), attributes, tag);
+    component.append(String.valueOf(value), attributes, tag);
   }
 
   public static void render(@NotNull SnippetObject obj, @NotNull Dynamic dynamic,
