@@ -54,7 +54,7 @@ public class GfxTraceCaptureAction extends ToggleAction {
   private static final String NOTIFICATION_LAUNCH_REQUIRES_ROOT_TITLE = "Rooted device required";
   private static final String NOTIFICATION_LAUNCH_REQUIRES_ROOT_CONTENT =
     "The device needs to be rooted in order to launch an application for GPU tracing.<br/>" +
-    "To trace your own application on a non-rooted device, build your application with the GPU tracing library.";
+    "To trace your own application on a non-rooted device, enable tracing in the run configuration.";
 
   private static final int ROOT_CHECK_RETRY_INTERVAL_MS = 250;
   private static final int ROOT_CHECK_ATTEMPTS = 15;
