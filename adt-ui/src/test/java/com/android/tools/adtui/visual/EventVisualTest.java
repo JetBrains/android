@@ -72,7 +72,7 @@ public class EventVisualTest extends VisualTest {
     }
   }
 
-  private static BufferedImage buildStaticImage(Color color) {
+  private static Icon buildStaticImage(Color color) {
     BufferedImage image = new BufferedImage(IMAGE_WIDTH, IMAGE_HEIGHT,
                                             BufferedImage.TYPE_4BYTE_ABGR);
     for (int y = 0; y < IMAGE_HEIGHT; y++) {
@@ -80,10 +80,11 @@ public class EventVisualTest extends VisualTest {
         image.setRGB(x, y, color.getRGB());
       }
     }
-    return image;
+    ImageIcon icon = new ImageIcon(image);
+    return icon;
   }
 
-  private static final BufferedImage[] MOCK_ICONS = {
+  private static final Icon[] MOCK_ICONS = {
     buildStaticImage(Color.red),
     buildStaticImage(Color.green),
     buildStaticImage(Color.blue),

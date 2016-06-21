@@ -20,6 +20,7 @@ import com.android.tools.adtui.model.*;
 import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Path2D;
@@ -50,7 +51,7 @@ public class SimpleEventComponent<E extends Enum<E>> extends AnimatedComponent {
   private final RangedSeries<EventAction<Action, E>> mData;
 
   @NotNull
-  private final BufferedImage[] mIcons;
+  private final Icon[] mIcons;
 
   @NotNull
   private final ArrayList<Shape> mPaths;
@@ -61,21 +62,17 @@ public class SimpleEventComponent<E extends Enum<E>> extends AnimatedComponent {
   @NotNull
   private final int mImageWidth;
 
-  @NotNull
-  private final int mImageHeight;
-
   /**
    * Component that renders EventActions as a series of icons.
    */
   public SimpleEventComponent(
     @NotNull RangedSeries<EventAction<Action, E>> data,
-    @NotNull BufferedImage[] icons) {
+    @NotNull Icon[] icons) {
     mData = data;
     mIcons = icons;
     mPaths = new ArrayList<Shape>();
     mIconsToDraw = new ArrayList<EventRenderData>();
-    mImageWidth = mIcons[0].getWidth();
-    mImageHeight = mIcons[0].getHeight();
+    mImageWidth = mIcons[0].getIconWidth();
   }
 
   @Override
@@ -142,7 +139,7 @@ public class SimpleEventComponent<E extends Enum<E>> extends AnimatedComponent {
       //TODO account for image width in positioning.
       AffineTransform translate = AffineTransform
         .getTranslateInstance(normalizedPosition * scaleFactor - mImageWidth / 2.0, 0);
-      g2d.drawImage(mIcons[data.getIndex() % mIcons.length], translate, null);
+      mIcons[data.getIndex() % mIcons.length].paintIcon(this, g2d, (int)translate.getTranslateX(), (int)translate.getTranslateY());
     }
     Stroke current = g2d.getStroke();
     BasicStroke str = new BasicStroke(2.0f);

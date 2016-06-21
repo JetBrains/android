@@ -59,13 +59,13 @@ public class EventSegment extends BaseSegment {
   private final SeriesDataStore mDataStore;
 
   @NotNull
-  private BufferedImage[] mIcons;
+  private Icon[] mIcons;
 
   //TODO Add labels for series data.
 
   public EventSegment(@NotNull Range scopedRange,
                       @NotNull SeriesDataStore dataStore,
-                      @NotNull BufferedImage[] icons,
+                      @NotNull Icon[] icons,
                       @NotNull EventDispatcher<ProfilerEventListener> dispatcher) {
     super(SEGMENT_NAME, scopedRange, dispatcher);
     mDataStore = dataStore;
@@ -115,6 +115,6 @@ public class EventSegment extends BaseSegment {
   public Dimension getPreferredSize() {
     Dimension size = super.getPreferredSize();
     assert mIcons.length > 0 && mIcons[0] != null;
-    return new Dimension(size.width, (ACTIVITY_GRAPH_SIZE + FRAGMENT_GRAPH_SIZE) * 2 + mIcons[0].getHeight());
+    return new Dimension(size.width, (ACTIVITY_GRAPH_SIZE + FRAGMENT_GRAPH_SIZE) * 2 + mIcons[0].getIconHeight());
   }
 }

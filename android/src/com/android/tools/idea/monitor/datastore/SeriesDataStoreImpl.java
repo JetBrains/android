@@ -116,6 +116,14 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
         case NETWORK_CONNECTIONS:
           registerAdapter(type, CPU_NUM_CONNECTIONS_GENERATOR);
           break;
+        case EVENT_ACTIVITY_ACTION:
+        case EVENT_FRAGMENT_ACTION:
+          // TODO: replace EmptyDataGenerator with actual data from perfd.
+          registerAdapter(type, new EmptyDataGenerator<>());
+          break;
+        case EVENT_SIMPLE_ACTION:
+          registerAdapter(type, new EmptyDataGenerator<>());
+          break;
         default:
           registerAdapter(type, DEFAULT_DATA_GENERATOR);
           break;
@@ -132,6 +140,29 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
       ProfilerService.TimesRequest.getDefaultInstance());
     myStartTime = System.currentTimeMillis();
     myDeviceStartTime = response.getTimestamp();
+  }
+
+  private static class EmptyDataGenerator<T> implements DataAdapter<T> {
+
+    @Override
+    public void reset() {
+
+    }
+
+    @Override
+    public int getClosestTimeIndex(long time) {
+      return 0;
+    }
+
+    @Override
+    public SeriesData<T> get(int index) {
+      return null;
+    }
+
+    @Override
+    public void setStartTime(long startTime) {
+
+    }
   }
 
   /**
