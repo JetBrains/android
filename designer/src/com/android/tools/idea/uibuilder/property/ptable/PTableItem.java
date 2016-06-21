@@ -20,6 +20,8 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
+import java.awt.*;
+import java.awt.event.MouseEvent;
 import java.util.Collections;
 import java.util.List;
 
@@ -63,6 +65,11 @@ public abstract class PTableItem {
   public abstract String getName();
 
   @Nullable
+  public String getNamespace() {
+    return null;
+  }
+
+  @Nullable
   public abstract String getValue();
 
   @Nullable
@@ -79,5 +86,9 @@ public abstract class PTableItem {
 
   public boolean isEditable(int col) {
     return false;
+  }
+
+  @SuppressWarnings("UnusedParameters")
+  public void mousePressed(@NotNull MouseEvent event, Rectangle rectRightColumn) {
   }
 }
