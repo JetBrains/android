@@ -20,6 +20,7 @@ import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.repository.util.InstallerUtil;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.meta.DetailsTypes;
+import com.android.tools.idea.help.StudioHelpManagerImpl;
 import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
@@ -82,7 +83,7 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
   @Nullable
   @Override
   public String getHelpTopic() {
-    return null;
+    return StudioHelpManagerImpl.STUDIO_HELP_PREFIX + "r/studio-ui/sdk-manager.html";
   }
 
   @Nullable
