@@ -33,6 +33,8 @@ import com.intellij.debugger.impl.DebuggerSession;
 import com.intellij.debugger.ui.breakpoints.FilteredRequestor;
 import com.intellij.execution.ExecutionManager;
 import com.intellij.execution.executors.DefaultDebugExecutor;
+import com.intellij.execution.process.ProcessAdapter;
+import com.intellij.execution.process.ProcessEvent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -88,6 +90,18 @@ public class GapiiLibraryLoader {
           process.getRequestsManager().createMethodEntryRequest(filter).enable();
         }
       });
+
+      process.addProcessListener(new ProcessAdapter() {
+        @Override
+        public void processTerminated(ProcessEvent event) {
+          // Once we've detached the debugger, this gets executed, and closes the debugger window.
+          EdtExecutorService.getInstance().submit(
+            () -> ExecutionManager.getInstance(myProject).getContentManager().removeRunContent(
+              DefaultDebugExecutor.getDebugExecutorInstance(),
+              session.getXDebugSession().getRunContentDescriptor())
+          );
+        }
+      });
     });
 
     // Wait for the debugger to connect and the libraries to be installed.
@@ -110,11 +124,8 @@ public class GapiiLibraryLoader {
         DebuggerSession session = debugger.getDebuggerSession(client);
         if (session != null) {
           DebugProcessImpl process = session.getProcess();
+          // After we're done interacting with the process, we detach the debugger. A ProcessListener then closes the debugger window.
           process.getProcessHandler().detachProcess();
-          ExecutionManager.getInstance(myProject).getContentManager().removeRunContent(
-            DefaultDebugExecutor.getDebugExecutorInstance(),
-            session.getXDebugSession().getRunContentDescriptor()
-          );
         }
       });
     }
