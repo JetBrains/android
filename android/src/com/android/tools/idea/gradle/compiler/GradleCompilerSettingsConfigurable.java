@@ -23,14 +23,12 @@ import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.RawCommandLineEditor;
-import com.intellij.ui.components.JBLabel;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.google.common.base.Strings.nullToEmpty;
 
 /**
@@ -46,8 +44,6 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
   private HyperlinkLabel myParallelBuildDocHyperlinkLabel;
 
   private JCheckBox myAutoMakeCheckBox;
-  private JBLabel myUseInProcessBuildLabel;
-  private JCheckBox myUseInProcessBuildCheckBox;
   private JPanel myContentPanel;
 
   private RawCommandLineEditor myCommandLineOptionsEditor;
@@ -57,7 +53,6 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
   private JCheckBox myConfigureOnDemandCheckBox;
   @SuppressWarnings("UnusedDeclaration")
   private HyperlinkLabel myConfigureOnDemandDocHyperlinkLabel;
-  private JBLabel myUseInProcessBuildSpacing;
 
   private final String myDisplayName;
 
@@ -65,12 +60,6 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
     myDisplayName = displayName;
     myCompilerConfiguration = CompilerWorkspaceConfiguration.getInstance(project);
     myBuildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
-
-    if (!isAndroidStudio()) {
-      myUseInProcessBuildLabel.setVisible(false);
-      myUseInProcessBuildCheckBox.setVisible(false);
-      myUseInProcessBuildSpacing.setVisible(false);
-    }
   }
 
   @Override
@@ -107,7 +96,6 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
   public boolean isModified() {
     return myCompilerConfiguration.PARALLEL_COMPILATION != isParallelBuildsEnabled() ||
            myCompilerConfiguration.MAKE_PROJECT_ON_SAVE != isAutoMakeEnabled() ||
-           myBuildConfiguration.USE_EXPERIMENTAL_FASTER_BUILD != isExperimentalBuildEnabled() ||
            myBuildConfiguration.USE_CONFIGURATION_ON_DEMAND != isConfigurationOnDemandEnabled() ||
            !Objects.equal(getCommandLineOptions(), myBuildConfiguration.COMMAND_LINE_OPTIONS);
   }
@@ -116,7 +104,6 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
   public void apply() {
     myCompilerConfiguration.PARALLEL_COMPILATION = isParallelBuildsEnabled();
     myCompilerConfiguration.MAKE_PROJECT_ON_SAVE = isAutoMakeEnabled();
-    myBuildConfiguration.USE_EXPERIMENTAL_FASTER_BUILD = isExperimentalBuildEnabled();
     myBuildConfiguration.COMMAND_LINE_OPTIONS = getCommandLineOptions();
     myBuildConfiguration.USE_CONFIGURATION_ON_DEMAND = isConfigurationOnDemandEnabled();
   }
@@ -127,10 +114,6 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
 
   private boolean isAutoMakeEnabled() {
     return myAutoMakeCheckBox.isSelected();
-  }
-
-  private boolean isExperimentalBuildEnabled() {
-    return myUseInProcessBuildCheckBox.isSelected();
   }
 
   private boolean isConfigurationOnDemandEnabled() {
@@ -146,7 +129,6 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
   public void reset() {
     myParallelBuildCheckBox.setSelected(myCompilerConfiguration.PARALLEL_COMPILATION);
     myAutoMakeCheckBox.setSelected(myCompilerConfiguration.MAKE_PROJECT_ON_SAVE);
-    myUseInProcessBuildCheckBox.setSelected(myBuildConfiguration.USE_EXPERIMENTAL_FASTER_BUILD);
     myConfigureOnDemandCheckBox.setSelected(myBuildConfiguration.USE_CONFIGURATION_ON_DEMAND);
     myAutoMakeCheckBox.setText("Make project automatically (only works while not running / debugging" +
                                (PowerSaveMode.isEnabled() ? ", disabled in Power Save mode" : "") +
