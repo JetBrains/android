@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.ide.common.rendering.api.Result;
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
@@ -99,6 +100,9 @@ public abstract class RenderTestBase extends AndroidTestCase {
     assertNotNull(render);
 
     assertNotNull(result);
+    Result renderResult = result.getRenderResult();
+    assertEquals(String.format("Render failed with message: %s\n%s", renderResult.getErrorMessage(), renderResult.getException()),
+                 Result.Status.SUCCESS, result.getRenderResult().getStatus());
     RenderedImage image = result.getImage();
     assertNotNull(image);
     image.setMaxSize(200, 200);
