@@ -225,6 +225,7 @@ public class LineChart extends AnimatedComponent {
       // TODO optimize to not draw anything before or after min and max.
       ImmutableList<SeriesData<Long>> seriesList = ranged.getSeries();
       for (int i = 0; i < seriesList.size(); i++) {
+        // TODO: refactor to allow different types (e.g. double)
         SeriesData<Long> seriesData = seriesList.get(i);
         long currX = seriesData.x;
         long currY = seriesData.value;

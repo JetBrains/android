@@ -25,15 +25,10 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 public final class SeriesDataStoreImpl implements SeriesDataStore {
 
   private static final int GENERATE_DATA_THREAD_DELAY = 100;
-
-  private static final DataGenerator CPU_MY_PROCESS_GENERATOR = new DataGenerator(0, 60, 10);
-
-  private static final DataGenerator CPU_OTHER_PROCESSES_GENERATOR = new DataGenerator(0, 30, 10);
 
   private static final DataGenerator CPU_NUM_THREADS_GENERATOR = new DataGenerator(0, 10, 1);
 
@@ -95,9 +90,15 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
 
   //TODO change the register API to
   // registerAdapter(SeriesDataType<T> DataAdapter<T>) to ensure type safety.
+  @Override
   public void registerAdapter(SeriesDataType type, DataAdapter adapter) {
     myDataSeriesMap.put(type, adapter);
     adapter.setStartTime(myStartTime);
+  }
+
+  @Override
+  public long getDeviceTimeOffset() {
+    return myDeviceStartTime;
   }
 
   private void startGeneratingData() {
@@ -105,10 +106,9 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
     for (SeriesDataType type : SeriesDataType.values()) {
       switch (type) {
         case CPU_MY_PROCESS:
-          registerAdapter(type, CPU_MY_PROCESS_GENERATOR);
-          break;
         case CPU_OTHER_PROCESSES:
-          registerAdapter(type, CPU_OTHER_PROCESSES_GENERATOR);
+          // TODO: as we're moving the registerAdapter calls to the correspondent pollers, we can add the covered types here.
+          // Once we're done with the move, we can remove this switch/case block.
           break;
         case CPU_THREADS:
           registerAdapter(type, CPU_NUM_THREADS_GENERATOR);
@@ -131,7 +131,7 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
     ProfilerService.TimesResponse response = myDeviceProfilerService.getDeviceService().getTimes(
       ProfilerService.TimesRequest.getDefaultInstance());
     myStartTime = System.currentTimeMillis();
-    myDeviceStartTime = TimeUnit.NANOSECONDS.toMillis(response.getTimestamp());
+    myDeviceStartTime = response.getTimestamp();
   }
 
   /**

@@ -15,11 +15,16 @@
  */
 package com.android.tools.idea.monitor.ui.cpu.model;
 
-import com.android.tools.idea.monitor.profilerclient.DeviceProfilerService;
+import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.idea.monitor.datastore.DataAdapter;
 import com.android.tools.idea.monitor.datastore.Poller;
+import com.android.tools.idea.monitor.datastore.SeriesDataStore;
+import com.android.tools.idea.monitor.datastore.SeriesDataType;
+import com.android.tools.idea.monitor.profilerclient.DeviceProfilerService;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuProfilerServiceGrpc;
+import gnu.trove.TLongArrayList;
 import io.grpc.StatusRuntimeException;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,7 +35,6 @@ import java.util.concurrent.TimeUnit;
  * Collects CPU data from the device.
  * Data is collected in a thread, which makes gRPC requests to get it.
  */
-// TODO: create a DataPoller interface/abstract class to be implemented/extended by this and other pollers.
 public class CpuDataPoller extends Poller {
 
   /**
@@ -39,15 +43,27 @@ public class CpuDataPoller extends Poller {
   private static final long POLLING_DELAY_NS = TimeUnit.SECONDS.toNanos(1);
 
   private long myDataRequestStartTimestamp;
+
   private int myPid;
+
   private DeviceProfilerService myDeviceProfilerService;
+
   private CpuProfilerServiceGrpc.CpuProfilerServiceBlockingStub myCpuService;
 
-  public CpuDataPoller(@NotNull DeviceProfilerService service, int pid) {
-    super(service, POLLING_DELAY_NS);
+  private TLongArrayList myTimestampArray = new TLongArrayList();
 
+  private final long myDeviceTimeOffset;
+
+  // TODO: Change them to double after refactoring LineChart
+  private TLongArrayList myProcessCpuUsage = new TLongArrayList();
+  private TLongArrayList myOtherProcessesCpuUsage = new TLongArrayList();
+
+  public CpuDataPoller(@NotNull DeviceProfilerService service, int pid, @NotNull SeriesDataStore dataStore) {
+    super(service, POLLING_DELAY_NS);
     myDeviceProfilerService = service;
     myPid = pid;
+    myDeviceTimeOffset = dataStore.getDeviceTimeOffset();
+    registerAdapters(dataStore);
   }
 
   private static CpuUsageData getCpuUsageData(Cpu.CpuProfilerData data, Cpu.CpuProfilerData lastData) {
@@ -57,7 +73,12 @@ public class CpuDataPoller extends Poller {
     double system =
       100.0 * (data.getCpuUsage().getSystemCpuTimeInMillisec() - lastData.getCpuUsage().getSystemCpuTimeInMillisec()) / elapsed;
 
-    return new CpuUsageData(app, system, elapsed);
+    return new CpuUsageData(app, system);
+  }
+
+  private void registerAdapters(@NotNull SeriesDataStore dataStore) {
+    dataStore.registerAdapter(SeriesDataType.CPU_MY_PROCESS, new CpuUsageDataAdapter(myProcessCpuUsage));
+    dataStore.registerAdapter(SeriesDataType.CPU_OTHER_PROCESSES, new CpuUsageDataAdapter(myOtherProcessesCpuUsage));
   }
 
   @Override
@@ -70,7 +91,11 @@ public class CpuDataPoller extends Poller {
 
   @Override
   protected void asyncShutdown() {
-    myDeviceProfilerService.getCpuService().stopMonitoringApp(CpuProfiler.CpuStopRequest.newBuilder().setAppId(myPid).build());
+    try {
+      myCpuService.stopMonitoringApp(CpuProfiler.CpuStopRequest.newBuilder().setAppId(myPid).build());
+    } catch (StatusRuntimeException ignored) {
+      // UNAVAILABLE
+    }
   }
 
   @Override
@@ -96,11 +121,53 @@ public class CpuDataPoller extends Poller {
     Cpu.CpuProfilerData lastCpuData = Cpu.CpuProfilerData.newBuilder().build();
 
     for (Cpu.CpuProfilerData data : cpuDataList) {
-      // TODO: link this data with a SeriesDataStore to display it in the UI
+      myTimestampArray.add(TimeUnit.NANOSECONDS.toMillis(data.getBasicInfo().getEndTimestamp() - myDeviceTimeOffset));
       CpuUsageData usageData = getCpuUsageData(data, lastCpuData);
+      myProcessCpuUsage.add((long) usageData.getAppUsage());
+      myOtherProcessesCpuUsage.add((long) usageData.getOtherProcessesUsage());
       lastCpuData = data;
       // Update start timestamp inside the loop in case the thread is interrupted before its end.
       myDataRequestStartTimestamp = lastCpuData.getBasicInfo().getEndTimestamp();
+    }
+  }
+
+  private final class CpuUsageDataAdapter implements DataAdapter<Long> {
+
+    @NotNull
+    private TLongArrayList myCpuUsage;
+
+    CpuUsageDataAdapter(@NotNull TLongArrayList cpuUsage) {
+      myCpuUsage = cpuUsage;
+    }
+
+    @Override
+    public void setStartTime(long time) {
+      // TODO: consider removing ths method from the adapter interface and using getDeviceTimeOffset() when adding data instead.
+    }
+
+    @Override
+    public int getClosestTimeIndex(long time) {
+      int index = myTimestampArray.binarySearch(time);
+      if (index < 0) {
+        // No exact match, returns position to the left of the insertion point.
+        // NOTE: binarySearch returns -(insertion point + 1) if not found.
+        index = -index - 2;
+      }
+
+      return Math.max(0, Math.min(myTimestampArray.size() - 1, index));
+    }
+
+    @Override
+    public SeriesData<Long> get(int index) {
+      SeriesData<Long> data = new SeriesData<>();
+      data.x = myTimestampArray.get(index);
+      data.value = myCpuUsage.get(index);
+      return data;
+    }
+
+    @Override
+    public void reset() {
+      // TODO: Define reset mechanism.
     }
   }
 
@@ -116,28 +183,19 @@ public class CpuDataPoller extends Poller {
      */
     private double mySystemUsage;
 
-    // TODO: remove this parameter if we don't need it later.
-    /**
-     * Elapsed time (in ms) since system start.
-     */
-    private long myElapsedTime;
-
-    CpuUsageData(double appUsage, double systemUsage, long elapsedTime) {
+    CpuUsageData(double appUsage, double systemUsage) {
       myAppUsage = appUsage;
       mySystemUsage = systemUsage;
-      myElapsedTime = elapsedTime;
     }
 
     double getAppUsage() {
       return myAppUsage;
     }
 
-    double getSystemUsage() {
-      return mySystemUsage;
-    }
-
-    long getElapsedTime() {
-      return myElapsedTime;
+    double getOtherProcessesUsage() {
+      return mySystemUsage - myAppUsage;
     }
   }
+
+
 }
