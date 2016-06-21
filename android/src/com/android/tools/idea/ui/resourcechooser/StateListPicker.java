@@ -31,10 +31,12 @@ import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.swing.ui.SwatchComponent;
 import com.google.common.base.Strings;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.editor.event.DocumentAdapter;
 import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.module.Module;
@@ -51,12 +53,14 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
+import java.util.EnumSet;
 import java.util.List;
 
 public class StateListPicker extends JPanel {
-  private static final ResourceType[] DIMENSIONS_ONLY = {ResourceType.DIMEN};
+  private static final EnumSet<ResourceType> DIMENSIONS_ONLY = EnumSet.of(ResourceType.DIMEN);
 
   private final Module myModule;
   private final Configuration myConfiguration;
@@ -140,31 +144,25 @@ public class StateListPicker extends JPanel {
     popupMenu.add(createAlpha);
     createAlpha.setVisible(StringUtil.isEmpty(state.getAlpha()));
 
-    deleteAlpha.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        stateComponent.getAlphaComponent().setVisible(false);
-        stateComponent.setAlphaValue(null);
-        state.setAlpha(null);
-        updateIcon(stateComponent);
-        deleteAlpha.setVisible(false);
-        createAlpha.setVisible(true);
-      }
+    deleteAlpha.addActionListener(e -> {
+      stateComponent.getAlphaComponent().setVisible(false);
+      stateComponent.setAlphaValue(null);
+      state.setAlpha(null);
+      updateIcon(stateComponent);
+      deleteAlpha.setVisible(false);
+      createAlpha.setVisible(true);
     });
 
-    createAlpha.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        AlphaActionListener listener = stateComponent.getAlphaActionListener();
-        if (listener == null) {
-          return;
-        }
-        listener.actionPerformed(new ActionEvent(stateComponent.getAlphaComponent(), ActionEvent.ACTION_PERFORMED, null));
-        if (!StringUtil.isEmpty(state.getAlpha())) {
-          stateComponent.getAlphaComponent().setVisible(true);
-          createAlpha.setVisible(false);
-          deleteAlpha.setVisible(true);
-        }
+    createAlpha.addActionListener(e -> {
+      AlphaActionListener listener = stateComponent.getAlphaActionListener();
+      if (listener == null) {
+        return;
+      }
+      listener.actionPerformed(new ActionEvent(stateComponent.getAlphaComponent(), ActionEvent.ACTION_PERFORMED, null));
+      if (!StringUtil.isEmpty(state.getAlpha())) {
+        stateComponent.getAlphaComponent().setVisible(true);
+        createAlpha.setVisible(false);
+        deleteAlpha.setVisible(true);
       }
     });
 
@@ -220,13 +218,10 @@ public class StateListPicker extends JPanel {
       myState.setValue(myComponent.getResourceValue());
       // This is run inside a WriteAction and updateIcon may need an APP_RESOURCES_LOCK from AndroidFacet.
       // To prevent a potential deadlock, we call updateIcon in another thread.
-      SwingUtilities.invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          updateIcon(myComponent);
-          myComponent.repaint();
-        }
-      });
+      ApplicationManager.getApplication().invokeLater(() -> {
+        updateIcon(myComponent);
+        myComponent.repaint();
+      }, ModalityState.any());
     }
 
     @Override
@@ -238,7 +233,7 @@ public class StateListPicker extends JPanel {
       boolean isFrameworkValue = attributeValueUrl != null && attributeValueUrl.framework;
       String nameSuggestion = attributeValueUrl != null ? attributeValueUrl.name : attributeValue;
 
-      ResourceType[] allowedTypes;
+      EnumSet<ResourceType> allowedTypes;
       assert myStateList != null;
       if (myStateList.getFolderType() == ResourceFolderType.COLOR) {
         allowedTypes = GraphicalResourceRendererEditor.COLORS_ONLY;
@@ -253,8 +248,16 @@ public class StateListPicker extends JPanel {
         resourceNameVisibility = ChooseResourceDialog.ResourceNameVisibility.SHOW;
       }
 
-      final ChooseResourceDialog dialog =
-        new ChooseResourceDialog(myModule, allowedTypes, attributeValue, isFrameworkValue, resourceNameVisibility, nameSuggestion);
+      ChooseResourceDialog dialog = ChooseResourceDialog.builder()
+        .setModule(myModule)
+        .setTypes(allowedTypes)
+        .setCurrentValue(attributeValue)
+        .setIsFrameworkValue(isFrameworkValue)
+        .setResourceNameVisibility(resourceNameVisibility)
+        .setResourceNameSuggestion(nameSuggestion)
+        .setConfiguration(myConfiguration)
+        .build();
+
 
       if (!myContrastColorsWithDescription.isEmpty()) {
         dialog
@@ -291,13 +294,10 @@ public class StateListPicker extends JPanel {
       myState.setAlpha(myComponent.getAlphaValue());
       // This is run inside a WriteAction and updateIcon may need an APP_RESOURCES_LOCK from AndroidFacet.
       // To prevent a potential deadlock, we call updateIcon in another thread.
-      SwingUtilities.invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          updateIcon(myComponent);
-          myComponent.repaint();
-        }
-      });
+      ApplicationManager.getApplication().invokeLater(() -> {
+        updateIcon(myComponent);
+        myComponent.repaint();
+      }, ModalityState.any());
     }
 
     @Override
@@ -311,7 +311,12 @@ public class StateListPicker extends JPanel {
       ResourceValue resValue = resourceResolver.findResValue(itemValue, false);
       String resolvedResource = resValue != null ? resourceResolver.resolveResValue(resValue).getName() : itemValue;
 
-      final ChooseResourceDialog dialog = new ChooseResourceDialog(myModule, DIMENSIONS_ONLY, resolvedResource, null);
+      ChooseResourceDialog dialog = ChooseResourceDialog.builder()
+        .setModule(myModule)
+        .setTypes(DIMENSIONS_ONLY)
+        .setCurrentValue(resolvedResource)
+        .setConfiguration(myConfiguration)
+        .build();
 
       dialog.show();
 
@@ -443,6 +448,7 @@ public class StateListPicker extends JPanel {
 
     public void setValueText(@NotNull String value) {
       myResourceComponent.setValueText(value);
+      updateIcon(this);
     }
 
     public void setAlphaValue(@Nullable String alphaValue) {

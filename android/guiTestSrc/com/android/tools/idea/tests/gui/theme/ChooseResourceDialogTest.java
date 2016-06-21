@@ -16,32 +16,39 @@
 package com.android.tools.idea.tests.gui.theme;
 
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
-import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
-import com.android.tools.idea.tests.gui.framework.Wait;
+import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.ChooseResourceDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ColorPickerFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.SlideFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.layout.NlComponentFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.layout.NlEditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.layout.NlPropertyFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.layout.NlPropertyInspectorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.*;
 import org.fest.swing.data.TableCell;
-import org.fest.swing.fixture.FontFixture;
-import org.fest.swing.fixture.JTableCellFixture;
-import org.fest.swing.fixture.JTextComponentFixture;
+import org.fest.swing.fixture.*;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.Collections;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.listToString;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.tableToString;
 import static com.google.common.truth.Truth.assertThat;
 import static org.fest.swing.data.TableCell.row;
 import static org.junit.Assert.*;
 
 /**
  * UI tests regarding the ChooseResourceDialog
+ *
+ * Note that {@link ThemeEditorTableTest} also exercises the resource chooser a bit
  */
 @RunIn(TestGroup.THEME)
 @RunWith(GuiTestRunner.class)
@@ -199,5 +206,133 @@ public class ChooseResourceDialogTest {
 
     dialog.clickOK();
     colorCell.stopEditing();
+  }
+
+  /**
+   * Test the resource table editor, filtering and selection
+   */
+  @Test
+  public void testEditString() throws IOException {
+    guiTest.importSimpleApplication();
+
+    // Open file as XML and switch to design tab, wait for successful render
+    EditorFixture editor = guiTest.ideFrame().getEditor();
+    editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
+
+    NlEditorFixture layout = editor.getLayoutEditor(false);
+    assertNotNull(layout);
+    layout.waitForRenderToFinish();
+
+    // Find and click the first text view
+    NlComponentFixture textView = layout.findView("TextView", 0);
+    textView.click();
+
+    // It should be selected now
+    layout.requireSelection(Collections.singletonList(textView));
+
+    // Get property sheet, find text property, open customizer
+    NlPropertyInspectorFixture fixture = layout.getPropertyInspector();
+    NlPropertyFixture property = fixture.findProperty("text");
+    assertThat(property).isNotNull();
+    property.clickCustomizer();
+
+    ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(guiTest.robot());
+    JTableFixture nameTable = dialog.getResourceNameTable();
+
+    assertEquals("Project                                                     \n" +
+                 "action_settings               Settings                      \n" +
+                 "app_name                      Simple Application            \n" +
+                 "cancel                        取消                            \n" +
+                 "hello_world                   Hello world!                  \n" +
+                 "android                                                     \n",
+                 tableToString(nameTable, 0, 6, 0, 5, 30));
+
+    // Search for "app" and confirm that we only show the header nodes as well as resource names
+    // that match. We also used to check that we were highlighting the right portion of the
+    // string here, but after switching away from HTML labels to IntelliJ's ColoredTableCellRenderer,
+    // this is no longer visible from the table fixture.
+    dialog.getSearchField().enterText("app");
+    assertEquals("Project                                                                         \n" +
+                 "app_name                                                                        \n" +
+                 "android                                                                         \n" +
+                 "Theme attributes                                                                \n",
+                 tableToString(nameTable, 0, 6, 0, 1, 80));
+
+    JTableFixture valueTable = dialog.getResourceValueTable();
+    assertEquals("Default                                 Simple Application                      \n" +
+                 "English                                 Simple Application                      \n" +
+                 "Tamil                                   Simple Application                      \n" +
+                 "English, United Kingdom                 Simple Application                      \n" +
+                 "Chinese, China                          谷歌 I/O                                  \n",
+                 tableToString(valueTable));
+
+    dialog.clickOK();
+  }
+
+  /**
+   * Test looking at the attributes for a drawable
+   */
+  @Test
+  public void testDrawable() throws IOException {
+    guiTest.importSimpleApplication();
+
+    // Open file as XML and switch to design tab, wait for successful render
+    EditorFixture editor = guiTest.ideFrame().getEditor();
+    editor.open("app/src/main/res/layout/frames.xml", EditorFixture.Tab.DESIGN);
+
+    NlEditorFixture layout = editor.getLayoutEditor(false);
+    assertNotNull(layout);
+    layout.waitForRenderToFinish();
+
+    // Find and click the first text view
+    NlComponentFixture imageView = layout.findView("ImageView", 0);
+    imageView.click();
+    layout.requireSelection(Collections.singletonList(imageView));
+
+    // Get property sheet, find srcCompat property, open customizer
+    NlPropertyInspectorFixture fixture = layout.getPropertyInspector();
+    NlPropertyFixture property = fixture.findProperty("srcCompat");
+    assertThat(property).isNotNull();
+    property.clickCustomizer();
+
+    ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(guiTest.robot());
+    JTabbedPaneFixture tabs = dialog.getTabs();
+    tabs.requireTabTitles("Drawable", "Color", "ID", "String", "Style");
+
+    dialog.getSearchField().enterText("che");
+    JListFixture projectList = dialog.getList("Project");
+    JListFixture frameworkList = dialog.getList("android");
+
+    assertEquals("ic_launcher                             \n",
+                 listToString(projectList));
+
+    assertEquals("checkbox_off_background                 \n" +
+                 "checkbox_on_background                  \n",
+                 listToString(frameworkList));
+
+    // This should jump to the project list and select the first one: ic_launcher
+    dialog.getSearchField().pressAndReleaseKeys(KeyEvent.VK_DOWN);
+    dialog.getDrawablePreviewName().requireText("ic_launcher");
+    assertThat(dialog.getDrawableResolutionChain()).isEqualTo(
+      "@drawable/ic_launcher\n" +
+      " ⇒ ic_launcher.xml\n");
+
+
+    // Ensure that the pixel in the middle of the preview area is red
+    JLabelFixture previewLabel = dialog.getDrawablePreviewLabel();
+    Icon icon = previewLabel.target().getIcon();
+    assertThat(icon).isNotNull();
+    //noinspection UndesirableClassUsage
+    BufferedImage img = new BufferedImage(icon.getIconWidth(), icon.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
+    Graphics graphics = img.getGraphics();
+    icon.paintIcon(previewLabel.target(), graphics, 0, 0);
+    graphics.dispose();
+    assertEquals(0xFFFF0000, img.getRGB(icon.getIconWidth() / 2, icon.getIconHeight() / 2));
+
+    dialog.clickOK();
+
+    // Confirm that the layout property now points to the new resource value
+    String value = property.getValue();
+    assertEquals("@drawable/ic_launcher", value);
   }
 }

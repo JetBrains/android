@@ -34,7 +34,10 @@ import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
+import com.android.tools.idea.editors.theme.attributes.editors.DrawableRendererEditor;
 import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.res.*;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.SdkUtils;
@@ -44,10 +47,12 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.ColorUtil;
+import com.intellij.ui.JBColor;
 import org.jetbrains.android.AndroidColorAnnotator;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -60,6 +65,7 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -68,9 +74,11 @@ import java.util.*;
 import java.util.List;
 import java.util.Locale;
 
+import static com.android.SdkConstants.DOT_PNG;
 import static com.android.SdkConstants.DOT_WEBP;
 import static com.android.SdkConstants.PREFIX_ANDROID;
 import static com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION;
+import static com.android.tools.idea.gradle.AndroidGradleModel.EXPLODED_AAR;
 import static com.android.utils.SdkUtils.hasImageExtension;
 
 public class AndroidJavaDocRenderer {
@@ -606,9 +614,9 @@ public class AndroidJavaDocRenderer {
     }
 
     public static void renderError(@NotNull HtmlBuilder builder, @Nullable String error) {
-      builder.addHtml("<font color=\"#ff0000\">");
+      builder.beginColor(JBColor.RED);
       builder.addBold(error == null ? "Error" : error);
-      builder.addHtml("</font>");
+      builder.endColor();
     }
   }
 
@@ -834,6 +842,13 @@ public class AndroidJavaDocRenderer {
               }
               else {
                 builder.add(" => ");
+
+                // AAR Library? Strip off prefix
+                int index = value.indexOf(EXPLODED_AAR);
+                if (index != -1) {
+                  value = value.substring(index + EXPLODED_AAR.length() + 1);
+                }
+
                 builder.add(value);
                 builder.newline();
               }
@@ -956,7 +971,7 @@ public class AndroidJavaDocRenderer {
 
       if (depth >= MAX_RESOURCE_INDIRECTION) {
         // user error
-        renderError(builder, "Too deep");
+        renderError(builder, "Resource indirection too deep; might be cyclical");
         return;
       }
 
@@ -981,13 +996,13 @@ public class AndroidJavaDocRenderer {
             if (resolvedStateResource != null) {
               resolvedStateResource = resolveValue(resolver, resolvedStateResource);
               assert resolver.getLookupChain() != null;
-              lookupChain = showResolution ? new ArrayList<ResourceValue>(resolver.getLookupChain()) : null;
+              lookupChain = showResolution ? new ArrayList<>(resolver.getLookupChain()) : null;
             }
             if (resolvedStateResource != null) {
               renderDrawableToHtml(resolver, builder, resolvedStateResource, showResolution, configuration, depth + 1);
             }
             else {
-              renderError(builder, state.getValue()); // user error, cant find image
+              renderError(builder, state.getValue()); // user error, can't find image
             }
 
             mySmall = oldSmall;
@@ -1022,14 +1037,15 @@ public class AndroidJavaDocRenderer {
         }
         String value = resolvedValue.getValue();
         assert value != null; // the value is always the path to the drawable file
-        renderDrawableToHtml(builder, value, densityQualifier.getValue());
+        renderDrawableToHtml(builder, value, densityQualifier.getValue(), resolvedValue);
       }
     }
 
-    private void renderDrawableToHtml(@NotNull HtmlBuilder builder, @NotNull String result, @NotNull Density density) {
+    private void renderDrawableToHtml(@NotNull HtmlBuilder builder, @NotNull String result, @NotNull Density density,
+                                      @NotNull ResourceValue resolvedValue) {
       final File file = new File(result);
       if (file.exists() && file.isFile()) {
-        renderDrawableToHtml(builder, file, density);
+        renderDrawableToHtml(builder, file, density, resolvedValue);
       }
       else if (result.startsWith("#")) {
         // a Drawable can also point to a color (but NOT a color statelist)
@@ -1043,35 +1059,77 @@ public class AndroidJavaDocRenderer {
       }
     }
 
-    private static void renderDrawableToHtml(@NotNull HtmlBuilder builder, @NotNull File file, @NotNull Density density) {
-      if (hasImageExtension(file.getPath())) {
+    private void renderDrawableToHtml(@NotNull HtmlBuilder builder, @NotNull File file, @NotNull Density density,
+                                      @NotNull ResourceValue resolvedValue) {
+      String path = file.getPath();
+      boolean isWebP = path.endsWith(DOT_WEBP);
+      if (hasImageExtension(path) && !isWebP) { // webp: must render with layoutlib
         URL fileUrl = null;
         try {
           fileUrl = SdkUtils.fileToUrl(file);
         }
-        catch (MalformedURLException e) {
-          // pass
+        catch (MalformedURLException ignore) {
         }
 
         if (fileUrl != null) {
-          // TODO: Add handling for WEBP images. In the meantime, just remove the preview
-          if (!file.getPath().endsWith(DOT_WEBP)) {
-            builder.beginDiv("background-color:gray;padding:10px");
-            builder.addImage(fileUrl, file.getPath());
-            builder.endDiv();
-          }
+          builder.beginDiv("background-color:gray;padding:10px");
+          builder.addImage(fileUrl, path);
+          builder.endDiv();
 
           Dimension size = getSize(file);
           if (size != null) {
-
             builder.addHtml(String.format(Locale.US, "%1$d&#xd7;%2$d px (%3$d&#xd7;%4$d dp @ %5$s)", size.width, size.height,
                                           px2dp(size.width, density), px2dp(size.height, density), density.getResourceValue()));
           }
         }
       }
       else {
-        // TODO need to render xml drawable
-        renderError(builder, file.getPath());
+        if (myConfiguration != null) {
+          RenderTask renderTask = DrawableRendererEditor.configureRenderTask(myModule, myConfiguration);
+
+          // Find intrinsic size
+          int width = 100;
+          int height = 100;
+          if (isWebP) {
+            Dimension size = getSize(file);
+            if (size != null) {
+              width = size.width;
+              height = size.height;
+            }
+          }
+
+          renderTask.setOverrideRenderSize(width, height);
+          BufferedImage image = renderTask.renderDrawable(resolvedValue);
+          if (image != null) {
+            // Need to write it somewhere
+            try {
+              File tempFile = FileUtil.createTempFile("render", DOT_PNG);
+              tempFile.deleteOnExit();
+              boolean ok = ImageIO.write(image, "PNG", tempFile);
+              if (ok) {
+                URL fileUrl = null;
+                try {
+                  fileUrl = SdkUtils.fileToUrl(tempFile);
+                }
+                catch (MalformedURLException ignore) {
+                }
+                if (fileUrl != null) {
+                  builder.beginDiv("background-color:gray;padding:10px");
+                  builder.addImage(fileUrl, null);
+                  builder.endDiv();
+                }
+              }
+            }
+            catch (IOException e) {
+              renderError(builder, e.toString());
+            }
+          } else {
+            renderError(builder, "Couldn't render " + file);
+          }
+
+        } else {
+          renderError(builder, path);
+        }
       }
     }
 
@@ -1134,7 +1192,7 @@ public class AndroidJavaDocRenderer {
 
       if (depth >= MAX_RESOURCE_INDIRECTION) {
         // user error
-        renderError(builder, "Too deep");
+        renderError(builder, "Resource indirection too deep; might be cyclical");
         return;
       }
 
@@ -1198,7 +1256,7 @@ public class AndroidJavaDocRenderer {
     private void renderColorToHtml(@NotNull HtmlBuilder builder, @Nullable String colorString, float alpha) {
       Color color = ResourceHelper.parseColor(colorString);
       if (color == null) {
-        // user error, they have a value thats not a color
+        // user error, they have a value that's not a color
         renderError(builder, colorString);
         return;
       }

@@ -1172,7 +1172,7 @@ public class AndroidResourceUtil {
   }
 
   /**
-   * Returns the type of the ResourceItem based on a node's attributes.
+   * Returns the type of the ResourceChooserItem based on a node's attributes.
    * @param node the node
    * @return the ResourceType or null if it could not be inferred.
    */

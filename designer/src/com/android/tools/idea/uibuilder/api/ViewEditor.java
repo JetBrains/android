@@ -26,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.util.Collection;
+import java.util.EnumSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -124,12 +124,12 @@ public abstract class ViewEditor {
   public abstract Map<NlComponent, Dimension> measureChildren(@NotNull NlComponent parent, @Nullable RenderTask.AttributeFilter filter);
 
   @Nullable
-  public final String displayResourceInput(@NotNull Collection<ResourceType> types) {
+  public final String displayResourceInput(@NotNull EnumSet<ResourceType> types) {
     return displayResourceInput("", types);
   }
 
   @Nullable
-  public abstract String displayResourceInput(@NotNull String title, @NotNull Collection<ResourceType> types);
+  public abstract String displayResourceInput(@NotNull String title, @NotNull EnumSet<ResourceType> types);
 
   @Nullable
   public abstract String displayClassInput(@NotNull Set<String> superTypes,
