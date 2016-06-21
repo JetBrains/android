@@ -113,8 +113,13 @@ public final class AvdOptionsModel extends WizardModel {
     }
     myDevice.addListener(sender -> {
       if (myDevice.get().isPresent()) {
-        myAvdDeviceData.updateValuesFromDevice(myDevice.get().get());
+        myAvdDeviceData.updateValuesFromDevice(myDevice.getValue(), mySystemImage.getValueOrNull());
         myVmHeapStorage.set(calculateInitialVmHeap(myAvdDeviceData));
+      }
+    });
+    mySystemImage.addListener(sender -> {
+      if (myDevice.get().isPresent()) {
+        myAvdDeviceData.updateSkinFromDeviceAndSystemImage(myDevice.getValue(), mySystemImage.getValueOrNull());
       }
     });
   }
@@ -350,13 +355,14 @@ public final class AvdOptionsModel extends WizardModel {
       }
     }
 
-    myAvdDeviceData = new AvdDeviceData(selectedDevice);
     myDevice.setNullableValue(selectedDevice);
+    SystemImageDescription systemImageDescription = null;
     ISystemImage selectedImage = avdInfo.getSystemImage();
     if (selectedImage != null) {
-      SystemImageDescription systemImageDescription = new SystemImageDescription(selectedImage);
+      systemImageDescription = new SystemImageDescription(selectedImage);
       mySystemImage.setValue(systemImageDescription);
     }
+    myAvdDeviceData = new AvdDeviceData(selectedDevice, systemImageDescription);
 
     Map<String, String> properties = avdInfo.getProperties();
 

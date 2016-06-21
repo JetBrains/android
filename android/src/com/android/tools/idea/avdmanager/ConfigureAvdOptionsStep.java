@@ -798,7 +798,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myOrientationToggle.setForeground(JBColor.foreground());
     myHardwareSkinHelpLabel = new HyperlinkLabel("How do I create a custom hardware skin?");
     myHardwareSkinHelpLabel.setHyperlinkTarget(AvdWizardUtils.CREATE_SKIN_HELP_LINK);
-    mySkinComboBox = new SkinChooser(myProject);
+    mySkinComboBox = new SkinChooser(myProject, true);
   }
 
   private static final class NamedIcon {

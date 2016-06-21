@@ -47,7 +47,7 @@ public final class ConfigureDeviceModel extends WizardModel {
 
   public ConfigureDeviceModel(@NotNull DeviceUiAction.DeviceProvider provider, @Nullable Device device, boolean cloneDevice) {
     myProvider = provider;
-    myDeviceData = new AvdDeviceData(device);
+    myDeviceData = new AvdDeviceData(device, null);
     if (cloneDevice) {
       if (device == null) {
         throw new IllegalArgumentException("Can't clone a device without specifying a device.");
