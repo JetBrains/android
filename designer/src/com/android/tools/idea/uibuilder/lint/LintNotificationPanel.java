@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.lint;
 
+import com.android.tools.idea.rendering.HtmlBuilderHelper;
 import com.android.tools.idea.rendering.HtmlLinkManager;
-import com.android.tools.idea.rendering.RenderErrorPanel;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.lint.LintAnnotationsModel.IssueData;
@@ -33,8 +33,6 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.editor.colors.EditorColorsManager;
-import com.intellij.openapi.editor.colors.EditorColorsScheme;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.JBPopup;
@@ -59,10 +57,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
-import javax.swing.text.Document;
-import javax.swing.text.Style;
-import javax.swing.text.StyleConstants;
-import javax.swing.text.StyledDocument;
 import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLFrameHyperlinkEvent;
 import java.awt.*;
@@ -214,7 +208,7 @@ public class LintNotificationPanel implements HyperlinkListener {
     // HTML formatter ends up using a bunch of weird fonts etc
     // so the dialog just ends up looking tacky.
 
-    String headerFontColor = RenderErrorPanel.HtmlBuilderHelper.getHeaderFontColor();
+    String headerFontColor = HtmlBuilderHelper.getHeaderFontColor();
     HtmlBuilder builder = new HtmlBuilder();
     builder.openHtmlBody();
 
@@ -317,26 +311,11 @@ public class LintNotificationPanel implements HyperlinkListener {
 
     try {
       myExplanationPane.read(new StringReader(builder.getHtml()), null);
-      setupStyle();
+      HtmlBuilderHelper.fixFontStyles(myExplanationPane);
       myExplanationPane.setCaretPosition(0);
     }
     catch (IOException ignore) { // can't happen for internal string reading
     }
-  }
-
-  private void setupStyle() {
-    Document document = myExplanationPane.getDocument();
-    if (!(document instanceof StyledDocument)) {
-      return;
-    }
-
-    StyledDocument styledDocument = (StyledDocument)document;
-    EditorColorsManager colorsManager = EditorColorsManager.getInstance();
-    EditorColorsScheme scheme = colorsManager.getGlobalScheme();
-    Style style = styledDocument.addStyle("active", null);
-    StyleConstants.setFontFamily(style, scheme.getEditorFontName());
-    StyleConstants.setFontSize(style, scheme.getEditorFontSize());
-    styledDocument.setCharacterAttributes(0, document.getLength(), style, false);
   }
 
   private void updatePreviewImage(@Nullable NlComponent component) {

@@ -25,6 +25,7 @@ import com.intellij.psi.PsiFile;
 import org.jetbrains.android.AndroidTestCase;
 
 import java.awt.*;
+import java.util.EnumSet;
 import java.util.List;
 
 import static com.android.tools.idea.res.ResourceHelper.getResourceName;
@@ -218,11 +219,11 @@ public class ResourceHelperTest extends AndroidTestCase {
     myFixture.copyFileToProject("resourceHelper/values.xml", "res/values/values.xml");
     myFixture.copyFileToProject("resourceHelper/my_state_list.xml", "res/color/my_state_list.xml");
 
-    List<String> colorOnly = ResourceHelper.getCompletionFromTypes(myFacet, new ResourceType[]{ResourceType.COLOR});
-    List<String> drawableOnly = ResourceHelper.getCompletionFromTypes(myFacet, new ResourceType[]{ResourceType.DRAWABLE});
+    List<String> colorOnly = ResourceHelper.getCompletionFromTypes(myFacet, EnumSet.of(ResourceType.COLOR));
+    List<String> drawableOnly = ResourceHelper.getCompletionFromTypes(myFacet, EnumSet.of(ResourceType.DRAWABLE));
     List<String> colorAndDrawable =
-      ResourceHelper.getCompletionFromTypes(myFacet, new ResourceType[]{ResourceType.COLOR, ResourceType.DRAWABLE});
-    List<String> dimenOnly = ResourceHelper.getCompletionFromTypes(myFacet, new ResourceType[]{ResourceType.DIMEN});
+      ResourceHelper.getCompletionFromTypes(myFacet, EnumSet.of(ResourceType.COLOR, ResourceType.DRAWABLE));
+    List<String> dimenOnly = ResourceHelper.getCompletionFromTypes(myFacet, EnumSet.of(ResourceType.DIMEN));
 
     assertThat(colorOnly).containsExactly("@android:color/primary_text_dark", "@color/myColor1", "@color/myColor2", "@color/my_state_list");
     assertThat(drawableOnly)

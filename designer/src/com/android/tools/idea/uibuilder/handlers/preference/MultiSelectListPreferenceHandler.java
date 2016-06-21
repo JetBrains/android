@@ -71,7 +71,7 @@ public final class MultiSelectListPreferenceHandler extends PreferenceHandler {
     }
 
     if (type.equals(InsertType.CREATE)) {
-      Collection<ResourceType> array = EnumSet.of(ResourceType.ARRAY);
+      EnumSet<ResourceType> array = EnumSet.of(ResourceType.ARRAY);
       String defaultValue = editor.displayResourceInput("Choose defaultValue Resource", array);
 
       if (defaultValue == null) {

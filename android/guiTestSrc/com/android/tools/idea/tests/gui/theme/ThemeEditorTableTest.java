@@ -230,9 +230,9 @@ public class ThemeEditorTableTest {
         return !component.equals(dialog.target());
       }
     });
-    secondDialog.getList(ChooseResourceDialog.APP_NAMESPACE_LABEL).clickItem("abc_disabled_alpha_material_dark");
+    secondDialog.getResourceNameTable().cell("disabledAlpha").click();
     secondDialog.clickOK();
-    Wait.seconds(30).expecting("component update").until(() -> "@dimen/abc_disabled_alpha_material_dark".equals(state0.getAlphaValue()));
+    Wait.seconds(30).expecting("component update").until(() -> "?android:attr/disabledAlpha".equals(state0.getAlphaValue()));
 
     state1.getValueComponent().getSwatchButton().click();
     secondDialog = ChooseResourceDialogFixture.find(guiTest.robot(), new GenericTypeMatcher<JDialog>(JDialog.class) {

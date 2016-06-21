@@ -133,6 +133,8 @@ public class SimpleTabUI extends BasicTabbedPaneUI {
     textRect.y += yNudge;
   }
 
+  // Appears to be based on http://stackoverflow.com/questions/7903657/basictabbedpaneui-paint-html-text
+
   @Override
   protected void paintText(Graphics g, int tabPlacement,
                            Font font, FontMetrics metrics, int tabIndex,

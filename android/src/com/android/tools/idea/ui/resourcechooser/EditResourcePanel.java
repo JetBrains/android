@@ -107,13 +107,10 @@ public class EditResourcePanel extends JBScrollPane {
   public void setVariant(@NotNull List<ResourceItem> resources, @Nullable ResourceItem defaultValue) {
     if (resources.size() > 1) {
       resources = Lists.newArrayList(resources);
-      Collections.sort(resources, new Comparator<ResourceItem>() {
-        @Override
-        public int compare(ResourceItem element1, ResourceItem element2) {
-          File directory1 = element1.getFile().getParentFile();
-          File directory2 = element2.getFile().getParentFile();
-          return directory1.getName().compareTo(directory2.getName());
-        }
+      Collections.sort(resources, (element1, element2) -> {
+        File directory1 = element1.getFile().getParentFile();
+        File directory2 = element2.getFile().getParentFile();
+        return directory1.getName().compareTo(directory2.getName());
       });
 
       DefaultComboBoxModel model = new DefaultComboBoxModel();
