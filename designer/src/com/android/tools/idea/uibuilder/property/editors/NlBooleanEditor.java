@@ -47,14 +47,11 @@ public class NlBooleanEditor extends NlBaseComponentEditor implements NlComponen
     super(listener);
     myCheckbox = new ThreeStateCheckBox();
     myCheckbox.addActionListener(this::checkboxChanged);
+    myPanel = new JPanel(new BorderLayout(SystemInfo.isMac ? 0 : 2, 0));
+    myPanel.add(myCheckbox, BorderLayout.LINE_START);
 
-    if (context == null) {
-      myPanel = null;
-    }
-    else {
-      myPanel = new JPanel(new BorderLayout(SystemInfo.isMac ? 0 : 2, 0));
-      myPanel.add(myCheckbox, BorderLayout.LINE_START);
-      myPanel.add(new BrowsePanel(context, true), BorderLayout.LINE_END);
+    if (context != null) {
+      myPanel.add(createBrowsePanel(context), BorderLayout.LINE_END);
     }
   }
 
@@ -77,7 +74,7 @@ public class NlBooleanEditor extends NlBaseComponentEditor implements NlComponen
   @NotNull
   @Override
   public JComponent getComponent() {
-    return myPanel != null ? myPanel : myCheckbox;
+    return myPanel;
   }
 
   @Nullable
