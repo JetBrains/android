@@ -56,4 +56,15 @@ public interface SeriesDataStore {
    * Returns the closest index less than or equal to the time value.
    */
   int getClosestTimeIndex(SeriesDataType type, long timeValue);
+
+  /**
+   * Register a {@link DataAdapter} in the data store.
+   * The adapter is associated with a {@link SeriesDataType} and will store data of this type.
+   */
+  void registerAdapter(SeriesDataType type, DataAdapter adapter);
+
+  /**
+   * Time offset, in nanoseconds, that should be subtracted from the timestamp of data collected from the device.
+   */
+  long getDeviceTimeOffset();
 }

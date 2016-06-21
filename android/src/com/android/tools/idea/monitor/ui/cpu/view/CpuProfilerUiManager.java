@@ -30,19 +30,20 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 
 public final class CpuProfilerUiManager extends BaseProfilerUiManager {
+
   private BaseSegment myThreadSegment;
 
   public CpuProfilerUiManager(@NotNull Range xRange,
                               @NotNull Choreographer choreographer,
-                              @NotNull SeriesDataStore datastore,
+                              @NotNull SeriesDataStore dataStore,
                               @NotNull EventDispatcher<ProfilerEventListener> eventDispatcher) {
-    super(xRange, choreographer, datastore, eventDispatcher);
+    super(xRange, choreographer, dataStore, eventDispatcher);
   }
 
   @NotNull
   @Override
   public Poller createPoller(int pid) {
-    return new CpuDataPoller(myDataStore.getDeviceProfilerService(), pid);
+    return new CpuDataPoller(myDataStore.getDeviceProfilerService(), pid, myDataStore);
   }
 
   @Override
