@@ -19,6 +19,7 @@ import com.android.annotations.NonNull;
 import com.android.builder.model.ClassField;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.ResourceItem;
+import com.android.ide.common.res2.SourcelessResourceItem;
 import com.android.resources.ResourceType;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.ResolveResult;
@@ -31,7 +32,7 @@ import org.jetbrains.annotations.Nullable;
  * on the normal resource value parser to create resource values from XML, and (2) we
  * need to implement getQualifiers since there is no source file.
  */
-public class DynamicResourceValueItem extends ResourceItem {
+public class DynamicResourceValueItem extends SourcelessResourceItem {
   public DynamicResourceValueItem(@NonNull ResourceType type, @NonNull ClassField field) {
     super(field.getName(), type, null, null);
     mResourceValue = new ResourceValue(type, field.getName(), field.getValue(), false, null);

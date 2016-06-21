@@ -39,26 +39,23 @@ class PsiResourceFile extends ResourceFile implements Iterable<ResourceItem> {
   private PsiFile myFile;
   private String myName;
   private ResourceFolderType myFolderType;
-  private FolderConfiguration myFolderConfiguration;
   private Multimap<String, ResourceItem> myDuplicates;
   private DataBindingInfo myDataBindingInfo;
 
   public PsiResourceFile(@NonNull PsiFile file, @NonNull ResourceItem item, @NonNull String qualifiers,
                          @NonNull ResourceFolderType folderType, @NonNull FolderConfiguration folderConfiguration) {
-    super(DUMMY_FILE, item, qualifiers);
+    super(DUMMY_FILE, item, qualifiers, folderConfiguration);
     myFile = file;
     myName = file.getName();
     myFolderType = folderType;
-    myFolderConfiguration = folderConfiguration;
   }
 
   public PsiResourceFile(@NonNull PsiFile file, @NonNull List<ResourceItem> items, @NonNull String qualifiers,
                          @NonNull ResourceFolderType folderType, @NonNull FolderConfiguration folderConfiguration) {
-    super(DUMMY_FILE, items, qualifiers);
+    super(DUMMY_FILE, items, qualifiers, folderConfiguration);
     myFile = file;
     myName = file.getName();
     myFolderType = folderType;
-    myFolderConfiguration = folderConfiguration;
   }
 
   @NonNull
@@ -89,15 +86,10 @@ class PsiResourceFile extends ResourceFile implements Iterable<ResourceItem> {
     return myFolderType;
   }
 
-  FolderConfiguration getFolderConfiguration() {
-    return myFolderConfiguration;
-  }
-
   public void setPsiFile(@NonNull PsiFile psiFile, String qualifiers) {
     mFile = null;
     myFile = psiFile;
     setQualifiers(qualifiers);
-    myFolderConfiguration = FolderConfiguration.getConfigFromQualifiers(Splitter.on('-').split(qualifiers));
     myFolderType = ResourceHelper.getFolderType(psiFile);
   }
 
