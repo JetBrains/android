@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.MockupLayer;
+import com.android.tools.pixelprobe.Image;
 import com.android.tools.pixelprobe.PixelProbe;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -30,7 +31,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -50,14 +50,14 @@ public class MockupFileHelper {
   public static final Logger LOGGER = Logger.getInstance(MockupFileHelper.class);
 
   @Nullable
-  public static BufferedImage openImageFile(String path) {
-    BufferedImage image = null;
+  public static Image openImageFile(String path) {
+    Image image = null;
     final File file = new File(path);
     if (!file.exists()) {
       return null;
     }
     try (FileInputStream in = new FileInputStream(file)) {
-      image = PixelProbe.probe(in).getMergedImage();
+      image = PixelProbe.probe(in);
     }
     catch (IOException e) {
       Logger.getInstance(MockupLayer.class).error(e);
@@ -120,7 +120,7 @@ public class MockupFileHelper {
    * otherwise we use the absolute
    *
    * @param project  Current woriking project
-   * @param filePath File path used by the user in XML or set by the {@link MockupEditor}
+   * @param filePath File path used by the user in XML or set by the {@link MockupEditorPopup}
    * @return Relative or absolute path or null if the path couldn't be resolved
    */
   @Nullable
