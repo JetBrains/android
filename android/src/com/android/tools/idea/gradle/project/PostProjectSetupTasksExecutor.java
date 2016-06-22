@@ -400,8 +400,10 @@ public class PostProjectSetupTasksExecutor {
     ModifiableRootModel modifiableModel = modelsProvider.getModifiableRootModel(module);
     for (Module dependency : modifiableModel.getModuleDependencies()) {
       JavaGradleFacet javaGradleFacet = JavaGradleFacet.getInstance(dependency);
-      if (javaGradleFacet != null) {
-        // Ignore Java modules. They are already set up properly.
+      if (javaGradleFacet != null
+          // BUILDABLE == false -> means this is an AAR-based module, not a regular Java lib module
+          && javaGradleFacet.getConfiguration().BUILDABLE) {
+        // Ignore Java lib modules. They are already set up properly.
         continue;
       }
       AndroidProject dependencyAndroidProject = getAndroidProject(dependency);
