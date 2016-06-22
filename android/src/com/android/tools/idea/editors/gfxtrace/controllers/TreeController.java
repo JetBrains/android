@@ -43,7 +43,7 @@ public abstract class TreeController extends Controller implements CopyEnabledTr
   @NotNull protected final LoadablePanel myLoadingPanel;
   @NotNull protected final JPanel myPanel = new JPanel(new BorderLayout());
   @NotNull protected final JBScrollPane myScrollPane = new JBScrollPane();
-  @NotNull protected final Tree myTree = new CopyEnabledTree(new DefaultTreeModel(new DefaultMutableTreeNode()), this);
+  @NotNull protected final Tree myTree = new CopyEnabledTree(emptyModel(), this);
 
   public TreeController(@NotNull GfxTraceEditor editor, @NotNull String emptyText) {
     super(editor);
@@ -65,7 +65,12 @@ public abstract class TreeController extends Controller implements CopyEnabledTr
 
   @Override
   public void clear() {
-    myTree.setModel(null);
+    // avoid setting the model to null, as then queued events coming back will throw null pointers.
+    myTree.setModel(emptyModel());
+  }
+
+  private static TreeModel emptyModel() {
+    return new DefaultTreeModel(new DefaultMutableTreeNode());
   }
 
   public void setRoot(DefaultMutableTreeNode root) {

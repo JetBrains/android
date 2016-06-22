@@ -53,8 +53,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreePath;
@@ -630,7 +628,7 @@ public class AtomController extends TreeController implements AtomStream.Listene
       mySelectedHierarchies.put(mySelectedContext.getID(), hierarchy);
     }
     hierarchy.getRoot().addChildren(root, atoms.getAtoms(), atoms.getContexts().count() > 1 ? mySelectedContext : Context.ALL);
-    Enumeration<TreePath> treeState = myTree.getExpandedDescendants(new TreePath(myTree.getModel().getRoot()));
+    Enumeration<TreePath> treeState = myTree.getExpandedDescendants(new TreePath(getModel().getRoot()));
     setRoot(root);
     if (treeState != null) {
       while (treeState.hasMoreElements()) {
