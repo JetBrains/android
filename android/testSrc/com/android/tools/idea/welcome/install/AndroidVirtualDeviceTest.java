@@ -114,7 +114,7 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
 
     final AvdManagerConnection connection = new AvdManagerConnection(sdkHandler, fop);
     FakePackage remotePlatform = new FakePackage("platforms;android-23", new Revision(1), ImmutableList.<Dependency>of());
-    RepoFactory factory = (RepoFactory)AndroidSdkHandler.getRepositoryModule().createLatestFactory();
+    RepoFactory factory = AndroidSdkHandler.getRepositoryModule().createLatestFactory();
 
     DetailsTypes.PlatformDetailsType platformDetailsType = factory.createPlatformDetailsType();
     platformDetailsType.setApiLevel(23);
@@ -124,12 +124,7 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
     AndroidVirtualDevice avd = new AndroidVirtualDevice(new ScopedStateStore(ScopedStateStore.Scope.STEP, null, null), remotes, true, fop);
     final AvdInfo avdInfo = avd.createAvd(connection, sdkHandler);
     assertNotNull(avdInfo);
-    disposeOnTearDown(new Disposable() {
-      @Override
-      public void dispose() {
-        connection.deleteAvd(avdInfo);
-      }
-    });
+    disposeOnTearDown(() -> connection.deleteAvd(avdInfo));
     assertNotNull(avdInfo);
     Map<String, String> properties = avdInfo.getProperties();
     Map<String, String> referenceMap = getReferenceMap();
