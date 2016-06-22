@@ -204,7 +204,7 @@ public class GapiiLibraryLoader {
       // Push each of the libraries, copy them to the package files directory, load them.
       try {
         for (File lib : libraries) {
-          String remoteFilePath = new File(DEVICE_TMP_DIR, lib.getName()).getAbsolutePath();
+          String remoteFilePath = DEVICE_TMP_DIR + "/" + lib.getName();
           try {
             myDevice.pushFile(lib.getAbsolutePath(), remoteFilePath);
             evaluate(CodeFragmentKind.CODE_BLOCK, getLoaderSnippet(lib), action.getSuspendContext());
