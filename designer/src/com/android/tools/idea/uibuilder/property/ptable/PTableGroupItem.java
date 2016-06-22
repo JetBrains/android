@@ -34,11 +34,27 @@ public abstract class PTableGroupItem extends PTableItem {
   }
 
   public void addChild(@NotNull PTableItem item) {
+    addChild(item, null);
+  }
+
+  public void addChild(@NotNull PTableItem item, @Nullable PTableItem after) {
     item.setParent(this);
     if (myItems == null) {
       myItems = Lists.newArrayList();
     }
-    myItems.add(item);
+    int index = after != null ? myItems.indexOf(after) : -1;
+    if (index != -1) {
+      myItems.add(index + 1, item);
+    }
+    else {
+      myItems.add(item);
+    }
+  }
+
+  public void deleteChild(@NotNull PTableItem item) {
+    assert this == item.getParent();
+    item.setParent(null);
+    myItems.remove(item);
   }
 
   @Override
