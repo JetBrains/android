@@ -50,7 +50,11 @@ public class CompatibilityRenderTarget implements IAndroidTarget {
     myApiLevel = apiLevel;
     myRealTarget = realTarget;
     myVersion = realTarget != null ? realTarget.getVersion() : new AndroidVersion(apiLevel, null);
-    myHashString = AndroidTargetHash.getPlatformHashString(myVersion);
+    // Don't *just* name it say android-15 since that can clash with the REAL key used for android-15
+    // (if the user has it installed) and in particular for maps like AndroidSdkData#getTargetData
+    // can end up accidentally using compatibility targets instead of real android platform targets,
+    // resulting in bugs like b.android.com/213075
+    myHashString = "compat-" + AndroidTargetHash.getPlatformHashString(myVersion);
   }
 
   /**
