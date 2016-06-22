@@ -36,7 +36,7 @@ import java.util.Map;
  * Representations of all Android hardware devices we can target when building an app.
  */
 public enum FormFactor {
-  MOBILE("Mobile", "Phone and Tablet", 15, 1, SdkVersionInfo.HIGHEST_KNOWN_API, Lists.newArrayList(20),
+  MOBILE("Mobile", "Phone and Tablet", 15, SdkVersionInfo.LOWEST_ACTIVE_API, SdkVersionInfo.HIGHEST_KNOWN_API, Lists.newArrayList(20),
          Lists.newArrayList(SystemImage.DEFAULT_TAG, SystemImage.GOOGLE_APIS_TAG, SystemImage.GOOGLE_APIS_X86_TAG), null,
          FormFactors.Mobile_64, FormFactors.Mobile_128),
   WEAR("Wear", "Wear", 21, SdkVersionInfo.LOWEST_ACTIVE_API_WEAR, SdkVersionInfo.HIGHEST_KNOWN_API_WEAR,
