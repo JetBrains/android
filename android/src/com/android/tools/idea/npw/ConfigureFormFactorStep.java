@@ -55,9 +55,9 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
   private JPanel myLoadingPanel;
   private final List<FormFactorSdkControls> myControls = Lists.newArrayList();
 
-  private Map<FormFactor, Integer> myFormFactors = Maps.newTreeMap();
-  private Disposable myDisposable;
-  private Map<FormFactor, FormFactorSdkControls> myFormFactorApiSelectors = Maps.newHashMap();
+  private final Map<FormFactor, Integer> myFormFactors = Maps.newTreeMap();
+  private final Disposable myDisposable;
+  private final Map<FormFactor, FormFactorSdkControls> myFormFactorApiSelectors = Maps.newHashMap();
 
   public ConfigureFormFactorStep(@NotNull Disposable disposable) {
     super("Select the form factors your app will run on", "Different platforms may require separate SDKs", disposable);
@@ -72,13 +72,10 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
     final Set<FormFactorSdkControls> pendingControls = Sets.newHashSet(myControls);
 
     for (final FormFactorSdkControls controls : myControls) {
-      controls.init(myState, new Runnable() {
-        @Override
-        public void run() {
-          pendingControls.remove(controls);
-          if (pendingControls.isEmpty()) {
-            myLoadingPanel.setVisible(false);
-          }
+      controls.init(myState, () -> {
+        pendingControls.remove(controls);
+        if (pendingControls.isEmpty()) {
+          myLoadingPanel.setVisible(false);
         }
       });
     }
@@ -100,7 +97,11 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
       FormFactor formFactor = FormFactor.get(metadata.getFormFactor());
       Integer prevMinSdk = myFormFactors.get(formFactor);
       int templateMinSdk = metadata.getMinSdk();
-      if (prevMinSdk == null || templateMinSdk > prevMinSdk) {
+
+      if (prevMinSdk == null) {
+        myFormFactors.put(formFactor, Math.max(templateMinSdk, formFactor.getMinOfflineApiLevel()));
+      }
+      else if (templateMinSdk > prevMinSdk) {
         myFormFactors.put(formFactor, templateMinSdk);
       }
     }
