@@ -38,7 +38,9 @@ import com.intellij.ui.components.JBList;
 import com.intellij.ui.popup.PopupFactoryImpl;
 import com.intellij.ui.popup.list.ListPopupModel;
 import com.intellij.util.net.HttpConfigurable;
-import org.fest.swing.core.*;
+import org.fest.swing.core.BasicRobot;
+import org.fest.swing.core.ComponentFinder;
+import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
@@ -51,8 +53,10 @@ import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.android.AndroidTestBase;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.junit.AssumptionViolatedException;
 
 import javax.swing.*;
 import java.awt.*;
@@ -108,6 +112,7 @@ public final class GuiTests {
 
   private static final File TMP_PROJECT_ROOT = createTempProjectCreationDir();
 
+  @NotNull
   public static List<Error> fatalErrorsFromIde() {
     List<AbstractMessage> errorMessages = MessagePool.getInstance().getFatalErrors(true, true);
     List<Error> errors = new ArrayList<>(errorMessages.size());
@@ -117,8 +122,7 @@ public final class GuiTests {
       if (isNotEmpty(additionalInfo)) {
         messageBuilder.append(System.getProperty("line.separator")).append("Additional Info: ").append(additionalInfo);
       }
-      Error error = new Error(messageBuilder.toString());
-      error.initCause(errorMessage.getThrowable());
+      Error error = new Error(messageBuilder.toString(), errorMessage.getThrowable());
       errors.add(error);
     }
     return Collections.unmodifiableList(errors);
@@ -153,13 +157,13 @@ public final class GuiTests {
   }
 
   public static void setUpSdks() {
-    final File androidSdkPath = getAndroidSdkPath();
+    File androidSdkPath = getAndroidSdkPath();
 
     String jdkHome = getSystemPropertyOrEnvironmentVariable(JDK_HOME_FOR_TESTS);
     if (isNullOrEmpty(jdkHome) || !checkForJdk(jdkHome)) {
       fail("Please specify the path to a valid JDK using system property " + JDK_HOME_FOR_TESTS);
     }
-    final File jdkPath = new File(jdkHome);
+    File jdkPath = new File(jdkHome);
 
     execute(new GuiTask() {
       @Override
@@ -195,36 +199,74 @@ public final class GuiTests {
     });
   }
 
-  @Nullable
-  public static File getGradleHomePath() {
-    return getFilePathProperty("supported.gradle.home.path", "the path of a local Gradle 2.2.1 distribution", true);
+  /**
+   * @return the path of the installation of a supported Gradle version. The path of the installation is specified via the system property
+   * 'supported.gradle.home.path'. If the system property is not found, the test invoking this method will be skipped.
+   */
+  @NotNull
+  public static File getGradleHomePathOrSkipTest() {
+    return getFilePathPropertyOrSkipTest("supported.gradle.home.path", "the path of a local Gradle 2.2.1 distribution", true);
   }
 
-  @Nullable
-  public static File getUnsupportedGradleHome() {
-    return getGradleHomeFromSystemProperty("unsupported.gradle.home.path", "2.1");
+  /**
+   * @return the path of the installation of a Gradle version that is no longer supported by the IDE. The path of the installation is
+   * specified via the system property 'unsupported.gradle.home.path'. If the system property is not found, the test invoking this method
+   * will be skipped.
+   */
+  @NotNull
+  public static File getUnsupportedGradleHomeOrSkipTest() {
+    return getGradleHomeFromSystemPropertyOrSkipTest("unsupported.gradle.home.path", "2.1");
   }
 
-  @Nullable
-  public static File getGradleHomeFromSystemProperty(@NotNull String propertyName, @NotNull String gradleVersion) {
+  /**
+   * Returns the Gradle installation directory whose path is specified in the given system property. If the expected system property is not
+   * found, the test invoking this method will be skipped.
+   *
+   * @param propertyName  the name of the system property.
+   * @param gradleVersion the version of the Gradle installation. This is used in the message displayed when the expected system property is
+   *                      not found.
+   * @return the Gradle installation directory whose path is specified in the given system property.
+   */
+  @NotNull
+  public static File getGradleHomeFromSystemPropertyOrSkipTest(@NotNull String propertyName, @NotNull String gradleVersion) {
     String description = "the path of a Gradle " + gradleVersion + " distribution";
-    return getFilePathProperty(propertyName, description, true);
+    return getFilePathPropertyOrSkipTest(propertyName, description, true);
   }
 
-
-  @Nullable
-  public static File getFilePathProperty(@NotNull String propertyName,
-                                         @NotNull String description,
-                                         boolean isDirectory) {
+  /**
+   * Returns a file whose path is specified in the given system property. If the expected system property is not found, the test invoking \
+   * this method will be skipped.
+   *
+   * @param propertyName the name of the system property.
+   * @param description  the description of the path to get. This is used in the message displayed when the expected system property is not
+   *                     found.
+   * @param isDirectory  indicates whether the file is a directory.
+   * @return a file whose path is specified in the given system property.
+   */
+  @NotNull
+  public static File getFilePathPropertyOrSkipTest(@NotNull String propertyName, @NotNull String description, boolean isDirectory) {
     String pathValue = System.getProperty(propertyName);
+    File path = null;
     if (!isNullOrEmpty(pathValue)) {
-      File path = new File(pathValue);
-      if (isDirectory && path.isDirectory() || !isDirectory && path.isFile()) {
-        return path;
+      File tempPath = new File(pathValue);
+      if (isDirectory && tempPath.isDirectory() || !isDirectory && tempPath.isFile()) {
+        path = tempPath;
       }
     }
-    System.out.println("Please specify " + description + ", using system property " + quote(propertyName));
-    return null;
+
+    if (path == null) {
+      skipTest("Please specify " + description + ", using system property " + quote(propertyName));
+    }
+    return path;
+  }
+
+  /**
+   * Skips a test (the test will be marked as "skipped"). This method has the same effect as the {@code Ignore} annotation, with the
+   * advantage of allowing tests to be skipped conditionally.
+   */
+  @Contract("_ -> fail")
+  public static void skipTest(@NotNull String message) {
+    throw new AssumptionViolatedException(message);
   }
 
   public static void setUpDefaultProjectCreationLocationPath() {
@@ -238,7 +280,7 @@ public final class GuiTests {
     Robot robot = null;
     try {
       robot = BasicRobot.robotWithCurrentAwtHierarchy();
-      final MyProjectManagerListener listener = new MyProjectManagerListener();
+      MyProjectManagerListener listener = new MyProjectManagerListener();
       findFrame(new GenericTypeMatcher<Frame>(Frame.class) {
         @Override
         protected boolean isMatching(@NotNull Frame frame) {
@@ -331,7 +373,7 @@ public final class GuiTests {
   private GuiTests() {
   }
 
-  public static void deleteFile(@Nullable final VirtualFile file) {
+  public static void deleteFile(@Nullable VirtualFile file) {
     // File deletion must happen on UI thread under write lock
     if (file != null) {
       execute(new GuiTask() {
@@ -428,7 +470,7 @@ public final class GuiTests {
    * Returns the root container containing the given component
    */
   @Nullable
-  public static Container getRootContainer(@NotNull final Component component) {
+  public static Container getRootContainer(@NotNull Component component) {
     return execute(new GuiQuery<Container>() {
       @Override
       @Nullable
@@ -446,15 +488,15 @@ public final class GuiTests {
     findAndClickButtonWhenEnabled(container, "Cancel");
   }
 
-  public static void findAndClickButton(@NotNull ContainerFixture<? extends Container> container, @NotNull final String text) {
+  public static void findAndClickButton(@NotNull ContainerFixture<? extends Container> container, @NotNull String text) {
     Robot robot = container.robot();
     JButton button = findButton(container, text, robot);
     robot.click(button);
   }
 
-  public static void findAndClickButtonWhenEnabled(@NotNull ContainerFixture<? extends Container> container, @NotNull final String text) {
+  public static void findAndClickButtonWhenEnabled(@NotNull ContainerFixture<? extends Container> container, @NotNull String text) {
     Robot robot = container.robot();
-    final JButton button = findButton(container, text, robot);
+    JButton button = findButton(container, text, robot);
     Wait.minutes(2).expecting("button " + text + " to be enabled")
       .until(() -> button.isEnabled() && button.isVisible() && button.isShowing());
     robot.click(button);
@@ -472,7 +514,7 @@ public final class GuiTests {
   }
 
   @NotNull
-  private static JButton findButton(@NotNull ContainerFixture<? extends Container> container, @NotNull final String text, Robot robot) {
+  private static JButton findButton(@NotNull ContainerFixture<? extends Container> container, @NotNull String text, Robot robot) {
     return robot.finder().find(container.target(), new GenericTypeMatcher<JButton>(JButton.class) {
       @Override
       protected boolean isMatching(@NotNull JButton button) {
@@ -524,16 +566,21 @@ public final class GuiTests {
     return null;
   }
 
-  /** Waits for a single AWT or Swing {@link Component} showing and matched by {@code matcher}. */
+  /**
+   * Waits for a single AWT or Swing {@link Component} showing and matched by {@code matcher}.
+   */
   @NotNull
-  public static <T extends Component> T waitUntilShowing(@NotNull final Robot robot, @NotNull final GenericTypeMatcher<T> matcher) {
+  public static <T extends Component> T waitUntilShowing(@NotNull Robot robot, @NotNull GenericTypeMatcher<T> matcher) {
     return waitUntilShowing(robot, null, matcher);
   }
 
-  /** Waits for a single AWT or Swing {@link Component} showing and matched by {@code matcher} under {@code root}. */
+  /**
+   * Waits for a single AWT or Swing {@link Component} showing and matched by {@code matcher} under {@code root}.
+   */
   @NotNull
-  public static <T extends Component> T waitUntilShowing(
-    @NotNull final Robot robot, @Nullable final Container root, @NotNull final GenericTypeMatcher<T> matcher) {
+  public static <T extends Component> T waitUntilShowing(@NotNull Robot robot,
+                                                         @Nullable Container root,
+                                                         @NotNull GenericTypeMatcher<T> matcher) {
     return waitUntilFound(robot, root, new GenericTypeMatcher<T>(matcher.supportedType()) {
       @Override
       protected boolean isMatching(@NotNull T component) {
@@ -542,18 +589,22 @@ public final class GuiTests {
     });
   }
 
-  /** Waits for a single AWT or Swing {@link Component} matched by {@code matcher}. */
+  /**
+   * Waits for a single AWT or Swing {@link Component} matched by {@code matcher}.
+   */
   @NotNull
-  public static <T extends Component> T waitUntilFound(@NotNull final Robot robot, @NotNull final GenericTypeMatcher<T> matcher) {
+  public static <T extends Component> T waitUntilFound(@NotNull Robot robot, @NotNull GenericTypeMatcher<T> matcher) {
     return waitUntilFound(robot, null, matcher);
   }
 
-  /** Waits for a single AWT or Swing {@link Component} matched by {@code matcher} under {@code root}. */
+  /**
+   * Waits for a single AWT or Swing {@link Component} matched by {@code matcher} under {@code root}.
+   */
   @NotNull
-  public static <T extends Component> T waitUntilFound(@NotNull final Robot robot,
-                                                       @Nullable final Container root,
-                                                       @NotNull final GenericTypeMatcher<T> matcher) {
-    final AtomicReference<T> reference = new AtomicReference<>();
+  public static <T extends Component> T waitUntilFound(@NotNull Robot robot,
+                                                       @Nullable Container root,
+                                                       @NotNull GenericTypeMatcher<T> matcher) {
+    AtomicReference<T> reference = new AtomicReference<>();
     String typeName = matcher.supportedType().getSimpleName();
     Wait.minutes(2).expecting("matching " + typeName)
       .until(() -> {
@@ -577,14 +628,14 @@ public final class GuiTests {
   /**
    * Waits until no components match the given criteria under the given root
    */
-  public static <T extends Component> void waitUntilGone(@NotNull final Robot robot,
-                                                         @NotNull final Container root,
-                                                         @NotNull final GenericTypeMatcher<T> matcher) {
+  public static <T extends Component> void waitUntilGone(@NotNull Robot robot,
+                                                         @NotNull Container root,
+                                                         @NotNull GenericTypeMatcher<T> matcher) {
     String typeName = matcher.supportedType().getSimpleName();
     Wait.minutes(2).expecting("absence of matching " + typeName).until(() -> robot.finder().findAll(root, matcher).isEmpty());
   }
 
-  public static void waitForBackgroundTasks(final Robot robot) {
+  public static void waitForBackgroundTasks(Robot robot) {
     Wait.minutes(2).expecting("background tasks to finish")
       .until(() -> {
         robot.waitForIdle();
@@ -650,7 +701,7 @@ public final class GuiTests {
   }
 
   @NotNull
-  public static <T extends Component> GenericTypeMatcher<T> matcherForType(final Class<T> type) {
+  public static <T extends Component> GenericTypeMatcher<T> matcherForType(Class<T> type) {
     return new GenericTypeMatcher<T>(type) {
       @Override
       protected boolean isMatching(@NotNull T component) {
@@ -670,7 +721,6 @@ public final class GuiTests {
   }
 
   private static class PrefixMatcher extends BaseMatcher<String> {
-
     private final String prefix;
 
     public PrefixMatcher(String prefix) {
