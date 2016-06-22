@@ -344,7 +344,7 @@ public class SceneDraw {
             g.fillRect((int)transform.getTranslateX(), (int)transform.getTranslateY(), w, h);
 
             g.setColor(backgroundColor);
-            g.fillRect(0, 0, w, h);
+            g.fillRect(xr, yr, w, h);
 
             int wr = transform.getSwingDimension(root.getDrawWidth());
             int hr = transform.getSwingDimension(root.getDrawHeight());
