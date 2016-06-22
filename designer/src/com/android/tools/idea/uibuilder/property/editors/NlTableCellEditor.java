@@ -161,6 +161,7 @@ public class NlTableCellEditor extends PTableCellEditor implements NlEditingList
     assert designProperty != null && TOOLS_URI.equals(designProperty.getNamespace());
     PTableModel model = (PTableModel)table.getModel();
     designProperty.setValue(null);
+    designProperty.delete();
     model.deleteRow(row);
     //noinspection SSBasedInspection
     SwingUtilities.invokeLater(() -> table.editCellAt(row - 1, 1));
