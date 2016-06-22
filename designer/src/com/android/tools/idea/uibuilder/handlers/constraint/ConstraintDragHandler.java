@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.sherpa.structure.WidgetCompanion;
 import com.android.tools.idea.uibuilder.api.DragHandler;
 import com.android.tools.idea.uibuilder.api.DragType;
@@ -112,7 +113,9 @@ public class ConstraintDragHandler extends DragHandler {
       if (model != null) {
         int ax = model.pxToDp(x - this.layout.x - this.layout.getPadding().left - myComponent.w / 2);
         int ay = model.pxToDp(y - this.layout.y - this.layout.getPadding().top - myComponent.h / 2);
-        ConstraintUtilities.setEditorPosition(null, myComponent, ax, ay);
+        AttributesTransaction attributes = myComponent.startAttributeTransaction();
+        ConstraintUtilities.setEditorPosition(null, attributes, ax, ay);
+        attributes.commit();
       }
       if (myDragWidget != null) {
         model.commitDragComponent(myComponent);
