@@ -39,10 +39,7 @@ public class LongTestDataGenerator extends TestDataGenerator<Long> {
 
   @Override
   public SeriesData<Long> get(int index) {
-    SeriesData<Long> data = new SeriesData<>();
-    data.x = mTime.get(index) - mStartTime;
-    data.value = mData.get(index);
-    return data;
+    return new SeriesData<>(mTime.get(index) - mStartTime, mData.get(index));
   }
 
   @Override
