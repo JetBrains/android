@@ -30,6 +30,7 @@ import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
@@ -188,7 +189,7 @@ public final class Projects {
       }
       return;
     }
-    invokeAndWaitIfNeeded(new Runnable() {
+    ApplicationManager.getApplication().invokeAndWait(new Runnable() {
       @Override
       public void run() {
         ApplicationManager.getApplication().runWriteAction(new Runnable() {
@@ -200,7 +201,7 @@ public final class Projects {
           }
         });
       }
-    });
+    }, ModalityState.defaultModalityState());
   }
 
   public static void setHasSyncErrors(@NotNull Project project, boolean hasSyncErrors) {
