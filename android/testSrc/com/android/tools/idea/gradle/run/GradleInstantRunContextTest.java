@@ -15,12 +15,17 @@
  */
 package com.android.tools.idea.gradle.run;
 
+import com.android.ide.common.resources.ResourceUrl;
+import com.android.utils.XmlUtils;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.intellij.lang.annotations.Language;
 import org.junit.Test;
+import org.w3c.dom.Document;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import java.util.Set;
+
+import static org.junit.Assert.*;
 
 public class GradleInstantRunContextTest {
   @Test
@@ -62,5 +67,44 @@ public class GradleInstantRunContextTest {
       "        </activity>\n" +
       "    </application>\n";
     assertTrue(GradleInstantRunContext.manifestSpecifiesMultiProcess(manifest, ImmutableSet.of(":leakcanary")));
+  }
+
+  @Test
+  public void getAppResourceReferences() throws Exception {
+    @Language("XML") String manifest =
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+      "          package=\"com.google.samples.apps.topeka\">\n" +
+      "\n" +
+      "    <application android:allowBackup=\"@bool/allowBackup\"\n" +
+      "                 android:icon=\"@mipmap/ic_launcher\"\n" +
+      "                 android:label=\"@string/app_name\"\n" +
+      "                 android:supportsRtl=\"false\"\n" +
+      "                 android:theme=\"@style/Topeka\"\n" +
+      "                 android:name=\".MyApplication\">\n" +
+      "\n" +
+      "        <activity android:name=\".activity.SignInActivity\"\n" +
+      "                  android:theme=\"@style/Topeka.SignInActivity\">\n" +
+      "            <intent-filter>\n" +
+      "                <action android:name=\"android.intent.action.MAIN\" />\n" +
+      "                <category android:name=\"android.intent.category.LAUNCHER\" />\n" +
+      "            </intent-filter>\n" +
+      "        </activity>\n" +
+      "\n" +
+      "        <activity android:name=\".activity.QuizActivity\"\n" +
+      "                  android:theme=\"@style/Topeka.QuizActivity\"/>\n" +
+      "\n" +
+      "    </application>\n" +
+      "</manifest>";
+
+    Document document = XmlUtils.parseDocument(manifest, false);
+    Set<ResourceUrl> appResourceReferences = GradleInstantRunContext.getAppResourceReferences(document.getDocumentElement());
+    //noinspection ConstantConditions
+    assertEquals(ImmutableList.copyOf(appResourceReferences), ImmutableList.of(
+      ResourceUrl.parse("@bool/allowBackup"),
+      ResourceUrl.parse("@mipmap/ic_launcher"),
+      ResourceUrl.parse("@string/app_name"),
+      ResourceUrl.parse("@style/Topeka"),
+      ResourceUrl.parse("@style/Topeka.QuizActivity"),
+      ResourceUrl.parse("@style/Topeka.SignInActivity")));
   }
 }
