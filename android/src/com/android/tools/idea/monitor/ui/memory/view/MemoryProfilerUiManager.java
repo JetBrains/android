@@ -15,46 +15,98 @@
  */
 package com.android.tools.idea.monitor.ui.memory.view;
 
+import com.android.tools.adtui.Animatable;
 import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.Range;
 import com.android.tools.idea.monitor.datastore.DataAdapter;
 import com.android.tools.idea.monitor.datastore.Poller;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.datastore.SeriesDataType;
+import com.android.tools.idea.monitor.profilerclient.DeviceProfilerService;
 import com.android.tools.idea.monitor.ui.BaseProfilerUiManager;
 import com.android.tools.idea.monitor.ui.BaseSegment;
 import com.android.tools.idea.monitor.ui.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.memory.model.MemoryDataCache;
+import com.android.tools.idea.monitor.ui.memory.model.MemoryInfoTreeNode;
 import com.android.tools.idea.monitor.ui.memory.model.MemoryPoller;
+import com.android.tools.perflib.captures.MemoryMappedFileBuffer;
+import com.android.tools.perflib.heap.ClassObj;
+import com.android.tools.perflib.heap.Heap;
+import com.android.tools.perflib.heap.Snapshot;
+import com.android.tools.profiler.proto.MemoryProfilerService;
 import com.google.common.collect.Iterables;
-import com.intellij.ui.components.panels.HorizontalLayout;
 import com.google.common.collect.Sets;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.ui.components.JBPanel;
+import com.intellij.ui.components.panels.HorizontalLayout;
 import com.intellij.util.EventDispatcher;
+import com.intellij.util.ui.JBUI;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.Map;
-import java.util.Set;
+import java.awt.*;
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
+import java.util.List;
 
 public final class MemoryProfilerUiManager extends BaseProfilerUiManager {
 
+  public interface MemoryEventListener extends EventListener {
+    void newHeapDumpSamplesReceived(List<MemoryProfilerService.MemoryData.HeapDumpSample> newSamples);
+  }
+
+  private static final Logger LOG = Logger.getInstance(MemoryProfilerUiManager.class);
+
+  // Provides an empty HeapDumpSample object so users can diff a heap dump against epoch.
+  private static final MemoryProfilerService.MemoryData.HeapDumpSample.Builder EMPTY_SAMPLE_BUILDER =
+    MemoryProfilerService.MemoryData.HeapDumpSample.newBuilder();
+
+  @NotNull
+  private final EventDispatcher<MemoryEventListener> myMemoryEventDispatcher;
   private JButton myTriggerHeapDumpButton;
+  private MemoryDataCache myDataCache;
+  private JPanel myDetailedViewToolbar;
+  private MemoryInfoTreeNode myRoot;
+  private MemoryDetailSegment myMemoryDetailSegment;
+
+  private JComboBox<MemoryProfilerService.MemoryData.HeapDumpSample> myPrevHeapDumpSelector;
+  private JComboBox<MemoryProfilerService.MemoryData.HeapDumpSample> myNextHeapDumpSelector;
+  private Snapshot myPrevHeapDump;
+  private Snapshot myNextHeapDump;
 
   public MemoryProfilerUiManager(@NotNull Range xRange, @NotNull Choreographer choreographer,
                                  @NotNull SeriesDataStore datastore, @NotNull EventDispatcher<ProfilerEventListener> eventDispatcher) {
     super(xRange, choreographer, datastore, eventDispatcher);
+    myMemoryEventDispatcher = EventDispatcher.create(MemoryEventListener.class);
   }
 
   @NotNull
   @Override
   public Set<Poller> createPollers(int pid) {
-    MemoryPoller poller = new MemoryPoller(myDataStore, new MemoryDataCache(), pid);
+    DeviceProfilerService profilerService = myDataStore.getDeviceProfilerService();
+    myDataCache = new MemoryDataCache(pid, profilerService.getDevice(), myMemoryEventDispatcher);
+    MemoryPoller poller = new MemoryPoller(myDataStore, myDataCache, pid);
+
     Map<SeriesDataType, DataAdapter> adapters = poller.createAdapters();
     for (Map.Entry<SeriesDataType, DataAdapter> entry : adapters.entrySet()) {
       // TODO these need to be de-registered
       myDataStore.registerAdapter(entry.getKey(), entry.getValue());
     }
+
+    myMemoryEventDispatcher.addListener(newSamples -> {
+      MemoryProfilerService.MemoryData.HeapDumpSample currentSelected =
+        (MemoryProfilerService.MemoryData.HeapDumpSample)myNextHeapDumpSelector.getSelectedItem();
+
+      for (MemoryProfilerService.MemoryData.HeapDumpSample sample : newSamples) {
+        myPrevHeapDumpSelector.addItem(sample);
+        myNextHeapDumpSelector.addItem(sample);
+      }
+      myNextHeapDumpSelector.setSelectedItem(newSamples.get(newSamples.size() - 1));
+    });
+
     return Sets.newHashSet(poller);
   }
 
@@ -71,18 +123,152 @@ public final class MemoryProfilerUiManager extends BaseProfilerUiManager {
     super.setupExtendedOverviewUi(toolbar, overviewPanel);
 
     myTriggerHeapDumpButton = new JButton(AndroidIcons.Ddms.DumpHprof);
-    MemoryPoller poller = (MemoryPoller) Iterables.getOnlyElement(myPollerSet);
-    myTriggerHeapDumpButton.addActionListener(e -> poller.requestHeapDump());
+    MemoryPoller poller = (MemoryPoller)Iterables.getOnlyElement(myPollerSet);
+    myTriggerHeapDumpButton.addActionListener(e -> {
+      poller.requestHeapDump();
+      myEventDispatcher.getMulticaster().profilerExpanded(ProfilerType.MEMORY);
+    });
     toolbar.add(myTriggerHeapDumpButton, HorizontalLayout.LEFT);
+  }
+
+  @Override
+  public void setupDetailedViewUi(@NotNull JPanel toolbar, @NotNull JPanel detailPanel) {
+    myDetailedViewToolbar = createDetailToolbar();
+    detailPanel.add(myDetailedViewToolbar, BorderLayout.NORTH);
+
+    if (myRoot == null) {
+      myRoot = new MemoryInfoTreeNode("Root");
+    }
+
+    if (myMemoryDetailSegment == null) {
+      myMemoryDetailSegment = new MemoryDetailSegment(myXRange, myRoot, myEventDispatcher);
+      List<Animatable> animatables = new ArrayList<>();
+      myMemoryDetailSegment.createComponentsList(animatables);
+      myChoreographer.register(animatables);
+      myMemoryDetailSegment.initializeComponents();
+    }
+
+    detailPanel.add(myMemoryDetailSegment, BorderLayout.CENTER);
   }
 
   @Override
   public void resetProfiler(@NotNull JPanel toolbar, @NotNull JPanel overviewPanel, @NotNull JPanel detailPanel) {
     super.resetProfiler(toolbar, overviewPanel, detailPanel);
 
+    detailPanel.removeAll();
+    myDetailedViewToolbar = null;
+
+    myPrevHeapDumpSelector = null;
+    myNextHeapDumpSelector = null;
+    if (myPrevHeapDump != null) {
+      myPrevHeapDump.dispose();
+      myPrevHeapDump = null;
+    }
+    if (myNextHeapDump != null) {
+      myNextHeapDump.dispose();
+      myNextHeapDump = null;
+    }
+
     if (myTriggerHeapDumpButton != null) {
       toolbar.remove(myTriggerHeapDumpButton);
       myTriggerHeapDumpButton = null;
     }
+  }
+
+  private JPanel createDetailToolbar() {
+    JPanel toolbar = new JBPanel(new HorizontalLayout(JBUI.scale(5)));
+    myPrevHeapDumpSelector = new JComboBox<>();
+    myPrevHeapDumpSelector.addItem(EMPTY_SAMPLE_BUILDER.build());
+    myPrevHeapDumpSelector.addActionListener(e -> {
+      if (myPrevHeapDump != null) {
+        myPrevHeapDump.dispose();
+        myPrevHeapDump = null;
+      }
+
+      File file = myDataCache.getHeapDumpFile((MemoryProfilerService.MemoryData.HeapDumpSample)myPrevHeapDumpSelector.getSelectedItem());
+      if (file != null) {
+        try {
+          myPrevHeapDump = Snapshot.createSnapshot(new MemoryMappedFileBuffer(file));
+        }
+        catch (IOException exception) {
+          LOG.info("Error generating Snapshot from heap dump file.", exception);
+        }
+      }
+
+      generateClassHistogram(myMemoryDetailSegment, myRoot, myPrevHeapDump, myNextHeapDump);
+    });
+
+    myNextHeapDumpSelector = new JComboBox<>();
+    myNextHeapDumpSelector.addItem(EMPTY_SAMPLE_BUILDER.build());
+    myNextHeapDumpSelector.addActionListener(e -> {
+      if (myNextHeapDump != null) {
+        myNextHeapDump.dispose();
+        myNextHeapDump = null;
+      }
+
+      File file = myDataCache.getHeapDumpFile((MemoryProfilerService.MemoryData.HeapDumpSample)myNextHeapDumpSelector.getSelectedItem());
+      if (file != null) {
+        try {
+          myNextHeapDump = Snapshot.createSnapshot(new MemoryMappedFileBuffer(file));
+        }
+        catch (IOException exception) {
+          LOG.info("Error generating Snapshot from heap dump file.", exception);
+        }
+      }
+
+      generateClassHistogram(myMemoryDetailSegment, myRoot, myPrevHeapDump, myNextHeapDump);
+    });
+
+    toolbar.add(HorizontalLayout.LEFT, myPrevHeapDumpSelector);
+    toolbar.add(HorizontalLayout.RIGHT, myNextHeapDumpSelector);
+    return toolbar;
+  }
+
+  /**
+   * Updates a {@link MemoryDetailSegment} that shows a delta in class instances between prevHeapDump and nextHeapDump
+   */
+  private static void generateClassHistogram(@NotNull MemoryDetailSegment detailSegment,
+                                             @NotNull MemoryInfoTreeNode root,
+                                             @Nullable Snapshot prevHeapDump,
+                                             @Nullable Snapshot nextHeapDump) {
+    root.setCount(0);
+    root.removeAllChildren();
+    Map<String, Integer> instanceMap = new HashMap<>();
+
+    // Compute the positive delta from the next heap
+    if (nextHeapDump != null) {
+      for (Heap heap : nextHeapDump.getHeaps()) {
+        for (ClassObj classObj : heap.getClasses()) {
+          String className = classObj.getClassName();
+          int instanceCount = classObj.getInstanceCount() + (instanceMap.containsKey(className) ? instanceMap.get(className) : 0);
+          instanceMap.put(className, instanceCount);
+        }
+      }
+    }
+
+    // Subtract the negative delta from the previous heap
+    if (prevHeapDump != null) {
+      for (Heap heap : prevHeapDump.getHeaps()) {
+        for (ClassObj classObj : heap.getClasses()) {
+          String className = classObj.getClassName();
+          int instanceCount = (instanceMap.containsKey(className) ? instanceMap.get(className) : 0) - classObj.getInstanceCount();
+          instanceMap.put(className, instanceCount);
+        }
+      }
+    }
+
+    int maxInstanceCount = Integer.MIN_VALUE;
+    for (Map.Entry<String, Integer> entry : instanceMap.entrySet()) {
+      int instanceCount = entry.getValue();
+      if (instanceCount != 0) {
+        MemoryInfoTreeNode child = new MemoryInfoTreeNode(entry.getKey());
+        child.setCount(instanceCount);
+        detailSegment.insertNode(root, child);
+        maxInstanceCount = Math.max(maxInstanceCount, Math.abs(instanceCount));
+      }
+    }
+
+    root.setCount(maxInstanceCount);
+    detailSegment.refreshNode(root);
   }
 }

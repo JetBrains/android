@@ -151,7 +151,7 @@ public class AndroidMonitorToolWindow implements Disposable {
     myTimeAxis = new AxisComponent(myXRange, xGlobalRange, "TIME", AxisComponent.AxisOrientation.BOTTOM, 0, 0, false, timeFormatter);
     myTimeAxis.setLabelVisible(false);
 
-    myDetailedViewContainer = new JBPanel();
+    myDetailedViewContainer = new JBPanel(new BorderLayout());
     mySegmentsContainer = new JBPanel();
     AccordionLayout accordion = new AccordionLayout(mySegmentsContainer, AccordionLayout.Orientation.VERTICAL);
     mySegmentsContainer.setLayout(accordion);
