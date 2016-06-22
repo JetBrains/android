@@ -19,6 +19,7 @@ import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.android.tools.idea.uibuilder.property.ptable.PTable;
 import com.android.tools.idea.uibuilder.property.ptable.PTableCellEditor;
+import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
 import com.android.tools.idea.uibuilder.property.ptable.PTableModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -121,8 +122,8 @@ public class NlTableCellEditor extends PTableCellEditor implements NlEditingList
 
   @Nullable
   public static NlProperty getRuntimeProperty(@NotNull JTable table, int row) {
-    NlProperty currentProperty = getPropertyAt(table, row);
-    NlProperty previousProperty = getPropertyAt(table, row - 1);
+    NlPropertyItem currentProperty = getPropertyAt(table, row);
+    NlPropertyItem previousProperty = getPropertyAt(table, getPreviousPropertyRow(currentProperty, table, row));
     if (currentProperty != null &&
         previousProperty != null &&
         previousProperty.getName().equals(currentProperty.getName()) &&
@@ -135,8 +136,8 @@ public class NlTableCellEditor extends PTableCellEditor implements NlEditingList
 
   @Nullable
   public static NlProperty getDesignProperty(@NotNull JTable table, int row) {
-    NlProperty currentProperty = getPropertyAt(table, row);
-    NlProperty nextProperty = getPropertyAt(table, row + 1);
+    NlPropertyItem currentProperty = getPropertyAt(table, row);
+    NlPropertyItem nextProperty = getPropertyAt(table, getNextPropertyRow(currentProperty, row));
     if (currentProperty != null &&
         nextProperty != null &&
         nextProperty.getName().equals(currentProperty.getName()) &&
@@ -150,8 +151,13 @@ public class NlTableCellEditor extends PTableCellEditor implements NlEditingList
   public static void addDesignProperty(@NotNull JTable table, int row) {
     NlPropertyItem property = getPropertyAt(table, row);
     assert property != null && !TOOLS_URI.equals(property.getNamespace());
+    assert getDesignProperty(table, row) == null;
     PTableModel model = (PTableModel)table.getModel();
-    model.insertRow(row + 1, property.getDesignTimeProperty());
+    int nextRow = getNextPropertyRow(property, row);
+    model.insertRow(nextRow, property.getDesignTimeProperty());
+    if (property.isExpanded()) {
+      model.expand(nextRow);
+    }
     //noinspection SSBasedInspection
     SwingUtilities.invokeLater(() -> table.editCellAt(row + 1, 1));
   }
@@ -159,11 +165,31 @@ public class NlTableCellEditor extends PTableCellEditor implements NlEditingList
   public static void removeDesignProperty(@NotNull JTable table, int row) {
     NlPropertyItem designProperty = getPropertyAt(table, row);
     assert designProperty != null && TOOLS_URI.equals(designProperty.getNamespace());
+    int previousRow = getPreviousPropertyRow(designProperty, table, row);
     PTableModel model = (PTableModel)table.getModel();
     designProperty.setValue(null);
     designProperty.delete();
+    model.collapse(row);
     model.deleteRow(row);
     //noinspection SSBasedInspection
-    SwingUtilities.invokeLater(() -> table.editCellAt(row - 1, 1));
+    SwingUtilities.invokeLater(() -> table.editCellAt(previousRow, 1));
+  }
+
+  private static int getNextPropertyRow(@Nullable NlPropertyItem currentProperty, int row) {
+    if (currentProperty == null) {
+      return -1;
+    }
+    return row + 1 + (currentProperty.isExpanded() ? currentProperty.getChildren().size() : 0);
+  }
+
+  private static int getPreviousPropertyRow(@Nullable NlPropertyItem currentProperty, @NotNull JTable table, int row) {
+    if (currentProperty == null || row == 0) {
+      return -1;
+    }
+    PTableItem previous = (PTableItem)table.getValueAt(row - 1, 1);
+    if (previous.getParent() != null && currentProperty.getParent() == null) {
+      return row - previous.getParent().getChildren().size() - 1;
+    }
+    return row - 1;
   }
 }
