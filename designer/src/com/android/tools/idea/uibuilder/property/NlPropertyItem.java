@@ -21,9 +21,11 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.property.ptable.PTableGroupItem;
 import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
 import com.android.tools.idea.uibuilder.property.renderer.NlPropertyRenderers;
 import com.android.util.PropertiesMap;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.application.ApplicationManager;
@@ -112,6 +114,10 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
     myName = property.myName;
     myNamespace = namespace;
     myDefinition = property.myDefinition;
+    if (property.getParent() != null) {
+      PTableGroupItem group = (PTableGroupItem)property.getParent();
+      group.addChild(this, property);
+    }
   }
 
   public boolean sameDefinition(@Nullable NlPropertyItem other) {
@@ -199,6 +205,13 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
       return myDefaultValue.value;
     }
     return resolveValueUsingResolver(value);
+  }
+
+  public void delete() {
+    PTableGroupItem group = (PTableGroupItem)getParent();
+    if (group != null) {
+      group.deleteChild(this);
+    }
   }
 
   @NotNull
@@ -350,7 +363,7 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
       .add("name", myName)
       .add("namespace", namespaceToPrefix(myNamespace))
       .toString();
