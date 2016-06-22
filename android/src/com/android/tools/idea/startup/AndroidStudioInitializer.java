@@ -17,10 +17,8 @@ package com.android.tools.idea.startup;
 
 import com.android.tools.idea.actions.MakeIdeaModuleAction;
 import com.android.tools.idea.monitor.tool.AndroidMonitorToolWindowFactory;
-import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
-import com.intellij.concurrency.JobScheduler;
 import com.intellij.lang.injection.MultiHostInjector;
 import com.intellij.androidstudio.actions.CreateClassAction;
 import com.intellij.openapi.application.PathManager;
@@ -51,8 +49,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.List;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import static com.android.SdkConstants.EXT_JAR;
 import static com.android.tools.idea.gradle.util.GradleUtil.cleanUpPreferences;
@@ -100,7 +96,6 @@ public class AndroidStudioInitializer implements Runnable {
     disableGroovyLanguageInjection();
     setUpNewProjectActions();
     setUpExperimentalFeatures();
-    setupAnalytics();
 
     // Modify built-in "Default" color scheme to remove background from XML tags.
     // "Darcula" and user schemes will not be touched.
@@ -117,15 +112,6 @@ public class AndroidStudioInitializer implements Runnable {
     FileColorConfigurationUtil.createAndroidTestFileColorConfigurationIfNotExist(ProjectManager.getInstance().getDefaultProject());
      */
   }
-
-    /*
-     * sets up collection of Android Studio specific analytics.
-     * Delayed by 1 minute, not to add to load time of Android Studio.
-     */
-    private void setupAnalytics() {
-        ScheduledExecutorService scheduler = JobScheduler.getScheduler();
-        scheduler.schedule(() -> AndroidStudioUsageTracker.setup(scheduler), 1, TimeUnit.MINUTES);
-    }
 
   private void setUpExperimentalFeatures() {
     if (System.getProperty(ENABLE_EXPERIMENTAL_PROFILING) != null) {
