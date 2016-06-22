@@ -178,8 +178,5 @@
         </SOURCES>
       </library>
     </orderEntry>
-    <orderEntry type="module" module-name="analytics-tracker" />
-    <orderEntry type="module" module-name="analytics-protos" />
-    <orderEntry type="module" module-name="analytics-shared" />
   </component>
 </module>
