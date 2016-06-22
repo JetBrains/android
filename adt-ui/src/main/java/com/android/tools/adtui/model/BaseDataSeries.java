@@ -38,10 +38,7 @@ public abstract class BaseDataSeries<E> implements DataSeries<E> {
       @Override
       public SeriesData<E> get(int index) {
         assert index < size();
-        SeriesData<E> data = new SeriesData<>();
-        data.x = getX(index + fromIndex);
-        data.value = getY(index + fromIndex);
-        return data;
+        return new SeriesData<>(getX(index + fromIndex), getY(index + fromIndex));
       }
     };
   }
@@ -65,10 +62,7 @@ public abstract class BaseDataSeries<E> implements DataSeries<E> {
   @Override
   public SeriesData<E> getDataAtXValue(long x) {
     int index = getNearestXIndex(x);
-    SeriesData<E> data = new SeriesData<>();
-    data.x = getX(index);
-    data.value = getY(index);
-    return data;
+    return new SeriesData<>(getX(index), getY(index));
   }
 
   /**

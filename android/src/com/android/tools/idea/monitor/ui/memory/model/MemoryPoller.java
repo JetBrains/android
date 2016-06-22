@@ -17,14 +17,15 @@ package com.android.tools.idea.monitor.ui.memory.model;
 
 import com.android.tools.idea.monitor.datastore.Poller;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
-import com.android.tools.idea.monitor.profilerclient.DeviceProfilerService;
-import com.android.tools.idea.monitor.ui.ProfilerEventListener;
+import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.idea.monitor.datastore.*;
 import com.android.tools.profiler.proto.MemoryProfilerService;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.util.EventDispatcher;
+import com.intellij.util.containers.HashMap;
 import io.grpc.StatusRuntimeException;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class MemoryPoller extends Poller {
@@ -32,12 +33,57 @@ public class MemoryPoller extends Poller {
 
   private static final long POLL_PERIOD_NS = TimeUnit.MILLISECONDS.toNanos(250);
 
+  @NotNull private final MemoryDataCache myDataCache;
+  private long myDeviceTimeOffset;
   private long myStartTimestamp;
-  private int myAppId;
+  final private int myAppId;
 
-  public MemoryPoller(@NotNull SeriesDataStore dataStore, int appId) {
+  public MemoryPoller(@NotNull SeriesDataStore dataStore, @NotNull MemoryDataCache dataCache, int appId) {
     super(dataStore, POLL_PERIOD_NS);
+    myDeviceTimeOffset = dataStore.getDeviceTimeOffsetNs();
+    myDataCache = dataCache;
     myAppId = appId;
+  }
+
+  public Map<SeriesDataType, DataAdapter> createAdapters() {
+    Map<SeriesDataType, DataAdapter> adapters = new HashMap<>();
+    adapters.put(SeriesDataType.MEMORY_TOTAL, new MemorySampleAdapter<Long>() {
+      @Override
+      public Long getSampleValue(MemoryProfilerService.MemoryData.MemorySample sample) {
+        return sample.getTotalMem();
+      }
+    });
+    adapters.put(SeriesDataType.MEMORY_JAVA, new MemorySampleAdapter<Long>() {
+      @Override
+      public Long getSampleValue(MemoryProfilerService.MemoryData.MemorySample sample) {
+        return sample.getJavaMem();
+      }
+    });
+    adapters.put(SeriesDataType.MEMORY_NATIVE, new MemorySampleAdapter<Long>() {
+      @Override
+      public Long getSampleValue(MemoryProfilerService.MemoryData.MemorySample sample) {
+        return sample.getNativeMem();
+      }
+    });
+    adapters.put(SeriesDataType.MEMORY_GRAPHICS, new MemorySampleAdapter<Long>() {
+      @Override
+      public Long getSampleValue(MemoryProfilerService.MemoryData.MemorySample sample) {
+        return sample.getGraphicsMem();
+      }
+    });
+    adapters.put(SeriesDataType.MEMORY_CODE, new MemorySampleAdapter<Long>() {
+      @Override
+      public Long getSampleValue(MemoryProfilerService.MemoryData.MemorySample sample) {
+        return sample.getCodeMem();
+      }
+    });
+    adapters.put(SeriesDataType.MEMORY_OTHERS, new MemorySampleAdapter<Long>() {
+      @Override
+      public Long getSampleValue(MemoryProfilerService.MemoryData.MemorySample sample) {
+        return sample.getOthersMem();
+      }
+    });
+    return adapters;
   }
 
   @Override
@@ -66,6 +112,7 @@ public class MemoryPoller extends Poller {
     MemoryProfilerService.MemoryData result;
     try {
       result = myService.getMemoryService().getData(request);
+      myDataCache.appendData(result);
     }
     catch (StatusRuntimeException e) {
       LOG.info("Server most likely unreachable.");
@@ -74,6 +121,33 @@ public class MemoryPoller extends Poller {
     }
 
     myStartTimestamp = result.getEndTimestamp();
-    // TODO connect this to the data store
+  }
+
+  public abstract class MemorySampleAdapter<T> implements DataAdapter<T> {
+    long myStartTimeMs;
+
+    @Override
+    public int getClosestTimeIndex(long time) {
+      return myDataCache.getLatestPriorMemorySampleIndex(TimeUnit.NANOSECONDS.convert(time, TimeUnit.MILLISECONDS) + myDeviceTimeOffset);
+    }
+
+    @Override
+    public void reset(long startTime) {
+      myDataCache.reset();
+      myStartTimeMs = startTime;
+    }
+
+    @Override
+    public void stop() {
+      MemoryPoller.this.stop();
+    }
+
+    @Override
+    public SeriesData<T> get(int index) {
+      MemoryProfilerService.MemoryData.MemorySample sample = myDataCache.getMemorySample(index);
+      return new SeriesData<>(TimeUnit.NANOSECONDS.toMillis(sample.getTimestamp() - myDeviceTimeOffset), getSampleValue(sample));
+    }
+
+    public abstract T getSampleValue(MemoryProfilerService.MemoryData.MemorySample sample);
   }
 }

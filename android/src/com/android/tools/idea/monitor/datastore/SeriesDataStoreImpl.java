@@ -273,10 +273,7 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
 
     @Override
     public SeriesData<Long> get(int index) {
-      SeriesData<Long> data = new SeriesData<>();
-      data.x = myTime.get(index) - myStartTime;
-      data.value = myData.get(index);
-      return data;
+      return new SeriesData<>(myTime.get(index) - myStartTime, myData.get(index));
     }
 
     private void generateData() {
