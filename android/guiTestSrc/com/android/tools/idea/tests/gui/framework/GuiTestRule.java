@@ -62,7 +62,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.truth.TruthJUnit.assume;
 import static org.fest.reflect.core.Reflection.*;
-import static org.junit.Assert.assertNotNull;
 
 public class GuiTestRule implements TestRule {
 
@@ -206,15 +205,12 @@ public class GuiTestRule implements TestRule {
 
     // Work-around for https://youtrack.jetbrains.com/issue/IDEA-153492
     Class<?> keyboardManagerType = type("javax.swing.KeyboardManager").load();
-    Object manager = method("getCurrentManager").withReturnType(Object.class).in(keyboardManagerType).invoke();
-    assertNotNull(manager);
+    Object manager = checkNotNull(method("getCurrentManager").withReturnType(Object.class).in(keyboardManagerType).invoke());
 
-    Map componentKeyStrokeMap = field("componentKeyStrokeMap").ofType(Hashtable.class).in(manager).get();
-    assertNotNull(componentKeyStrokeMap);
+    Map componentKeyStrokeMap = checkNotNull(field("componentKeyStrokeMap").ofType(Hashtable.class).in(manager).get());
     componentKeyStrokeMap.clear();
 
-    Map containerMap = field("containerMap").ofType(Hashtable.class).in(manager).get();
-    assertNotNull(containerMap);
+    Map containerMap = checkNotNull(field("containerMap").ofType(Hashtable.class).in(manager).get());
     containerMap.clear();
   }
 
