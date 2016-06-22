@@ -26,11 +26,9 @@ import com.intellij.util.EventDispatcher;
 import com.intellij.util.ui.JBUI;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.*;
-import java.awt.image.BufferedImage;
+import java.util.Set;
 
 public final class EventProfilerUiManager extends BaseProfilerUiManager {
 
@@ -49,9 +47,8 @@ public final class EventProfilerUiManager extends BaseProfilerUiManager {
     super(xRange, choreographer, datastore, eventDispatcher);
   }
 
-  @Nullable
   @Override
-  public Poller createPoller(int pid) {
+  public Set<Poller> createPollers(int pid) {
     return null;
   }
 

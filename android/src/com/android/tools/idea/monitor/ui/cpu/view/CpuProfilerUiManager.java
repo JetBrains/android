@@ -24,10 +24,12 @@ import com.android.tools.idea.monitor.ui.BaseProfilerUiManager;
 import com.android.tools.idea.monitor.ui.BaseSegment;
 import com.android.tools.idea.monitor.ui.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.cpu.model.CpuDataPoller;
+import com.google.common.collect.Sets;
 import com.intellij.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.util.Set;
 
 public final class CpuProfilerUiManager extends BaseProfilerUiManager {
 
@@ -44,9 +46,9 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager {
 
   @NotNull
   @Override
-  public Poller createPoller(int pid) {
+  public Set<Poller> createPollers(int pid) {
     myCpuDataPoller = new CpuDataPoller(myDataStore, pid);
-    return myCpuDataPoller;
+    return Sets.newHashSet(myCpuDataPoller);
   }
 
   @Override

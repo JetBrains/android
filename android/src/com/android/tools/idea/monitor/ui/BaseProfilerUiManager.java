@@ -32,6 +32,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Helps manage the coordination between different UI segments when switching between Level1/2/3 views.
@@ -66,7 +67,8 @@ public abstract class BaseProfilerUiManager {
   @NotNull
   protected final EventDispatcher<ProfilerEventListener> myEventDispatcher;
 
-  protected Poller myPoller;
+  @Nullable
+  protected Set<Poller> myPollerSet;
 
   public BaseProfilerUiManager(@NotNull Range xRange, @NotNull Choreographer choreographer,
                                @NotNull SeriesDataStore dataStore, @NotNull EventDispatcher<ProfilerEventListener> eventDispatcher) {
@@ -77,22 +79,25 @@ public abstract class BaseProfilerUiManager {
   }
 
   @Nullable
-  public abstract Poller createPoller(int pid);
+  public abstract Set<Poller> createPollers(int pid);
 
   public void startMonitoring(int pid) {
-    assert myPoller == null;
-    myPoller = createPoller(pid);
-    if (myPoller != null) {
-      ApplicationManager.getApplication().executeOnPooledThread(myPoller);
+    assert myPollerSet == null;
+    myPollerSet = createPollers(pid);
+    if (myPollerSet != null) {
+      for (Poller poller : myPollerSet) {
+        ApplicationManager.getApplication().executeOnPooledThread(poller);
+      }
     }
   }
 
   public void stopMonitoring() {
-    if (myPoller == null) {
-      return;
+    if (myPollerSet != null) {
+      for (Poller poller : myPollerSet) {
+        poller.stop();
+        myPollerSet.remove(poller);
+      }
     }
-    myPoller.stop();
-    myPoller = null;
   }
 
   /**

@@ -33,6 +33,10 @@ public enum SeriesDataType {
    * {@link com.android.tools.idea.monitor.ui.network.view.NetworkRadioSegment.NetworkType}
    */
   NETWORK_TYPE,
+  /**
+   * {@link com.android.tools.idea.monitor.ui.network.model.HttpData}
+   */
+  NETWORK_HTTP_DATA, //HttpData
 
   CPU_MY_PROCESS, // long
   CPU_OTHER_PROCESSES, // long
