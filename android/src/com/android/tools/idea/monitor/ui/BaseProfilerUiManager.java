@@ -67,10 +67,10 @@ public abstract class BaseProfilerUiManager {
   protected Poller myPoller;
 
   public BaseProfilerUiManager(@NotNull Range xRange, @NotNull Choreographer choreographer,
-                               @NotNull SeriesDataStore datastore, @NotNull EventDispatcher<ProfilerEventListener> eventDispatcher) {
+                               @NotNull SeriesDataStore dataStore, @NotNull EventDispatcher<ProfilerEventListener> eventDispatcher) {
     myXRange = xRange;
     myChoreographer = choreographer;
-    myDataStore = datastore;
+    myDataStore = dataStore;
     myEventDispatcher = eventDispatcher;
   }
 
