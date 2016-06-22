@@ -190,7 +190,7 @@ public class InstantRunBuilderTest {
                             myInstantRunClientDelegate);
     builder.build(myTaskRunner, Arrays.asList("-Pdevice.api=14", "-Pprofiling=on"));
     assertEquals(
-      "gradlew -Pdevice.api=14 -Pprofiling=on -Pandroid.injected.version.code=2147483647 -Pandroid.injected.version.name=INSTANT_RUN -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK clean :app:gen :app:assemble",
+      "gradlew -Pdevice.api=14 -Pprofiling=on -Pandroid.injected.version.name=INSTANT_RUN -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK clean :app:gen :app:assemble",
       myTaskRunner.getBuilds());
   }
 
@@ -200,7 +200,7 @@ public class InstantRunBuilderTest {
 
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.injected.version.code=2147483647 -Pandroid.injected.version.name=INSTANT_RUN -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK clean :app:gen :app:assemble",
+      "gradlew -Pandroid.injected.version.name=INSTANT_RUN -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK clean :app:gen :app:assemble",
       myTaskRunner.getBuilds());
   }
 
@@ -211,7 +211,7 @@ public class InstantRunBuilderTest {
     when(myDevice.getVersion()).thenReturn(new AndroidVersion(23, null));
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.injected.version.code=2147483647 -Pandroid.injected.version.name=INSTANT_RUN -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK clean :app:gen :app:assemble",
+      "gradlew -Pandroid.injected.version.name=INSTANT_RUN -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK clean :app:gen :app:assemble",
       myTaskRunner.getBuilds());
   }
 
@@ -221,7 +221,7 @@ public class InstantRunBuilderTest {
     when(myDevice.getVersion()).thenReturn(new AndroidVersion(23, null));
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.injected.version.code=2147483647 -Pandroid.injected.version.name=INSTANT_RUN -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK clean :app:gen :app:assemble",
+      "gradlew -Pandroid.injected.version.name=INSTANT_RUN -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK clean :app:gen :app:assemble",
       myTaskRunner.getBuilds());
   }
 
@@ -238,7 +238,7 @@ public class InstantRunBuilderTest {
     when(myDevice.getVersion()).thenReturn(new AndroidVersion(23, null));
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.injected.version.code=2147483647 -Pandroid.injected.version.name=INSTANT_RUN -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK clean :app:gen :app:assemble",
+      "gradlew -Pandroid.injected.version.name=INSTANT_RUN -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK clean :app:gen :app:assemble",
       myTaskRunner.getBuilds());
   }
 
@@ -251,7 +251,7 @@ public class InstantRunBuilderTest {
 
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.injected.version.code=2147483647 -Pandroid.injected.version.name=INSTANT_RUN -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK clean :app:gen :app:assemble",
+      "gradlew -Pandroid.injected.version.name=INSTANT_RUN -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK clean :app:gen :app:assemble",
       myTaskRunner.getBuilds());
   }
 
@@ -264,7 +264,7 @@ public class InstantRunBuilderTest {
 
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.injected.version.code=2147483647 -Pandroid.injected.version.name=INSTANT_RUN -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK :app:assemble",
+      "gradlew -Pandroid.injected.version.name=INSTANT_RUN -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK :app:assemble",
       myTaskRunner.getBuilds());
   }
 
@@ -276,7 +276,7 @@ public class InstantRunBuilderTest {
 
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.injected.version.code=2147483647 -Pandroid.injected.version.name=INSTANT_RUN -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK :app:assemble",
+      "gradlew -Pandroid.injected.version.name=INSTANT_RUN -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK :app:assemble",
       myTaskRunner.getBuilds());
   }
 
@@ -291,7 +291,7 @@ public class InstantRunBuilderTest {
 
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.injected.version.code=2147483647 -Pandroid.injected.version.name=INSTANT_RUN -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK :app:assemble",
+      "gradlew -Pandroid.injected.version.name=INSTANT_RUN -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK :app:assemble",
       myTaskRunner.getBuilds());
   }
 
@@ -305,7 +305,7 @@ public class InstantRunBuilderTest {
 
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.injected.version.code=2147483647 -Pandroid.injected.version.name=INSTANT_RUN -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK :app:assemble",
+      "gradlew -Pandroid.injected.version.name=INSTANT_RUN -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK :app:assemble",
       myTaskRunner.getBuilds());
   }
 
@@ -321,7 +321,7 @@ public class InstantRunBuilderTest {
 
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.injected.version.code=2147483647 -Pandroid.injected.version.name=INSTANT_RUN -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK :app:assemble",
+      "gradlew -Pandroid.injected.version.name=INSTANT_RUN -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK :app:assemble",
       myTaskRunner.getBuilds());
   }
 
@@ -340,7 +340,7 @@ public class InstantRunBuilderTest {
                             myInstantRunClientDelegate);
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.injected.version.code=2147483647 -Pandroid.injected.version.name=INSTANT_RUN -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK :app:assemble",
+      "gradlew -Pandroid.injected.version.name=INSTANT_RUN -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK :app:assemble",
       myTaskRunner.getBuilds());
   }
 
@@ -355,7 +355,7 @@ public class InstantRunBuilderTest {
 
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.injected.version.code=2147483647 -Pandroid.injected.version.name=INSTANT_RUN -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY :app:assemble",
+      "gradlew -Pandroid.injected.version.name=INSTANT_RUN -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY :app:assemble",
       myTaskRunner.getBuilds());
   }
 
@@ -372,7 +372,7 @@ public class InstantRunBuilderTest {
 
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.injected.version.code=2147483647 -Pandroid.injected.version.name=INSTANT_RUN -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY :app:assemble",
+      "gradlew -Pandroid.injected.version.name=INSTANT_RUN -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY :app:assemble",
       myTaskRunner.getBuilds());
   }
 
@@ -387,7 +387,7 @@ public class InstantRunBuilderTest {
 
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.injected.version.code=2147483647 -Pandroid.injected.version.name=INSTANT_RUN -Pandroid.optional.compilation=INSTANT_DEV :app:assemble",
+      "gradlew -Pandroid.injected.version.name=INSTANT_RUN -Pandroid.optional.compilation=INSTANT_DEV :app:assemble",
       myTaskRunner.getBuilds());
   }
 
@@ -406,7 +406,7 @@ public class InstantRunBuilderTest {
 
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.injected.version.code=2147483647 -Pandroid.injected.version.name=INSTANT_RUN -Pandroid.optional.compilation=INSTANT_DEV :app:assemble",
+      "gradlew -Pandroid.injected.version.name=INSTANT_RUN -Pandroid.optional.compilation=INSTANT_DEV :app:assemble",
       myTaskRunner.getBuilds());
   }
 
