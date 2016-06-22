@@ -443,7 +443,8 @@ public class CanvasResizeInteraction extends Interaction {
       int x = Coordinates.getSwingX(screenView, isDevicePortrait ? mySmallDimension : myBigDimension);
       int y = Coordinates.getSwingY(screenView, isDevicePortrait ? myBigDimension : mySmallDimension);
 
-      Graphics graphics = g2d.create();
+      Graphics2D graphics = (Graphics2D) g2d.create();
+      graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
       graphics.setColor(NlConstants.RESIZING_CORNER_COLOR);
       graphics.drawLine(x, y, x - NlConstants.RESIZING_CORNER_SIZE, y);
       graphics.drawLine(x, y, x, y - NlConstants.RESIZING_CORNER_SIZE);
@@ -564,6 +565,7 @@ public class CanvasResizeInteraction extends Interaction {
       myClip.translate(screenView.getX() + 1, screenView.getY() + 1);
 
       Graphics2D graphics = (Graphics2D)g2d.create();
+      graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
       graphics.clip(myClip);
       graphics.setColor(NlConstants.RESIZING_BUCKET_COLOR);
       ScreenSize screenSizeBucket = getScreenSizeBucket(small, big);
