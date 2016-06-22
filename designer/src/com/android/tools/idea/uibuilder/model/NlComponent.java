@@ -57,7 +57,7 @@ import static com.android.SdkConstants.*;
  * Represents a component editable in the UI builder. A component has properties,
  * if visual it has bounds, etc.
  */
-public class NlComponent {
+public class NlComponent implements NlAttributesHolder {
   // TODO Add a needsId method to the handler classes
   private static final Collection<String> TAGS_THAT_DONT_NEED_DEFAULT_IDS = new ImmutableSet.Builder<String>()
     .add(REQUEST_FOCUS)
@@ -85,6 +85,9 @@ public class NlComponent {
   @NotNull private XmlTag myTag;
   @NotNull private String myTagName; // for non-read lock access elsewhere
   @Nullable private TagSnapshot mySnapshot;
+
+  /** Current open attributes transaction or null if none is open */
+  @Nullable AttributesTransaction myCurrentTransaction;
 
   public NlComponent(@NotNull NlModel model, @NotNull XmlTag tag) {
     myModel = model;
@@ -604,13 +607,10 @@ public class NlComponent {
     return helper.toString();
   }
 
-  public void setAndroidAttribute(@NotNull String name, @Nullable String value) {
-    setAttribute(ANDROID_URI, name, value);
-  }
-
   /**
    * Convenience wrapper for now; this should be replaced with property lookup
    */
+  @Override
   public void setAttribute(@Nullable String namespace, @NotNull String attribute, @Nullable String value) {
     if (!myTag.isValid()) {
       // This could happen when trying to set an attribute in a component that has been already deleted
@@ -633,19 +633,19 @@ public class NlComponent {
     }
   }
 
-  public void removeAndroidAttribute(@NotNull String attribute) {
-    setAttribute(ANDROID_URI, attribute, null);
+  /**
+   * Starts an {@link AttributesTransaction} or returns the current open one.
+   */
+  @NotNull
+  public AttributesTransaction startAttributeTransaction() {
+    if (myCurrentTransaction == null) {
+      myCurrentTransaction = new AttributesTransaction(this);
+    }
+
+    return myCurrentTransaction;
   }
 
-  public void removeAttribute(@NotNull String namespace, @NotNull String attribute) {
-    setAttribute(namespace, attribute, null);
-  }
-
-  @Nullable
-  public String getAndroidAttribute(@NotNull String name) {
-    return getAttribute(ANDROID_URI, name);
-  }
-
+  @Override
   @Nullable
   public String getAttribute(@Nullable String namespace, @NotNull String attribute) {
     if (mySnapshot != null) {
