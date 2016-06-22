@@ -17,6 +17,7 @@ package com.android.tools.idea.monitor.ui.network.view;
 
 import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.Range;
+import com.android.tools.idea.monitor.datastore.NetworkDataPoller;
 import com.android.tools.idea.monitor.datastore.Poller;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.ui.BaseProfilerUiManager;
@@ -29,14 +30,14 @@ import org.jetbrains.annotations.Nullable;
 public final class NetworkProfilerUiManager extends BaseProfilerUiManager {
 
   public NetworkProfilerUiManager(@NotNull Range xRange, @NotNull Choreographer choreographer,
-                                  @NotNull SeriesDataStore datastore, @NotNull EventDispatcher<ProfilerEventListener> eventDispatcher) {
-    super(xRange, choreographer, datastore, eventDispatcher);
+                                  @NotNull SeriesDataStore dataStore, @NotNull EventDispatcher<ProfilerEventListener> eventDispatcher) {
+    super(xRange, choreographer, dataStore, eventDispatcher);
   }
 
   @Nullable
   @Override
   public Poller createPoller(int pid) {
-    return null;
+    return new NetworkDataPoller(myDataStore, pid);
   }
 
   @Override

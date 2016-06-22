@@ -22,8 +22,8 @@ package com.android.tools.idea.monitor.datastore;
 
 // TODO make this an interface so we can subclass it by given data type.
 public enum SeriesDataType {
-  NETWORK_SENDING, //long
-  NETWORK_RECEIVING, //long
+  NETWORK_SENT, //long
+  NETWORK_RECEIVED, //long
   NETWORK_CONNECTIONS, //long
 
   CPU_MY_PROCESS, //long
