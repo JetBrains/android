@@ -106,16 +106,17 @@ public class AppBarConfigurationDialog extends JDialog {
     "        %1$s:layout_height=\"wrap_content\"\n" +
     "%4$s" +                                                        // 4 = ScrollFlags for TabLayout
     "        %2$s:tabMode=\"scrollable\">\n" +
+    "%5$s" +                                                        // 5 = TabItems
     "    </android.support.design.widget.TabLayout>\n" +
     "  </android.support.design.widget.AppBarLayout>\n" +
     "  <android.support.v4.widget.NestedScrollView\n" +
     "      %1$s:layout_width=\"match_parent\"\n" +
     "      %1$s:layout_height=\"match_parent\"\n" +
-    "%5$s" +                                                        // 5 = scrollY position
+    "%6$s" +                                                        // 6 = scrollY position
     "      %2$s:layout_behavior=\"android.support.design.widget.AppBarLayout$ScrollingViewBehavior\">\n" +
-    "    %6$s\n" +                                                  // 6 = Page content as xml
+    "    %7$s\n" +                                                  // 7 = Page content as xml
     "  </android.support.v4.widget.NestedScrollView>\n" +
-    "%7$s" +                                                        // 7 = Optional FAB
+    "%8$s" +                                                        // 8 = Optional FAB
     "</android.support.design.widget.CoordinatorLayout>\n";
 
   private static final String TAG_FLOATING_ACTION_BUTTON =          // 1 = Prefix for android namespace
@@ -144,6 +145,12 @@ public class AppBarConfigurationDialog extends JDialog {
     "    android:layout_height=\"wrap_content\"\n" +
     "    android:text=\"%1$s\"\n" +                                 // 1 = Text in the TextView
     "    android:padding=\"16dp\"/>";
+
+  private static final String TAG_TAB_ITEM =
+    "<android.support.design.widget.TabItem\n" +
+    "    %1$s:layout_height=\"wrap_content\"\n" +                   // 1 = Prefix for android namespace
+    "    %1$s:layout_width=\"wrap_content\"\n" +
+    "    %1$s:text=\"%2$s\"/>\n";                                   // 2 = Text attribute
 
   private static final String DIALOG_TITLE = "Configure App Bar";
   private static final String DEFAULT_BACKGROUND_IMAGE = "@android:drawable/sym_def_app_icon";
@@ -180,6 +187,7 @@ public class AppBarConfigurationDialog extends JDialog {
   private JBLabel myCollapsedLabel;
   private JCheckBox myParallax;
   private JTextField myContentOverlapAmount;
+  private JSpinner myTabCount;
   private boolean myWasAccepted;
   private BufferedImage myExpandedImage;
   private BufferedImage myCollapsedImage;
@@ -199,6 +207,7 @@ public class AppBarConfigurationDialog extends JDialog {
       generatePreviews();
     };
     myWithTabs.addActionListener(updatePreviewListener);
+    myTabCount.setValue(3);
     myCollapsing.addActionListener(updatePreviewListener);
     myShowBackgroundImage.addActionListener(updatePreviewListener);
     myFloatingActionButton.addActionListener(updatePreviewListener);
@@ -207,6 +216,7 @@ public class AppBarConfigurationDialog extends JDialog {
     myContentOverlap.addActionListener(updatePreviewListener);
     myContentOverlapAmount.addActionListener(updatePreviewListener);
     ((GridLayoutManager)myPreviewPanel.getLayout()).setRowStretch(0, 2);
+    myTabCount.addChangeListener(event -> generatePreviews());
 
     final ActionListener actionListener = event -> {
       if (event.getSource() == myBackgroundImageSelector) {
@@ -289,6 +299,7 @@ public class AppBarConfigurationDialog extends JDialog {
   }
 
   private void updateControls() {
+    myTabCount.setEnabled(myWithTabs.isSelected());
     myShowBackgroundImage.setEnabled(!myWithTabs.isSelected());
     myBackgroundImageSelector.setEnabled(!myWithTabs.isSelected() && myShowBackgroundImage.isSelected());
     myFitStatusBar.setEnabled(!myWithTabs.isSelected() && myShowBackgroundImage.isSelected());
@@ -391,6 +402,7 @@ public class AppBarConfigurationDialog extends JDialog {
       namespaces.get(AUTO_URI),
       formatNamespaces(namespaces),
       getTabLayoutScroll(namespaces),
+      getTabItems(namespaces),
       getScrollPos(collapsed, namespaces),
       content,
       getFloatingActionButton(namespaces));
@@ -417,6 +429,18 @@ public class AppBarConfigurationDialog extends JDialog {
     }
     return String.format("        %1$s:layout_scrollFlags=\"scroll|enterAlways\"\n",
                          namespaces.get(AUTO_URI));
+  }
+
+  @NotNull
+  private String getTabItems(@NotNull Map<String, String> namespaces) {
+    StringBuilder builder = new StringBuilder();
+    for (int index = 0; index < (Integer)myTabCount.getValue(); index++) {
+      builder.append(String.format(
+        TAG_TAB_ITEM,
+        namespaces.get(ANDROID_URI),
+        "Tab" + (index + 1)));
+    }
+    return builder.toString();
   }
 
   @NotNull
