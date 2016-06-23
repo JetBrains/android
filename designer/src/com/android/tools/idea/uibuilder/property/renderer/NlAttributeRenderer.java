@@ -28,11 +28,12 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.table.TableCellRenderer;
 import java.awt.*;
+import java.awt.event.MouseEvent;
 import java.util.Set;
 
 public abstract class NlAttributeRenderer implements TableCellRenderer, BrowsePanel.Context {
   private final JPanel myPanel;
-  private final JPanel myBrowsePanel;
+  private final BrowsePanel myBrowsePanel;
   private JTable myTable;
   private int myRow;
 
@@ -105,5 +106,21 @@ public abstract class NlAttributeRenderer implements TableCellRenderer, BrowsePa
   @Override
   public NlProperty getRuntimeProperty() {
     return NlTableCellEditor.getRuntimeProperty(myTable, myRow);
+  }
+
+  @Override
+  public void addDesignProperty() {
+    cancelEditing();
+    NlTableCellEditor.addDesignProperty(myTable, myRow);
+  }
+
+  @Override
+  public void removeDesignProperty() {
+    cancelEditing();
+    NlTableCellEditor.removeDesignProperty(myTable, myRow);
+  }
+
+  public void mousePressed(@NotNull MouseEvent event, @NotNull Rectangle rectRightColumn) {
+    myBrowsePanel.mousePressed(event, rectRightColumn);
   }
 }

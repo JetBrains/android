@@ -97,25 +97,14 @@ public class NlTableCellEditor extends PTableCellEditor implements NlEditingList
 
   @Override
   public void addDesignProperty() {
-    NlPropertyItem property = getPropertyAt(myTable, myRow);
-    assert property != null && !TOOLS_URI.equals(property.getNamespace());
     cancelEditing();
-    PTableModel model = (PTableModel)myTable.getModel();
-    model.insertRow(myRow + 1, property.getDesignTimeProperty());
-    //noinspection SSBasedInspection
-    SwingUtilities.invokeLater(() -> myTable.editCellAt(myRow + 1, 1));
+    addDesignProperty(myTable, myRow);
   }
 
   @Override
   public void removeDesignProperty() {
-    NlPropertyItem designProperty = getPropertyAt(myTable, myRow);
-    assert designProperty != null && TOOLS_URI.equals(designProperty.getNamespace());
-    PTableModel model = (PTableModel)myTable.getModel();
     cancelEditing();
-    designProperty.setValue(null);
-    model.deleteRow(myRow);
-    //noinspection SSBasedInspection
-    SwingUtilities.invokeLater(() -> myTable.editCellAt(myRow - 1, 1));
+    removeDesignProperty(myTable, myRow);
   }
 
   @Nullable
@@ -156,5 +145,24 @@ public class NlTableCellEditor extends PTableCellEditor implements NlEditingList
       return nextProperty;
     }
     return null;
+  }
+
+  public static void addDesignProperty(@NotNull JTable table, int row) {
+    NlPropertyItem property = getPropertyAt(table, row);
+    assert property != null && !TOOLS_URI.equals(property.getNamespace());
+    PTableModel model = (PTableModel)table.getModel();
+    model.insertRow(row + 1, property.getDesignTimeProperty());
+    //noinspection SSBasedInspection
+    SwingUtilities.invokeLater(() -> table.editCellAt(row + 1, 1));
+  }
+
+  public static void removeDesignProperty(@NotNull JTable table, int row) {
+    NlPropertyItem designProperty = getPropertyAt(table, row);
+    assert designProperty != null && TOOLS_URI.equals(designProperty.getNamespace());
+    PTableModel model = (PTableModel)table.getModel();
+    designProperty.setValue(null);
+    model.deleteRow(row);
+    //noinspection SSBasedInspection
+    SwingUtilities.invokeLater(() -> table.editCellAt(row - 1, 1));
   }
 }
