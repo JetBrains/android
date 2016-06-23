@@ -23,6 +23,7 @@ import com.android.tools.idea.monitor.ui.BaseProfilerUiManager;
 import com.android.tools.idea.monitor.ui.BaseSegment;
 import com.android.tools.idea.monitor.ui.ProfilerEventListener;
 import com.intellij.util.EventDispatcher;
+import com.intellij.util.ui.JBUI;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,6 +33,9 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 
 public final class EventProfilerUiManager extends BaseProfilerUiManager {
+
+  // The event monitor takes out half the space as the expanded profiler in L2/L3 view.
+  private static final int EVENT_MONITOR_MAX_HEIGHT = JBUI.scale(Short.MAX_VALUE / 2);
 
   // TODO: Replace with actual icons.
   private static final Icon[] ICONS = {
@@ -49,6 +53,17 @@ public final class EventProfilerUiManager extends BaseProfilerUiManager {
   @Override
   public Poller createPoller(int pid) {
     return null;
+  }
+
+  /**
+   *
+   * @param overviewPanel
+   */
+  @Override
+  public void setupOverviewUi(@NotNull JPanel overviewPanel) {
+    myOverviewSegment = createOverviewSegment(myXRange, myDataStore, myEventDispatcher);
+    setupAndRegisterSegment(myOverviewSegment, DEFAULT_MONITOR_MIN_HEIGHT, DEFAULT_MONITOR_PREFERRED_HEIGHT, EVENT_MONITOR_MAX_HEIGHT);
+    overviewPanel.add(myOverviewSegment);
   }
 
   @Override

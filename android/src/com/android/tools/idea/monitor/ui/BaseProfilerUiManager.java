@@ -46,9 +46,11 @@ public abstract class BaseProfilerUiManager {
     GPU
   }
 
-  private static final int MONITOR_MAX_HEIGHT = JBUI.scale(Short.MAX_VALUE);
+  protected static final int DEFAULT_MONITOR_MIN_HEIGHT = JBUI.scale(0);
 
-  private static final int MONITOR_PREFERRED_HEIGHT = JBUI.scale(200);
+  protected static final int DEFAULT_MONITOR_MAX_HEIGHT = JBUI.scale(Short.MAX_VALUE);
+
+  protected static final int DEFAULT_MONITOR_PREFERRED_HEIGHT = JBUI.scale(200);
 
   protected BaseSegment myOverviewSegment;
 
@@ -99,7 +101,7 @@ public abstract class BaseProfilerUiManager {
   public void setupOverviewUi(@NotNull JPanel overviewPanel) {
     myOverviewSegment = createOverviewSegment(myXRange, myDataStore, myEventDispatcher);
 
-    setupAndRegisterSegment(myOverviewSegment);
+    setupAndRegisterSegment(myOverviewSegment, DEFAULT_MONITOR_MIN_HEIGHT, DEFAULT_MONITOR_PREFERRED_HEIGHT, DEFAULT_MONITOR_MAX_HEIGHT);
     overviewPanel.add(myOverviewSegment);
   }
 
@@ -139,10 +141,10 @@ public abstract class BaseProfilerUiManager {
                                                        @NotNull SeriesDataStore dataStore,
                                                        @NotNull EventDispatcher<ProfilerEventListener> eventDispatcher);
 
-  protected void setupAndRegisterSegment(@NotNull BaseSegment segment) {
-    segment.setMinimumSize(new Dimension(0, 0));
-    segment.setPreferredSize(new Dimension(0, MONITOR_PREFERRED_HEIGHT));
-    segment.setMaximumSize(new Dimension(0, MONITOR_MAX_HEIGHT));
+  protected void setupAndRegisterSegment(@NotNull BaseSegment segment, int minHeight, int preferredHeight, int maxHeight) {
+    segment.setMinimumSize(new Dimension(0, minHeight));
+    segment.setPreferredSize(new Dimension(0, preferredHeight));
+    segment.setMaximumSize(new Dimension(0, maxHeight));
     segment.setBorder(BorderFactory.createLineBorder(JBColor.GRAY));
 
     List<Animatable> segmentAnimatables = new ArrayList<>();
