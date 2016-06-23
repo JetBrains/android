@@ -16,16 +16,12 @@
 package com.android.tools.idea.uibuilder.surface;
 
 import com.android.tools.idea.uibuilder.mockup.Mockup;
-import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.ModelListener;
-import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
-import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -38,8 +34,6 @@ public class MockupLayer extends Layer {
 
   private final ScreenView myScreenView;
   private Dimension myScreenViewSize = new Dimension();
-  private Rectangle myComponentSwingBounds = new Rectangle();
-  private NlModel myNlModel;
   private List<Mockup> myMockups;
 
   public MockupLayer(ScreenView screenView) {
@@ -50,9 +44,8 @@ public class MockupLayer extends Layer {
   }
 
   public void setNlModel(NlModel nlModel) {
-    myNlModel = nlModel;
-    myMockups = Mockup.createAll(myNlModel);
-    myNlModel.addListener(new ModelListener() {
+    myMockups = Mockup.createAll(nlModel);
+    nlModel.addListener(new ModelListener() {
       @Override
       public void modelChanged(@NotNull NlModel model) {
         setNlModel(model);
@@ -62,11 +55,6 @@ public class MockupLayer extends Layer {
       public void modelRendered(@NotNull NlModel model) {
       }
     });
-  }
-
-  @NotNull
-  public List<Mockup> getMockups() {
-    return myMockups;
   }
 
   @Override
@@ -88,32 +76,17 @@ public class MockupLayer extends Layer {
   private void paintMockup(@NotNull Graphics2D g, Mockup mockup) {
     final BufferedImage image = mockup.getImage();
     if (image != null) {
-      g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, mockup.getAlpha()));
-      // Coordinates of the component in the ScreenView system
-      int componentSwingX = Coordinates.getSwingX(myScreenView, mockup.getComponent().x);
-      int componentSwingY = Coordinates.getSwingY(myScreenView, mockup.getComponent().y);
-      int componentSwingW = Coordinates.getSwingDimension(myScreenView, mockup.getComponent().w);
-      int componentSwingH = Coordinates.getSwingDimension(myScreenView, mockup.getComponent().h);
-
-      myComponentSwingBounds.setBounds(
-        componentSwingX,
-        componentSwingY,
-        componentSwingW,
-        componentSwingH);
-
-      final Rectangle dest = mockup.getBounds(myScreenView, null);
+      final Rectangle dest = mockup.getSwingBounds(myScreenView);
       final Rectangle src = mockup.getCropping();
-      src.width = src.width <= 0 ? image.getWidth() : src.width;
-      src.height = src.height <= 0 ? image.getHeight() : src.height;
 
-      if (!mockup.isFullScreen()) {
-        Rectangle2D.intersect(dest, myComponentSwingBounds, dest);
-      }
+      g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, mockup.getAlpha()));
       g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
       g.drawImage(image,
                   dest.x, dest.y, dest.x + dest.width, dest.y + dest.height,
                   src.x, src.y, src.x + src.width, src.y + src.height,
                   null);
+
+
     }
   }
 }
