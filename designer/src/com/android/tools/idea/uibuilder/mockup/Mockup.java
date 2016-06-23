@@ -109,7 +109,6 @@ public class Mockup implements ModelListener {
   private final Rectangle myCropping;
   private final Rectangle mySwingBounds;
   private final Dimension myScreenSize;
-  private final Rectangle myComponentSwingBounds;
   private NlModel myNlModel;
   @Nullable String myFilePath;
   @Nullable Image myImage;
@@ -183,14 +182,14 @@ public class Mockup implements ModelListener {
   }
 
   private Mockup(NlComponent component) {
-    myBounds = new Rectangle(0, 0, -1, -1);
+    myBounds = new Rectangle();
     myCropping = new Rectangle(0, 0, -1, -1);
     myScreenSize = new Dimension();
     mySwingBounds = new Rectangle();
-    myComponentSwingBounds = new Rectangle();
     myComponent = component;
     myNlModel = component.getModel();
     myNlModel.addListener(this);
+    setDefaultBounds();
     parseComponent(component);
   }
 
@@ -213,7 +212,7 @@ public class Mockup implements ModelListener {
     }
     if (position != null) {
       myIsFullScreen = false;
-      setPositionString(position);
+      parsePositionString(position);
     }
     else if (component.isRoot()) {
       myIsFullScreen = true;
@@ -247,7 +246,10 @@ public class Mockup implements ModelListener {
 
     if (myFilePath == null || !Paths.get(myFilePath).equals(path)) {
       myFilePath = path.toString();
-      myImage = null;
+      myImage = MockupFileHelper.openImageFile(myFilePath);
+
+      //Update the cropping with the new image size
+      setCropping(myCropping.x, myCropping.y, myCropping.width, myCropping.height);
       notifyListener();
     }
   }
@@ -257,7 +259,7 @@ public class Mockup implements ModelListener {
    *
    * @param position
    */
-  private void setPositionString(String position) {
+  private void parsePositionString(String position) {
     if (isPositionStringCorrect(position)) {
       position = position.trim();
       final String[] split = position.split("\\s+");
@@ -292,11 +294,26 @@ public class Mockup implements ModelListener {
       }
     }
     else {
-      setBounds(0, 0, -1, -1);
+      // Default bounds and cropping (whole image covering all the component)
+      setDefaultBounds();
       setCropping(0, 0, -1, -1);
     }
   }
 
+  /**
+   * Set bounds with 0,0,-1,-1.
+   */
+  private void setDefaultBounds() {
+    setBounds(0, 0, -1, -1);
+  }
+
+  /**
+   * Set the bounds (position and size) in Dip of the mockup
+   * @param x x coordinate in the Android Screen in Dip
+   * @param y y coordinate in the Android Screen in Dip
+   * @param width width in the Android Screen in Dip or -1 to fill the component
+   * @param height height in the Android Screen in Dip or -1 to fill the component
+   */
   public void setBounds(int x, int y, int width, int height) {
     if (myBounds.x != x
         || myBounds.y != y
@@ -307,7 +324,18 @@ public class Mockup implements ModelListener {
     }
   }
 
+  /**
+   * Set the bounds (position and size) in Dip of the mockup
+   * @param x x coordinate in the image in PX
+   * @param y y coordinate in the image in PX
+   * @param width width of area to crop in the image in PX or -1 to use the whole image
+   * @param height height of area to crop in PX in Dip or -1 to use the whole image
+   */
   public void setCropping(int x, int y, int width, int height) {
+    if (myImage != null) {
+      width = width > 0 ? width : myImage.getWidth() - x;
+      height = height > 0 ? height : myImage.getHeight() - y;
+    }
     if (myCropping.x != x
         || myCropping.y != y
         || myCropping.width != width
@@ -317,56 +345,45 @@ public class Mockup implements ModelListener {
     }
   }
 
+  /**
+   * Get the size and position of the mockup in Dip. If the width or height <= 0,
+   * that means that they will default to the seize of the container
+   * @return The bounding Rectangle
+   */
   public Rectangle getBounds() {
     return myBounds;
   }
 
   /**
-   * Find the rectangle where we will draw the mockup image in the {@link ScreenView}.
+   * Compute the bounds where we will draw the mockup image in the {@link ScreenView}.
    *
-   * We use the Mockup Bounds to find the coordinates where the mockup will be drawn relative to
-   * the position of the {@link NlComponent} in the {@link ScreenView}.
-   *
-   * @param mockupPosition    Position of the mockup relative to the component Position and its size in dip
-   * @param componentPosition Position of the component on the screenView (will be computed if null)
+   * @param screenView The screenView where the mockup will be drawn
    * @return The rectangle where the mockup will be drawn in the screen view
    */
-  public Rectangle getBounds(ScreenView screenView, @Nullable Rectangle componentSwingBounds) {
+  public Rectangle getSwingBounds(ScreenView screenView) {
 
-    // Mockup cover
+    // If mockup is in full screen, the mockup will cover the ScreenView
     if (myIsFullScreen) {
       final Dimension screenViewSize = screenView.getSize(myScreenSize);
       mySwingBounds.x = screenView.getX();
       mySwingBounds.y = screenView.getY();
       mySwingBounds.width = screenViewSize.width;
       mySwingBounds.height = screenViewSize.height;
+      return mySwingBounds;
     }
     else {
-      // Either the bounds of the component on the ScreenView have already been computed
-      // or we compute them
-      if (componentSwingBounds != null) {
-        myComponentSwingBounds.setBounds(componentSwingBounds);
-      }
-      else {
-        myComponentSwingBounds.x = Coordinates.getSwingX(screenView, myComponent.x);
-        myComponentSwingBounds.y = Coordinates.getSwingY(screenView, myComponent.y);
-        myComponentSwingBounds.width = Coordinates.getSwingDimension(screenView, myComponent.w);
-        myComponentSwingBounds.height = Coordinates.getSwingDimension(screenView, myComponent.h);
-      }
-      final int mockupSwingW = Coordinates.getSwingDimensionDip(screenView, myBounds.width);
-      final int mockupSwingH = Coordinates.getSwingDimensionDip(screenView, myBounds.width);
+      final int androidX = Coordinates.dpToPx(screenView, myBounds.x);
+      final int androidY = Coordinates.dpToPx(screenView, myBounds.y);
+      final int androidWidth = myBounds.width <= 0 ? myComponent.w : Coordinates.dpToPx(screenView, myBounds.width);
+      final int androidHeight = myBounds.height <= 0 ? myComponent.h : Coordinates.dpToPx(screenView, myBounds.height);
 
-      mySwingBounds.x = myComponentSwingBounds.x + Coordinates.dpToPx(screenView, myBounds.x);
-      mySwingBounds.y = myComponentSwingBounds.y + Coordinates.dpToPx(screenView, myBounds.y);
+      mySwingBounds.x = Coordinates.getSwingX(screenView, myComponent.x + androidX);
+      mySwingBounds.y = Coordinates.getSwingY(screenView, myComponent.y + androidY);
       // if one of the dimension was not set in the xml.
       // it had been set to -1 in the model, meaning we should
       // use the ScreenView dimension and/or the Image dimension
-      mySwingBounds.width = myBounds.width <= 0
-                            ? myComponentSwingBounds.width
-                            : mockupSwingW - mySwingBounds.x;
-      mySwingBounds.height = myBounds.height <= 0
-                             ? myComponentSwingBounds.height
-                             : mockupSwingH - mySwingBounds.y;
+      mySwingBounds.width = Coordinates.getSwingDimension(screenView, androidWidth - androidX);
+      mySwingBounds.height = Coordinates.getSwingDimension(screenView, androidHeight - androidY);
 
     }
     return mySwingBounds;
@@ -376,6 +393,10 @@ public class Mockup implements ModelListener {
     return myIsFullScreen;
   }
 
+  /**
+   * Get the bounds of the area in the image that will be paint.
+   * @return the bounds of the area in the image that will be paint.
+   */
   public Rectangle getCropping() {
     return myCropping;
   }
@@ -397,9 +418,6 @@ public class Mockup implements ModelListener {
 
   @Nullable
   public BufferedImage getImage() {
-    if (myImage == null && myFilePath != null && !myFilePath.isEmpty()) {
-      myImage = MockupFileHelper.openImageFile(myFilePath);
-    }
     return myImage == null ? null : myImage.getMergedImage();
   }
 

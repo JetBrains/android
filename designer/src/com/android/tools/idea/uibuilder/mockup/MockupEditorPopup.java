@@ -52,11 +52,12 @@ public class MockupEditorPopup {
 
   // Form generated components (Do not removed if referenced in the form)
   private TextFieldWithBrowseButton myFileChooser;
-  private MockupInteractionPanel myMockupInteractionPanel;
+  private MockupInteractionPanel myInteractionPanel;
   private JSlider mySlider;
   private JPanel myContentPane;
   private JCheckBox myShowGuideline;
   private JButton myOkButton;
+  private JButton myEditCroppingButton;
 
   public MockupEditorPopup(ScreenView screenView, Mockup mockup, NlModel model) {
     myScreenView = screenView;
@@ -68,6 +69,12 @@ public class MockupEditorPopup {
     initSlider();
     initShowGuidelineCheckBox();
     initCreateSelectedGuidelineButton(mockup, model);
+    myEditCroppingButton.addActionListener(e -> {
+      myInteractionPanel.setEditCropping(!myInteractionPanel.isEditCropping());
+      myEditCroppingButton.setText(myInteractionPanel.isEditCropping() ? "End cropping" : "Edit cropping");
+      myShowGuideline.setSelected(false);
+      myInteractionPanel.setShowGuideline(false);
+    });
   }
 
   private void initCreateSelectedGuidelineButton(Mockup mockup, NlModel model) {
@@ -77,7 +84,7 @@ public class MockupEditorPopup {
   }
 
   private void createSelectedGuidelines(Mockup mockupComponentAttributes, final NlModel model) {
-    final List<MockupGuide> selectedGuidelines = myMockupInteractionPanel.getSelectedGuidelines();
+    final List<MockupGuide> selectedGuidelines = myInteractionPanel.getSelectedGuidelines();
     final NlComponent parent = mockupComponentAttributes.getComponent();
     final WriteCommandAction action = new WriteCommandAction(model.getProject(), "Create Guidelines", model.getFile()) {
       @Override
@@ -94,8 +101,8 @@ public class MockupEditorPopup {
   }
 
   private void initShowGuidelineCheckBox() {
-    myShowGuideline.addChangeListener(e -> myMockupInteractionPanel.setShowGuideline(((JCheckBox)e.getSource()).isSelected()));
-    myMockupInteractionPanel.setShowGuideline(myShowGuideline.isSelected());
+    myShowGuideline.addChangeListener(e -> myInteractionPanel.setShowGuideline(((JCheckBox)e.getSource()).isSelected()));
+    myInteractionPanel.setShowGuideline(myShowGuideline.isSelected());
   }
 
   private void initSlider() {
@@ -205,6 +212,6 @@ public class MockupEditorPopup {
   }
 
   private void createUIComponents() {
-    myMockupInteractionPanel = new MockupInteractionPanel(myScreenView, myMockup);
+    myInteractionPanel = new MockupInteractionPanel(myScreenView, myMockup);
   }
 }

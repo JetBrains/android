@@ -23,7 +23,7 @@ import com.android.tools.idea.uibuilder.surface.ScreenView;
 
 public class Coordinates {
 
-  public static final int DEFAULT_DENSITY = 160;
+  public static final float DEFAULT_DENSITY = 160f;
 
   /**
    * Returns the Swing x coordinate (in the {@link DesignSurface} coordinate
@@ -56,14 +56,14 @@ public class Coordinates {
   public static int dpToPx(@NotNull ScreenView view, @AndroidDpCoordinate int androidDp) {
     final Configuration configuration = view.getConfiguration();
     final int dpiValue = configuration.getDensity().getDpiValue();
-    return Math.round(androidDp * (dpiValue / (float)DEFAULT_DENSITY));
+    return Math.round(androidDp * (dpiValue / DEFAULT_DENSITY));
   }
 
   @AndroidDpCoordinate
   public static int pxToDp(@NotNull ScreenView view, @AndroidCoordinate int androidPx) {
     final Configuration configuration = view.getConfiguration();
     final int dpiValue = configuration.getDensity().getDpiValue();
-    return Math.round(androidPx / (dpiValue / (float)DEFAULT_DENSITY));
+    return Math.round(androidPx * (DEFAULT_DENSITY / dpiValue));
   }
 
   /**
