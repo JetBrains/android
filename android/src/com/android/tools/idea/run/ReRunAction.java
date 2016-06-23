@@ -17,6 +17,7 @@ package com.android.tools.idea.run;
 
 import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.fd.InstantRunUtils;
+import com.android.tools.idea.gradle.actions.AndroidStudioGradleAction;
 import com.intellij.execution.Executor;
 import com.intellij.execution.ProgramRunnerUtil;
 import com.intellij.execution.RunManagerEx;
@@ -31,7 +32,6 @@ import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
-import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
@@ -45,18 +45,17 @@ import java.awt.event.MouseEvent;
  * {@link ReRunAction} will terminate and run the currently selected and running configuration.
  * Under certain circumstances (see {@link #isCleanBuild(AnActionEvent)}), it will also do a clean before the run.
  */
-public class ReRunAction extends DumbAwareAction implements AnAction.TransparentUpdate {
+public class ReRunAction extends AndroidStudioGradleAction implements AnAction.TransparentUpdate {
   public ReRunAction() {
     super("Rerun", "ReRun Selected Configuration", AllIcons.Actions.Restart);
   }
 
   @Override
-  public void update(AnActionEvent e) {
+  public void doUpdate(@NotNull AnActionEvent e, @NotNull Project project) {
     Presentation presentation = e.getPresentation();
     boolean cleanBuild = isCleanBuild(e);
 
-    final Project project = e.getProject();
-    RunnerAndConfigurationSettings settings = project == null ? null : RunManagerEx.getInstanceEx(project).getSelectedConfiguration();
+    RunnerAndConfigurationSettings settings = RunManagerEx.getInstanceEx(project).getSelectedConfiguration();
     ProcessHandler processHandler = getActiveProcessHandler(project, settings);
 
     boolean en = cleanBuild || processHandler != null;
@@ -106,12 +105,7 @@ public class ReRunAction extends DumbAwareAction implements AnAction.Transparent
   }
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
-    final Project project = e.getProject();
-    if (project == null) {
-      return;
-    }
-
+  public void doPerform(@NotNull AnActionEvent e, @NotNull Project project) {
     RunnerAndConfigurationSettings settings = RunManagerEx.getInstanceEx(project).getSelectedConfiguration();
     if (settings == null) {
       InstantRunManager.LOG.warn("Rerun could not locate current run config settings");
@@ -170,6 +164,11 @@ public class ReRunAction extends DumbAwareAction implements AnAction.Transparent
     }
 
     return null;
+  }
+
+  @Override
+  public boolean isDumbAware() {
+    return true;
   }
 
   private static boolean isCleanBuild(@NotNull AnActionEvent e) {
