@@ -434,6 +434,8 @@
   <group name="Custom - Design">
     <item tag="android.support.design.widget.CoordinatorLayout"/>
     <item tag="android.support.design.widget.AppBarLayout"/>
+    <item tag="android.support.design.widget.TabLayout"/>
+    <item tag="android.support.design.widget.TabItem"/>
     <item tag="android.support.v4.widget.NestedScrollView"/>
     <item tag="android.support.design.widget.FloatingActionButton"/>
     <item tag="android.support.design.widget.TextInputLayout"/>
