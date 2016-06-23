@@ -18,11 +18,12 @@ package com.android.tools.idea.tests.gui.emulator;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdEditWizardFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
 import com.intellij.debugger.engine.evaluation.EvaluateException;
 import org.fest.swing.util.PatternTextMatcher;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
@@ -40,21 +41,45 @@ public class LaunchAndroidApplicationTest {
   private static final String PROCESS_NAME = "com.android.simple.application";
   private static final Pattern LOCAL_PATH_OUTPUT = Pattern.compile(
     ".*adb shell am start .*com.android.simple.application.+Connected to process.*", Pattern.DOTALL);
+  private static final String AVD_NAME = "device under test";
 
-  @Ignore("failed in http://go/aj/job/studio-ui-test/389 and from IDEA")
+  @Before
+  public void setUp() throws Exception {
+    AvdManagerDialogFixture avdManagerDialog = guiTest.importSimpleApplication().invokeAvdManager();
+    AvdEditWizardFixture avdEditWizard = avdManagerDialog.createNew();
+
+    avdEditWizard.selectHardware()
+      .selectHardwareProfile("Nexus 5");
+    avdEditWizard.clickNext();
+
+    avdEditWizard.getChooseSystemImageStep()
+      .selectTab("x86 Images")
+      .selectSystemImage("KitKat", "19", "x86", "Android 4.4");
+    avdEditWizard.clickNext();
+
+    avdEditWizard.getConfigureAvdOptionsStep()
+      .setAvdName(AVD_NAME);
+    avdEditWizard.clickFinish();
+    avdManagerDialog.close();
+  }
+
+  @After
+  public void tearDown() throws Exception {
+    guiTest.ideFrame().invokeAvdManager().deleteAvd(AVD_NAME).close();
+  }
+
   @Test
   public void testRunOnEmulator() throws IOException, ClassNotFoundException {
-    guiTest.importSimpleApplication()
-      .runApp(APP_NAME)
-      .selectDevice("device under test")  // TODO: create (and delete) an appropriate device automatically
+    guiTest.ideFrame().runApp(APP_NAME)
+      .selectDevice(AVD_NAME)
       .clickOk();
 
     // Make sure the right app is being used. This also serves as the sync point for the package to get uploaded to the device/emulator.
     guiTest.ideFrame().getRunToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(LOCAL_PATH_OUTPUT), 120);
 
-    guiTest.ideFrame().getAndroidToolWindow().selectDevicesTab()
-                                       .selectProcess(PROCESS_NAME)
-                                       .clickTerminateApplication();
+    guiTest.ideFrame().getAndroidToolWindow().selectDevicesTab().selectProcess(PROCESS_NAME).clickTerminateApplication();
+
+    guiTest.ideFrame().invokeAvdManager().stopAvd(AVD_NAME).close();
   }
 
   @Ignore("failed in http://go/aj/job/studio-ui-test/389 and from IDEA")
