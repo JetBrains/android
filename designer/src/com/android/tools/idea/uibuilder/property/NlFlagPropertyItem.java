@@ -18,6 +18,8 @@ package com.android.tools.idea.uibuilder.property;
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
+import com.android.tools.idea.uibuilder.property.renderer.NlFlagRenderer;
+import com.android.tools.idea.uibuilder.property.renderer.NlPropertyRenderers;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
@@ -28,6 +30,8 @@ import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.awt.*;
+import java.awt.event.MouseEvent;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -191,5 +195,11 @@ public class NlFlagPropertyItem extends NlPropertyItem implements NlProperty {
       });
     String newValue = builder.length() == 0 ? null : builder.toString();
     setValue(newValue);
+  }
+
+  @Override
+  public void mousePressed(@NotNull MouseEvent event, @NotNull Rectangle rectRightColumn) {
+    NlFlagRenderer renderer = NlPropertyRenderers.getFlagRenderer();
+    renderer.mousePressed(event, rectRightColumn);
   }
 }

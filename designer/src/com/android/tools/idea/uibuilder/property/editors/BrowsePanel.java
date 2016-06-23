@@ -30,6 +30,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.*;
+import java.awt.event.MouseEvent;
 import java.util.EnumSet;
 import java.util.Set;
 
@@ -37,6 +39,8 @@ import static com.android.SdkConstants.TOOLS_URI;
 
 public class BrowsePanel extends JPanel {
   private final Context myContext;
+  private final ActionButton myBrowseButton;
+  private final ActionButton myDesignButton;
 
   public interface Context {
     @Nullable
@@ -44,6 +48,11 @@ public class BrowsePanel extends JPanel {
 
     @Nullable
     default NlProperty getDesignProperty() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Nullable
+    default NlProperty getRuntimeProperty() {
       throw new UnsupportedOperationException();
     }
 
@@ -72,10 +81,25 @@ public class BrowsePanel extends JPanel {
 
   public BrowsePanel(@NotNull Context context, boolean showDesignButton) {
     myContext = context;
+    myBrowseButton = createActionButton(createBrowseAction());
+    myDesignButton = showDesignButton ? createActionButton(createDesignAction()) : null;
     setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
-    add(createActionButton(createBrowseAction()));
-    if (showDesignButton) {
-      add(createActionButton(createDesignAction()));
+    add(myBrowseButton);
+    if (myDesignButton != null) {
+      add(myDesignButton);
+    }
+  }
+
+  public void setProperty(@NotNull NlProperty property) {
+    myBrowseButton.setVisible(hasResourceChooser(property));
+  }
+
+  public void mousePressed(@NotNull MouseEvent event, @NotNull Rectangle rectRightColumn) {
+    if (event.getX() > rectRightColumn.getX() + rectRightColumn.getWidth() - myDesignButton.getWidth()) {
+      myDesignButton.click();
+    }
+    else if (event.getX() > rectRightColumn.getX() + rectRightColumn.getWidth() - myDesignButton.getWidth() - myBrowseButton.getWidth()) {
+      myBrowseButton.click();
     }
   }
 
@@ -151,7 +175,7 @@ public class BrowsePanel extends JPanel {
     return type == null ? AttributeFormat.convertTypes(formats) : EnumSet.of(type);
   }
 
-  private enum DesignState {NOT_APPLICABLE, IS_DESIGN_PROPERTY, HAS_DESIGN_PROPERTY, MISSING_DESIGN_PROPERTY}
+  private enum DesignState {NOT_APPLICABLE, IS_REMOVABLE_DESIGN_PROPERTY, HAS_DESIGN_PROPERTY, MISSING_DESIGN_PROPERTY}
 
   private AnAction createDesignAction() {
     return new AnAction() {
@@ -165,7 +189,7 @@ public class BrowsePanel extends JPanel {
             presentation.setVisible(true);
             presentation.setEnabled(true);
             break;
-          case IS_DESIGN_PROPERTY:
+          case IS_REMOVABLE_DESIGN_PROPERTY:
             presentation.setIcon(AllIcons.Actions.Delete);
             presentation.setText("Click to remove this design property");
             presentation.setVisible(true);
@@ -186,7 +210,7 @@ public class BrowsePanel extends JPanel {
           case MISSING_DESIGN_PROPERTY:
             myContext.addDesignProperty();
             break;
-          case IS_DESIGN_PROPERTY:
+          case IS_REMOVABLE_DESIGN_PROPERTY:
             myContext.removeDesignProperty();
             break;
           default:
@@ -195,17 +219,17 @@ public class BrowsePanel extends JPanel {
 
       private DesignState checkDesignState() {
         NlProperty property = myContext.getProperty();
-        if (property == null) {
+        if (property == null || myDesignButton == null) {
           return DesignState.NOT_APPLICABLE;
         }
         if (TOOLS_URI.equals(property.getNamespace())) {
-          return DesignState.IS_DESIGN_PROPERTY;
+          NlProperty runtimeProperty = myContext.getRuntimeProperty();
+          return runtimeProperty != null ? DesignState.IS_REMOVABLE_DESIGN_PROPERTY : DesignState.NOT_APPLICABLE;
         }
-        NlProperty nextProperty = myContext.getDesignProperty();
-        if (nextProperty != null && nextProperty.getName().equals(property.getName()) && TOOLS_URI.equals(nextProperty.getNamespace())) {
-          return DesignState.HAS_DESIGN_PROPERTY;
+        else {
+          NlProperty designProperty = myContext.getDesignProperty();
+          return designProperty != null ? DesignState.HAS_DESIGN_PROPERTY : DesignState.MISSING_DESIGN_PROPERTY;
         }
-        return DesignState.MISSING_DESIGN_PROPERTY;
       }
     };
   }
