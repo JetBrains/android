@@ -366,6 +366,8 @@ public class AndroidMonitorToolWindow implements Disposable {
       @Override
       public void profilersReset() {
         myProfilerManagers.get(myExpandedProfiler).resetProfiler(mySegmentsContainer, myDetailedViewContainer);
+        // Also reset event segment to avoid it taking the whole panel after reset.
+        myProfilerManagers.get(BaseProfilerUiManager.ProfilerType.EVENT).resetProfiler(mySegmentsContainer, myDetailedViewContainer);
         mySpliiter.setSecondComponent(null);
         mySpliiter.setProportion(1f);
         timeSegment.toggleView(false);
