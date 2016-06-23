@@ -82,7 +82,7 @@ public class MainController extends Controller {
 
     // Add the scrubber view to the top panel.
     splitter.setFirstComponent(ScrubberController.createUI(editor));
-    splitter.setFirstSize(150);
+    splitter.setFirstSize(JBUI.scale(150));
 
     // Configure the image tabs.
     // we use RunnerLayoutUi to allow the user to drag the tabs out of the JBRunnerTabs
