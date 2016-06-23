@@ -47,7 +47,7 @@ public class MockupEditorPopup {
   private static final IconButton CANCEL_BUTTON = new IconButton("Close", AllIcons.Actions.Close, AllIcons.Actions.CloseHovered);
   private static JBPopup POPUP_INSTANCE = null;
   private final ScreenView myScreenView;
-  private final MockupComponentAttributes myMockupComponentAttributes;
+  private final Mockup myMockup;
   NlModel myModel;
 
   // Form generated components (Do not removed if referenced in the form)
@@ -58,25 +58,25 @@ public class MockupEditorPopup {
   private JCheckBox myShowGuideline;
   private JButton myOkButton;
 
-  public MockupEditorPopup(ScreenView screenView, MockupComponentAttributes mockupComponentAttributes, NlModel model) {
+  public MockupEditorPopup(ScreenView screenView, Mockup mockup, NlModel model) {
     myScreenView = screenView;
     myModel = model;
-    myMockupComponentAttributes = mockupComponentAttributes;
+    myMockup = mockup;
 
     initFileChooserText();
     initFileChooserActionListener();
     initSlider();
     initShowGuidelineCheckBox();
-    initCreateSelectedGuidelineButton(mockupComponentAttributes, model);
+    initCreateSelectedGuidelineButton(mockup, model);
   }
 
-  private void initCreateSelectedGuidelineButton(MockupComponentAttributes mockupComponentAttributes, NlModel model) {
+  private void initCreateSelectedGuidelineButton(Mockup mockup, NlModel model) {
     myOkButton.addActionListener(e -> {
-      createSelectedGuidelines(mockupComponentAttributes, model);
+      createSelectedGuidelines(mockup, model);
     });
   }
 
-  private void createSelectedGuidelines(MockupComponentAttributes mockupComponentAttributes, final NlModel model) {
+  private void createSelectedGuidelines(Mockup mockupComponentAttributes, final NlModel model) {
     final List<MockupGuide> selectedGuidelines = myMockupInteractionPanel.getSelectedGuidelines();
     final NlComponent parent = mockupComponentAttributes.getComponent();
     final WriteCommandAction action = new WriteCommandAction(model.getProject(), "Create Guidelines", model.getFile()) {
@@ -99,40 +99,40 @@ public class MockupEditorPopup {
   }
 
   private void initSlider() {
-    mySlider.setValue(Math.round(myMockupComponentAttributes.getAlpha() * mySlider.getMaximum()));
+    mySlider.setValue(Math.round(myMockup.getAlpha() * mySlider.getMaximum()));
     mySlider.addMouseListener(new MouseAdapter() {
 
       @Override
       public void mouseReleased(MouseEvent e) {
-        MockupFileHelper.writeOpacityToXML(mySlider.getValue() / (float)mySlider.getMaximum(), myMockupComponentAttributes.getComponent());
+        MockupFileHelper.writeOpacityToXML(mySlider.getValue() / (float)mySlider.getMaximum(), myMockup.getComponent());
       }
-      
+
     });
     mySlider.addChangeListener(e -> {
       final JSlider source = (JSlider)e.getSource();
-      myMockupComponentAttributes.setAlpha(source.getValue() / (float)source.getMaximum());
+      myMockup.setAlpha(source.getValue() / (float)source.getMaximum());
       myContentPane.repaint();
     });
   }
 
   private void initFileChooserActionListener() {
     myFileChooser.addActionListener(e -> {
-      if (myMockupComponentAttributes == null) {
+      if (myMockup == null) {
         return;
       }
       final FileChooserDescriptor descriptor = MockupFileHelper.getFileChooserDescriptor();
-      VirtualFile selectedFile = myMockupComponentAttributes.getVirtualFile();
+      VirtualFile selectedFile = myMockup.getVirtualFile();
 
       FileChooser.chooseFile(descriptor, null, myContentPane, selectedFile, (virtualFile) -> {
-        MockupFileHelper.writeFileNameToXML(virtualFile, myMockupComponentAttributes.getComponent());
+        MockupFileHelper.writeFileNameToXML(virtualFile, myMockup.getComponent());
         myFileChooser.setText(virtualFile.getName());
       });
     });
   }
 
   private void initFileChooserText() {
-    if (myMockupComponentAttributes != null) {
-      final VirtualFile virtualFile = myMockupComponentAttributes.getVirtualFile();
+    if (myMockup != null) {
+      final VirtualFile virtualFile = myMockup.getVirtualFile();
       if (virtualFile != null) {
         myFileChooser.setText(virtualFile.getName());
       }
@@ -151,20 +151,30 @@ public class MockupEditorPopup {
       POPUP_INSTANCE.cancel();
     }
 
-    // Do not show the popup if nothing is selected
-    final List<NlComponent> selection = nlModel.getSelectionModel().getSelection();
+    // Get the selected component if it exist or get the root component
+    List<NlComponent> selection = nlModel.getSelectionModel().getSelection();
+    NlComponent component = null;
     if (selection.isEmpty()) {
+      selection = nlModel.getComponents();
+      if (!selection.isEmpty()) {
+        component = selection.get(0).getRoot();
+      }
+    }
+    else {
+      component = selection.get(0);
+    }
+
+    // Do not show the popup if nothing is selected
+    if (component == null) {
       return;
     }
-    final NlComponent component = selection.get(0);
-    final MockupComponentAttributes mockupAttributes = MockupComponentAttributes.create(component);
-    if (mockupAttributes == null) {
+    final Mockup mockup = Mockup.create(component);
+    if (mockup == null) {
       return;
     }
 
     final ScreenView screenView = new ScreenView(designSurface, ScreenView.ScreenViewType.BLUEPRINT, nlModel);
-    final MockupEditorPopup mockupEditorPopup = new MockupEditorPopup(screenView, mockupAttributes,
-                                                                      component.getModel());
+    final MockupEditorPopup mockupEditorPopup = new MockupEditorPopup(screenView, mockup, component.getModel());
     final Dimension minSize = new Dimension((int)Math.round(designSurface.getWidth() * RELATIVE_SIZE_TO_SOURCE),
                                             (int)Math.round(designSurface.getHeight() * RELATIVE_SIZE_TO_SOURCE));
 
@@ -195,6 +205,6 @@ public class MockupEditorPopup {
   }
 
   private void createUIComponents() {
-    myMockupInteractionPanel = new MockupInteractionPanel(myScreenView, myMockupComponentAttributes);
+    myMockupInteractionPanel = new MockupInteractionPanel(myScreenView, myMockup);
   }
 }
