@@ -16,13 +16,14 @@
 package com.android.tools.idea.uibuilder.mockup;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.ModelListener;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.MockupLayer;
-import com.android.tools.pixelprobe.Guide;
+import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.pixelprobe.*;
 import com.android.tools.pixelprobe.Image;
-import com.android.tools.pixelprobe.util.Lists;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -78,7 +79,7 @@ import java.util.regex.Pattern;
  *
  * @see MockupLayer
  */
-public class MockupComponentAttributes implements ModelListener {
+public class Mockup implements ModelListener {
 
   private final static Pattern REGEX_POSITION_XY = Pattern.compile("([-]?[0-9]+\\s+[-]?[0-9]+)\\s*");
   private final static Pattern REGEX_POSITION_XY_SIZE = Pattern.compile(REGEX_POSITION_XY + "\\s+([0-9]+\\s+)[0-9]+\\s*");
@@ -104,13 +105,17 @@ public class MockupComponentAttributes implements ModelListener {
   private final static int C_H = 7;
 
   private final List<MockupModelListener> myListeners = new ArrayList<>();
-  private final Rectangle myPosition;
+  private final Rectangle myBounds;
   private final Rectangle myCropping;
+  private final Rectangle mySwingBounds;
+  private final Dimension myScreenSize;
+  private final Rectangle myComponentSwingBounds;
   private NlModel myNlModel;
   @Nullable String myFilePath;
   @Nullable Image myImage;
-  private float myAlpha = DEFAULT_OPACITY; // TODO read from xml
+  private float myAlpha = DEFAULT_OPACITY;
   private NlComponent myComponent;
+  private boolean myIsFullScreen;
 
   /**
    * Create a new MockupModel using the mockup file name attribute found in component.
@@ -121,12 +126,8 @@ public class MockupComponentAttributes implements ModelListener {
    * @return The newly created MockupModel or null if the it couldn't be created
    */
   @Nullable
-  public static MockupComponentAttributes create(@NotNull NlComponent component) {
-    final String file = component.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_MOCKUP);
-    if (file == null) {
-      return null;
-    }
-    return new MockupComponentAttributes(component);
+  public static Mockup create(@NotNull NlComponent component) {
+    return new Mockup(component);
   }
 
   /**
@@ -137,8 +138,8 @@ public class MockupComponentAttributes implements ModelListener {
    * @return A list containing all the newly created MockupModel. Can be empty.
    */
   @NotNull
-  public static List<MockupComponentAttributes> createAll(NlModel model) {
-    final List<MockupComponentAttributes> mockupAttributes = new ArrayList<>();
+  public static List<Mockup> createAll(NlModel model) {
+    final List<Mockup> mockupAttributes = new ArrayList<>();
     final List<NlComponent> components = model.getComponents();
     if (!components.isEmpty()) {
       final NlComponent root = components.get(0).getRoot();
@@ -153,12 +154,12 @@ public class MockupComponentAttributes implements ModelListener {
    * parse its children
    *
    * @param component the current component to parse
-   * @param list      the current list of {@link MockupComponentAttributes} where the newly created {@link MockupComponentAttributes} will be added.
+   * @param list      the current list of {@link Mockup} where the newly created {@link Mockup} will be added.
    */
-  private static void createAll(@NotNull List<MockupComponentAttributes> list, @NotNull NlComponent component) {
-    final MockupComponentAttributes mockupComponentAttributes = create(component);
-    if (mockupComponentAttributes != null) {
-      list.add(mockupComponentAttributes);
+  private static void createAll(@NotNull List<Mockup> list, @NotNull NlComponent component) {
+    final Mockup mockup = create(component);
+    if (mockup != null) {
+      list.add(mockup);
     }
     for (int i = 0; i < component.getChildCount(); i++) {
       final NlComponent child = component.getChild(i);
@@ -168,9 +169,12 @@ public class MockupComponentAttributes implements ModelListener {
     }
   }
 
-  private MockupComponentAttributes(NlComponent component) {
-    myPosition = new Rectangle(0, 0, -1, -1);
+  private Mockup(NlComponent component) {
+    myBounds = new Rectangle(0, 0, -1, -1);
     myCropping = new Rectangle(0, 0, -1, -1);
+    myScreenSize = new Dimension();
+    mySwingBounds = new Rectangle();
+    myComponentSwingBounds = new Rectangle();
     myComponent = component;
     myNlModel = component.getModel();
     myNlModel.addListener(this);
@@ -195,7 +199,11 @@ public class MockupComponentAttributes implements ModelListener {
       setFilePath(fileName);
     }
     if (position != null) {
+      myIsFullScreen = false;
       setPositionString(position);
+    }
+    else if (component.isRoot()) {
+      myIsFullScreen = true;
     }
     if (opacity != null) {
       setAlpha(opacity);
@@ -244,14 +252,14 @@ public class MockupComponentAttributes implements ModelListener {
       // Parse position
       if (split.length >= 4) {
         // Position and Size attributes
-        setPosition(Integer.parseInt(split[X]),
-                    Integer.parseInt(split[Y]),
-                    Integer.parseInt(split[W]),
-                    Integer.parseInt(split[H]));
+        setBounds(Integer.parseInt(split[X]),
+                  Integer.parseInt(split[Y]),
+                  Integer.parseInt(split[W]),
+                  Integer.parseInt(split[H]));
       }
       else if (split.length == 2) {
         // Position only attribute
-        setPosition(Integer.parseInt(split[X]), Integer.parseInt(split[Y]), -1, -1);
+        setBounds(Integer.parseInt(split[X]), Integer.parseInt(split[Y]), -1, -1);
 
       }
 
@@ -271,17 +279,17 @@ public class MockupComponentAttributes implements ModelListener {
       }
     }
     else {
-      setPosition(0, 0, -1, -1);
+      setBounds(0, 0, -1, -1);
       setCropping(0, 0, -1, -1);
     }
   }
 
-  public void setPosition(int x, int y, int width, int height) {
-    if (myPosition.x != x
-        || myPosition.y != y
-        || myPosition.width != width
-        || myPosition.height != height) {
-      myPosition.setBounds(x, y, width, height);
+  public void setBounds(int x, int y, int width, int height) {
+    if (myBounds.x != x
+        || myBounds.y != y
+        || myBounds.width != width
+        || myBounds.height != height) {
+      myBounds.setBounds(x, y, width, height);
       notifyListener();
     }
   }
@@ -296,8 +304,63 @@ public class MockupComponentAttributes implements ModelListener {
     }
   }
 
-  public Rectangle getPosition() {
-    return myPosition;
+  public Rectangle getBounds() {
+    return myBounds;
+  }
+
+  /**
+   * Find the rectangle where we will draw the mockup image in the {@link ScreenView}.
+   *
+   * We use the Mockup Bounds to find the coordinates where the mockup will be drawn relative to
+   * the position of the {@link NlComponent} in the {@link ScreenView}.
+   *
+   * @param mockupPosition    Position of the mockup relative to the component Position and its size in dip
+   * @param componentPosition Position of the component on the screenView (will be computed if null)
+   * @return The rectangle where the mockup will be drawn in the screen view
+   */
+  public Rectangle getBounds(ScreenView screenView, @Nullable Rectangle componentSwingBounds) {
+
+    // Mockup cover
+    if (myIsFullScreen) {
+      final Dimension screenViewSize = screenView.getSize(myScreenSize);
+      mySwingBounds.x = screenView.getX();
+      mySwingBounds.y = screenView.getY();
+      mySwingBounds.width = screenViewSize.width;
+      mySwingBounds.height = screenViewSize.height;
+    }
+    else {
+      // Either the bounds of the component on the ScreenView have already been computed
+      // or we compute them
+      if (componentSwingBounds != null) {
+        myComponentSwingBounds.setBounds(componentSwingBounds);
+      }
+      else {
+        myComponentSwingBounds.x = Coordinates.getSwingX(screenView, myComponent.x);
+        myComponentSwingBounds.y = Coordinates.getSwingY(screenView, myComponent.y);
+        myComponentSwingBounds.width = Coordinates.getSwingDimension(screenView, myComponent.w);
+        myComponentSwingBounds.height = Coordinates.getSwingDimension(screenView, myComponent.h);
+      }
+      final int mockupSwingW = Coordinates.getSwingDimensionDip(screenView, myBounds.width);
+      final int mockupSwingH = Coordinates.getSwingDimensionDip(screenView, myBounds.width);
+
+      mySwingBounds.x = myComponentSwingBounds.x + Coordinates.dpToPx(screenView, myBounds.x);
+      mySwingBounds.y = myComponentSwingBounds.y + Coordinates.dpToPx(screenView, myBounds.y);
+      // if one of the dimension was not set in the xml.
+      // it had been set to -1 in the model, meaning we should
+      // use the ScreenView dimension and/or the Image dimension
+      mySwingBounds.width = myBounds.width <= 0
+                            ? myComponentSwingBounds.width
+                            : mockupSwingW - mySwingBounds.x;
+      mySwingBounds.height = myBounds.height <= 0
+                             ? myComponentSwingBounds.height
+                             : mockupSwingH - mySwingBounds.y;
+
+    }
+    return mySwingBounds;
+  }
+
+  public boolean isFullScreen() {
+    return myIsFullScreen;
   }
 
   public Rectangle getCropping() {
@@ -384,6 +447,6 @@ public class MockupComponentAttributes implements ModelListener {
   }
 
   public interface MockupModelListener {
-    void mockupChanged(MockupComponentAttributes mockupComponentAttributes);
+    void mockupChanged(Mockup mockup);
   }
 }
