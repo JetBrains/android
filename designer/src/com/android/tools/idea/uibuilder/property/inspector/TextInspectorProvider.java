@@ -22,7 +22,7 @@ import com.android.tools.idea.uibuilder.property.NlFlagPropertyItem;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.*;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.project.Project;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
@@ -32,13 +32,23 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.property.editors.NlEditingListener.DEFAULT_LISTENER;
 
 public class TextInspectorProvider implements InspectorProvider {
-  private static final Set<String> TEXT_PROPERTIES = ImmutableSet.of(ATTR_TEXT, ATTR_CONTENT_DESCRIPTION);
+  private static final List<String> TEXT_PROPERTIES = ImmutableList.of(
+    ATTR_TEXT,
+    ATTR_CONTENT_DESCRIPTION,
+    ATTR_TEXT_APPEARANCE,
+    ATTR_FONT_FAMILY,
+    ATTR_TYPEFACE,
+    ATTR_TEXT_SIZE,
+    ATTR_LINE_SPACING_EXTRA,
+    ATTR_TEXT_STYLE,
+    ATTR_TEXT_ALL_CAPS,
+    ATTR_TEXT_ALIGNMENT,
+    ATTR_TEXT_COLOR);
 
   private TextInspectorComponent myComponent;
 
