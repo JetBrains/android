@@ -108,4 +108,13 @@ public abstract class NlBaseComponentEditor implements NlComponentEditor, Browse
       cancelEditing();
     }
   }
+
+  @NotNull
+  protected BrowsePanel createBrowsePanel(@Nullable BrowsePanel.Context context) {
+    boolean showDesignButton = context != null;
+    if (!showDesignButton) {
+      context = this;
+    }
+    return new BrowsePanel(context, showDesignButton);
+  }
 }
