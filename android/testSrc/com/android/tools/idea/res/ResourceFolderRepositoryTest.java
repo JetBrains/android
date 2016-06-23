@@ -40,16 +40,21 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.concurrency.SequentialTaskExecutor;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.ide.PooledThreadExecutor;
 import org.picocontainer.MutablePicoContainer;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.res.ResourceFolderRepository.ourFullRescans;
@@ -3596,6 +3601,31 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     validateViewWithId(facet, viewsWithIds.get(5), "android.webkit.WebView", "webView1");
   }
 
+  public void testInitFromHelperThread() throws Exception {
+    // By default, unit tests run from the EDT thread, which automatically have read access. Try loading a repository from a
+    // helper thread that doesn't have read access to make sure we grab the appropriate read locks.
+    // Use a data binding file, which we currently know uses a PsiDataBindingResourceItem.
+    VirtualFile file1 = myFixture.copyFileToProject(LAYOUT_WITH_DATA_BINDING, "res/layout-land/layout_with_data_binding.xml");
+    final PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
+    assertNotNull(psiFile1);
+    VirtualFile file2 = myFixture.copyFileToProject(VALUES_WITH_DUPES, "res/values-en/values_with_dupes.xml");
+    ExecutorService executorService = new SequentialTaskExecutor(PooledThreadExecutor.INSTANCE);
+    Future<ResourceFolderRepository> loadJob = executorService.submit(new Callable<ResourceFolderRepository>() {
+      @Override
+      public ResourceFolderRepository call() throws Exception {
+        return createRepository();
+      }
+    });
+    final ResourceFolderRepository resources = loadJob.get();
+    assertNotNull(resources);
+    AndroidFacet facet = resources.getFacet();
+    assertEquals(1, resources.getDataBindingResourceFiles().size());
+    assertEquals("land", getOnlyItem(resources, ResourceType.LAYOUT, "layout_with_data_binding").getQualifiers());
+    ResourceItem dupedStringItem = resources.getResourceItem(ResourceType.STRING, "app_name").get(0);
+    assertNotNull(dupedStringItem);
+    assertEquals("en", dupedStringItem.getQualifiers());
+  }
+
   public void testEditColorStateList() throws Exception {
     resetScanCounter();
 
@@ -3750,8 +3780,8 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
     assertFalse(resources.hasFreshFileCache());
-    assertEquals(3, resources.getInitialInitialScanState().numXml);
-    assertEquals(resources.getInitialInitialScanState().numXml, resources.getInitialInitialScanState().numXmlReparsed);
+    assertEquals(3, resources.getInitialScanState().numXml);
+    assertEquals(resources.getInitialScanState().numXml, resources.getInitialScanState().numXmlReparsed);
 
     resources.saveStateToFile();
 
@@ -3759,8 +3789,8 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ResourceFolderRepository resourcesReloaded = createRepository();
     assertNotSame(resources, resourcesReloaded);
     assertTrue(resourcesReloaded.hasFreshFileCache());
-    assertEquals(3, resourcesReloaded.getInitialInitialScanState().numXml);
-    assertEquals(0, resourcesReloaded.getInitialInitialScanState().numXmlReparsed);
+    assertEquals(3, resourcesReloaded.getInitialScanState().numXml);
+    assertEquals(0, resourcesReloaded.getInitialScanState().numXmlReparsed);
   }
 
   public void testSerialization() throws Exception {
@@ -3777,8 +3807,8 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(resources);
     assertFalse(resources.hasFreshFileCache());
     // We don't count items that are never cached (so 7 total XML minus 1 data binding file)
-    assertEquals(6, resources.getInitialInitialScanState().numXml);
-    assertEquals(resources.getInitialInitialScanState().numXml, resources.getInitialInitialScanState().numXmlReparsed);
+    assertEquals(6, resources.getInitialScanState().numXml);
+    assertEquals(resources.getInitialScanState().numXml, resources.getInitialScanState().numXmlReparsed);
     resources.saveStateToFile();
 
     ResourceFolderRegistry.reset();
@@ -3786,8 +3816,8 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(fromBlob);
     // Check that fromBlob really avoided reparsing some XML files, before checking equivalence of items.
     assertTrue(fromBlob.hasFreshFileCache());
-    assertEquals(6, fromBlob.getInitialInitialScanState().numXml);
-    assertEquals(0, fromBlob.getInitialInitialScanState().numXmlReparsed);
+    assertEquals(6, fromBlob.getInitialScanState().numXml);
+    assertEquals(0, fromBlob.getInitialScanState().numXmlReparsed);
 
     assertNotSame(resources, fromBlob);
     assertTrue(fromBlob.equalFilesItems(resources));
@@ -3807,8 +3837,8 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ResourceFolderRepository resourcesReloaded = createRepository();
     resourcesReloaded.saveStateToFile();
 
-    assertNotSame(0, resourcesReloaded.getInitialInitialScanState().numXmlReparsed);
-    assertEquals(resourcesReloaded.getInitialInitialScanState().numXml, resourcesReloaded.getInitialInitialScanState().numXmlReparsed);
+    assertNotSame(0, resourcesReloaded.getInitialScanState().numXmlReparsed);
+    assertEquals(resourcesReloaded.getInitialScanState().numXml, resourcesReloaded.getInitialScanState().numXmlReparsed);
   }
 
   public void testSerializationRemoveXmlFileAndLoad() throws Exception {
