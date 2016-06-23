@@ -18,12 +18,14 @@ package com.android.tools.idea.uibuilder.surface;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.ModelListener;
+import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -38,21 +40,16 @@ public class MockupLayer extends Layer {
   private Dimension myScreenViewSize = new Dimension();
   private Rectangle myComponentSwingBounds = new Rectangle();
   private NlModel myNlModel;
-  private java.util.List<Mockup> myMockups;
+  private List<Mockup> myMockups;
 
   public MockupLayer(ScreenView screenView) {
     assert screenView != null;
     myScreenView = screenView;
     myScreenViewSize = myScreenView.getSize(myScreenViewSize);
     setNlModel(myScreenView.getModel());
-
-    setNlModel(myScreenView.getModel());
   }
 
   public void setNlModel(NlModel nlModel) {
-    if (nlModel == myNlModel && !myMockups.isEmpty()) {
-      return;
-    }
     myNlModel = nlModel;
     myMockups = Mockup.createAll(myNlModel);
     myNlModel.addListener(new ModelListener() {
