@@ -34,6 +34,7 @@ import com.android.tools.idea.uibuilder.model.DnDTransferComponent;
 import com.android.tools.idea.uibuilder.model.DnDTransferItem;
 import com.android.tools.idea.uibuilder.model.ItemTransferable;
 import com.android.tools.idea.uibuilder.structure.NlComponentTree;
+import com.android.tools.idea.uibuilder.structure.ToggleBoundsVisibility;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Lists;
@@ -50,6 +51,8 @@ import com.intellij.ide.dnd.DnDSource;
 import com.intellij.ide.dnd.aware.DnDAwareTree;
 import com.intellij.ide.ui.LafManager;
 import com.intellij.ide.ui.LafManagerListener;
+import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.idea.IdeaApplication;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.impl.ActionManagerImpl;
@@ -307,6 +310,11 @@ public class NlPalettePanel extends JPanel
     group.add(new TogglePaletteModeAction(this, Mode.ICON_AND_TEXT));
     group.add(new TogglePaletteModeAction(this, Mode.PREVIEW));
 
+    if (Boolean.getBoolean(IdeaApplication.IDEA_IS_INTERNAL_PROPERTY)) {
+      group.addSeparator();
+      group.add(new ToggleBoundsVisibility(PropertiesComponent.getInstance(), myStructureTree));
+    }
+
     ActionPopupMenu popupMenu = ((ActionManagerImpl)ActionManager.getInstance())
       .createActionPopupMenu(ToolWindowContentUi.POPUP_PLACE, group, new MenuItemPresentationFactory(true));
     popupMenu.getComponent().show(component, x, y);
@@ -344,7 +352,8 @@ public class NlPalettePanel extends JPanel
     int monitorResolution = Toolkit.getDefaultToolkit().getScreenResolution();
     for (Density density : Density.values()) {
       if (density.getDpiValue() > 0) {
-        if (override == null || Math.abs(density.getDpiValue() - monitorResolution) < Math.abs(override.getDpiValue() - monitorResolution)) {
+        if (override == null ||
+            Math.abs(density.getDpiValue() - monitorResolution) < Math.abs(override.getDpiValue() - monitorResolution)) {
           override = density;
         }
       }
