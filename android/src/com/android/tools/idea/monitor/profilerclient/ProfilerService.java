@@ -100,13 +100,9 @@ public class ProfilerService {
    * @param userKey the non-null key that was used in the {@link #connect(Object, IDevice)} call
    * @param deviceProfilerService the return value of the {@link #connect(Object, IDevice)} call
    */
-  public void disconnect(@NotNull Object userKey, @NotNull DeviceProfilerService deviceProfilerService) {
+  public synchronized void disconnect(@NotNull Object userKey, @NotNull DeviceProfilerService deviceProfilerService) {
     if (deviceProfilerService.unregister(userKey)) {
       myDeviceClientServices.remove(deviceProfilerService.getDevice());
     }
-  }
-
-  synchronized void stop(@NotNull DeviceProfilerService deviceProfilerService) {
-    myDeviceClientServices.remove(deviceProfilerService.getDevice());
   }
 }

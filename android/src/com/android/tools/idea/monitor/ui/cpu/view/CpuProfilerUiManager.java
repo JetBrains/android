@@ -43,7 +43,7 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager {
   @NotNull
   @Override
   public Poller createPoller(int pid) {
-    return new CpuDataPoller(myDataStore.getDeviceProfilerService(), pid, myDataStore);
+    return new CpuDataPoller(myDataStore, pid);
   }
 
   @Override

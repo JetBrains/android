@@ -91,7 +91,6 @@ public class DeviceProfilerService {
     myUserKeys.remove(userKey);
     if (myUserKeys.isEmpty()) {
       DevicePortForwarder.removeForward(myDevice, myPort, DEVICE_PORT);
-      ProfilerService.getInstance().stop(this);
       myChannel.shutdown();
       return true;
     }

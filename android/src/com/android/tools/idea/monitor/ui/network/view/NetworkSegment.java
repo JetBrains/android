@@ -38,14 +38,15 @@ public class NetworkSegment extends BaseLineChartSegment {
 
   private static final String CONNECTIONS = "Connections";
 
-  private static final BaseAxisFormatter BANDWIDTH_AXIS_FORMATTER = MemoryAxisFormatter.DEFAULT;
+  private static final BaseAxisFormatter BANDWIDTH_AXIS_FORMATTER_L1 = new MemoryAxisFormatter(1, 5, 5); // Do not show minor ticks in L1.
 
   private static final BaseAxisFormatter CONNECTIONS_AXIS_FORMATTER = new SingleUnitAxisFormatter(1, 10, 1, "");
 
   public NetworkSegment(@NotNull Range timeRange,
                         @NotNull SeriesDataStore dataStore,
                         @NotNull EventDispatcher<ProfilerEventListener> dispatcher) {
-    super(SEGMENT_NAME, timeRange, dataStore, BANDWIDTH_AXIS_FORMATTER, CONNECTIONS_AXIS_FORMATTER, dispatcher);
+    super(SEGMENT_NAME, timeRange, dataStore, BANDWIDTH_AXIS_FORMATTER_L1, MemoryAxisFormatter.DEFAULT, CONNECTIONS_AXIS_FORMATTER,
+          dispatcher);
   }
 
   @Override
@@ -56,12 +57,12 @@ public class NetworkSegment extends BaseLineChartSegment {
   @Override
   protected void updateChartLines(boolean isExpanded) {
     // Sending and Receiving lines are present in both levels 1 and 2
-    addLine(SeriesDataType.NETWORK_SENDING, SENDING, new LineConfig(Constants.NETWORK_SENDING_COLOR), mLeftAxisRange);
-    addLine(SeriesDataType.NETWORK_RECEIVING, RECEIVING, new LineConfig(Constants.NETWORK_RECEIVING_COLOR), mLeftAxisRange);
+    addLeftAxisLine(SeriesDataType.NETWORK_SENDING, SENDING, new LineConfig(Constants.NETWORK_SENDING_COLOR));
+    addLeftAxisLine(SeriesDataType.NETWORK_RECEIVING, RECEIVING, new LineConfig(Constants.NETWORK_RECEIVING_COLOR));
 
     if (isExpanded) {
-      addLine(SeriesDataType.NETWORK_CONNECTIONS, CONNECTIONS, new LineConfig(Constants.NETWORK_CONNECTIONS_COLOR).setStepped(true),
-              mRightAxisRange);
+      addRightAxisLine(SeriesDataType.NETWORK_CONNECTIONS, CONNECTIONS,
+                       new LineConfig(Constants.NETWORK_CONNECTIONS_COLOR).setStepped(true));
     }
   }
 }
