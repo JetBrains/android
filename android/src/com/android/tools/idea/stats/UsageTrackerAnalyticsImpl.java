@@ -15,16 +15,18 @@
  */
 package com.android.tools.idea.stats;
 
-import com.google.common.base.Charsets;
+import com.android.tools.analytics.Anonymizer;
+import com.android.utils.ILogger;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
-import com.google.common.hash.Hashing;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.containers.HashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.IOException;
 import java.util.Map;
 
 public class UsageTrackerAnalyticsImpl extends UsageTracker {
@@ -39,8 +41,35 @@ public class UsageTrackerAnalyticsImpl extends UsageTracker {
   private static final String GLOGS_CATEGORY_INSTANT_RUN = "irstats2";
   private static final String GLOGS_CATEGORY_INSTANT_RUN_TIMINGS = "irtimings";
   private static final String GLOGS_CATEGORY_SYSTEM_INFO = "systeminfo";
+  private static final String ANONYMIZATION_ISSUE = "*ANONYMIZATION_ISSUE*";
 
   private final UsageUploader myUploader;
+
+  private static final Logger INTELLIJ_LOGGER =
+    Logger.getInstance("#com.android.tools.idea.stats.UsageTrackerAnalyticsImpl.class");
+  // Create logger & scheduler based on IntelliJ/ADT helpers.
+  private static final ILogger LOGGER = new ILogger() {
+    @Override
+    public void error(@Nullable Throwable t, @com.android.annotations.Nullable String msgFormat, Object... args) {
+      INTELLIJ_LOGGER.error(String.format(msgFormat, args), t);
+    }
+
+    @Override
+    public void warning(@NotNull String msgFormat, Object... args) {
+      INTELLIJ_LOGGER.warn(String.format(msgFormat, args));
+    }
+
+    @Override
+    public void info(@NotNull String msgFormat, Object... args) {
+      INTELLIJ_LOGGER.info(String.format(msgFormat, args));
+    }
+
+    @Override
+    public void verbose(@NotNull String msgFormat, Object... args) {
+      info(msgFormat, args);
+    }
+  };
+
 
   public UsageTrackerAnalyticsImpl() {
     UsageUploader[] uploaders = EP_NAME.getExtensions();
@@ -204,6 +233,12 @@ public class UsageTrackerAnalyticsImpl extends UsageTracker {
 
   @NotNull
   private static String anonymize(@NotNull String applicationId) {
-    return Hashing.md5().hashString(applicationId, Charsets.UTF_8).toString();
+    try {
+      return Anonymizer.anonymizeUtf8(LOGGER, applicationId);
+    }
+    catch (IOException e) {
+      LOGGER.error(e, "Unable to update anonymization salt.");
+      return ANONYMIZATION_ISSUE;
+    }
   }
 }
