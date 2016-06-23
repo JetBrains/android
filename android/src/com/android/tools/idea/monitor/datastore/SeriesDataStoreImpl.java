@@ -171,7 +171,12 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
   private static class EmptyDataGenerator<T> implements DataAdapter<T> {
 
     @Override
-    public void reset() {
+    public void reset(long startTime) {
+
+    }
+
+    @Override
+    public void stop() {
 
     }
 
@@ -183,11 +188,6 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
     @Override
     public SeriesData<T> get(int index) {
       return null;
-    }
-
-    @Override
-    public void setStartTime(long startTime) {
-
     }
   }
 
