@@ -33,9 +33,7 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
 
   private static final int GENERATE_DATA_THREAD_DELAY = 100;
 
-  private static final DataGenerator CPU_NUM_THREADS_GENERATOR = new DataGenerator(0, 10, 1);
-
-  private static final DataGenerator CPU_NUM_CONNECTIONS_GENERATOR = new DataGenerator(0, 20, 2);
+  private static final DataGenerator NUM_CONNECTIONS_GENERATOR = new DataGenerator(0, 20, 2);
 
   private static final DataGenerator DEFAULT_DATA_GENERATOR = new DataGenerator(0, 100, 20);
 
@@ -127,16 +125,14 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
       switch (type) {
         case CPU_MY_PROCESS:
         case CPU_OTHER_PROCESSES:
+        case CPU_THREADS:
         case NETWORK_RECEIVED:
         case NETWORK_SENT:
           // TODO: as we're moving the registerAdapter calls to the correspondent pollers, we can add the covered types here.
           // Once we're done with the move, we can remove this switch/case block.
           break;
-        case CPU_THREADS:
-          registerAdapter(type, CPU_NUM_THREADS_GENERATOR);
-          break;
         case NETWORK_CONNECTIONS:
-          registerAdapter(type, CPU_NUM_CONNECTIONS_GENERATOR);
+          registerAdapter(type, NUM_CONNECTIONS_GENERATOR);
           break;
         case EVENT_ACTIVITY_ACTION:
         case EVENT_FRAGMENT_ACTION:
