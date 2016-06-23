@@ -25,10 +25,8 @@ import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.*;
 import com.android.tools.sherpa.drawing.BlueprintColorSet;
 import com.android.tools.sherpa.drawing.ColorSet;
-import com.intellij.openapi.ui.popup.JBPopup;
-import com.intellij.openapi.ui.popup.JBPopupFactory;
-import com.intellij.openapi.ui.popup.JBPopupListener;
-import com.intellij.openapi.ui.popup.LightweightWindowEvent;
+import com.intellij.icons.AllIcons;
+import com.intellij.openapi.ui.popup.*;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.awt.RelativePoint;
@@ -53,6 +51,7 @@ public class WidgetNavigatorPanel extends JPanel
 
   public static final String TITLE = "Pan and Zoom";
   public static final String HINT = "(Scroll to Zoom)";
+  private static final IconButton CANCEL_BUTTON = new IconButton("Close", AllIcons.Actions.Close, AllIcons.Actions.CloseHovered);
   private static final int SCREEN_SPACE = NlConstants.SCREEN_DELTA;
   private static final Dimension PREFERRED_SIZE = new Dimension(250, 216);
 
@@ -659,8 +658,8 @@ public class WidgetNavigatorPanel extends JPanel
       .setResizable(false)
       .setMovable(true)
       .setRequestFocus(true)
-      .setCouldPin(jbPopup -> true)
       .setLocateWithinScreenBounds(true)
+      .setCancelButton(CANCEL_BUTTON)
       .setShowBorder(true)
       .setShowShadow(true)
       .setCancelOnClickOutside(false)
