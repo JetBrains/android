@@ -57,8 +57,8 @@ public class NetworkSegment extends BaseLineChartSegment {
   @Override
   protected void updateChartLines(boolean isExpanded) {
     // Sending and Receiving lines are present in both levels 1 and 2
-    addLeftAxisLine(SeriesDataType.NETWORK_SENDING, SENDING, new LineConfig(Constants.NETWORK_SENDING_COLOR));
-    addLeftAxisLine(SeriesDataType.NETWORK_RECEIVING, RECEIVING, new LineConfig(Constants.NETWORK_RECEIVING_COLOR));
+    addLeftAxisLine(SeriesDataType.NETWORK_SENT, SENDING, new LineConfig(Constants.NETWORK_SENDING_COLOR));
+    addLeftAxisLine(SeriesDataType.NETWORK_RECEIVED, RECEIVING, new LineConfig(Constants.NETWORK_RECEIVING_COLOR));
 
     if (isExpanded) {
       addRightAxisLine(SeriesDataType.NETWORK_CONNECTIONS, CONNECTIONS,
