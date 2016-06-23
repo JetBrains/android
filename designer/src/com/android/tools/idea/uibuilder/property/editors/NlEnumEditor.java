@@ -133,12 +133,8 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
     myCombo.setEditable(true);
     myPanel.add(myCombo, BorderLayout.CENTER);
 
-    boolean showDesignButton = context != null;
-    if (includeBrowseButton && !showDesignButton) {
-      context = this;
-    }
-    if (context != null) {
-      myPanel.add(new BrowsePanel(context, showDesignButton), BorderLayout.LINE_END);
+    if (includeBrowseButton || context != null) {
+      myPanel.add(createBrowsePanel(context), BorderLayout.LINE_END);
     }
 
     myCombo.addActionListener(this::comboValuePicked);
@@ -166,6 +162,7 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
   @Override
   public void setEnabled(boolean en) {
     myCombo.setEnabled(en);
+    createBrowsePanel(null);
   }
 
   @Override

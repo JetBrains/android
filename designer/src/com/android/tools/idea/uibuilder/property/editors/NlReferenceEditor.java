@@ -61,7 +61,7 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
   private final JSlider mySlider;
   private final TextEditor myTextFieldWithAutoCompletion;
   private final CompletionProvider myCompletionProvider;
-  private final JComponent myBrowsePanel;
+  private final BrowsePanel myBrowsePanel;
 
   private NlProperty myProperty;
   private boolean myPropertyHasSlider;
@@ -112,15 +112,9 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
     myTextFieldWithAutoCompletion = new TextEditor(project, myCompletionProvider);
     myTextFieldWithAutoCompletion.setBorder(
       BorderFactory.createEmptyBorder(VERTICAL_SPACING, HORIZONTAL_SPACING, VERTICAL_SPACING, HORIZONTAL_SPACING));
+    myBrowsePanel = createBrowsePanel(context);
     myPanel.add(myTextFieldWithAutoCompletion, BorderLayout.CENTER);
-
-    boolean showDesignButton = context != null;
-    if (!showDesignButton) {
-      context = this;
-    }
-    myBrowsePanel = new BrowsePanel(context, showDesignButton);
     myPanel.add(myBrowsePanel, BorderLayout.LINE_END);
-
     myPanel.addComponentListener(new ComponentAdapter() {
       @Override
       public void componentResized(ComponentEvent event) {
@@ -177,8 +171,9 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
     if (myProperty != property) {
       myProperty = property;
       myLastReadValue = null;
-
-      myBrowsePanel.setVisible(myIncludeBrowseButton && BrowsePanel.hasResourceChooser(myProperty));
+      if (myIncludeBrowseButton) {
+        myBrowsePanel.setProperty(property);
+      }
       myCompletionsUpdated = false;
     }
 

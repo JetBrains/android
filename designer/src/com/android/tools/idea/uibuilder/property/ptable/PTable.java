@@ -290,15 +290,16 @@ public class PTable extends JBTable {
         return;
       }
 
-      Rectangle rect = getCellRect(row, convertColumnIndexToView(0), false);
-      if (!rect.contains(e.getX(), e.getY())) {
-        return;
-      }
-      if (!PNameRenderer.hitTestTreeNodeIcon(item, e.getX() - rect.x)) {
+      Rectangle rectLeftColumn = getCellRect(row, convertColumnIndexToView(0), false);
+      if (rectLeftColumn.contains(e.getX(), e.getY()) && PNameRenderer.hitTestTreeNodeIcon(item, e.getX() - rectLeftColumn.x)) {
+        toggleTreeNode(row);
         return;
       }
 
-      toggleTreeNode(row);
+      Rectangle rectRightColumn = getCellRect(row, convertColumnIndexToView(1), false);
+      if (rectRightColumn.contains(e.getX(), e.getY())) {
+        item.mousePressed(e, rectRightColumn);
+      }
     }
   }
 

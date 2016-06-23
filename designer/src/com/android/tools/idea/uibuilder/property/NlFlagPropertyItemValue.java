@@ -48,7 +48,9 @@ public class NlFlagPropertyItemValue extends PTableItem implements NlProperty {
   @Nullable
   @Override
   public String getNamespace() {
-    return myFlags.getNamespace();
+    // Values do not have a namespace.
+    // Used in PNameRenderer to not indicate the tools namespace for flag values.
+    return null;
   }
 
   @Override
