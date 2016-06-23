@@ -68,6 +68,7 @@ public class LaunchAndroidApplicationTest {
     guiTest.ideFrame().invokeAvdManager().deleteAvd(AVD_NAME).close();
   }
 
+  @Ignore
   @Test
   public void testRunOnEmulator() throws IOException, ClassNotFoundException {
     guiTest.ideFrame().runApp(APP_NAME)
