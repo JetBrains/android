@@ -35,7 +35,7 @@ public final class MemoryProfilerUiManager extends BaseProfilerUiManager {
   @NotNull
   @Override
   public Poller createPoller(int pid) {
-    return new MemoryPoller(myDataStore.getDeviceProfilerService(), pid);
+    return new MemoryPoller(myDataStore, pid);
   }
 
   @Override

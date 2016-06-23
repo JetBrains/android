@@ -22,10 +22,12 @@ import com.android.tools.idea.monitor.datastore.SeriesDataList;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.datastore.SeriesDataType;
 import com.android.tools.idea.monitor.profilerclient.DeviceProfilerService;
+import com.android.tools.idea.monitor.ui.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.visual.data.LongTestDataGenerator;
 import com.android.tools.idea.monitor.ui.visual.data.MemoryTestDataGenerator;
 import com.android.tools.idea.monitor.ui.visual.data.SimpleEventTestDataGenerator;
 import com.android.tools.idea.monitor.ui.visual.data.StackedEventTestDataGenerator;
+import com.intellij.util.EventDispatcher;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -47,9 +49,19 @@ public final class VisualTestSeriesDataStore implements SeriesDataStore {
   }
 
   @Override
+  public EventDispatcher<ProfilerEventListener> getEventDispatcher() {
+    return null;
+  }
+
+  @Override
+  public void stop() {
+  }
+
+  @Override
   public void reset() {
+    mStartTime = System.currentTimeMillis();
     for (DataAdapter<?> adapter : myDataSeriesMap.values()) {
-      adapter.reset();
+      adapter.reset(mStartTime);
     }
   }
 
@@ -81,7 +93,7 @@ public final class VisualTestSeriesDataStore implements SeriesDataStore {
   @Override
   public void registerAdapter(SeriesDataType type, DataAdapter adapter) {
     myDataSeriesMap.put(type, adapter);
-    adapter.setStartTime(mStartTime);
+    adapter.reset(mStartTime);
   }
 
   @Override

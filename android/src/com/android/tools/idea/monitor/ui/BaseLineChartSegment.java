@@ -62,15 +62,20 @@ public abstract class BaseLineChartSegment extends BaseSegment {
   @NotNull
   protected Range mLeftAxisRange;
 
-  @Nullable
+  @NotNull
   protected Range mRightAxisRange;
 
   private AxisComponent mLeftAxis;
 
   private AxisComponent mRightAxis;
 
+  @NotNull
+  private final BaseAxisFormatter mLeftAxisFormatterSimple;
+
+  @NotNull
   private final BaseAxisFormatter mLeftAxisFormatter;
 
+  @NotNull
   private final BaseAxisFormatter mRightAxisFormatter;
 
   private GridComponent mGrid;
@@ -99,19 +104,19 @@ public abstract class BaseLineChartSegment extends BaseSegment {
   public BaseLineChartSegment(@NotNull String name,
                               @NotNull Range xRange,
                               @NotNull SeriesDataStore dataStore,
+                              @NotNull BaseAxisFormatter leftAxisFormatterSimple,
                               @NotNull BaseAxisFormatter leftAxisFormatter,
-                              @Nullable BaseAxisFormatter rightAxisFormatter,
+                              @NotNull BaseAxisFormatter rightAxisFormatter,
                               @Nullable Range leftAxisRange,
                               @Nullable Range rightAxisRange,
                               @NotNull EventDispatcher<ProfilerEventListener> dispatcher) {
     super(name, xRange, dispatcher);
+    mLeftAxisFormatterSimple = leftAxisFormatterSimple;
     mLeftAxisFormatter = leftAxisFormatter;
     mRightAxisFormatter = rightAxisFormatter;
     mLeftAxisRange = leftAxisRange != null ? leftAxisRange : new Range();
+    mRightAxisRange = rightAxisRange != null ? rightAxisRange : new Range();
     mSeriesDataStore = dataStore;
-    if (mRightAxisFormatter != null) {
-      mRightAxisRange = rightAxisRange != null ? rightAxisRange : new Range();
-    }
     mDelayedEvents = new ArrayDeque<>();
 
     initializeListeners();
@@ -120,10 +125,11 @@ public abstract class BaseLineChartSegment extends BaseSegment {
   public BaseLineChartSegment(@NotNull String name,
                               @NotNull Range xRange,
                               @NotNull SeriesDataStore dataStore,
+                              @NotNull BaseAxisFormatter leftAxisFormatterSimple,
                               @NotNull BaseAxisFormatter leftAxisFormatter,
-                              @Nullable BaseAxisFormatter rightAxisFormatter,
+                              @NotNull BaseAxisFormatter rightAxisFormatter,
                               @NotNull EventDispatcher<ProfilerEventListener> dispatcher) {
-    this(name, xRange, dataStore, leftAxisFormatter, rightAxisFormatter, null, null, dispatcher);
+    this(name, xRange, dataStore, leftAxisFormatterSimple, leftAxisFormatter, rightAxisFormatter, null, null, dispatcher);
   }
 
   public abstract BaseProfilerUiManager.ProfilerType getProfilerType();
@@ -133,16 +139,14 @@ public abstract class BaseLineChartSegment extends BaseSegment {
     // left axis
     mLeftAxis = new AxisComponent(mLeftAxisRange, mLeftAxisRange, "",
                                   AxisComponent.AxisOrientation.LEFT, 0, 0, true,
-                                  mLeftAxisFormatter);
+                                  mLeftAxisFormatterSimple);
     mLeftAxis.setClampToMajorTicks(true);
 
     // right axis
-    if (mRightAxisRange != null) {
-      mRightAxis = new AxisComponent(mRightAxisRange, mRightAxisRange, "",
-                                     AxisComponent.AxisOrientation.RIGHT, 0, 0, true,
-                                     mRightAxisFormatter);
-      mRightAxis.setParentAxis(mLeftAxis);
-    }
+    mRightAxis = new AxisComponent(mRightAxisRange, mRightAxisRange, "",
+                                   AxisComponent.AxisOrientation.RIGHT, 0, 0, true,
+                                   mRightAxisFormatter);
+    mRightAxis.setParentAxis(mLeftAxis);
 
     mLineChart = new LineChart();
     mGrid = new GridComponent();
@@ -156,13 +160,9 @@ public abstract class BaseLineChartSegment extends BaseSegment {
     // The comment on each line highlights why the component needs to be in that position.
     animatables.add(mLineChart); // Set y's interpolation values.
     animatables.add(mLeftAxis);  // Read left y range and update its max to the next major tick.
-    if (mRightAxis != null) {
-      animatables.add(mRightAxis); // Read right y range and update its max by syncing to the left axis' major tick spacing.
-    }
+    animatables.add(mRightAxis); // Read right y range and update its max by syncing to the left axis' major tick spacing.
     animatables.add(mLeftAxisRange); // Interpolate left y range.
-    if (mRightAxisRange != null) {
-      animatables.add(mRightAxisRange); // Interpolate right y range.
-    }
+    animatables.add(mRightAxisRange); // Interpolate right y range.
     animatables.add(mLegendComponent);
     animatables.add(mGrid); // No-op.
   }
@@ -199,12 +199,8 @@ public abstract class BaseLineChartSegment extends BaseSegment {
 
   @Override
   protected void setRightContent(@NotNull JPanel panel) {
-    if (mRightAxis != null) {
-      panel.add(mRightAxis, BorderLayout.CENTER);
-      setRightSpacerVisible(true);
-    } else {
-      setRightSpacerVisible(false);
-    }
+    panel.add(mRightAxis, BorderLayout.CENTER);
+    setRightSpacerVisible(true);
   }
 
   private void initializeListeners() {
@@ -309,6 +305,7 @@ public abstract class BaseLineChartSegment extends BaseSegment {
   public void toggleView(boolean isExpanded) {
     super.toggleView(isExpanded);
     mGrid.setVisible(isExpanded);
+    mLeftAxis.setAxisFormatter(isExpanded ? mLeftAxisFormatter : mLeftAxisFormatterSimple);
     mLineChart.clearLineConfigs();
     updateChartLines(isExpanded);
     mLegendComponent.setLegendData(getLegendRenderDataList());
@@ -333,10 +330,18 @@ public abstract class BaseLineChartSegment extends BaseSegment {
   }
 
   /**
-   * Adds a line to {@link #mLineChart}.
+   * Adds a line to {@link #mLineChart} that is associated with the left axis.
    */
-  protected void addLine(SeriesDataType type, String label, LineConfig lineConfig, Range yRange) {
-    mLineChart.addLine(new RangedContinuousSeries(label, mXRange, yRange, new DataStoreSeries(mSeriesDataStore, type),
+  protected void addLeftAxisLine(SeriesDataType type, String label, LineConfig lineConfig) {
+    mLineChart.addLine(new RangedContinuousSeries(label, mXRange, mLeftAxisRange, new DataStoreSeries(mSeriesDataStore, type),
                                                   TimeAxisFormatter.DEFAULT, mLeftAxisFormatter), lineConfig);
+  }
+
+  /**
+   * Adds a line to {@link #mLineChart} that is associated with the right axis.
+   */
+  protected void addRightAxisLine(SeriesDataType type, String label, LineConfig lineConfig) {
+    mLineChart.addLine(new RangedContinuousSeries(label, mXRange, mRightAxisRange, new DataStoreSeries(mSeriesDataStore, type),
+                                                  TimeAxisFormatter.DEFAULT, mRightAxisFormatter), lineConfig);
   }
 }

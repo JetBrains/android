@@ -20,7 +20,6 @@ import com.android.tools.idea.monitor.datastore.DataAdapter;
 import com.android.tools.idea.monitor.datastore.Poller;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.datastore.SeriesDataType;
-import com.android.tools.idea.monitor.profilerclient.DeviceProfilerService;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuProfilerServiceGrpc;
@@ -46,23 +45,18 @@ public class CpuDataPoller extends Poller {
 
   private int myPid;
 
-  private DeviceProfilerService myDeviceProfilerService;
-
   private CpuProfilerServiceGrpc.CpuProfilerServiceBlockingStub myCpuService;
 
   private TLongArrayList myTimestampArray = new TLongArrayList();
-
-  private final long myDeviceTimeOffset;
 
   // TODO: Change them to double after refactoring LineChart
   private TLongArrayList myProcessCpuUsage = new TLongArrayList();
   private TLongArrayList myOtherProcessesCpuUsage = new TLongArrayList();
 
-  public CpuDataPoller(@NotNull DeviceProfilerService service, int pid, @NotNull SeriesDataStore dataStore) {
-    super(service, POLLING_DELAY_NS);
-    myDeviceProfilerService = service;
+  public CpuDataPoller(@NotNull SeriesDataStore dataStore,
+                       int pid) {
+    super(dataStore, POLLING_DELAY_NS);
     myPid = pid;
-    myDeviceTimeOffset = dataStore.getDeviceTimeOffset();
     registerAdapters(dataStore);
   }
 
@@ -83,7 +77,7 @@ public class CpuDataPoller extends Poller {
 
   @Override
   protected void asyncInit() {
-    myCpuService = myDeviceProfilerService.getCpuService();
+    myCpuService = myService.getCpuService();
     CpuProfiler.CpuStartRequest.Builder requestBuilder = CpuProfiler.CpuStartRequest.newBuilder().setAppId(myPid);
     myCpuService.startMonitoringApp(requestBuilder.build());
     myDataRequestStartTimestamp = Long.MIN_VALUE;
@@ -93,7 +87,8 @@ public class CpuDataPoller extends Poller {
   protected void asyncShutdown() {
     try {
       myCpuService.stopMonitoringApp(CpuProfiler.CpuStopRequest.newBuilder().setAppId(myPid).build());
-    } catch (StatusRuntimeException ignored) {
+    }
+    catch (StatusRuntimeException ignored) {
       // UNAVAILABLE
     }
   }
@@ -107,7 +102,8 @@ public class CpuDataPoller extends Poller {
     CpuProfiler.CpuDataResponse response;
     try {
       response = myCpuService.getData(dataRequestBuilder.build());
-    } catch (StatusRuntimeException e) {
+    }
+    catch (StatusRuntimeException e) {
       cancel(true);
       return;
     }
@@ -123,8 +119,8 @@ public class CpuDataPoller extends Poller {
     for (Cpu.CpuProfilerData data : cpuDataList) {
       myTimestampArray.add(TimeUnit.NANOSECONDS.toMillis(data.getBasicInfo().getEndTimestamp() - myDeviceTimeOffset));
       CpuUsageData usageData = getCpuUsageData(data, lastCpuData);
-      myProcessCpuUsage.add((long) usageData.getAppUsage());
-      myOtherProcessesCpuUsage.add((long) usageData.getOtherProcessesUsage());
+      myProcessCpuUsage.add((long)usageData.getAppUsage());
+      myOtherProcessesCpuUsage.add((long)usageData.getOtherProcessesUsage());
       lastCpuData = data;
       // Update start timestamp inside the loop in case the thread is interrupted before its end.
       myDataRequestStartTimestamp = lastCpuData.getBasicInfo().getEndTimestamp();
@@ -138,11 +134,6 @@ public class CpuDataPoller extends Poller {
 
     CpuUsageDataAdapter(@NotNull TLongArrayList cpuUsage) {
       myCpuUsage = cpuUsage;
-    }
-
-    @Override
-    public void setStartTime(long time) {
-      // TODO: consider removing ths method from the adapter interface and using getDeviceTimeOffset() when adding data instead.
     }
 
     @Override
@@ -166,7 +157,12 @@ public class CpuDataPoller extends Poller {
     }
 
     @Override
-    public void reset() {
+    public void stop() {
+      // Do nothing.
+    }
+
+    @Override
+    public void reset(long startTime) {
       // TODO: Define reset mechanism.
     }
   }

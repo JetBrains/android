@@ -18,8 +18,11 @@ package com.android.tools.idea.monitor.datastore;
 import com.android.tools.adtui.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.idea.monitor.profilerclient.DeviceProfilerService;
+import com.android.tools.idea.monitor.ui.ProfilerEventListener;
 import com.android.tools.profiler.proto.ProfilerService;
+import com.intellij.util.EventDispatcher;
 import gnu.trove.TLongArrayList;
+import io.grpc.StatusRuntimeException;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -45,8 +48,13 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
   @NotNull
   private final DeviceProfilerService myDeviceProfilerService;
 
-  public SeriesDataStoreImpl(@NotNull DeviceProfilerService deviceProfilerService) {
+  @NotNull
+  private final EventDispatcher<ProfilerEventListener> myDispatcher;
+
+  public SeriesDataStoreImpl(@NotNull DeviceProfilerService deviceProfilerService,
+                             @NotNull EventDispatcher<ProfilerEventListener> dispatcher) {
     myDeviceProfilerService = deviceProfilerService;
+    myDispatcher = dispatcher;
     startGeneratingData();
   }
 
@@ -56,11 +64,23 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
   }
 
   @Override
+  @NotNull
+  public EventDispatcher<ProfilerEventListener> getEventDispatcher() {
+    return myDispatcher;
+  }
+
+  @Override
+  public void stop() {
+    for (DataAdapter<?> adapter : myDataSeriesMap.values()) {
+      adapter.stop();
+    }
+  }
+
+  @Override
   public void reset() {
     synchronizeStartTime();
     for (DataAdapter<?> adapter : myDataSeriesMap.values()) {
-      adapter.reset();
-      adapter.setStartTime(myStartTime);
+      adapter.reset(myStartTime);
     }
   }
 
@@ -93,7 +113,7 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
   @Override
   public void registerAdapter(SeriesDataType type, DataAdapter adapter) {
     myDataSeriesMap.put(type, adapter);
-    adapter.setStartTime(myStartTime);
+    adapter.reset(myStartTime);
   }
 
   @Override
@@ -136,10 +156,16 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
    * when converting studio time to device time when making data requests.
    */
   private void synchronizeStartTime() {
-    ProfilerService.TimesResponse response = myDeviceProfilerService.getDeviceService().getTimes(
-      ProfilerService.TimesRequest.getDefaultInstance());
     myStartTime = System.currentTimeMillis();
-    myDeviceStartTime = response.getTimestamp();
+
+    try {
+      ProfilerService.TimesResponse response = myDeviceProfilerService.getDeviceService().getTimes(
+        ProfilerService.TimesRequest.getDefaultInstance());
+      myDeviceStartTime = response.getTimestamp();
+    }
+    catch (StatusRuntimeException e) {
+      myDispatcher.getMulticaster().profilerServerDisconnected();
+    }
   }
 
   private static class EmptyDataGenerator<T> implements DataAdapter<T> {
@@ -200,30 +226,37 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
       myMaxVariance = maxVariance;
       myNext = randomInInterval(min, max);
       myDataGenerator = () -> {
-          try {
-            while (true) {
-              // TODO: come up with a better way of handling thread issues
-              SwingUtilities.invokeLater(() -> generateData());
+        try {
+          while (true) {
+            // TODO: come up with a better way of handling thread issues
+            SwingUtilities.invokeLater(() -> generateData());
 
-              Thread.sleep(GENERATE_DATA_THREAD_DELAY);
-            }
+            Thread.sleep(GENERATE_DATA_THREAD_DELAY);
           }
-          catch (InterruptedException ignored) {
-          }
+        }
+        catch (InterruptedException ignored) {
+        }
       };
       myDataGeneratorThread = new Thread(myDataGenerator);
-      reset();
     }
 
     @Override
-    public void reset() {
+    public void stop() {
       if (myDataGeneratorThread != null) {
         myDataGeneratorThread.interrupt();
-        myTime.clear();
-        myData.clear();
-        myDataGeneratorThread = new Thread(myDataGenerator);
-        myDataGeneratorThread.start();
+        myDataGeneratorThread = null;
       }
+    }
+
+    @Override
+    public void reset(long startTime) {
+      stop();
+
+      myStartTime = startTime;
+      myTime.clear();
+      myData.clear();
+      myDataGeneratorThread = new Thread(myDataGenerator);
+      myDataGeneratorThread.start();
     }
 
     @Override
@@ -246,11 +279,6 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
       data.x = myTime.get(index) - myStartTime;
       data.value = myData.get(index);
       return data;
-    }
-
-    @Override
-    public void setStartTime(long startTime) {
-      myStartTime = startTime;
     }
 
     private void generateData() {
