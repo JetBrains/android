@@ -25,8 +25,10 @@ import com.android.tools.pixelprobe.Guide;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBPanel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -48,13 +50,13 @@ public class MockupInteractionPanel extends JBPanel implements ModelListener {
   private static final Color GUIDE_HOVERED_COLOR = JBColor.RED.darker();
   private static final float ADJUST_SCALE = 0.9f;
 
-  private final MockupComponentAttributes myMockupComponentAttributes;
+  private final Mockup myMockup;
   private final ScreenView myScreenView;
   private final CoordinateConverter myScreenViewToPanel;
   private final CoordinateConverter myImageToMockupDestination;
   private final Rectangle myMockupDrawDestination;
   private final Dimension myImageSize;
-  private BufferedImage myImage;
+  @Nullable private BufferedImage myImage;
   private Dimension myScreenViewSize;
 
   private Guide myHoveredGuideline;
@@ -63,24 +65,24 @@ public class MockupInteractionPanel extends JBPanel implements ModelListener {
   @NotNull final private List<Guide> mySelectedGuidelines;
   private GuidelinesMouseInteraction myMouseInteraction;
 
-  public MockupInteractionPanel(@NotNull ScreenView screenView, MockupComponentAttributes mockupComponentAttributes) {
+  public MockupInteractionPanel(@NotNull ScreenView screenView, Mockup Mockup) {
     myScreenView = screenView;
-    myMockupComponentAttributes = mockupComponentAttributes;
+    myMockup = Mockup;
     myMockupDrawDestination = new Rectangle();
     myImageSize = new Dimension();
     myImageToMockupDestination = new CoordinateConverter();
     myScreenViewToPanel = new CoordinateConverter();
     myScreenViewToPanel.setCenterInDestination();
     myScreenViewToPanel.setFixedRatio(true);
-    myMockupComponentAttributes.getComponent().getModel().addListener(this);
+    myMockup.getComponent().getModel().addListener(this);
 
     // Creating two list of guidelines to store the selected and unselected guidelines
     // The two list should not contain the same element at the same time
-    final List<Guide> guidelines = myMockupComponentAttributes.getGuidelines();
+    final List<Guide> guidelines = myMockup.getGuidelines();
     myUnselectedGuidelines = guidelines == null ? new ArrayList<>(0) : new ArrayList<>(guidelines);
     mySelectedGuidelines = new ArrayList<>();
 
-    setImage(myMockupComponentAttributes.getImage());
+    setImage(myMockup.getImage());
     setBackground(BACKGROUND_COLOR);
   }
 
@@ -94,13 +96,17 @@ public class MockupInteractionPanel extends JBPanel implements ModelListener {
     // Update to latest dimension
     myScreenViewSize = myScreenView.getSize(myScreenViewSize);
     myScreenViewToPanel.setDimensions(getSize(), myScreenViewSize, ADJUST_SCALE);
-    updateComponentSwingPosition();
-    final Rectangle destination = getMockupDrawDestination(myMockupComponentAttributes.getPosition(), myMockupDrawDestination);
+    updateMockupDrawDestination();
+    final Rectangle destination = myMockup.getBounds(myScreenView, myMockupDrawDestination);
+    destination.x = myScreenViewToPanel.x(destination.x);
+    destination.y = myScreenViewToPanel.y(destination.y);
+    destination.width = myScreenViewToPanel.dX(destination.width);
+    destination.height = myScreenViewToPanel.dY(destination.height);
 
     // Paint
     paintScreenView(g2d);
     paintMockup(g2d, destination);
-    paintAllComponents(g2d, myMockupComponentAttributes.getComponent().getRoot());
+    paintAllComponents(g2d, myMockup.getComponent().getRoot());
 
     // Only paint guideline if the user as selected the checkbox in MockupEditor
     if (myShowGuideline) {
@@ -173,23 +179,26 @@ public class MockupInteractionPanel extends JBPanel implements ModelListener {
   }
 
   /**
-   * Paint the cropped area of the mockup specified by {@link MockupComponentAttributes#getCropping()} inside destination rectangle.
+   * Paint the cropped area of the mockup specified by {@link Mockup#getCropping()} inside destination rectangle.
    * The mockup will be stretched if needed.
    * @param g The graphic context
    * @param destination The destination rectangle where the mockup will be paint.
    */
   private void paintMockup(Graphics2D g, Rectangle destination) {
+    if(myImage == null ) {
+      return;
+    }
     // Source coordinates
-    int sx = myMockupComponentAttributes.getCropping().x;
-    int sy = myMockupComponentAttributes.getCropping().y;
-    int sw = myMockupComponentAttributes.getCropping().width;
-    int sh = myMockupComponentAttributes.getCropping().height;
+    int sx = myMockup.getCropping().x;
+    int sy = myMockup.getCropping().y;
+    int sw = myMockup.getCropping().width;
+    int sh = myMockup.getCropping().height;
 
     sw = sw <= 0 ? myImage.getWidth() : sw;
     sh = sh <= 0 ? myImage.getHeight() : sh;
     final Composite composite = g.getComposite();
 
-    g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, myMockupComponentAttributes.getAlpha()));
+    g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, myMockup.getAlpha()));
     g.drawImage(myImage,
                 destination.x,
                 destination.y,
@@ -203,56 +212,18 @@ public class MockupInteractionPanel extends JBPanel implements ModelListener {
   /**
    * Update myMockupDrawDestination to match the latest coordinates of the mockup and the screen view
    */
-  private void updateComponentSwingPosition() {
+  private void updateMockupDrawDestination() {
     // Coordinates of the component in the ScreenView system
-    final int componentSwingX = Coordinates.getSwingX(myScreenView, myMockupComponentAttributes.getComponent().x);
-    final int componentSwingY = Coordinates.getSwingY(myScreenView, myMockupComponentAttributes.getComponent().y);
-    final int componentSwingW = Coordinates.getSwingDimension(myScreenView, myMockupComponentAttributes.getComponent().w);
-    final int componentSwingH = Coordinates.getSwingDimension(myScreenView, myMockupComponentAttributes.getComponent().h);
+    final int componentSwingX = Coordinates.getSwingX(myScreenView, myMockup.getComponent().x);
+    final int componentSwingY = Coordinates.getSwingY(myScreenView, myMockup.getComponent().y);
+    final int componentSwingW = Coordinates.getSwingDimension(myScreenView, myMockup.getComponent().w);
+    final int componentSwingH = Coordinates.getSwingDimension(myScreenView, myMockup.getComponent().h);
 
     myMockupDrawDestination.setBounds(
       componentSwingX,
       componentSwingY,
       componentSwingW,
       componentSwingH);
-  }
-
-  /**
-   * Find the destination drawing rectangle where we will draw the mockup image.
-   *
-   * We use the mockup position Rectangle to find the coordinates where the mockup will be drawn relative to
-   * the position of the component.
-   *
-   * @param mockupPosition    Position of the mockup relative to the component Position and its size in dip
-   * @param componentPosition Position of the component where the mockup is drawn and its size in dip
-   * @return The rectangle where the mockup will be drawn
-   */
-  @NotNull
-  public Rectangle getMockupDrawDestination(@NotNull Rectangle mockupPosition, Rectangle componentPosition) {
-    Rectangle d = myMockupDrawDestination;
-
-    // First we find the coordinate of the component holding the mockup
-    // in the ScreenView coordinate system
-
-    // if one of the dimension was not set in the xml.
-    // it had been set to -1 in the model, meaning we should
-    // use the ScreenView dimension and/or the Image dimension
-    d.width = mockupPosition.width <= 0 ? componentPosition.width
-                                        : Coordinates.getSwingDimensionDip(myScreenView, mockupPosition.width);
-    d.height = mockupPosition.height <= 0 ? componentPosition.height
-                                          : Coordinates.getSwingDimensionDip(myScreenView, mockupPosition.height);
-
-    d.x = componentPosition.x + Coordinates.dpToPx(myScreenView, mockupPosition.x);
-    d.y = componentPosition.y + Coordinates.dpToPx(myScreenView, mockupPosition.y);
-
-
-    // Finally we transform the screenView Coordinates into the ResizingPanel Coordinates
-    d.x = myScreenViewToPanel.x(d.x);
-    d.y = myScreenViewToPanel.y(d.y);
-    d.width = myScreenViewToPanel.dX(d.width);
-    d.height = myScreenViewToPanel.dY(d.height);
-
-    return d;
   }
 
   private void paintScreenView(@NotNull Graphics2D g) {
@@ -318,12 +289,15 @@ public class MockupInteractionPanel extends JBPanel implements ModelListener {
    */
   private void setImage(BufferedImage image) {
     myImage = image;
+    if(image == null) {
+      return;
+    }
     myImageSize.setSize(myImage.getWidth(), myImage.getHeight());
   }
 
   @Override
   public void modelChanged(@NotNull NlModel model) {
-    setImage(myMockupComponentAttributes.getImage());
+    setImage(myMockup.getImage());
     repaint();
   }
 
@@ -366,7 +340,7 @@ public class MockupInteractionPanel extends JBPanel implements ModelListener {
   /**
    * Handle the mouse interaction with the guidelines
    */
-  private class GuidelinesMouseInteraction implements MouseMotionListener, MouseListener {
+  private class GuidelinesMouseInteraction extends MouseAdapter {
 
     public static final int CLICKABLE_AREA = 5;
     private boolean myMouseMoved;
@@ -407,7 +381,6 @@ public class MockupInteractionPanel extends JBPanel implements ModelListener {
       }
       myHoveredGuideline = null;
       repaint();
-
     }
 
     /**
@@ -463,26 +436,6 @@ public class MockupInteractionPanel extends JBPanel implements ModelListener {
         myMouseMoved = false;
         repaint();
       }
-    }
-
-    @Override
-    public void mousePressed(MouseEvent e) {
-
-    }
-
-    @Override
-    public void mouseReleased(MouseEvent e) {
-
-    }
-
-    @Override
-    public void mouseEntered(MouseEvent e) {
-
-    }
-
-    @Override
-    public void mouseExited(MouseEvent e) {
-
     }
   }
 }
