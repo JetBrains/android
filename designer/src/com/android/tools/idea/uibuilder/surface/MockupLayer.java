@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import com.android.tools.idea.uibuilder.mockup.MockupComponentAttributes;
+import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.ModelListener;
 import com.android.tools.idea.uibuilder.model.NlModel;
@@ -36,16 +36,25 @@ public class MockupLayer extends Layer {
 
   private final ScreenView myScreenView;
   private Dimension myScreenViewSize = new Dimension();
-  private Rectangle myComponentSwingPosition = new Rectangle();
-  private Rectangle myDrawingRectangle = new Rectangle();
+  private Rectangle myComponentSwingBounds = new Rectangle();
   private NlModel myNlModel;
-  private java.util.List<MockupComponentAttributes> myMockupComponentAttributes;
+  private java.util.List<Mockup> myMockups;
 
   public MockupLayer(ScreenView screenView) {
     assert screenView != null;
     myScreenView = screenView;
     myScreenViewSize = myScreenView.getSize(myScreenViewSize);
     setNlModel(myScreenView.getModel());
+
+    setNlModel(myScreenView.getModel());
+  }
+
+  public void setNlModel(NlModel nlModel) {
+    if (nlModel == myNlModel && !myMockups.isEmpty()) {
+      return;
+    }
+    myNlModel = nlModel;
+    myMockups = Mockup.createAll(myNlModel);
     myNlModel.addListener(new ModelListener() {
       @Override
       public void modelChanged(@NotNull NlModel model) {
@@ -56,102 +65,58 @@ public class MockupLayer extends Layer {
       public void modelRendered(@NotNull NlModel model) {
       }
     });
-    setNlModel(myScreenView.getModel());
-  }
-
-  public void setNlModel(NlModel nlModel) {
-    if (nlModel == myNlModel) {
-      return;
-    }
-    myNlModel = nlModel;
-    myMockupComponentAttributes = MockupComponentAttributes.createAll(myNlModel);
   }
 
   @NotNull
-  public List<MockupComponentAttributes> getMockupComponentAttributes() {
-    return myMockupComponentAttributes;
+  public List<Mockup> getMockups() {
+    return myMockups;
   }
 
   @Override
   public void paint(@NotNull Graphics2D g) {
     if (!myScreenView.getSurface().isMockupVisible()
-        || myMockupComponentAttributes.isEmpty()) {
+        || myMockups.isEmpty()) {
       return;
     }
     final Composite composite = g.getComposite();
     myScreenViewSize = myScreenView.getSize(myScreenViewSize);
 
-    for (int i = 0; i < myMockupComponentAttributes.size(); i++) {
-      final MockupComponentAttributes mockupComponentAttributes = myMockupComponentAttributes.get(i);
-      paintMockup(g, mockupComponentAttributes);
+    for (int i = 0; i < myMockups.size(); i++) {
+      final Mockup mockup = myMockups.get(i);
+      paintMockup(g, mockup);
     }
     g.setComposite(composite);
   }
 
-  private void paintMockup(@NotNull Graphics2D g, MockupComponentAttributes mockupComponentAttributes) {
-    final BufferedImage image = mockupComponentAttributes.getImage();
+  private void paintMockup(@NotNull Graphics2D g, Mockup mockup) {
+    final BufferedImage image = mockup.getImage();
     if (image != null) {
-      g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, mockupComponentAttributes.getAlpha()));
+      g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, mockup.getAlpha()));
       // Coordinates of the component in the ScreenView system
-      int componentSwingX = Coordinates.getSwingX(myScreenView, mockupComponentAttributes.getComponent().x);
-      int componentSwingY = Coordinates.getSwingY(myScreenView, mockupComponentAttributes.getComponent().y);
-      int componentSwingW = Coordinates.getSwingDimension(myScreenView, mockupComponentAttributes.getComponent().w);
-      int componentSwingH = Coordinates.getSwingDimension(myScreenView, mockupComponentAttributes.getComponent().h);
+      int componentSwingX = Coordinates.getSwingX(myScreenView, mockup.getComponent().x);
+      int componentSwingY = Coordinates.getSwingY(myScreenView, mockup.getComponent().y);
+      int componentSwingW = Coordinates.getSwingDimension(myScreenView, mockup.getComponent().w);
+      int componentSwingH = Coordinates.getSwingDimension(myScreenView, mockup.getComponent().h);
 
-      myComponentSwingPosition.setBounds(
+      myComponentSwingBounds.setBounds(
         componentSwingX,
         componentSwingY,
         componentSwingW,
         componentSwingH);
 
-      Rectangle2D.intersect(myComponentSwingPosition, g.getClipBounds(), myComponentSwingPosition);
-      if (myComponentSwingPosition.isEmpty()) {
-        return;
+      final Rectangle dest = mockup.getBounds(myScreenView, null);
+      final Rectangle src = mockup.getCropping();
+      src.width = src.width <= 0 ? image.getWidth() : src.width;
+      src.height = src.height <= 0 ? image.getHeight() : src.height;
+
+      if (!mockup.isFullScreen()) {
+        Rectangle2D.intersect(dest, myComponentSwingBounds, dest);
       }
-
-      Rectangle d = getDestinationRectangle(mockupComponentAttributes.getPosition(), myComponentSwingPosition);
-
-      int sx = mockupComponentAttributes.getCropping().x;
-      int sy = mockupComponentAttributes.getCropping().y;
-      int sw = mockupComponentAttributes.getCropping().width;
-      int sh = mockupComponentAttributes.getCropping().height;
-
-      sw = sw <= 0 ? image.getWidth() : sw;
-      sh = sh <= 0 ? image.getHeight() : sh;
-
+      g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
       g.drawImage(image,
-                  d.x, d.y, d.x + d.width, d.y + d.height,
-                  sx, sy, sx + sw, sy + sh,
+                  dest.x, dest.y, dest.x + dest.width, dest.y + dest.height,
+                  src.x, src.y, src.x + src.width, src.y + src.height,
                   null);
     }
-  }
-
-  /**
-   * Find the destination drawing rectangle where we will draw the mockup image.
-   *
-   * We use the mockup position Rectangle to find the coordinates where the mockup will be drawn relative to
-   * the position of the component.
-   *
-   * @param mockupPosition    Position of the mockup relative to the component Position and its size in dip
-   * @param componentPosition Position of the component where the mockup is drawn and its size in dip
-   * @return The rectangle where the mockup will be drawn
-   */
-  @NotNull
-  public Rectangle getDestinationRectangle(@NotNull Rectangle mockupPosition, Rectangle componentPosition) {
-    Rectangle d = myDrawingRectangle;
-
-    // if one of the dimension was not set in the xml.
-    // it had been set to -1 in the model, meaning we should
-    // use the ScreenView dimension and/or the Image dimension
-    d.width = mockupPosition.width <= 0 ? componentPosition.width : Coordinates.getSwingDimensionDip(myScreenView, mockupPosition.width);
-    d.height =
-      mockupPosition.height <= 0 ? componentPosition.height : Coordinates.getSwingDimensionDip(myScreenView, mockupPosition.height);
-
-    d.x = componentPosition.x + Coordinates.dpToPx(myScreenView, mockupPosition.x);
-    d.y = componentPosition.y + Coordinates.dpToPx(myScreenView, mockupPosition.y);
-
-    // Ensure that we don't draw anything outside the design surface
-    Rectangle2D.intersect(d, componentPosition, d);
-    return d;
   }
 }
