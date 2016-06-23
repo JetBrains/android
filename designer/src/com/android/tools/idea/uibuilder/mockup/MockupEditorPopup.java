@@ -20,6 +20,8 @@ import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.application.Result;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
@@ -28,20 +30,20 @@ import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.awt.RelativePoint;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.util.List;
 
 /**
  * Build and display the Mockup Editor dialog
  */
-public class MockupEditor {
+public class MockupEditorPopup {
   public static final String TITLE = "Mockup Editor";
-  private static final double RELATIVE_SIZE_TO_SOURCE = 0.80;
+  private static final double RELATIVE_SIZE_TO_SOURCE = 0.90;
   private static final IconButton CANCEL_BUTTON = new IconButton("Close", AllIcons.Actions.Close, AllIcons.Actions.CloseHovered);
   private static JBPopup POPUP_INSTANCE = null;
   private final ScreenView myScreenView;
@@ -50,11 +52,13 @@ public class MockupEditor {
 
   // Form generated components (Do not removed if referenced in the form)
   private TextFieldWithBrowseButton myFileChooser;
-  private MockupResizingPanel myMockupResizingPanel;
+  private MockupInteractionPanel myMockupInteractionPanel;
   private JSlider mySlider;
   private JPanel myContentPane;
+  private JCheckBox myShowGuideline;
+  private JButton myOkButton;
 
-  public MockupEditor(ScreenView screenView, MockupComponentAttributes mockupComponentAttributes, NlModel model) {
+  public MockupEditorPopup(ScreenView screenView, MockupComponentAttributes mockupComponentAttributes, NlModel model) {
     myScreenView = screenView;
     myModel = model;
     myMockupComponentAttributes = mockupComponentAttributes;
@@ -62,6 +66,36 @@ public class MockupEditor {
     initFileChooserText();
     initFileChooserActionListener();
     initSlider();
+    initShowGuidelineCheckBox();
+    initCreateSelectedGuidelineButton(mockupComponentAttributes, model);
+  }
+
+  private void initCreateSelectedGuidelineButton(MockupComponentAttributes mockupComponentAttributes, NlModel model) {
+    myOkButton.addActionListener(e -> {
+      createSelectedGuidelines(mockupComponentAttributes, model);
+    });
+  }
+
+  private void createSelectedGuidelines(MockupComponentAttributes mockupComponentAttributes, final NlModel model) {
+    final List<MockupGuide> selectedGuidelines = myMockupInteractionPanel.getSelectedGuidelines();
+    final NlComponent parent = mockupComponentAttributes.getComponent();
+    final WriteCommandAction action = new WriteCommandAction(model.getProject(), "Create Guidelines", model.getFile()) {
+      @Override
+      protected void run(@NotNull Result result) throws Throwable {
+
+        // Create all corresponding NlComponent Guidelines from the selected guidelines list
+        for (int i = 0; i < selectedGuidelines.size(); i++) {
+          selectedGuidelines.get(i).createConstraintGuideline(myScreenView, model, parent);
+        }
+      }
+
+    };
+    action.execute();
+  }
+
+  private void initShowGuidelineCheckBox() {
+    myShowGuideline.addChangeListener(e -> myMockupInteractionPanel.setShowGuideline(((JCheckBox)e.getSource()).isSelected()));
+    myMockupInteractionPanel.setShowGuideline(myShowGuideline.isSelected());
   }
 
   private void initSlider() {
@@ -111,7 +145,7 @@ public class MockupEditor {
    * @param designSurface
    * @param nlModel
    */
-  public static void createPopup(DesignSurface designSurface, NlModel nlModel) {
+  public static void create(DesignSurface designSurface, NlModel nlModel) {
     // Close any pop-up already opened
     if (POPUP_INSTANCE != null) {
       POPUP_INSTANCE.cancel();
@@ -129,13 +163,13 @@ public class MockupEditor {
     }
 
     final ScreenView screenView = new ScreenView(designSurface, ScreenView.ScreenViewType.BLUEPRINT, nlModel);
-    final MockupEditor mockupEditor = new MockupEditor(screenView, mockupAttributes,
-                                                       component.getModel());
+    final MockupEditorPopup mockupEditorPopup = new MockupEditorPopup(screenView, mockupAttributes,
+                                                                      component.getModel());
     final Dimension minSize = new Dimension((int)Math.round(designSurface.getWidth() * RELATIVE_SIZE_TO_SOURCE),
                                             (int)Math.round(designSurface.getHeight() * RELATIVE_SIZE_TO_SOURCE));
 
     JBPopup builder = JBPopupFactory.getInstance()
-      .createComponentPopupBuilder(mockupEditor.myContentPane, mockupEditor.myContentPane)
+      .createComponentPopupBuilder(mockupEditorPopup.myContentPane, mockupEditorPopup.myContentPane)
       .setTitle(TITLE)
       .setResizable(true)
       .setMovable(true)
@@ -161,6 +195,6 @@ public class MockupEditor {
   }
 
   private void createUIComponents() {
-    myMockupResizingPanel = new MockupResizingPanel(myScreenView, myMockupComponentAttributes);
+    myMockupInteractionPanel = new MockupInteractionPanel(myScreenView, myMockupComponentAttributes);
   }
 }

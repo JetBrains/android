@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.configurations;
 
-import com.android.tools.idea.uibuilder.mockup.MockupEditor;
+import com.android.tools.idea.uibuilder.mockup.MockupEditorPopup;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -107,7 +107,7 @@ public class MockupEditAction extends FlatComboAction {
 
     @Override
     public void actionPerformed(AnActionEvent e) {
-      MockupEditor.createPopup(mySurface, myModel);
+      MockupEditorPopup.create(mySurface, myModel);
     }
   }
 }
