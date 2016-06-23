@@ -20,6 +20,9 @@ import com.android.tools.idea.uibuilder.model.ModelListener;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.MockupLayer;
+import com.android.tools.pixelprobe.Guide;
+import com.android.tools.pixelprobe.Image;
+import com.android.tools.pixelprobe.util.Lists;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -105,7 +108,7 @@ public class MockupComponentAttributes implements ModelListener {
   private final Rectangle myCropping;
   private NlModel myNlModel;
   @Nullable String myFilePath;
-  @Nullable BufferedImage myImage;
+  @Nullable Image myImage;
   private float myAlpha = DEFAULT_OPACITY; // TODO read from xml
   private NlComponent myComponent;
 
@@ -321,7 +324,15 @@ public class MockupComponentAttributes implements ModelListener {
     if (myImage == null && myFilePath != null && !myFilePath.isEmpty()) {
       myImage = MockupFileHelper.openImageFile(myFilePath);
     }
-    return myImage;
+    return myImage == null ? null : myImage.getMergedImage();
+  }
+
+  @Nullable
+  public List<Guide> getGuidelines() {
+    if (myImage == null && myFilePath != null && !myFilePath.isEmpty()) {
+      myImage = MockupFileHelper.openImageFile(myFilePath);
+    }
+    return myImage == null ? null : myImage.getGuides();
   }
 
   public static boolean isPositionStringCorrect(@Nullable String s) {
