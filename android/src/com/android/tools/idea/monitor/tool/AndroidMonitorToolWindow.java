@@ -44,6 +44,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Splitter;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.panels.HorizontalLayout;
@@ -89,6 +90,9 @@ public class AndroidMonitorToolWindow implements Disposable {
   @NotNull
   private final JPanel myComponent;
 
+  @NotNull
+  private final Splitter mySpliiter;
+
   @Nullable
   private Choreographer myChoreographer;
 
@@ -120,6 +124,7 @@ public class AndroidMonitorToolWindow implements Disposable {
   public AndroidMonitorToolWindow(@NotNull final Project project) {
     myProject = project;
     myComponent = new JPanel(new BorderLayout());
+    mySpliiter = new Splitter(true, 1f);
     myDeviceContext = new DeviceContext();
     myProfilerManagers = new TreeMap<>();
 
@@ -317,7 +322,8 @@ public class AndroidMonitorToolWindow implements Disposable {
     gridBagPanel.add(rightSpacerFiller, gbc);
     rightSpacerFiller.setVisible(false);
 
-    myComponent.add(gridBagPanel);
+    mySpliiter.setFirstComponent(gridBagPanel);
+    myComponent.add(mySpliiter);
 
     myEventDispatcher.addListener(new ProfilerEventListener() {
       @Override
@@ -325,18 +331,24 @@ public class AndroidMonitorToolWindow implements Disposable {
         // No other profiler should request expansion if a profiler is already expanded
         assert (myExpandedProfiler == null || myExpandedProfiler == profilerType);
 
+        boolean firstExpansion = myExpandedProfiler == null; // Whether the profiler is expanded for the first time. e.g. L1 -> L2
         for (Map.Entry<BaseProfilerUiManager.ProfilerType, BaseProfilerUiManager> entry : myProfilerManagers.entrySet()) {
           if (entry.getKey() == profilerType) {
-            if (myExpandedProfiler == null) {
+            if (firstExpansion) {
+              // The profiler is expanded for the first time. e.g. L1 -> L2
               entry.getValue().setupExtendedOverviewUi(mySegmentsContainer);
               myExpandedProfiler = profilerType;
             }
-            else {
+            else if (mySpliiter.getSecondComponent() == null) {
+              // The profiler is expanded for the second time. e.g. L2 -> L3
+              // Note that subsequent expansion call should not trigger this code block.
               entry.getValue().setupDetailedViewUi(myDetailedViewContainer);
+              mySpliiter.setSecondComponent(myDetailedViewContainer);
+              mySpliiter.setProportion(0.5f);
             }
           }
-          else if (entry.getKey() == BaseProfilerUiManager.ProfilerType.EVENT) {
-            // Special case for Events profiler, as it is always visible.
+          else if (entry.getKey() == BaseProfilerUiManager.ProfilerType.EVENT && firstExpansion) {
+            // Special handle to expand the Event monitor from L1 -> L2 during the first expansion.
             entry.getValue().setupExtendedOverviewUi(mySegmentsContainer);
           }
           else {
@@ -344,14 +356,18 @@ public class AndroidMonitorToolWindow implements Disposable {
           }
         }
 
-        timeSegment.toggleView(true);
-        rightSpacerFiller.setVisible(true);
-        myCollapseSegmentsButton.setVisible(true);
+        if (firstExpansion) {
+          timeSegment.toggleView(true);
+          rightSpacerFiller.setVisible(true);
+          myCollapseSegmentsButton.setVisible(true);
+        }
       }
 
       @Override
       public void profilersReset() {
         myProfilerManagers.get(myExpandedProfiler).resetProfiler(mySegmentsContainer, myDetailedViewContainer);
+        mySpliiter.setSecondComponent(null);
+        mySpliiter.setProportion(1f);
         timeSegment.toggleView(false);
         rightSpacerFiller.setVisible(false);
         myCollapseSegmentsButton.setVisible(false);

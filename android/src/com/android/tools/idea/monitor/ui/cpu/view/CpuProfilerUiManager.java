@@ -51,7 +51,7 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager {
     super.setupExtendedOverviewUi(overviewPanel);
 
     myThreadSegment = new ThreadsSegment(myXRange, myDataStore, myEventDispatcher, null);
-    setupAndRegisterSegment(myThreadSegment);
+    setupAndRegisterSegment(myThreadSegment, DEFAULT_MONITOR_MIN_HEIGHT, DEFAULT_MONITOR_PREFERRED_HEIGHT, DEFAULT_MONITOR_MAX_HEIGHT);
     overviewPanel.add(myThreadSegment);
     setSegmentState(overviewPanel, myThreadSegment, AccordionLayout.AccordionState.MAXIMIZE);
   }
