@@ -60,7 +60,7 @@ public class PlatformComponentsPanel {
   private UpdaterTreeNode myPlatformDetailsRootNode;
   private UpdaterTreeNode myPlatformSummaryRootNode;
 
-  Set<NodeStateHolder> myStates = Sets.newHashSet();
+  Set<PackageNodeModel> myStates = Sets.newHashSet();
 
   // map of versions to current subpackages
   private final Multimap<AndroidVersion, UpdatablePackage> myCurrentPackages = TreeMultimap.create();
@@ -102,9 +102,9 @@ public class PlatformComponentsPanel {
       boolean obsolete = false;
       for (UpdatablePackage info : myCurrentPackages.get(version)) {
         RepoPackage pkg = info.getRepresentative();
-        NodeStateHolder holder = new NodeStateHolder(info);
-        myStates.add(holder);
-        UpdaterTreeNode node = new DetailsTreeNode(holder, myModificationListener, myConfigurable);
+        PackageNodeModel model = new PackageNodeModel(info);
+        myStates.add(model);
+        UpdaterTreeNode node = new DetailsTreeNode(model, myModificationListener, myConfigurable);
         marker.add(node);
         versionNodes.add(node);
         if (pkg.obsolete() && pkg.getTypeDetails() instanceof DetailsTypes.PlatformDetailsType) {
