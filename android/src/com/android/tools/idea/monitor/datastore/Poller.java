@@ -16,8 +16,6 @@
 package com.android.tools.idea.monitor.datastore;
 
 import com.android.tools.idea.monitor.profilerclient.DeviceProfilerService;
-import com.android.tools.idea.monitor.ui.ProfilerEventListener;
-import com.intellij.util.EventDispatcher;
 import io.grpc.StatusRuntimeException;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,7 +32,7 @@ public abstract class Poller implements RunnableFuture<Void> {
   @NotNull
   protected final SeriesDataStore myDataStore;
 
-  protected final long myDeviceTimeOffset;
+  protected final long myDeviceTimeOffsetNs;
 
   private long myPollPeriodNs;
 
@@ -47,7 +45,7 @@ public abstract class Poller implements RunnableFuture<Void> {
     myDataStore = dataStore;
     myService = myDataStore.getDeviceProfilerService();
     myPollPeriodNs = pollPeriodNs;
-    myDeviceTimeOffset = dataStore.getDeviceTimeOffset();
+    myDeviceTimeOffsetNs = dataStore.getDeviceTimeOffsetNs();
   }
 
   protected abstract void asyncInit();
