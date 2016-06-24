@@ -84,4 +84,10 @@ public class DefaultActivityLocatorTest extends AndroidTestCase {
     final Manifest manifest = myFacet.getManifest();
     assertEquals("LaunchActivity", DefaultActivityLocator.getDefaultLauncherActivityName(myFacet.getModule().getProject(), manifest));
   }
+
+  public void testLauncherActivityIntent() throws Exception {
+    myFixture.copyFileToProject("projects/runConfig/manifests/InvalidCategory.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    assertNull("No launchable activity registration is present in the manifest, but one was detected",
+               DefaultActivityLocator.computeDefaultActivity(myFacet, null));
+  }
 }
