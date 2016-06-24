@@ -156,15 +156,15 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
     message.openHtmlBody();
     final List<LocalPackage> toDelete = Lists.newArrayList();
     final Map<RemotePackage, UpdatablePackage> requestedPackages = Maps.newHashMap();
-    for (NodeStateHolder holder : myPanel.getStates()) {
-      if (holder.getState() == NodeStateHolder.SelectedState.NOT_INSTALLED) {
-        if (holder.getPkg().hasLocal()) {
-          toDelete.add(holder.getPkg().getLocal());
+    for (PackageNodeModel model : myPanel.getStates()) {
+      if (model.getState() == PackageNodeModel.SelectedState.NOT_INSTALLED) {
+        if (model.getPkg().hasLocal()) {
+          toDelete.add(model.getPkg().getLocal());
         }
       }
-      else if (holder.getState() == NodeStateHolder.SelectedState.INSTALLED &&
-               (holder.getPkg().isUpdate() || !holder.getPkg().hasLocal())) {
-        UpdatablePackage pkg = holder.getPkg();
+      else if (model.getState() == PackageNodeModel.SelectedState.INSTALLED &&
+               (model.getPkg().isUpdate() || !model.getPkg().hasLocal())) {
+        UpdatablePackage pkg = model.getPkg();
         requestedPackages.put(pkg.getRemote(), pkg);
       }
     }

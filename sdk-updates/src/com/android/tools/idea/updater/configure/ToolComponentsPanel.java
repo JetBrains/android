@@ -16,15 +16,15 @@
 package com.android.tools.idea.updater.configure;
 
 import com.android.SdkConstants;
+import com.android.repository.api.RepoPackage;
 import com.android.repository.api.UpdatablePackage;
+import com.android.sdklib.repository.installer.MavenInstallListener;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.sdk.install.patch.PatchInstallerUtil;
 import com.google.common.collect.*;
-import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.dualView.TreeTableView;
 import com.intellij.ui.treeStructure.treetable.ListTreeTableModelOnColumns;
 import com.intellij.ui.treeStructure.treetable.TreeColumnInfo;
-import com.intellij.util.containers.HashSet;
 import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.ColumnInfo;
 import com.intellij.util.ui.tree.TreeUtil;
@@ -61,11 +61,12 @@ public class ToolComponentsPanel {
     }
   });
   private final Multimap<String, UpdatablePackage> myMultiVersionPackages = HashMultimap.create();
+  private final Multimap<String, UpdatablePackage> myMavenPackages = HashMultimap.create();
 
   private UpdaterTreeNode myToolsDetailsRootNode;
   private UpdaterTreeNode myToolsSummaryRootNode;
 
-  Set<NodeStateHolder> myStates = Sets.newHashSet();
+  Set<PackageNodeModel> myStates = Sets.newHashSet();
 
   private boolean myModified = false;
   private final ChangeListener myModificationListener = e -> refreshModified();
@@ -84,41 +85,65 @@ public class ToolComponentsPanel {
     myToolsSummaryRootNode.removeAllChildren();
     myStates.clear();
 
+    ParentTreeNode mavenSummaryParent = new ParentTreeNode("Support Repository");
+    ParentTreeNode mavenDetailsParent = new ParentTreeNode("Support Repository");
+
     for (String prefix : myMultiVersionPackages.keySet()) {
       Collection<UpdatablePackage> versions = myMultiVersionPackages.get(prefix);
       Set<DetailsTreeNode> detailsNodes = new TreeSet<>();
+      boolean isMaven = false;
       for (UpdatablePackage info : versions) {
-        NodeStateHolder holder = new NodeStateHolder(info);
-        myStates.add(holder);
-        detailsNodes.add(new DetailsTreeNode(holder, myModificationListener, myConfigurable));
+        RepoPackage representative = info.getRepresentative();
+        if (representative.getTypeDetails() instanceof DetailsTypes.MavenType) {
+          isMaven = true;
+        }
+
+        PackageNodeModel model = new PackageNodeModel(info);
+        myStates.add(model);
+
+        detailsNodes.add(new DetailsTreeNode(model, myModificationListener, myConfigurable));
       }
       MultiVersionTreeNode summaryNode = new MultiVersionTreeNode(detailsNodes);
-      myToolsSummaryRootNode.add(summaryNode);
+      if (isMaven) {
+        mavenSummaryParent.add(summaryNode);
+      }
+      else {
+        myToolsSummaryRootNode.add(summaryNode);
+      }
 
-      UpdaterTreeNode multiVersionParent = new ParentTreeNode(null) {
-        @Override
-        public void customizeRenderer(Renderer renderer,
-                                      JTree tree,
-                                      boolean selected,
-                                      boolean expanded,
-                                      boolean leaf,
-                                      int row,
-                                      boolean hasFocus) {
-          renderer.getTextRenderer().append(summaryNode.getDisplayName(), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
-        }
-      };
+      UpdaterTreeNode multiVersionParent = new ParentTreeNode(summaryNode.getDisplayName());
       detailsNodes.forEach(multiVersionParent::add);
-      myToolsDetailsRootNode.add(multiVersionParent);
+      if (isMaven) {
+        mavenDetailsParent.add(multiVersionParent);
+      }
+      else {
+        myToolsDetailsRootNode.add(multiVersionParent);
+      }
     }
-
     for (UpdatablePackage info : myToolsPackages) {
-      NodeStateHolder holder = new NodeStateHolder(info);
+      PackageNodeModel holder = new PackageNodeModel(info);
       myStates.add(holder);
       UpdaterTreeNode node = new DetailsTreeNode(holder, myModificationListener, myConfigurable);
-      myToolsDetailsRootNode.add(node);
-      if (!info.getRepresentative().obsolete()) {
-        myToolsSummaryRootNode.add(new DetailsTreeNode(holder, myModificationListener, myConfigurable));
+      boolean isMaven = info.getPath().endsWith(RepoPackage.PATH_SEPARATOR + MavenInstallListener.MAVEN_DIR_NAME);
+      if (isMaven) {
+        mavenDetailsParent.add(node);
       }
+      else {
+        myToolsDetailsRootNode.add(node);
+      }
+      if (!info.getRepresentative().obsolete()) {
+        UpdaterTreeNode summaryNode = new DetailsTreeNode(holder, myModificationListener, myConfigurable);
+        if (isMaven) {
+          mavenSummaryParent.add(summaryNode);
+        }
+        else {
+          myToolsSummaryRootNode.add(summaryNode);
+        }
+      }
+    }
+    if (mavenSummaryParent.getChildCount() > 0) {
+      myToolsSummaryRootNode.add(mavenSummaryParent);
+      myToolsDetailsRootNode.add(mavenDetailsParent);
     }
     refreshModified();
     SdkUpdaterConfigPanel.resizeColumnsToFit(myToolsDetailTable);
@@ -153,6 +178,7 @@ public class ToolComponentsPanel {
   public void startLoading() {
     myToolsPackages.clear();
     myMultiVersionPackages.clear();
+    myMavenPackages.clear();
     myToolsLoadingPanel.setVisible(true);
   }
 
