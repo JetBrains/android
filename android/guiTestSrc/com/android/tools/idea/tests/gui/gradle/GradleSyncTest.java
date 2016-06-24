@@ -803,7 +803,7 @@ public class GradleSyncTest {
     }
     assertNotNull(libraryDependency);
     assertThat(libraryDependency.getLibraryName()).isEqualTo("localJarAsModule.local");
-    assertTrue(libraryDependency.isExported());
+    assertFalse(libraryDependency.isExported());
   }
 
   @Test
@@ -840,7 +840,7 @@ public class GradleSyncTest {
 
     assertNotNull(libraryDependency);
     assertThat(libraryDependency.getLibraryName()).isEqualTo("library-debug-unspecified");
-    assertTrue(libraryDependency.isExported());
+    assertFalse(libraryDependency.isExported());
   }
 
   @Test

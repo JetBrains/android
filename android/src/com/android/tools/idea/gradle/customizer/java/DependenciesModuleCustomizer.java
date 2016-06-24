@@ -31,7 +31,6 @@ import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsPr
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.ModifiableRootModel;
-import com.intellij.openapi.roots.ModuleOrderEntry;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -102,8 +101,7 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
     if (found != null) {
       AndroidFacet androidFacet = findFacet(found, modelsProvider, AndroidFacet.ID);
       if (androidFacet == null) {
-        ModuleOrderEntry orderEntry = moduleModel.addModuleOrderEntry(found);
-        orderEntry.setExported(true);
+        moduleModel.addModuleOrderEntry(found);
       } else {
         // If it depends on an android module, we should skip that.
         setupErrors.addInvalidModuleDependency(moduleModel.getModule(), found.getName(), "Java modules cannot depend on Android modules");
