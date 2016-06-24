@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.assistant.view;
 
+import com.android.tools.idea.assistant.datamodel.FeatureData;
 import com.android.tools.idea.assistant.datamodel.StepData;
 import com.android.tools.idea.assistant.datamodel.TutorialData;
-import com.android.tools.idea.structure.services.DeveloperService;
+import com.android.tools.idea.structure.services.DeveloperServiceMap.DeveloperServiceList;
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
@@ -48,14 +49,14 @@ public class TutorialCard extends CardViewPanel {
 
   TutorialCard(@NotNull ActionListener listener,
                @NotNull TutorialData tutorial,
-               @NotNull String featureTitle,
+               @NotNull FeatureData feature,
                @NotNull String tutorialsTitle,
-               @NotNull DeveloperService service) {
+               @NotNull DeveloperServiceList services) {
     super(listener);
     myMutorialsTitle = tutorialsTitle;
 
     // TODO: Add a short label to the xml and use that here instead.
-    add(new HeaderNav(featureTitle, myListener), BorderLayout.NORTH);
+    add(new HeaderNav(feature.getName(), myListener), BorderLayout.NORTH);
 
     TutorialDescription description = new TutorialDescription();
     String text = "<p class=\"title\">" + tutorial.getLabel() + "</p><p class=\"description\">" +
@@ -89,7 +90,7 @@ public class TutorialCard extends CardViewPanel {
     // Add each of the tutorial steps in order.
     int numericLabel = 1;
     for (StepData step : tutorial.getSteps()) {
-      TutorialStep stepDisplay = new TutorialStep(step, numericLabel, listener, service);
+      TutorialStep stepDisplay = new TutorialStep(step, numericLabel, listener, services);
       contents.add(stepDisplay, c);
       c.gridy++;
       numericLabel++;

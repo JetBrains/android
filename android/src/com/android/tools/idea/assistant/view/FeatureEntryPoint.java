@@ -66,7 +66,7 @@ public class FeatureEntryPoint extends JPanel {
     myArrow.setAlignmentY(Component.TOP_ALIGNMENT);
     myTargetPane.add(myArrow);
 
-    JPanel summary = new JPanel(new VerticalFlowLayout(0,0));
+    JPanel summary = new JPanel(new VerticalFlowLayout(0, 0));
     summary.setOpaque(false);
     summary.setAlignmentY(Component.TOP_ALIGNMENT);
     myTargetPane.add(summary);
@@ -84,7 +84,7 @@ public class FeatureEntryPoint extends JPanel {
     if (featureIcon != null) {
       serviceLabel.setIcon(featureIcon);
       serviceLabel.setIconTextGap(5);
-      innerContentsOffset +=  featureIcon.getIconWidth() + serviceLabel.getIconTextGap();
+      innerContentsOffset += featureIcon.getIconWidth() + serviceLabel.getIconTextGap();
     }
     summary.add(serviceLabel);
 

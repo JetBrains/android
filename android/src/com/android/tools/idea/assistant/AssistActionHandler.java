@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.assistant;
 
-import com.android.tools.idea.structure.services.DeveloperService;
+import com.android.tools.idea.structure.services.DeveloperServiceMap.DeveloperServiceList;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -38,8 +38,8 @@ public interface AssistActionHandler {
    *
    * @param actionArgument An opaque argument associated with the given button. May be a number or key or anything that allows you to
    *                       complete the desired action.
-   * @param service        A module scoped service instance. May be used for things like installing dependencies.
+   * @param services       All matching services accross all Android modules in the given project.
    */
-  void handleAction(@Nullable("Arguments are optional") String actionArgument, @NotNull DeveloperService service);
+  void handleAction(@Nullable("Arguments are optional") String actionArgument, @NotNull DeveloperServiceList services);
 
 }
