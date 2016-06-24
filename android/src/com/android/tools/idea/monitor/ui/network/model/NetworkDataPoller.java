@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.monitor.datastore;
+package com.android.tools.idea.monitor.ui.network.model;
 
-import com.android.tools.adtui.model.SeriesData;
-import com.android.tools.idea.monitor.profilerclient.DeviceProfilerService;
+import com.android.tools.idea.monitor.datastore.*;
 import com.android.tools.profiler.proto.*;
 import gnu.trove.TLongArrayList;
 import io.grpc.StatusRuntimeException;
@@ -33,7 +32,7 @@ import java.util.concurrent.TimeUnit;
 public class NetworkDataPoller extends Poller {
   private static final long POLLING_DELAY_NS = TimeUnit.SECONDS.toNanos(1);
 
-  private final TLongArrayList myTimestampArray = new TLongArrayList();
+  private final TLongArrayList myTimeData = new TLongArrayList();
 
   private final TLongArrayList myReceivedData = new TLongArrayList();
 
@@ -45,15 +44,12 @@ public class NetworkDataPoller extends Poller {
 
   private NetworkProfilerServiceGrpc.NetworkProfilerServiceBlockingStub myNetworkService;
 
-  private final long myDeviceTimeOffsetNs;
-
   public NetworkDataPoller(@NotNull SeriesDataStore dataStore, int pid) {
     super(dataStore, POLLING_DELAY_NS);
-    myDeviceTimeOffsetNs = dataStore.getDeviceTimeOffset();
     myPid = pid;
 
-    dataStore.registerAdapter(SeriesDataType.NETWORK_RECEIVED, new TrafficAdapter(myReceivedData));
-    dataStore.registerAdapter(SeriesDataType.NETWORK_SENT, new TrafficAdapter(mySentData));
+    dataStore.registerAdapter(SeriesDataType.NETWORK_RECEIVED, new LongDataAdapter(myTimeData, myReceivedData));
+    dataStore.registerAdapter(SeriesDataType.NETWORK_SENT, new LongDataAdapter(myTimeData, mySentData));
   }
 
   @Override
@@ -90,50 +86,11 @@ public class NetworkDataPoller extends Poller {
     }
     for (NetworkProfiler.NetworkProfilerData data : dataList) {
       // Timestamp in ui/studio represented in milliseconds and pulled from a device in nanoseconds
-      myTimestampArray.add(TimeUnit.NANOSECONDS.toMillis(data.getBasicInfo().getEndTimestamp() - myDeviceTimeOffsetNs));
+      myTimeData.add(TimeUnit.NANOSECONDS.toMillis(data.getBasicInfo().getEndTimestamp() - myDeviceTimeOffsetNs));
       // Traffics in ui/studio represented in kb and pulled from a device in bytes
       myReceivedData.add(data.getTrafficData().getBytesReceived() / 1024);
       mySentData.add(data.getTrafficData().getBytesSent() / 1024);
       myDataRequestStartTimestamp = Math.max(myDataRequestStartTimestamp, data.getBasicInfo().getEndTimestamp() + 1);
-    }
-  }
-  // TODO: Unify with CpuUsageDataAdapter
-  private final class TrafficAdapter implements DataAdapter<Long> {
-
-    @NotNull
-    private TLongArrayList myTrafficData;
-
-    TrafficAdapter(@NotNull TLongArrayList trafficData) {
-      myTrafficData = trafficData;
-    }
-
-    @Override
-    public int getClosestTimeIndex(long time) {
-      int index = myTimestampArray.binarySearch(time);
-      if (index < 0) {
-        // No exact match, so return position to the left of the insertion point.
-        index = -index - 2;
-      }
-
-      return Math.max(0, Math.min(myTimestampArray.size() - 1, index));
-    }
-
-    @Override
-    public SeriesData<Long> get(int index) {
-      SeriesData<Long> data = new SeriesData<>();
-      data.x = myTimestampArray.get(index);
-      data.value = myTrafficData.get(index);
-      return data;
-    }
-
-    @Override
-    public void reset(long startTime) {
-
-    }
-
-    @Override
-    public void stop() {
-
     }
   }
 }

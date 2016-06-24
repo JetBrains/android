@@ -75,5 +75,5 @@ public interface SeriesDataStore {
   /**
    * Time offset, in nanoseconds, that should be subtracted from the timestamp of data collected from the device.
    */
-  long getDeviceTimeOffset();
+  long getDeviceTimeOffsetNs();
 }
