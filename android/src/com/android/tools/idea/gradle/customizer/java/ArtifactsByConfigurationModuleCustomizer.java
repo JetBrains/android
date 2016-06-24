@@ -70,9 +70,11 @@ public class ArtifactsByConfigurationModuleCustomizer implements ModuleCustomize
             if (library == null) {
               // Create library.
               library = modelsProvider.createLibrary(libraryName);
+
               Library.ModifiableModel libraryModel = modelsProvider.getModifiableLibraryModel(library);
               String url = pathToUrl(artifact.getPath());
               libraryModel.addRoot(url, CLASSES);
+
               LibraryOrderEntry orderEntry = moduleModel.addLibraryEntry(library);
               orderEntry.setScope(COMPILE);
               orderEntry.setExported(true);
