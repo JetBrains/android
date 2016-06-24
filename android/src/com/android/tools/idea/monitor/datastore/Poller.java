@@ -36,7 +36,6 @@ public abstract class Poller implements RunnableFuture<Void> {
 
   private long myPollPeriodNs;
 
-
   private CountDownLatch myRunning = new CountDownLatch(1);
 
   private CountDownLatch myIsDone = new CountDownLatch(1);
