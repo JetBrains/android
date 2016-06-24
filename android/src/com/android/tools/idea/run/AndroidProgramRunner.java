@@ -38,8 +38,6 @@ public class AndroidProgramRunner extends DefaultProgramRunner {
   public static final Key<Client> ANDROID_DEBUG_CLIENT = new Key<Client>("ANDROID_DEBUG_CLIENT");
   public static final Key<AndroidVersion> ANDROID_DEVICE_API_LEVEL = new Key<AndroidVersion>("ANDROID_DEVICE_API_LEVEL");
 
-  private RunContentDescriptor myDescriptor;
-
   @Override
   protected RunContentDescriptor doExecute(@NotNull final RunProfileState state, @NotNull final ExecutionEnvironment env)
     throws ExecutionException {
@@ -49,23 +47,19 @@ public class AndroidProgramRunner extends DefaultProgramRunner {
       runnerAndConfigurationSettings.setActivateToolWindowBeforeRun(showRunContent);
     }
 
-    myDescriptor = super.doExecute(state, env);
-    if (myDescriptor != null) {
-      ProcessHandler processHandler = myDescriptor.getProcessHandler();
+    RunContentDescriptor descriptor = super.doExecute(state, env);
+    if (descriptor != null) {
+      ProcessHandler processHandler = descriptor.getProcessHandler();
       assert processHandler != null;
 
       RunProfile runProfile = env.getRunProfile();
       int uniqueId = runProfile instanceof AndroidRunConfigurationBase ? ((AndroidRunConfigurationBase)runProfile).getUniqueID() : -1;
-      AndroidSessionInfo sessionInfo = new AndroidSessionInfo(processHandler, myDescriptor, uniqueId, env.getExecutor().getId(),
+      AndroidSessionInfo sessionInfo = new AndroidSessionInfo(processHandler, descriptor, uniqueId, env.getExecutor().getId(),
                                                               InstantRunUtils.isInstantRunEnabled(env));
       processHandler.putUserData(AndroidSessionInfo.KEY, sessionInfo);
     }
 
-    return myDescriptor;
-  }
-
-  public RunContentDescriptor getDescriptor() {
-    return myDescriptor;
+    return descriptor;
   }
 
   @Override
