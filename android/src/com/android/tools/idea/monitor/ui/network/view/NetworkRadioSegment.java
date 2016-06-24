@@ -34,7 +34,11 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 
-public class RadioSegment extends BaseSegment {
+/**
+ * This class represents ui for the idle, low and high power states of the device's wireless radios and type of network (e.g WIFI, MOBILE)
+ * See: <a href="https://developer.android.com/training/efficient-downloads/efficient-network-access.html">Efficient Network Access</a>
+ */
+public class NetworkRadioSegment extends BaseSegment {
 
   public enum RadioState {
     NONE,
@@ -43,14 +47,21 @@ public class RadioSegment extends BaseSegment {
     IDLE
   }
 
+  public enum NetworkType {
+    WIFI,
+    MOBILE
+  }
+  
   private static final String SEGMENT_NAME = "Radio";
 
   private LegendComponent mLegendComponent;
 
-  private StateChart<RadioState> mStateChart;
+  private StateChart<RadioState> mRadioChart;
 
-  public RadioSegment(@NotNull Range sharedRange,
-                      @NotNull EventDispatcher<ProfilerEventListener> dispatcher) {
+  private StateChart<NetworkType> mNetworkTypeChart;
+
+  public NetworkRadioSegment(@NotNull Range sharedRange,
+                             @NotNull EventDispatcher<ProfilerEventListener> dispatcher) {
     super(SEGMENT_NAME, sharedRange, dispatcher);
   }
 
@@ -73,15 +84,22 @@ public class RadioSegment extends BaseSegment {
     return labels;
   }
 
+  private static EnumMap<NetworkType, Color> getNetworkTypeColor() {
+    EnumMap<NetworkType, Color> colors = new EnumMap<>(NetworkType.class);
+    colors.put(NetworkType.MOBILE, JBColor.BLACK);
+    colors.put(NetworkType.WIFI, JBColor.BLACK);
+    return colors;
+  }
 
   @Override
   public void createComponentsList(@NotNull List<Animatable> animatables) {
 
     EnumMap<RadioState, Color> colorsMap = getRadioStateColor();
     EnumMap<RadioState, String> labelsMap = getRadioStateLabel();
+    mRadioChart = new StateChart(colorsMap);
+    mNetworkTypeChart = new StateChart<>(getNetworkTypeColor());
+    mNetworkTypeChart.setRenderMode(StateChart.RenderMode.TEXT);
 
-    mStateChart = new StateChart(colorsMap);
-    mStateChart.setHeightGap(0.5f);
     List<LegendRenderData> legendRenderDataList = new ArrayList<>();
     for (RadioState state : RadioState.values()) {
       LegendRenderData renderData = new LegendRenderData(LegendRenderData.IconType.LINE, colorsMap.get(state), labelsMap.get(state));
@@ -90,7 +108,8 @@ public class RadioSegment extends BaseSegment {
 
     mLegendComponent = new LegendComponent(LegendComponent.Orientation.HORIZONTAL, 100);
     mLegendComponent.setLegendData(legendRenderDataList);
-    animatables.add(mStateChart);
+    animatables.add(mNetworkTypeChart);
+    animatables.add(mRadioChart);
     animatables.add(mLegendComponent);
   }
 
@@ -102,10 +121,25 @@ public class RadioSegment extends BaseSegment {
   @Override
   protected void setCenterContent(@NotNull JPanel panel) {
     //TODO Resize this to match mocks.
-    panel.add(mStateChart, BorderLayout.CENTER);
+    panel.setLayout(new GridBagLayout());
+
+    GridBagConstraints gbc = new GridBagConstraints();
+    gbc.fill = GridBagConstraints.BOTH;
+    gbc.weightx = 1;
+    gbc.weighty = 1;
+    gbc.gridx = 0;
+
+    gbc.gridy = 0;
+    panel.add(mNetworkTypeChart, gbc);
+    gbc.gridy = 1;
+    panel.add(mRadioChart, gbc);
   }
 
   public void addRadioStateSeries(RangedSeries<RadioState> series) {
-    mStateChart.addSeries(series);
+    mRadioChart.addSeries(series);
+  }
+
+  public void addNetworkTypeStateSeries(RangedSeries<NetworkType> series) {
+    mNetworkTypeChart.addSeries(series);
   }
 }
