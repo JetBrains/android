@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.editor;
 
 import com.android.tools.idea.configurations.FlatComboAction;
+import com.android.tools.idea.rendering.SaveScreenshotAction;
 import com.android.tools.idea.uibuilder.actions.*;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
@@ -190,6 +191,7 @@ public class NlActionManager {
     group.addSeparator();
     group.add(myGotoComponentAction);
     group.add(createRefactoringMenu());
+    group.add(new SaveScreenshotAction(mySurface));
 
     if (ConvertToConstraintLayoutAction.ENABLED) {
       group.addSeparator();
