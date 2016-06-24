@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.updater.configure;
 
-import com.android.SdkConstants;
 import com.android.repository.api.*;
 import com.android.repository.api.RepoManager.RepoLoadedCallback;
 import com.android.repository.impl.meta.RepositoryPackages;
@@ -515,12 +514,12 @@ public class SdkUpdaterConfigPanel {
   }
 
   /**
-   * Gets the consolidated list of {@link NodeStateHolder}s from our children so they can be applied.
+   * Gets the consolidated list of {@link PackageNodeModel}s from our children so they can be applied.
    *
    * @return
    */
-  public Collection<NodeStateHolder> getStates() {
-    List<NodeStateHolder> result = Lists.newArrayList();
+  public Collection<PackageNodeModel> getStates() {
+    List<PackageNodeModel> result = Lists.newArrayList();
     result.addAll(myPlatformComponentsPanel.myStates);
     result.addAll(myToolComponentsPanel.myStates);
     return result;
