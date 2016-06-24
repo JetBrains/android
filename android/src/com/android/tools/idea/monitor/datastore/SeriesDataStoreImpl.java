@@ -28,6 +28,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public final class SeriesDataStoreImpl implements SeriesDataStore {
 
@@ -39,9 +40,9 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
 
   private Map<SeriesDataType, DataAdapter<?>> myDataSeriesMap = new HashMap<>();
 
-  private long myDeviceStartTimeNs;
+  private long myDeviceStartTimeMs;
 
-  private long myStartTime;
+  private long myStudioOffsetTimeMs;
 
   @NotNull
   private final DeviceProfilerService myDeviceProfilerService;
@@ -78,13 +79,13 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
   public void reset() {
     synchronizeStartTime();
     for (DataAdapter<?> adapter : myDataSeriesMap.values()) {
-      adapter.reset(myStartTime);
+      adapter.reset(myDeviceStartTimeMs, myStudioOffsetTimeMs);
     }
   }
 
   @Override
   public long getLatestTime() {
-    return System.currentTimeMillis() - myStartTime;
+    return myDeviceStartTimeMs + (System.currentTimeMillis() - myStudioOffsetTimeMs);
   }
 
   @Override
@@ -111,12 +112,7 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
   @Override
   public void registerAdapter(SeriesDataType type, DataAdapter adapter) {
     myDataSeriesMap.put(type, adapter);
-    adapter.reset(myStartTime);
-  }
-
-  @Override
-  public long getDeviceTimeOffsetNs() {
-    return myDeviceStartTimeNs;
+    adapter.reset(myDeviceStartTimeMs, myStudioOffsetTimeMs);
   }
 
   private void startGeneratingData() {
@@ -154,12 +150,11 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
    * when converting studio time to device time when making data requests.
    */
   private void synchronizeStartTime() {
-    myStartTime = System.currentTimeMillis();
-
     try {
       ProfilerService.TimesResponse response = myDeviceProfilerService.getDeviceService().getTimes(
         ProfilerService.TimesRequest.getDefaultInstance());
-      myDeviceStartTimeNs = response.getTimestamp();
+      myDeviceStartTimeMs = TimeUnit.NANOSECONDS.toMillis(response.getTimestamp());
+      myStudioOffsetTimeMs = System.currentTimeMillis();
     }
     catch (StatusRuntimeException e) {
       myDispatcher.getMulticaster().profilerServerDisconnected();
@@ -169,7 +164,7 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
   private static class EmptyDataGenerator<T> implements DataAdapter<T> {
 
     @Override
-    public void reset(long startTime) {
+    public void reset(long startTimeMs, long studioStartTimeMs) {
 
     }
 
@@ -179,7 +174,7 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
     }
 
     @Override
-    public int getClosestTimeIndex(long time) {
+    public int getClosestTimeIndex(long timeMs) {
       return 0;
     }
 
@@ -206,7 +201,9 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
 
     private TLongArrayList myData = new TLongArrayList();
 
-    private long myStartTime;
+    private long myDeviceStartTimeMs;
+
+    private long myStudioStartTimeMs;
 
     // TODO: we should change this and the other "generate*" names
     // when we change this class to get actual data.
@@ -247,10 +244,11 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
     }
 
     @Override
-    public void reset(long startTime) {
+    public void reset(long deviceStartTimeMs, long studioStartTimeMs) {
       stop();
 
-      myStartTime = startTime;
+      myDeviceStartTimeMs = deviceStartTimeMs;
+      myStudioStartTimeMs = studioStartTimeMs;
       myTime.clear();
       myData.clear();
       myDataGeneratorThread = new Thread(myDataGenerator);
@@ -258,10 +256,8 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
     }
 
     @Override
-    public int getClosestTimeIndex(long time) {
-      //Test data time is stored in current time millis and time passed in is delta time.
-      //To correct for this we add the start time to the delta time to find our time value.
-      int index = myTime.binarySearch(time + myStartTime);
+    public int getClosestTimeIndex(long timeMs) {
+      int index = myTime.binarySearch(timeMs);
       if (index < 0) {
         // No exact match, returns position to the left of the insertion point.
         // NOTE: binarySearch returns -(insertion point + 1) if not found.
@@ -273,12 +269,14 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
 
     @Override
     public SeriesData<Long> get(int index) {
-      return new SeriesData<>(myTime.get(index) - myStartTime, myData.get(index));
+      return new SeriesData<>(myTime.get(index), myData.get(index));
     }
 
     private void generateData() {
+      // Simulate adding data in device time
+      myTime.add(myDeviceStartTimeMs + (System.currentTimeMillis() - myStudioStartTimeMs));
+
       // Next value should not differ from current by more than max variance
-      myTime.add(System.currentTimeMillis());
       long next = myNext + randomInInterval(-myMaxVariance, myMaxVariance);
       myData.add(Math.min(myMax, Math.max(myMin, next)));
     }

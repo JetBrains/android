@@ -71,9 +71,4 @@ public interface SeriesDataStore {
    * The adapter is associated with a {@link SeriesDataType} and will store data of this type.
    */
   void registerAdapter(SeriesDataType type, DataAdapter adapter);
-
-  /**
-   * Time offset, in nanoseconds, that should be subtracted from the timestamp of data collected from the device.
-   */
-  long getDeviceTimeOffsetNs();
 }

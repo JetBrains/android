@@ -49,6 +49,7 @@ public final class TimeAxisFormatter extends BaseAxisFormatter {
   @Override
   @NotNull
   public String getFormattedString(double globalRange, double value) {
+    value = value - getOrigin();
     int index1 = getMultiplierIndex(globalRange, 1);
     int scale1 = getMultiplier();
     String unit1 = getUnit(index1);
