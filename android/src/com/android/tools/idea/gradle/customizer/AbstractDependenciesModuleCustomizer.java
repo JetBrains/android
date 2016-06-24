@@ -137,7 +137,6 @@ public abstract class AbstractDependenciesModuleCustomizer<T> implements ModuleC
 
     LibraryOrderEntry orderEntry = modelsProvider.getModifiableRootModel(module).addLibraryEntry(library);
     orderEntry.setScope(scope);
-    orderEntry.setExported(true);
   }
 
   private static void updateLibraryBinaryPaths(@NotNull Library library,
