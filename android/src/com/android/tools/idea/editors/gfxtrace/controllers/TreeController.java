@@ -28,8 +28,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreeModel;
 import java.awt.*;
@@ -43,7 +41,7 @@ public abstract class TreeController extends Controller implements CopyEnabledTr
   @NotNull protected final LoadablePanel myLoadingPanel;
   @NotNull protected final JPanel myPanel = new JPanel(new BorderLayout());
   @NotNull protected final JBScrollPane myScrollPane = new JBScrollPane();
-  @NotNull protected final Tree myTree = new CopyEnabledTree(emptyModel(), this);
+  @NotNull protected final Tree myTree = new CopyEnabledTree(createEmptyModel(), this);
 
   public TreeController(@NotNull GfxTraceEditor editor, @NotNull String emptyText) {
     super(editor);
@@ -51,7 +49,7 @@ public abstract class TreeController extends Controller implements CopyEnabledTr
     myTree.setRowHeight(TREE_ROW_HEIGHT);
     myTree.setRootVisible(false);
     myTree.setLineStyleAngled();
-    myTree.setCellRenderer(getRenderer());
+    myTree.setCellRenderer(createRenderer());
     myTree.getEmptyText().setText(emptyText);
     myLoadingPanel = new LoadablePanel(new BorderLayout());
     myLoadingPanel.getContentLayer().add(myTree);
@@ -61,28 +59,24 @@ public abstract class TreeController extends Controller implements CopyEnabledTr
   }
 
   @NotNull
-  protected abstract TreeCellRenderer getRenderer();
+  protected abstract TreeCellRenderer createRenderer();
+
+  @NotNull
+  protected abstract TreeModel createEmptyModel();
 
   @Override
   public void clear() {
     // avoid setting the model to null, as then queued events coming back will throw null pointers.
-    myTree.setModel(emptyModel());
+    myTree.setModel(createEmptyModel());
   }
 
-  private static TreeModel emptyModel() {
-    return new DefaultTreeModel(new DefaultMutableTreeNode());
-  }
-
-  public void setRoot(DefaultMutableTreeNode root) {
-    setModel(new DefaultTreeModel(root));
-  }
-
-  public void setModel(TreeModel model) {
+  public void setModel(@NotNull TreeModel model) {
     assert (ApplicationManager.getApplication().isDispatchThread());
     myTree.setModel(model);
     myLoadingPanel.stopLoading();
   }
 
+  @NotNull
   public TreeModel getModel() {
     return myTree.getModel();
   }

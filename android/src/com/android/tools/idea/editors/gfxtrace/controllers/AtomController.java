@@ -48,6 +48,8 @@ import com.intellij.ui.awt.RelativePoint;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ConcurrencyUtil;
 import com.intellij.util.ui.JBUI;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -488,7 +490,7 @@ public class AtomController extends TreeController implements AtomStream.Listene
 
   @NotNull
   @Override
-  protected TreeCellRenderer getRenderer() {
+  protected TreeCellRenderer createRenderer() {
     return new ColoredTreeCellRenderer() {
       @Override
       public void customizeCellRenderer(
@@ -520,6 +522,12 @@ public class AtomController extends TreeController implements AtomStream.Listene
         }
       }
     };
+  }
+
+  @Override
+  @NotNull
+  protected TreeModel createEmptyModel() {
+    return new DefaultTreeModel(new DefaultMutableTreeNode());
   }
 
   @NotNull
@@ -635,6 +643,10 @@ public class AtomController extends TreeController implements AtomStream.Listene
         myTree.expandPath(getTreePathInTree(treeState.nextElement(), myTree));
       }
     }
+  }
+
+  public void setRoot(DefaultMutableTreeNode root) {
+    setModel(new DefaultTreeModel(root));
   }
 
   private void selectContext(@NotNull ContextID id) {
