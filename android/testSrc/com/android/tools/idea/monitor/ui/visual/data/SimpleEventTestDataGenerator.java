@@ -32,10 +32,7 @@ public class SimpleEventTestDataGenerator
 
   @Override
   public SeriesData<EventAction<SimpleEventComponent.Action, EventSegment.EventActionType>> get(int index) {
-    SeriesData<EventAction<SimpleEventComponent.Action, EventSegment.EventActionType>> data = new SeriesData<>();
-    data.x = mTime.get(index) - mStartTime;
-    data.value = mData.get(index);
-    return data;
+    return new SeriesData<>(mTime.get(index) - mStartTime, mData.get(index));
   }
 
   @Override

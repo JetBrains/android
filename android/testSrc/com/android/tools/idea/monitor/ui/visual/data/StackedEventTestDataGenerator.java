@@ -35,10 +35,7 @@ public class StackedEventTestDataGenerator extends TestDataGenerator<EventAction
 
   @Override
   public SeriesData<EventAction<StackedEventComponent.Action, String>> get(int index) {
-    SeriesData<EventAction<StackedEventComponent.Action, String>> data = new SeriesData<>();
-    data.x = mTime.get(index) - mStartTime;
-    data.value = mData.get(index);
-    return data;
+    return new SeriesData<>(mTime.get(index) - mStartTime, mData.get(index));
   }
   @Override
   public int getSleepTime() {
