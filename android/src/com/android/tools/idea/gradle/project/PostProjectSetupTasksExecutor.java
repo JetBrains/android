@@ -27,7 +27,10 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.GradleSyncState;
+import com.android.tools.idea.gradle.customizer.dependency.Dependency;
+import com.android.tools.idea.gradle.customizer.dependency.DependencySet;
 import com.android.tools.idea.gradle.customizer.dependency.LibraryDependency;
+import com.android.tools.idea.gradle.customizer.dependency.ModuleDependency;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
@@ -153,6 +156,7 @@ public class PostProjectSetupTasksExecutor {
       // version of such interfaces.
       myUsingCachedProjectData = false;
       GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
+      restoreDefaultState();
       return;
     }
 
@@ -231,13 +235,16 @@ public class PostProjectSetupTasksExecutor {
       GradleProjectBuilder.getInstance(myProject).generateSourcesOnly(myCleanProjectAfterSync);
     }
 
-    // set default value back.
-    myGenerateSourcesAfterSync = DEFAULT_GENERATE_SOURCES_AFTER_SYNC;
-    myCleanProjectAfterSync = DEFAULT_CLEAN_PROJECT_AFTER_SYNC;
+    restoreDefaultState();
 
     TemplateManager.getInstance().refreshDynamicTemplateMenu(myProject);
 
     disposeModulesMarkedForRemoval();
+  }
+
+  private void restoreDefaultState() {
+    myGenerateSourcesAfterSync = DEFAULT_GENERATE_SOURCES_AFTER_SYNC;
+    myCleanProjectAfterSync = DEFAULT_CLEAN_PROJECT_AFTER_SYNC;
   }
 
   private boolean shouldForcePluginVersionUpgrade() {
@@ -286,6 +293,7 @@ public class PostProjectSetupTasksExecutor {
 
   /**
    * Indicates whether the IDE should recommend the user to upgrade the Android Gradle plugin.
+   *
    * @return the current version of the plugin being used if an upgrade recommendation is needed, {@code null} otherwise.
    */
   @Nullable
@@ -399,19 +407,47 @@ public class PostProjectSetupTasksExecutor {
                                             @NotNull AndroidProject androidProject) {
     ModifiableRootModel modifiableModel = modelsProvider.getModifiableRootModel(module);
     for (Module dependency : modifiableModel.getModuleDependencies()) {
-      JavaGradleFacet javaGradleFacet = JavaGradleFacet.getInstance(dependency);
-      if (javaGradleFacet != null
-          // BUILDABLE == false -> means this is an AAR-based module, not a regular Java lib module
-          && javaGradleFacet.getConfiguration().BUILDABLE) {
-        // Ignore Java lib modules. They are already set up properly.
-        continue;
-      }
-      AndroidProject dependencyAndroidProject = getAndroidProject(dependency);
-      if (dependencyAndroidProject == null) {
-        LibraryDependency backup = getModuleCompiledArtifact(dependency);
-        if (backup != null) {
-          updateLibraryDependency(module, modelsProvider, backup, androidProject);
+      updateTransitiveDependencies(module, modelsProvider, androidProject, dependency);
+    }
+  }
+
+  // See: https://code.google.com/p/android/issues/detail?id=213627
+  private static void updateTransitiveDependencies(@NotNull Module module,
+                                                   @NotNull IdeModifiableModelsProvider modelsProvider,
+                                                   @NotNull AndroidProject androidProject,
+                                                   @Nullable Module dependency) {
+    if (dependency == null) {
+      return;
+    }
+
+    JavaGradleFacet javaGradleFacet = JavaGradleFacet.getInstance(dependency);
+    if (javaGradleFacet != null
+        // BUILDABLE == false -> means this is an AAR-based module, not a regular Java lib module
+        && javaGradleFacet.getConfiguration().BUILDABLE) {
+      // Ignore Java lib modules. They are already set up properly.
+      return;
+    }
+    AndroidProject dependencyAndroidProject = getAndroidProject(dependency);
+    if (dependencyAndroidProject != null) {
+      AndroidGradleModel androidModel = AndroidGradleModel.get(dependency);
+      if (androidModel != null) {
+        DependencySet dependencies = Dependency.extractFrom(androidModel);
+
+        for (LibraryDependency libraryDependency : dependencies.onLibraries()) {
+          updateLibraryDependency(module, modelsProvider, libraryDependency, androidModel.getAndroidProject());
         }
+
+        Project project = module.getProject();
+        for (ModuleDependency moduleDependency : dependencies.onModules()) {
+          Module module1 = moduleDependency.getModule(project);
+          updateTransitiveDependencies(module, modelsProvider, androidProject, module1);
+        }
+      }
+    }
+    else {
+      LibraryDependency backup = getModuleCompiledArtifact(dependency);
+      if (backup != null) {
+        updateLibraryDependency(module, modelsProvider, backup, androidProject);
       }
     }
   }
