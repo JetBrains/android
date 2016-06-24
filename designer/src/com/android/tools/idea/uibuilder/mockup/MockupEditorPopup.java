@@ -168,7 +168,7 @@ public class MockupEditorPopup {
     if (component == null) {
       return;
     }
-    final Mockup mockup = Mockup.create(component);
+    final Mockup mockup = Mockup.create(component, true);
     if (mockup == null) {
       return;
     }
