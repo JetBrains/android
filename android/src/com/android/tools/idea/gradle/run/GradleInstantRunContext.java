@@ -30,19 +30,22 @@ import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.res.ResourceHelper;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
+import com.google.common.io.Files;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.*;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -88,14 +91,19 @@ public class GradleInstantRunContext implements InstantRunContext {
   @NotNull
   @Override
   public HashCode getManifestResourcesHash() {
-    Document manifest = MergedManifest.get(myFacet).getDocument();
+    return getManifestResourcesHash(myFacet);
+  }
+
+  @VisibleForTesting
+  static HashCode getManifestResourcesHash(@NotNull AndroidFacet facet) {
+    Document manifest = MergedManifest.get(facet).getDocument();
     if (manifest == null || manifest.getDocumentElement() == null) {
       return HashCode.fromInt(0);
     }
 
     final Hasher hasher = Hashing.goodFastHash(32).newHasher();
-    Set<ResourceUrl> appResourceReferences = getAppResourceReferences(manifest.getDocumentElement());
-    AppResourceRepository appResources = AppResourceRepository.getAppResources(myFacet, true);
+    SortedSet<ResourceUrl> appResourceReferences = getAppResourceReferences(manifest.getDocumentElement());
+    AppResourceRepository appResources = AppResourceRepository.getAppResources(facet, true);
 
     // read action needed when reading the values for app resources
     ApplicationManager.getApplication().runReadAction(() -> {
@@ -141,7 +149,9 @@ public class GradleInstantRunContext implements InstantRunContext {
     }
   }
 
-  private static void hashResources(@NotNull Set<ResourceUrl> appResources, @NotNull AppResourceRepository resources, @NotNull Hasher hasher) {
+  private static void hashResources(@NotNull SortedSet<ResourceUrl> appResources,
+                                    @NotNull AppResourceRepository resources,
+                                    @NotNull Hasher hasher) {
     for (ResourceUrl url : appResources) {
       List<ResourceItem> items = resources.getResourceItem(url.type, url.name);
       if (items == null) {
@@ -153,7 +163,19 @@ public class GradleInstantRunContext implements InstantRunContext {
         if (resourceValue != null) {
           String text = resourceValue.getValue();
           if (text != null) {
-            hasher.putString(text, UTF_8);
+            if (ResourceHelper.isFileBasedResourceType(url.type)) {
+              File f = new File(text);
+              if (f.exists()) {
+                try {
+                  hasher.putBytes(Files.toByteArray(f));
+                }
+                catch (IOException ignore) {
+                }
+              }
+            }
+            else {
+              hasher.putString(text, UTF_8);
+            }
           }
         }
       }
