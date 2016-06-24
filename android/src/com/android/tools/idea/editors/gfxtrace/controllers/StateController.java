@@ -69,8 +69,6 @@ public class StateController extends TreeController implements GpuState.Listener
   private static final @NotNull Logger LOG = Logger.getInstance(StateController.class);
   private static final @NotNull TypedValue ROOT_TYPE = new TypedValue(null, SnippetObject.symbol("state"));
 
-  private final @NotNull StateTreeModel myModel = new StateTreeModel(new Node(ROOT_TYPE, null, false));
-
   private @Nullable TreePath myLastSelectedBreadcrumb;
 
   private StateController(@NotNull GfxTraceEditor editor) {
@@ -78,7 +76,6 @@ public class StateController extends TreeController implements GpuState.Listener
     myEditor.getGpuState().addListener(this);
 
     myScrollPane.setBorder(new EmptyBorder(0, 0, 0, 0));
-    setModel(myModel);
 
     MouseAdapter mouseHandler = new MouseAdapter() {
       private JPopupMenu popupMenu = new JPopupMenu();
@@ -267,17 +264,13 @@ public class StateController extends TreeController implements GpuState.Listener
   @Override
   public void onStateLoadingSuccess(GpuState state) {
     myLoadingPanel.stopLoading();
-
-    if (getModel() != myModel) {
-      setModel(myModel);
-    }
-    myModel.setRoot(convert(ROOT_TYPE, new TypedValue(null, SnippetObject.root(state.getState(), getSnippets(state))), false));
+    getModel().setRoot(convert(ROOT_TYPE, new TypedValue(null, SnippetObject.root(state.getState(), getSnippets(state))), false));
   }
 
   @Override
   public void onStateSelection(GpuState state, Path path) {
     SnippetObject[] selection = getStatePath(path);
-    Node node = (Node)myModel.getRoot();
+    Node node = getModel().getRoot();
     TreePath treePath = new TreePath(node);
     for (int i = 0; i < selection.length && !node.isLeaf(); i++) {
       node = node.findChild(selection[i]);
@@ -552,7 +545,7 @@ public class StateController extends TreeController implements GpuState.Listener
     }
 
     @Override
-    public Object getRoot() {
+    public Node getRoot() {
       return root;
     }
 
@@ -630,7 +623,7 @@ public class StateController extends TreeController implements GpuState.Listener
 
   @Override
   @NotNull
-  protected TreeCellRenderer getRenderer() {
+  protected TreeCellRenderer createRenderer() {
     return new ColoredTreeCellRenderer() {
       @Override
       public void customizeCellRenderer(@NotNull JTree tree, Object value,
@@ -639,10 +632,22 @@ public class StateController extends TreeController implements GpuState.Listener
           Render.render((StateController.Node)value, this, SimpleTextAttributes.REGULAR_ATTRIBUTES, expanded);
         }
         else {
-          assert false;
+          assert false : value;
         }
       }
     };
+  }
+
+  @Override
+  @NotNull
+  protected TreeModel createEmptyModel() {
+    return new StateTreeModel(new Node(ROOT_TYPE, null, false));
+  }
+
+  @Override
+  @NotNull
+  public StateTreeModel getModel() {
+    return (StateTreeModel)super.getModel();
   }
 
   @NotNull
