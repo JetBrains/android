@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.gfxtrace.controllers;
 
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
+import com.android.tools.idea.editors.gfxtrace.GfxTraceUtil;
 import com.android.tools.idea.editors.gfxtrace.models.AtomStream;
 import com.android.tools.idea.editors.gfxtrace.service.Context;
 import com.android.tools.idea.editors.gfxtrace.service.RenderSettings;
@@ -26,6 +27,7 @@ import com.android.tools.idea.editors.gfxtrace.service.atom.Range;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.android.tools.idea.editors.gfxtrace.widgets.CellList;
 import com.android.tools.idea.editors.gfxtrace.widgets.ImageCellList;
+import com.android.tools.idea.stats.UsageTracker;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
 import com.intellij.openapi.diagnostic.Logger;
@@ -92,6 +94,8 @@ public class ScrubberController extends ImageCellController<ScrubberController.D
 
   @Override
   public void selected(@NotNull Data cell) {
+    GfxTraceUtil.trackEvent(UsageTracker.ACTION_GFX_TRACE_COMMAND_SELECTED, "Scrubber", null);
+
     myEditor.getAtomStream().selectAtoms(cell.range, this);
   }
 
