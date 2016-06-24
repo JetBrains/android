@@ -20,16 +20,16 @@ package com.android.tools.idea.updater.configure;
  */
 public class RootNode extends UpdaterTreeNode {
   @Override
-  public NodeStateHolder.SelectedState getInitialState() {
+  public PackageNodeModel.SelectedState getInitialState() {
     return null;
   }
 
   @Override
-  public NodeStateHolder.SelectedState getCurrentState() {
+  public PackageNodeModel.SelectedState getCurrentState() {
     return null;
   }
 
   @Override
-  protected void setState(NodeStateHolder.SelectedState state) {
+  protected void setState(PackageNodeModel.SelectedState state) {
   }
 }

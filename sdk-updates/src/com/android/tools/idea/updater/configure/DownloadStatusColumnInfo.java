@@ -21,8 +21,6 @@ import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.accessibility.AccessibleContext;
-import javax.accessibility.AccessibleRole;
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
@@ -86,10 +84,10 @@ class DownloadStatusColumnInfo extends ColumnInfo<UpdaterTreeNode, Icon> {
       return IconInfo.Empty;
     }
     if (node.getCurrentState() != node.getInitialState()) {
-      if (node.getCurrentState() == NodeStateHolder.SelectedState.NOT_INSTALLED) {
+      if (node.getCurrentState() == PackageNodeModel.SelectedState.NOT_INSTALLED) {
         return new IconInfo(AllIcons.Actions.Delete, "Action: delete local files");
       }
-      else if (node.getCurrentState() == NodeStateHolder.SelectedState.INSTALLED) {
+      else if (node.getCurrentState() == PackageNodeModel.SelectedState.INSTALLED) {
         return new IconInfo(AllIcons.Actions.Download, "Action: download files locally");
       }
       else {
