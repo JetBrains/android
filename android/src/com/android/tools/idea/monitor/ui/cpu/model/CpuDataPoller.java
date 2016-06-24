@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.monitor.ui.cpu.model;
 
+import com.android.tools.idea.monitor.datastore.LongDataAdapter;
 import com.android.tools.idea.monitor.datastore.*;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.CpuProfiler;
@@ -164,7 +165,6 @@ public class CpuDataPoller extends Poller {
   }
 
   private static final class CpuUsageData {
-
     /**
      * App usage (in %) at a given point.
      */
@@ -190,7 +190,6 @@ public class CpuDataPoller extends Poller {
   }
 
   private static final class ThreadData {
-
     /**
      * Thread id.
      */

@@ -17,14 +17,19 @@ package com.android.tools.idea.monitor.ui.memory.view;
 
 import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.Range;
+import com.android.tools.idea.monitor.datastore.DataAdapter;
 import com.android.tools.idea.monitor.datastore.Poller;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
+import com.android.tools.idea.monitor.datastore.SeriesDataType;
 import com.android.tools.idea.monitor.ui.BaseProfilerUiManager;
 import com.android.tools.idea.monitor.ui.BaseSegment;
 import com.android.tools.idea.monitor.ui.ProfilerEventListener;
+import com.android.tools.idea.monitor.ui.memory.model.MemoryDataCache;
 import com.android.tools.idea.monitor.ui.memory.model.MemoryPoller;
 import com.intellij.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Map;
 
 public final class MemoryProfilerUiManager extends BaseProfilerUiManager {
   public MemoryProfilerUiManager(@NotNull Range xRange, @NotNull Choreographer choreographer,
@@ -35,7 +40,13 @@ public final class MemoryProfilerUiManager extends BaseProfilerUiManager {
   @NotNull
   @Override
   public Poller createPoller(int pid) {
-    return new MemoryPoller(myDataStore, pid);
+    MemoryPoller poller = new MemoryPoller(myDataStore, new MemoryDataCache(), pid);
+    Map<SeriesDataType, DataAdapter> adapters = poller.createAdapters();
+    for (Map.Entry<SeriesDataType, DataAdapter> entry : adapters.entrySet()) {
+      // TODO these need to be de-registered
+      myDataStore.registerAdapter(entry.getKey(), entry.getValue());
+    }
+    return poller;
   }
 
   @Override

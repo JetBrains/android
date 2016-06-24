@@ -48,10 +48,7 @@ public class LongDataAdapter implements DataAdapter<Long> {
 
   @Override
   public SeriesData<Long> get(int index) {
-    SeriesData<Long> data = new SeriesData<>();
-    data.x = myTimestampData.get(index);
-    data.value = myTrafficData.get(index);
-    return data;
+    return new SeriesData<>(myTimestampData.get(index), myTrafficData.get(index));
   }
 
   @Override

@@ -21,4 +21,9 @@ package com.android.tools.adtui.model;
 public class SeriesData<T> {
   public long x;
   public T value;
+
+  public SeriesData(long newX, T newValue) {
+    x = newX;
+    value = newValue;
+  }
 }
