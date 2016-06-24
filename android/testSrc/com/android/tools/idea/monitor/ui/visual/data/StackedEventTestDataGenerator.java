@@ -18,10 +18,8 @@ package com.android.tools.idea.monitor.ui.visual.data;
 import com.android.tools.adtui.StackedEventComponent;
 import com.android.tools.adtui.model.EventAction;
 import com.android.tools.adtui.model.SeriesData;
-import gnu.trove.TLongArrayList;
 
 import java.util.ArrayList;
-import java.util.Random;
 
 public class StackedEventTestDataGenerator extends TestDataGenerator<EventAction<StackedEventComponent.Action, String>> {
 
@@ -35,7 +33,7 @@ public class StackedEventTestDataGenerator extends TestDataGenerator<EventAction
 
   @Override
   public SeriesData<EventAction<StackedEventComponent.Action, String>> get(int index) {
-    return new SeriesData<>(mTime.get(index) - mStartTime, mData.get(index));
+    return new SeriesData<>(mTime.get(index) - mStartTimeMs, mData.get(index));
   }
   @Override
   public int getSleepTime() {
@@ -47,11 +45,11 @@ public class StackedEventTestDataGenerator extends TestDataGenerator<EventAction
   public void generateData() {
     boolean createAction = true;
     long endTime = 0;
-    long currentTime = System.currentTimeMillis() - mStartTime;
+    long currentTime = System.currentTimeMillis() - mStartTimeMs;
     long startTime = currentTime;
     //Generate a new event 50% of the time we generate data. Doing this gives us event streams show like
     //real data, instead of just starting and stopping.
-    if(mStartTime != 0 && Math.random() > .5) {
+    if(mStartTimeMs != 0 && Math.random() > .5) {
       //Only when we generate a new event, do we also at the same time add a new entry
       //into our time array to keep our event data
       //consistent with our time lookup.

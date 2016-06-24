@@ -29,7 +29,7 @@ public interface DataAdapter<T> {
    */
   // TODO: think about a refactoring that allows this method to be reused across classes that implement this interface.
   // All the implementations look like the same now.
-  int getClosestTimeIndex(long time);
+  int getClosestTimeIndex(long timeMs);
 
   /**
    * Each data adapter is responsible for creating a {@link SeriesData} object that will be returned to the UI in use for rendering.
@@ -38,8 +38,11 @@ public interface DataAdapter<T> {
 
   /**
    * Clears any previous data and resets any new/incoming data to be relative to the new startTime.
+   * @param deviceStartTimeMs the data starting point in device time.
+   * @param studioStartTimeMs the data starting point in studio time.
+   *                          TODO this is currently used for test data generators to convert test data timestamps back to device time.
    */
-  void reset(long startTime);
+  void reset(long deviceStartTimeMs, long studioStartTimeMs);
 
   /**
    * Stops any ongoing data polls.

@@ -32,8 +32,6 @@ public abstract class Poller implements RunnableFuture<Void> {
   @NotNull
   protected final SeriesDataStore myDataStore;
 
-  protected final long myDeviceTimeOffsetNs;
-
   private long myPollPeriodNs;
 
   private CountDownLatch myRunning = new CountDownLatch(1);
@@ -44,7 +42,6 @@ public abstract class Poller implements RunnableFuture<Void> {
     myDataStore = dataStore;
     myService = myDataStore.getDeviceProfilerService();
     myPollPeriodNs = pollPeriodNs;
-    myDeviceTimeOffsetNs = dataStore.getDeviceTimeOffsetNs();
   }
 
   protected abstract void asyncInit();

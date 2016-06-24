@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.monitor.ui.visual.data;
 
-import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.idea.monitor.datastore.DataAdapter;
 import gnu.trove.TLongArrayList;
 
@@ -30,7 +29,7 @@ public abstract class TestDataGenerator<T> implements DataAdapter<T> {
 
   protected TLongArrayList mTime = new TLongArrayList();
 
-  protected long mStartTime;
+  protected long mStartTimeMs;
 
   private Thread mDataThread;
 
@@ -43,9 +42,9 @@ public abstract class TestDataGenerator<T> implements DataAdapter<T> {
   }
 
   @Override
-  public void reset(long startTime) {
+  public void reset(long deviceStartTimeMs, long studioStartTimeMs) {
     stop();
-    mStartTime = startTime;
+    mStartTimeMs = deviceStartTimeMs;
     mDataThread = new Thread() {
       @Override
       public void run() {
@@ -65,8 +64,8 @@ public abstract class TestDataGenerator<T> implements DataAdapter<T> {
   }
 
   @Override
-  public int getClosestTimeIndex(long time) {
-    int index = mTime.binarySearch(time + mStartTime);
+  public int getClosestTimeIndex(long timeMs) {
+    int index = mTime.binarySearch(timeMs + mStartTimeMs);
     if (index < 0) {
       // No exact match, returns position to the left of the insertion point.
       // NOTE: binarySearch returns -(insertion point + 1) if not found.
