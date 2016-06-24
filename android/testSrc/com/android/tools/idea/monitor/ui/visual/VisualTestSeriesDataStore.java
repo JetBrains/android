@@ -97,7 +97,7 @@ public final class VisualTestSeriesDataStore implements SeriesDataStore {
   }
 
   @Override
-  public long getDeviceTimeOffset() {
+  public long getDeviceTimeOffsetNs() {
     return 0;
   }
 

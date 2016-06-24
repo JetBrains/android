@@ -39,7 +39,7 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
 
   private Map<SeriesDataType, DataAdapter<?>> myDataSeriesMap = new HashMap<>();
 
-  private long myDeviceStartTime;
+  private long myDeviceStartTimeNs;
 
   private long myStartTime;
 
@@ -115,8 +115,8 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
   }
 
   @Override
-  public long getDeviceTimeOffset() {
-    return myDeviceStartTime;
+  public long getDeviceTimeOffsetNs() {
+    return myDeviceStartTimeNs;
   }
 
   private void startGeneratingData() {
@@ -159,7 +159,7 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
     try {
       ProfilerService.TimesResponse response = myDeviceProfilerService.getDeviceService().getTimes(
         ProfilerService.TimesRequest.getDefaultInstance());
-      myDeviceStartTime = response.getTimestamp();
+      myDeviceStartTimeNs = response.getTimestamp();
     }
     catch (StatusRuntimeException e) {
       myDispatcher.getMulticaster().profilerServerDisconnected();
