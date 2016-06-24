@@ -57,7 +57,10 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 import static com.android.tools.lint.detector.api.TextFormat.RAW;
 import static org.jetbrains.android.inspections.lint.IntellijLintIssueRegistry.CUSTOM_ERROR;
@@ -756,12 +759,20 @@ public class IntellijLintClient extends LintClient implements Disposable {
 
   @Nullable
   @Override
-  public AbstractResourceRepository getProjectResources(com.android.tools.lint.detector.api.Project project, boolean includeDependencies) {
+  public AbstractResourceRepository getResourceRepository(com.android.tools.lint.detector.api.Project project,
+                                                          boolean includeModuleDependencies,
+                                                          boolean includeLibraries) {
     final Module module = findModuleForLintProject(myProject, project);
     if (module != null) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null) {
-        return includeDependencies ? facet.getProjectResources(true) : facet.getModuleResources(true);
+        if (includeLibraries) {
+          return facet.getAppResources(true);
+        } else if (includeModuleDependencies) {
+          return facet.getProjectResources(true);
+        } else {
+          return facet.getModuleResources(true);
+        }
       }
     }
 
