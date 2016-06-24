@@ -124,7 +124,7 @@ public class MockupTest extends MockupBaseTest {
   }
 
 
-  public void testCreateMockupModel() {
+  public void testCreateMockup() {
     final NlModel model = createModel1Mockup(MOCKUP_PSD, DEFAULT_TEST_POSITION, "0.4");
     NlComponent component = model.getComponents().get(0).getRoot();
     final Mockup mockup = Mockup.create(component);
@@ -132,6 +132,13 @@ public class MockupTest extends MockupBaseTest {
     assertEquals(new Rectangle(20, 20, 60, 60), mockup.getBounds());
     assertEquals(new Rectangle(10, 10, 60, 60), mockup.getCropping());
     assertEquals(0.4f, mockup.getAlpha());
+  }
+
+  public void testCreateMockup_createWithoutAttribute() {
+    final NlModel model = createModel0Mockup();
+    final NlComponent component = model.getComponents().get(0);
+    assertNotNull(Mockup.create(component, true));
+    assertNull(Mockup.create(component, false));
   }
 
   public void testCreateMockupLayerEmptyStringPosition() {

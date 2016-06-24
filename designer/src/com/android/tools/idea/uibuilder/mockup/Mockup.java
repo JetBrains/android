@@ -126,8 +126,17 @@ public class Mockup implements ModelListener {
    * @return The newly created MockupModel or null if the it couldn't be created
    */
   @Nullable
+  public static Mockup create(@NotNull NlComponent component, boolean createWithoutAttribute) {
+    if(hasMockupAttribute(component)|| createWithoutAttribute) {
+      return new Mockup(component);
+    }
+    else {
+      return null;
+    }
+  }
+
   public static Mockup create(@NotNull NlComponent component) {
-    return new Mockup(component);
+    return create(component, false);
   }
 
   /**
@@ -148,6 +157,10 @@ public class Mockup implements ModelListener {
     return mockupAttributes;
   }
 
+  public static boolean hasMockupAttribute(NlComponent component) {
+    return component.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_MOCKUP) != null;
+  }
+
   /**
    * Create a new Mockup model and add it to list if component contains
    * the "<i>{@value SdkConstants#TOOLS_PREFIX}:{@value SdkConstants#ATTR_MOCKUP}</i>" attribute then recursively
@@ -157,7 +170,7 @@ public class Mockup implements ModelListener {
    * @param list      the current list of {@link Mockup} where the newly created {@link Mockup} will be added.
    */
   private static void createAll(@NotNull List<Mockup> list, @NotNull NlComponent component) {
-    final Mockup mockup = create(component);
+    final Mockup mockup = create(component, false);
     if (mockup != null) {
       list.add(mockup);
     }
