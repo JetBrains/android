@@ -15,11 +15,7 @@
  */
 package com.android.tools.idea.monitor.ui.cpu.model;
 
-import com.android.tools.adtui.model.SeriesData;
-import com.android.tools.idea.monitor.datastore.DataAdapter;
-import com.android.tools.idea.monitor.datastore.Poller;
-import com.android.tools.idea.monitor.datastore.SeriesDataStore;
-import com.android.tools.idea.monitor.datastore.SeriesDataType;
+import com.android.tools.idea.monitor.datastore.*;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuProfilerServiceGrpc;
@@ -77,9 +73,9 @@ public class CpuDataPoller extends Poller {
   }
 
   private void registerAdapters(@NotNull SeriesDataStore dataStore) {
-    dataStore.registerAdapter(SeriesDataType.CPU_MY_PROCESS, new CpuDataLongAdapter(myProcessCpuUsage));
-    dataStore.registerAdapter(SeriesDataType.CPU_OTHER_PROCESSES, new CpuDataLongAdapter(myOtherProcessesCpuUsage));
-    dataStore.registerAdapter(SeriesDataType.CPU_THREADS, new CpuDataLongAdapter(myNumberOfThreadsList));
+    dataStore.registerAdapter(SeriesDataType.CPU_MY_PROCESS, new LongDataAdapter(myTimestampArray, myProcessCpuUsage));
+    dataStore.registerAdapter(SeriesDataType.CPU_OTHER_PROCESSES, new LongDataAdapter(myTimestampArray, myOtherProcessesCpuUsage));
+    dataStore.registerAdapter(SeriesDataType.CPU_THREADS, new LongDataAdapter(myTimestampArray, myNumberOfThreadsList));
   }
 
   @Override
@@ -161,49 +157,9 @@ public class CpuDataPoller extends Poller {
           // TODO: Add support to threads state chart.
         }
       }
-      long dataTimestamp = TimeUnit.NANOSECONDS.toMillis(data.getBasicInfo().getEndTimestamp() - myDeviceTimeOffset);
+      long dataTimestamp = TimeUnit.NANOSECONDS.toMillis(data.getBasicInfo().getEndTimestamp() - myDeviceTimeOffsetNs);
       myTimestampArray.add(dataTimestamp);
       myNumberOfThreadsList.add(myThreadsStateData.size());
-    }
-  }
-
-  private final class CpuDataLongAdapter implements DataAdapter<Long> {
-
-    @NotNull
-    private TLongArrayList myCpuData;
-
-    CpuDataLongAdapter(@NotNull TLongArrayList cpuData) {
-      myCpuData = cpuData;
-    }
-
-    @Override
-    public int getClosestTimeIndex(long time) {
-      int index = myTimestampArray.binarySearch(time);
-      if (index < 0) {
-        // No exact match, returns position to the left of the insertion point.
-        // NOTE: binarySearch returns -(insertion point + 1) if not found.
-        index = -index - 2;
-      }
-
-      return Math.max(0, Math.min(myTimestampArray.size() - 1, index));
-    }
-
-    @Override
-    public SeriesData<Long> get(int index) {
-      SeriesData<Long> data = new SeriesData<>();
-      data.x = myTimestampArray.get(index);
-      data.value = myCpuData.get(index);
-      return data;
-    }
-
-    @Override
-    public void stop() {
-      // Do nothing.
-    }
-
-    @Override
-    public void reset(long startTime) {
-      // TODO: Define reset mechanism.
     }
   }
 
