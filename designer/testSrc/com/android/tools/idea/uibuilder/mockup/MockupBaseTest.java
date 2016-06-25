@@ -27,6 +27,9 @@ import static com.android.SdkConstants.*;
 
 public abstract class MockupBaseTest extends LayoutTestCase {
 
+  public static final String DEFAULT_TEST_POSITION = "20 20 60 60 10 10 60 60";
+  public static final String MOCKUP_PSD = "mockup/mockup.psd";
+
   protected NlModel createModel0Mockup() {
     ModelBuilder builder = model("relative.xml",
                                  component(RELATIVE_LAYOUT)

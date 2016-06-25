@@ -30,8 +30,7 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
+import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
@@ -57,23 +56,29 @@ public class MockupInteractionPanel extends JBPanel implements ModelListener {
   private final Rectangle myMockupDrawDestination;
   private final Dimension myImageSize;
   @Nullable private BufferedImage myImage;
-  private Dimension myScreenViewSize;
+  private Rectangle myScreenViewBounds;
+  private final Dimension myScreenViewSize;
 
   private Guide myHoveredGuideline;
   private boolean myShowGuideline;
   @NotNull final private List<Guide> myUnselectedGuidelines;
   @NotNull final private List<Guide> mySelectedGuidelines;
   private GuidelinesMouseInteraction myMouseInteraction;
+  private boolean myEditCropping;
 
   public MockupInteractionPanel(@NotNull ScreenView screenView, Mockup Mockup) {
     myScreenView = screenView;
     myMockup = Mockup;
     myMockupDrawDestination = new Rectangle();
+    myScreenViewSize = new Dimension();
+    myScreenViewBounds = new Rectangle();
     myImageSize = new Dimension();
     myImageToMockupDestination = new CoordinateConverter();
+
     myScreenViewToPanel = new CoordinateConverter();
     myScreenViewToPanel.setCenterInDestination();
     myScreenViewToPanel.setFixedRatio(true);
+
     myMockup.getComponent().getModel().addListener(this);
 
     // Creating two list of guidelines to store the selected and unselected guidelines
@@ -94,19 +99,37 @@ public class MockupInteractionPanel extends JBPanel implements ModelListener {
     Color color = g.getColor();
 
     // Update to latest dimension
-    myScreenViewSize = myScreenView.getSize(myScreenViewSize);
+    myScreenView.getSize(myScreenViewSize);
     myScreenViewToPanel.setDimensions(getSize(), myScreenViewSize, ADJUST_SCALE);
-    updateMockupDrawDestination();
-    final Rectangle destination = myMockup.getBounds(myScreenView, myMockupDrawDestination);
-    destination.x = myScreenViewToPanel.x(destination.x);
-    destination.y = myScreenViewToPanel.y(destination.y);
-    destination.width = myScreenViewToPanel.dX(destination.width);
-    destination.height = myScreenViewToPanel.dY(destination.height);
+    myScreenViewBounds.setSize(myScreenViewToPanel.dX(myScreenViewSize.getWidth()),
+                               myScreenViewToPanel.dY(myScreenViewSize.getHeight()));
+    myScreenViewBounds.setLocation(myScreenViewToPanel.x(0), myScreenViewToPanel.y(0));
+
+    final Rectangle destination;
+    if (myEditCropping) {
+      destination = new Rectangle();
+      destination.x = myScreenViewToPanel.x(0);
+      destination.y = myScreenViewToPanel.y(0);
+      destination.width = myScreenViewToPanel.dX(myScreenViewSize.width);
+      destination.height = myScreenViewToPanel.dY(myScreenViewSize.height);
+    }
+    else {
+      destination = myMockup.getSwingBounds(myScreenView);
+      destination.x = myScreenViewToPanel.x(destination.x);
+      destination.y = myScreenViewToPanel.y(destination.y);
+      destination.width = myScreenViewToPanel.dX(destination.width);
+      destination.height = myScreenViewToPanel.dY(destination.height);
+    }
 
     // Paint
+    final Shape clip = g2d.getClip();
+    g2d.setClip(myScreenViewBounds);
     paintScreenView(g2d);
     paintMockup(g2d, destination);
-    paintAllComponents(g2d, myMockup.getComponent().getRoot());
+    if(!myEditCropping) {
+      paintAllComponents(g2d, myMockup.getComponent().getRoot());
+    }
+    g2d.setClip(clip);
 
     // Only paint guideline if the user as selected the checkbox in MockupEditor
     if (myShowGuideline) {
@@ -117,7 +140,8 @@ public class MockupInteractionPanel extends JBPanel implements ModelListener {
 
   /**
    * Paint the selected, unselected and hovered guidelines in the destination coordinate system
-   * @param g2d The graphic context
+   *
+   * @param g2d         The graphic context
    * @param destination The Rectangle representing the origin and size of the destination coordinates system
    */
   private void paintGuidelines(Graphics2D g2d, Rectangle destination) {
@@ -155,6 +179,7 @@ public class MockupInteractionPanel extends JBPanel implements ModelListener {
 
   /**
    * Paint the guide guideline using myImageToMockupDestination {@link CoordinateConverter}
+   *
    * @param g2d
    * @param guide
    */
@@ -181,23 +206,24 @@ public class MockupInteractionPanel extends JBPanel implements ModelListener {
   /**
    * Paint the cropped area of the mockup specified by {@link Mockup#getCropping()} inside destination rectangle.
    * The mockup will be stretched if needed.
-   * @param g The graphic context
+   *
+   * @param g           The graphic context
    * @param destination The destination rectangle where the mockup will be paint.
    */
   private void paintMockup(Graphics2D g, Rectangle destination) {
-    if(myImage == null ) {
+    if (myImage == null) {
       return;
     }
     // Source coordinates
-    int sx = myMockup.getCropping().x;
-    int sy = myMockup.getCropping().y;
-    int sw = myMockup.getCropping().width;
-    int sh = myMockup.getCropping().height;
+    final Rectangle cropping = myMockup.getCropping();
+    int sx = cropping.x;
+    int sy = cropping.y;
+    int sw = cropping.width;
+    int sh = cropping.height;
 
-    sw = sw <= 0 ? myImage.getWidth() : sw;
-    sh = sh <= 0 ? myImage.getHeight() : sh;
     final Composite composite = g.getComposite();
-
+    final Rectangle clipBounds = g.getClipBounds();
+    g.setClip(myScreenViewBounds);
     g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, myMockup.getAlpha()));
     g.drawImage(myImage,
                 destination.x,
@@ -207,23 +233,7 @@ public class MockupInteractionPanel extends JBPanel implements ModelListener {
                 sx, sy, sx + sw, sy + sh,
                 null);
     g.setComposite(composite);
-  }
-
-  /**
-   * Update myMockupDrawDestination to match the latest coordinates of the mockup and the screen view
-   */
-  private void updateMockupDrawDestination() {
-    // Coordinates of the component in the ScreenView system
-    final int componentSwingX = Coordinates.getSwingX(myScreenView, myMockup.getComponent().x);
-    final int componentSwingY = Coordinates.getSwingY(myScreenView, myMockup.getComponent().y);
-    final int componentSwingW = Coordinates.getSwingDimension(myScreenView, myMockup.getComponent().w);
-    final int componentSwingH = Coordinates.getSwingDimension(myScreenView, myMockup.getComponent().h);
-
-    myMockupDrawDestination.setBounds(
-      componentSwingX,
-      componentSwingY,
-      componentSwingW,
-      componentSwingH);
+    g.setClip(clipBounds);
   }
 
   private void paintScreenView(@NotNull Graphics2D g) {
@@ -267,6 +277,7 @@ public class MockupInteractionPanel extends JBPanel implements ModelListener {
   /**
    * If true how the guidelines and and attach mouse listeners to interact with the guideline.
    * If false, remove the previously set mouse listeners.
+   *
    * @param showGuideline
    */
   public void setShowGuideline(boolean showGuideline) {
@@ -285,11 +296,12 @@ public class MockupInteractionPanel extends JBPanel implements ModelListener {
 
   /**
    * Set myImage and update the myImageSize
+   *
    * @param image
    */
-  private void setImage(BufferedImage image) {
+  private void setImage(@Nullable BufferedImage image) {
     myImage = image;
-    if(image == null) {
+    if (image == null) {
       return;
     }
     myImageSize.setSize(myImage.getWidth(), myImage.getHeight());
@@ -308,6 +320,7 @@ public class MockupInteractionPanel extends JBPanel implements ModelListener {
   /**
    * Create a list of {@link MockupGuide} from the selected guidelines with the correct Android Dp coordinates.
    * The list is recreated each time the method is called.
+   *
    * @return the newly created list.
    */
   @NotNull
@@ -337,6 +350,21 @@ public class MockupInteractionPanel extends JBPanel implements ModelListener {
     return mockupGuides;
   }
 
+  public boolean isEditCropping() {
+    return myEditCropping;
+  }
+
+  public void setEditCropping(boolean editCropping) {
+    if (editCropping != myEditCropping) {
+      startCroppingMode();
+    }
+    myEditCropping = editCropping;
+  }
+
+  private void startCroppingMode() {
+    repaint();
+  }
+
   /**
    * Handle the mouse interaction with the guidelines
    */
@@ -344,6 +372,7 @@ public class MockupInteractionPanel extends JBPanel implements ModelListener {
 
     public static final int CLICKABLE_AREA = 5;
     private boolean myMouseMoved;
+    Point2D myOrigin = new Point();
 
     /**
      * We save a reference to the last clicked guideline in order to
@@ -354,6 +383,9 @@ public class MockupInteractionPanel extends JBPanel implements ModelListener {
 
     @Override
     public void mouseDragged(MouseEvent e) {
+      if (!myShowGuideline) {
+        myOrigin.setLocation(e.getPoint());
+      }
     }
 
     @Override
@@ -385,8 +417,9 @@ public class MockupInteractionPanel extends JBPanel implements ModelListener {
 
     /**
      * Check if x,y is hover the the guide
-     * @param x x position of the mouse
-     * @param y y position of the mouse
+     *
+     * @param x     x position of the mouse
+     * @param y     y position of the mouse
      * @param guide the guide to check the intersection with
      * @return true if the mouse is within CLICKABLE_AREA pixels of the guide
      */
@@ -412,29 +445,31 @@ public class MockupInteractionPanel extends JBPanel implements ModelListener {
 
     @Override
     public void mouseClicked(MouseEvent e) {
-      if (!myMouseMoved) {
-        // If a click occurs but the mouse has not been moved since the last click event
-        // myHoveredGuideline will be null and nothing will happen, so we set myHoveredGuideline to the
-        // last clicked guide in order to re-select/unselect it
-        myHoveredGuideline = myLastClickedGuide;
-      }
-      if (myHoveredGuideline != null) {
-        // If move the guide from the unselected to selected guides lists or the
-        // other way around if already selected
-        if (myUnselectedGuidelines.contains(myHoveredGuideline)) {
-          mySelectedGuidelines.add(myHoveredGuideline);
-          myUnselectedGuidelines.remove(myHoveredGuideline);
+      if (myShowGuideline) {
+        if (!myMouseMoved) {
+          // If a click occurs but the mouse has not been moved since the last click event
+          // myHoveredGuideline will be null and nothing will happen, so we set myHoveredGuideline to the
+          // last clicked guide in order to re-select/unselect it
+          myHoveredGuideline = myLastClickedGuide;
         }
-        else {
-          mySelectedGuidelines.remove(myHoveredGuideline);
-          myUnselectedGuidelines.add(myHoveredGuideline);
-        }
+        if (myHoveredGuideline != null) {
+          // If move the guide from the unselected to selected guides lists or the
+          // other way around if already selected
+          if (myUnselectedGuidelines.contains(myHoveredGuideline)) {
+            mySelectedGuidelines.add(myHoveredGuideline);
+            myUnselectedGuidelines.remove(myHoveredGuideline);
+          }
+          else {
+            mySelectedGuidelines.remove(myHoveredGuideline);
+            myUnselectedGuidelines.add(myHoveredGuideline);
+          }
 
-        // Set the hovered guide to null so we can show the change of state of the drawable
-        myLastClickedGuide = myHoveredGuideline;
-        myHoveredGuideline = null;
-        myMouseMoved = false;
-        repaint();
+          // Set the hovered guide to null so we can show the change of state of the drawable
+          myLastClickedGuide = myHoveredGuideline;
+          myHoveredGuideline = null;
+          myMouseMoved = false;
+          repaint();
+        }
       }
     }
   }

@@ -15,26 +15,26 @@
  */
 package com.android.tools.idea.uibuilder.mockup;
 
+import com.android.resources.Density;
+import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.surface.MockupLayer;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.project.Project;
 import org.mockito.Mock;
 
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.util.List;
 
+import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 public class MockupTest extends MockupBaseTest {
-
-  public static final String DEFAULT_TEST_POSITION = "20 20 60 60 10 10 60 60";
-  public static final String MOCKUP_PSD = "mockup/mockup.psd";
 
   @Mock
   Project mockProject;
@@ -105,6 +105,17 @@ public class MockupTest extends MockupBaseTest {
     assertNotNull(mockup);
     assertEquals(new Rectangle(1, 2, 3, 4), mockup.getBounds());
     assertEquals(new Rectangle(0, 0, -1, -1), mockup.getCropping());
+  }
+
+  public void testGetCropping_FullImage() {
+    final NlModel model = createModel1Mockup(getTestDataPath() + "/" + MOCKUP_PSD, "1 2 3 4");
+    NlComponent component = model.getComponents().get(0);
+    final Mockup mockup = Mockup.create(component);//mockProject, "", "1 2 3 4");
+    assertNotNull(mockup);
+    final BufferedImage image = mockup.getImage();
+    assertNotNull(image);
+    assertEquals(new Rectangle(0, 0, image.getWidth(), image.getHeight()), mockup.getCropping());
+
   }
 
   public void testCreateMockupModelFromCorrectXYString() {
@@ -190,20 +201,28 @@ public class MockupTest extends MockupBaseTest {
   }
 
   public void testGetBounds_Normal_Position() {
-    final NlModel model = createModel1Mockup(MOCKUP_PSD, "10 10 50 50");
+    final NlModel model = createModel1Mockup(MOCKUP_PSD, "10 10 120 50");
     DesignSurface mockSurface = mock(DesignSurface.class);
     when(mockSurface.getScale()).thenReturn(1.0);
-    final ScreenView screenView = new ScreenView(mockSurface, ScreenView.ScreenViewType.BLUEPRINT, model);
-    int dp = screenView.getConfiguration().getDensity().getDpiValue() / Coordinates.DEFAULT_DENSITY; // Dpi factor for the screen view
-    final MockupLayer mockupLayer = new MockupLayer(screenView);
-    final Dimension size = screenView.getPreferredSize();
-    assertTrue(size.width > 0 && size.height > 0);
-    final Mockup mockup = mockupLayer.getMockups().get(0);
+
+    Configuration configuration = mock(Configuration.class);
+    when(configuration.getDensity()).thenReturn(Density.DPI_280);
+    ScreenView screenView = mock(ScreenView.class);
+    when(screenView.getX()).thenReturn(0);
+    when(screenView.getY()).thenReturn(0);
+    when(screenView.getSize()).thenReturn(new Dimension(1000, 2000));
+    when(screenView.getSize(anyObject())).thenReturn(new Dimension(1000, 2000));
+    when(screenView.getScale()).thenReturn(2.);
+    when(screenView.getConfiguration()).thenReturn(configuration);
+    final Mockup mockup = Mockup.create(model.getComponents().get(0));
     assertNotNull(mockup);
-    Rectangle destinationRectangle;
-    assertEquals(new Rectangle(10, 10, 50, 50), mockup.getBounds());
-    destinationRectangle = mockup.getBounds(screenView, new Rectangle(size.width, size.height));
-    assertEquals(new Rectangle(10 * dp, 10 * dp, 40 * dp, 40 * dp), destinationRectangle);
+    assertEquals(new Rectangle(10, 10, 120, 50), mockup.getBounds());
+
+    final Rectangle swingBounds = mockup.getSwingBounds(screenView);
+    assertEquals(Coordinates.getSwingXDip(screenView, 10), swingBounds.x, 2.);
+    assertEquals(Coordinates.getSwingXDip(screenView, 10), swingBounds.y, 2.);
+    assertEquals(Coordinates.getSwingDimensionDip(screenView, 110), swingBounds.width, 2.);
+    assertEquals(Coordinates.getSwingDimensionDip(screenView, 40), swingBounds.height, 2.);
   }
 
   public void testGetBounds_0000_Position() {
@@ -214,11 +233,11 @@ public class MockupTest extends MockupBaseTest {
     DesignSurface mockSurface = mock(DesignSurface.class);
     when(mockSurface.getScale()).thenReturn(1.0);
     final ScreenView screenView = new ScreenView(mockSurface, ScreenView.ScreenViewType.BLUEPRINT, model);
-    final Rectangle componentSwingCoordinates = new Rectangle(Coordinates.getSwingX(screenView, component.x),
-                                             Coordinates.getSwingY(screenView, component.y),
-                                             Coordinates.getSwingDimension(screenView, component.w),
-                                             Coordinates.getSwingDimension(screenView, component.h));
-    final Rectangle destinationRectangle = mockup.getBounds(screenView, componentSwingCoordinates);
+    final Rectangle componentSwingCoordinates = new Rectangle(0, 0,
+                                                              Coordinates.getSwingDimension(screenView, 1000),
+                                                              // See createModel for the 1000 value
+                                                              Coordinates.getSwingDimension(screenView, 1000));
+    final Rectangle destinationRectangle = mockup.getSwingBounds(screenView);
     assertEquals(componentSwingCoordinates, destinationRectangle);
   }
 
@@ -232,7 +251,7 @@ public class MockupTest extends MockupBaseTest {
     when(mockSurface.getScale()).thenReturn(1.0);
     final ScreenView screenView = new ScreenView(mockSurface, ScreenView.ScreenViewType.BLUEPRINT, model);
     final Dimension size = screenView.getPreferredSize();
-    final Rectangle destinationRectangle = mockup.getBounds(screenView, new Rectangle(0, 20, 100, 100));
+    final Rectangle destinationRectangle = mockup.getSwingBounds(screenView);
     assertEquals(new Rectangle(0, 0, size.width, size.height), destinationRectangle);
   }
 }

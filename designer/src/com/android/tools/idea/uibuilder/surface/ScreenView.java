@@ -38,7 +38,7 @@ public class ScreenView {
   private final DesignSurface mySurface;
   private ScreenViewType myType;
   private final NlModel myModel;
-
+  
   public enum ScreenViewType { NORMAL, BLUEPRINT }
 
   @SwingCoordinate private int x;
