@@ -19,6 +19,7 @@ import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.model.ModelListener;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -34,6 +35,7 @@ public class MockupLayer extends Layer {
 
   private final ScreenView myScreenView;
   private Dimension myScreenViewSize = new Dimension();
+  @Nullable private NlModel myNlModel;
   private List<Mockup> myMockups;
 
   public MockupLayer(ScreenView screenView) {
@@ -41,26 +43,28 @@ public class MockupLayer extends Layer {
     myScreenView = screenView;
     myScreenViewSize = myScreenView.getSize(myScreenViewSize);
     setNlModel(myScreenView.getModel());
+    myMockups = Mockup.createAll(myNlModel);
   }
 
-  public void setNlModel(NlModel nlModel) {
-    myMockups = Mockup.createAll(nlModel);
-    nlModel.addListener(new ModelListener() {
-      @Override
-      public void modelChanged(@NotNull NlModel model) {
-        setNlModel(model);
-      }
+  public void setNlModel(@Nullable NlModel nlModel) {
+    if (nlModel != null && nlModel != myNlModel) {
+      nlModel.addListener(new ModelListener() {
+        @Override
+        public void modelChanged(@NotNull NlModel model) {
+          myMockups = Mockup.createAll(myNlModel);
+        }
 
-      @Override
-      public void modelRendered(@NotNull NlModel model) {
-      }
-    });
+        @Override
+        public void modelRendered(@NotNull NlModel model) {
+        }
+      });
+    }
+    myNlModel = nlModel;
   }
 
   @Override
   public void paint(@NotNull Graphics2D g) {
-    if (!myScreenView.getSurface().isMockupVisible()
-        || myMockups.isEmpty()) {
+    if (!myScreenView.getSurface().isMockupVisible() || myMockups.isEmpty()) {
       return;
     }
     final Composite composite = g.getComposite();
@@ -85,8 +89,6 @@ public class MockupLayer extends Layer {
                   dest.x, dest.y, dest.x + dest.width, dest.y + dest.height,
                   src.x, src.y, src.x + src.width, src.y + src.height,
                   null);
-
-
     }
   }
 }
