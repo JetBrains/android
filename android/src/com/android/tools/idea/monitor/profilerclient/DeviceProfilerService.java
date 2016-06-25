@@ -53,7 +53,13 @@ public class DeviceProfilerService {
   private DeviceProfilerService(@NotNull IDevice device, int port) {
     myDevice = device;
     myPort = port;
+
+    // Stash the currently set context class loader so ManagedChannelProvider can find an appropriate implementation.
+    ClassLoader stashedContextClassLoader = Thread.currentThread().getContextClassLoader();
+    Thread.currentThread().setContextClassLoader(ManagedChannelBuilder.class.getClassLoader());
     myChannel = ManagedChannelBuilder.forAddress("localhost", myPort).usePlaintext(true).build();
+    Thread.currentThread().setContextClassLoader(stashedContextClassLoader);
+
     myDeviceService = DeviceServiceGrpc.newBlockingStub(myChannel);
     myMemoryService = MemoryServiceGrpc.newBlockingStub(myChannel);
     myCpuService = CpuProfilerServiceGrpc.newBlockingStub(myChannel);
