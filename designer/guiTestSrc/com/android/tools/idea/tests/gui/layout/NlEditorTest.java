@@ -20,7 +20,8 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.layout.*;
+import com.android.tools.idea.tests.gui.framework.fixture.layout.NlComponentFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.layout.NlEditorFixture;
 import com.android.tools.idea.uibuilder.editor.NlEditor;
 import org.junit.Rule;
 import org.junit.Test;
@@ -28,6 +29,7 @@ import org.junit.runner.RunWith;
 
 import java.util.Collections;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertNotNull;
 
 /**
@@ -57,5 +59,35 @@ public class NlEditorTest {
 
     // It should be selected now
     layout.requireSelection(Collections.singletonList(textView));
+  }
+
+  /**
+   * Verifies addition of components to designer screen
+   * <p>This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>TR ID: C14578816
+   * <pre>
+   *   1. Create a new project
+   *   2. Open the layout xml file
+   *   3. Switch to design view
+   *   4. Drag and drop components TextView, Button
+   *   5. Switch back to Text view
+   *   Verification:
+   *   1. The added component shows up in the xml
+   * </pre>
+   */
+  @Test
+  public void basicLayoutEdit() throws Exception {
+    guiTest.importSimpleApplication()
+      .getEditor()
+      .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)
+      .getLayoutEditor(false)
+      .dragComponentToSurface("Widgets/TextView")
+      .dragComponentToSurface("Widgets/Button");
+    String layoutFileContents = guiTest.ideFrame()
+      .getEditor()
+      .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
+      .getCurrentFileContents();
+    assertThat(layoutFileContents).contains("<TextView");
+    assertThat(layoutFileContents).contains("<Button");
   }
 }
