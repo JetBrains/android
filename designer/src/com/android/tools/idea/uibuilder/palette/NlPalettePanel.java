@@ -119,6 +119,7 @@ public class NlPalettePanel extends JPanel
 
   public NlPalettePanel(@NotNull Project project, @Nullable DesignSurface designSurface) {
     myPaletteTree = new PaletteTree();
+    myPaletteTree.setName("Palette Tree");
     myIconFactory = IconPreviewFactory.get();
     myModel = NlPaletteModel.get(project);
     myMissingLibraries = new HashSet<>();
