@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.monitor.ui.network.view;
 
+import com.android.tools.adtui.AccordionLayout;
 import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.Range;
 import com.android.tools.idea.monitor.ui.network.model.NetworkDataPoller;
@@ -27,7 +28,12 @@ import com.intellij.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
+
 public final class NetworkProfilerUiManager extends BaseProfilerUiManager {
+  public static final int NETWORK_CONNECTIVITY_HEIGHT = 40;
+
+  private NetworkRadioSegment myRadioSegment;
 
   public NetworkProfilerUiManager(@NotNull Range xRange, @NotNull Choreographer choreographer,
                                   @NotNull SeriesDataStore dataStore, @NotNull EventDispatcher<ProfilerEventListener> eventDispatcher) {
@@ -46,5 +52,22 @@ public final class NetworkProfilerUiManager extends BaseProfilerUiManager {
                                               @NotNull SeriesDataStore dataStore,
                                               @NotNull EventDispatcher<ProfilerEventListener> eventDispatcher) {
     return new NetworkSegment(xRange, dataStore, eventDispatcher);
+  }
+
+  @Override
+  public void setupExtendedOverviewUi(@NotNull JPanel overviewPanel) {
+    super.setupExtendedOverviewUi(overviewPanel);
+    myRadioSegment = new NetworkRadioSegment(myXRange, myDataStore, myEventDispatcher);
+    setupAndRegisterSegment(myRadioSegment, NETWORK_CONNECTIVITY_HEIGHT, NETWORK_CONNECTIVITY_HEIGHT, NETWORK_CONNECTIVITY_HEIGHT);
+    overviewPanel.add(myRadioSegment);
+    setSegmentState(overviewPanel, myRadioSegment, AccordionLayout.AccordionState.MAXIMIZE);
+  }
+
+  @Override
+  public void resetProfiler(@NotNull JPanel overviewPanel, @NotNull JPanel detailPanel) {
+    super.resetProfiler(overviewPanel, detailPanel);
+
+    // TODO: un-register segments from choreographer
+    overviewPanel.remove(myRadioSegment);
   }
 }

@@ -15,16 +15,16 @@
  */
 package com.android.tools.idea.monitor.ui.network.model;
 
-import com.android.tools.idea.monitor.datastore.LongDataAdapter;
-import com.android.tools.idea.monitor.datastore.Poller;
-import com.android.tools.idea.monitor.datastore.SeriesDataStore;
-import com.android.tools.idea.monitor.datastore.SeriesDataType;
+import com.android.tools.idea.monitor.datastore.*;
+import com.android.tools.idea.monitor.ui.network.view.NetworkRadioSegment;
 import com.android.tools.profiler.proto.*;
 import gnu.trove.TLongArrayList;
 import io.grpc.StatusRuntimeException;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -46,6 +46,12 @@ public class NetworkDataPoller extends Poller {
 
   private final TLongArrayList myConnectionsData = new TLongArrayList();
 
+  private final TLongArrayList myConnectivityTimeData = new TLongArrayList();
+
+  private final List<NetworkRadioSegment.RadioState> myRadioData = new ArrayList<>();
+
+  private final List<NetworkRadioSegment.NetworkType> myNetworkTypeData = new ArrayList<>();
+
   private final Map<NetworkProfiler.NetworkDataRequest.NetworkDataType, Long> myLatestTimestamps = new EnumMap<>(
     NetworkProfiler.NetworkDataRequest.NetworkDataType.class);
 
@@ -56,11 +62,17 @@ public class NetworkDataPoller extends Poller {
   public NetworkDataPoller(@NotNull SeriesDataStore dataStore, int pid) {
     super(dataStore, POLLING_DELAY_NS);
     myPid = pid;
+    registerAdapters();
+  }
 
-    dataStore.registerAdapter(SeriesDataType.NETWORK_RECEIVED, new LongDataAdapter(myTrafficTimeData, myReceivedData));
-    dataStore.registerAdapter(SeriesDataType.NETWORK_SENT, new LongDataAdapter(myTrafficTimeData, mySentData));
+  private void registerAdapters() {
+    myDataStore.registerAdapter(SeriesDataType.NETWORK_RECEIVED, new LongDataAdapter(myTrafficTimeData, myReceivedData));
+    myDataStore.registerAdapter(SeriesDataType.NETWORK_SENT, new LongDataAdapter(myTrafficTimeData, mySentData));
 
-    dataStore.registerAdapter(SeriesDataType.NETWORK_CONNECTIONS, new LongDataAdapter(myConnectionsTimeData, myConnectionsData));
+    myDataStore.registerAdapter(SeriesDataType.NETWORK_CONNECTIONS, new LongDataAdapter(myConnectionsTimeData, myConnectionsData));
+
+    myDataStore.registerAdapter(SeriesDataType.NETWORK_RADIO, new DataAdapterImpl<>(myConnectivityTimeData, myRadioData));
+    myDataStore.registerAdapter(SeriesDataType.NETWORK_TYPE, new DataAdapterImpl<>(myConnectivityTimeData, myNetworkTypeData));
   }
 
   private void requestData(NetworkProfiler.NetworkDataRequest.NetworkDataType dataType) {
@@ -91,6 +103,36 @@ public class NetworkDataPoller extends Poller {
         myConnectionsTimeData.add(timestamp);
         myConnectionsData.add(data.getConnectionData().getConnectionNumber());
       }
+      else if (dataType == NetworkProfiler.NetworkDataRequest.NetworkDataType.CONNECTIVITY) {
+        myConnectivityTimeData.add(timestamp);
+        // TODO: consider using RadioState enum from proto
+        switch (data.getConnectivityData().getRadioState()) {
+          case ACTIVE:
+            myRadioData.add(NetworkRadioSegment.RadioState.ACTIVE);
+            break;
+          case IDLE:
+            myRadioData.add(NetworkRadioSegment.RadioState.IDLE);
+            break;
+          case SLEEPING:
+            myRadioData.add(NetworkRadioSegment.RadioState.SLEEPING);
+            break;
+          default:
+            myRadioData.add(NetworkRadioSegment.RadioState.NONE);
+        }
+
+        // data.getConnectivityData().getDefaultNetworkType() returns int instead of enum
+        // TODO: getDefaultNetworkType could return enum
+        switch (data.getConnectivityData().getDefaultNetworkType()) {
+          case 0:
+            myNetworkTypeData.add(NetworkRadioSegment.NetworkType.MOBILE);
+            break;
+          case 1:
+            myNetworkTypeData.add(NetworkRadioSegment.NetworkType.WIFI);
+            break;
+          default:
+            myNetworkTypeData.add(NetworkRadioSegment.NetworkType.NONE);
+        }
+      }
 
       latestTimestamp = Math.max(latestTimestamp, data.getBasicInfo().getEndTimestamp() + 1);
     }
@@ -108,6 +150,7 @@ public class NetworkDataPoller extends Poller {
   protected void poll() {
     requestData(NetworkProfiler.NetworkDataRequest.NetworkDataType.TRAFFIC);
     requestData(NetworkProfiler.NetworkDataRequest.NetworkDataType.CONNECTIONS);
+    requestData(NetworkProfiler.NetworkDataRequest.NetworkDataType.CONNECTIVITY);
   }
 
   @Override
