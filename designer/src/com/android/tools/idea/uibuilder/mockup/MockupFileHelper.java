@@ -28,6 +28,7 @@ import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.containers.WeakHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,6 +50,8 @@ public class MockupFileHelper {
   public static final Set<String> VALID_EXTENSION = new HashSet<>(Arrays.asList("psd", "png", "jpg"));
   public static final Logger LOGGER = Logger.getInstance(MockupFileHelper.class);
 
+  private static final WeakHashMap<String, Image> IMAGE_CACHE = new WeakHashMap<>();
+
   @Nullable
   public static Image openImageFile(String path) {
     Image image = null;
@@ -56,8 +59,14 @@ public class MockupFileHelper {
     if (!file.exists()) {
       return null;
     }
+
+    if(IMAGE_CACHE.containsKey(path)) {
+      return IMAGE_CACHE.get(path);
+    }
+
     try (FileInputStream in = new FileInputStream(file)) {
       image = PixelProbe.probe(in);
+      IMAGE_CACHE.put(path, image);
     }
     catch (IOException e) {
       Logger.getInstance(MockupLayer.class).error(e);
