@@ -126,6 +126,12 @@ public final class SelectionComponent extends AnimatedComponent {
    */
   private ReportingSeriesRenderer mReportingContainer;
 
+  /**
+   * Store the last mouse location in case we can't get the new one from MouseInfo.getPointerInfo().
+   */
+  @NotNull
+  private Point mLastMouseLocation = new Point();
+
   @NotNull
   private final Map<ReportingSeries, Collection<ReportingSeries.ReportingData>> mReportingData;
 
@@ -203,10 +209,12 @@ public final class SelectionComponent extends AnimatedComponent {
    * The work around is to use absolute coordinates for mouse and component and subtract them.
    */
   private Point getMouseLocation() {
-    Point mLoc = MouseInfo.getPointerInfo().getLocation();
+    if (MouseInfo.getPointerInfo() != null) {
+      mLastMouseLocation = MouseInfo.getPointerInfo().getLocation();
+    }
     Point cLoc = getLocationOnScreen();
-    int x = (int)(mLoc.getX() - cLoc.getX());
-    int y = (int)(mLoc.getY() - cLoc.getY());
+    int x = (int)(mLastMouseLocation.getX() - cLoc.getX());
+    int y = (int)(mLastMouseLocation.getY() - cLoc.getY());
     return new Point(x, y);
   }
 
