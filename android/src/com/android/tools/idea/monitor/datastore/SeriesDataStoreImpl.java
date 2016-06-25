@@ -124,6 +124,8 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
         case CPU_THREADS:
         case NETWORK_RECEIVED:
         case NETWORK_SENT:
+        case NETWORK_RADIO:
+        case NETWORK_TYPE:
           // TODO: as we're moving the registerAdapter calls to the correspondent pollers, we can add the covered types here.
           // Once we're done with the move, we can remove this switch/case block.
           break;

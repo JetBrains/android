@@ -55,10 +55,6 @@ public class NetworkProfilerVisualTest extends VisualTest {
 
   private List<DefaultDataSeries<NetworkCaptureSegment.NetworkState>> mCaptureData;
 
-  private DefaultDataSeries<NetworkRadioSegment.RadioState> mRadioStateData;
-
-  private DefaultDataSeries<NetworkRadioSegment.NetworkType> mNetworkTypeData;
-
   private Thread mSimulateTestDataThread;
 
   private NetworkDetailedView mDetailedView;
@@ -109,10 +105,7 @@ public class NetworkProfilerVisualTest extends VisualTest {
       mDetailedView.setVisible(true);
     }, dummyDispatcher);
 
-    mRadioStateData = new DefaultDataSeries<>();
-    mNetworkTypeData = new DefaultDataSeries<>();
-
-    mRadioSegment = new NetworkRadioSegment(timeRange, dummyDispatcher);
+    mRadioSegment = new NetworkRadioSegment(timeRange, mDataStore, dummyDispatcher);
 
     List<Animatable> animatables = new ArrayList<>();
     animatables.add(animatedTimeRange);
@@ -120,8 +113,6 @@ public class NetworkProfilerVisualTest extends VisualTest {
     mCaptureSegment.createComponentsList(animatables);
     mRadioSegment.createComponentsList(animatables);
 
-    mRadioSegment.addRadioStateSeries(new RangedSeries<>(timeRange, mRadioStateData));
-    mRadioSegment.addNetworkTypeStateSeries(new RangedSeries<>(timeRange, mNetworkTypeData));
     return animatables;
   }
 
@@ -170,9 +161,6 @@ public class NetworkProfilerVisualTest extends VisualTest {
       public void run() {
         try {
           Random rnd = new Random();
-          NetworkRadioSegment.RadioState[] radioStates = NetworkRadioSegment.RadioState.values();
-          NetworkRadioSegment.NetworkType[] networkTypes = NetworkRadioSegment.NetworkType.values();
-
           while (true) {
             //  Insert new data point at now.
             long now = System.currentTimeMillis() - mStartTimeMs;
@@ -182,9 +170,6 @@ public class NetworkProfilerVisualTest extends VisualTest {
               int index = rnd.nextInt(10);
               series.add(now, (index < states.length) ? states[index] : NetworkCaptureSegment.NetworkState.NONE);
             }
-            int index = rnd.nextInt(10);
-            mRadioStateData.add(now, (index < radioStates.length) ? radioStates[index] : NetworkRadioSegment.RadioState.NONE);
-            mNetworkTypeData.add(now, networkTypes[rnd.nextInt(networkTypes.length)]);
             Thread.sleep(1000);
           }
         }

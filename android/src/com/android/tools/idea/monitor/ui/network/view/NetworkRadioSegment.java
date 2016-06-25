@@ -22,6 +22,9 @@ import com.android.tools.adtui.chart.StateChart;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.LegendRenderData;
 import com.android.tools.adtui.model.RangedSeries;
+import com.android.tools.idea.monitor.datastore.DataStoreSeries;
+import com.android.tools.idea.monitor.datastore.SeriesDataStore;
+import com.android.tools.idea.monitor.datastore.SeriesDataType;
 import com.android.tools.idea.monitor.ui.BaseSegment;
 import com.android.tools.idea.monitor.ui.ProfilerEventListener;
 import com.intellij.ui.JBColor;
@@ -42,16 +45,17 @@ public class NetworkRadioSegment extends BaseSegment {
 
   public enum RadioState {
     NONE,
-    FULL,
-    LOW,
-    IDLE
+    ACTIVE,
+    IDLE,
+    SLEEPING,
   }
 
   public enum NetworkType {
+    NONE,
     WIFI,
     MOBILE
   }
-  
+
   private static final String SEGMENT_NAME = "Radio";
 
   private LegendComponent mLegendComponent;
@@ -60,17 +64,21 @@ public class NetworkRadioSegment extends BaseSegment {
 
   private StateChart<NetworkType> mNetworkTypeChart;
 
+  private SeriesDataStore mDataStore;
+
   public NetworkRadioSegment(@NotNull Range sharedRange,
+                             @NotNull SeriesDataStore dataStore,
                              @NotNull EventDispatcher<ProfilerEventListener> dispatcher) {
     super(SEGMENT_NAME, sharedRange, dispatcher);
+    mDataStore = dataStore;
   }
 
   // TODO change it to use the proper colors
   private static EnumMap<RadioState, Color> getRadioStateColor() {
     EnumMap<RadioState, Color> colors = new EnumMap<>(RadioState.class);
     colors.put(RadioState.NONE, AdtUiUtils.DEFAULT_BACKGROUND_COLOR);
-    colors.put(RadioState.FULL, JBColor.BLUE.darker());
-    colors.put(RadioState.LOW, JBColor.BLUE);
+    colors.put(RadioState.ACTIVE, JBColor.BLUE.darker());
+    colors.put(RadioState.SLEEPING, JBColor.BLUE);
     colors.put(RadioState.IDLE, JBColor.BLUE.brighter());
     return colors;
   }
@@ -78,14 +86,15 @@ public class NetworkRadioSegment extends BaseSegment {
   private static EnumMap<RadioState, String> getRadioStateLabel() {
     EnumMap<RadioState, String> labels = new EnumMap<>(RadioState.class);
     labels.put(RadioState.NONE, "Radio None");
-    labels.put(RadioState.FULL, "Radio Full");
-    labels.put(RadioState.LOW, "Radio Low");
+    labels.put(RadioState.ACTIVE, "Radio Full");
+    labels.put(RadioState.SLEEPING, "Radio Low");
     labels.put(RadioState.IDLE, "Radio Idle");
     return labels;
   }
 
   private static EnumMap<NetworkType, Color> getNetworkTypeColor() {
     EnumMap<NetworkType, Color> colors = new EnumMap<>(NetworkType.class);
+    colors.put(NetworkType.NONE, JBColor.BLACK);
     colors.put(NetworkType.MOBILE, JBColor.BLACK);
     colors.put(NetworkType.WIFI, JBColor.BLACK);
     return colors;
@@ -97,8 +106,10 @@ public class NetworkRadioSegment extends BaseSegment {
     EnumMap<RadioState, Color> colorsMap = getRadioStateColor();
     EnumMap<RadioState, String> labelsMap = getRadioStateLabel();
     mRadioChart = new StateChart(colorsMap);
+    mRadioChart.addSeries(new RangedSeries<>(mXRange, new DataStoreSeries<>(mDataStore, SeriesDataType.NETWORK_RADIO)));
     mNetworkTypeChart = new StateChart<>(getNetworkTypeColor());
     mNetworkTypeChart.setRenderMode(StateChart.RenderMode.TEXT);
+    mNetworkTypeChart.addSeries(new RangedSeries<>(mXRange, new DataStoreSeries<>(mDataStore, SeriesDataType.NETWORK_TYPE)));
 
     List<LegendRenderData> legendRenderDataList = new ArrayList<>();
     for (RadioState state : RadioState.values()) {
@@ -133,13 +144,5 @@ public class NetworkRadioSegment extends BaseSegment {
     panel.add(mNetworkTypeChart, gbc);
     gbc.gridy = 1;
     panel.add(mRadioChart, gbc);
-  }
-
-  public void addRadioStateSeries(RangedSeries<RadioState> series) {
-    mRadioChart.addSeries(series);
-  }
-
-  public void addNetworkTypeStateSeries(RangedSeries<NetworkType> series) {
-    mNetworkTypeChart.addSeries(series);
   }
 }

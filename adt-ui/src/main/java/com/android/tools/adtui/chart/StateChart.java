@@ -136,11 +136,12 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
 
         float startHeight = 1 - (height * (seriesIndex + 1));
 
-        if (i > 0) {
+        // Don't draw if this block doesn't intersect with [min..max]
+        if (i > 0 && x >= min) {
           // Draw the previous block.
           setRectangleAndValueData(rectCount,
-                                   previousX,
-                                   x,
+                                   Math.max(min, previousX),
+                                   Math.min(max, x),
                                    min,
                                    max,
                                    previousValue,
@@ -160,7 +161,7 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
         else if (i == size - 1) {
           // Reached the end, assumes the last data point continues till max.
           setRectangleAndValueData(rectCount,
-                                   previousX,
+                                   Math.max(min, previousX),
                                    max,
                                    min,
                                    max,

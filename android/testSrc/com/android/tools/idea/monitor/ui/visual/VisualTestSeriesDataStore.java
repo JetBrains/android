@@ -23,10 +23,8 @@ import com.android.tools.idea.monitor.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.datastore.SeriesDataType;
 import com.android.tools.idea.monitor.profilerclient.DeviceProfilerService;
 import com.android.tools.idea.monitor.ui.ProfilerEventListener;
-import com.android.tools.idea.monitor.ui.visual.data.LongTestDataGenerator;
-import com.android.tools.idea.monitor.ui.visual.data.MemoryTestDataGenerator;
-import com.android.tools.idea.monitor.ui.visual.data.SimpleEventTestDataGenerator;
-import com.android.tools.idea.monitor.ui.visual.data.StackedEventTestDataGenerator;
+import com.android.tools.idea.monitor.ui.network.view.NetworkRadioSegment;
+import com.android.tools.idea.monitor.ui.visual.data.*;
 import com.intellij.util.EventDispatcher;
 
 import java.util.HashMap;
@@ -123,6 +121,12 @@ public final class VisualTestSeriesDataStore implements SeriesDataStore {
           break;
         case EVENT_SIMPLE_ACTION:
           registerAdapter(type, new SimpleEventTestDataGenerator());
+          break;
+        case NETWORK_RADIO:
+          registerAdapter(type, new EnumTestDataGenerator<>(NetworkRadioSegment.RadioState.class));
+          break;
+        case NETWORK_TYPE:
+          registerAdapter(type, new EnumTestDataGenerator<>(NetworkRadioSegment.NetworkType.class));
           break;
         default:
           registerAdapter(type, new LongTestDataGenerator(-20, 100, true));
