@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.monitor.ui.memory.model;
 
+import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.idea.monitor.datastore.DataAdapter;
 import com.android.tools.idea.monitor.datastore.Poller;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
-import com.android.tools.adtui.model.SeriesData;
-import com.android.tools.idea.monitor.datastore.*;
+import com.android.tools.idea.monitor.datastore.SeriesDataType;
 import com.android.tools.profiler.proto.MemoryProfilerService;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.containers.HashMap;
@@ -34,13 +35,11 @@ public class MemoryPoller extends Poller {
   private static final long POLL_PERIOD_NS = TimeUnit.MILLISECONDS.toNanos(250);
 
   @NotNull private final MemoryDataCache myDataCache;
-  private long myDeviceTimeOffset;
   private long myStartTimestamp;
   final private int myAppId;
 
   public MemoryPoller(@NotNull SeriesDataStore dataStore, @NotNull MemoryDataCache dataCache, int appId) {
     super(dataStore, POLL_PERIOD_NS);
-    myDeviceTimeOffset = dataStore.getDeviceTimeOffsetNs();
     myDataCache = dataCache;
     myAppId = appId;
   }
@@ -124,17 +123,15 @@ public class MemoryPoller extends Poller {
   }
 
   public abstract class MemorySampleAdapter<T> implements DataAdapter<T> {
-    long myStartTimeMs;
 
     @Override
     public int getClosestTimeIndex(long time) {
-      return myDataCache.getLatestPriorMemorySampleIndex(TimeUnit.NANOSECONDS.convert(time, TimeUnit.MILLISECONDS) + myDeviceTimeOffset);
+      return myDataCache.getLatestPriorMemorySampleIndex(TimeUnit.NANOSECONDS.convert(time, TimeUnit.MILLISECONDS));
     }
 
     @Override
-    public void reset(long startTime) {
+    public void reset(long deviceStartTimeMs, long studioStartTimeMs) {
       myDataCache.reset();
-      myStartTimeMs = startTime;
     }
 
     @Override
@@ -145,7 +142,7 @@ public class MemoryPoller extends Poller {
     @Override
     public SeriesData<T> get(int index) {
       MemoryProfilerService.MemoryData.MemorySample sample = myDataCache.getMemorySample(index);
-      return new SeriesData<>(TimeUnit.NANOSECONDS.toMillis(sample.getTimestamp() - myDeviceTimeOffset), getSampleValue(sample));
+      return new SeriesData<>(TimeUnit.NANOSECONDS.toMillis(sample.getTimestamp()), getSampleValue(sample));
     }
 
     public abstract T getSampleValue(MemoryProfilerService.MemoryData.MemorySample sample);

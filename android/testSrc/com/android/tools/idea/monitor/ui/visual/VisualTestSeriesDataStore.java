@@ -61,14 +61,13 @@ public final class VisualTestSeriesDataStore implements SeriesDataStore {
   public void reset() {
     mStartTime = System.currentTimeMillis();
     for (DataAdapter<?> adapter : myDataSeriesMap.values()) {
-      adapter.reset(mStartTime);
+      adapter.reset(mStartTime, mStartTime);
     }
   }
 
   @Override
   public long getLatestTime() {
-    long now = System.currentTimeMillis();
-    return now - mStartTime;
+    return System.currentTimeMillis() - mStartTime;
   }
 
   @Override
@@ -93,12 +92,7 @@ public final class VisualTestSeriesDataStore implements SeriesDataStore {
   @Override
   public void registerAdapter(SeriesDataType type, DataAdapter adapter) {
     myDataSeriesMap.put(type, adapter);
-    adapter.reset(mStartTime);
-  }
-
-  @Override
-  public long getDeviceTimeOffsetNs() {
-    return 0;
+    adapter.reset(mStartTime, mStartTime);
   }
 
   private void startGeneratingData() {

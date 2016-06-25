@@ -31,7 +31,7 @@ public class MemoryTestDataGenerator extends TestDataGenerator<Long> {
 
   @Override
   public SeriesData<Long> get(int index) {
-    return new SeriesData<>(mTime.get(index) - mStartTime, mData.get(index));
+    return new SeriesData<>(mTime.get(index) - mStartTimeMs, mData.get(index));
   }
 
   @Override

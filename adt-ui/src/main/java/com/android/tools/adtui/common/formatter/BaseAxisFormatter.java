@@ -32,6 +32,8 @@ public abstract class BaseAxisFormatter {
 
   private final int mSwitchThreshold;
 
+  private double mOrigin;
+
   /**
    * @param maxMinorTicks   The maximum number of minor ticks in a major interval. Note that this
    *                        should be greater than zero.
@@ -51,6 +53,19 @@ public abstract class BaseAxisFormatter {
   }
 
   /**
+   * An offset that is used to transform the input value in {@link #getFormattedString(double, double)}.
+   * TODO this is currently used for the time axis to convert device time into UI relative time, so that the "begin profiler" device
+   *      timestamp appears as 0 sec in the UI. Consider moving this offset directly into the AxisComponent instead.
+   */
+  public void setOrigin(double origin) {
+    mOrigin = origin;
+  }
+
+  protected double getOrigin() {
+    return mOrigin;
+  }
+
+  /**
    * @param globalRange The global range of the axis.
    * @param value       The value to display.
    * @return A nicely formatted string to display as the tick label.
@@ -59,7 +74,7 @@ public abstract class BaseAxisFormatter {
   public String getFormattedString(double globalRange, double value) {
     int index = getMultiplierIndex(globalRange, 1);
     String unit = getUnit(index);
-    return String.format("%.2f%s", (float)value / mMultiplier, unit);
+    return String.format("%.2f%s", (float)(value - getOrigin()) / mMultiplier, unit);
   }
 
   /**

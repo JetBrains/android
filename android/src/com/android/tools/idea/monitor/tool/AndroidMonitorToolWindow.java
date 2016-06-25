@@ -137,14 +137,16 @@ public class AndroidMonitorToolWindow implements Disposable {
   }
 
   private List<Animatable> createCommonAnimatables() {
-    Range xGlobalRange = new Range(-RangeScrollbar.DEFAULT_VIEW_LENGTH_MS, 0);
+    final long deviceStartTimeMs = myDataStore.getLatestTime();
+    Range xGlobalRange = new Range(deviceStartTimeMs - RangeScrollbar.DEFAULT_VIEW_LENGTH_MS, deviceStartTimeMs);
     Range xSelectionRange = new Range();
     myXRange = new Range();
 
     myScrollbar = new RangeScrollbar(xGlobalRange, myXRange);
 
-    myTimeAxis = new AxisComponent(myXRange, xGlobalRange, "TIME", AxisComponent.AxisOrientation.BOTTOM, 0, 0, false,
-                                   TimeAxisFormatter.DEFAULT);
+    TimeAxisFormatter timeFormatter = new TimeAxisFormatter(5, 10, 5);
+    timeFormatter.setOrigin(deviceStartTimeMs);
+    myTimeAxis = new AxisComponent(myXRange, xGlobalRange, "TIME", AxisComponent.AxisOrientation.BOTTOM, 0, 0, false, timeFormatter);
     myTimeAxis.setLabelVisible(false);
 
     myDetailedViewContainer = new JBPanel();
@@ -161,7 +163,7 @@ public class AndroidMonitorToolWindow implements Disposable {
                            long currentTime = myDataStore.getLatestTime();
                            // Once elapsedTime is greater than DEFAULT_VIEW_LENGTH_MS, set global min to 0 so that user can
                            // not scroll back to negative time.
-                           xGlobalRange.setMinTarget(Math.min(currentTime - RangeScrollbar.DEFAULT_VIEW_LENGTH_MS, 0));
+                           xGlobalRange.setMinTarget(Math.min(currentTime - RangeScrollbar.DEFAULT_VIEW_LENGTH_MS, deviceStartTimeMs));
                            // Updates the global range's max to match the device's current time.
                            xGlobalRange.setMaxTarget(currentTime);
                          },
