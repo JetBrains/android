@@ -19,11 +19,8 @@ import com.android.tools.adtui.SimpleEventComponent;
 import com.android.tools.adtui.model.EventAction;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.idea.monitor.ui.events.view.EventSegment;
-import gnu.trove.TLongArrayList;
 
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
 
 public class SimpleEventTestDataGenerator
   extends TestDataGenerator<EventAction<SimpleEventComponent.Action, EventSegment.EventActionType>> {
@@ -32,7 +29,7 @@ public class SimpleEventTestDataGenerator
 
   @Override
   public SeriesData<EventAction<SimpleEventComponent.Action, EventSegment.EventActionType>> get(int index) {
-    return new SeriesData<>(mTime.get(index) - mStartTime, mData.get(index));
+    return new SeriesData<>(mTime.get(index) - mStartTimeMs, mData.get(index));
   }
 
   @Override
@@ -44,16 +41,16 @@ public class SimpleEventTestDataGenerator
   @Override
   public void generateData() {
     boolean downAction = true;
-    long currentTime = System.currentTimeMillis() - mStartTime;
+    long currentTime = System.currentTimeMillis() - mStartTimeMs;
     long endTime = 0;
-    if (mStartTime != 0 && Math.random() > 0.5) {
+    if (mStartTimeMs != 0 && Math.random() > 0.5) {
       mTime.add(System.currentTimeMillis());
       if (mData.size() > 0) {
         EventAction<SimpleEventComponent.Action, EventSegment.EventActionType> lastAction = mData.get(mData.size() - 1);
         // If our last action was a down action, our next action should be an up action.
         if (lastAction.getValue() == SimpleEventComponent.Action.DOWN) {
           downAction = false;
-          endTime = System.currentTimeMillis() - mStartTime;
+          endTime = System.currentTimeMillis() - mStartTimeMs;
           currentTime = lastAction.getStart();
         }
       }

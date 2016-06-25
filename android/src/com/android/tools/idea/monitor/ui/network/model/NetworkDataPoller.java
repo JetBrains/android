@@ -79,7 +79,7 @@ public class NetworkDataPoller extends Poller {
 
     for (NetworkProfiler.NetworkProfilerData data : response.getDataList()) {
       // Timestamp in ui/studio represented in milliseconds and pulled from a device in nanoseconds
-      long timestamp = TimeUnit.NANOSECONDS.toMillis(data.getBasicInfo().getEndTimestamp() - myDeviceTimeOffsetNs);
+      long timestamp = TimeUnit.NANOSECONDS.toMillis(data.getBasicInfo().getEndTimestamp());
 
       if (dataType == NetworkProfiler.NetworkDataRequest.NetworkDataType.TRAFFIC) {
         // Traffics in ui/studio represented in kb and pulled from a device in bytes

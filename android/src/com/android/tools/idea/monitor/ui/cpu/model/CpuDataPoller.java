@@ -158,7 +158,7 @@ public class CpuDataPoller extends Poller {
           // TODO: Add support to threads state chart.
         }
       }
-      long dataTimestamp = TimeUnit.NANOSECONDS.toMillis(data.getBasicInfo().getEndTimestamp() - myDeviceTimeOffsetNs);
+      long dataTimestamp = TimeUnit.NANOSECONDS.toMillis(data.getBasicInfo().getEndTimestamp());
       myTimestampArray.add(dataTimestamp);
       myNumberOfThreadsList.add(myThreadsStateData.size());
     }
