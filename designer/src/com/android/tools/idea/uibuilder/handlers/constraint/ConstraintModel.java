@@ -67,7 +67,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
   private Selection mySelection = new Selection(null);
   private static boolean ourAutoConnect;
   static {
-    ourAutoConnect = PropertiesComponent.getInstance().getBoolean(ConstraintLayoutHandler.AUTO_CONNECT_PREF_KEY, true);
+    ourAutoConnect = PropertiesComponent.getInstance().getBoolean(ConstraintLayoutHandler.AUTO_CONNECT_PREF_KEY, false);
   }
 
   private float myDpiFactor;
