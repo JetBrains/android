@@ -931,10 +931,18 @@ public class DataBindingUtil {
   /**
    * The light field representing elements of BR class
    */
-  static class LightBRField extends LightField {
+  static class LightBRField extends LightField implements ModificationTracker {
 
     public LightBRField(@NotNull PsiManager manager, @NotNull PsiField field, @NotNull PsiClass containingClass) {
       super(manager, field, containingClass);
+    }
+
+    @Override
+    public long getModificationCount() {
+      // See http://b.android.com/212766
+      // The field can't change; it's computed on the fly.
+      // Needed by the LightBrClass field cache.
+      return 0;
     }
   }
 
