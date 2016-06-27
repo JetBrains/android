@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import com.android.annotations.Nullable;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.resources.configuration.*;
 import com.android.resources.ResourceType;
@@ -29,22 +28,24 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.res.ProjectResourceRepository;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
-import com.android.tools.idea.uibuilder.model.Coordinates;
-import com.android.tools.idea.uibuilder.model.ModelListener;
-import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.model.SwingCoordinate;
+import com.android.tools.idea.uibuilder.model.*;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.intellij.lang.annotations.JdkConstants.InputEventMask;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.*;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+
+import static com.android.tools.idea.uibuilder.graphics.NlConstants.MAX_MATCH_DISTANCE;
 
 public class CanvasResizeInteraction extends Interaction {
   private static final double SQRT_2 = Math.sqrt(2.0);
@@ -58,6 +59,7 @@ public class CanvasResizeInteraction extends Interaction {
   private final List<DeviceLayer> myDeviceLayers = Lists.newArrayList();
   private final Device myOriginalDevice;
   private final State myOriginalDeviceState;
+  private final Map<Point, Device> myAndroidCoordinatesToDeviceMap = Maps.newHashMapWithExpectedSize(DEVICES_TO_SHOW.length);
 
   private int myCurrentX;
   private int myCurrentY;
@@ -90,8 +92,9 @@ public class CanvasResizeInteraction extends Interaction {
       assert device != null;
       Screen screen = device.getDefaultHardware().getScreen();
       double dpiRatio = currentDpi / screen.getPixelDensity().getDpiValue();
-      myDeviceLayers
-        .add(new DeviceLayer(myDesignSurface, (int)(screen.getXDimension() * dpiRatio), (int)(screen.getYDimension() * dpiRatio), name));
+      Point p = new Point((int)(screen.getXDimension() * dpiRatio), (int)(screen.getYDimension() * dpiRatio));
+      myAndroidCoordinatesToDeviceMap.put(p, device);
+      myDeviceLayers.add(new DeviceLayer(myDesignSurface, p.x, p.y, name));
     }
 
     myDeviceLayers.add(new DeviceLayer(myDesignSurface, (int)(426 * currentDpi / 160), (int)(320 * currentDpi / 160), "Small Screen"));
@@ -309,8 +312,32 @@ public class CanvasResizeInteraction extends Interaction {
       configuration.finishBulkEditing();
     }
     else {
-      updatePosition(x, y);
+      int androidX = Coordinates.getAndroidX(screenView, x);
+      int androidY = Coordinates.getAndroidY(screenView, y);
+
+      Device deviceToSnap = snapToDevice(androidX, androidY);
+      if (deviceToSnap != null) {
+        myDesignSurface.getConfiguration().setDevice(deviceToSnap, true);
+      }
+      else {
+        screenView.getModel().overrideConfigurationScreenSize(androidX, androidY);
+      }
     }
+  }
+
+  /**
+   * Returns the device to snap to when at (x, y) in Android coordinates.
+   * If there is no such device, returns null.
+   */
+  @Nullable("null if no device is close enough to snap to")
+  private Device snapToDevice(@AndroidCoordinate int x, @AndroidCoordinate int y) {
+    for (Point p : myAndroidCoordinatesToDeviceMap.keySet()) {
+      if ((Math.abs(x - p.x) < MAX_MATCH_DISTANCE && Math.abs(y - p.y) < MAX_MATCH_DISTANCE)
+          || (Math.abs(y - p.x) < MAX_MATCH_DISTANCE && Math.abs(x - p.y) < MAX_MATCH_DISTANCE)) {
+        return myAndroidCoordinatesToDeviceMap.get(p);
+      }
+    }
+    return null;
   }
 
   @Override
