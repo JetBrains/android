@@ -119,7 +119,9 @@ public class MemoryPoller extends Poller {
       return;
     }
 
-    myStartTimestamp = result.getEndTimestamp();
+    if (result.getEndTimestamp() > myStartTimestamp) {
+      myStartTimestamp = result.getEndTimestamp();
+    }
   }
 
   public abstract class MemorySampleAdapter<T> implements DataAdapter<T> {
@@ -146,5 +148,15 @@ public class MemoryPoller extends Poller {
     }
 
     public abstract T getSampleValue(MemoryProfilerService.MemoryData.MemorySample sample);
+  }
+
+  /**
+   * Triggers a heap dump grpc request
+   */
+  public void requestHeapDump() {
+    MemoryProfilerService.HeapDumpRequest.Builder builder = MemoryProfilerService.HeapDumpRequest.newBuilder();
+    builder.setAppId(myAppId);
+    builder.setRequestTime(myStartTimestamp);   // Currently not used on perfd.
+    myService.getMemoryService().triggerHeapDump(builder.build());
   }
 }
