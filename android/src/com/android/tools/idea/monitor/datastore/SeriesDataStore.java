@@ -51,24 +51,42 @@ public interface SeriesDataStore {
    *
    * @param type  The type of data being requested
    * @param range The range the list is scoped to
+   * @param target (optional) Object that can be mapped to an adapter in case there are multiple adapters of the same type registered.
    * @param <T>   The template type the raw data is formatted as.
    * @return An immutable list that acts as a view into the data found in the data store.
    */
-  <T> SeriesDataList<T> getSeriesData(SeriesDataType type, Range range);
+  <T> SeriesDataList<T> getSeriesData(SeriesDataType type, Range range, Object target);
 
   /**
    * Returns the {@link SeriesData} at a given index, used by the {@link SeriesDataList}.
    */
-  <T> SeriesData<T> getDataAt(SeriesDataType type, int index);
+  <T> SeriesData<T> getDataAt(SeriesDataType type, int index, Object target);
 
   /**
    * Returns the closest index less than or equal to the time value.
    */
-  int getClosestTimeIndex(SeriesDataType type, long timeValue);
+  int getClosestTimeIndex(SeriesDataType type, long timeValue, Object target);
 
   /**
    * Register a {@link DataAdapter} in the data store.
    * The adapter is associated with a {@link SeriesDataType} and will store data of this type.
+   * An optional parameter (target) can be set in case there are multiple adapters of the same type.
    */
-  void registerAdapter(SeriesDataType type, DataAdapter adapter);
+  void registerAdapter(SeriesDataType type, DataAdapter adapter, Object target);
+
+  default void registerAdapter(SeriesDataType type, DataAdapter adapter) {
+    registerAdapter(type, adapter, null);
+  }
+
+  default int getClosestTimeIndex(SeriesDataType type, long timeValue) {
+    return getClosestTimeIndex(type, timeValue, null);
+  }
+
+  default <T> SeriesDataList<T> getSeriesData(SeriesDataType type, Range range) {
+    return getSeriesData(type, range, null);
+  }
+
+  default <T> SeriesData<T> getDataAt(SeriesDataType type, int index) {
+    return getDataAt(type, index, null);
+  }
 }

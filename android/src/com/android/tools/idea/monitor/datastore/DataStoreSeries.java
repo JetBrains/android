@@ -20,6 +20,7 @@ import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.SeriesData;
 import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class DataStoreSeries<E> implements DataSeries<E> {
   @NotNull
@@ -28,24 +29,32 @@ public class DataStoreSeries<E> implements DataSeries<E> {
   @NotNull
   private final SeriesDataType mType;
 
-  public DataStoreSeries(@NotNull SeriesDataStore store, @NotNull SeriesDataType type) {
+  /**
+   * This target object is passed to the data store so it can know from which adapter the data should be pulled from.
+   * If it's null, the only adapter associated with the type will be used.
+   */
+  @Nullable
+  private final Object mTarget;
+
+  public DataStoreSeries(@NotNull SeriesDataStore store, @NotNull SeriesDataType type, @Nullable Object target) {
     mStore = store;
     mType = type;
+    mTarget = target;
   }
 
-  @NotNull
-  public SeriesDataType getSeriesType() {
-    return mType;
+  public DataStoreSeries(@NotNull SeriesDataStore store, @NotNull SeriesDataType type) {
+    this(store, type, null);
   }
+
 
   @Override
   public ImmutableList<SeriesData<E>> getDataForXRange(@NotNull Range xRange) {
-    return mStore.getSeriesData(mType, xRange);
+    return mStore.getSeriesData(mType, xRange, mTarget);
   }
 
   @Override
   public SeriesData<E> getDataAtXValue(long x) {
-    int index = mStore.getClosestTimeIndex(mType, x);
-    return mStore.getDataAt(mType, index);
+    int index = mStore.getClosestTimeIndex(mType, x, mTarget);
+    return mStore.getDataAt(mType, index, mTarget);
   }
 }

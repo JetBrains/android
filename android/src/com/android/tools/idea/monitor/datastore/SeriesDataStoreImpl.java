@@ -24,6 +24,7 @@ import com.intellij.util.EventDispatcher;
 import gnu.trove.TLongArrayList;
 import io.grpc.StatusRuntimeException;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.HashMap;
@@ -38,7 +39,19 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
 
   private static final DataGenerator DEFAULT_DATA_GENERATOR = new DataGenerator(0, 100, 20);
 
-  private Map<SeriesDataType, DataAdapter<?>> myDataSeriesMap = new HashMap<>();
+  /**
+   * Key to be used when no target is provided.
+   */
+  private static final Object NO_TARGET = new Object();
+
+  /**
+   * Maps a {@link SeriesDataType} with a map of Object -> {@link DataAdapter}.
+   * In case some type has only one adapter associated with it, the map will contain a single <Key, Value> pair.
+   * In this scenario, it's safe to return the first element of the Collection returned by map.values().
+   * If there are multiple adapters associated with a type, however, it's important to provide the key associated with the adapter being
+   * retrieved, as it's going to be obtained by calling map.get(key).
+   */
+  private Map<SeriesDataType, Map<Object, DataAdapter<?>>> myDataSeriesMap = new HashMap<>();
 
   private long myDeviceStartTimeMs;
 
@@ -70,17 +83,14 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
 
   @Override
   public void stop() {
-    for (DataAdapter<?> adapter : myDataSeriesMap.values()) {
-      adapter.stop();
-    }
+    myDataSeriesMap.values().forEach(adaptersMap -> adaptersMap.values().forEach(DataAdapter::stop));
   }
 
   @Override
   public void reset() {
     synchronizeStartTime();
-    for (DataAdapter<?> adapter : myDataSeriesMap.values()) {
-      adapter.reset(myDeviceStartTimeMs, myStudioOffsetTimeMs);
-    }
+    myDataSeriesMap.values().forEach(adaptersMap -> adaptersMap.values().forEach(
+      adapter -> adapter.reset(myDeviceStartTimeMs, myStudioOffsetTimeMs)));
   }
 
   @Override
@@ -89,29 +99,29 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
   }
 
   @Override
-  public int getClosestTimeIndex(SeriesDataType type, long timeValue) {
-    DataAdapter<?> adapter = myDataSeriesMap.get(type);
-    assert adapter != null;
-    return adapter.getClosestTimeIndex(timeValue);
+  public int getClosestTimeIndex(SeriesDataType type, long timeValue, @Nullable Object target) {
+    return getAdapter(type, target).getClosestTimeIndex(timeValue);
   }
 
   @Override
-  public <T> SeriesData<T> getDataAt(SeriesDataType type, int index) {
-    DataAdapter<?> adapter = myDataSeriesMap.get(type);
-    assert adapter != null;
-    return (SeriesData<T>)adapter.get(index);
+  public <T> SeriesData<T> getDataAt(SeriesDataType type, int index, @Nullable Object target) {
+    return (SeriesData<T>)getAdapter(type, target).get(index);
   }
 
   @Override
-  public <T> SeriesDataList<T> getSeriesData(SeriesDataType type, Range range) {
-    return new SeriesDataList<>(range, this, type);
+  public <T> SeriesDataList<T> getSeriesData(SeriesDataType type, Range range, @Nullable Object target) {
+    return new SeriesDataList<>(range, this, type, target);
   }
 
   //TODO change the register API to
   // registerAdapter(SeriesDataType<T> DataAdapter<T>) to ensure type safety.
   @Override
-  public void registerAdapter(SeriesDataType type, DataAdapter adapter) {
-    myDataSeriesMap.put(type, adapter);
+  public void registerAdapter(SeriesDataType type, DataAdapter adapter, Object target) {
+    if (!myDataSeriesMap.containsKey(type)) {
+      myDataSeriesMap.put(type, new HashMap<>());
+    }
+    Object key = target == null ? NO_TARGET : target;
+    myDataSeriesMap.get(type).put(key, adapter);
     adapter.reset(myDeviceStartTimeMs, myStudioOffsetTimeMs);
   }
 
@@ -122,6 +132,7 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
         case CPU_MY_PROCESS:
         case CPU_OTHER_PROCESSES:
         case CPU_THREADS:
+        case CPU_THREAD_STATE:
         case NETWORK_RECEIVED:
         case NETWORK_SENT:
         case NETWORK_RADIO:
@@ -145,6 +156,21 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
           break;
       }
     }
+  }
+
+  /**
+   * Returns an adapter of a determined type. A target object can be used in case the data store has multiple adapters of the same type.
+   * The target can be null and, in this case, the only adapter associated with the type will be returned.
+   */
+  @NotNull
+  private DataAdapter<?> getAdapter(SeriesDataType type, @Nullable Object target) {
+    if (target == null) {
+      target = NO_TARGET;
+    }
+    assert myDataSeriesMap.containsKey(type);
+    DataAdapter<?> adapter = myDataSeriesMap.get(type).get(target);
+    assert adapter != null;
+    return adapter;
   }
 
   /**

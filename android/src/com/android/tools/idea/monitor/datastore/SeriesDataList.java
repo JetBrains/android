@@ -18,10 +18,13 @@ package com.android.tools.idea.monitor.datastore;
 import com.android.tools.adtui.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.intellij.util.containers.ImmutableList;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Immutable list that all UI components get their data from. SeriesDataList are the
  * interface the UI uses to access data from the SeriesDataStore.
+ *
  * @param <E> The type of data that is suppose to be accessed from the SeriesDataStore.
  */
 public class SeriesDataList<E> extends ImmutableList<SeriesData<E>> {
@@ -34,12 +37,30 @@ public class SeriesDataList<E> extends ImmutableList<SeriesData<E>> {
 
   private int mStartIndex;
   private int mEndIndex;
+
+  @NotNull
   private SeriesDataStore mDataStore;
+
+  @NotNull
   private SeriesDataType mDataType;
 
-  public SeriesDataList(Range range, SeriesDataStore dataStore, SeriesDataType dataType) {
+  /**
+   * Target object to be used by the data store to get the correspondent adapter.
+   */
+  @Nullable
+  private Object mTarget;
+
+  public SeriesDataList(@NotNull Range range, @NotNull SeriesDataStore dataStore, @NotNull SeriesDataType dataType) {
+    this(range, dataStore, dataType, null);
+  }
+
+  public SeriesDataList(@NotNull Range range,
+                        @NotNull SeriesDataStore dataStore,
+                        @NotNull SeriesDataType dataType,
+                        @Nullable Object target) {
     mDataStore = dataStore;
     mDataType = dataType;
+    mTarget = target;
     initialize(range);
   }
 
@@ -56,12 +77,7 @@ public class SeriesDataList<E> extends ImmutableList<SeriesData<E>> {
     if (index < 0 || index >= size()) {
       throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + size());
     }
-    return mDataStore.getDataAt(mDataType, mStartIndex + index);
-  }
-
-  public int getIndexForTime(long time) {
-    int index = mDataStore.getClosestTimeIndex(mDataType, time) - mStartIndex;
-    return Math.max(0,Math.min(size()-1,index));
+    return mDataStore.getDataAt(mDataType, mStartIndex + index, mTarget);
   }
 
   /**
@@ -69,8 +85,8 @@ public class SeriesDataList<E> extends ImmutableList<SeriesData<E>> {
    * an internal range.
    */
   private void initialize(Range range) {
-    mStartIndex = mDataStore.getClosestTimeIndex(mDataType, (long)range.getMin() - RANGE_PADDING_MS);
-    mEndIndex = mDataStore.getClosestTimeIndex(mDataType, (long)range.getMax() + RANGE_PADDING_MS);
+    mStartIndex = mDataStore.getClosestTimeIndex(mDataType, (long)range.getMin() - RANGE_PADDING_MS, mTarget);
+    mEndIndex = mDataStore.getClosestTimeIndex(mDataType, (long)range.getMax() + RANGE_PADDING_MS, mTarget);
     //TODO When we cache data to disk here we can tell the datastore to preload it for this range.
   }
 
