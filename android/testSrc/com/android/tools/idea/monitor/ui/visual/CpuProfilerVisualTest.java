@@ -19,32 +19,28 @@ package com.android.tools.idea.monitor.ui.visual;
 import com.android.tools.adtui.Animatable;
 import com.android.tools.adtui.AnimatedTimeRange;
 import com.android.tools.adtui.Range;
-import com.android.tools.adtui.model.DefaultDataSeries;
+import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.visual.VisualTest;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
+import com.android.tools.idea.monitor.datastore.SeriesDataType;
 import com.android.tools.idea.monitor.ui.ProfilerEventListener;
+import com.android.tools.idea.monitor.ui.cpu.model.ThreadStatesDataModel;
 import com.android.tools.idea.monitor.ui.cpu.view.CpuUsageSegment;
 import com.android.tools.idea.monitor.ui.cpu.view.ThreadsSegment;
+import com.android.tools.idea.monitor.ui.visual.data.TestDataGenerator;
+import com.android.tools.profiler.proto.Cpu;
 import com.intellij.util.EventDispatcher;
+import gnu.trove.TLongArrayList;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class CpuProfilerVisualTest extends VisualTest {
 
   private static final String CPU_PROFILER_NAME = "CPU Profiler";
-
-  private static final int UPDATE_THREAD_SLEEP_DELAY_MS = 100;
-  /**
-   * The active threads should be copied into this array when getThreadGroup().enumerate() is called.
-   * It is initialized with a safe size.
-   */
-  private static final Thread[] ACTIVE_THREADS = new Thread[1000];
 
   private SeriesDataStore mDataStore;
 
@@ -53,8 +49,6 @@ public class CpuProfilerVisualTest extends VisualTest {
   private ThreadsSegment mThreadsSegment;
 
   private long mStartTimeMs;
-
-  private Thread mSimulateTestDataThread;
 
   @Override
   protected void initialize() {
@@ -66,9 +60,6 @@ public class CpuProfilerVisualTest extends VisualTest {
   protected void reset() {
     if (mDataStore != null) {
       mDataStore.reset();
-    }
-    if (mSimulateTestDataThread != null) {
-      mSimulateTestDataThread.interrupt();
     }
     super.reset();
   }
@@ -115,42 +106,63 @@ public class CpuProfilerVisualTest extends VisualTest {
     constraints.gridy = 1;
     mThreadsSegment.initializeComponents();
     panel.add(mThreadsSegment, constraints);
-    simulateTestData();
+    addThreadsTestData();
   }
 
-  private void simulateTestData() {
-    mSimulateTestDataThread = new Thread() {
-      @Override
-      public void run() {
-        try {
-          while (true) {
-            //  Insert new data point at now.
-            long now = System.currentTimeMillis() - mStartTimeMs;
+  private void addThreadsTestData() {
+    addThread("main");
+    addThread("Thread-2");
+  }
 
-            // Copy active threads into ACTIVE_THREADS array
-            int numActiveThreads = getThreadGroup().enumerate(ACTIVE_THREADS);
-            for (int i = 0; i < numActiveThreads; i++) {
-              // We're only interested in threads that are alive
-              Thread thread = ACTIVE_THREADS[i];
-              if (thread.isAlive()) {
-                // Add new thread to the segment in case it's not represented there yet.
-                SwingUtilities.invokeAndWait(() -> mThreadsSegment.addThreadStateSeries(thread));
-              }
-            }
+  private void addThread(String name) {
+    ThreadStatesDataModel threadStatesDataModel = new ThreadStatesDataModel(name);
+    mDataStore.registerAdapter(
+      SeriesDataType.CPU_THREAD_STATE,
+      new ThreadStateTestDataGenerator(threadStatesDataModel.getThreadStates(), threadStatesDataModel.getTimestamps()),
+      threadStatesDataModel);
+    mThreadsSegment.getThreadAddedNotifier().threadAdded(threadStatesDataModel);
+  }
 
-            for (Map.Entry<Thread, DefaultDataSeries<State>> series : mThreadsSegment.getThreadsStateSeries().entrySet()) {
-              series.getValue().add(now, series.getKey().getState());
-            }
+  private static final class ThreadStateTestDataGenerator extends TestDataGenerator<Cpu.ThreadActivity.State> {
 
-            Thread.sleep(UPDATE_THREAD_SLEEP_DELAY_MS);
-          }
-        }
-        catch (InterruptedException ignored) {}
-        catch (InvocationTargetException e) {
-          e.printStackTrace();
-        }
+    private List<Cpu.ThreadActivity.State> mStates;
+
+    // Set the initial state to be, arbitrary RUNNING. The other alive state is SLEEPING.
+    private Cpu.ThreadActivity.State mCurrentState = Cpu.ThreadActivity.State.RUNNING;
+
+    /**
+     * Flag to indicate whether the thread is that. In this case, we should interrupt the data generation thread.
+     */
+    private boolean mIsDead = false;
+
+    private ThreadStateTestDataGenerator(List<Cpu.ThreadActivity.State> states, TLongArrayList timestamps) {
+      mStates = states;
+      mTime = timestamps;
+    }
+
+    @Override
+    public SeriesData<Cpu.ThreadActivity.State> get(int index) {
+      return new SeriesData<>(mTime.get(index) - mStartTimeMs, mStates.get(index));
+    }
+
+    @Override
+    protected void generateData() {
+      addState();
+    }
+
+    private void addState() {
+      double prob = Math.random();
+      mTime.add(System.currentTimeMillis());
+      if (mIsDead || prob < 0.01) { // Terminate the thread with 1% of chance. If it's already dead, repeat the state.
+        mCurrentState = Cpu.ThreadActivity.State.DEAD;
+        // there' no need for adding more states after that.
+        mIsDead = true;
+      } else if (prob < 0.31) { // Change state with 30% of chance
+        mCurrentState = mCurrentState == Cpu.ThreadActivity.State.RUNNING ?
+                        Cpu.ThreadActivity.State.SLEEPING : Cpu.ThreadActivity.State.RUNNING;
       }
-    };
-    mSimulateTestDataThread.start();
+      // Otherwise, repeat last state.
+      mStates.add(mCurrentState);
+    }
   }
 }

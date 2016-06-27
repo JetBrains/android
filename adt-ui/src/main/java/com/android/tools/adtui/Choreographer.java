@@ -71,6 +71,10 @@ public class Choreographer implements ActionListener {
     mComponents.addAll(animatables);
   }
 
+  public void unregister(@NotNull Animatable animatable) {
+    mComponents.remove(animatable);
+  }
+
   /**
    * Turns on/off debug rendering on all AnimatedComponents registered with this {@link Choreographer} instance.
    */

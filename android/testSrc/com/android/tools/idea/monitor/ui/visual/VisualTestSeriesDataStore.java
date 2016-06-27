@@ -26,13 +26,17 @@ import com.android.tools.idea.monitor.ui.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.network.view.NetworkRadioSegment;
 import com.android.tools.idea.monitor.ui.visual.data.*;
 import com.intellij.util.EventDispatcher;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public final class VisualTestSeriesDataStore implements SeriesDataStore {
 
-  private Map<SeriesDataType, DataAdapter<?>> myDataSeriesMap = new HashMap<>();
+  private Map<SeriesDataType, Map<Object, DataAdapter<?>>> myDataSeriesMap = new HashMap<>();
+
+  private static final Object NO_TARGET = new Object();
 
   private long mStartTime;
 
@@ -58,9 +62,8 @@ public final class VisualTestSeriesDataStore implements SeriesDataStore {
   @Override
   public void reset() {
     mStartTime = System.currentTimeMillis();
-    for (DataAdapter<?> adapter : myDataSeriesMap.values()) {
-      adapter.reset(mStartTime, mStartTime);
-    }
+    myDataSeriesMap.values().forEach(adaptersMap -> adaptersMap.values().forEach(
+      adapter -> adapter.reset(mStartTime, mStartTime)));
   }
 
   @Override
@@ -69,28 +72,43 @@ public final class VisualTestSeriesDataStore implements SeriesDataStore {
   }
 
   @Override
-  public int getClosestTimeIndex(SeriesDataType type, long timeValue) {
-    DataAdapter<?> adapter = myDataSeriesMap.get(type);
-    assert adapter != null;
-    return adapter.getClosestTimeIndex(timeValue);
+  public int getClosestTimeIndex(SeriesDataType type, long timeValue, Object target) {
+    return getAdapter(type, target).getClosestTimeIndex(timeValue);
   }
 
   @Override
-  public <T> SeriesData<T> getDataAt(SeriesDataType type, int index) {
-    DataAdapter<?> adapter = myDataSeriesMap.get(type);
-    assert adapter != null;
-    return (SeriesData<T>)adapter.get(index);
+  public <T> SeriesData<T> getDataAt(SeriesDataType type, int index, Object target) {
+    return (SeriesData<T>)getAdapter(type, target).get(index);
   }
 
   @Override
-  public <T> SeriesDataList<T> getSeriesData(SeriesDataType type, Range range) {
-    return new SeriesDataList<>(range, this, type);
+  public <T> SeriesDataList<T> getSeriesData(SeriesDataType type, Range range, Object target) {
+    return new SeriesDataList<>(range, this, type, target);
   }
 
   @Override
-  public void registerAdapter(SeriesDataType type, DataAdapter adapter) {
-    myDataSeriesMap.put(type, adapter);
+  public void registerAdapter(SeriesDataType type, DataAdapter adapter, Object target) {
+    if (!myDataSeriesMap.containsKey(type)) {
+      myDataSeriesMap.put(type, new HashMap<>());
+    }
+    Object key = target == null ? NO_TARGET : target;
+    myDataSeriesMap.get(type).put(key, adapter);
     adapter.reset(mStartTime, mStartTime);
+  }
+
+  /**
+   * Returns an adapter of a determined type. A target object can be used in case the data store has multiple adapters of the same type.
+   * The target can be null and, in this case, the only adapter associated with the type will be returned.
+   */
+  @NotNull
+  private DataAdapter<?> getAdapter(SeriesDataType type, @Nullable Object target) {
+    if (target == null) {
+      target = NO_TARGET;
+    }
+    assert myDataSeriesMap.containsKey(type);
+    DataAdapter<?> adapter = myDataSeriesMap.get(type).get(target);
+    assert adapter != null;
+    return adapter;
   }
 
   private void startGeneratingData() {
@@ -103,6 +121,7 @@ public final class VisualTestSeriesDataStore implements SeriesDataStore {
           registerAdapter(type, new LongTestDataGenerator(0, 20, false));
           break;
         case CPU_THREADS:
+        case CPU_THREAD_STATE:
         case NETWORK_CONNECTIONS:
           registerAdapter(type, new LongTestDataGenerator(0, 10, false));
           break;

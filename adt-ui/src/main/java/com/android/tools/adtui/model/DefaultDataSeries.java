@@ -15,7 +15,6 @@
  */
 package com.android.tools.adtui.model;
 
-import gnu.trove.TLongArrayList;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -24,7 +23,7 @@ import java.util.ArrayList;
 public class DefaultDataSeries<E> extends BaseDataSeries<E> {
 
   @NotNull
-  private final ArrayList<E> mY = new ArrayList<E>();
+  private final ArrayList<E> mY = new ArrayList<>();
 
   @Override
   public void add(long x, E y) {
