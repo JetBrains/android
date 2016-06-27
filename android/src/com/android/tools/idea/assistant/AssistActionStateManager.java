@@ -17,6 +17,7 @@ package com.android.tools.idea.assistant;
 
 import com.android.tools.idea.assistant.view.StatefulButtonMessage;
 import com.android.tools.idea.structure.services.DeveloperService;
+import com.android.tools.idea.structure.services.DeveloperServiceMap.DeveloperServiceList;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -45,21 +46,28 @@ public interface AssistActionStateManager {
    *
    * TODO: Consider whether all calls need to provide some other argument in case the implementing party wants to have a configuration map
    * inside their manager.
-   *
-   * @param developerService
    */
-  void init(@NotNull DeveloperService developerService);
+  void init(@NotNull DeveloperServiceList services);
 
   /**
-   * Returns true if the action may still be completed. If false, {@link #getStateDisplay(DeveloperService, String)} is called
+   * Returns the current state of the action and any presentation data.
    */
-  boolean isCompletable(@NotNull DeveloperService developerService);
+  ActionState getState(@NotNull DeveloperServiceList services);
 
   /**
    * Gets the display for a given action button when the action may not be completed. For example, if the action adds a dependency, this
    * would confirm that the dependency has already been added. It may also be used for things like permanent failures.
    */
   @Nullable("When null and isCompletable returns false, defaults to disabling the button.")
-  StatefulButtonMessage getStateDisplay(@NotNull DeveloperService developerService,
+  StatefulButtonMessage getStateDisplay(@NotNull DeveloperServiceList services,
                                         @Nullable("ignored if null") String message);
+
+  enum ActionState {
+    INCOMPLETE, // Action is not complete.
+    COMPLETE, // Action is complete and may not be run again.
+    PARTIALLY_COMPLETE, // Action is complete for a subset of cases and may still be run again.
+    IN_PROGRESS,// TODO: Use this to disable the button and indicate the state is being determined.
+    ERROR, // [stub-used in future] There is a pre-existing error condition that prevents completion.
+    NOT_APPLICABLE // [stub-used in future] Similar to INCOMPLETE but action completion doesn't make sense. e.g. Trigger debug event.
+  }
 }
