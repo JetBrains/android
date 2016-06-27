@@ -18,16 +18,13 @@ package com.android.tools.idea.run.tasks;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.NullOutputReceiver;
-import com.android.ddmlib.logcat.LogCatHeader;
 import com.android.ddmlib.logcat.LogCatMessage;
 import com.android.tools.idea.fd.InstantRunUtils;
 import com.android.tools.idea.logcat.AndroidLogcatFormatter;
 import com.android.tools.idea.logcat.AndroidLogcatService;
-import com.android.tools.idea.logcat.AndroidLogcatUtils;
 import com.android.tools.idea.run.*;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
-import com.google.common.base.Strings;
 import com.intellij.debugger.engine.RemoteDebugProcessHandler;
 import com.intellij.debugger.ui.DebuggerPanelsManager;
 import com.intellij.execution.ExecutionException;
@@ -43,7 +40,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Locale;
 import java.util.Set;
@@ -69,7 +65,13 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTask {
       .info(String.format(Locale.US, "Attempting to connect debugger to port %1$s [client %2$d]", debugPort, pid));
 
     // detach old process handler
-    RunContentDescriptor descriptor = ((AndroidProgramRunner)currentLaunchInfo.runner).getDescriptor();
+    RunContentDescriptor descriptor = currentLaunchInfo.env.getContentToReuse();
+
+    // TODO: There could be a potential race: The descriptor is created on the EDT, but in the meanwhile, we spawn off
+    // a pooled thread to do all the launch tasks, which finally ends up in the connect debugger task. Is it possible that we
+    // reach here before the EDT gets around to creating the descriptor?
+    assert descriptor != null : "ConnectJavaDebuggerTask expects an existing descriptor that will be reused";
+
     final ProcessHandler processHandler = descriptor.getProcessHandler();
     assert processHandler != null;
 
