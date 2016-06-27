@@ -162,7 +162,7 @@ public class ModelBuilder {
     assertThat(component.w).isNotEqualTo(-1);
     assertThat(component.getSnapshot()).isNotNull();
     assertThat(component.getTag()).isNotNull();
-    assertThat(component.getTagName().equals(component.getTag().getName()));
+    assertThat(component.getTagName()).isEqualTo(component.getTag().getName());
 
     assertThat(component.getTag().isValid()).isTrue();
     assertThat(component.getTag().getContainingFile()).isEqualTo(component.getModel().getFile());
