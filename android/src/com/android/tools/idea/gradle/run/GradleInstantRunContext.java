@@ -15,23 +15,25 @@
  */
 package com.android.tools.idea.gradle.run;
 
-import com.android.builder.model.AndroidArtifact;
-import com.android.builder.model.AndroidArtifactOutput;
 import com.android.builder.model.AndroidProject;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.resources.ResourceUrl;
 import com.android.tools.fd.client.InstantRunBuildInfo;
-import com.android.tools.idea.fd.*;
+import com.android.tools.idea.fd.BuildSelection;
+import com.android.tools.idea.fd.FileChangeListener;
+import com.android.tools.idea.fd.InstantRunContext;
+import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
+import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.res.AppResourceRepository;
-import com.android.utils.XmlUtils;
+import com.android.tools.idea.res.ResourceHelper;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.hash.HashCode;
-import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
 import com.google.common.io.Files;
@@ -89,63 +91,50 @@ public class GradleInstantRunContext implements InstantRunContext {
   @NotNull
   @Override
   public HashCode getManifestResourcesHash() {
-    File manifest = findMergedManifestFile(myFacet);
-    if (manifest != null) { // ensures exists too
-      HashFunction hashFunction = Hashing.goodFastHash(32);
-      final AppResourceRepository resources = AppResourceRepository.getAppResources(myFacet, true);
-      final Hasher hasher = hashFunction.newHasher();
-
-      // Read XML for manifest file
-      // Look through resource references, and for each one look up the app resource repository, and for each one,
-      // read the value and hash them.
-      try {
-        String xml = Files.toString(manifest, UTF_8);
-        // Hack: turns out we *sometimes* see the injected bootstrap application,
-        // and sometimes we don't. We Don't want this to be part of the checksum.
-        // This should go away when we do our own merged manifest model (or when
-        // the Gradle plugin's bootstrap application injection no longer handles
-        // it this way.)
-        // TODO: Remove when 2.0-alpha4 or later is fixed to not do this anymore.
-        xml = xml.replace("        android:name=\"com.android.tools.fd.runtime.BootstrapApplication\"\n", "");
-        hasher.putString(xml, UTF_8);
-        final Document document = XmlUtils.parseDocumentSilently(xml, true);
-        if (document != null && document.getDocumentElement() != null) {
-          ApplicationManager.getApplication().runReadAction(new Runnable() {
-            @Override
-            public void run() {
-              hashResources(document.getDocumentElement(), hasher, resources);
-            }
-          });
-        }
-      }
-      catch (IOException ignore) {
-      }
-
-      return hasher.hash();
-    }
-
-    return HashCode.fromInt(0);
+    return getManifestResourcesHash(myFacet);
   }
 
-  private static void hashResources(Element element, Hasher hasher, AppResourceRepository resources) {
+  @VisibleForTesting
+  static HashCode getManifestResourcesHash(@NotNull AndroidFacet facet) {
+    Document manifest = MergedManifest.get(facet).getDocument();
+    if (manifest == null || manifest.getDocumentElement() == null) {
+      return HashCode.fromInt(0);
+    }
+
+    final Hasher hasher = Hashing.goodFastHash(32).newHasher();
+    SortedSet<ResourceUrl> appResourceReferences = getAppResourceReferences(manifest.getDocumentElement());
+    AppResourceRepository appResources = AppResourceRepository.getAppResources(facet, true);
+
+    // read action needed when reading the values for app resources
+    ApplicationManager.getApplication().runReadAction(() -> {
+      hashResources(appResourceReferences, appResources, hasher);
+    });
+
+    return hasher.hash();
+  }
+
+  @VisibleForTesting
+  static SortedSet<ResourceUrl> getAppResourceReferences(@NotNull Element element) {
+    SortedSet<ResourceUrl> refs = new TreeSet<>(new Comparator<ResourceUrl>() {
+      @Override
+      public int compare(ResourceUrl o1, ResourceUrl o2) {
+        return o1.toString().compareTo(o2.toString());
+      }
+    });
+    addAppResourceReferences(element, refs);
+    return refs;
+  }
+
+  private static void addAppResourceReferences(@NotNull Element element, @NotNull Set<ResourceUrl> refs) {
     NamedNodeMap attributes = element.getAttributes();
-    for (int i = 0, n = attributes.getLength(); i < n; i++) {
-      Node attribute = attributes.item(i);
-      String value = attribute.getNodeValue();
-      if (value.startsWith(PREFIX_RESOURCE_REF)) {
-        ResourceUrl url = ResourceUrl.parse(value);
-        if (url != null && !url.framework) {
-          List<ResourceItem> items = resources.getResourceItem(url.type, url.name);
-          if (items != null) {
-            for (ResourceItem item : items) {
-              ResourceValue resourceValue = item.getResourceValue(false);
-              if (resourceValue != null) {
-                String text = resourceValue.getValue();
-                if (text != null) {
-                  hasher.putString(text, UTF_8);
-                }
-              }
-            }
+    if (attributes != null) {
+      for (int i = 0, n = attributes.getLength(); i < n; i++) {
+        Node attribute = attributes.item(i);
+        String value = attribute.getNodeValue();
+        if (value.startsWith(PREFIX_RESOURCE_REF)) {
+          ResourceUrl url = ResourceUrl.parse(value);
+          if (url != null && !url.framework) {
+            refs.add(url);
           }
         }
       }
@@ -155,54 +144,53 @@ public class GradleInstantRunContext implements InstantRunContext {
     for (int i = 0, n = children.getLength(); i < n; i++) {
       Node child = children.item(i);
       if (child.getNodeType() == Node.ELEMENT_NODE) {
-        hashResources((Element)child, hasher, resources);
+        addAppResourceReferences((Element)child, refs);
       }
     }
   }
 
-  /**
-   * Looks up the merged manifest file for a given facet
-   */
-  @Nullable
-  public static File findMergedManifestFile(@NotNull AndroidFacet facet) {
-    AndroidGradleModel model = AndroidGradleModel.get(facet);
-    if (model != null) {
-      AndroidArtifact mainArtifact = model.getSelectedVariant().getMainArtifact();
-      Collection<AndroidArtifactOutput> outputs = mainArtifact.getOutputs();
-      for (AndroidArtifactOutput output : outputs) {
-        // For now, use first manifest file that exists
-        File manifest = output.getGeneratedManifest();
-        if (manifest.exists()) {
-          return manifest;
+  private static void hashResources(@NotNull SortedSet<ResourceUrl> appResources,
+                                    @NotNull AppResourceRepository resources,
+                                    @NotNull Hasher hasher) {
+    for (ResourceUrl url : appResources) {
+      List<ResourceItem> items = resources.getResourceItem(url.type, url.name);
+      if (items == null) {
+        continue;
+      }
+
+      for (ResourceItem item : items) {
+        ResourceValue resourceValue = item.getResourceValue(false);
+        if (resourceValue != null) {
+          String text = resourceValue.getValue();
+          if (text != null) {
+            if (ResourceHelper.isFileBasedResourceType(url.type)) {
+              File f = new File(text);
+              if (f.exists()) {
+                try {
+                  hasher.putBytes(Files.toByteArray(f));
+                }
+                catch (IOException ignore) {
+                }
+              }
+            }
+            else {
+              hasher.putString(text, UTF_8);
+            }
+          }
         }
       }
     }
-
-    return null;
   }
 
   @Override
   public boolean usesMultipleProcesses() {
-    // Note: Relying on the merged manifest implies that this will not work if a build has not already taken place.
-    // But in this particular scenario (i.e. for instant run), we are ok with such a situation because:
-    //      a) if there is no existing build, we are doing a full build anyway
-    //      b) if there is an existing build, then we can examine the previous merged manifest
-    //      c) if there is an existing build, and the manifest has since been changed, then a full build will be triggered anyway
-    File manifest = findMergedManifestFile(myFacet);
-    if (manifest == null || !manifest.exists()) {
+    Document manifest = MergedManifest.get(myFacet).getDocument();
+    if (manifest == null) {
       return false;
     }
 
-    String xml;
-    try {
-      xml = Files.toString(manifest, UTF_8);
-    }
-    catch (IOException e) {
-      InstantRunManager.LOG.warn("Error while reading merged manifest", e);
-      return false;
-    }
-
-    return manifestSpecifiesMultiProcess(xml, InstantRunManager.ALLOWED_MULTI_PROCESSES);
+    // TODO: this needs to be fixed to search through the attributes
+    return manifestSpecifiesMultiProcess(manifest.getTextContent(), InstantRunManager.ALLOWED_MULTI_PROCESSES);
   }
 
   @Nullable
