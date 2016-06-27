@@ -86,5 +86,5 @@ public abstract class TestDataGenerator<T> implements DataAdapter<T> {
    * Function for test to override, this function gets called on its own thread and is used to simulate
    * new data coming from the device.
    */
-  abstract void generateData();
+  protected abstract void generateData();
 }
