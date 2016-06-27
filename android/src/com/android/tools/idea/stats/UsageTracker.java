@@ -221,4 +221,6 @@ public abstract class UsageTracker {
   public abstract void trackInstantRunTimings(@NotNull Map<String, String> kv);
 
   public abstract void trackSystemInfo(@Nullable String hyperVState, @Nullable String cpuInfoFlags);
+
+  public abstract void trackPSDEvent(@NotNull String applicationId, @NotNull String eventAction, @Nullable String eventLabel);
 }
