@@ -16,10 +16,7 @@
 package com.android.tools.idea.assistant;
 
 import com.android.tools.idea.gradle.util.Projects;
-import com.android.tools.idea.structure.services.DeveloperService;
 import com.android.tools.idea.structure.services.DeveloperServiceMap;
-import com.android.tools.idea.structure.services.DeveloperServices;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -30,10 +27,11 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.util.containers.HashSet;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 
-import java.util.List;
+import java.util.Set;
 
 /**
  * Triggers the creation of the Developer Services side panel.
@@ -53,7 +51,7 @@ public class OpenAssistSidePanelAction extends AnAction {
         ModuleManager moduleManager = ModuleManager.getInstance(thisProject);
         Module[] modules = moduleManager.getModules();
 
-        List<Module> moduleList = Lists.newArrayList();
+        Set<Module> moduleList = new HashSet<Module>();
         if (Projects.isBuildWithGradle(thisProject)) {
           for (Module module : modules) {
             // Filter to Android modules
@@ -66,13 +64,7 @@ public class OpenAssistSidePanelAction extends AnAction {
         // TODO: Subscribe to changes on the editor and notify the assist panel when the focused file's project or module changes. Send down
         // the new service map when this occurs. The plugin will be responsible for updating state (buttons generally) as necessary.
         // subscription.
-         DeveloperServiceMap serviceMap = new DeveloperServiceMap();
-
-        for (Module module : moduleList) {
-          for (DeveloperService service : DeveloperServices.getAll(module)) {
-            serviceMap.put(service.getMetadata().getId(), service);
-          }
-        }
+        DeveloperServiceMap serviceMap = new DeveloperServiceMap(moduleList);
 
         AssistToolWindowFactory factory = new AssistToolWindowFactory(actionId, serviceMap);
         ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(thisProject);
@@ -96,5 +88,6 @@ public class OpenAssistSidePanelAction extends AnAction {
   /**
    * Allows plugins to perform some action on panel being opened without requiring/allowing them to override {@code actionPerformed}.
    */
-  public void onActionPerformed(AnActionEvent event) {}
+  public void onActionPerformed(AnActionEvent event) {
+  }
 }

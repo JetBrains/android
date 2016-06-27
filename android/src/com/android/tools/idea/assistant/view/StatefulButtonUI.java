@@ -61,6 +61,12 @@ public class StatefulButtonUI extends BasicButtonUI {
     return c instanceof JButton && ((JButton)c).isDefaultButton();
   }
 
+  public static boolean isHelpButton(JComponent button) {
+    return SystemInfo.isMac
+           && button instanceof JButton
+           && "help".equals(button.getClientProperty("JButton.buttonType"));
+  }
+
   @Override
   public void paint(Graphics g, JComponent c) {
     int w = c.getWidth();
@@ -159,12 +165,6 @@ public class StatefulButtonUI extends BasicButtonUI {
         c.setFont(new FontUIResource(c.getFont().deriveFont(Font.BOLD)));
       }
     }
-  }
-
-  public static boolean isHelpButton(JComponent button) {
-    return SystemInfo.isMac
-           && button instanceof JButton
-           && "help".equals(button.getClientProperty("JButton.buttonType"));
   }
 
   protected Color getButtonColor1() {

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.assistant.view;
 
+import com.android.tools.idea.assistant.AssistActionStateManager.ActionState;
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.components.JBLabel;
 
@@ -25,13 +26,12 @@ import java.awt.*;
  * Displays a message in lieu of a button when an action may not be completed. Note, this is not an extension of JBLabel as it will display
  * other elements such as an edit link and potentially support progress indication.
  *
- * TODO: Migrate the related classes when assist panel refactoring begins.
  * TODO: Add support for an edit action (not yet spec'd out).
  */
 public class StatefulButtonMessage extends JPanel {
   public ActionState myState;
 
-  public StatefulButtonMessage(String message, ActionState state, String editAction) {
+  public StatefulButtonMessage(String message, ActionState state) {
     super(new FlowLayout(FlowLayout.LEFT, 0, 0));
     setBorder(BorderFactory.createEmptyBorder());
     setOpaque(false);
@@ -39,7 +39,8 @@ public class StatefulButtonMessage extends JPanel {
     JBLabel messageDisplay = new JBLabel(message);
     messageDisplay.setOpaque(false);
     switch (state) {
-      case SUCCESS:
+      case PARTIALLY_COMPLETE:
+      case COMPLETE:
         messageDisplay.setIcon(AllIcons.RunConfigurations.TestPassed);
         messageDisplay.setForeground(UIUtils.getSuccessColor());
         break;
@@ -47,14 +48,11 @@ public class StatefulButtonMessage extends JPanel {
         messageDisplay.setIcon(AllIcons.RunConfigurations.TestFailed);
         messageDisplay.setForeground(UIUtils.getFailureColor());
         break;
+      default:
+        messageDisplay.setIcon(null);
+        messageDisplay.setForeground(new JBLabel("").getForeground());
     }
 
     add(messageDisplay);
-  }
-
-  public enum ActionState {
-    SUCCESS,
-    ERROR,
-    NOT_APPLICABLE
   }
 }
