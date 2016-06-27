@@ -26,7 +26,7 @@ import com.android.tools.idea.fd.gradle.InstantRunGradleSupport;
 import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.run.AndroidProcessHandler;
-import com.android.tools.idea.run.AndroidProgramRunner;
+import com.android.tools.idea.run.AndroidSessionInfo;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.execution.ExecutionManager;
@@ -184,7 +184,7 @@ public class RestartActivityAction extends AnAction {
       return ImmutableList.copyOf(((AndroidProcessHandler)processHandler).getDevices());
     }
     else {
-      Client c = processHandler.getUserData(AndroidProgramRunner.ANDROID_DEBUG_CLIENT);
+      Client c = processHandler.getUserData(AndroidSessionInfo.ANDROID_DEBUG_CLIENT);
       if (c != null && c.isValid()) {
         return Collections.singletonList(c.getDevice());
       }
