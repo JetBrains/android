@@ -18,6 +18,7 @@ package com.android.tools.idea.run;
 
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
+import com.android.sdklib.AndroidVersion;
 import com.intellij.execution.ExecutionManager;
 import com.intellij.execution.Executor;
 import com.intellij.execution.process.ProcessHandler;
@@ -32,6 +33,8 @@ import java.util.List;
 
 public class AndroidSessionInfo {
   public static final Key<AndroidSessionInfo> KEY = new Key<AndroidSessionInfo>("KEY");
+  public static final Key<Client> ANDROID_DEBUG_CLIENT = new Key<Client>("ANDROID_DEBUG_CLIENT");
+  public static final Key<AndroidVersion> ANDROID_DEVICE_API_LEVEL = new Key<AndroidVersion>("ANDROID_DEVICE_API_LEVEL");
 
   @NotNull private final ProcessHandler myProcessHandler;
   private final RunContentDescriptor myDescriptor;
@@ -76,7 +79,7 @@ public class AndroidSessionInfo {
       return ((AndroidProcessHandler)myProcessHandler).getDevices();
     }
     else {
-      Client client = myProcessHandler.getUserData(AndroidProgramRunner.ANDROID_DEBUG_CLIENT);
+      Client client = myProcessHandler.getUserData(ANDROID_DEBUG_CLIENT);
       if (client != null) {
         return Collections.singletonList(client.getDevice());
       }
