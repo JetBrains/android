@@ -18,15 +18,18 @@ package com.android.tools.idea.monitor.ui.network.view;
 import com.android.tools.adtui.AccordionLayout;
 import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.Range;
+import com.android.tools.idea.monitor.ui.network.model.HttpDataPoller;
 import com.android.tools.idea.monitor.ui.network.model.NetworkDataPoller;
 import com.android.tools.idea.monitor.datastore.Poller;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.ui.BaseProfilerUiManager;
 import com.android.tools.idea.monitor.ui.BaseSegment;
 import com.android.tools.idea.monitor.ui.ProfilerEventListener;
+import com.google.common.collect.Sets;
 import com.intellij.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import java.util.Set;
 
 import javax.swing.*;
 
@@ -40,10 +43,10 @@ public final class NetworkProfilerUiManager extends BaseProfilerUiManager {
     super(xRange, choreographer, dataStore, eventDispatcher);
   }
 
-  @Nullable
+  @NotNull
   @Override
-  public Poller createPoller(int pid) {
-    return new NetworkDataPoller(myDataStore, pid);
+  public Set<Poller> createPollers(int pid) {
+    return Sets.newHashSet(new NetworkDataPoller(myDataStore, pid), new HttpDataPoller(myDataStore, pid));
   }
 
   @Override

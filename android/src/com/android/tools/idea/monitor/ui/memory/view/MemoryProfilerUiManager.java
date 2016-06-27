@@ -26,13 +26,16 @@ import com.android.tools.idea.monitor.ui.BaseSegment;
 import com.android.tools.idea.monitor.ui.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.memory.model.MemoryDataCache;
 import com.android.tools.idea.monitor.ui.memory.model.MemoryPoller;
+import com.google.common.collect.Iterables;
 import com.intellij.ui.components.panels.HorizontalLayout;
+import com.google.common.collect.Sets;
 import com.intellij.util.EventDispatcher;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.util.Map;
+import java.util.Set;
 
 public final class MemoryProfilerUiManager extends BaseProfilerUiManager {
 
@@ -45,14 +48,14 @@ public final class MemoryProfilerUiManager extends BaseProfilerUiManager {
 
   @NotNull
   @Override
-  public Poller createPoller(int pid) {
+  public Set<Poller> createPollers(int pid) {
     MemoryPoller poller = new MemoryPoller(myDataStore, new MemoryDataCache(), pid);
     Map<SeriesDataType, DataAdapter> adapters = poller.createAdapters();
     for (Map.Entry<SeriesDataType, DataAdapter> entry : adapters.entrySet()) {
       // TODO these need to be de-registered
       myDataStore.registerAdapter(entry.getKey(), entry.getValue());
     }
-    return poller;
+    return Sets.newHashSet(poller);
   }
 
   @Override
@@ -68,7 +71,8 @@ public final class MemoryProfilerUiManager extends BaseProfilerUiManager {
     super.setupExtendedOverviewUi(toolbar, overviewPanel);
 
     myTriggerHeapDumpButton = new JButton(AndroidIcons.Ddms.DumpHprof);
-    myTriggerHeapDumpButton.addActionListener(e -> ((MemoryPoller)myPoller).requestHeapDump());
+    MemoryPoller poller = (MemoryPoller) Iterables.getOnlyElement(myPollerSet);
+    myTriggerHeapDumpButton.addActionListener(e -> poller.requestHeapDump());
     toolbar.add(myTriggerHeapDumpButton, HorizontalLayout.LEFT);
   }
 
