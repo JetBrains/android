@@ -24,7 +24,7 @@ import com.android.tools.fd.client.InstantRunBuildInfo;
 import com.android.tools.fd.client.InstantRunClient;
 import com.android.tools.fd.client.InstantRunPushFailedException;
 import com.android.tools.fd.client.UpdateMode;
-import com.android.tools.idea.run.AndroidProgramRunner;
+import com.android.tools.idea.run.AndroidSessionInfo;
 import com.android.tools.idea.run.InstalledPatchCache;
 import com.android.utils.ILogger;
 import com.google.common.collect.ImmutableSet;
@@ -95,7 +95,7 @@ public final class InstantRunManager implements ProjectComponent {
 
   @NotNull
   public static AndroidVersion getMinDeviceApiLevel(@NotNull ProcessHandler processHandler) {
-    AndroidVersion version = processHandler.getUserData(AndroidProgramRunner.ANDROID_DEVICE_API_LEVEL);
+    AndroidVersion version = processHandler.getUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL);
     return version == null ? AndroidVersion.DEFAULT : version;
   }
 
@@ -219,7 +219,7 @@ public final class InstantRunManager implements ProjectComponent {
     // Now we refresh the call-stacks and the variable panes.
     DebuggerManagerEx debugger = DebuggerManagerEx.getInstanceEx(myProject);
     for (final DebuggerSession session : debugger.getSessions()) {
-      Client client = session.getProcess().getProcessHandler().getUserData(AndroidProgramRunner.ANDROID_DEBUG_CLIENT);
+      Client client = session.getProcess().getProcessHandler().getUserData(AndroidSessionInfo.ANDROID_DEBUG_CLIENT);
       if (client != null && client.isValid() && StringUtil.equals(packageName, client.getClientData().getClientDescription())) {
         session.getProcess().getManagerThread().invoke(new DebuggerCommandImpl() {
           @Override
