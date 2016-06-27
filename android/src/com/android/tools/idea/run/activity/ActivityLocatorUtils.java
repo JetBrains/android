@@ -64,9 +64,8 @@ public class ActivityLocatorUtils {
   }
 
   public static boolean containsLauncherIntent(@NotNull DefaultActivityLocator.ActivityWrapper activity) {
-    return activity.hasAction(AndroidUtils.LAUNCH_ACTION_NAME)
-        || activity.hasCategory(AndroidUtils.LAUNCH_CATEGORY_NAME)
-        || activity.hasCategory(AndroidUtils.LEANBACK_LAUNCH_CATEGORY_NAME);
+    return activity.hasAction(AndroidUtils.LAUNCH_ACTION_NAME) &&
+           (activity.hasCategory(AndroidUtils.LAUNCH_CATEGORY_NAME) || activity.hasCategory(AndroidUtils.LEANBACK_LAUNCH_CATEGORY_NAME));
   }
 
   @Nullable
