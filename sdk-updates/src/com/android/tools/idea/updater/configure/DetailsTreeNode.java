@@ -30,98 +30,94 @@ import javax.swing.event.ChangeListener;
  * Can have three state: not installed, installed but with update available, and installed.
  */
 class DetailsTreeNode extends UpdaterTreeNode {
-  private NodeStateHolder myStateHolder;
+  private PackageNodeModel myModel;
   private final ChangeListener myChangeListener;
   private SdkUpdaterConfigurable myConfigurable;
 
-  public DetailsTreeNode(@NotNull NodeStateHolder state,
+  public DetailsTreeNode(@NotNull PackageNodeModel state,
                          @Nullable ChangeListener changeListener,
                          @NotNull SdkUpdaterConfigurable configurable) {
-    myStateHolder = state;
-    myStateHolder.setState(getInitialState());
+    myModel = state;
+    myModel.setState(getInitialState());
     myChangeListener = changeListener;
     myConfigurable = configurable;
   }
 
   @Override
-  public NodeStateHolder.SelectedState getInitialState() {
-    return myStateHolder.getPkg().isUpdate()
-           ? NodeStateHolder.SelectedState.MIXED
-           : myStateHolder.getPkg().hasLocal() ? NodeStateHolder.SelectedState.INSTALLED : NodeStateHolder.SelectedState.NOT_INSTALLED;
+  @NotNull
+  public PackageNodeModel.SelectedState getInitialState() {
+    return myModel.getPkg().isUpdate()
+           ? PackageNodeModel.SelectedState.MIXED
+           : myModel.getPkg().hasLocal() ? PackageNodeModel.SelectedState.INSTALLED : PackageNodeModel.SelectedState.NOT_INSTALLED;
   }
 
   @Override
-  public NodeStateHolder.SelectedState getCurrentState() {
-    return myStateHolder.getState();
+  @Nullable   // Will be null if the state isn't yet initialized
+  public PackageNodeModel.SelectedState getCurrentState() {
+    return myModel.getState();
   }
 
   @Override
-  public int compareTo(UpdaterTreeNode o) {
+  public int compareTo(@NotNull UpdaterTreeNode o) {
     if (!(o instanceof DetailsTreeNode)) {
       return toString().compareTo(o.toString());
     }
-    return myStateHolder.getPkg().compareTo(((DetailsTreeNode)o).myStateHolder.getPkg());
+    return myModel.getPkg().compareTo(((DetailsTreeNode)o).myModel.getPkg());
   }
 
   @Override
-  protected void setState(NodeStateHolder.SelectedState state) {
-    myStateHolder.setState(state);
+  protected void setState(@NotNull PackageNodeModel.SelectedState state) {
+    myModel.setState(state);
     if (myChangeListener != null) {
       myChangeListener.stateChanged(new ChangeEvent(this));
     }
   }
 
   @Override
-  public boolean equals(Object obj) {
+  public boolean equals(@NotNull Object obj) {
     if (!(obj instanceof DetailsTreeNode)) {
       return false;
     }
-    return myStateHolder.getPkg().equals(((DetailsTreeNode)obj).myStateHolder.getPkg());
+    return myModel.getPkg().equals(((DetailsTreeNode)obj).myModel.getPkg());
   }
 
   @Override
   public boolean includeInSummary() {
-    return myStateHolder.getPkg().getRepresentative().getTypeDetails() instanceof DetailsTypes.SourceDetailsType ||
-           myStateHolder.getPkg().getRepresentative().getTypeDetails() instanceof DetailsTypes.PlatformDetailsType;
+    return myModel.getPkg().getRepresentative().getTypeDetails() instanceof DetailsTypes.SourceDetailsType ||
+           myModel.getPkg().getRepresentative().getTypeDetails() instanceof DetailsTypes.PlatformDetailsType;
   }
 
   @Override
   public boolean isPrimary() {
-    return myStateHolder.getPkg().getRepresentative().getTypeDetails() instanceof DetailsTypes.PlatformDetailsType;
+    return myModel.getPkg().getRepresentative().getTypeDetails() instanceof DetailsTypes.PlatformDetailsType;
   }
 
   @Override
-  public void customizeRenderer(Renderer renderer,
-                                JTree tree,
+  public void customizeRenderer(@NotNull Renderer renderer,
+                                @Nullable JTree tree,
                                 boolean selected,
                                 boolean expanded,
                                 boolean leaf,
                                 int row,
                                 boolean hasFocus) {
     SimpleTextAttributes attributes = SimpleTextAttributes.REGULAR_ATTRIBUTES;
-    String result;
-    RepoPackage p = myStateHolder.getPkg().getRepresentative();
-    result = p.getDisplayName();
-    if (p.obsolete()) {
-      result += " (Obsolete)";
-    }
-
-    renderer.getTextRenderer().append(result, attributes);
+    renderer.getTextRenderer().append(myModel.getTitle(), attributes);
   }
 
   @NotNull
   public UpdatablePackage getItem() {
-    return myStateHolder.getPkg();
+    return myModel.getPkg();
   }
 
   @Override
   protected boolean canHaveMixedState() {
-    return myStateHolder.getPkg().isUpdate();
+    return myModel.getPkg().isUpdate();
   }
 
   @Override
+  @NotNull
   public String getStatusString() {
-    if (getInitialState() == NodeStateHolder.SelectedState.INSTALLED) {
+    if (getInitialState() == PackageNodeModel.SelectedState.INSTALLED) {
       return "Installed";
     }
     else {
@@ -140,17 +136,18 @@ class DetailsTreeNode extends UpdaterTreeNode {
         }
       }
 
-      if (getInitialState() == NodeStateHolder.SelectedState.NOT_INSTALLED) {
+      if (getInitialState() == PackageNodeModel.SelectedState.NOT_INSTALLED) {
         return "Not installed";
       }
       else {
         // The initial state being mixed ensures we have a remote we care about
         //noinspection ConstantConditions
-        return "Update Available: " + myStateHolder.getPkg().getRemote().getVersion();
+        return "Update Available: " + myModel.getPkg().getRemote().getVersion();
       }
     }
   }
 
+  @NotNull
   public RepoPackage getPackage() {
     return getItem().getRepresentative();
   }

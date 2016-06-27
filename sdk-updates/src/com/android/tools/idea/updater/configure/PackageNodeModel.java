@@ -16,14 +16,17 @@
 package com.android.tools.idea.updater.configure;
 
 
+import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
+import com.android.repository.Revision;
+import com.android.repository.api.RepoPackage;
 import com.android.repository.api.UpdatablePackage;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * State of a row in {@link SdkUpdaterConfigurable}.
  */
-class NodeStateHolder {
+class PackageNodeModel {
   enum SelectedState {
     NOT_INSTALLED,
     MIXED,
@@ -32,9 +35,29 @@ class NodeStateHolder {
 
   private final UpdatablePackage myPkg;
   private SelectedState myState;
+  private final String myTitle;
 
-  public NodeStateHolder(@NotNull UpdatablePackage pkg) {
+  public PackageNodeModel(@NotNull UpdatablePackage pkg) {
+    RepoPackage representative = pkg.getRepresentative();
+    String name = representative.getDisplayName();
+    String suffix = representative.getPath().substring(representative.getPath().lastIndexOf(RepoPackage.PATH_SEPARATOR) + 1);
+    String shortRevision;
+    try {
+      shortRevision = Revision.parseRevision(suffix).toShortString();
+    }
+    catch (NumberFormatException ignore) {
+      shortRevision = null;
+    }
+    if (representative.getDisplayName().endsWith(suffix) ||
+        (shortRevision != null && representative.getDisplayName().endsWith(shortRevision))) {
+      name = suffix;
+    }
+
     myPkg = pkg;
+    if (pkg.getRepresentative().obsolete()) {
+      name += " (Obsolete)";
+    }
+    myTitle = name;
   }
 
   @NotNull
@@ -49,5 +72,10 @@ class NodeStateHolder {
 
   public void setState(@NotNull SelectedState state) {
     myState = state;
+  }
+
+  @NonNull
+  public String getTitle() {
+    return myTitle;
   }
 }
