@@ -49,7 +49,7 @@ public class MemorySegment extends BaseLineChartSegment {
 
   private static final Color MEMORY_OTHER_COLOR = new JBColor(new Color(78, 147, 187), new Color(78, 147, 187));
 
-  private static final Color MEMORY_COUNT_COLOR = new JBColor(new Color(70, 120, 31), new Color(70, 120, 31));
+  private static final Color MEMORY_OBJECT_COUNT_COLOR = new JBColor(new Color(160, 160, 31), new Color(160, 160, 31));
 
   public MemorySegment(@NotNull Range timeRange,
                        @NotNull SeriesDataStore dataStore,
@@ -80,7 +80,7 @@ public class MemorySegment extends BaseLineChartSegment {
       // Right axis series
       addRightAxisLine(SeriesDataType.MEMORY_OBJECT_COUNT,
                        SeriesDataType.MEMORY_OBJECT_COUNT.toString(),
-                       new LineConfig(MEMORY_COUNT_COLOR));
+                       new LineConfig(MEMORY_OBJECT_COUNT_COLOR));
     }
     else {
       addMemoryLevelLine(SeriesDataType.MEMORY_TOTAL, MEMORY_TOTAL_COLOR);

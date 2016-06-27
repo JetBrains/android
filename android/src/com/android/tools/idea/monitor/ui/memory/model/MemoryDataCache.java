@@ -24,14 +24,12 @@ import java.util.List;
 
 public class MemoryDataCache {
   private List<MemoryProfilerService.MemoryData.MemorySample> myMemorySamples = Collections.synchronizedList(new ArrayList<>());
-  private List<MemoryProfilerService.MemoryData.InstanceCountSample> myInstanceCountSamples =
+  private List<MemoryProfilerService.MemoryData.VmStatsSample> myVmStatsSamples =
     Collections.synchronizedList(new ArrayList<>());
-  private List<MemoryProfilerService.MemoryData.GcSample> myGcSamples = Collections.synchronizedList(new ArrayList<>());
 
   public void appendData(MemoryProfilerService.MemoryData entry) {
     myMemorySamples.addAll(entry.getMemSamplesList());
-    myInstanceCountSamples.addAll(entry.getInstanceCountSamplesList());
-    myGcSamples.addAll(entry.getGcSamplesList());
+    myVmStatsSamples.addAll(entry.getVmStatsSamplesList());
   }
 
   @NotNull
@@ -40,13 +38,8 @@ public class MemoryDataCache {
   }
 
   @NotNull
-  public MemoryProfilerService.MemoryData.InstanceCountSample getInstanceCountSample(int index) {
-    return myInstanceCountSamples.get(index);
-  }
-
-  @NotNull
-  public MemoryProfilerService.MemoryData.GcSample getGcSample(int index) {
-    return myGcSamples.get(index);
+  public MemoryProfilerService.MemoryData.VmStatsSample getVmStatsSample(int index) {
+    return myVmStatsSamples.get(index);
   }
 
   public int getLatestPriorMemorySampleIndex(long time) {
@@ -62,9 +55,9 @@ public class MemoryDataCache {
     return Math.max(0, Math.min(myMemorySamples.size() - 1, index));
   }
 
-  public int getLatestPriorInstanceCountSampleIndex(long time) {
+  public int getLatestPriorVmStatsSampleIndex(long time) {
     int index = Collections
-      .binarySearch(myInstanceCountSamples, MemoryProfilerService.MemoryData.InstanceCountSample.newBuilder().setTimestamp(time).build(),
+      .binarySearch(myVmStatsSamples, MemoryProfilerService.MemoryData.VmStatsSample.newBuilder().setTimestamp(time).build(),
                     (left, right) -> {
                       long diff = left.getTimestamp() - right.getTimestamp();
                       return (diff == 0) ? 0 : ((diff < 0) ? -1 : 1);
@@ -72,24 +65,11 @@ public class MemoryDataCache {
     if (index < 0) {
       index = -index - 2;
     }
-    return Math.max(0, Math.min(myInstanceCountSamples.size() - 1, index));
-  }
-
-  public int getLatestPriorGcSampleIndex(long time) {
-    int index = Collections.binarySearch(myGcSamples, MemoryProfilerService.MemoryData.GcSample.newBuilder().setTimestamp(time).build(),
-                                          (left, right) -> {
-                                            long diff = left.getTimestamp() - right.getTimestamp();
-                                            return (diff == 0) ? 0 : ((diff < 0) ? -1 : 1);
-                                          });
-    if (index < 0) {
-      index = -index - 2;
-    }
-    return Math.max(0, Math.min(myGcSamples.size() - 1, index));
+    return Math.max(0, Math.min(myVmStatsSamples.size() - 1, index));
   }
 
   public void reset() {
     myMemorySamples.clear();
-    myInstanceCountSamples.clear();
-    myGcSamples.clear();
+    myVmStatsSamples.clear();
   }
 }

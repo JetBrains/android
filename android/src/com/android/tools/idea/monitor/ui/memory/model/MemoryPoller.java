@@ -46,6 +46,7 @@ public class MemoryPoller extends Poller {
 
   public Map<SeriesDataType, DataAdapter> createAdapters() {
     Map<SeriesDataType, DataAdapter> adapters = new HashMap<>();
+
     adapters.put(SeriesDataType.MEMORY_TOTAL, new MemorySampleAdapter<Long>() {
       @Override
       public Long getSampleValue(MemoryProfilerService.MemoryData.MemorySample sample) {
@@ -82,6 +83,14 @@ public class MemoryPoller extends Poller {
         return sample.getOthersMem();
       }
     });
+
+    adapters.put(SeriesDataType.MEMORY_OBJECT_COUNT, new VmStatsSampleAdapter<Long>() {
+      @Override
+      public Long getSampleValue(MemoryProfilerService.MemoryData.VmStatsSample sample) {
+        return new Long(sample.getJavaAllocationCount() - sample.getJavaFreeCount());
+      }
+    });
+
     return adapters;
   }
 
@@ -106,10 +115,11 @@ public class MemoryPoller extends Poller {
 
   @Override
   protected void poll() {
-    MemoryProfilerService.MemoryRequest request =
-      MemoryProfilerService.MemoryRequest.newBuilder().setAppId(myAppId).setStartTime(myStartTimestamp).setEndTime(Long.MAX_VALUE).build();
     MemoryProfilerService.MemoryData result;
     try {
+      MemoryProfilerService.MemoryRequest request =
+        MemoryProfilerService.MemoryRequest.newBuilder().setAppId(myAppId).setStartTime(myStartTimestamp).setEndTime(Long.MAX_VALUE)
+          .build();
       result = myService.getMemoryService().getData(request);
       myDataCache.appendData(result);
     }
@@ -124,8 +134,17 @@ public class MemoryPoller extends Poller {
     }
   }
 
-  public abstract class MemorySampleAdapter<T> implements DataAdapter<T> {
+  /**
+   * Triggers a heap dump grpc request
+   */
+  public void requestHeapDump() {
+    MemoryProfilerService.HeapDumpRequest.Builder builder = MemoryProfilerService.HeapDumpRequest.newBuilder();
+    builder.setAppId(myAppId);
+    builder.setRequestTime(myStartTimestamp);   // Currently not used on perfd.
+    myService.getMemoryService().triggerHeapDump(builder.build());
+  }
 
+  private abstract class MemorySampleAdapter<T> implements DataAdapter<T> {
     @Override
     public int getClosestTimeIndex(long time) {
       return myDataCache.getLatestPriorMemorySampleIndex(TimeUnit.NANOSECONDS.convert(time, TimeUnit.MILLISECONDS));
@@ -150,13 +169,28 @@ public class MemoryPoller extends Poller {
     public abstract T getSampleValue(MemoryProfilerService.MemoryData.MemorySample sample);
   }
 
-  /**
-   * Triggers a heap dump grpc request
-   */
-  public void requestHeapDump() {
-    MemoryProfilerService.HeapDumpRequest.Builder builder = MemoryProfilerService.HeapDumpRequest.newBuilder();
-    builder.setAppId(myAppId);
-    builder.setRequestTime(myStartTimestamp);   // Currently not used on perfd.
-    myService.getMemoryService().triggerHeapDump(builder.build());
+  private abstract class VmStatsSampleAdapter<T> implements DataAdapter<T> {
+    @Override
+    public int getClosestTimeIndex(long time) {
+      return myDataCache.getLatestPriorVmStatsSampleIndex(TimeUnit.NANOSECONDS.convert(time, TimeUnit.MILLISECONDS));
+    }
+
+    @Override
+    public void reset(long deviceStartTimeMs, long studioStartTimeMs) {
+      myDataCache.reset();
+    }
+
+    @Override
+    public void stop() {
+      MemoryPoller.this.stop();
+    }
+
+    @Override
+    public SeriesData<T> get(int index) {
+      MemoryProfilerService.MemoryData.VmStatsSample sample = myDataCache.getVmStatsSample(index);
+      return new SeriesData<>(TimeUnit.NANOSECONDS.toMillis(sample.getTimestamp()), getSampleValue(sample));
+    }
+
+    public abstract T getSampleValue(MemoryProfilerService.MemoryData.VmStatsSample sample);
   }
 }
