@@ -64,7 +64,7 @@ public class DataBindingClassFinder extends PsiElementFinder {
           return new ResourceCacheValueProvider<Set<String>>(facet) {
             @Override
             Set<String> doCompute() {
-              LocalResourceRepository moduleResources = getFacet().getModuleResources(false);
+              LocalResourceRepository moduleResources = getFacet().getModuleResources(true);
               if (moduleResources == null) {
                 return Collections.emptySet();
               }
@@ -95,7 +95,7 @@ public class DataBindingClassFinder extends PsiElementFinder {
       return null;
     }
     for (AndroidFacet facet : myComponent.getDataBindingEnabledFacets()) {
-      LocalResourceRepository moduleResources = facet.getModuleResources(false);
+      LocalResourceRepository moduleResources = facet.getModuleResources(true);
       if (moduleResources == null) {
         continue;
       }
