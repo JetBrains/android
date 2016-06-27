@@ -664,7 +664,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       if (parent != null) {
         NlComponent guideline = parent.createChild(editor, SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE, null, InsertType.CREATE);
         guideline.ensureId();
-        guideline.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_GUIDELINE_RELATIVE_BEGIN, "20dp");
+        guideline.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN, "20dp");
         if (myType == HORIZONTAL_GUIDELINE) {
           guideline.setAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_ORIENTATION,
                                  SdkConstants.ATTR_GUIDELINE_ORIENTATION_HORIZONTAL);
