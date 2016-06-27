@@ -18,8 +18,9 @@ package com.android.tools.idea.tests.gui;
 import com.android.tools.idea.tests.gui.apiintegration.DeveloperServicesTest;
 import com.android.tools.idea.tests.gui.avdmanager.AvdListDialogTest;
 import com.android.tools.idea.tests.gui.emulator.LaunchAndroidApplicationTest;
+import com.android.tools.idea.tests.gui.gradle.flavors.CreateNewFlavorsTest;
+import com.android.tools.idea.tests.gui.gradle.flavors.FlavorsExecutionTest;
 import com.android.tools.idea.tests.gui.gradle.BuildTypesTest;
-import com.android.tools.idea.tests.gui.gradle.FlavorsTest;
 import com.android.tools.idea.tests.gui.gradle.GradleSyncTest;
 import com.android.tools.idea.tests.gui.gradle.NewModuleTest;
 import com.android.tools.idea.tests.gui.layout.LayoutInspectorTest;
@@ -35,8 +36,9 @@ import org.junit.runners.Suite;
 @Suite.SuiteClasses({
   AvdListDialogTest.class,
   BuildTypesTest.class,
+  CreateNewFlavorsTest.class,
   DeveloperServicesTest.class,
-  FlavorsTest.class,
+  FlavorsExecutionTest.class,
   GradleSyncTest.class,
   LaunchAndroidApplicationTest.class,
   LayoutInspectorTest.class,

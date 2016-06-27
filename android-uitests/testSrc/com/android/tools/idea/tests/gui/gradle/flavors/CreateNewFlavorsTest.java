@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.tests.gui.gradle;
+package com.android.tools.idea.tests.gui.gradle.flavors;
 
 import com.android.tools.idea.tests.gui.GuiSanityTestSuite;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
@@ -28,9 +28,9 @@ import org.junit.runner.RunWith;
 
 import static com.google.common.truth.Truth.assertThat;
 
-@RunIn(TestGroup.TEST_SUPPORT)
+@RunIn(TestGroup.PROJECT_SUPPORT)
 @RunWith(GuiTestRunner.class)
-public class FlavorsTest {
+public class CreateNewFlavorsTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
