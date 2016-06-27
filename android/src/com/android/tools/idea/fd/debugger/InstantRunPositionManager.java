@@ -23,7 +23,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.fd.InstantRunSettings;
-import com.android.tools.idea.run.AndroidProgramRunner;
+import com.android.tools.idea.run.AndroidSessionInfo;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
@@ -111,7 +111,7 @@ public class InstantRunPositionManager extends PositionManagerImpl {
       return file;
     }
 
-    AndroidVersion version = session.getDebugProcess().getProcessHandler().getUserData(AndroidProgramRunner.ANDROID_DEVICE_API_LEVEL);
+    AndroidVersion version = session.getDebugProcess().getProcessHandler().getUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL);
     if (version == null) {
       return file;
     }
