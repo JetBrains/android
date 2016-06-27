@@ -22,9 +22,9 @@ package com.android.tools.idea.monitor.datastore;
 
 // TODO make this an interface so we can subclass it by given data type.
 public enum SeriesDataType {
-  NETWORK_SENT, //long
-  NETWORK_RECEIVED, //long
-  NETWORK_CONNECTIONS, //long
+  NETWORK_SENT, // long
+  NETWORK_RECEIVED, // long
+  NETWORK_CONNECTIONS, // long
   /**
    * {@link com.android.tools.idea.monitor.ui.network.view.NetworkRadioSegment.RadioState}
    */
@@ -34,19 +34,20 @@ public enum SeriesDataType {
    */
   NETWORK_TYPE,
 
-  CPU_MY_PROCESS, //long
-  CPU_OTHER_PROCESSES, //long
-  CPU_THREADS, //long
+  CPU_MY_PROCESS, // long
+  CPU_OTHER_PROCESSES, // long
+  CPU_THREADS, // long
+  CPU_THREAD_STATE, // Cpu.ThreadActivity.State
 
-  MEMORY_TOTAL, //long
+  MEMORY_TOTAL, // long
   MEMORY_JAVA, //long
-  MEMORY_NATIVE, //long
-  MEMORY_GRAPHICS, //long
-  MEMORY_CODE, //long
-  MEMORY_OTHERS, //long
-  MEMORY_OBJECT_COUNT, //long
+  MEMORY_NATIVE, // long
+  MEMORY_GRAPHICS, // long
+  MEMORY_CODE, // long
+  MEMORY_OTHERS, // long
+  MEMORY_OBJECT_COUNT, // long
 
-  EVENT_SIMPLE_ACTION, //EventAction
-  EVENT_FRAGMENT_ACTION, //EventAction
-  EVENT_ACTIVITY_ACTION, //EventAction
+  EVENT_SIMPLE_ACTION, // EventAction
+  EVENT_FRAGMENT_ACTION, // EventAction
+  EVENT_ACTIVITY_ACTION, // EventAction
 }

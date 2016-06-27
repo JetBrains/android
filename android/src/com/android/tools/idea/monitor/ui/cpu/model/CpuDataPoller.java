@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.monitor.ui.cpu.model;
 
-import com.android.tools.idea.monitor.datastore.LongDataAdapter;
 import com.android.tools.idea.monitor.datastore.*;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.CpuProfiler;
@@ -54,7 +53,9 @@ public class CpuDataPoller extends Poller {
   // TODO: Integer should be enough. Review it later.
   private final TLongArrayList myNumberOfThreadsList = new TLongArrayList();
 
-  private final Map<ThreadData, Cpu.ThreadActivity.State> myThreadsStateData = new HashMap<>();
+  private final Map<Integer, ThreadStatesDataModel> myThreadsStateData = new HashMap<>();
+
+  private ThreadAddedNotifier myThreadAddedNotifier;
 
   public CpuDataPoller(@NotNull SeriesDataStore dataStore,
                        int pid) {
@@ -148,20 +149,41 @@ public class CpuDataPoller extends Poller {
         }
 
         for (Cpu.ThreadActivity threadActivity : threadActivities.getActivitiesList()) {
-          ThreadData threadData = new ThreadData(threadActivity.getTid(), threadActivity.getNewState());
-          if (!myThreadsStateData.containsKey(threadData)) {
-            myThreadsStateData.put(threadData, threadData.getCurrentState());
+          int tid = threadActivity.getTid();
+          ThreadStatesDataModel threadData;
+          if (!myThreadsStateData.containsKey(tid)) {
+            threadData = new ThreadStatesDataModel(threadActivity.getName());
+            myThreadsStateData.put(tid, threadData);
+            myDataStore.registerAdapter(
+              SeriesDataType.CPU_THREAD_STATE, new DataAdapterImpl<>(threadData.getTimestamps(), threadData.getThreadStates()), threadData);
+            if (myThreadAddedNotifier != null) {
+              myThreadAddedNotifier.threadAdded(threadData);
+            }
           }
-          else if (threadData.getCurrentState() == Cpu.ThreadActivity.State.DEAD) {
-            myThreadsStateData.remove(threadData);
+          threadData = myThreadsStateData.get(tid);
+          assert threadData != null;
+          threadData.addState(threadActivity.getNewState(), TimeUnit.NANOSECONDS.toMillis(threadActivity.getTimestamp()));
+
+          if (threadActivity.getNewState() == Cpu.ThreadActivity.State.DEAD) {
+            // TODO: maybe it's better not to remove it and keep track of the threads alive using an integer field.
+            myThreadsStateData.remove(tid);
           }
-          // TODO: Add support to threads state chart.
         }
       }
       long dataTimestamp = TimeUnit.NANOSECONDS.toMillis(data.getBasicInfo().getEndTimestamp());
       myTimestampArray.add(dataTimestamp);
+
+      // TODO: refactor statechart to avoid the need of inserting repeated consecutive states
+      // Add the current thread states to their correspondent state charts.
+      myThreadsStateData.values().forEach(val -> val.addState(val.getThreadStates().get(val.getThreadStates().size() - 1), dataTimestamp));
+      // Add the current number of threads to the correspondent line chart
       myNumberOfThreadsList.add(myThreadsStateData.size());
     }
+  }
+
+  public void setThreadAddedNotifier(ThreadAddedNotifier threadAddedNotifier) {
+    myThreadAddedNotifier = threadAddedNotifier;
+    myThreadAddedNotifier.threadsAdded(myThreadsStateData.values().toArray(new ThreadStatesDataModel[myThreadsStateData.size()]));
   }
 
   private static final class CpuUsageData {
@@ -186,38 +208,6 @@ public class CpuDataPoller extends Poller {
 
     double getOtherProcessesUsage() {
       return mySystemUsage - myAppUsage;
-    }
-  }
-
-  private static final class ThreadData {
-    /**
-     * Thread id.
-     */
-    private int myId;
-
-    /**
-     * Current thread state.
-     */
-    private Cpu.ThreadActivity.State myCurrentState;
-
-    // TODO: add name field
-    ThreadData(int id, Cpu.ThreadActivity.State state) {
-      myId = id;
-      myCurrentState = state;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-      return obj != null && obj instanceof ThreadData && ((ThreadData)obj).myId == myId;
-    }
-
-    @Override
-    public int hashCode() {
-      return myId;
-    }
-
-    Cpu.ThreadActivity.State getCurrentState() {
-      return myCurrentState;
     }
   }
 }

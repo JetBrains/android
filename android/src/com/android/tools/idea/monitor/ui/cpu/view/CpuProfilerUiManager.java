@@ -31,7 +31,9 @@ import javax.swing.*;
 
 public final class CpuProfilerUiManager extends BaseProfilerUiManager {
 
-  private BaseSegment myThreadSegment;
+  private ThreadsSegment myThreadSegment;
+
+  private CpuDataPoller myCpuDataPoller;
 
   public CpuProfilerUiManager(@NotNull Range xRange,
                               @NotNull Choreographer choreographer,
@@ -43,7 +45,8 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager {
   @NotNull
   @Override
   public Poller createPoller(int pid) {
-    return new CpuDataPoller(myDataStore, pid);
+    myCpuDataPoller = new CpuDataPoller(myDataStore, pid);
+    return myCpuDataPoller;
   }
 
   @Override
@@ -51,6 +54,9 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager {
     super.setupExtendedOverviewUi(toolbar, overviewPanel);
 
     myThreadSegment = new ThreadsSegment(myXRange, myDataStore, myEventDispatcher, null);
+    assert myCpuDataPoller != null;
+    myCpuDataPoller.setThreadAddedNotifier(myThreadSegment.getThreadAddedNotifier());
+    myChoreographer.register(myThreadSegment);
     setupAndRegisterSegment(myThreadSegment, DEFAULT_MONITOR_MIN_HEIGHT, DEFAULT_MONITOR_PREFERRED_HEIGHT, DEFAULT_MONITOR_MAX_HEIGHT);
     overviewPanel.add(myThreadSegment);
     setSegmentState(overviewPanel, myThreadSegment, AccordionLayout.AccordionState.MAXIMIZE);
@@ -60,7 +66,7 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager {
   public void resetProfiler(@NotNull JPanel toolbar, @NotNull JPanel overviewPanel, @NotNull JPanel detailPanel) {
     super.resetProfiler(toolbar, overviewPanel, detailPanel);
 
-    // TODO un-register thread segment components from choreographer
+    myChoreographer.unregister(myThreadSegment);
     overviewPanel.remove(myThreadSegment);
   }
 
