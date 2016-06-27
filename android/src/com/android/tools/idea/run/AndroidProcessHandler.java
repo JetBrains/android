@@ -132,9 +132,9 @@ public class AndroidProcessHandler extends DefaultDebugProcessHandler implements
   }
 
   private void setMinDeviceApiLevel(@NotNull AndroidVersion deviceVersion) {
-    AndroidVersion apiLevel = getUserData(AndroidProgramRunner.ANDROID_DEVICE_API_LEVEL);
+    AndroidVersion apiLevel = getUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL);
     if (apiLevel == null || apiLevel.compareTo(deviceVersion) > 0) {
-      putUserData(AndroidProgramRunner.ANDROID_DEVICE_API_LEVEL, deviceVersion);
+      putUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL, deviceVersion);
     }
   }
 

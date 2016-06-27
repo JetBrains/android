@@ -33,10 +33,6 @@ import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.NotNull;
 
 public class AndroidProgramRunner extends DefaultProgramRunner {
-  public static final String ANDROID_LOGCAT_CONTENT_ID = "Android Logcat";
-
-  public static final Key<Client> ANDROID_DEBUG_CLIENT = new Key<Client>("ANDROID_DEBUG_CLIENT");
-  public static final Key<AndroidVersion> ANDROID_DEVICE_API_LEVEL = new Key<AndroidVersion>("ANDROID_DEVICE_API_LEVEL");
 
   private RunContentDescriptor myDescriptor;
 
