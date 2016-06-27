@@ -18,6 +18,7 @@ package com.android.tools.idea.monitor.ui.network.view;
 import com.android.tools.adtui.AccordionLayout;
 import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.Range;
+import com.android.tools.adtui.model.DefaultDataSeries;
 import com.android.tools.idea.monitor.ui.network.model.HttpDataPoller;
 import com.android.tools.idea.monitor.ui.network.model.NetworkDataPoller;
 import com.android.tools.idea.monitor.datastore.Poller;
@@ -32,11 +33,16 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Set;
 
 import javax.swing.*;
+import java.util.List;
 
 public final class NetworkProfilerUiManager extends BaseProfilerUiManager {
   public static final int NETWORK_CONNECTIVITY_HEIGHT = 40;
 
   private NetworkRadioSegment myRadioSegment;
+
+  private NetworkCaptureSegment myCaptureSegment;
+
+  private List<DefaultDataSeries<NetworkCaptureSegment.NetworkState>> mCaptureData;
 
   public NetworkProfilerUiManager(@NotNull Range xRange, @NotNull Choreographer choreographer,
                                   @NotNull SeriesDataStore dataStore, @NotNull EventDispatcher<ProfilerEventListener> eventDispatcher) {
@@ -63,14 +69,24 @@ public final class NetworkProfilerUiManager extends BaseProfilerUiManager {
     myRadioSegment = new NetworkRadioSegment(myXRange, myDataStore, myEventDispatcher);
     setupAndRegisterSegment(myRadioSegment, NETWORK_CONNECTIVITY_HEIGHT, NETWORK_CONNECTIVITY_HEIGHT, NETWORK_CONNECTIVITY_HEIGHT);
     overviewPanel.add(myRadioSegment);
-    setSegmentState(overviewPanel, myRadioSegment, AccordionLayout.AccordionState.MAXIMIZE);
+
+    myCaptureSegment = new NetworkCaptureSegment(myXRange, myDataStore, connectionId -> {
+      // TODO: handle L4 here
+    }, myEventDispatcher);
+    setupAndRegisterSegment(myCaptureSegment, DEFAULT_MONITOR_MIN_HEIGHT, DEFAULT_MONITOR_PREFERRED_HEIGHT, DEFAULT_MONITOR_MAX_HEIGHT);
+    overviewPanel.add(myCaptureSegment);
+
+    myChoreographer.register(myCaptureSegment);
+    setSegmentState(overviewPanel, myCaptureSegment, AccordionLayout.AccordionState.MAXIMIZE);
   }
 
   @Override
   public void resetProfiler(@NotNull JPanel toolbar, @NotNull JPanel overviewPanel, @NotNull JPanel detailPanel) {
     super.resetProfiler(toolbar, overviewPanel, detailPanel);
 
-    // TODO: un-register segments from choreographer
     overviewPanel.remove(myRadioSegment);
+    overviewPanel.remove(myCaptureSegment);
+
+    myChoreographer.unregister(myCaptureSegment);
   }
 }

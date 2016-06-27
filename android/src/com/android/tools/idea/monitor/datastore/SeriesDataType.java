@@ -26,6 +26,10 @@ public enum SeriesDataType {
   NETWORK_RECEIVED, // long
   NETWORK_CONNECTIONS, // long
   /**
+   * {@link com.android.tools.idea.monitor.ui.network.model.HttpData}
+   */
+  NETWORK_HTTP_DATA,
+  /**
    * {@link com.android.tools.idea.monitor.ui.network.view.NetworkRadioSegment.RadioState}
    */
   NETWORK_RADIO,
@@ -33,10 +37,6 @@ public enum SeriesDataType {
    * {@link com.android.tools.idea.monitor.ui.network.view.NetworkRadioSegment.NetworkType}
    */
   NETWORK_TYPE,
-  /**
-   * {@link com.android.tools.idea.monitor.ui.network.model.HttpData}
-   */
-  NETWORK_HTTP_DATA, //HttpData
 
   CPU_MY_PROCESS, // long
   CPU_OTHER_PROCESSES, // long
