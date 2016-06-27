@@ -19,10 +19,14 @@ import com.android.tools.adtui.Animatable;
 import com.android.tools.adtui.Range;
 import com.android.tools.adtui.chart.StateChart;
 import com.android.tools.adtui.common.AdtUiUtils;
+import com.android.tools.adtui.model.DefaultDataSeries;
 import com.android.tools.adtui.model.RangedSeries;
+import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.idea.monitor.datastore.SeriesDataStore;
+import com.android.tools.idea.monitor.datastore.SeriesDataType;
 import com.android.tools.idea.monitor.ui.BaseSegment;
 import com.android.tools.idea.monitor.ui.ProfilerEventListener;
-import com.intellij.ui.JBColor;
+import com.android.tools.idea.monitor.ui.network.model.HttpData;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.EventDispatcher;
@@ -38,7 +42,8 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 
-public class NetworkCaptureSegment extends BaseSegment {
+public class NetworkCaptureSegment extends BaseSegment implements Animatable {
+
   public interface DetailedViewListener {
     void showDetailedConnection(String connectionId);
   }
@@ -57,41 +62,37 @@ public class NetworkCaptureSegment extends BaseSegment {
     NETWORK_STATE_COLORS.put(NetworkState.SENDING, Constants.NETWORK_SENDING_COLOR);
     NETWORK_STATE_COLORS.put(NetworkState.RECEIVING, Constants.NETWORK_RECEIVING_COLOR);
     NETWORK_STATE_COLORS.put(NetworkState.WAITING, Constants.NETWORK_WAITING_COLOR);
-    NETWORK_STATE_COLORS.put(NetworkState.NONE, JBColor.WHITE);
+    NETWORK_STATE_COLORS.put(NetworkState.NONE, AdtUiUtils.DEFAULT_BACKGROUND_COLOR);
   }
 
-  private int mRowHeight;
+  private int myRowHeight;
 
   @NotNull
-  private final List<StateChart<NetworkState>> mCharts;
+  private final List<StateChart<NetworkState>> myCharts;
 
   @NotNull
-  private final List<RangedSeries<NetworkState>> mData;
+  private final DetailedViewListener myDetailedViewListener;
 
   @NotNull
-  private final DetailedViewListener mDetailedViewListener;
+  private final SeriesDataStore myDataStore;
+
+  private JComponent myLayeredComponent;
+
+  private JTable myInformationTable;
+
+  private JTable myStateTable;
 
   public NetworkCaptureSegment(@NotNull Range timeRange,
-                               @NotNull List<RangedSeries<NetworkState>> data,
+                               @NotNull SeriesDataStore dataStore,
                                @NotNull DetailedViewListener detailedViewListener,
                                @NotNull EventDispatcher<ProfilerEventListener> dispatcher) {
     super(SEGMENT_NAME, timeRange, dispatcher);
-    mDetailedViewListener = detailedViewListener;
-    mCharts = new ArrayList<>();
-    mData = data;
+    myDetailedViewListener = detailedViewListener;
+    myCharts = new ArrayList<>();
+    myDataStore = dataStore;
 
     int defaultFontHeight = getFontMetrics(AdtUiUtils.DEFAULT_FONT).getHeight();
-    mRowHeight = defaultFontHeight + ROW_HEIGHT_PADDING;
-  }
-
-  @Override
-  public void createComponentsList(@NotNull List<Animatable> animatables) {
-    for (RangedSeries<NetworkState> series : mData) {
-      StateChart<NetworkState> chart = new StateChart<>(NETWORK_STATE_COLORS);
-      chart.addSeries(series);
-      animatables.add(chart);
-      mCharts.add(chart);
-    }
+    myRowHeight = defaultFontHeight + ROW_HEIGHT_PADDING;
   }
 
   @NotNull
@@ -101,7 +102,7 @@ public class NetworkCaptureSegment extends BaseSegment {
 
       @Override
       public int getRowCount() {
-        return mCharts.size();
+        return myCharts.size();
       }
 
       @Override
@@ -119,13 +120,13 @@ public class NetworkCaptureSegment extends BaseSegment {
     });
     table.setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION);
     table.getSelectionModel().addListSelectionListener(e -> {
-      mDetailedViewListener.showDetailedConnection(String.valueOf(table.getSelectedRow()));
+      myDetailedViewListener.showDetailedConnection(String.valueOf(table.getSelectedRow()));
     });
     table.setFont(AdtUiUtils.DEFAULT_FONT);
     table.setOpaque(false);
     ((DefaultTableCellRenderer)table.getDefaultRenderer(Object.class)).setOpaque(false);
 
-    table.setRowHeight(mRowHeight);
+    table.setRowHeight(myRowHeight);
     return table;
   }
 
@@ -135,7 +136,7 @@ public class NetworkCaptureSegment extends BaseSegment {
 
       @Override
       public int getRowCount() {
-        return mCharts.size();
+        return myCharts.size();
       }
 
       @Override
@@ -145,22 +146,24 @@ public class NetworkCaptureSegment extends BaseSegment {
 
       @Override
       public Object getValueAt(int rowIndex, int columnIndex) {
-        return mCharts.get(rowIndex);
+        return myCharts.get(rowIndex);
       }
     });
-    table.setDefaultRenderer(Object.class, (t, value, isSelected, hasFocus, row, column) -> mCharts.get(row));
-    table.setRowHeight(mRowHeight);
+    table.setDefaultRenderer(Object.class, (t, value, isSelected, hasFocus, row, column) -> myCharts.get(row));
+    table.setRowHeight(myRowHeight);
     return table;
   }
 
   @Override
   protected void setCenterContent(@NotNull JPanel panel) {
-    JLayeredPane pane = new JLayeredPane();
+    myLayeredComponent = new JLayeredPane();
+    myInformationTable = createInformationTable();
+    myStateTable = createStateChartTable();
 
-    pane.add(createInformationTable());
-    pane.add(createStateChartTable());
+    myLayeredComponent.add(myInformationTable);
+    myLayeredComponent.add(myStateTable);
 
-    pane.addComponentListener(new ComponentAdapter() {
+    myLayeredComponent.addComponentListener(new ComponentAdapter() {
       @Override
       public void componentResized(ComponentEvent e) {
         JLayeredPane host = (JLayeredPane)e.getComponent();
@@ -173,7 +176,34 @@ public class NetworkCaptureSegment extends BaseSegment {
       }
     });
 
-    pane.setPreferredSize(new Dimension(0, mRowHeight * mCharts.size()));
-    panel.add(new JBScrollPane(pane), BorderLayout.CENTER);
+    panel.add(new JBScrollPane(myLayeredComponent), BorderLayout.CENTER);
+  }
+
+  @Override
+  public void animate(float frameLength) {
+
+    List<SeriesData<HttpData>> dataList = myDataStore.getSeriesData(SeriesDataType.NETWORK_HTTP_DATA, mXRange);
+
+    // TODO: currently we recreate charts from scratch, instead consider reusing charts
+    myCharts.clear();
+    for (SeriesData<HttpData> data: dataList) {
+      if (data.value.getEndTimeUs() == 0) {
+        continue;
+      }
+
+      DefaultDataSeries<NetworkState> series = new DefaultDataSeries<>();
+      series.add(0, NetworkState.NONE);
+      series.add(data.value.getStartTimeUs(), NetworkState.SENDING);
+      series.add(data.value.getDownloadingTimeUs(), NetworkState.RECEIVING);
+      series.add(data.value.getEndTimeUs(), NetworkState.NONE);
+
+      StateChart<NetworkState> chart = new StateChart<>(NETWORK_STATE_COLORS);
+      chart.addSeries(new RangedSeries<>(mXRange, series));
+      chart.animate(frameLength);
+      myCharts.add(chart);
+    }
+    myLayeredComponent.setPreferredSize(new Dimension(0, myRowHeight * myCharts.size()));
+    myStateTable.repaint();
+    myInformationTable.repaint();
   }
 }
