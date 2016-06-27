@@ -16,7 +16,9 @@
 package com.android.tools.idea.updater.configure;
 
 
+import com.android.repository.api.RepoPackage;
 import com.android.repository.api.UpdatablePackage;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -37,40 +39,40 @@ class MultiVersionTreeNode extends UpdaterTreeNode {
   }
 
   @Override
-  public NodeStateHolder.SelectedState getInitialState() {
+  public PackageNodeModel.SelectedState getInitialState() {
     if (myMaxVersionNode == null) {  // can be the case before remote packages are downloaded
-      return NodeStateHolder.SelectedState.NOT_INSTALLED;
+      return PackageNodeModel.SelectedState.NOT_INSTALLED;
     }
-    if (myMaxVersionNode.getInitialState() == NodeStateHolder.SelectedState.INSTALLED) {
-      return NodeStateHolder.SelectedState.INSTALLED;
+    if (myMaxVersionNode.getInitialState() == PackageNodeModel.SelectedState.INSTALLED) {
+      return PackageNodeModel.SelectedState.INSTALLED;
     }
     for (UpdaterTreeNode node : myVersionNodes) {
-      if (node.getInitialState() != NodeStateHolder.SelectedState.NOT_INSTALLED) {
-        return NodeStateHolder.SelectedState.MIXED;
+      if (node.getInitialState() != PackageNodeModel.SelectedState.NOT_INSTALLED) {
+        return PackageNodeModel.SelectedState.MIXED;
       }
     }
-    return NodeStateHolder.SelectedState.NOT_INSTALLED;
+    return PackageNodeModel.SelectedState.NOT_INSTALLED;
   }
 
   @Override
-  public NodeStateHolder.SelectedState getCurrentState() {
+  public PackageNodeModel.SelectedState getCurrentState() {
     if (myMaxVersionNode == null) {
-      return NodeStateHolder.SelectedState.NOT_INSTALLED;
+      return PackageNodeModel.SelectedState.NOT_INSTALLED;
     }
-    if (myMaxVersionNode.getCurrentState() == NodeStateHolder.SelectedState.INSTALLED) {
-      return NodeStateHolder.SelectedState.INSTALLED;
+    if (myMaxVersionNode.getCurrentState() == PackageNodeModel.SelectedState.INSTALLED) {
+      return PackageNodeModel.SelectedState.INSTALLED;
     }
     for (UpdaterTreeNode node : myVersionNodes) {
-      if (node.getCurrentState() != NodeStateHolder.SelectedState.NOT_INSTALLED) {
-        return NodeStateHolder.SelectedState.MIXED;
+      if (node.getCurrentState() != PackageNodeModel.SelectedState.NOT_INSTALLED) {
+        return PackageNodeModel.SelectedState.MIXED;
       }
     }
-    return NodeStateHolder.SelectedState.NOT_INSTALLED;
+    return PackageNodeModel.SelectedState.NOT_INSTALLED;
   }
 
   @Override
   protected boolean canHaveMixedState() {
-    return getInitialState() == NodeStateHolder.SelectedState.MIXED;
+    return getInitialState() == PackageNodeModel.SelectedState.MIXED;
   }
 
   @Override
@@ -86,22 +88,20 @@ class MultiVersionTreeNode extends UpdaterTreeNode {
 
   @NotNull
   public String getDisplayName() {
-    String maxName = myMaxVersionNode.getPackage().getDisplayName();
-    int lastSpaceIndex = maxName.lastIndexOf(' ');
-    if (lastSpaceIndex > 0 && lastSpaceIndex < maxName.length() && Character.isDigit(maxName.charAt(lastSpaceIndex + 1))) {
-      // strip off the version number
-      return maxName.substring(0, lastSpaceIndex);
-    }
-    else {
-      return maxName;
-    }
+    RepoPackage maxPackage = myMaxVersionNode.getPackage();
+    String maxName = maxPackage.getDisplayName();
+    String maxPath = maxPackage.getPath();
+    String suffix = maxPath.substring(maxPath.lastIndexOf(RepoPackage.PATH_SEPARATOR) + 1);
+    maxName = StringUtil.trimEnd(maxName, suffix).trim();
+    maxName = StringUtil.trimEnd(maxName, ":");
+    return maxName;
   }
 
   @Override
   public String getStatusString() {
-    if (getInitialState() == NodeStateHolder.SelectedState.INSTALLED) {
+    if (getInitialState() == PackageNodeModel.SelectedState.INSTALLED) {
       return "Installed";
-    } else if (getInitialState() == NodeStateHolder.SelectedState.NOT_INSTALLED) {
+    } else if (getInitialState() == PackageNodeModel.SelectedState.NOT_INSTALLED) {
       return "Not Installed";
     } else {
       String revision;
@@ -118,18 +118,18 @@ class MultiVersionTreeNode extends UpdaterTreeNode {
   }
 
   @Override
-  protected void setState(NodeStateHolder.SelectedState state) {
-    if (state == NodeStateHolder.SelectedState.NOT_INSTALLED) {
+  protected void setState(PackageNodeModel.SelectedState state) {
+    if (state == PackageNodeModel.SelectedState.NOT_INSTALLED) {
       for (UpdaterTreeNode node : myVersionNodes) {
-        node.setState(NodeStateHolder.SelectedState.NOT_INSTALLED);
+        node.setState(PackageNodeModel.SelectedState.NOT_INSTALLED);
       }
     }
     else {
       for (UpdaterTreeNode node : myVersionNodes) {
         node.resetState();
       }
-      if (state == NodeStateHolder.SelectedState.INSTALLED) {
-        myMaxVersionNode.setState(NodeStateHolder.SelectedState.INSTALLED);
+      if (state == PackageNodeModel.SelectedState.INSTALLED) {
+        myMaxVersionNode.setState(PackageNodeModel.SelectedState.INSTALLED);
       }
     }
   }

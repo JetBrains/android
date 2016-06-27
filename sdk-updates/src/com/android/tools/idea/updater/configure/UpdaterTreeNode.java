@@ -29,8 +29,6 @@ import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeCellRenderer;
 import java.awt.*;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 
 /**
  * A tree node with a checkbox that can have three states.
@@ -39,18 +37,18 @@ abstract class UpdaterTreeNode extends DefaultMutableTreeNode implements Compara
   /**
    * @return The initial state of this node (representing the current state of the SDK).
    */
-  abstract public NodeStateHolder.SelectedState getInitialState();
+  abstract public PackageNodeModel.SelectedState getInitialState();
 
   /**
    * @return The current selected state of this node.
    */
-  abstract public NodeStateHolder.SelectedState getCurrentState();
+  abstract public PackageNodeModel.SelectedState getCurrentState();
 
   /**
    * Set the state of the node to the given state. For parent nodes this will also set the state of the children.
    * @param state
    */
-  abstract protected void setState(NodeStateHolder.SelectedState state);
+  abstract protected void setState(PackageNodeModel.SelectedState state);
 
   /**
    * Set the state of this node back to its initial state.
@@ -84,19 +82,19 @@ abstract class UpdaterTreeNode extends DefaultMutableTreeNode implements Compara
     if (getCurrentState() == null) {
       return;
     }
-    if (getCurrentState() == NodeStateHolder.SelectedState.NOT_INSTALLED) {
+    if (getCurrentState() == PackageNodeModel.SelectedState.NOT_INSTALLED) {
       if (canHaveMixedState()) {
-        setState(NodeStateHolder.SelectedState.MIXED);
+        setState(PackageNodeModel.SelectedState.MIXED);
       }
       else {
-        setState(NodeStateHolder.SelectedState.INSTALLED);
+        setState(PackageNodeModel.SelectedState.INSTALLED);
       }
     }
-    else if (getCurrentState() == NodeStateHolder.SelectedState.INSTALLED) {
-      setState(NodeStateHolder.SelectedState.NOT_INSTALLED);
+    else if (getCurrentState() == PackageNodeModel.SelectedState.INSTALLED) {
+      setState(PackageNodeModel.SelectedState.NOT_INSTALLED);
     }
     else {
-      setState(NodeStateHolder.SelectedState.INSTALLED);
+      setState(PackageNodeModel.SelectedState.INSTALLED);
     }
   }
 
@@ -157,11 +155,11 @@ abstract class UpdaterTreeNode extends DefaultMutableTreeNode implements Compara
       UpdaterTreeNode node = (UpdaterTreeNode)value;
       invalidate();
       myCheckbox.setVisible(true);
-      if (node.getCurrentState() == NodeStateHolder.SelectedState.MIXED) {
+      if (node.getCurrentState() == PackageNodeModel.SelectedState.MIXED) {
         myCheckbox.setState(ThreeStateCheckBox.State.DONT_CARE);
       }
       else {
-        myCheckbox.setSelected(node.getCurrentState() == NodeStateHolder.SelectedState.INSTALLED);
+        myCheckbox.setSelected(node.getCurrentState() == PackageNodeModel.SelectedState.INSTALLED);
       }
       myCheckbox.setOpaque(false);
       myCheckbox.setBackground(null);
