@@ -82,28 +82,33 @@ public class ServiceClientCache extends ServiceClientWrapper {
     }
 
     public ListenableFuture<V> get(final K key) {
-      // Look up the value in the cache using the executor.
-      ListenableFuture<V> cacheLookUp = myExecutorService.submit(new Callable<V>() {
-        @Override
-        public V call() throws Exception {
-          return myCache.getIfPresent(key);
-        }
-      });
-      return Futures.transform(cacheLookUp, new AsyncFunction<V, V>() {
-        private boolean alreadyFetching = false;
-
-        @Override
-        public ListenableFuture<V> apply(V result) throws Exception {
-          // If we found it in the cache or already tried to fetch it, return it, ...
-          if (result != null || alreadyFetching) {
-            myCache.put(key, result);
-            return Futures.immediateFuture(result);
+      try {
+        // Look up the value in the cache using the executor.
+        ListenableFuture<V> cacheLookUp = myExecutorService.submit(new Callable<V>() {
+          @Override
+          public V call() throws Exception {
+            return myCache.getIfPresent(key);
           }
-          // ... otherwise go ahead and try to fetch it.
-          alreadyFetching = true;
-          return Futures.transform(fetch(key), this);
-        }
-      });
+        });
+        return Futures.transform(cacheLookUp, new AsyncFunction<V, V>() {
+          private boolean alreadyFetching = false;
+
+          @Override
+          public ListenableFuture<V> apply(V result) throws Exception {
+            // If we found it in the cache or already tried to fetch it, return it, ...
+            if (result != null || alreadyFetching) {
+              myCache.put(key, result);
+              return Futures.immediateFuture(result);
+            }
+            // ... otherwise go ahead and try to fetch it.
+            alreadyFetching = true;
+            return Futures.transform(fetch(key), this);
+          }
+        });
+      }
+      catch (Exception ex) {
+        return Futures.immediateFailedFuture(ex);
+      }
     }
 
     protected abstract ListenableFuture<V> fetch(K key);
