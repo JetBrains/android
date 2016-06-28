@@ -22,6 +22,7 @@ import com.android.ide.common.blame.SourcePosition;
 import com.android.ide.common.blame.parser.PatternAwareOutputParser;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.SdkMavenRepository;
+import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.GradleModel;
 import com.android.tools.idea.gradle.customizer.dependency.DependencySetupErrors;
 import com.android.tools.idea.gradle.customizer.dependency.DependencySetupErrors.MissingModule;
@@ -33,13 +34,13 @@ import com.android.tools.idea.gradle.project.compatibility.VersionCompatibilityS
 import com.android.tools.idea.gradle.project.subset.ProjectSubset;
 import com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler;
 import com.android.tools.idea.gradle.service.notification.errors.UnsupportedGradleVersionErrorHandler;
+import com.android.tools.idea.gradle.service.notification.hyperlink.FixAndroidGradlePluginVersionHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.startup.AndroidStudioInitializer;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
-import com.google.common.base.Verify;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -80,6 +81,7 @@ import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.*;
 import static com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler.updateNotification;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.Projects.*;
+import static com.google.common.base.Verify.verifyNotNull;
 import static com.intellij.openapi.externalSystem.service.notification.NotificationSource.PROJECT_SYNC;
 import static com.intellij.openapi.util.text.StringUtil.*;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
@@ -142,7 +144,7 @@ public class ProjectSyncMessages {
       }
       switch (syncIssue.getType()) {
         case TYPE_UNRESOLVED_DEPENDENCY:
-          reportUnresolvedDependency(Verify.verifyNotNull(syncIssue.getData()), module, buildFile);
+          reportUnresolvedDependency(verifyNotNull(syncIssue.getData()), module, buildFile);
           break;
         case TYPE_EXTERNAL_NATIVE_BUILD_COMBINED_CONFIGURATION:
           reportExternalNativeBuildIssues(syncIssue, module.getProject());
@@ -202,19 +204,21 @@ public class ProjectSyncMessages {
 
   private void reportUnresolvedDependency(@NotNull String dependency, @NotNull Module module, @Nullable VirtualFile buildFile) {
     List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
-    String group;
-    if (dependency.startsWith("com.android.support")) {
-      group = UNRESOLVED_ANDROID_DEPENDENCIES;
+    String group = UNRESOLVED_ANDROID_DEPENDENCIES;
+    if (dependency.startsWith("com.android.support.constraint:constraint-layout:") && !canGetConstraintLayoutFromSdkManager(module)) {
+      hyperlinks.add(new FixAndroidGradlePluginVersionHyperlink(false));
+    }
+    else if (dependency.startsWith("com.android.support")) {
       hyperlinks.add(new InstallRepositoryHyperlink(SdkMavenRepository.ANDROID));
     }
     else if (dependency.startsWith("com.google.android")) {
-      group = UNRESOLVED_ANDROID_DEPENDENCIES;
       hyperlinks.add(new InstallRepositoryHyperlink(SdkMavenRepository.GOOGLE));
     }
     else {
       group = UNRESOLVED_DEPENDENCIES;
       if (isOfflineBuildModeEnabled(myProject)) {
-        NotificationHyperlink disableOfflineModeHyperlink = new NotificationHyperlink("disable.gradle.offline.mode", "Disable offline mode and Sync") {
+        NotificationHyperlink disableOfflineModeHyperlink = new NotificationHyperlink("disable.gradle.offline.mode",
+                                                                                      "Disable offline mode and Sync") {
           @Override
           protected void execute(@NotNull Project project) {
             GradleSettings.getInstance(myProject).setOfflineWork(false);
@@ -259,6 +263,13 @@ public class ProjectSyncMessages {
     add(msg, hyperlinks.toArray(new NotificationHyperlink[hyperlinks.size()]));
   }
 
+  private static boolean canGetConstraintLayoutFromSdkManager(@NotNull Module module) {
+    AndroidGradleModel gradleModel = AndroidGradleModel.get(module);
+    if (gradleModel != null) {
+      return gradleModel.getFeatures().isConstraintLayoutSdkLocationSupported();
+    }
+    return false;
+  }
 
   @Nullable
   private static TextRange findDependency(@NotNull final String dependency, @NotNull String contents) {

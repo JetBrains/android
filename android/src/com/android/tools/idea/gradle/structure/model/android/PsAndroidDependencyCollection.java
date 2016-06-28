@@ -193,7 +193,7 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
     }
 
     AndroidGradleModel gradleModel = artifact.getGradleModel();
-    if (gradleModel.supportsDependencyGraph()) {
+    if (gradleModel.getFeatures().isDependencyGraphSupported()) {
       for (Library library : androidLibrary.getJavaDependencies()) {
         addTransitive(library, artifact, dependency);
       }
@@ -270,7 +270,7 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
       else if (library instanceof JavaLibrary) {
         libraryPath = ((JavaLibrary)library).getJarFile();
       }
-      if (!artifact.getGradleModel().supportsDependencyGraph()) {
+      if (!artifact.getGradleModel().getFeatures().isDependencyGraphSupported()) {
         // If the Android model supports the full dependency graph (v. 2.2.0+), we don't need to look for transitive dependencies in POM
         // files.
         List<PsArtifactDependencySpec> pomDependencies = Collections.emptyList();

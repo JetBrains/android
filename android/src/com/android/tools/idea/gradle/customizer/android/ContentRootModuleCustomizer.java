@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.customizer.android;
 
 import com.android.builder.model.*;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.NativeAndroidGradleModel;
 import com.android.tools.idea.gradle.customizer.AbstractContentRootModuleCustomizer;
@@ -138,7 +139,8 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
                                          @NotNull List<RootSourceFolder> orphans) {
     JpsModuleSourceRootType sourceType = getSourceType(isTest);
 
-    if (artifact instanceof AndroidArtifact || androidModel.modelVersionIsAtLeast("1.2")) {
+    GradleVersion modelVersion = androidModel.getModelVersion();
+    if (artifact instanceof AndroidArtifact || (modelVersion != null && modelVersion.compareIgnoringQualifiers("1.2") >= 0)) {
       // getGeneratedSourceFolders used to be in AndroidArtifact only.
       Collection<File> generatedSourceFolders = artifact.getGeneratedSourceFolders();
 
@@ -187,7 +189,7 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
       addSourceFolders(androidModel, contentEntries, sourceProvider.getCppDirectories(), sourceType, false, orphans);
     }
     addSourceFolders(androidModel, contentEntries, sourceProvider.getRenderscriptDirectories(), sourceType, false, orphans);
-    if (androidModel.supportsShaders()) {
+    if (androidModel.getFeatures().isShadersSupported()) {
       addSourceFolders(androidModel, contentEntries, sourceProvider.getShadersDirectories(), sourceType, false, orphans);
     }
   }
