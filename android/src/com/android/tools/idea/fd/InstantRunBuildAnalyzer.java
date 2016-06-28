@@ -16,16 +16,22 @@
 package com.android.tools.idea.fd;
 
 import com.android.tools.fd.client.InstantRunArtifact;
+import com.android.tools.fd.client.InstantRunArtifactType;
 import com.android.tools.fd.client.InstantRunBuildInfo;
+import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.ApkInstaller;
+import com.android.tools.idea.run.LaunchOptions;
 import com.android.tools.idea.run.tasks.*;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.openapi.project.Project;
+import com.intellij.util.SmartList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import static com.android.tools.fd.client.InstantRunArtifactType.*;
@@ -74,12 +80,9 @@ public class InstantRunBuildAnalyzer {
 
   /**
    * Returns the list of deploy tasks that will update the instant run state on the device.
-   * @param apkDeployTask Currently, the full apk deploy task needs a lot of information about the build system, so it has
-   *                      to be passed in as an argument in case the buid results indicate that the apk has to be redeployed.
-   *                      TODO: this argument will be removed once {@link DeployApkTask} and {@link ApkInstaller} are cleaned up.
    */
   @NotNull
-  public List<LaunchTask> getDeployTasks(@Nullable LaunchTask apkDeployTask) {
+  public List<LaunchTask> getDeployTasks(@Nullable LaunchOptions launchOptions) {
     LaunchTask updateStateTask = new UpdateInstantRunStateTask(myContext);
 
     DeployType deployType = getDeployType();
@@ -94,10 +97,11 @@ public class InstantRunBuildAnalyzer {
         return ImmutableList.of(new SplitApkDeployTask(myProject, myContext), updateStateTask);
       case DEX:
         return ImmutableList.of(new DexDeployTask(myProject, myContext), updateStateTask);
-      case LEGACY:
       case FULLAPK:
-        Preconditions.checkNotNull(apkDeployTask); // apkDeployTask can be null only under NO_CHANGES or HOTSWAP scenarios
-        return ImmutableList.of(apkDeployTask, updateStateTask);
+        Preconditions.checkNotNull(launchOptions); // launchOptions can be null only under NO_CHANGES or HOTSWAP scenarios
+        DeployApkTask deployApkTask = new DeployApkTask(myProject, launchOptions, getApks(myBuildInfo, myContext.getApplicationId()), true);
+        return ImmutableList.of(deployApkTask, updateStateTask);
+      case LEGACY:
       default:
         throw new IllegalStateException("Unhandled deploy type: " + deployType);
     }
@@ -136,5 +140,16 @@ public class InstantRunBuildAnalyzer {
     }
 
     return DeployType.FULLAPK;
+  }
+
+  private static Collection<ApkInfo> getApks(@NotNull InstantRunBuildInfo buildInfo, @NotNull String applicationId) {
+    List<ApkInfo> apks = new SmartList<>();
+
+    for (InstantRunArtifact artifact : buildInfo.getArtifacts()) {
+      assert artifact.type == MAIN;
+      apks.add(new ApkInfo(artifact.file, applicationId));
+    }
+
+    return apks;
   }
 }

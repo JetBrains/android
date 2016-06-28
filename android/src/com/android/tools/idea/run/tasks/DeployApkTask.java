@@ -18,10 +18,8 @@ package com.android.tools.idea.run.tasks;
 import com.android.ddmlib.IDevice;
 import com.android.tools.fd.client.InstantRunClient;
 import com.android.tools.idea.fd.DeployType;
-import com.android.tools.idea.fd.InstantRunManager;
-import com.android.tools.idea.fd.InstantRunStatsService;
-import com.android.tools.idea.gradle.run.GradleInstantRunContext;
 import com.android.tools.idea.fd.InstantRunContext;
+import com.android.tools.idea.fd.InstantRunStatsService;
 import com.android.tools.idea.run.*;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.stats.UsageTracker;
@@ -29,7 +27,7 @@ import com.google.common.base.Charsets;
 import com.google.common.hash.Hashing;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
-import org.jetbrains.android.facet.AndroidFacet;
+import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -37,20 +35,20 @@ import java.util.Collection;
 public class DeployApkTask implements LaunchTask {
   private static final Logger LOG = Logger.getInstance(DeployApkTask.class);
 
-  private final AndroidFacet myFacet;
-  private final ApkProvider myApkProvider;
+  private final Project myProject;
+  private final Collection<ApkInfo> myApks;
   private final LaunchOptions myLaunchOptions;
   private final boolean myInstantRunAware;
 
-  public DeployApkTask(@NotNull AndroidFacet facet, @NotNull LaunchOptions launchOptions, @NotNull ApkProvider apkProvider) {
-    this(facet, launchOptions, apkProvider, false);
+  public DeployApkTask(@NotNull Project project, @NotNull LaunchOptions launchOptions, @NotNull Collection<ApkInfo> apks) {
+    this(project, launchOptions, apks, false);
   }
 
-  public DeployApkTask(@NotNull AndroidFacet facet, @NotNull LaunchOptions launchOptions, @NotNull ApkProvider apkProvider,
+  public DeployApkTask(@NotNull Project project, @NotNull LaunchOptions launchOptions, @NotNull Collection<ApkInfo> apks,
                        boolean instantRunAware) {
-    myFacet = facet;
+    myProject = project;
     myLaunchOptions = launchOptions;
-    myApkProvider = apkProvider;
+    myApks = apks;
     myInstantRunAware = instantRunAware;
   }
 
@@ -67,18 +65,8 @@ public class DeployApkTask implements LaunchTask {
 
   @Override
   public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
-    Collection<ApkInfo> apks;
-    try {
-      apks = myApkProvider.getApks(device);
-    }
-    catch (ApkProvisionException e) {
-      printer.stderr(e.getMessage());
-      LOG.warn(e);
-      return false;
-    }
-
-    ApkInstaller installer = new ApkInstaller(myFacet, myLaunchOptions, ServiceManager.getService(InstalledApkCache.class), printer);
-    for (ApkInfo apk : apks) {
+    ApkInstaller installer = new ApkInstaller(myProject, myLaunchOptions, ServiceManager.getService(InstalledApkCache.class), printer);
+    for (ApkInfo apk : myApks) {
       if (!apk.getFile().exists()) {
         String message = "The APK file " + apk.getFile().getPath() + " does not exist on disk.";
         printer.stderr(message);
@@ -91,12 +79,7 @@ public class DeployApkTask implements LaunchTask {
         return false;
       }
 
-      if (myInstantRunAware) {
-        GradleInstantRunContext context = new GradleInstantRunContext(pkgName, myFacet);
-        InstantRunManager.transferLocalIdToDeviceId(device, context);
-        cacheManifestInstallationData(device, context);
-      }
-      else {
+      if (!myInstantRunAware) {
         // If not using IR, we need to transfer an empty build id over to the device. This assures that a subsequent IR
         // will not somehow see a stale build id on the device.
         try {
@@ -107,9 +90,8 @@ public class DeployApkTask implements LaunchTask {
       }
     }
 
+    InstantRunStatsService.get(myProject).notifyDeployType(myInstantRunAware ? DeployType.FULLAPK : DeployType.LEGACY);
     trackInstallation(device);
-    InstantRunStatsService.get(myFacet.getModule().getProject())
-      .notifyDeployType(myInstantRunAware ? DeployType.FULLAPK : DeployType.LEGACY);
 
     return true;
   }

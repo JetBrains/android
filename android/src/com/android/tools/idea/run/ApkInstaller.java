@@ -18,20 +18,14 @@ package com.android.tools.idea.run;
 import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.*;
-import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.fd.InstantRunManager;
-import com.android.tools.idea.fd.InstantRunSettings;
-import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.LaunchUtils;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
@@ -44,17 +38,15 @@ public class ApkInstaller {
   private static final Logger LOG = Logger.getInstance(ApkInstaller.class);
 
   @NotNull private final Project myProject;
-  @NotNull private final AndroidFacet myFacet;
   @NotNull private final LaunchOptions myLaunchOptions;
   @NotNull private final InstalledApkCache myInstalledApkCache;
   @NotNull private final ConsolePrinter myPrinter;
 
-  public ApkInstaller(@NotNull AndroidFacet facet,
+  public ApkInstaller(@NotNull Project project,
                       @NotNull LaunchOptions options,
                       @NotNull InstalledApkCache installedApkCache,
                       @NotNull ConsolePrinter printer) {
-    myFacet = facet;
-    myProject = facet.getModule().getProject();
+    myProject = project;
     myLaunchOptions = options;
     myInstalledApkCache = installedApkCache;
     myPrinter = printer;
@@ -174,16 +166,11 @@ public class ApkInstaller {
           showMessageDialog(AndroidBundle.message("deployment.failed.no.certificates.explanation"));
           retry = false;
           break;
-        case INSTALL_FAILED_OLDER_SDK:
-          reason = validateSdkVersion(device);
-          if (reason != null) {
-            if (showPrompt(reason)) {
-              openProjectStructure();
-            }
-            retry = false;  // Don't retry as there needs to be another sync and build.
-            break;
-          }
-          // Maybe throw an exception because this shouldn't happen. But let it fall through to UNTYPED_ERROR for now.
+        case INSTALL_FAILED_OLDER_SDK: // TODO: this should not happen and should have been caught by the device picker
+          String message = AndroidBundle.message("deployment.failed.reason.oldersdk", device.getVersion().toString());
+          myPrinter.stderr(message);
+          retry = false;
+          break;
         case UNTYPED_ERROR:
           reason = AndroidBundle.message("deployment.failed.uninstall.prompt.generic.text", result.failureMessage);
           retry = showPrompt(reason) && uninstallPackage(device, packageName);
@@ -195,18 +182,6 @@ public class ApkInstaller {
     }
 
     return result != null && result.failureCode == InstallResult.FailureCode.NO_ERROR;
-  }
-
-  private String validateSdkVersion(@NotNull IDevice device) {
-    AndroidVersion deviceVersion = device.getVersion();
-    AndroidVersion minSdkVersion = myFacet.getAndroidModuleInfo().getRuntimeMinSdkVersion();
-    if (!deviceVersion.canRun(minSdkVersion)) {
-      myPrinter.stderr("Device API level: " + deviceVersion.toString()); // Log the device version to console for easy reference.
-      return AndroidBundle.message("deployment.failed.reason.oldersdk", minSdkVersion.toString(), deviceVersion.toString());
-    }
-    else {
-      return null;
-    }
   }
 
   private void showMessageDialog(@NotNull final String message) {
@@ -281,18 +256,5 @@ public class ApkInstaller {
     sb.append(remotePath);
     sb.append("\"");
     return sb.toString();
-  }
-
-  /** Opens the project structure dialog and selects the flavors tab. */
-  private void openProjectStructure() {
-    final ProjectSettingsService service = ProjectSettingsService.getInstance(myFacet.getModule().getProject());
-    if (service instanceof AndroidProjectSettingsService) {
-      ApplicationManager.getApplication().invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          ((AndroidProjectSettingsService)service).openAndSelectFlavorsEditor(myFacet.getModule());
-        }
-      });
-    }
   }
 }
