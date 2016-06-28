@@ -74,10 +74,14 @@ public abstract class ResourceManager {
   /** Returns true if the given directory is a resource directory in this module */
   public abstract boolean isResourceDir(@NotNull VirtualFile dir);
 
+  // TODO: Switch parameter type to ResourceFolderType to avoid mix & matching
+  // ResourceType and ResourceFolderType
   public boolean processFileResources(@NotNull String resourceType, @NotNull FileResourceProcessor processor) {
     return processFileResources(resourceType, processor, true);
   }
 
+  // TODO: Switch parameter type to ResourceFolderType to avoid mix & matching
+  // ResourceType and ResourceFolderType
   public boolean processFileResources(@NotNull String resourceType, @NotNull FileResourceProcessor processor,
                                       boolean withDependencies) {
     ResourceFolderType folderType = ResourceFolderType.getTypeByName(resourceType);
@@ -264,6 +268,8 @@ public abstract class ResourceManager {
     return folderType == null ? null : folderType.getName();
   }
 
+  // TODO: Switch parameter type to ResourceFolderType to avoid mix & matching
+  // ResourceType and ResourceFolderType
   @NotNull
   private Set<String> getFileResourcesNames(@NotNull final String resourceType) {
     final Set<String> result = new HashSet<String>();
@@ -347,7 +353,14 @@ public abstract class ResourceManager {
   public Collection<String> getResourceNames(@NotNull ResourceType resourceType, boolean publicOnly) {
     final Set<String> result = new HashSet<String>();
     result.addAll(getValueResourceNames(resourceType));
-    result.addAll(getFileResourcesNames(resourceType.getName()));
+
+    List<ResourceFolderType> folders = FolderTypeRelationship.getRelatedFolders(resourceType);
+    if (!folders.isEmpty()) {
+      ResourceFolderType folderType = folders.get(0);
+      if (folderType != ResourceFolderType.VALUES) {
+        result.addAll(getFileResourcesNames(folderType.getName()));
+      }
+    }
     if (resourceType == ResourceType.ID) {
       result.addAll(getIds(true));
     }
