@@ -1114,7 +1114,7 @@ public class ConstraintUtilities {
    */
   static void saveWidgetLayoutParams(@NotNull ConstraintModel model, @NotNull ConstraintWidget widget) {
     try {
-      if (!widget.isRoot()) {
+      if (!widget.isRoot() && widget.getParent() instanceof ConstraintWidgetContainer) {
         WidgetCompanion companion = (WidgetCompanion)widget.getCompanionWidget();
         NlComponent component = (NlComponent)companion.getWidgetModel();
         if (component == null || component.viewInfo == null) {
