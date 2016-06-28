@@ -82,10 +82,8 @@ import java.util.regex.Pattern;
  */
 public class Mockup implements ModelListener {
 
-  private final static Pattern REGEX_POSITION_XY = Pattern.compile("([-]?[0-9]+\\s+[-]?[0-9]+)\\s*");
-  private final static Pattern REGEX_POSITION_XY_SIZE = Pattern.compile(REGEX_POSITION_XY + "\\s+([0-9]+\\s+)[0-9]+\\s*");
-  private final static Pattern REGEX_POSITION_CROP_XY = Pattern.compile(REGEX_POSITION_XY_SIZE + "\\s+([0-9]+\\s+)[0-9]+\\s*");
-  private final static Pattern REGEX_POSITION_CROP_XY_SIZE = Pattern.compile(REGEX_POSITION_CROP_XY + "\\s+([0-9]+\\s+)[0-9]+\\s*");
+  private final static Pattern REGEX_BOUNDS = Pattern.compile("([-]?[0-9]+\\s+[-]?[0-9]+\\s*){1,2}");
+  private final static Pattern REGEX_BOUNDS_CROP = Pattern.compile(REGEX_BOUNDS + "(\\s+[0-9]+\\s+[0-9]+\\s*){1,2}");
 
   private final static Pattern REGEX_OPACITY = Pattern.compile("[01]|[01]?\\.\\d+");
   public static final float DEFAULT_OPACITY = 0.5f;
@@ -253,6 +251,7 @@ public class Mockup implements ModelListener {
     if (opacity != null) {
       setAlpha(opacity);
     }
+    notifyListeners();
   }
 
   public void setAlpha(String opacity) {
@@ -283,7 +282,7 @@ public class Mockup implements ModelListener {
 
       //Update the cropping with the new image size
       setCropping(myCropping.x, myCropping.y, myCropping.width, myCropping.height);
-      notifyListener();
+      notifyListeners();
     }
   }
 
@@ -336,8 +335,12 @@ public class Mockup implements ModelListener {
   /**
    * Set bounds with 0,0,-1,-1.
    */
-  private void setDefaultBounds() {
+  void setDefaultBounds() {
     setBounds(0, 0, -1, -1);
+  }
+
+  public void setDefaultCrop() {
+    setCropping(0,0,-1,-1);
   }
 
   /**
@@ -353,7 +356,8 @@ public class Mockup implements ModelListener {
         || myBounds.width != width
         || myBounds.height != height) {
       myBounds.setBounds(x, y, width, height);
-      notifyListener();
+      myIsFullScreen = false;
+      notifyListeners();
     }
   }
 
@@ -374,8 +378,9 @@ public class Mockup implements ModelListener {
         || myCropping.width != width
         || myCropping.height != height) {
       myCropping.setBounds(x, y, width, height);
-      notifyListener();
+      notifyListeners();
     }
+    myIsFullScreen = false;
   }
 
   /**
@@ -467,16 +472,14 @@ public class Mockup implements ModelListener {
       return false;
     }
     return s.isEmpty()
-           || REGEX_POSITION_XY.matcher(s).matches()
-           || REGEX_POSITION_XY_SIZE.matcher(s).matches()
-           || REGEX_POSITION_CROP_XY.matcher(s).matches()
-           || REGEX_POSITION_CROP_XY_SIZE.matcher(s).matches();
+           || REGEX_BOUNDS.matcher(s).matches()
+           || REGEX_BOUNDS_CROP.matcher(s).matches();
   }
 
   public void setAlpha(float alpha) {
     if (alpha != myAlpha) {
       myAlpha = Math.min(1, Math.max(0, alpha));
-      notifyListener();
+      notifyListeners();
     }
   }
 
@@ -500,7 +503,7 @@ public class Mockup implements ModelListener {
     }
   }
 
-  private void notifyListener() {
+  private void notifyListeners() {
     for (int i = 0; i < myListeners.size(); i++) {
       myListeners.get(i).mockupChanged(this);
     }
@@ -508,6 +511,11 @@ public class Mockup implements ModelListener {
 
   public NlComponent getComponent() {
     return myComponent;
+  }
+
+  public void clearCrop() {
+    setDefaultBounds();
+    myIsFullScreen = true;
   }
 
   public interface MockupModelListener {

@@ -56,8 +56,10 @@ public class MockupEditorPopup {
   private JSlider mySlider;
   private JPanel myContentPane;
   private JCheckBox myShowGuideline;
-  private JButton myOkButton;
+  private JButton myExportGuidelineButton;
   private JButton myEditCroppingButton;
+  private JButton myMatchWidgetButton;
+  private JButton myMatchDeviceButton;
 
   public MockupEditorPopup(ScreenView screenView, Mockup mockup, NlModel model) {
     myScreenView = screenView;
@@ -69,16 +71,42 @@ public class MockupEditorPopup {
     initSlider();
     initShowGuidelineCheckBox();
     initCreateSelectedGuidelineButton(mockup, model);
+    initEditCroppingButton();
+    initMatchWidgetButton();
+    initMatchDeviceButton();
+  }
+
+  private void initMatchDeviceButton() {
+    if(!myMockup.getComponent().isRoot()) {
+      myMatchDeviceButton.getParent().remove(myMatchDeviceButton);
+    } else {
+      myMatchDeviceButton.addActionListener(e -> {
+        myMockup.clearCrop();
+        MockupFileHelper.writePositionToXML(myMockup);
+      });
+    }
+  }
+
+  private void initMatchWidgetButton() {
+    myMatchWidgetButton.addActionListener(e -> {
+      myMockup.setDefaultCrop();
+      MockupFileHelper.writePositionToXML(myMockup);
+    });
+  }
+
+  private void initEditCroppingButton() {
     myEditCroppingButton.addActionListener(e -> {
       myInteractionPanel.setEditCropping(!myInteractionPanel.isEditCropping());
-      myEditCroppingButton.setText(myInteractionPanel.isEditCropping() ? "End cropping" : "Edit cropping");
+      myEditCroppingButton.setText(myInteractionPanel.isEditCropping() ? "End edition" : "Edit cropping");
       myShowGuideline.setSelected(false);
+      myShowGuideline.setEnabled(!myInteractionPanel.isEditCropping());
       myInteractionPanel.setShowGuideline(false);
+      myExportGuidelineButton.setEnabled(!myInteractionPanel.isEditCropping());
     });
   }
 
   private void initCreateSelectedGuidelineButton(Mockup mockup, NlModel model) {
-    myOkButton.addActionListener(e -> {
+    myExportGuidelineButton.addActionListener(e -> {
       createSelectedGuidelines(mockup, model);
     });
   }

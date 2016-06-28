@@ -8,14 +8,16 @@
     <properties/>
     <border type="none"/>
     <children>
-      <grid id="4feb5" layout-manager="GridLayoutManager" row-count="6" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+      <grid id="4feb5" layout-manager="GridLayoutManager" row-count="7" column-count="4" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
         <margin top="0" left="16" bottom="0" right="16"/>
         <constraints>
           <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="5" fill="0" indent="0" use-parent-layout="true">
             <preferred-size width="150" height="81"/>
           </grid>
         </constraints>
-        <properties/>
+        <properties>
+          <enabled value="true"/>
+        </properties>
         <border type="none"/>
         <children>
           <component id="4b729" class="javax.swing.JLabel">
@@ -23,12 +25,12 @@
               <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
-              <text value="Opacity :"/>
+              <text value="Opacity:"/>
             </properties>
           </component>
           <component id="82579" class="javax.swing.JSlider" binding="mySlider">
             <constraints>
-              <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false">
+              <grid row="2" column="1" row-span="1" col-span="3" vsize-policy="0" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false">
                 <preferred-size width="201" height="16"/>
               </grid>
             </constraints>
@@ -47,22 +49,12 @@
             </constraints>
             <properties>
               <horizontalAlignment value="4"/>
-              <text value="File :"/>
-            </properties>
-          </component>
-          <component id="98375" class="javax.swing.JButton" binding="myEditCroppingButton" default-binding="true">
-            <constraints>
-              <grid row="5" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false">
-                <preferred-size width="201" height="31"/>
-              </grid>
-            </constraints>
-            <properties>
-              <text value="Edit cropping"/>
+              <text value="File:"/>
             </properties>
           </component>
           <component id="8a8be" class="com.intellij.openapi.ui.TextFieldWithBrowseButton" binding="myFileChooser">
             <constraints>
-              <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false">
+              <grid row="1" column="1" row-span="1" col-span="3" vsize-policy="0" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false">
                 <preferred-size width="201" height="23"/>
               </grid>
             </constraints>
@@ -70,7 +62,7 @@
           </component>
           <component id="58758" class="javax.swing.JCheckBox" binding="myShowGuideline">
             <constraints>
-              <grid row="3" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false">
+              <grid row="3" column="1" row-span="1" col-span="3" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false">
                 <preferred-size width="201" height="24"/>
               </grid>
             </constraints>
@@ -80,9 +72,9 @@
               <text value="Visible"/>
             </properties>
           </component>
-          <component id="72d08" class="javax.swing.JButton" binding="myOkButton">
+          <component id="72d08" class="javax.swing.JButton" binding="myExportGuidelineButton">
             <constraints>
-              <grid row="4" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="2" fill="1" indent="0" use-parent-layout="false">
+              <grid row="4" column="1" row-span="1" col-span="3" vsize-policy="0" hsize-policy="3" anchor="2" fill="1" indent="0" use-parent-layout="false">
                 <preferred-size width="201" height="31"/>
               </grid>
             </constraints>
@@ -95,15 +87,52 @@
               <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
-              <text value="Keylines :"/>
+              <text value="Keylines:"/>
             </properties>
           </component>
           <component id="49e01" class="com.intellij.ui.components.JBLabel">
             <constraints>
-              <grid row="0" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+              <grid row="0" column="0" row-span="1" col-span="4" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
-              <text value="Mockup settings :"/>
+              <text value="Mockup settings:"/>
+            </properties>
+          </component>
+          <component id="98375" class="javax.swing.JButton" binding="myEditCroppingButton" default-binding="true">
+            <constraints>
+              <grid row="5" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false">
+                <preferred-size width="201" height="31"/>
+              </grid>
+            </constraints>
+            <properties>
+              <enabled value="true"/>
+              <text value="Edit"/>
+              <visible value="true"/>
+            </properties>
+          </component>
+          <component id="91503" class="com.intellij.ui.components.JBLabel">
+            <constraints>
+              <grid row="5" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text value="Crop:"/>
+            </properties>
+          </component>
+          <component id="48bdb" class="javax.swing.JButton" binding="myMatchDeviceButton">
+            <constraints>
+              <grid row="6" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text value="Match device"/>
+            </properties>
+          </component>
+          <component id="7da4c" class="javax.swing.JButton" binding="myMatchWidgetButton">
+            <constraints>
+              <grid row="6" column="2" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text value="Match widget"/>
+              <visible value="true"/>
             </properties>
           </component>
         </children>
