@@ -136,7 +136,7 @@ final class ManifestInfo {
       // copy-paste from {@link VariantConfiguration#getVersionName()}
       String versionName = mergedProductFlavor.getVersionName();
       String flavorVersionNameSuffix = null;
-      if (gradleModel.supportsProductFlavorVersionSuffix()) {
+      if (gradleModel.getFeatures().isProductFlavorVersionSuffixSupported()) {
         flavorVersionNameSuffix = getVersionNameSuffix(mergedProductFlavor);
       }
       String versionNameSuffix = Joiner.on("").skipNulls().join(flavorVersionNameSuffix, getVersionNameSuffix(buildType));
