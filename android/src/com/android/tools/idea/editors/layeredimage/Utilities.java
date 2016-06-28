@@ -18,13 +18,11 @@ package com.android.tools.idea.editors.layeredimage;
 
 import com.android.tools.pixelprobe.Image;
 import com.android.tools.pixelprobe.PixelProbe;
+import com.android.tools.pixelprobe.util.Images;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.*;
-import java.awt.color.ColorSpace;
 import java.awt.image.BufferedImage;
-import java.awt.image.ColorConvertOp;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -45,9 +43,9 @@ class Utilities {
     if (bufferedImage == null) {
       throw new IOException("Unable to extract flattened bitmap");
     }
-    ColorConvertOp op = new ColorConvertOp(ColorSpace.getInstance(ColorSpace.CS_sRGB),
-                                           new RenderingHints(RenderingHints.KEY_COLOR_RENDERING,
-                                                              RenderingHints.VALUE_COLOR_RENDER_QUALITY));
-    return op.filter(bufferedImage, null);
+    if (!Images.isColorSpace_sRGB(bufferedImage)) {
+      return Images.copyTo_sRGB(bufferedImage);
+    }
+    return bufferedImage;
   }
 }
