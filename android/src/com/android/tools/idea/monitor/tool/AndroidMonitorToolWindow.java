@@ -139,15 +139,15 @@ public class AndroidMonitorToolWindow implements Disposable {
   }
 
   private List<Animatable> createCommonAnimatables() {
-    final long deviceStartTimeMs = myDataStore.getLatestTime();
-    Range xGlobalRange = new Range(deviceStartTimeMs - RangeScrollbar.DEFAULT_VIEW_LENGTH_MS, deviceStartTimeMs);
+    final long deviceStartTimeUs = myDataStore.getLatestTimeUs();
+    Range xGlobalRange = new Range(deviceStartTimeUs - RangeScrollbar.DEFAULT_VIEW_LENGTH_US, deviceStartTimeUs);
     Range xSelectionRange = new Range();
     myXRange = new Range();
 
     myScrollbar = new RangeScrollbar(xGlobalRange, myXRange);
 
     TimeAxisFormatter timeFormatter = new TimeAxisFormatter(5, 10, 5);
-    timeFormatter.setOrigin(deviceStartTimeMs);
+    timeFormatter.setOrigin(deviceStartTimeUs);
     myTimeAxis = new AxisComponent(myXRange, xGlobalRange, "TIME", AxisComponent.AxisOrientation.BOTTOM, 0, 0, false, timeFormatter);
     myTimeAxis.setLabelVisible(false);
 
@@ -162,12 +162,12 @@ public class AndroidMonitorToolWindow implements Disposable {
     assert myDataStore != null;
     return Arrays.asList(accordion,
                          frameLength -> {
-                           long currentTime = myDataStore.getLatestTime();
-                           // Once elapsedTime is greater than DEFAULT_VIEW_LENGTH_MS, set global min to 0 so that user can
+                           long currentTimeUs = myDataStore.getLatestTimeUs();
+                           // Once elapsedTime is greater than DEFAULT_VIEW_LENGTH_US, set global min to 0 so that user can
                            // not scroll back to negative time.
-                           xGlobalRange.setMinTarget(Math.min(currentTime - RangeScrollbar.DEFAULT_VIEW_LENGTH_MS, deviceStartTimeMs));
+                           xGlobalRange.setMinTarget(Math.min(currentTimeUs - RangeScrollbar.DEFAULT_VIEW_LENGTH_US, deviceStartTimeUs));
                            // Updates the global range's max to match the device's current time.
-                           xGlobalRange.setMaxTarget(currentTime);
+                           xGlobalRange.setMaxTarget(currentTimeUs);
                          },
                          mySelection,
                          myScrollbar,

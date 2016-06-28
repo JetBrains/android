@@ -24,8 +24,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Path2D;
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A chart component that renders a series of events as icons.
@@ -45,7 +45,7 @@ public class SimpleEventComponent<E extends Enum<E>> extends AnimatedComponent {
     UP
   }
 
-  private static final int HOLD_DELAY_MS = 150;
+  private static final long HOLD_DELAY_US = TimeUnit.MILLISECONDS.toMicros(150);
 
   @NotNull
   private final RangedSeries<EventAction<Action, E>> mData;
@@ -83,7 +83,7 @@ public class SimpleEventComponent<E extends Enum<E>> extends AnimatedComponent {
     EventAction<Action, ? extends Enum> downEvent = null;
     mIconsToDraw.clear();
     mPaths.clear();
-    long now = System.currentTimeMillis();
+    long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
     ImmutableList<SeriesData<EventAction<Action, E>>> series = mData.getSeries();
     int size = series.size();
 
@@ -96,22 +96,22 @@ public class SimpleEventComponent<E extends Enum<E>> extends AnimatedComponent {
       } else if (data.getValue() == Action.UP) {
         downEvent = null;
         Integer toDraw = data.getValueData().ordinal();
-        if (data.getEnd() - data.getStart() >= HOLD_DELAY_MS) {
+        if (data.getEndUs() - data.getStartUs() >= HOLD_DELAY_US) {
           toDraw = data.getValueData().ordinal();
           Path2D.Float path = new Path2D.Float();
-          double start = (data.getStart() - min) / (max - min);
-          double end = (data.getEnd() - min) / (max - min);
+          double start = (data.getStartUs() - min) / (max - min);
+          double end = (data.getEndUs() - min) / (max - min);
           path.moveTo(start, LINE_OFFSET);
           path.lineTo(end, LINE_OFFSET);
           mPaths.add(path);
         }
-        mIconsToDraw.add(new EventRenderData(toDraw, data.getEnd()));
+        mIconsToDraw.add(new EventRenderData(toDraw, data.getEndUs()));
       }
     }
     if (downEvent != null) {
-      double start = (downEvent.getStart() - min) / (max - min);
+      double start = (downEvent.getStartUs() - min) / (max - min);
       Integer toDraw = downEvent.getValueData().ordinal();
-      if (now - downEvent.getStart() >= HOLD_DELAY_MS) {
+      if (nowUs - downEvent.getStartUs() >= HOLD_DELAY_US) {
         Path2D.Float path = new Path2D.Float();
         double end = 1;
         path.moveTo(start, LINE_OFFSET);

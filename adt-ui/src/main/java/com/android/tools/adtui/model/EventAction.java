@@ -34,9 +34,9 @@ public class EventAction<T0, T1> {
   @NotNull
   private final T1 mValueData;
   @NotNull
-  private final long mStart;
+  private final long mStartUs;
   @NotNull
-  private final long mEnd;
+  private final long mEndUs;
 
   @NotNull
   public T0 getValue() {
@@ -49,20 +49,20 @@ public class EventAction<T0, T1> {
   }
 
   @NotNull
-  public long getStart() {
-    return mStart;
+  public long getStartUs() {
+    return mStartUs;
   }
 
   @NotNull
-  public long getEnd() {
-    return mEnd;
+  public long getEndUs() {
+    return mEndUs;
   }
 
   public EventAction(@NotNull long start, @NotNull long end, @NotNull T0 value,
                      @NotNull T1 valueData) {
     this.mValue = value;
-    this.mStart = start;
-    this.mEnd = end;
+    this.mStartUs = start;
+    this.mEndUs = end;
     this.mValueData = valueData;
   }
 }

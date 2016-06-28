@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.SeriesData;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class EnumTestDataGenerator<E extends Enum<E>> extends TestDataGenerator<E> {
   private List<E> mData = new ArrayList<>();
@@ -35,7 +36,7 @@ public class EnumTestDataGenerator<E extends Enum<E>> extends TestDataGenerator<
 
   @Override
   public void generateData() {
-    mTime.add(System.currentTimeMillis());
+    mTime.add(TimeUnit.NANOSECONDS.toMicros(System.nanoTime()));
     mData.add(mValues[(int)(Math.random() * mValues.length)]);
   }
 }

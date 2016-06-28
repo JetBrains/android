@@ -37,8 +37,8 @@ public class DataAdapterImpl<T> implements DataAdapter<T> {
   }
 
   @Override
-  public int getClosestTimeIndex(long time) {
-    int index = myTimestampData.binarySearch(time);
+  public int getClosestTimeIndex(long timeUs) {
+    int index = myTimestampData.binarySearch(timeUs);
     if (index < 0) {
       // No exact match, so return position to the left of the insertion point.
       index = -index - 2;
@@ -53,7 +53,7 @@ public class DataAdapterImpl<T> implements DataAdapter<T> {
   }
 
   @Override
-  public void reset(long deviceStartTimeMs, long studioStartTimeMs) {
+  public void reset(long deviceStartTimeUs, long studioStartTimeUs) {
     // TODO: implement
   }
 

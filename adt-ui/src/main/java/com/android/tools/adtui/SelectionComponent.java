@@ -47,7 +47,7 @@ public final class SelectionComponent extends AnimatedComponent {
   /**
    * Minimum range the user can zoom into the profilers.
    */
-  private static final double MINIMUM_VIEW_LENGTH_MS = TimeUnit.SECONDS.toMillis(1);
+  private static final double MINIMUM_VIEW_LENGTH_US = TimeUnit.SECONDS.toMicros(1);
 
   /**
    * Default drawing Dimension for the handles.
@@ -487,8 +487,8 @@ public final class SelectionComponent extends AnimatedComponent {
 
     // Clamp zoom to minimum range by distributing the delta evenly between the min and max.
     double zoomLength = mZoomMaxTarget - mZoomMinTarget;
-    if (zoomLength < MINIMUM_VIEW_LENGTH_MS) {
-      double delta = (MINIMUM_VIEW_LENGTH_MS - zoomLength) / 2;
+    if (zoomLength < MINIMUM_VIEW_LENGTH_US) {
+      double delta = (MINIMUM_VIEW_LENGTH_US - zoomLength) / 2;
       double clampedZoomMin = Math.max(mDataRange.getMin(), mZoomMinTarget - delta);
       double clampedZoomMax = Math.min(mDataRange.getMax(), mZoomMaxTarget + delta);
 

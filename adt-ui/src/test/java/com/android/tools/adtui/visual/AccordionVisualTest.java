@@ -30,6 +30,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class AccordionVisualTest extends VisualTest {
 
@@ -44,7 +45,7 @@ public class AccordionVisualTest extends VisualTest {
 
   private int mChartCountY;
 
-  private long mStartTimeMs;
+  private long mStartTimeUs;
 
   @NonNull
   private AccordionLayout mAccordionX;
@@ -67,9 +68,9 @@ public class AccordionVisualTest extends VisualTest {
 
   @Override
   protected List<Animatable> createComponentsList() {
-    mStartTimeMs = System.currentTimeMillis();
+    mStartTimeUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
     Range xRange = new Range();
-    mAnimatedTimeRange = new AnimatedTimeRange(xRange, mStartTimeMs);
+    mAnimatedTimeRange = new AnimatedTimeRange(xRange, mStartTimeUs);
 
     mPanelX = new JBPanel();
     mPanelY = new JBPanel();
@@ -124,12 +125,12 @@ public class AccordionVisualTest extends VisualTest {
       public void run() {
         try {
           while (true) {
-            long now = System.currentTimeMillis() - mStartTimeMs;
+            long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime()) - mStartTimeUs;
             for (LongDataSeries series : mData) {
               ImmutableList<SeriesData<Long>> data = series.getAllData();
               long last = data.isEmpty() ? 0 : data.get(data.size() - 1).value;
               float delta = 10 * ((float)Math.random() - 0.45f);
-              series.add(now, last + (long)delta);
+              series.add(nowUs, last + (long)delta);
             }
             Thread.sleep(LINECHART_DATA_DELAY);
           }

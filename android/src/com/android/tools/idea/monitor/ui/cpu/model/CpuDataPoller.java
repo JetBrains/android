@@ -38,7 +38,7 @@ public class CpuDataPoller extends Poller {
    */
   private static final long POLLING_DELAY_NS = TimeUnit.SECONDS.toNanos(1);
 
-  private long myDataRequestStartTimestamp;
+  private long myDataRequestStartTimestampNs;
 
   private final int myPid;
 
@@ -85,7 +85,7 @@ public class CpuDataPoller extends Poller {
     myCpuService = myService.getCpuService();
     CpuProfiler.CpuStartRequest.Builder requestBuilder = CpuProfiler.CpuStartRequest.newBuilder().setAppId(myPid);
     myCpuService.startMonitoringApp(requestBuilder.build());
-    myDataRequestStartTimestamp = Long.MIN_VALUE;
+    myDataRequestStartTimestampNs = Long.MIN_VALUE;
   }
 
   @Override
@@ -102,7 +102,7 @@ public class CpuDataPoller extends Poller {
   protected void poll() {
     CpuProfiler.CpuDataRequest.Builder dataRequestBuilder = CpuProfiler.CpuDataRequest.newBuilder();
     dataRequestBuilder.setAppId(myPid);
-    dataRequestBuilder.setStartTimestamp(myDataRequestStartTimestamp);
+    dataRequestBuilder.setStartTimestamp(myDataRequestStartTimestampNs);
     dataRequestBuilder.setEndTimestamp(Long.MAX_VALUE);
     CpuProfiler.CpuDataResponse response;
     try {
@@ -134,7 +134,7 @@ public class CpuDataPoller extends Poller {
         myOtherProcessesCpuUsage.add((long)usageData.getOtherProcessesUsage());
         lastCpuData = data;
         // Update start timestamp inside the loop in case the thread is interrupted before its end.
-        myDataRequestStartTimestamp = lastCpuData.getBasicInfo().getEndTimestamp();
+        myDataRequestStartTimestampNs = lastCpuData.getBasicInfo().getEndTimestamp();
       }
       // Threads
       else if (data.getDataCase() == Cpu.CpuProfilerData.DataCase.THREAD_ACTIVITIES) {
@@ -170,7 +170,7 @@ public class CpuDataPoller extends Poller {
           }
         }
       }
-      long dataTimestamp = TimeUnit.NANOSECONDS.toMillis(data.getBasicInfo().getEndTimestamp());
+      long dataTimestamp = TimeUnit.NANOSECONDS.toMicros(data.getBasicInfo().getEndTimestamp());
       myTimestampArray.add(dataTimestamp);
 
       // TODO: refactor statechart to avoid the need of inserting repeated consecutive states

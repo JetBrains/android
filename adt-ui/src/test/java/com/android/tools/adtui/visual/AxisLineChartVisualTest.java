@@ -33,6 +33,7 @@ import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class AxisLineChartVisualTest extends VisualTest {
@@ -44,7 +45,7 @@ public class AxisLineChartVisualTest extends VisualTest {
   private static final String SERIES1_LABEL = "Memory1";
   private static final String SERIES2_LABEL = "Memory2";
 
-  private long mStartTimeMs;
+  private long mStartTimeUs;
 
   @NonNull
   private Range mXGlobalRange;
@@ -89,10 +90,10 @@ public class AxisLineChartVisualTest extends VisualTest {
     mData = new ArrayList<>();
     mLineChart = new LineChart();
 
-    mStartTimeMs = System.currentTimeMillis();
+    mStartTimeUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
     final Range xRange = new Range(0, 0);
     mXGlobalRange = new Range(0, 0);
-    mAnimatedTimeRange = new AnimatedTimeRange(mXGlobalRange, mStartTimeMs);
+    mAnimatedTimeRange = new AnimatedTimeRange(mXGlobalRange, mStartTimeUs);
     mScrollbar = new RangeScrollbar(mXGlobalRange, xRange);
 
     // add horizontal time axis
@@ -183,12 +184,12 @@ public class AxisLineChartVisualTest extends VisualTest {
       public void run() {
         try {
           while (true) {
-            long now = System.currentTimeMillis() - mStartTimeMs;
+            long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime()) - mStartTimeUs;
             for (LongDataSeries series : mData) {
               ImmutableList<SeriesData<Long>> data = series.getAllData();
               long last = data.isEmpty() ? 0 : data.get(data.size() - 1).value;
               float delta = 10 * ((float)Math.random() - 0.45f);
-              series.add(now, last + (long)delta);
+              series.add(nowUs, last + (long)delta);
             }
             Thread.sleep(delay.get());
           }

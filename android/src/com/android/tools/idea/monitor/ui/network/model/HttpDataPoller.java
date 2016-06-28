@@ -35,8 +35,6 @@ import java.util.concurrent.TimeUnit;
 public class HttpDataPoller extends Poller {
   private static final long POLLING_DELAY_NS = TimeUnit.SECONDS.toNanos(1);
 
-  private static final int NS_TO_MS = 1000000;
-
   private final int myPid;
 
   // Data from device are sorted by connection start time, so we copy all into a list.
@@ -81,14 +79,14 @@ public class HttpDataPoller extends Poller {
       else {
         httpData = new HttpData();
         httpData.myId = connection.getConnId();
-        httpData.myStartTimeMs = connection.getStartTimestamp() / NS_TO_MS;
+        httpData.myStartTimeUs = TimeUnit.NANOSECONDS.toMicros(connection.getStartTimestamp());
         getHttpRequest(httpData);
         myHttpDataList.add(httpData);
         myHttpDataMap.put(httpData.myId, httpData);
         myDataRequestStartTimeNs = Math.max(myDataRequestStartTimeNs, connection.getStartTimestamp() + 1);
       }
       if (connection.getEndTimestamp() != 0) {
-        httpData.myEndTimeMs = connection.getEndTimestamp() / NS_TO_MS;
+        httpData.myEndTimeMs = TimeUnit.NANOSECONDS.toMicros(connection.getEndTimestamp());
         getHttpResponseBody(httpData);
         // Checks both start and end timestamps.
         myDataRequestStartTimeNs = Math.max(myDataRequestStartTimeNs, connection.getEndTimestamp() + 1);
@@ -136,7 +134,7 @@ public class HttpDataPoller extends Poller {
     private static final Comparator<HttpData> COMPARATOR_BY_START_TIME = new Comparator<HttpData>() {
       @Override
       public int compare(HttpData o1, HttpData o2) {
-        return o1.myStartTimeMs == o2.myStartTimeMs ? 0 : o1.myStartTimeMs < o2.myStartTimeMs ? -1 : 1;
+        return o1.myStartTimeUs == o2.myStartTimeUs ? 0 : o1.myStartTimeUs < o2.myStartTimeUs ? -1 : 1;
       }
     };
 
@@ -149,9 +147,9 @@ public class HttpDataPoller extends Poller {
 
     // TODO: Specify the result is before or after given time.
     @Override
-    public int getClosestTimeIndex(long timeMs) {
+    public int getClosestTimeIndex(long timeUs) {
       HttpData dataForClosestTime = new HttpData();
-      dataForClosestTime.myStartTimeMs = timeMs;
+      dataForClosestTime.myStartTimeUs = timeUs;
       int index = Collections.binarySearch(myHttpDataList, dataForClosestTime, COMPARATOR_BY_START_TIME);
       if (index < 0) {
         index = -1 * index - 2;
@@ -162,11 +160,11 @@ public class HttpDataPoller extends Poller {
     @Override
     public SeriesData<HttpData> get(int index) {
       HttpData httpData = myHttpDataList.get(index);
-      return new SeriesData<>(httpData.myStartTimeMs, httpData);
+      return new SeriesData<>(httpData.myStartTimeUs, httpData);
     }
 
     @Override
-    public void reset(long deviceStartTimeMs, long studioStartTimeMs) {
+    public void reset(long deviceStartTimeUs, long studioStartTimeUs) {
     }
 
     @Override

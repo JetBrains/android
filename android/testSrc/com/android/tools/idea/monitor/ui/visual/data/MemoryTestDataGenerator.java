@@ -18,6 +18,8 @@ package com.android.tools.idea.monitor.ui.visual.data;
 import com.android.tools.adtui.model.SeriesData;
 import gnu.trove.TLongArrayList;
 
+import java.util.concurrent.TimeUnit;
+
 public class MemoryTestDataGenerator extends TestDataGenerator<Long> {
 
   private TLongArrayList mData = new TLongArrayList();
@@ -31,12 +33,12 @@ public class MemoryTestDataGenerator extends TestDataGenerator<Long> {
 
   @Override
   public SeriesData<Long> get(int index) {
-    return new SeriesData<>(mTime.get(index) - mStartTimeMs, mData.get(index));
+    return new SeriesData<>(mTime.get(index) - mStartTimeUs, mData.get(index));
   }
 
   @Override
   public void generateData() {
-    mTime.add(System.currentTimeMillis());
+    mTime.add(TimeUnit.NANOSECONDS.toMicros(System.nanoTime()));
     if (mUseFreeMemory) {
       mData.add(mRuntime.freeMemory());
     } else {

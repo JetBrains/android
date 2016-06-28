@@ -113,7 +113,7 @@ public class StackedEventComponent extends AnimatedComponent {
     for (int i = 0; i < size; i++) {
       SeriesData<EventAction<Action, String>> seriesData = series.get(i);
       EventAction<Action, String> data = seriesData.value;
-      if (!drawOrderIndex.containsKey(data.getStart())) {
+      if (!drawOrderIndex.containsKey(data.getStartUs())) {
 
         // The index is used to determine what height we want to draw the activity line at.
         // This condition enables us to pack activity lines, so if there is a gap between
@@ -125,7 +125,7 @@ public class StackedEventComponent extends AnimatedComponent {
         } else {
           lastIndex++;
         }
-        drawOrderIndex.put(data.getStart(), index);
+        drawOrderIndex.put(data.getStartUs(), index);
 
         // Here we pair the activity_started event with an activity_completed event
         if (lastStart == null) {
@@ -133,23 +133,23 @@ public class StackedEventComponent extends AnimatedComponent {
           lastStartIndex = index;
         } else if (index >= lastStartIndex) {
           myActionToDrawLocationMap.put(lastStart, new EventRenderData(lastStartIndex,
-                                                                       data.getStart() - lastStart.getStart()));
+                                                                       data.getStartUs() - lastStart.getStartUs()));
           lastStart = data;
           lastStartIndex = index;
         }
       }
       if (data.getValue() == Action.ACTIVITY_STARTED) {
-        downEvents.put(data.getStart(), data);
+        downEvents.put(data.getStartUs(), data);
       } else if (data.getValue() == Action.ACTIVITY_COMPLETED) {
-        assert drawOrderIndex.containsKey(data.getStart());
-        int index = drawOrderIndex.get(data.getStart());
-        drawOrderIndex.remove(data.getStart());
+        assert drawOrderIndex.containsKey(data.getStartUs());
+        int index = drawOrderIndex.get(data.getStartUs());
+        drawOrderIndex.remove(data.getStartUs());
         offsetValues.add(index);
         Path2D.Float path = new Path2D.Float();
         // Here we normalize the position to a value between 0 and 1. This allows us to scale the width of the line based on the
         // width of our chart.
-        double normalizedEndPosition = ((data.getEnd() - min) / (max - min));
-        double normalizedstartPosition = ((data.getStart() - min) / (max - min));
+        double normalizedEndPosition = ((data.getEndUs() - min) / (max - min));
+        double normalizedstartPosition = ((data.getStartUs() - min) / (max - min));
         double baseHeight = myMaxHeight - (index * SEGMENT_SPACING);
         double tailHeight = myMaxHeight - (index * SEGMENT_SPACING - TAIL_HEIGHT);
         path.moveTo(normalizedEndPosition, baseHeight);
@@ -160,23 +160,23 @@ public class StackedEventComponent extends AnimatedComponent {
         if (lastStart != null && index == lastStartIndex) {
           myActionToDrawLocationMap.put(lastStart,
                                         new EventRenderData(lastStartIndex,
-                                                            data.getEnd() - lastStart.getStart()));
+                                                            data.getEndUs() - lastStart.getStartUs()));
           lastStart = null;
           lastStartIndex = 0;
         }
-        downEvents.remove(data.getStart());
+        downEvents.remove(data.getStartUs());
       }
     }
     if (lastStart != null) {
       myActionToDrawLocationMap.put(lastStart,
-                                    new EventRenderData(lastStartIndex, (long)max - lastStart.getStart()));
+                                    new EventRenderData(lastStartIndex, (long)max - lastStart.getStartUs()));
     }
     for (Long key : downEvents.keySet()) {
       EventAction<Action, String> event = downEvents.get(key);
       int offset = drawOrderIndex.get(key);
       Path2D.Float path = new Path2D.Float();
       double normalizedEndPosition = NORMALIZED_END;
-      double normalizedstartPosition = ((event.getStart() - min) / (max - min));
+      double normalizedstartPosition = ((event.getStartUs() - min) / (max - min));
       double baseHeight = myMaxHeight - (offset * SEGMENT_SPACING);
       double tailHeight = myMaxHeight - (offset * SEGMENT_SPACING - TAIL_HEIGHT);
       path.moveTo(normalizedEndPosition, baseHeight);
@@ -217,8 +217,8 @@ public class StackedEventComponent extends AnimatedComponent {
       int offset = positionData.getIndex();
       String text = event.getValueData();
       int width = metrics.stringWidth(text);
-      double normalizedStartPosition = (event.getStart() - min) / (max - min);
-      double normalizedEndPosition = ((event.getStart() + positionData.getTimestamp()) - min)
+      double normalizedStartPosition = (event.getStartUs() - min) / (max - min);
+      double normalizedEndPosition = ((event.getStartUs() + positionData.getTimestamp()) - min)
                                      / (max - min);
       float startPosition = (float)normalizedStartPosition * scaleFactor;
       float endPosition = (float)normalizedEndPosition * scaleFactor;

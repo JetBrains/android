@@ -101,7 +101,7 @@ public class ProfilerOverviewVisualTest extends VisualTest {
   @Override
   protected List<Animatable> createComponentsList() {
     mXRange = new Range();
-    mXGlobalRange = new Range(-RangeScrollbar.DEFAULT_VIEW_LENGTH_MS, 0);
+    mXGlobalRange = new Range(-RangeScrollbar.DEFAULT_VIEW_LENGTH_US, 0);
     mXSelectionRange = new Range();
 
     mScrollbar = new RangeScrollbar(mXGlobalRange, mXRange);
@@ -132,7 +132,7 @@ public class ProfilerOverviewVisualTest extends VisualTest {
     List<Animatable> componentsList = new ArrayList<>();
     componentsList.add(mLayout);
     // Get latest data time from the data store.
-    componentsList.add(frameLength -> mXGlobalRange.setMaxTarget(mDataStore.getLatestTime()));
+    componentsList.add(frameLength -> mXGlobalRange.setMaxTarget(mDataStore.getLatestTimeUs()));
     componentsList.add(mSelection);            // Update selection range immediate.
     componentsList.add(mScrollbar);            // Update current range immediate.
     componentsList.add(mTimeAxis);             // Read ranges.

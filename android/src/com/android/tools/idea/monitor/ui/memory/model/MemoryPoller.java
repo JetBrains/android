@@ -35,7 +35,7 @@ public class MemoryPoller extends Poller {
   private static final long POLL_PERIOD_NS = TimeUnit.MILLISECONDS.toNanos(250);
 
   @NotNull private final MemoryDataCache myDataCache;
-  private long myStartTimestamp;
+  private long myStartTimestampNs;
   final private int myAppId;
 
   public MemoryPoller(@NotNull SeriesDataStore dataStore, @NotNull MemoryDataCache dataCache, int appId) {
@@ -101,7 +101,7 @@ public class MemoryPoller extends Poller {
         .build()
     ).build();
     MemoryProfilerService.MemoryStatus status = myService.getMemoryService().setMemoryConfig(config);
-    myStartTimestamp = status.getStatusTimestamp();
+    myStartTimestampNs = status.getStatusTimestamp();
   }
 
   @Override
@@ -118,7 +118,7 @@ public class MemoryPoller extends Poller {
     MemoryProfilerService.MemoryData result;
     try {
       MemoryProfilerService.MemoryRequest request =
-        MemoryProfilerService.MemoryRequest.newBuilder().setAppId(myAppId).setStartTime(myStartTimestamp).setEndTime(Long.MAX_VALUE)
+        MemoryProfilerService.MemoryRequest.newBuilder().setAppId(myAppId).setStartTime(myStartTimestampNs).setEndTime(Long.MAX_VALUE)
           .build();
       result = myService.getMemoryService().getData(request);
       myDataCache.appendData(result);
@@ -129,8 +129,8 @@ public class MemoryPoller extends Poller {
       return;
     }
 
-    if (result.getEndTimestamp() > myStartTimestamp) {
-      myStartTimestamp = result.getEndTimestamp();
+    if (result.getEndTimestamp() > myStartTimestampNs) {
+      myStartTimestampNs = result.getEndTimestamp();
     }
   }
 
@@ -140,18 +140,18 @@ public class MemoryPoller extends Poller {
   public void requestHeapDump() {
     MemoryProfilerService.HeapDumpRequest.Builder builder = MemoryProfilerService.HeapDumpRequest.newBuilder();
     builder.setAppId(myAppId);
-    builder.setRequestTime(myStartTimestamp);   // Currently not used on perfd.
+    builder.setRequestTime(myStartTimestampNs);   // Currently not used on perfd.
     myService.getMemoryService().triggerHeapDump(builder.build());
   }
 
   private abstract class MemorySampleAdapter<T> implements DataAdapter<T> {
     @Override
-    public int getClosestTimeIndex(long time) {
-      return myDataCache.getLatestPriorMemorySampleIndex(TimeUnit.NANOSECONDS.convert(time, TimeUnit.MILLISECONDS));
+    public int getClosestTimeIndex(long timeUs) {
+      return myDataCache.getLatestPriorMemorySampleIndex(TimeUnit.MICROSECONDS.toNanos(timeUs));
     }
 
     @Override
-    public void reset(long deviceStartTimeMs, long studioStartTimeMs) {
+    public void reset(long deviceStartTimeUs, long studioStartTimeUs) {
       myDataCache.reset();
     }
 
@@ -163,7 +163,7 @@ public class MemoryPoller extends Poller {
     @Override
     public SeriesData<T> get(int index) {
       MemoryProfilerService.MemoryData.MemorySample sample = myDataCache.getMemorySample(index);
-      return new SeriesData<>(TimeUnit.NANOSECONDS.toMillis(sample.getTimestamp()), getSampleValue(sample));
+      return new SeriesData<>(TimeUnit.NANOSECONDS.toMicros(sample.getTimestamp()), getSampleValue(sample));
     }
 
     public abstract T getSampleValue(MemoryProfilerService.MemoryData.MemorySample sample);

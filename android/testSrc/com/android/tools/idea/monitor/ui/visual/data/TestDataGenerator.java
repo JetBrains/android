@@ -29,7 +29,7 @@ public abstract class TestDataGenerator<T> implements DataAdapter<T> {
 
   protected TLongArrayList mTime = new TLongArrayList();
 
-  protected long mStartTimeMs;
+  protected long mStartTimeUs;
 
   private Thread mDataThread;
 
@@ -42,9 +42,9 @@ public abstract class TestDataGenerator<T> implements DataAdapter<T> {
   }
 
   @Override
-  public void reset(long deviceStartTimeMs, long studioStartTimeMs) {
+  public void reset(long deviceStartTimeUs, long studioStartTimeUs) {
     stop();
-    mStartTimeMs = deviceStartTimeMs;
+    mStartTimeUs = deviceStartTimeUs;
     mDataThread = new Thread() {
       @Override
       public void run() {
@@ -64,8 +64,8 @@ public abstract class TestDataGenerator<T> implements DataAdapter<T> {
   }
 
   @Override
-  public int getClosestTimeIndex(long timeMs) {
-    int index = mTime.binarySearch(timeMs + mStartTimeMs);
+  public int getClosestTimeIndex(long timeUs) {
+    int index = mTime.binarySearch(timeUs + mStartTimeUs);
     if (index < 0) {
       // No exact match, returns position to the left of the insertion point.
       // NOTE: binarySearch returns -(insertion point + 1) if not found.

@@ -21,7 +21,6 @@ import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.DefaultDataSeries;
 import com.android.tools.adtui.model.EventAction;
 import com.android.tools.adtui.model.RangedSeries;
-import com.android.tools.adtui.model.RangedSimpleSeries;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -30,6 +29,7 @@ import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 
 public class EventVisualTest extends VisualTest {
@@ -47,28 +47,28 @@ public class EventVisualTest extends VisualTest {
   class MockActivity {
 
     String myName;
-    long myStartTime;
+    long myStartTimeUs;
 
     public MockActivity() {
       myName = EventVisualTest.ACTIVITY_NAMES[(int)(Math.random() * ACTIVITY_NAMES.length)];
-      myStartTime = System.currentTimeMillis();
+      myStartTimeUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
       addSelf();
     }
 
     private void addSelf() {
-      long now = System.currentTimeMillis();
+      long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
       EventAction<StackedEventComponent.Action, String> event =
-        new EventAction<StackedEventComponent.Action, String>(myStartTime, 0,
+        new EventAction<StackedEventComponent.Action, String>(myStartTimeUs, 0,
                                                               StackedEventComponent.Action.ACTIVITY_STARTED, myName);
-      mActivityData.add(now, event);
+      mActivityData.add(nowUs, event);
     }
 
     public void tearDown() {
-      long now = System.currentTimeMillis();
+      long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
       EventAction<StackedEventComponent.Action, String> event =
-        new EventAction<StackedEventComponent.Action, String>(myStartTime, now,
+        new EventAction<StackedEventComponent.Action, String>(myStartTimeUs, nowUs,
                                                               StackedEventComponent.Action.ACTIVITY_COMPLETED, myName);
-      mActivityData.add(now, event);
+      mActivityData.add(nowUs, event);
     }
   }
 
@@ -121,8 +121,8 @@ public class EventVisualTest extends VisualTest {
 
   @Override
   protected List<Animatable> createComponentsList() {
-    long now = System.currentTimeMillis();
-    Range xRange = new Range(now, now + 60000);
+    long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
+    Range xRange = new Range(nowUs, nowUs + TimeUnit.SECONDS.toMicros(60));
     Range xTimelineRange = new Range(0, 0);
 
     mData = new DefaultDataSeries<>();
@@ -130,7 +130,7 @@ public class EventVisualTest extends VisualTest {
     mSimpleEventComponent = new SimpleEventComponent(new RangedSeries<>(xRange, mData), MOCK_ICONS);
     myStackedEventComponent = new StackedEventComponent(new RangedSeries(xRange, mActivityData), ACTIVITY_GRAPH_SIZE);
     mAnimatedRange = new AnimatedTimeRange(xRange, 0);
-    mTimelineRange = new AnimatedTimeRange(xTimelineRange, now);
+    mTimelineRange = new AnimatedTimeRange(xTimelineRange, nowUs);
     myOpenActivites = new ArrayList<>();
     // add horizontal time axis
     mTimeAxis = new AxisComponent(xTimelineRange, xTimelineRange, "TIME",
@@ -216,18 +216,18 @@ public class EventVisualTest extends VisualTest {
     tapButton.addMouseListener(new MouseAdapter() {
       @Override
       public void mousePressed(MouseEvent e) {
-        long now = System.currentTimeMillis();
+        long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
         EventAction<SimpleEventComponent.Action, ActionType> event =
-          new EventAction<>(now, 0, SimpleEventComponent.Action.DOWN, ActionType.HOLD);
-        mData.add(now, event);
+          new EventAction<>(nowUs, 0, SimpleEventComponent.Action.DOWN, ActionType.HOLD);
+        mData.add(nowUs, event);
       }
 
       @Override
       public void mouseReleased(MouseEvent e) {
-        long now = System.currentTimeMillis();
+        long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
         EventAction<SimpleEventComponent.Action, ActionType> event =
-          new EventAction<>(now, now, SimpleEventComponent.Action.UP, ActionType.TOUCH);
-        mData.add(now, event);
+          new EventAction<>(nowUs, nowUs, SimpleEventComponent.Action.UP, ActionType.TOUCH);
+        mData.add(nowUs, event);
       }
     });
     controls.add(tapButton);
