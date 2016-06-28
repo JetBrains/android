@@ -17,19 +17,27 @@
 package com.android.tools.adtui.visual;
 
 import com.android.annotations.NonNull;
-import com.android.tools.adtui.*;
+import com.android.tools.adtui.Animatable;
+import com.android.tools.adtui.AnimatedTimeRange;
+import com.android.tools.adtui.Range;
+import com.android.tools.adtui.chart.linechart.EventConfig;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.*;
 import com.intellij.util.containers.ImmutableList;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ItemEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.android.tools.adtui.model.DurationData.UNSPECIFIED_DURATION;
 
 public class LineChartVisualTest extends VisualTest {
 
@@ -44,6 +52,15 @@ public class LineChartVisualTest extends VisualTest {
 
   @NonNull
   private AnimatedTimeRange mAnimatedTimeRange;
+
+  @NotNull
+  private RangedSeries<DurationData> mEventSeries;
+
+  @NotNull
+  private DefaultDataSeries<DurationData> mEventData;
+
+  @NonNull
+  private EventConfig mEventConfig;
 
   @Override
   protected List<Animatable> createComponentsList() {
@@ -75,6 +92,11 @@ public class LineChartVisualTest extends VisualTest {
       mData.add(series);
     }
     mLineChart.addLines(mRangedData);
+
+    mEventData = new DefaultDataSeries<>();
+    mEventSeries = new RangedSeries<>(xRange, mEventData);
+    mEventConfig = new EventConfig(Color.BLACK).setText("Test").setIcon(UIManager.getIcon("Menu.arrowIcon"));
+    mLineChart.addEvent(mEventSeries, mEventConfig);
 
     return componentsList;
   }
@@ -171,6 +193,34 @@ public class LineChartVisualTest extends VisualTest {
         RangedContinuousSeries series = mRangedData.get(i);
         mLineChart.getLineConfig(series).setStacked(isStacked);
       }
+    }));
+
+    JButton tapButton = VisualTest.createButton("Generate Event (Hold)");
+    tapButton.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mousePressed(MouseEvent e) {
+        // Starts a new test event and give it a max duration.
+        long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
+        DurationData newEvent = new DurationData(UNSPECIFIED_DURATION);
+        mEventData.add(nowUs, newEvent);
+      }
+
+      @Override
+      public void mouseReleased(MouseEvent e) {
+        // Wraps up the latest event by assigning it a duration value relative to where it was started.
+        long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
+        ImmutableList<SeriesData<DurationData>> allEvents = mEventData.getAllData();
+        SeriesData<DurationData> lastEvent = allEvents.get(allEvents.size() - 1);
+        lastEvent.value.setDuration(nowUs - lastEvent.x);
+      }
+    });
+    controls.add(tapButton);
+
+    controls.add(VisualTest.createCheckbox("Blocking Events", itemEvent -> {
+      mEventConfig.setBlocking(itemEvent.getStateChange() == ItemEvent.SELECTED);
+    }));
+    controls.add(VisualTest.createCheckbox("Filled Events", itemEvent -> {
+      mEventConfig.setFilled(itemEvent.getStateChange() == ItemEvent.SELECTED);
     }));
 
     controls.add(
