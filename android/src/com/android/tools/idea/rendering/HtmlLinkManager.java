@@ -580,7 +580,14 @@ public class HtmlLinkManager {
 
   private static boolean openEditor(@NotNull Project project, @NotNull VirtualFile file, int line, int column) {
     OpenFileDescriptor descriptor = new OpenFileDescriptor(project, file, line, column);
-    return !FileEditorManager.getInstance(project).openEditor(descriptor, true).isEmpty();
+    FileEditorManager manager = FileEditorManager.getInstance(project);
+
+    // Attempt to prefer text editor if it's available for this file
+    if (manager.openTextEditor(descriptor, true) != null) {
+      return true;
+    }
+
+    return !manager.openEditor(descriptor, true).isEmpty();
   }
 
   private static boolean openEditor(@NotNull Project project, @NotNull PsiFile psiFile, int offset) {
