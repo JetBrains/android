@@ -356,9 +356,10 @@ public abstract class ResourceManager {
 
     List<ResourceFolderType> folders = FolderTypeRelationship.getRelatedFolders(resourceType);
     if (!folders.isEmpty()) {
-      ResourceFolderType folderType = folders.get(0);
-      if (folderType != ResourceFolderType.VALUES) {
-        result.addAll(getFileResourcesNames(folderType.getName()));
+      for (ResourceFolderType folderType : folders) {
+        if (folderType != ResourceFolderType.VALUES) {
+          result.addAll(getFileResourcesNames(folderType.getName()));
+        }
       }
     }
     if (resourceType == ResourceType.ID) {
