@@ -100,11 +100,16 @@ public class ImageCellRenderer<T extends ImageCellList.Data> extends CellRendere
     myCellComponent.myFlipImage = flipImage;
   }
 
+  public void setNoItemText(String noItemText) {
+    myCellComponent.myNoItemText = noItemText;
+  }
+
   private static class ImageComponent extends JComponent {
     private Layout myLayout;
     private Dimension myImageSize;
     private ImageCellList.Data myCell;
     private boolean myFlipImage;
+    private String myNoItemText;
 
     public ImageComponent(Layout layout, Dimension imageSize) {
       myLayout = layout;
@@ -131,6 +136,9 @@ public class ImageCellRenderer<T extends ImageCellList.Data> extends CellRendere
     @Override
     protected void paintComponent(Graphics graphics) {
       if (myCell == NULL_CELL) {
+        if (myNoItemText != null) {
+          paintLabel(graphics, BORDER_SIZE, myNoItemText);
+        }
         return;
       }
 
@@ -138,7 +146,7 @@ public class ImageCellRenderer<T extends ImageCellList.Data> extends CellRendere
         graphics.setColor(UIUtil.getListBackground());
         graphics.fillRect(0, 0, getWidth(), getHeight());
         if (myCell.getLabel() != null) {
-          paintLabel(graphics, BORDER_SIZE);
+          paintLabel(graphics, BORDER_SIZE, myCell.getLabel());
         }
         return;
       }
@@ -187,15 +195,14 @@ public class ImageCellRenderer<T extends ImageCellList.Data> extends CellRendere
 
       if (myCell.getLabel() != null) {
         setForeground(myCell.hasFailed() ? UIUtil.getLabelDisabledForeground() : UIUtil.getLabelForeground());
-        paintLabel(graphics, myImageSize.width + 2 * BORDER_SIZE);
+        paintLabel(graphics, myImageSize.width + 2 * BORDER_SIZE, myCell.getLabel());
       }
     }
 
-    protected void paintLabel(Graphics g, int offset) {
+    protected void paintLabel(Graphics g, int offset, String label) {
       final int OFFSET = 7;
       final int PADDING = 2;
 
-      String label = myCell.getLabel();
       FontMetrics metrics = g.getFontMetrics();
       int fontHeight = metrics.getHeight();
       int frameStringWidth = metrics.stringWidth(label);
