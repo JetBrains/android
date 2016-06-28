@@ -29,31 +29,49 @@ import static org.junit.Assert.*;
 
 public class GradleInstantRunContextTest {
   @Test
-  public void multiProcessCheck() {
+  public void multiProcessCheck() throws Exception {
     @Language("XML") String manifest =
+      "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+      "    package=\"co.foo.myapplication\">\n" +
       "        <activity\n" +
       "            android:name=\".MainActivity\"\n" +
       "            android:theme=\"@style/AppTheme.NoActionBar\">\n" +
-      "        </activity>\n";
-    assertFalse(GradleInstantRunContext.manifestSpecifiesMultiProcess(manifest, ImmutableSet.<String>of()));
+      "        </activity>\n" +
+      "</manifest>";
+    Document document = XmlUtils.parseDocument(manifest, true);
+    assertFalse(GradleInstantRunContext.manifestSpecifiesMultiProcess(document.getDocumentElement(), ImmutableSet.of()));
 
     manifest =
+      "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+      "    package=\"co.foo.myapplication\">\n" +
       "        <activity\n" +
       "            android:name=\".MainActivity\"\n" +
       "            android:process = \":foo\"\n" +
       "            android:theme=\"@style/AppTheme.NoActionBar\">\n" +
-      "        </activity>\n";
-    assertTrue(GradleInstantRunContext.manifestSpecifiesMultiProcess(manifest, ImmutableSet.<String>of()));
+      "        </activity>\n" +
+      "</manifest>";
+    document = XmlUtils.parseDocument(manifest, true);
+    assertTrue(GradleInstantRunContext.manifestSpecifiesMultiProcess(document.getDocumentElement(), ImmutableSet.of()));
 
     manifest =
+      "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+      "    package=\"co.foo.myapplication\">\n" +
       "        <activity\n" +
       "            android:name=\".MainActivity\"\n" +
       "            android:process=\":leakcanary\"\n" +
       "            android:theme=\"@style/AppTheme.NoActionBar\">\n" +
-      "        </activity>\n";
-    assertFalse(GradleInstantRunContext.manifestSpecifiesMultiProcess(manifest, ImmutableSet.of(":leakcanary")));
+      "        </activity>\n" +
+      "</manifest>";
+    document = XmlUtils.parseDocument(manifest, true);
+    assertFalse(GradleInstantRunContext.manifestSpecifiesMultiProcess(document.getDocumentElement(), ImmutableSet.of(":leakcanary")));
 
     manifest =
+      "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+      "    package=\"co.foo.myapplication\">\n" +
       "     <application>\n" +
       "        <activity\n" +
       "            android:name=\".MainActivity\"\n" +
@@ -65,8 +83,10 @@ public class GradleInstantRunContextTest {
       "            android:process =\":foo\"\n" +
       "            android:theme=\"@style/AppTheme.NoActionBar\">\n" +
       "        </activity>\n" +
-      "    </application>\n";
-    assertTrue(GradleInstantRunContext.manifestSpecifiesMultiProcess(manifest, ImmutableSet.of(":leakcanary")));
+      "    </application>\n" +
+      "</manifest>";
+    document = XmlUtils.parseDocument(manifest, true);
+    assertTrue(GradleInstantRunContext.manifestSpecifiesMultiProcess(document.getDocumentElement(), ImmutableSet.of(":leakcanary")));
   }
 
   @Test
