@@ -19,6 +19,7 @@ import com.android.tools.adtui.AccordionLayout;
 import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.Range;
 import com.android.tools.adtui.model.DefaultDataSeries;
+import com.android.tools.idea.monitor.ui.network.model.HttpDataCache;
 import com.android.tools.idea.monitor.ui.network.model.HttpDataPoller;
 import com.android.tools.idea.monitor.ui.network.model.NetworkDataPoller;
 import com.android.tools.idea.monitor.datastore.Poller;
@@ -30,6 +31,8 @@ import com.google.common.collect.Sets;
 import com.intellij.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;
 
+import java.awt.*;
+import java.io.File;
 import java.util.Set;
 
 import javax.swing.*;
@@ -42,11 +45,16 @@ public final class NetworkProfilerUiManager extends BaseProfilerUiManager {
 
   private NetworkCaptureSegment myCaptureSegment;
 
+  private NetworkDetailedView myDetailedView = new NetworkDetailedView();
+
+  private HttpDataCache myDataCache;
+
   private List<DefaultDataSeries<NetworkCaptureSegment.NetworkState>> mCaptureData;
 
   public NetworkProfilerUiManager(@NotNull Range xRange, @NotNull Choreographer choreographer,
                                   @NotNull SeriesDataStore dataStore, @NotNull EventDispatcher<ProfilerEventListener> eventDispatcher) {
     super(xRange, choreographer, dataStore, eventDispatcher);
+    myDataCache = new HttpDataCache(myDataStore.getDeviceProfilerService().getDevice());
   }
 
   @NotNull
@@ -64,14 +72,24 @@ public final class NetworkProfilerUiManager extends BaseProfilerUiManager {
   }
 
   @Override
+  public void setupDetailedViewUi(@NotNull JPanel toolbar, @NotNull JPanel detailPanel) {
+    super.setupDetailedViewUi(toolbar, detailPanel);
+    detailPanel.add(myDetailedView, BorderLayout.CENTER);
+  }
+
+  @Override
   public void setupExtendedOverviewUi(@NotNull JPanel toolbar, @NotNull JPanel overviewPanel) {
     super.setupExtendedOverviewUi(toolbar, overviewPanel);
     myRadioSegment = new NetworkRadioSegment(myXRange, myDataStore, myEventDispatcher);
     setupAndRegisterSegment(myRadioSegment, NETWORK_CONNECTIVITY_HEIGHT, NETWORK_CONNECTIVITY_HEIGHT, NETWORK_CONNECTIVITY_HEIGHT);
     overviewPanel.add(myRadioSegment);
 
-    myCaptureSegment = new NetworkCaptureSegment(myXRange, myDataStore, connectionId -> {
-      // TODO: handle L4 here
+    myCaptureSegment = new NetworkCaptureSegment(myXRange, myDataStore, httpData -> {
+      String responseFilePath = httpData.getHttpResponseBodyPath();
+      if (responseFilePath != null) {
+        myDetailedView.showConnectionDetails(myDataCache.getFile(responseFilePath));
+        myEventDispatcher.getMulticaster().profilerExpanded(ProfilerType.NETWORK);
+      }
     }, myEventDispatcher);
     setupAndRegisterSegment(myCaptureSegment, DEFAULT_MONITOR_MIN_HEIGHT, DEFAULT_MONITOR_PREFERRED_HEIGHT, DEFAULT_MONITOR_MAX_HEIGHT);
     overviewPanel.add(myCaptureSegment);
@@ -86,6 +104,8 @@ public final class NetworkProfilerUiManager extends BaseProfilerUiManager {
 
     overviewPanel.remove(myRadioSegment);
     overviewPanel.remove(myCaptureSegment);
+
+    detailPanel.remove(myDetailedView);
 
     myChoreographer.unregister(myCaptureSegment);
   }
