@@ -136,16 +136,11 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
         case NETWORK_CONNECTIONS:
         case NETWORK_RADIO:
         case NETWORK_TYPE:
-          // TODO: as we're moving the registerAdapter calls to the correspondent pollers, we can add the covered types here.
-          // Once we're done with the move, we can remove this switch/case block.
-          break;
         case EVENT_ACTIVITY_ACTION:
         case EVENT_FRAGMENT_ACTION:
-          // TODO: replace EmptyDataGenerator with actual data from perfd.
-          registerAdapter(type, new EmptyDataGenerator<>());
-          break;
         case EVENT_SIMPLE_ACTION:
-          registerAdapter(type, new EmptyDataGenerator<>());
+          // TODO: as we're moving the registerAdapter calls to the correspondent pollers, we can add the covered types here.
+          // Once we're done with the move, we can remove this switch/case block.
           break;
         default:
           registerAdapter(type, DEFAULT_DATA_GENERATOR);
