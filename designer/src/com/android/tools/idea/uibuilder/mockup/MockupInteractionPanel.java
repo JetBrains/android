@@ -27,10 +27,11 @@ import com.intellij.ui.components.JBPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,46 +41,120 @@ import java.util.List;
  *
  * It handle the positioning of the mockup inside the selected component and the export of the guidelines
  */
-public class MockupInteractionPanel extends JBPanel implements ModelListener {
+public class MockupInteractionPanel extends JBPanel implements ModelListener, Mockup.MockupModelListener {
 
   private static final Color COMPONENT_FG_COLOR = JBColor.WHITE;
   private static final Color BACKGROUND_COLOR = JBColor.background();
   private static final Color GUIDE_COLOR = JBColor.GRAY;
   private static final Color GUIDE_SELECTED_COLOR = JBColor.RED;
   private static final Color GUIDE_HOVERED_COLOR = JBColor.RED.darker();
-  private static final float ADJUST_SCALE = 0.9f;
+  private static final Color SELECTION_COLOR = JBColor.BLUE;
+  private static final float ADJUST_SCALE = 0.95f;
 
+  /**
+   * Mockup being edited
+   */
   private final Mockup myMockup;
+
+  /**
+   * ScreenView containing the mockup's component
+   */
   private final ScreenView myScreenView;
+
+  /**
+   * Converter from ScreenView Coordinates to this panel coordinate
+   */
   private final CoordinateConverter myScreenViewToPanel;
-  private final CoordinateConverter myImageToMockupDestination;
+
+  /**
+   * Converter from Image Coordinates to the bounds of the mockup
+   */
+  private final CoordinateConverter myImageToMockupBounds;
+
+  /**
+   * Converter from Image Coordinates to this panel coordinate
+   */
+  private final CoordinateConverter myImageToPanel;
+
   private final Rectangle myMockupDrawDestination;
+
+  /**
+   * Store the image size
+   */
   private final Dimension myImageSize;
+
+  /**
+   * Image instance of the mockup
+   */
   @Nullable private BufferedImage myImage;
-  private Rectangle myScreenViewBounds;
+
+  /**
+   * Greyed Image instance of the mockup to show the unselected area
+   * during the cropping edition
+   */
+  @Nullable private Image myGrayedImage;
+
+  /**
+   * Bounds of the ScreenView in this panel
+   */
+  private Rectangle myScreenViewConvertedBounds;
+
+  /**
+   * Original ScreenView Size
+   */
   private final Dimension myScreenViewSize;
 
-  private Guide myHoveredGuideline;
+  /**
+   * Guide being currently hovered
+   */
+  @Nullable private Guide myHoveredGuideline;
+
+  /**
+   * Flag set if the user clicked on the show guideline checkbox
+   */
   private boolean myShowGuideline;
+
+  /**
+   * List of unselected guidelines from the mockup
+   */
   @NotNull final private List<Guide> myUnselectedGuidelines;
+
+  /**
+   * List of selected guidelines from the mockup
+   */
   @NotNull final private List<Guide> mySelectedGuidelines;
-  private GuidelinesMouseInteraction myMouseInteraction;
+
+  /**
+   * Flag set if the user clicked on the edit guideline button
+   */
   private boolean myEditCropping;
+
+  /**
+   * Current selection of the cropped area
+   */
+  private Rectangle myCroppedSelection;
+
+  private GuidelinesInteraction myGuidelinesInteraction;
+  private CroppingInteraction myCroppingInteraction;
 
   public MockupInteractionPanel(@NotNull ScreenView screenView, Mockup Mockup) {
     myScreenView = screenView;
     myMockup = Mockup;
     myMockupDrawDestination = new Rectangle();
     myScreenViewSize = new Dimension();
-    myScreenViewBounds = new Rectangle();
+    myScreenViewConvertedBounds = new Rectangle();
     myImageSize = new Dimension();
-    myImageToMockupDestination = new CoordinateConverter();
+    myImageToMockupBounds = new CoordinateConverter();
+    myCroppedSelection = new Rectangle();
 
     myScreenViewToPanel = new CoordinateConverter();
     myScreenViewToPanel.setCenterInDestination();
     myScreenViewToPanel.setFixedRatio(true);
 
+    myImageToPanel = new CoordinateConverter();
+
     myMockup.getComponent().getModel().addListener(this);
+    myMockup.addMockupModelListener(this);
 
     // Creating two list of guidelines to store the selected and unselected guidelines
     // The two list should not contain the same element at the same time
@@ -98,60 +173,65 @@ public class MockupInteractionPanel extends JBPanel implements ModelListener {
     final Graphics2D g2d = (Graphics2D)g;
     Color color = g.getColor();
 
-    // Update to latest dimension
-    myScreenView.getSize(myScreenViewSize);
-    myScreenViewToPanel.setDimensions(getSize(), myScreenViewSize, ADJUST_SCALE);
-    myScreenViewBounds.setSize(myScreenViewToPanel.dX(myScreenViewSize.getWidth()),
-                               myScreenViewToPanel.dY(myScreenViewSize.getHeight()));
-    myScreenViewBounds.setLocation(myScreenViewToPanel.x(0), myScreenViewToPanel.y(0));
-
-    final Rectangle destination;
-    if (myEditCropping) {
-      destination = new Rectangle();
-      destination.x = myScreenViewToPanel.x(0);
-      destination.y = myScreenViewToPanel.y(0);
-      destination.width = myScreenViewToPanel.dX(myScreenViewSize.width);
-      destination.height = myScreenViewToPanel.dY(myScreenViewSize.height);
-    }
-    else {
-      destination = myMockup.getSwingBounds(myScreenView);
-      destination.x = myScreenViewToPanel.x(destination.x);
-      destination.y = myScreenViewToPanel.y(destination.y);
-      destination.width = myScreenViewToPanel.dX(destination.width);
-      destination.height = myScreenViewToPanel.dY(destination.height);
-    }
+    updateConvertersAndDimension();
 
     // Paint
-    final Shape clip = g2d.getClip();
-    g2d.setClip(myScreenViewBounds);
-    paintScreenView(g2d);
-    paintMockup(g2d, destination);
-    if(!myEditCropping) {
-      paintAllComponents(g2d, myMockup.getComponent().getRoot());
+    if (myEditCropping) {
+      paintImage(g2d);
+      paintCropSelection(g2d);
     }
-    g2d.setClip(clip);
-
-    // Only paint guideline if the user as selected the checkbox in MockupEditor
-    if (myShowGuideline) {
-      paintGuidelines(g2d, destination);
+    else {
+      paintScreenView(g2d);
+      paintMockup(g2d);
+      paintAllComponents(g2d, myMockup.getComponent().getRoot());
+      // Only paint guideline if the user as selected the checkbox in MockupEditor
+      if (myShowGuideline) {
+        paintGuidelines(g2d);
+      }
     }
     g.setColor(color);
   }
 
   /**
+   * Update all the used {@link CoordinateConverter} instances and Dimension field
+   * to the latest values
+   */
+  private void updateConvertersAndDimension() {
+    myScreenView.getSize(myScreenViewSize);
+    myScreenViewToPanel.setDimensions(getSize(), myScreenViewSize, ADJUST_SCALE);
+    myScreenViewConvertedBounds.setSize(myScreenViewToPanel.dX(myScreenViewSize.getWidth()),
+                                        myScreenViewToPanel.dY(myScreenViewSize.getHeight()));
+    myScreenViewConvertedBounds.setLocation(myScreenViewToPanel.x(0), myScreenViewToPanel.y(0));
+
+    myImageToPanel.setDimensions(getSize(), myImageSize, ADJUST_SCALE);
+    myImageToPanel.setCenterInDestination();
+
+    final Rectangle bounds = myMockup.getSwingBounds(myScreenView);
+    Rectangle mockupSwingBounds = new Rectangle(
+      myScreenViewToPanel.x(bounds.x),
+      myScreenViewToPanel.y(bounds.y),
+      myScreenViewToPanel.dX(bounds.width),
+      myScreenViewToPanel.dY(bounds.height)
+    );
+
+    myImageToMockupBounds.setDimensions(mockupSwingBounds.getSize(), myImageSize);
+    myImageToMockupBounds.setDestinationPosition(mockupSwingBounds.x, mockupSwingBounds.y);
+  }
+
+  private void paintCropSelection(Graphics2D g2d) {
+    g2d.setColor(SELECTION_COLOR);
+    g2d.draw(myCroppedSelection);
+  }
+
+  /**
    * Paint the selected, unselected and hovered guidelines in the destination coordinate system
    *
-   * @param g2d         The graphic context
-   * @param destination The Rectangle representing the origin and size of the destination coordinates system
+   * @param g2d The graphic context
    */
-  private void paintGuidelines(Graphics2D g2d, Rectangle destination) {
+  private void paintGuidelines(Graphics2D g2d) {
     if (myUnselectedGuidelines.isEmpty() && mySelectedGuidelines.isEmpty() && myHoveredGuideline == null) {
       return;
     }
-
-    // Update the CoordinatesConverter to the destination and image dimension ans position
-    myImageToMockupDestination.setDimensions(destination.getSize(), myImageSize);
-    myImageToMockupDestination.setDestinationPosition(destination.x, destination.y);
 
     // Paint unselected guidelines
     g2d.setColor(GUIDE_COLOR);
@@ -178,7 +258,7 @@ public class MockupInteractionPanel extends JBPanel implements ModelListener {
   }
 
   /**
-   * Paint the guide guideline using myImageToMockupDestination {@link CoordinateConverter}
+   * Paint the guide guideline using myImageToMockupBounds {@link CoordinateConverter}
    *
    * @param g2d
    * @param guide
@@ -190,7 +270,7 @@ public class MockupInteractionPanel extends JBPanel implements ModelListener {
     int y2;
     switch (guide.getOrientation()) {
       case VERTICAL:
-        x1 = x2 = myImageToMockupDestination.x(Math.round(guide.getPosition()));
+        x1 = x2 = myImageToMockupBounds.x(Math.round(guide.getPosition()));
         y1 = 0;
         y2 = getHeight();
         break;
@@ -198,7 +278,7 @@ public class MockupInteractionPanel extends JBPanel implements ModelListener {
       default:
         x1 = 0;
         x2 = getWidth();
-        y1 = y2 = myImageToMockupDestination.y(Math.round(guide.getPosition()));
+        y1 = y2 = myImageToMockupBounds.y(Math.round(guide.getPosition()));
     }
     g2d.drawLine(x1, y1, x2, y2);
   }
@@ -207,13 +287,20 @@ public class MockupInteractionPanel extends JBPanel implements ModelListener {
    * Paint the cropped area of the mockup specified by {@link Mockup#getCropping()} inside destination rectangle.
    * The mockup will be stretched if needed.
    *
-   * @param g           The graphic context
-   * @param destination The destination rectangle where the mockup will be paint.
+   * @param g The graphic context
    */
-  private void paintMockup(Graphics2D g, Rectangle destination) {
+  private void paintMockup(Graphics2D g) {
     if (myImage == null) {
       return;
     }
+
+    Rectangle dest;
+    dest = myMockup.getSwingBounds(myScreenView);
+    dest.x = myScreenViewToPanel.x(dest.x);
+    dest.y = myScreenViewToPanel.y(dest.y);
+    dest.width = myScreenViewToPanel.dX(dest.width);
+    dest.height = myScreenViewToPanel.dY(dest.height);
+
     // Source coordinates
     final Rectangle cropping = myMockup.getCropping();
     int sx = cropping.x;
@@ -222,18 +309,58 @@ public class MockupInteractionPanel extends JBPanel implements ModelListener {
     int sh = cropping.height;
 
     final Composite composite = g.getComposite();
-    final Rectangle clipBounds = g.getClipBounds();
-    g.setClip(myScreenViewBounds);
     g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, myMockup.getAlpha()));
     g.drawImage(myImage,
-                destination.x,
-                destination.y,
-                destination.x + destination.width,
-                destination.y + destination.height,
+                dest.x,
+                dest.y,
+                dest.x + dest.width,
+                dest.y + dest.height,
                 sx, sy, sx + sw, sy + sh,
                 null);
     g.setComposite(composite);
-    g.setClip(clipBounds);
+  }
+
+  /**
+   * Paint the whole image if no selection has been made or paint a gray scale version of the image
+   * if a cropping selection is made then fill the the cropping selection with a colored version
+   * of the corresponding area of the image.
+   *
+   * @param g The graphic context
+   */
+  private void paintImage(Graphics2D g) {
+    if (myImage == null) {
+      return;
+    }
+
+    final Rectangle dest = new Rectangle();
+    dest.x = myImageToPanel.x(0);
+    dest.y = myImageToPanel.y(0);
+    dest.width = myImageToPanel.dX(myImageSize.width);
+    dest.height = myImageToPanel.dY(myImageSize.height);
+
+    if (!myCroppedSelection.isEmpty()) {
+      if (myGrayedImage == null) {
+        // Create a gray scale version of the image
+        myGrayedImage = GrayFilter.createDisabledImage(myImage);
+      }
+
+      // Find the cropped area of the image to pain in the selection area
+      final Rectangle src = new Rectangle();
+      src.x = myImageToPanel.inverseX(myCroppedSelection.x);
+      src.y = myImageToPanel.inverseY(myCroppedSelection.y);
+      src.width = myImageToPanel.inverseDX(myCroppedSelection.width);
+      src.height = myImageToPanel.inverseDY(myCroppedSelection.height);
+
+      g.drawImage(myGrayedImage, dest.x, dest.y, dest.width, dest.height, null);
+      g.setClip(myCroppedSelection);
+      g.drawImage(myImage, dest.x, dest.y, dest.width, dest.height, null);
+      g.setClip(null);
+    }
+    else {
+      // No selection has been made, we just draw the image
+      g.drawImage(myImage, dest.x, dest.y, dest.width, dest.height, null);
+
+    }
   }
 
   private void paintScreenView(@NotNull Graphics2D g) {
@@ -283,13 +410,13 @@ public class MockupInteractionPanel extends JBPanel implements ModelListener {
   public void setShowGuideline(boolean showGuideline) {
     myShowGuideline = showGuideline;
     if (myShowGuideline) {
-      myMouseInteraction = new GuidelinesMouseInteraction();
-      addMouseMotionListener(myMouseInteraction);
-      addMouseListener(myMouseInteraction);
+      myGuidelinesInteraction = new GuidelinesInteraction();
+      addMouseMotionListener(myGuidelinesInteraction);
+      addMouseListener(myGuidelinesInteraction);
     }
     else {
-      removeMouseListener(myMouseInteraction);
-      removeMouseMotionListener(myMouseInteraction);
+      removeMouseListener(myGuidelinesInteraction);
+      removeMouseMotionListener(myGuidelinesInteraction);
     }
     repaint();
   }
@@ -300,7 +427,11 @@ public class MockupInteractionPanel extends JBPanel implements ModelListener {
    * @param image
    */
   private void setImage(@Nullable BufferedImage image) {
+    if (image == myImage) {
+      return;
+    }
     myImage = image;
+    myGrayedImage = null;
     if (image == null) {
       return;
     }
@@ -310,6 +441,7 @@ public class MockupInteractionPanel extends JBPanel implements ModelListener {
   @Override
   public void modelChanged(@NotNull NlModel model) {
     setImage(myMockup.getImage());
+    updateCroppedSelection();
     repaint();
   }
 
@@ -326,22 +458,22 @@ public class MockupInteractionPanel extends JBPanel implements ModelListener {
   @NotNull
   public List<MockupGuide> getSelectedGuidelines() {
 
-    CoordinateConverter mockupToScreenView = new CoordinateConverter();
+    final List<MockupGuide> mockupGuides = new ArrayList<>(mySelectedGuidelines.size());
     final Rectangle mockupPosition = myMockupDrawDestination;
+    final CoordinateConverter mockupToScreenView = new CoordinateConverter();
     mockupToScreenView.setDimensions(myScreenView.getSize(), mockupPosition.getSize());
     mockupToScreenView.setSourcePosition(mockupPosition.x, mockupPosition.y);
 
-    final List<MockupGuide> mockupGuides = new ArrayList<>(mySelectedGuidelines.size());
     for (int i = 0; i < mySelectedGuidelines.size(); i++) {
       final Guide guide = mySelectedGuidelines.get(i);
       if (guide.getOrientation().equals(Guide.Orientation.HORIZONTAL)) {
-        final int mockupCoordinate = myImageToMockupDestination.y(guide.getPosition());
+        final int mockupCoordinate = myImageToMockupBounds.y(guide.getPosition());
         final int screenViewPosition = mockupToScreenView.y(mockupCoordinate);
         final int androidDpPosition = Coordinates.getAndroidYDip(myScreenView, screenViewPosition);
         mockupGuides.add(new MockupGuide(androidDpPosition, MockupGuide.Orientation.HORIZONTAL));
       }
       else {
-        final int mockupCoordinate = myImageToMockupDestination.x(guide.getPosition());
+        final int mockupCoordinate = myImageToMockupBounds.x(guide.getPosition());
         final int screenViewPosition = mockupToScreenView.x(mockupCoordinate);
         final int androidDpPosition = Coordinates.getAndroidXDip(myScreenView, screenViewPosition);
         mockupGuides.add(new MockupGuide(androidDpPosition, MockupGuide.Orientation.VERTICAL));
@@ -356,23 +488,44 @@ public class MockupInteractionPanel extends JBPanel implements ModelListener {
 
   public void setEditCropping(boolean editCropping) {
     if (editCropping != myEditCropping) {
-      startCroppingMode();
+      myEditCropping = editCropping;
+      myEditCropping = editCropping;
+      repaint();
+      if (myEditCropping) {
+        myCroppingInteraction = new CroppingInteraction();
+        addMouseMotionListener(myCroppingInteraction);
+        addMouseListener(myCroppingInteraction);
+      }
+      else {
+        removeMouseListener(myCroppingInteraction);
+        removeMouseMotionListener(myCroppingInteraction);
+      }
     }
-    myEditCropping = editCropping;
   }
 
-  private void startCroppingMode() {
+  private void updateCroppedSelection() {
+    final Rectangle cropping = myMockup.getCropping();
+    myCroppedSelection.setBounds(
+      myImageToPanel.x(cropping.x),
+      myImageToPanel.y(cropping.y),
+      myImageToPanel.dX(cropping.width),
+      myImageToPanel.dY(cropping.height)
+    );
+  }
+
+  @Override
+  public void mockupChanged(Mockup mockup) {
+    updateCroppedSelection();
     repaint();
   }
 
   /**
    * Handle the mouse interaction with the guidelines
    */
-  private class GuidelinesMouseInteraction extends MouseAdapter {
+  private class GuidelinesInteraction extends MouseAdapter {
 
-    public static final int CLICKABLE_AREA = 5;
+    private static final int CLICKABLE_AREA = 5;
     private boolean myMouseMoved;
-    Point2D myOrigin = new Point();
 
     /**
      * We save a reference to the last clicked guideline in order to
@@ -380,13 +533,6 @@ public class MockupInteractionPanel extends JBPanel implements ModelListener {
      * multiple times on the guideline without firing a MouseMoved event
      */
     private Guide myLastClickedGuide;
-
-    @Override
-    public void mouseDragged(MouseEvent e) {
-      if (!myShowGuideline) {
-        myOrigin.setLocation(e.getPoint());
-      }
-    }
 
     @Override
     public void mouseMoved(MouseEvent e) {
@@ -426,14 +572,14 @@ public class MockupInteractionPanel extends JBPanel implements ModelListener {
     private boolean isHovering(int x, int y, Guide guide) {
       switch (guide.getOrientation()) {
         case HORIZONTAL:
-          if (Math.abs(y - myImageToMockupDestination.y(guide.getPosition())) < CLICKABLE_AREA) {
+          if (Math.abs(y - myImageToMockupBounds.y(guide.getPosition())) < CLICKABLE_AREA) {
             myHoveredGuideline = guide;
             repaint();
             return true;
           }
           break;
         case VERTICAL:
-          if (Math.abs(x - myImageToMockupDestination.x(guide.getPosition())) < 5) {
+          if (Math.abs(x - myImageToMockupBounds.x(guide.getPosition())) < 5) {
             myHoveredGuideline = guide;
             repaint();
             return true;
@@ -470,6 +616,100 @@ public class MockupInteractionPanel extends JBPanel implements ModelListener {
           myMouseMoved = false;
           repaint();
         }
+      }
+    }
+  }
+
+  /**
+   * Handles the mouses events for the cropping: drawing the region where the
+   */
+  private class CroppingInteraction extends MouseAdapter {
+    private static final int MIN_SELECTION_SIZE = 2;
+    private final Point myOrigin = new Point();
+
+    /**
+     * Bounds of the image in this panel coordinate system
+     */
+    final private Rectangle myImageConvertedBounds = new Rectangle();
+
+    @Override
+    public void mouseDragged(MouseEvent e) {
+      if (myEditCropping) {
+        int width = e.getX() - myOrigin.x;
+        int height = e.getY() - myOrigin.y;
+        int x = myOrigin.x;
+        int y = myOrigin.y;
+
+        // If the current mouse position is less than the origin,
+        // we reposition the rectangle such as the current position becomes the new origin
+        // and the width and height match the old origin.
+        // This allow the user to do the selection in any direction
+        if (e.getX() < x) {
+          x = e.getX();
+          width = -width;
+        }
+        if (e.getY() < y) {
+          y = e.getY();
+          height = -height;
+        }
+
+        myCroppedSelection.setBounds(x, y, width - 1, height - 1);
+        // We ensure that the selection is not out of the image
+        Rectangle2D.intersect(myCroppedSelection, myImageConvertedBounds, myCroppedSelection);
+        repaint();
+      }
+    }
+
+    @Override
+    public void mousePressed(MouseEvent e) {
+      if (myEditCropping) {
+        myOrigin.setLocation(e.getPoint());
+        myCroppedSelection.setLocation(myOrigin);
+
+        // Clear the old selection
+        myCroppedSelection.setSize(0, 0);
+
+        // Used to find the intersection between the selection and the image
+        myImageConvertedBounds.setBounds(
+          myImageToPanel.x(0),
+          myImageToPanel.y(0),
+          myImageToPanel.dX(myImageSize.width),
+          myImageToPanel.dY(myImageSize.height)
+        );
+      }
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent e) {
+
+      // If the selection is too small, we assume that nothing is selected
+      // The cropping is thus reset to the size of the image
+      final Dimension size = myCroppedSelection.getSize();
+      if (size.width < MIN_SELECTION_SIZE && size.height < MIN_SELECTION_SIZE) {
+        myMockup.setCropping(0, 0, -1, -1);
+        myCroppedSelection.setBounds(0, 0, 0, 0);
+      }
+      else {
+        // Convert the selected area to the cropping bounds of the mockup
+        myMockup.setCropping(
+          myImageToPanel.inverseX(myCroppedSelection.x),
+          myImageToPanel.inverseY(myCroppedSelection.y),
+          myImageToPanel.inverseDX(myCroppedSelection.width),
+          myImageToPanel.inverseDY(myCroppedSelection.height)
+        );
+      }
+      MockupFileHelper.writePositionToXML(myMockup);
+    }
+
+    @Override
+    public void mouseMoved(MouseEvent e) {
+
+      // Display a cross cursor when the cursor is over the image
+      if (myImageConvertedBounds.contains(e.getPoint())) {
+        setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+      }
+      else {
+        setCursor(Cursor.getDefaultCursor());
       }
     }
   }

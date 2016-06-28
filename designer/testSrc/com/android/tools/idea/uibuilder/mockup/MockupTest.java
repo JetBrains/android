@@ -69,11 +69,15 @@ public class MockupTest extends MockupBaseTest {
 
   public void testIsStringCorrectPositionSize() throws Exception {
     assertTrue(Mockup.isPositionStringCorrect("2 13 12 23"));
-    assertTrue(Mockup.isPositionStringCorrect("2 13 12 23 "));
+    assertTrue(Mockup.isPositionStringCorrect("2 13 12 -23 "));
+    assertTrue(Mockup.isPositionStringCorrect("2 13 -12 23 "));
+    assertTrue(Mockup.isPositionStringCorrect("2 13 -12 -23 "));
+    assertTrue(Mockup.isPositionStringCorrect("2 13 -12 -23 "));
   }
 
   public void testIsStringCorrectNegativePositionSize() throws Exception {
     assertTrue(Mockup.isPositionStringCorrect("-2 -13 12 23"));
+    assertTrue(Mockup.isPositionStringCorrect("-2 -13 -12 -23"));
   }
 
   public void testIsStringCorrectPositionSizeCropXY() throws Exception {
