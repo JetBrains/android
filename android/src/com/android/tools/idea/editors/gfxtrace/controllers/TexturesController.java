@@ -129,8 +129,10 @@ public class TexturesController extends ImagePanelController {
       editor.getAtomStream().addListener(this);
 
       usingComboBoxWidget(CONTROL_SIZE);
-      ((ImageCellRenderer<?>)myList.getRenderer()).setLayout(ImageCellRenderer.Layout.LEFT_TO_RIGHT);
-      ((ImageCellRenderer<?>)myList.getRenderer()).setFlipImage(true);
+      ImageCellRenderer<?> renderer = (ImageCellRenderer<?>)myList.getRenderer();
+      renderer.setLayout(ImageCellRenderer.Layout.LEFT_TO_RIGHT);
+      renderer.setFlipImage(true);
+      renderer.setNoItemText("<Click to select texture>");
     }
 
     @Override
