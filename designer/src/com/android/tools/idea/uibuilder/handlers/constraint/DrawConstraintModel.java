@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
+import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.sherpa.drawing.AndroidColorSet;
 import com.android.tools.sherpa.drawing.BlueprintColorSet;
@@ -27,6 +28,7 @@ import com.android.tools.sherpa.interaction.WidgetMotion;
 import com.android.tools.sherpa.interaction.WidgetResize;
 import com.android.tools.sherpa.structure.Selection;
 import com.android.tools.sherpa.structure.WidgetsScene;
+import android.support.constraint.solver.widgets.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -186,26 +188,27 @@ class DrawConstraintModel {
 
   /**
    * Paint ourselves and our children
-   *
    * @param gc                 the graphic context
+   * @param component          the component to draw
    * @param width              width of the canvas
    * @param height             height of the canvas
    * @param showAllConstraints flag to show or not all the existing constraints
    */
   public boolean paint(@NotNull Graphics2D gc,
-                       int width,
+                       ConstraintWidget component, int width,
                        int height,
                        boolean showAllConstraints) {
     Graphics2D g = (Graphics2D)gc.create();
     WidgetDecorator.setShowFakeUI(mShowFakeUI);
     if (mySceneDraw.getCurrentStyle() == WidgetDecorator.BLUEPRINT_STYLE) {
-      mySceneDraw.drawBackground(myViewTransform, g, width, height);
+       mySceneDraw.drawBackground(myConstraintModel.getScene().getWidget(component),
+                                  myViewTransform, g, width, height);
     }
     if (myConstraintModel.getNeedsAnimateConstraints() != -1) {
       mySceneDraw.animateConstraints(myConstraintModel.getNeedsAnimateConstraints());
       myConstraintModel.setNeedsAnimateConstraints(-1);
     }
-    boolean ret = mySceneDraw.paintWidgets(width, height, myViewTransform, g, showAllConstraints, myMouseInteraction);
+    boolean ret = mySceneDraw.paintWidgets(component, width, height, myViewTransform, g, showAllConstraints, myMouseInteraction);
     g.dispose();
     return ret;
   }
