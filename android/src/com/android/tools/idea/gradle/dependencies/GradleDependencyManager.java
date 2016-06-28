@@ -39,6 +39,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.COMPILE;
@@ -63,7 +64,9 @@ public class GradleDependencyManager {
   @NotNull
   public List<GradleCoordinate> findMissingDependencies(@NotNull Module module, @NotNull Iterable<GradleCoordinate> dependencies) {
     GradleBuildModel buildModel = GradleBuildModel.get(module);
-    assert buildModel != null;
+    if (buildModel == null) {
+      return Collections.emptyList();
+    }
     return findMissingLibrariesFromGradleBuildFile(buildModel, dependencies);
   }
 
@@ -84,7 +87,9 @@ public class GradleDependencyManager {
                                          @NotNull Iterable<GradleCoordinate> dependencies,
                                          @Nullable Runnable callback) {
     GradleBuildModel buildModel = GradleBuildModel.get(module);
-    assert buildModel != null;
+    if (buildModel == null) {
+      return false;
+    }
     List<GradleCoordinate> missing = findMissingLibrariesFromGradleBuildFile(buildModel, dependencies);
     if (missing.isEmpty()) {
       return true;
@@ -105,7 +110,9 @@ public class GradleDependencyManager {
                                           @NotNull List<GradleCoordinate> dependencies,
                                           @Nullable Runnable callback) {
     GradleBuildModel buildModel = GradleBuildModel.get(module);
-    assert buildModel != null;
+    if (buildModel == null) {
+      return false;
+    }
     updateDependenciesInTransaction(buildModel, module, dependencies, callback);
     return true;
   }
