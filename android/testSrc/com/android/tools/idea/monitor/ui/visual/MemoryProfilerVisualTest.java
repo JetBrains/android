@@ -133,6 +133,7 @@ public class MemoryProfilerVisualTest extends VisualTest {
   private void updateTree(MemoryInfoTreeNode root) {
     Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
     boolean hasNewChildren = false;
+    int validThreadCount = 0;
     for (Thread thread : threadSet) {
       StackTraceElement[] traces = thread.getStackTrace();
 
@@ -142,10 +143,11 @@ public class MemoryProfilerVisualTest extends VisualTest {
       }
 
       hasNewChildren |= constructAndIncrementNodes(root, traces, traces.length - 1);
-
-      // Increment the root node to document the total number of stack frames over time.
-      root.incrementCount();
+      validThreadCount++;
     }
+
+    // Increment the root node to document the total number of stack frames over time.
+    root.setCount(root.getCount() + validThreadCount);
 
     if (hasNewChildren) {
       mDetailSegment.refreshNode(root);
@@ -189,7 +191,7 @@ public class MemoryProfilerVisualTest extends VisualTest {
     }
 
     // Increase the occurrence count of this node.
-    matchedChild.incrementCount();
+    matchedChild.setCount(matchedChild.getCount() + 1);
     boolean childrenChanged = constructAndIncrementNodes(matchedChild, traces, --depth);
 
     if (isNewNode) {
