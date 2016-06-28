@@ -162,7 +162,7 @@ public class CpuDataPoller extends Poller {
           }
           threadData = myThreadsStateData.get(tid);
           assert threadData != null;
-          threadData.addState(threadActivity.getNewState(), TimeUnit.NANOSECONDS.toMillis(threadActivity.getTimestamp()));
+          threadData.addState(threadActivity.getNewState(), TimeUnit.NANOSECONDS.toMicros(threadActivity.getTimestamp()));
 
           if (threadActivity.getNewState() == Cpu.ThreadActivity.State.DEAD) {
             // TODO: maybe it's better not to remove it and keep track of the threads alive using an integer field.
