@@ -306,7 +306,7 @@ public abstract class BaseLineChartSegment extends BaseSegment {
     super.toggleView(isExpanded);
     mGrid.setVisible(isExpanded);
     mLeftAxis.setAxisFormatter(isExpanded ? mLeftAxisFormatter : mLeftAxisFormatterSimple);
-    mLineChart.clearLineConfigs();
+    mLineChart.clearConfigs();
     updateChartLines(isExpanded);
     mLegendComponent.setLegendData(getLegendRenderDataList());
   }
