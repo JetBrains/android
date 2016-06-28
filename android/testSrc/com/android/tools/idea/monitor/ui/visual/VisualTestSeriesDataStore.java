@@ -31,6 +31,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public final class VisualTestSeriesDataStore implements SeriesDataStore {
 
@@ -38,10 +39,10 @@ public final class VisualTestSeriesDataStore implements SeriesDataStore {
 
   private static final Object NO_TARGET = new Object();
 
-  private long mStartTime;
+  private long mStartTimeUs;
 
   public VisualTestSeriesDataStore() {
-    mStartTime = System.currentTimeMillis();
+    mStartTimeUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
     startGeneratingData();
   }
 
@@ -61,14 +62,14 @@ public final class VisualTestSeriesDataStore implements SeriesDataStore {
 
   @Override
   public void reset() {
-    mStartTime = System.currentTimeMillis();
+    mStartTimeUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
     myDataSeriesMap.values().forEach(adaptersMap -> adaptersMap.values().forEach(
-      adapter -> adapter.reset(mStartTime, mStartTime)));
+      adapter -> adapter.reset(mStartTimeUs, mStartTimeUs)));
   }
 
   @Override
-  public long getLatestTime() {
-    return System.currentTimeMillis() - mStartTime;
+  public long getLatestTimeUs() {
+    return TimeUnit.NANOSECONDS.toMicros(System.nanoTime()) - mStartTimeUs;
   }
 
   @Override
@@ -93,7 +94,7 @@ public final class VisualTestSeriesDataStore implements SeriesDataStore {
     }
     Object key = target == null ? NO_TARGET : target;
     myDataSeriesMap.get(type).put(key, adapter);
-    adapter.reset(mStartTime, mStartTime);
+    adapter.reset(mStartTimeUs, mStartTimeUs);
   }
 
   /**

@@ -28,6 +28,7 @@ import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class LineChartVisualTest extends VisualTest {
@@ -49,8 +50,8 @@ public class LineChartVisualTest extends VisualTest {
     mRangedData = new ArrayList<>();
     mData = new ArrayList<>();
 
-    long now = System.currentTimeMillis();
-    Range xRange = new Range(now, now + 60000);
+    long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
+    Range xRange = new Range(nowUs, nowUs + TimeUnit.SECONDS.toMicros(60));
     mLineChart = new LineChart();
     mAnimatedTimeRange = new AnimatedTimeRange(xRange, 0);
 
@@ -97,14 +98,14 @@ public class LineChartVisualTest extends VisualTest {
         try {
           while (true) {
             int v = variance.get();
-            long now = System.currentTimeMillis();
+            long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
             for (DefaultDataSeries<Long> series : mData) {
               ImmutableList<SeriesData<Long>> data = series.getAllData();
               long last = data.isEmpty() ? 0 : data.get(data.size() - 1).value;
               float delta = ((float)Math.random() - 0.45f) * v;
               // Make sure not to add negative numbers.
               long current = Math.max(last + (long)delta, 0);
-              series.add(now, current);
+              series.add(nowUs, current);
             }
             Thread.sleep(delay.get());
           }

@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.SeriesData;
 import gnu.trove.TLongArrayList;
 
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 public class LongTestDataGenerator extends TestDataGenerator<Long> {
 
@@ -39,12 +40,12 @@ public class LongTestDataGenerator extends TestDataGenerator<Long> {
 
   @Override
   public SeriesData<Long> get(int index) {
-    return new SeriesData<>(mTime.get(index) - mStartTimeMs, mData.get(index));
+    return new SeriesData<>(mTime.get(index) - mStartTimeUs, mData.get(index));
   }
 
   @Override
   public void generateData() {
-    mTime.add(System.currentTimeMillis());
+    mTime.add(TimeUnit.NANOSECONDS.toMicros(System.nanoTime()));
     if (mUseLast) {
       long x = (mData.isEmpty() ? 0 : mData.get(mData.size() - 1)) + randLong(-20, 100);
       mData.add(Math.max(0, x));

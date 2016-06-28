@@ -37,6 +37,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class CpuProfilerVisualTest extends VisualTest {
 
@@ -48,7 +49,7 @@ public class CpuProfilerVisualTest extends VisualTest {
 
   private ThreadsSegment mThreadsSegment;
 
-  private long mStartTimeMs;
+  private long mStartTimeUs;
 
   @Override
   protected void initialize() {
@@ -71,9 +72,9 @@ public class CpuProfilerVisualTest extends VisualTest {
 
   @Override
   protected List<Animatable> createComponentsList() {
-    mStartTimeMs = System.currentTimeMillis();
+    mStartTimeUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
     Range timeRange = new Range();
-    AnimatedTimeRange AnimatedTimeRange = new AnimatedTimeRange(timeRange, mStartTimeMs);
+    AnimatedTimeRange AnimatedTimeRange = new AnimatedTimeRange(timeRange, mStartTimeUs);
 
     //TODO Update test data for CpuUsageSegment to be exactly what it was.
     EventDispatcher<ProfilerEventListener> dummyDispatcher = EventDispatcher.create(ProfilerEventListener.class);
@@ -142,7 +143,7 @@ public class CpuProfilerVisualTest extends VisualTest {
 
     @Override
     public SeriesData<Cpu.ThreadActivity.State> get(int index) {
-      return new SeriesData<>(mTime.get(index) - mStartTimeMs, mStates.get(index));
+      return new SeriesData<>(mTime.get(index) - mStartTimeUs, mStates.get(index));
     }
 
     @Override
@@ -152,7 +153,7 @@ public class CpuProfilerVisualTest extends VisualTest {
 
     private void addState() {
       double prob = Math.random();
-      mTime.add(System.currentTimeMillis());
+      mTime.add(TimeUnit.NANOSECONDS.toMicros(System.nanoTime()));
       if (mIsDead || prob < 0.01) { // Terminate the thread with 1% of chance. If it's already dead, repeat the state.
         mCurrentState = Cpu.ThreadActivity.State.DEAD;
         // there' no need for adding more states after that.

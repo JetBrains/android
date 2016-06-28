@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 public class MemoryProfilerVisualTest extends VisualTest {
 
@@ -75,9 +76,9 @@ public class MemoryProfilerVisualTest extends VisualTest {
 
   @Override
   protected List<Animatable> createComponentsList() {
-    long startTimeMs = System.currentTimeMillis();
+    long startTimeUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
     Range xRange = new Range();
-    AnimatedTimeRange animatedTimeRange = new AnimatedTimeRange(xRange, startTimeMs);
+    AnimatedTimeRange animatedTimeRange = new AnimatedTimeRange(xRange, startTimeUs);
     EventDispatcher<ProfilerEventListener> dummyDispatcher = EventDispatcher.create(ProfilerEventListener.class);
     mSegment = new MemorySegment(xRange, mDataStore, dummyDispatcher);
     mRoot = new MemoryInfoTreeNode("Root");

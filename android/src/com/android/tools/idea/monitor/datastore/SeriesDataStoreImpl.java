@@ -51,9 +51,9 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
    */
   private Map<SeriesDataType, Map<Object, DataAdapter<?>>> myDataSeriesMap = new HashMap<>();
 
-  private long myDeviceStartTimeMs;
+  private long myDeviceStartTimeNs;
 
-  private long myStudioOffsetTimeMs;
+  private long myStudioOffsetTimeNs;
 
   @NotNull
   private final DeviceProfilerService myDeviceProfilerService;
@@ -88,12 +88,12 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
   public void reset() {
     synchronizeStartTime();
     myDataSeriesMap.values().forEach(adaptersMap -> adaptersMap.values().forEach(
-      adapter -> adapter.reset(myDeviceStartTimeMs, myStudioOffsetTimeMs)));
+      adapter -> adapter.reset(TimeUnit.NANOSECONDS.toMicros(myDeviceStartTimeNs), TimeUnit.NANOSECONDS.toMicros(myStudioOffsetTimeNs))));
   }
 
   @Override
-  public long getLatestTime() {
-    return myDeviceStartTimeMs + (System.currentTimeMillis() - myStudioOffsetTimeMs);
+  public long getLatestTimeUs() {
+    return TimeUnit.NANOSECONDS.toMicros(myDeviceStartTimeNs + (System.nanoTime() - myStudioOffsetTimeNs));
   }
 
   @Override
@@ -120,7 +120,7 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
     }
     Object key = target == null ? NO_TARGET : target;
     myDataSeriesMap.get(type).put(key, adapter);
-    adapter.reset(myDeviceStartTimeMs, myStudioOffsetTimeMs);
+    adapter.reset(myDeviceStartTimeNs, myStudioOffsetTimeNs);
   }
 
   private void startGeneratingData() {
@@ -177,8 +177,8 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
     try {
       ProfilerService.TimesResponse response = myDeviceProfilerService.getDeviceService().getTimes(
         ProfilerService.TimesRequest.getDefaultInstance());
-      myDeviceStartTimeMs = TimeUnit.NANOSECONDS.toMillis(response.getTimestamp());
-      myStudioOffsetTimeMs = System.currentTimeMillis();
+      myDeviceStartTimeNs = response.getTimestamp();
+      myStudioOffsetTimeNs = System.nanoTime();
     }
     catch (StatusRuntimeException e) {
       myDispatcher.getMulticaster().profilerServerDisconnected();
@@ -188,7 +188,7 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
   private static class EmptyDataGenerator<T> implements DataAdapter<T> {
 
     @Override
-    public void reset(long startTimeMs, long studioStartTimeMs) {
+    public void reset(long deviceStartTimeUs, long studioStartTimeUs) {
 
     }
 
@@ -198,7 +198,7 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
     }
 
     @Override
-    public int getClosestTimeIndex(long timeMs) {
+    public int getClosestTimeIndex(long timeUs) {
       return 0;
     }
 
@@ -225,9 +225,9 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
 
     private TLongArrayList myData = new TLongArrayList();
 
-    private long myDeviceStartTimeMs;
+    private long myDeviceStartTimeUs;
 
-    private long myStudioStartTimeMs;
+    private long myStudioStartTimeUs;
 
     // TODO: we should change this and the other "generate*" names
     // when we change this class to get actual data.
@@ -268,11 +268,11 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
     }
 
     @Override
-    public void reset(long deviceStartTimeMs, long studioStartTimeMs) {
+    public void reset(long deviceStartTimeUs, long studioStartTimeUs) {
       stop();
 
-      myDeviceStartTimeMs = deviceStartTimeMs;
-      myStudioStartTimeMs = studioStartTimeMs;
+      myDeviceStartTimeUs = deviceStartTimeUs;
+      myStudioStartTimeUs = studioStartTimeUs;
       myTime.clear();
       myData.clear();
       myDataGeneratorThread = new Thread(myDataGenerator);
@@ -280,8 +280,8 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
     }
 
     @Override
-    public int getClosestTimeIndex(long timeMs) {
-      int index = myTime.binarySearch(timeMs);
+    public int getClosestTimeIndex(long timeUs) {
+      int index = myTime.binarySearch(timeUs);
       if (index < 0) {
         // No exact match, returns position to the left of the insertion point.
         // NOTE: binarySearch returns -(insertion point + 1) if not found.
@@ -298,7 +298,7 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
 
     private void generateData() {
       // Simulate adding data in device time
-      myTime.add(myDeviceStartTimeMs + (System.currentTimeMillis() - myStudioStartTimeMs));
+      myTime.add(myDeviceStartTimeUs + (TimeUnit.NANOSECONDS.toMicros(System.nanoTime()) - myStudioStartTimeUs));
 
       // Next value should not differ from current by more than max variance
       long next = myNext + randomInInterval(-myMaxVariance, myMaxVariance);

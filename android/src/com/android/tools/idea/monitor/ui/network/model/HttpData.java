@@ -24,7 +24,7 @@ public class HttpData {
   public long myId;
   public String myUrl;
   public String myMethod;
-  public long myStartTimeMs;
+  public long myStartTimeUs;
   public long myEndTimeMs;
   public String myHttpResponseBodyPath;
 }

@@ -21,6 +21,7 @@ import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.idea.monitor.ui.events.view.EventSegment;
 
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 public class SimpleEventTestDataGenerator
   extends TestDataGenerator<EventAction<SimpleEventComponent.Action, EventSegment.EventActionType>> {
@@ -29,7 +30,7 @@ public class SimpleEventTestDataGenerator
 
   @Override
   public SeriesData<EventAction<SimpleEventComponent.Action, EventSegment.EventActionType>> get(int index) {
-    return new SeriesData<>(mTime.get(index) - mStartTimeMs, mData.get(index));
+    return new SeriesData<>(mTime.get(index) - mStartTimeUs, mData.get(index));
   }
 
   @Override
@@ -41,20 +42,20 @@ public class SimpleEventTestDataGenerator
   @Override
   public void generateData() {
     boolean downAction = true;
-    long currentTime = System.currentTimeMillis() - mStartTimeMs;
-    long endTime = 0;
-    if (mStartTimeMs != 0 && Math.random() > 0.5) {
-      mTime.add(System.currentTimeMillis());
+    long currentTimeUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime()) - mStartTimeUs;
+    long endTimeUs = 0;
+    if (mStartTimeUs != 0 && Math.random() > 0.5) {
+      mTime.add(TimeUnit.NANOSECONDS.toMicros(System.nanoTime()));
       if (mData.size() > 0) {
         EventAction<SimpleEventComponent.Action, EventSegment.EventActionType> lastAction = mData.get(mData.size() - 1);
         // If our last action was a down action, our next action should be an up action.
         if (lastAction.getValue() == SimpleEventComponent.Action.DOWN) {
           downAction = false;
-          endTime = System.currentTimeMillis() - mStartTimeMs;
-          currentTime = lastAction.getStart();
+          endTimeUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime()) - mStartTimeUs;
+          currentTimeUs = lastAction.getStartUs();
         }
       }
-      mData.add(new EventAction<>(currentTime, endTime,
+      mData.add(new EventAction<>(currentTimeUs, endTimeUs,
                                   downAction ? SimpleEventComponent.Action.DOWN : SimpleEventComponent.Action.UP,
                                   EventSegment.EventActionType.HOLD));
 

@@ -36,6 +36,7 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 public class NetworkProfilerVisualTest extends VisualTest {
   private static final String NETWORK_PROFILER_NAME = "Network Profiler";
@@ -51,7 +52,7 @@ public class NetworkProfilerVisualTest extends VisualTest {
 
   private NetworkCaptureSegment mCaptureSegment;
 
-  private long mStartTimeMs;
+  private long mStartTimeUs;
 
   private List<DefaultDataSeries<NetworkCaptureSegment.NetworkState>> mCaptureData;
 
@@ -83,9 +84,9 @@ public class NetworkProfilerVisualTest extends VisualTest {
 
   @Override
   protected List<Animatable> createComponentsList() {
-    mStartTimeMs = System.currentTimeMillis();
+    mStartTimeUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
     Range timeRange = new Range();
-    AnimatedTimeRange animatedTimeRange = new AnimatedTimeRange(timeRange, mStartTimeMs);
+    AnimatedTimeRange animatedTimeRange = new AnimatedTimeRange(timeRange, mStartTimeUs);
 
     EventDispatcher<ProfilerEventListener> dummyDispatcher = EventDispatcher.create(ProfilerEventListener.class);
     mSegment = new NetworkSegment(timeRange, mDataStore, dummyDispatcher);
@@ -163,12 +164,12 @@ public class NetworkProfilerVisualTest extends VisualTest {
           Random rnd = new Random();
           while (true) {
             //  Insert new data point at now.
-            long now = System.currentTimeMillis() - mStartTimeMs;
+            long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime()) - mStartTimeUs;
             for (DefaultDataSeries<NetworkCaptureSegment.NetworkState> series : mCaptureData) {
               NetworkCaptureSegment.NetworkState[] states = NetworkCaptureSegment.NetworkState.values();
               // Hard coded value 10 to make the 'NONE' state more frequent
               int index = rnd.nextInt(10);
-              series.add(now, (index < states.length) ? states[index] : NetworkCaptureSegment.NetworkState.NONE);
+              series.add(nowUs, (index < states.length) ? states[index] : NetworkCaptureSegment.NetworkState.NONE);
             }
             Thread.sleep(1000);
           }

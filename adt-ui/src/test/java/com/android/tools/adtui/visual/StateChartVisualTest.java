@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class StateChartVisualTest extends VisualTest {
@@ -91,8 +92,8 @@ public class StateChartVisualTest extends VisualTest {
 
   @Override
   protected List<Animatable> createComponentsList() {
-    long now = System.currentTimeMillis();
-    mXRange = new Range(now, now + 60000);
+    long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
+    mXRange = new Range(nowUs, nowUs + TimeUnit.SECONDS.toMicros(60));
     mAnimatedTimeRange = new AnimatedTimeRange(mXRange, 0);
     DefaultDataSeries<MockFruitState> networkSeries = new DefaultDataSeries<>();
     DefaultDataSeries<MockStrengthState> radioSeries = new DefaultDataSeries<>();
@@ -142,7 +143,7 @@ public class StateChartVisualTest extends VisualTest {
           TIntArrayList lastNetworkData = new TIntArrayList();
           TIntArrayList lastRadioVariance = new TIntArrayList();
           while (true) {
-            long now = System.currentTimeMillis();
+            long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
 
             int v = networkVariance.get();
             for (int i = 0; i < mNetworkDataEntries.size();i++) {
@@ -153,7 +154,7 @@ public class StateChartVisualTest extends VisualTest {
                   lastNetworkData.add(-1);
                 }
                 if (lastNetworkData.get(i) != index) {
-                  series.add(now, MockFruitState.values()[index]);
+                  series.add(nowUs, MockFruitState.values()[index]);
                   lastNetworkData.set(i, index);
                 }
               }
@@ -168,7 +169,7 @@ public class StateChartVisualTest extends VisualTest {
                   lastRadioVariance.add(-1);
                 }
                 if (lastRadioVariance.get(i) != index) {
-                  series.add(now, MockStrengthState.values()[index]);
+                  series.add(nowUs, MockStrengthState.values()[index]);
                   lastRadioVariance.set(i, index);
                 }
               }

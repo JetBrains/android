@@ -44,7 +44,7 @@ public interface SeriesDataStore {
   /**
    * @return the timestamp of the most current set of data.
    */
-  long getLatestTime();
+  long getLatestTimeUs();
 
   /**
    * Function to return a typed {@link SeriesDataList} that is scoped to allow access to data within a specific range.

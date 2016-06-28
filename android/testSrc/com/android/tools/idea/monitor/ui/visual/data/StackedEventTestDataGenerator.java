@@ -20,6 +20,7 @@ import com.android.tools.adtui.model.EventAction;
 import com.android.tools.adtui.model.SeriesData;
 
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 public class StackedEventTestDataGenerator extends TestDataGenerator<EventAction<StackedEventComponent.Action, String>> {
 
@@ -33,7 +34,7 @@ public class StackedEventTestDataGenerator extends TestDataGenerator<EventAction
 
   @Override
   public SeriesData<EventAction<StackedEventComponent.Action, String>> get(int index) {
-    return new SeriesData<>(mTime.get(index) - mStartTimeMs, mData.get(index));
+    return new SeriesData<>(mTime.get(index) - mStartTimeUs, mData.get(index));
   }
   @Override
   public int getSleepTime() {
@@ -44,27 +45,27 @@ public class StackedEventTestDataGenerator extends TestDataGenerator<EventAction
   @Override
   public void generateData() {
     boolean createAction = true;
-    long endTime = 0;
-    long currentTime = System.currentTimeMillis() - mStartTimeMs;
-    long startTime = currentTime;
+    long endTimeUs = 0;
+    long currentTimeUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime()) - mStartTimeUs;
+    long startTimeUs = currentTimeUs;
     //Generate a new event 50% of the time we generate data. Doing this gives us event streams show like
     //real data, instead of just starting and stopping.
-    if(mStartTimeMs != 0 && Math.random() > .5) {
+    if(mStartTimeUs != 0 && Math.random() > .5) {
       //Only when we generate a new event, do we also at the same time add a new entry
       //into our time array to keep our event data
       //consistent with our time lookup.
-      mTime.add(System.currentTimeMillis());
+      mTime.add(TimeUnit.NANOSECONDS.toMicros(System.nanoTime()));
 
       if (mData.size() > 0) {
         EventAction<StackedEventComponent.Action, String> lastAction = mData.get(mData.size() - 1);
         // If our last action was an activity started action, our next should be an activity completed.
         if (lastAction.getValue() == StackedEventComponent.Action.ACTIVITY_STARTED) {
           createAction = false;
-          endTime = currentTime;
-          startTime = lastAction.getStart();
+          endTimeUs = currentTimeUs;
+          startTimeUs = lastAction.getStartUs();
         }
       }
-      mData.add(new EventAction<>(startTime, endTime,
+      mData.add(new EventAction<>(startTimeUs, endTimeUs,
                                   createAction
                                   ? StackedEventComponent.Action.ACTIVITY_STARTED
                                   : StackedEventComponent.Action.ACTIVITY_COMPLETED,
