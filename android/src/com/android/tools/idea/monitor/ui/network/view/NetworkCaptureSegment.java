@@ -71,6 +71,9 @@ public class NetworkCaptureSegment extends BaseSegment implements Animatable {
   private final List<StateChart<NetworkState>> myCharts;
 
   @NotNull
+  private final List<HttpData> myDataList;
+
+  @NotNull
   private final DetailedViewListener myDetailedViewListener;
 
   @NotNull
@@ -89,6 +92,7 @@ public class NetworkCaptureSegment extends BaseSegment implements Animatable {
     super(SEGMENT_NAME, timeRange, dispatcher);
     myDetailedViewListener = detailedViewListener;
     myCharts = new ArrayList<>();
+    myDataList = new ArrayList<>();
     myDataStore = dataStore;
 
     int defaultFontHeight = getFontMetrics(AdtUiUtils.DEFAULT_FONT).getHeight();
@@ -98,7 +102,9 @@ public class NetworkCaptureSegment extends BaseSegment implements Animatable {
   @NotNull
   private JTable createInformationTable() {
     JBTable table = new JBTable(new AbstractTableModel() {
-      final String[] SAMPLE = {"2", "http://myapp.example.com/list/xml", "746 K", "322 ms", ""};
+      private static final int NUMBER_COLUMN_INDEX = 0;
+      private static final int URL_COLUMN_INDEX = 1;
+      private final String[] SAMPLE = {"2", "http://myapp.example.com/list/xml", "746 K", "322 ms", ""};
 
       @Override
       public int getRowCount() {
@@ -112,10 +118,15 @@ public class NetworkCaptureSegment extends BaseSegment implements Animatable {
 
       @Override
       public Object getValueAt(int rowIndex, int columnIndex) {
-        if (columnIndex == 0) {
+        if (columnIndex == NUMBER_COLUMN_INDEX) {
           return String.valueOf(rowIndex);
         }
-        return SAMPLE[columnIndex];
+        else if (columnIndex == URL_COLUMN_INDEX) {
+          return myDataList.get(rowIndex).getUrl();
+        } else {
+          // TODO: this is mock data for now
+          return SAMPLE[columnIndex];
+        }
       }
     });
     table.setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION);
@@ -186,6 +197,7 @@ public class NetworkCaptureSegment extends BaseSegment implements Animatable {
 
     // TODO: currently we recreate charts from scratch, instead consider reusing charts
     myCharts.clear();
+    myDataList.clear();
     for (SeriesData<HttpData> data: dataList) {
       if (data.value.getEndTimeUs() == 0) {
         continue;
@@ -201,6 +213,7 @@ public class NetworkCaptureSegment extends BaseSegment implements Animatable {
       chart.addSeries(new RangedSeries<>(mXRange, series));
       chart.animate(frameLength);
       myCharts.add(chart);
+      myDataList.add(data.value);
     }
     myLayeredComponent.setPreferredSize(new Dimension(0, myRowHeight * myCharts.size()));
     myStateTable.repaint();

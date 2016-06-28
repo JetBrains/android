@@ -136,6 +136,10 @@ public final class SeriesDataStoreImpl implements SeriesDataStore {
         case NETWORK_CONNECTIONS:
         case NETWORK_RADIO:
         case NETWORK_TYPE:
+        case NETWORK_HTTP_DATA:
+          // TODO: as we're moving the registerAdapter calls to the correspondent pollers, we can add the covered types here.
+          // Once we're done with the move, we can remove this switch/case block.
+          break;
         case EVENT_ACTIVITY_ACTION:
         case EVENT_FRAGMENT_ACTION:
         case EVENT_SIMPLE_ACTION:
