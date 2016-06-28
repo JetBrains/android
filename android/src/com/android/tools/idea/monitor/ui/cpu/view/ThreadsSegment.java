@@ -17,9 +17,11 @@ package com.android.tools.idea.monitor.ui.cpu.view;
 
 import com.android.tools.adtui.Animatable;
 import com.android.tools.adtui.AnimatedComponent;
+import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.Range;
 import com.android.tools.adtui.chart.StateChart;
 import com.android.tools.adtui.common.AdtUiUtils;
+import com.android.tools.adtui.model.LegendRenderData;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.idea.monitor.datastore.DataStoreSeries;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
@@ -51,6 +53,12 @@ import java.util.List;
 public class ThreadsSegment extends BaseSegment implements Animatable {
 
   private static final String SEGMENT_NAME = "Threads";
+
+  private static final String RUNNING_LABEL = "Runnable";
+
+  private static final String SLEEPING_LABEL = "Waiting";
+
+  private static final String BLOCKED_LABEL = "Blocked";
 
   private static final int THREADS_CHART_VERTICAL_PADDING = JBUI.scale(2);
 
@@ -106,6 +114,8 @@ public class ThreadsSegment extends BaseSegment implements Animatable {
   @NotNull
   private final ThreadAddedNotifier myThreadAddedNotifier;
 
+  private LegendComponent mLegendComponent;
+
   public ThreadsSegment(@NotNull Range timeRange,
                         @NotNull SeriesDataStore dataStore,
                         @NotNull EventDispatcher<ProfilerEventListener> dispatcher,
@@ -147,6 +157,26 @@ public class ThreadsSegment extends BaseSegment implements Animatable {
   }
 
   private void initialize() {
+    initializeStateChartsList();
+    initializeLegendComponent();
+  }
+
+  private void initializeLegendComponent() {
+    List<LegendRenderData> legendRenderDataList = new ArrayList<>();
+    // Running state
+    legendRenderDataList.add(
+      new LegendRenderData(LegendRenderData.IconType.BOX, getThreadStateColor().get(Cpu.ThreadActivity.State.RUNNING), RUNNING_LABEL));
+    // Sleeping state
+    legendRenderDataList.add(
+      new LegendRenderData(LegendRenderData.IconType.BOX, getThreadStateColor().get(Cpu.ThreadActivity.State.SLEEPING), SLEEPING_LABEL));
+    // Blocked state. TODO: support this state later if we actually should do so
+    legendRenderDataList.add(new LegendRenderData(LegendRenderData.IconType.BOX, JBColor.BLACK, BLOCKED_LABEL));
+
+    mLegendComponent = new LegendComponent(LegendComponent.Orientation.HORIZONTAL, Integer.MAX_VALUE /* No need to update */);
+    mLegendComponent.setLegendData(legendRenderDataList);
+  }
+
+  private void initializeStateChartsList() {
     mThreadsList.setCellRenderer(new ThreadsStateCellRenderer());
     mThreadsList.setSelectionBackground(AdtUiUtils.DEFAULT_BACKGROUND_COLOR);
     mThreadsList.setFixedCellHeight(mCellHeight);
@@ -164,7 +194,7 @@ public class ThreadsSegment extends BaseSegment implements Animatable {
 
   @Override
   protected void setTopCenterContent(@NotNull JPanel panel) {
-    // TODO: create legend component
+    panel.add(mLegendComponent, BorderLayout.EAST);
   }
 
   @Override
@@ -206,16 +236,19 @@ public class ThreadsSegment extends BaseSegment implements Animatable {
   @Override
   public void reset() {
     mThreadsStateCharts.values().forEach(AnimatedComponent::reset);
+    mLegendComponent.reset();
   }
 
   @Override
   public void animate(float frameLength) {
     mThreadsStateCharts.values().forEach(chart -> chart.animate(frameLength));
+    mLegendComponent.animate(frameLength);
   }
 
   @Override
   public void postAnimate() {
     mThreadsStateCharts.values().forEach(AnimatedComponent::postAnimate);
+    mLegendComponent.postAnimate();
   }
 
   public interface ThreadSelectedListener {
