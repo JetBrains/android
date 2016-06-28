@@ -51,7 +51,6 @@ import java.util.concurrent.CountDownLatch;
 
 import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.gradle.AndroidProjectKeys.ANDROID_MODEL;
-import static com.android.tools.idea.gradle.util.GradleUtil.androidModelSupportsDependencyGraph;
 import static com.android.tools.idea.gradle.util.GradleUtil.getDependencies;
 import static com.android.tools.idea.gradle.util.ProxyUtil.reproxy;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.find;
@@ -78,6 +77,7 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
   @NotNull private File myRootDirPath;
   @NotNull private AndroidProject myAndroidProject;
 
+  @NotNull private transient GradleModelFeatures myFeatures;
   @Nullable private transient GradleVersion myModelVersion;
   @Nullable private transient CountDownLatch myProxyAndroidProjectLatch;
   @Nullable private AndroidProject myProxyAndroidProject;
@@ -117,6 +117,7 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
     myAndroidProject = androidProject;
 
     parseAndSetModelVersion();
+    myFeatures = new GradleModelFeatures(myModelVersion);
 
     // Compute the proxy object to avoid re-proxying the model during every serialization operation and also schedule it to run
     // asynchronously to avoid blocking the project sync operation for re-proxying to complete.
@@ -170,28 +171,9 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
     return getDependencies(androidTestArtifact, getModelVersion());
   }
 
-  public boolean supportsDependencyGraph() {
-    return myModelVersion != null && androidModelSupportsDependencyGraph(myModelVersion);
-  }
-
-  public boolean supportsTestedTargetVariants() {
-    return modelVersionIsAtLeast("2.2.0");
-  }
-
-  public boolean supportsShaders() {
-    return modelVersionIsAtLeast("2.1.0");
-  }
-
-  public boolean supportsProductFlavorVersionSuffix(){
-    return  modelVersionIsAtLeast("2.2.0");
-  }
-
-  public boolean supportsExternalNativeBuild(){
-    return modelVersionIsAtLeast("2.2.0");
-  }
-
-  public boolean modelVersionIsAtLeast(@NotNull String revision) {
-    return myModelVersion != null && myModelVersion.compareIgnoringQualifiers(revision) >= 0;
+  @NotNull
+  public GradleModelFeatures getFeatures() {
+    return myFeatures;
   }
 
   @Nullable
@@ -812,14 +794,10 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
 
   @Nullable
   public Collection<SyncIssue> getSyncIssues() {
-    if (supportsIssueReporting()) {
+    if (getFeatures().isIssueReportingSupported()) {
       return myAndroidProject.getSyncIssues();
     }
     return null;
-  }
-
-  private boolean supportsIssueReporting() {
-    return myModelVersion != null && myModelVersion.compareTo("1.1.0") >= 0;
   }
 
   @Nullable
@@ -954,6 +932,7 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
     myAndroidProject = (AndroidProject)in.readObject();
 
     parseAndSetModelVersion();
+    myFeatures = new GradleModelFeatures(myModelVersion);
 
     myProxyAndroidProject = myAndroidProject;
 
