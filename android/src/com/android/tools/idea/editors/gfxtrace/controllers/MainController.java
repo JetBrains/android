@@ -95,6 +95,11 @@ public class MainController extends Controller {
     myMemoryTab = addTab(myLayoutUi, MemoryController.createUI(editor), "Memory", PlaceInGrid.center);
 
     splitter.setLastComponent(myLayoutUi.getComponent());
+
+    // we need to make sure that none of the ThreeComponentsSplitter have a size 0
+    // or we can risk either setting, or saving a size of 0 for one of its children
+    // when GridImpl.addNotify or RunnerContentUi.MyComponent.removeNotify happens
+    setInitialSizeRecursive(splitter);
   }
 
   private static Content addTab(@NotNull RunnerLayoutUi layoutUi, @NotNull JComponent component, @NotNull String name, @NotNull PlaceInGrid defaultPlace) {
@@ -102,6 +107,21 @@ public class MainController extends Controller {
     content.setCloseable(false);
     layoutUi.addContent(content, -1, defaultPlace, false);
     return content;
+  }
+
+  private static void setInitialSizeRecursive(Component component) {
+    if (component instanceof ThreeComponentsSplitter) {
+      // these values are almost never used by anyone,
+      // but in the very rare event that we save the size
+      // before we restore the correct value, it means we never
+      // end up saving 0 as the size.
+      component.setSize(1000, 500);
+    }
+    if (component instanceof Container) {
+      for (Component comp : ((Container)component).getComponents()) {
+        setInitialSizeRecursive(comp);
+      }
+    }
   }
 
   @Override
