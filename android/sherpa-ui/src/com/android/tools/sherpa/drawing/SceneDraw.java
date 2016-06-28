@@ -48,6 +48,7 @@ public class SceneDraw {
     public static final int GRID_SPACING = 8; // Material Design 8dp grid
     public static boolean DRAW_ONLY_ROOT_BACKGROUND = true;
     public static boolean DRAW_GRID = false;
+    public static final boolean DRAW_ENTIRE_TREE = false;
 
     private ColorSet mColorSet;
 
@@ -271,13 +272,15 @@ public class SceneDraw {
      *  Draw a background for the view by creating an caching a texture scaled
      *  according to the transform
      *
+     *
+     * @param widgetToDraw
      * @param transform used to scale the textrue
      * @param g the graphics context to draw with
      * @param w width of screen
      * @param h height of screen
      * @return
      */
-    public boolean drawBackground(ViewTransform transform, Graphics2D g, int w, int h) {
+    public boolean drawBackground(ConstraintWidget widgetToDraw, ViewTransform transform, Graphics2D g, int w, int h) {
         boolean needsRepaint = false;
         Color backgroundColor = mColorSet.getBackground();
         Paint backgroundPaint = mColorSet.getBackgroundPaint();
@@ -288,9 +291,10 @@ public class SceneDraw {
             }
             backgroundColor = mCurrentAnimation.getColor();
         }
+        mColorSet.setBackgroundPaint(backgroundColor);
         int backgroundFactorColor = backgroundColor.getRGB();
         WidgetContainer root = mWidgetsScene.getRoot();
-        if (root == null) {
+        if (root == null || root != widgetToDraw) {
             return needsRepaint;
         }
         int xr = transform.getSwingX(root.getDrawX());
@@ -300,7 +304,6 @@ public class SceneDraw {
         int tileSize = transform.getSwingDimension(8);
 
         if (!DRAW_GRID) {
-            mColorSet.setBackgroundPaint(backgroundColor);
             backgroundPaint = backgroundColor;
         } else if (mBackgroundFactorColor != backgroundFactorColor
                 || mBackgroundFactorX != xr
@@ -386,6 +389,7 @@ public class SceneDraw {
      *
      * @param transform            the view transform
      * @param g                    the graphics context
+     * @param rootDrawComponent    the component that is the root of the draw call
      * @param container            the container to paint
      * @param selectedWidget       the selected widget if any
      * @param selectedAnchor       the selected anchor if any
@@ -393,8 +397,8 @@ public class SceneDraw {
      * @return true if we need to be repainted, false otherwise
      */
     private boolean paintWidgets(ViewTransform transform, Graphics2D g,
-            WidgetContainer container, ConstraintWidget selectedWidget,
-            ConstraintAnchor selectedAnchor, ResizeHandle selectedResizeHandle) {
+                                 ConstraintWidget rootDrawComponent, WidgetContainer container, ConstraintWidget selectedWidget,
+                                 ConstraintAnchor selectedAnchor, ResizeHandle selectedResizeHandle) {
         if (container.getVisibility() == ConstraintWidget.GONE) {
             return false;
         }
@@ -405,33 +409,36 @@ public class SceneDraw {
         if (!decorator.isVisible()) {
             return needsRepaint;
         }
-
-        needsRepaint |= decorator.onPaint(transform, g);
-        if (container == mWidgetsScene.getRoot()) {
-            int xr = transform.getSwingX(container.getDrawX());
-            int yr = transform.getSwingY(container.getDrawY());
-            int wr = transform.getSwingDimension(container.getDrawWidth());
-            int hr = transform.getSwingDimension(container.getDrawHeight());
-            if (mDrawOutsideShade && mColorSet.drawBackground()) {
-                g.setColor(mColorSet.getSubduedBackground());
-                g.fillRect((int) transform.getTranslateX(), (int) transform.getTranslateY(),
-                        mViewWidth, yr);
-                g.fillRect((int) transform.getTranslateX(), yr + hr, mViewWidth,
-                        mViewHeight - yr - hr);
-                g.fillRect((int) transform.getTranslateX(), yr, xr, hr);
-                g.fillRect(wr + xr, yr, mViewWidth - xr - wr, hr);
-                g.setStroke(SnapDraw.sLongDashedStroke);
-                g.setColor(mColorSet.getHighlightedFrames());
-                g.drawRect(xr, yr, wr, hr);
-            }
-            if (mDrawResizeHandle) {
-                g.setColor(mColorSet.getHighlightedFrames());
-                int resizeHandleSize = 10;
-                int gap = 8;
-                g.setStroke(new BasicStroke(3));
-                g.drawLine(xr + wr - resizeHandleSize, yr + hr + gap, xr + wr + gap, yr + hr + gap);
-                g.drawLine(xr + wr + gap, yr + hr - resizeHandleSize, xr + wr + gap, yr + hr + gap);
-                g.setStroke(new BasicStroke(1));
+        if (DRAW_ENTIRE_TREE
+              || (container == rootDrawComponent
+                  || container.getParent() == rootDrawComponent)) {
+            needsRepaint |= decorator.onPaint(transform, g);
+            if (container == rootDrawComponent) { // || container == mWidgetsScene.getRoot()) {
+                int xr = transform.getSwingX(container.getDrawX());
+                int yr = transform.getSwingY(container.getDrawY());
+                int wr = transform.getSwingDimension(container.getDrawWidth());
+                int hr = transform.getSwingDimension(container.getDrawHeight());
+                if (mDrawOutsideShade && mColorSet.drawBackground()) {
+                    g.setColor(mColorSet.getSubduedBackground());
+                    g.fillRect((int)transform.getTranslateX(), (int)transform.getTranslateY(),
+                               mViewWidth, yr);
+                    g.fillRect((int)transform.getTranslateX(), yr + hr, mViewWidth,
+                               mViewHeight - yr - hr);
+                    g.fillRect((int)transform.getTranslateX(), yr, xr, hr);
+                    g.fillRect(wr + xr, yr, mViewWidth - xr - wr, hr);
+                    g.setStroke(SnapDraw.sLongDashedStroke);
+                    g.setColor(mColorSet.getHighlightedFrames());
+                    g.drawRect(xr, yr, wr, hr);
+                }
+                if (mDrawResizeHandle) {
+                    g.setColor(mColorSet.getHighlightedFrames());
+                    int resizeHandleSize = 10;
+                    int gap = 8;
+                    g.setStroke(new BasicStroke(3));
+                    g.drawLine(xr + wr - resizeHandleSize, yr + hr + gap, xr + wr + gap, yr + hr + gap);
+                    g.drawLine(xr + wr + gap, yr + hr - resizeHandleSize, xr + wr + gap, yr + hr + gap);
+                    g.setStroke(new BasicStroke(1));
+                }
             }
         }
         for (ConstraintWidget widget : container.getChildren()) {
@@ -439,12 +446,13 @@ public class SceneDraw {
                 continue;
             }
             if (widget instanceof WidgetContainer) {
-                needsRepaint |= paintWidgets(transform, g, (WidgetContainer) widget,
+                needsRepaint |= paintWidgets(transform, g, rootDrawComponent,
+                                             (WidgetContainer) widget,
                         selectedWidget, selectedAnchor, selectedResizeHandle);
             } else {
                 WidgetDecorator widgetDecorator =
                         getDecorator(widget, selectedWidget, selectedAnchor, selectedResizeHandle);
-                if (widgetDecorator.isVisible()) {
+                if (widget == rootDrawComponent || widget.getParent() == rootDrawComponent) {
                     needsRepaint |= widgetDecorator.onPaint(transform, g);
                     widgetDecorator.setRepaintableSurface(mRepaintableSurface);
                 }
@@ -479,6 +487,8 @@ public class SceneDraw {
     /**
      * Main painting function
      *
+     *
+     * @param rootDrawComponent  the component we want to draw (with its children)
      * @param width              width of the canvas we paint on
      * @param height             height of the canvas we paint on
      * @param transform
@@ -487,10 +497,10 @@ public class SceneDraw {
      * @param mouseInteraction
      * @return true if need to be called again (animation...)
      */
-    public boolean paintWidgets(int width, int height,
-            ViewTransform transform, Graphics2D g,
-            boolean showAllConstraints,
-            MouseInteraction mouseInteraction) {
+    public boolean paintWidgets(ConstraintWidget rootDrawComponent, int width, int height,
+                                ViewTransform transform, Graphics2D g,
+                                boolean showAllConstraints,
+                                MouseInteraction mouseInteraction) {
 
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
                            RenderingHints.VALUE_INTERPOLATION_BICUBIC);
@@ -545,9 +555,16 @@ public class SceneDraw {
         for (ConstraintWidget widget : mWidgetsScene.getWidgets()) {
             WidgetCompanion widgetCompanion = (WidgetCompanion) widget.getCompanionWidget();
             WidgetDecorator decorator = widgetCompanion.getWidgetDecorator(getCurrentStyle());
-            if (decorator.isVisible() && !decorator.isSelected() && decorator.getLook() !=
-                    ColorTheme.Look.HIGHLIGHTED) {
-                decorator.onPaintConstraints(transform, g);
+            if (widget.getVisibility() == ConstraintWidget.GONE
+              || (widget.getParent() != null
+                    && widget.getParent().getVisibility() == ConstraintWidget.GONE)) {
+                continue;
+            }
+            if (DRAW_ENTIRE_TREE || widget == rootDrawComponent || widget.getParent() == rootDrawComponent) {
+                if (decorator.isVisible() && !decorator.isSelected() && decorator.getLook() !=
+                                                                        ColorTheme.Look.HIGHLIGHTED) {
+                    decorator.onPaintConstraints(transform, g);
+                }
             }
         }
 
@@ -556,18 +573,21 @@ public class SceneDraw {
         if (mSelection.hasSingleElement()) {
             selectedWidget = mSelection.getFirstElement().widget;
         }
-        needsRepaint |= paintWidgets(transform, g, mWidgetsScene.getRoot(), selectedWidget,
+        needsRepaint |= paintWidgets(transform, g, rootDrawComponent, mWidgetsScene.getRoot(), selectedWidget,
                 selectedAnchor, selectedResizeHandle);
 
         // Draw the selected constraints
         for (ConstraintWidget widget : mWidgetsScene.getWidgets()) {
             WidgetCompanion widgetCompanion = (WidgetCompanion) widget.getCompanionWidget();
             WidgetDecorator decorator = widgetCompanion.getWidgetDecorator(getCurrentStyle());
-            if (decorator.isVisible() && (decorator.isSelected() || decorator.getLook() ==
-                    ColorTheme.Look.HIGHLIGHTED)) {
-                decorator.onPaintConstraints(transform, g);
-                decorator.onPaintAnchors(transform, g);
-                decorator.onPaintActions(transform, g);
+            ConstraintWidget parent = widget.getParent();
+            if (DRAW_ENTIRE_TREE || widget == rootDrawComponent || parent == rootDrawComponent) {
+                if (decorator.isVisible() && (decorator.isSelected() || decorator.getLook() ==
+                                                                        ColorTheme.Look.HIGHLIGHTED)) {
+                    decorator.onPaintConstraints(transform, g);
+                    decorator.onPaintAnchors(transform, g);
+                    decorator.onPaintActions(transform, g);
+                }
             }
         }
 

@@ -560,6 +560,7 @@ public class ConstraintHandle {
             // TODO fix -- sometimes triggered with guideline and inference
             return;
         }
+        g.setStroke(sSimpleStroke);
         int sx = transform.getSwingFX(mX);
         int sy = transform.getSwingFY(mY);
         int tx = transform.getSwingFX(targetHandle.getDrawX());
