@@ -22,9 +22,6 @@ import org.jetbrains.annotations.NotNull;
 public class GfxTraceFileTypeFactory extends FileTypeFactory {
   @Override
   public void createFileTypes(@NotNull FileTypeConsumer consumer) {
-    if (!GfxTraceEditor.isEnabled()) {
-      return;
-    }
     consumer.consume(GfxTraceFileType.INSTANCE, GfxTraceFileType.INSTANCE.getDefaultExtension());
   }
 }

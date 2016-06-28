@@ -73,12 +73,10 @@ public class AtomStream implements PathListener {
             List<BinaryObject> list = result.get();
             return success(new LoadData((AtomList)list.get(0), (ContextList)list.get(1), (HierarchyList)list.get(2)));
           }
-          catch (RpcException e) {
-            LOG.error(e);
-            return error(null);
-          }
-          catch (ExecutionException e) {
-            LOG.error(e);
+          catch (RpcException | ExecutionException e) {
+            if (!myEditor.isDisposed()) {
+              LOG.error("LoadData error", e);
+            }
             return error(null);
           }
         }
