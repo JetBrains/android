@@ -20,8 +20,11 @@ import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.model.MergedManifest;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.android.dom.AndroidAttributeValue;
@@ -78,14 +81,22 @@ public class DefaultActivityLocator extends ActivityLocator {
 
   @Nullable
   public static String getDefaultLauncherActivityName(@NotNull Project project, @NotNull final Manifest manifest) {
-    return DumbService.getInstance(project).runReadActionInSmartMode(() -> {
-      Application application = manifest.getApplication();
-      if (application == null) {
-        return null;
-      }
+    if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
+      // this method needs both read access and indexing support
+      return DumbService.getInstance(project).runReadActionInSmartMode(() -> getDefaultLauncherActivityName(project, manifest));
+    }
 
-      return computeDefaultActivity(merge(application.getActivities(), application.getActivityAliass()), null);
-    });
+    Application application = manifest.getApplication();
+    if (application == null) {
+      return null;
+    }
+
+    if (!ApplicationManager.getApplication().isUnitTestMode() && DumbService.isDumb(project)) {
+      Logger.getInstance(DefaultActivityLocator.class).warn("Cannot locate default activity when indices are not available");
+      return null;
+    }
+
+    return computeDefaultActivity(merge(application.getActivities(), application.getActivityAliass()), null);
   }
 
   @Nullable
