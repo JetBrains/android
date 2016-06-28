@@ -120,8 +120,6 @@ public class NetworkDataPoller extends Poller {
             myRadioData.add(NetworkRadioSegment.RadioState.NONE);
         }
 
-        // data.getConnectivityData().getDefaultNetworkType() returns int instead of enum
-        // TODO: getDefaultNetworkType could return enum
         switch (data.getConnectivityData().getDefaultNetworkType()) {
           case MOBILE:
             myNetworkTypeData.add(NetworkRadioSegment.NetworkType.MOBILE);

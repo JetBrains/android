@@ -101,7 +101,7 @@ public class NetworkProfilerVisualTest extends VisualTest {
     }
     mDetailedView.setVisible(false);
 
-    mCaptureSegment = new NetworkCaptureSegment(timeRange, rangedSeries, connectionId -> {
+    mCaptureSegment = new NetworkCaptureSegment(timeRange, mDataStore, connectionId -> {
       mDetailedView.showConnectionDetails(connectionId);
       mDetailedView.setVisible(true);
     }, dummyDispatcher);

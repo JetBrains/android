@@ -21,10 +21,67 @@ package com.android.tools.idea.monitor.ui.network.model;
  * connection completes.
  */
 public class HttpData {
-  public long myId;
-  public String myUrl;
-  public String myMethod;
-  public long myStartTimeUs;
-  public long myEndTimeMs;
-  public String myHttpResponseBodyPath;
+  private long myId;
+  private String myUrl;
+  private String myMethod;
+  private long myStartTimeUs;
+  private long myDownloadingTimeUs;
+  private long myEndTimeUs;
+  private String myHttpResponseBodyPath;
+
+  public long getId() {
+    return myId;
+  }
+
+  public void setId(long id) {
+    myId = id;
+  }
+
+  public String getUrl() {
+    return myUrl;
+  }
+
+  public void setUrl(String url) {
+    myUrl = url;
+  }
+
+  public String getMethod() {
+    return myMethod;
+  }
+
+  public void setMethod(String method) {
+    myMethod = method;
+  }
+
+  public long getStartTimeUs() {
+    return myStartTimeUs;
+  }
+
+  public void setStartTimeUs(long startTimeUs) {
+    myStartTimeUs = startTimeUs;
+  }
+
+  public long getDownloadingTimeUs() {
+    return myDownloadingTimeUs;
+  }
+
+  public void setDownloadingTimeUs(long downloadingTimeUs) {
+    myDownloadingTimeUs = downloadingTimeUs;
+  }
+
+  public long getEndTimeUs() {
+    return myEndTimeUs;
+  }
+
+  public void setEndTimeUs(long endTimeUs) {
+    myEndTimeUs = endTimeUs;
+  }
+
+  public String getHttpResponseBodyPath() {
+    return myHttpResponseBodyPath;
+  }
+
+  public void setHttpResponseBodyPath(String httpResponseBodyPath) {
+    myHttpResponseBodyPath = httpResponseBodyPath;
+  }
 }
