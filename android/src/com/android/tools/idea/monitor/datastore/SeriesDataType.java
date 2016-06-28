@@ -45,11 +45,11 @@ public enum SeriesDataType {
 
   MEMORY_TOTAL, // long
   MEMORY_JAVA, //long
-  MEMORY_NATIVE, // long
-  MEMORY_GRAPHICS, // long
-  MEMORY_CODE, // long
-  MEMORY_OTHERS, // long
-  MEMORY_OBJECT_COUNT, // long
+  MEMORY_NATIVE, //long
+  MEMORY_GRAPHICS, //long
+  MEMORY_CODE, //long
+  MEMORY_OTHERS, //long
+  MEMORY_OBJECT_COUNT, //long
 
   EVENT_SIMPLE_ACTION, // EventAction
   EVENT_FRAGMENT_ACTION, // EventAction
