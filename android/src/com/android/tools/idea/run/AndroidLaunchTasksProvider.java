@@ -17,7 +17,10 @@ package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.fd.*;
+import com.android.tools.idea.fd.InstantRunBuildAnalyzer;
+import com.android.tools.idea.fd.InstantRunManager;
+import com.android.tools.idea.fd.InstantRunSettings;
+import com.android.tools.idea.fd.InstantRunUtils;
 import com.android.tools.idea.fd.gradle.InstantRunGradleSupport;
 import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
 import com.android.tools.idea.run.editor.AndroidDebugger;
@@ -75,10 +78,11 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     }
 
     launchTasks.add(new DismissKeyguardTask());
-    launchTasks.addAll(getDeployTasks(device));
 
     String packageName;
     try {
+      launchTasks.addAll(getDeployTasks(device));
+
       packageName = myApplicationIdProvider.getPackageName();
       LaunchTask appLaunchTask = myRunConfig.getApplicationLaunchTask(myApplicationIdProvider, myFacet,
                                                                       myLaunchOptions.isDebug(), launchStatus);
@@ -110,24 +114,18 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     return launchTasks;
   }
 
-  private List<LaunchTask> getDeployTasks(@NotNull final IDevice device) {
-    boolean instantRunAware =
-      InstantRunUtils.isInstantRunEnabled(myEnv) &&
-      InstantRunSettings.isInstantRunEnabled() &&
-      InstantRunGradleUtils.getIrSupportStatus(InstantRunGradleUtils.getAppModel(myFacet.getModule()), device.getVersion()) ==
-       InstantRunGradleSupport.SUPPORTED;
-    DeployApkTask apkDeployTask = new DeployApkTask(myFacet, myLaunchOptions, myApkProvider, instantRunAware);
-
+  private List<LaunchTask> getDeployTasks(@NotNull final IDevice device) throws ApkProvisionException {
     if (myInstantRunBuildAnalyzer != null) {
-      return myInstantRunBuildAnalyzer.getDeployTasks(apkDeployTask);
+      return myInstantRunBuildAnalyzer.getDeployTasks(myLaunchOptions);
     }
 
+    // regular APK deploy flow
     if (!myLaunchOptions.isDeploy()) {
       return Collections.emptyList();
     }
 
-    // regular APK deploy flow
     InstantRunManager.LOG.info("Using legacy/main APK deploy task");
+    DeployApkTask apkDeployTask = new DeployApkTask(myProject, myLaunchOptions, myApkProvider.getApks(device));
     return ImmutableList.of(apkDeployTask);
   }
 
