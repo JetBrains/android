@@ -172,7 +172,7 @@ public class MemoryPoller extends Poller {
   private abstract class VmStatsSampleAdapter<T> implements DataAdapter<T> {
     @Override
     public int getClosestTimeIndex(long time) {
-      return myDataCache.getLatestPriorVmStatsSampleIndex(TimeUnit.NANOSECONDS.convert(time, TimeUnit.MILLISECONDS));
+      return myDataCache.getLatestPriorVmStatsSampleIndex(TimeUnit.MICROSECONDS.toNanos(time));
     }
 
     @Override
@@ -188,7 +188,7 @@ public class MemoryPoller extends Poller {
     @Override
     public SeriesData<T> get(int index) {
       MemoryProfilerService.MemoryData.VmStatsSample sample = myDataCache.getVmStatsSample(index);
-      return new SeriesData<>(TimeUnit.NANOSECONDS.toMillis(sample.getTimestamp()), getSampleValue(sample));
+      return new SeriesData<>(TimeUnit.NANOSECONDS.toMicros(sample.getTimestamp()), getSampleValue(sample));
     }
 
     public abstract T getSampleValue(MemoryProfilerService.MemoryData.VmStatsSample sample);
