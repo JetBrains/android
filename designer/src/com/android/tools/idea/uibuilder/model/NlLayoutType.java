@@ -16,10 +16,14 @@
 package com.android.tools.idea.uibuilder.model;
 
 import com.android.SdkConstants;
+import com.android.resources.ResourceFolderType;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Computable;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
 import org.jetbrains.android.dom.menu.MenuDomFileDescription;
+import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Locale;
@@ -43,8 +47,19 @@ public enum NlLayoutType {
   PREFERENCE_SCREEN {
     @Override
     public boolean isResourceTypeOf(@NotNull XmlFile file) {
-      XmlTag tag = file.getRootTag();
-      return tag != null && tag.getName().equals(SdkConstants.TAG_PREFERENCE_SCREEN);
+      return ApplicationManager.getApplication().runReadAction(new Computable<Boolean>() {
+        @Override
+        public Boolean compute() {
+          if (file.getProject().isDisposed()) {
+            return false;
+          }
+          if (AndroidResourceUtil.isInResourceSubdirectory(file, ResourceFolderType.XML.getName())) {
+            XmlTag tag = file.getRootTag();
+            return tag != null && tag.getName().equals(SdkConstants.TAG_PREFERENCE_SCREEN);
+          }
+          return false;
+        }
+      });
     }
   };
 
