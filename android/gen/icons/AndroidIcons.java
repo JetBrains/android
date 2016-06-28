@@ -485,4 +485,10 @@ public class AndroidIcons {
     public static final Icon TutorialIndicator = load("/icons/assistant/tutorialIndicator.png"); // 16x16
   }
 
+  public static class Profiler {
+    public static final Icon Touch = load("/icons/assistant/touch.png"); // 14x21
+    public static final Icon TouchHold = load("/icons/assistant/hold.png"); // 13x22
+    public static final Icon DoubleTap = load("/icons/assistant/double_tap.png"); //19x21
+  }
+
 }
