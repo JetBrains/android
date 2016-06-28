@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.run;
 
+import com.android.SdkConstants;
 import com.android.builder.model.AndroidProject;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.ResourceItem;
@@ -39,6 +40,7 @@ import com.google.common.hash.Hashing;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -50,6 +52,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
 import static com.google.common.base.Charsets.UTF_8;
 
@@ -190,7 +193,7 @@ public class GradleInstantRunContext implements InstantRunContext {
     }
 
     // TODO: this needs to be fixed to search through the attributes
-    return manifestSpecifiesMultiProcess(manifest.getTextContent(), InstantRunManager.ALLOWED_MULTI_PROCESSES);
+    return manifestSpecifiesMultiProcess(manifest.getDocumentElement(), InstantRunManager.ALLOWED_MULTI_PROCESSES);
   }
 
   @Nullable
@@ -222,13 +225,24 @@ public class GradleInstantRunContext implements InstantRunContext {
   /**
    * Returns whether the given manifest file uses multiple processes other than the specified ones.
    */
-  static boolean manifestSpecifiesMultiProcess(@NotNull String manifest, @NotNull Set<String> allowedProcesses) {
-    Matcher m = Pattern.compile("android:process\\s?=\\s?\"(.*)\"").matcher(manifest);
-    while (m.find()) {
-      String group = m.group(1);
-      if (!allowedProcesses.contains(group)) {
-        return true;
+  static boolean manifestSpecifiesMultiProcess(@Nullable Element element, @NotNull Set<String> allowedProcesses) {
+    if (element == null) {
+      return false;
+    }
+
+    NodeList children = element.getChildNodes();
+    for (int i = 0, n = children.getLength(); i < n; i++) {
+      Node child = children.item(i);
+      if (child.getNodeType() == Node.ELEMENT_NODE) {
+        if (manifestSpecifiesMultiProcess((Element)child, allowedProcesses)) {
+          return true;
+        }
       }
+    }
+
+    String process = element.getAttributeNS(ANDROID_URI, "process");
+    if (!process.isEmpty() && !allowedProcesses.contains(process)) {
+      return true;
     }
 
     return false;
