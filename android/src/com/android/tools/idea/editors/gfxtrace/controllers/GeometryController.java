@@ -16,15 +16,23 @@
 package com.android.tools.idea.editors.gfxtrace.controllers;
 
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
+import com.android.tools.idea.editors.gfxtrace.UiErrorCallback;
 import com.android.tools.idea.editors.gfxtrace.models.AtomStream;
+import com.android.tools.idea.editors.gfxtrace.service.ErrDataUnavailable;
 import com.android.tools.idea.editors.gfxtrace.service.gfxapi.GfxAPIProtos.DrawPrimitive;
 import com.android.tools.idea.editors.gfxtrace.service.gfxapi.Mesh;
+import com.android.tools.idea.editors.gfxtrace.service.msg.Msg;
 import com.android.tools.idea.editors.gfxtrace.service.path.AtomPath;
 import com.android.tools.idea.editors.gfxtrace.service.path.AtomRangePath;
 import com.android.tools.idea.editors.gfxtrace.service.path.MeshPath;
 import com.android.tools.idea.editors.gfxtrace.service.path.MeshPathOptions;
-import com.android.tools.idea.editors.gfxtrace.service.vertex.*;
-import com.android.tools.idea.editors.gfxtrace.service.vertex.VertexProtos.*;
+import com.android.tools.idea.editors.gfxtrace.service.stringtable.StringTable;
+import com.android.tools.idea.editors.gfxtrace.service.vertex.FmtFloat32;
+import com.android.tools.idea.editors.gfxtrace.service.vertex.VertexBuffer;
+import com.android.tools.idea.editors.gfxtrace.service.vertex.VertexProtos.SemanticType;
+import com.android.tools.idea.editors.gfxtrace.service.vertex.VertexProtos.VectorElement;
+import com.android.tools.idea.editors.gfxtrace.service.vertex.VertexStream;
+import com.android.tools.idea.editors.gfxtrace.service.vertex.VertexStreamData;
 import com.android.tools.idea.editors.gfxtrace.viewer.Geometry;
 import com.android.tools.idea.editors.gfxtrace.viewer.Viewer;
 import com.android.tools.idea.editors.gfxtrace.viewer.camera.CylindricalCameraModel;
@@ -37,6 +45,7 @@ import com.google.common.base.Function;
 import com.google.common.util.concurrent.AsyncFunction;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.Uninterruptibles;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.ui.StatusText;
@@ -64,6 +73,7 @@ public class GeometryController extends Controller implements AtomStream.Listene
   private static final FmtFloat32 FMT_XYZ_F32 = new FmtFloat32().setOrder(
     new VectorElement[]{VectorElement.X, VectorElement.Y, VectorElement.Z}
   );
+  private static final String NO_MESH_ERR = "ERR_MESH_NOT_AVAILABLE";
 
   private final JPanel myPanel = new JPanel(new CardLayout());
   private final LoadablePanel myLoading = new LoadablePanel(new BorderLayout());
@@ -194,6 +204,7 @@ public class GeometryController extends Controller implements AtomStream.Listene
       fetchMeshes(path.getPathToLast());
     }
     else {
+      myEmptyPanel.setEmptyText(GfxTraceEditor.SELECT_DRAW_CALL);
       layout.show(myPanel, CARD_EMPTY);
     }
   }
@@ -204,19 +215,49 @@ public class GeometryController extends Controller implements AtomStream.Listene
     ListenableFuture<Model> originalFuture = fetchModel(path.mesh(null));
     ListenableFuture<Model> facetedFuture = fetchModel(path.mesh(new MeshPathOptions().setFaceted(true)));
 
-    Rpc.listen(Futures.allAsList(originalFuture, facetedFuture), LOG, new Rpc.Callback<List<Model>>() {
+    Rpc.listen(Futures.successfulAsList(originalFuture, facetedFuture), LOG, new UiErrorCallback<List<Model>, Model, String>() {
       @Override
-      public void onFinish(Rpc.Result<List<Model>> results) throws RpcException, ExecutionException {
-        try {
-          List<Model> models = results.get();
-          myOriginalModel = models.get(0);
-          myFacetedModel = models.get(1);
+      protected ResultOrError<Model, String> onRpcThread(Rpc.Result<List<Model>> result) throws RpcException, ExecutionException {
+        List<Model> models = result.get();
+        myOriginalModel = models.get(0);
+        myFacetedModel = models.get(1);
 
-          setModel((myOriginalModel != null) ? myOriginalModel : myFacetedModel);
+        if (myOriginalModel == null && myFacetedModel == null) {
+          // Both failed. Ignore the error of the original model's call, but get the error from the faceted model's call.
+          try {
+            Uninterruptibles.getUninterruptibly(facetedFuture);
+          }
+          catch (ExecutionException e) {
+            if (e.getCause() instanceof ErrDataUnavailable) {
+              return error(e.getCause().getMessage());
+            }
+            else {
+              throw e;
+            }
+          }
+          // Should not get here, the future cannot both fail and succeed.
+          throw new AssertionError("Future both failed and succeeded");
         }
-        finally {
-          myLoading.stopLoading();
+        else if (myOriginalModel != null) {
+          return success(myOriginalModel);
         }
+        else {
+          return success(myFacetedModel);
+        }
+      }
+
+      @Override
+      protected void onUiThreadSuccess(Model result) {
+        myLoading.stopLoading();
+        setModel(result);
+      }
+
+      @Override
+      protected void onUiThreadError(String error) {
+        myLoading.stopLoading();
+        myEmptyPanel.setEmptyText(error);
+        CardLayout layout = (CardLayout)myPanel.getLayout();
+        layout.show(myPanel, CARD_EMPTY);
       }
     });
   }
@@ -242,7 +283,7 @@ public class GeometryController extends Controller implements AtomStream.Listene
         }
 
         if (positionsFuture == null || normalsFuture == null) {
-          return Futures.immediateFuture(null); // Model doesn't have the data we need.
+          return Futures.immediateFailedFuture(new ErrDataUnavailable().setReason(new Msg().setIdentifier(NO_MESH_ERR)));
         }
 
         final int[] indices = mesh.getIndexBuffer().getIndices();
