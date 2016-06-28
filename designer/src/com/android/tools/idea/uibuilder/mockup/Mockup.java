@@ -27,6 +27,7 @@ import com.android.tools.pixelprobe.Image;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.containers.WeakHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -104,6 +105,8 @@ public class Mockup implements ModelListener {
   private final static int C_W = 6;
   private final static int C_H = 7;
 
+  private static final WeakHashMap<NlComponent, Mockup> MOCKUP_CACHE = new WeakHashMap<>();
+
   private final List<MockupModelListener> myListeners = new ArrayList<>();
   private final Rectangle myBounds;
   private final Rectangle myCropping;
@@ -120,20 +123,50 @@ public class Mockup implements ModelListener {
    * Create a new MockupModel using the mockup file name attribute found in component.
    * If no attribute are found, returns null.
    *
-   * @param component The component where the mockup will be drawn and containing at least
-   *                  the "<i>{@value SdkConstants#TOOLS_PREFIX}:{@value SdkConstants#ATTR_MOCKUP}</i>" attribute
-   * @return The newly created MockupModel or null if the it couldn't be created
+   * If a mockup has been previously created for this component, a cached instance of the
+   * mockup object is returned.
+   *
+   * @param component              The component where the mockup will be drawn and containing at least
+   *                               the "<i>{@value SdkConstants#TOOLS_PREFIX}:{@value SdkConstants#ATTR_MOCKUP}</i>" attribute
+   * @param createWithoutAttribute if true, forces the creation of a {@link Mockup} object even if component does not contain the
+   *                               {@value SdkConstants#ATTR_MOCKUP} attribute. This is useful if the user tries to open
+   *                               the mockup editor after selecting a component that does not have a mockup attribute.
+   * @return The newly created or cached MockupModel, or null if the it couldn't be created
    */
   @Nullable
   public static Mockup create(@NotNull NlComponent component, boolean createWithoutAttribute) {
-    if(hasMockupAttribute(component)|| createWithoutAttribute) {
-      return new Mockup(component);
+    // Check if the the component contains a mockup attribute,
+    // force the create in if createWithout Attribute is true. This is useful
+    // if the user tries to open the mockup editor after selecting a component
+    // that does not have a mockup attribute.
+    if (hasMockupAttribute(component) || createWithoutAttribute) {
+
+      // Check a mockup has already been created for the component
+      if (MOCKUP_CACHE.containsKey(component)) {
+        return MOCKUP_CACHE.get(component);
+      }
+      else {
+        final Mockup mockup = new Mockup(component);
+        MOCKUP_CACHE.put(component, mockup);
+        return mockup;
+      }
     }
     else {
       return null;
     }
   }
 
+  /**
+   * Create a new MockupModel using the mockup file name attribute found in component.
+   * If no attribute are found, returns null.
+   *
+   * If a mockup has been previously created for this component, a cached instance of the
+   * mockup object is returned.
+   *
+   * @param component The component where the mockup will be drawn and containing at least
+   *                  the "<i>{@value SdkConstants#TOOLS_PREFIX}:{@value SdkConstants#ATTR_MOCKUP}</i>" attribute
+   * @return The newly created MockupModel or null if the it couldn't be created
+   */
   public static Mockup create(@NotNull NlComponent component) {
     return create(component, false);
   }
@@ -147,17 +180,13 @@ public class Mockup implements ModelListener {
    */
   @NotNull
   public static List<Mockup> createAll(NlModel model) {
-    final List<Mockup> mockupAttributes = new ArrayList<>();
+    final List<Mockup> mockup = new ArrayList<>();
     final List<NlComponent> components = model.getComponents();
     if (!components.isEmpty()) {
       final NlComponent root = components.get(0).getRoot();
-      createAll(mockupAttributes, root);
+      createAll(mockup, root);
     }
-    return mockupAttributes;
-  }
-
-  public static boolean hasMockupAttribute(NlComponent component) {
-    return component.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_MOCKUP) != null;
+    return mockup;
   }
 
   /**
@@ -179,6 +208,10 @@ public class Mockup implements ModelListener {
         createAll(list, child);
       }
     }
+  }
+
+  public static boolean hasMockupAttribute(NlComponent component) {
+    return component.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_MOCKUP) != null;
   }
 
   private Mockup(NlComponent component) {
@@ -442,7 +475,7 @@ public class Mockup implements ModelListener {
 
   public void setAlpha(float alpha) {
     if (alpha != myAlpha) {
-      myAlpha = alpha;
+      myAlpha = Math.min(1, Math.max(0, alpha));
       notifyListener();
     }
   }
