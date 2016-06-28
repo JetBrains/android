@@ -23,6 +23,7 @@ import com.android.utils.SdkUtils;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.w3c.dom.Element;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
 
 public class MenuPreviewRendererTest extends RenderTestBase {
@@ -401,9 +402,9 @@ public class MenuPreviewRendererTest extends RenderTestBase {
       "    textColor=\"#ff0000\" />\n" +
       "</LinearLayout>\n";
     String newXml = "<FrameLayout\n" +
-               "xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-               "android:layout_width=\"match_parent\"\n" +
-               "android:layout_height=\"match_parent\" />\n";
+                    "xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                    "android:layout_width=\"match_parent\"\n" +
+                    "android:layout_height=\"match_parent\" />\n";
 
     oldXml = oldXml.replace("\n", SdkUtils.getLineSeparator());
     newXml = newXml.replace("\n", SdkUtils.getLineSeparator());
@@ -411,14 +412,15 @@ public class MenuPreviewRendererTest extends RenderTestBase {
     if (task.getLayoutLib().supports(Features.ACTION_BAR)) {
       checkRendering(task, "menu/menu1.png");
       assertEquals(newXml, layout);
-    } else {
+    }
+    else {
       assertEquals(oldXml, layout);
       System.err.println("Not running MenuPreviewRendererTest.test: Associated layoutlib in test SDK needs " +
                          "to use API 21 or higher");
     }
   }
 
-  public void ignore_testLightTheme() throws Exception {
+  public void testLightTheme() throws IOException {
     myFixture.copyFileToProject("menus/strings.xml", "res/menu/strings.xml");
     VirtualFile file = myFixture.copyFileToProject("menus/menu1.xml", "res/menu/menu1.xml");
     assertNotNull(file);
@@ -428,7 +430,8 @@ public class MenuPreviewRendererTest extends RenderTestBase {
 
     if (task.getLayoutLib().supports(Features.ACTION_BAR)) {
       checkRendering(task, "menu/menu1-light.png");
-    } else {
+    }
+    else {
       System.err.println("Not running MenuPreviewRendererTest.testLightTheme: Associated layoutlib in test SDK needs " +
                          "to use API 21 or higher");
     }
