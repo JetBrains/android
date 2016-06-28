@@ -265,14 +265,18 @@ public class InstantRunBuilder implements BeforeRunBuilder {
       return;
     }
 
-    if (!changes.nonSourceChanges) {
-      if (changes.localResourceChanges) {
-        sb.append(",LOCAL_RES_ONLY");
-      }
-      if (changes.localJavaChanges) {
-        sb.append(",LOCAL_JAVA_ONLY");
-      }
-    }
+    //https://code.google.com/p/android/issues/detail?id=213205
+    // If users change the manifest inside Gradle, then Gradle doesn't handle this situation very well
+    // (i.e. if we say only Java changed, but Gradle finds that the merged manifest has also changed, then it gets confused)
+    // So for now, we just remove this.
+    //if (!changes.nonSourceChanges) {
+    //  if (changes.localResourceChanges) {
+    //    sb.append(",LOCAL_RES_ONLY");
+    //  }
+    //  if (changes.localJavaChanges) {
+    //    sb.append(",LOCAL_JAVA_ONLY");
+    //  }
+    //}
   }
 
   /**
