@@ -80,7 +80,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
   public static void setAutoConnect(boolean autoConnect) {
     if (autoConnect != ourAutoConnect) {
       ourAutoConnect = autoConnect;
-      PropertiesComponent.getInstance().setValue(ConstraintLayoutHandler.AUTO_CONNECT_PREF_KEY, autoConnect, true);
+      PropertiesComponent.getInstance().setValue(ConstraintLayoutHandler.AUTO_CONNECT_PREF_KEY, autoConnect, false);
     }
   }
 
