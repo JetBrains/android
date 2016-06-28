@@ -56,7 +56,7 @@ public class NlConstants {
   public static final Color BLUEPRINT_COMPONENT_BG_COLOR = new Color(0, 0, 0, 0);
   public static final Color BLUEPRINT_COMPONENT_FG_COLOR = new Color(81, 103, 163, 100);
   public static final Stroke BLUEPRINT_COMPONENT_STROKE = NlDrawingStyle.THIN_SOLID_STROKE;
-  public static final Color UNAVAILABLE_ZONE_COLOR = new Color(0, 0, 0, 100);
+  public static final Color UNAVAILABLE_ZONE_COLOR = new Color(0, 0, 0, 13);
   public static final Color RESIZING_CONTOUR_COLOR = new Color(0x5082db);
   public static final Color RESIZING_CORNER_COLOR = new Color(0x03a9f4);
   public static final Color RESIZING_CUE_COLOR = new Color(0x757575);
