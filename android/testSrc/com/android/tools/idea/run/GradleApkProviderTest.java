@@ -69,7 +69,7 @@ public class GradleApkProviderTest extends AndroidGradleTestCase {
     if (modelVersion != null) {
       if (modelVersion.compareIgnoringQualifiers("2.2.0") < 0
           // Packaging reverted in alpha4?
-          || modelVersion.compareTo("2.2.0-alpha4") >= 0) {
+          || modelVersion.compareTo("2.2.0-alpha4") == 0) {
         assertThat(path).endsWith(getName() + "-debug-androidTest-unaligned.apk");
       }
       else {
