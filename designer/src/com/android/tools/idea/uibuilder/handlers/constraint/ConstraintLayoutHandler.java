@@ -17,6 +17,7 @@
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import android.support.constraint.solver.widgets.ConstraintAnchor;
+import android.support.constraint.solver.widgets.ConstraintWidget;
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.api.actions.*;
@@ -428,7 +429,9 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     ConstraintModel constraintModel = ConstraintModel.getConstraintModel(screenView.getModel());
     DrawConstraintModel drawConstraintModel = ConstraintModel.getDrawConstraintModel(screenView);
     updateActions(constraintModel.getSelection());
-    return drawConstraintModel.paint(gc, Coordinates.getSwingDimension(screenView, component.w),
+    ConstraintWidget widget = constraintModel.getScene().getWidget(component);
+    return drawConstraintModel.paint(gc, widget,
+                                     Coordinates.getSwingDimension(screenView, component.w),
                                      Coordinates.getSwingDimension(screenView, component.h),
                                      myShowAllConstraints);
   }

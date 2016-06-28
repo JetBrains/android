@@ -90,7 +90,7 @@ public class BlueprintLayer extends Layer {
     component = component.getRoot();
 
     ViewHandlerManager viewHandlerManager = ViewHandlerManager.get(model.getFacet());
-    drawComponent(g, component, viewHandlerManager);
+    drawComponent(g, component, viewHandlerManager, false);
 
     g.dispose();
   }
@@ -103,12 +103,15 @@ public class BlueprintLayer extends Layer {
    * @param viewHandlerManager the view handler
    */
   private void drawComponent(@NotNull Graphics2D gc, @NotNull NlComponent component,
-                             @NotNull ViewHandlerManager viewHandlerManager) {
+                             @NotNull ViewHandlerManager viewHandlerManager,
+                             boolean parentHandlesPainting) {
     if (component.viewInfo == null) {
       return;
     }
 
     ViewHandler handler = component.getViewHandler();
+
+    boolean handlesPainting = false;
 
     // Check if the view handler handles the painting
     if (handler != null && handler instanceof ViewGroupHandler) {
@@ -117,68 +120,66 @@ public class BlueprintLayer extends Layer {
         if (handler.paintConstraints(myScreenView, gc, component)) {
           return;
         }
+        handlesPainting = true;
       }
     }
 
-    // If not, paint the component ourselves
-    Graphics2D g = (Graphics2D)gc.create();
+    if (!handlesPainting && !parentHandlesPainting) {
+      // If not, paint the component ourselves
+      Graphics2D g = (Graphics2D)gc.create();
 
-    int x = getSwingX(myScreenView, component.x);
-    int y = getSwingY(myScreenView, component.y);
-    int w = getSwingDimension(myScreenView, component.w);
-    int h = getSwingDimension(myScreenView, component.h);
+      int x = getSwingX(myScreenView, component.x);
+      int y = getSwingY(myScreenView, component.y);
+      int w = getSwingDimension(myScreenView, component.w);
+      int h = getSwingDimension(myScreenView, component.h);
 
-    drawComponentBackground(g, component);
-    String name = component.getTagName();
-    name = name.substring(name.lastIndexOf('.') + 1);
+      drawComponentBackground(g, component);
+      String name = component.getTagName();
+      name = name.substring(name.lastIndexOf('.') + 1);
 
-    Font font = BLUEPRINT_TEXT_FONT;
-    g.setFont(font);
-    String id = component.getId();
-    int lineHeight = g.getFontMetrics().getHeight();
-    FontRenderContext fontRenderContext = g.getFontRenderContext();
-    if (id != null && h > lineHeight * 2) {
-      // Can fit both
-      Rectangle2D classBounds = font.getStringBounds(name, fontRenderContext);
-      Rectangle2D idBounds = font.getStringBounds(id, fontRenderContext);
-      int textY = y + h / 2;
-      int textX = x + w / 2 - ((int)classBounds.getWidth()) / 2;
-      if (component.isRoot()) {
-        textX = x + lineHeight;
-        textY = y - (int)(classBounds.getHeight() + idBounds.getHeight());
-      }
-      g.drawString(name, textX, textY);
+      Font font = BLUEPRINT_TEXT_FONT;
+      g.setFont(font);
+      g.setColor(BLUEPRINT_FG_COLOR);
+      String id = component.getId();
+      int lineHeight = g.getFontMetrics().getHeight();
+      FontRenderContext fontRenderContext = g.getFontRenderContext();
+      if (id != null && h > lineHeight * 2) {
+        // Can fit both
+        Rectangle2D classBounds = font.getStringBounds(name, fontRenderContext);
+        Rectangle2D idBounds = font.getStringBounds(id, fontRenderContext);
+        int textY = y + h / 2;
+        int textX = x + w / 2 - ((int)classBounds.getWidth()) / 2;
+        if (component.isRoot()) {
+          textX = x + lineHeight;
+          textY = y - (int)(classBounds.getHeight() + idBounds.getHeight());
+        }
+        g.drawString(name, textX, textY);
 
-      if (component.isRoot()) {
-        textX = x + lineHeight;
-        textY = y - (int)(idBounds.getHeight());
+        if (component.isRoot()) {
+          textX = x + lineHeight;
+          textY = y - (int)(idBounds.getHeight());
+        }
+        else {
+          textX = x + w / 2 - ((int)idBounds.getWidth()) / 2;
+          textY += (int)(idBounds.getHeight());
+        }
+        g.drawString(id, textX, textY);
       }
       else {
-        textX = x + w / 2 - ((int)idBounds.getWidth()) / 2;
-        textY += (int)(idBounds.getHeight());
+        // Only room for a single line: prioritize the id if it's available, otherwise the class name
+        String text = id != null ? id : name;
+        Rectangle2D stringBounds = font.getStringBounds(text, fontRenderContext);
+        int textX = x + w / 2 - ((int)stringBounds.getWidth()) / 2;
+        int textY = y + h / 2 + ((int)stringBounds.getHeight()) / 2;
+        g.drawString(text, textX, textY);
       }
-      g.drawString(id, textX, textY);
-    }
-    else {
-      // Only room for a single line: prioritize the id if it's available, otherwise the class name
-      String text = id != null ? id : name;
-      Rectangle2D stringBounds = font.getStringBounds(text, fontRenderContext);
-      int textX = x + w / 2 - ((int)stringBounds.getWidth()) / 2;
-      int textY = y + h / 2 + ((int)stringBounds.getHeight()) / 2;
-      g.drawString(text, textX, textY);
-    }
 
-    g.dispose();
-
-    if (handler != null) {
-      if (handler.paintConstraints(myScreenView, gc, component)) {
-        return;
-      }
+      g.dispose();
     }
 
     // Draw the children of the component...
     for (NlComponent child : component.getChildren()) {
-      drawComponent(gc, child, viewHandlerManager);
+      drawComponent(gc, child, viewHandlerManager, handlesPainting);
     }
   }
 
