@@ -78,15 +78,16 @@ public class HttpDataPoller extends Poller {
       }
       else {
         httpData = new HttpData();
-        httpData.myId = connection.getConnId();
-        httpData.myStartTimeUs = TimeUnit.NANOSECONDS.toMicros(connection.getStartTimestamp());
+        httpData.setId(connection.getConnId());
+        httpData.setStartTimeUs(TimeUnit.NANOSECONDS.toMicros(connection.getStartTimestamp()));
         getHttpRequest(httpData);
         myHttpDataList.add(httpData);
-        myHttpDataMap.put(httpData.myId, httpData);
+        myHttpDataMap.put(httpData.getId(), httpData);
         myDataRequestStartTimeNs = Math.max(myDataRequestStartTimeNs, connection.getStartTimestamp() + 1);
       }
       if (connection.getEndTimestamp() != 0) {
-        httpData.myEndTimeMs = TimeUnit.NANOSECONDS.toMicros(connection.getEndTimestamp());
+        httpData.setEndTimeUs(TimeUnit.NANOSECONDS.toMicros(connection.getEndTimestamp()));
+        httpData.setDownloadingTimeUs(TimeUnit.NANOSECONDS.toMicros(connection.getDownloadingTimestamp()));
         getHttpResponseBody(httpData);
         // Checks both start and end timestamps.
         myDataRequestStartTimeNs = Math.max(myDataRequestStartTimeNs, connection.getEndTimestamp() + 1);
@@ -100,7 +101,7 @@ public class HttpDataPoller extends Poller {
 
   private void getHttpRequest(HttpData data) {
     NetworkProfiler.HttpDetailsRequest request = NetworkProfiler.HttpDetailsRequest.newBuilder()
-      .setConnId(data.myId)
+      .setConnId(data.getId())
       .setType(NetworkProfiler.HttpDetailsRequest.Type.REQUEST)
       .build();
     NetworkProfiler.HttpDetailsResponse.Request result;
@@ -110,13 +111,13 @@ public class HttpDataPoller extends Poller {
       cancel(true);
       return;
     }
-    data.myUrl = result.getUrl();
-    data.myMethod = result.getMethod();
+    data.setUrl(result.getUrl());
+    data.setMethod(result.getMethod());
   }
 
   private void getHttpResponseBody(HttpData data) {
     NetworkProfiler.HttpDetailsRequest request = NetworkProfiler.HttpDetailsRequest.newBuilder()
-      .setConnId(data.myId)
+      .setConnId(data.getId())
       .setType(NetworkProfiler.HttpDetailsRequest.Type.RESPONSE_BODY)
       .build();
     NetworkProfiler.HttpDetailsResponse response;
@@ -126,7 +127,7 @@ public class HttpDataPoller extends Poller {
       cancel(true);
       return;
     }
-    data.myHttpResponseBodyPath = response.getResponseBody().getFilePath();
+    data.setHttpResponseBodyPath(response.getResponseBody().getFilePath());
   }
 
   private static class HttpDataAdapter implements DataAdapter<HttpData> {
@@ -134,22 +135,22 @@ public class HttpDataPoller extends Poller {
     private static final Comparator<HttpData> COMPARATOR_BY_START_TIME = new Comparator<HttpData>() {
       @Override
       public int compare(HttpData o1, HttpData o2) {
-        return o1.myStartTimeUs == o2.myStartTimeUs ? 0 : o1.myStartTimeUs < o2.myStartTimeUs ? -1 : 1;
+        return o1.getStartTimeUs() == o2.getStartTimeUs() ? 0 : o1.getStartTimeUs() < o2.getStartTimeUs() ? -1 : 1;
       }
     };
 
     @NotNull
     private final List<HttpData> myHttpDataList;
 
-    public HttpDataAdapter(List<HttpData> httpDatas) {
-      myHttpDataList = httpDatas;
+    public HttpDataAdapter(List<HttpData> httpDataList) {
+      myHttpDataList = httpDataList;
     }
 
     // TODO: Specify the result is before or after given time.
     @Override
     public int getClosestTimeIndex(long timeUs) {
       HttpData dataForClosestTime = new HttpData();
-      dataForClosestTime.myStartTimeUs = timeUs;
+      dataForClosestTime.setStartTimeUs(timeUs);
       int index = Collections.binarySearch(myHttpDataList, dataForClosestTime, COMPARATOR_BY_START_TIME);
       if (index < 0) {
         index = -1 * index - 2;
@@ -160,7 +161,7 @@ public class HttpDataPoller extends Poller {
     @Override
     public SeriesData<HttpData> get(int index) {
       HttpData httpData = myHttpDataList.get(index);
-      return new SeriesData<>(httpData.myStartTimeUs, httpData);
+      return new SeriesData<>(httpData.getStartTimeUs(), httpData);
     }
 
     @Override

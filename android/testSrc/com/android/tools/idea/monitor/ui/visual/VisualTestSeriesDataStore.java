@@ -73,6 +73,11 @@ public final class VisualTestSeriesDataStore implements SeriesDataStore {
   }
 
   @Override
+  public <T> SeriesDataList<T> getSeriesData(SeriesDataType type, Range range, Object target) {
+    return new SeriesDataList<>(range, this, type, target);
+  }
+
+  @Override
   public int getClosestTimeIndex(SeriesDataType type, long timeValue, Object target) {
     return getAdapter(type, target).getClosestTimeIndex(timeValue);
   }
@@ -80,11 +85,6 @@ public final class VisualTestSeriesDataStore implements SeriesDataStore {
   @Override
   public <T> SeriesData<T> getDataAt(SeriesDataType type, int index, Object target) {
     return (SeriesData<T>)getAdapter(type, target).get(index);
-  }
-
-  @Override
-  public <T> SeriesDataList<T> getSeriesData(SeriesDataType type, Range range, Object target) {
-    return new SeriesDataList<>(range, this, type, target);
   }
 
   @Override
