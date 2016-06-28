@@ -38,7 +38,7 @@ public class MemoryInfoTreeNode extends DefaultMutableTreeNode {
     return mCount;
   }
 
-  public void incrementCount() {
-    mCount++;
+  public void setCount(int count) {
+    mCount = count;
   }
 }

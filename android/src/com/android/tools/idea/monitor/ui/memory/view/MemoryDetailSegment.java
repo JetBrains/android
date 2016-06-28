@@ -159,7 +159,6 @@ public class MemoryDetailSegment extends BaseSegment {
 
         if (mHealthBar != null) {
           mHealthBar.setDelta((float)node.getCount() / mRoot.getCount());
-          mHealthBar.setPercentage((float)node.getCount() / mRoot.getCount());
         }
       }
     }
@@ -167,14 +166,9 @@ public class MemoryDetailSegment extends BaseSegment {
 
   private static class MemoryInfoHealthBar extends JComponent {
     private float mDelta;
-    private float mPercentage;
 
     private void setDelta(float delta) {
       mDelta = delta;
-    }
-
-    private void setPercentage(float percent) {
-      mPercentage = percent;
     }
 
     @Override
@@ -188,7 +182,7 @@ public class MemoryDetailSegment extends BaseSegment {
         g.setColor(POSITIVE_COLOR);
       }
 
-      g.fillRect(0, 0, (int)(dim.width * mPercentage), dim.height);
+      g.fillRect(0, 0, (int)(dim.width * Math.abs(mDelta)), dim.height);
     }
   }
 }
