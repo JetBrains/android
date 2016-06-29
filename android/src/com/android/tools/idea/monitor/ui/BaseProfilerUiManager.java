@@ -129,6 +129,13 @@ public abstract class BaseProfilerUiManager {
   }
 
   /**
+   * Returns the orientation of detailed view in its parent splitter component. By default the detailed view is vertically appended.
+   */
+  public boolean isDetailedViewVerticallySplit() {
+    return true;
+  }
+
+  /**
    * Resets the profiler back to its Level1 view. Each manager is responsible for destroying and de-referencing any UI content
    * in the overviewPanel/detailPanel that should not appear in Level1.
    */
