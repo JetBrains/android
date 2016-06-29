@@ -33,11 +33,6 @@ import java.util.concurrent.TimeUnit;
  */
 public class CpuDataPoller extends Poller {
 
-  /**
-   * Delay between CPU data requests (in nanoseconds).
-   */
-  private static final long POLLING_DELAY_NS = TimeUnit.SECONDS.toNanos(1);
-
   private long myDataRequestStartTimestampNs;
 
   private final int myPid;

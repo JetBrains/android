@@ -26,6 +26,11 @@ import java.util.concurrent.TimeUnit;
 
 public abstract class Poller implements RunnableFuture<Void> {
 
+  /**
+   * Delay between data requests (in nanoseconds).
+   */
+  protected static final long POLLING_DELAY_NS = TimeUnit.MILLISECONDS.toNanos(250);
+
   @NotNull
   protected final DeviceProfilerService myService;
 

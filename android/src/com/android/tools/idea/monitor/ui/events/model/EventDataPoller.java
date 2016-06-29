@@ -15,15 +15,17 @@
  */
 package com.android.tools.idea.monitor.ui.events.model;
 
-import com.android.ddmlib.Log;
 import com.android.tools.adtui.SimpleEventComponent;
 import com.android.tools.adtui.StackedEventComponent;
 import com.android.tools.adtui.model.EventAction;
-import com.android.tools.adtui.model.SeriesData;
-import com.android.tools.idea.monitor.datastore.*;
+import com.android.tools.idea.monitor.datastore.DataAdapterImpl;
+import com.android.tools.idea.monitor.datastore.Poller;
+import com.android.tools.idea.monitor.datastore.SeriesDataStore;
+import com.android.tools.idea.monitor.datastore.SeriesDataType;
 import com.android.tools.idea.monitor.profilerclient.DeviceProfilerService;
 import com.android.tools.idea.monitor.ui.events.view.EventSegment;
-import com.android.tools.profiler.proto.*;
+import com.android.tools.profiler.proto.EventProfiler;
+import com.android.tools.profiler.proto.EventProfilerServiceGrpc;
 import gnu.trove.TLongArrayList;
 import io.grpc.StatusRuntimeException;
 import org.jetbrains.annotations.NotNull;
@@ -35,11 +37,6 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class EventDataPoller extends Poller {
-
-  /**
-   * Delay between Event data requests (in nanoseconds).
-   */
-  private static final long POLLING_DELAY_NS = TimeUnit.MILLISECONDS.toNanos(500);
 
   private static final int ACTION_DOWN = 0;
   private static final int ACTION_UP = 1;

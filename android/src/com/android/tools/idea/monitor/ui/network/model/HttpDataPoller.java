@@ -33,7 +33,6 @@ import java.util.concurrent.TimeUnit;
  * Class to poll http url connections data on an individual frequency.
  */
 public class HttpDataPoller extends Poller {
-  private static final long POLLING_DELAY_NS = TimeUnit.SECONDS.toNanos(1);
 
   private final int myPid;
 
