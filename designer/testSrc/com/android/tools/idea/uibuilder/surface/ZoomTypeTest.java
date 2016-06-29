@@ -41,6 +41,9 @@ public class ZoomTypeTest extends TestCase {
 
     assertEquals("3%, 4%, 5%, 6%, 7%, 8%, 9%, 10%, 11%, 13%, 15%, 17%, 19%, 21%, 24%, 25%, 33%, 50%, 67%, 75%, 90%, 100%, 110%, 125%, " +
                  "150%, 200%, 300%, 400%, 500%, 600%, 700%, 800%, 900%, 1000%", sb.toString());
+
+    // Test zoom from custom values
+    assertEquals(50, ZoomType.zoomIn(38));
   }
 
   public void testZoomOut() {
@@ -65,5 +68,8 @@ public class ZoomTypeTest extends TestCase {
 
     assertEquals("900%, 800%, 700%, 600%, 500%, 400%, 300%, 200%, 150%, 125%, 110%, 100%, 90%, 75%, 67%, 50%, 33%, 25%, 22%, 20%, " +
                  "18%, 16%, 14%, 12%, 10%, 9%, 8%, 7%, 6%, 5%, 4%, 3%, 2%", sb.toString());
+
+    // Test zoom from custom values
+    assertEquals(33, ZoomType.zoomOut(38));
   }
 }
