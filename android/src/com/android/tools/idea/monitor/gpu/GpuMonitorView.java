@@ -86,12 +86,10 @@ public class GpuMonitorView extends BaseMonitorView<GpuSampler> implements Profi
   public ActionGroup getToolbarActions() {
     DefaultActionGroup group = new DefaultActionGroup();
     group.add(new RecordingAction(this));
-    if (GfxTraceEditor.isEnabled()) {
-      group.add(new Separator());
-      group.add(new GfxTraceCaptureAction(this));
-      group.add(new Separator());
-      group.add(new BrowserHelpAction("GPU monitor", PROFILING_URL));
-    }
+    group.add(new Separator());
+    group.add(new GfxTraceCaptureAction(this));
+    group.add(new Separator());
+    group.add(new BrowserHelpAction("GPU monitor", PROFILING_URL));
     return group;
   }
 
