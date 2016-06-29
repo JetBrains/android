@@ -39,9 +39,9 @@ public final class EventProfilerUiManager extends BaseProfilerUiManager {
 
   // TODO: Replace with actual icons.
   private static final Icon[] ICONS = {
-    AndroidIcons.ToolWindows.Warning,
-    AndroidIcons.ToolWindows.Warning,
-    AndroidIcons.ToolWindows.Warning
+    AndroidIcons.Profiler.Touch,
+    AndroidIcons.Profiler.TouchHold,
+    AndroidIcons.Profiler.DoubleTap
   };
 
   public EventProfilerUiManager(@NotNull Range xRange, @NotNull Choreographer choreographer,
