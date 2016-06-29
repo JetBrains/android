@@ -228,17 +228,6 @@ public class InstantRunBuilder implements BeforeRunBuilder {
     // TODO: Add a user-level setting to disable this?
     // TODO: Use constants from AndroidProject once we import the new model jar.
 
-    // During Instant Run, we don't want to have to do a full build just because some users change the version code and version name in the
-    // build. These flags force it to a constant value, thereby avoiding a full build due to a manifest change.
-
-    // TODO: We are still debating whether we need to force version code as this brings up issues around installing a non-IR enabled APK
-    // with a lower version code later. So this is not enabled for now
-    //args.add(AndroidGradleSettings.createProjectProperty("android.injected.version.code",
-    //                                                     Integer.MAX_VALUE));
-
-    args.add(AndroidGradleSettings.createProjectProperty("android.injected.version.name",
-                                                         "INSTANT_RUN"));
-
     StringBuilder sb = new StringBuilder(50);
     sb.append("-P");
     sb.append(OPTIONAL_COMPILATION_STEPS);
