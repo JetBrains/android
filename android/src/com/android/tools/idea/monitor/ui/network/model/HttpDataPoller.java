@@ -146,16 +146,13 @@ public class HttpDataPoller extends Poller {
       myHttpDataList = httpDataList;
     }
 
-    // TODO: Specify the result is before or after given time.
     @Override
-    public int getClosestTimeIndex(long timeUs) {
+    public int getClosestTimeIndex(long timeUs, boolean leftClosest) {
       HttpData dataForClosestTime = new HttpData();
       dataForClosestTime.setStartTimeUs(timeUs);
       int index = Collections.binarySearch(myHttpDataList, dataForClosestTime, COMPARATOR_BY_START_TIME);
-      if (index < 0) {
-        index = -1 * index - 2;
-      }
-      return Math.max(0, Math.min(myHttpDataList.size() - 1, index));
+      index = DataAdapter.convertBinarySearchIndex(index, leftClosest);
+      return Math.max(0, Math.min(myHttpDataList.size(), index));
     }
 
     @Override

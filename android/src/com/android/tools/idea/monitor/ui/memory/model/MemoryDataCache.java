@@ -19,6 +19,7 @@ import com.android.ddmlib.AdbCommandRejectedException;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.SyncException;
 import com.android.ddmlib.TimeoutException;
+import com.android.tools.idea.monitor.datastore.DataAdapter;
 import com.android.tools.idea.monitor.ui.memory.view.MemoryProfilerUiManager;
 import com.android.tools.profiler.proto.MemoryProfilerService;
 import com.intellij.openapi.diagnostic.Logger;
@@ -129,31 +130,26 @@ public class MemoryDataCache {
     return tempFile;
   }
 
-  public int getLatestPriorMemorySampleIndex(long time) {
+  public int getLatestPriorMemorySampleIndex(long time, boolean leftClosest) {
     int index =
       Collections.binarySearch(myMemorySamples, MemoryProfilerService.MemoryData.MemorySample.newBuilder().setTimestamp(time).build(),
                                (left, right) -> {
                                  long diff = left.getTimestamp() - right.getTimestamp();
                                  return (diff == 0) ? 0 : ((diff < 0) ? -1 : 1);
                                });
-    if (index < 0) {
-      index = -index - 2;
-    }
-    return Math.max(0, Math.min(myMemorySamples.size() - 1, index));
+    index = DataAdapter.convertBinarySearchIndex(index, leftClosest);
+    return Math.max(0, Math.min(myMemorySamples.size(), index));
   }
 
-  public int getLatestPriorVmStatsSampleIndex(long time) {
+  public int getLatestPriorVmStatsSampleIndex(long time, boolean leftClosest) {
     int index = Collections
       .binarySearch(myVmStatsSamples, MemoryProfilerService.MemoryData.VmStatsSample.newBuilder().setTimestamp(time).build(),
                     (left, right) -> {
                       long diff = left.getTimestamp() - right.getTimestamp();
                       return (diff == 0) ? 0 : ((diff < 0) ? -1 : 1);
                     });
-    if (index < 0) {
-      index = -index - 2;
-    }
-
-    return Math.max(0, Math.min(myVmStatsSamples.size() - 1, index));
+    index = DataAdapter.convertBinarySearchIndex(index, leftClosest);
+    return Math.max(0, Math.min(myVmStatsSamples.size(), index));
   }
 
   public void reset() {

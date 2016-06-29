@@ -36,14 +36,8 @@ public class LongDataAdapter implements DataAdapter<Long> {
   }
 
   @Override
-  public int getClosestTimeIndex(long timeUs) {
-    int index = myTimestampData.binarySearch(timeUs);
-    if (index < 0) {
-      // No exact match, so return position to the left of the insertion point.
-      index = -index - 2;
-    }
-
-    return Math.max(0, Math.min(myTimestampData.size() - 1, index));
+  public int getClosestTimeIndex(long timeUs, boolean leftClosest) {
+    return DataAdapter.getClosestIndex(myTimestampData, timeUs, leftClosest);
   }
 
   @Override
