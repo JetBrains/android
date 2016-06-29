@@ -79,7 +79,8 @@ public class InspectorPanel extends JPanel {
     return ImmutableList.of(new IdInspectorProvider(),
                             new ViewInspectorProvider(project),
                             new ProgressBarInspectorProvider(),
-                            new TextInspectorProvider()
+                            new TextInspectorProvider(),
+                            new MockupInspectorProvider()
     );
   }
 

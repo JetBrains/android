@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.editor;
 
 import com.android.tools.idea.configurations.FlatComboAction;
+import com.android.tools.idea.configurations.MockupEditAction;
 import com.android.tools.idea.rendering.SaveScreenshotAction;
 import com.android.tools.idea.uibuilder.actions.*;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
@@ -183,6 +184,8 @@ public class NlActionManager {
       group.addSeparator();
     }
 
+    group.add(new MockupEditAction(mySurface));
+    group.addSeparator();
     group.add(actionManager.getAction(IdeActions.ACTION_CUT));
     group.add(actionManager.getAction(IdeActions.ACTION_COPY));
     group.add(actionManager.getAction(IdeActions.ACTION_PASTE));
