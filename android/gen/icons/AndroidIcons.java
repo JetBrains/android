@@ -486,9 +486,8 @@ public class AndroidIcons {
   }
 
   public static class Profiler {
-    public static final Icon Touch = load("/icons/assistant/touch.png"); // 14x21
-    public static final Icon TouchHold = load("/icons/assistant/hold.png"); // 13x22
-    public static final Icon DoubleTap = load("/icons/assistant/double_tap.png"); //19x21
+    public static final Icon Touch = load("/icons/profiler/touch.png"); // 14x21
+    public static final Icon TouchHold = load("/icons/profiler/hold.png"); // 13x22
+    public static final Icon DoubleTap = load("/icons/profiler/double_tap.png"); //19x21
   }
-
 }

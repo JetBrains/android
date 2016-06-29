@@ -84,7 +84,6 @@ public class SimpleEventComponent<E extends Enum<E>> extends AnimatedComponent {
     EventAction<Action, ? extends Enum> downEvent = null;
     mIconsToDraw.clear();
     mPaths.clear();
-    long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
     ImmutableList<SeriesData<EventAction<Action, E>>> series = mData.getSeries();
     int size = series.size();
 
@@ -112,7 +111,7 @@ public class SimpleEventComponent<E extends Enum<E>> extends AnimatedComponent {
     if (downEvent != null) {
       double start = (downEvent.getStartUs() - min) / (max - min);
       Integer toDraw = downEvent.getValueData().ordinal();
-      if (nowUs - downEvent.getStartUs() >= HOLD_DELAY_US) {
+      if (max - downEvent.getStartUs() >= HOLD_DELAY_US) {
         Path2D.Float path = new Path2D.Float();
         double end = 1;
         path.moveTo(start, LINE_OFFSET);
