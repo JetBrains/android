@@ -21,6 +21,8 @@ import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * Immutable list that all UI components get their data from. SeriesDataList are the
  * interface the UI uses to access data from the SeriesDataStore.
@@ -28,12 +30,6 @@ import org.jetbrains.annotations.Nullable;
  * @param <E> The type of data that is suppose to be accessed from the SeriesDataStore.
  */
 public class SeriesDataList<E> extends ImmutableList<SeriesData<E>> {
-
-  // Get closest time index returns the closest time index less than or equal to the value we pass in.
-  // As such to avoid any rounding error, we pad the amount of data we request by one second.
-  // TODO Change getClosestTimeIndex to have the ability to return closest - 1, and + 1 without stepping beyond the bounds
-  // of the underlying data.
-  private static final int RANGE_PADDING_MS = 1000;
 
   private int mStartIndex;
   private int mEndIndex;
@@ -85,8 +81,8 @@ public class SeriesDataList<E> extends ImmutableList<SeriesData<E>> {
    * an internal range.
    */
   private void initialize(Range range) {
-    mStartIndex = mDataStore.getClosestTimeIndex(mDataType, (long)range.getMin() - RANGE_PADDING_MS, mTarget);
-    mEndIndex = mDataStore.getClosestTimeIndex(mDataType, (long)range.getMax() + RANGE_PADDING_MS, mTarget);
+    mStartIndex = mDataStore.getClosestTimeIndex(mDataType, (long)range.getMin(), true, mTarget);
+    mEndIndex = mDataStore.getClosestTimeIndex(mDataType, (long)range.getMax(), false, mTarget);
     //TODO When we cache data to disk here we can tell the datastore to preload it for this range.
   }
 

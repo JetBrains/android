@@ -146,8 +146,8 @@ public class MemoryPoller extends Poller {
 
   private abstract class MemorySampleAdapter<T> implements DataAdapter<T> {
     @Override
-    public int getClosestTimeIndex(long timeUs) {
-      return myDataCache.getLatestPriorMemorySampleIndex(TimeUnit.MICROSECONDS.toNanos(timeUs));
+    public int getClosestTimeIndex(long timeUs, boolean leftClosest) {
+      return myDataCache.getLatestPriorMemorySampleIndex(TimeUnit.MICROSECONDS.toNanos(timeUs), leftClosest);
     }
 
     @Override
@@ -171,8 +171,8 @@ public class MemoryPoller extends Poller {
 
   private abstract class VmStatsSampleAdapter<T> implements DataAdapter<T> {
     @Override
-    public int getClosestTimeIndex(long time) {
-      return myDataCache.getLatestPriorVmStatsSampleIndex(TimeUnit.MICROSECONDS.toNanos(time));
+    public int getClosestTimeIndex(long time, boolean leftClosest) {
+      return myDataCache.getLatestPriorVmStatsSampleIndex(TimeUnit.MICROSECONDS.toNanos(time), leftClosest);
     }
 
     @Override

@@ -16,6 +16,7 @@
 package com.android.tools.idea.monitor.datastore;
 
 import com.android.tools.adtui.model.SeriesData;
+import gnu.trove.TLongArrayList;
 
 /**
  * Interface to use with the {@link SeriesDataStore}. This object represents the in memory representation of the data available.
@@ -24,12 +25,15 @@ import com.android.tools.adtui.model.SeriesData;
 public interface DataAdapter<T> {
 
   /**
-   * This function should return the closest index to the left for a specific time. The time passed in here will be the delta time
+   * This function should return the index for a specific time. The time passed in here will be the delta time
    * between the start time and the time requested. For example if the UI requested the first point in time it would pass 0.
+   *
+   * TODO: think about a refactoring that allows this method to be reused across classes that implement this interface.
+   * All the implementations look like the same now.
+   *
+   * @param leftClosest if there is no exact match and true, return the closest left index. Otherwise, return the closest right index.
    */
-  // TODO: think about a refactoring that allows this method to be reused across classes that implement this interface.
-  // All the implementations look like the same now.
-  int getClosestTimeIndex(long timeUs);
+  int getClosestTimeIndex(long timeUs, boolean leftClosest);
 
   /**
    * Each data adapter is responsible for creating a {@link SeriesData} object that will be returned to the UI in use for rendering.
@@ -48,4 +52,26 @@ public interface DataAdapter<T> {
    * Stops any ongoing data polls.
    */
   void stop();
+
+  /**
+   * See {@link #getClosestTimeIndex(long, boolean)} for details.
+   */
+  static int getClosestIndex(TLongArrayList list, long value, boolean leftClosest) {
+    int index = list.binarySearch(value);
+    index = convertBinarySearchIndex(index, leftClosest);
+
+    return Math.max(0, Math.min(list.size(), index));
+  }
+
+  /**
+   * In binary search, a negative index indicates that the desire data point is not present, and the negative result
+   * is computed by -(insertion_point + 1). This helper function converts the negative result back to our desired
+   * index value.
+   *
+   * @param left if true, returns the index left to the missing data point. Otherwise, return the right index.
+   *
+   */
+  static int convertBinarySearchIndex(int index, boolean left) {
+    return index >= 0 ? index : -index - (left ? 2 : 1);
+  }
 }

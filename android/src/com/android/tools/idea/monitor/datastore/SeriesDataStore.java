@@ -63,9 +63,9 @@ public interface SeriesDataStore {
   <T> SeriesData<T> getDataAt(SeriesDataType type, int index, Object target);
 
   /**
-   * Returns the closest index less than or equal to the time value.
+   * Returns the closest index to the time value.
    */
-  int getClosestTimeIndex(SeriesDataType type, long timeValue, Object target);
+  int getClosestTimeIndex(SeriesDataType type, long timeValue, boolean leftClosest, Object target);
 
   /**
    * Register a {@link DataAdapter} in the data store.
@@ -78,8 +78,8 @@ public interface SeriesDataStore {
     registerAdapter(type, adapter, null);
   }
 
-  default int getClosestTimeIndex(SeriesDataType type, long timeValue) {
-    return getClosestTimeIndex(type, timeValue, null);
+  default int getClosestTimeIndex(SeriesDataType type, long timeValue, boolean leftClosest) {
+    return getClosestTimeIndex(type, timeValue, leftClosest, null);
   }
 
   default <T> SeriesDataList<T> getSeriesData(SeriesDataType type, Range range) {
