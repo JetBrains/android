@@ -95,8 +95,8 @@ public abstract class BaseProfilerUiManager {
     if (myPollerSet != null) {
       for (Poller poller : myPollerSet) {
         poller.stop();
-        myPollerSet.remove(poller);
       }
+      myPollerSet = null;
     }
   }
 

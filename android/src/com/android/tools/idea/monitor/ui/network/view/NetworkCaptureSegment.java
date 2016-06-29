@@ -41,11 +41,12 @@ import java.awt.event.ComponentEvent;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class NetworkCaptureSegment extends BaseSegment implements Animatable {
 
   public interface DetailedViewListener {
-    void showDetailedConnection(String connectionId);
+    void showDetailedConnection(HttpData data);
   }
 
   private static final String SEGMENT_NAME = "Network Capture";
@@ -104,6 +105,7 @@ public class NetworkCaptureSegment extends BaseSegment implements Animatable {
     JBTable table = new JBTable(new AbstractTableModel() {
       private static final int NUMBER_COLUMN_INDEX = 0;
       private static final int URL_COLUMN_INDEX = 1;
+      private static final int DURATION_COLUMN_INDEX = 3;
       private final String[] SAMPLE = {"2", "http://myapp.example.com/list/xml", "746 K", "322 ms", ""};
 
       @Override
@@ -123,6 +125,12 @@ public class NetworkCaptureSegment extends BaseSegment implements Animatable {
         }
         else if (columnIndex == URL_COLUMN_INDEX) {
           return myDataList.get(rowIndex).getUrl();
+        }
+        else if (columnIndex == DURATION_COLUMN_INDEX) {
+          HttpData httpData = myDataList.get(rowIndex);
+          long durationMs = httpData.getEndTimeUs() >= httpData.getStartTimeUs()
+                            ? TimeUnit.MICROSECONDS.toMillis(httpData.getEndTimeUs() - httpData.getStartTimeUs()) : -1;
+          return durationMs >= 0 ? String.valueOf(durationMs) + " ms" : "";
         } else {
           // TODO: this is mock data for now
           return SAMPLE[columnIndex];
@@ -131,7 +139,7 @@ public class NetworkCaptureSegment extends BaseSegment implements Animatable {
     });
     table.setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION);
     table.getSelectionModel().addListSelectionListener(e -> {
-      myDetailedViewListener.showDetailedConnection(String.valueOf(table.getSelectedRow()));
+      myDetailedViewListener.showDetailedConnection(myDataList.get(table.getSelectedRow()));
     });
     table.setFont(AdtUiUtils.DEFAULT_FONT);
     table.setOpaque(false);
