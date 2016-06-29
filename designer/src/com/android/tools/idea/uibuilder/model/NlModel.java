@@ -1315,7 +1315,17 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       if (handler != null && !handler.acceptsParent(receiver, component)) {
         return false;
       }
+
+      // If the receiver is a (possibly indirect) child of any of the dragged components, then reject the operation
+      NlComponent same = receiver;
+      while (same != null) {
+        if (same == component) {
+          return false;
+        }
+        same = same.getParent();
+      }
     }
+
     return true;
   }
 
