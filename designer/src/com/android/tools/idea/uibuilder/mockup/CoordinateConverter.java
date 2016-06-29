@@ -31,7 +31,7 @@ class CoordinateConverter {
   private final Point mySourceOrigin = new Point(0, 0);
 
   private boolean myCentered;
-  private boolean myFixedRatio;
+  private boolean myFixedRatio = true;
   private float myAdjustScale;
 
   public void setDimensions(Dimension destSize, Dimension srcSize) {
@@ -47,7 +47,7 @@ class CoordinateConverter {
     myAdjustScale = adjustScale;
     myXTransformScale = myDestSize.width / srcSize.getWidth() * adjustScale;
     myYTransformScale = myDestSize.height / srcSize.getHeight() * adjustScale;
-    if(myFixedRatio) {
+    if (myFixedRatio) {
       myXTransformScale = myYTransformScale = min(myXTransformScale, myYTransformScale);
     }
     if (myCentered) {
@@ -73,25 +73,41 @@ class CoordinateConverter {
   }
 
   public void setFixedRatio(boolean fixedRatio) {
-    if(fixedRatio != myFixedRatio) {
+    if (fixedRatio != myFixedRatio) {
       myFixedRatio = fixedRatio;
       setDimensions(myDestSize, mySourceSize, myAdjustScale);
     }
   }
 
   public int x(double x) {
-    return (int)Math.round(myDestinationOrigin.x + myXTransformScale * (x - mySourceOrigin.x));
+    return (int)Math.ceil((x - mySourceOrigin.x) * myXTransformScale + myDestinationOrigin.x);
+  }
+
+  public int inverseX(double x) {
+    return (int)Math.ceil((x - myDestinationOrigin.x) / myXTransformScale + mySourceOrigin.x);
   }
 
   public int y(double y) {
-    return (int)Math.round(myDestinationOrigin.y + myYTransformScale * (y - mySourceOrigin.y));
+    return (int)Math.ceil((y - mySourceOrigin.y) * myYTransformScale + myDestinationOrigin.y);
+  }
+
+  public int inverseY(double y) {
+    return (int)Math.ceil((y - myDestinationOrigin.y) / myYTransformScale + mySourceOrigin.y);
   }
 
   public int dX(double dim) {
-    return (int)Math.round(myXTransformScale * dim);
+    return (int)Math.ceil(dim * myXTransformScale);
+  }
+
+  public int inverseDX(double dim) {
+    return (int)Math.ceil(dim / myXTransformScale);
   }
 
   public int dY(double dim) {
-    return (int)Math.round(myYTransformScale * dim);
+    return (int)Math.ceil(dim * myYTransformScale);
+  }
+
+  public int inverseDY(double dim) {
+    return (int)Math.ceil(dim / myYTransformScale);
   }
 }
