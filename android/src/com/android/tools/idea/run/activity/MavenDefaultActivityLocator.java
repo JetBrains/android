@@ -65,13 +65,12 @@ public class MavenDefaultActivityLocator extends ActivityLocator {
       if (manifest == null) {
         throw new ActivityLocatorException("Cannot find " + SdkConstants.FN_ANDROID_MANIFEST_XML + " file");
       }
-      return ApplicationManager.getApplication().runReadAction(new Computable<String>() {
-        @Nullable
-        @Override
-        public String compute() {
-          return DefaultActivityLocator.getDefaultLauncherActivityName(myFacet.getModule().getProject(), manifest);
-        }
-      });
+      String defaultLauncherActivityName =
+        DefaultActivityLocator.getDefaultLauncherActivityName(myFacet.getModule().getProject(), manifest);
+      if (defaultLauncherActivityName == null) {
+        throw new ActivityLocatorException("Could not locate default activity to launch.");
+      }
+      return defaultLauncherActivityName;
     }
     finally {
       if (manifestCopy != null) {
