@@ -33,6 +33,8 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public interface GradleTaskRunner {
+  String USE_SPLIT_APK = "USE_SPLIT_APK";
+
   boolean run(@NotNull List<String> tasks, @Nullable BuildMode buildMode, @NotNull List<String> commandLineArguments)
     throws InvocationTargetException, InterruptedException;
 
@@ -60,7 +62,7 @@ public interface GradleTaskRunner {
 
         // https://code.google.com/p/android/issues/detail?id=213040 - make split apks only available if an env var is set
         List<String> args = new ArrayList<>(commandLineArguments);
-        if (!Boolean.valueOf(System.getenv("USE_SPLIT_APK"))) {
+        if (!Boolean.valueOf(System.getenv(USE_SPLIT_APK))) {
           // force multi dex when the env var is not set to true
           args.add(AndroidGradleSettings.createProjectProperty(AndroidProject.PROPERTY_SIGNING_COLDSWAP_MODE, "MULTIDEX"));
         }
