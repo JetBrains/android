@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
+import com.android.resources.Density;
 import com.android.tools.idea.configurations.Configuration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -23,7 +24,7 @@ import com.android.tools.idea.uibuilder.surface.ScreenView;
 
 public class Coordinates {
 
-  public static final float DEFAULT_DENSITY = 160f;
+  public static final float DEFAULT_DENSITY = Density.DEFAULT_DENSITY;
 
   /**
    * Returns the Swing x coordinate (in the {@link DesignSurface} coordinate
