@@ -19,15 +19,18 @@ import com.intellij.ui.JBColor;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 
 public class NetworkDetailedView extends JComponent {
   private static final int PADDING = 100;
 
   @NotNull
-  private final BufferedImage myImage;
+  private BufferedImage myImage;
 
   private String myAppId;
 
@@ -41,12 +44,14 @@ public class NetworkDetailedView extends JComponent {
   protected void paintComponent(Graphics g) {
     super.paintComponent(g);
     g.drawImage(myImage, (getWidth() - myImage.getWidth()) / 2, PADDING, null);
-    g.drawString(myAppId, PADDING, 2 * PADDING + myImage.getHeight());
   }
 
-  // TODO: rowIndex just for debugging
-  public void showConnectionDetails(@NotNull String appId) {
-    myAppId = appId;
+  public void showConnectionDetails(@NotNull File imageFile) {
+    try {
+      myImage = ImageIO.read(imageFile);
+    } catch (IOException e) {
+      return;
+    }
     repaint();
   }
 }
