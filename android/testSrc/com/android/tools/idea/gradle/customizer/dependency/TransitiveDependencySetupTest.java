@@ -23,6 +23,7 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.roots.*;
+import com.intellij.testFramework.LeakHunter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -34,6 +35,12 @@ import static org.fest.assertions.Assertions.assertThat;
  * Integration test that verifies that transitive dependencies are set up correctly.
  */
 public class TransitiveDependencySetupTest extends AndroidGradleTestCase {
+  @Override
+  protected void tearDown() throws Exception {
+    super.tearDown();
+    LeakHunter.checkLeak(LeakHunter.allRoots(), AndroidGradleModel.class, null);
+  }
+
   // See: https://code.google.com/p/android/issues/detail?id=210172
   public void testTransitiveDependenciesFromJavaModule() throws Throwable {
     loadProject("projects/transitiveDependencies");
