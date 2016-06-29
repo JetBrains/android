@@ -38,7 +38,7 @@ public class AxisFormatterTest extends TestCase {
     // maxMinorTicks is 5 so the smallest possible interval is 100 / 5 = 20
     // The axis is in base 10 which has factors: {1, 5, 10}, so the interval
     // will get round up using the factor 5, which gives us 50.
-    int interval = domain.getMinorInterval(100);
+    long interval = domain.getMinorInterval(100);
     assertEquals(50, interval);
 
     // maxMajorTicks is 10 so the smallest possible interval is 1000 / 10 = 100

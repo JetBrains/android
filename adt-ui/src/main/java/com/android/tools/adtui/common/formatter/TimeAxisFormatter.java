@@ -49,13 +49,12 @@ public final class TimeAxisFormatter extends BaseAxisFormatter {
   @Override
   @NotNull
   public String getFormattedString(double globalRange, double value) {
-    value = value - getOrigin();
     int index1 = getMultiplierIndex(globalRange, 1);
-    int scale1 = getMultiplier();
+    long scale1 = getMultiplier();
     String unit1 = getUnit(index1);
     if (index1 > 1) {
       int index2 = index1 - 1;
-      int scale2 = scale1 / getUnitMultiplier(index2);
+      long scale2 = scale1 / getUnitMultiplier(index2);
       String unit2 = getUnit(index2);
       int value1 = (int)(value / scale1);
       float value2 = (float)(value - value1 * scale1) / scale2;

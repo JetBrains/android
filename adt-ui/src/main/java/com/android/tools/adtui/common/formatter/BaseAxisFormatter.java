@@ -24,15 +24,13 @@ import org.jetbrains.annotations.NotNull;
  */
 public abstract class BaseAxisFormatter {
 
-  private int mMultiplier;
+  private long mMultiplier;
 
   private final int mMaxMinorTicks;
 
   private final int mMaxMajorTicks;
 
   private final int mSwitchThreshold;
-
-  private double mOrigin;
 
   /**
    * @param maxMinorTicks   The maximum number of minor ticks in a major interval. Note that this
@@ -53,19 +51,6 @@ public abstract class BaseAxisFormatter {
   }
 
   /**
-   * An offset that is used to transform the input value in {@link #getFormattedString(double, double)}.
-   * TODO this is currently used for the time axis to convert device time into UI relative time, so that the "begin profiler" device
-   *      timestamp appears as 0 sec in the UI. Consider moving this offset directly into the AxisComponent instead.
-   */
-  public void setOrigin(double origin) {
-    mOrigin = origin;
-  }
-
-  protected double getOrigin() {
-    return mOrigin;
-  }
-
-  /**
    * @param globalRange The global range of the axis.
    * @param value       The value to display.
    * @return A nicely formatted string to display as the tick label.
@@ -74,7 +59,7 @@ public abstract class BaseAxisFormatter {
   public String getFormattedString(double globalRange, double value) {
     int index = getMultiplierIndex(globalRange, 1);
     String unit = getUnit(index);
-    return String.format("%.2f%s", (float)(value - getOrigin()) / mMultiplier, unit);
+    return String.format("%.2f%s", (float)(value) / mMultiplier, unit);
   }
 
   /**
@@ -82,7 +67,7 @@ public abstract class BaseAxisFormatter {
    *
    * @param range The range to calculate intervals for.
    */
-  public int getMajorInterval(double range) {
+  public long getMajorInterval(double range) {
     return getInterval(range, mMaxMajorTicks);
 
   }
@@ -92,7 +77,7 @@ public abstract class BaseAxisFormatter {
    *
    * @param range The range to calculate intervals for.
    */
-  public int getMinorInterval(double range) {
+  public long getMinorInterval(double range) {
     return getInterval(range, mMaxMinorTicks);
 
   }
@@ -100,7 +85,7 @@ public abstract class BaseAxisFormatter {
   /**
    * Determines the interval value for a particular range given the number of ticks that should be used.
    */
-  public int getInterval(double range, int numTicks) {
+  public long getInterval(double range, int numTicks) {
     int index = getMultiplierIndex(range, mSwitchThreshold);
     int base = getUnitBase(index);
     int minInterval = getUnitMinimalInterval(index);
@@ -155,7 +140,7 @@ public abstract class BaseAxisFormatter {
     mMultiplier = 1;
     int count = getNumUnits();
     for (int i = 0; i < count; i++) {
-      int temp = mMultiplier * getUnitMultiplier(i);
+      long temp = mMultiplier * getUnitMultiplier(i);
       if (value <= temp * threshold) {
         return i;
       }
@@ -236,7 +221,7 @@ public abstract class BaseAxisFormatter {
     return factors;
   }
 
-  protected int getMultiplier() {
+  protected long getMultiplier() {
     return mMultiplier;
   };
 }
