@@ -21,8 +21,7 @@ import junit.framework.TestCase;
 
 import javax.swing.event.HyperlinkEvent;
 
-import static org.easymock.EasyMock.expect;
-import static org.easymock.classextension.EasyMock.*;
+import static org.easymock.EasyMock.*;
 
 /**
  * Tests for {@link com.android.tools.idea.gradle.service.notification.hyperlink.CustomNotificationListener}.
@@ -39,9 +38,9 @@ public class CustomNotificationListenerTest extends TestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    myHyperlink1 = createMock(NotificationHyperlink.class);
-    myHyperlink2 = createMock(NotificationHyperlink.class);
-    myHyperlink3 = createMock(NotificationHyperlink.class);
+    myHyperlink1 = createNiceMock(NotificationHyperlink.class);
+    myHyperlink2 = createNiceMock(NotificationHyperlink.class);
+    myHyperlink3 = createNiceMock(NotificationHyperlink.class);
     myNotification = createMock(Notification.class);
     myHyperlinkEvent = createMock(HyperlinkEvent.class);
     myProject = createMock(Project.class);

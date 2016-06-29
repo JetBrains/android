@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener;
 import com.intellij.util.Function;
+import org.easymock.EasyMock;
 import org.gradle.tooling.ProjectConnection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -26,8 +27,6 @@ import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 
 import java.lang.reflect.Method;
 import java.util.List;
-
-import static org.easymock.classextension.EasyMock.createMock;
 
 /**
  * This class exists because it is impossible to mock invocations to
@@ -44,7 +43,7 @@ class GradleExecutionHelperDouble extends GradleExecutionHelper {
     Class<GradleExecutionHelper> target = GradleExecutionHelper.class;
     Method m = target.getDeclaredMethod("getModelBuilder", Class.class, ExternalSystemTaskId.class, GradleExecutionSettings.class,
                                         ProjectConnection.class, ExternalSystemTaskNotificationListener.class, List.class);
-    return createMock(GradleExecutionHelperDouble.class, m);
+    return EasyMock.createMockBuilder(GradleExecutionHelperDouble.class).addMockedMethod(m).createMock();
   }
 
   @SuppressWarnings("unchecked")
