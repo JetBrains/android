@@ -127,8 +127,8 @@ public enum ZoomType {
         // If we're far down (like 0.1) don't just jump up to 25%, jump 10%
         return (int)Math.floor(percentage / 1.1);
       }
-      if (i < ZOOM_POINTS.length - 1) {
-        return ZOOM_POINTS[i + 1];
+      if (i < ZOOM_POINTS.length) {
+        return ZOOM_POINTS[i - 1];
       }
       else {
         // Round down to next nearest hundred
