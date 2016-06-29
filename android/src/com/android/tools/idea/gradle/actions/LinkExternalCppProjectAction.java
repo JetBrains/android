@@ -63,7 +63,7 @@ public class LinkExternalCppProjectAction extends AndroidStudioGradleAction {
     }
 
     AndroidGradleModel androidModel = AndroidGradleModel.get(module);
-    if (androidModel == null || !androidModel.supportsExternalNativeBuild()) {
+    if (androidModel == null || !androidModel.getFeatures().isExternalBuildSupported()) {
       return false;
     }
 

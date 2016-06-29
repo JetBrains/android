@@ -92,7 +92,7 @@ public class GradleApkProvider implements ApkProvider {
         apkList.add(new ApkInfo(testApk, testPackageName));
       }
 
-      if (androidModel.supportsTestedTargetVariants()) {
+      if (androidModel.getFeatures().isTestedTargetVariantsSupported()) {
         apkList.addAll(0, getTargetedApks(selectedVariant, device));
       }
     }

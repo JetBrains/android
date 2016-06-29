@@ -100,7 +100,7 @@ public class AndroidModuleNode extends ProjectViewModuleNode {
         continue;
       }
       if (sourceType == AndroidSourceType.SHADERS) {
-        if (androidGradleModel == null || !androidGradleModel.supportsShaders()) {
+        if (androidGradleModel == null || !androidGradleModel.getFeatures().isShadersSupported()) {
           continue;
         }
       }
@@ -128,7 +128,7 @@ public class AndroidModuleNode extends ProjectViewModuleNode {
     Set<VirtualFile> allSources = Sets.newHashSet();
 
     for (AndroidSourceType sourceType : AndroidSourceType.values()) {
-      if (sourceType == AndroidSourceType.SHADERS && (androidGradleModel == null || !androidGradleModel.supportsShaders())) {
+      if (sourceType == AndroidSourceType.SHADERS && (androidGradleModel == null || !androidGradleModel.getFeatures().isShadersSupported())) {
         continue;
       }
       Set<VirtualFile> sources = getSources(sourceType, providers);

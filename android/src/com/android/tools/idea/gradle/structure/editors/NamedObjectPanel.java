@@ -470,7 +470,7 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
             obj.setValue(BuildFileKey.VERSION_CODE, versionCode);
           }
           obj.setValue(BuildFileKey.VERSION_NAME, flavor.getVersionName());
-          if (androidModel.supportsProductFlavorVersionSuffix()) {
+          if (androidModel.getFeatures().isProductFlavorVersionSuffixSupported()) {
             obj.setValue(BuildFileKey.VERSION_NAME_SUFFIX, getVersionNameSuffix(flavor));
           }
           ApiVersion minSdkVersion = flavor.getMinSdkVersion();
