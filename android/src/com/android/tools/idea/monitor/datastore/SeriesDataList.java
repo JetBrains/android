@@ -21,8 +21,6 @@ import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.concurrent.TimeUnit;
-
 /**
  * Immutable list that all UI components get their data from. SeriesDataList are the
  * interface the UI uses to access data from the SeriesDataStore.
