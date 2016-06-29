@@ -169,7 +169,9 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
           if (isDisposed()) {
             return;
           }
+          GfxTraceUtil.trackEvent(UsageTracker.ACTION_GFX_TRACE_INIT_ERROR, e.getMessage(), null);
           setLoadingErrorTextOnEdt(e.getLocalizedMessage(), null);
+
           if (e instanceof GapisInitInputException) {
             LOG.info(e);
           }
@@ -303,7 +305,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
       if (file.getFileSystem().getProtocol().equals(StandardFileSystems.FILE_PROTOCOL)) {
         LOG.info("Load gfxtrace in " + file.getPresentableName());
         if (file.getLength() == 0) {
-          throw new GapisInitInputException(GapisInitException.MESSAGE_TRACE_FILE_EMPTY + file.getPresentableName());
+          throw new GapisInitInputException(GapisInitException.MESSAGE_TRACE_FILE_EMPTY + file.getPresentableName(), "empty file");
         }
         captureF = myClient.loadCapture(file.getCanonicalPath());
       }
@@ -312,14 +314,14 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
         byte[] data = file.contentsToByteArray();
         LOG.info("Upload " + data.length + " bytes of gfxtrace as " + file.getPresentableName());
         if (data.length == 0) {
-          throw new GapisInitInputException(GapisInitException.MESSAGE_TRACE_FILE_EMPTY + file.getPresentableName());
+          throw new GapisInitInputException(GapisInitException.MESSAGE_TRACE_FILE_EMPTY + file.getPresentableName(), "no data");
         }
         captureF = myClient.importCapture(file.getPresentableName(), data);
       }
 
       CapturePath path = Rpc.get(captureF, FETCH_TRACE_TIMEOUT_MS, TimeUnit.MILLISECONDS);
       if (path == null) {
-        throw new GapisInitInputException(GapisInitException.MESSAGE_TRACE_FILE_BROKEN + file.getPresentableName());
+        throw new GapisInitInputException(GapisInitException.MESSAGE_TRACE_FILE_BROKEN + file.getPresentableName(), "Invalid/Corrupted");
       }
 
       activatePath(path, this);
@@ -485,7 +487,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
       myClient = new ServiceClientCache(myGapisConnection.createServiceClient(myExecutor), myExecutor);
     }
     catch (IOException e) {
-      throw new GapisInitException(GapisInitException.MESSAGE_FAILED_CONNECT, "Unable to create client from connection", e);
+      throw new GapisInitException(GapisInitException.MESSAGE_FAILED_CONNECT, "Unable to create client", e);
     }
   }
 
@@ -519,13 +521,16 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
 
     private final String myUserMessage;
 
-    public GapisInitException(String userMessage, String debugMessage, Throwable cause) {
+    public GapisInitException(@NotNull String userMessage, @NotNull String debugMessage, @Nullable Throwable cause) {
       super(debugMessage, cause);
       myUserMessage = userMessage;
-
     }
 
+    /**
+     * @return The message to display to the user
+     */
     @Override
+    @NotNull
     public String getLocalizedMessage() {
       return myUserMessage;
     }
@@ -533,8 +538,8 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
 
   private static class GapisInitInputException extends GapisInitException {
 
-    public GapisInitInputException(String userMessage) {
-      super(userMessage, userMessage, null);
+    public GapisInitInputException(@NotNull String userMessage, @NotNull String debugMessage) {
+      super(userMessage, debugMessage, null);
     }
   }
 
