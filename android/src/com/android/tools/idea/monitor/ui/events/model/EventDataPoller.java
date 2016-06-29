@@ -29,7 +29,9 @@ import io.grpc.StatusRuntimeException;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class EventDataPoller extends Poller {
@@ -54,6 +56,7 @@ public class EventDataPoller extends Poller {
   private List<EventAction<StackedEventComponent.Action, String>> myFragmentData = new ArrayList<>();
   private List<EventAction<StackedEventComponent.Action, String>> myActivityData = new ArrayList<>();
   private List<EventAction<SimpleEventComponent.Action, EventSegment.EventActionType>> mySystemData = new ArrayList<>();
+  private Map<Integer, Long> myActiveActivites = new HashMap<>();
   private long myLastDownEvent;
 
   public EventDataPoller(@NotNull DeviceProfilerService service, int pid, SeriesDataStore dataStore) {
@@ -61,8 +64,8 @@ public class EventDataPoller extends Poller {
 
     myPid = pid;
     dataStore.registerAdapter(SeriesDataType.EVENT_SIMPLE_ACTION, new DataAdapterImpl(mySystemTime, mySystemData));
-    dataStore.registerAdapter(SeriesDataType.EVENT_FRAGMENT_ACTION, new DataAdapterImpl(myActivityTime, myActivityData));
-    dataStore.registerAdapter(SeriesDataType.EVENT_ACTIVITY_ACTION, new DataAdapterImpl(myFragmentTime, myFragmentData));
+    dataStore.registerAdapter(SeriesDataType.EVENT_ACTIVITY_ACTION, new DataAdapterImpl(myActivityTime, myActivityData));
+    dataStore.registerAdapter(SeriesDataType.EVENT_FRAGMENT_ACTION, new DataAdapterImpl(myFragmentTime, myFragmentData));
   }
 
   @Override
@@ -104,13 +107,18 @@ public class EventDataPoller extends Poller {
         switch (activity.getActivityState()) {
           case RESUMED:
             action = StackedEventComponent.Action.ACTIVITY_STARTED;
+            myActiveActivites.put(activity.getActivityHash(), actionStart);
             break;
           case PAUSED:
             action = StackedEventComponent.Action.ACTIVITY_COMPLETED;
+            actionEnd = actionStart;
+            actionStart = myActiveActivites.get(activity.getActivityHash());
             break;
         }
-        myActivityTime.add(eventTimestamp);
-        myActivityData.add(new EventAction<>(actionStart, actionEnd, action, activity.getName()));
+        if (action != StackedEventComponent.Action.NONE) {
+          myActivityTime.add(eventTimestamp);
+          myActivityData.add(new EventAction<>(actionStart, actionEnd, action, activity.getName()));
+        }
       } else if (data.getDataCase().toString().equals(FRAGMENT_DATA_PROTO_NAME)) {
         EventProfiler.FragmentEventData fragment = data.getFragmentData();
         StackedEventComponent.Action action = StackedEventComponent.Action.NONE;
@@ -135,15 +143,14 @@ public class EventDataPoller extends Poller {
           case ACTION_UP:
             action = SimpleEventComponent.Action.UP;
             // TODO: Use the down up time in the MotionEvent to set start time for touchstate.
+            actionEnd = actionStart;
             actionStart = myLastDownEvent;
-            actionEnd = myDataRequestStartTimestampNs;
-            break;
-          default:
-            Log.e("Profiler", String.valueOf(systemData.getActionId()));
             break;
         }
-        mySystemTime.add(eventTimestamp);
-        mySystemData.add(new EventAction<>(actionStart, actionEnd, action, EventSegment.EventActionType.TOUCH));
+        if( action != SimpleEventComponent.Action.NONE) {
+          mySystemTime.add(eventTimestamp);
+          mySystemData.add(new EventAction<>(actionStart, actionEnd, action, EventSegment.EventActionType.TOUCH));
+        }
       }
     }
   }
