@@ -51,6 +51,20 @@ public class MemorySegment extends BaseLineChartSegment {
 
   private static final Color MEMORY_OBJECT_COUNT_COLOR = new JBColor(new Color(160, 160, 31), new Color(160, 160, 31));
 
+  private static final String JAVA_OBJECTS_COUNT = "Java Objects Count";
+
+  private static final String TOTAL_MEM_USAGE = "Total Mem Usage";
+
+  private static final String UNCLASSIFIED_MEM = "Unclassified Mem";
+
+  private static final String CODE_MEM = "Code Mem";
+
+  private static final String GRAPHICS_MEM = "Graphics Mem";
+
+  private static final String NATIVE_MEM = "Native Mem";
+
+  private static final String JAVA_MEM = "Java Mem";
+
   public MemorySegment(@NotNull Range timeRange,
                        @NotNull SeriesDataStore dataStore,
                        @NotNull EventDispatcher<ProfilerEventListener> dispatcher) {
@@ -66,28 +80,28 @@ public class MemorySegment extends BaseLineChartSegment {
   protected void updateChartLines(boolean isExpanded) {
     if (isExpanded) {
       // Left axis series
-      addMemoryLevelLine(SeriesDataType.MEMORY_JAVA, MEMORY_TOTAL_COLOR);
-      addMemoryLevelLine(SeriesDataType.MEMORY_NATIVE, MEMORY_NATIVE_COLOR);
-      addMemoryLevelLine(SeriesDataType.MEMORY_GRAPHICS, MEMORY_GRAPHICS_COLOR);
-      addMemoryLevelLine(SeriesDataType.MEMORY_CODE, MEMORY_CODE_COLOR);
-      addMemoryLevelLine(SeriesDataType.MEMORY_OTHERS, MEMORY_OTHER_COLOR);
+      addMemoryLevelLine(SeriesDataType.MEMORY_JAVA, JAVA_MEM, MEMORY_TOTAL_COLOR);
+      addMemoryLevelLine(SeriesDataType.MEMORY_NATIVE, NATIVE_MEM, MEMORY_NATIVE_COLOR);
+      addMemoryLevelLine(SeriesDataType.MEMORY_GRAPHICS, GRAPHICS_MEM, MEMORY_GRAPHICS_COLOR);
+      addMemoryLevelLine(SeriesDataType.MEMORY_CODE, CODE_MEM, MEMORY_CODE_COLOR);
+      addMemoryLevelLine(SeriesDataType.MEMORY_OTHERS, UNCLASSIFIED_MEM, MEMORY_OTHER_COLOR);
 
       // TODO Computing the max value for the stacked memory levels as we need to add up all the categories at each sample point to find
       // the overall max. MEMORY_TOTAL already encapsulates that information and is readily available, so simply include that in the
       // Level 2/3 views as well.
-      addLeftAxisLine(SeriesDataType.MEMORY_TOTAL, SeriesDataType.MEMORY_TOTAL.toString(), new LineConfig(MEMORY_TOTAL_COLOR));
+      addLeftAxisLine(SeriesDataType.MEMORY_TOTAL, TOTAL_MEM_USAGE, new LineConfig(MEMORY_TOTAL_COLOR));
 
       // Right axis series
       addRightAxisLine(SeriesDataType.MEMORY_OBJECT_COUNT,
-                       SeriesDataType.MEMORY_OBJECT_COUNT.toString(),
+                       JAVA_OBJECTS_COUNT,
                        new LineConfig(MEMORY_OBJECT_COUNT_COLOR));
     }
     else {
-      addMemoryLevelLine(SeriesDataType.MEMORY_TOTAL, MEMORY_TOTAL_COLOR);
+      addMemoryLevelLine(SeriesDataType.MEMORY_TOTAL, TOTAL_MEM_USAGE, MEMORY_TOTAL_COLOR);
     }
   }
 
-  private void addMemoryLevelLine(SeriesDataType type, Color color) {
-    addLeftAxisLine(type, type.toString(), new LineConfig(color).setFilled(true).setStacked(true));
+  private void addMemoryLevelLine(SeriesDataType type, String title, Color color) {
+    addLeftAxisLine(type, title, new LineConfig(color).setFilled(true).setStacked(true));
   }
 }
