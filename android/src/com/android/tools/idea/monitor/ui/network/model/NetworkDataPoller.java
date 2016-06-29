@@ -93,17 +93,17 @@ public class NetworkDataPoller extends Poller {
       // Timestamp in ui/studio represented in microseconds and pulled from a device in nanoseconds
       long timestamp = TimeUnit.NANOSECONDS.toMicros(data.getBasicInfo().getEndTimestamp());
 
-      if (dataType == NetworkProfiler.NetworkDataRequest.Type.TRAFFIC) {
+      if (data.getDataCase() == NetworkProfiler.NetworkProfilerData.DataCase.TRAFFIC_DATA) {
         // Traffics in ui/studio represented in kb and pulled from a device in bytes
         myTrafficTimeData.add(timestamp);
         myReceivedData.add(data.getTrafficData().getBytesReceived() / 1024);
         mySentData.add(data.getTrafficData().getBytesSent() / 1024);
       }
-      else if (dataType == NetworkProfiler.NetworkDataRequest.Type.CONNECTIONS) {
+      else if (data.getDataCase() == NetworkProfiler.NetworkProfilerData.DataCase.CONNECTION_DATA) {
         myConnectionsTimeData.add(timestamp);
         myConnectionsData.add(data.getConnectionData().getConnectionNumber());
       }
-      else if (dataType == NetworkProfiler.NetworkDataRequest.Type.CONNECTIVITY) {
+      else if (data.getDataCase() == NetworkProfiler.NetworkProfilerData.DataCase.CONNECTIVITY_DATA) {
         myConnectivityTimeData.add(timestamp);
         // TODO: consider using RadioState enum from proto
         switch (data.getConnectivityData().getRadioState()) {
@@ -146,9 +146,7 @@ public class NetworkDataPoller extends Poller {
 
   @Override
   protected void poll() {
-    requestData(NetworkProfiler.NetworkDataRequest.Type.TRAFFIC);
-    requestData(NetworkProfiler.NetworkDataRequest.Type.CONNECTIONS);
-    requestData(NetworkProfiler.NetworkDataRequest.Type.CONNECTIVITY);
+    requestData(NetworkProfiler.NetworkDataRequest.Type.ALL);
   }
 
   @Override
