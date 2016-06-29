@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.templates;
 
-import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
-import com.android.tools.idea.npw.ConfigureAndroidModuleStep;
 import com.android.tools.idea.npw.NewProjectWizardState;
 import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.templates.recipe.RenderingContext;
@@ -56,6 +54,7 @@ import static com.android.SdkConstants.*;
 import static com.android.tools.idea.npw.FormFactorUtils.ATTR_MODULE_NAME;
 import static com.android.tools.idea.npw.NewModuleWizardState.ATTR_CREATE_ACTIVITY;
 import static com.android.tools.idea.npw.NewModuleWizardState.ATTR_PROJECT_LOCATION;
+import static com.android.tools.idea.sdk.IdeSdks.isJdk7Supported;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_TARGET_API;
 
@@ -412,7 +411,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
     assertNotNull(sdkData);
 
-    if (ConfigureAndroidModuleStep.isJdk7Supported(sdkData)) {
+    if (isJdk7Supported(sdkData)) {
       IAndroidTarget[] targets = sdkData.getTargets();
       IAndroidTarget target = targets[targets.length - 1];
       Map<String,Object> overrides = Maps.newHashMap();
@@ -715,7 +714,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     projectValues.put(ATTR_TARGET_API, targetSdk);
     projectValues.put(ATTR_TARGET_API_STRING, Integer.toString(targetSdk));
     projectValues.put(ATTR_BUILD_API, target.getVersion().getApiLevel());
-    projectValues.put(ATTR_BUILD_API_STRING, TemplateMetadata.getBuildApiString(target.getVersion()));
+    projectValues.put(ATTR_BUILD_API_STRING, getBuildApiString(target.getVersion()));
     assertNotNull(values);
 
     // Next check all other parameters, cycling through booleans and enums.
@@ -887,7 +886,7 @@ public class TemplateTest extends AndroidGradleTestCase {
               drawableFolder.mkdirs();
               String fileName = myStringEvaluator.evaluate(templateValues.getTemplateMetadata().getIconName(),
                                                            templateValues.getParameters());
-              File iconFile = new File(drawableFolder, fileName + SdkConstants.DOT_XML);
+              File iconFile = new File(drawableFolder, fileName + DOT_XML);
               File sourceFile = new File(getTestDataPath(), FileUtil.join("drawables", "progress_horizontal.xml"));
               try {
                 FileUtil.copy(sourceFile, iconFile);
