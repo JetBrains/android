@@ -34,7 +34,6 @@ import java.util.concurrent.TimeUnit;
  * e.g removing old data or keeping in external memory
  */
 public class NetworkDataPoller extends Poller {
-  private static final long POLLING_DELAY_NS = TimeUnit.SECONDS.toNanos(1);
 
   private final TLongArrayList myTrafficTimeData = new TLongArrayList();
 

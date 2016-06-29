@@ -36,14 +36,12 @@ import static com.android.tools.idea.monitor.ui.memory.model.MemoryDataCache.UNF
 public class MemoryPoller extends Poller {
   private static final Logger LOG = Logger.getInstance(MemoryPoller.class.getCanonicalName());
 
-  private static final long POLL_PERIOD_NS = TimeUnit.MILLISECONDS.toNanos(250);
-
   @NotNull private final MemoryDataCache myDataCache;
   private long myStartTimestampNs;
   final private int myAppId;
 
   public MemoryPoller(@NotNull SeriesDataStore dataStore, @NotNull MemoryDataCache dataCache, int appId) {
-    super(dataStore, POLL_PERIOD_NS);
+    super(dataStore, POLLING_DELAY_NS);
     myDataCache = dataCache;
     myAppId = appId;
   }
