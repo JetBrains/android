@@ -20,7 +20,7 @@ import com.android.ide.common.repository.GradleVersion;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
-import static org.easymock.classextension.EasyMock.*;
+import static org.easymock.EasyMock.*;
 
 /**
  * Tests for {@link BuildVariantView}.
