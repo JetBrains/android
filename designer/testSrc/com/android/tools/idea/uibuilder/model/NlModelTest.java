@@ -286,6 +286,43 @@ public class NlModelTest extends LayoutTestCase {
                  LayoutTestUtilities.toTree(model.getComponents(), true));
   }
 
+  public void testCanAdd() throws Exception {
+    LayoutTestUtilities.resetComponentTestIds();
+    NlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
+      .withBounds(0, 0, 1000, 1000)
+      .matchParentWidth()
+      .matchParentHeight()
+      .children(
+        component(FRAME_LAYOUT)
+          .withBounds(100, 100, 100, 100)
+          .width("100dp")
+          .height("100dp"),
+        component(BUTTON)
+          .withBounds(100, 200, 100, 100)
+          .width("100dp")
+          .height("100dp")
+      )).build();
+
+    assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x1000, instance=0}\n" +
+                 "    NlComponent{tag=<FrameLayout>, bounds=[100,100:100x100, instance=1}\n" +
+                 "    NlComponent{tag=<Button>, bounds=[100,200:100x100, instance=2}",
+                 LayoutTestUtilities.toTree(model.getComponents(), true));
+
+    NlComponent linearLayout = model.getComponents().get(0);
+    NlComponent frameLayout = linearLayout.getChild(0);
+    NlComponent button = linearLayout.getChild(1);
+    assertThat(linearLayout).isNotNull();
+    assertThat(button).isNotNull();
+    assertThat(frameLayout).isNotNull();
+
+    assertThat(model.canAddComponents(Collections.singletonList(frameLayout), linearLayout, frameLayout)).isTrue();
+    assertThat(model.canAddComponents(Collections.singletonList(button), frameLayout, null)).isTrue();
+    assertThat(model.canAddComponents(Arrays.asList(frameLayout, button), linearLayout, frameLayout)).isTrue();
+
+    assertThat(model.canAddComponents(Collections.singletonList(linearLayout), frameLayout, null)).isFalse();
+    assertThat(model.canAddComponents(Collections.singletonList(linearLayout), linearLayout, null)).isFalse();
+  }
+
   public void testMoveInHierarchyWithWrongXmlTags() throws Exception {
     LayoutTestUtilities.resetComponentTestIds();
     ModelBuilder modelBuilder = model("linear.xml", component(LINEAR_LAYOUT)
@@ -317,29 +354,26 @@ public class NlModelTest extends LayoutTestCase {
     XmlTag originalFrameLayout = originalRoot.getSubTags()[0];
 
     final Project project = model.getProject();
-    WriteCommandAction.runWriteCommandAction(project, new Runnable() {
-      @Override
-      public void run() {
-        PsiDocumentManager manager = PsiDocumentManager.getInstance(project);
-        Document document = manager.getDocument(model.getFile());
-        assertThat(document).isNotNull();
-        document.setText("<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                         "    android:layout_width=\"match_parent\"\n" +
-                         "    android:layout_height=\"match_parent\"\n" +
-                         "    android:orientation=\"vertical\">\n" +
-                         "    <Button\n" +
-                         "        android:layout_width=\"100dp\"\n" +
-                         "        android:layout_height=\"100dp\"\n" +
-                         "        android:text=\"Button\" />\n" +
-                         "    <FrameLayout\n" +
-                         "        android:layout_width=\"100dp\"\n" +
-                         "        android:layout_height=\"100dp\">\n" +
-                         "\n" +
-                         "    </FrameLayout>\n" +
-                         "\n" +
-                         "</LinearLayout>");
-        manager.commitAllDocuments();
-      }
+    WriteCommandAction.runWriteCommandAction(project, () -> {
+      PsiDocumentManager manager = PsiDocumentManager.getInstance(project);
+      Document document = manager.getDocument(model.getFile());
+      assertThat(document).isNotNull();
+      document.setText("<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                       "    android:layout_width=\"match_parent\"\n" +
+                       "    android:layout_height=\"match_parent\"\n" +
+                       "    android:orientation=\"vertical\">\n" +
+                       "    <Button\n" +
+                       "        android:layout_width=\"100dp\"\n" +
+                       "        android:layout_height=\"100dp\"\n" +
+                       "        android:text=\"Button\" />\n" +
+                       "    <FrameLayout\n" +
+                       "        android:layout_width=\"100dp\"\n" +
+                       "        android:layout_height=\"100dp\">\n" +
+                       "\n" +
+                       "    </FrameLayout>\n" +
+                       "\n" +
+                       "</LinearLayout>");
+      manager.commitAllDocuments();
     });
 
     // Manually construct the view hierarchy
