@@ -15,32 +15,61 @@
  */
 package com.android.tools.idea.editors.gfxtrace;
 
+import com.android.tools.rpclib.multiplex.Channel;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
 import com.intellij.openapi.application.ApplicationManager;
 
+import com.intellij.openapi.diagnostic.Logger;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.RejectedExecutionException;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A {@link Rpc.Callback} that will execute part of the callback on the UI thread.
  */
 public abstract class UiCallback<T, U> implements Rpc.Callback<T> {
+
+  @NotNull private final GfxTraceEditor myEditor;
+  @NotNull private final Logger myLogger;
+
+  public UiCallback(@NotNull GfxTraceEditor gfxTracer, @NotNull Logger log) {
+    myEditor = gfxTracer;
+    myLogger = log;
+  }
+
+
   @Override
-  public final void onFinish(Rpc.Result<T> result) throws RpcException, ExecutionException {
-    final U value = onRpcThread(result);
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        onUiThread(value);
+  public final void onFinish(Rpc.Result<T> result) {
+    try {
+      final U value = onRpcThread(result);
+      ApplicationManager.getApplication().invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          onUiThread(value);
+        }
+      });
+    }
+    catch (CancellationException cancel) {
+      // Not an error, don't log.
+    }
+    catch (RejectedExecutionException | Channel.NotConnectedException e) {
+      if (myEditor.isDisposed()) {
+        return;
       }
-    });
+      myLogger.error("error in UiCallback.onRpcThread", e);
+    }
+    catch (Exception e) {
+      myLogger.error("error in UiCallback.onRpcThread", e);
+    }
   }
 
   /**
    * Executed on the executor passed to {@link Rpc}'s listen call. The result is then passed to
    * {@link #onUiThread(Object)} which is run on the AWT event dispatch thread.
    */
-  protected abstract U onRpcThread(Rpc.Result<T> result) throws RpcException, ExecutionException;
+  protected abstract U onRpcThread(Rpc.Result<T> result) throws RpcException, ExecutionException, Channel.NotConnectedException;
 
   /**
    * Invoked on the AWT event dispatch thread with the returned value from {@link #onRpcThread(Rpc.Result)}.

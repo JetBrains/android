@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.gfxtrace.controllers;
 
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
+import com.android.tools.idea.editors.gfxtrace.UiCallback;
 import com.android.tools.idea.editors.gfxtrace.models.AtomStream;
 import com.android.tools.idea.editors.gfxtrace.service.Context;
 import com.android.tools.idea.editors.gfxtrace.service.RenderSettings;
@@ -27,6 +28,7 @@ import com.android.tools.idea.editors.gfxtrace.service.atom.Range;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.android.tools.idea.editors.gfxtrace.widgets.CellList;
 import com.android.tools.idea.editors.gfxtrace.widgets.ImageCellList;
+import com.android.tools.rpclib.multiplex.Channel;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
 import com.google.wireless.android.sdk.stats.AndroidStudioStats;
@@ -35,6 +37,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEve
 import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventKind;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.ui.JBUI;
+import java.util.concurrent.ExecutionException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,7 +46,6 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.ExecutionException;
 
 public class ScrubberController extends ImageCellController<ScrubberController.Data> implements AtomStream.Listener {
   private static final Dimension PREVIEW_SIZE = JBUI.size(192, 192);
@@ -85,12 +87,18 @@ public class ScrubberController extends ImageCellController<ScrubberController.D
       return;
     }
     final ServiceClient client = myEditor.getClient();
-    Rpc.listen(client.getFramebufferColor(devicePath, cell.atomPath, myRenderSettings), LOG, new Rpc.Callback<ImageInfoPath>() {
+    Rpc.listen(client.getFramebufferColor(devicePath, cell.atomPath, myRenderSettings), new UiCallback<ImageInfoPath, Void>(myEditor, LOG) {
+
       @Override
-      public void onFinish(Rpc.Result<ImageInfoPath> result) throws RpcException, ExecutionException {
-        // TODO: try{ result.get() } catch{ ErrDataUnavailable e }...
+      protected Void onRpcThread(Rpc.Result<ImageInfoPath> result) throws RpcException, ExecutionException, Channel.NotConnectedException {
         ImageInfoPath imagePath = result.get();
         loadCellImage(cell, client, imagePath, onLoad);
+        return null;
+      }
+
+      @Override
+      protected void onUiThread(Void result) {
+        // nothing to do here as we need to make more requests that we do in the onRpcThread method.
       }
     });
   }

@@ -24,6 +24,7 @@ import com.android.tools.idea.editors.gfxtrace.service.ResourceBundles;
 import com.android.tools.idea.editors.gfxtrace.service.Resources;
 import com.android.tools.idea.editors.gfxtrace.service.gfxapi.GfxAPIProtos;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
+import com.android.tools.rpclib.multiplex.Channel;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
 import com.google.common.collect.Lists;
@@ -57,11 +58,11 @@ public class ResourceCollection implements PathListener {
     if (myResourcesPath.updateIfNotNull(CapturePath.resourceBundles(event.findCapturePath()))) {
       if (myEditor.getFeatures().hasResourceBundles()) {
         myListeners.onResourceLoadingStart(ResourceCollection.this);
-        Rpc.listen(myEditor.getClient().get(myResourcesPath.getPath()), LOG,
-                   new UiErrorCallback<ResourceBundles, ResourceBundles, String>() {
+        Rpc.listen(myEditor.getClient().get(myResourcesPath.getPath()),
+                   new UiErrorCallback<ResourceBundles, ResourceBundles, String>(myEditor, LOG) {
                      @Override
                      protected ResultOrError<ResourceBundles, String> onRpcThread(Rpc.Result<ResourceBundles> result)
-                       throws RpcException, ExecutionException {
+                       throws RpcException, ExecutionException, Channel.NotConnectedException {
                        try {
                          return success(result.get());
                        }
@@ -87,10 +88,10 @@ public class ResourceCollection implements PathListener {
         // Use deprecated ResourcesPath and build the bundles from the result.
         ResourcesPath path = myResourcesPath.getPath().asResourcesPath();
         myListeners.onResourceLoadingStart(ResourceCollection.this);
-        Rpc.listen(myEditor.getClient().get(path), LOG, new UiErrorCallback<Resources, ResourceBundles, String>() {
+        Rpc.listen(myEditor.getClient().get(path), new UiErrorCallback<Resources, ResourceBundles, String>(myEditor, LOG) {
           @Override
           protected ResultOrError<ResourceBundles, String> onRpcThread(Rpc.Result<Resources> result)
-            throws RpcException, ExecutionException {
+            throws RpcException, ExecutionException, Channel.NotConnectedException {
             try {
               Resources res = result.get();
               List<ResourceBundle> bundles = Lists.newArrayList();

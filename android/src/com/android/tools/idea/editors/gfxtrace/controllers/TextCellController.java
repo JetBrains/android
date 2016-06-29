@@ -23,6 +23,7 @@ import com.android.tools.idea.editors.gfxtrace.service.gfxapi.Program;
 import com.android.tools.idea.editors.gfxtrace.service.gfxapi.Shader;
 import com.android.tools.idea.editors.gfxtrace.service.path.Path;
 import com.android.tools.idea.editors.gfxtrace.widgets.CellList;
+import com.android.tools.rpclib.multiplex.Channel;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
 import com.google.common.base.Strings;
@@ -52,9 +53,10 @@ public abstract class TextCellController <T extends CellList.Data & TextCellCont
     final CellRenderer.CellLoader<T> loader = new CellRenderer.CellLoader<T>() {
       @Override
       public void loadCell(T cell, Runnable onLoad) {
-        Rpc.listen(myEditor.getClient().get(cell.getPath()), LOG, cell.controller, new UiErrorCallback<Object, Object, String>() {
+        Rpc.listen(myEditor.getClient().get(cell.getPath()), cell.controller, new UiErrorCallback<Object, Object, String>(myEditor, LOG) {
           @Override
-          protected ResultOrError<Object, String> onRpcThread(Rpc.Result<Object> result) throws RpcException, ExecutionException {
+          protected ResultOrError<Object, String> onRpcThread(Rpc.Result<Object> result)
+            throws RpcException, ExecutionException, Channel.NotConnectedException {
             try {
               return success(result.get());
             }
