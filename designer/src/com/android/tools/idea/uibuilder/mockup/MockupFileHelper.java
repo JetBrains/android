@@ -32,6 +32,7 @@ import com.intellij.util.containers.WeakHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.awt.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -39,6 +40,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 
 /**
@@ -60,7 +62,7 @@ public class MockupFileHelper {
       return null;
     }
 
-    if(IMAGE_CACHE.containsKey(path)) {
+    if (IMAGE_CACHE.containsKey(path)) {
       return IMAGE_CACHE.get(path);
     }
 
@@ -108,6 +110,32 @@ public class MockupFileHelper {
       @Override
       protected void run(@NotNull Result result) throws Throwable {
         component.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_MOCKUP_OPACITY, String.valueOf(opacity));
+      }
+    };
+    action.execute();
+  }
+
+
+  public static void writePositionToXML(@NotNull Mockup mockup) {
+    NlComponent component = mockup.getComponent();
+    if (component == null) {
+      return;
+    }
+    final NlModel model = component.getModel();
+    final WriteCommandAction action = new WriteCommandAction(model.getProject(), "Edit Mockup Position", model.getFile()) {
+      @Override
+      protected void run(@NotNull Result result) throws Throwable {
+        if (mockup.isFullScreen()) {
+          component.removeAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_MOCKUP_POSITION);
+        }
+        else {
+          final Rectangle bounds = mockup.getBounds();
+          final Rectangle crop = mockup.getCropping();
+          final String position = String.format(Locale.US, "%d %d %d %d %d %d %d %d",
+                                                bounds.x, bounds.y, bounds.width, bounds.height,
+                                                crop.x, crop.y, crop.width, crop.height);
+          component.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_MOCKUP_POSITION, position);
+        }
       }
     };
     action.execute();
