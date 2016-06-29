@@ -35,6 +35,7 @@ public class NlDesignProperties {
   private final AttributeDefinition myOpenDrawerItemDefinition;
   private final AttributeDefinition myLayoutDefinition;
   private final AttributeDefinition myParentTagDefinition;
+  private final AttributeDefinition myMockupDefinition;
 
   public NlDesignProperties() {
     myContextDefinition = getDefinitionByName(ATTR_CONTEXT);
@@ -43,6 +44,7 @@ public class NlDesignProperties {
     myOpenDrawerItemDefinition = getDefinitionByName(ATTR_OPEN_DRAWER);
     myLayoutDefinition = getDefinitionByName(ATTR_LAYOUT);
     myParentTagDefinition = getDefinitionByName(ATTR_PARENT_TAG);
+    myMockupDefinition = getDefinitionByName(ATTR_MOCKUP);
   }
 
   @NotNull
@@ -53,7 +55,9 @@ public class NlDesignProperties {
       new NlPropertyItem(components, TOOLS_URI, myShowInItemDefinition),
       new NlPropertyItem(components, TOOLS_URI, myOpenDrawerItemDefinition),
       new NlPropertyItem(components, TOOLS_URI, myLayoutDefinition),
-      new NlPropertyItem(components, TOOLS_URI, myParentTagDefinition));
+      new NlPropertyItem(components, TOOLS_URI, myParentTagDefinition),
+      new NlPropertyItem(components, TOOLS_URI, myLayoutDefinition),
+      new NlPropertyItem(components, TOOLS_URI, myMockupDefinition));
   }
 
   private static AttributeDefinition getDefinitionByName(@NotNull String name) {
