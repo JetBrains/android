@@ -24,10 +24,12 @@ import com.android.tools.idea.gradle.customizer.dependency.DependencySet;
 import com.android.tools.idea.gradle.customizer.dependency.LibraryDependency;
 import com.android.tools.idea.gradle.customizer.dependency.ModuleDependency;
 import com.google.common.collect.Sets;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.*;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
@@ -57,7 +59,7 @@ import static org.jetbrains.android.facet.IdeaSourceProvider.getAllSourceFolders
  *   <li>"Excluded" for unit test source</li>
  * </ul>
  */
-public final class TestArtifactSearchScopes {
+public final class TestArtifactSearchScopes implements Disposable {
   private static final Key<TestArtifactSearchScopes> SEARCH_SCOPES_KEY = Key.create("TEST_ARTIFACT_SEARCH_SCOPES");
 
   @Nullable
@@ -104,6 +106,7 @@ public final class TestArtifactSearchScopes {
   private TestArtifactSearchScopes(@NotNull Module module, @NotNull AndroidGradleModel androidModel) {
     myModule = module;
     myAndroidModel = androidModel;
+    Disposer.register(module, this);
   }
 
   @NotNull
@@ -340,5 +343,10 @@ public final class TestArtifactSearchScopes {
     }
     String path = urlToPath(url);
     return new File(toSystemDependentPath(path));
+  }
+
+  @Override
+  public void dispose() {
+    myModule.putUserData(SEARCH_SCOPES_KEY, null);
   }
 }
