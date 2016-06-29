@@ -33,7 +33,7 @@ import java.util.*;
 
 public class MemoryDataCache {
   private static final Logger LOG = Logger.getInstance(MemoryDataCache.class);
-  private static final long UNFINISHED_HEAP_DUMP_TIMESTAMP = -1;
+  static final int UNFINISHED_HEAP_DUMP_TIMESTAMP = -1;
 
   private final int myPid;
   private List<MemoryProfilerService.MemoryData.MemorySample> myMemorySamples = Collections.synchronizedList(new ArrayList<>());
@@ -103,8 +103,8 @@ public class MemoryDataCache {
   }
 
   @NotNull
-  public List<MemoryProfilerService.MemoryData.HeapDumpSample> getHeapDumpSamples() {
-    return myHeapDumpSamples;
+  public MemoryProfilerService.MemoryData.HeapDumpSample getHeapDumpSample(int index) {
+    return myHeapDumpSamples.get(index);
   }
 
   @Nullable
@@ -150,6 +150,17 @@ public class MemoryDataCache {
                     });
     index = DataAdapter.convertBinarySearchIndex(index, leftClosest);
     return Math.max(0, Math.min(myVmStatsSamples.size(), index));
+  }
+
+  public int getLatestPriorHeapDumpSampleIndex(long time, boolean leftClosest) {
+    int index = Collections
+      .binarySearch(myHeapDumpSamples, MemoryProfilerService.MemoryData.HeapDumpSample.newBuilder().setStartTime(time).build(),
+                    (left, right) -> {
+                      long diff = left.getStartTime() - right.getStartTime();
+                      return (diff == 0) ? 0 : ((diff < 0) ? -1 : 1);
+                    });
+    index = DataAdapter.convertBinarySearchIndex(index, leftClosest);
+    return Math.max(0, Math.min(myHeapDumpSamples.size(), index));
   }
 
   public void reset() {

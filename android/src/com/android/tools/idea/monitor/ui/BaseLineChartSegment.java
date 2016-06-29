@@ -16,12 +16,15 @@
 package com.android.tools.idea.monitor.ui;
 
 import com.android.tools.adtui.*;
+import com.android.tools.adtui.chart.linechart.EventConfig;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
+import com.android.tools.adtui.model.DurationData;
 import com.android.tools.adtui.model.LegendRenderData;
 import com.android.tools.adtui.model.RangedContinuousSeries;
+import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.idea.monitor.datastore.DataStoreSeries;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.datastore.SeriesDataType;
@@ -343,5 +346,12 @@ public abstract class BaseLineChartSegment extends BaseSegment {
   protected void addRightAxisLine(SeriesDataType type, String label, LineConfig lineConfig) {
     mLineChart.addLine(new RangedContinuousSeries(label, mXRange, mRightAxisRange, new DataStoreSeries(mSeriesDataStore, type),
                                                   TimeAxisFormatter.DEFAULT, mRightAxisFormatter), lineConfig);
+  }
+
+  /**
+   * Adds an event series to {@link #mLineChart}.
+   */
+  protected void addEvent(SeriesDataType type, @NotNull EventConfig eventConfig) {
+    mLineChart.addEvent(new RangedSeries<>(mXRange, new DataStoreSeries<>(mSeriesDataStore, type)), eventConfig);
   }
 }
