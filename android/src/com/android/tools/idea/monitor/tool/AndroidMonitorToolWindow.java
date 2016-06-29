@@ -144,11 +144,15 @@ public class AndroidMonitorToolWindow implements Disposable {
     Range xSelectionRange = new Range();
     myXRange = new Range();
 
+    // Align offsets on the ranges.
+    xGlobalRange.setOffset(deviceStartTimeUs);
+    xSelectionRange.setOffset(deviceStartTimeUs);
+    myXRange.setOffset(deviceStartTimeUs);
+
     myScrollbar = new RangeScrollbar(xGlobalRange, myXRange);
 
-    TimeAxisFormatter timeFormatter = new TimeAxisFormatter(5, 10, 5);
-    timeFormatter.setOrigin(deviceStartTimeUs);
-    myTimeAxis = new AxisComponent(myXRange, xGlobalRange, "TIME", AxisComponent.AxisOrientation.BOTTOM, 0, 0, false, timeFormatter);
+    myTimeAxis =
+      new AxisComponent(myXRange, xGlobalRange, "TIME", AxisComponent.AxisOrientation.BOTTOM, 0, 0, false, TimeAxisFormatter.DEFAULT);
     myTimeAxis.setLabelVisible(false);
 
     myDetailedViewContainer = new JBPanel(new BorderLayout());
