@@ -15,21 +15,18 @@
  */
 package com.android.tools.idea.editors.gfxtrace.models;
 
-import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.UiErrorCallback;
-import com.android.tools.idea.editors.gfxtrace.controllers.StateController;
 import com.android.tools.idea.editors.gfxtrace.service.ErrDataUnavailable;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.android.tools.rpclib.futures.SingleInFlight;
+import com.android.tools.rpclib.multiplex.Channel;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
 import com.android.tools.rpclib.schema.Dynamic;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.concurrent.ExecutionException;
 
 public class GpuState implements PathListener {
@@ -63,10 +60,10 @@ public class GpuState implements PathListener {
     if (myStatePath.updateIfNotNull(AtomRangePath.stateAfterLast(event.findAtomPath()))) {
       // we are making a request for a new state, this means our current state is old and irrelevant
       myState = null;
-      Rpc.listen(myEditor.getClient().get(myStatePath.getPath()), LOG, myReqController, new UiErrorCallback<Object, Dynamic, ErrDataUnavailable>() {
+      Rpc.listen(myEditor.getClient().get(myStatePath.getPath()), myReqController, new UiErrorCallback<Object, Dynamic, ErrDataUnavailable>(myEditor, LOG) {
         @Override
         protected ResultOrError<Dynamic, ErrDataUnavailable> onRpcThread(Rpc.Result<Object> result)
-            throws RpcException, ExecutionException {
+            throws RpcException, ExecutionException, Channel.NotConnectedException {
           try {
             return success((Dynamic)result.get());
           }

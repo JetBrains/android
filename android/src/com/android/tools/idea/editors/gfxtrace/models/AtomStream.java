@@ -27,6 +27,7 @@ import com.android.tools.idea.editors.gfxtrace.service.atom.AtomList;
 import com.android.tools.idea.editors.gfxtrace.service.atom.Range;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.android.tools.rpclib.binary.BinaryObject;
+import com.android.tools.rpclib.multiplex.Channel;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
 import com.google.common.base.Function;
@@ -65,9 +66,9 @@ public class AtomStream implements PathListener {
           /* 0 */ atomF,
           /* 1 */ loadContexts(capturePath),
           /* 2 */ loadHierarchies(capturePath));
-      Rpc.listen(allF, LOG, new UiErrorCallback<List<BinaryObject>, LoadData, Void>() {
+      Rpc.listen(allF, new UiErrorCallback<List<BinaryObject>, LoadData, Void>(myEditor, LOG) {
         @Override
-        protected ResultOrError<LoadData, Void> onRpcThread(Rpc.Result<List<BinaryObject>> result) {
+        protected ResultOrError<LoadData, Void> onRpcThread(Rpc.Result<List<BinaryObject>> result) throws Channel.NotConnectedException {
           try {
             List<BinaryObject> list = result.get();
             return success(new LoadData((AtomList)list.get(0), (ContextList)list.get(1), (HierarchyList)list.get(2)));

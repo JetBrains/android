@@ -26,7 +26,6 @@ import com.android.tools.idea.editors.gfxtrace.service.path.AtomPath;
 import com.android.tools.idea.editors.gfxtrace.service.path.AtomRangePath;
 import com.android.tools.idea.editors.gfxtrace.service.path.MeshPath;
 import com.android.tools.idea.editors.gfxtrace.service.path.MeshPathOptions;
-import com.android.tools.idea.editors.gfxtrace.service.stringtable.StringTable;
 import com.android.tools.idea.editors.gfxtrace.service.vertex.FmtFloat32;
 import com.android.tools.idea.editors.gfxtrace.service.vertex.VertexBuffer;
 import com.android.tools.idea.editors.gfxtrace.service.vertex.VertexProtos.SemanticType;
@@ -39,6 +38,7 @@ import com.android.tools.idea.editors.gfxtrace.viewer.camera.CylindricalCameraMo
 import com.android.tools.idea.editors.gfxtrace.viewer.camera.IsoSurfaceCameraModel;
 import com.android.tools.idea.editors.gfxtrace.viewer.geo.Model;
 import com.android.tools.idea.editors.gfxtrace.widgets.LoadablePanel;
+import com.android.tools.rpclib.multiplex.Channel;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
 import com.google.common.base.Function;
@@ -215,9 +215,10 @@ public class GeometryController extends Controller implements AtomStream.Listene
     ListenableFuture<Model> originalFuture = fetchModel(path.mesh(null));
     ListenableFuture<Model> facetedFuture = fetchModel(path.mesh(new MeshPathOptions().setFaceted(true)));
 
-    Rpc.listen(Futures.successfulAsList(originalFuture, facetedFuture), LOG, new UiErrorCallback<List<Model>, Model, String>() {
+    Rpc.listen(Futures.successfulAsList(originalFuture, facetedFuture), new UiErrorCallback<List<Model>, Model, String>(myEditor, LOG) {
       @Override
-      protected ResultOrError<Model, String> onRpcThread(Rpc.Result<List<Model>> result) throws RpcException, ExecutionException {
+      protected ResultOrError<Model, String> onRpcThread(Rpc.Result<List<Model>> result)
+          throws RpcException, ExecutionException, Channel.NotConnectedException {
         List<Model> models = result.get();
         myOriginalModel = models.get(0);
         myFacetedModel = models.get(1);

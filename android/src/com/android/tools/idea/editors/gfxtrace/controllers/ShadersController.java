@@ -24,6 +24,7 @@ import com.android.tools.idea.editors.gfxtrace.service.ResourceBundle;
 import com.android.tools.idea.editors.gfxtrace.service.gfxapi.*;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.android.tools.idea.editors.gfxtrace.widgets.*;
+import com.android.tools.rpclib.multiplex.Channel;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
 import com.google.common.base.Strings;
@@ -199,9 +200,10 @@ public class ShadersController extends Controller implements ResourceCollection.
       shaderFutures.add(myFuturePath);
     }
     ListenableFuture<List<Object>> futureOfShaders = Futures.allAsList(shaderFutures);
-    Rpc.listen(futureOfShaders, LOG, cell.controller, new UiErrorCallback<List<Object>, List<Object>, String>() {
+    Rpc.listen(futureOfShaders, cell.controller, new UiErrorCallback<List<Object>, List<Object>, String>(myEditor, LOG) {
       @Override
-      protected ResultOrError<List<Object>, String> onRpcThread(Rpc.Result<List<Object>> result) throws RpcException, ExecutionException {
+      protected ResultOrError<List<Object>, String> onRpcThread(Rpc.Result<List<Object>> result)
+        throws RpcException, ExecutionException, Channel.NotConnectedException {
         try {
           return success(result.get());
         }

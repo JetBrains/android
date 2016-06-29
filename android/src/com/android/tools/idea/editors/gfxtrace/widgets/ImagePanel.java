@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.editors.gfxtrace.widgets;
 
-import com.android.tools.idea.editors.gfxtrace.UiCallback;
+import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.UiErrorCallback;
 import com.android.tools.idea.editors.gfxtrace.service.ErrDataUnavailable;
 import com.android.tools.idea.editors.gfxtrace.service.image.MultiLevelImage;
 import com.android.tools.rpclib.futures.FutureController;
+import com.android.tools.rpclib.multiplex.Channel;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
 import com.intellij.openapi.actionSystem.*;
@@ -31,7 +32,6 @@ import com.intellij.ui.awt.RelativePoint;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.ui.components.JBSlidingPanel;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.StatusText;
 import icons.AndroidIcons;
@@ -60,11 +60,11 @@ public class ImagePanel extends JPanel {
   @NotNull private final ImageComponent myImage;
   @NotNull private final JBLabel myStatus = new JBLabel();
 
-  public ImagePanel() {
+  public ImagePanel(@NotNull GfxTraceEditor editor) {
     super(new BorderLayout());
 
     JBScrollPane scrollPane = new JBScrollPane();
-    myImage = new ImageComponent(scrollPane);
+    myImage = new ImageComponent(scrollPane, editor);
     scrollPane.getVerticalScrollBar().setUnitIncrement(20);
     scrollPane.getHorizontalScrollBar().setUnitIncrement(20);
     scrollPane.setBorder(BorderFactory.createLineBorder(JBColor.border()));
@@ -144,9 +144,11 @@ public class ImagePanel extends JPanel {
     private boolean drawCheckerBoard = true;
     private boolean flipped = false;
     private boolean[] channels = new boolean[] { true, true, true, true };
+    @NotNull private final GfxTraceEditor myEditor;
 
-    public ImageComponent(JBScrollPane scrollPane) {
+    public ImageComponent(JBScrollPane scrollPane, GfxTraceEditor editor) {
       scrollPane.setViewportView(this);
+      myEditor = editor;
       this.parent = scrollPane.getViewport();
       this.emptyText = new StatusText() {
         @Override
@@ -473,12 +475,11 @@ public class ImagePanel extends JPanel {
       index = Math.min(image.getLevelCount() - 1, index);
       Rpc.listen(
         image.getLevel(index),
-        LOG,
         imageRequestController,
-        new UiErrorCallback<BufferedImage, BufferedImage, String>() {
+        new UiErrorCallback<BufferedImage, BufferedImage, String>(myEditor, LOG) {
           @Override
           protected ResultOrError<BufferedImage, String> onRpcThread(Rpc.Result<BufferedImage> result)
-            throws RpcException, ExecutionException {
+            throws RpcException, ExecutionException, Channel.NotConnectedException {
             try {
               return success(result.get());
             }

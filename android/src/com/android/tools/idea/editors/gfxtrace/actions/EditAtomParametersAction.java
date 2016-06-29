@@ -24,6 +24,7 @@ import com.android.tools.idea.editors.gfxtrace.renderers.RenderUtils;
 import com.android.tools.idea.editors.gfxtrace.service.path.Path;
 import com.android.tools.idea.editors.gfxtrace.service.snippets.Labels;
 import com.android.tools.idea.editors.gfxtrace.service.snippets.SnippetObject;
+import com.android.tools.rpclib.multiplex.Channel;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
 import com.android.tools.rpclib.schema.*;
@@ -102,9 +103,9 @@ public class EditAtomParametersAction extends AbstractAction {
                                      .setGfxTracingDetails(AndroidStudioStats.GfxTracingDetails.newBuilder()
                                                            .setTracePath(oldPath.toString())));
 
-      Rpc.listen(myGfxTraceEditor.getClient().set(oldPath, newAtom), LOG, new UiCallback<Path, Path>() {
+      Rpc.listen(myGfxTraceEditor.getClient().set(oldPath, newAtom), new UiCallback<Path, Path>(myGfxTraceEditor, LOG) {
         @Override
-        protected Path onRpcThread(Rpc.Result<Path> result) throws RpcException, ExecutionException {
+        protected Path onRpcThread(Rpc.Result<Path> result) throws RpcException, ExecutionException, Channel.NotConnectedException {
           return result.get();
         }
 

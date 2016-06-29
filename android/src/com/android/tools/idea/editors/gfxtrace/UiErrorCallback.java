@@ -15,10 +15,17 @@
  */
 package com.android.tools.idea.editors.gfxtrace;
 
+import com.intellij.openapi.diagnostic.Logger;
+
 /**
  * An {@link UiCallback} that handles errors.
  */
 public abstract class UiErrorCallback<T, U, E> extends UiCallback<T, UiErrorCallback.ResultOrError<U, E>> {
+
+  public UiErrorCallback(GfxTraceEditor gfxTraceEditor, Logger log) {
+    super(gfxTraceEditor, log);
+  }
+
   @Override
   protected final void onUiThread(ResultOrError<U, E> result) {
     if (result.hasResult()) {

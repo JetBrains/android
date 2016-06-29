@@ -23,6 +23,7 @@ import com.android.tools.idea.editors.gfxtrace.service.image.MultiLevelImage;
 import com.android.tools.idea.editors.gfxtrace.widgets.ImagePanel;
 import com.android.tools.idea.editors.gfxtrace.widgets.LoadablePanel;
 import com.android.tools.rpclib.futures.SingleInFlight;
+import com.android.tools.rpclib.multiplex.Channel;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -34,7 +35,6 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.util.concurrent.ExecutionException;
 
 public abstract class ImagePanelController extends Controller {
@@ -42,7 +42,7 @@ public abstract class ImagePanelController extends Controller {
 
   @NotNull protected final JPanel myPanel = new JPanel(new BorderLayout());
   @NotNull private final SingleInFlight myImageRequestController;
-  @NotNull private final ImagePanel myImagePanel = new ImagePanel();
+  @NotNull private final ImagePanel myImagePanel = new ImagePanel(myEditor);
 
   public ImagePanelController(@NotNull GfxTraceEditor editor, String emptyText) {
     super(editor);
@@ -69,10 +69,10 @@ public abstract class ImagePanelController extends Controller {
       return;
     }
 
-    Rpc.listen(imageFuture, LOG, myImageRequestController, new UiErrorCallback<FetchedImage, MultiLevelImage, String>() {
+    Rpc.listen(imageFuture, myImageRequestController, new UiErrorCallback<FetchedImage, MultiLevelImage, String>(myEditor, LOG) {
       @Override
       protected ResultOrError<MultiLevelImage, String> onRpcThread(
-          Rpc.Result<FetchedImage> result) throws RpcException, ExecutionException {
+          Rpc.Result<FetchedImage> result) throws RpcException, ExecutionException, Channel.NotConnectedException {
         try {
           return success(result.get());
         }

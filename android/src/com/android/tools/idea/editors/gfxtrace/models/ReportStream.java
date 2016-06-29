@@ -26,6 +26,7 @@ import com.android.tools.idea.editors.gfxtrace.service.path.PathListener;
 import com.android.tools.idea.editors.gfxtrace.service.path.PathStore;
 import com.android.tools.idea.editors.gfxtrace.service.path.ReportItemPath;
 import com.android.tools.idea.editors.gfxtrace.service.path.ReportPath;
+import com.android.tools.rpclib.multiplex.Channel;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -55,9 +56,10 @@ public class ReportStream implements PathListener {
     if (myReportPath.updateIfNotNull(CapturePath.report(event.findCapturePath()))) {
       myListeners.onReportLoadingStart(this);
       ListenableFuture<Object> future = myEditor.getClient().get(myReportPath.getPath());
-      Rpc.listen(future, LOG, new UiErrorCallback<Object, Report, String>() {
+      Rpc.listen(future, new UiErrorCallback<Object, Report, String>(myEditor, LOG) {
         @Override
-        protected ResultOrError<Report, String> onRpcThread(Rpc.Result<Object> result) throws RpcException, ExecutionException {
+        protected ResultOrError<Report, String> onRpcThread(Rpc.Result<Object> result)
+          throws RpcException, ExecutionException, Channel.NotConnectedException {
           try {
             Report report = (Report)result.get();
             report.buildMap();

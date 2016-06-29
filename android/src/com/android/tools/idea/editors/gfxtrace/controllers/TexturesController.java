@@ -32,6 +32,7 @@ import com.android.tools.idea.editors.gfxtrace.service.image.ImageInfo;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.android.tools.idea.editors.gfxtrace.widgets.ImageCellList;
 import com.android.tools.rpclib.futures.SingleInFlight;
+import com.android.tools.rpclib.multiplex.Channel;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
 import com.google.wireless.android.sdk.stats.AndroidStudioStats;
@@ -154,9 +155,9 @@ public class TexturesController extends ImagePanelController {
     }
 
     private void loadCellMetadata(final Data cell) {
-      Rpc.listen(myEditor.getClient().get(cell.path), LOG, cell.extraController, new UiErrorCallback<Object, Object, String>() {
+      Rpc.listen(myEditor.getClient().get(cell.path), cell.extraController, new UiErrorCallback<Object, Object, String>(myEditor, LOG) {
         @Override
-        protected ResultOrError<Object, String> onRpcThread(Rpc.Result<Object> result) throws RpcException, ExecutionException {
+        protected ResultOrError<Object, String> onRpcThread(Rpc.Result<Object> result) throws RpcException, ExecutionException, Channel.NotConnectedException {
           try {
             return success(result.get());
           } catch (ErrDataUnavailable e) {

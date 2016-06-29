@@ -24,6 +24,7 @@ import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
 import com.android.tools.idea.editors.gfxtrace.service.image.FetchedImage;
 import com.android.tools.idea.editors.gfxtrace.service.path.Path;
 import com.android.tools.idea.editors.gfxtrace.widgets.*;
+import com.android.tools.rpclib.multiplex.Channel;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
 import com.google.common.util.concurrent.AsyncFunction;
@@ -90,9 +91,10 @@ public abstract class ImageCellController<T extends ImageCellList.Data> extends 
       public ListenableFuture<BufferedImage> apply(FetchedImage image) throws Exception {
         return getLevelToShow(image);
       }
-    }), LOG, cell.controller, new UiErrorCallback<BufferedImage, BufferedImage, String>() {
+    }), cell.controller, new UiErrorCallback<BufferedImage, BufferedImage, String>(myEditor, LOG) {
       @Override
-      protected ResultOrError<BufferedImage, String> onRpcThread(Rpc.Result<BufferedImage> result) throws RpcException, ExecutionException {
+      protected ResultOrError<BufferedImage, String> onRpcThread(Rpc.Result<BufferedImage> result)
+          throws RpcException, ExecutionException, Channel.NotConnectedException {
         try {
           return success(result.get());
         } catch (ErrDataUnavailable e) {

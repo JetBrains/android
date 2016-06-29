@@ -25,6 +25,7 @@ import com.android.tools.idea.editors.gfxtrace.service.memory.MemoryRange;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.android.tools.idea.editors.gfxtrace.service.path.PathProtos.MemoryKind;
 import com.android.tools.idea.editors.gfxtrace.widgets.LoadablePanel;
+import com.android.tools.rpclib.multiplex.Channel;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
 import com.google.common.base.Function;
@@ -192,9 +193,10 @@ public class MemoryController extends Controller {
         update();
       }
       else {
-        Rpc.listen(fetcher.get(memoryPath.getAddress(), memoryPath.getSize()), LOG, new UiErrorCallback<MemoryInfo, MemoryDataModel, String>() {
+        Rpc.listen(fetcher.get(memoryPath.getAddress(), memoryPath.getSize()), new UiErrorCallback<MemoryInfo, MemoryDataModel, String>(myEditor, LOG) {
           @Override
-          protected ResultOrError<MemoryDataModel, String> onRpcThread(Rpc.Result<MemoryInfo> result) throws RpcException, ExecutionException {
+          protected ResultOrError<MemoryDataModel, String> onRpcThread(Rpc.Result<MemoryInfo> result)
+              throws RpcException, ExecutionException, Channel.NotConnectedException {
             final MemoryInfo info;
             try {
               info = result.get();

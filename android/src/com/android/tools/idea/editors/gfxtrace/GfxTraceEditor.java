@@ -34,6 +34,7 @@ import com.android.tools.idea.editors.gfxtrace.service.stringtable.StringTable;
 import com.android.tools.idea.editors.gfxtrace.widgets.LoadablePanel;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
+import com.android.tools.rpclib.multiplex.Channel;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
 import com.android.tools.rpclib.schema.ConstantSet;
@@ -116,6 +117,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
 
   @Nullable private GapisConnection myGapisConnection;
   @Nullable private ServiceClient myClient;
+  private boolean myDisposed;
 
   public GfxTraceEditor(@NotNull final Project project, @NotNull final VirtualFile file) {
     myProject = project;
@@ -196,17 +198,17 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
             LOG.error(e);
           }
         }
-        catch (RejectedExecutionException e) {
+        catch (RejectedExecutionException | Channel.NotConnectedException e) {
           if (isDisposed()) {
             return;
           }
-          throw e;
+          throw (e instanceof RuntimeException) ? (RuntimeException)e : new RuntimeException(e);
         }
       }
     });
   }
 
-  private void doConnect() throws GapisInitException {
+  private void doConnect() throws GapisInitException, Channel.NotConnectedException {
     connectToServer();
 
     GapisConnection connection = myGapisConnection; // take local ref to avoid null pointer
@@ -248,7 +250,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   /**
    * Requests and blocks for the schema from the server.
    */
-  private void fetchSchema() throws ExecutionException, RpcException, TimeoutException {
+  private void fetchSchema() throws ExecutionException, RpcException, TimeoutException, Channel.NotConnectedException {
     Message schema = Rpc.get(myClient.getSchema(), FETCH_SCHEMA_TIMEOUT_MS, TimeUnit.MILLISECONDS);
     LOG.info("Schema with " + schema.entities.length + " classes, " + schema.constants.length + " constant sets");
     int atoms = 0;
@@ -268,7 +270,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   /**
    * Requests and blocks for the features list from the server.
    */
-  private void fetchFeatures(GapisFeatures features) throws ExecutionException, RpcException, TimeoutException {
+  private void fetchFeatures(GapisFeatures features) throws ExecutionException, RpcException, TimeoutException, Channel.NotConnectedException {
     String[] list = Rpc.get(myClient.getFeatures(), FETCH_FEATURES_TIMEOUT_MS, TimeUnit.MILLISECONDS);
     features.setFeatureList(list);
     LOG.info("GAPIS features: " + Arrays.toString(list));
@@ -277,7 +279,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   /**
    * Requests, blocks, and then makes current the string table from the server.
    */
-  private void fetchStringTable() throws ExecutionException, RpcException, TimeoutException {
+  private void fetchStringTable() throws ExecutionException, RpcException, TimeoutException, Channel.NotConnectedException {
     Info[] infos = Rpc.get(myClient.getAvailableStringTables(), FETCH_STRING_TABLE_TIMEOUT_MS, TimeUnit.MILLISECONDS);
     if (infos.length == 0) {
       LOG.warn("No string tables available");
@@ -291,7 +293,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   /**
    * Requests and blocks for the replay device from the server.
    */
-  private void fetchReplayDevice() throws GapisInitException {
+  private void fetchReplayDevice() throws GapisInitException, Channel.NotConnectedException {
     for (int i = 0; i < FETCH_REPLAY_DEVICE_MAX_RETRIES; i++) {
       try {
         DevicePath[] devices = Rpc.get(getClient().getDevices(), FETCH_REPLAY_DEVICE_TIMEOUT_MS, TimeUnit.MILLISECONDS);
@@ -316,7 +318,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   /**
    * Uploads or requests the capture path from the server and then activates the path.
    */
-  private void fetchTrace(VirtualFile file) throws GapisInitException {
+  private void fetchTrace(VirtualFile file) throws GapisInitException, Channel.NotConnectedException {
     try {
       final ListenableFuture<CapturePath> captureF;
       if (file.getFileSystem().getProtocol().equals(StandardFileSystems.FILE_PROTOCOL)) {
@@ -491,6 +493,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
 
   @Override
   public void dispose() {
+    myDisposed = true;
 
     long totalTime = System.currentTimeMillis() - myStartTime;
     UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
@@ -508,7 +511,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   }
 
   public boolean isDisposed() {
-    return myExecutor.isShutdown();
+    return myDisposed;
   }
 
   private void connectToServer() throws GapisInitException {
