@@ -1355,6 +1355,18 @@ public class AndroidLintInspectionToolProvider {
     // TODO: implement quickfix
   }
 
+  public static class AndroidLintUseOfBundledGooglePlayServicesInspection extends AndroidLintInspectionBase {
+    public AndroidLintUseOfBundledGooglePlayServicesInspection() {
+      super(AndroidBundle.message("android.lint.inspections.bundled.gms"), GradleDetector.BUNDLED_GMS);
+    }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
+      return new AndroidLintQuickFix[]{new OpenFirebaseAssistantQuickFix()};
+    }
+  }
+
   public static class AndroidLintUselessParentInspection extends AndroidLintInspectionBase {
     public AndroidLintUselessParentInspection() {
       super(AndroidBundle.message("android.lint.inspections.useless.parent"), UselessViewDetector.USELESS_PARENT);
