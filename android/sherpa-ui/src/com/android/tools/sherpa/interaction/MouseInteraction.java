@@ -382,7 +382,7 @@ public class MouseInteraction {
             reset();
             Collection<ConstraintWidget> widgets = mWidgetsScene.getWidgets();
             for (ConstraintWidget widget : widgets) {
-                if ((widget.isRoot() || widget.isRootContainer()) && mMode != DRAG_MODE) {
+                if ((widget.isRoot() || widget.isRootContainer()) && mMode != DRAG_MODE && mMode != CLICK_MODE) {
                     continue;
                 }
                 addWidgetToPicker(widget, mPicker);
