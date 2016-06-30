@@ -27,6 +27,7 @@ import com.android.tools.idea.monitor.datastore.SeriesDataType;
 import com.android.tools.idea.monitor.ui.BaseSegment;
 import com.android.tools.idea.monitor.ui.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.network.model.HttpData;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.EventDispatcher;
@@ -56,6 +57,12 @@ public class NetworkCaptureSegment extends BaseSegment implements Animatable {
   public enum NetworkState {
     SENDING, RECEIVING, WAITING, NONE
   }
+
+  /**
+   * Our table is transparent, but the default table selection color assumes an opaque background.
+   * We sidestep this readability issue by specifying the text color explicitly.
+   */
+  private static final Color TABLE_TEXT_COLOR = JBColor.BLACK;
 
   private static final EnumMap<NetworkState, Color> NETWORK_STATE_COLORS = new EnumMap<>(NetworkState.class);
 
@@ -155,6 +162,8 @@ public class NetworkCaptureSegment extends BaseSegment implements Animatable {
     table.setFont(AdtUiUtils.DEFAULT_FONT);
     table.setOpaque(false);
     ((DefaultTableCellRenderer)table.getDefaultRenderer(Object.class)).setOpaque(false);
+    table.setForeground(TABLE_TEXT_COLOR);
+    table.setSelectionForeground(TABLE_TEXT_COLOR);
 
     table.setRowHeight(myRowHeight);
     return table;
