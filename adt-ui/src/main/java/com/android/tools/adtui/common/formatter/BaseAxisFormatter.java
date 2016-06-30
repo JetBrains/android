@@ -18,6 +18,8 @@ package com.android.tools.adtui.common.formatter;
 import gnu.trove.TIntArrayList;
 import org.jetbrains.annotations.NotNull;
 
+import java.text.DecimalFormat;
+
 /**
  * An auxiliary object that formats the axis by determining the marker placement positions and their
  * corresponding labels.
@@ -58,8 +60,11 @@ public abstract class BaseAxisFormatter {
   @NotNull
   public String getFormattedString(double globalRange, double value) {
     int index = getMultiplierIndex(globalRange, 1);
-    String unit = getUnit(index);
-    return String.format("%.2f%s", (float)(value) / mMultiplier, unit);
+    // If value is an integer number, don't include the floating point/decimal places in the formatted string.
+    // Otherwise, add up to two decimal places of value.
+    DecimalFormat decimalFormat = new DecimalFormat("#.##");
+    String formattedValue = decimalFormat.format((float)(value) / mMultiplier);
+    return String.format("%s%s", formattedValue, getUnit(index));
   }
 
   /**
