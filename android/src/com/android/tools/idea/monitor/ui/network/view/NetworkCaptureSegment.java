@@ -150,7 +150,9 @@ public class NetworkCaptureSegment extends BaseSegment implements Animatable {
     });
     table.setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION);
     table.getSelectionModel().addListSelectionListener(e -> {
-      myDetailedViewListener.showDetailedConnection(myDataList.get(table.getSelectedRow()));
+      if (table.getSelectedRow() < myDataList.size()) {
+        myDetailedViewListener.showDetailedConnection(myDataList.get(table.getSelectedRow()));
+      }
     });
     table.setFont(AdtUiUtils.DEFAULT_FONT);
     table.setOpaque(false);
@@ -225,8 +227,12 @@ public class NetworkCaptureSegment extends BaseSegment implements Animatable {
       DefaultDataSeries<NetworkState> series = new DefaultDataSeries<>();
       series.add(0, NetworkState.NONE);
       series.add(data.value.getStartTimeUs(), NetworkState.SENDING);
-      series.add(data.value.getDownloadingTimeUs(), NetworkState.RECEIVING);
-      series.add(data.value.getEndTimeUs(), NetworkState.NONE);
+      if (data.value.getDownloadingTimeUs() > 0) {
+        series.add(data.value.getDownloadingTimeUs(), NetworkState.RECEIVING);
+      }
+      if (data.value.getEndTimeUs() > 0) {
+        series.add(data.value.getEndTimeUs(), NetworkState.NONE);
+      }
 
       StateChart<NetworkState> chart = new StateChart<>(NETWORK_STATE_COLORS);
       chart.addSeries(new RangedSeries<>(mXRange, series));
