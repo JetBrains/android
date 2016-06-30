@@ -91,7 +91,7 @@ public class AndroidMonitorToolWindow implements Disposable {
   private final JPanel myComponent;
 
   @NotNull
-  private final Splitter mySpliiter;
+  private final Splitter mySplitter;
 
   @Nullable
   private Choreographer myChoreographer;
@@ -126,7 +126,7 @@ public class AndroidMonitorToolWindow implements Disposable {
   public AndroidMonitorToolWindow(@NotNull final Project project) {
     myProject = project;
     myComponent = new JPanel(new BorderLayout());
-    mySpliiter = new Splitter(true, 1f);
+    mySplitter = new Splitter(true, 1f);
     myDeviceContext = new DeviceContext();
     myProfilerManagers = new TreeMap<>();
 
@@ -330,8 +330,8 @@ public class AndroidMonitorToolWindow implements Disposable {
     gridBagPanel.add(rightSpacerFiller, gbc);
     rightSpacerFiller.setVisible(false);
 
-    mySpliiter.setFirstComponent(gridBagPanel);
-    myComponent.add(mySpliiter);
+    mySplitter.setFirstComponent(gridBagPanel);
+    myComponent.add(mySplitter);
 
     myEventDispatcher.addListener(new ProfilerEventListener() {
       @Override
@@ -348,12 +348,13 @@ public class AndroidMonitorToolWindow implements Disposable {
               manager.setupExtendedOverviewUi(myProfilerToolbar, mySegmentsContainer);
               myExpandedProfiler = profilerType;
             }
-            else if (mySpliiter.getSecondComponent() == null) {
+            else if (mySplitter.getSecondComponent() == null) {
               // The profiler is expanded for the second time. e.g. L2 -> L3
               // Note that subsequent expansion call should not trigger this code block.
               manager.setupDetailedViewUi(myProfilerToolbar, myDetailedViewContainer);
-              mySpliiter.setSecondComponent(myDetailedViewContainer);
-              mySpliiter.setProportion(0.5f);
+              mySplitter.setOrientation(manager.isDetailedViewVerticallySplit());
+              mySplitter.setSecondComponent(myDetailedViewContainer);
+              mySplitter.setProportion(0.75f);
             }
           }
           else if (entry.getKey() == BaseProfilerUiManager.ProfilerType.EVENT && firstExpansion) {
@@ -379,8 +380,8 @@ public class AndroidMonitorToolWindow implements Disposable {
         myProfilerManagers.get(BaseProfilerUiManager.ProfilerType.EVENT)
           .resetProfiler(myProfilerToolbar, mySegmentsContainer, myDetailedViewContainer);
 
-        mySpliiter.setSecondComponent(null);
-        mySpliiter.setProportion(1f);
+        mySplitter.setSecondComponent(null);
+        mySplitter.setProportion(1f);
 
         timeSegment.toggleView(false);
         rightSpacerFiller.setVisible(false);
