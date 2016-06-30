@@ -54,6 +54,7 @@ public class EventDataPoller extends Poller {
   private List<EventAction<StackedEventComponent.Action, String>> myActivityData = new ArrayList<>();
   private List<EventAction<SimpleEventComponent.Action, EventSegment.EventActionType>> mySystemData = new ArrayList<>();
   private Map<Integer, Long> myActiveActivites = new HashMap<>();
+  private Map<Integer, Long> myActiveFragments = new HashMap<>();
   private long myLastDownEvent;
 
   public EventDataPoller(@NotNull DeviceProfilerService service, int pid, SeriesDataStore dataStore) {
@@ -117,18 +118,24 @@ public class EventDataPoller extends Poller {
           myActivityData.add(new EventAction<>(actionStart, actionEnd, action, activity.getName()));
         }
       } else if (data.getDataCase().toString().equals(FRAGMENT_DATA_PROTO_NAME)) {
+        // TODO: Combine fragment and activity data into one, the data that comes across for fragments is a subset.
         EventProfiler.FragmentEventData fragment = data.getFragmentData();
         StackedEventComponent.Action action = StackedEventComponent.Action.NONE;
         switch (fragment.getFragmentState()) {
-          case ACTIVATED:
+          case ADDED:
             action = StackedEventComponent.Action.ACTIVITY_STARTED;
+            myActiveFragments.put(fragment.getFragmentHash(), actionStart);
             break;
-          case DISABLED:
+          case REMOVED:
             action = StackedEventComponent.Action.ACTIVITY_COMPLETED;
+            actionEnd = actionStart;
+            actionStart = myActiveFragments.get(fragment.getFragmentHash());
             break;
         }
-        myFragmentTime.add(eventTimestamp);
-        myFragmentData.add(new EventAction<>(actionStart, actionEnd, action, fragment.getName()));
+        if (action != StackedEventComponent.Action.NONE) {
+          myFragmentTime.add(eventTimestamp);
+          myFragmentData.add(new EventAction<>(actionStart, actionEnd, action, fragment.getName()));
+        }
       } else if (data.getDataCase().toString().equals(SYSTEM_DATA_PROTO_NAME)) {
         EventProfiler.SystemEventData systemData = data.getSystemData();
         SimpleEventComponent.Action action = SimpleEventComponent.Action.NONE;
