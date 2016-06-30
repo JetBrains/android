@@ -16,10 +16,14 @@
 package com.android.tools.idea.monitor.ui.memory.view;
 
 import com.android.tools.adtui.Range;
+import com.android.tools.adtui.chart.linechart.EventConfig;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.common.formatter.MemoryAxisFormatter;
 import com.android.tools.adtui.common.formatter.SingleUnitAxisFormatter;
+import com.android.tools.adtui.common.formatter.TimeAxisFormatter;
+import com.android.tools.adtui.model.RangedContinuousSeries;
+import com.android.tools.idea.monitor.datastore.DataStoreSeries;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.datastore.SeriesDataType;
 import com.android.tools.idea.monitor.ui.BaseLineChartSegment;
@@ -27,6 +31,7 @@ import com.android.tools.idea.monitor.ui.BaseProfilerUiManager;
 import com.android.tools.idea.monitor.ui.ProfilerEventListener;
 import com.intellij.ui.JBColor;
 import com.intellij.util.EventDispatcher;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -50,6 +55,8 @@ public class MemorySegment extends BaseLineChartSegment {
   private static final Color MEMORY_OTHER_COLOR = new JBColor(new Color(78, 147, 187), new Color(78, 147, 187));
 
   private static final Color MEMORY_OBJECT_COUNT_COLOR = new JBColor(new Color(160, 160, 31), new Color(160, 160, 31));
+
+  private static final Color MEMORY_HEAP_DUMP_COLOR = JBColor.DARK_GRAY;
 
   private static final String JAVA_OBJECTS_COUNT = "Java Objects Count";
 
@@ -95,6 +102,10 @@ public class MemorySegment extends BaseLineChartSegment {
       addRightAxisLine(SeriesDataType.MEMORY_OBJECT_COUNT,
                        JAVA_OBJECTS_COUNT,
                        new LineConfig(MEMORY_OBJECT_COUNT_COLOR));
+
+      // Add the heap dump event series
+      addEvent(SeriesDataType.MEMORY_HEAPDUMP_EVENT,
+               new EventConfig(MEMORY_HEAP_DUMP_COLOR).setIcon(AndroidIcons.Ddms.DumpHprof).setBlocking(true));
     }
     else {
       addMemoryLevelLine(SeriesDataType.MEMORY_TOTAL, TOTAL_MEM_USAGE, MEMORY_TOTAL_COLOR);

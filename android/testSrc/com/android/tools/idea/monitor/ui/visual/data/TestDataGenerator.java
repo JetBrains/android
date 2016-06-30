@@ -64,15 +64,8 @@ public abstract class TestDataGenerator<T> implements DataAdapter<T> {
   }
 
   @Override
-  public int getClosestTimeIndex(long timeUs) {
-    int index = mTime.binarySearch(timeUs + mStartTimeUs);
-    if (index < 0) {
-      // No exact match, returns position to the left of the insertion point.
-      // NOTE: binarySearch returns -(insertion point + 1) if not found.
-      index = -index - 2;
-    }
-
-    return Math.max(0, Math.min(mTime.size() - 1, index));
+  public int getClosestTimeIndex(long timeUs, boolean leftClosest) {
+    return DataAdapter.getClosestIndex(mTime, timeUs, leftClosest);
   }
 
   /**
