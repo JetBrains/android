@@ -66,6 +66,10 @@ public class CpuDataPoller extends Poller {
     double system =
       100.0 * (data.getCpuUsage().getSystemCpuTimeInMillisec() - lastData.getCpuUsage().getSystemCpuTimeInMillisec()) / elapsed;
 
+    // System and app usages are read from them device in slightly different times. Make sure that appUsage <= systemUsage <= 100%
+    system = Math.min(system, 100.0);
+    app = Math.min(app, system);
+
     return new CpuUsageData(app, system);
   }
 
@@ -113,8 +117,7 @@ public class CpuDataPoller extends Poller {
       return;
     }
 
-    // Create a cpuData with default values as the first value.
-    Cpu.CpuProfilerData lastCpuData = Cpu.CpuProfilerData.newBuilder().build();
+    Cpu.CpuProfilerData lastCpuData = null;
 
     for (Cpu.CpuProfilerData data : cpuDataList) {
       if (data.getDataCase() == Cpu.CpuProfilerData.DataCase.DATA_NOT_SET) {
@@ -124,6 +127,11 @@ public class CpuDataPoller extends Poller {
 
       // Cpu Usage
       if (data.getDataCase() == Cpu.CpuProfilerData.DataCase.CPU_USAGE) {
+        // If lastCpuData is null, it means the first CPU usage data was read. Assign it to lastCpuData and go to the next iteration.
+        if (lastCpuData == null) {
+          lastCpuData = data;
+          continue;
+        }
         CpuUsageData usageData = getCpuUsageData(data, lastCpuData);
         myProcessCpuUsage.add((long)usageData.getAppUsage());
         myOtherProcessesCpuUsage.add((long)usageData.getOtherProcessesUsage());
