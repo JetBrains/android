@@ -34,6 +34,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.LanguageLevelModuleExtension;
 import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.pom.java.LanguageLevel;
 import icons.AndroidIcons;
@@ -144,24 +145,29 @@ public class JavaModuleDynamicPath extends DynamicWizardPath implements NewModul
       // We can't JUST look at the overall project level language level, since
       // Gradle sync appears not to sync the overall project level; instead we
       // have to take the min of all the modules
-      LanguageLevel min = null;
-      ApplicationManager.getApplication().assertReadAccessAllowed();
-      for (Module module : ModuleManager.getInstance(project).getModules()) {
-        LanguageLevelModuleExtension moduleLevelExt = LanguageLevelModuleExtensionImpl.getInstance(module);
-        if (moduleLevelExt != null) {
-          LanguageLevel moduleLevel = moduleLevelExt.getLanguageLevel();
-          if (moduleLevel != null) {
-            if (min == null) {
-              min = moduleLevel;
-            } else if (moduleLevel.compareTo(min) < 0) {
-              min = moduleLevel;
+      LanguageLevel min = ApplicationManager.getApplication().runReadAction(new Computable<LanguageLevel>() {
+        @Override
+        public LanguageLevel compute() {
+          LanguageLevel min = null;
+          for (Module module : ModuleManager.getInstance(project).getModules()) {
+            LanguageLevelModuleExtension moduleLevelExt = LanguageLevelModuleExtensionImpl.getInstance(module);
+            if (moduleLevelExt != null) {
+              LanguageLevel moduleLevel = moduleLevelExt.getLanguageLevel();
+              if (moduleLevel != null) {
+                if (min == null) {
+                  min = moduleLevel;
+                } else if (moduleLevel.compareTo(min) < 0) {
+                  min = moduleLevel;
+                }
+              }
             }
           }
+          if (min == null) {
+            min = LanguageLevelProjectExtension.getInstance(project).getLanguageLevel();
+          }
+          return min;
         }
-      }
-      if (min == null) {
-        min = LanguageLevelProjectExtension.getInstance(project).getLanguageLevel();
-      }
+      });
       parameterValueMap.put(ATTR_JAVA_VERSION, min.getCompilerComplianceDefaultOption());
     }
 
