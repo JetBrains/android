@@ -22,7 +22,7 @@ import org.jetbrains.annotations.NotNull;
 /** Model object for an entry in the {@link DevicePicker}. This is a simple wrapper around either a String, or a {@link AndroidDevice}. */
 public class DevicePickerEntry {
   public static final DevicePickerEntry CONNECTED_DEVICES_MARKER = new DevicePickerEntry(null, "Connected Devices");
-  public static final DevicePickerEntry LAUNCHABLE_DEVICES_MARKER = new DevicePickerEntry(null, "Available Emulators");
+  public static final DevicePickerEntry LAUNCHABLE_DEVICES_MARKER = new DevicePickerEntry(null, "Available Virtual Devices");
   public static final DevicePickerEntry NONE = new DevicePickerEntry(null, "   <none>");
 
   private final AndroidDevice myAndroidDevice;
