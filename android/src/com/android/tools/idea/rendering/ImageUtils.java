@@ -352,6 +352,64 @@ public class ImageUtils {
   }
 
   /**
+   * Do a fast, low-quality, scaling of the given image
+   *
+   * @param source the image to be scaled
+   * @param xScale x scale
+   * @param yScale y scale
+   * @return the scaled image
+   */
+  @NotNull
+  public static BufferedImage lowQualityFastScale(@NotNull BufferedImage source, double xScale, double yScale) {
+    return lowQualityFastScale(source, xScale, yScale, 0, 0, null);
+  }
+
+  /**
+   * Do a fast, low-quality, scaling of the given image
+   *
+   * @param source the image to be scaled
+   * @param xScale x scale
+   * @param yScale y scale
+   * @param rightMargin extra margin to add on the right
+   * @param bottomMargin extra margin to add on the bottom
+   * @param clip an optional clip rectangle to use
+   * @return the scaled image
+   */
+  @NotNull
+  public static BufferedImage lowQualityFastScale(@NotNull BufferedImage source, double xScale, double yScale,
+                                                  int rightMargin, int bottomMargin, @Nullable Shape clip) {
+    int sourceWidth = source.getWidth();
+    int sourceHeight = source.getHeight();
+    int destWidth = Math.max(1, (int) (xScale * sourceWidth));
+    int destHeight = Math.max(1, (int) (yScale * sourceHeight));
+    int imageType = source.getType();
+    if (imageType == BufferedImage.TYPE_CUSTOM) {
+      imageType = BufferedImage.TYPE_INT_ARGB;
+    }
+    BufferedImage scaled =
+      new BufferedImage(destWidth + rightMargin, destHeight + bottomMargin, imageType);
+    Graphics2D g2 = scaled.createGraphics();
+    g2.setComposite(AlphaComposite.Src);
+    //noinspection UseJBColor
+    g2.setColor(new Color(0, true));
+    g2.fillRect(0, 0, destWidth + rightMargin, destHeight + bottomMargin);
+    if (clip != null) {
+      g2.setClip(clip);
+    }
+    if (xScale == 1 && yScale == 1) {
+      g2.drawImage(source, 0, 0, null);
+    }
+    else {
+      g2.setRenderingHint(KEY_RENDERING, VALUE_RENDER_SPEED);
+      g2.setRenderingHint(KEY_ANTIALIASING, VALUE_ANTIALIAS_OFF);
+      g2.drawImage(source, 0, 0, destWidth, destHeight, 0, 0, sourceWidth, sourceHeight,
+                   null);
+    }
+    g2.dispose();
+    return scaled;
+  }
+
+  /**
    * Crops blank pixels from the edges of the image and returns the cropped result. We
    * crop off pixels that are blank (meaning they have an alpha value = 0). Note that
    * this is not the same as pixels that aren't opaque (an alpha value other than 255).
