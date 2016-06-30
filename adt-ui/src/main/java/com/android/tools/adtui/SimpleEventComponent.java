@@ -106,6 +106,10 @@ public class SimpleEventComponent<E extends Enum<E>> extends AnimatedComponent {
           mPaths.add(path);
         }
         mIconsToDraw.add(new EventRenderData(toDraw, data.getEndUs()));
+      } else if (data.getValue() == Action.NONE) {
+        // If no action is set then we do not need to associate a down, and up event together. Instead we render the icon
+        // associated with the event triggered.
+        mIconsToDraw.add(new EventRenderData(data.getValueData().ordinal(), data.getStartUs()));
       }
     }
     if (downEvent != null) {
