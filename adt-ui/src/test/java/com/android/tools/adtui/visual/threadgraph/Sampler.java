@@ -17,6 +17,7 @@
 package com.android.tools.adtui.visual.threadgraph;
 
 import com.android.tools.adtui.chart.hchart.HNode;
+import com.android.tools.adtui.chart.hchart.Method;
 
 import java.util.HashMap;
 import java.util.Set;

@@ -19,25 +19,24 @@ import com.android.tools.adtui.AccordionLayout;
 import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.Range;
 import com.android.tools.adtui.model.DefaultDataSeries;
-import com.android.tools.idea.monitor.ui.network.model.HttpDataCache;
-import com.android.tools.idea.monitor.ui.network.model.HttpDataPoller;
-import com.android.tools.idea.monitor.ui.network.model.NetworkDataPoller;
 import com.android.tools.idea.monitor.datastore.Poller;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.ui.BaseProfilerUiManager;
 import com.android.tools.idea.monitor.ui.BaseSegment;
 import com.android.tools.idea.monitor.ui.ProfilerEventListener;
+import com.android.tools.idea.monitor.ui.network.model.HttpDataCache;
+import com.android.tools.idea.monitor.ui.network.model.HttpDataPoller;
+import com.android.tools.idea.monitor.ui.network.model.NetworkDataPoller;
 import com.google.common.collect.Sets;
 import com.intellij.util.EventDispatcher;
 import io.netty.util.internal.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.*;
 import java.awt.*;
 import java.io.File;
-import java.util.Set;
-
-import javax.swing.*;
 import java.util.List;
+import java.util.Set;
 
 public final class NetworkProfilerUiManager extends BaseProfilerUiManager {
   public static final int NETWORK_CONNECTIVITY_HEIGHT = 40;
@@ -88,11 +87,11 @@ public final class NetworkProfilerUiManager extends BaseProfilerUiManager {
   @Override
   public void setupExtendedOverviewUi(@NotNull JPanel toolbar, @NotNull JPanel overviewPanel) {
     super.setupExtendedOverviewUi(toolbar, overviewPanel);
-    myRadioSegment = new NetworkRadioSegment(myXRange, myDataStore, myEventDispatcher);
+    myRadioSegment = new NetworkRadioSegment(myTimeViewRange, myDataStore, myEventDispatcher);
     setupAndRegisterSegment(myRadioSegment, NETWORK_CONNECTIVITY_HEIGHT, NETWORK_CONNECTIVITY_HEIGHT, NETWORK_CONNECTIVITY_HEIGHT);
     overviewPanel.add(myRadioSegment);
 
-    myCaptureSegment = new NetworkCaptureSegment(myXRange, myDataStore, httpData -> {
+    myCaptureSegment = new NetworkCaptureSegment(myTimeViewRange, myDataStore, httpData -> {
       String responseFilePath = httpData.getHttpResponseBodyPath();
       File file = !StringUtil.isNullOrEmpty(responseFilePath) ? myDataCache.getFile(responseFilePath) : null;
       if (file != null) {
