@@ -62,6 +62,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 
 public class AndroidMonitorToolWindow implements Disposable {
 
@@ -171,12 +172,13 @@ public class AndroidMonitorToolWindow implements Disposable {
     assert myDataStore != null;
     return Arrays.asList(accordion,
                          frameLength -> {
+                           long maxTimeBufferUs = TimeUnit.NANOSECONDS.toMicros(Poller.POLLING_DELAY_NS);
                            long currentTimeUs = myDataStore.getLatestTimeUs();
                            // Once elapsedTime is greater than DEFAULT_VIEW_LENGTH_US, set global min to 0 so that user can
                            // not scroll back to negative time.
                            monotonicTimeUsRangeUs.setMinTarget(Math.min(currentTimeUs - RangeScrollbar.DEFAULT_VIEW_LENGTH_US, deviceStartTimeUs));
                            // Updates the global range's max to match the device's current time.
-                           monotonicTimeUsRangeUs.setMaxTarget(currentTimeUs - Poller.POLLING_DELAY_NS);
+                           monotonicTimeUsRangeUs.setMaxTarget(currentTimeUs - maxTimeBufferUs);
                          },
                          mySelection,
                          myScrollbar,
