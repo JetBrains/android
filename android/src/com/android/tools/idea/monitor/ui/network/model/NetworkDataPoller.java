@@ -23,9 +23,7 @@ import io.grpc.StatusRuntimeException;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.EnumMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -45,7 +43,8 @@ public class NetworkDataPoller extends Poller {
 
   private final TLongArrayList myConnectionsData = new TLongArrayList();
 
-  private final TLongArrayList myConnectivityTimeData = new TLongArrayList();
+  private final TLongArrayList myRadioTimeData = new TLongArrayList();
+  private final TLongArrayList myNetworkTypeTimeData = new TLongArrayList();
 
   private final List<NetworkRadioSegment.RadioState> myRadioData = new ArrayList<>();
 
@@ -69,8 +68,8 @@ public class NetworkDataPoller extends Poller {
 
     myDataStore.registerAdapter(SeriesDataType.NETWORK_CONNECTIONS, new LongDataAdapter(myConnectionsTimeData, myConnectionsData));
 
-    myDataStore.registerAdapter(SeriesDataType.NETWORK_RADIO, new DataAdapterImpl<>(myConnectivityTimeData, myRadioData));
-    myDataStore.registerAdapter(SeriesDataType.NETWORK_TYPE, new DataAdapterImpl<>(myConnectivityTimeData, myNetworkTypeData));
+    myDataStore.registerAdapter(SeriesDataType.NETWORK_RADIO, new DataAdapterImpl<>(myRadioTimeData, myRadioData));
+    myDataStore.registerAdapter(SeriesDataType.NETWORK_TYPE, new DataAdapterImpl<>(myNetworkTypeTimeData, myNetworkTypeData));
   }
 
   private void requestData(NetworkProfiler.NetworkDataRequest.Type dataType) {
@@ -101,31 +100,46 @@ public class NetworkDataPoller extends Poller {
         myConnectionsData.add(data.getConnectionData().getConnectionNumber());
       }
       else if (data.getDataCase() == NetworkProfiler.NetworkProfilerData.DataCase.CONNECTIVITY_DATA) {
-        myConnectivityTimeData.add(timestampUs);
         // TODO: consider using RadioState enum from proto
-        switch (data.getConnectivityData().getRadioState()) {
-          case ACTIVE:
-            myRadioData.add(NetworkRadioSegment.RadioState.ACTIVE);
-            break;
-          case IDLE:
-            myRadioData.add(NetworkRadioSegment.RadioState.IDLE);
-            break;
-          case SLEEPING:
-            myRadioData.add(NetworkRadioSegment.RadioState.SLEEPING);
-            break;
-          default:
-            myRadioData.add(NetworkRadioSegment.RadioState.NONE);
+        {
+          NetworkRadioSegment.RadioState type;
+          switch (data.getConnectivityData().getRadioState()) {
+            case ACTIVE:
+              type = NetworkRadioSegment.RadioState.ACTIVE;
+              break;
+            case IDLE:
+              type = NetworkRadioSegment.RadioState.IDLE;
+              break;
+            case SLEEPING:
+              type = NetworkRadioSegment.RadioState.SLEEPING;
+              break;
+            default:
+              type = NetworkRadioSegment.RadioState.NONE;
+          }
+
+          if (myRadioData.size() == 0 || myRadioData.get(myRadioData.size() - 1) != type) {
+            myRadioData.add(type);
+            myRadioTimeData.add(timestampUs);
+          }
         }
 
-        switch (data.getConnectivityData().getDefaultNetworkType()) {
-          case MOBILE:
-            myNetworkTypeData.add(NetworkRadioSegment.NetworkType.MOBILE);
-            break;
-          case WIFI:
-            myNetworkTypeData.add(NetworkRadioSegment.NetworkType.WIFI);
-            break;
-          default:
-            myNetworkTypeData.add(NetworkRadioSegment.NetworkType.NONE);
+        {
+          NetworkRadioSegment.NetworkType type;
+          switch (data.getConnectivityData().getDefaultNetworkType()) {
+            case MOBILE:
+              type = NetworkRadioSegment.NetworkType.MOBILE;
+              break;
+            case WIFI:
+              type = NetworkRadioSegment.NetworkType.WIFI;
+              break;
+            default:
+              type = NetworkRadioSegment.NetworkType.NONE;
+          }
+
+          if (myNetworkTypeData.size() == 0 || myNetworkTypeData.get(myNetworkTypeData.size() - 1) != type) {
+            myNetworkTypeData.add(type);
+            myNetworkTypeTimeData.add(timestampUs);
+          }
         }
       }
 
