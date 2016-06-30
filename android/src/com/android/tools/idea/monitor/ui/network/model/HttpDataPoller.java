@@ -150,8 +150,7 @@ public class HttpDataPoller extends Poller {
       HttpData dataForClosestTime = new HttpData();
       dataForClosestTime.setStartTimeUs(timeUs);
       int index = Collections.binarySearch(myHttpDataList, dataForClosestTime, COMPARATOR_BY_START_TIME);
-      index = DataAdapter.convertBinarySearchIndex(index, leftClosest);
-      return Math.max(0, Math.min(myHttpDataList.size(), index));
+      return DataAdapter.convertBinarySearchIndex(index, myHttpDataList.size(), leftClosest);
     }
 
     @Override
