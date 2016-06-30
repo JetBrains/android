@@ -25,6 +25,7 @@ import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.ddms.DevicePanel;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.ddms.adb.AdbService;
+import com.android.tools.idea.monitor.datastore.Poller;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.datastore.SeriesDataStoreImpl;
 import com.android.tools.idea.monitor.profilerclient.DeviceProfilerService;
@@ -171,7 +172,7 @@ public class AndroidMonitorToolWindow implements Disposable {
                            // not scroll back to negative time.
                            xGlobalRange.setMinTarget(Math.min(currentTimeUs - RangeScrollbar.DEFAULT_VIEW_LENGTH_US, deviceStartTimeUs));
                            // Updates the global range's max to match the device's current time.
-                           xGlobalRange.setMaxTarget(currentTimeUs);
+                           xGlobalRange.setMaxTarget(currentTimeUs - Poller.POLLING_DELAY_NS);
                          },
                          mySelection,
                          myScrollbar,
