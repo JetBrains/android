@@ -29,6 +29,8 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.psi.impl.PsiManagerEx;
+import com.intellij.psi.impl.file.impl.FileManagerImpl;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.AndroidTestCase;
@@ -401,6 +403,52 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
       }
     });
     assertHasExactResourceTypes(resources, typesWithoutRes3);
+  }
+
+  /**
+   * This tests that even if we initialize ResourceFolderRepository with VirtualFiles and the test code is careful to only work with
+   * VirtualFiles, we still get the PsiListener events.
+   *
+   * Namely, {@link com.intellij.psi.impl.file.impl.PsiVFSListener} skips notifying other listeners if the parent directory has never
+   * been initialized as PSI.
+   */
+  public void testPsiListenerWithVirtualFiles() throws Exception {
+    final VirtualFile res1 = myFixture.copyFileToProject(LAYOUT, "res/layout/layout.xml")
+      .getParent().getParent();
+    // Stash the resource directory somewhere deep. Sometimes the test framework + VFS listener does automatically create
+    // a PsiDirectory for the top level. We only want a VirtualFile representation, and not the PsiDirectory representation.
+    final VirtualFile layout2 = myFixture.copyFileToProject(LAYOUT_OVERLAY, "foo/baz/bar/res/layout/foo_activity.xml");
+    final VirtualFile res2 = layout2.getParent().getParent();
+    assertNotSame(res1, res2);
+    // Check that we indeed don't have the PsiDirectory already cached, by poking at the implementation classes.
+    PsiManagerEx psiManager = (PsiManagerEx)PsiManager.getInstance(getProject());
+    FileManagerImpl fileManager = (FileManagerImpl)psiManager.getFileManager();
+    assertNull(fileManager.getCachedDirectory(res2));
+    assertNull(fileManager.getCachedPsiFile(layout2));
+
+    ModuleResourceRepository resources = ModuleResourceRepository.createForTest(myFacet, Arrays.asList(res1, res2));
+
+    assertNotNull(fileManager.getCachedDirectory(res2));
+
+    long generation = resources.getModificationCount();
+    assertTrue(resources.hasResourceItem(ResourceType.LAYOUT, "foo_activity"));
+    assertFalse(resources.hasResourceItem(ResourceType.LAYOUT, "bar_activity"));
+
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
+      @Override
+      public void run() {
+        try {
+          layout2.rename(this, "bar_activity.xml");
+        }
+        catch (IOException e) {
+          fail(e.toString());
+        }
+      }
+    });
+
+    assertTrue(resources.hasResourceItem(ResourceType.LAYOUT, "bar_activity"));
+    assertFalse(resources.hasResourceItem(ResourceType.LAYOUT, "foo_activity"));
+    assertTrue(resources.getModificationCount() > generation);
   }
 
   // Unit test support methods
