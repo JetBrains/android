@@ -176,9 +176,6 @@ public class CpuDataPoller extends Poller {
       long dataTimestamp = TimeUnit.NANOSECONDS.toMicros(data.getBasicInfo().getEndTimestamp());
       myTimestampArray.add(dataTimestamp);
 
-      // TODO: refactor statechart to avoid the need of inserting repeated consecutive states
-      // Add the current thread states to their correspondent state charts.
-      myThreadsStateData.values().forEach(val -> val.addState(val.getThreadStates().get(val.getThreadStates().size() - 1), dataTimestamp));
       // Add the current number of threads to the correspondent line chart
       myNumberOfThreadsList.add(myThreadsStateData.size());
     }
