@@ -26,6 +26,7 @@ public class GapisFeatures {
   private static final String FEATURE_RPC_STRING_TABLES = "rpc-string-tables";
   private static final String FEATURE_CONTEXTS_AND_HIERACHIES = "contexts-hierachies";
   private static final String FEATURE_MESHES = "meshes";
+  private static final String FEATURE_RESOURCE_BUNDLES = "resource-bundles";
 
   private final Set<String> myFeatures = new HashSet<String>();
 
@@ -73,5 +74,12 @@ public class GapisFeatures {
    */
   public boolean hasMeshes() {
     return myFeatures.contains(FEATURE_MESHES);
+  }
+
+  /**
+   * @return wehther GAPIS supports the {@link com.android.tools.idea.editors.gfxtrace.service.path.ResourceBundlesPath}.
+   */
+  public boolean hasResourceBundles() {
+    return myFeatures.contains(FEATURE_RESOURCE_BUNDLES);
   }
 }

@@ -21,11 +21,9 @@ import com.android.tools.idea.editors.gfxtrace.UiErrorCallback;
 import com.android.tools.idea.editors.gfxtrace.actions.AtomComboAction;
 import com.android.tools.idea.editors.gfxtrace.models.AtomStream;
 import com.android.tools.idea.editors.gfxtrace.renderers.ImageCellRenderer;
-import com.android.tools.idea.editors.gfxtrace.service.ErrDataUnavailable;
-import com.android.tools.idea.editors.gfxtrace.service.ResourceInfo;
-import com.android.tools.idea.editors.gfxtrace.service.Resources;
-import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
+import com.android.tools.idea.editors.gfxtrace.service.*;
 import com.android.tools.idea.editors.gfxtrace.service.gfxapi.Cubemap;
+import com.android.tools.idea.editors.gfxtrace.service.gfxapi.GfxAPIProtos;
 import com.android.tools.idea.editors.gfxtrace.service.gfxapi.Texture2D;
 import com.android.tools.idea.editors.gfxtrace.service.image.FetchedImage;
 import com.android.tools.idea.editors.gfxtrace.service.image.Format;
@@ -36,6 +34,7 @@ import com.android.tools.idea.stats.UsageTracker;
 import com.android.tools.rpclib.futures.SingleInFlight;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
+import com.google.api.client.util.Lists;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.ui.JBUI;
@@ -121,8 +120,8 @@ public class TexturesController extends ImagePanelController {
     }
 
     @NotNull private static final Logger LOG = Logger.getInstance(TexturesController.class);
-    @NotNull private final PathStore<ResourcesPath> myResourcesPath = new PathStore<ResourcesPath>();
-    private Resources myResources;
+    @NotNull private final PathStore<ResourceBundlesPath> myResourcesPath = new PathStore<ResourceBundlesPath>();
+    private ResourceBundles myResources;
 
     private DropDownController(@NotNull final GfxTraceEditor editor) {
       super(editor);
@@ -192,10 +191,9 @@ public class TexturesController extends ImagePanelController {
     protected void update(boolean resourcesChanged) {
       if (myEditor.getAtomStream().getSelectedAtomsPath() != null && myResources != null) {
         List<Data> cells = new ArrayList<Data>();
-        addTextures(cells, myResources.getTextures1D(), "1D");
-        addTextures(cells, myResources.getTextures2D(), "2D");
-        addTextures(cells, myResources.getTextures3D(), "3D");
-        addTextures(cells, myResources.getCubemaps(), "Cubemap");
+        for (ResourceBundle bundle : myResources.getBundles()) {
+          addTextures(cells, bundle);
+        }
 
         int selectedIndex = myList.getSelectedItem();
         myList.setData(cells);
@@ -209,9 +207,29 @@ public class TexturesController extends ImagePanelController {
       }
     }
 
-    private void addTextures(List<Data> cells, ResourceInfo[] textures, String typeLabel) {
+    private static String getTypeLabel(GfxAPIProtos.ResourceType type) {
+      switch (type) {
+        case Texture1D: return "1D";
+        case Texture2D: return "2D";
+        case Texture3D: return "3D";
+        case Cubemap: return "Cubemap";
+        default: return null;
+      }
+    }
+
+    private void addTextures(List<Data> cells, ResourceBundle bundle) {
+      if (bundle == null || bundle.getResources().length == 0) {
+        return;
+      }
+
+      String typeLabel = getTypeLabel(bundle.getType());
+      if (typeLabel == null) {
+        // Ignore non-texture resources (and unknown texture types).
+        return;
+      }
+
       AtomPath atomPath = myEditor.getAtomStream().getSelectedAtomsPath().getPathToLast();
-      for (ResourceInfo info : textures) {
+      for (ResourceInfo info : bundle.getResources()) {
         if (info.getFirstAccess() <= atomPath.getIndex()) {
           cells.add(new Data(info, typeLabel, atomPath.resourceAfter(info.getID())));
         }
@@ -224,29 +242,74 @@ public class TexturesController extends ImagePanelController {
       if (capturePath == null) {
         return;
       }
-      if (myResourcesPath.updateIfNotNull(CapturePath.resources(capturePath))) {
-        Rpc.listen(myEditor.getClient().get(myResourcesPath.getPath()), LOG, new UiErrorCallback<Resources, Resources, String>() {
-          @Override
-          protected ResultOrError<Resources, String> onRpcThread(Rpc.Result<Resources> result) throws RpcException, ExecutionException {
-            try {
-              return success(result.get());
-            } catch (ErrDataUnavailable e) {
-              return error(e.getMessage());
+      if (myResourcesPath.updateIfNotNull(CapturePath.resourceBundles(capturePath))) {
+        if (myEditor.getFeatures().hasResourceBundles()) {
+          Rpc.listen(myEditor.getClient().get(myResourcesPath.getPath()), LOG, new UiErrorCallback<ResourceBundles, ResourceBundles, String>() {
+            @Override
+            protected ResultOrError<ResourceBundles, String> onRpcThread(Rpc.Result<ResourceBundles> result)
+                throws RpcException, ExecutionException {
+              try {
+                return success(result.get());
+              }
+              catch (ErrDataUnavailable e) {
+                return error(e.getMessage());
+              }
             }
-          }
 
-          @Override
-          protected void onUiThreadSuccess(Resources result) {
-            myResources = result;
-            update(true);
-          }
+            @Override
+            protected void onUiThreadSuccess(ResourceBundles result) {
+              myResources = result;
+              update(true);
+            }
 
-          @Override
-          protected void onUiThreadError(String error) {
-            myResources = null;
-            update(true);
-          }
-        });
+            @Override
+            protected void onUiThreadError(String error) {
+              myResources = null;
+              update(true);
+            }
+          });
+        }
+        else {
+          // Use deprecated ResourcesPath and build the bundles from the result.
+          ResourcesPath path = myResourcesPath.getPath().asResourcesPath();
+          Rpc.listen(myEditor.getClient().get(path), LOG, new UiErrorCallback<Resources, ResourceBundles, String>() {
+            @Override
+            protected ResultOrError<ResourceBundles, String> onRpcThread(Rpc.Result<Resources> result) throws RpcException, ExecutionException {
+              try {
+                Resources res = result.get();
+                List<ResourceBundle> bundles = Lists.newArrayList();
+                if (res.getTextures1D().length != 0) {
+                  bundles.add(new ResourceBundle().setType(GfxAPIProtos.ResourceType.Texture1D).setResources(res.getTextures1D()));
+                }
+                if (res.getTextures2D().length != 0) {
+                  bundles.add(new ResourceBundle().setType(GfxAPIProtos.ResourceType.Texture2D).setResources(res.getTextures2D()));
+                }
+                if (res.getTextures3D().length != 0) {
+                  bundles.add(new ResourceBundle().setType(GfxAPIProtos.ResourceType.Texture3D).setResources(res.getTextures3D()));
+                }
+                if (res.getCubemaps().length != 0) {
+                  bundles.add(new ResourceBundle().setType(GfxAPIProtos.ResourceType.Cubemap).setResources(res.getCubemaps()));
+                }
+                return success(new ResourceBundles().setBundles(bundles.toArray(new ResourceBundle[bundles.size()])));
+              }
+              catch (ErrDataUnavailable e) {
+                return error(e.getMessage());
+              }
+            }
+
+            @Override
+            protected void onUiThreadSuccess(ResourceBundles result) {
+              myResources = result;
+              update(true);
+            }
+
+            @Override
+            protected void onUiThreadError(String error) {
+              myResources = null;
+              update(true);
+            }
+          });
+        }
       }
     }
 

@@ -89,6 +89,10 @@ public abstract class ServiceClient {
     return getAndCast(p);
   }
 
+  public ListenableFuture<ResourceBundles> get(ResourceBundlesPath p) {
+    return getAndCast(p);
+  }
+
   public ListenableFuture<MemoryInfo> get(MemoryRangePath p) {
     return getAndCast(p);
   }
