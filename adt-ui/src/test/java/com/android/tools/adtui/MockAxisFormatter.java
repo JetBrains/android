@@ -73,7 +73,7 @@ public class MockAxisFormatter extends BaseAxisFormatter {
   }
 
   @Override
-  protected int getMultiplier() {
+  protected long getMultiplier() {
     return super.getMultiplier();
   }
 }
