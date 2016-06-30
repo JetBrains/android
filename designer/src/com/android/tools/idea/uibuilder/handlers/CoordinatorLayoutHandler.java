@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -98,9 +99,10 @@ public class CoordinatorLayoutHandler extends FrameLayoutHandler {
     @Override
     public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers) {
       checkPosition();
+      AttributesTransaction draggedAttributes = myDragged.startAttributeTransaction();
       if (myAnchor == null) {
-        myDragged.setAttribute(AUTO_URI, ATTR_LAYOUT_ANCHOR, null);
-        myDragged.setAttribute(AUTO_URI, ATTR_LAYOUT_ANCHOR_GRAVITY, null);
+        draggedAttributes.setAttribute(AUTO_URI, ATTR_LAYOUT_ANCHOR, null);
+        draggedAttributes.setAttribute(AUTO_URI, ATTR_LAYOUT_ANCHOR_GRAVITY, null);
         super.commit(x, y, modifiers);
       } else {
         NlComponent root = myDragged.getRoot();
@@ -108,10 +110,12 @@ public class CoordinatorLayoutHandler extends FrameLayoutHandler {
         root.ensureNamespace(ANDROID_NS_NAME, ANDROID_URI);
         myAnchor.ensureId();
         String id = myAnchor.getAttribute(ANDROID_URI, ATTR_ID);
-        myDragged.setAttribute(AUTO_URI, ATTR_LAYOUT_ANCHOR, id);
-        myDragged.setAttribute(AUTO_URI, ATTR_LAYOUT_ANCHOR_GRAVITY, myAnchorGravity);
-        myDragged.setAttribute(ANDROID_URI, ATTR_LAYOUT_GRAVITY, myGravity);
+        draggedAttributes.setAttribute(AUTO_URI, ATTR_LAYOUT_ANCHOR, id);
+        draggedAttributes.setAttribute(AUTO_URI, ATTR_LAYOUT_ANCHOR_GRAVITY, myAnchorGravity);
+        draggedAttributes.setAttribute(ANDROID_URI, ATTR_LAYOUT_GRAVITY, myGravity);
       }
+
+      draggedAttributes.commit();
     }
 
     @Override
