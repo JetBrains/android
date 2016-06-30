@@ -112,12 +112,12 @@ public final class AxisComponent extends AnimatedComponent {
   /**
    * Interpolated/Animated max value.
    */
-  private double mCurrentMaxValue;
+  private double mCurrentMaxValueRelative;
 
   /**
    * Interpolated/Animated min value.
    */
-  private double mCurrentMinValue;
+  private double mCurrentMinValueRelative;
 
   /**
    * Length of the axis in pixels - used for internal calculation.
@@ -133,11 +133,6 @@ public final class AxisComponent extends AnimatedComponent {
    * Calculated - Interval value per minor marker.
    */
   private float mMinorInterval;
-
-  /**
-   * Calculated - Number of pixels per major interval.
-   */
-  private float mMajorScale;
 
   /**
    * Calculated - Number of pixels per minor interval.
@@ -167,6 +162,7 @@ public final class AxisComponent extends AnimatedComponent {
 
   /**
    * TODO consider replacing this constructor with a builder pattern.
+   *
    * @param range       A Range object this AxisComponent listens to for the min/max values.
    * @param globalRange The global min/max range.
    * @param label       The label/name of the axis.
@@ -208,7 +204,6 @@ public final class AxisComponent extends AnimatedComponent {
         mLabel.setSize(mMetrics.stringWidth(label), mMetrics.getHeight());
     }
     mLabel.setFont(AdtUiUtils.DEFAULT_FONT);
-
   }
 
   public void setClampToMajorTicks(boolean clamp) {
@@ -248,7 +243,7 @@ public final class AxisComponent extends AnimatedComponent {
    * Returns the position where a value would appear on this axis.
    */
   public float getPositionAtValue(double value) {
-    float offset = (float)(mMinorScale * (value - mCurrentMinValue) / mMinorInterval);
+    float offset = (float)(mMinorScale * ((value - mRange.getOffset()) - mCurrentMinValueRelative) / mMinorInterval);
     float ret = 0;
     switch (mOrientation) {
       case LEFT:
@@ -283,7 +278,7 @@ public final class AxisComponent extends AnimatedComponent {
     }
 
     float normalizedOffset = offset / mAxisLength;
-    return mCurrentMinValue + mMinorInterval * normalizedOffset / mMinorScale;
+    return mRange.getOffset() + mCurrentMinValueRelative + mMinorInterval * normalizedOffset / mMinorScale;
   }
 
   /**
@@ -300,7 +295,7 @@ public final class AxisComponent extends AnimatedComponent {
 
   @Override
   protected void updateData() {
-    double maxTarget = mRange.getMaxTarget();
+    double maxTarget = mRange.getMaxTargetRelative();
     double rangeTarget = mRange.getTargetLength();
     double clampedMaxTarget;
 
@@ -312,39 +307,39 @@ public final class AxisComponent extends AnimatedComponent {
     //      matching the tick spacing of the parent axis.
     // TODO Handle non-zero min offsets. Currently these features are used only for y axes and a non-zero use case does not exist yet.
     if (mParentAxis == null) {
-      int majorInterval = mFormatter.getMajorInterval(rangeTarget);
+      long majorInterval = mFormatter.getMajorInterval(rangeTarget);
       mMajorNumTicksTarget = mClampToMajorTicks ? (float)Math.ceil(maxTarget / majorInterval) : (float)(maxTarget / majorInterval);
       clampedMaxTarget = mMajorNumTicksTarget * majorInterval;
-    } else {
-      int majorInterval = mFormatter.getInterval(rangeTarget, (int)Math.floor(mParentAxis.mMajorNumTicksTarget));
+    }
+    else {
+      long majorInterval = mFormatter.getInterval(rangeTarget, (int)Math.floor(mParentAxis.mMajorNumTicksTarget));
       clampedMaxTarget = mParentAxis.mMajorNumTicksTarget * majorInterval;
     }
 
-    mRange.setMaxTarget(clampedMaxTarget);
+    mRange.setMaxTargetRelative(clampedMaxTarget);
   }
 
   @Override
   public void postAnimate() {
     mMajorMarkerPositions.reset();
     mMinorMarkerPositions.reset();
-    mCurrentMinValue = mRange.getMin();
-    mCurrentMaxValue = mRange.getMax();
+    mCurrentMinValueRelative = mRange.getMinRelative();
+    mCurrentMaxValueRelative = mRange.getMaxRelative();
     double range = mRange.getLength();
 
-    // During the postAnimate phase, use the interpoalted min/max/range values to calculate the current major and minor intervals that
+    // During the postAnimate phase, use the interpolated min/max/range values to calculate the current major and minor intervals that
     // should be used. Based on the interval values, cache the normalized marker positions which will be used during the draw call.
     mMajorInterval = mFormatter.getMajorInterval(range);
     mMinorInterval = mFormatter.getMinorInterval(mMajorInterval);
-    mMajorScale = (float)(mMajorInterval / range);
     mMinorScale = (float)(mMinorInterval / range);
 
     // Calculate the value and offset of the first major marker
-    mFirstMarkerValue = Math.floor(mCurrentMinValue / mMajorInterval) * mMajorInterval;
+    mFirstMarkerValue = Math.floor(mCurrentMinValueRelative / mMajorInterval) * mMajorInterval;
     // Percentage offset of first major marker.
-    float firstMarkerOffset = (float)(mMinorScale * (mFirstMarkerValue - mCurrentMinValue) / mMinorInterval);
+    float firstMarkerOffset = (float)(mMinorScale * (mFirstMarkerValue - mCurrentMinValueRelative) / mMinorInterval);
 
     // Calculate marker positions
-    int numMarkers = (int)Math.floor((mCurrentMaxValue - mFirstMarkerValue) / mMinorInterval) + 1;
+    int numMarkers = (int)Math.floor((mCurrentMaxValueRelative - mFirstMarkerValue) / mMinorInterval) + 1;
     int numMinorPerMajor = (int)(mMajorInterval / mMinorInterval);
     for (int i = 0; i < numMarkers; i++) {
       float markerOffset = firstMarkerOffset + i * mMinorScale;
@@ -430,8 +425,8 @@ public final class AxisComponent extends AnimatedComponent {
     g2d.setFont(AdtUiUtils.DEFAULT_FONT);
 
     if (mShowMinMax) {
-      drawMarkerLabel(g2d, LABEL_BOUNDS_OFFSET, origin, mCurrentMinValue, true);
-      drawMarkerLabel(g2d, mAxisLength - LABEL_BOUNDS_OFFSET, origin, mCurrentMaxValue, true);
+      drawMarkerLabel(g2d, LABEL_BOUNDS_OFFSET, origin, mCurrentMinValueRelative, true);
+      drawMarkerLabel(g2d, mAxisLength - LABEL_BOUNDS_OFFSET, origin, mCurrentMaxValueRelative, true);
     }
 
     // TODO fade in/out markers.
@@ -440,19 +435,25 @@ public final class AxisComponent extends AnimatedComponent {
     // Draw minor ticks.
     for (int i = 0; i < mMinorMarkerPositions.size(); i++) {
       if (mMinorMarkerPositions.get(i) >= 0) {
-        float scaledPosition = mMinorMarkerPositions.get(i) * mAxisLength;
-        drawMarkerLine(g2d, line, scaledPosition, origin, false);
+        double markerValue = mFirstMarkerValue + i * mMinorInterval;
+        // Discard negative ticks as needed.
+        if (markerValue >= 0) {
+          float scaledPosition = mMinorMarkerPositions.get(i) * mAxisLength;
+          drawMarkerLine(g2d, line, scaledPosition, origin, false);
+        }
       }
     }
 
     // Draw major ticks.
     for (int i = 0; i < mMajorMarkerPositions.size(); i++) {
       if (mMajorMarkerPositions.get(i) >= 0) {
-        float scaledPosition = mMajorMarkerPositions.get(i) * mAxisLength;
-        drawMarkerLine(g2d, line, scaledPosition, origin, true);
-
         double markerValue = mFirstMarkerValue + i * mMajorInterval;
-        drawMarkerLabel(g2d, scaledPosition, origin, markerValue, !mShowMinMax);
+        // Discard negative ticks as needed.
+        if (markerValue >= 0) {
+          float scaledPosition = mMajorMarkerPositions.get(i) * mAxisLength;
+          drawMarkerLine(g2d, line, scaledPosition, origin, true);
+          drawMarkerLabel(g2d, scaledPosition, origin, markerValue, !mShowMinMax);
+        }
       }
     }
   }
