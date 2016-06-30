@@ -66,6 +66,13 @@ public class NetworkCaptureSegment extends BaseSegment implements Animatable {
     NETWORK_STATE_COLORS.put(NetworkState.NONE, AdtUiUtils.DEFAULT_BACKGROUND_COLOR);
   }
 
+  /**
+   * Columns for each connection information, the last SPACER column is intentionally left blank.
+   */
+  private enum Column {
+    INDEX, URL, BYTES, DURATION, SPACER
+  }
+
   private int myRowHeight;
 
   @NotNull
@@ -103,11 +110,6 @@ public class NetworkCaptureSegment extends BaseSegment implements Animatable {
   @NotNull
   private JTable createInformationTable() {
     JBTable table = new JBTable(new AbstractTableModel() {
-      private static final int NUMBER_COLUMN_INDEX = 0;
-      private static final int URL_COLUMN_INDEX = 1;
-      private static final int DURATION_COLUMN_INDEX = 3;
-      private final String[] SAMPLE = {"2", "http://myapp.example.com/list/xml", "746 K", "322 ms", ""};
-
       @Override
       public int getRowCount() {
         return myCharts.size();
@@ -115,26 +117,35 @@ public class NetworkCaptureSegment extends BaseSegment implements Animatable {
 
       @Override
       public int getColumnCount() {
-        return SAMPLE.length;
+        return Column.values().length;
       }
 
       @Override
       public Object getValueAt(int rowIndex, int columnIndex) {
-        if (columnIndex == NUMBER_COLUMN_INDEX) {
-          return String.valueOf(rowIndex);
+        switch (Column.values()[columnIndex]) {
+          case INDEX:
+            return String.valueOf(rowIndex);
+
+          case URL:
+            return myDataList.get(rowIndex).getUrl();
+
+          case BYTES:
+            long bytes = myDataList.get(rowIndex).getHttpResponseBodySize();
+            return bytes >= 0 ? String.valueOf(bytes / 1024) + " K" : "";
+
+          case DURATION:
+            HttpData httpData = myDataList.get(rowIndex);
+            if (httpData.getEndTimeUs() >= httpData.getStartTimeUs()) {
+              long durationMs = TimeUnit.MICROSECONDS.toMillis(httpData.getEndTimeUs() - httpData.getStartTimeUs());
+              return String.valueOf(durationMs) + " ms";
+            }
+            break;
+
+          default:
+            // Empty
+            break;
         }
-        else if (columnIndex == URL_COLUMN_INDEX) {
-          return myDataList.get(rowIndex).getUrl();
-        }
-        else if (columnIndex == DURATION_COLUMN_INDEX) {
-          HttpData httpData = myDataList.get(rowIndex);
-          long durationMs = httpData.getEndTimeUs() >= httpData.getStartTimeUs()
-                            ? TimeUnit.MICROSECONDS.toMillis(httpData.getEndTimeUs() - httpData.getStartTimeUs()) : -1;
-          return durationMs >= 0 ? String.valueOf(durationMs) + " ms" : "";
-        } else {
-          // TODO: this is mock data for now
-          return SAMPLE[columnIndex];
-        }
+        return "";
       }
     });
     table.setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION);

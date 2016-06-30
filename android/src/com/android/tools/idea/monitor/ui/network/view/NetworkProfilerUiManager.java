@@ -71,12 +71,19 @@ public final class NetworkProfilerUiManager extends BaseProfilerUiManager {
     return new NetworkSegment(xRange, dataStore, eventDispatcher);
   }
 
+  // TODO: Revisit for L4 design, this was intended for L3.
   @Override
   public void setupDetailedViewUi(@NotNull JPanel toolbar, @NotNull JPanel detailPanel) {
     super.setupDetailedViewUi(toolbar, detailPanel);
     detailPanel.add(myDetailedView, BorderLayout.CENTER);
   }
 
+  @Override
+  public boolean isDetailedViewVerticallySplit() {
+    return false;
+  }
+
+  // TODO: Revisit for L3 design, this was intended for L2.
   @Override
   public void setupExtendedOverviewUi(@NotNull JPanel toolbar, @NotNull JPanel overviewPanel) {
     super.setupExtendedOverviewUi(toolbar, overviewPanel);
@@ -86,8 +93,10 @@ public final class NetworkProfilerUiManager extends BaseProfilerUiManager {
 
     myCaptureSegment = new NetworkCaptureSegment(myXRange, myDataStore, httpData -> {
       String responseFilePath = httpData.getHttpResponseBodyPath();
-      if (responseFilePath != null) {
-        myDetailedView.showConnectionDetails(myDataCache.getFile(responseFilePath));
+      File file = responseFilePath != null ? myDataCache.getFile(responseFilePath) : null;
+      if (file != null) {
+        httpData.setHttpResponseBodySize(file.length());
+        myDetailedView.showConnectionDetails(file);
         myEventDispatcher.getMulticaster().profilerExpanded(ProfilerType.NETWORK);
       }
     }, myEventDispatcher);
