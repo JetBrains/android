@@ -17,7 +17,8 @@ package com.android.tools.idea.monitor.ui.network.model;
 
 import com.android.tools.idea.monitor.datastore.*;
 import com.android.tools.idea.monitor.ui.network.view.NetworkRadioSegment;
-import com.android.tools.profiler.proto.*;
+import com.android.tools.profiler.proto.NetworkProfiler;
+import com.android.tools.profiler.proto.NetworkProfilerServiceGrpc;
 import gnu.trove.TLongArrayList;
 import io.grpc.StatusRuntimeException;
 import org.jetbrains.annotations.NotNull;
@@ -33,11 +34,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class NetworkDataPoller extends Poller {
 
-  private final TLongArrayList myTrafficTimeData = new TLongArrayList();
-
-  private final TLongArrayList myReceivedData = new TLongArrayList();
-
-  private final TLongArrayList mySentData = new TLongArrayList();
+  private final SpeedData mySpeedData = new SpeedData();
 
   private final TLongArrayList myConnectionsTimeData = new TLongArrayList();
 
@@ -63,8 +60,8 @@ public class NetworkDataPoller extends Poller {
   }
 
   private void registerAdapters() {
-    myDataStore.registerAdapter(SeriesDataType.NETWORK_RECEIVED, new LongDataAdapter(myTrafficTimeData, myReceivedData));
-    myDataStore.registerAdapter(SeriesDataType.NETWORK_SENT, new LongDataAdapter(myTrafficTimeData, mySentData));
+    myDataStore.registerAdapter(SeriesDataType.NETWORK_RECEIVED, new LongDataAdapter(mySpeedData.getTimeData(), mySpeedData.getReceived()));
+    myDataStore.registerAdapter(SeriesDataType.NETWORK_SENT, new LongDataAdapter(mySpeedData.getTimeData(), mySpeedData.getSent()));
 
     myDataStore.registerAdapter(SeriesDataType.NETWORK_CONNECTIONS, new LongDataAdapter(myConnectionsTimeData, myConnectionsData));
 
@@ -90,10 +87,7 @@ public class NetworkDataPoller extends Poller {
       long timestampUs = TimeUnit.NANOSECONDS.toMicros(timestampNs);
 
       if (data.getDataCase() == NetworkProfiler.NetworkProfilerData.DataCase.TRAFFIC_DATA) {
-        // Traffics in ui/studio represented in kb and pulled from a device in bytes
-        myTrafficTimeData.add(timestampUs);
-        myReceivedData.add(data.getTrafficData().getBytesReceived() / 1024);
-        mySentData.add(data.getTrafficData().getBytesSent() / 1024);
+        mySpeedData.add(data.getTrafficData().getBytesSent(), data.getTrafficData().getBytesReceived(), timestampUs);
       }
       else if (data.getDataCase() == NetworkProfiler.NetworkProfilerData.DataCase.CONNECTION_DATA) {
         myConnectionsTimeData.add(timestampUs);

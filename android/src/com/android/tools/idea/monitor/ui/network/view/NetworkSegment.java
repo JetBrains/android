@@ -19,6 +19,7 @@ import com.android.tools.adtui.Range;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.common.formatter.MemoryAxisFormatter;
+import com.android.tools.adtui.common.formatter.NetworkTrafficFormatter;
 import com.android.tools.adtui.common.formatter.SingleUnitAxisFormatter;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.datastore.SeriesDataType;
@@ -38,14 +39,14 @@ public class NetworkSegment extends BaseLineChartSegment {
 
   private static final String CONNECTIONS = "Connections";
 
-  private static final BaseAxisFormatter BANDWIDTH_AXIS_FORMATTER_L1 = new MemoryAxisFormatter(1, 5, 5); // Do not show minor ticks in L1.
+  private static final BaseAxisFormatter BANDWIDTH_AXIS_FORMATTER_L1 = new NetworkTrafficFormatter(1, 5, 5); // Do not show minor ticks in L1.
 
   private static final BaseAxisFormatter CONNECTIONS_AXIS_FORMATTER = new SingleUnitAxisFormatter(1, 10, 1, "");
 
   public NetworkSegment(@NotNull Range timeRange,
                         @NotNull SeriesDataStore dataStore,
                         @NotNull EventDispatcher<ProfilerEventListener> dispatcher) {
-    super(SEGMENT_NAME, timeRange, dataStore, BANDWIDTH_AXIS_FORMATTER_L1, MemoryAxisFormatter.DEFAULT, CONNECTIONS_AXIS_FORMATTER,
+    super(SEGMENT_NAME, timeRange, dataStore, BANDWIDTH_AXIS_FORMATTER_L1, NetworkTrafficFormatter.DEFAULT, CONNECTIONS_AXIS_FORMATTER,
           dispatcher);
   }
 
