@@ -388,6 +388,7 @@ public class DesignSurface extends JPanel implements Disposable {
     }
 
     myLayers.add(new WarningLayer(myScreenView));
+    myLayers.add(new CanvasResizeLayer(this, myScreenView));
   }
 
   private void addBlueprintLayers(@NotNull ScreenView view) {
@@ -395,6 +396,7 @@ public class DesignSurface extends JPanel implements Disposable {
     myLayers.add(new SelectionLayer(view));
     myLayers.add(new ConstraintsLayer(this, view, false));
     myLayers.add(new MockupLayer(view));
+    myLayers.add(new CanvasResizeLayer(this, view));
   }
 
   @Override
@@ -548,10 +550,10 @@ public class DesignSurface extends JPanel implements Disposable {
   }
 
   public void hover(@SwingCoordinate int x, @SwingCoordinate int y) {
-    // For constraint layer, set show on hover if they are above their screen view
     ScreenView current = getHoverScreenView(x, y);
     for (Layer layer : myLayers) {
       if (layer instanceof ConstraintsLayer) {
+        // For constraint layer, set show on hover if they are above their screen view
         ConstraintsLayer constraintsLayer = (ConstraintsLayer)layer;
         boolean show = false;
         if (constraintsLayer.getScreenView() == current) {
@@ -559,6 +561,11 @@ public class DesignSurface extends JPanel implements Disposable {
         }
         if (constraintsLayer.isShowOnHover() != show) {
           constraintsLayer.setShowOnHover(show);
+          repaint();
+        }
+      }
+      else if (layer instanceof CanvasResizeLayer) {
+        if (((CanvasResizeLayer)layer).changeHovering(x, y)) {
           repaint();
         }
       }
@@ -648,8 +655,8 @@ public class DesignSurface extends JPanel implements Disposable {
         Dimension preferredSize = myScreenView.getPreferredSize();
         int requiredWidth = preferredSize.width;
         int requiredHeight = preferredSize.height;
-        availableWidth -= 2 * DEFAULT_SCREEN_OFFSET_X;
-        availableHeight -= 2 * DEFAULT_SCREEN_OFFSET_Y;
+        availableWidth -= 2 * DEFAULT_SCREEN_OFFSET_X + RESIZING_CUE_EXTRA_PADDING;
+        availableHeight -= 2 * DEFAULT_SCREEN_OFFSET_Y + RESIZING_CUE_EXTRA_PADDING;
 
         if (myScreenMode == ScreenMode.BOTH) {
           if (isVerticalScreenConfig(availableWidth, availableHeight, preferredSize)) {
@@ -1219,18 +1226,9 @@ public class DesignSurface extends JPanel implements Disposable {
       g2d.setStroke(DASHED_STROKE);
 
       g2d.drawLine(x - 1, y - BOUNDS_RECT_DELTA, x - 1, y + size.height + BOUNDS_RECT_DELTA);
-      g2d.drawLine(x - BOUNDS_RECT_DELTA, y - 1, x + size.width, y - 1);
-      g2d.drawLine(x + size.width, y - 1, x + size.width, y + size.height);
-      g2d.drawLine(x - BOUNDS_RECT_DELTA, y + size.height, x + size.width, y + size.height);
-
-      // Draw the canvas resize symbol at the bottom right of the screen view
-      // TODO: make those numbers constants, or use an icon
-      g2d.setStroke(THICK_SOLID_STROKE);
-      g2d.setColor(RESIZING_CUE_COLOR);
-      int xCorner = x + size.width + 5;
-      int yCorner = y + size.height + 5;
-      g2d.drawLine(xCorner, yCorner, xCorner - RESIZING_CUE_SIZE, yCorner);
-      g2d.drawLine(xCorner, yCorner, xCorner, yCorner - RESIZING_CUE_SIZE);
+      g2d.drawLine(x - BOUNDS_RECT_DELTA, y - 1, x + size.width + BOUNDS_RECT_DELTA, y - 1);
+      g2d.drawLine(x + size.width, y - BOUNDS_RECT_DELTA, x + size.width, y + size.height + BOUNDS_RECT_DELTA);
+      g2d.drawLine(x - BOUNDS_RECT_DELTA, y + size.height, x + size.width + BOUNDS_RECT_DELTA, y + size.height);
 
       g2d.setStroke(prevStroke);
     }
