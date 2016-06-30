@@ -24,12 +24,10 @@ import gnu.trove.TLongArrayList;
  */
 public interface DataAdapter<T> {
 
+  int SAMPLE_INDEX_BUFFER = 1;
+
   /**
-   * This function should return the index for a specific time. The time passed in here will be the delta time
-   * between the start time and the time requested. For example if the UI requested the first point in time it would pass 0.
-   *
-   * TODO: think about a refactoring that allows this method to be reused across classes that implement this interface.
-   * All the implementations look like the same now.
+   * This function should return the index for a specific time (device time microseconds).
    *
    * @param leftClosest if there is no exact match and true, return the closest left index. Otherwise, return the closest right index.
    */
@@ -58,20 +56,31 @@ public interface DataAdapter<T> {
    */
   static int getClosestIndex(TLongArrayList list, long value, boolean leftClosest) {
     int index = list.binarySearch(value);
-    index = convertBinarySearchIndex(index, leftClosest);
-
-    return Math.max(0, Math.min(list.size(), index));
+    return convertBinarySearchIndex(index, list.size(), leftClosest);
   }
 
   /**
-   * In binary search, a negative index indicates that the desire data point is not present, and the negative result
+   * In binary search, a negative index indicates the desire data point is not present, and the negative result
    * is computed by -(insertion_point + 1). This helper function converts the negative result back to our desired
-   * index value.
+   * index value. Then, it shifts the index by {@link #SAMPLE_INDEX_BUFFER} to the left/right before returning the result.
+   * The extra buffer allows us to gather information on samples that are immediately outside of our region of interest.
+   * e.g. LineChart series need to collect samples offscreen to complete the lines.
+   *
+   * Let numbers denote sample indices and || represents our viewing time range below.
+   *
+   *       index buffer                                                   index buffer
+   * A  <-----------------> B    |                              |   C  <------------------> D
+   * 0                      1    |      2        3         4    |   5                       6
+   * ===========================================================================================
+   *
+   * Binary search would give us indices at B and C after adjusting for negative results. The additional
+   * index buffer would give us A and D as the results.
    *
    * @param left if true, returns the index left to the missing data point. Otherwise, return the right index.
-   *
    */
-  static int convertBinarySearchIndex(int index, boolean left) {
-    return index >= 0 ? index : -index - (left ? 2 : 1);
+  static int convertBinarySearchIndex(int index, int size, boolean left) {
+    index = index >= 0 ? index : -index - (left ? 2 : 1);
+    index += left ? -SAMPLE_INDEX_BUFFER : SAMPLE_INDEX_BUFFER;
+    return Math.max(0, Math.min(size, index));
   }
 }

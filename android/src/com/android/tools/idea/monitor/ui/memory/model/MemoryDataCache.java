@@ -137,8 +137,7 @@ public class MemoryDataCache {
                                  long diff = left.getTimestamp() - right.getTimestamp();
                                  return (diff == 0) ? 0 : ((diff < 0) ? -1 : 1);
                                });
-    index = DataAdapter.convertBinarySearchIndex(index, leftClosest);
-    return Math.max(0, Math.min(myMemorySamples.size(), index));
+    return  DataAdapter.convertBinarySearchIndex(index, myMemorySamples.size(), leftClosest);
   }
 
   public int getLatestPriorVmStatsSampleIndex(long time, boolean leftClosest) {
@@ -148,8 +147,7 @@ public class MemoryDataCache {
                       long diff = left.getTimestamp() - right.getTimestamp();
                       return (diff == 0) ? 0 : ((diff < 0) ? -1 : 1);
                     });
-    index = DataAdapter.convertBinarySearchIndex(index, leftClosest);
-    return Math.max(0, Math.min(myVmStatsSamples.size(), index));
+    return DataAdapter.convertBinarySearchIndex(index, myVmStatsSamples.size(), leftClosest);
   }
 
   public int getLatestPriorHeapDumpSampleIndex(long time, boolean leftClosest) {
@@ -159,8 +157,7 @@ public class MemoryDataCache {
                       long diff = left.getStartTime() - right.getStartTime();
                       return (diff == 0) ? 0 : ((diff < 0) ? -1 : 1);
                     });
-    index = DataAdapter.convertBinarySearchIndex(index, leftClosest);
-    return Math.max(0, Math.min(myHeapDumpSamples.size(), index));
+    return DataAdapter.convertBinarySearchIndex(index, myHeapDumpSamples.size(), leftClosest);
   }
 
   public void reset() {
