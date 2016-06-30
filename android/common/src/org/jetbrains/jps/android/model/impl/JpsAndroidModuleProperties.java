@@ -16,20 +16,24 @@
 package org.jetbrains.jps.android.model.impl;
 
 import com.android.SdkConstants;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.util.xmlb.annotations.AbstractCollection;
 import com.intellij.util.xmlb.annotations.Attribute;
 import com.intellij.util.xmlb.annotations.Tag;
-import org.jetbrains.android.util.AndroidCommonUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Set;
+
+import static org.jetbrains.android.util.AndroidCommonUtils.*;
 
 /**
  * @author nik
  */
 public class JpsAndroidModuleProperties {
   public String SELECTED_BUILD_VARIANT = "";
-  public String SELECTED_TEST_ARTIFACT = "";
 
   public String ASSEMBLE_TASK_NAME = "";
   public String COMPILE_JAVA_TASK_NAME = "";
@@ -72,11 +76,11 @@ public class JpsAndroidModuleProperties {
 
   public boolean RUN_PROGUARD = false;
 
-  public String PROGUARD_LOGS_FOLDER_RELATIVE_PATH = "/" + AndroidCommonUtils.DIRECTORY_FOR_LOGS_NAME;
+  public String PROGUARD_LOGS_FOLDER_RELATIVE_PATH = "/" + DIRECTORY_FOR_LOGS_NAME;
 
   @Tag("proGuardCfgFiles")
   @AbstractCollection(surroundWithTag = false, elementTag = "file", elementValueAttribute = "")
-  public List<String> myProGuardCfgFiles = new ArrayList<String>(Arrays.asList(AndroidCommonUtils.PROGUARD_SYSTEM_CFG_FILE_URL));
+  public List<String> myProGuardCfgFiles = Lists.newArrayList(PROGUARD_SYSTEM_CFG_FILE_URL);
 
   public boolean USE_CUSTOM_MANIFEST_PACKAGE = false;
   public String CUSTOM_MANIFEST_PACKAGE = "";
@@ -97,28 +101,30 @@ public class JpsAndroidModuleProperties {
   public String MAIN_DEX_LIST = "";
   public boolean MINIMAL_MAIN_DEX = false;
 
-  @Tag(AndroidCommonUtils.INCLUDE_ASSETS_FROM_LIBRARIES_ELEMENT_NAME)
+  @Tag(INCLUDE_ASSETS_FROM_LIBRARIES_ELEMENT_NAME)
   public boolean myIncludeAssetsFromLibraries = false;
 
   @Tag("resOverlayFolders")
   @AbstractCollection(surroundWithTag = false, elementTag = "path", elementValueAttribute = "")
-  public List<String> RES_OVERLAY_FOLDERS = new ArrayList<String>();
+  public List<String> RES_OVERLAY_FOLDERS = new ArrayList<>();
 
-  @Tag(AndroidCommonUtils.ADDITIONAL_NATIVE_LIBS_ELEMENT)
+  @Tag(ADDITIONAL_NATIVE_LIBS_ELEMENT)
   @AbstractCollection(surroundWithTag = false)
-  public List<AndroidNativeLibDataEntry> myNativeLibs = new ArrayList<AndroidNativeLibDataEntry>();
+  public List<AndroidNativeLibDataEntry> myNativeLibs = new ArrayList<>();
 
   @Tag("notImportedProperties")
   @AbstractCollection(surroundWithTag = false, elementTag = "property", elementValueAttribute = "")
   public Set<AndroidImportableProperty> myNotImportedProperties = EnumSet.noneOf(AndroidImportableProperty.class);
 
-  @Tag(AndroidCommonUtils.ITEM_ELEMENT)
+  @Tag(ITEM_ELEMENT)
   public static class AndroidNativeLibDataEntry {
-    @Attribute(AndroidCommonUtils.ARCHITECTURE_ATTRIBUTE)
+    @Attribute(ARCHITECTURE_ATTRIBUTE)
     public String myArchitecture;
-    @Attribute(AndroidCommonUtils.URL_ATTRIBUTE)
+
+    @Attribute(URL_ATTRIBUTE)
     public String myUrl;
-    @Attribute(AndroidCommonUtils.TARGET_FILE_NAME_ATTRIBUTE)
+
+    @Attribute(TARGET_FILE_NAME_ATTRIBUTE)
     public String myTargetFileName;
   }
 }

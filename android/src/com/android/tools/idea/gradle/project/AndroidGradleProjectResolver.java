@@ -98,14 +98,12 @@ import static org.jetbrains.plugins.gradle.service.project.GradleProjectResolver
  */
 @Order(ExternalSystemConstants.UNORDERED)
 public class AndroidGradleProjectResolver extends AbstractProjectResolverExtension {
-  /**
-   * Default test artifact selected when importing a project.
-   */
-  private static final String DEFAULT_TEST_ARTIFACT = ARTIFACT_ANDROID_TEST;
   private static final Key<Boolean> IS_ANDROID_PROJECT_KEY = Key.create("IS_ANDROID_PROJECT_KEY");
 
   @NotNull private final ProjectImportErrorHandler myErrorHandler;
 
+  @SuppressWarnings("unused")
+  // This constructor is used by the IDE. This class is an extension point implementation, registered in plugin.xml.
   public AndroidGradleProjectResolver() {
     this(new ProjectImportErrorHandler());
   }
@@ -181,6 +179,8 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     AndroidProject androidProject = resolverCtx.getExtraProject(gradleModule, AndroidProject.class);
 
     boolean androidProjectWithoutVariants = false;
+    String moduleName = gradleModule.getName();
+
     if (androidProject != null) {
       Variant selectedVariant = getVariantToSelect(androidProject);
       if (selectedVariant == null) {
@@ -192,15 +192,15 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
         androidProjectWithoutVariants = true;
       }
       else {
-        AndroidGradleModel androidModel = new AndroidGradleModel(GRADLE_SYSTEM_ID, gradleModule.getName(), moduleRootDirPath,
-                                                                 androidProject, selectedVariant.getName(), DEFAULT_TEST_ARTIFACT);
-        ideModule.createChild(ANDROID_MODEL, androidModel);
+        String variantName = selectedVariant.getName();
+        AndroidGradleModel model = new AndroidGradleModel(moduleName, moduleRootDirPath, androidProject, variantName);
+        ideModule.createChild(ANDROID_MODEL, model);
       }
     }
 
     NativeAndroidProject nativeAndroidProject = resolverCtx.getExtraProject(gradleModule, NativeAndroidProject.class);
     if (nativeAndroidProject != null) {
-      ideModule.createChild(NATIVE_ANDROID_MODEL, new NativeAndroidGradleModel(GRADLE_SYSTEM_ID, gradleModule.getName(), moduleRootDirPath,
+      ideModule.createChild(NATIVE_ANDROID_MODEL, new NativeAndroidGradleModel(GRADLE_SYSTEM_ID, moduleName, moduleRootDirPath,
                                                                                nativeAndroidProject));
     }
 
@@ -216,7 +216,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     String gradleVersion = buildScriptModel != null ? buildScriptModel.getGradleVersion() : null;
 
     File buildFilePath = buildScript.getSourceFile();
-    GradleModel gradleModel = GradleModel.create(gradleModule.getName(), gradleProject, buildFilePath, gradleVersion);
+    GradleModel gradleModel = GradleModel.create(moduleName, gradleProject, buildFilePath, gradleVersion);
     ideModule.createChild(GRADLE_MODEL, gradleModel);
 
     if (nativeAndroidProject == null && (androidProject == null || androidProjectWithoutVariants)) {

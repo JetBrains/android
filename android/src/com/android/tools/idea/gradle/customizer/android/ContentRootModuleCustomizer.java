@@ -38,6 +38,7 @@ import java.util.Collection;
 import java.util.List;
 
 import static com.android.builder.model.AndroidProject.FD_GENERATED;
+import static com.android.tools.idea.gradle.AndroidGradleModel.getTestArtifacts;
 import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntry;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.intellij.openapi.util.io.FileUtil.isAncestor;
@@ -85,7 +86,7 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
     AndroidArtifact mainArtifact = selectedVariant.getMainArtifact();
     addSourceFolders(androidModel, contentEntries, mainArtifact, false, shouldAddNativeSources, orphans);
 
-    for (BaseArtifact artifact : androidModel.getTestArtifactsInSelectedVariant()) {
+    for (BaseArtifact artifact : getTestArtifacts(selectedVariant)) {
       addSourceFolders(androidModel, contentEntries, artifact, true, shouldAddNativeSources, orphans);
     }
 
