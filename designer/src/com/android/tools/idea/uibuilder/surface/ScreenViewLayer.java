@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import com.android.tools.idea.uibuilder.model.ModelListener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.rendering.ImageUtils;
 import com.android.tools.idea.rendering.RenderResult;
-import com.android.tools.idea.uibuilder.model.NlModel;
 import com.intellij.util.ui.UIUtil;
 
 import java.awt.*;
@@ -47,7 +45,7 @@ public class ScreenViewLayer extends Layer {
   }
 
   @Nullable
-  private static BufferedImage getRetinaScaledImage(@NotNull BufferedImage original, double scale) {
+  private static BufferedImage getRetinaScaledImage(@NotNull BufferedImage original, double scale, boolean fastScaling) {
     if (scale > 1.01) {
       // When scaling up significantly, use normal painting logic; no need to pixel double into a
       // double res image buffer!
@@ -57,7 +55,12 @@ public class ScreenViewLayer extends Layer {
     // No scaling if very close to 1.0 (we check for 0.5 since we're doubling the output)
     if (Math.abs(scale - 0.5) > 0.01) {
       double retinaScale = 2 * scale;
-      original = ImageUtils.scale(original, retinaScale, retinaScale);
+      if (fastScaling) {
+        original = ImageUtils.lowQualityFastScale(original, retinaScale, retinaScale);
+      }
+      else {
+        original = ImageUtils.scale(original, retinaScale, retinaScale);
+      }
     }
 
     return ImageUtils.convertToRetina(original);
@@ -67,13 +70,19 @@ public class ScreenViewLayer extends Layer {
     myCachedScale = newScale;
     myImage = newImage;
     myScaledImage = null;
+    boolean fastScaling = myScreenView.getSurface().isCanvasResizing(); // Fast scaling if in the middle of resizing
 
     if (UIUtil.isRetina() && ImageUtils.supportsRetina()) {
-      myScaledImage = getRetinaScaledImage(newImage, newScale);
+      myScaledImage = getRetinaScaledImage(newImage, newScale, fastScaling);
     }
     if (myScaledImage == null) {
       // Fallback to normal scaling
-      myScaledImage = ImageUtils.scale(newImage, newScale, newScale);
+      if (fastScaling) {
+        myScaledImage = ImageUtils.lowQualityFastScale(newImage, newScale, newScale);
+      }
+      else {
+        myScaledImage = ImageUtils.scale(newImage, newScale, newScale);
+      }
     }
   }
 
