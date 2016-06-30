@@ -17,7 +17,6 @@ package com.android.tools.idea.res;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import com.android.builder.model.AndroidProject;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceType;
@@ -50,14 +49,13 @@ import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-import static com.android.tools.idea.res.ModuleResourceRepositoryTest.getFirstItem;
 import static com.android.tools.idea.res.ModuleResourceRepositoryTest.assertHasExactResourceTypes;
+import static com.android.tools.idea.res.ModuleResourceRepositoryTest.getFirstItem;
 
 public class ProjectResourceRepositoryTest extends AndroidTestCase {
   private static final String LAYOUT = "resourceRepository/layout.xml";
@@ -122,28 +120,22 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
     final Document document = documentManager.getDocument(layoutPsiFile);
     assertNotNull(document);
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        String string = "<ImageView style=\"@style/TitleBarSeparator\" />";
-        int offset = document.getText().indexOf(string);
-        document.deleteString(offset, offset + string.length());
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      String string = "<ImageView style=\"@style/TitleBarSeparator\" />";
+      int offset = document.getText().indexOf(string);
+      document.deleteString(offset, offset + string.length());
+      documentManager.commitDocument(document);
     });
 
     assertTrue(resources.isScanPending(layoutPsiFile));
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        assertTrue(generation < resources.getModificationCount());
-        // Should still be defined:
-        assertTrue(resources.hasResourceItem(ResourceType.ID, "btn_title_refresh"));
-        ResourceItem newItem = getFirstItem(resources, ResourceType.ID, "btn_title_refresh");
-        assertNotNull(newItem.getSource());
-        // However, should be a different item
-        assertNotSame(item, newItem);
-      }
+    ApplicationManager.getApplication().invokeLater(() -> {
+      assertTrue(generation < resources.getModificationCount());
+      // Should still be defined:
+      assertTrue(resources.hasResourceItem(ResourceType.ID, "btn_title_refresh"));
+      ResourceItem newItem = getFirstItem(resources, ResourceType.ID, "btn_title_refresh");
+      assertNotNull(newItem.getSource());
+      // However, should be a different item
+      assertNotSame(item, newItem);
     });
   }
 
@@ -236,12 +228,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     // Now delete the values file and check again.
     final PsiFile psiValues3 = PsiManager.getInstance(getProject()).findFile(values3);
     assertNotNull(psiValues3);
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        psiValues3.delete();
-      }
-    });
+    WriteCommandAction.runWriteCommandAction(null, psiValues3::delete);
     assertHasExactResourceTypes(resources, typesWithoutRes3);
   }
 
@@ -252,8 +239,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     VariantStub variant = androidProject.getFirstVariant();
     assertNotNull(variant);
     File rootDir = androidProject.getRootDir();
-    AndroidGradleModel androidModel = new AndroidGradleModel(GradleConstants.SYSTEM_ID, androidProject.getName(), rootDir,
-                                                             androidProject, variant.getName(), AndroidProject.ARTIFACT_ANDROID_TEST);
+    AndroidGradleModel androidModel = new AndroidGradleModel(androidProject.getName(), rootDir, androidProject, variant.getName());
     myFacet.setAndroidModel(androidModel);
 
     File bundle = new File(rootDir, "bundle.aar");
@@ -292,19 +278,22 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
         assertEquals(1, contentRoots.length);
 
         String name = contentRoots[0].getName();
-        if (name.equals("lib1")) {
-          lib1 = module;
-        }
-        else if (name.equals("lib2")) {
-          lib2 = module;
-        }
-        else if (name.equals("sharedlib")) {
-          sharedLib = module;
-        }
-        else if (name.equals("app")) {
-          app = module;
-        } else {
-          fail(name);
+        switch (name) {
+          case "lib1":
+            lib1 = module;
+            break;
+          case "lib2":
+            lib2 = module;
+            break;
+          case "sharedlib":
+            sharedLib = module;
+            break;
+          case "app":
+            app = module;
+            break;
+          default:
+            fail(name);
+            break;
         }
       }
     }
@@ -404,23 +393,13 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
   private static void addModuleDependency(Module from, Module to) {
     final ModifiableRootModel model = ModuleRootManager.getInstance(from).getModifiableModel();
     model.addModuleOrderEntry(to);
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
-      @Override
-      public void run() {
-        model.commit();
-      }
-    });
+    ApplicationManager.getApplication().runWriteAction(model::commit);
   }
 
   private static void renameModule(Module from, String name) throws ModuleWithNameAlreadyExists {
     final ModifiableModuleModel model = ModuleManager.getInstance(from.getProject()).getModifiableModel();
     model.renameModule(from, name);
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
-      @Override
-      public void run() {
-        model.commit();
-      }
-    });
+    ApplicationManager.getApplication().runWriteAction(model::commit);
   }
 
   // Note that the project resource repository is also tested in the app resource repository test, which of course merges

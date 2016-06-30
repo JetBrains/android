@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.variant.conflict;
 
-import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.stubs.android.*;
@@ -30,7 +29,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
-import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
 import java.util.List;
@@ -56,13 +54,10 @@ public class ConflictSetTest extends IdeaTestCase {
     setUpApp();
     setUpLib();
 
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
-      @Override
-      public void run() {
-        setUpMainModuleAsApp();
-        setUpLibModule();
-        setUpModuleDependencies();
-      }
+    ApplicationManager.getApplication().runWriteAction(() -> {
+      setUpMainModuleAsApp();
+      setUpLibModule();
+      setUpModuleDependencies();
     });
   }
 
@@ -72,8 +67,7 @@ public class ConflictSetTest extends IdeaTestCase {
     AndroidProjectStub project = new AndroidProjectStub("app");
     VariantStub variant = project.addVariant("debug");
 
-    myApp = new AndroidGradleModel(GradleConstants.SYSTEM_ID, myModule.getName(), rootDirPath, project, variant.getName(),
-                                   AndroidProject.ARTIFACT_ANDROID_TEST);
+    myApp = new AndroidGradleModel(myModule.getName(), rootDirPath, project, variant.getName());
   }
 
   private void setUpLib() {
@@ -83,8 +77,7 @@ public class ConflictSetTest extends IdeaTestCase {
     project.setIsLibrary(true);
     VariantStub variant = project.addVariant("debug");
 
-    myLib = new AndroidGradleModel(GradleConstants.SYSTEM_ID, myModule.getName(), moduleFilePath.getParentFile(), project,
-                                   variant.getName(), AndroidProject.ARTIFACT_ANDROID_TEST);
+    myLib = new AndroidGradleModel(myModule.getName(), moduleFilePath.getParentFile(), project, variant.getName());
   }
 
   private void setUpMainModuleAsApp() {

@@ -84,6 +84,7 @@ import java.util.regex.Pattern;
 import static com.android.SdkConstants.*;
 import static com.android.builder.model.AndroidProject.GENERATION_COMPONENT;
 import static com.android.ide.common.repository.GradleCoordinate.parseCoordinateString;
+import static com.android.tools.idea.gradle.AndroidGradleModel.getTestArtifacts;
 import static com.android.tools.idea.gradle.dsl.model.GradleBuildModel.parseBuildFile;
 import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.CLASSPATH;
 import static com.android.tools.idea.gradle.eclipse.GradleImport.escapeGroovyStringLiteral;
@@ -291,8 +292,7 @@ public final class GradleUtil {
     Dependencies dependencies = getDependencies(mainArtifact, modelVersion);
     libraries.addAll(dependencies.getLibraries());
 
-    BaseArtifact testArtifact = androidModel.findSelectedTestArtifact(variant);
-    if (testArtifact != null) {
+    for (BaseArtifact testArtifact : getTestArtifacts(variant)) {
       dependencies = getDependencies(testArtifact, modelVersion);
       libraries.addAll(dependencies.getLibraries());
     }

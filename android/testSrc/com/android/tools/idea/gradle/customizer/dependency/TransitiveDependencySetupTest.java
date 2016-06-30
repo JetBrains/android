@@ -37,6 +37,7 @@ import static org.fest.assertions.Assertions.assertThat;
 public class TransitiveDependencySetupTest extends AndroidGradleTestCase {
   @Override
   protected void tearDown() throws Exception {
+    //noinspection SuperTearDownInFinally
     super.tearDown();
     LeakHunter.checkLeak(LeakHunter.allRoots(), AndroidGradleModel.class, null);
   }

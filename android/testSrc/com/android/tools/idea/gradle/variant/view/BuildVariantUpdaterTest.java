@@ -66,13 +66,11 @@ public class BuildVariantUpdaterTest extends TestCase {
   }
 
   private static class AndroidGradleModelStub extends AndroidGradleModel {
-    public AndroidGradleModelStub(@NotNull ProjectSystemId projectSystemId,
-                                  @NotNull String moduleName,
+    public AndroidGradleModelStub(@NotNull String moduleName,
                                   @NotNull File rootDir,
                                   @NotNull AndroidProject delegate,
-                                  @NotNull String selectedVariantName,
-                                  @NotNull String selectedTestArtifactName) {
-      super(projectSystemId, moduleName, rootDir, delegate, selectedVariantName, selectedTestArtifactName);
+                                  @NotNull String selectedVariantName) {
+      super(moduleName, rootDir, delegate, selectedVariantName);
     }
   }
 }

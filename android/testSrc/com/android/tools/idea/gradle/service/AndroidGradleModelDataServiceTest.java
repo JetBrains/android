@@ -33,8 +33,6 @@ import com.intellij.testFramework.IdeaTestCase;
 import java.io.File;
 import java.util.List;
 
-import static com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST;
-import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static org.easymock.EasyMock.*;
 
 /**
@@ -58,8 +56,7 @@ public class AndroidGradleModelDataServiceTest extends IdeaTestCase {
     myAndroidProject.addVariant(DEBUG);
     myAndroidProject.addBuildType(DEBUG);
     File rootDir = myAndroidProject.getRootDir();
-    myAndroidModel =
-      new AndroidGradleModel(GRADLE_SYSTEM_ID, myAndroidProject.getName(), rootDir, myAndroidProject, DEBUG, ARTIFACT_ANDROID_TEST);
+    myAndroidModel = new AndroidGradleModel(myAndroidProject.getName(), rootDir, myAndroidProject, DEBUG);
     //noinspection unchecked
     myCustomizer1 = createMock(ModuleCustomizer.class);
     //noinspection unchecked
@@ -69,10 +66,14 @@ public class AndroidGradleModelDataServiceTest extends IdeaTestCase {
 
   @Override
   protected void tearDown() throws Exception {
-    if (myAndroidProject != null) {
-      myAndroidProject.dispose();
+    try {
+      if (myAndroidProject != null) {
+        myAndroidProject.dispose();
+      }
+    } finally {
+      //noinspection ThrowFromFinallyBlock
+      super.tearDown();
     }
-    super.tearDown();
   }
 
   public void testImportData() {
@@ -100,12 +101,7 @@ public class AndroidGradleModelDataServiceTest extends IdeaTestCase {
     replay(myCustomizer1, myCustomizer2);
 
     service.importData(nodes, null, myProject, modelsProvider);
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
-      @Override
-      public void run() {
-        modelsProvider.commit();
-      }
-    });
+    ApplicationManager.getApplication().runWriteAction(modelsProvider::commit);
 
     verify(myCustomizer1, myCustomizer2);
   }

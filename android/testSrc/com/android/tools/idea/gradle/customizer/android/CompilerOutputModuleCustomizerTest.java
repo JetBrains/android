@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.customizer.android;
 
-import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
@@ -24,7 +23,6 @@ import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsPr
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.testFramework.IdeaTestCase;
-import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
 
@@ -62,8 +60,7 @@ public class CompilerOutputModuleCustomizerTest extends IdeaTestCase {
 
   public void testCustomizeModule() {
     File rootDir = androidProject.getRootDir();
-    AndroidGradleModel androidModel = new AndroidGradleModel(GradleConstants.SYSTEM_ID, myModule.getName(), rootDir, androidProject,
-                                                             "debug", AndroidProject.ARTIFACT_ANDROID_TEST);
+    AndroidGradleModel androidModel = new AndroidGradleModel(myModule.getName(), rootDir, androidProject, "debug");
     String compilerOutputPath = "";
     final IdeModifiableModelsProviderImpl modelsProvider = new IdeModifiableModelsProviderImpl(myProject);
     try {

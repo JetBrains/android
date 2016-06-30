@@ -14,19 +14,15 @@
  * limitations under the License.
  */package com.android.tools.idea.gradle;
 
-import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.BuildTypeContainer;
 import com.android.builder.model.ProductFlavorContainer;
 import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
-import com.android.tools.idea.gradle.stubs.android.VariantStub;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
 
 import java.io.*;
 
-import static com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
-import static org.jetbrains.plugins.gradle.util.GradleConstants.SYSTEM_ID;
 
 /**
  * Tests for {@link AndroidGradleModel}.
@@ -40,8 +36,7 @@ public class AndroidGradleModelTest extends AndroidGradleTestCase {
     super.setUp();
     File rootDirPath = getBaseDirPath(getProject());
     myAndroidProject = TestProjects.createFlavorsProject();
-    myAndroidModel = new AndroidGradleModel(SYSTEM_ID, myAndroidProject.getName(), rootDirPath, myAndroidProject, "f1fa-debug",
-                                            ARTIFACT_ANDROID_TEST);
+    myAndroidModel = new AndroidGradleModel(myAndroidProject.getName(), rootDirPath, myAndroidProject, "f1fa-debug");
   }
 
   public void testFindBuildType() throws Exception {
@@ -56,13 +51,6 @@ public class AndroidGradleModelTest extends AndroidGradleTestCase {
     ProductFlavorContainer flavor = myAndroidModel.findProductFlavor(flavorName);
     assertNotNull(flavor);
     assertSame(myAndroidProject.findProductFlavor(flavorName), flavor);
-  }
-
-  public void testFindSelectedTestArtifactInSelectedVariant() throws Exception {
-    BaseArtifact instrumentationTestArtifact = myAndroidModel.findSelectedTestArtifactInSelectedVariant();
-    VariantStub firstVariant = myAndroidProject.getFirstVariant();
-    assertNotNull(firstVariant);
-    assertSame(firstVariant.getInstrumentTestArtifact(), instrumentationTestArtifact);
   }
 
   public void testGetSelectedVariant() throws Exception {
@@ -95,6 +83,5 @@ public class AndroidGradleModelTest extends AndroidGradleTestCase {
     assertEquals(androidModel.getRootDirPath(), newAndroidModel.getRootDirPath());
     assertEquals(androidModel.getAndroidProject().getName(), newAndroidModel.getAndroidProject().getName());
     assertEquals(androidModel.getSelectedVariant().getName(), newAndroidModel.getSelectedVariant().getName());
-    assertEquals(androidModel.getSelectedTestArtifactName(), newAndroidModel.getSelectedTestArtifactName());
   }
 }

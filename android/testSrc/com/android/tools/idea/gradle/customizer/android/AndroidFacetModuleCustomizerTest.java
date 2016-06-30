@@ -15,21 +15,20 @@
  */
 package com.android.tools.idea.gradle.customizer.android;
 
-import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.IdeaTestCase;
 import com.intellij.util.ExceptionUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
-import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
+
+import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 
 /**
  * Tests for {@link com.android.tools.idea.gradle.customizer.android.AndroidFacetModuleCustomizer}.
@@ -41,7 +40,7 @@ public class AndroidFacetModuleCustomizerTest extends IdeaTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    File rootDir = new File(FileUtil.toSystemDependentName(myProject.getBasePath()));
+    File rootDir = getBaseDirPath(getProject());
     myAndroidProject = TestProjects.createBasicProject(rootDir);
     myAndroidProject.setIsLibrary(true);
     myCustomizer = new AndroidFacetModuleCustomizer();
@@ -49,10 +48,15 @@ public class AndroidFacetModuleCustomizerTest extends IdeaTestCase {
 
   @Override
   protected void tearDown() throws Exception {
-    if (myAndroidProject != null) {
-      myAndroidProject.dispose();
+    try {
+      if (myAndroidProject != null) {
+        myAndroidProject.dispose();
+      }
     }
-    super.tearDown();
+    finally {
+      //noinspection ThrowFromFinallyBlock
+      super.tearDown();
+    }
   }
 
   public void testCustomizeModule() {
@@ -60,22 +64,18 @@ public class AndroidFacetModuleCustomizerTest extends IdeaTestCase {
     VariantStub selectedVariant = myAndroidProject.getFirstVariant();
     assertNotNull(selectedVariant);
     String selectedVariantName = selectedVariant.getName();
-      final AndroidGradleModel
-        androidModel = new AndroidGradleModel(GradleConstants.SYSTEM_ID, myAndroidProject.getName(), rootDir, myAndroidProject,
-                                                        selectedVariantName, AndroidProject.ARTIFACT_ANDROID_TEST);
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
-        @Override
-        public void run() {
-          final IdeModifiableModelsProviderImpl modelsProvider = new IdeModifiableModelsProviderImpl(myProject);
-          try {
-            myCustomizer.customizeModule(myProject, myModule, modelsProvider, androidModel);
-            modelsProvider.commit();
-          }
-          catch (Throwable t) {
-            modelsProvider.dispose();
-            ExceptionUtil.rethrowAllAsUnchecked(t);
-          }
-        }
+    AndroidGradleModel androidModel = new AndroidGradleModel(myAndroidProject.getName(), rootDir, myAndroidProject, selectedVariantName);
+
+    ApplicationManager.getApplication().runWriteAction(() -> {
+      final IdeModifiableModelsProviderImpl modelsProvider = new IdeModifiableModelsProviderImpl(myProject);
+      try {
+        myCustomizer.customizeModule(myProject, myModule, modelsProvider, androidModel);
+        modelsProvider.commit();
+      }
+      catch (Throwable t) {
+        modelsProvider.dispose();
+        ExceptionUtil.rethrowAllAsUnchecked(t);
+      }
     });
     // Verify that AndroidFacet was added and configured.
     AndroidFacet facet = AndroidFacet.getInstance(myModule);
