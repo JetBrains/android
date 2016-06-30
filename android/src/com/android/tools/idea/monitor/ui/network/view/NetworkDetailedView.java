@@ -24,20 +24,19 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
 
 public class NetworkDetailedView extends JComponent {
   private static final int PADDING = 100;
 
+  private static BufferedImage NO_IMAGE_FOUND = UIUtil.createImage(180, 150, BufferedImage.TYPE_BYTE_GRAY);
+
   @NotNull
   private BufferedImage myImage;
-
-  private String myAppId;
 
   public NetworkDetailedView() {
     setPreferredSize(new Dimension(350, 0));
     setBorder(BorderFactory.createLineBorder(JBColor.black));
-    myImage = UIUtil.createImage(180, 150, BufferedImage.TYPE_BYTE_GRAY);
+    myImage = NO_IMAGE_FOUND;
   }
 
   @Override
@@ -49,8 +48,9 @@ public class NetworkDetailedView extends JComponent {
   public void showConnectionDetails(@NotNull File imageFile) {
     try {
       myImage = ImageIO.read(imageFile);
-    } catch (IOException e) {
-      return;
+    }
+    catch (Exception e) {
+      myImage = NO_IMAGE_FOUND;
     }
     repaint();
   }
