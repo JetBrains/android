@@ -40,6 +40,7 @@ import java.awt.event.*;
 import java.util.Collections;
 import java.util.List;
 
+import static com.android.tools.idea.uibuilder.graphics.NlConstants.RESIZING_HOVERING_SIZE;
 import static com.android.tools.idea.uibuilder.model.SelectionHandle.PIXEL_MARGIN;
 import static com.android.tools.idea.uibuilder.model.SelectionHandle.PIXEL_RADIUS;
 import static java.awt.event.MouseWheelEvent.WHEEL_UNIT_SCROLL;
@@ -348,7 +349,7 @@ public class InteractionManager {
       if (mySurface.getScreenMode() != DesignSurface.ScreenMode.BOTH || screenView.getScreenViewType() == ScreenView.ScreenViewType.NORMAL) {
         Dimension size = screenView.getSize();
         // TODO: use constants for those numbers
-        Rectangle resizeZone = new Rectangle(screenView.getX() + size.width, screenView.getY() + size.height, 24, 24);
+        Rectangle resizeZone = new Rectangle(screenView.getX() + size.width, screenView.getY() + size.height, RESIZING_HOVERING_SIZE, RESIZING_HOVERING_SIZE);
         if (resizeZone.contains(x, y)) {
           mySurface.setCursor(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR));
           return;
@@ -424,7 +425,7 @@ public class InteractionManager {
       if (mySurface.getScreenMode() != DesignSurface.ScreenMode.BOTH || screenView.getScreenViewType() == ScreenView.ScreenViewType.NORMAL) {
         Dimension size = screenView.getSize();
         // TODO: use constants for those numbers
-        Rectangle resizeZone = new Rectangle(screenView.getX() + size.width, screenView.getY() + size.height, 24, 24);
+        Rectangle resizeZone = new Rectangle(screenView.getX() + size.width, screenView.getY() + size.height, RESIZING_HOVERING_SIZE, RESIZING_HOVERING_SIZE);
         if (resizeZone.contains(myLastMouseX, myLastMouseY)) {
           startInteraction(myLastMouseX, myLastMouseY, new CanvasResizeInteraction(mySurface), ourLastStateMask);
           return;
