@@ -116,7 +116,7 @@ public class CpuProfilerVisualTest extends VisualTest {
   }
 
   private void addThread(String name) {
-    ThreadStatesDataModel threadStatesDataModel = new ThreadStatesDataModel(name);
+    ThreadStatesDataModel threadStatesDataModel = new ThreadStatesDataModel(name, 0);
     mDataStore.registerAdapter(
       SeriesDataType.CPU_THREAD_STATE,
       new ThreadStateTestDataGenerator(threadStatesDataModel.getThreadStates(), threadStatesDataModel.getTimestamps()),

@@ -150,12 +150,11 @@ public class CpuDataPoller extends Poller {
         if (threadActivities == null) {
           continue; // nothing to do
         }
-
         for (Cpu.ThreadActivity threadActivity : threadActivities.getActivitiesList()) {
           int tid = threadActivity.getTid();
           ThreadStatesDataModel threadData;
           if (!myThreadsStateData.containsKey(tid)) {
-            threadData = new ThreadStatesDataModel(threadActivity.getName());
+            threadData = new ThreadStatesDataModel(threadActivity.getName(), threadActivity.getTid());
             myThreadsStateData.put(tid, threadData);
             myDataStore.registerAdapter(
               SeriesDataType.CPU_THREAD_STATE, new DataAdapterImpl<>(threadData.getTimestamps(), threadData.getThreadStates()), threadData);

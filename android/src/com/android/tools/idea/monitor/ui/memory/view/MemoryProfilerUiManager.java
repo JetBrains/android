@@ -141,7 +141,7 @@ public final class MemoryProfilerUiManager extends BaseProfilerUiManager {
     }
 
     if (myMemoryDetailSegment == null) {
-      myMemoryDetailSegment = new MemoryDetailSegment(myXRange, myRoot, myEventDispatcher);
+      myMemoryDetailSegment = new MemoryDetailSegment(myTimeViewRange, myRoot, myEventDispatcher);
       List<Animatable> animatables = new ArrayList<>();
       myMemoryDetailSegment.createComponentsList(animatables);
       myChoreographer.register(animatables);

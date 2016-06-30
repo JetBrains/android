@@ -60,7 +60,7 @@ public final class EventProfilerUiManager extends BaseProfilerUiManager {
    */
   @Override
   public void setupOverviewUi(@NotNull JPanel toolbar, @NotNull JPanel overviewPanel) {
-    myOverviewSegment = createOverviewSegment(myXRange, myDataStore, myEventDispatcher);
+    myOverviewSegment = createOverviewSegment(myTimeViewRange, myDataStore, myEventDispatcher);
     setupAndRegisterSegment(myOverviewSegment, DEFAULT_MONITOR_MIN_HEIGHT, DEFAULT_MONITOR_PREFERRED_HEIGHT, EVENT_MONITOR_MAX_HEIGHT);
     overviewPanel.add(myOverviewSegment);
   }
