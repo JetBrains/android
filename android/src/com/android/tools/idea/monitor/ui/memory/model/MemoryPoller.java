@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.monitor.ui.memory.model;
 
+import com.android.tools.adtui.model.DurationData;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.idea.monitor.datastore.DataAdapter;
 import com.android.tools.idea.monitor.datastore.Poller;
@@ -28,6 +29,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+
+import static com.android.tools.adtui.model.DurationData.UNSPECIFIED_DURATION;
+import static com.android.tools.idea.monitor.ui.memory.model.MemoryDataCache.UNFINISHED_HEAP_DUMP_TIMESTAMP;
 
 public class MemoryPoller extends Poller {
   private static final Logger LOG = Logger.getInstance(MemoryPoller.class.getCanonicalName());
@@ -91,6 +95,8 @@ public class MemoryPoller extends Poller {
       }
     });
 
+    adapters.put(SeriesDataType.MEMORY_HEAPDUMP_EVENT, new HeapDumpSampleAdapter());
+
     return adapters;
   }
 
@@ -146,8 +152,8 @@ public class MemoryPoller extends Poller {
 
   private abstract class MemorySampleAdapter<T> implements DataAdapter<T> {
     @Override
-    public int getClosestTimeIndex(long timeUs) {
-      return myDataCache.getLatestPriorMemorySampleIndex(TimeUnit.MICROSECONDS.toNanos(timeUs));
+    public int getClosestTimeIndex(long timeUs, boolean leftClosest) {
+      return myDataCache.getLatestPriorMemorySampleIndex(TimeUnit.MICROSECONDS.toNanos(timeUs), leftClosest);
     }
 
     @Override
@@ -171,8 +177,8 @@ public class MemoryPoller extends Poller {
 
   private abstract class VmStatsSampleAdapter<T> implements DataAdapter<T> {
     @Override
-    public int getClosestTimeIndex(long time) {
-      return myDataCache.getLatestPriorVmStatsSampleIndex(TimeUnit.MICROSECONDS.toNanos(time));
+    public int getClosestTimeIndex(long time, boolean leftClosest) {
+      return myDataCache.getLatestPriorVmStatsSampleIndex(TimeUnit.MICROSECONDS.toNanos(time), leftClosest);
     }
 
     @Override
@@ -192,5 +198,31 @@ public class MemoryPoller extends Poller {
     }
 
     public abstract T getSampleValue(MemoryProfilerService.MemoryData.VmStatsSample sample);
+  }
+
+  private class HeapDumpSampleAdapter implements DataAdapter<DurationData> {
+    @Override
+    public int getClosestTimeIndex(long timeUs, boolean leftClosest) {
+      return myDataCache.getLatestPriorHeapDumpSampleIndex(TimeUnit.MICROSECONDS.toNanos(timeUs), leftClosest);
+    }
+
+    @Override
+    public void reset(long deviceStartTimeMs, long studioStartTimeMs) {
+      myDataCache.reset();
+    }
+
+    @Override
+    public void stop() {
+      MemoryPoller.this.stop();
+    }
+
+    @Override
+    public SeriesData<DurationData> get(int index) {
+      MemoryProfilerService.MemoryData.HeapDumpSample sample = myDataCache.getHeapDumpSample(index);
+      long startTimeUs = TimeUnit.NANOSECONDS.toMicros(sample.getStartTime());
+      long durationUs = sample.getEndTime() == UNFINISHED_HEAP_DUMP_TIMESTAMP ? UNSPECIFIED_DURATION :
+                        TimeUnit.NANOSECONDS.toMicros(sample.getEndTime() - sample.getStartTime());
+      return new SeriesData<>(startTimeUs, new DurationData(durationUs));
+    }
   }
 }

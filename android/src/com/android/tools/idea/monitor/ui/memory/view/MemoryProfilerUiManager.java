@@ -97,14 +97,14 @@ public final class MemoryProfilerUiManager extends BaseProfilerUiManager {
     }
 
     myMemoryEventDispatcher.addListener(newSamples -> {
-      MemoryProfilerService.MemoryData.HeapDumpSample currentSelected =
-        (MemoryProfilerService.MemoryData.HeapDumpSample)myNextHeapDumpSelector.getSelectedItem();
-
-      for (MemoryProfilerService.MemoryData.HeapDumpSample sample : newSamples) {
-        myPrevHeapDumpSelector.addItem(sample);
-        myNextHeapDumpSelector.addItem(sample);
-      }
-      myNextHeapDumpSelector.setSelectedItem(newSamples.get(newSamples.size() - 1));
+      // Update the UI from the EDT thread.
+      SwingUtilities.invokeLater(() -> {
+        for (MemoryProfilerService.MemoryData.HeapDumpSample sample : newSamples) {
+          myPrevHeapDumpSelector.addItem(sample);
+          myNextHeapDumpSelector.addItem(sample);
+        }
+        myNextHeapDumpSelector.setSelectedItem(newSamples.get(newSamples.size() - 1));
+      });
     });
 
     return Sets.newHashSet(poller);

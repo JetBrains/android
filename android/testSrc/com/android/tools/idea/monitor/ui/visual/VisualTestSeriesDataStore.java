@@ -78,8 +78,8 @@ public final class VisualTestSeriesDataStore implements SeriesDataStore {
   }
 
   @Override
-  public int getClosestTimeIndex(SeriesDataType type, long timeValue, Object target) {
-    return getAdapter(type, target).getClosestTimeIndex(timeValue);
+  public int getClosestTimeIndex(SeriesDataType type, long timeValue, boolean leftClosest, Object target) {
+    return getAdapter(type, target).getClosestTimeIndex(timeValue, leftClosest);
   }
 
   @Override

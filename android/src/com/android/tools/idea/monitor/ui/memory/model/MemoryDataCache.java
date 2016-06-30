@@ -19,6 +19,7 @@ import com.android.ddmlib.AdbCommandRejectedException;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.SyncException;
 import com.android.ddmlib.TimeoutException;
+import com.android.tools.idea.monitor.datastore.DataAdapter;
 import com.android.tools.idea.monitor.ui.memory.view.MemoryProfilerUiManager;
 import com.android.tools.profiler.proto.MemoryProfilerService;
 import com.intellij.openapi.diagnostic.Logger;
@@ -32,7 +33,7 @@ import java.util.*;
 
 public class MemoryDataCache {
   private static final Logger LOG = Logger.getInstance(MemoryDataCache.class);
-  private static final long UNFINISHED_HEAP_DUMP_TIMESTAMP = -1;
+  static final int UNFINISHED_HEAP_DUMP_TIMESTAMP = -1;
 
   private final int myPid;
   private List<MemoryProfilerService.MemoryData.MemorySample> myMemorySamples = Collections.synchronizedList(new ArrayList<>());
@@ -102,8 +103,8 @@ public class MemoryDataCache {
   }
 
   @NotNull
-  public List<MemoryProfilerService.MemoryData.HeapDumpSample> getHeapDumpSamples() {
-    return myHeapDumpSamples;
+  public MemoryProfilerService.MemoryData.HeapDumpSample getHeapDumpSample(int index) {
+    return myHeapDumpSamples.get(index);
   }
 
   @Nullable
@@ -129,31 +130,37 @@ public class MemoryDataCache {
     return tempFile;
   }
 
-  public int getLatestPriorMemorySampleIndex(long time) {
+  public int getLatestPriorMemorySampleIndex(long time, boolean leftClosest) {
     int index =
       Collections.binarySearch(myMemorySamples, MemoryProfilerService.MemoryData.MemorySample.newBuilder().setTimestamp(time).build(),
                                (left, right) -> {
                                  long diff = left.getTimestamp() - right.getTimestamp();
                                  return (diff == 0) ? 0 : ((diff < 0) ? -1 : 1);
                                });
-    if (index < 0) {
-      index = -index - 2;
-    }
-    return Math.max(0, Math.min(myMemorySamples.size() - 1, index));
+    index = DataAdapter.convertBinarySearchIndex(index, leftClosest);
+    return Math.max(0, Math.min(myMemorySamples.size(), index));
   }
 
-  public int getLatestPriorVmStatsSampleIndex(long time) {
+  public int getLatestPriorVmStatsSampleIndex(long time, boolean leftClosest) {
     int index = Collections
       .binarySearch(myVmStatsSamples, MemoryProfilerService.MemoryData.VmStatsSample.newBuilder().setTimestamp(time).build(),
                     (left, right) -> {
                       long diff = left.getTimestamp() - right.getTimestamp();
                       return (diff == 0) ? 0 : ((diff < 0) ? -1 : 1);
                     });
-    if (index < 0) {
-      index = -index - 2;
-    }
+    index = DataAdapter.convertBinarySearchIndex(index, leftClosest);
+    return Math.max(0, Math.min(myVmStatsSamples.size(), index));
+  }
 
-    return Math.max(0, Math.min(myVmStatsSamples.size() - 1, index));
+  public int getLatestPriorHeapDumpSampleIndex(long time, boolean leftClosest) {
+    int index = Collections
+      .binarySearch(myHeapDumpSamples, MemoryProfilerService.MemoryData.HeapDumpSample.newBuilder().setStartTime(time).build(),
+                    (left, right) -> {
+                      long diff = left.getStartTime() - right.getStartTime();
+                      return (diff == 0) ? 0 : ((diff < 0) ? -1 : 1);
+                    });
+    index = DataAdapter.convertBinarySearchIndex(index, leftClosest);
+    return Math.max(0, Math.min(myHeapDumpSamples.size(), index));
   }
 
   public void reset() {
