@@ -23,29 +23,10 @@ import com.google.common.base.Functions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
-import com.intellij.ide.util.projectWizard.ModuleBuilder;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
-import com.intellij.ide.util.projectWizard.SettingsStep;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys;
-import com.intellij.openapi.module.ModuleType;
-import com.intellij.openapi.module.StdModuleTypes;
-import com.intellij.openapi.options.ConfigurationException;
-import com.intellij.openapi.project.DumbAwareRunnable;
-import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectType;
-import com.intellij.openapi.projectRoots.JavaSdkType;
-import com.intellij.openapi.projectRoots.SdkTypeId;
-import com.intellij.openapi.roots.ModifiableRootModel;
-import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
-import com.intellij.openapi.startup.StartupManager;
-import com.intellij.openapi.vfs.VirtualFile;
-import icons.AndroidIcons;
-import org.jetbrains.android.newProject.AndroidModuleBuilder;
-import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -61,7 +42,7 @@ import static com.android.tools.idea.npw.FormFactorUtils.ATTR_MODULE_NAME;
 import static com.android.tools.idea.npw.NewModuleWizardState.ATTR_PROJECT_LOCATION;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 
-public class ImportWizardModuleBuilder extends ModuleBuilder
+public class ImportWizardModuleBuilder
   implements TemplateWizardStep.UpdateListener, ChooseTemplateStep.TemplateChangeListener {
 
   @NotNull protected final List<ModuleWizardStep> mySteps;
@@ -165,98 +146,11 @@ public class ImportWizardModuleBuilder extends ModuleBuilder
   }
 
   @Override
-  @NotNull
-  public ModuleWizardStep[] createWizardSteps(@NotNull WizardContext wizardContext, @NotNull ModulesProvider modulesProvider) {
-    update();
-    return mySteps.toArray(new ModuleWizardStep[mySteps.size()]);
-  }
-
-  @Nullable
-  @Override
-  public ModuleWizardStep modifySettingsStep(@NotNull SettingsStep settingsStep) {
-    if (myWizardState.hasAttr(ATTR_APP_TITLE)) {
-      final String applicationName = myWizardState.getString(ATTR_APP_TITLE);
-
-      if (!applicationName.isEmpty()) {
-        settingsStep.getModuleNameField().setText(applicationName.replace(" ", ""));
-      }
-    }
-    return null;
-  }
-
-  @Override
   public void update() {
     if (!myInitializationComplete) {
       return;
     }
     updateWizardSteps();
-  }
-
-  @Override
-  public void setupRootModel(final @NotNull ModifiableRootModel rootModel) throws ConfigurationException {
-    final Project project = rootModel.getProject();
-
-    // in IntelliJ wizard user is able to choose SDK (i.e. for "java library" module), so set it
-    if (myJdk != null) {
-      rootModel.setSdk(myJdk);
-    }
-    else {
-      rootModel.inheritSdk();
-    }
-    if (myProject == null) {
-      project.putUserData(ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT, Boolean.TRUE);
-    }
-    StartupManager.getInstance(project).runWhenProjectIsInitialized(new DumbAwareRunnable() {
-      @Override
-      public void run() {
-        DumbService.getInstance(project).smartInvokeLater(new Runnable() {
-          @Override
-          public void run() {
-            ApplicationManager.getApplication().runWriteAction(new Runnable() {
-              @Override
-              public void run() {
-                DumbService.getInstance(project).withAlternativeResolveEnabled(new Runnable() {
-                  @Override
-                  public void run() {
-                    if (myProject == null) {
-                      myWizardState.putSdkDependentParams();
-                      myWizardState.put(ATTR_PROJECT_LOCATION, project.getBasePath());
-                      AssetStudioAssetGenerator assetGenerator = new AssetStudioAssetGenerator(myWizardState);
-                      WizardUtils.createProject(myWizardState, project, assetGenerator);
-                    }
-                    else {
-                      myWizardState.put(ATTR_MODULE_NAME, getName());
-                      createModule();
-                    }
-                  }
-                });
-              }
-            });
-          }
-        });
-      }
-    });
-  }
-
-  @Override
-  @NotNull
-  public ModuleType getModuleType() {
-    return StdModuleTypes.JAVA;
-  }
-
-  @Override
-  protected ProjectType getProjectType() {
-    return AndroidModuleBuilder.ANDROID_PROJECT_TYPE;
-  }
-
-  @Override
-  public Icon getBigIcon() {
-    return AndroidIcons.Android24;
-  }
-
-  @Override
-  public Icon getNodeIcon() {
-    return AndroidIcons.Android;
   }
 
   public void createModule() {
@@ -274,13 +168,6 @@ public class ImportWizardModuleBuilder extends ModuleBuilder
     if (performGradleSync && myProject != null) {
       GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
     }
-  }
-
-  @Override
-  public boolean isSuitableSdkType(SdkTypeId sdkType) {
-    boolean isJavaTemplate = myWizardState.isOnDefaultWizardPath() &&
-                             NewModuleWizardState.isAndroidTemplate(myWizardState.getTemplateMetadata());
-    return isJavaTemplate ? sdkType instanceof JavaSdkType : AndroidSdkType.getInstance().equals(sdkType);
   }
 
   @Override

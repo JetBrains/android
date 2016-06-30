@@ -32,7 +32,7 @@ public class TemplateWizardModuleBuilderTest extends AndroidGradleTestCase {
   public void testConstructor() throws Exception {
     // Null project means creating a new project
     TemplateWizardModuleBuilder moduleBuilder1 =
-      new TemplateWizardModuleBuilder(null, null, null, null, new ArrayList<>(), getTestRootDisposable(), false);
+      new TemplateWizardModuleBuilder(null, null, null, new ArrayList<>(), getTestRootDisposable(), false);
     assertTrue(moduleBuilder1.myWizardState.getBoolean(ATTR_IS_LAUNCHER));
     assertEquals(WizardUtils.getProjectLocationParent().getPath(), moduleBuilder1.myWizardState.get(ATTR_PROJECT_LOCATION));
     assertDoesntContain(moduleBuilder1.myWizardState.myHidden, ATTR_MODULE_NAME);
@@ -44,7 +44,7 @@ public class TemplateWizardModuleBuilderTest extends AndroidGradleTestCase {
 
     // Non-null project means we're adding a module to an existing project
     TemplateWizardModuleBuilder moduleBuilder2 =
-      new TemplateWizardModuleBuilder(null, null, getProject(), null, new ArrayList<>(), getTestRootDisposable(), true);
+      new TemplateWizardModuleBuilder(null, getProject(), null, new ArrayList<>(), getTestRootDisposable(), true);
     assertFalse(moduleBuilder2.myWizardState.getBoolean(ATTR_IS_LAUNCHER));
     assertContainsElements(moduleBuilder2.myWizardState.myHidden, ATTR_MODULE_NAME);
 
