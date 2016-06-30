@@ -49,7 +49,6 @@ public class WidgetConstraintPanel extends JPanel {
   NlComponent mComponent;
   ConstraintWidget mWidget;
   private boolean mWidgetModified;
-  private Timer mWidgetSaveTimer = new Timer(500, e -> saveWidget());
   public static final int UNCONNECTED = -1;
 
   private String mWidgetWidthCache;
@@ -341,12 +340,12 @@ public class WidgetConstraintPanel extends JPanel {
       mConstraintModel.getSelection().addModifiedWidget(mWidget);
     }
     mWidgetModified = true;
-    mWidgetSaveTimer.restart();
+    mConstraintModel.getDrawConstraintModels().forEach(DrawConstraintModel::repaint);
+    saveWidget();
   }
 
   private void saveWidget() {
     mConstraintModel.requestSaveToXML();
-    mWidgetSaveTimer.stop();
     mWidgetModified = false;
   }
 
@@ -380,11 +379,8 @@ public class WidgetConstraintPanel extends JPanel {
       return;
     }
     float bias = (mHorizontalSlider.getValue() / 100f);
-    mConstraintModel.allowsUpdate(false);
     mWidget.setHorizontalBiasPercent(bias);
     widgetModified();
-    mConstraintModel.allowsUpdate(true);
-    mConstraintModel.requestRender();
   }
 
   public void setVerticalBias() {
@@ -392,81 +388,57 @@ public class WidgetConstraintPanel extends JPanel {
       return;
     }
     float bias = 1f - (mVerticalSlider.getValue() / 100f);
-    mConstraintModel.allowsUpdate(false);
     mWidget.setVerticalBiasPercent(bias);
     widgetModified();
-    mConstraintModel.allowsUpdate(true);
-    mConstraintModel.requestRender();
   }
 
   public void setTopMargin(int margin) {
     if (mWidget == null) {
       return;
     }
-    mConstraintModel.allowsUpdate(false);
     setMargin(ConstraintAnchor.Type.TOP, margin);
-    mConstraintModel.allowsUpdate(true);
-    mConstraintModel.requestRender();
   }
 
   public void setLeftMargin(int margin) {
     if (mWidget == null) {
       return;
     }
-    mConstraintModel.allowsUpdate(false);
     setMargin(ConstraintAnchor.Type.LEFT, margin);
-    mConstraintModel.allowsUpdate(true);
-    mConstraintModel.requestRender();
   }
 
   public void setRightMargin(int margin) {
     if (mWidget == null) {
       return;
     }
-    mConstraintModel.allowsUpdate(false);
     setMargin(ConstraintAnchor.Type.RIGHT, margin);
-    mConstraintModel.allowsUpdate(true);
-    mConstraintModel.requestRender();
   }
 
   public void setBottomMargin(int margin) {
     if (mWidget == null) {
       return;
     }
-    mConstraintModel.allowsUpdate(false);
     setMargin(ConstraintAnchor.Type.BOTTOM, margin);
-    mConstraintModel.allowsUpdate(true);
-    mConstraintModel.requestRender();
   }
 
   public void killTopConstraint() {
     if (mWidget == null) {
       return;
     }
-    mConstraintModel.allowsUpdate(false);
     killConstraint(ConstraintAnchor.Type.TOP);
-    mConstraintModel.allowsUpdate(true);
-    mConstraintModel.requestRender();
   }
 
   public void killLeftConstraint() {
     if (mWidget == null) {
       return;
     }
-    mConstraintModel.allowsUpdate(false);
     killConstraint(ConstraintAnchor.Type.LEFT);
-    mConstraintModel.allowsUpdate(true);
-    mConstraintModel.requestRender();
   }
 
   public void killRightConstraint() {
     if (mWidget == null) {
       return;
     }
-    mConstraintModel.allowsUpdate(false);
     killConstraint(ConstraintAnchor.Type.RIGHT);
-    mConstraintModel.allowsUpdate(true);
-    mConstraintModel.requestRender();
   }
 
   public void killBottomConstraint() {
@@ -474,7 +446,6 @@ public class WidgetConstraintPanel extends JPanel {
       return;
     }
     killConstraint(ConstraintAnchor.Type.BOTTOM);
-
   }
 
   public void killBaselineConstraint() {
@@ -485,7 +456,6 @@ public class WidgetConstraintPanel extends JPanel {
     if (mWidget == null) {
       return;
     }
-    mConstraintModel.allowsUpdate(false);
     switch (horizontalConstraint) {
       case SingleWidgetView.ANY:
         mWidget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.ANY);
@@ -498,15 +468,12 @@ public class WidgetConstraintPanel extends JPanel {
         break;
     }
     widgetModified();
-    mConstraintModel.allowsUpdate(true);
-    mConstraintModel.requestRender();
   }
 
   public void setVerticalConstraint(int verticalConstraint) {
     if (mWidget == null) {
       return;
     }
-    mConstraintModel.allowsUpdate(false);
     switch (verticalConstraint) {
       case SingleWidgetView.ANY:
         mWidget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.ANY);
@@ -519,8 +486,6 @@ public class WidgetConstraintPanel extends JPanel {
         break;
     }
     widgetModified();
-    mConstraintModel.allowsUpdate(true);
-    mConstraintModel.requestRender();
   }
 
   /*-----------------------------------------------------------------------*/
