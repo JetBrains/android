@@ -50,7 +50,7 @@ public class ShowChooserTargetProvider extends DeployTargetProvider<ShowChooserT
   @NotNull
   @Override
   public String getDisplayName() {
-    return "Show Device Chooser Dialog";
+    return "Open Select Deployment Target Dialog";
   }
 
   @NotNull
