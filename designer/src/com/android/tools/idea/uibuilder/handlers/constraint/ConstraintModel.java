@@ -73,7 +73,6 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
   private float myDpiFactor;
   private int myNeedsAnimateConstraints = -1;
   private final NlModel myNlModel;
-  private boolean myAllowsUpdate = true;
   private ConstraintWidget myDragDropWidget;
   private ArrayList<DrawConstraintModel> myDrawConstraintModels = new ArrayList<>();
 
@@ -96,7 +95,6 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
   private static final WeakHashMap<NlModel, ConstraintModel> ourModelCache = new WeakHashMap<>();
 
   private SaveXMLTimer mySaveXmlTimer = new SaveXMLTimer();
-  private RequestRenderTimer myRequestRenderTimer = new RequestRenderTimer();
 
   //////////////////////////////////////////////////////////////////////////////
   // Utilities
@@ -195,24 +193,18 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
         System.out.println("*** Model Changed " + model.getResourceVersion()
                            + " vs our " + myModificationCount);
       }
-      if (model.getResourceVersion() > myModificationCount) {
-        if (myAllowsUpdate) {
-          int dpi = model.getConfiguration().getDensity().getDpiValue();
-          setDpiValue(dpi);
-          updateNlModel(model.getComponents(), true);
-        }
-        myModificationCount = model.getResourceVersion();
-        if (DEBUG) {
-          System.out.println("-> updated [" + myAllowsUpdate + "] to " + myModificationCount);
-        }
-        for (DrawConstraintModel drawConstraintModel : getDrawConstraintModels()) {
-          drawConstraintModel.repaint();
-        }
+
+
+      int dpi = model.getConfiguration().getDensity().getDpiValue();
+      setDpiValue(dpi);
+      updateNlModel(model.getComponents(), true);
+
+      myModificationCount = model.getResourceVersion();
+      if (DEBUG) {
+        System.out.println("-> updated to " + myModificationCount);
       }
-      else {
-        if (DEBUG) {
-          System.out.println("-> no update");
-        }
+      for (DrawConstraintModel drawConstraintModel : getDrawConstraintModels()) {
+        drawConstraintModel.repaint();
       }
       ourLock.unlock();
     });
@@ -220,35 +212,14 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
 
   @Override
   public void modelRendered(@NotNull NlModel model) {
-    SwingUtilities.invokeLater(() -> {
-      if (DEBUG) {
-        ourLock.lock();
-        System.out.println("Model rendered " + model.getResourceVersion()
-                           + " vs our " + myModificationCount);
-        ourLock.unlock();
-      }
-      ourLock.lock();
-      updateNlModel(model.getComponents(), false);
-      ourLock.unlock();
-      mySaveXmlTimer.delay();
-    });
   }
 
-  /**
-   * Allows update to the model to come in or not
-   *
-   * @param value
-   */
-  public void allowsUpdate(boolean value) {
-    ourLock.lock();
-    myAllowsUpdate = value;
-    ourLock.unlock();
-    if (value) {
-      mySaveXmlTimer.reset();
-    }
-    else {
-      mySaveXmlTimer.cancel();
-    }
+  public void updateXml() {
+    ConstraintUtilities.saveModelToXML(myNlModel, false);
+  }
+
+  public void rollbackXml() {
+    ConstraintUtilities.rollbackXMLChanges(myNlModel);
   }
 
   //////////////////////////////////////////////////////////////////////////////
@@ -441,6 +412,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
    * Schedule an XML save
    */
   public void requestSaveToXML() {
+    updateXml(); // Send changes to the XML without committing them
     mySaveXmlTimer.reset();
   }
 
@@ -449,9 +421,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
    */
   public void requestRender() {
     ourLock.lock();
-    if (myAllowsUpdate) {
-      myRequestRenderTimer.reset();
-    };
+    ConstraintUtilities.renderModel(this);
     ourLock.unlock();
   }
 
@@ -476,12 +446,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
       if (DEBUG) {
         System.out.println("reset timer");
       }
-      ourLock.lock();
-      boolean allowsUpdate = myAllowsUpdate;
-      ourLock.unlock();
-      if (allowsUpdate) {
-        myTimer.restart();
-      }
+      myTimer.restart();
     }
 
     public void cancel() {
@@ -493,36 +458,10 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
 
     @Override
     public void actionPerformed(ActionEvent e) {
-      ourLock.lock();
-      boolean allowsUpdate = myAllowsUpdate;
-      ourLock.unlock();
-      if (allowsUpdate) {
-        if (DEBUG) {
-          System.out.println("save xml");
-        }
-        saveToXML(true);
+      if (DEBUG) {
+        System.out.println("save xml");
       }
-    }
-  }
-
-  /**
-   * Timer class managing the request render behaviour
-   * We don't want to queue rendering continuously.
-   */
-  class RequestRenderTimer implements ActionListener {
-    Timer mTimer = new Timer(400, this); // 400ms delay before render
-
-    public RequestRenderTimer() {
-      mTimer.setRepeats(false);
-    }
-
-    public void reset() {
-      mTimer.restart();
-    }
-
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      renderInLayoutLib();
+      saveToXML(true);
     }
   }
 
@@ -908,25 +847,10 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
                            + "(" + selection.getModifiedWidgets().size()
                            + " elements modified)");
       }
-      ConstraintUtilities.saveModelToXML(myNlModel);
+      ConstraintUtilities.saveModelToXML(myNlModel, true);
       selection.clearModifiedWidgets();
       requestRender();
     }
-  }
-
-  /**
-   * Render the model in layoutlib
-   */
-  private void renderInLayoutLib() {
-    ourLock.lock();
-    if (DEBUG) {
-      System.out.println("### Model rendered to layoutlib -> "
-                         + myModificationCount + " vs "
-                         + myNlModel.getResourceVersion());
-    }
-    ourLock.unlock();
-
-    ConstraintUtilities.renderModel(this);
   }
 
   public void setNeedsAnimateConstraints(int type) {
