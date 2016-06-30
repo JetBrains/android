@@ -149,6 +149,7 @@ public abstract class UsageTracker {
   public static final String ACTION_GFX_TRACE_PARAMETER_EDITED = "gfxTraceParameterEdited";
   public static final String ACTION_GFX_TRACE_TEXTURE_VIEWED = "gfxTraceTextureViewed";
   public static final String ACTION_GFX_TRACE_MEMORY_VIEWED = "gfxTraceMemoryViewed";
+  public static final String ACTION_GFX_TRACE_INIT_ERROR = "gfxTraceInitError";
   public static final String ACTION_GFX_TRACE_RPC = "gfxTraceRPC";
 
   /**
