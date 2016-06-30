@@ -51,6 +51,12 @@ public class StudioHelpManagerImpl extends HelpManagerImpl {
       }
     }
 
+    // The run debug configuration help topic is set deep in the platform (see SingleConfigurationConfigurable)
+    if (id != null && id.startsWith("reference.dialogs.rundebug.Android")) {
+      BrowserUtil.browse(STUDIO_HELP_URL + "/r/studio-ui/rundebugconfig.html");
+      return;
+    }
+
     super.invokeHelp(id);
   }
 }
