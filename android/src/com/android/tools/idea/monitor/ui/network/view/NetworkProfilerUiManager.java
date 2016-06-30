@@ -29,6 +29,7 @@ import com.android.tools.idea.monitor.ui.BaseSegment;
 import com.android.tools.idea.monitor.ui.ProfilerEventListener;
 import com.google.common.collect.Sets;
 import com.intellij.util.EventDispatcher;
+import io.netty.util.internal.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -93,7 +94,7 @@ public final class NetworkProfilerUiManager extends BaseProfilerUiManager {
 
     myCaptureSegment = new NetworkCaptureSegment(myXRange, myDataStore, httpData -> {
       String responseFilePath = httpData.getHttpResponseBodyPath();
-      File file = responseFilePath != null ? myDataCache.getFile(responseFilePath) : null;
+      File file = !StringUtil.isNullOrEmpty(responseFilePath) ? myDataCache.getFile(responseFilePath) : null;
       if (file != null) {
         httpData.setHttpResponseBodySize(file.length());
         myDetailedView.showConnectionDetails(file);
