@@ -85,6 +85,14 @@ public class UpgradeConstraintLayoutFix implements AndroidLintQuickFix {
       // The version
       String version = constraintPackage.getPath();
       version = version.substring(version.lastIndexOf(RepoPackage.PATH_SEPARATOR) + 1);
+
+      // Temporary hack: the maven repository lookup might compute the most
+      // recent installed version in the SDK area when a newer one is available:
+      // make sure we use the latest
+      if (version.equals("1.0.0-alpha3")) {
+        version = "1.0.0-alpha4";
+      }
+
       gc = GradleCoordinate.parseCoordinateString(CONSTRAINT_LAYOUT_LIB_ARTIFACT + ':' + version);
       if (gc != null) { // should always be the case unless the version suffix is somehow wrong
         // Update version dependency in the module. Note that this will trigger a sync too.
