@@ -70,7 +70,7 @@ public class NewModuleWizardTest extends AndroidTestCase {
     expectedCount += wrapArchiveWizardPath.getBuiltInTemplates().size();
 
     ArrayList<ModuleWizardStep> steps = Lists.newArrayList();
-    TemplateWizardModuleBuilder myModuleBuilder = new TemplateWizardModuleBuilder(null, null, myModule.getProject(),
+    TemplateWizardModuleBuilder myModuleBuilder = new TemplateWizardModuleBuilder(null, myModule.getProject(),
                                                                                   AndroidIcons.Wizards.NewModuleSidePanel,
                                                                                   steps, getTestRootDisposable(), false) {
       @Override
