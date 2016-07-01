@@ -31,7 +31,7 @@ import java.util.Locale;
  * It is contains helper method to create the actual {@value SdkConstants#CONSTRAINT_LAYOUT_GUIDELINE} to insert
  * in a {@value SdkConstants#CONSTRAINT_LAYOUT}
  *
- * @see MockupInteractionPanel#getSelectedGuidelines()
+ * @see MockupInteractionPanel#exportSelectedGuidelines()
  */
 class MockupGuide {
   private final static InsertType INSERT_TYPE = InsertType.CREATE;

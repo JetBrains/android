@@ -80,7 +80,7 @@ public class MockupLayer extends Layer {
   private void paintMockup(@NotNull Graphics2D g, Mockup mockup) {
     final BufferedImage image = mockup.getImage();
     if (image != null) {
-      final Rectangle dest = mockup.getSwingBounds(myScreenView);
+      final Rectangle dest = mockup.getScreenBounds(myScreenView);
       final Rectangle src = mockup.getCropping();
 
       g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, mockup.getAlpha()));
