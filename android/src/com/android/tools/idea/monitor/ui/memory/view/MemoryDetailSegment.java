@@ -31,6 +31,7 @@ import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import java.awt.*;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -71,7 +72,8 @@ public class MemoryDetailSegment extends BaseSegment {
   public void setExpandState(@NotNull MemoryInfoTreeNode node, boolean expand) {
     if (expand) {
       mTree.expandPath(new TreePath(mTreeModel.getPathToRoot(node)));
-    } else {
+    }
+    else {
       mTree.collapsePath(new TreePath(mTreeModel.getPathToRoot(node)));
     }
   }
@@ -110,7 +112,22 @@ public class MemoryDetailSegment extends BaseSegment {
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Count")
                    .setHeaderAlignment(SwingConstants.LEFT)
-                   .setRenderer(new MemoryInfoColumnRenderer(1, mRoot)));
+                   .setRenderer(new MemoryInfoColumnRenderer(1, mRoot))
+                   .setInitialOrder(SortOrder.DESCENDING)
+                   .setComparator(new Comparator<MemoryInfoTreeNode>() {
+                     @Override
+                     public int compare(MemoryInfoTreeNode a, MemoryInfoTreeNode b) {
+                       return a.getCount() - b.getCount();
+                     }
+                   }));
+
+    builder.setTreeSorter(new ColumnTreeBuilder.TreeSorter<MemoryInfoTreeNode>() {
+      @Override
+      public void sort(Comparator<MemoryInfoTreeNode> comparator, SortOrder sortOrder) {
+        mRoot.sort(comparator);
+        mTreeModel.nodeStructureChanged(mRoot);
+      }
+    });
 
     mColumnTree = builder.build();
   }
@@ -178,7 +195,8 @@ public class MemoryDetailSegment extends BaseSegment {
       Dimension dim = getSize();
       if (mDelta > 0) {
         g.setColor(NEGATIVE_COLOR);
-      } else {
+      }
+      else {
         g.setColor(POSITIVE_COLOR);
       }
 
