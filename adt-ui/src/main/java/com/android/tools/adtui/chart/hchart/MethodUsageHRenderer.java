@@ -123,6 +123,9 @@ public class MethodUsageHRenderer implements HRenderer<MethodUsage> {
   }
 
   private String getShortPackageName(String nameSpace) {
+    if (nameSpace == null || nameSpace.equals("")) {
+      return "";
+    }
     StringBuilder b = new StringBuilder();
     String[] elements = dotPattern.split(nameSpace);
     String separator = "";

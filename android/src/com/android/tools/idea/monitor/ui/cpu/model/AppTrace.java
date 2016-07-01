@@ -30,6 +30,10 @@ import java.io.IOException;
 // Abstraction layer so GUI can process trace originating from ART or SimplePerf seamlessly.
 public abstract class AppTrace {
 
+  enum Source {ART, SIMPLEPERF};
+
+  abstract public Source getSource();
+
   // Gives an opportunity to transform a raw trace into an HNode tree. Always called before |getThreadsGraph|.
   abstract public void parse() throws IOException;
 
