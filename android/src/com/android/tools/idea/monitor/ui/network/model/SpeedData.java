@@ -100,7 +100,7 @@ public final class SpeedData {
         // Derived from trapezoid's area equation: (a + b) * width / 2 = area, i.e
         // (lastReceivedSpeed + receivedSpeed) * receivedTimeDeltaSec / 2 = receivedBytes
         double receivedSpeed = 2.0 * receivedBytes / receivedTimeDeltaSec - lastReceivedSpeed;
-        receivedSpeeds[i] = (long)interpolate(lastReceivedSpeed, receivedSpeed, timeDeltaSec / timestampDeltaSec);
+        receivedSpeeds[i] = (long)interpolate(lastReceivedSpeed, receivedSpeed, timeDeltaSec / receivedTimeDeltaSec);
       }
       else {
         receivedSpeeds[i] = 0;
@@ -113,7 +113,7 @@ public final class SpeedData {
         // Derived from trapezoid's area equation: (a + b) * width / 2 = area, i.e
         // (lastSentSpeed + sentSpeed) * sentTimeDeltaSec / 2 = sentBytes
         double sentSpeed = 2.0 * sentBytes / sentTimeDeltaSec - lastSentSpeed;
-        sentSpeeds[i] = (long)interpolate(lastSentSpeed, sentSpeed, timeDeltaSec / timestampDeltaSec);
+        sentSpeeds[i] = (long)interpolate(lastSentSpeed, sentSpeed, timeDeltaSec / sentTimeDeltaSec);
       }
       else {
         sentSpeeds[i] = 0;
