@@ -769,14 +769,12 @@ public class AndroidLintTest extends AndroidTestCase {
                                                            @NotNull String extension) throws IOException {
     doTestHighlighting(inspection, copyTo, extension);
 
-    IntentionAction action = null;
     for (IntentionAction a : myFixture.getAvailableIntentions()) {
-      String text = a.getText();
-      if (message.equals(text)) {
-        action = a;
+      if (message.equals(a.getText())) {
+        return a;
       }
     }
-    return action;
+    return null;
   }
 
   private void doTestHighlighting(@NotNull AndroidLintInspectionBase inspection, @NotNull String copyTo, @NotNull String extension)
