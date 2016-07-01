@@ -76,6 +76,7 @@ import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.concurrent.GuardedBy;
 import javax.swing.Timer;
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
@@ -86,6 +87,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Stream;
 
 import static com.android.SdkConstants.*;
@@ -105,6 +107,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   @NotNull private final AndroidFacet myFacet;
   @NotNull private final ProjectResourceRepository myProjectResourceRepository;
   private final XmlFile myFile;
+  private final ReentrantReadWriteLock myRenderResultLock = new ReentrantReadWriteLock();
+  @GuardedBy("myRenderResultLock")
   private RenderResult myRenderResult;
   private Configuration myConfiguration;
   private final List<ModelListener> myListeners = Lists.newArrayList();
@@ -337,8 +341,13 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
         }
       }
 
-      myRenderResult = result;
-      updateHierarchy(result);
+      myRenderResultLock.writeLock().lock();
+      try {
+        myRenderResult = result;
+        updateHierarchy(result);
+      } finally {
+        myRenderResultLock.writeLock().unlock();
+      }
 
       return myRenderTask != null;
     }
@@ -388,10 +397,16 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
     synchronized (RENDERING_LOCK) {
       if (myRenderTask != null) {
-        myRenderResult = myRenderTask.render();
-        // When the layout was inflated in this same call, we do not have to update the hierarchy again
-        if (!inflated) {
-          updateHierarchy(myRenderResult);
+        RenderResult result = myRenderTask.render();
+        myRenderResultLock.writeLock().lock();
+        try {
+          myRenderResult = result;
+          // When the layout was inflated in this same call, we do not have to update the hierarchy again
+          if (!inflated) {
+            updateHierarchy(myRenderResult);
+          }
+        } finally {
+          myRenderResultLock.writeLock().unlock();
         }
       }
     }
@@ -478,18 +493,24 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   @Nullable
   public RenderResult getRenderResult() {
-    synchronized (RENDERING_LOCK) {
+    myRenderResultLock.readLock().lock();
+    try {
       return myRenderResult;
+    } finally {
+      myRenderResultLock.readLock().unlock();
     }
   }
 
   @NotNull
   public Map<Object, PropertiesMap> getDefaultProperties() {
-    synchronized (RENDERING_LOCK) {
+    myRenderResultLock.readLock().lock();
+    try {
       if (myRenderResult == null) {
         return Collections.emptyMap();
       }
       return myRenderResult.getDefaultProperties();
+    } finally {
+      myRenderResultLock.readLock().unlock();
     }
   }
 
