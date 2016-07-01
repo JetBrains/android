@@ -229,10 +229,6 @@ public class NetworkCaptureSegment extends BaseSegment implements Animatable {
     myCharts.clear();
     myDataList.clear();
     for (SeriesData<HttpData> data: dataList) {
-      if (data.value.getEndTimeUs() == 0) {
-        continue;
-      }
-
       DefaultDataSeries<NetworkState> series = new DefaultDataSeries<>();
       series.add(0, NetworkState.NONE);
       series.add(data.value.getStartTimeUs(), NetworkState.SENDING);
