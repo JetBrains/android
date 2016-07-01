@@ -108,9 +108,16 @@ public class EventDataPoller extends Poller {
             myActiveActivites.put(activity.getActivityHash(), actionStart);
             break;
           case PAUSED:
-            action = StackedEventComponent.Action.ACTIVITY_COMPLETED;
-            actionEnd = actionStart;
-            actionStart = myActiveActivites.get(activity.getActivityHash());
+            // Depending on when we attach the perfd process we sometimes get an activity completed
+            // without having the associated activity started action. This can cause us to attempt
+            // and close an activity without actuaully knowing when the activity started.
+            // TODO: This is somewhat of a hack, and this should be removed by telling the StackedEventComponent how to handle
+            // an activity completed without a started event. Note until I merge fragments, the same issue potentially exist there.
+            if (myActiveActivites.containsKey(activity.getActivityHash())) {
+              action = StackedEventComponent.Action.ACTIVITY_COMPLETED;
+              actionEnd = actionStart;
+              actionStart = myActiveActivites.get(activity.getActivityHash());
+            }
             break;
         }
         if (action != StackedEventComponent.Action.NONE) {
@@ -127,9 +134,11 @@ public class EventDataPoller extends Poller {
             myActiveFragments.put(fragment.getFragmentHash(), actionStart);
             break;
           case REMOVED:
-            action = StackedEventComponent.Action.ACTIVITY_COMPLETED;
-            actionEnd = actionStart;
-            actionStart = myActiveFragments.get(fragment.getFragmentHash());
+            if (myActiveFragments.containsKey(fragment.getFragmentHash())) {
+              action = StackedEventComponent.Action.ACTIVITY_COMPLETED;
+              actionEnd = actionStart;
+              actionStart = myActiveFragments.get(fragment.getFragmentHash());
+            }
             break;
         }
         if (action != StackedEventComponent.Action.NONE) {
