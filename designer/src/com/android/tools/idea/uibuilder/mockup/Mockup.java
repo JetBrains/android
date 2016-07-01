@@ -398,7 +398,7 @@ public class Mockup implements ModelListener {
    * @param screenView The screenView where the mockup will be drawn
    * @return The rectangle where the mockup will be drawn in the screen view
    */
-  public Rectangle getSwingBounds(ScreenView screenView) {
+  public Rectangle getScreenBounds(ScreenView screenView) {
 
     // If mockup is in full screen, the mockup will cover the ScreenView
     if (myIsFullScreen) {

@@ -20,8 +20,6 @@ import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.application.Result;
-import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
@@ -30,14 +28,12 @@ import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.awt.RelativePoint;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.List;
 
 /**
  * Build and display the Mockup Editor dialog
@@ -71,7 +67,7 @@ public class MockupEditorPopup {
     initFileChooserActionListener();
     initSlider();
     initShowGuidelineCheckBox();
-    initCreateSelectedGuidelineButton(mockup, model);
+    initCreateSelectedGuidelineButton();
     initEditCroppingButton();
     initMatchWidgetButton();
     initMatchDeviceButton();
@@ -106,27 +102,8 @@ public class MockupEditorPopup {
     });
   }
 
-  private void initCreateSelectedGuidelineButton(Mockup mockup, NlModel model) {
-    myExportGuidelineButton.addActionListener(e -> {
-      createSelectedGuidelines(mockup, model);
-    });
-  }
-
-  private void createSelectedGuidelines(Mockup mockupComponentAttributes, final NlModel model) {
-    final List<MockupGuide> selectedGuidelines = myInteractionPanel.getSelectedGuidelines();
-    final NlComponent parent = mockupComponentAttributes.getComponent();
-    final WriteCommandAction action = new WriteCommandAction(model.getProject(), "Create Guidelines", model.getFile()) {
-      @Override
-      protected void run(@NotNull Result result) throws Throwable {
-
-        // Create all corresponding NlComponent Guidelines from the selected guidelines list
-        for (int i = 0; i < selectedGuidelines.size(); i++) {
-          selectedGuidelines.get(i).createConstraintGuideline(myScreenView, model, parent);
-        }
-      }
-
-    };
-    action.execute();
+  private void initCreateSelectedGuidelineButton() {
+    myExportGuidelineButton.addActionListener(e -> myInteractionPanel.exportSelectedGuidelines());
   }
 
   private void initShowGuidelineCheckBox() {
