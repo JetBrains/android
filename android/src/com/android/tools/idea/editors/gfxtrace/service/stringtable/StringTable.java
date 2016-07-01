@@ -17,17 +17,17 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.stringtable;
 
-import org.jetbrains.annotations.NotNull;
-
 import com.android.tools.rpclib.binary.*;
 import com.android.tools.rpclib.schema.*;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
 public final class StringTable implements BinaryObject {
-  private static AtomicReference<StringTable> sCurrent = new AtomicReference<StringTable>();
+  private static final AtomicReference<StringTable> sCurrent = new AtomicReference<StringTable>();
 
   /**
    * Changes the current string table to this instance.
@@ -39,8 +39,23 @@ public final class StringTable implements BinaryObject {
   /**
    * Returns the current string table.
    */
-  public static synchronized StringTable getCurrent() {
+  public static StringTable getCurrent() {
     return sCurrent.get();
+  }
+
+  public static String getMessage(String identifier) {
+    return getMessage(identifier, Collections.emptyMap());
+  }
+
+  public static String getMessage(String identifier, java.util.Map<String, BinaryObject> arguments) {
+    StringTable stringTable = getCurrent();
+    if (stringTable != null) {
+      Node node = stringTable.get(identifier);
+      if (node != null) {
+        return node.getString(arguments);
+      }
+    }
+    return identifier + " " + arguments;
   }
 
   /**
