@@ -4,6 +4,7 @@ import com.android.ddmlib.AdbCommandRejectedException;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.SyncException;
 import com.android.ddmlib.TimeoutException;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.containers.hash.HashMap;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,12 +29,10 @@ public class HttpDataCache {
       int fileNameStartIndex = path.lastIndexOf('\\');
       String fileName = fileNameStartIndex >= 0 ? path.substring(fileNameStartIndex) : path;
       try {
-        tempFile = File.createTempFile(fileName, null);
-        if (tempFile != null) {
-          tempFile.deleteOnExit();
-          myDevice.pullFile(path, tempFile.getAbsolutePath());
-          myFiles.put(path, tempFile);
-        }
+        tempFile = FileUtil.createTempFile(fileName, null);
+        tempFile.deleteOnExit();
+        myDevice.pullFile(path, tempFile.getAbsolutePath());
+        myFiles.put(path, tempFile);
       }
       catch (IOException | AdbCommandRejectedException | TimeoutException | SyncException e) {
         // TODO: Add logs
