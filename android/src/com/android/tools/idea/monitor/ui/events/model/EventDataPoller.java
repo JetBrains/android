@@ -139,21 +139,30 @@ public class EventDataPoller extends Poller {
       } else if (data.getDataCase().toString().equals(SYSTEM_DATA_PROTO_NAME)) {
         EventProfiler.SystemEventData systemData = data.getSystemData();
         SimpleEventComponent.Action action = SimpleEventComponent.Action.NONE;
-        switch (systemData.getActionId()) {
-          case ACTION_DOWN:
-            action = SimpleEventComponent.Action.DOWN;
-            myLastDownEvent = actionStart;
-            break;
-          case ACTION_UP:
-            action = SimpleEventComponent.Action.UP;
-            // TODO: Use the down up time in the MotionEvent to set start time for touchstate.
-            actionEnd = actionStart;
-            actionStart = myLastDownEvent;
-            break;
-        }
-        if( action != SimpleEventComponent.Action.NONE) {
+        if (systemData.getType() == EventProfiler.SystemEventData.SystemEventType.ROTATION) {
           mySystemTime.add(eventTimestamp);
-          mySystemData.add(new EventAction<>(actionStart, actionEnd, action, EventSegment.EventActionType.TOUCH));
+          mySystemData.add(new EventAction<>(actionStart, actionEnd, action, EventSegment.EventActionType.ROTATION));
+        } else {
+          // If we are not a rotation action type, then we fall through. The current actions that fallthrough are
+          // Key and Touch events. For the purpose of the demo we treat them the same, so we can register when the back button
+          // is pressed.
+          // TODO: Seperate KeyEvents to use their own icon.
+          switch (systemData.getActionId()) {
+            case ACTION_DOWN:
+              action = SimpleEventComponent.Action.DOWN;
+              myLastDownEvent = actionStart;
+              break;
+            case ACTION_UP:
+              action = SimpleEventComponent.Action.UP;
+              // TODO: Use the down up time in the MotionEvent to set start time for touchstate.
+              actionEnd = actionStart;
+              actionStart = myLastDownEvent;
+              break;
+          }
+          if (action != SimpleEventComponent.Action.NONE) {
+            mySystemTime.add(eventTimestamp);
+            mySystemData.add(new EventAction<>(actionStart, actionEnd, action, EventSegment.EventActionType.TOUCH));
+          }
         }
       }
     }
