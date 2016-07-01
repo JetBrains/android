@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.androidstudio.actions;
+package com.android.tools.idea.actions;
 
 import com.intellij.openapi.ui.InputValidator;
 
@@ -21,5 +21,4 @@ public interface CreateNewClassDialogValidator extends InputValidator {
   boolean checkSuperclass(String inputString);
   boolean checkInterface(String inputString);
   boolean checkPackage(String inputString);
-  boolean checkAbstractAndFinal(boolean isAbstract, boolean isFinal);
 }

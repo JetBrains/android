@@ -22,8 +22,8 @@ import com.android.tools.idea.tests.gui.framework.fixture.CreateFileFromTemplate
 import com.android.tools.idea.tests.gui.framework.fixture.CreateFileFromTemplateDialogFixture.Modifier;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.JavaOverrideImplementMemberChooserFixture;
-import com.intellij.androidstudio.actions.CreateFileFromTemplateDialog.Visibility;
-import com.intellij.androidstudio.actions.CreateNewClassDialogValidatorExImpl;
+import com.android.tools.idea.actions.CreateFileFromTemplateDialog.Visibility;
+import com.android.tools.idea.actions.CreateNewClassDialogValidatorExImpl;
 import org.fest.swing.fixture.JCheckBoxFixture;
 import org.fest.swing.query.ComponentVisibleQuery;
 import org.jetbrains.annotations.NotNull;
