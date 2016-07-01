@@ -43,7 +43,8 @@ public class EventSegment extends BaseSegment {
   public enum EventActionType {
     TOUCH,
     HOLD,
-    DOUBLE_TAP;
+    DOUBLE_TAP,
+    ROTATION
   }
 
   @NotNull

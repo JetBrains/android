@@ -37,11 +37,12 @@ public final class EventProfilerUiManager extends BaseProfilerUiManager {
   // The event monitor takes out half the space as the expanded profiler in L2/L3 view.
   private static final int EVENT_MONITOR_MAX_HEIGHT = JBUI.scale(Short.MAX_VALUE / 2);
 
-  // TODO: Replace with actual icons.
+  // TODO: EventActionType enum should return its associated Icon so we don't need to keep them in sync across files.
   private static final Icon[] ICONS = {
     AndroidIcons.Profiler.Touch,
     AndroidIcons.Profiler.TouchHold,
-    AndroidIcons.Profiler.DoubleTap
+    AndroidIcons.Profiler.DoubleTap,
+    AndroidIcons.Profiler.Rotation
   };
 
   public EventProfilerUiManager(@NotNull Range xRange, @NotNull Choreographer choreographer,
