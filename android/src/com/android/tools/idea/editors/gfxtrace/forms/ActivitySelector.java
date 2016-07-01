@@ -182,18 +182,20 @@ public class ActivitySelector extends JDialog {
       public void valueChanged(TreeSelectionEvent ev) {
         mySelectedActivity = null;
         mySelectedPackage = null;
-        for (Object object : myTree.getSelectionPath().getPath()) {
-          if (object instanceof DeviceInfo.Package) {
-            DeviceInfo.Package pkg = (DeviceInfo.Package)object;
-            mySelectedActivity = pkg.launchActivity();
-            mySelectedPackage = pkg;
+        if (ev.isAddedPath()) {
+          for (Object object : myTree.getSelectionPath().getPath()) {
+            if (object instanceof DeviceInfo.Package) {
+              DeviceInfo.Package pkg = (DeviceInfo.Package)object;
+              mySelectedActivity = pkg.launchActivity();
+              mySelectedPackage = pkg;
+            }
+            if (object instanceof DeviceInfo.Activity) {
+              mySelectedActivity = (DeviceInfo.Activity)object;
+            }
           }
-          if (object instanceof DeviceInfo.Activity) {
-            mySelectedActivity = (DeviceInfo.Activity)object;
+          if (mySelectedPackage != null && !myUserHasChangedTraceName) {
+            myTraceName.setText(mySelectedPackage.getDisplayName(), false);
           }
-        }
-        if (mySelectedPackage != null && !myUserHasChangedTraceName) {
-          myTraceName.setText(mySelectedPackage.getDisplayName(), false);
         }
         buttonOK.setEnabled(mySelectedPackage != null && mySelectedActivity != null);
       }
