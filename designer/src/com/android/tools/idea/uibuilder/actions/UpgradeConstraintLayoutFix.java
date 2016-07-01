@@ -29,12 +29,14 @@ import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider;
 import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -51,8 +53,11 @@ public class UpgradeConstraintLayoutFix implements AndroidLintQuickFix {
   public void apply(@NotNull PsiElement startElement,
                     @NotNull PsiElement endElement,
                     @NotNull AndroidQuickfixContexts.Context context) {
-    GradleDependencyManager manager = GradleDependencyManager.getInstance(startElement.getProject());
     Module module = AndroidPsiUtils.getModuleSafely(startElement);
+    apply(module);
+  }
+
+  public static void apply(@Nullable Module module) {
     if (module != null) {
       StudioSdkUtil.reloadRemoteSdkWithModalProgress();
       AndroidSdkHandler sdkHandler = AndroidSdkUtils.tryToChooseSdkHandler();
@@ -63,12 +68,13 @@ public class UpgradeConstraintLayoutFix implements AndroidLintQuickFix {
       assert gc != null;
       Collection<? extends LocalPackage> localPackages = packages.getLocalPackages().values();
       RepoPackage constraintPackage = SdkMavenRepository.findBestPackageMatching(gc, localPackages);
+      Project project = module.getProject();
       if (constraintPackage == null) {
         Collection<RemotePackage> remotePackages = packages.getRemotePackages().values();
         constraintPackage = SdkMavenRepository.findBestPackageMatching(gc, remotePackages);
         if (constraintPackage != null) {
           List<String> paths = Collections.singletonList(constraintPackage.getPath());
-          ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(startElement.getProject(), paths);
+          ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(project, paths);
           if (dialog != null && !dialog.showAndGet()) {
             // User cancelled - don't proceed to update dependency below
             return;
@@ -96,6 +102,7 @@ public class UpgradeConstraintLayoutFix implements AndroidLintQuickFix {
       gc = GradleCoordinate.parseCoordinateString(CONSTRAINT_LAYOUT_LIB_ARTIFACT + ':' + version);
       if (gc != null) { // should always be the case unless the version suffix is somehow wrong
         // Update version dependency in the module. Note that this will trigger a sync too.
+        GradleDependencyManager manager = GradleDependencyManager.getInstance(project);
         manager.updateLibrariesToVersion(module, Collections.singletonList(gc), null);
       }
     }
