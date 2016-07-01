@@ -82,7 +82,7 @@ public class AndroidRunState implements RunProfileState {
     // TODO: this class is independent of gradle, except for this hack
     AndroidGradleModel model = AndroidGradleModel.get(myModule);
     if (InstantRunSettings.isInstantRunEnabled() &&
-        InstantRunGradleUtils.getIrSupportStatus(model, null) != InstantRunGradleSupport.SUPPORTED) {
+        InstantRunGradleUtils.getIrSupportStatus(model, null) == InstantRunGradleSupport.SUPPORTED) {
       assert model != null;
       InstantRunBuildInfo info = InstantRunGradleUtils.getBuildInfo(model);
       if (info != null && !info.isCompatibleFormat()) {
