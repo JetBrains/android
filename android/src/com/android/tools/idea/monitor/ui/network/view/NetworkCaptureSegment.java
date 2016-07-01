@@ -155,7 +155,7 @@ public class NetworkCaptureSegment extends BaseSegment implements Animatable {
         return "";
       }
     });
-    table.setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION);
+    table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     table.getSelectionModel().addListSelectionListener(e -> {
       if (table.getSelectedRow() < myDataList.size()) {
         myDetailedViewListener.showDetailedConnection(myDataList.get(table.getSelectedRow()));
