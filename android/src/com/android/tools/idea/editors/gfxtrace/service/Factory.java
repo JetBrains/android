@@ -46,6 +46,8 @@ public final class Factory {
     ReportItem.register();
     Report.register();
     ResourceInfo.register();
+    ResourceBundle.register();
+    ResourceBundles.register();
     Resources.register();
     TimingInfo.register();
     CallFollow.register();

@@ -59,8 +59,16 @@ public final class CapturePath extends Path {
     return new ResourcesPath().setCapture(this);
   }
 
+  public ResourceBundlesPath resourceBundles() {
+    return new ResourceBundlesPath().setCapture(this);
+  }
+
   public static ResourcesPath resources(CapturePath capture) {
     return (capture == null) ? null : capture.resources();
+  }
+
+  public static ResourceBundlesPath resourceBundles(CapturePath capture) {
+    return (capture == null) ? null : capture.resourceBundles();
   }
 
   //<<<Start:Java.ClassBody:1>>>
