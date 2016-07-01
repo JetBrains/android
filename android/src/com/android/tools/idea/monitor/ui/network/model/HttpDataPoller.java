@@ -24,8 +24,10 @@ import com.android.tools.profiler.proto.NetworkProfiler;
 import com.android.tools.profiler.proto.NetworkProfilerServiceGrpc;
 import com.intellij.util.containers.hash.HashMap;
 import io.grpc.StatusRuntimeException;
+import io.netty.util.internal.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -45,10 +47,13 @@ public class HttpDataPoller extends Poller {
 
   private NetworkProfilerServiceGrpc.NetworkProfilerServiceBlockingStub myNetworkService;
 
-  public HttpDataPoller(@NotNull SeriesDataStore dataStore, int pid) {
+  @NotNull
+  private final HttpDataCache myDataCache;
+
+  public HttpDataPoller(@NotNull SeriesDataStore dataStore, @NotNull HttpDataCache dataCache, int pid) {
     super(dataStore, POLLING_DELAY_NS);
     myPid = pid;
-
+    myDataCache = dataCache;
     dataStore.registerAdapter(SeriesDataType.NETWORK_HTTP_DATA, new HttpDataAdapter(myHttpDataList));
   }
 
@@ -122,26 +127,25 @@ public class HttpDataPoller extends Poller {
     NetworkProfiler.HttpDetailsResponse response;
     try {
       response = myNetworkService.getHttpDetails(request);
-    } catch (StatusRuntimeException e) {
+    }
+    catch (StatusRuntimeException e) {
       cancel(true);
       return;
     }
-    data.setHttpResponseBodyPath(response.getResponseBody().getFilePath());
+    String responseFilePath = response.getResponseBody().getFilePath();
+    data.setHttpResponseBodyPath(responseFilePath);
+
+    File file = !StringUtil.isNullOrEmpty(responseFilePath) ? myDataCache.getFile(responseFilePath) : null;
+    if (file != null) {
+      data.setHttpResponseBodySize(file.length());
+    }
   }
 
   private static class HttpDataAdapter implements DataAdapter<HttpData> {
-
-    private static final Comparator<HttpData> COMPARATOR_BY_START_TIME = new Comparator<HttpData>() {
-      @Override
-      public int compare(HttpData o1, HttpData o2) {
-        return o1.getStartTimeUs() == o2.getStartTimeUs() ? 0 : o1.getStartTimeUs() < o2.getStartTimeUs() ? -1 : 1;
-      }
-    };
-
     @NotNull
     private final List<HttpData> myHttpDataList;
 
-    public HttpDataAdapter(List<HttpData> httpDataList) {
+    public HttpDataAdapter(@NotNull List<HttpData> httpDataList) {
       myHttpDataList = httpDataList;
     }
 
@@ -149,7 +153,8 @@ public class HttpDataPoller extends Poller {
     public int getClosestTimeIndex(long timeUs, boolean leftClosest) {
       HttpData dataForClosestTime = new HttpData();
       dataForClosestTime.setStartTimeUs(timeUs);
-      int index = Collections.binarySearch(myHttpDataList, dataForClosestTime, COMPARATOR_BY_START_TIME);
+      int index =
+        Collections.binarySearch(myHttpDataList, dataForClosestTime, (o1, o2) -> Long.compare(o1.getStartTimeUs(), o2.getStartTimeUs()));
       return DataAdapter.convertBinarySearchIndex(index, myHttpDataList.size(), leftClosest);
     }
 
