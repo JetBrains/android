@@ -636,7 +636,9 @@ public class ConstraintUtilities {
   }
 
   /**
-   * Return a dp value correctly resolved
+   * Return a dp value correctly resolved. This is only intended for generic
+   * dimensions (number + unit). Do not use this if the string can contain
+   * wrap_content or match_parent. See {@link #getLayoutDimensionDpValue(NlComponent, String)}.
    *
    * @param component the component we are looking at
    * @param value     the attribute value we want to parse
@@ -652,6 +654,19 @@ public class ConstraintUtilities {
       }
     }
     return 0;
+  }
+
+  /**
+   * Return a dp value correctly resolved. Returns -1 for match_parent or -2 for wrap_content.
+   *
+   * @param component the component we are looking at
+   * @param value     the attribute value we want to parse
+   * @return the value of the attribute in Dp, or zero if impossible to resolve
+   */
+  private static int getLayoutDimensionDpValue(@NotNull NlComponent component, String value) {
+    if (SdkConstants.VALUE_WRAP_CONTENT.equalsIgnoreCase(value)) return -2;
+    if (SdkConstants.VALUE_MATCH_PARENT.equalsIgnoreCase(value)) return -1;
+    return getDpValue(component, value);
   }
 
   /**
@@ -830,7 +845,7 @@ public class ConstraintUtilities {
 
     // FIXME: need to agree on the correct magic value for this rather than simply using zero.
     String layout_width = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH);
-    if ((component.w == 0) || (layout_width != null && (layout_width.equalsIgnoreCase("0") || layout_width.equalsIgnoreCase("0dp")))) {
+    if (component.w == 0 || getLayoutDimensionDpValue(component, layout_width) == 0) {
       widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.ANY);
     }
     else if (layout_width != null && layout_width.equalsIgnoreCase(SdkConstants.VALUE_WRAP_CONTENT)) {
@@ -845,7 +860,7 @@ public class ConstraintUtilities {
       widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.FIXED);
     }
     String layout_height = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_HEIGHT);
-    if ((component.h == 0) || (layout_height != null && (layout_height.equalsIgnoreCase("0") || layout_height.equalsIgnoreCase("0dp")))) {
+    if (component.h == 0 ||  getLayoutDimensionDpValue(component, layout_height) == 0) {
       widget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.ANY);
     }
     else if (layout_height != null && layout_height.equalsIgnoreCase(SdkConstants.VALUE_WRAP_CONTENT)) {
@@ -989,6 +1004,7 @@ public class ConstraintUtilities {
         guideline.setGuideBegin(value);
       }
       catch (NumberFormatException e) {
+        // Ignore
       }
     }
     else if (relativeEnd != null && relativeEnd.length() > 0) {
@@ -997,6 +1013,7 @@ public class ConstraintUtilities {
         guideline.setGuideEnd(value);
       }
       catch (NumberFormatException e) {
+        // Ignore
       }
     }
     String orientation = component.getAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_ORIENTATION);
