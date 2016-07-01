@@ -39,7 +39,7 @@ import java.util.Map;
 
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.executeProjectChangeAction;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
-import static org.easymock.classextension.EasyMock.*;
+import static org.easymock.EasyMock.*;
 
 /**
  * Tests for {@link AndroidGradleBuildProcessParametersProvider}.

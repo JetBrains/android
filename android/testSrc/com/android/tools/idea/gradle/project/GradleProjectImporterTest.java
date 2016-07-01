@@ -45,7 +45,7 @@ import java.util.List;
 
 import static com.android.tools.idea.gradle.AndroidProjectKeys.*;
 import static com.intellij.openapi.module.StdModuleTypes.JAVA;
-import static org.easymock.classextension.EasyMock.createMock;
+import static org.easymock.EasyMock.createMock;
 
 /**
  * Tests for {@link GradleProjectImporter}.

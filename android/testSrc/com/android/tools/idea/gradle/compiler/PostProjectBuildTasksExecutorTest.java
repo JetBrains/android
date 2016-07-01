@@ -27,7 +27,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-import static org.easymock.classextension.EasyMock.*;
+import static org.easymock.EasyMock.*;
 
 /**
  * Tests for {@link PostProjectBuildTasksExecutor}.
