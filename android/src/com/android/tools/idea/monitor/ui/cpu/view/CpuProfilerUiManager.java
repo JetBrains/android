@@ -104,14 +104,15 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager implements
     setupAndRegisterSegment(myThreadSegment, DEFAULT_MONITOR_MIN_HEIGHT, DEFAULT_MONITOR_PREFERRED_HEIGHT, DEFAULT_MONITOR_MAX_HEIGHT);
     overviewPanel.add(myThreadSegment);
     setSegmentState(overviewPanel, myThreadSegment, AccordionLayout.AccordionState.MAXIMIZE);
+    myProfileButton  = new JButton();
+    myTabbedPane = new JBTabbedPane();
+    myTopdownJpanel = new JPanel(new BorderLayout());
   }
 
   @Override
   public void setupDetailedViewUi(@NotNull JPanel toolbar, @NotNull JPanel detailPanel) {
     super.setupDetailedViewUi(toolbar, detailPanel);
 
-
-    myProfileButton  = new JButton();
     myProfileButton.setVisible(true);
     myProfileButton.setIcon(AndroidIcons.Ddms.StartMethodProfiling);
     myProfileButton.setText("Start Tracing...");
@@ -122,7 +123,6 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager implements
     myExecutionChart.setPreferredSize(DEFAULT_DIEMENSION);
     myChoreographer.register(myExecutionChart);
 
-    myTabbedPane = new JBTabbedPane();
     myTabbedPane.add("Execution Chart", myExecutionChart);
 
     myFlameChart = new HTreeChart(HTreeChart.Orientation.BOTTOM_UP);
@@ -132,7 +132,6 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager implements
     myChoreographer.register(myFlameChart);
     myTabbedPane.add("Flame Chart", myFlameChart);
 
-    myTopdownJpanel = new JPanel(new BorderLayout());
     myTabbedPane.add("Top-down stats", myTopdownJpanel);
     detailPanel.add(myTabbedPane);
   }
