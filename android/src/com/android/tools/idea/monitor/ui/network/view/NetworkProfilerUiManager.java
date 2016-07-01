@@ -18,7 +18,6 @@ package com.android.tools.idea.monitor.ui.network.view;
 import com.android.tools.adtui.AccordionLayout;
 import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.Range;
-import com.android.tools.adtui.model.DefaultDataSeries;
 import com.android.tools.idea.monitor.datastore.Poller;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.ui.BaseProfilerUiManager;
@@ -35,7 +34,6 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
-import java.util.List;
 import java.util.Set;
 
 public final class NetworkProfilerUiManager extends BaseProfilerUiManager {
@@ -47,9 +45,8 @@ public final class NetworkProfilerUiManager extends BaseProfilerUiManager {
 
   private NetworkDetailedView myDetailedView = new NetworkDetailedView();
 
-  private HttpDataCache myDataCache;
-
-  private List<DefaultDataSeries<NetworkCaptureSegment.NetworkState>> mCaptureData;
+  @NotNull
+  private final HttpDataCache myDataCache;
 
   public NetworkProfilerUiManager(@NotNull Range xRange, @NotNull Choreographer choreographer,
                                   @NotNull SeriesDataStore dataStore, @NotNull EventDispatcher<ProfilerEventListener> eventDispatcher) {
@@ -60,7 +57,7 @@ public final class NetworkProfilerUiManager extends BaseProfilerUiManager {
   @NotNull
   @Override
   public Set<Poller> createPollers(int pid) {
-    return Sets.newHashSet(new NetworkDataPoller(myDataStore, pid), new HttpDataPoller(myDataStore, pid));
+    return Sets.newHashSet(new NetworkDataPoller(myDataStore, pid), new HttpDataPoller(myDataStore, myDataCache, pid));
   }
 
   @Override
@@ -95,7 +92,6 @@ public final class NetworkProfilerUiManager extends BaseProfilerUiManager {
       String responseFilePath = httpData.getHttpResponseBodyPath();
       File file = !StringUtil.isNullOrEmpty(responseFilePath) ? myDataCache.getFile(responseFilePath) : null;
       if (file != null) {
-        httpData.setHttpResponseBodySize(file.length());
         myDetailedView.showConnectionDetails(file);
         myEventDispatcher.getMulticaster().profilerExpanded(ProfilerType.NETWORK);
       }
