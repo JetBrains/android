@@ -15,34 +15,25 @@
  */
 package com.android.tools.idea.monitor.ui.memory.model;
 
-import com.android.ddmlib.AdbCommandRejectedException;
 import com.android.ddmlib.IDevice;
-import com.android.ddmlib.SyncException;
-import com.android.ddmlib.TimeoutException;
 import com.android.tools.idea.monitor.datastore.DataAdapter;
 import com.android.tools.idea.monitor.ui.memory.view.MemoryProfilerUiManager;
-import com.android.tools.profiler.proto.MemoryProfilerService;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.EventDispatcher;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.*;
+
+import static com.android.tools.profiler.proto.MemoryProfilerService.*;
 
 public class MemoryDataCache {
   private static final Logger LOG = Logger.getInstance(MemoryDataCache.class);
   static final int UNFINISHED_HEAP_DUMP_TIMESTAMP = -1;
 
-  private final int myPid;
-  private List<MemoryProfilerService.MemoryData.MemorySample> myMemorySamples = Collections.synchronizedList(new ArrayList<>());
-  private List<MemoryProfilerService.MemoryData.VmStatsSample> myVmStatsSamples =
-    Collections.synchronizedList(new ArrayList<>());
-  private List<MemoryProfilerService.MemoryData.HeapDumpSample> myHeapDumpSamples = Collections.synchronizedList(new ArrayList<>());
-
-  private boolean myHasPendingHeapDumpSample;
-
+  private List<MemoryData.MemorySample> myMemorySamples = Collections.synchronizedList(new ArrayList<>());
+  private List<MemoryData.VmStatsSample> myVmStatsSamples = Collections.synchronizedList(new ArrayList<>());
+  private List<MemoryData.HeapDumpSample> myHeapDumpSamples = Collections.synchronizedList(new ArrayList<>());
   private Map<String, File> myHeapDumpFiles = new HashMap<>();
 
   @NotNull
@@ -50,99 +41,73 @@ public class MemoryDataCache {
 
   private EventDispatcher<MemoryProfilerUiManager.MemoryEventListener> myMemoryEventDispatcher;
 
-  public MemoryDataCache(int pid, IDevice device, EventDispatcher<MemoryProfilerUiManager.MemoryEventListener> dispatcher) {
-    myPid = pid;
+  public MemoryDataCache(@NotNull IDevice device, @NotNull EventDispatcher<MemoryProfilerUiManager.MemoryEventListener> dispatcher) {
     myDevice = device;
     myMemoryEventDispatcher = dispatcher;
   }
 
-  public void appendData(MemoryProfilerService.MemoryData entry) {
-    myMemorySamples.addAll(entry.getMemSamplesList());
-    myVmStatsSamples.addAll(entry.getVmStatsSamplesList());
+  public void appendMemorySamples(@NotNull List<MemoryData.MemorySample> memorySamples) {
+    myMemorySamples.addAll(memorySamples);
+  }
 
-    List<MemoryProfilerService.MemoryData.HeapDumpSample> newSamples = new ArrayList<>();
-    for (int i = 0; i < entry.getHeapDumpSamplesCount(); i++) {
-      MemoryProfilerService.MemoryData.HeapDumpSample sample = entry.getHeapDumpSamples(i);
-      if (myHasPendingHeapDumpSample) {
-        // Note - if there is an existing pending heap dump, the first sample from the response should represent the same sample
-        assert i == 0 && myHeapDumpSamples.get(myHeapDumpSamples.size() - 1).getFilePath().equals(sample.getFilePath());
+  public void appendVmStatsSamples(@NotNull List<MemoryData.VmStatsSample> vmStatsSamples) {
+    myVmStatsSamples.addAll(vmStatsSamples);
+  }
 
-        if (sample.getEndTime() != UNFINISHED_HEAP_DUMP_TIMESTAMP) {
-          myHeapDumpSamples.set(myHeapDumpSamples.size() - 1, sample);
-          myHasPendingHeapDumpSample = false;
-          newSamples.add(sample);
-        }
-      }
-      else {
-        myHeapDumpSamples.add(sample);
+  public void appendHeapDumpSample(@NotNull MemoryData.HeapDumpSample heapDumpSample) {
+    myHeapDumpSamples.add(heapDumpSample);
+  }
 
-        if (sample.getEndTime() == UNFINISHED_HEAP_DUMP_TIMESTAMP) {
-          // Note - there should be at most one unfinished heap dump request at a time. e.g. the final sample from the response.
-          assert i == entry.getHeapDumpSamplesCount() - 1;
-          myHasPendingHeapDumpSample = true;
-        }
-        else {
-          newSamples.add(sample);
-        }
-      }
-    }
-
-    if (!newSamples.isEmpty()) {
-      myMemoryEventDispatcher.getMulticaster().newHeapDumpSamplesReceived(newSamples);
-    }
+  public void addPulledHeapDumpFile(@NotNull MemoryData.HeapDumpSample heapDumpSample, @NotNull File heapDumpFile) {
+    myHeapDumpFiles.put(heapDumpSample.getFilePath(), heapDumpFile);
+    myMemoryEventDispatcher.getMulticaster().newHeapDumpSamplesRetrieved(heapDumpSample);
   }
 
   @NotNull
-  public MemoryProfilerService.MemoryData.MemorySample getMemorySample(int index) {
+  public MemoryData.MemorySample getMemorySample(int index) {
     return myMemorySamples.get(index);
   }
 
   @NotNull
-  public MemoryProfilerService.MemoryData.VmStatsSample getVmStatsSample(int index) {
+  public MemoryData.VmStatsSample getVmStatsSample(int index) {
     return myVmStatsSamples.get(index);
   }
 
   @NotNull
-  public MemoryProfilerService.MemoryData.HeapDumpSample getHeapDumpSample(int index) {
+  public MemoryData.HeapDumpSample getHeapDumpSample(int index) {
     return myHeapDumpSamples.get(index);
   }
 
-  @Nullable
-  public File getHeapDumpFile(@Nullable MemoryProfilerService.MemoryData.HeapDumpSample sample) {
-    if (sample == null || !sample.getSuccess()) {
-      return null;
-    }
+  @NotNull
+  public File getHeapDumpFile(@NotNull MemoryData.HeapDumpSample sample) {
+    assert myHeapDumpFiles.containsKey(sample.getFilePath());
+    return myHeapDumpFiles.get(sample.getFilePath());
+  }
 
-    File tempFile = myHeapDumpFiles.get(sample.getFilePath());
-    if (tempFile == null) {
-      try {
-        tempFile = File.createTempFile(Long.toString(sample.getEndTime()), ".hprof");
-        if (tempFile != null) {
-          tempFile.deleteOnExit();
-          myDevice.pullFile(sample.getFilePath(), tempFile.getAbsolutePath());
-        }
-      }
-      catch (IOException | AdbCommandRejectedException | TimeoutException | SyncException e) {
-        LOG.info("Error pulling '" + sample.getFilePath() + "' from device.", e);
-      }
-    }
+  public MemoryData.HeapDumpSample swapLastHeapDumpSample(@NotNull MemoryData.HeapDumpSample sample) {
+    int lastIndex = getLastHeapDumpIndex();
+    MemoryData.HeapDumpSample result = myHeapDumpSamples.get(lastIndex);
+    myHeapDumpSamples.set(lastIndex, sample);
+    return result;
+  }
 
-    return tempFile;
+  public int getLastHeapDumpIndex() {
+    return myHeapDumpSamples.size() - 1;
   }
 
   public int getLatestPriorMemorySampleIndex(long time, boolean leftClosest) {
     int index =
-      Collections.binarySearch(myMemorySamples, MemoryProfilerService.MemoryData.MemorySample.newBuilder().setTimestamp(time).build(),
+      Collections.binarySearch(myMemorySamples, MemoryData.MemorySample.newBuilder().setTimestamp(time).build(),
                                (left, right) -> {
                                  long diff = left.getTimestamp() - right.getTimestamp();
                                  return (diff == 0) ? 0 : ((diff < 0) ? -1 : 1);
                                });
-    return  DataAdapter.convertBinarySearchIndex(index, myMemorySamples.size(), leftClosest);
+    return DataAdapter.convertBinarySearchIndex(index, myMemorySamples.size(), leftClosest);
   }
 
   public int getLatestPriorVmStatsSampleIndex(long time, boolean leftClosest) {
     int index = Collections
-      .binarySearch(myVmStatsSamples, MemoryProfilerService.MemoryData.VmStatsSample.newBuilder().setTimestamp(time).build(),
+      .binarySearch(myVmStatsSamples, MemoryData.VmStatsSample.newBuilder().setTimestamp(time).build(),
                     (left, right) -> {
                       long diff = left.getTimestamp() - right.getTimestamp();
                       return (diff == 0) ? 0 : ((diff < 0) ? -1 : 1);
@@ -152,7 +117,7 @@ public class MemoryDataCache {
 
   public int getLatestPriorHeapDumpSampleIndex(long time, boolean leftClosest) {
     int index = Collections
-      .binarySearch(myHeapDumpSamples, MemoryProfilerService.MemoryData.HeapDumpSample.newBuilder().setStartTime(time).build(),
+      .binarySearch(myHeapDumpSamples, MemoryData.HeapDumpSample.newBuilder().setStartTime(time).build(),
                     (left, right) -> {
                       long diff = left.getStartTime() - right.getStartTime();
                       return (diff == 0) ? 0 : ((diff < 0) ? -1 : 1);
