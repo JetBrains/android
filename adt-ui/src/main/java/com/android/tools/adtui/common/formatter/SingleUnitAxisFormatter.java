@@ -73,10 +73,4 @@ public class SingleUnitAxisFormatter extends BaseAxisFormatter {
   protected int getUnitMinimalInterval(int index) {
     return mUnitMinimalInterval;
   }
-
-  @NotNull
-  @Override
-  public String getFormattedString(double globalRange, double value) {
-    return String.format("%d%s", Math.round(value / getMultiplier()), mUnit);
-  }
 }
