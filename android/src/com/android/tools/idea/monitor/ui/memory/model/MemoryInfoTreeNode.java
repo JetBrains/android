@@ -15,7 +15,17 @@
  */
 package com.android.tools.idea.monitor.ui.memory.model;
 
+import com.android.tools.idea.editors.allocations.nodes.AbstractTreeNode;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.MutableTreeNode;
+import javax.swing.tree.TreeNode;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Enumeration;
 
 /**
  * Model class that represents each row in the memory allocation table view.
@@ -23,8 +33,16 @@ import javax.swing.tree.DefaultMutableTreeNode;
  * e.g. {@link com.android.tools.idea.editors.allocations.nodes.AllocNode}
  */
 public class MemoryInfoTreeNode extends DefaultMutableTreeNode {
+
+  @Nullable protected MemoryInfoTreeNode myParent;
+
+  @Nullable private Comparator<MemoryInfoTreeNode> myComparator = null;
+
+  @NotNull private ArrayList<MemoryInfoTreeNode> myChildren = new ArrayList<>();
+
   private String mName;
-  private int mCount;
+
+  int mCount;
 
   public MemoryInfoTreeNode(String name) {
     mName = name;
@@ -34,11 +52,79 @@ public class MemoryInfoTreeNode extends DefaultMutableTreeNode {
     return mName;
   }
 
+  public void setCount(int count) {
+    mCount = count;
+  }
+
   public int getCount() {
     return mCount;
   }
 
-  public void setCount(int count) {
-    mCount = count;
+  @Override
+  public TreeNode getChildAt(int i) {
+    ensureOrder();
+    return myChildren.get(i);
+  }
+
+  @Override
+  public int getChildCount() {
+    return myChildren.size();
+  }
+
+  @Override
+  public TreeNode getParent() {
+    return myParent;
+  }
+
+  @Override
+  public int getIndex(TreeNode treeNode) {
+    assert treeNode instanceof AbstractTreeNode;
+    return myChildren.indexOf(treeNode);
+  }
+
+  @Override
+  public boolean isLeaf() {
+    return myChildren.size() == 0;
+  }
+
+  @Override
+  public Enumeration children() {
+    ensureOrder();
+    return Collections.enumeration(myChildren);
+  }
+
+  @Override
+  public boolean getAllowsChildren() {
+    return true;
+  }
+
+  @Override
+  public void insert(MutableTreeNode newChild, int childIndex) {
+    MemoryInfoTreeNode child = (MemoryInfoTreeNode)newChild;
+    assert child != null;
+    child.myParent = this;
+    myChildren.add(childIndex, child);
+  }
+
+  @Override
+  public void remove(int childIndex) {
+    MemoryInfoTreeNode child = myChildren.get(childIndex);
+    assert child != null;
+
+    child.myParent = null;
+    myChildren.remove(childIndex);
+  }
+
+  private void ensureOrder() {
+    if ((myParent != null && myParent.myComparator != myComparator) || myParent == null && myComparator != null) {
+      myComparator = myParent != null ? myParent.myComparator : myComparator;
+      Collections.sort(myChildren, myComparator);
+    }
+  }
+
+  public void sort(@NotNull Comparator<MemoryInfoTreeNode> comparator) {
+    assert myParent == null;
+    myComparator = comparator;
+    ensureOrder();
   }
 }
