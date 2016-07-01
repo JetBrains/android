@@ -15,35 +15,86 @@
  */
 package com.android.tools.idea.monitor.ui.memory.model;
 
+import com.android.ddmlib.AdbCommandRejectedException;
+import com.android.ddmlib.IDevice;
+import com.android.ddmlib.SyncException;
+import com.android.ddmlib.TimeoutException;
 import com.android.tools.adtui.model.DurationData;
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.idea.logcat.AndroidLogcatService;
 import com.android.tools.idea.monitor.datastore.DataAdapter;
 import com.android.tools.idea.monitor.datastore.Poller;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.datastore.SeriesDataType;
-import com.android.tools.profiler.proto.MemoryProfilerService;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.containers.HashMap;
 import io.grpc.StatusRuntimeException;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.adtui.model.DurationData.UNSPECIFIED_DURATION;
 import static com.android.tools.idea.monitor.ui.memory.model.MemoryDataCache.UNFINISHED_HEAP_DUMP_TIMESTAMP;
+import static com.android.tools.profiler.proto.MemoryProfilerService.*;
 
 public class MemoryPoller extends Poller {
   private static final Logger LOG = Logger.getInstance(MemoryPoller.class.getCanonicalName());
 
   @NotNull private final MemoryDataCache myDataCache;
+
+  @NotNull private final IDevice myDevice;
+
+  @Nullable private volatile CountDownLatch myLogcatHeapDumpFinishedLatch = null;
+
+  @NotNull private final AndroidLogcatService.LogLineListener myLogLineListener;
+
   private long myStartTimestampNs;
-  final private int myAppId;
+
+  private final int myAppId;
+
+  private boolean myHasPendingHeapDumpSample;
+
+  private volatile boolean myIsListeningForLogcat = false;
 
   public MemoryPoller(@NotNull SeriesDataStore dataStore, @NotNull MemoryDataCache dataCache, int appId) {
     super(dataStore, POLLING_DELAY_NS);
     myDataCache = dataCache;
     myAppId = appId;
+    myHasPendingHeapDumpSample = false;
+    myDevice = myService.getDevice();
+
+    myLogLineListener = line -> {
+      CountDownLatch capturedLatch = myLogcatHeapDumpFinishedLatch;
+      if (myIsListeningForLogcat && line.getMessage().contains("hprof: heap dump completed") && line.getPid() == appId) {
+        assert capturedLatch != null;
+        myIsListeningForLogcat = false;
+        capturedLatch.countDown();
+      }
+    };
+
+    AndroidLogcatService.getInstance().addListener(myDevice, myLogLineListener);
+  }
+
+  @Override
+  public void stop() {
+    myIsListeningForLogcat = false;
+    CountDownLatch capturedLatch = myLogcatHeapDumpFinishedLatch;
+    if (capturedLatch != null) {
+      capturedLatch.countDown();
+    }
+
+    super.stop();
+
+    AndroidLogcatService.getInstance().removeListener(myDevice, myLogLineListener);
   }
 
   public Map<SeriesDataType, DataAdapter> createAdapters() {
@@ -51,44 +102,44 @@ public class MemoryPoller extends Poller {
 
     adapters.put(SeriesDataType.MEMORY_TOTAL, new MemorySampleAdapter<Long>() {
       @Override
-      public Long getSampleValue(MemoryProfilerService.MemoryData.MemorySample sample) {
+      public Long getSampleValue(MemoryData.MemorySample sample) {
         return sample.getTotalMem();
       }
     });
     adapters.put(SeriesDataType.MEMORY_JAVA, new MemorySampleAdapter<Long>() {
       @Override
-      public Long getSampleValue(MemoryProfilerService.MemoryData.MemorySample sample) {
+      public Long getSampleValue(MemoryData.MemorySample sample) {
         return sample.getJavaMem();
       }
     });
     adapters.put(SeriesDataType.MEMORY_NATIVE, new MemorySampleAdapter<Long>() {
       @Override
-      public Long getSampleValue(MemoryProfilerService.MemoryData.MemorySample sample) {
+      public Long getSampleValue(MemoryData.MemorySample sample) {
         return sample.getNativeMem();
       }
     });
     adapters.put(SeriesDataType.MEMORY_GRAPHICS, new MemorySampleAdapter<Long>() {
       @Override
-      public Long getSampleValue(MemoryProfilerService.MemoryData.MemorySample sample) {
+      public Long getSampleValue(MemoryData.MemorySample sample) {
         return sample.getGraphicsMem();
       }
     });
     adapters.put(SeriesDataType.MEMORY_CODE, new MemorySampleAdapter<Long>() {
       @Override
-      public Long getSampleValue(MemoryProfilerService.MemoryData.MemorySample sample) {
+      public Long getSampleValue(MemoryData.MemorySample sample) {
         return sample.getCodeMem();
       }
     });
     adapters.put(SeriesDataType.MEMORY_OTHERS, new MemorySampleAdapter<Long>() {
       @Override
-      public Long getSampleValue(MemoryProfilerService.MemoryData.MemorySample sample) {
+      public Long getSampleValue(MemoryData.MemorySample sample) {
         return sample.getOthersMem();
       }
     });
 
     adapters.put(SeriesDataType.MEMORY_OBJECT_COUNT, new VmStatsSampleAdapter<Long>() {
       @Override
-      public Long getSampleValue(MemoryProfilerService.MemoryData.VmStatsSample sample) {
+      public Long getSampleValue(MemoryData.VmStatsSample sample) {
         return new Long(sample.getJavaAllocationCount() - sample.getJavaFreeCount());
       }
     });
@@ -100,18 +151,18 @@ public class MemoryPoller extends Poller {
 
   @Override
   protected void asyncInit() {
-    MemoryProfilerService.MemoryConfig config = MemoryProfilerService.MemoryConfig.newBuilder().setAppId(myAppId).addOptions(
-      MemoryProfilerService.MemoryConfig.Option.newBuilder().setFeature(MemoryProfilerService.MemoryFeature.MEMORY_LEVELS).setEnabled(true)
+    MemoryConfig config = MemoryConfig.newBuilder().setAppId(myAppId).addOptions(
+      MemoryConfig.Option.newBuilder().setFeature(MemoryFeature.MEMORY_LEVELS).setEnabled(true)
         .build()
     ).build();
-    MemoryProfilerService.MemoryStatus status = myService.getMemoryService().setMemoryConfig(config);
+    MemoryStatus status = myService.getMemoryService().setMemoryConfig(config);
     myStartTimestampNs = status.getStatusTimestamp();
   }
 
   @Override
   protected void asyncShutdown() {
-    MemoryProfilerService.MemoryConfig config = MemoryProfilerService.MemoryConfig.newBuilder().setAppId(myAppId).addOptions(
-      MemoryProfilerService.MemoryConfig.Option.newBuilder().setFeature(MemoryProfilerService.MemoryFeature.MEMORY_LEVELS).setEnabled(false)
+    MemoryConfig config = MemoryConfig.newBuilder().setAppId(myAppId).addOptions(
+      MemoryConfig.Option.newBuilder().setFeature(MemoryFeature.MEMORY_LEVELS).setEnabled(false)
         .build()
     ).build();
     myService.getMemoryService().setMemoryConfig(config);
@@ -119,13 +170,61 @@ public class MemoryPoller extends Poller {
 
   @Override
   protected void poll() {
-    MemoryProfilerService.MemoryData result;
+    MemoryData result;
     try {
-      MemoryProfilerService.MemoryRequest request =
-        MemoryProfilerService.MemoryRequest.newBuilder().setAppId(myAppId).setStartTime(myStartTimestampNs).setEndTime(Long.MAX_VALUE)
+      MemoryRequest request =
+        MemoryRequest.newBuilder().setAppId(myAppId).setStartTime(myStartTimestampNs).setEndTime(Long.MAX_VALUE)
           .build();
       result = myService.getMemoryService().getData(request);
-      myDataCache.appendData(result);
+
+      myDataCache.appendMemorySamples(result.getMemSamplesList());
+      myDataCache.appendVmStatsSamples(result.getVmStatsSamplesList());
+
+      List<MemoryData.HeapDumpSample> pendingPulls = new ArrayList<>();
+      for (int i = 0; i < result.getHeapDumpSamplesCount(); i++) {
+        MemoryData.HeapDumpSample sample = result.getHeapDumpSamples(i);
+        if (myHasPendingHeapDumpSample) {
+          // Note - if there is an existing pending heap dump, the first sample from the response should represent the same sample
+          assert i == 0 && sample.getEndTime() != UNFINISHED_HEAP_DUMP_TIMESTAMP;
+
+          MemoryData.HeapDumpSample previousLastSample = myDataCache.swapLastHeapDumpSample(sample);
+          assert previousLastSample.getFilePath().equals(sample.getFilePath());
+          myHasPendingHeapDumpSample = false;
+          pendingPulls.add(sample);
+        }
+        else {
+          myDataCache.appendHeapDumpSample(sample);
+
+          if (sample.getEndTime() == UNFINISHED_HEAP_DUMP_TIMESTAMP) {
+            // Note - there should be at most one unfinished heap dump request at a time. e.g. the final sample from the response.
+            assert i == result.getHeapDumpSamplesCount() - 1;
+            myHasPendingHeapDumpSample = true;
+          }
+          else {
+            pendingPulls.add(sample);
+          }
+        }
+      }
+
+      if (!pendingPulls.isEmpty()) {
+        ApplicationManager.getApplication().executeOnPooledThread(() -> {
+          try {
+            assert myLogcatHeapDumpFinishedLatch != null;
+            //noinspection ConstantConditions
+            myLogcatHeapDumpFinishedLatch.await(1, TimeUnit.MINUTES); // TODO Change this to heartbeat-based.
+            for (MemoryData.HeapDumpSample sample : pendingPulls) {
+              File heapDumpFile = pullHeapDumpFile(sample);
+              if (heapDumpFile != null) {
+                myDataCache.addPulledHeapDumpFile(sample, heapDumpFile);
+              }
+            }
+          }
+          catch (InterruptedException ignored) {}
+          finally {
+            myLogcatHeapDumpFinishedLatch = null;
+          }
+        });
+      }
     }
     catch (StatusRuntimeException e) {
       LOG.info("Server most likely unreachable.");
@@ -141,11 +240,37 @@ public class MemoryPoller extends Poller {
   /**
    * Triggers a heap dump grpc request
    */
-  public void requestHeapDump() {
-    MemoryProfilerService.HeapDumpRequest.Builder builder = MemoryProfilerService.HeapDumpRequest.newBuilder();
+  public boolean requestHeapDump() {
+    if (myLogcatHeapDumpFinishedLatch != null) {
+      return false;
+    }
+
+    myLogcatHeapDumpFinishedLatch = new CountDownLatch(1);
+    myIsListeningForLogcat = true;
+
+    HeapDumpRequest.Builder builder = HeapDumpRequest.newBuilder();
     builder.setAppId(myAppId);
     builder.setRequestTime(myStartTimestampNs);   // Currently not used on perfd.
     myService.getMemoryService().triggerHeapDump(builder.build());
+    return true;
+  }
+
+  @Nullable
+  public File pullHeapDumpFile(@NotNull MemoryData.HeapDumpSample sample) {
+    if (!sample.getSuccess()) {
+      return null;
+    }
+
+    try {
+      File tempFile = FileUtil.createTempFile(Long.toString(sample.getEndTime()), ".hprof");
+      tempFile.deleteOnExit();
+      myDevice.pullFile(sample.getFilePath(), tempFile.getAbsolutePath());
+      return tempFile;
+    }
+    catch (IOException | AdbCommandRejectedException | TimeoutException | SyncException e) {
+      LOG.warn("Error pulling '" + sample.getFilePath() + "' from device.", e);
+      return null;
+    }
   }
 
   private abstract class MemorySampleAdapter<T> implements DataAdapter<T> {
@@ -166,11 +291,11 @@ public class MemoryPoller extends Poller {
 
     @Override
     public SeriesData<T> get(int index) {
-      MemoryProfilerService.MemoryData.MemorySample sample = myDataCache.getMemorySample(index);
+      MemoryData.MemorySample sample = myDataCache.getMemorySample(index);
       return new SeriesData<>(TimeUnit.NANOSECONDS.toMicros(sample.getTimestamp()), getSampleValue(sample));
     }
 
-    public abstract T getSampleValue(MemoryProfilerService.MemoryData.MemorySample sample);
+    public abstract T getSampleValue(MemoryData.MemorySample sample);
   }
 
   private abstract class VmStatsSampleAdapter<T> implements DataAdapter<T> {
@@ -191,11 +316,11 @@ public class MemoryPoller extends Poller {
 
     @Override
     public SeriesData<T> get(int index) {
-      MemoryProfilerService.MemoryData.VmStatsSample sample = myDataCache.getVmStatsSample(index);
+      MemoryData.VmStatsSample sample = myDataCache.getVmStatsSample(index);
       return new SeriesData<>(TimeUnit.NANOSECONDS.toMicros(sample.getTimestamp()), getSampleValue(sample));
     }
 
-    public abstract T getSampleValue(MemoryProfilerService.MemoryData.VmStatsSample sample);
+    public abstract T getSampleValue(MemoryData.VmStatsSample sample);
   }
 
   private class HeapDumpSampleAdapter implements DataAdapter<DurationData> {
@@ -216,7 +341,7 @@ public class MemoryPoller extends Poller {
 
     @Override
     public SeriesData<DurationData> get(int index) {
-      MemoryProfilerService.MemoryData.HeapDumpSample sample = myDataCache.getHeapDumpSample(index);
+      MemoryData.HeapDumpSample sample = myDataCache.getHeapDumpSample(index);
       long startTimeUs = TimeUnit.NANOSECONDS.toMicros(sample.getStartTime());
       long durationUs = sample.getEndTime() == UNFINISHED_HEAP_DUMP_TIMESTAMP ? UNSPECIFIED_DURATION :
                         TimeUnit.NANOSECONDS.toMicros(sample.getEndTime() - sample.getStartTime());

@@ -36,6 +36,7 @@ import com.android.tools.perflib.heap.Snapshot;
 import com.android.tools.profiler.proto.MemoryProfilerService;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.panels.HorizontalLayout;
@@ -55,14 +56,14 @@ import java.util.List;
 public final class MemoryProfilerUiManager extends BaseProfilerUiManager {
 
   public interface MemoryEventListener extends EventListener {
-    void newHeapDumpSamplesReceived(List<MemoryProfilerService.MemoryData.HeapDumpSample> newSamples);
+    void newHeapDumpSamplesRetrieved(MemoryProfilerService.MemoryData.HeapDumpSample newSample);
   }
 
   private static final Logger LOG = Logger.getInstance(MemoryProfilerUiManager.class);
 
   // Provides an empty HeapDumpSample object so users can diff a heap dump against epoch.
-  private static final MemoryProfilerService.MemoryData.HeapDumpSample.Builder EMPTY_SAMPLE_BUILDER =
-    MemoryProfilerService.MemoryData.HeapDumpSample.newBuilder();
+  private static final MemoryProfilerService.MemoryData.HeapDumpSample EMPTY_HEAP_DUMP_SAMPLE =
+    MemoryProfilerService.MemoryData.HeapDumpSample.newBuilder().build();
 
   @NotNull
   private final EventDispatcher<MemoryEventListener> myMemoryEventDispatcher;
@@ -74,7 +75,9 @@ public final class MemoryProfilerUiManager extends BaseProfilerUiManager {
 
   private JComboBox<MemoryProfilerService.MemoryData.HeapDumpSample> myPrevHeapDumpSelector;
   private JComboBox<MemoryProfilerService.MemoryData.HeapDumpSample> myNextHeapDumpSelector;
+  private File myPrevHeapDumpFile;
   private Snapshot myPrevHeapDump;
+  private File myNextHeapDumpFile;
   private Snapshot myNextHeapDump;
 
   public MemoryProfilerUiManager(@NotNull Range xRange, @NotNull Choreographer choreographer,
@@ -87,7 +90,7 @@ public final class MemoryProfilerUiManager extends BaseProfilerUiManager {
   @Override
   public Set<Poller> createPollers(int pid) {
     DeviceProfilerService profilerService = myDataStore.getDeviceProfilerService();
-    myDataCache = new MemoryDataCache(pid, profilerService.getDevice(), myMemoryEventDispatcher);
+    myDataCache = new MemoryDataCache(profilerService.getDevice(), myMemoryEventDispatcher);
     MemoryPoller poller = new MemoryPoller(myDataStore, myDataCache, pid);
 
     Map<SeriesDataType, DataAdapter> adapters = poller.createAdapters();
@@ -96,14 +99,15 @@ public final class MemoryProfilerUiManager extends BaseProfilerUiManager {
       myDataStore.registerAdapter(entry.getKey(), entry.getValue());
     }
 
-    myMemoryEventDispatcher.addListener(newSamples -> {
+    myMemoryEventDispatcher.addListener(newSample -> {
       // Update the UI from the EDT thread.
-      SwingUtilities.invokeLater(() -> {
-        for (MemoryProfilerService.MemoryData.HeapDumpSample sample : newSamples) {
-          myPrevHeapDumpSelector.addItem(sample);
-          myNextHeapDumpSelector.addItem(sample);
+      ApplicationManager.getApplication().invokeLater(() -> {
+        myPrevHeapDumpSelector.addItem(newSample);
+        myNextHeapDumpSelector.addItem(newSample);
+        if (myNextHeapDumpSelector.getSelectedItem() != null && myNextHeapDumpSelector.getSelectedItem() != EMPTY_HEAP_DUMP_SAMPLE) {
+          myPrevHeapDumpSelector.setSelectedItem(myNextHeapDumpSelector.getSelectedItem());
         }
-        myNextHeapDumpSelector.setSelectedItem(newSamples.get(newSamples.size() - 1));
+        myNextHeapDumpSelector.setSelectedItem(newSample);
       });
     });
 
@@ -125,8 +129,9 @@ public final class MemoryProfilerUiManager extends BaseProfilerUiManager {
     myTriggerHeapDumpButton = new JButton(AndroidIcons.Ddms.DumpHprof);
     MemoryPoller poller = (MemoryPoller)Iterables.getOnlyElement(myPollerSet);
     myTriggerHeapDumpButton.addActionListener(e -> {
-      poller.requestHeapDump();
-      myEventDispatcher.getMulticaster().profilerExpanded(ProfilerType.MEMORY);
+      if (poller.requestHeapDump()) {
+        myEventDispatcher.getMulticaster().profilerExpanded(ProfilerType.MEMORY);
+      }
     });
     toolbar.add(myTriggerHeapDumpButton, HorizontalLayout.LEFT);
   }
@@ -160,6 +165,8 @@ public final class MemoryProfilerUiManager extends BaseProfilerUiManager {
 
     myPrevHeapDumpSelector = null;
     myNextHeapDumpSelector = null;
+    myPrevHeapDumpFile = null;
+    myNextHeapDumpFile = null;
     if (myPrevHeapDump != null) {
       myPrevHeapDump.dispose();
       myPrevHeapDump = null;
@@ -178,42 +185,46 @@ public final class MemoryProfilerUiManager extends BaseProfilerUiManager {
   private JPanel createDetailToolbar() {
     JPanel toolbar = new JBPanel(new HorizontalLayout(JBUI.scale(5)));
     myPrevHeapDumpSelector = new JComboBox<>();
-    myPrevHeapDumpSelector.addItem(EMPTY_SAMPLE_BUILDER.build());
+    myPrevHeapDumpSelector.addItem(EMPTY_HEAP_DUMP_SAMPLE);
     myPrevHeapDumpSelector.addActionListener(e -> {
+      File file = myDataCache.getHeapDumpFile((MemoryProfilerService.MemoryData.HeapDumpSample)myPrevHeapDumpSelector.getSelectedItem());
+      if (myPrevHeapDumpFile == file) {
+        return;
+      }
+
       if (myPrevHeapDump != null) {
         myPrevHeapDump.dispose();
         myPrevHeapDump = null;
       }
 
-      File file = myDataCache.getHeapDumpFile((MemoryProfilerService.MemoryData.HeapDumpSample)myPrevHeapDumpSelector.getSelectedItem());
-      if (file != null) {
-        try {
-          myPrevHeapDump = Snapshot.createSnapshot(new MemoryMappedFileBuffer(file));
-        }
-        catch (IOException exception) {
-          LOG.info("Error generating Snapshot from heap dump file.", exception);
-        }
+      try {
+        myPrevHeapDump = Snapshot.createSnapshot(new MemoryMappedFileBuffer(file));
+      }
+      catch (IOException exception) {
+        LOG.info("Error generating Snapshot from heap dump file.", exception);
       }
 
       generateClassHistogram(myMemoryDetailSegment, myRoot, myPrevHeapDump, myNextHeapDump);
     });
 
     myNextHeapDumpSelector = new JComboBox<>();
-    myNextHeapDumpSelector.addItem(EMPTY_SAMPLE_BUILDER.build());
+    myNextHeapDumpSelector.addItem(EMPTY_HEAP_DUMP_SAMPLE);
     myNextHeapDumpSelector.addActionListener(e -> {
+      File file = myDataCache.getHeapDumpFile((MemoryProfilerService.MemoryData.HeapDumpSample)myNextHeapDumpSelector.getSelectedItem());
+      if (myNextHeapDumpFile == file) {
+        return;
+      }
+
       if (myNextHeapDump != null) {
         myNextHeapDump.dispose();
         myNextHeapDump = null;
       }
 
-      File file = myDataCache.getHeapDumpFile((MemoryProfilerService.MemoryData.HeapDumpSample)myNextHeapDumpSelector.getSelectedItem());
-      if (file != null) {
-        try {
-          myNextHeapDump = Snapshot.createSnapshot(new MemoryMappedFileBuffer(file));
-        }
-        catch (IOException exception) {
-          LOG.info("Error generating Snapshot from heap dump file.", exception);
-        }
+      try {
+        myNextHeapDump = Snapshot.createSnapshot(new MemoryMappedFileBuffer(file));
+      }
+      catch (IOException exception) {
+        LOG.info("Error generating Snapshot from heap dump file.", exception);
       }
 
       generateClassHistogram(myMemoryDetailSegment, myRoot, myPrevHeapDump, myNextHeapDump);

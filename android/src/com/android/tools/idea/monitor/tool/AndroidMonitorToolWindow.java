@@ -25,6 +25,7 @@ import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.ddms.DevicePanel;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.ddms.adb.AdbService;
+import com.android.tools.idea.logcat.AndroidLogcatService;
 import com.android.tools.idea.monitor.datastore.Poller;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.datastore.SeriesDataStoreImpl;
@@ -145,6 +146,7 @@ public class AndroidMonitorToolWindow implements Disposable {
   }
 
   private List<Animatable> createCommonAnimatables() {
+    assert myDataStore != null;
     final long deviceStartTimeUs = myDataStore.getLatestTimeUs();
     Range monotonicTimeUsRangeUs = new Range(deviceStartTimeUs - RangeScrollbar.DEFAULT_VIEW_LENGTH_US, deviceStartTimeUs);
     myTimeSelectionRange = new Range();
@@ -169,7 +171,6 @@ public class AndroidMonitorToolWindow implements Disposable {
 
     mySelection = new SelectionComponent(mySegmentsContainer, myTimeAxis, myTimeSelectionRange, monotonicTimeUsRangeUs, myTimeViewRange);
 
-    assert myDataStore != null;
     return Arrays.asList(accordion,
                          frameLength -> {
                            long maxTimeBufferUs = TimeUnit.NANOSECONDS.toMicros(Poller.POLLING_DELAY_NS);
@@ -191,6 +192,8 @@ public class AndroidMonitorToolWindow implements Disposable {
   private void setupDevice() {
     mySelectedDevice = myDeviceContext.getSelectedDevice();
     connectToDevice();
+
+    AndroidDebugBridge.addDeviceChangeListener(AndroidLogcatService.getInstance());
 
     myDeviceContext.addListener(new DeviceContext.DeviceSelectionListener() {
       @Override
