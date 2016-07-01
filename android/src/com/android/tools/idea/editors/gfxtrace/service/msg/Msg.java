@@ -75,14 +75,7 @@ public final class Msg implements BinaryObject {
    */
   @Override
   public String toString() {
-    StringTable stringTable = StringTable.getCurrent();
-    if (stringTable != null) {
-      Node node = stringTable.get(myIdentifier);
-      if (node != null) {
-        return node.getString(myArguments);
-      }
-    }
-    return myIdentifier + " " + myArguments;
+    return StringTable.getMessage(myIdentifier, myArguments);
   }
 
   public enum Klass implements BinaryClass {
