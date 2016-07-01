@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.startup;
 
+import com.android.tools.idea.actions.CreateClassAction;
 import com.android.tools.idea.actions.MakeIdeaModuleAction;
 import com.android.tools.idea.monitor.tool.AndroidMonitorToolWindowFactory;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
@@ -22,7 +23,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.concurrency.JobScheduler;
 import com.intellij.lang.injection.MultiHostInjector;
-import com.intellij.androidstudio.actions.CreateClassAction;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.ex.ApplicationManagerEx;
 import com.intellij.openapi.diagnostic.Logger;

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.androidstudio.actions;
+package com.android.tools.idea.actions;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
@@ -28,7 +28,6 @@ import org.jetbrains.annotations.Nullable;
 public class CreateNewClassDialogValidatorExImpl implements CreateNewClassDialogValidatorEx {
   public static final String INVALID_PACKAGE_MESSAGE = "This is not a valid Java package name";
   public static final String INVALID_QUALIFIED_NAME = "This is not a valid Java qualified name";
-  private static final String INVALID_MODIFIER_COMBINATION_MESSAGE = "A class cannot be both abstract and final";
 
   private Project myProject;
 
@@ -55,11 +54,6 @@ public class CreateNewClassDialogValidatorExImpl implements CreateNewClassDialog
   @Override
   public boolean checkPackage(@NotNull String inputString) {
     return CharMatcher.WHITESPACE.matchesAllOf(inputString) || checkList(inputString, ".");
-  }
-
-  @Override
-  public boolean checkAbstractAndFinal(boolean isAbstract, boolean isFinal) {
-    return !isAbstract || !isFinal;
   }
 
   @Nullable
