@@ -45,6 +45,11 @@ public final class SelectionComponent extends AnimatedComponent {
   public static final float ZOOM_FACTOR = 0.1f;
 
   /**
+   * Multiplier for the mouse wheel rotation when zooming using the mouse wheel.
+   */
+  public static final int MOUSE_WHEEL_ZOOM_FACTOR = 5;
+
+  /**
    * Minimum range the user can zoom into the profilers.
    */
   private static final double MINIMUM_VIEW_LENGTH_US = TimeUnit.SECONDS.toMicros(1);
@@ -195,12 +200,13 @@ public final class SelectionComponent extends AnimatedComponent {
     });
 
     mHost.addMouseWheelListener(e -> {
-      double anchor = mAxis.getValueAtPosition(e.getPoint().x);
-      float zoomPercentage = ZOOM_FACTOR * e.getWheelRotation();
-      double delta = zoomPercentage * mViewRange.getLength();
-      double minDelta = delta * (anchor - mViewRange.getMin()) / mViewRange.getLength();
-      double maxDelta = delta - minDelta;
-      requestZoom(mViewRange.getMin() - minDelta, mViewRange.getMax() + maxDelta);
+      // TODO: extract this logic to reuse it in other components (e.g. HTreeChart)
+      double anchor = (double) e.getX() / mHost.getWidth() * mViewRange.getLength() + mViewRange.getMin();
+      float zoomPercentage = MOUSE_WHEEL_ZOOM_FACTOR * e.getWheelRotation();
+      double minDelta = (anchor - mViewRange.getMin()) / zoomPercentage;
+      double maxDelta = (mViewRange.getMax() - anchor) / zoomPercentage;
+
+      mViewRange.set(mViewRange.getMin() - minDelta, mViewRange.getMax() + maxDelta);
     });
   }
 
