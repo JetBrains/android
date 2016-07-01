@@ -426,17 +426,6 @@ public class AndroidIcons {
     public static final Icon ZoomControls = load("/icons/views/ZoomControls.png"); // 16x16
   }
 
-  public static class Versions {
-    public static final Icon Froyo = load("/icons/versions/Froyo.png"); // 128x128
-    public static final Icon Gingerbread = load("/icons/versions/Gingerbread.png"); // 512x512
-    public static final Icon Honeycomb = load("/icons/versions/Honeycomb.png"); // 128x128
-    public static final Icon IceCreamSandwich = load("/icons/versions/IceCreamSandwich.png"); // 128x128
-    public static final Icon JellyBean = load("/icons/versions/Jelly Bean.png"); // 128x128
-    public static final Icon KitKat = load("/icons/versions/KitKat.png"); // 128x128
-    public static final Icon Lollipop = load("/icons/versions/Lollipop.png"); // 128x128
-    public static final Icon Marshmallow = load("/icons/versions/Marshmallow.png"); // 128x128
-  }
-
   public static class ModuleTemplates {
     public static final Icon Wear = load("/icons/module_templates/wear_module.png"); // 512x512
     public static final Icon Car = load("/icons/module_templates/car_module.png"); // 512x512
