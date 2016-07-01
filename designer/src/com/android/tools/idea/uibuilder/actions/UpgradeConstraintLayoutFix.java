@@ -28,6 +28,7 @@ import com.android.tools.idea.sdk.StudioSdkUtil;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
+import com.android.tools.lint.checks.ConstraintLayoutDetector;
 import com.intellij.openapi.module.Module;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider;
@@ -89,8 +90,8 @@ public class UpgradeConstraintLayoutFix implements AndroidLintQuickFix {
       // Temporary hack: the maven repository lookup might compute the most
       // recent installed version in the SDK area when a newer one is available:
       // make sure we use the latest
-      if (version.equals("1.0.0-alpha3")) {
-        version = "1.0.0-alpha4";
+      if (ConstraintLayoutDetector.LATEST_KNOWN_VERSION.compareTo(version) > 0) {
+        version = ConstraintLayoutDetector.LATEST_KNOWN_VERSION_STRING;
       }
 
       gc = GradleCoordinate.parseCoordinateString(CONSTRAINT_LAYOUT_LIB_ARTIFACT + ':' + version);
