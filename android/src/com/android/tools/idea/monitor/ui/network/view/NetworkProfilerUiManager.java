@@ -27,8 +27,8 @@ import com.android.tools.idea.monitor.ui.network.model.HttpDataCache;
 import com.android.tools.idea.monitor.ui.network.model.HttpDataPoller;
 import com.android.tools.idea.monitor.ui.network.model.NetworkDataPoller;
 import com.google.common.collect.Sets;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.EventDispatcher;
-import io.netty.util.internal.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -90,7 +90,7 @@ public final class NetworkProfilerUiManager extends BaseProfilerUiManager {
 
     myCaptureSegment = new NetworkCaptureSegment(myTimeViewRange, myDataStore, httpData -> {
       String responseFilePath = httpData.getHttpResponseBodyPath();
-      File file = !StringUtil.isNullOrEmpty(responseFilePath) ? myDataCache.getFile(responseFilePath) : null;
+      File file = !StringUtil.isEmptyOrSpaces(responseFilePath) ? myDataCache.getFile(responseFilePath) : null;
       if (file != null) {
         myDetailedView.showConnectionDetails(file);
         myEventDispatcher.getMulticaster().profilerExpanded(ProfilerType.NETWORK);

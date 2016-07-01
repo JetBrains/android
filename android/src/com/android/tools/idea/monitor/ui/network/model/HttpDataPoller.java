@@ -22,13 +22,16 @@ import com.android.tools.idea.monitor.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.datastore.SeriesDataType;
 import com.android.tools.profiler.proto.NetworkProfiler;
 import com.android.tools.profiler.proto.NetworkProfilerServiceGrpc;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.containers.hash.HashMap;
 import io.grpc.StatusRuntimeException;
-import io.netty.util.internal.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -135,7 +138,7 @@ public class HttpDataPoller extends Poller {
     String responseFilePath = response.getResponseBody().getFilePath();
     data.setHttpResponseBodyPath(responseFilePath);
 
-    File file = !StringUtil.isNullOrEmpty(responseFilePath) ? myDataCache.getFile(responseFilePath) : null;
+    File file = !StringUtil.isEmptyOrSpaces(responseFilePath) ? myDataCache.getFile(responseFilePath) : null;
     if (file != null) {
       data.setHttpResponseBodySize(file.length());
     }
