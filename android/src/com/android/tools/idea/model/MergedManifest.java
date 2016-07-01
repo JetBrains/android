@@ -533,22 +533,28 @@ public class MergedManifest {
   }
 
   @Nullable
-  public Element findActivity(@Nullable String qualifiedName, boolean includeAliases) {
+  public Element findActivity(@Nullable String qualifiedName) {
     sync();
-    if (qualifiedName != null) {
-      if (myActivities != null) {
-        for (Element activity : myActivities) {
-          if (qualifiedName.equals(ActivityLocatorUtils.getQualifiedName(activity))) {
-            return activity;
-          }
-        }
-      }
-      if (includeAliases && myActivityAliases != null) {
-        for (Element activity : myActivityAliases) {
-          if (qualifiedName.equals(ActivityLocatorUtils.getQualifiedName(activity))) {
-            return activity;
-          }
-        }
+    if (qualifiedName == null || myActivities == null) {
+      return null;
+    }
+    return getActivityOrAliasByName(qualifiedName, myActivities);
+  }
+
+  @Nullable
+  public Element findActivityAlias(@Nullable String qualifiedName) {
+    sync();
+    if (qualifiedName == null || myActivityAliases == null) {
+      return null;
+    }
+    return getActivityOrAliasByName(qualifiedName, myActivityAliases);
+  }
+
+  @Nullable
+  private static Element getActivityOrAliasByName(@NotNull String qualifiedName, @NotNull List<Element> activityOrAliasElements) {
+    for (Element activity : activityOrAliasElements) {
+      if (qualifiedName.equals(ActivityLocatorUtils.getQualifiedName(activity))) {
+        return activity;
       }
     }
 
