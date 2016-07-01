@@ -32,7 +32,9 @@ import java.util.List;
 
 import static com.android.SdkConstants.*;
 
-/** Handler for the {@code <ScrollView>} widget */
+/**
+ * Handler for the {@code <ScrollView>} widget
+ */
 public class ScrollViewHandler extends ViewGroupHandler {
   @Override
   @NotNull
@@ -85,12 +87,12 @@ public class ScrollViewHandler extends ViewGroupHandler {
       maxScrollableHeight += child.h;
     }
 
-    // Substract the viewport form the scrollable size
+    // Subtract the viewport height from the scrollable size
     maxScrollableHeight -= component.h;
 
     if (maxScrollableHeight > 0) {
       // There is something to scroll
-      return new ScrollHandler(component, maxScrollableHeight, 10);
+      return new ScrollViewScrollHandler(component, maxScrollableHeight, 10);
     }
 
     return null;
