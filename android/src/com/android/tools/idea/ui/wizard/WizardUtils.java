@@ -48,13 +48,14 @@ public final class WizardUtils {
   }
 
   /**
-   * Wrap a target string with {@code <html></html>} if it's not already so wrapped. This is useful
+   * Wrap a target string with {@code <html></html>} if it's not already so wrapped, and replaces NewLines with html breaks. This is useful
    * as various Swing components (particularly labels) act slightly differently with html input.
    */
   @NotNull
   public static String toHtmlString(@NotNull String text) {
     if (!StringUtil.isEmpty(text) && !text.startsWith("<html>")) {
-      return String.format("<html>%1$s</html>", text.trim());
+      text = text.trim().replaceAll("\n", "<br>");
+      return String.format("<html>%1$s</html>", text);
     }
     return text;
   }
