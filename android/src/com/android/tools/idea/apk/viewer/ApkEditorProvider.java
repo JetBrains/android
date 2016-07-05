@@ -32,11 +32,8 @@ public class ApkEditorProvider implements FileEditorProvider, DumbAware {
 
   @Override
   public boolean accept(@NotNull Project project, @NotNull VirtualFile file) {
-    if (!file.getName().endsWith(AndroidApkFileType.INSTANCE.getDefaultExtension())) {
-      return false;
-    }
-
-    return ApkFileSystem.getInstance().getRootByLocal(file) != null;
+    return ApkFileSystem.EXTENSIONS.contains(file.getExtension()) &&
+           ApkFileSystem.getInstance().getRootByLocal(file) != null;
   }
 
   @NotNull

@@ -83,7 +83,7 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
   @Override
   public void selectApkAndCompare() {
     FileChooserDescriptor desc = new FileChooserDescriptor(true, false, false, false, false, false);
-    desc.withFileFilter(file -> SdkConstants.EXT_ANDROID_PACKAGE.equals(file.getExtension()));
+    desc.withFileFilter(file -> ApkFileSystem.EXTENSIONS.contains(file.getExtension()));
     VirtualFile file = FileChooser.chooseFile(desc, myProject, null);
     if(file == null) {
       // user canceled

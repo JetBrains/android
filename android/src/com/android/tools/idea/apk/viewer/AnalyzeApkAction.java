@@ -70,7 +70,7 @@ public class AnalyzeApkAction extends DumbAwareAction {
   private static VirtualFile promptUserForApk(Project project) {
     FileChooserDescriptor descriptor = FileChooserDescriptorFactory.createSingleFileDescriptor()
       .withDescription("Select APK to analyze")
-      .withFileFilter(file -> AndroidApkFileType.INSTANCE.getDefaultExtension().equals(file.getExtension()));
+      .withFileFilter(file -> ApkFileSystem.EXTENSIONS.contains(file.getExtension()));
 
     VirtualFile apk = FileChooser.chooseFile(descriptor, project, getLastSelectedApk(project));
     if (apk != null) {
