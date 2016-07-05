@@ -75,4 +75,16 @@ public class SpecificActivityLocatorTest extends AndroidTestCase {
       assertEquals("The intent-filter of the activity must contain android.intent.action.MAIN action", e.getMessage());
     }
   }
+
+  public void testActivityWithoutLauncherIntent() throws ActivityLocator.ActivityLocatorException {
+    myFixture.copyFileToProject("projects/runConfig/undeclared/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    myFixture.copyFileToProject("projects/runConfig/undeclared/Launcher.java", "src/com/example/unittest/Launcher.java");
+    SpecificActivityLocator locator = new SpecificActivityLocator(myFacet, "com.example.unittest.Launcher");
+    try {
+      locator.validate();
+      fail("Validation succeeded for activity that isn't launchable.");
+    } catch (ActivityLocator.ActivityLocatorException e) {
+      assertEquals("The intent-filter of the activity must contain android.intent.action.MAIN action", e.getMessage());
+    }
+  }
 }
