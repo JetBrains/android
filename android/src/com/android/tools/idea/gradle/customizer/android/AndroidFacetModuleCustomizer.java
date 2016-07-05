@@ -34,9 +34,9 @@ import java.util.Collection;
 
 import static com.android.tools.idea.gradle.util.Facets.findFacet;
 import static com.android.tools.idea.gradle.util.Facets.removeAllFacetsOfType;
-import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.intellij.openapi.util.io.FileUtilRt.getRelativePath;
 import static com.intellij.openapi.util.io.FileUtilRt.toSystemIndependentName;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 
 /**
@@ -100,13 +100,8 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer<AndroidGra
   private static void syncSelectedVariantAndTestArtifact(@NotNull JpsAndroidModuleProperties facetState,
                                                          @NotNull AndroidGradleModel androidModel) {
     String variantStoredInFacet = facetState.SELECTED_BUILD_VARIANT;
-    if (!isNullOrEmpty(variantStoredInFacet) && androidModel.getVariantNames().contains(variantStoredInFacet)) {
+    if (isNotEmpty(variantStoredInFacet) && androidModel.getVariantNames().contains(variantStoredInFacet)) {
       androidModel.setSelectedVariantName(variantStoredInFacet);
-    }
-
-    String testArtifactStoredInFacet = facetState.SELECTED_TEST_ARTIFACT;
-    if (!isNullOrEmpty(testArtifactStoredInFacet)) {
-      androidModel.setSelectedTestArtifactName(testArtifactStoredInFacet);
     }
   }
 

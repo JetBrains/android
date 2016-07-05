@@ -25,13 +25,10 @@ import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.IdeaTestCase;
 import com.intellij.util.containers.ContainerUtil;
-import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
-
-import static com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST;
 
 /**
  * Tests for {@link Dependency#extractFrom(AndroidGradleModel)}.
@@ -49,8 +46,7 @@ public class ExtractAndroidDependenciesTest extends IdeaTestCase {
     assertNotNull(myVariant);
 
     File rootDir = myAndroidProject.getRootDir();
-    myAndroidModel = new AndroidGradleModel(GradleConstants.SYSTEM_ID, myAndroidProject.getName(), rootDir, myAndroidProject,
-                                            myVariant.getName(), ARTIFACT_ANDROID_TEST);
+    myAndroidModel = new AndroidGradleModel(myAndroidProject.getName(), rootDir, myAndroidProject, myVariant.getName());
   }
 
   @Override
@@ -61,6 +57,7 @@ public class ExtractAndroidDependenciesTest extends IdeaTestCase {
       }
     }
     finally {
+      //noinspection ThrowFromFinallyBlock
       super.tearDown();
     }
   }
