@@ -74,7 +74,7 @@ public class EmptyManager extends CaptureEditorLightToolWindowManager {
   @NotNull
   @Override
   protected AnAction[] createActions() {
-    return new AnAction[0];
+    return AnAction.EMPTY_ARRAY;
   }
 
   @NotNull
