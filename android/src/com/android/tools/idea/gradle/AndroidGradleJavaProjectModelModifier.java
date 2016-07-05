@@ -67,6 +67,13 @@ import static com.intellij.openapi.util.io.FileUtil.splitPath;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModifier {
+  @NotNull
+  private static final Map<String, String> EXTERNAL_LIBRARY_VERSIONS = ImmutableMap.of("net.jcip:jcip-annotations", "1.0",
+                                                                                       "org.jetbrains:annotations-java5", "15.0",
+                                                                                       "org.jetbrains:annotations", "15.0",
+                                                                                       "junit:junit", "4.12",
+                                                                                       "org.testng:testng", "6.9.6");
+
   @Nullable
   @Override
   public Promise<Void> addModuleDependency(@NotNull Module from, @NotNull Module to, @NotNull DependencyScope scope) {
@@ -202,28 +209,19 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
       TestArtifactSearchScopes testScopes = TestArtifactSearchScopes.get(module);
 
       if (testScopes != null && openedFile != null) {
-        if (testScopes.isAndroidTestSource(openedFile)) {
-          return ANDROID_TEST_COMPILE;
-        }
-        return TEST_COMPILE;
+        return testScopes.isAndroidTestSource(openedFile) ? ANDROID_TEST_COMPILE : TEST_COMPILE;
       }
-      return COMPILE;
     }
     return COMPILE;
   }
 
-  private final static Map<String, String> externalLibraryVersions = ImmutableMap.of("net.jcip:jcip-annotations", "1.0",
-                                                                                     "org.jetbrains:annotations-java5", "15.0",
-                                                                                     "org.jetbrains:annotations", "15.0",
-                                                                                     "junit:junit", "4.12",
-                                                                                     "org.testng:testng", "6.9.6");
-
   @Nullable
   private static String selectVersion(@NotNull ExternalLibraryDescriptor descriptor) {
     String groupAndId = descriptor.getLibraryGroupId() + ":" + descriptor.getLibraryArtifactId();
-    return externalLibraryVersions.get(groupAndId);
+    return EXTERNAL_LIBRARY_VERSIONS.get(groupAndId);
   }
 
+  @NotNull
   private static Promise<Void> requestProjectSync(@NotNull Project project) {
     AsyncPromise<Void> promise = new AsyncPromise<>();
     GradleProjectImporter.getInstance().requestProjectSync(project, false, new GradleSyncListener.Adapter() {
@@ -283,11 +281,12 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
                                                                   @NotNull AndroidGradleModel androidModel) {
     GradleVersion modelVersion = androidModel.getModelVersion();
 
-    BaseArtifact testArtifact = androidModel.findSelectedTestArtifactInSelectedVariant();
-
     JavaLibrary matchedLibrary = null;
-    if (testArtifact != null) {
+    for (BaseArtifact testArtifact : androidModel.getTestArtifactsInSelectedVariant()) {
       matchedLibrary = findMatchedLibrary(library, testArtifact, modelVersion);
+      if (matchedLibrary != null) {
+        break;
+      }
     }
     if (matchedLibrary == null) {
       Variant selectedVariant = androidModel.getSelectedVariant();

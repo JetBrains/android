@@ -15,15 +15,12 @@
  */
 package com.android.tools.idea.gradle;
 
-import com.android.SdkConstants;
 import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.ClassJarProvider;
-import com.android.tools.lint.detector.api.LintUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -49,10 +46,12 @@ import java.io.*;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 
+import static com.android.SdkConstants.DATA_BINDING_LIB_ARTIFACT;
 import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.gradle.AndroidProjectKeys.ANDROID_MODEL;
-import static com.android.tools.idea.gradle.util.GradleUtil.getDependencies;
+import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.gradle.util.ProxyUtil.reproxy;
+import static com.android.tools.lint.detector.api.LintUtils.convertVersion;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.find;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
@@ -67,7 +66,7 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
   public static final String EXPLODED_AAR = "exploded-aar";
 
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 2L;
   private static final Logger LOG = Logger.getInstance(AndroidGradleModel.class);
 
   private static final String[] TEST_ARTIFACT_NAMES = {ARTIFACT_UNIT_TEST, ARTIFACT_ANDROID_TEST};
@@ -83,7 +82,6 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
   @Nullable private AndroidProject myProxyAndroidProject;
 
   @NotNull private String mySelectedVariantName;
-  @NotNull private String mySelectedTestArtifactName;
 
   private transient VirtualFile myRootDir;
 
@@ -99,19 +97,15 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
   /**
    * Creates a new {@link AndroidGradleModel}.
    *
-   * @param projectSystemId     the external system used to build the project (e.g. Gradle).
-   * @param moduleName          the name of the IDEA module, created from {@code delegate}.
-   * @param rootDirPath         the root directory of the imported Android-Gradle project.
-   * @param androidProject      imported Android-Gradle project.
-   * @param selectedVariantName name of the selected build variant.
+   * @param moduleName     the name of the IDEA module, created from {@code delegate}.
+   * @param rootDirPath    the root directory of the imported Android-Gradle project.
+   * @param androidProject imported Android-Gradle project.
    */
-  public AndroidGradleModel(@NotNull ProjectSystemId projectSystemId,
-                            @NotNull String moduleName,
+  public AndroidGradleModel(@NotNull String moduleName,
                             @NotNull File rootDirPath,
                             @NotNull AndroidProject androidProject,
-                            @NotNull String selectedVariantName,
-                            @NotNull String selectedTestArtifactName) {
-    myProjectSystemId = projectSystemId;
+                            @NotNull String selectedVariantName) {
+    myProjectSystemId = GRADLE_SYSTEM_ID;
     myModuleName = moduleName;
     myRootDirPath = rootDirPath;
     myAndroidProject = androidProject;
@@ -132,7 +126,6 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
     populateVariantsByName();
 
     mySelectedVariantName = findVariantToSelect(selectedVariantName);
-    mySelectedTestArtifactName = validateTestArtifactName(selectedTestArtifactName);
   }
 
   private void populateBuildTypesByName() {
@@ -253,7 +246,7 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
   }
 
   @NotNull
-  public List<SourceProvider> getTestSourceProviders(@NotNull String variantName, @NotNull String...testArtifactNames) {
+  public List<SourceProvider> getTestSourceProviders(@NotNull String variantName, @NotNull String... testArtifactNames) {
     validateTestArtifactNames(testArtifactNames);
 
     List<SourceProvider> providers = Lists.newArrayList();
@@ -292,14 +285,18 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
 
   @NotNull
   public Collection<BaseArtifact> getTestArtifactsInSelectedVariant() {
+    return getTestArtifacts(getSelectedVariant());
+  }
+
+  @NotNull
+  public static Collection<BaseArtifact> getTestArtifacts(@NotNull Variant variant) {
     Set<BaseArtifact> testArtifacts = Sets.newHashSet();
-    Variant selectedVariant = getSelectedVariant();
-    for (BaseArtifact artifact : selectedVariant.getExtraAndroidArtifacts()) {
+    for (BaseArtifact artifact : variant.getExtraAndroidArtifacts()) {
       if (isTestArtifact(artifact)) {
         testArtifacts.add(artifact);
       }
     }
-    for (BaseArtifact artifact : selectedVariant.getExtraJavaArtifacts()) {
+    for (BaseArtifact artifact : variant.getExtraJavaArtifacts()) {
       if (isTestArtifact(artifact)) {
         testArtifacts.add(artifact);
       }
@@ -421,7 +418,7 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
     if (myMinSdkVersion == null) {
       ApiVersion minSdkVersion = getSelectedVariant().getMergedFlavor().getMinSdkVersion();
       if (minSdkVersion != null && minSdkVersion.getCodename() != null) {
-        ApiVersion defaultConfigVersion  = getAndroidProject().getDefaultConfig().getProductFlavor().getMinSdkVersion();
+        ApiVersion defaultConfigVersion = getAndroidProject().getDefaultConfig().getProductFlavor().getMinSdkVersion();
         if (defaultConfigVersion != null) {
           minSdkVersion = defaultConfigVersion;
         }
@@ -439,8 +436,9 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
       }
 
       if (minSdkVersion != null) {
-        myMinSdkVersion = LintUtils.convertVersion(minSdkVersion, null);
-      } else {
+        myMinSdkVersion = convertVersion(minSdkVersion, null);
+      }
+      else {
         myMinSdkVersion = NOT_SPECIFIED;
       }
     }
@@ -462,9 +460,9 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
   @Override
   public AndroidVersion getTargetSdkVersion() {
     ApiVersion targetSdkVersion = getSelectedVariant().getMergedFlavor().getTargetSdkVersion();
-      if (targetSdkVersion != null) {
-        return new AndroidVersion(targetSdkVersion.getApiLevel(), targetSdkVersion.getCodename());
-      }
+    if (targetSdkVersion != null) {
+      return new AndroidVersion(targetSdkVersion.getApiLevel(), targetSdkVersion.getCodename());
+    }
     return null;
   }
 
@@ -502,30 +500,6 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
   @Nullable
   public ProductFlavorContainer findProductFlavor(@NotNull String name) {
     return myProductFlavorsByName.get(name);
-  }
-
-  @Nullable
-  public BaseArtifact findSelectedTestArtifact(@NotNull Variant variant) {
-    BaseArtifact artifact = getBaseArtifact(variant.getExtraAndroidArtifacts());
-    if (artifact != null) {
-      return artifact;
-    }
-    return getBaseArtifact(variant.getExtraJavaArtifacts());
-  }
-
-  @Nullable
-  private BaseArtifact getBaseArtifact(@NotNull Iterable<? extends BaseArtifact> artifacts) {
-    for (BaseArtifact artifact : artifacts) {
-      if (getSelectedTestArtifactName().equals(artifact.getName())) {
-        return artifact;
-      }
-    }
-    return null;
-  }
-
-  @Nullable
-  public BaseArtifact findSelectedTestArtifactInSelectedVariant() {
-    return findSelectedTestArtifact(getSelectedVariant());
   }
 
   @NotNull
@@ -619,7 +593,6 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
     return selected;
   }
 
-  /** Returns the specified variant */
   @Nullable
   public Variant findVariantByName(@NotNull String variantName) {
     return myVariantsByName.get(variantName);
@@ -655,24 +628,9 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
     return newVariantName;
   }
 
-  public void setSelectedTestArtifactName(@NotNull String selectedTestArtifactName) {
-    mySelectedTestArtifactName = validateTestArtifactName(selectedTestArtifactName);
-  }
-
-  @NotNull
-  private static String validateTestArtifactName(@NotNull String selectedTestArtifactName) {
-    assert selectedTestArtifactName.equals(ARTIFACT_ANDROID_TEST) || selectedTestArtifactName.equals(ARTIFACT_UNIT_TEST);
-    return selectedTestArtifactName;
-  }
-
-  @NotNull
-  public String getSelectedTestArtifactName() {
-    return mySelectedTestArtifactName;
-  }
-
   @NotNull
   private static Collection<SourceProvider> getSourceProvidersForArtifacts(@NotNull Iterable<SourceProviderContainer> containers,
-                                                                           @NotNull String...artifactNames) {
+                                                                           @NotNull String... artifactNames) {
     Set<SourceProvider> providers = Sets.newHashSet();
     for (SourceProviderContainer container : containers) {
       for (String artifactName : artifactNames) {
@@ -922,7 +880,6 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
     out.writeObject(myRootDirPath);
     out.writeObject(myProxyAndroidProject);
     out.writeObject(mySelectedVariantName);
-    out.writeObject(mySelectedTestArtifactName);
   }
 
   private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
@@ -946,7 +903,6 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
     populateVariantsByName();
 
     setSelectedVariantName((String)in.readObject());
-    setSelectedTestArtifactName((String)in.readObject());
   }
 
   private void parseAndSetModelVersion() {
@@ -963,13 +919,7 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
   @Nullable
   public static AndroidGradleModel get(@NotNull AndroidFacet androidFacet) {
     AndroidModel androidModel = androidFacet.getAndroidModel();
-    if (androidModel == null) {
-      return null;
-    }
-    if (!(androidModel instanceof AndroidGradleModel)) {
-      return null;
-    }
-    return ((AndroidGradleModel) androidModel);
+    return androidModel instanceof AndroidGradleModel ? (AndroidGradleModel)androidModel : null;
   }
 
   /**
@@ -1009,7 +959,6 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
     Variant variant = getSelectedVariant();
     JpsAndroidModuleProperties state = facet.getProperties();
     state.SELECTED_BUILD_VARIANT = variant.getName();
-    state.SELECTED_TEST_ARTIFACT = getSelectedTestArtifactName();
 
     AndroidArtifact mainArtifact = variant.getMainArtifact();
 
@@ -1080,7 +1029,7 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
 
   @Override
   public boolean getDataBindingEnabled() {
-    return GradleUtil.dependsOn(this, SdkConstants.DATA_BINDING_LIB_ARTIFACT);
+    return dependsOn(this, DATA_BINDING_LIB_ARTIFACT);
   }
 
   @Override
