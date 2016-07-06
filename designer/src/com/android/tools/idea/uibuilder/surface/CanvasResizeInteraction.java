@@ -15,14 +15,15 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
+import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.resources.configuration.*;
 import com.android.resources.ResourceType;
 import com.android.resources.ScreenOrientation;
 import com.android.resources.ScreenRatio;
+import com.android.resources.ScreenSize;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Screen;
-import com.android.resources.ScreenSize;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
@@ -39,16 +40,22 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.geom.*;
+import java.awt.geom.Area;
+import java.awt.geom.Rectangle2D;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static com.android.resources.Density.DEFAULT_DENSITY;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.MAX_MATCH_DISTANCE;
 
 public class CanvasResizeInteraction extends Interaction {
   private static final double SQRT_2 = Math.sqrt(2.0);
+  /**
+   * Specific subset of the phones/tablets to show when resizing; for tv and wear, this list
+   * is not used; instead, all devices matching the tag (android-wear, android-tv) are used.
+   */
   private static final String[] DEVICES_TO_SHOW = {"Nexus 5", "Nexus 6P", "Nexus 7", "Nexus 9", "Nexus 10"};
 
   private final DesignSurface myDesignSurface;
@@ -87,17 +94,36 @@ public class CanvasResizeInteraction extends Interaction {
 
     double currentDpi = config.getDensity().getDpiValue();
     ConfigurationManager configManager = config.getConfigurationManager();
-    for (String name : DEVICES_TO_SHOW) {
-      Device device = configManager.getDeviceById(name);
+
+    boolean addSmallScreen = false;
+    List<Device> devicesToShow;
+    if (HardwareConfigHelper.isWear(myOriginalDevice)) {
+      devicesToShow = configManager.getDevices().stream().filter(
+        d -> HardwareConfigHelper.isWear(d) && !Configuration.CUSTOM_DEVICE_ID.equals(d.getId())).collect(Collectors.toList());
+    } else if (HardwareConfigHelper.isTv(myOriginalDevice)) {
+      // There are only two devices and they have the same dip sizes, so just use one of them
+      devicesToShow = Collections.singletonList(configManager.getDeviceById("tv_1080p"));
+    } else {
+      devicesToShow = Lists.newArrayListWithExpectedSize(DEVICES_TO_SHOW.length);
+      for (String id : DEVICES_TO_SHOW) {
+        devicesToShow.add(configManager.getDeviceById(id));
+      }
+      addSmallScreen = true;
+    }
+
+    for (Device device : devicesToShow) {
       assert device != null;
       Screen screen = device.getDefaultHardware().getScreen();
       double dpiRatio = currentDpi / screen.getPixelDensity().getDpiValue();
       Point p = new Point((int)(screen.getXDimension() * dpiRatio), (int)(screen.getYDimension() * dpiRatio));
       myAndroidCoordinatesToDeviceMap.put(p, device);
-      myDeviceLayers.add(new DeviceLayer(myDesignSurface, p.x, p.y, name));
+      myDeviceLayers.add(new DeviceLayer(myDesignSurface, p.x, p.y, device.getDisplayName()));
     }
 
-    myDeviceLayers.add(new DeviceLayer(myDesignSurface, (int)(426 * currentDpi / 160), (int)(320 * currentDpi / 160), "Small Screen"));
+    if (addSmallScreen) {
+      myDeviceLayers.add(new DeviceLayer(myDesignSurface, (int)(426 * currentDpi / DEFAULT_DENSITY),
+                                         (int)(320 * currentDpi / DEFAULT_DENSITY), "Small Screen"));
+    }
   }
 
   @Override
@@ -269,6 +295,17 @@ public class CanvasResizeInteraction extends Interaction {
 
   @Override
   public void update(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiers) {
+    if (myOriginalDevice.isScreenRound()) {
+      // Force aspect preservation
+      int deltaX = x - myStartX;
+      int deltaY = y - myStartY;
+      if (deltaX > deltaY) {
+        y = myStartY + deltaX;
+      } else {
+        x = myStartX + deltaY;
+      }
+    }
+
     super.update(x, y, modifiers);
     myCurrentX = x;
     myCurrentY = y;
@@ -343,7 +380,12 @@ public class CanvasResizeInteraction extends Interaction {
   @Override
   public List<Layer> createOverlays() {
     ImmutableList.Builder<Layer> layers = ImmutableList.builder();
-    layers.add(new SizeBucketLayer());
+
+    // Only show size buckets for mobile, not wear, tv, etc.
+    if (HardwareConfigHelper.isMobile(myOriginalDevice)) {
+      layers.add(new SizeBucketLayer());
+    }
+
     layers.add(myUnavailableLayer);
     layers.addAll(myDeviceLayers);
     layers.add(myOrientationLayer);
@@ -542,6 +584,7 @@ public class CanvasResizeInteraction extends Interaction {
         yL = width - x0 + y0 - (int)(myLandscapeWidth / SQRT_2) - 5;
       }
 
+      //noinspection UseJBColor
       graphics.setColor(Color.DARK_GRAY);
       graphics.rotate(-Math.PI / 4, xL, yL);
       graphics.drawString("Landscape", xL, yL);
