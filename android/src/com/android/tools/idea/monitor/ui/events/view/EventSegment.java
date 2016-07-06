@@ -111,11 +111,4 @@ public class EventSegment extends BaseSegment {
     layeredPane.add(mActivityEvents, gbc);
     panel.add(layeredPane, BorderLayout.CENTER);
   }
-
-  @Override
-  public Dimension getPreferredSize() {
-    Dimension size = super.getPreferredSize();
-    assert mIcons.length > 0 && mIcons[0] != null;
-    return new Dimension(size.width, (ACTIVITY_GRAPH_SIZE + FRAGMENT_GRAPH_SIZE) * 2 + mIcons[0].getIconHeight());
-  }
 }

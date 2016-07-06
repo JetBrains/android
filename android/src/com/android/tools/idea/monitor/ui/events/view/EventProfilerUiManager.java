@@ -34,8 +34,8 @@ import java.util.Set;
 
 public final class EventProfilerUiManager extends BaseProfilerUiManager {
 
-  // The event monitor takes out half the space as the expanded profiler in L2/L3 view.
-  private static final int EVENT_MONITOR_MAX_HEIGHT = JBUI.scale(Short.MAX_VALUE / 2);
+  // The event monitor takes up constant space in different level views.
+  private static final int EVENT_MONITOR_MIN_HEIGHT = JBUI.scale(150);
 
   // TODO: EventActionType enum should return its associated Icon so we don't need to keep them in sync across files.
   private static final Icon[] ICONS = {
@@ -62,7 +62,7 @@ public final class EventProfilerUiManager extends BaseProfilerUiManager {
   @Override
   public void setupOverviewUi(@NotNull JPanel toolbar, @NotNull JPanel overviewPanel) {
     myOverviewSegment = createOverviewSegment(myTimeViewRange, myDataStore, myEventDispatcher);
-    setupAndRegisterSegment(myOverviewSegment, DEFAULT_MONITOR_MIN_HEIGHT, DEFAULT_MONITOR_PREFERRED_HEIGHT, EVENT_MONITOR_MAX_HEIGHT);
+    setupAndRegisterSegment(myOverviewSegment, EVENT_MONITOR_MIN_HEIGHT, EVENT_MONITOR_MIN_HEIGHT, EVENT_MONITOR_MIN_HEIGHT);
     overviewPanel.add(myOverviewSegment);
   }
 
