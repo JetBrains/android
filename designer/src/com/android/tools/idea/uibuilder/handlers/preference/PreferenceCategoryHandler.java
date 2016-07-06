@@ -30,11 +30,19 @@ public final class PreferenceCategoryHandler extends ViewGroupHandler {
   @NotNull
   @Override
   public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {
-    return new XmlBuilder()
-      .startTag(tagName)
-      .androidAttribute(ATTR_TITLE, "Preference category")
-      .endTag(tagName)
-      .toString();
+    switch (xmlType) {
+      case COMPONENT_CREATION:
+        return new XmlBuilder()
+          .startTag(tagName)
+          .androidAttribute(ATTR_TITLE, "Preference category")
+          .endTag(tagName)
+          .toString();
+      case PREVIEW_ON_PALETTE:
+      case DRAG_PREVIEW:
+        return NO_PREVIEW;
+      default:
+        throw new AssertionError(xmlType);
+    }
   }
 
   @NotNull
