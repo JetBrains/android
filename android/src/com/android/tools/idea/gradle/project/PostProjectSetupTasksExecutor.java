@@ -249,35 +249,56 @@ public class PostProjectSetupTasksExecutor {
 
   private boolean shouldForcePluginVersionUpgrade() {
     Module module = getAppAndroidModule(myProject);
-    if (module != null) {
-      AndroidProject androidProject = getAndroidProject(module);
-      assert androidProject != null;
-      logProjectVersion(androidProject);
-      GradleVersion current = GradleVersion.parse(androidProject.getModelVersion());
-      String latest = GRADLE_PLUGIN_LATEST_VERSION;
-      if (!isUsingExperimentalPlugin(module) && isForcedPluginVersionUpgradeNecessary(current, latest)) {
-        updateGradleSyncState(); // Update the sync state before starting a new one.
 
-        boolean update = new PluginVersionForcedUpdateDialog(myProject).showAndGet();
-        if (update) {
-          updateGradlePluginVersionAndNotifyFailure(myProject, latest, null, true);
-          return true;
-        }
-        else {
-          String[] text = {
-            "The project is using an incompatible version of the Android Gradle plugin.",
-            "Please update your project to use version " + GRADLE_PLUGIN_LATEST_VERSION + "."
-          };
-          Message msg = new Message(UNHANDLED_SYNC_ISSUE_TYPE, ERROR, text);
-          NotificationHyperlink quickFix = new SearchInBuildFilesHyperlink(GRADLE_PLUGIN_NAME);
-          ProjectSyncMessages.getInstance(myProject).add(msg, quickFix);
-          invalidateLastSync(myProject, "Failed");
-          return true;
-        }
-      }
+    if (module == null) {
+      Logger.getInstance(PostProjectSetupTasksExecutor.class).warn("Unable to obtain application's Android Project");
+      return false;
+    }
+
+    AndroidProject androidProject = getAndroidProject(module);
+    assert androidProject != null;
+    logProjectVersion(androidProject);
+
+    boolean usingExperimentalPlugin = isUsingExperimentalPlugin(module);
+    GradleVersion current;
+    String latest;
+    if (usingExperimentalPlugin) {
+      // TODO: Add the plugin version to the model and get it from there directly.
+      current = getAndroidGradleExperimentalPluginVersionFromBuildFile(myProject);
+      latest = GRADLE_EXPERIMENTAL_PLUGIN_LATEST_VERSION;
     }
     else {
-      Logger.getInstance(PostProjectSetupTasksExecutor.class).warn("Unable to obtain application's Android Project");
+      current = GradleVersion.parse(androidProject.getModelVersion());
+      latest = GRADLE_PLUGIN_LATEST_VERSION;
+    }
+
+    if (current != null && isForcedPluginVersionUpgradeNecessary(current, latest)) {
+      updateGradleSyncState(); // Update the sync state before starting a new one.
+
+      boolean update = new PluginVersionForcedUpdateDialog(myProject, usingExperimentalPlugin).showAndGet();
+      if (update) {
+        if (usingExperimentalPlugin) {
+          updateGradleExperimentalPluginVersionAndNotifyFailure(myProject, latest, null, true);
+        }
+        else {
+          updateGradlePluginVersionAndNotifyFailure(myProject, latest, null, true);
+        }
+        return true;
+      }
+      else {
+        String[] text = {
+          "The project is using an incompatible version of the Android Gradle " + (usingExperimentalPlugin ? "Experimental " : "") +
+          "plugin.",
+          "Please update your project to use version " +
+          (usingExperimentalPlugin ? GRADLE_EXPERIMENTAL_PLUGIN_LATEST_VERSION : GRADLE_PLUGIN_LATEST_VERSION) + "."
+        };
+        Message msg = new Message(UNHANDLED_SYNC_ISSUE_TYPE, ERROR, text);
+        NotificationHyperlink quickFix = new SearchInBuildFilesHyperlink(
+          usingExperimentalPlugin ? GRADLE_EXPERIMENTAL_PLUGIN_NAME : GRADLE_PLUGIN_NAME);
+        ProjectSyncMessages.getInstance(myProject).add(msg, quickFix);
+        invalidateLastSync(myProject, "Failed");
+        return true;
+      }
     }
     return false;
   }
