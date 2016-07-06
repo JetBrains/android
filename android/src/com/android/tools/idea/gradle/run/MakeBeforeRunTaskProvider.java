@@ -24,13 +24,13 @@ import com.android.tools.idea.fd.InstantRunContext;
 import com.android.tools.idea.fd.RunAsValidityService;
 import com.android.tools.idea.gradle.GradleModel;
 import com.android.tools.idea.gradle.GradleSyncState;
+import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
-import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.AndroidRunConfigContext;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
@@ -52,7 +52,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ThreeState;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
@@ -70,8 +69,10 @@ import java.util.stream.Collectors;
 
 import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.apk.ApkProjects.isApkProject;
+import static com.android.tools.idea.gradle.util.Projects.*;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.ENABLE_EXPERIMENTAL_PROFILING;
 import static com.intellij.openapi.util.io.FileUtil.createTempFile;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
 /**
  * Provides the "Gradle-aware Make" task for Run Configurations, which
@@ -118,7 +119,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   @Override
   public String getDescription(MakeBeforeRunTask task) {
     String goal = task.getGoal();
-    return StringUtil.isEmpty(goal) ? TASK_NAME : "gradle " + goal;
+    return isEmpty(goal) ? TASK_NAME : "gradle " + goal;
   }
 
   @Override
@@ -203,27 +204,26 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   }
 
   @Override
-  public boolean executeTask(final DataContext context,
-                             final RunConfiguration configuration,
-                             ExecutionEnvironment env,
-                             final MakeBeforeRunTask task) {
-    if (!Projects.requiresAndroidModel(myProject) || !Projects.isDirectGradleInvocationEnabled(myProject)) {
+  public boolean executeTask(DataContext context, RunConfiguration configuration, ExecutionEnvironment env, MakeBeforeRunTask task) {
+    if (!requiresAndroidModel(myProject) || !isDirectGradleInvocationEnabled(myProject)) {
       CompileStepBeforeRun regularMake = new CompileStepBeforeRun(myProject);
       return regularMake.executeTask(context, configuration, env, new CompileStepBeforeRun.MakeBeforeRunTask());
     }
 
-    final AtomicReference<String> errorMsgRef = new AtomicReference<>();
+    AtomicReference<String> errorMsgRef = new AtomicReference<>();
 
-    // If the model needs a sync, we need to sync "synchronously" before running.
-    // See: https://code.google.com/p/android/issues/detail?id=70718
-    GradleSyncState syncState = GradleSyncState.getInstance(myProject);
-    if (syncState.isSyncNeeded() != ThreeState.NO) {
-      GradleProjectImporter.getInstance().syncProjectSynchronously(myProject, false, new GradleSyncListener.Adapter() {
-        @Override
-        public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
-          errorMsgRef.set(errorMessage);
-        }
-      });
+    if (AndroidGradleBuildConfiguration.getInstance(myProject).SYNC_PROJECT_BEFORE_BUILD) {
+      // If the model needs a sync, we need to sync "synchronously" before running.
+      // See: https://code.google.com/p/android/issues/detail?id=70718
+      GradleSyncState syncState = GradleSyncState.getInstance(myProject);
+      if (syncState.isSyncNeeded() != ThreeState.NO) {
+        GradleProjectImporter.getInstance().syncProjectSynchronously(myProject, false, new GradleSyncListener.Adapter() {
+          @Override
+          public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
+            errorMsgRef.set(errorMessage);
+          }
+        });
+      }
     }
 
     String errorMsg = errorMsgRef.get();
@@ -351,7 +351,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       throw new IllegalStateException("Unable to determine list of modules to build");
     }
 
-    if (!StringUtil.isEmpty(userGoal)) {
+    if (!isEmpty(userGoal)) {
       return new DefaultGradleBuilder(Collections.singletonList(userGoal), null);
     }
 
@@ -383,7 +383,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       return ((ModuleRunProfile)configuration).getModules();
     }
     else {
-      return Projects.getModulesToBuildFromSelection(project, context);
+      return getModulesToBuildFromSelection(project, context);
     }
   }
 
