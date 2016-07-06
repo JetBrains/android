@@ -407,6 +407,8 @@
     <item tag="TimePicker" render-separately="true"/>
     <item tag="DatePicker"/>
     <item tag="CalendarView"/>
+    <item tag="Chronometer"/>
+    <item tag="TextClock"/>
   </group>
   <group name="Transitions">
     <item tag="ImageSwitcher"/>

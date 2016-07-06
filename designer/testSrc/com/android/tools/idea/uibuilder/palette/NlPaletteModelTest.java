@@ -107,6 +107,8 @@ public class NlPaletteModelTest extends PaletteTestCase {
     assertTimePicker(iterator.next());
     assertDatePicker(iterator.next());
     assertCalendarView(iterator.next());
+    assertChronometer(iterator.next());
+    assertTextClock(iterator.next());
     assertFalse(iterator.hasNext());
 
     iterator = transitions.getItems().iterator();
