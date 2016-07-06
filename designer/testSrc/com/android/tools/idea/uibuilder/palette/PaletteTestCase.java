@@ -444,6 +444,14 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     assertStandardView(item, CALENDAR_VIEW, IN_PLATFORM, 0.4);
   }
 
+  public void assertChronometer(@NotNull Palette.BaseItem item) {
+    assertStandardView(item, CHRONOMETER, IN_PLATFORM, NO_SCALE);
+  }
+
+  public void assertTextClock(@NotNull Palette.BaseItem item) {
+    assertStandardView(item, TEXT_CLOCK, IN_PLATFORM, NO_SCALE);
+  }
+
   public void assertImageSwitcher(@NotNull Palette.BaseItem item) {
     assertStandardLayout(item, IMAGE_SWITCHER, IN_PLATFORM);
   }
