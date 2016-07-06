@@ -25,7 +25,7 @@
         </properties>
         <border type="none"/>
         <children>
-          <component id="fa8c8" class="com.android.tools.idea.npw.ModulesTable" binding="myModulesPanel">
+          <component id="fa8c8" class="com.android.tools.idea.npw.importing.ModulesTable" binding="myModulesPanel">
             <constraints/>
             <properties/>
           </component>

@@ -17,7 +17,10 @@ package com.android.tools.idea.npw.deprecated;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
-import com.android.tools.idea.npw.*;
+import com.android.tools.idea.npw.ChooseTemplateStep;
+import com.android.tools.idea.npw.NewModuleWizardState;
+import com.android.tools.idea.npw.NewProjectWizardState;
+import com.android.tools.idea.npw.WizardPath;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.wizard.template.TemplateWizardStep;
 import com.google.common.base.Functions;

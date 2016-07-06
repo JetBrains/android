@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.npw;
+package com.android.tools.idea.npw.importing;
 
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
