@@ -138,6 +138,8 @@ public class NlPaletteModelTest extends PaletteTestCase {
     iterator = design.getItems().iterator();
     assertCoordinatorLayoutItem(iterator.next());
     assertAppBarLayoutItem(iterator.next());
+    assertTabLayout(iterator.next());
+    assertTabItem(iterator.next());
     assertNestedScrollViewItem(iterator.next());
     assertFloatingActionButtonItem(iterator.next());
     assertTextInputLayoutItem(iterator.next());
