@@ -47,7 +47,7 @@ public class ApkFileSystem extends ArchiveFileSystem {
   public static final Set<String> EXTENSIONS = ImmutableSet.of(
     SdkConstants.EXT_ANDROID_PACKAGE,
     SdkConstants.EXT_AAR,
-    SdkConstants.EXT_INSTANT_APP_PACKAGE,
+    SdkConstants.EXT_INSTANTAPP_PACKAGE,
     SdkConstants.EXT_ATOM
   );
 
