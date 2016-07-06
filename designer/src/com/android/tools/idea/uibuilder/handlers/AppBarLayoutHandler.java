@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers;
 
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.application.ApplicationManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.api.InsertType;
@@ -47,7 +48,7 @@ public class AppBarLayoutHandler extends LinearLayoutHandler {
       // The AppBarConfigurationDialog replaces the root XML node in the current file.
       XmlFile file = editor.getModel().getFile();
       AppBarConfigurationDialog dialog = new AppBarConfigurationDialog(editor);
-      dialog.open(file);
+      ApplicationManager.getApplication().invokeLater(() -> dialog.open(file));
       return false;
     }
     return true;

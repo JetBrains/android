@@ -525,6 +525,14 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     assertStandardLayout(item, APP_BAR_LAYOUT, DESIGN_LIB_ARTIFACT);
   }
 
+  public void assertTabLayout(@NotNull Palette.BaseItem item) {
+    assertStandardLayout(item, TAB_LAYOUT, DESIGN_LIB_ARTIFACT);
+  }
+
+  public void assertTabItem(@NotNull Palette.BaseItem item) {
+    assertStandardView(item, TAB_ITEM, DESIGN_LIB_ARTIFACT, 1.0);
+  }
+
   public void assertNestedScrollViewItem(@NotNull Palette.BaseItem item) {
     assertStandardLayout(item, NESTED_SCROLL_VIEW, SUPPORT_LIB_ARTIFACT);
   }
@@ -639,8 +647,8 @@ public abstract class PaletteTestCase extends AndroidTestCase {
                                   double expectedScale) {
     @Language("XML")
     String xml = STANDARD_VIEW.getXml(tag, XmlType.COMPONENT_CREATION);
-    checkItem(item, tag, tag, STANDARD_VIEW.getIcon(tag), xml, xml, xml, expectedGradleCoordinate, expectedScale);
-    checkComponent(createMockComponent(tag), tag, STANDARD_VIEW.getIcon(tag));
+    checkItem(item, tag, STANDARD_VIEW.getTitle(tag), STANDARD_VIEW.getIcon(tag), xml, xml, xml, expectedGradleCoordinate, expectedScale);
+    checkComponent(createMockComponent(tag), STANDARD_VIEW.getTitle(tag), STANDARD_VIEW.getIcon(tag));
   }
 
   private void assertStandardLayout(@NotNull Palette.BaseItem item, @NotNull String tag, @NotNull String expectedGradleCoordinate) {
