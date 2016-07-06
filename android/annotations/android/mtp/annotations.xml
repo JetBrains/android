@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.mtp.MtpDevice android.mtp.MtpEvent readEvent(android.os.CancellationSignal)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.mtp.MtpDevice android.mtp.MtpEvent readEvent(android.os.CancellationSignal) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+</root>
+

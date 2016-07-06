@@ -476,6 +476,9 @@
   <item name="android.graphics.Color YELLOW">
     <annotation name="android.support.annotation.ColorInt" />
   </item>
+  <item name="android.graphics.Color float luminance(int) 0">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
   <item name="android.graphics.Color int HSVToColor(float[]) 0">
     <annotation name="android.support.annotation.Size">
       <val name="value" val="3" />
@@ -516,6 +519,9 @@
   <item name="android.graphics.Outline Outline(android.graphics.Outline) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.graphics.Outline boolean getRect(android.graphics.Rect) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.graphics.Outline void set(android.graphics.Outline) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -537,6 +543,12 @@
   <item name="android.graphics.Outline void setRoundRect(android.graphics.Rect, float) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.graphics.Paint android.os.LocaleList getTextLocales()">
+    <annotation name="android.support.annotation.NonNull" />
+    <annotation name="android.support.annotation.Size">
+      <val name="min" val="1" />
+    </annotation>
+  </item>
   <item name="android.graphics.Paint int getColor()">
     <annotation name="android.support.annotation.ColorInt" />
   </item>
@@ -547,6 +559,18 @@
     <annotation name="android.support.annotation.ColorInt" />
   </item>
   <item name="android.graphics.Paint void setTextLocale(java.util.Locale) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.Paint void setTextLocales(android.os.LocaleList) 0">
+    <annotation name="android.support.annotation.NonNull" />
+    <annotation name="android.support.annotation.Size">
+      <val name="min" val="1" />
+    </annotation>
+  </item>
+  <item name="android.graphics.Path void offset(float, float, android.graphics.Path) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.Path void set(android.graphics.Path) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.graphics.PorterDuffColorFilter PorterDuffColorFilter(int, android.graphics.PorterDuff.Mode) 0">
