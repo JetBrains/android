@@ -15,13 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.rendering.ImageUtils;
 import com.android.tools.idea.rendering.RenderResult;
 import com.intellij.util.ui.UIUtil;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 
@@ -112,26 +113,17 @@ public class ScreenViewLayer extends Layer {
       setNewImage(myImage, scale);
     }
 
-    /* TODO: Not supporting wear yet
-      Device device = myScreenView.getModel().getConfiguration().getDevice();
-      if (HardwareConfigHelper.isRound(device)) {
-        int imageType = image.getType();
-        if (imageType == BufferedImage.TYPE_CUSTOM) {
-          imageType = BufferedImage.TYPE_INT_ARGB;
-        }
-        @SuppressWarnings("UndesirableClassUsage") // layoutlib doesn't create retina images
-          BufferedImage clipped = new BufferedImage(image.getWidth(), image.getHeight(), imageType);
-        Graphics2D g2 = clipped.createGraphics();
-        g2.setComposite(AlphaComposite.Src);
-        //noinspection UseJBColor
-        g2.setColor(new Color(0, true));
-        g2.fillRect(0, 0, clipped.getWidth(), clipped.getHeight());
-        paintClipped(g2, image, device, 0, 0, true);
-        g2.dispose();
-        image = clipped;
-      }
-      */
+    Shape prevClip = null;
+    Shape screenShape = myScreenView.getScreenShape();
+    if (screenShape != null) {
+      prevClip = g.getClip();
+      g.clip(screenShape);
+    }
 
     UIUtil.drawImage(g, myScaledImage, myScreenView.getX(), myScreenView.getY(), null);
+
+    if (prevClip != null) {
+      g.setClip(prevClip);
+    }
   }
 }

@@ -635,7 +635,11 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * Changes the configuration to use a custom device with screen size defined by xDimension and yDimension.
    */
   public void overrideConfigurationScreenSize(@AndroidCoordinate int xDimension, @AndroidCoordinate int yDimension) {
-    Device.Builder deviceBuilder = new Device.Builder(myConfiguration.getDevice());
+    Device original = myConfiguration.getDevice();
+    Device.Builder deviceBuilder = new Device.Builder(original); // doesn't copy tag id
+    if (original != null) {
+      deviceBuilder.setTagId(original.getTagId());
+    }
     deviceBuilder.setName("Custom");
     deviceBuilder.setId(Configuration.CUSTOM_DEVICE_ID);
     Device device = deviceBuilder.build();
@@ -653,6 +657,9 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       screen.setSize(AvdScreenData.getScreenSize(diagonalLength));
 
       screen.setRatio(AvdScreenData.getScreenRatio(xDimension, yDimension));
+
+      screen.setScreenRound(device.getDefaultHardware().getScreen().getScreenRound());
+      screen.setChin(device.getDefaultHardware().getScreen().getChin());
     }
 
     // If a custom device already exists, remove it before adding the latest one
