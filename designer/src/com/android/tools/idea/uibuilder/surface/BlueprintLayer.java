@@ -24,6 +24,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.font.FontRenderContext;
+import java.awt.geom.Area;
+import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
 
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.*;
@@ -62,9 +64,21 @@ public class BlueprintLayer extends Layer {
 
     // Draw the background
     Graphics2D g = (Graphics2D) gc.create();
+
+    Shape prevClip = null;
+    Shape screenShape = myScreenView.getScreenShape();
+    if (screenShape != null) {
+      prevClip = g.getClip();
+      g.clip(screenShape);
+    }
+
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
     g.setColor(BLUEPRINT_BG_COLOR);
     g.fillRect(mySizeRectangle.x, mySizeRectangle.y, mySizeRectangle.width, mySizeRectangle.height);
+
+    if (prevClip != null) {
+      g.setClip(prevClip);
+    }
 
     // Draw the components
     NlModel model = myScreenView.getModel();

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
+import com.android.resources.ScreenRound;
+import com.android.sdklib.devices.Screen;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.android.ide.common.rendering.HardwareConfigHelper;
@@ -28,6 +30,9 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 
 import java.awt.*;
+import java.awt.geom.Area;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.Rectangle2D;
 import java.util.List;
 
 /**
@@ -191,6 +196,34 @@ public class ScreenView {
     // selection is "synchronized" between the views by virtue of them all
     // sharing the same selection model, currently stashed in the model itself.
     return myModel.getSelectionModel();
+  }
+
+  /** Returns null if the screen is rectangular; if not, it returns a shape (round for AndroidWear etc) */
+  @Nullable
+  public Shape getScreenShape() {
+    Device device = getConfiguration().getDevice();
+    if (device == null) {
+      return null;
+    }
+
+    Screen screen = device.getDefaultHardware().getScreen();
+    if (screen.getScreenRound() != ScreenRound.ROUND) {
+      return null;
+    }
+
+    Dimension size = getSize();
+
+    int chin = screen.getChin();
+    if (chin == 0) {
+      // Plain circle
+      return new Ellipse2D.Double(x, y, size.width, size.height);
+    } else {
+      int height = size.height * chin / screen.getYDimension();
+      Area a1 = new Area(new Ellipse2D.Double(x, y, size.width, size.height + height));
+      Area a2 = new Area(new Rectangle2D.Double(x, y + 2 * (size.height + height) - height, size.width, height));
+      a1.subtract(a2);
+      return a1;
+    }
   }
 
   public DesignSurface getSurface() {
