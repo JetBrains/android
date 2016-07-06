@@ -6,7 +6,7 @@ android {
     useLibrary 'org.apache.http.legacy'
 
     defaultConfig {
-        applicationId "com.android.simple.application"
+        applicationId "google.simpleapplication"
         minSdkVersion 19
         targetSdkVersion 23
         versionCode 1
