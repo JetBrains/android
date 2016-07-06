@@ -25,6 +25,28 @@
       <val name="value" val="{android.view.Surface.ROTATION_0, android.view.Surface.ROTATION_90, android.view.Surface.ROTATION_180, android.view.Surface.ROTATION_270}" />
     </annotation>
   </item>
+  <item name="android.view.Display.HdrCapabilities int[] getSupportedHdrTypes()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.Display.HdrCapabilities.HDR_TYPE_DOLBY_VISION, android.view.Display.HdrCapabilities.HDR_TYPE_HDR10, android.view.Display.HdrCapabilities.HDR_TYPE_HLG}" />
+    </annotation>
+  </item>
+  <item name="android.view.FrameMetrics long getMetric(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.FrameMetrics.UNKNOWN_DELAY_DURATION, android.view.FrameMetrics.INPUT_HANDLING_DURATION, android.view.FrameMetrics.ANIMATION_DURATION, android.view.FrameMetrics.LAYOUT_MEASURE_DURATION, android.view.FrameMetrics.DRAW_DURATION, android.view.FrameMetrics.SYNC_DURATION, android.view.FrameMetrics.COMMAND_ISSUE_DURATION, android.view.FrameMetrics.SWAP_BUFFERS_DURATION, android.view.FrameMetrics.TOTAL_DURATION, android.view.FrameMetrics.FIRST_DRAW_FRAME}" />
+    </annotation>
+  </item>
+  <item name="android.view.KeyboardShortcutGroup KeyboardShortcutGroup(java.lang.CharSequence) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.KeyboardShortcutGroup KeyboardShortcutGroup(java.lang.CharSequence, java.util.List&lt;android.view.KeyboardShortcutInfo&gt;) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.KeyboardShortcutGroup KeyboardShortcutGroup(java.lang.CharSequence, java.util.List&lt;android.view.KeyboardShortcutInfo&gt;) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.KeyboardShortcutInfo java.lang.CharSequence getLabel()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.view.LayoutInflater android.view.View inflate(int, android.view.ViewGroup) 0">
     <annotation name="android.support.annotation.LayoutRes" />
   </item>
@@ -67,6 +89,47 @@
   <item name="android.view.MenuItem android.view.MenuItem setTitle(int) 0">
     <annotation name="android.support.annotation.StringRes" />
   </item>
+  <item name="android.view.PixelCopy void request(android.view.Surface, android.graphics.Bitmap, android.view.PixelCopy.OnPixelCopyFinishedListener, android.os.Handler) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.PixelCopy void request(android.view.Surface, android.graphics.Bitmap, android.view.PixelCopy.OnPixelCopyFinishedListener, android.os.Handler) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.PixelCopy void request(android.view.Surface, android.graphics.Bitmap, android.view.PixelCopy.OnPixelCopyFinishedListener, android.os.Handler) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.PixelCopy void request(android.view.Surface, android.graphics.Bitmap, android.view.PixelCopy.OnPixelCopyFinishedListener, android.os.Handler) 3">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.PixelCopy void request(android.view.SurfaceView, android.graphics.Bitmap, android.view.PixelCopy.OnPixelCopyFinishedListener, android.os.Handler) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.PixelCopy void request(android.view.SurfaceView, android.graphics.Bitmap, android.view.PixelCopy.OnPixelCopyFinishedListener, android.os.Handler) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.PixelCopy void request(android.view.SurfaceView, android.graphics.Bitmap, android.view.PixelCopy.OnPixelCopyFinishedListener, android.os.Handler) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.PixelCopy void request(android.view.SurfaceView, android.graphics.Bitmap, android.view.PixelCopy.OnPixelCopyFinishedListener, android.os.Handler) 3">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.PixelCopy.OnPixelCopyFinishedListener void onPixelCopyFinished(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.PixelCopy.SUCCESS, android.view.PixelCopy.ERROR_UNKNOWN, android.view.PixelCopy.ERROR_TIMEOUT, android.view.PixelCopy.ERROR_SOURCE_NO_DATA, android.view.PixelCopy.ERROR_SOURCE_INVALID, android.view.PixelCopy.ERROR_DESTINATION_INVALID}" />
+    </annotation>
+  </item>
+  <item name="android.view.PointerIcon android.view.PointerIcon create(android.graphics.Bitmap, float, float) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.PointerIcon android.view.PointerIcon getSystemIcon(android.content.Context, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.PointerIcon android.view.PointerIcon load(android.content.res.Resources, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.PointerIcon android.view.PointerIcon load(android.content.res.Resources, int) 1">
+    <annotation name="android.support.annotation.XmlRes" />
+  </item>
   <item name="android.view.SubMenu android.view.SubMenu setHeaderIcon(int) 0">
     <annotation name="android.support.annotation.DrawableRes" />
   </item>
@@ -75,6 +138,12 @@
   </item>
   <item name="android.view.SubMenu android.view.SubMenu setIcon(int) 0">
     <annotation name="android.support.annotation.DrawableRes" />
+  </item>
+  <item name="android.view.TextureView void setLayerPaint(android.graphics.Paint) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.TextureView void setLayerType(int, android.graphics.Paint) 1">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.view.View">
     <annotation name="android.support.annotation.UiThread" />
@@ -140,6 +209,15 @@
   <item name="android.view.View boolean verifyDrawable(android.graphics.drawable.Drawable)">
     <annotation name="android.support.annotation.CallSuper" />
   </item>
+  <item name="android.view.View boolean verifyDrawable(android.graphics.drawable.Drawable) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.View int getBaseline()">
+    <annotation name="android.support.annotation.Px" />
+  </item>
+  <item name="android.view.View int getBottom()">
+    <annotation name="android.support.annotation.Px" />
+  </item>
   <item name="android.view.View int getDrawingCacheBackgroundColor()">
     <annotation name="android.support.annotation.ColorInt" />
   </item>
@@ -147,6 +225,12 @@
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.view.View.DRAWING_CACHE_QUALITY_LOW, android.view.View.DRAWING_CACHE_QUALITY_HIGH, android.view.View.DRAWING_CACHE_QUALITY_AUTO}" />
     </annotation>
+  </item>
+  <item name="android.view.View int getHeight()">
+    <annotation name="android.support.annotation.Px" />
+  </item>
+  <item name="android.view.View int getHorizontalFadingEdgeLength()">
+    <annotation name="android.support.annotation.Px" />
   </item>
   <item name="android.view.View int getId()">
     <annotation name="android.support.annotation.IdRes" />
@@ -156,10 +240,25 @@
       <val name="value" val="{android.view.View.IMPORTANT_FOR_ACCESSIBILITY_AUTO, android.view.View.IMPORTANT_FOR_ACCESSIBILITY_YES, android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO, android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS}" />
     </annotation>
   </item>
+  <item name="android.view.View int getLabelFor()">
+    <annotation name="android.support.annotation.IdRes" />
+  </item>
   <item name="android.view.View int getLayoutDirection()">
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.view.View.LAYOUT_DIRECTION_LTR, android.view.View.LAYOUT_DIRECTION_RTL}" />
     </annotation>
+  </item>
+  <item name="android.view.View int getLeft()">
+    <annotation name="android.support.annotation.Px" />
+  </item>
+  <item name="android.view.View int getMeasuredHeight()">
+    <annotation name="android.support.annotation.Px" />
+  </item>
+  <item name="android.view.View int getMeasuredWidth()">
+    <annotation name="android.support.annotation.Px" />
+  </item>
+  <item name="android.view.View int getRight()">
+    <annotation name="android.support.annotation.Px" />
   </item>
   <item name="android.view.View int getScrollBarStyle()">
     <annotation name="android.support.annotation.IntDef">
@@ -171,6 +270,12 @@
       <val name="value" val="{android.view.View.SCROLL_INDICATOR_TOP, android.view.View.SCROLL_INDICATOR_BOTTOM, android.view.View.SCROLL_INDICATOR_LEFT, android.view.View.SCROLL_INDICATOR_RIGHT, android.view.View.SCROLL_INDICATOR_START, android.view.View.SCROLL_INDICATOR_END}" />
       <val name="flag" val="true" />
     </annotation>
+  </item>
+  <item name="android.view.View int getScrollX()">
+    <annotation name="android.support.annotation.Px" />
+  </item>
+  <item name="android.view.View int getScrollY()">
+    <annotation name="android.support.annotation.Px" />
   </item>
   <item name="android.view.View int getSolidColor()">
     <annotation name="android.support.annotation.ColorInt" />
@@ -185,10 +290,22 @@
       <val name="value" val="{android.view.View.TEXT_DIRECTION_LTR, android.view.View.TEXT_DIRECTION_RTL, android.view.View.TEXT_DIRECTION_ANY_RTL, android.view.View.TEXT_DIRECTION_LOCALE, android.view.View.TEXT_DIRECTION_FIRST_STRONG, android.view.View.TEXT_DIRECTION_FIRST_STRONG_LTR, android.view.View.TEXT_DIRECTION_FIRST_STRONG_RTL}" />
     </annotation>
   </item>
+  <item name="android.view.View int getTop()">
+    <annotation name="android.support.annotation.Px" />
+  </item>
+  <item name="android.view.View int getVerticalFadingEdgeLength()">
+    <annotation name="android.support.annotation.Px" />
+  </item>
+  <item name="android.view.View int getVerticalScrollbarWidth()">
+    <annotation name="android.support.annotation.Px" />
+  </item>
   <item name="android.view.View int getVisibility()">
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.view.View.VISIBLE, android.view.View.INVISIBLE, android.view.View.GONE}" />
     </annotation>
+  </item>
+  <item name="android.view.View int getWidth()">
+    <annotation name="android.support.annotation.Px" />
   </item>
   <item name="android.view.View int getWindowVisibility()">
     <annotation name="android.support.annotation.IntDef">
@@ -220,6 +337,12 @@
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.view.View.VISIBLE, android.view.View.INVISIBLE, android.view.View.GONE}" />
     </annotation>
+  </item>
+  <item name="android.view.View void dispatchFinishTemporaryDetach()">
+    <annotation name="android.support.annotation.CallSuper" />
+  </item>
+  <item name="android.view.View void dispatchStartTemporaryDetach()">
+    <annotation name="android.support.annotation.CallSuper" />
   </item>
   <item name="android.view.View void dispatchVisibilityChanged(android.view.View, int) 0">
     <annotation name="android.support.annotation.NonNull" />
@@ -264,6 +387,24 @@
   </item>
   <item name="android.view.View void jumpDrawablesToCurrentState()">
     <annotation name="android.support.annotation.CallSuper" />
+  </item>
+  <item name="android.view.View void layout(int, int, int, int) 0">
+    <annotation name="android.support.annotation.Px" />
+  </item>
+  <item name="android.view.View void layout(int, int, int, int) 1">
+    <annotation name="android.support.annotation.Px" />
+  </item>
+  <item name="android.view.View void layout(int, int, int, int) 2">
+    <annotation name="android.support.annotation.Px" />
+  </item>
+  <item name="android.view.View void layout(int, int, int, int) 3">
+    <annotation name="android.support.annotation.Px" />
+  </item>
+  <item name="android.view.View void offsetLeftAndRight(int) 0">
+    <annotation name="android.support.annotation.Px" />
+  </item>
+  <item name="android.view.View void offsetTopAndBottom(int) 0">
+    <annotation name="android.support.annotation.Px" />
   </item>
   <item name="android.view.View void onAnimationEnd()">
     <annotation name="android.support.annotation.CallSuper" />
@@ -313,6 +454,9 @@
       <val name="value" val="{android.view.View.LAYOUT_DIRECTION_LTR, android.view.View.LAYOUT_DIRECTION_RTL}" />
     </annotation>
   </item>
+  <item name="android.view.View void onVisibilityAggregated(boolean)">
+    <annotation name="android.support.annotation.CallSuper" />
+  </item>
   <item name="android.view.View void onVisibilityChanged(android.view.View, int) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -328,6 +472,24 @@
   </item>
   <item name="android.view.View void requestLayout()">
     <annotation name="android.support.annotation.CallSuper" />
+  </item>
+  <item name="android.view.View void scheduleDrawable(android.graphics.drawable.Drawable, java.lang.Runnable, long) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.View void scheduleDrawable(android.graphics.drawable.Drawable, java.lang.Runnable, long) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.View void scrollBy(int, int) 0">
+    <annotation name="android.support.annotation.Px" />
+  </item>
+  <item name="android.view.View void scrollBy(int, int) 1">
+    <annotation name="android.support.annotation.Px" />
+  </item>
+  <item name="android.view.View void scrollTo(int, int) 0">
+    <annotation name="android.support.annotation.Px" />
+  </item>
+  <item name="android.view.View void scrollTo(int, int) 1">
+    <annotation name="android.support.annotation.Px" />
   </item>
   <item name="android.view.View void setAccessibilityDelegate(android.view.View.AccessibilityDelegate) 0">
     <annotation name="android.support.annotation.Nullable" />
@@ -350,6 +512,9 @@
   <item name="android.view.View void setBackgroundTintMode(android.graphics.PorterDuff.Mode) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.view.View void setBottom(int) 0">
+    <annotation name="android.support.annotation.Px" />
+  </item>
   <item name="android.view.View void setDrawingCacheBackgroundColor(int) 0">
     <annotation name="android.support.annotation.ColorInt" />
   </item>
@@ -357,6 +522,12 @@
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.view.View.DRAWING_CACHE_QUALITY_LOW, android.view.View.DRAWING_CACHE_QUALITY_HIGH, android.view.View.DRAWING_CACHE_QUALITY_AUTO}" />
     </annotation>
+  </item>
+  <item name="android.view.View void setElevation(float) 0">
+    <annotation name="android.support.annotation.Px" />
+  </item>
+  <item name="android.view.View void setFadingEdgeLength(int) 0">
+    <annotation name="android.support.annotation.Px" />
   </item>
   <item name="android.view.View void setForegroundTintList(android.content.res.ColorStateList) 0">
     <annotation name="android.support.annotation.Nullable" />
@@ -375,10 +546,19 @@
   <item name="android.view.View void setLabelFor(int) 0">
     <annotation name="android.support.annotation.IdRes" />
   </item>
+  <item name="android.view.View void setLayerPaint(android.graphics.Paint) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.View void setLayerType(int, android.graphics.Paint) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.view.View void setLayoutDirection(int) 0">
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.view.View.LAYOUT_DIRECTION_LTR, android.view.View.LAYOUT_DIRECTION_RTL, android.view.View.LAYOUT_DIRECTION_INHERIT, android.view.View.LAYOUT_DIRECTION_LOCALE}" />
     </annotation>
+  </item>
+  <item name="android.view.View void setLeft(int) 0">
+    <annotation name="android.support.annotation.Px" />
   </item>
   <item name="android.view.View void setOnClickListener(android.view.View.OnClickListener) 0">
     <annotation name="android.support.annotation.Nullable" />
@@ -388,12 +568,6 @@
   </item>
   <item name="android.view.View void setOnLongClickListener(android.view.View.OnLongClickListener) 0">
     <annotation name="android.support.annotation.Nullable" />
-  </item>
-  <item name="android.view.View void setElevation(float) 0">
-    <annotation name="android.support.annotation.Px" />
-  </item>
-  <item name="android.view.View void setLeft(int) 0">
-    <annotation name="android.support.annotation.Px" />
   </item>
   <item name="android.view.View void setPadding(int, int, int, int) 0">
     <annotation name="android.support.annotation.Px" />
@@ -422,13 +596,7 @@
   <item name="android.view.View void setRight(int) 0">
     <annotation name="android.support.annotation.Px" />
   </item>
-  <item name="android.view.View void setX(float) 0">
-    <annotation name="android.support.annotation.Px" />
-  </item>
-  <item name="android.view.View void setY(float) 0">
-    <annotation name="android.support.annotation.Px" />
-  </item>
-  <item name="android.view.View void setZ(float) 0">
+  <item name="android.view.View void setScrollBarSize(int) 0">
     <annotation name="android.support.annotation.Px" />
   </item>
   <item name="android.view.View void setScrollBarStyle(int) 0">
@@ -454,6 +622,12 @@
       <val name="flag" val="true" />
     </annotation>
   </item>
+  <item name="android.view.View void setScrollX(int) 0">
+    <annotation name="android.support.annotation.Px" />
+  </item>
+  <item name="android.view.View void setScrollY(int) 0">
+    <annotation name="android.support.annotation.Px" />
+  </item>
   <item name="android.view.View void setTextAlignment(int) 0">
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.view.View.TEXT_ALIGNMENT_INHERIT, android.view.View.TEXT_ALIGNMENT_GRAVITY, android.view.View.TEXT_ALIGNMENT_CENTER, android.view.View.TEXT_ALIGNMENT_TEXT_START, android.view.View.TEXT_ALIGNMENT_TEXT_END, android.view.View.TEXT_ALIGNMENT_VIEW_START, android.view.View.TEXT_ALIGNMENT_VIEW_END}" />
@@ -464,10 +638,34 @@
       <val name="value" val="{android.view.View.TEXT_DIRECTION_INHERIT, android.view.View.TEXT_DIRECTION_LTR, android.view.View.TEXT_DIRECTION_RTL, android.view.View.TEXT_DIRECTION_ANY_RTL, android.view.View.TEXT_DIRECTION_LOCALE, android.view.View.TEXT_DIRECTION_FIRST_STRONG, android.view.View.TEXT_DIRECTION_FIRST_STRONG_LTR, android.view.View.TEXT_DIRECTION_FIRST_STRONG_RTL}" />
     </annotation>
   </item>
+  <item name="android.view.View void setTop(int) 0">
+    <annotation name="android.support.annotation.Px" />
+  </item>
+  <item name="android.view.View void setTranslationX(float) 0">
+    <annotation name="android.support.annotation.Px" />
+  </item>
+  <item name="android.view.View void setTranslationY(float) 0">
+    <annotation name="android.support.annotation.Px" />
+  </item>
   <item name="android.view.View void setVisibility(int) 0">
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.view.View.VISIBLE, android.view.View.INVISIBLE, android.view.View.GONE}" />
     </annotation>
+  </item>
+  <item name="android.view.View void setX(float) 0">
+    <annotation name="android.support.annotation.Px" />
+  </item>
+  <item name="android.view.View void setY(float) 0">
+    <annotation name="android.support.annotation.Px" />
+  </item>
+  <item name="android.view.View void setZ(float) 0">
+    <annotation name="android.support.annotation.Px" />
+  </item>
+  <item name="android.view.View void unscheduleDrawable(android.graphics.drawable.Drawable, java.lang.Runnable) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.View void unscheduleDrawable(android.graphics.drawable.Drawable, java.lang.Runnable) 1">
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View.MeasureSpec int getMode(int)">
     <annotation name="android.support.annotation.IntDef">
@@ -510,6 +708,54 @@
       <val name="flag" val="true" />
     </annotation>
   </item>
+  <item name="android.view.ViewGroup.MarginLayoutParams MarginLayoutParams(int, int) 0">
+    <annotation name="android.support.annotation.Px" />
+  </item>
+  <item name="android.view.ViewGroup.MarginLayoutParams MarginLayoutParams(int, int) 1">
+    <annotation name="android.support.annotation.Px" />
+  </item>
+  <item name="android.view.ViewGroup.MarginLayoutParams bottomMargin">
+    <annotation name="android.support.annotation.Px" />
+  </item>
+  <item name="android.view.ViewGroup.MarginLayoutParams leftMargin">
+    <annotation name="android.support.annotation.Px" />
+  </item>
+  <item name="android.view.ViewGroup.MarginLayoutParams rightMargin">
+    <annotation name="android.support.annotation.Px" />
+  </item>
+  <item name="android.view.ViewGroup.MarginLayoutParams topMargin">
+    <annotation name="android.support.annotation.Px" />
+  </item>
+  <item name="android.view.ViewGroup.MarginLayoutParams void setMarginEnd(int) 0">
+    <annotation name="android.support.annotation.Px" />
+  </item>
+  <item name="android.view.ViewGroup.MarginLayoutParams void setMarginStart(int) 0">
+    <annotation name="android.support.annotation.Px" />
+  </item>
+  <item name="android.view.ViewGroup.MarginLayoutParams void setMargins(int, int, int, int) 0">
+    <annotation name="android.support.annotation.Px" />
+  </item>
+  <item name="android.view.ViewGroup.MarginLayoutParams void setMargins(int, int, int, int) 1">
+    <annotation name="android.support.annotation.Px" />
+  </item>
+  <item name="android.view.ViewGroup.MarginLayoutParams void setMargins(int, int, int, int) 2">
+    <annotation name="android.support.annotation.Px" />
+  </item>
+  <item name="android.view.ViewGroup.MarginLayoutParams void setMargins(int, int, int, int) 3">
+    <annotation name="android.support.annotation.Px" />
+  </item>
+  <item name="android.view.ViewGroupOverlay void add(android.view.View) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.ViewGroupOverlay void remove(android.view.View) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.ViewOverlay void add(android.graphics.drawable.Drawable) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.ViewOverlay void remove(android.graphics.drawable.Drawable) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.view.ViewStub ViewStub(android.content.Context, int) 1">
     <annotation name="android.support.annotation.LayoutRes" />
   </item>
@@ -539,6 +785,9 @@
   </item>
   <item name="android.view.Window int getStatusBarColor()">
     <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.view.Window void addOnFrameMetricsAvailableListener(android.view.Window.OnFrameMetricsAvailableListener, android.os.Handler) 0">
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.Window void setBackgroundDrawableResource(int) 0">
     <annotation name="android.support.annotation.DrawableRes" />
@@ -574,6 +823,9 @@
     <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.view.Window.Callback android.view.View onCreatePanelView(int)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.Window.Callback void onProvideKeyboardShortcuts(java.util.List&lt;android.view.KeyboardShortcutGroup&gt;, android.view.Menu, int) 1">
     <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.view.WindowManager.LayoutParams type">

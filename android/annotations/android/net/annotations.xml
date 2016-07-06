@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
+  <item name="android.net.ConnectivityManager int getRestrictBackgroundStatus()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.net.ConnectivityManager.RESTRICT_BACKGROUND_STATUS_DISABLED, android.net.ConnectivityManager.RESTRICT_BACKGROUND_STATUS_WHITELISTED, android.net.ConnectivityManager.RESTRICT_BACKGROUND_STATUS_ENABLED}" />
+      <val name="flag" val="false" />
+    </annotation>
+  </item>
   <item name="android.net.LinkProperties java.lang.String getInterfaceName()">
     <annotation name="android.support.annotation.Nullable" />
   </item>

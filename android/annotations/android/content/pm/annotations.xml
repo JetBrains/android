@@ -65,6 +65,9 @@
   <item name="android.content.pm.PackageInstaller.Session void fsync(java.io.OutputStream) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.content.pm.PackageInstaller.Session void removeSplit(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.content.pm.PackageInstaller.SessionInfo android.content.Intent createDetailsIntent()">
     <annotation name="android.support.annotation.Nullable" />
   </item>
@@ -97,19 +100,19 @@
   </item>
   <item name="android.content.pm.PackageManager android.content.pm.ActivityInfo getActivityInfo(android.content.ComponentName, int) 1">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.MATCH_ALL, android.content.pm.PackageManager.MATCH_DEFAULT_ONLY}" />
+      <val name="value" val="{android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.MATCH_ALL, android.content.pm.PackageManager.MATCH_DEFAULT_ONLY, android.content.pm.PackageManager.MATCH_DISABLED_COMPONENTS, android.content.pm.PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.MATCH_DIRECT_BOOT_AWARE, android.content.pm.PackageManager.MATCH_DIRECT_BOOT_UNAWARE, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
   <item name="android.content.pm.PackageManager android.content.pm.ActivityInfo getReceiverInfo(android.content.ComponentName, int) 1">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.MATCH_ALL, android.content.pm.PackageManager.MATCH_DEFAULT_ONLY}" />
+      <val name="value" val="{android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.MATCH_ALL, android.content.pm.PackageManager.MATCH_DEFAULT_ONLY, android.content.pm.PackageManager.MATCH_DISABLED_COMPONENTS, android.content.pm.PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.MATCH_DIRECT_BOOT_AWARE, android.content.pm.PackageManager.MATCH_DIRECT_BOOT_UNAWARE, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
   <item name="android.content.pm.PackageManager android.content.pm.ApplicationInfo getApplicationInfo(java.lang.String, int) 1">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES}" />
+      <val name="value" val="{android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
@@ -121,13 +124,13 @@
   </item>
   <item name="android.content.pm.PackageManager android.content.pm.PackageInfo getPackageArchiveInfo(java.lang.String, int) 1">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.content.pm.PackageManager.GET_ACTIVITIES, android.content.pm.PackageManager.GET_CONFIGURATIONS, android.content.pm.PackageManager.GET_GIDS, android.content.pm.PackageManager.GET_INSTRUMENTATION, android.content.pm.PackageManager.GET_INTENT_FILTERS, android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_PERMISSIONS, android.content.pm.PackageManager.GET_PROVIDERS, android.content.pm.PackageManager.GET_RECEIVERS, android.content.pm.PackageManager.GET_SERVICES, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.GET_SIGNATURES, android.content.pm.PackageManager.GET_URI_PERMISSION_PATTERNS}" />
+      <val name="value" val="{android.content.pm.PackageManager.GET_ACTIVITIES, android.content.pm.PackageManager.GET_CONFIGURATIONS, android.content.pm.PackageManager.GET_GIDS, android.content.pm.PackageManager.GET_INSTRUMENTATION, android.content.pm.PackageManager.GET_INTENT_FILTERS, android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_PERMISSIONS, android.content.pm.PackageManager.GET_PROVIDERS, android.content.pm.PackageManager.GET_RECEIVERS, android.content.pm.PackageManager.GET_SERVICES, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.GET_SIGNATURES, android.content.pm.PackageManager.GET_URI_PERMISSION_PATTERNS, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES, android.content.pm.PackageManager.MATCH_DISABLED_COMPONENTS, android.content.pm.PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
   <item name="android.content.pm.PackageManager android.content.pm.PackageInfo getPackageInfo(java.lang.String, int) 1">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.content.pm.PackageManager.GET_ACTIVITIES, android.content.pm.PackageManager.GET_CONFIGURATIONS, android.content.pm.PackageManager.GET_GIDS, android.content.pm.PackageManager.GET_INSTRUMENTATION, android.content.pm.PackageManager.GET_INTENT_FILTERS, android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_PERMISSIONS, android.content.pm.PackageManager.GET_PROVIDERS, android.content.pm.PackageManager.GET_RECEIVERS, android.content.pm.PackageManager.GET_SERVICES, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.GET_SIGNATURES, android.content.pm.PackageManager.GET_URI_PERMISSION_PATTERNS}" />
+      <val name="value" val="{android.content.pm.PackageManager.GET_ACTIVITIES, android.content.pm.PackageManager.GET_CONFIGURATIONS, android.content.pm.PackageManager.GET_GIDS, android.content.pm.PackageManager.GET_INSTRUMENTATION, android.content.pm.PackageManager.GET_INTENT_FILTERS, android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_PERMISSIONS, android.content.pm.PackageManager.GET_PROVIDERS, android.content.pm.PackageManager.GET_RECEIVERS, android.content.pm.PackageManager.GET_SERVICES, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.GET_SIGNATURES, android.content.pm.PackageManager.GET_URI_PERMISSION_PATTERNS, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES, android.content.pm.PackageManager.MATCH_DISABLED_COMPONENTS, android.content.pm.PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
@@ -148,31 +151,31 @@
   </item>
   <item name="android.content.pm.PackageManager android.content.pm.ProviderInfo getProviderInfo(android.content.ComponentName, int) 1">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.MATCH_ALL, android.content.pm.PackageManager.MATCH_DEFAULT_ONLY}" />
+      <val name="value" val="{android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.MATCH_ALL, android.content.pm.PackageManager.MATCH_DEFAULT_ONLY, android.content.pm.PackageManager.MATCH_DISABLED_COMPONENTS, android.content.pm.PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.MATCH_DIRECT_BOOT_AWARE, android.content.pm.PackageManager.MATCH_DIRECT_BOOT_UNAWARE, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
   <item name="android.content.pm.PackageManager android.content.pm.ProviderInfo resolveContentProvider(java.lang.String, int) 1">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.MATCH_ALL, android.content.pm.PackageManager.MATCH_DEFAULT_ONLY}" />
+      <val name="value" val="{android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.MATCH_ALL, android.content.pm.PackageManager.MATCH_DEFAULT_ONLY, android.content.pm.PackageManager.MATCH_DISABLED_COMPONENTS, android.content.pm.PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.MATCH_DIRECT_BOOT_AWARE, android.content.pm.PackageManager.MATCH_DIRECT_BOOT_UNAWARE, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
   <item name="android.content.pm.PackageManager android.content.pm.ResolveInfo resolveActivity(android.content.Intent, int) 1">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_RESOLVED_FILTER, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.MATCH_ALL, android.content.pm.PackageManager.MATCH_DEFAULT_ONLY}" />
+      <val name="value" val="{android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_RESOLVED_FILTER, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.MATCH_ALL, android.content.pm.PackageManager.MATCH_DISABLED_COMPONENTS, android.content.pm.PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.MATCH_DEFAULT_ONLY, android.content.pm.PackageManager.MATCH_DIRECT_BOOT_AWARE, android.content.pm.PackageManager.MATCH_DIRECT_BOOT_UNAWARE, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
   <item name="android.content.pm.PackageManager android.content.pm.ResolveInfo resolveService(android.content.Intent, int) 1">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_RESOLVED_FILTER, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.MATCH_ALL, android.content.pm.PackageManager.MATCH_DEFAULT_ONLY}" />
+      <val name="value" val="{android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_RESOLVED_FILTER, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.MATCH_ALL, android.content.pm.PackageManager.MATCH_DISABLED_COMPONENTS, android.content.pm.PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.MATCH_DEFAULT_ONLY, android.content.pm.PackageManager.MATCH_DIRECT_BOOT_AWARE, android.content.pm.PackageManager.MATCH_DIRECT_BOOT_UNAWARE, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
   <item name="android.content.pm.PackageManager android.content.pm.ServiceInfo getServiceInfo(android.content.ComponentName, int) 1">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.MATCH_ALL, android.content.pm.PackageManager.MATCH_DEFAULT_ONLY}" />
+      <val name="value" val="{android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.MATCH_ALL, android.content.pm.PackageManager.MATCH_DEFAULT_ONLY, android.content.pm.PackageManager.MATCH_DISABLED_COMPONENTS, android.content.pm.PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.MATCH_DIRECT_BOOT_AWARE, android.content.pm.PackageManager.MATCH_DIRECT_BOOT_UNAWARE, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
@@ -200,11 +203,23 @@
   <item name="android.content.pm.PackageManager int checkSignatures(java.lang.String, java.lang.String)">
     <annotation name="android.support.annotation.CheckResult" />
   </item>
+  <item name="android.content.pm.PackageManager int getPackageUid(java.lang.String, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.pm.PackageManager.GET_ACTIVITIES, android.content.pm.PackageManager.GET_CONFIGURATIONS, android.content.pm.PackageManager.GET_GIDS, android.content.pm.PackageManager.GET_INSTRUMENTATION, android.content.pm.PackageManager.GET_INTENT_FILTERS, android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_PERMISSIONS, android.content.pm.PackageManager.GET_PROVIDERS, android.content.pm.PackageManager.GET_RECEIVERS, android.content.pm.PackageManager.GET_SERVICES, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.GET_SIGNATURES, android.content.pm.PackageManager.GET_URI_PERMISSION_PATTERNS, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES, android.content.pm.PackageManager.MATCH_DISABLED_COMPONENTS, android.content.pm.PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
   <item name="android.content.pm.PackageManager int getPreferredActivities(java.util.List&lt;android.content.IntentFilter&gt;, java.util.List&lt;android.content.ComponentName&gt;, java.lang.String) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.PackageManager int getPreferredActivities(java.util.List&lt;android.content.IntentFilter&gt;, java.util.List&lt;android.content.ComponentName&gt;, java.lang.String) 1">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.PackageManager int[] getPackageGids(java.lang.String, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.pm.PackageManager.GET_ACTIVITIES, android.content.pm.PackageManager.GET_CONFIGURATIONS, android.content.pm.PackageManager.GET_GIDS, android.content.pm.PackageManager.GET_INSTRUMENTATION, android.content.pm.PackageManager.GET_INTENT_FILTERS, android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_PERMISSIONS, android.content.pm.PackageManager.GET_PROVIDERS, android.content.pm.PackageManager.GET_RECEIVERS, android.content.pm.PackageManager.GET_SERVICES, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.GET_SIGNATURES, android.content.pm.PackageManager.GET_URI_PERMISSION_PATTERNS, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES, android.content.pm.PackageManager.MATCH_DISABLED_COMPONENTS, android.content.pm.PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY}" />
+      <val name="flag" val="true" />
+    </annotation>
   </item>
   <item name="android.content.pm.PackageManager java.lang.CharSequence getText(java.lang.String, int, android.content.pm.ApplicationInfo) 1">
     <annotation name="android.support.annotation.StringRes" />
@@ -217,7 +232,7 @@
   </item>
   <item name="android.content.pm.PackageManager java.util.List&lt;android.content.pm.ApplicationInfo&gt; getInstalledApplications(int) 0">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES}" />
+      <val name="value" val="{android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
@@ -229,19 +244,19 @@
   </item>
   <item name="android.content.pm.PackageManager java.util.List&lt;android.content.pm.PackageInfo&gt; getInstalledPackages(int) 0">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.content.pm.PackageManager.GET_ACTIVITIES, android.content.pm.PackageManager.GET_CONFIGURATIONS, android.content.pm.PackageManager.GET_GIDS, android.content.pm.PackageManager.GET_INSTRUMENTATION, android.content.pm.PackageManager.GET_INTENT_FILTERS, android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_PERMISSIONS, android.content.pm.PackageManager.GET_PROVIDERS, android.content.pm.PackageManager.GET_RECEIVERS, android.content.pm.PackageManager.GET_SERVICES, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.GET_SIGNATURES, android.content.pm.PackageManager.GET_URI_PERMISSION_PATTERNS}" />
+      <val name="value" val="{android.content.pm.PackageManager.GET_ACTIVITIES, android.content.pm.PackageManager.GET_CONFIGURATIONS, android.content.pm.PackageManager.GET_GIDS, android.content.pm.PackageManager.GET_INSTRUMENTATION, android.content.pm.PackageManager.GET_INTENT_FILTERS, android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_PERMISSIONS, android.content.pm.PackageManager.GET_PROVIDERS, android.content.pm.PackageManager.GET_RECEIVERS, android.content.pm.PackageManager.GET_SERVICES, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.GET_SIGNATURES, android.content.pm.PackageManager.GET_URI_PERMISSION_PATTERNS, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES, android.content.pm.PackageManager.MATCH_DISABLED_COMPONENTS, android.content.pm.PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
   <item name="android.content.pm.PackageManager java.util.List&lt;android.content.pm.PackageInfo&gt; getPackagesHoldingPermissions(java.lang.String[], int) 1">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.content.pm.PackageManager.GET_ACTIVITIES, android.content.pm.PackageManager.GET_CONFIGURATIONS, android.content.pm.PackageManager.GET_GIDS, android.content.pm.PackageManager.GET_INSTRUMENTATION, android.content.pm.PackageManager.GET_INTENT_FILTERS, android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_PERMISSIONS, android.content.pm.PackageManager.GET_PROVIDERS, android.content.pm.PackageManager.GET_RECEIVERS, android.content.pm.PackageManager.GET_SERVICES, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.GET_SIGNATURES, android.content.pm.PackageManager.GET_URI_PERMISSION_PATTERNS}" />
+      <val name="value" val="{android.content.pm.PackageManager.GET_ACTIVITIES, android.content.pm.PackageManager.GET_CONFIGURATIONS, android.content.pm.PackageManager.GET_GIDS, android.content.pm.PackageManager.GET_INSTRUMENTATION, android.content.pm.PackageManager.GET_INTENT_FILTERS, android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_PERMISSIONS, android.content.pm.PackageManager.GET_PROVIDERS, android.content.pm.PackageManager.GET_RECEIVERS, android.content.pm.PackageManager.GET_SERVICES, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.GET_SIGNATURES, android.content.pm.PackageManager.GET_URI_PERMISSION_PATTERNS, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES, android.content.pm.PackageManager.MATCH_DISABLED_COMPONENTS, android.content.pm.PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
   <item name="android.content.pm.PackageManager java.util.List&lt;android.content.pm.PackageInfo&gt; getPreferredPackages(int) 0">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.content.pm.PackageManager.GET_ACTIVITIES, android.content.pm.PackageManager.GET_CONFIGURATIONS, android.content.pm.PackageManager.GET_GIDS, android.content.pm.PackageManager.GET_INSTRUMENTATION, android.content.pm.PackageManager.GET_INTENT_FILTERS, android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_PERMISSIONS, android.content.pm.PackageManager.GET_PROVIDERS, android.content.pm.PackageManager.GET_RECEIVERS, android.content.pm.PackageManager.GET_SERVICES, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.GET_SIGNATURES, android.content.pm.PackageManager.GET_URI_PERMISSION_PATTERNS}" />
+      <val name="value" val="{android.content.pm.PackageManager.GET_ACTIVITIES, android.content.pm.PackageManager.GET_CONFIGURATIONS, android.content.pm.PackageManager.GET_GIDS, android.content.pm.PackageManager.GET_INSTRUMENTATION, android.content.pm.PackageManager.GET_INTENT_FILTERS, android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_PERMISSIONS, android.content.pm.PackageManager.GET_PROVIDERS, android.content.pm.PackageManager.GET_RECEIVERS, android.content.pm.PackageManager.GET_SERVICES, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.GET_SIGNATURES, android.content.pm.PackageManager.GET_URI_PERMISSION_PATTERNS, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES, android.content.pm.PackageManager.MATCH_DISABLED_COMPONENTS, android.content.pm.PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
@@ -259,37 +274,37 @@
   </item>
   <item name="android.content.pm.PackageManager java.util.List&lt;android.content.pm.ProviderInfo&gt; queryContentProviders(java.lang.String, int, int) 2">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.MATCH_ALL, android.content.pm.PackageManager.MATCH_DEFAULT_ONLY}" />
+      <val name="value" val="{android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.MATCH_ALL, android.content.pm.PackageManager.MATCH_DEFAULT_ONLY, android.content.pm.PackageManager.MATCH_DISABLED_COMPONENTS, android.content.pm.PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.MATCH_DIRECT_BOOT_AWARE, android.content.pm.PackageManager.MATCH_DIRECT_BOOT_UNAWARE, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
   <item name="android.content.pm.PackageManager java.util.List&lt;android.content.pm.ResolveInfo&gt; queryBroadcastReceivers(android.content.Intent, int) 1">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_RESOLVED_FILTER, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.MATCH_ALL, android.content.pm.PackageManager.MATCH_DEFAULT_ONLY}" />
+      <val name="value" val="{android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_RESOLVED_FILTER, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.MATCH_ALL, android.content.pm.PackageManager.MATCH_DISABLED_COMPONENTS, android.content.pm.PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.MATCH_DEFAULT_ONLY, android.content.pm.PackageManager.MATCH_DIRECT_BOOT_AWARE, android.content.pm.PackageManager.MATCH_DIRECT_BOOT_UNAWARE, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
   <item name="android.content.pm.PackageManager java.util.List&lt;android.content.pm.ResolveInfo&gt; queryIntentActivities(android.content.Intent, int) 1">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_RESOLVED_FILTER, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.MATCH_ALL, android.content.pm.PackageManager.MATCH_DEFAULT_ONLY}" />
+      <val name="value" val="{android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_RESOLVED_FILTER, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.MATCH_ALL, android.content.pm.PackageManager.MATCH_DISABLED_COMPONENTS, android.content.pm.PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.MATCH_DEFAULT_ONLY, android.content.pm.PackageManager.MATCH_DIRECT_BOOT_AWARE, android.content.pm.PackageManager.MATCH_DIRECT_BOOT_UNAWARE, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
   <item name="android.content.pm.PackageManager java.util.List&lt;android.content.pm.ResolveInfo&gt; queryIntentActivityOptions(android.content.ComponentName, android.content.Intent[], android.content.Intent, int) 3">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_RESOLVED_FILTER, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.MATCH_ALL, android.content.pm.PackageManager.MATCH_DEFAULT_ONLY}" />
+      <val name="value" val="{android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_RESOLVED_FILTER, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.MATCH_ALL, android.content.pm.PackageManager.MATCH_DISABLED_COMPONENTS, android.content.pm.PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.MATCH_DEFAULT_ONLY, android.content.pm.PackageManager.MATCH_DIRECT_BOOT_AWARE, android.content.pm.PackageManager.MATCH_DIRECT_BOOT_UNAWARE, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
   <item name="android.content.pm.PackageManager java.util.List&lt;android.content.pm.ResolveInfo&gt; queryIntentContentProviders(android.content.Intent, int) 1">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_RESOLVED_FILTER, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.MATCH_ALL, android.content.pm.PackageManager.MATCH_DEFAULT_ONLY}" />
+      <val name="value" val="{android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_RESOLVED_FILTER, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.MATCH_ALL, android.content.pm.PackageManager.MATCH_DISABLED_COMPONENTS, android.content.pm.PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.MATCH_DEFAULT_ONLY, android.content.pm.PackageManager.MATCH_DIRECT_BOOT_AWARE, android.content.pm.PackageManager.MATCH_DIRECT_BOOT_UNAWARE, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
   <item name="android.content.pm.PackageManager java.util.List&lt;android.content.pm.ResolveInfo&gt; queryIntentServices(android.content.Intent, int) 1">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_RESOLVED_FILTER, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.MATCH_ALL, android.content.pm.PackageManager.MATCH_DEFAULT_ONLY}" />
+      <val name="value" val="{android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_RESOLVED_FILTER, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.MATCH_ALL, android.content.pm.PackageManager.MATCH_DISABLED_COMPONENTS, android.content.pm.PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.MATCH_DEFAULT_ONLY, android.content.pm.PackageManager.MATCH_DIRECT_BOOT_AWARE, android.content.pm.PackageManager.MATCH_DIRECT_BOOT_UNAWARE, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
