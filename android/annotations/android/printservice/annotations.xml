@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
+  <item name="android.printservice.CustomPrinterIconCallback boolean onCustomPrinterIconLoaded(android.graphics.drawable.Icon) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.printservice.PrintDocument android.os.ParcelFileDescriptor getData()">
     <annotation name="android.support.annotation.Nullable" />
   </item>
@@ -75,6 +78,30 @@
     <annotation name="android.support.annotation.MainThread" />
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.printservice.PrintJob void setProgress(float)">
+    <annotation name="android.support.annotation.MainThread" />
+  </item>
+  <item name="android.printservice.PrintJob void setProgress(float) 0">
+    <annotation name="android.support.annotation.FloatRange">
+      <val name="from" val="0.0" />
+      <val name="to" val="1.0" />
+    </annotation>
+  </item>
+  <item name="android.printservice.PrintJob void setStatus(int)">
+    <annotation name="android.support.annotation.MainThread" />
+  </item>
+  <item name="android.printservice.PrintJob void setStatus(int) 0">
+    <annotation name="android.support.annotation.StringRes" />
+  </item>
+  <item name="android.printservice.PrintJob void setStatus(java.lang.CharSequence)">
+    <annotation name="android.support.annotation.MainThread" />
+  </item>
+  <item name="android.printservice.PrintJob void setStatus(java.lang.CharSequence) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.printservice.PrintService android.print.PrinterId generatePrinterId(java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.printservice.PrintService android.printservice.PrinterDiscoverySession onCreatePrinterDiscoverySession()">
     <annotation name="android.support.annotation.Nullable" />
   </item>
@@ -85,6 +112,15 @@
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.printservice.PrinterDiscoverySession void addPrinters(java.util.List&lt;android.print.PrinterInfo&gt;) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.printservice.PrinterDiscoverySession void onRequestCustomPrinterIcon(android.print.PrinterId, android.os.CancellationSignal, android.printservice.CustomPrinterIconCallback) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.printservice.PrinterDiscoverySession void onRequestCustomPrinterIcon(android.print.PrinterId, android.os.CancellationSignal, android.printservice.CustomPrinterIconCallback) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.printservice.PrinterDiscoverySession void onRequestCustomPrinterIcon(android.print.PrinterId, android.os.CancellationSignal, android.printservice.CustomPrinterIconCallback) 2">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.printservice.PrinterDiscoverySession void onStartPrinterDiscovery(java.util.List&lt;android.print.PrinterId&gt;) 0">

@@ -12,11 +12,61 @@
   <item name="android.text.style.ImageSpan ImageSpan(android.content.Context, int, int) 1">
     <annotation name="android.support.annotation.DrawableRes" />
   </item>
+  <item name="android.text.style.LocaleSpan LocaleSpan(android.os.LocaleList) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.text.style.LocaleSpan LocaleSpan(java.util.Locale) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.text.style.LocaleSpan android.os.LocaleList getLocales()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.text.style.LocaleSpan java.util.Locale getLocale()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.text.style.QuoteSpan QuoteSpan(int) 0">
     <annotation name="android.support.annotation.ColorInt" />
   </item>
   <item name="android.text.style.QuoteSpan int getColor()">
     <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.text.style.ReplacementSpan int getSize(android.graphics.Paint, java.lang.CharSequence, int, int, android.graphics.Paint.FontMetricsInt) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.text.style.ReplacementSpan int getSize(android.graphics.Paint, java.lang.CharSequence, int, int, android.graphics.Paint.FontMetricsInt) 2">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="0" />
+    </annotation>
+  </item>
+  <item name="android.text.style.ReplacementSpan int getSize(android.graphics.Paint, java.lang.CharSequence, int, int, android.graphics.Paint.FontMetricsInt) 3">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="0" />
+    </annotation>
+  </item>
+  <item name="android.text.style.ReplacementSpan int getSize(android.graphics.Paint, java.lang.CharSequence, int, int, android.graphics.Paint.FontMetricsInt) 4">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.text.style.ReplacementSpan void draw(android.graphics.Canvas, java.lang.CharSequence, int, int, float, int, int, int, android.graphics.Paint) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.text.style.ReplacementSpan void draw(android.graphics.Canvas, java.lang.CharSequence, int, int, float, int, int, int, android.graphics.Paint) 2">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="0" />
+    </annotation>
+  </item>
+  <item name="android.text.style.ReplacementSpan void draw(android.graphics.Canvas, java.lang.CharSequence, int, int, float, int, int, int, android.graphics.Paint) 3">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="0" />
+    </annotation>
+  </item>
+  <item name="android.text.style.ReplacementSpan void draw(android.graphics.Canvas, java.lang.CharSequence, int, int, float, int, int, int, android.graphics.Paint) 8">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.text.style.SuggestionSpan java.lang.String getLocale()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.text.style.SuggestionSpan java.util.Locale getLocaleObject()">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
 </root>
 

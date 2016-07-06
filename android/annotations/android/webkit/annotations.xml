@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.webkit.ServiceWorkerController android.webkit.ServiceWorkerController getInstance()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.webkit.ServiceWorkerController android.webkit.ServiceWorkerWebSettings getServiceWorkerWebSettings()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.webkit.ServiceWorkerController void setServiceWorkerClient(android.webkit.ServiceWorkerClient) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.webkit.ServiceWorkerWebSettings int getCacheMode()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.webkit.WebSettings.LOAD_DEFAULT, android.webkit.WebSettings.LOAD_NORMAL, android.webkit.WebSettings.LOAD_CACHE_ELSE_NETWORK, android.webkit.WebSettings.LOAD_NO_CACHE, android.webkit.WebSettings.LOAD_CACHE_ONLY}" />
+    </annotation>
+  </item>
+  <item name="android.webkit.ServiceWorkerWebSettings void setCacheMode(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.webkit.WebSettings.LOAD_DEFAULT, android.webkit.WebSettings.LOAD_NORMAL, android.webkit.WebSettings.LOAD_CACHE_ELSE_NETWORK, android.webkit.WebSettings.LOAD_NO_CACHE, android.webkit.WebSettings.LOAD_CACHE_ONLY}" />
+    </annotation>
+  </item>
+  <item name="android.webkit.WebSettings int getCacheMode()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.webkit.WebSettings.LOAD_DEFAULT, android.webkit.WebSettings.LOAD_NORMAL, android.webkit.WebSettings.LOAD_CACHE_ELSE_NETWORK, android.webkit.WebSettings.LOAD_NO_CACHE, android.webkit.WebSettings.LOAD_CACHE_ONLY}" />
+    </annotation>
+  </item>
+  <item name="android.webkit.WebSettings int getDisabledActionModeMenuItems()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.webkit.WebSettings.MENU_ITEM_NONE, android.webkit.WebSettings.MENU_ITEM_SHARE, android.webkit.WebSettings.MENU_ITEM_WEB_SEARCH, android.webkit.WebSettings.MENU_ITEM_PROCESS_TEXT}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.webkit.WebSettings void setCacheMode(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.webkit.WebSettings.LOAD_DEFAULT, android.webkit.WebSettings.LOAD_NORMAL, android.webkit.WebSettings.LOAD_CACHE_ELSE_NETWORK, android.webkit.WebSettings.LOAD_NO_CACHE, android.webkit.WebSettings.LOAD_CACHE_ONLY}" />
+    </annotation>
+  </item>
+  <item name="android.webkit.WebSettings void setDisabledActionModeMenuItems(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.webkit.WebSettings.MENU_ITEM_NONE, android.webkit.WebSettings.MENU_ITEM_SHARE, android.webkit.WebSettings.MENU_ITEM_WEB_SEARCH, android.webkit.WebSettings.MENU_ITEM_PROCESS_TEXT}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+</root>
+
