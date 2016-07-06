@@ -16,11 +16,13 @@
 package com.android.tools.idea.uibuilder.surface;
 
 import com.android.sdklib.devices.Device;
+import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.ddms.screenshot.DeviceArtPainter;
 import com.android.tools.idea.rendering.RenderErrorPanel;
 import com.android.tools.idea.rendering.RenderResult;
+import com.android.tools.idea.rendering.RenderedImage;
 import com.android.tools.idea.uibuilder.editor.NlActionManager;
 import com.android.tools.idea.uibuilder.editor.NlEditorPanel;
 import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
@@ -61,6 +63,7 @@ import javax.swing.*;
 import javax.swing.plaf.ScrollBarUI;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.geom.Ellipse2D;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -1120,7 +1123,6 @@ public class DesignSurface extends JPanel implements Disposable {
       }
 
       g2d.setComposite(oldComposite);
-
       for (Layer layer : myLayers) {
         if (!layer.isHidden()) {
           layer.paint(g2d);
@@ -1225,10 +1227,16 @@ public class DesignSurface extends JPanel implements Disposable {
       Stroke prevStroke = g2d.getStroke();
       g2d.setStroke(DASHED_STROKE);
 
-      g2d.drawLine(x - 1, y - BOUNDS_RECT_DELTA, x - 1, y + size.height + BOUNDS_RECT_DELTA);
-      g2d.drawLine(x - BOUNDS_RECT_DELTA, y - 1, x + size.width + BOUNDS_RECT_DELTA, y - 1);
-      g2d.drawLine(x + size.width, y - BOUNDS_RECT_DELTA, x + size.width, y + size.height + BOUNDS_RECT_DELTA);
-      g2d.drawLine(x - BOUNDS_RECT_DELTA, y + size.height, x + size.width + BOUNDS_RECT_DELTA, y + size.height);
+      Shape screenShape = myScreenView.getScreenShape();
+      if (screenShape == null) {
+        g2d.drawLine(x - 1, y - BOUNDS_RECT_DELTA, x - 1, y + size.height + BOUNDS_RECT_DELTA);
+        g2d.drawLine(x - BOUNDS_RECT_DELTA, y - 1, x + size.width + BOUNDS_RECT_DELTA, y - 1);
+        g2d.drawLine(x + size.width, y - BOUNDS_RECT_DELTA, x + size.width, y + size.height + BOUNDS_RECT_DELTA);
+        g2d.drawLine(x - BOUNDS_RECT_DELTA, y + size.height, x + size.width + BOUNDS_RECT_DELTA, y + size.height);
+      }
+      else {
+        g2d.draw(screenShape);
+      }
 
       g2d.setStroke(prevStroke);
     }
