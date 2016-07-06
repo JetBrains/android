@@ -49,6 +49,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.Predicate;
 
 import static com.android.SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX;
 import static com.android.tools.idea.configurations.ConfigurationListener.*;
