@@ -41,6 +41,12 @@
   <item name="android.graphics.drawable.AnimatedVectorDrawable boolean unregisterAnimationCallback(android.graphics.drawable.Animatable2.AnimationCallback) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.graphics.drawable.AnimatedVectorDrawable int getChangingConfigurations()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.pm.ActivityInfo.CONFIG_MCC, android.content.pm.ActivityInfo.CONFIG_MNC, android.content.pm.ActivityInfo.CONFIG_LOCALE, android.content.pm.ActivityInfo.CONFIG_TOUCHSCREEN, android.content.pm.ActivityInfo.CONFIG_KEYBOARD, android.content.pm.ActivityInfo.CONFIG_KEYBOARD_HIDDEN, android.content.pm.ActivityInfo.CONFIG_NAVIGATION, android.content.pm.ActivityInfo.CONFIG_ORIENTATION, android.content.pm.ActivityInfo.CONFIG_SCREEN_LAYOUT, android.content.pm.ActivityInfo.CONFIG_UI_MODE, android.content.pm.ActivityInfo.CONFIG_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_SMALLEST_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_DENSITY, android.content.pm.ActivityInfo.CONFIG_LAYOUT_DIRECTION, android.content.pm.ActivityInfo.CONFIG_FONT_SCALE}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
   <item name="android.graphics.drawable.AnimatedVectorDrawable void getOutline(android.graphics.Outline) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -55,6 +61,12 @@
   </item>
   <item name="android.graphics.drawable.AnimationDrawable void setConstantState(android.graphics.drawable.DrawableContainer.DrawableContainerState) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.BitmapDrawable int getChangingConfigurations()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.pm.ActivityInfo.CONFIG_MCC, android.content.pm.ActivityInfo.CONFIG_MNC, android.content.pm.ActivityInfo.CONFIG_LOCALE, android.content.pm.ActivityInfo.CONFIG_TOUCHSCREEN, android.content.pm.ActivityInfo.CONFIG_KEYBOARD, android.content.pm.ActivityInfo.CONFIG_KEYBOARD_HIDDEN, android.content.pm.ActivityInfo.CONFIG_NAVIGATION, android.content.pm.ActivityInfo.CONFIG_ORIENTATION, android.content.pm.ActivityInfo.CONFIG_SCREEN_LAYOUT, android.content.pm.ActivityInfo.CONFIG_UI_MODE, android.content.pm.ActivityInfo.CONFIG_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_SMALLEST_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_DENSITY, android.content.pm.ActivityInfo.CONFIG_LAYOUT_DIRECTION, android.content.pm.ActivityInfo.CONFIG_FONT_SCALE}" />
+      <val name="flag" val="true" />
+    </annotation>
   </item>
   <item name="android.graphics.drawable.BitmapDrawable void getOutline(android.graphics.Outline) 0">
     <annotation name="android.support.annotation.NonNull" />
@@ -77,6 +89,12 @@
   <item name="android.graphics.drawable.ColorDrawable ColorDrawable(int) 0">
     <annotation name="android.support.annotation.ColorInt" />
   </item>
+  <item name="android.graphics.drawable.ColorDrawable int getChangingConfigurations()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.pm.ActivityInfo.CONFIG_MCC, android.content.pm.ActivityInfo.CONFIG_MNC, android.content.pm.ActivityInfo.CONFIG_LOCALE, android.content.pm.ActivityInfo.CONFIG_TOUCHSCREEN, android.content.pm.ActivityInfo.CONFIG_KEYBOARD, android.content.pm.ActivityInfo.CONFIG_KEYBOARD_HIDDEN, android.content.pm.ActivityInfo.CONFIG_NAVIGATION, android.content.pm.ActivityInfo.CONFIG_ORIENTATION, android.content.pm.ActivityInfo.CONFIG_SCREEN_LAYOUT, android.content.pm.ActivityInfo.CONFIG_UI_MODE, android.content.pm.ActivityInfo.CONFIG_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_SMALLEST_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_DENSITY, android.content.pm.ActivityInfo.CONFIG_LAYOUT_DIRECTION, android.content.pm.ActivityInfo.CONFIG_FONT_SCALE}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
   <item name="android.graphics.drawable.ColorDrawable int getColor()">
     <annotation name="android.support.annotation.ColorInt" />
   </item>
@@ -85,6 +103,33 @@
   </item>
   <item name="android.graphics.drawable.ColorDrawable void setColor(int) 0">
     <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.graphics.drawable.Drawable android.graphics.ColorFilter getColorFilter()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.drawable.Drawable android.graphics.Rect copyBounds()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.Drawable android.graphics.Rect getBounds()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.Drawable android.graphics.Rect getDirtyBounds()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.Drawable android.graphics.Region getTransparentRegion()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.drawable.Drawable android.graphics.drawable.Drawable getCurrent()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.Drawable android.graphics.drawable.Drawable mutate()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.Drawable android.graphics.drawable.Drawable.Callback getCallback()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.drawable.Drawable android.graphics.drawable.Drawable.ConstantState getConstantState()">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.graphics.drawable.Drawable boolean getPadding(android.graphics.Rect) 0">
     <annotation name="android.support.annotation.NonNull" />
@@ -99,7 +144,71 @@
       <val name="value" val="{android.view.View.LAYOUT_DIRECTION_LTR, android.view.View.LAYOUT_DIRECTION_RTL}" />
     </annotation>
   </item>
+  <item name="android.graphics.drawable.Drawable boolean setLevel(int) 0">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="0" />
+      <val name="to" val="10000" />
+    </annotation>
+  </item>
+  <item name="android.graphics.drawable.Drawable boolean setState(int[]) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.Drawable int getAlpha()">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="0" />
+      <val name="to" val="255" />
+    </annotation>
+  </item>
+  <item name="android.graphics.drawable.Drawable int getChangingConfigurations()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.pm.ActivityInfo.CONFIG_MCC, android.content.pm.ActivityInfo.CONFIG_MNC, android.content.pm.ActivityInfo.CONFIG_LOCALE, android.content.pm.ActivityInfo.CONFIG_TOUCHSCREEN, android.content.pm.ActivityInfo.CONFIG_KEYBOARD, android.content.pm.ActivityInfo.CONFIG_KEYBOARD_HIDDEN, android.content.pm.ActivityInfo.CONFIG_NAVIGATION, android.content.pm.ActivityInfo.CONFIG_ORIENTATION, android.content.pm.ActivityInfo.CONFIG_SCREEN_LAYOUT, android.content.pm.ActivityInfo.CONFIG_UI_MODE, android.content.pm.ActivityInfo.CONFIG_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_SMALLEST_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_DENSITY, android.content.pm.ActivityInfo.CONFIG_LAYOUT_DIRECTION, android.content.pm.ActivityInfo.CONFIG_FONT_SCALE}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.graphics.drawable.Drawable int getLayoutDirection()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.LAYOUT_DIRECTION_LTR, android.view.View.LAYOUT_DIRECTION_RTL}" />
+    </annotation>
+  </item>
+  <item name="android.graphics.drawable.Drawable int getLevel()">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="0" />
+      <val name="to" val="10000" />
+    </annotation>
+  </item>
+  <item name="android.graphics.drawable.Drawable int getOpacity()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.graphics.PixelFormat.UNKNOWN, android.graphics.PixelFormat.TRANSLUCENT, android.graphics.PixelFormat.TRANSPARENT, android.graphics.PixelFormat.OPAQUE}" />
+    </annotation>
+  </item>
+  <item name="android.graphics.drawable.Drawable int resolveOpacity(int, int)">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.graphics.PixelFormat.UNKNOWN, android.graphics.PixelFormat.TRANSLUCENT, android.graphics.PixelFormat.TRANSPARENT, android.graphics.PixelFormat.OPAQUE}" />
+    </annotation>
+  </item>
+  <item name="android.graphics.drawable.Drawable int resolveOpacity(int, int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.graphics.PixelFormat.UNKNOWN, android.graphics.PixelFormat.TRANSLUCENT, android.graphics.PixelFormat.TRANSPARENT, android.graphics.PixelFormat.OPAQUE}" />
+    </annotation>
+  </item>
+  <item name="android.graphics.drawable.Drawable int resolveOpacity(int, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.graphics.PixelFormat.UNKNOWN, android.graphics.PixelFormat.TRANSLUCENT, android.graphics.PixelFormat.TRANSPARENT, android.graphics.PixelFormat.OPAQUE}" />
+    </annotation>
+  </item>
+  <item name="android.graphics.drawable.Drawable int[] getState()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.graphics.drawable.Drawable void applyTheme(android.content.res.Resources.Theme) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.Drawable void copyBounds(android.graphics.Rect) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.Drawable void draw(android.graphics.Canvas) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.Drawable void getHotspotBounds(android.graphics.Rect) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.graphics.drawable.Drawable void getOutline(android.graphics.Outline) 0">
@@ -126,6 +235,27 @@
   <item name="android.graphics.drawable.Drawable void inflate(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet, android.content.res.Resources.Theme) 3">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.graphics.drawable.Drawable void scheduleSelf(java.lang.Runnable, long) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.Drawable void setAlpha(int) 0">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="0" />
+      <val name="to" val="255" />
+    </annotation>
+  </item>
+  <item name="android.graphics.drawable.Drawable void setBounds(android.graphics.Rect) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.Drawable void setCallback(android.graphics.drawable.Drawable.Callback) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.drawable.Drawable void setChangingConfigurations(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.pm.ActivityInfo.CONFIG_MCC, android.content.pm.ActivityInfo.CONFIG_MNC, android.content.pm.ActivityInfo.CONFIG_LOCALE, android.content.pm.ActivityInfo.CONFIG_TOUCHSCREEN, android.content.pm.ActivityInfo.CONFIG_KEYBOARD, android.content.pm.ActivityInfo.CONFIG_KEYBOARD_HIDDEN, android.content.pm.ActivityInfo.CONFIG_NAVIGATION, android.content.pm.ActivityInfo.CONFIG_ORIENTATION, android.content.pm.ActivityInfo.CONFIG_SCREEN_LAYOUT, android.content.pm.ActivityInfo.CONFIG_UI_MODE, android.content.pm.ActivityInfo.CONFIG_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_SMALLEST_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_DENSITY, android.content.pm.ActivityInfo.CONFIG_LAYOUT_DIRECTION, android.content.pm.ActivityInfo.CONFIG_FONT_SCALE}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
   <item name="android.graphics.drawable.Drawable void setColorFilter(android.graphics.ColorFilter) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>
@@ -142,6 +272,24 @@
     <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.graphics.drawable.Drawable void setTintMode(android.graphics.PorterDuff.Mode) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.Drawable void unscheduleSelf(java.lang.Runnable) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.Drawable.Callback void invalidateDrawable(android.graphics.drawable.Drawable) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.Drawable.Callback void scheduleDrawable(android.graphics.drawable.Drawable, java.lang.Runnable, long) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.Drawable.Callback void scheduleDrawable(android.graphics.drawable.Drawable, java.lang.Runnable, long) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.Drawable.Callback void unscheduleDrawable(android.graphics.drawable.Drawable, java.lang.Runnable) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.Drawable.Callback void unscheduleDrawable(android.graphics.drawable.Drawable, java.lang.Runnable) 1">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.graphics.drawable.Drawable.ConstantState android.graphics.drawable.Drawable newDrawable()">
@@ -162,13 +310,46 @@
   <item name="android.graphics.drawable.Drawable.ConstantState android.graphics.drawable.Drawable newDrawable(android.content.res.Resources, android.content.res.Resources.Theme) 1">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.graphics.drawable.Drawable.ConstantState int getChangingConfigurations()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.pm.ActivityInfo.CONFIG_MCC, android.content.pm.ActivityInfo.CONFIG_MNC, android.content.pm.ActivityInfo.CONFIG_LOCALE, android.content.pm.ActivityInfo.CONFIG_TOUCHSCREEN, android.content.pm.ActivityInfo.CONFIG_KEYBOARD, android.content.pm.ActivityInfo.CONFIG_KEYBOARD_HIDDEN, android.content.pm.ActivityInfo.CONFIG_NAVIGATION, android.content.pm.ActivityInfo.CONFIG_ORIENTATION, android.content.pm.ActivityInfo.CONFIG_SCREEN_LAYOUT, android.content.pm.ActivityInfo.CONFIG_UI_MODE, android.content.pm.ActivityInfo.CONFIG_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_SMALLEST_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_DENSITY, android.content.pm.ActivityInfo.CONFIG_LAYOUT_DIRECTION, android.content.pm.ActivityInfo.CONFIG_FONT_SCALE}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
   <item name="android.graphics.drawable.DrawableContainer boolean onLayoutDirectionChanged(int) 0">
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.view.View.LAYOUT_DIRECTION_LTR, android.view.View.LAYOUT_DIRECTION_RTL}" />
     </annotation>
   </item>
+  <item name="android.graphics.drawable.DrawableContainer int getChangingConfigurations()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.pm.ActivityInfo.CONFIG_MCC, android.content.pm.ActivityInfo.CONFIG_MNC, android.content.pm.ActivityInfo.CONFIG_LOCALE, android.content.pm.ActivityInfo.CONFIG_TOUCHSCREEN, android.content.pm.ActivityInfo.CONFIG_KEYBOARD, android.content.pm.ActivityInfo.CONFIG_KEYBOARD_HIDDEN, android.content.pm.ActivityInfo.CONFIG_NAVIGATION, android.content.pm.ActivityInfo.CONFIG_ORIENTATION, android.content.pm.ActivityInfo.CONFIG_SCREEN_LAYOUT, android.content.pm.ActivityInfo.CONFIG_UI_MODE, android.content.pm.ActivityInfo.CONFIG_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_SMALLEST_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_DENSITY, android.content.pm.ActivityInfo.CONFIG_LAYOUT_DIRECTION, android.content.pm.ActivityInfo.CONFIG_FONT_SCALE}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
   <item name="android.graphics.drawable.DrawableContainer void getOutline(android.graphics.Outline) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.DrawableContainer void invalidateDrawable(android.graphics.drawable.Drawable) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.DrawableContainer void scheduleDrawable(android.graphics.drawable.Drawable, java.lang.Runnable, long) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.DrawableContainer void scheduleDrawable(android.graphics.drawable.Drawable, java.lang.Runnable, long) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.DrawableContainer void unscheduleDrawable(android.graphics.drawable.Drawable, java.lang.Runnable) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.DrawableContainer void unscheduleDrawable(android.graphics.drawable.Drawable, java.lang.Runnable) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.DrawableContainer.DrawableContainerState int getChangingConfigurations()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.pm.ActivityInfo.CONFIG_MCC, android.content.pm.ActivityInfo.CONFIG_MNC, android.content.pm.ActivityInfo.CONFIG_LOCALE, android.content.pm.ActivityInfo.CONFIG_TOUCHSCREEN, android.content.pm.ActivityInfo.CONFIG_KEYBOARD, android.content.pm.ActivityInfo.CONFIG_KEYBOARD_HIDDEN, android.content.pm.ActivityInfo.CONFIG_NAVIGATION, android.content.pm.ActivityInfo.CONFIG_ORIENTATION, android.content.pm.ActivityInfo.CONFIG_SCREEN_LAYOUT, android.content.pm.ActivityInfo.CONFIG_UI_MODE, android.content.pm.ActivityInfo.CONFIG_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_SMALLEST_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_DENSITY, android.content.pm.ActivityInfo.CONFIG_LAYOUT_DIRECTION, android.content.pm.ActivityInfo.CONFIG_FONT_SCALE}" />
+      <val name="flag" val="true" />
+    </annotation>
   </item>
   <item name="android.graphics.drawable.DrawableWrapper DrawableWrapper(android.graphics.drawable.Drawable) 0">
     <annotation name="android.support.annotation.Nullable" />
@@ -188,6 +369,12 @@
   <item name="android.graphics.drawable.DrawableWrapper boolean onLayoutDirectionChanged(int) 0">
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.view.View.LAYOUT_DIRECTION_LTR, android.view.View.LAYOUT_DIRECTION_RTL}" />
+    </annotation>
+  </item>
+  <item name="android.graphics.drawable.DrawableWrapper int getChangingConfigurations()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.pm.ActivityInfo.CONFIG_MCC, android.content.pm.ActivityInfo.CONFIG_MNC, android.content.pm.ActivityInfo.CONFIG_LOCALE, android.content.pm.ActivityInfo.CONFIG_TOUCHSCREEN, android.content.pm.ActivityInfo.CONFIG_KEYBOARD, android.content.pm.ActivityInfo.CONFIG_KEYBOARD_HIDDEN, android.content.pm.ActivityInfo.CONFIG_NAVIGATION, android.content.pm.ActivityInfo.CONFIG_ORIENTATION, android.content.pm.ActivityInfo.CONFIG_SCREEN_LAYOUT, android.content.pm.ActivityInfo.CONFIG_UI_MODE, android.content.pm.ActivityInfo.CONFIG_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_SMALLEST_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_DENSITY, android.content.pm.ActivityInfo.CONFIG_LAYOUT_DIRECTION, android.content.pm.ActivityInfo.CONFIG_FONT_SCALE}" />
+      <val name="flag" val="true" />
     </annotation>
   </item>
   <item name="android.graphics.drawable.DrawableWrapper void applyTheme(android.content.res.Resources.Theme) 0">
@@ -214,7 +401,16 @@
   <item name="android.graphics.drawable.DrawableWrapper void inflate(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet, android.content.res.Resources.Theme) 3">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.graphics.drawable.DrawableWrapper void invalidateDrawable(android.graphics.drawable.Drawable) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.graphics.drawable.DrawableWrapper void onBoundsChange(android.graphics.Rect) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.DrawableWrapper void scheduleDrawable(android.graphics.drawable.Drawable, java.lang.Runnable, long) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.DrawableWrapper void scheduleDrawable(android.graphics.drawable.Drawable, java.lang.Runnable, long) 1">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.graphics.drawable.DrawableWrapper void setColorFilter(android.graphics.ColorFilter) 0">
@@ -229,8 +425,42 @@
   <item name="android.graphics.drawable.DrawableWrapper void setTintMode(android.graphics.PorterDuff.Mode) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.graphics.drawable.DrawableWrapper void unscheduleDrawable(android.graphics.drawable.Drawable, java.lang.Runnable) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.DrawableWrapper void unscheduleDrawable(android.graphics.drawable.Drawable, java.lang.Runnable) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.graphics.drawable.GradientDrawable GradientDrawable(android.graphics.drawable.GradientDrawable.Orientation, int[]) 1">
     <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.graphics.drawable.GradientDrawable android.content.res.ColorStateList getColor()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.drawable.GradientDrawable android.graphics.ColorFilter getColorFilter()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.drawable.GradientDrawable float[] getCornerRadii()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.drawable.GradientDrawable int getChangingConfigurations()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.pm.ActivityInfo.CONFIG_MCC, android.content.pm.ActivityInfo.CONFIG_MNC, android.content.pm.ActivityInfo.CONFIG_LOCALE, android.content.pm.ActivityInfo.CONFIG_TOUCHSCREEN, android.content.pm.ActivityInfo.CONFIG_KEYBOARD, android.content.pm.ActivityInfo.CONFIG_KEYBOARD_HIDDEN, android.content.pm.ActivityInfo.CONFIG_NAVIGATION, android.content.pm.ActivityInfo.CONFIG_ORIENTATION, android.content.pm.ActivityInfo.CONFIG_SCREEN_LAYOUT, android.content.pm.ActivityInfo.CONFIG_UI_MODE, android.content.pm.ActivityInfo.CONFIG_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_SMALLEST_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_DENSITY, android.content.pm.ActivityInfo.CONFIG_LAYOUT_DIRECTION, android.content.pm.ActivityInfo.CONFIG_FONT_SCALE}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.graphics.drawable.GradientDrawable int getGradientType()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.graphics.drawable.GradientDrawable.LINEAR_GRADIENT, android.graphics.drawable.GradientDrawable.RADIAL_GRADIENT, android.graphics.drawable.GradientDrawable.SWEEP_GRADIENT}" />
+    </annotation>
+  </item>
+  <item name="android.graphics.drawable.GradientDrawable int getShape()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.graphics.drawable.GradientDrawable.RECTANGLE, android.graphics.drawable.GradientDrawable.OVAL, android.graphics.drawable.GradientDrawable.LINE, android.graphics.drawable.GradientDrawable.RING}" />
+    </annotation>
+  </item>
+  <item name="android.graphics.drawable.GradientDrawable int[] getColors()">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.graphics.drawable.GradientDrawable void applyTheme(android.content.res.Resources.Theme) 0">
     <annotation name="android.support.annotation.NonNull" />
@@ -247,8 +477,14 @@
   <item name="android.graphics.drawable.GradientDrawable void inflate(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet, android.content.res.Resources.Theme) 3">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.graphics.drawable.GradientDrawable void setColor(android.content.res.ColorStateList) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.graphics.drawable.GradientDrawable void setColor(int) 0">
     <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.graphics.drawable.GradientDrawable void setColorFilter(android.graphics.ColorFilter) 0">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.graphics.drawable.GradientDrawable void setColors(int[]) 0">
     <annotation name="android.support.annotation.ColorInt" />
@@ -256,11 +492,27 @@
   <item name="android.graphics.drawable.GradientDrawable void setCornerRadii(float[]) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.graphics.drawable.GradientDrawable void setGradientType(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.graphics.drawable.GradientDrawable.LINEAR_GRADIENT, android.graphics.drawable.GradientDrawable.RADIAL_GRADIENT, android.graphics.drawable.GradientDrawable.SWEEP_GRADIENT}" />
+    </annotation>
+  </item>
+  <item name="android.graphics.drawable.GradientDrawable void setShape(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.graphics.drawable.GradientDrawable.RECTANGLE, android.graphics.drawable.GradientDrawable.OVAL, android.graphics.drawable.GradientDrawable.LINE, android.graphics.drawable.GradientDrawable.RING}" />
+    </annotation>
+  </item>
   <item name="android.graphics.drawable.GradientDrawable void setStroke(int, int) 1">
     <annotation name="android.support.annotation.ColorInt" />
   </item>
   <item name="android.graphics.drawable.GradientDrawable void setStroke(int, int, float, float) 1">
     <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.graphics.drawable.GradientDrawable void setTintList(android.content.res.ColorStateList) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.drawable.GradientDrawable void setTintMode(android.graphics.PorterDuff.Mode) 0">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.graphics.drawable.Icon android.graphics.drawable.Icon createWithResource(android.content.Context, int) 1">
     <annotation name="android.support.annotation.DrawableRes" />
@@ -303,6 +555,12 @@
       <val name="value" val="{android.view.View.LAYOUT_DIRECTION_LTR, android.view.View.LAYOUT_DIRECTION_RTL}" />
     </annotation>
   </item>
+  <item name="android.graphics.drawable.LayerDrawable int getChangingConfigurations()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.pm.ActivityInfo.CONFIG_MCC, android.content.pm.ActivityInfo.CONFIG_MNC, android.content.pm.ActivityInfo.CONFIG_LOCALE, android.content.pm.ActivityInfo.CONFIG_TOUCHSCREEN, android.content.pm.ActivityInfo.CONFIG_KEYBOARD, android.content.pm.ActivityInfo.CONFIG_KEYBOARD_HIDDEN, android.content.pm.ActivityInfo.CONFIG_NAVIGATION, android.content.pm.ActivityInfo.CONFIG_ORIENTATION, android.content.pm.ActivityInfo.CONFIG_SCREEN_LAYOUT, android.content.pm.ActivityInfo.CONFIG_UI_MODE, android.content.pm.ActivityInfo.CONFIG_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_SMALLEST_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_DENSITY, android.content.pm.ActivityInfo.CONFIG_LAYOUT_DIRECTION, android.content.pm.ActivityInfo.CONFIG_FONT_SCALE}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
   <item name="android.graphics.drawable.LayerDrawable void applyTheme(android.content.res.Resources.Theme) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -321,11 +579,65 @@
   <item name="android.graphics.drawable.LayerDrawable void inflate(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet, android.content.res.Resources.Theme) 3">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.graphics.drawable.LayerDrawable void invalidateDrawable(android.graphics.drawable.Drawable) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.LayerDrawable void scheduleDrawable(android.graphics.drawable.Drawable, java.lang.Runnable, long) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.LayerDrawable void scheduleDrawable(android.graphics.drawable.Drawable, java.lang.Runnable, long) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.LayerDrawable void unscheduleDrawable(android.graphics.drawable.Drawable, java.lang.Runnable) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.LayerDrawable void unscheduleDrawable(android.graphics.drawable.Drawable, java.lang.Runnable) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.graphics.drawable.LevelListDrawable void setConstantState(android.graphics.drawable.DrawableContainer.DrawableContainerState) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.NinePatchDrawable NinePatchDrawable(android.content.res.Resources, android.graphics.NinePatch) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.drawable.NinePatchDrawable NinePatchDrawable(android.content.res.Resources, android.graphics.NinePatch) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.NinePatchDrawable NinePatchDrawable(android.graphics.NinePatch) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.NinePatchDrawable android.graphics.Paint getPaint()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.NinePatchDrawable boolean getPadding(android.graphics.Rect) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.NinePatchDrawable int getChangingConfigurations()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.pm.ActivityInfo.CONFIG_MCC, android.content.pm.ActivityInfo.CONFIG_MNC, android.content.pm.ActivityInfo.CONFIG_LOCALE, android.content.pm.ActivityInfo.CONFIG_TOUCHSCREEN, android.content.pm.ActivityInfo.CONFIG_KEYBOARD, android.content.pm.ActivityInfo.CONFIG_KEYBOARD_HIDDEN, android.content.pm.ActivityInfo.CONFIG_NAVIGATION, android.content.pm.ActivityInfo.CONFIG_ORIENTATION, android.content.pm.ActivityInfo.CONFIG_SCREEN_LAYOUT, android.content.pm.ActivityInfo.CONFIG_UI_MODE, android.content.pm.ActivityInfo.CONFIG_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_SMALLEST_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_DENSITY, android.content.pm.ActivityInfo.CONFIG_LAYOUT_DIRECTION, android.content.pm.ActivityInfo.CONFIG_FONT_SCALE}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.graphics.drawable.NinePatchDrawable void applyTheme(android.content.res.Resources.Theme) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.graphics.drawable.NinePatchDrawable void getOutline(android.graphics.Outline) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.NinePatchDrawable void setColorFilter(android.graphics.ColorFilter) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.drawable.NinePatchDrawable void setTargetDensity(android.graphics.Canvas) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.NinePatchDrawable void setTargetDensity(android.util.DisplayMetrics) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.NinePatchDrawable void setTintList(android.content.res.ColorStateList) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.drawable.NinePatchDrawable void setTintMode(android.graphics.PorterDuff.Mode) 0">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.graphics.drawable.RippleDrawable RippleDrawable(android.content.res.ColorStateList, android.graphics.drawable.Drawable, android.graphics.drawable.Drawable) 0">
     <annotation name="android.support.annotation.NonNull" />
@@ -387,8 +699,20 @@
   <item name="android.graphics.drawable.ScaleDrawable void inflate(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet, android.content.res.Resources.Theme) 3">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.graphics.drawable.ShapeDrawable int getChangingConfigurations()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.pm.ActivityInfo.CONFIG_MCC, android.content.pm.ActivityInfo.CONFIG_MNC, android.content.pm.ActivityInfo.CONFIG_LOCALE, android.content.pm.ActivityInfo.CONFIG_TOUCHSCREEN, android.content.pm.ActivityInfo.CONFIG_KEYBOARD, android.content.pm.ActivityInfo.CONFIG_KEYBOARD_HIDDEN, android.content.pm.ActivityInfo.CONFIG_NAVIGATION, android.content.pm.ActivityInfo.CONFIG_ORIENTATION, android.content.pm.ActivityInfo.CONFIG_SCREEN_LAYOUT, android.content.pm.ActivityInfo.CONFIG_UI_MODE, android.content.pm.ActivityInfo.CONFIG_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_SMALLEST_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_DENSITY, android.content.pm.ActivityInfo.CONFIG_LAYOUT_DIRECTION, android.content.pm.ActivityInfo.CONFIG_FONT_SCALE}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
   <item name="android.graphics.drawable.StateListDrawable void setConstantState(android.graphics.drawable.DrawableContainer.DrawableContainerState) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.VectorDrawable int getChangingConfigurations()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.pm.ActivityInfo.CONFIG_MCC, android.content.pm.ActivityInfo.CONFIG_MNC, android.content.pm.ActivityInfo.CONFIG_LOCALE, android.content.pm.ActivityInfo.CONFIG_TOUCHSCREEN, android.content.pm.ActivityInfo.CONFIG_KEYBOARD, android.content.pm.ActivityInfo.CONFIG_KEYBOARD_HIDDEN, android.content.pm.ActivityInfo.CONFIG_NAVIGATION, android.content.pm.ActivityInfo.CONFIG_ORIENTATION, android.content.pm.ActivityInfo.CONFIG_SCREEN_LAYOUT, android.content.pm.ActivityInfo.CONFIG_UI_MODE, android.content.pm.ActivityInfo.CONFIG_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_SMALLEST_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_DENSITY, android.content.pm.ActivityInfo.CONFIG_LAYOUT_DIRECTION, android.content.pm.ActivityInfo.CONFIG_FONT_SCALE}" />
+      <val name="flag" val="true" />
+    </annotation>
   </item>
   <item name="android.graphics.drawable.VectorDrawable void inflate(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet, android.content.res.Resources.Theme) 0">
     <annotation name="android.support.annotation.NonNull" />

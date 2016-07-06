@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
+  <item name="android.provider.BlockedNumberContract boolean isBlocked(android.content.Context, java.lang.String)">
+    <annotation name="android.support.annotation.WorkerThread" />
+  </item>
+  <item name="android.provider.BlockedNumberContract int unblock(android.content.Context, java.lang.String)">
+    <annotation name="android.support.annotation.WorkerThread" />
+  </item>
   <item name="android.provider.Browser BOOKMARKS_URI">
     <annotation name="android.support.annotation.RequiresPermission.Read">
       <val name="value" val="&quot;com.android.browser.permission.READ_HISTORY_BOOKMARKS&quot;" />
