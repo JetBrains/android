@@ -36,14 +36,22 @@ public final class EditTextPreferenceHandler extends PreferenceHandler {
   @NotNull
   @Override
   public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {
-    return new XmlBuilder()
-      .startTag(tagName)
-      .androidAttribute(ATTR_DEFAULT_VALUE, "Default value")
-      .androidAttribute("selectAllOnFocus", true)
-      .androidAttribute(ATTR_SINGLE_LINE, true)
-      .androidAttribute(ATTR_TITLE, "Edit text preference")
-      .endTag(tagName)
-      .toString();
+    switch (xmlType) {
+      case COMPONENT_CREATION:
+        return new XmlBuilder()
+          .startTag(tagName)
+          .androidAttribute(ATTR_DEFAULT_VALUE, "Default value")
+          .androidAttribute("selectAllOnFocus", true)
+          .androidAttribute(ATTR_SINGLE_LINE, true)
+          .androidAttribute(ATTR_TITLE, "Edit text preference")
+          .endTag(tagName)
+          .toString();
+      case PREVIEW_ON_PALETTE:
+      case DRAG_PREVIEW:
+        return NO_PREVIEW;
+      default:
+        throw new AssertionError(xmlType);
+    }
   }
 
   @Override
