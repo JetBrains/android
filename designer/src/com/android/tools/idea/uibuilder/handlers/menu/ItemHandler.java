@@ -32,11 +32,19 @@ public final class ItemHandler extends MenuHandlerBase {
   @NotNull
   @Override
   public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {
-    return new XmlBuilder()
-      .startTag(tagName)
-      .androidAttribute(ATTR_TITLE, "Item")
-      .endTag(tagName)
-      .toString();
+    switch (xmlType) {
+      case COMPONENT_CREATION:
+        return new XmlBuilder()
+          .startTag(tagName)
+          .androidAttribute(ATTR_TITLE, "Item")
+          .endTag(tagName)
+          .toString();
+      case PREVIEW_ON_PALETTE:
+      case DRAG_PREVIEW:
+        return NO_PREVIEW;
+      default:
+        throw new AssertionError(xmlType);
+    }
   }
 
   @Override
