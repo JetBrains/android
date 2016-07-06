@@ -100,6 +100,7 @@ import static com.intellij.util.ui.update.Update.LOW_PRIORITY;
 public class NlModel implements Disposable, ResourceChangeListener, ModificationTracker {
   private static final Logger LOG = Logger.getInstance(NlModel.class);
   @AndroidCoordinate private static final int VISUAL_EMPTY_COMPONENT_SIZE = 14;
+  private static final boolean CHECK_MODEL_INTEGRITY = false;
   private static final int RENDER_DELAY_MS = 10;
   private final Set<String> myPendingIds = Sets.newHashSet();
 
@@ -369,6 +370,10 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       updateHierarchy(rootTag, rootViews);
     }
     myModelVersion.increase(ChangeType.UPDATE_HIERARCHY);
+
+    if (CHECK_MODEL_INTEGRITY) {
+      checkStructure();
+    }
   }
 
   @VisibleForTesting
@@ -384,6 +389,98 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   protected void updateModel() {
     inflate(true);
     notifyListenersModelUpdateComplete();
+  }
+
+  private void checkStructure() {
+    if (CHECK_MODEL_INTEGRITY) {
+      ApplicationManager.getApplication().runReadAction(() -> {
+        Set<NlComponent> unique = Sets.newIdentityHashSet();
+        Set<XmlTag> uniqueTags = Sets.newIdentityHashSet();
+        checkUnique(myFile.getRootTag(), uniqueTags);
+        uniqueTags.clear();
+        for (NlComponent component : myComponents) {
+          checkUnique(component.getTag(), uniqueTags);
+          checkUnique(component, unique);
+        }
+        for (NlComponent component : myComponents) {
+          checkStructure(component);
+        }
+      });
+    }
+  }
+
+  @SuppressWarnings("MethodMayBeStatic")
+  private void checkUnique(NlComponent component, Set<NlComponent> unique) {
+    if (CHECK_MODEL_INTEGRITY) {
+      assert !unique.contains(component);
+      unique.add(component);
+
+      for (NlComponent child : component.getChildren()) {
+        checkUnique(child, unique);
+      }
+    }
+  }
+
+  @SuppressWarnings("MethodMayBeStatic")
+  private void checkUnique(XmlTag tag, Set<XmlTag> unique) {
+    if (CHECK_MODEL_INTEGRITY) {
+      assert !unique.contains(tag);
+      unique.add(tag);
+      for (XmlTag subTag : tag.getSubTags()) {
+        checkUnique(subTag, unique);
+      }
+    }
+  }
+
+  @SuppressWarnings("MethodMayBeStatic")
+  private void checkStructure(NlComponent component) {
+    if (CHECK_MODEL_INTEGRITY) {
+      // This is written like this instead of just "assert component.w != -1" to ease
+      // setting breakpoint to debug problems
+      if (component.w == -1) {
+        assert false : component.w;
+      }
+      if (component.getSnapshot() == null) {
+        assert false;
+      }
+      if (component.getTag() == null) {
+        assert false;
+      }
+      if (!component.getTagName().equals(component.getTag().getName())) {
+        assert false;
+      }
+
+      if (!component.getTag().isValid()) {
+        assert false;
+      }
+
+      // Look for parent chain cycle
+      NlComponent p = component.getParent();
+      while (p != null) {
+        if (p == component) {
+          assert false;
+        }
+        p = p.getParent();
+      }
+
+      for (NlComponent child : component.getChildren()) {
+        if (child == component) {
+          assert false;
+        }
+        if (child.getParent() == null) {
+          assert false;
+        }
+        if (child.getParent() != component) {
+          assert false;
+        }
+        if (child.getTag().getParent() != component.getTag()) {
+          assert false;
+        }
+
+        // Check recursively
+        checkStructure(child);
+      }
+    }
   }
 
   /**
@@ -638,6 +735,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   private static class ModelUpdater {
     private final NlModel myModel;
     private final Map<XmlTag, NlComponent> myTagToComponentMap = Maps.newIdentityHashMap();
+    private final Map<NlComponent, XmlTag> myComponentToTagMap = Maps.newIdentityHashMap();
     /**
      * Map from snapshots in the old component map to the corresponding components
      */
@@ -649,6 +747,18 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
     public ModelUpdater(@NotNull NlModel model) {
       myModel = model;
+    }
+
+    private void recordComponentMapping(@NotNull XmlTag tag, @NotNull NlComponent component) {
+      // Is the component already registered to some other tag?
+      XmlTag prevTag = myComponentToTagMap.get(component);
+      if (prevTag != null) {
+        // Yes. Unregister it.
+        myTagToComponentMap.remove(prevTag);
+      }
+
+      myComponentToTagMap.put(component, tag);
+      myTagToComponentMap.put(tag, component);
     }
 
     /**
@@ -683,6 +793,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
             // One or more incompatible changes: PSI nodes have been reused unpredictably
             // so completely recompute the hierarchy
             myTagToComponentMap.clear();
+            myComponentToTagMap.clear();
             break;
           }
         }
@@ -804,7 +915,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
           // synchronization operations)
           NlComponent component = oldIds.get(id);
           if (component != null) {
-            myTagToComponentMap.put(tag, component);
+            recordComponentMapping(tag, component);
             remaining.remove(component.getTag());
             missingIterator.remove();
           }
@@ -846,7 +957,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
             TagSnapshot first = snapshots.iterator().next();
             NlComponent component = mySnapshotToComponent.get(first);
             if (component != null) {
-              myTagToComponentMap.put(tag, component);
+              recordComponentMapping(tag, component);
               remaining.remove(component.getTag());
               snapshotIds.remove(tag, first);
               missingIterator.remove();
@@ -866,7 +977,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
           TagSnapshot snapshot = component.getSnapshot();
           if (snapshot != null) {
             if (snapshot.tagName.equals(newTag.getName())) {
-              myTagToComponentMap.put(newTag, component);
+              recordComponentMapping(newTag, component);
             }
           }
         }
@@ -890,7 +1001,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
     private void gatherTagsAndSnapshots(@NotNull NlComponent component) {
       XmlTag tag = component.getTag();
-      myTagToComponentMap.put(tag, component);
+
+      recordComponentMapping(tag, component);
       mySnapshotToComponent.put(component.getSnapshot(), component);
 
       for (NlComponent child : component.getChildren()) {
@@ -917,11 +1029,29 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
         // New component: tag didn't exist in the previous component hierarchy,
         // and no similar tag was found
         component = new NlComponent(myModel, tag);
-        myTagToComponentMap.put(tag, component);
+        recordComponentMapping(tag, component);
       }
 
       XmlTag[] subTags = tag.getSubTags();
       if (subTags.length > 0) {
+        if (CHECK_MODEL_INTEGRITY) {
+          Set<NlComponent> seen = Sets.newHashSet();
+          Set<XmlTag> seenTags = Sets.newHashSet();
+          for (XmlTag t : subTags) {
+            if (seenTags.contains(t)) {
+              assert false : t;
+            }
+            seenTags.add(t);
+            NlComponent registeredCOmponent = myTagToComponentMap.get(t);
+            if (registeredCOmponent != null) {
+              if (seen.contains(registeredCOmponent)) {
+                assert false : registeredCOmponent;
+              }
+              seen.add(registeredCOmponent);
+            }
+          }
+        }
+
         List<NlComponent> children = new ArrayList<>(subTags.length);
         for (XmlTag subtag : subTags) {
           NlComponent child = createTree(subtag);
