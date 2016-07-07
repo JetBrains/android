@@ -21,7 +21,7 @@ import com.android.tools.idea.monitor.datastore.Poller;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.datastore.SeriesDataType;
 import com.android.tools.profiler.proto.NetworkProfiler;
-import com.android.tools.profiler.proto.NetworkProfilerServiceGrpc;
+import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.containers.hash.HashMap;
 import io.grpc.StatusRuntimeException;
@@ -48,7 +48,7 @@ public class HttpDataPoller extends Poller {
 
   private long myDataRequestStartTimeNs;
 
-  private NetworkProfilerServiceGrpc.NetworkProfilerServiceBlockingStub myNetworkService;
+  private NetworkServiceGrpc.NetworkServiceBlockingStub myNetworkService;
 
   @NotNull
   private final HttpDataCache myDataCache;

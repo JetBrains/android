@@ -28,7 +28,7 @@ import com.android.tools.idea.monitor.ui.cpu.model.ThreadStatesDataModel;
 import com.android.tools.idea.monitor.ui.cpu.view.CpuUsageSegment;
 import com.android.tools.idea.monitor.ui.cpu.view.ThreadsSegment;
 import com.android.tools.idea.monitor.ui.visual.data.TestDataGenerator;
-import com.android.tools.profiler.proto.Cpu;
+import com.android.tools.profiler.proto.CpuProfiler;
 import com.intellij.util.EventDispatcher;
 import gnu.trove.TLongArrayList;
 import org.jetbrains.annotations.NotNull;
@@ -124,25 +124,25 @@ public class CpuProfilerVisualTest extends VisualTest {
     mThreadsSegment.getThreadAddedNotifier().threadAdded(threadStatesDataModel);
   }
 
-  private static final class ThreadStateTestDataGenerator extends TestDataGenerator<Cpu.ThreadActivity.State> {
+  private static final class ThreadStateTestDataGenerator extends TestDataGenerator<CpuProfiler.ThreadActivity.State> {
 
-    private List<Cpu.ThreadActivity.State> mStates;
+    private List<CpuProfiler.ThreadActivity.State> mStates;
 
     // Set the initial state to be, arbitrary RUNNING. The other alive state is SLEEPING.
-    private Cpu.ThreadActivity.State mCurrentState = Cpu.ThreadActivity.State.RUNNING;
+    private CpuProfiler.ThreadActivity.State mCurrentState = CpuProfiler.ThreadActivity.State.RUNNING;
 
     /**
      * Flag to indicate whether the thread is that. In this case, we should interrupt the data generation thread.
      */
     private boolean mIsDead = false;
 
-    private ThreadStateTestDataGenerator(List<Cpu.ThreadActivity.State> states, TLongArrayList timestamps) {
+    private ThreadStateTestDataGenerator(List<CpuProfiler.ThreadActivity.State> states, TLongArrayList timestamps) {
       mStates = states;
       mTime = timestamps;
     }
 
     @Override
-    public SeriesData<Cpu.ThreadActivity.State> get(int index) {
+    public SeriesData<CpuProfiler.ThreadActivity.State> get(int index) {
       return new SeriesData<>(mTime.get(index) - mStartTimeUs, mStates.get(index));
     }
 
@@ -155,12 +155,12 @@ public class CpuProfilerVisualTest extends VisualTest {
       double prob = Math.random();
       mTime.add(TimeUnit.NANOSECONDS.toMicros(System.nanoTime()));
       if (mIsDead || prob < 0.01) { // Terminate the thread with 1% of chance. If it's already dead, repeat the state.
-        mCurrentState = Cpu.ThreadActivity.State.DEAD;
+        mCurrentState = CpuProfiler.ThreadActivity.State.DEAD;
         // there' no need for adding more states after that.
         mIsDead = true;
       } else if (prob < 0.31) { // Change state with 30% of chance
-        mCurrentState = mCurrentState == Cpu.ThreadActivity.State.RUNNING ?
-                        Cpu.ThreadActivity.State.SLEEPING : Cpu.ThreadActivity.State.RUNNING;
+        mCurrentState = mCurrentState == CpuProfiler.ThreadActivity.State.RUNNING ?
+                        CpuProfiler.ThreadActivity.State.SLEEPING : CpuProfiler.ThreadActivity.State.RUNNING;
       }
       // Otherwise, repeat last state.
       mStates.add(mCurrentState);

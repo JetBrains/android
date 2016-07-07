@@ -25,7 +25,7 @@ import com.android.tools.idea.monitor.datastore.SeriesDataType;
 import com.android.tools.idea.monitor.profilerclient.DeviceProfilerService;
 import com.android.tools.idea.monitor.ui.events.view.EventSegment;
 import com.android.tools.profiler.proto.EventProfiler;
-import com.android.tools.profiler.proto.EventProfilerServiceGrpc;
+import com.android.tools.profiler.proto.EventServiceGrpc;
 import gnu.trove.TLongArrayList;
 import io.grpc.StatusRuntimeException;
 import org.jetbrains.annotations.NotNull;
@@ -46,7 +46,7 @@ public class EventDataPoller extends Poller {
 
   private long myDataRequestStartTimestampNs;
   private int myPid;
-  private EventProfilerServiceGrpc.EventProfilerServiceBlockingStub myEventService;
+  private EventServiceGrpc.EventServiceBlockingStub myEventService;
   private TLongArrayList mySystemTime = new TLongArrayList();
   private TLongArrayList myFragmentTime = new TLongArrayList();
   private TLongArrayList myActivityTime = new TLongArrayList();

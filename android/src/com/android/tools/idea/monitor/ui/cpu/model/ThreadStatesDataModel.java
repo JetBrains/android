@@ -1,6 +1,6 @@
 package com.android.tools.idea.monitor.ui.cpu.model;
 
-import com.android.tools.profiler.proto.Cpu;
+import com.android.tools.profiler.proto.CpuProfiler;
 import gnu.trove.TLongArrayList;
 
 import java.util.ArrayList;
@@ -13,7 +13,7 @@ public final class ThreadStatesDataModel {
   // Process ID (a.k.a: tid)
   private final int myPid;
 
-  private final List<Cpu.ThreadActivity.State> myThreadStates = new ArrayList<>();
+  private final List<CpuProfiler.ThreadActivity.State> myThreadStates = new ArrayList<>();
 
   /**
    * Timestamps of the thread state changes.
@@ -25,7 +25,7 @@ public final class ThreadStatesDataModel {
     myPid = pid;
   }
 
-  public void addState(Cpu.ThreadActivity.State newState, long timestamp) {
+  public void addState(CpuProfiler.ThreadActivity.State newState, long timestamp) {
     myThreadStates.add(newState);
     myTimestamps.add(timestamp);
   }
@@ -34,7 +34,7 @@ public final class ThreadStatesDataModel {
     return myTimestamps;
   }
 
-  public List<Cpu.ThreadActivity.State> getThreadStates() {
+  public List<CpuProfiler.ThreadActivity.State> getThreadStates() {
     return myThreadStates;
   }
 
