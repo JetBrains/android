@@ -17,6 +17,7 @@ package com.android.tools.idea.sdk.install.patch;
 
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.PackageOperation;
+import com.android.repository.api.ProgressIndicator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,9 +36,12 @@ interface PatchOperation extends PackageOperation {
 
   /**
    * The patcher package, which we'll use to generate (if necessary) and apply the patch.
+   *
+   * @return The Patcher package, or {@code null} if none is available. This should only happen if the patcher is being installed as part
+   * of the same operation as this patch, and the patcher installation fails.
    */
-  @NotNull
-  LocalPackage getPatcher();
+  @Nullable
+  LocalPackage getPatcher(@NotNull ProgressIndicator progressIndicator);
 
   /**
    * The location of the files representing the result of the patch that will be generated.
