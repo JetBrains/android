@@ -187,10 +187,11 @@ public class ResourceFolderRegistry {
         try {
           repositories.add(job.get());
         }
-        catch (InterruptedException e) {
+        catch (ExecutionException e) {
           // If we get an exception, that's okay -- we stop pre-populating the cache, which is just for performance.
         }
-        catch (ExecutionException ignored) {
+        catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
         }
         ++numDone;
       }
