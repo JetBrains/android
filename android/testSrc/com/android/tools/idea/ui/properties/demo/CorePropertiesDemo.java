@@ -18,19 +18,19 @@ package com.android.tools.idea.ui.properties.demo;
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.core.*;
 import com.android.tools.idea.ui.properties.expressions.Expression;
-import com.android.tools.idea.ui.properties.expressions.value.TransformOptionalExpression;
 import com.android.tools.idea.ui.properties.expressions.string.FormatExpression;
 import com.android.tools.idea.ui.properties.expressions.string.StringExpression;
+import com.android.tools.idea.ui.properties.expressions.value.TransformOptionalExpression;
 import com.android.tools.idea.ui.properties.swing.SelectedItemProperty;
 import com.android.tools.idea.ui.properties.swing.SelectedProperty;
 import com.android.tools.idea.ui.properties.swing.SliderValueProperty;
 import com.android.tools.idea.ui.properties.swing.TextProperty;
 import com.google.common.base.CaseFormat;
-import com.google.common.base.Optional;
 import com.intellij.ui.components.JBLabel;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.util.Optional;
 
 /**
  * Sample UI which allows modification of and bindings to a simple data model built with
@@ -78,12 +78,7 @@ public final class CorePropertiesDemo {
       @NotNull
       @Override
       public Optional<String> get() {
-        if (!employerName.get().trim().isEmpty()) {
-          return Optional.of(employerName.get());
-        }
-        else {
-          return Optional.absent();
-        }
+        return employerName.get().trim().isEmpty() ? Optional.empty() : Optional.of(employerName.get());
       }
     });
     SelectedItemProperty<Gender> selectedGender = new SelectedItemProperty<>(myGenderCombo);

@@ -17,8 +17,9 @@ package com.android.tools.idea.ui.properties.expressions.optional;
 
 import com.android.tools.idea.ui.properties.ObservableValue;
 import com.android.tools.idea.ui.properties.expressions.Expression;
-import com.google.common.base.Optional;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Optional;
 
 /**
  * Expression for converting a target concrete value into an optional value. The optional will

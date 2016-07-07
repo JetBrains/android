@@ -17,12 +17,12 @@ package com.android.tools.idea.ui.properties.swing;
 
 import com.android.tools.idea.ui.properties.AbstractProperty;
 import com.android.tools.idea.ui.properties.core.OptionalProperty;
-import com.google.common.base.Optional;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.Optional;
 
 /**
  * {@link AbstractProperty} that wraps a label and exposes its icon value.
@@ -48,10 +48,10 @@ public final class IconProperty extends OptionalProperty<Icon> implements Proper
   @Override
   protected void setDirectly(@NotNull Optional<Icon> value) {
     if (myComponent instanceof JLabel) {
-      ((JLabel)myComponent).setIcon(value.orNull());
+      ((JLabel)myComponent).setIcon(value.orElse(null));
     }
     else if (myComponent instanceof AbstractButton) {
-      ((AbstractButton)myComponent).setIcon(value.orNull());
+      ((AbstractButton)myComponent).setIcon(value.orElse(null));
     }
     else {
       throw new IllegalStateException("Unexpected icon component type: " + myComponent.getClass().getSimpleName());
@@ -62,10 +62,10 @@ public final class IconProperty extends OptionalProperty<Icon> implements Proper
   @Override
   public Optional<Icon> get() {
     if (myComponent instanceof JLabel) {
-      return Optional.fromNullable(((JLabel)myComponent).getIcon());
+      return Optional.ofNullable(((JLabel)myComponent).getIcon());
     }
     else if (myComponent instanceof AbstractButton) {
-      return Optional.fromNullable(((AbstractButton)myComponent).getIcon());
+      return Optional.ofNullable(((AbstractButton)myComponent).getIcon());
     }
     else {
       throw new IllegalStateException("Unexpected icon component type: " + myComponent.getClass().getSimpleName());

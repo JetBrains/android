@@ -17,9 +17,10 @@ package com.android.tools.idea.ui.properties.core;
 
 import com.android.tools.idea.ui.properties.AbstractProperty;
 import com.android.tools.idea.ui.properties.expressions.bool.BooleanExpression;
-import com.google.common.base.Optional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Optional;
 
 /**
  * Base class for all properties that need to support being set to or returning a {@code null}
@@ -38,7 +39,7 @@ public abstract class OptionalProperty<T> extends AbstractProperty<Optional<T>> 
 
   public final void clear() {
     if (get().isPresent()) {
-      set(Optional.absent());
+      set(Optional.empty());
     }
   }
 
@@ -74,14 +75,14 @@ public abstract class OptionalProperty<T> extends AbstractProperty<Optional<T>> 
   @NotNull
   public final T getValueOr(@NotNull T defaultValue) {
     Optional<T> opt = get();
-    return opt.or(defaultValue);
+    return opt.orElse(defaultValue);
   }
 
   @Override
   @Nullable
   public final T getValueOrNull() {
     Optional<T> opt = get();
-    return opt.orNull();
+    return opt.orElse(null);
   }
 
 }

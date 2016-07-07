@@ -16,9 +16,10 @@
 package com.android.tools.idea.ui.properties.core;
 
 import com.android.tools.idea.ui.properties.ObservableValue;
-import com.google.common.base.Optional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Optional;
 
 /**
  * Read-only handle to an {@link OptionalProperty}.

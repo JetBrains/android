@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.npw.template;
 
-import com.google.common.base.Optional;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -29,6 +28,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.Optional;
 
 /**
  * Guava {@link CacheLoader} which can convert a file path to an icon. This is used to help us
@@ -64,6 +64,6 @@ final class IconLoader extends CacheLoader<File, Optional<Icon>> {
     catch (IOException e) {
       getLog().warn(e);
     }
-    return Optional.absent();
+    return Optional.empty();
   }
 }
