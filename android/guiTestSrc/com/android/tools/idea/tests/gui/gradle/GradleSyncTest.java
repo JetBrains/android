@@ -547,7 +547,7 @@ public class GradleSyncTest {
 
   @Test
   // See https://code.google.com/p/android/issues/detail?id=75520
-  public void cnnectionPermissionDeniedError() throws IOException {
+  public void connectionPermissionDeniedError() throws IOException {
     guiTest.importSimpleApplication();
     IdeFrameFixture ideFrame = guiTest.ideFrame();
 
@@ -1578,7 +1578,7 @@ public class GradleSyncTest {
    *   </pre>
    */
   @Test
-  public void modifyMinSdkAnsSync() throws Exception {
+  public void modifyMinSdkAndSync() throws Exception {
     IdeFrameFixture ideFrame = guiTest.importSimpleApplication();
     // @formatter:off
     ideFrame.getEditor()
