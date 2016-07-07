@@ -21,6 +21,7 @@ import com.android.tools.pixelprobe.Image;
 import com.android.tools.pixelprobe.Layer;
 import com.android.tools.pixelprobe.PixelProbe;
 import com.android.tools.pixelprobe.ShapeInfo;
+import com.android.tools.pixelprobe.decoder.Decoder;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColorUtil;
 import org.jetbrains.annotations.NotNull;
@@ -58,7 +59,11 @@ class LayeredImageConverter {
   @NotNull
   String toVectorDrawableXml(@NotNull File path) throws IOException {
     FileInputStream in = new FileInputStream(path);
-    Image image = PixelProbe.probe(in);
+    Image image = PixelProbe.probe(in, new Decoder.Options()
+      .decodeLayerImageData(false)
+      .decodeLayerTextData(false)
+      .decodeLayerAdjustmentData(false)
+      .decodeGuides(false));
 
     Rectangle2D.Double bounds = new Rectangle2D.Double(0.0, 0.0, image.getWidth(), image.getHeight());
     myFormat = createDecimalFormat((float) bounds.getWidth(), (float) bounds.getHeight());
