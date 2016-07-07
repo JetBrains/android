@@ -413,15 +413,15 @@ public class GradleTasksExecutor extends Task.Backgroundable {
 
     List<Message> buildMessages = Lists.newArrayList();
     collectMessages(gradleOutput, buildMessages).doWhenDone(() -> {
-      add(buildMessages);
-
       if (myErrorCount == 0 && buildError != null && !hasCause(buildError, BuildCancelledException.class)) {
         // Gradle throws BuildCancelledException when we cancel task execution. We don't want to force showing 'Messages' tool
         // window for that situation though.
-        showBuildException(buildError, output.getStdErr(), buildMessages);
+        addBuildExceptionAsMessage(buildError, output.getStdErr(), buildMessages);
       }
       output.close();
       stopwatch.stop();
+
+      add(buildMessages);
 
       if (!myIndicator.isCanceled()) {
         closeView();
@@ -460,12 +460,12 @@ public class GradleTasksExecutor extends Task.Backgroundable {
     prepareMessageView();
     Runnable addMessageTask = () -> {
       openMessageView();
-      buildMessages.forEach(message -> {
+      for (Message message : buildMessages) {
         incrementErrorOrWarningCount(message);
         if (shouldShow(message)) {
           add(message, null);
         }
-      });
+      }
     };
     invokeLaterIfNeeded(addMessageTask);
   }
@@ -533,13 +533,12 @@ public class GradleTasksExecutor extends Task.Backgroundable {
    * Something went wrong while invoking Gradle but the output parsers did not create any build messages. We show the stack trace in the
    * "Messages" view.
    */
-  private void showBuildException(@NotNull BuildException e, @NotNull String stdErr, @NotNull List<Message> buildMessages) {
+  private static void addBuildExceptionAsMessage(@NotNull BuildException e, @NotNull String stdErr, @NotNull List<Message> buildMessages) {
     // There are no error messages to present. Show some feedback indicating that something went wrong.
     if (!stdErr.trim().isEmpty()) {
       // Show the contents of stderr as a compiler error.
       Message msg = new Message(Message.Kind.ERROR, stdErr, SourceFilePosition.UNKNOWN);
       buildMessages.add(msg);
-      addMessage(msg, null);
     }
     else {
       // Since we have nothing else to show, just print the stack trace of the caught exception.
@@ -550,7 +549,6 @@ public class GradleTasksExecutor extends Task.Backgroundable {
         String message = "Internal error:" + SystemProperties.getLineSeparator() + out.toString();
         Message msg = new Message(Message.Kind.ERROR, message, SourceFilePosition.UNKNOWN);
         buildMessages.add(msg);
-        addMessage(msg, null);
       }
       finally {
         try {
