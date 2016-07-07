@@ -20,15 +20,15 @@ import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.Range;
 import com.android.tools.adtui.chart.hchart.*;
 import com.android.tools.idea.ddms.DeviceContext;
-import com.android.tools.idea.monitor.profilerclient.DeviceProfilerService;
-import com.android.tools.idea.monitor.tool.TraceRequestHandler;
-import com.android.tools.idea.monitor.ui.cpu.model.AppTrace;
 import com.android.tools.idea.monitor.datastore.Poller;
 import com.android.tools.idea.monitor.datastore.SeriesDataStore;
 import com.android.tools.idea.monitor.datastore.TraceDataStore;
+import com.android.tools.idea.monitor.profilerclient.DeviceProfilerService;
+import com.android.tools.idea.monitor.tool.TraceRequestHandler;
 import com.android.tools.idea.monitor.ui.BaseProfilerUiManager;
 import com.android.tools.idea.monitor.ui.BaseSegment;
 import com.android.tools.idea.monitor.ui.ProfilerEventListener;
+import com.android.tools.idea.monitor.ui.cpu.model.AppTrace;
 import com.android.tools.idea.monitor.ui.cpu.model.CpuDataPoller;
 import com.android.tools.idea.monitor.ui.cpu.model.ThreadStatesDataModel;
 import com.android.utils.SparseArray;
@@ -46,7 +46,7 @@ import java.util.Set;
 
 public final class CpuProfilerUiManager extends BaseProfilerUiManager implements ThreadsSegment.ThreadSelectedListener {
 
-  static final Dimension DEFAULT_DIEMENSION = new Dimension(2000, 2000);
+  static final Dimension DEFAULT_DIMENSION = new Dimension(2000, 2000);
 
   private ThreadsSegment myThreadSegment;
 
@@ -54,9 +54,9 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager implements
 
   private Range myTimeSelectionRange;
 
-  private HTreeChart myExecutionChart;
+  private HTreeChart<Method> myExecutionChart;
 
-  private HTreeChart myFlameChart;
+  private HTreeChart<MethodUsage> myFlameChart;
 
   private JBTabbedPane myTabbedPane;
 
@@ -66,7 +66,7 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager implements
 
   private final Project myProject;
 
-  JPanel myTopdownJpanel;
+  private JPanel myTopdownJpanel;
 
   private JButton myProfileButton;
 
@@ -79,12 +79,19 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager implements
                               @NotNull DeviceContext deviceContext, Project project) {
     super(timeViewRange, choreographer, dataStore, eventDispatcher);
     myTimeSelectionRange = timeSelectionRange;
-    myExecutionChart = new HTreeChart();
-    myExecutionChart.setHRenderer(new MethodHRenderer());
-    myExecutionChart.setXRange(myTimeSelectionRange);
     mySelectedDeviceProfilerService = selectedDeviceProfilerService;
     myDeviceContext = deviceContext;
     myProject = project;
+    createDetailedViewCharts();
+  }
+
+  private void createDetailedViewCharts() {
+    myExecutionChart = new HTreeChart<>();
+    myExecutionChart.setHRenderer(new MethodHRenderer());
+    myExecutionChart.setXRange(myTimeSelectionRange);
+
+    myFlameChart = new HTreeChart<>(HTreeChart.Orientation.BOTTOM_UP);
+    myFlameChart.setHRenderer(new MethodUsageHRenderer());
   }
 
   @NotNull
@@ -97,6 +104,7 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager implements
   @Override
   public void setupExtendedOverviewUi(@NotNull JPanel toolbar, @NotNull JPanel overviewPanel) {
     super.setupExtendedOverviewUi(toolbar, overviewPanel);
+
     myThreadSegment = new ThreadsSegment(myTimeViewRange, myDataStore, myEventDispatcher, this);
     assert myCpuDataPoller != null;
     myCpuDataPoller.setThreadAddedNotifier(myThreadSegment.getThreadAddedNotifier());
@@ -104,31 +112,30 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager implements
     setupAndRegisterSegment(myThreadSegment, DEFAULT_MONITOR_MIN_HEIGHT, DEFAULT_MONITOR_PREFERRED_HEIGHT, DEFAULT_MONITOR_MAX_HEIGHT);
     overviewPanel.add(myThreadSegment);
     setSegmentState(overviewPanel, myThreadSegment, AccordionLayout.AccordionState.MAXIMIZE);
-    myProfileButton  = new JButton();
     myTabbedPane = new JBTabbedPane();
     myTopdownJpanel = new JPanel(new BorderLayout());
+    createTracingButton(toolbar);
   }
 
-  @Override
-  public void setupDetailedViewUi(@NotNull JPanel toolbar, @NotNull JPanel detailPanel) {
-    super.setupDetailedViewUi(toolbar, detailPanel);
-
+  private void createTracingButton(@NotNull JPanel toolbar) {
+    myProfileButton  = new JButton();
     myProfileButton.setVisible(true);
     myProfileButton.setIcon(AndroidIcons.Ddms.StartMethodProfiling);
     myProfileButton.setText("Start Tracing...");
     myProfileButton.addActionListener(new TraceRequestHandler(myProfileButton, mySelectedDeviceProfilerService, myDeviceContext, myProject));
     toolbar.add(myProfileButton);
+  }
 
-    // TODO: Default dimension should not be needed. Find out why (Need to use a BorderLayout maybe?
-    myExecutionChart.setPreferredSize(DEFAULT_DIEMENSION);
+  @Override
+  public void setupDetailedViewUi(@NotNull JPanel toolbar, @NotNull JPanel detailPanel) {
+    super.setupDetailedViewUi(toolbar, detailPanel);
+    // TODO: Default dimension should not be needed. Find out why (Need to use a BorderLayout maybe?)
+    myExecutionChart.setPreferredSize(DEFAULT_DIMENSION);
     myChoreographer.register(myExecutionChart);
-
     myTabbedPane.add("Execution Chart", myExecutionChart);
 
-    myFlameChart = new HTreeChart(HTreeChart.Orientation.BOTTOM_UP);
-    // TODO: Default dimension should not be needed. Find out why (Need to use a BorderLayout maybe?
-    myFlameChart.setPreferredSize(DEFAULT_DIEMENSION);
-    myFlameChart.setHRenderer(new MethodUsageHRenderer());
+    // TODO: Default dimension should not be needed. Find out why (Need to use a BorderLayout maybe?)
+    myFlameChart.setPreferredSize(DEFAULT_DIMENSION);
     myChoreographer.register(myFlameChart);
     myTabbedPane.add("Flame Chart", myFlameChart);
 
@@ -140,6 +147,8 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager implements
   public void resetProfiler(@NotNull JPanel toolbar, @NotNull JPanel overviewPanel, @NotNull JPanel detailPanel) {
     super.resetProfiler(toolbar, overviewPanel, detailPanel);
     myChoreographer.unregister(myThreadSegment);
+    myChoreographer.unregister(myFlameChart);
+    myChoreographer.unregister(myExecutionChart);
     overviewPanel.remove(myThreadSegment);
     detailPanel.remove(myTabbedPane);
     toolbar.remove(myProfileButton);
@@ -195,5 +204,7 @@ public final class CpuProfilerUiManager extends BaseProfilerUiManager implements
     long durationMargin = duration / 10;
     myTimeViewRange.set(executionTree.getStart() - durationMargin, executionTree.getEnd() + durationMargin);
     myTimeViewRange.lockValues();
+
+    myEventDispatcher.getMulticaster().profilerExpanded(ProfilerType.CPU);
   }
 }
