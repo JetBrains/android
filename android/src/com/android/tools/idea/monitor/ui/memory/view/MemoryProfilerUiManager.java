@@ -33,7 +33,7 @@ import com.android.tools.perflib.captures.MemoryMappedFileBuffer;
 import com.android.tools.perflib.heap.ClassObj;
 import com.android.tools.perflib.heap.Heap;
 import com.android.tools.perflib.heap.Snapshot;
-import com.android.tools.profiler.proto.MemoryProfilerService;
+import com.android.tools.profiler.proto.MemoryProfiler;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
@@ -56,14 +56,14 @@ import java.util.List;
 public final class MemoryProfilerUiManager extends BaseProfilerUiManager {
 
   public interface MemoryEventListener extends EventListener {
-    void newHeapDumpSamplesRetrieved(MemoryProfilerService.MemoryData.HeapDumpSample newSample);
+    void newHeapDumpSamplesRetrieved(MemoryProfiler.MemoryData.HeapDumpSample newSample);
   }
 
   private static final Logger LOG = Logger.getInstance(MemoryProfilerUiManager.class);
 
   // Provides an empty HeapDumpSample object so users can diff a heap dump against epoch.
-  private static final MemoryProfilerService.MemoryData.HeapDumpSample EMPTY_HEAP_DUMP_SAMPLE =
-    MemoryProfilerService.MemoryData.HeapDumpSample.newBuilder().build();
+  private static final MemoryProfiler.MemoryData.HeapDumpSample EMPTY_HEAP_DUMP_SAMPLE =
+    MemoryProfiler.MemoryData.HeapDumpSample.newBuilder().build();
 
   @NotNull
   private final EventDispatcher<MemoryEventListener> myMemoryEventDispatcher;
@@ -73,8 +73,8 @@ public final class MemoryProfilerUiManager extends BaseProfilerUiManager {
   private MemoryInfoTreeNode myRoot;
   private MemoryDetailSegment myMemoryDetailSegment;
 
-  private JComboBox<MemoryProfilerService.MemoryData.HeapDumpSample> myPrevHeapDumpSelector;
-  private JComboBox<MemoryProfilerService.MemoryData.HeapDumpSample> myNextHeapDumpSelector;
+  private JComboBox<MemoryProfiler.MemoryData.HeapDumpSample> myPrevHeapDumpSelector;
+  private JComboBox<MemoryProfiler.MemoryData.HeapDumpSample> myNextHeapDumpSelector;
   private File myPrevHeapDumpFile;
   private Snapshot myPrevHeapDump;
   private File myNextHeapDumpFile;
@@ -187,7 +187,7 @@ public final class MemoryProfilerUiManager extends BaseProfilerUiManager {
     myPrevHeapDumpSelector = new JComboBox<>();
     myPrevHeapDumpSelector.addItem(EMPTY_HEAP_DUMP_SAMPLE);
     myPrevHeapDumpSelector.addActionListener(e -> {
-      File file = myDataCache.getHeapDumpFile((MemoryProfilerService.MemoryData.HeapDumpSample)myPrevHeapDumpSelector.getSelectedItem());
+      File file = myDataCache.getHeapDumpFile((MemoryProfiler.MemoryData.HeapDumpSample)myPrevHeapDumpSelector.getSelectedItem());
       if (myPrevHeapDumpFile == file) {
         return;
       }
@@ -210,7 +210,7 @@ public final class MemoryProfilerUiManager extends BaseProfilerUiManager {
     myNextHeapDumpSelector = new JComboBox<>();
     myNextHeapDumpSelector.addItem(EMPTY_HEAP_DUMP_SAMPLE);
     myNextHeapDumpSelector.addActionListener(e -> {
-      File file = myDataCache.getHeapDumpFile((MemoryProfilerService.MemoryData.HeapDumpSample)myNextHeapDumpSelector.getSelectedItem());
+      File file = myDataCache.getHeapDumpFile((MemoryProfiler.MemoryData.HeapDumpSample)myNextHeapDumpSelector.getSelectedItem());
       if (myNextHeapDumpFile == file) {
         return;
       }

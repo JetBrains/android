@@ -16,11 +16,7 @@
 package com.android.tools.idea.monitor.profilerclient;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.profiler.proto.CpuProfilerServiceGrpc;
-import com.android.tools.profiler.proto.DeviceServiceGrpc;
-import com.android.tools.profiler.proto.EventProfilerServiceGrpc;
-import com.android.tools.profiler.proto.MemoryServiceGrpc;
-import com.android.tools.profiler.proto.NetworkProfilerServiceGrpc;
+import com.android.tools.profiler.proto.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Disposer;
@@ -46,9 +42,9 @@ public class DeviceProfilerService {
   @NotNull private final ManagedChannel myChannel;
   @NotNull private final DeviceServiceGrpc.DeviceServiceBlockingStub myDeviceService;
   @NotNull private final MemoryServiceGrpc.MemoryServiceBlockingStub myMemoryService;
-  @NotNull private final CpuProfilerServiceGrpc.CpuProfilerServiceBlockingStub myCpuService;
-  @NotNull private final NetworkProfilerServiceGrpc.NetworkProfilerServiceBlockingStub myNetworkService;
-  @NotNull private final EventProfilerServiceGrpc.EventProfilerServiceBlockingStub myEventService;
+  @NotNull private final CpuServiceGrpc.CpuServiceBlockingStub myCpuService;
+  @NotNull private final NetworkServiceGrpc.NetworkServiceBlockingStub myNetworkService;
+  @NotNull private final EventServiceGrpc.EventServiceBlockingStub myEventService;
   private final int myPort;
 
   private DeviceProfilerService(@NotNull IDevice device, int port) {
@@ -63,9 +59,9 @@ public class DeviceProfilerService {
 
     myDeviceService = DeviceServiceGrpc.newBlockingStub(myChannel);
     myMemoryService = MemoryServiceGrpc.newBlockingStub(myChannel);
-    myCpuService = CpuProfilerServiceGrpc.newBlockingStub(myChannel);
-    myNetworkService = NetworkProfilerServiceGrpc.newBlockingStub(myChannel);
-    myEventService = EventProfilerServiceGrpc.newBlockingStub(myChannel);
+    myCpuService = CpuServiceGrpc.newBlockingStub(myChannel);
+    myNetworkService = NetworkServiceGrpc.newBlockingStub(myChannel);
+    myEventService = EventServiceGrpc.newBlockingStub(myChannel);
     Disposer.register(ApplicationManager.getApplication(), () -> {
       if (!myUserKeys.isEmpty()) {
         for (Object userKey : myUserKeys) {
@@ -120,16 +116,17 @@ public class DeviceProfilerService {
   }
 
   @NotNull
-  public CpuProfilerServiceGrpc.CpuProfilerServiceBlockingStub getCpuService() {
+  public CpuServiceGrpc.CpuServiceBlockingStub getCpuService() {
     return myCpuService;
   }
 
   @NotNull
-  public NetworkProfilerServiceGrpc.NetworkProfilerServiceBlockingStub getNetworkService() {
+  public NetworkServiceGrpc.NetworkServiceBlockingStub getNetworkService() {
     return myNetworkService;
   }
 
-  public EventProfilerServiceGrpc.EventProfilerServiceBlockingStub getEventService() {
+  @NotNull
+  public EventServiceGrpc.EventServiceBlockingStub getEventService() {
     return myEventService;
   }
 

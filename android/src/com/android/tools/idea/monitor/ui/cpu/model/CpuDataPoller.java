@@ -16,9 +16,8 @@
 package com.android.tools.idea.monitor.ui.cpu.model;
 
 import com.android.tools.idea.monitor.datastore.*;
-import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.CpuProfiler;
-import com.android.tools.profiler.proto.CpuProfilerServiceGrpc;
+import com.android.tools.profiler.proto.CpuServiceGrpc;
 import gnu.trove.TLongArrayList;
 import io.grpc.StatusRuntimeException;
 import org.jetbrains.annotations.NotNull;
@@ -37,7 +36,7 @@ public class CpuDataPoller extends Poller {
 
   private final int myPid;
 
-  private CpuProfilerServiceGrpc.CpuProfilerServiceBlockingStub myCpuService;
+  private CpuServiceGrpc.CpuServiceBlockingStub myCpuService;
 
   private final TLongArrayList myTimestampArray = new TLongArrayList();
 
@@ -59,7 +58,7 @@ public class CpuDataPoller extends Poller {
     registerAdapters(dataStore);
   }
 
-  private static CpuUsageData getCpuUsageData(Cpu.CpuProfilerData data, Cpu.CpuProfilerData lastData) {
+  private static CpuUsageData getCpuUsageData(CpuProfiler.CpuProfilerData data, CpuProfiler.CpuProfilerData lastData) {
     long elapsed = (data.getCpuUsage().getElapsedTimeInMillisec() - lastData.getCpuUsage().getElapsedTimeInMillisec());
     // TODO: consider using raw data instead of percentage to improve efficiency.
     double app = 100.0 * (data.getCpuUsage().getAppCpuTimeInMillisec() - lastData.getCpuUsage().getAppCpuTimeInMillisec()) / elapsed;
@@ -112,21 +111,21 @@ public class CpuDataPoller extends Poller {
       return;
     }
 
-    List<Cpu.CpuProfilerData> cpuDataList = response.getDataList();
+    List<CpuProfiler.CpuProfilerData> cpuDataList = response.getDataList();
     if (cpuDataList.isEmpty()) {
       return;
     }
 
-    Cpu.CpuProfilerData lastCpuData = null;
+    CpuProfiler.CpuProfilerData lastCpuData = null;
 
-    for (Cpu.CpuProfilerData data : cpuDataList) {
-      if (data.getDataCase() == Cpu.CpuProfilerData.DataCase.DATA_NOT_SET) {
+    for (CpuProfiler.CpuProfilerData data : cpuDataList) {
+      if (data.getDataCase() == CpuProfiler.CpuProfilerData.DataCase.DATA_NOT_SET) {
         // No data to be handled.
         continue;
       }
 
       // Cpu Usage
-      if (data.getDataCase() == Cpu.CpuProfilerData.DataCase.CPU_USAGE) {
+      if (data.getDataCase() == CpuProfiler.CpuProfilerData.DataCase.CPU_USAGE) {
         // If lastCpuData is null, it means the first CPU usage data was read. Assign it to lastCpuData and go to the next iteration.
         if (lastCpuData == null) {
           lastCpuData = data;
@@ -140,17 +139,17 @@ public class CpuDataPoller extends Poller {
         myDataRequestStartTimestampNs = lastCpuData.getBasicInfo().getEndTimestamp();
       }
       // Threads
-      else if (data.getDataCase() == Cpu.CpuProfilerData.DataCase.THREAD_ACTIVITIES) {
+      else if (data.getDataCase() == CpuProfiler.CpuProfilerData.DataCase.THREAD_ACTIVITIES) {
         // Repeat last Cpu Usage data to keep the size of the data arrays equals to the size of the timestamp array.
         int lastIndex = myTimestampArray.size() - 1;
         myProcessCpuUsage.add(lastIndex < 0 ? 0 : myProcessCpuUsage.get(lastIndex));
         myOtherProcessesCpuUsage.add(lastIndex < 0 ? 0 : myOtherProcessesCpuUsage.get(lastIndex));
 
-        Cpu.ThreadActivities threadActivities = data.getThreadActivities();
+        CpuProfiler.ThreadActivities threadActivities = data.getThreadActivities();
         if (threadActivities == null) {
           continue; // nothing to do
         }
-        for (Cpu.ThreadActivity threadActivity : threadActivities.getActivitiesList()) {
+        for (CpuProfiler.ThreadActivity threadActivity : threadActivities.getActivitiesList()) {
           int tid = threadActivity.getTid();
           ThreadStatesDataModel threadData;
           if (!myThreadsStateData.containsKey(tid)) {
@@ -166,7 +165,7 @@ public class CpuDataPoller extends Poller {
           assert threadData != null;
           threadData.addState(threadActivity.getNewState(), TimeUnit.NANOSECONDS.toMicros(threadActivity.getTimestamp()));
 
-          if (threadActivity.getNewState() == Cpu.ThreadActivity.State.DEAD) {
+          if (threadActivity.getNewState() == CpuProfiler.ThreadActivity.State.DEAD) {
             // TODO: maybe it's better not to remove it and keep track of the threads alive using an integer field.
             myThreadsStateData.remove(tid);
           }

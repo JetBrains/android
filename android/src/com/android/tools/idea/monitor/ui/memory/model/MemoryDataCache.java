@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.util.*;
 
-import static com.android.tools.profiler.proto.MemoryProfilerService.*;
+import static com.android.tools.profiler.proto.MemoryProfiler.*;
 
 public class MemoryDataCache {
   private static final Logger LOG = Logger.getInstance(MemoryDataCache.class);
