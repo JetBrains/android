@@ -76,6 +76,5 @@ public final class NestedViewActionMenu extends ViewAction {
                                  @NotNull List<NlComponent> selectedChildren,
                                  @InputEventMask int modifiers) {
     presentation.setIcon(myIcon);
-    presentation.setLabel(myLabel);
   }
 }

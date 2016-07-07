@@ -676,7 +676,7 @@ public class NlActionManager {
       mySelectedChildren = selectedChildren;
       Presentation presentation = getTemplatePresentation();
       presentation.setIcon(action.getDefaultIcon());
-      presentation.setText(action.getLabel());
+      presentation.setDescription(action.getLabel());
     }
 
     @Override
