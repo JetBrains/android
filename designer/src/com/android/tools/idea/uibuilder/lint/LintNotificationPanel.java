@@ -43,6 +43,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiEditorUtil;
 import com.intellij.ui.*;
 import com.intellij.ui.awt.RelativePoint;
+import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.ui.JBUI;
@@ -51,6 +52,7 @@ import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
 import org.jetbrains.android.inspections.lint.SuppressLintIntentionAction;
+import org.jetbrains.android.uipreview.AndroidEditorSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -60,6 +62,8 @@ import javax.swing.event.HyperlinkListener;
 import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLFrameHyperlinkEvent;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
@@ -76,13 +80,14 @@ import static java.awt.RenderingHints.*;
 /**
  * Pane which lets you see the current lint warnings and apply fix/suppress
  */
-public class LintNotificationPanel implements HyperlinkListener {
+public class LintNotificationPanel implements HyperlinkListener, ActionListener {
   private final ScreenView myScreenView;
   private JEditorPane myExplanationPane;
   private JBList myIssueList;
   private JPanel myPanel;
   private JBLabel myPreviewLabel;
   private JBLabel myTagLabel;
+  private JBCheckBox myShowIcons;
 
   private HtmlLinkManager myLinkManager = new HtmlLinkManager();
 
@@ -117,6 +122,8 @@ public class LintNotificationPanel implements HyperlinkListener {
     });
 
     myPanel.setFocusable(false);
+    myShowIcons.setSelected(AndroidEditorSettings.getInstance().getGlobalState().isShowLint());
+    myShowIcons.addActionListener(this);
     ApplicationManager.getApplication().invokeLater(() -> myIssueList.requestFocus());
   }
 
@@ -509,6 +516,15 @@ public class LintNotificationPanel implements HyperlinkListener {
       assert dataContext != null;
 
       myLinkManager.handleUrl(url, module, file, dataContext, null);
+    }
+  }
+
+  // ---- Implements ActionListener ----
+
+  @Override
+  public void actionPerformed(ActionEvent e) {
+    if (e.getSource() == myShowIcons) {
+      AndroidEditorSettings.getInstance().getGlobalState().setShowLint(myShowIcons.isSelected());
     }
   }
 }
