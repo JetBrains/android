@@ -423,6 +423,10 @@ public class GradleTasksExecutor extends Task.Backgroundable {
       output.close();
       stopwatch.stop();
 
+      if (!myIndicator.isCanceled()) {
+        closeView();
+      }
+
       application.invokeLater(() -> notifyGradleInvocationCompleted(stopwatch.elapsed(MILLISECONDS)));
 
       if (buildError == null || !hasCause(buildError, BuildCancelledException.class)) {
@@ -1065,9 +1069,6 @@ public class GradleTasksExecutor extends Task.Backgroundable {
     @Override
     public void stop() {
       super.stop();
-      if (!isCanceled()) {
-        closeView();
-      }
       stopAppIconProgress();
     }
 
