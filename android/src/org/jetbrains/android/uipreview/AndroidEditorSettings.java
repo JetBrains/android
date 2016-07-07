@@ -65,6 +65,7 @@ public class AndroidEditorSettings implements PersistentStateComponent<AndroidEd
     private boolean myShowEffects = true;
     private boolean myRetina = true;
     private boolean myPreferXmlEditor = false;
+    private boolean myShowLint = false;
 
     public boolean isRetina() {
       return myRetina;
@@ -108,6 +109,14 @@ public class AndroidEditorSettings implements PersistentStateComponent<AndroidEd
 
     public boolean isPreferXmlEditor() {
       return myPreferXmlEditor;
+    }
+
+    public void setShowLint(boolean showLint) {
+      myShowLint = showLint;
+    }
+
+    public boolean isShowLint() {
+      return myShowLint;
     }
 
     public void setPreferXmlEditor(boolean preferXmlEditor) {
