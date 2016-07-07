@@ -1,10 +1,61 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
+  <item name="android.mtp.MtpDevice MtpDevice(android.hardware.usb.UsbDevice) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.mtp.MtpDevice android.mtp.MtpDeviceInfo getDeviceInfo()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.mtp.MtpDevice android.mtp.MtpEvent readEvent(android.os.CancellationSignal)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.mtp.MtpDevice android.mtp.MtpEvent readEvent(android.os.CancellationSignal) 0">
     <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.mtp.MtpDevice android.mtp.MtpObjectInfo getObjectInfo(int)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.mtp.MtpDevice android.mtp.MtpObjectInfo sendObjectInfo(android.mtp.MtpObjectInfo)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.mtp.MtpDevice android.mtp.MtpObjectInfo sendObjectInfo(android.mtp.MtpObjectInfo) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.mtp.MtpDevice android.mtp.MtpStorageInfo getStorageInfo(int)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.mtp.MtpDevice boolean importFile(int, android.os.ParcelFileDescriptor) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.mtp.MtpDevice boolean importFile(int, java.lang.String) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.mtp.MtpDevice boolean open(android.hardware.usb.UsbDeviceConnection) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.mtp.MtpDevice boolean sendObject(int, long, android.os.ParcelFileDescriptor) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.mtp.MtpDevice byte[] getObject(int, int)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.mtp.MtpDevice byte[] getThumbnail(int)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.mtp.MtpDevice int[] getObjectHandles(int, int, int)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.mtp.MtpDevice int[] getStorageIds()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.mtp.MtpDevice java.lang.String getDeviceName()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.mtp.MtpDevice long getPartialObject(int, long, long, byte[]) 3">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.mtp.MtpDevice long getPartialObject64(int, long, long, byte[]) 3">
+    <annotation name="android.support.annotation.NonNull" />
   </item>
 </root>
 
