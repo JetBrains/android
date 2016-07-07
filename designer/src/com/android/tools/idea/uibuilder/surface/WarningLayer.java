@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
+import org.jetbrains.android.uipreview.AndroidEditorSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.lint.LintAnnotationsModel;
@@ -42,6 +43,10 @@ public class WarningLayer extends Layer {
 
   @Override
   public void paint(@NotNull Graphics2D gc) {
+    if (!AndroidEditorSettings.getInstance().getGlobalState().isShowLint()) {
+      return;
+    }
+
     myAnnotatedComponents.clear();
 
     LintAnnotationsModel lintModel = myScreenView.getModel().getLintAnnotationsModel();
