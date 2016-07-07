@@ -227,7 +227,7 @@ public final class WrapArchiveOptionsStep extends ModuleWizardStep implements An
     myWizardState.put(WrapArchiveWizardPath.KEY_GRADLE_PATH, gradlePath);
 
     boolean move = false;
-    Module[] modules = new Module[0];
+    Module[] modules = Module.EMPTY_ARRAY;
     if (myResult == ValidationStatus.IN_MODULE) {
       VirtualFile file = VfsUtil.findFileByIoFile(new File(myArchivePath.getText()), false);
       if (file != null) {

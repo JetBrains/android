@@ -149,7 +149,7 @@ public final class WrapArchiveWizardPathTest extends AndroidTestBase {
 
   private static Module[] getModules(final Project project, String... moduleNames) {
     if (moduleNames.length == 0) {
-      return new Module[0];
+      return Module.EMPTY_ARRAY;
     }
     else {
       List<Module> modules = Lists.newArrayList();

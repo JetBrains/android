@@ -39,7 +39,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TemplateWizardProjectTemplateFactory extends ProjectTemplatesFactory {
-  public static final ProjectTemplate[] EMPTY_PROJECT_TEMPLATES = new ProjectTemplate[]{};
+  public static final ProjectTemplate[] EMPTY_PROJECT_TEMPLATES = ProjectTemplate.EMPTY_ARRAY;
   private static final String IMPORT_EXISTING_PROJECT_TEMPLATE_NAME = "ImportExistingProject";
 
   @NotNull
