@@ -16,6 +16,7 @@
 package org.jetbrains.android;
 
 import com.android.SdkConstants;
+import com.android.annotations.VisibleForTesting;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
@@ -119,7 +120,7 @@ public class AndroidDocumentationProvider implements DocumentationProvider, Exte
           PsiClass containingClass = field.getContainingClass();
           assert containingClass != null; // because isFrameworkFieldDeclaration returned true
           ResourceType type = ResourceType.getEnum(containingClass.getName());
-          if (module != null && type != null) {
+          if (module != null && type != null && field.getName() != null) {
             String name = field.getName();
             String render = AndroidJavaDocRenderer.render(module, type, name, true);
             String external = JavaDocumentationProvider.fetchExternalJavadoc(element, docUrls, new MyDocExternalFilter(project));
@@ -209,7 +210,8 @@ public class AndroidDocumentationProvider implements DocumentationProvider, Exte
     return false;
   }
 
-  private static class MyDocExternalFilter extends JavaDocExternalFilter {
+  @VisibleForTesting
+  static class MyDocExternalFilter extends JavaDocExternalFilter {
     public MyDocExternalFilter(Project project) {
       super(project);
     }
@@ -217,14 +219,27 @@ public class AndroidDocumentationProvider implements DocumentationProvider, Exte
     @Override
     protected void doBuildFromStream(String url, Reader input, StringBuilder data) throws IOException {
       try {
+        // Looking up a method, field or constructor? If so we can use the
+        // builtin support -- it works.
         if (ourAnchorsuffix.matcher(url).find()) {
           super.doBuildFromStream(url, input, data);
           return;
         }
-        final BufferedReader buf = new BufferedReader(input);
-        try {
+
+        // For classes however we'll need to do our own filtering; the Android SDK
+        // docs are quite different from the JDK docs so IntelliJ's built in javadoc
+        // support doesn't work.
+
+        try (BufferedReader buf = new BufferedReader(input)) {
+          // Pull out the javadoc section.
+          // The format has changed over time, so we need to look for different formats.
+          // The document begins with a bunch of stuff we don't want to include (e.g.
+          // page navigation etc); in all formats this seems to end with the following marker:
           @NonNls String startSection = "<!-- ======== START OF CLASS DATA ======== -->";
-          @NonNls String endHeader = "<!-- END HEADER -->";
+          // This doesn't appear anywhere in recent documentation,
+          // but presumably was needed at one point; left for now
+          // for users who have old documentation installed locally.
+          @NonNls String skipHeader = "<!-- END HEADER -->";
 
           data.append(HTML);
 
@@ -233,7 +248,7 @@ public class AndroidDocumentationProvider implements DocumentationProvider, Exte
           do {
             read = buf.readLine();
           }
-          while (read != null && !read.toUpperCase(Locale.US).contains(startSection));
+          while (read != null && !read.contains(startSection));
 
           if (read == null) {
             data.delete(0, data.length());
@@ -242,27 +257,46 @@ public class AndroidDocumentationProvider implements DocumentationProvider, Exte
 
           data.append(read).append("\n");
 
+          // Read until we reach the class overview (if present); copy everything until we see the
+          // optional marker skipHeader.
           boolean skip = false;
-          while (((read = buf.readLine()) != null) && !read.toLowerCase(Locale.US).contains("class overview")) {
+          while (((read = buf.readLine()) != null) &&
+                 // Old format: class description follows <h2>Class Overview</h2>
+                 !read.startsWith("<h2>Class Overview") &&
+                 // New format: class description follows just a <br><hr>. These
+                 // are luckily not present in the older docs.
+                 !read.equals("<br><hr>")) {
+            if (read.contains("<table class=")) {
+              // Skip all tables until the beginning of the class description
+              skip = true;
+            }
+            else if (read.startsWith("<h2 class=\"api-section\"")) {
+              // Done; we've reached the section after the class description already.
+              // Newer docs have no marker section or class attribute marking the
+              // beginning of the class doc.
+              read = null;
+              break;
+            }
+
             if (!skip && read.length() > 0) {
               data.append(read).append("\n");
             }
-            if (read.toUpperCase(Locale.US).contains(endHeader)) {
+            if (read.contains(skipHeader)) {
               skip = true;
             }
           }
 
+          // Now copy lines until the next <h2> section.
+          // In older versions of the docs format, this was a "<h2>", but in recent
+          // revisions (N+) it's <h2 class="api-section">
           if (read != null) {
             data.append("<br><div>\n");
-            while (((read = buf.readLine()) != null) && !read.toUpperCase(Locale.ENGLISH).startsWith("<H2>")) {
+            while (((read = buf.readLine()) != null) && (!read.startsWith("<h2>") && !read.startsWith("<h2 "))) {
               data.append(read).append("\n");
             }
             data.append("</div>\n");
           }
           data.append(HTML_CLOSE);
-        }
-        finally {
-          buf.close();
         }
       }
       catch (Exception e) {
