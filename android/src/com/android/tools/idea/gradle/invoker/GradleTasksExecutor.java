@@ -61,6 +61,7 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectManagerListener;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.ActionCallback;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -112,6 +113,8 @@ import static com.intellij.execution.ui.ConsoleViewContentType.ERROR_OUTPUT;
 import static com.intellij.execution.ui.ConsoleViewContentType.NORMAL_OUTPUT;
 import static com.intellij.openapi.application.ModalityState.NON_MODAL;
 import static com.intellij.openapi.ui.MessageType.*;
+import static com.intellij.openapi.ui.MessageType.ERROR;
+import static com.intellij.openapi.ui.MessageType.WARNING;
 import static com.intellij.openapi.util.text.StringUtil.*;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
@@ -381,29 +384,7 @@ public class GradleTasksExecutor extends Task.Backgroundable {
             application.putUserData(GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY, null);
           }
         }
-        List<Message> buildMessages = Lists.newArrayList(showMessages(gradleOutput));
-        if (myErrorCount == 0 && buildError != null && !hasCause(buildError, BuildCancelledException.class)) {
-          // Gradle throws BuildCancelledException when we cancel task execution. We don't want to force showing 'Messages' tool
-          // window for that situation though.
-          showBuildException(buildError, output.getStdErr(), buildMessages);
-        }
-        output.close();
-
-        stopwatch.stop();
-
-        application.invokeLater(() -> notifyGradleInvocationCompleted(stopwatch.elapsed(MILLISECONDS)));
-
-        if (buildError == null || !hasCause(buildError, BuildCancelledException.class)) {
-          // Gradle throws BuildCancelledException when we cancel task execution. We don't want to force showing 'Messages' tool
-          // window for that situation though.
-          application.invokeLater(this::showMessages);
-        }
-
-        boolean buildSuccessful = buildError == null;
-        GradleInvocationResult result = new GradleInvocationResult(myContext.getGradleTasks(), buildMessages, buildSuccessful);
-        for (GradleInvoker.AfterGradleInvocationTask task : myContext.getGradleInvoker().getAfterInvocationTasks()) {
-          task.execute(result);
-        }
+        showGradleOutput(gradleOutput, output, stopwatch, buildError);
       }
       return null;
     };
@@ -422,6 +403,67 @@ public class GradleTasksExecutor extends Task.Backgroundable {
     File projectDirPath = buildFilePath != null ? buildFilePath : getBaseDirPath(project);
 
     myHelper.execute(projectDirPath.getPath(), executionSettings, executeTasksFunction);
+  }
+
+  private void showGradleOutput(@NotNull String gradleOutput,
+                                @NotNull GradleOutputForwarder output,
+                                @NotNull Stopwatch stopwatch,
+                                @Nullable BuildException buildError) {
+    Application application = ApplicationManager.getApplication();
+
+    List<Message> buildMessages = Lists.newArrayList();
+    collectMessages(gradleOutput, buildMessages).doWhenDone(() -> {
+      add(buildMessages);
+
+      if (myErrorCount == 0 && buildError != null && !hasCause(buildError, BuildCancelledException.class)) {
+        // Gradle throws BuildCancelledException when we cancel task execution. We don't want to force showing 'Messages' tool
+        // window for that situation though.
+        showBuildException(buildError, output.getStdErr(), buildMessages);
+      }
+      output.close();
+      stopwatch.stop();
+
+      application.invokeLater(() -> notifyGradleInvocationCompleted(stopwatch.elapsed(MILLISECONDS)));
+
+      if (buildError == null || !hasCause(buildError, BuildCancelledException.class)) {
+        // Gradle throws BuildCancelledException when we cancel task execution. We don't want to force showing 'Messages' tool
+        // window for that situation though.
+        application.invokeLater(this::showMessages);
+      }
+
+      boolean buildSuccessful = buildError == null;
+      GradleInvocationResult result = new GradleInvocationResult(myContext.getGradleTasks(), buildMessages, buildSuccessful);
+      for (GradleInvoker.AfterGradleInvocationTask task : myContext.getGradleInvoker().getAfterInvocationTasks()) {
+        task.execute(result);
+      }
+    });
+
+  }
+
+  @NotNull
+  private static ActionCallback collectMessages(@NotNull String gradleOutput, @NotNull List<Message> messages) {
+    ActionCallback callback = new ActionCallback();
+    ApplicationManager.getApplication().executeOnPooledThread(() -> {
+      Iterable<PatternAwareOutputParser> parsers = JpsServiceManager.getInstance().getExtensions(PatternAwareOutputParser.class);
+      List<Message> compilerMessages = new BuildOutputParser(parsers).parseGradleOutput(gradleOutput);
+      messages.addAll(compilerMessages);
+      callback.setDone();
+    });
+    return callback;
+  }
+
+  private void add(@NotNull List<Message> buildMessages) {
+    prepareMessageView();
+    Runnable addMessageTask = () -> {
+      openMessageView();
+      buildMessages.forEach(message -> {
+        incrementErrorOrWarningCount(message);
+        if (shouldShow(message)) {
+          add(message, null);
+        }
+      });
+    };
+    invokeLaterIfNeeded(addMessageTask);
   }
 
   @Nullable
@@ -483,16 +525,6 @@ public class GradleTasksExecutor extends Task.Backgroundable {
     invokeLaterIfProjectAlive(getNotNullProject(), showErrorTask);
   }
 
-  @NotNull
-  private List<Message> showMessages(@NotNull String gradleOutput) {
-    Iterable<PatternAwareOutputParser> parsers = JpsServiceManager.getInstance().getExtensions(PatternAwareOutputParser.class);
-    List<Message> compilerMessages = new BuildOutputParser(parsers).parseGradleOutput(gradleOutput);
-    for (Message msg : compilerMessages) {
-      addMessage(msg, null);
-    }
-    return compilerMessages;
-  }
-
   /**
    * Something went wrong while invoking Gradle but the output parsers did not create any build messages. We show the stack trace in the
    * "Messages" view.
@@ -528,20 +560,29 @@ public class GradleTasksExecutor extends Task.Backgroundable {
 
   private void addMessage(@NotNull Message message, @Nullable Navigatable navigatable) {
     prepareMessageView();
-    switch (message.getKind()) {
-      case WARNING:
-        myWarningCount++;
-        break;
-      case ERROR:
-        myErrorCount++;
-      default:
-        // do nothing.
+    incrementErrorOrWarningCount(message);
+    if (shouldShow(message)) {
+      Runnable addMessageTask = () -> {
+        openMessageView();
+        add(message, navigatable);
+      };
+      invokeLaterIfNeeded(addMessageTask);
     }
-    Runnable addMessageTask = () -> {
-      openMessageView();
-      add(message, navigatable);
-    };
-    invokeLaterIfNeeded(addMessageTask);
+  }
+
+  private void incrementErrorOrWarningCount(@NotNull Message message) {
+    Message.Kind kind = message.getKind();
+    if (kind == Message.Kind.WARNING) {
+      myWarningCount++;
+    }
+    else if (kind == Message.Kind.ERROR) {
+      myErrorCount++;
+    }
+  }
+
+  private static boolean shouldShow(@NotNull Message message) {
+    Message.Kind kind = message.getKind();
+    return kind != Message.Kind.SIMPLE && kind != Message.Kind.UNKNOWN;
   }
 
   private void prepareMessageView() {
