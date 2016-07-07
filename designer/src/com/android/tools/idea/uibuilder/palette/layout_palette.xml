@@ -445,10 +445,4 @@
     <item tag="android.support.v7.widget.RecyclerView"/>
     <item tag="android.support.v7.widget.Toolbar" render-separately="true"/>
   </group>
-  <group name="Custom - Leanback">
-    <item tag="android.support.v17.leanback.app.BrowseFragment"/>
-    <item tag="android.support.v17.leanback.app.DetailsFragment"/>
-    <item tag="android.support.v17.leanback.app.PlaybackOverlayFragment"/>
-    <item tag="android.support.v17.leanback.app.SearchFragment"/>
-  </group>
 </palette>
