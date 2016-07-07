@@ -24,9 +24,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.manifest.*;
@@ -39,6 +37,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.android.xml.AndroidManifest.NODE_INTENT;
 
@@ -125,9 +124,6 @@ public class DefaultActivityLocator extends ActivityLocator {
       return defaultLauncher.getQualifiedName();
     }
 
-    // filter out the ones that are not enabled
-    launchableActivities = ContainerUtil.filter(launchableActivities, ActivityWrapper::isEnabled);
-
     // Just return the first one we find
     return launchableActivities.isEmpty() ? null : launchableActivities.get(0).getQualifiedName();
   }
@@ -168,7 +164,10 @@ public class DefaultActivityLocator extends ActivityLocator {
 
   @NotNull
   private static List<ActivityWrapper> getLaunchableActivities(@NotNull List<ActivityWrapper> allActivities) {
-    return ContainerUtil.filter(allActivities, ActivityLocatorUtils::containsLauncherIntent);
+    return allActivities
+      .stream()
+      .filter(activity -> ActivityLocatorUtils.containsLauncherIntent(activity) && activity.isEnabled())
+      .collect(Collectors.toList());
   }
 
   private static List<ActivityWrapper> merge(List<Activity> activities, List<ActivityAlias> activityAliases) {
