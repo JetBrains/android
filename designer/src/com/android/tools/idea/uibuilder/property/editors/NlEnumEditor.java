@@ -17,6 +17,8 @@ package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.resources.ResourceType;
+import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.uibuilder.property.NlProperty;
@@ -63,6 +65,7 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
   private final JComboBox<ValueWithDisplayString> myCombo;
 
   private NlProperty myProperty;
+  private String myApiVersion;
   private boolean myUpdatingProperty;
   private int myAddedValueIndex;
 
@@ -167,7 +170,7 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
 
   @Override
   public void setProperty(@NotNull NlProperty property) {
-    if (property != myProperty) {
+    if (property != myProperty || !getApiVersion(property).equals(myApiVersion)) {
       setModel(property);
     }
     try {
@@ -187,6 +190,7 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
   private void setModel(@NotNull NlProperty property) {
     assert supportsProperty(property) : this.getClass().getName() + property;
     myProperty = property;
+    myApiVersion = getApiVersion(property);
 
     AttributeDefinition definition = property.getDefinition();
     ValueWithDisplayString[] values;
@@ -252,6 +256,12 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
   @Nullable
   public NlProperty getProperty() {
     return myProperty;
+  }
+
+  @NotNull
+  private static String getApiVersion(@NotNull NlProperty property) {
+    IAndroidTarget target = property.getModel().getConfiguration().getTarget();
+    return target == null ? SdkVersionInfo.HIGHEST_KNOWN_STABLE_API + "U" : target.getVersion().getApiString();
   }
 
   private void selectItem(@NotNull ValueWithDisplayString value) {
