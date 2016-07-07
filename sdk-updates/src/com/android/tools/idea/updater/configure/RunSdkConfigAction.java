@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.updater.configure;
 
-import com.android.tools.idea.stats.UsageTracker;
+import com.android.tools.analytics.UsageTracker;
+import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventCategory;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ShowSettingsUtil;
@@ -41,7 +43,9 @@ public class RunSdkConfigAction extends DumbAwareAction {
 
   @Override
   public void actionPerformed(@Nullable AnActionEvent e) {
-    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_SDK_MANAGER, UsageTracker.ACTION_SDK_MANAGER_TOOLBAR_CLICKED, null, null);
+    UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                   .setCategory(EventCategory.SDK_MANAGER)
+                                   .setKind(AndroidStudioEvent.EventKind.SDK_MANAGER_TOOLBAR_CLICKED));
     Configurable configurable =
       ConfigurableExtensionPointUtil.createApplicationConfigurableForProvider(SdkUpdaterConfigurableProvider.class);
     ShowSettingsUtil.getInstance().showSettingsDialog(null, configurable.getClass());

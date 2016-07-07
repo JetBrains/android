@@ -20,6 +20,7 @@ import com.android.builder.model.NativeAndroidProject;
 import com.android.builder.model.Variant;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.repository.Revision;
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.*;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.LocalProperties;
@@ -27,6 +28,8 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.GradleSyncFailure;
 import com.intellij.execution.configurations.SimpleJavaParameters;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -69,7 +72,6 @@ import static com.android.tools.idea.gradle.AndroidProjectKeys.*;
 import static com.android.tools.idea.gradle.actions.RefreshLinkedCppProjectsAction.REFRESH_EXTERNAL_NATIVE_MODELS_KEY;
 import static com.android.tools.idea.gradle.project.GradleModelVersionCheck.getModelVersion;
 import static com.android.tools.idea.gradle.project.GradleModelVersionCheck.isSupportedVersion;
-import static com.android.tools.idea.gradle.project.ProjectImportErrorHandler.trackSyncError;
 import static com.android.tools.idea.gradle.service.notification.errors.UnsupportedModelVersionErrorHandler.READ_MIGRATION_GUIDE_MSG;
 import static com.android.tools.idea.gradle.service.notification.errors.UnsupportedModelVersionErrorHandler.UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX;
 import static com.android.tools.idea.gradle.service.notification.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink.EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY;
@@ -78,7 +80,6 @@ import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createPro
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.GradleUtil.addLocalMavenRepoInitScriptCommandLineOption;
 import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
-import static com.android.tools.idea.stats.UsageTracker.*;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isInProcessMode;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
@@ -118,7 +119,11 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   public DataNode<ModuleData> createModule(@NotNull IdeaModule gradleModule, @NotNull DataNode<ProjectData> projectDataNode) {
     AndroidProject androidProject = resolverCtx.getExtraProject(gradleModule, AndroidProject.class);
     if (androidProject != null && !isSupportedVersion(androidProject)) {
-      trackSyncError(ACTION_GRADLE_SYNC_UNSUPPORTED_ANDROID_MODEL_VERSION, androidProject.getModelVersion());
+      UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                       .setCategory(AndroidStudioEvent.EventCategory.GRADLE_SYNC)
+                                       .setKind(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE)
+                                       .setGradleSyncFailure(GradleSyncFailure.UNSUPPORTED_ANDROID_MODEL_VERSION)
+                                     .setGradleVersion(androidProject.getModelVersion()));
 
       String msg = getUnsupportedModelVersionErrorMsg(getModelVersion(androidProject));
       throw new IllegalStateException(msg);
@@ -387,7 +392,11 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
         if ("org.gradle.api.artifacts.result.ResolvedComponentResult".equals(msg) ||
             "org.gradle.api.artifacts.result.ResolvedModuleVersionResult".equals(msg)) {
 
-          trackSyncError(CATEGORY_GRADLE_SYNC_FAILURE, ACTION_GRADLE_SYNC_UNSUPPORTED_GRADLE_VERSION);
+          UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                           .setCategory(AndroidStudioEvent.EventCategory.GRADLE_SYNC)
+                                           .setKind(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE)
+                                           .setGradleSyncFailure(GradleSyncFailure.UNSUPPORTED_GRADLE_VERSION));
+
           return new ExternalSystemException("The project is using an unsupported version of Gradle.");
         }
       }
@@ -395,7 +404,9 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     ExternalSystemException userFriendlyError = myErrorHandler.getUserFriendlyError(error, projectPath, buildFilePath);
 
     if (userFriendlyError == null) {
-      trackSyncError(error);
+      UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                       .setCategory(AndroidStudioEvent.EventCategory.GRADLE_SYNC)
+                                       .setKind(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE));
       return nextResolver.getUserFriendlyError(error, projectPath, buildFilePath);
     }
 

@@ -16,6 +16,7 @@
 package com.android.tools.idea.profiling.capture;
 
 import com.android.tools.idea.editors.hprof.HprofCaptureType;
+import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.ProfilerCaptureType;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.extensions.DefaultPluginDescriptor;
 import com.intellij.openapi.extensions.Extensions;
@@ -32,7 +33,10 @@ import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.StringReader;
 import java.util.Arrays;
 
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
@@ -188,6 +192,11 @@ public class CaptureServiceTest extends IdeaTestCase {
     @Override
     public FileEditor createEditor(@NotNull Project project, @NotNull VirtualFile file) {
       return null;
+    }
+
+    @Override
+    public ProfilerCaptureType getCaptureType() {
+      return ProfilerCaptureType.UNKNOWN_PROFILER_CAPTURE_TYPE;
     }
   }
 }

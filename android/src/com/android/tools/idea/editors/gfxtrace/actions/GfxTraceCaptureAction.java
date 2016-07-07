@@ -17,17 +17,16 @@ package com.android.tools.idea.editors.gfxtrace.actions;
 
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.ddms.EdtExecutor;
-import com.android.tools.idea.editors.gfxtrace.DeviceInfo;
-import com.android.tools.idea.editors.gfxtrace.GapiiLibraryLoader;
-import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
-import com.android.tools.idea.editors.gfxtrace.GfxTraceUtil;
-import com.android.tools.idea.editors.gfxtrace.GfxTracer;
+import com.android.tools.idea.editors.gfxtrace.*;
 import com.android.tools.idea.editors.gfxtrace.forms.ActivitySelector;
 import com.android.tools.idea.editors.gfxtrace.forms.TraceDialog;
 import com.android.tools.idea.editors.gfxtrace.gapi.GapiPaths;
 import com.android.tools.idea.monitor.gpu.GpuMonitorView;
-import com.android.tools.idea.stats.UsageTracker;
+import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventCategory;
+import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventKind;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.RunConfiguration;
@@ -45,9 +44,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.*;
 import java.util.Arrays;
 import java.util.Optional;
-import java.awt.*;
 import java.util.function.Consumer;
 
 public class GfxTraceCaptureAction extends ToggleAction {
@@ -184,7 +183,9 @@ public class GfxTraceCaptureAction extends ToggleAction {
         options.myTraceName = name;
 
         myTraceStartTime = System.currentTimeMillis();
-        GfxTraceUtil.trackEvent(UsageTracker.ACTION_GFX_TRACE_STARTED, null, null);
+        UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                       .setCategory(EventCategory.GPU_PROFILER)
+                                       .setKind(EventKind.GFX_TRACE_TRACE_STARTED));
 
         myTracer = GfxTracer.launch(myView.getProject(), device, pkg, act, options, bindListener(dialog));
       }
@@ -195,7 +196,9 @@ public class GfxTraceCaptureAction extends ToggleAction {
         if (myTracer != null) {
 
           long totalTime = System.currentTimeMillis() - myTraceStartTime;
-          GfxTraceUtil.trackEvent(UsageTracker.ACTION_GFX_TRACE_STOPPED, null, (int)totalTime);
+          UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                         .setCategory(EventCategory.GPU_PROFILER)
+                                         .setKind(EventKind.GFX_TRACE_TRACE_STOPPED));
 
           myTracer.stop();
         }

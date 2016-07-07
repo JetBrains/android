@@ -16,7 +16,8 @@
 package org.jetbrains.android.actions;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.stats.UsageTracker;
+import com.android.tools.analytics.UsageTracker;
+import com.google.wireless.android.sdk.stats.AndroidStudioStats;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.ide.DataManager;
@@ -147,8 +148,9 @@ public class RunAndroidSdkManagerAction extends AndroidRunSdkToolAction {
 
     @Override
     public void run() {
-      UsageTracker.getInstance()
-        .trackEvent(UsageTracker.CATEGORY_SDK_MANAGER, UsageTracker.ACTION_SDK_MANAGER_STANDALONE_LAUNCHED, null, null);
+      UsageTracker.getInstance().log(AndroidStudioStats.AndroidStudioEvent.newBuilder()
+                                     .setCategory(AndroidStudioStats.AndroidStudioEvent.EventCategory.SDK_MANAGER)
+                                     .setKind(AndroidStudioStats.AndroidStudioEvent.EventKind.SDK_MANAGER_STANDALONE_LAUNCHED));
 
       String toolPath = mySdkPath + File.separator + AndroidCommonUtils.toolPath(SdkConstants.androidCmdName());
       GeneralCommandLine commandLine = new GeneralCommandLine();

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.editors.gfxtrace.controllers;
 
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
-import com.android.tools.idea.editors.gfxtrace.GfxTraceUtil;
 import com.android.tools.idea.editors.gfxtrace.actions.EditAtomParametersAction;
 import com.android.tools.idea.editors.gfxtrace.models.AtomStream;
 import com.android.tools.idea.editors.gfxtrace.renderers.Render;
@@ -31,12 +31,15 @@ import com.android.tools.idea.editors.gfxtrace.service.memory.MemoryProtos.PoolN
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.android.tools.idea.editors.gfxtrace.widgets.LoadableIcon;
 import com.android.tools.idea.logcat.RegexFilterComponent;
-import com.android.tools.idea.stats.UsageTracker;
 import com.google.common.base.Objects;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.wireless.android.sdk.stats.AndroidStudioStats;
+import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventCategory;
+import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventKind;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.popup.Balloon;
@@ -266,7 +269,11 @@ public class AtomController extends TreeController implements AtomStream.Listene
         if (node == null || node.getUserObject() == null) return;
         Object object = node.getUserObject();
 
-        GfxTraceUtil.trackEvent(UsageTracker.ACTION_GFX_TRACE_COMMAND_SELECTED, object.getClass().getSimpleName(), null);
+        UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                       .setCategory(EventCategory.GPU_PROFILER)
+                                       .setKind(EventKind.GFX_TRACE_COMMAND_SELECTED)
+                                       .setGfxTracingDetails(AndroidStudioStats.GfxTracingDetails.newBuilder()
+                                                             .setCommand(object.getClass().getSimpleName())));
 
         if (object instanceof Group) {
           atoms.selectAtoms(((Group)object).group.getRange(), AtomController.this);
@@ -475,8 +482,11 @@ public class AtomController extends TreeController implements AtomStream.Listene
           // The user was hovering over a parameter, fire off the path activation event on click.
           if (node.hoveredParameter >= 0) {
             Path path = node.getFollowPath(node.hoveredParameter);
-
-            GfxTraceUtil.trackEvent(UsageTracker.ACTION_GFX_TRACE_LINK_CLICKED, path.toString(), null);
+            UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                           .setCategory(EventCategory.GPU_PROFILER)
+                                           .setKind(EventKind.GFX_TRACE_LINK_CLICKED)
+                                           .setGfxTracingDetails(AndroidStudioStats.GfxTracingDetails.newBuilder()
+                                                                .setTracePath(path.toString())));
 
             myEditor.activatePath(path, AtomController.this);
           }
