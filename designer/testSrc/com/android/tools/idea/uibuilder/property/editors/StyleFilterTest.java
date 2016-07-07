@@ -53,7 +53,7 @@ public class StyleFilterTest extends AndroidGradleTestCase {
     myFilter = new StyleFilter(getProject(), myResolver);
   }
 
-  public void ignored_testTextAppearances() {
+  public void testTextAppearances() {
     List<StyleResourceValue> styles = myFilter.getStylesDerivedFrom("TextAppearance", true).collect(Collectors.toList());
     assertStylesSorted("TextAppearance", styles, 3, 50, 200,
                        ImmutableList.of("Text2", "Text34", "TextAppearance"),
@@ -92,7 +92,7 @@ public class StyleFilterTest extends AndroidGradleTestCase {
     assertStyle("Yang", !FRAMEWORK, USER_DEFINED, !IS_DERIVED_STYLE, FILTERED_OUT);
   }
 
-  public void ignored_testStylesByTagName() {
+  public void testStylesByTagName() {
     assertTagStyle(SdkConstants.BUTTON, 0, 6, 46,
                    ImmutableList.of(),
                    ImmutableList.of("Widget.AppCompat.Button", "Widget.AppCompat.Button.Borderless", "Widget.AppCompat.Button.Small"),
