@@ -18,6 +18,7 @@ package com.android.tools.idea.editors.layeredimage;
 
 import com.android.tools.pixelprobe.Image;
 import com.android.tools.pixelprobe.PixelProbe;
+import com.android.tools.pixelprobe.decoder.Decoder;
 import com.android.tools.pixelprobe.util.Images;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
@@ -33,7 +34,7 @@ class Utilities {
   @NotNull
   static Image loadImage(@NotNull VirtualFile file) throws IOException {
     try (InputStream in = file.getInputStream()) {
-      return PixelProbe.probe(in);
+      return PixelProbe.probe(in, Decoder.Options.LAYER_METADATA_ONLY);
     }
   }
 
