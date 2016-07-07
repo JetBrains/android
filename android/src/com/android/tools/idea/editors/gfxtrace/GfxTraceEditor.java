@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace;
 
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.editors.gfxtrace.controllers.MainController;
 import com.android.tools.idea.editors.gfxtrace.gapi.GapiPaths;
 import com.android.tools.idea.editors.gfxtrace.gapi.GapisConnection;
@@ -30,7 +31,6 @@ import com.android.tools.idea.editors.gfxtrace.service.stringtable.Info;
 import com.android.tools.idea.editors.gfxtrace.service.stringtable.StringTable;
 import com.android.tools.idea.editors.gfxtrace.widgets.LoadablePanel;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
-import com.android.tools.idea.stats.UsageTracker;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
@@ -41,6 +41,10 @@ import com.android.tools.rpclib.schema.Message;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.google.wireless.android.sdk.stats.AndroidStudioStats;
+import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventCategory;
+import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventKind;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.application.Application;
@@ -113,7 +117,12 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
     myFile = file;
     myLoadingPanel.setLoadingText("Initializing GFX Trace System");
 
-    GfxTraceUtil.trackEvent(UsageTracker.ACTION_GFX_TRACE_OPEN, null, null);
+
+    // TODO: add GFX_TRACE_OPEN to proto
+    UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                   .setCategory(EventCategory.GPU_PROFILER)
+                                   .setKind(EventKind.GFX_TRACE_TRACE_STARTED));
+                                   //.setKind(EventKind.GFX_TRACE_OPEN)
 
     addPathListener(myAtomStream);
     addPathListener(myState);
@@ -169,7 +178,11 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
           if (isDisposed()) {
             return;
           }
-          GfxTraceUtil.trackEvent(UsageTracker.ACTION_GFX_TRACE_INIT_ERROR, e.getMessage(), null);
+          UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                         .setCategory(EventCategory.GPU_PROFILER)
+                                         .setKind(EventKind.GFX_TRACE_INIT_ERROR)
+                                         .setGfxTracingDetails(AndroidStudioStats.GfxTracingDetails.newBuilder()
+                                                               .setErrorMessage(e.getMessage())));
           setLoadingErrorTextOnEdt(e.getLocalizedMessage(), null);
 
           if (e instanceof GapisInitInputException) {
@@ -466,7 +479,11 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   public void dispose() {
 
     long totalTime = System.currentTimeMillis() - myStartTime;
-    GfxTraceUtil.trackEvent(UsageTracker.ACTION_GFX_TRACE_CLOSED, null, (int)totalTime);
+    UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                   .setCategory(EventCategory.GPU_PROFILER)
+                                   .setKind(EventKind.GFX_TRACE_CLOSED)
+                                   .setGfxTracingDetails(AndroidStudioStats.GfxTracingDetails.newBuilder()
+                                                         .setTotalTime(totalTime)));
 
     shutdown();
   }

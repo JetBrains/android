@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
@@ -23,7 +24,12 @@ import com.android.tools.idea.gradle.project.build.GradleBuildContext;
 import com.android.tools.idea.gradle.project.build.JpsBuildContext;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.project.AndroidProjectBuildNotifications;
-import com.android.tools.idea.stats.UsageTracker;
+import com.android.tools.idea.stats.AndroidStudioUsageTracker;
+import com.android.tools.idea.stats.IntelliJLogger;
+import com.android.utils.ILogger;
+import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventCategory;
+import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventKind;
 import com.intellij.execution.RunConfigurationProducerService;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.notification.NotificationType;
@@ -63,6 +69,7 @@ import static com.intellij.openapi.util.text.StringUtil.join;
 
 public class AndroidGradleProjectComponent extends AbstractProjectComponent {
   @NonNls private static final String SHOW_MIGRATE_TO_GRADLE_POPUP = "show.migrate.to.gradle.popup";
+  private static final ILogger LOGGER = new IntelliJLogger(AndroidGradleProjectComponent.class);
 
   @Nullable private Disposable myDisposable;
 
@@ -137,7 +144,7 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
   }
 
   private void trackLegacyIdeaAndroidProject() {
-    if (!UsageTracker.getInstance().canTrack()) {
+    if (!UsageTracker.getInstance().getAnalyticsSettings().hasOptedIn()) {
       return;
     }
 
@@ -167,7 +174,10 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
           }
         }
         if (packageName != null) {
-          UsageTracker.getInstance().trackLegacyIdeaAndroidProject(packageName);
+          UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                           .setCategory(EventCategory.GRADLE)
+                                         .setKind(EventKind.LEGACY_IDEA_ANDROID_PROJECT)
+                                         .setProjectId(AndroidStudioUsageTracker.anonymizeUtf8(packageName)));
         }
       }
     });

@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.gfxtrace;
 
 import com.android.tools.idea.profiling.capture.FileCaptureType;
+import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.ProfilerCaptureType;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -32,5 +33,10 @@ public class GfxTraceCaptureType extends FileCaptureType {
   @Override
   public FileEditor createEditor(@NotNull Project project, @NotNull VirtualFile file) {
     return new GfxTraceEditor(project, file);
+  }
+
+  @Override
+  public ProfilerCaptureType getCaptureType() {
+    return ProfilerCaptureType.GFX_TRACE;
   }
 }

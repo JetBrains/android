@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.editors.gfxtrace.controllers;
 
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
-import com.android.tools.idea.editors.gfxtrace.GfxTraceUtil;
 import com.android.tools.idea.editors.gfxtrace.UiErrorCallback;
 import com.android.tools.idea.editors.gfxtrace.service.ErrDataUnavailable;
 import com.android.tools.idea.editors.gfxtrace.service.MemoryInfo;
@@ -25,7 +25,6 @@ import com.android.tools.idea.editors.gfxtrace.service.memory.MemoryRange;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.android.tools.idea.editors.gfxtrace.service.path.PathProtos.MemoryKind;
 import com.android.tools.idea.editors.gfxtrace.widgets.LoadablePanel;
-import com.android.tools.idea.stats.UsageTracker;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
 import com.google.common.base.Function;
@@ -36,6 +35,8 @@ import com.google.common.util.concurrent.AsyncFunction;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.wireless.android.sdk.stats.AndroidStudioStats;
+import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventKind;
 import com.intellij.ide.CopyProvider;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DataProvider;
@@ -166,7 +167,9 @@ public class MemoryController extends Controller {
     final MemoryRangePath memoryPath = typedMemoryPath != null ? typedMemoryPath.getRange() : event.findMemoryPath();
     if (memoryPath != null) {
 
-      GfxTraceUtil.trackEvent(UsageTracker.ACTION_GFX_TRACE_MEMORY_VIEWED, null, null);
+      UsageTracker.getInstance().log(AndroidStudioStats.AndroidStudioEvent.newBuilder()
+                                     .setCategory(AndroidStudioStats.AndroidStudioEvent.EventCategory.GPU_PROFILER)
+                                     .setKind(EventKind.GFX_TRACE_MEMORY_VIEWED));
 
       final DataType dataType = typedMemoryPath != null ? dataTypeFromMemoryType(typedMemoryPath.getType()) : myDataType;
 

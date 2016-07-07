@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.editors.gfxtrace.controllers;
 
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
-import com.android.tools.idea.editors.gfxtrace.GfxTraceUtil;
 import com.android.tools.idea.editors.gfxtrace.UiErrorCallback;
 import com.android.tools.idea.editors.gfxtrace.actions.AtomComboAction;
 import com.android.tools.idea.editors.gfxtrace.models.AtomStream;
@@ -30,11 +30,13 @@ import com.android.tools.idea.editors.gfxtrace.service.image.Format;
 import com.android.tools.idea.editors.gfxtrace.service.image.ImageInfo;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.android.tools.idea.editors.gfxtrace.widgets.ImageCellList;
-import com.android.tools.idea.stats.UsageTracker;
 import com.android.tools.rpclib.futures.SingleInFlight;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
 import com.google.api.client.util.Lists;
+import com.google.wireless.android.sdk.stats.AndroidStudioStats;
+import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventCategory;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.ui.JBUI;
@@ -67,16 +69,24 @@ public class TexturesController extends ImagePanelController {
         setImage((item == null) ? null : FetchedImage.load(myEditor.getClient(), item.path));
         myJumpToAtomComboAction.setAtomIds(item == null ? Collections.emptyList() : Arrays.stream(item.info.getAccesses()).boxed().collect(Collectors.toList()));
 
-        // trackEvent for TEXTURE_VIEWED
         if (item != null && myCurrentResourceId != item.info.getID()) {
           myCurrentResourceId = item.info.getID();
           String format = item.typeLabel;
-          Integer size = null;
+          int height = 0;
+          int width = 0;
           if (item.imageInfo != null) {
-            size = item.imageInfo.getWidth() * item.imageInfo.getHeight();
+            width = item.imageInfo.getWidth();
+            height = item.imageInfo.getHeight();
             format = format + "/" + item.imageInfo.getFormat().toString();
           }
-          GfxTraceUtil.trackEvent(UsageTracker.ACTION_GFX_TRACE_TEXTURE_VIEWED, format, size);
+
+          UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                         .setCategory(EventCategory.GPU_PROFILER)
+                                         .setKind(AndroidStudioEvent.EventKind.GFX_TRACE_TEXTURE_VIEWED)
+                                         .setGfxTracingDetails(AndroidStudioStats.GfxTracingDetails.newBuilder()
+                                                               .setImageFormat(format)
+                                                               .setImageWidth(width)
+                                                               .setImageHeight(height)));
         }
       }
     }.myList, BorderLayout.NORTH);

@@ -18,33 +18,16 @@ package com.android.tools.idea.editors.gfxtrace;
 import com.android.tools.idea.editors.gfxtrace.actions.GfxTraceCaptureAction;
 import com.android.tools.idea.editors.gfxtrace.gapi.GapiPaths;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
-import com.android.tools.idea.stats.UsageTracker;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.WindowManager;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.Collection;
 
 public class GfxTraceUtil {
-
-  /**
-   * more info here: https://support.google.com/analytics/answer/1033068
-   *
-   * @param eventLabel With labels, you can provide additional information for events that you want to track, such as the movie title in
-   *                   the video examples, or the name of a file when tracking downloads.
-   * @param eventValue Use it to assign a numerical value to a tracked page object. For example, you could use it to provide the time in
-   *                   seconds for an player to load, or you might trigger a dollar value when a specific playback marker is reached on a
-   *                   video player.
-   */
-  public static void trackEvent(@NotNull String eventAction, @Nullable String eventLabel, @Nullable Integer eventValue) {
-    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_GFX_TRACE, eventAction, eventLabel, eventValue);
-  }
-
   /**
    * Checks if there is a valid Gapi installed, and if not try and install it.
    * @return true if a valid Gapi is installed, false otherwise.

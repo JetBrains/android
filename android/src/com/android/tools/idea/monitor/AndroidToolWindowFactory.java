@@ -18,6 +18,7 @@ package com.android.tools.idea.monitor;
 
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.ClientData;
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.actions.BrowserHelpAction;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.ddms.DevicePanel;
@@ -26,10 +27,10 @@ import com.android.tools.idea.ddms.OpenVmTraceHandler;
 import com.android.tools.idea.ddms.actions.*;
 import com.android.tools.idea.ddms.adb.AdbService;
 import com.android.tools.idea.logcat.AndroidLogcatView;
-import com.android.tools.idea.stats.UsageTracker;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.wireless.android.sdk.stats.AndroidStudioStats;
 import com.intellij.ProjectTopics;
 import com.intellij.execution.ExecutionManager;
 import com.intellij.execution.filters.HyperlinkInfo;
@@ -126,8 +127,11 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
         Content selectedContent = event.getContent();
         BaseMonitorView view = selectedContent.getUserData(BaseMonitorView.MONITOR_VIEW_KEY);
         if (view != null && event.getOperation() == ContentManagerEvent.ContentOperation.add) {
-          UsageTracker.getInstance()
-            .trackEvent(UsageTracker.CATEGORY_MONITOR, UsageTracker.ACTION_MONITOR_ACTIVATED, view.getDescription(), null);
+          UsageTracker.getInstance().log(AndroidStudioStats.AndroidStudioEvent.newBuilder()
+                                           .setCategory(AndroidStudioStats.AndroidStudioEvent.EventCategory.PROFILING)
+                                           .setKind(AndroidStudioStats.AndroidStudioEvent.EventKind.MONITOR_RUNNING)
+                                           .setMonitorType(view.getMonitorType()));
+
         }
       }
     }, project);

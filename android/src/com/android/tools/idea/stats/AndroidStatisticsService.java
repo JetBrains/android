@@ -29,7 +29,6 @@ import com.intellij.openapi.application.ApplicationNamesInfo;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -100,19 +99,6 @@ public class AndroidStatisticsService implements StatisticsService {
       return code;
     }
 
-    // Legacy ADT-compatible stats service.
-    LegacySdkStatsService sdkstats = new LegacySdkStatsService();
-    try {
-      Method getStrictVersion = ApplicationInfo.class.getMethod("getStrictVersion");
-      Object version = getStrictVersion.invoke(ApplicationInfo.getInstance());
-      sdkstats.ping("studio", (String)version);
-    }
-    catch (Exception e) {
-      // This code should only be run on AndroidStudio, if the method getStrictVersion
-      // doesn't exist it means that we are incorrectly running this in Ij + android plugin.
-      // Once the getStrictVersion function has been upstreamed, we can remove reflection here.
-      throw new AssertionError(e);
-    }
 
     return new StatisticsResult(StatisticsResult.ResultCode.SEND, "OK");
   }

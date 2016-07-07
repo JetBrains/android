@@ -16,11 +16,12 @@
 package com.android.tools.idea.ddms.hprof;
 
 import com.android.SdkConstants;
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.editors.hprof.HprofCaptureType;
 import com.android.tools.idea.profiling.capture.Capture;
 import com.android.tools.idea.profiling.capture.CaptureTypeService;
 import com.android.tools.idea.profiling.view.CapturesToolWindow;
-import com.android.tools.idea.stats.UsageTracker;
+import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.process.BaseOSProcessHandler;
 import com.intellij.execution.process.ProcessAdapter;
@@ -86,7 +87,9 @@ public class RunHprofConvAndSaveAsAction extends DumbAwareAction {
 
         Capture[] captures = CapturesToolWindow.CAPTURE_ARRAY.getData(e.getDataContext());
         if (isValidCaptureSelection(captures)) {
-          UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_PROFILING, UsageTracker.ACTION_PROFILING_CONVERT_HPROF, null, null);
+          UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                         .setCategory(AndroidStudioEvent.EventCategory.PROFILING)
+                                         .setKind(AndroidStudioEvent.EventKind.PROFILING_CONVERT_HPROF));
           new RunHprofConvAndSaveTask(e.getProject(), captures[0].getFile(), dialog.getHprofFile()).queue();
         }
       }
