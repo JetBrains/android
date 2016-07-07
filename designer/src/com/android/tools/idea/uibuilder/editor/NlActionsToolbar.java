@@ -126,6 +126,11 @@ public class NlActionsToolbar implements DesignSurfaceListener, ModelListener {
   private static DefaultActionGroup createConfigActions(ConfigurationHolder configurationHolder, DesignSurface surface) {
     DefaultActionGroup group = new DefaultActionGroup();
 
+    group.add(new DesignModeAction(surface));
+    group.add(new BlueprintModeAction(surface));
+    group.add(new BothModeAction(surface));
+    group.addSeparator();
+
     OrientationMenuAction orientationAction = new OrientationMenuAction(configurationHolder);
     group.add(orientationAction);
     group.addSeparator();
@@ -141,10 +146,6 @@ public class NlActionsToolbar implements DesignSurfaceListener, ModelListener {
 
     LocaleMenuAction localeAction = new LocaleMenuAction(configurationHolder);
     group.add(localeAction);
-
-    group.addSeparator();
-    group.add(new DesignModeAction(surface));
-    group.add(new BlueprintModeAction(surface));
 
     group.addSeparator();
     ConfigurationMenuAction configAction = new ConfigurationMenuAction(surface);
