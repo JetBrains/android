@@ -294,7 +294,7 @@ public class RenderLogger extends LayoutLog {
         builder.add("You appear to be using constraint layout version alpha3 or earlier; you must use version alpha4 or later " +
                     "with this version of the layout editor (because the API for guidelines changed incompatibly as of alpha4.)");
         builder.add(" (");
-        builder.addLink("Update Library", myLinkManager.createRunnableLink(() -> UpgradeConstraintLayoutFix.apply(myModule)));
+        builder.addLink("Update Library", getLinkManager().createRunnableLink(() -> UpgradeConstraintLayoutFix.apply(myModule)));
         builder.add(", ");
         ShowExceptionFix detailsFix = new ShowExceptionFix(myModule.getProject(), throwable);
         builder.addLink("Show Exception", getLinkManager().createRunnableLink(detailsFix));
