@@ -18,9 +18,14 @@ package com.android.tools.idea.tests.gui.framework.fixture.layout;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.uibuilder.editor.NlEditor;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.DragDropInteraction;
+import org.fest.swing.core.ComponentDragAndDrop;
 import org.fest.swing.core.Robot;
+import org.fest.swing.fixture.JTreeFixture;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
@@ -31,11 +36,13 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, Component
   private final IdeFrameFixture myFrame;
   private final DesignSurfaceFixture myDesignSurfaceFixture;
   private NlPropertyInspectorFixture myPropertyFixture;
+  private ComponentDragAndDrop myDragAndDrop;
 
   public NlEditorFixture(@NotNull Robot robot, @NotNull IdeFrameFixture frame, @NotNull NlEditor editor) {
     super(NlEditorFixture.class, robot, editor.getComponent());
     myFrame = frame;
     myDesignSurfaceFixture = new DesignSurfaceFixture(robot, frame, editor.getComponent().getSurface());
+    myDragAndDrop = new ComponentDragAndDrop(robot);
   }
 
   public void waitForRenderToFinish() {
@@ -65,5 +72,13 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, Component
       myPropertyFixture = new NlPropertyInspectorFixture(robot(), myFrame, NlPropertyInspectorFixture.create(robot()));
     }
     return myPropertyFixture;
+  }
+
+  @NotNull
+  public NlEditorFixture dragComponentToSurface(@NotNull String path) {
+    JTree tree = robot().finder().findByName("Palette Tree", JTree.class, true);
+    new JTreeFixture(robot(), tree).drag(path);
+    myDragAndDrop.drop(myDesignSurfaceFixture.target(), new Point(0, 0));
+    return this;
   }
 }
