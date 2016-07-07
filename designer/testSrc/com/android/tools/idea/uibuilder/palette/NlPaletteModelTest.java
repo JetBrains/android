@@ -48,7 +48,6 @@ public class NlPaletteModelTest extends PaletteTestCase {
     Palette.Group google = assertIsGroup(iterator.next(), "Custom - Google");
     Palette.Group design = assertIsGroup(iterator.next(), "Custom - Design");
     Palette.Group appcompat = assertIsGroup(iterator.next(), "Custom - AppCompat");
-    Palette.Group leanback = assertIsGroup(iterator.next(), "Custom - Leanback");
     assertFalse(iterator.hasNext());
 
     iterator = widgets.getItems().iterator();
@@ -148,13 +147,6 @@ public class NlPaletteModelTest extends PaletteTestCase {
     assertGridLayoutV7(iterator.next());
     assertRecyclerView(iterator.next());
     assertToolbarV7(iterator.next());
-    assertFalse(iterator.hasNext());
-
-    iterator = leanback.getItems().iterator();
-    assertBrowseFragment(iterator.next());
-    assertDetailsFragment(iterator.next());
-    assertPlaybackOverlayFragment(iterator.next());
-    assertSearchFragment(iterator.next());
     assertFalse(iterator.hasNext());
   }
 }
