@@ -223,4 +223,6 @@ public abstract class UsageTracker {
   public abstract void trackSystemInfo(@Nullable String hyperVState, @Nullable String cpuInfoFlags);
 
   public abstract void trackPSDEvent(@NotNull String applicationId, @NotNull String eventAction, @Nullable String eventLabel);
+
+  public abstract void trackApkAnalyzerEvent(@NotNull String applicationId, long uncompressedSize, long compressedSize);
 }

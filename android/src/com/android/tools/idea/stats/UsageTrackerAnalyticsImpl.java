@@ -41,6 +41,7 @@ public class UsageTrackerAnalyticsImpl extends UsageTracker {
   private static final String GLOGS_CATEGORY_INSTANT_RUN = "irstats2";
   private static final String GLOGS_CATEGORY_INSTANT_RUN_TIMINGS = "irtimings";
   private static final String GLOGS_CATEGORY_SYSTEM_INFO = "systeminfo";
+  private static final String GLOGS_CATEGORY_APK_ANALYZER = "apkAnalyzer";
   private static final String ANONYMIZATION_ISSUE = "*ANONYMIZATION_ISSUE*";
 
   private final UsageUploader myUploader;
@@ -246,6 +247,19 @@ public class UsageTrackerAnalyticsImpl extends UsageTracker {
     }
     myUploader.trackEvent(CATEGORY_PROJECT_STRUCTURE_DIALOG, builder.build());
     // @formatter:on
+  }
+
+  @Override
+  public void trackApkAnalyzerEvent(@NotNull String applicationId, long uncompressedSize, long compressedSize) {
+    if (!trackingEnabled()) {
+      return;
+    }
+
+    Map<String, String> params = ImmutableMap.of("appId", anonymize(applicationId),
+                                                 "rawSize", Long.toString(uncompressedSize),
+                                                 "zipSize", Long.toString(compressedSize));
+
+    myUploader.trackEvent(GLOGS_CATEGORY_APK_ANALYZER, params);
   }
 
   @NotNull
