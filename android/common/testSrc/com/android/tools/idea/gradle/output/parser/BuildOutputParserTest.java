@@ -16,9 +16,9 @@
 package com.android.tools.idea.gradle.output.parser;
 
 import com.android.annotations.Nullable;
+import com.android.ide.common.blame.Message;
 import com.android.ide.common.blame.SourceFilePosition;
 import com.android.ide.common.blame.SourcePosition;
-import com.android.ide.common.blame.Message;
 import com.android.ide.common.blame.parser.PatternAwareOutputParser;
 import com.android.ide.common.blame.parser.aapt.AbstractAaptOutputParser;
 import com.google.common.base.Charsets;
@@ -29,8 +29,10 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.containers.ContainerUtil;
-import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -43,6 +45,8 @@ import java.util.ServiceLoader;
 
 import static com.android.SdkConstants.*;
 import static com.android.utils.SdkUtils.createPathComment;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * Tests for {@link BuildOutputParser}.
@@ -50,7 +54,7 @@ import static com.android.utils.SdkUtils.createPathComment;
  * These tests MUST be executed on Windows too.
  */
 @SuppressWarnings({"ResultOfMethodCallIgnored", "StringBufferReplaceableByString"})
-public class BuildOutputParserTest extends TestCase {
+public class BuildOutputParserTest {
   private static final String NEWLINE = SystemProperties.getLineSeparator();
   private static final String CWD_PATH = new File("").getAbsolutePath();
 
@@ -58,21 +62,20 @@ public class BuildOutputParserTest extends TestCase {
   private String sourceFilePath;
   private BuildOutputParser parser;
 
-  @Override
+  @Before
   public void setUp() throws Exception {
-    super.setUp();
     parser = new BuildOutputParser(ServiceLoader.load(PatternAwareOutputParser.class));
   }
 
-  @Override
+  @After
   public void tearDown() throws Exception {
     if (sourceFile != null) {
       sourceFile.delete();
     }
-    super.tearDown();
   }
 
-  public void testParseDisplayingUnhandledMessages() {
+  @Test
+  public void parseDisplayingUnhandledMessages() {
     String output = " **--- HELLO WORLD ---**";
     List<Message> Messages = parser.parseGradleOutput(output);
     assertEquals(1, Messages.size());
@@ -81,7 +84,8 @@ public class BuildOutputParserTest extends TestCase {
     assertEquals(Message.Kind.SIMPLE, message.getKind());
   }
 
-  public void testParseParsedBuildIssue() throws IOException {
+  @Test
+  public void parseParsedBuildIssue() throws IOException {
     String output = "AGPBI: {\"kind\":\"ERROR\",\"text\":\"" +
                     "No resource identifier found for attribute \\u0027a\\u0027 in package" +
                     " \\u0027android\\u0027\",\"sourcePath\":\"/usr/local/google/home/cmw/" +
@@ -96,7 +100,8 @@ public class BuildOutputParserTest extends TestCase {
     assertEquals(new SourcePosition(5, -1, -1), message.getSourceFilePositions().get(0).getPosition());
   }
 
-  public void testParseAaptOutputWithRange1() throws IOException {
+  @Test
+  public void parseAaptOutputWithRange1() throws IOException {
     createTempXmlFile();
     writeToFile("<manifest xmlns:android='http://schemas.android.com/apk/res/android'",
                 "    android:versionCode='12' android:versionName='2.0' package='com.android.tests.basic'>",
@@ -108,7 +113,8 @@ public class BuildOutputParserTest extends TestCase {
     assertHasCorrectErrorMessage(messages, messageText, 4, 61);
   }
 
-  public void testParseAaptOutputWithRange2() throws IOException {
+  @Test
+  public void parseAaptOutputWithRange2() throws IOException {
     // Check that when the actual aapt error occurs on a line later than the original error line,
     // the forward search which looks for a value match does not stop on an earlier line that
     // happens to have the same value prefix
@@ -123,7 +129,8 @@ public class BuildOutputParserTest extends TestCase {
     assertHasCorrectErrorMessage(messages, messageText, 5, 8);
   }
 
-  public void testParseAaptOutputWithRange3() throws IOException {
+  @Test
+  public void parseAaptOutputWithRange3() throws IOException {
     // Check that when we have a duplicate resource error, we highlight both the original property
     // and the original definition.
     // This tests the second, duplicate declaration ration.
@@ -140,7 +147,8 @@ public class BuildOutputParserTest extends TestCase {
     assertHasCorrectErrorMessage(messages, messageText, 6, 17);
   }
 
-  public void testParseAaptOutputWithRange4() throws IOException {
+  @Test
+  public void parseAaptOutputWithRange4() throws IOException {
     // Check that when we have a duplicate resource error, we highlight both the original property
     // and the original definition.
     // This tests the original definition. Note that we don't have enough position info so we simply
@@ -155,7 +163,8 @@ public class BuildOutputParserTest extends TestCase {
     assertHasCorrectErrorMessage(messages, messageText, 3, 5);
   }
 
-  public void testParseAaptOutputWithRange5() throws IOException {
+  @Test
+  public void parseAaptOutputWithRange5() throws IOException {
     // Check for aapt error which occurs when the attribute name in an item style declaration is
     // non-existent.
     createTempXmlFile();
@@ -168,7 +177,8 @@ public class BuildOutputParserTest extends TestCase {
     assertHasCorrectErrorMessage(messages, messageText, 3, 17);
   }
 
-  public void testParseAaptOutputWithRange6() throws IOException {
+  @Test
+  public void parseAaptOutputWithRange6() throws IOException {
     // Test missing resource name.
     createTempXmlFile();
     writeToFile("<resources xmlns:android='http://schemas.android.com/apk/res/android'>",
@@ -179,7 +189,8 @@ public class BuildOutputParserTest extends TestCase {
     assertHasCorrectErrorMessage(messages, messageText, 2, 3);
   }
 
-  public void testParseAaptOutputWithRange7() throws IOException {
+  @Test
+  public void parseAaptOutputWithRange7() throws IOException {
     createTempXmlFile();
     writeToFile("<resources xmlns:android='http://schemas.android.com/apk/res/android'>",
                 "  <item>");
@@ -189,7 +200,8 @@ public class BuildOutputParserTest extends TestCase {
     assertHasCorrectErrorMessage(messages, messageText, 2, 3);
   }
 
-  public void testParseAaptOutputWithRange8() throws IOException {
+  @Test
+  public void parseAaptOutputWithRange8() throws IOException {
     createTempXmlFile();
     writeToFile("<resources xmlns:android='http://schemas.android.com/apk/res/android'>",
                 "  <item>");
@@ -199,7 +211,8 @@ public class BuildOutputParserTest extends TestCase {
     assertHasCorrectErrorMessage(messages, messageText, 2, 3);
   }
 
-  public void testParseAaptOutputWithRange9() throws IOException {
+  @Test
+  public void parseAaptOutputWithRange9() throws IOException {
     createTempXmlFile();
     writeToFile("<resources xmlns:android='http://schemas.android.com/apk/res/android'>",
                 "  <style name='test'>",
@@ -210,7 +223,8 @@ public class BuildOutputParserTest extends TestCase {
     assertHasCorrectErrorMessage(messages, messageText, 3, 21);
   }
 
-  public void testParseAaptOutputWithRange10() throws IOException {
+  @Test
+  public void parseAaptOutputWithRange10() throws IOException {
     createTempXmlFile();
     writeToFile("<FrameLayout", "    xmlns:android='http://schemas.android.com/apk/res/android'",
                 "    android:layout_width='wrap_content'",
@@ -226,7 +240,8 @@ public class BuildOutputParserTest extends TestCase {
     assertHasCorrectErrorMessage(messages, messageText, 8, 34);
   }
 
-  public void testParseAaptOutputWithRange11() throws IOException {
+  @Test
+  public void parseAaptOutputWithRange11() throws IOException {
     createTempXmlFile();
     writeToFile("<FrameLayout",
                 "    xmlns:android='http://schemas.android.com/apk/res/android'",
@@ -243,7 +258,8 @@ public class BuildOutputParserTest extends TestCase {
     assertHasCorrectErrorMessage(messages, messageText, 9, 35);
   }
 
-  public void testParseAaptOutputWithRange12() throws IOException {
+  @Test
+  public void parseAaptOutputWithRange12() throws IOException {
     createTempXmlFile();
     writeToFile("<FrameLayout",
                 "    xmlns:android='http://schemas.android.com/apk/res/android'",
@@ -261,7 +277,8 @@ public class BuildOutputParserTest extends TestCase {
     createTempFile(DOT_XML);
   }
 
-  public void testParseJavaOutput1() throws IOException {
+  @Test
+  public void parseJavaOutput1() throws IOException {
     createTempFile(".java");
     writeToFile("public class Test {",
                 "  public static void main(String[] args) {",
@@ -276,7 +293,8 @@ public class BuildOutputParserTest extends TestCase {
     assertHasCorrectErrorMessage(messages, "error: cannot find symbol variable v4", 3, 14);
   }
 
-  public void testParseJavaOutput2() throws IOException {
+  @Test
+  public void parseJavaOutput2() throws IOException {
     createTempFile(".java");
     writeToFile("public class Test {",
                 "  public static void main(String[] args) {",
@@ -289,7 +307,8 @@ public class BuildOutputParserTest extends TestCase {
     assertHasCorrectErrorMessage(messages, "error: not a statement", 3, 26);
   }
 
-  public void testParseGradleBuildFileOutput() throws IOException {
+  @Test
+  public void parseGradleBuildFileOutput() throws IOException {
     createTempFile(".gradle");
     writeToFile("buildscript {",
                 "    repositories {",
@@ -322,7 +341,8 @@ public class BuildOutputParserTest extends TestCase {
                  toString(messages));
   }
 
-  public void testParseXmlValidationErrorOutput() {
+  @Test
+  public void parseXmlValidationErrorOutput() {
     StringBuilder err = new StringBuilder();
     err.append("[Fatal Error] :5:7: The element type \"error\" must be terminated by the matching end-tag \"</error>\".").append(NEWLINE);
     err.append("FAILURE: Build failed with an exception.").append(NEWLINE);
@@ -333,7 +353,8 @@ public class BuildOutputParserTest extends TestCase {
                  toString(messages));
   }
 
-  public void testParseIncubatingFeatureMessage() {
+  @Test
+  public void parseIncubatingFeatureMessage() {
     String out = "Parallel execution with configuration on demand is an incubating feature.";
     List<Message> messages = parser.parseGradleOutput(out);
     assertEquals("", toString(messages));
@@ -374,7 +395,8 @@ public class BuildOutputParserTest extends TestCase {
     assertEquals("[position column]", expectedColumn, message.getColumn());
   }
 
-  public void testRedirectValueLinksOutput() throws Exception {
+  @Test
+  public void redirectValueLinksOutput() throws Exception {
     if (!setupSdkHome()) {
       System.out.println("Skipping testRedirectValueLinksOutput because sdk-common was not found");
       return;
@@ -513,7 +535,8 @@ public class BuildOutputParserTest extends TestCase {
     return true;
   }
 
-  public void testRedirectFileLinksOutput() throws Exception {
+  @Test
+  public void redirectFileLinksOutput() throws Exception {
     if (!setupSdkHome()) {
       System.out.println("Skipping testRedirectFileLinksOutput because sdk-common was not found");
       return;
@@ -564,7 +587,8 @@ public class BuildOutputParserTest extends TestCase {
     // TODO: Test encoding issues (e.g. & in path where the XML source comment would be &amp; instead)
   }
 
-  public void testGradleAaptErrorParser() throws IOException {
+  @Test
+  public void gradleAaptErrorParser() throws IOException {
     createTempXmlFile();
     writeToFile("<resources xmlns:android='http://schemas.android.com/apk/res/android'>",
                 "    <TextView\n" +
@@ -599,7 +623,8 @@ public class BuildOutputParserTest extends TestCase {
                  toString(parser.parseGradleOutput(err)));
   }
 
-  public void testLockOwner() throws Exception {
+  @Test
+  public void lockOwner() throws Exception {
     // https://code.google.com/p/android/issues/detail?id=59444
     String output =
       "FAILURE: Build failed with an exception.\n" +
@@ -626,7 +651,8 @@ public class BuildOutputParserTest extends TestCase {
                  toString(parser.parseGradleOutput(output)));
   }
 
-  public void testDuplicateResources() throws Exception {
+  @Test
+  public void duplicateResources() throws Exception {
     // To reproduce, create a source file with two duplicate string item definitions
     createTempXmlFile();
     String output =
@@ -667,7 +693,8 @@ public class BuildOutputParserTest extends TestCase {
                  toString(parser.parseGradleOutput(output)));
   }
 
-  public void testDuplicateResources2() throws Exception {
+  @Test
+  public void duplicateResources2() throws Exception {
     File file1 = File.createTempFile(BuildOutputParserTest.class.getName(), DOT_XML);
     File file2 = File.createTempFile(BuildOutputParserTest.class.getName(), DOT_XML);
     String path1 = file1.getPath();
@@ -726,7 +753,8 @@ public class BuildOutputParserTest extends TestCase {
     file2.delete();
   }
 
-  public void testUnexpectedOutput() throws Exception {
+  @Test
+  public void unexpectedOutput() throws Exception {
     // To reproduce, create a source file with two duplicate string item definitions
     createTempXmlFile();
     String output =
@@ -761,7 +789,8 @@ public class BuildOutputParserTest extends TestCase {
                  toString(parser.parseGradleOutput(output)));
   }
 
-  public void testXmlError() throws Exception {
+  @Test
+  public void xmlError() throws Exception {
     createTempXmlFile();
     String output =
       "[Fatal Error] :7:18: Open quote is expected for attribute \"{1}\" associated with an  element type  \"name\".\n" +
@@ -816,7 +845,8 @@ public class BuildOutputParserTest extends TestCase {
                  toString(parser.parseGradleOutput(output)));
   }
 
-  public void testJavac() throws Exception {
+  @Test
+  public void javac() throws Exception {
     createTempFile(".java");
     String output =
       sourceFilePath + ":70: <identifier> expected\n" +
@@ -853,7 +883,8 @@ public class BuildOutputParserTest extends TestCase {
                  toString(parser.parseGradleOutput(output)));
   }
 
-  public void testOom() throws Exception {
+  @Test
+  public void dom() throws Exception {
     createTempFile(".java");
     String output =
       // Came across this output on StackOverflow:
@@ -907,6 +938,7 @@ public class BuildOutputParserTest extends TestCase {
                  toString(parser.parseGradleOutput(output2)));
   }
 
+  @Test
   public void test() throws Exception {
     File tempDir = Files.createTempDir();
     sourceFile = new File(tempDir, "values.xml"); // Name matters for position search
@@ -990,7 +1022,8 @@ public class BuildOutputParserTest extends TestCase {
     tempDir.delete();
   }
 
-  public void testDashes() throws Exception {
+  @Test
+  public void dashes() throws Exception {
     File tempDir = Files.createTempDir();
     String dirName = currentPlatform() == PLATFORM_WINDOWS ? "My -- Q&A Dir" : "My -- Q&A< Dir";
     File dir = new File(tempDir, dirName); // path which should force encoding of path chars, see for example issue 60050
@@ -1079,7 +1112,8 @@ public class BuildOutputParserTest extends TestCase {
     tempDir.delete();
   }
 
-  public void testLayoutFileSuffix() throws Exception {
+  @Test
+  public void layoutFileSuffix() throws Exception {
     File tempDir = Files.createTempDir();
     sourceFile = new File(tempDir, "layout.xml");
     sourceFilePath = sourceFile.getAbsolutePath();
@@ -1188,7 +1222,8 @@ public class BuildOutputParserTest extends TestCase {
     tempDir.delete();
   }
 
-  public void testChangedFile() throws Exception {
+  @Test
+  public void changedFile() throws Exception {
     createTempXmlFile();
     String output =
       ":MyApp:compileReleaseRenderscript UP-TO-DATE\n" +
@@ -1217,7 +1252,8 @@ public class BuildOutputParserTest extends TestCase {
     sourceFile.delete();
   }
 
-  public void testChangedFile2() throws Exception {
+  @Test
+  public void changedFile2() throws Exception {
     createTempXmlFile();
     String output =
       ":MyApp:compileReleaseRenderscript UP-TO-DATE\n" +
@@ -1246,7 +1282,8 @@ public class BuildOutputParserTest extends TestCase {
     sourceFile.delete();
   }
 
-  public void testMismatchedTag() throws Exception {
+  @Test
+  public void mismatchedTag() throws Exception {
     // https://code.google.com/p/android/issues/detail?id=59824
     createTempXmlFile();
     String output =
@@ -1300,7 +1337,8 @@ public class BuildOutputParserTest extends TestCase {
     sourceFile.delete();
   }
 
-  public void testDuplicateResources3() throws Exception {
+  @Test
+  public void duplicateResources3() throws Exception {
     // Duplicate resource exception: New gradle output format (using MergingException)
     createTempXmlFile();
     String output =
@@ -1352,7 +1390,8 @@ public class BuildOutputParserTest extends TestCase {
     sourceFile.delete();
   }
 
-  public void testXmlError2() throws Exception {
+  @Test
+  public void xmlError2() throws Exception {
     // XML error; Added "<" on separate line; new gradle output format (using MergingException)
     createTempXmlFile();
     String output =
@@ -1405,7 +1444,8 @@ public class BuildOutputParserTest extends TestCase {
     sourceFile.delete();
   }
 
-  public void testXmlErrorBadLinenumbers() throws Exception {
+  @Test
+  public void xmlErrorBadLineNumbers() throws Exception {
     // Like testXmlError2, but with tweaked line numbers to check the MergingExceptionParser parser
     createTempXmlFile();
     String output =
@@ -1424,7 +1464,8 @@ public class BuildOutputParserTest extends TestCase {
     sourceFile.delete();
   }
 
-  public void testXmlError3() throws Exception {
+  @Test
+  public void xmlError3() throws Exception {
     // XML error; Added <dimen name=activity_horizontal_margin">16dp</dimen> (missing quote
     createTempXmlFile();
     String output =
@@ -1477,7 +1518,8 @@ public class BuildOutputParserTest extends TestCase {
     sourceFile.delete();
   }
 
-  public void testJavacError() throws Exception {
+  @Test
+  public void javacError() throws Exception {
     // Javac error
     createTempXmlFile();
     String output =
@@ -1550,7 +1592,8 @@ public class BuildOutputParserTest extends TestCase {
     sourceFile.delete();
   }
 
-  public void testMissingSourceCompat() throws Exception {
+  @Test
+  public void missingSourceCompat() throws Exception {
     // Wrong target (source, not target
     // Should rewrite to suggest checking JAVA_HOME
     createTempXmlFile();
@@ -1614,7 +1657,8 @@ public class BuildOutputParserTest extends TestCase {
     sourceFile.delete();
   }
 
-  public void testInvalidLayoutName() throws Exception {
+  @Test
+  public void invalidLayoutName() throws Exception {
     // Invalid layout name
     createTempXmlFile();
     String output =
@@ -1664,7 +1708,9 @@ public class BuildOutputParserTest extends TestCase {
                  toString(parser.parseGradleOutput(output)));
     sourceFile.delete();
   }
-  public void testInvalidLayoutName2() throws Exception {
+
+  @Test
+  public void invalidLayoutName2() throws Exception {
     // Like testInvalidLayoutName, but with line numbers in the error pattern
     createTempXmlFile();
     String output =
@@ -1715,7 +1761,8 @@ public class BuildOutputParserTest extends TestCase {
     sourceFile.delete();
   }
 
-  public void testMultipleResourcesInSameFile() throws Exception {
+  @Test
+  public void multipleResourcesInSameFile() throws Exception {
     // Multiple items (repeated)
     createTempXmlFile();
     String output =
@@ -1767,7 +1814,8 @@ public class BuildOutputParserTest extends TestCase {
   }
 
 
-  public void testNdkWarningOutputUnix() throws Exception {
+  @Test
+  public void ndkWarningOutputUnix() throws Exception {
     createTempXmlFile();
     String output =
       ":foolib:compileLint\n" +
@@ -1844,7 +1892,8 @@ public class BuildOutputParserTest extends TestCase {
     sourceFile.delete();
   }
 
-  public void testNdErrorOutputUnix() throws Exception {
+  @Test
+  public void ndErrorOutputUnix() throws Exception {
     createTempFile(".cpp");
     String output =
       ":foolib:mergeDebugProguardFiles UP-TO-DATE\n" +
@@ -1887,7 +1936,8 @@ public class BuildOutputParserTest extends TestCase {
     sourceFile.delete();
   }
 
-  public void testWrongGradleVersion() throws Exception {
+  @Test
+  public void wrongGradleVersion() throws Exception {
     // Wrong gradle
     createTempFile(DOT_GRADLE);
     String output =
@@ -1918,7 +1968,8 @@ public class BuildOutputParserTest extends TestCase {
     sourceFile.delete();
   }
 
-  public void testAndroidPluginStructuredOutput() {
+  @Test
+  public void androidPluginStructuredOutput() {
     String output =
       "WARNING|:project:app1|A minor warning\n" +
       "WARNING|:project:app2|A|minor|warning\n" +
@@ -1932,7 +1983,8 @@ public class BuildOutputParserTest extends TestCase {
                  toString(parser.parseGradleOutput(output)));
   }
 
-  public void testNewManifestMergeError() throws Exception {
+  @Test
+  public void newManifestMergeError() throws Exception {
     createTempFile(DOT_XML);
     String output =
       sourceFilePath + ":50:4 Warning:\n" +
@@ -1948,7 +2000,8 @@ public class BuildOutputParserTest extends TestCase {
                  toString(parser.parseGradleOutput(output)));
   }
 
-  public void testManifestMergeError() throws Exception {
+  @Test
+  public void manifestMergeError() throws Exception {
     createTempFile(DOT_XML);
     String output =
       ":processFlavor1DebugManifest\n" +
@@ -1972,7 +2025,8 @@ public class BuildOutputParserTest extends TestCase {
     sourceFile.delete();
   }
 
-  public void testManifestMergeWindowsError() throws Exception {
+  @Test
+  public void manifestMergeWindowsError() throws Exception {
     createTempFile(DOT_XML);
     String output =
       ":processFlavor1DebugManifest\n" +
@@ -1996,7 +2050,8 @@ public class BuildOutputParserTest extends TestCase {
     sourceFile.delete();
   }
 
-  public void testDexDuplicateClassException() throws Exception {
+  @Test
+  public void dexDuplicateClassException() throws Exception {
     String output =
       ":two:dexDebug\n" +
       "UNEXPECTED TOP-LEVEL EXCEPTION:\n" +
@@ -2041,7 +2096,8 @@ public class BuildOutputParserTest extends TestCase {
                  toString(parser.parseGradleOutput(output)));
   }
 
-  public void testMultilineCompileError() throws Exception {
+  @Test
+  public void multilineCompileError() throws Exception {
     createTempFile(DOT_JAVA);
     String output =
       ":two:compileDebug\n" +
@@ -2079,7 +2135,8 @@ public class BuildOutputParserTest extends TestCase {
     sourceFile.delete();
   }
 
-  public void testRewriteManifestPaths1() throws Exception {
+  @Test
+  public void rewriteManifestPaths1() throws Exception {
     File tempDir = Files.createTempDir();
     sourceFile = new File(tempDir, ANDROID_MANIFEST_XML);
     sourceFilePath = sourceFile.getAbsolutePath();
@@ -2217,7 +2274,8 @@ public class BuildOutputParserTest extends TestCase {
     tempDir.delete();
   }
 
-  public void testRewriteManifestPaths2() throws Exception {
+  @Test
+  public void rewriteManifestPaths2() throws Exception {
     // Like testRewriteManifestPaths1, but with a source comment at the end of the file
     // (which happens when there is only a single manifest, so no files are merged and it's a straight
     // file copy in the gradle plugin)
@@ -2363,6 +2421,36 @@ public class BuildOutputParserTest extends TestCase {
     sourceFile.delete();
     source.delete();
     tempDir.delete();
+  }
+
+  @Test
+  public void withInfoMessage() {
+    String output = "21:12:17.771 [INFO] [org.gradle.api.internal.artifacts.ivyservice.IvyLoggingAdaper] setting 'http.nonProxyHosts' to 'local|*.local|169.254/16|*.169.254/16'";
+    List<Message> Messages = parser.parseGradleOutput(output);
+    assertEquals(1, Messages.size());
+    Message message = Messages.get(0);
+    assertEquals(output, message.getText());
+    assertEquals(Message.Kind.SIMPLE, message.getKind());
+  }
+
+  @Test
+  public void withDebugMessage() {
+    String output = "21:12:17.771 [DEBUG] [org.gradle.api.internal.artifacts.ivyservice.IvyLoggingAdaper] setting 'http.nonProxyHosts' to 'local|*.local|169.254/16|*.169.254/16'";
+    List<Message> Messages = parser.parseGradleOutput(output);
+    assertEquals(1, Messages.size());
+    Message message = Messages.get(0);
+    assertEquals(output, message.getText());
+    assertEquals(Message.Kind.SIMPLE, message.getKind());
+  }
+
+  @Test
+  public void withAndroidConfigChanges() {
+    String output = "128            android:configChanges=\"orientation|keyboardHidden|keyboard|screenSize\"";
+    List<Message> Messages = parser.parseGradleOutput(output);
+    assertEquals(1, Messages.size());
+    Message message = Messages.get(0);
+    assertEquals(output, message.getText());
+    assertEquals(Message.Kind.SIMPLE, message.getKind());
   }
 
   private static final String WINDOWS_PATH_DRIVE_LETTER = "C:";
