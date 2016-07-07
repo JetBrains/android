@@ -1012,6 +1012,8 @@
                     interface="com.android.tools.idea.logcat.LogcatFilterProvider" />
     <extensionPoint qualifiedName="org.jetbrains.android.actions.newResourceCreationHandler"
                     interface="org.jetbrains.android.actions.NewResourceCreationHandler" />
+    <extensionPoint qualifiedName="com.android.run.androidLaunchTaskContributor"
+                    interface="com.android.tools.idea.run.AndroidLaunchTaskContributor" />
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.android">
