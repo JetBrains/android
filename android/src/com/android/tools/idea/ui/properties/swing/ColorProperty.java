@@ -17,13 +17,13 @@ package com.android.tools.idea.ui.properties.swing;
 
 import com.android.tools.idea.ui.properties.AbstractProperty;
 import com.android.tools.idea.ui.properties.core.OptionalProperty;
-import com.google.common.base.Optional;
 import com.intellij.ui.ColorPanel;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Optional;
 
 
 /**
@@ -44,12 +44,12 @@ public final class ColorProperty extends OptionalProperty<Color> implements Acti
 
   @Override
   protected void setDirectly(@NotNull Optional<Color> value) {
-    myColorPanel.setSelectedColor(value.orNull());
+    myColorPanel.setSelectedColor(value.orElse(null));
   }
 
   @NotNull
   @Override
   public Optional<Color> get() {
-    return Optional.fromNullable(myColorPanel.getSelectedColor());
+    return Optional.ofNullable(myColorPanel.getSelectedColor());
   }
 }

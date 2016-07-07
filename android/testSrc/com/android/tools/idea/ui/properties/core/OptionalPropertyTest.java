@@ -19,6 +19,8 @@ import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.CountListener;
 import org.junit.Test;
 
+import java.util.NoSuchElementException;
+
 import static com.android.tools.idea.ui.properties.BatchInvoker.INVOKE_IMMEDIATELY_STRATEGY;
 import static com.google.common.truth.Truth.assertThat;
 
@@ -89,7 +91,7 @@ public final class OptionalPropertyTest {
     assertThat(optStringValue.getValueOrNull()).isNull();
   }
 
-  @Test(expected = IllegalStateException.class)
+  @Test(expected = NoSuchElementException.class)
   public void testGetOnAbsentOptionThrowsException() {
     OptionalProperty<String> optStringValue = OptionalValueProperty.absent();
     optStringValue.getValue();

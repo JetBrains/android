@@ -16,9 +16,10 @@
 package com.android.tools.idea.ui.properties.adapters;
 
 import com.android.tools.idea.ui.properties.AbstractProperty;
-import com.google.common.base.Optional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Optional;
 
 /**
  * Adapter property that wraps an optional type and provides non-null access to its contents. This
@@ -41,7 +42,7 @@ public final class OptionalToValuePropertyAdapter<T> extends AdapterProperty<Opt
   @Nullable
   @Override
   protected T convertFromSourceType(@NotNull Optional<T> value) {
-    return value.orNull();
+    return value.orElse(null);
   }
 
   @NotNull

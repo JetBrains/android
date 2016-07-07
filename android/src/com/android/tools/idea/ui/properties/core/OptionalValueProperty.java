@@ -16,9 +16,10 @@
 package com.android.tools.idea.ui.properties.core;
 
 import com.android.tools.idea.ui.properties.AbstractProperty;
-import com.google.common.base.Optional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Optional;
 
 /**
  * An {@link AbstractProperty} backed by an optional value.
@@ -28,7 +29,7 @@ public final class OptionalValueProperty<T> extends OptionalProperty<T> {
   @NotNull private Optional<T> myOptional;
 
   public OptionalValueProperty() {
-    myOptional = Optional.absent();
+    myOptional = Optional.empty();
   }
 
   public OptionalValueProperty(@NotNull T value) {
