@@ -23,7 +23,10 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.*;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiMethod;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.ui.JBColor;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -33,7 +36,7 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
 import java.util.List;
 
 public class NavigationEditorUtils {
@@ -265,7 +268,7 @@ public class NavigationEditorUtils {
   @NotNull
   public static Module[] getAndroidModules(Project project) {
     if (project == null) {
-      return new Module[0];
+      return Module.EMPTY_ARRAY;
     }
     Module[] modules = ModuleManager.getInstance(project).getModules();
     List<Module> result = new ArrayList<Module>(modules.length);
