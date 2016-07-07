@@ -249,13 +249,7 @@ public final class Projects {
       return true;
     }
     ProjectSyncMessages messages = ProjectSyncMessages.getInstance(project);
-    int errorCount = messages.getErrorCount();
-    if (errorCount > 0) {
-      return false;
-    }
-    // Variant selection errors do not count as "sync failed" errors.
-    int variantSelectionErrorCount = messages.getMessageCount(VARIANT_SELECTION_CONFLICTS);
-    return errorCount != variantSelectionErrorCount;
+    return messages.getErrorCount() > 0;
   }
 
   private static boolean hasSyncErrors(@NotNull Project project) {
