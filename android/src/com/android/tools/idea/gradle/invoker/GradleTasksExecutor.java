@@ -447,12 +447,21 @@ public class GradleTasksExecutor extends Task.Backgroundable {
   @NotNull
   private static ActionCallback collectMessages(@NotNull String gradleOutput, @NotNull List<Message> messages) {
     ActionCallback callback = new ActionCallback();
-    ApplicationManager.getApplication().executeOnPooledThread(() -> {
+
+    Runnable task = () -> {
       Iterable<PatternAwareOutputParser> parsers = JpsServiceManager.getInstance().getExtensions(PatternAwareOutputParser.class);
       List<Message> compilerMessages = new BuildOutputParser(parsers).parseGradleOutput(gradleOutput);
       messages.addAll(compilerMessages);
       callback.setDone();
-    });
+    };
+
+    Application application = ApplicationManager.getApplication();
+    if (application.isUnitTestMode()) {
+      task.run();
+    }
+    else {
+      application.executeOnPooledThread(task);
+    }
     return callback;
   }
 
