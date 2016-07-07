@@ -112,7 +112,7 @@
   </item>
   <item name="android.content.pm.PackageManager android.content.pm.ApplicationInfo getApplicationInfo(java.lang.String, int) 1">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY, android.content.pm.PackageManager.GET_UNINSTALLED_PACKAGES}" />
+      <val name="value" val="{android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY, android.content.pm.PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.GET_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.GET_UNINSTALLED_PACKAGES}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
@@ -232,7 +232,7 @@
   </item>
   <item name="android.content.pm.PackageManager java.util.List&lt;android.content.pm.ApplicationInfo&gt; getInstalledApplications(int) 0">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY, android.content.pm.PackageManager.GET_UNINSTALLED_PACKAGES, android.content.pm.PackageManager.GET_DISABLED_COMPONENTS, android.content.pm.PackageManager.MATCH_DISABLED_COMPONENTS, android.content.pm.PackageManager.GET_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS}" />
+      <val name="value" val="{android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY, android.content.pm.PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.GET_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.GET_UNINSTALLED_PACKAGES}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
