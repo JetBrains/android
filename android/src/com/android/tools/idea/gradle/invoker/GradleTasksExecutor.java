@@ -450,7 +450,7 @@ public class GradleTasksExecutor extends Task.Backgroundable {
 
     Runnable task = () -> {
       Iterable<PatternAwareOutputParser> parsers = JpsServiceManager.getInstance().getExtensions(PatternAwareOutputParser.class);
-      List<Message> compilerMessages = new BuildOutputParser(parsers).parseGradleOutput(gradleOutput);
+      List<Message> compilerMessages = new BuildOutputParser(parsers).parseGradleOutput(gradleOutput, true);
       messages.addAll(compilerMessages);
       callback.setDone();
     };
