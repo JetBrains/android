@@ -90,7 +90,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
   private long myDataBindingResourceFilesModificationCount = Long.MIN_VALUE;
   private final Object SCAN_LOCK = new Object();
   private Set<PsiFile> myPendingScans;
-  private InitialScanState myInitialInitialScanState;
+  private InitialScanState myInitialScanState;
 
   @VisibleForTesting
   static int ourFullRescans;
@@ -104,17 +104,17 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     myLibraryName = libraryName;
 
     ResourceMerger merger = loadPreviousStateIfExists();
-    myInitialInitialScanState = new InitialScanState(merger, VfsUtilCore.virtualToIoFile(myResourceDir));
+    myInitialScanState = new InitialScanState(merger, VfsUtilCore.virtualToIoFile(myResourceDir));
     scanRemainingFiles();
     Application app = ApplicationManager.getApplication();
     // For now, automatically save the state. We may want to move this out to a separate task.
     if (!hasFreshFileCache() && !app.isUnitTestMode()) {
       saveStateToFile();
     }
-    // Clear some unneeded state (resource merger holds a second map of items).
+    // Clear some unneeded state (myInitialScanState's resource merger holds a second map of items).
     // Skip for unit tests, which may need to test saving separately (saving is normally skipped for unit tests).
     if (!app.isUnitTestMode()) {
-      myInitialInitialScanState.clearLoaderState();
+      myInitialScanState = null;
     }
   }
 
@@ -148,7 +148,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       ResourcePreprocessor preprocessor = new NoOpResourcePreprocessor();
       MergeConsumer<ResourceItem> consumer = MergedResourceWriter.createWriterWithoutPngCruncher(
         blobRoot, null, null, preprocessor, FileUtil.createTempDirectory("resource", "tmp", true));
-      myInitialInitialScanState.myResourceMerger.writeBlobToWithTimestamps(blobRoot, consumer);
+      myInitialScanState.myResourceMerger.writeBlobToWithTimestamps(blobRoot, consumer);
     }
     catch (MergingException|IOException e) {
       LOG.error("Failed to saveStateToFile", e);
@@ -246,11 +246,11 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
    * @return true if this repo is backed by a fresh file cache
    */
   boolean hasFreshFileCache() {
-    return myInitialInitialScanState.numXmlReparsed * 4 <= myInitialInitialScanState.numXml;
+    return myInitialScanState.numXmlReparsed * 4 <= myInitialScanState.numXml;
   }
 
   @VisibleForTesting
-  InitialScanState getInitialInitialScanState() { return myInitialInitialScanState; }
+  InitialScanState getInitialScanState() { return myInitialScanState; }
 
   /**
    * Tracks state used by the initial scan, which may be used to save the state to a cache.
@@ -262,10 +262,12 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     int numXml; // Doesn't count files that are explicitly skipped
     int numXmlReparsed;
 
-    ResourceMerger myResourceMerger;
-    ResourceSet myResourceSet;
-    ILogger myILogger;
-    File myResourceDir;
+    final ResourceMerger myResourceMerger;
+    final ResourceSet myResourceSet;
+    final ILogger myILogger;
+    final File myResourceDir;
+    final Collection<PsiFileResourceQueueEntry> myPsiFileResourceQueue = new ArrayList<>();
+    final Collection<PsiValueResourceQueueEntry> myPsiValueResourceQueue = new ArrayList<>();
 
     public InitialScanState(ResourceMerger merger, File resourceDir) {
       myResourceMerger = merger;
@@ -276,13 +278,6 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       myResourceSet.setTrackSourcePositions(false);
       myILogger = new LogWrapper(LOG);
       myResourceDir = resourceDir;
-    }
-
-    public void clearLoaderState() {
-      myResourceMerger = null;
-      myResourceSet = null;
-      myILogger = null;
-      myResourceDir = null;
     }
 
     public void countCacheHit() {
@@ -305,21 +300,96 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     ResourceFile loadFile(File file) throws MergingException {
       return myResourceSet.loadFile(myResourceDir, file, myILogger);
     }
+
+    public void queuePsiFileResourceScan(PsiFileResourceQueueEntry data) {
+      myPsiFileResourceQueue.add(data);
+    }
+
+    public void queuePsiValueResourceScan(PsiValueResourceQueueEntry data) {
+      myPsiValueResourceQueue.add(data);
+    }
+  }
+
+  /**
+   * Tracks file-based resources where init via VirtualFile failed. We retry init via PSI for these files.
+   */
+  private static class PsiFileResourceQueueEntry {
+    public final VirtualFile file;
+    public final String qualifiers;
+    public final ResourceFolderType folderType;
+    public final FolderConfiguration folderConfiguration;
+
+    public PsiFileResourceQueueEntry(VirtualFile file, String qualifiers,
+                                     ResourceFolderType folderType, FolderConfiguration folderConfiguration) {
+      this.file = file;
+      this.qualifiers = qualifiers;
+      this.folderType = folderType;
+      this.folderConfiguration = folderConfiguration;
+    }
+  }
+
+  /**
+   * Tracks value resources where init via VirtualFile failed. We retry init via PSI for these files.
+   */
+  private static class PsiValueResourceQueueEntry {
+    public final VirtualFile file;
+    public final String qualifiers;
+    public final FolderConfiguration folderConfiguration;
+
+    public PsiValueResourceQueueEntry(VirtualFile file, String qualifiers, FolderConfiguration folderConfiguration) {
+      this.file = file;
+      this.qualifiers = qualifiers;
+      this.folderConfiguration = folderConfiguration;
+    }
   }
 
   private void scanRemainingFiles() {
-    ApplicationManager.getApplication().runReadAction(new Runnable() {
-      @Override
-      public void run() {
-        if (myResourceDir.isValid()) {
-          PsiManager manager = PsiManager.getInstance(myFacet.getModule().getProject());
-          PsiDirectory directory = manager.findDirectory(myResourceDir);
-          if (directory != null) {
-            scanResFolder(directory);
-          }
-        }
-      }
+    if (!myResourceDir.isValid()) {
+      return;
+    }
+    ApplicationManager.getApplication().runReadAction(() -> {
+      getPsiDirsForListener(myResourceDir);
     });
+    scanResFolder(myResourceDir);
+    ApplicationManager.getApplication().runReadAction(this::scanQueuedPsiResources);
+  }
+
+  /**
+   * Currently, {@link com.intellij.psi.impl.file.impl.PsiVFSListener} requires that at least the parent directory of each file has been
+   * accessed as PSI before bothering to notify any listener of events. So, make a quick pass to grab the necessary PsiDirectories.
+   *
+   * @param resourceDir the root resource directory.
+   */
+  private void getPsiDirsForListener(VirtualFile resourceDir) {
+    PsiManager manager = PsiManager.getInstance(myModule.getProject());
+    PsiDirectory resourceDirPsi = manager.findDirectory(resourceDir);
+    if (resourceDirPsi != null) {
+      resourceDirPsi.getSubdirectories();
+    }
+  }
+
+  /**
+   * For resource files that failed when scanning with a VirtualFile, retry with PsiFile.
+   */
+  private void scanQueuedPsiResources() {
+    PsiManager psiManager = PsiManager.getInstance(myModule.getProject());
+    for (PsiValueResourceQueueEntry valueResource : myInitialScanState.myPsiValueResourceQueue) {
+      PsiFile file = psiManager.findFile(valueResource.file);
+      if (file != null) {
+        scanValueFileAsPsi(valueResource.qualifiers, file, valueResource.folderConfiguration);
+      }
+    }
+    for (PsiFileResourceQueueEntry fileResource : myInitialScanState.myPsiFileResourceQueue) {
+      PsiFile file = psiManager.findFile(fileResource.file);
+      if (file != null) {
+        List<ResourceType> resourceTypes = FolderTypeRelationship.getRelatedResourceTypes(fileResource.folderType);
+        assert resourceTypes.size() >= 1 : fileResource.folderType;
+        ResourceType type = resourceTypes.get(0);
+        ListMultimap<String, ResourceItem> map = getMap(type, true);
+        scanFileResourceFileAsPsi(fileResource.qualifiers, fileResource.folderType, fileResource.folderConfiguration,
+                                  type, true, map, file);
+      }
+    }
   }
 
   @Nullable
@@ -339,20 +409,23 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     return null;
   }
 
-  private void scanResFolder(@NotNull PsiDirectory res) {
-    for (PsiDirectory dir : res.getSubdirectories()) {
-      String name = dir.getName();
-      ResourceFolderType folderType = getFolderType(name);
-      if (folderType != null) {
-        FolderConfiguration folderConfiguration = FolderConfiguration.getConfigForFolder(name);
-        if (folderConfiguration == null) {
-          continue;
-        }
-        String qualifiers = getQualifiers(name);
-        if (folderType == VALUES) {
-          scanValueResFolder(dir, qualifiers);
-        } else {
-          scanFileResourceFolder(dir, folderType, qualifiers, folderConfiguration);
+  private void scanResFolder(@NotNull VirtualFile resDir) {
+    for (VirtualFile subDir : resDir.getChildren()) {
+      if (subDir.isValid() && subDir.isDirectory()) {
+        String name = subDir.getName();
+        ResourceFolderType folderType = getFolderType(name);
+        if (folderType != null) {
+          FolderConfiguration folderConfiguration = FolderConfiguration.getConfigForFolder(name);
+          if (folderConfiguration == null) {
+            continue;
+          }
+          String qualifiers = getQualifiers(name);
+          if (folderType == VALUES) {
+            scanValueResFolder(subDir, qualifiers, folderConfiguration);
+          }
+          else {
+            scanFileResourceFolder(subDir, folderType, qualifiers, folderConfiguration);
+          }
         }
       }
     }
@@ -363,7 +436,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     return index != -1 ? dirName.substring(index + 1) : "";
   }
 
-  private void scanFileResourceFolder(@NotNull PsiDirectory directory,
+  private void scanFileResourceFolder(@NotNull VirtualFile directory,
                                       ResourceFolderType folderType, String qualifiers,
                                       FolderConfiguration folderConfiguration) {
     List<ResourceType> resourceTypes = FolderTypeRelationship.getRelatedResourceTypes(folderType);
@@ -374,12 +447,14 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
 
     ListMultimap<String, ResourceItem> map = getMap(type, true);
 
-    for (PsiFile file : directory.getFiles()) {
-      FileType fileType = file.getFileType();
-      boolean idGeneratingFile = idGeneratingFolder && fileType == StdFileTypes.XML;
-      if (PsiProjectListener.isRelevantFileType(fileType) || folderType == ResourceFolderType.RAW) {
-        scanFileResourceFile(qualifiers, folderType, folderConfiguration, type, idGeneratingFile, map, file.getVirtualFile());
-      } // TODO: Else warn about files that aren't expected to be found here?
+    for (VirtualFile file : directory.getChildren()) {
+      if (file.isValid() && !file.isDirectory()) {
+        FileType fileType = file.getFileType();
+        boolean idGeneratingFile = idGeneratingFolder && fileType == StdFileTypes.XML;
+        if (PsiProjectListener.isRelevantFileType(fileType) || folderType == ResourceFolderType.RAW) {
+          scanFileResourceFile(qualifiers, folderType, folderConfiguration, type, idGeneratingFile, map, file);
+        } // TODO: Else warn about files that aren't expected to be found here?
+      }
     }
   }
 
@@ -420,23 +495,23 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     ResourceFile resourceFile;
     if (idGenerating) {
       if (myResourceFiles.containsKey(file)) {
-        myInitialInitialScanState.countCacheHit();
+        myInitialScanState.countCacheHit();
         return;
       }
       try {
-        resourceFile = myInitialInitialScanState.loadFile(VfsUtilCore.virtualToIoFile(file));
+        resourceFile = myInitialScanState.loadFile(VfsUtilCore.virtualToIoFile(file));
         if (resourceFile == null) {
           // The file-based parser failed for some reason. Fall back to Psi in case it is more lax.
-          // Don't count Psi items in myInitialInitialScanState.numXml, because they are never cached.
-          scanFileResourceFileAsPsi(qualifiers, folderType, folderConfiguration, type, idGenerating,
-                                    map, PsiManager.getInstance(myModule.getProject()).findFile(file));
+          // Don't count Psi items in myInitialScanState.numXml, because they are never cached.
+          myInitialScanState.queuePsiFileResourceScan(
+            new PsiFileResourceQueueEntry(file, qualifiers, folderType, folderConfiguration));
           return;
         }
         ListMultimap<String, ResourceItem> idMap = getMap(ResourceType.ID, true);
         boolean isDensityBasedResource = folderType == DRAWABLE || folderType == MIPMAP;
         // We skip caching density-based resources, so don't count those against cache statistics.
         if (!isDensityBasedResource) {
-          myInitialInitialScanState.countCacheMiss();
+          myInitialScanState.countCacheMiss();
         }
         for (ResourceItem item : resourceFile.getItems()) {
           ListMultimap<String, ResourceItem> itemMap;
@@ -457,8 +532,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       }
       catch (MergingException e) {
         // The file-based parser may not be able handle the file if it is a data-binding file.
-        scanFileResourceFileAsPsi(qualifiers, folderType, folderConfiguration, type, idGenerating,
-                                  map, PsiManager.getInstance(myModule.getProject()).findFile(file));
+        myInitialScanState.queuePsiFileResourceScan(
+          new PsiFileResourceQueueEntry(file, qualifiers, folderType, folderConfiguration));
         return;
       }
     }
@@ -721,12 +796,14 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     }
   }
 
-  private void scanValueResFolder(@NotNull PsiDirectory directory, String qualifiers) {
+  private void scanValueResFolder(@NotNull VirtualFile directory, String qualifiers, FolderConfiguration folderConfiguration) {
     //noinspection ConstantConditions
     assert directory.getName().startsWith(FD_RES_VALUES);
 
-    for (PsiFile file : directory.getFiles()) {
-      scanValueFile(qualifiers, file.getVirtualFile());
+    for (VirtualFile file : directory.getChildren()) {
+      if (file.isValid() && !file.isDirectory()) {
+        scanValueFile(qualifiers, file, folderConfiguration);
+      }
     }
   }
 
@@ -789,33 +866,31 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     return added;
   }
 
-  private void scanValueFile(String qualifiers, VirtualFile virtualFile) {
+  private void scanValueFile(String qualifiers, VirtualFile virtualFile, FolderConfiguration folderConfiguration) {
     FileType fileType = virtualFile.getFileType();
     if (fileType == StdFileTypes.XML) {
       if (myResourceFiles.containsKey(virtualFile)) {
-        myInitialInitialScanState.countCacheHit();
+        myInitialScanState.countCacheHit();
         return;
       }
       File file = VfsUtilCore.virtualToIoFile(virtualFile);
       try {
-        ResourceFile resourceFile = myInitialInitialScanState.loadFile(file);
+        ResourceFile resourceFile = myInitialScanState.loadFile(file);
         if (resourceFile == null) {
           // The file-based parser failed for some reason. Fall back to Psi in case it is more lax.
-          scanValueFileAsPsi(qualifiers, PsiManager.getInstance(myModule.getProject()).findFile(virtualFile),
-                             FolderConfiguration.getConfigForFolder(virtualFile.getParent().getName()));
+          myInitialScanState.queuePsiValueResourceScan(new PsiValueResourceQueueEntry(virtualFile, qualifiers, folderConfiguration));
           return;
         }
         for (ResourceItem item : resourceFile.getItems()) {
           ListMultimap<String, ResourceItem> map = getMap(item.getType(), true);
           map.put(item.getName(), item);
         }
-        myInitialInitialScanState.countCacheMiss();
+        myInitialScanState.countCacheMiss();
         myResourceFiles.put(virtualFile, resourceFile);
       }
       catch (MergingException e) {
         // The file-based parser failed for some reason. Fall back to Psi in case it is more lax.
-        scanValueFileAsPsi(qualifiers, PsiManager.getInstance(myModule.getProject()).findFile(virtualFile),
-                           FolderConfiguration.getConfigForFolder(virtualFile.getParent().getName()));
+        myInitialScanState.queuePsiValueResourceScan(new PsiValueResourceQueueEntry(virtualFile, qualifiers, folderConfiguration));
       }
     }
   }
