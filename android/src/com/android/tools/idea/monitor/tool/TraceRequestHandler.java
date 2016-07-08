@@ -20,12 +20,12 @@ import com.android.ddmlib.IDevice;
 import com.android.ddmlib.SyncException;
 import com.android.ddmlib.TimeoutException;
 import com.android.tools.idea.ddms.DeviceContext;
-import com.android.tools.idea.monitor.ui.cpu.model.AppTrace;
-import com.android.tools.idea.monitor.ui.cpu.model.TraceArt;
 import com.android.tools.idea.monitor.datastore.TraceDataStore;
 import com.android.tools.idea.monitor.profilerclient.DeviceProfilerService;
+import com.android.tools.idea.monitor.ui.cpu.model.AppTrace;
+import com.android.tools.idea.monitor.ui.cpu.model.TraceArt;
 import com.android.tools.profiler.proto.CpuProfiler;
-import com.android.tools.profiler.proto.CpuProfilerServiceGrpc;
+import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -77,7 +77,7 @@ public class TraceRequestHandler implements ActionListener {
   }
 
   private void startTracing() {
-    CpuProfilerServiceGrpc.CpuProfilerServiceBlockingStub cpuService = mySelectedDeviceProfilerService.getCpuService();
+    CpuServiceGrpc.CpuServiceBlockingStub cpuService = mySelectedDeviceProfilerService.getCpuService();
     String appPackageName = myDeviceContext.getSelectedClient().getClientData().getPackageName();
 
     CpuProfiler.CpuProfilingAppStartRequest.Builder requestBuilder =
@@ -96,7 +96,7 @@ public class TraceRequestHandler implements ActionListener {
   }
 
   private void stopTracing() {
-    CpuProfilerServiceGrpc.CpuProfilerServiceBlockingStub cpuService = mySelectedDeviceProfilerService.getCpuService();
+    CpuServiceGrpc.CpuServiceBlockingStub cpuService = mySelectedDeviceProfilerService.getCpuService();
     String appPackageName = myDeviceContext.getSelectedClient().getClientData().getPackageName();
     myProfileButton.setText("Start Tracing...");
 

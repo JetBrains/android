@@ -44,7 +44,7 @@ import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.adtui.model.DurationData.UNSPECIFIED_DURATION;
 import static com.android.tools.idea.monitor.ui.memory.model.MemoryDataCache.UNFINISHED_HEAP_DUMP_TIMESTAMP;
-import static com.android.tools.profiler.proto.MemoryProfilerService.*;
+import static com.android.tools.profiler.proto.MemoryProfiler.*;
 
 public class MemoryPoller extends Poller {
   private static final Logger LOG = Logger.getInstance(MemoryPoller.class.getCanonicalName());

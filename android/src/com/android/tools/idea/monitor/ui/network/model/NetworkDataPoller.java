@@ -18,7 +18,7 @@ package com.android.tools.idea.monitor.ui.network.model;
 import com.android.tools.idea.monitor.datastore.*;
 import com.android.tools.idea.monitor.ui.network.view.NetworkRadioSegment;
 import com.android.tools.profiler.proto.NetworkProfiler;
-import com.android.tools.profiler.proto.NetworkProfilerServiceGrpc;
+import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import gnu.trove.TLongArrayList;
 import io.grpc.StatusRuntimeException;
 import org.jetbrains.annotations.NotNull;
@@ -47,7 +47,7 @@ public class NetworkDataPoller extends Poller {
 
   private final List<NetworkRadioSegment.NetworkType> myNetworkTypeData = new ArrayList<>();
 
-  private NetworkProfilerServiceGrpc.NetworkProfilerServiceBlockingStub myNetworkService;
+  private NetworkServiceGrpc.NetworkServiceBlockingStub myNetworkService;
 
   private int myPid;
 

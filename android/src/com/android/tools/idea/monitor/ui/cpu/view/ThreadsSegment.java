@@ -30,7 +30,7 @@ import com.android.tools.idea.monitor.ui.BaseSegment;
 import com.android.tools.idea.monitor.ui.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.cpu.model.ThreadAddedNotifier;
 import com.android.tools.idea.monitor.ui.cpu.model.ThreadStatesDataModel;
-import com.android.tools.profiler.proto.Cpu;
+import com.android.tools.profiler.proto.CpuProfiler;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLayeredPane;
 import com.intellij.ui.components.JBList;
@@ -90,7 +90,7 @@ public class ThreadsSegment extends BaseSegment implements Animatable {
    */
   private final int mThreadsChartY = (mCellHeight - mThreadsChartHeight) / 2;
 
-  private final Map<ThreadStatesDataModel, StateChart<Cpu.ThreadActivity.State>> mThreadsStateCharts = new HashMap<>();
+  private final Map<ThreadStatesDataModel, StateChart<CpuProfiler.ThreadActivity.State>> mThreadsStateCharts = new HashMap<>();
 
 
   private final DefaultListModel<ThreadStatesDataModel> mThreadsListModel = new DefaultListModel<>();
@@ -100,7 +100,7 @@ public class ThreadsSegment extends BaseSegment implements Animatable {
   @NotNull
   private final Range mTimeRange;
 
-  private static EnumMap<Cpu.ThreadActivity.State, Color> mThreadStateColor;
+  private static EnumMap<CpuProfiler.ThreadActivity.State, Color> mThreadStateColor;
 
   /**
    * Listens to changes in the threads list selection. In case it's null, changes in the selection won't notify anything.
@@ -144,15 +144,15 @@ public class ThreadsSegment extends BaseSegment implements Animatable {
   }
 
   @NotNull
-  private static EnumMap<Cpu.ThreadActivity.State, Color> getThreadStateColor() {
+  private static EnumMap<CpuProfiler.ThreadActivity.State, Color> getThreadStateColor() {
     if (mThreadStateColor != null) {
       return mThreadStateColor;
     }
     // TODO: change it to use the proper darcula colors. Also, support other states if needed.
-    mThreadStateColor = new EnumMap<>(Cpu.ThreadActivity.State.class);
-    mThreadStateColor.put(Cpu.ThreadActivity.State.RUNNING, new JBColor(0x6cc17b, 0x6cc17b));
-    mThreadStateColor.put(Cpu.ThreadActivity.State.SLEEPING, new JBColor(0xaaaaaa, 0xaaaaaa));
-    mThreadStateColor.put(Cpu.ThreadActivity.State.DEAD, AdtUiUtils.DEFAULT_BACKGROUND_COLOR);
+    mThreadStateColor = new EnumMap<>(CpuProfiler.ThreadActivity.State.class);
+    mThreadStateColor.put(CpuProfiler.ThreadActivity.State.RUNNING, new JBColor(0x6cc17b, 0x6cc17b));
+    mThreadStateColor.put(CpuProfiler.ThreadActivity.State.SLEEPING, new JBColor(0xaaaaaa, 0xaaaaaa));
+    mThreadStateColor.put(CpuProfiler.ThreadActivity.State.DEAD, AdtUiUtils.DEFAULT_BACKGROUND_COLOR);
     return mThreadStateColor;
   }
 
@@ -165,10 +165,10 @@ public class ThreadsSegment extends BaseSegment implements Animatable {
     List<LegendRenderData> legendRenderDataList = new ArrayList<>();
     // Running state
     legendRenderDataList.add(
-      new LegendRenderData(LegendRenderData.IconType.BOX, getThreadStateColor().get(Cpu.ThreadActivity.State.RUNNING), RUNNING_LABEL));
+      new LegendRenderData(LegendRenderData.IconType.BOX, getThreadStateColor().get(CpuProfiler.ThreadActivity.State.RUNNING), RUNNING_LABEL));
     // Sleeping state
     legendRenderDataList.add(
-      new LegendRenderData(LegendRenderData.IconType.BOX, getThreadStateColor().get(Cpu.ThreadActivity.State.SLEEPING), SLEEPING_LABEL));
+      new LegendRenderData(LegendRenderData.IconType.BOX, getThreadStateColor().get(CpuProfiler.ThreadActivity.State.SLEEPING), SLEEPING_LABEL));
     // Blocked state. TODO: support this state later if we actually should do so
     legendRenderDataList.add(new LegendRenderData(LegendRenderData.IconType.BOX, JBColor.BLACK, BLOCKED_LABEL));
 
@@ -223,12 +223,12 @@ public class ThreadsSegment extends BaseSegment implements Animatable {
   }
 
   private void createThreadStateChart(ThreadStatesDataModel threadStatesDataModel) {
-    StateChart<Cpu.ThreadActivity.State> stateChart = new StateChart<>(getThreadStateColor());
+    StateChart<CpuProfiler.ThreadActivity.State> stateChart = new StateChart<>(getThreadStateColor());
     mThreadsStateCharts.put(threadStatesDataModel, stateChart);
 
-    DataStoreSeries<Cpu.ThreadActivity.State> defaultData =
+    DataStoreSeries<CpuProfiler.ThreadActivity.State> defaultData =
       new DataStoreSeries<>(mSeriesDataStore, SeriesDataType.CPU_THREAD_STATE, threadStatesDataModel);
-    RangedSeries<Cpu.ThreadActivity.State> threadSeries = new RangedSeries<>(mTimeRange, defaultData);
+    RangedSeries<CpuProfiler.ThreadActivity.State> threadSeries = new RangedSeries<>(mTimeRange, defaultData);
     mThreadsStateCharts.get(threadStatesDataModel).addSeries(threadSeries);
     mThreadsListModel.addElement(threadStatesDataModel);
   }
@@ -282,7 +282,7 @@ public class ThreadsSegment extends BaseSegment implements Animatable {
       threadName.setBounds(THREADS_NAME_LEFT_MARGIN, 0, list.getWidth(), mCellHeight);
 
       // Cell content (state chart containing the thread states)
-      StateChart<Cpu.ThreadActivity.State> threadStateChart = mThreadsStateCharts.get(threadStatesDataModel);
+      StateChart<CpuProfiler.ThreadActivity.State> threadStateChart = mThreadsStateCharts.get(threadStatesDataModel);
       // State chart should be aligned with CPU Usage line charts and, therefore, with center content
       threadStateChart.setBounds(getSpacerWidth(), mThreadsChartY, list.getWidth() - getSpacerWidth(), mThreadsChartHeight);
 
