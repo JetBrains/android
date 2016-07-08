@@ -13,10 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.npw;
+package com.android.tools.idea.npw.deprecated;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.npw.ChooseTemplateStep;
+import com.android.tools.idea.npw.NewModuleWizardState;
+import com.android.tools.idea.npw.NewProjectWizardState;
+import com.android.tools.idea.npw.WizardPath;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.wizard.template.TemplateWizardStep;
 import com.google.common.base.Functions;
@@ -42,6 +46,7 @@ import static com.android.tools.idea.npw.FormFactorUtils.ATTR_MODULE_NAME;
 import static com.android.tools.idea.npw.NewModuleWizardState.ATTR_PROJECT_LOCATION;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 
+@Deprecated
 public class ImportWizardModuleBuilder
   implements TemplateWizardStep.UpdateListener, ChooseTemplateStep.TemplateChangeListener {
 
