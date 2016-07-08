@@ -105,7 +105,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     }
 
     for (AndroidLaunchTaskContributor taskContributor : AndroidLaunchTaskContributor.EP_NAME.getExtensions()) {
-      if (taskContributor.inContext(myFacet.getModule())) {
+      if (taskContributor.isApplicable(myFacet.getModule())) {
         launchTasks.add(taskContributor.getTask());
       }
     }
