@@ -633,22 +633,6 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     checkComponent(createMockComponent(TOOLBAR_V7), "Toolbar", AndroidIcons.Views.Toolbar);
   }
 
-  public void assertBrowseFragment(@NotNull Palette.BaseItem item) {
-    assertNoPreviewView(item, BROWSE_FRAGMENT, LEANBACK_V17_ARTIFACT);
-  }
-
-  public void assertDetailsFragment(@NotNull Palette.BaseItem item) {
-    assertNoPreviewView(item, DETAILS_FRAGMENT, LEANBACK_V17_ARTIFACT);
-  }
-
-  public void assertPlaybackOverlayFragment(@NotNull Palette.BaseItem item) {
-    assertNoPreviewView(item, PLAYBACK_OVERLAY_FRAGMENT, LEANBACK_V17_ARTIFACT);
-  }
-
-  public void assertSearchFragment(@NotNull Palette.BaseItem item) {
-    assertNoPreviewView(item, SEARCH_FRAGMENT, LEANBACK_V17_ARTIFACT);
-  }
-
   private void assertStandardView(@NotNull Palette.BaseItem item,
                                   @NotNull String tag,
                                   @NotNull String expectedGradleCoordinate,
