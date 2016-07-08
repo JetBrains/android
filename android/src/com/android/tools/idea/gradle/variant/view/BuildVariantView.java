@@ -165,17 +165,19 @@ public class BuildVariantView {
       BuildVariantItem[] variantNames = getVariantItems(module);
       if (variantNames != null) {
         if (androidFacet != null) {
-          // If we got here AndroidGradleModel is *not* null.
           AndroidGradleModel androidModel = AndroidGradleModel.get(module);
-          assert androidModel != null;
-          variantName = androidModel.getSelectedVariant().getName();
+          // AndroidModel may be null when applying a quick fix (e.g. "Fix Gradle version")
+          if (androidModel != null) {
+            variantName = androidModel.getSelectedVariant().getName();
+          }
         }
         else {
           // As only the modules backed by either AndroidGradleModel or NativeAndroidGradleModel are shown in the Build Variants View,
           // when a module is not backed by AndroidGradleModel, it surely contains a valid NativeAndroidGradleModel.
           NativeAndroidGradleModel nativeAndroidModel = NativeAndroidGradleModel.get(module);
-          assert nativeAndroidModel != null;
-          variantName = nativeAndroidModel.getSelectedVariant().getName();
+          if (nativeAndroidModel != null) {
+            variantName = nativeAndroidModel.getSelectedVariant().getName();
+          }
         }
 
         variantNamesPerRow.add(variantNames);
