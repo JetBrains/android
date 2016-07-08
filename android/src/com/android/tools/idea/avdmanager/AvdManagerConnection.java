@@ -78,6 +78,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 import static com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_TAG;
@@ -90,7 +91,7 @@ public class AvdManagerConnection {
   private static final Logger IJ_LOG = Logger.getInstance(AvdManagerConnection.class);
   private static final ILogger SDK_LOG = new LogWrapper(IJ_LOG);
   private static final ProgressIndicator REPO_LOG = new StudioLoggerProgressIndicator(AvdManagerConnection.class);
-  private static final AvdManagerConnection NULL_CONNECTION = new AvdManagerConnection(null, FileOpUtils.create());
+  private static final AvdManagerConnection NULL_CONNECTION = new AvdManagerConnection(null);
   private static final int MNC_API_LEVEL_23 = 23;
   private static final int LMP_MR1_API_LEVEL_22 = 22;
 
@@ -118,6 +119,8 @@ public class AvdManagerConnection {
   private static long ourMemorySize = -1;
   private final FileOp myFileOp;
 
+  private static Function<AndroidSdkHandler, AvdManagerConnection> ourConnectionFactory = AvdManagerConnection::new;
+
   @Nullable private final AndroidSdkHandler mySdkHandler;
 
   @NotNull
@@ -135,16 +138,25 @@ public class AvdManagerConnection {
   public synchronized static AvdManagerConnection getAvdManagerConnection(@NotNull AndroidSdkHandler handler) {
     File sdkPath = handler.getLocation();
     if (!ourCache.containsKey(sdkPath)) {
-      ourCache.put(sdkPath, new AvdManagerConnection(handler, FileOpUtils.create()));
+      ourCache.put(sdkPath, ourConnectionFactory.apply(handler));
     }
     return ourCache.get(sdkPath);
   }
 
   @VisibleForTesting
-  public AvdManagerConnection(@Nullable AndroidSdkHandler handler, FileOp fileOp) {
+  public AvdManagerConnection(@Nullable AndroidSdkHandler handler) {
     mySdkHandler = handler;
-    myFileOp = fileOp;
+    myFileOp = handler == null ? FileOpUtils.create() : handler.getFileOp();
   }
+
+  /**
+   * Sets a factory to be used for creating connections, so subclasses can be injected for testing.
+   */
+  @VisibleForTesting
+  protected synchronized static void setConnectionFactory(Function<AndroidSdkHandler, AvdManagerConnection> factory) {
+    ourConnectionFactory = factory;
+  }
+
 
   /**
    * Setup our static instances if required. If the instance already exists, then this is a no-op.
@@ -341,22 +353,11 @@ public class AvdManagerConnection {
       return Futures.immediateFailedFuture(new RuntimeException(message));
     }
 
-    Map<String, String> properties = info.getProperties();
-    String netDelay = properties.get(AvdWizardUtils.AVD_INI_NETWORK_LATENCY);
-    String netSpeed = properties.get(AvdWizardUtils.AVD_INI_NETWORK_SPEED);
 
     GeneralCommandLine commandLine = new GeneralCommandLine();
     commandLine.setExePath(emulatorBinary.getPath());
 
-    if (netDelay != null) {
-      commandLine.addParameters("-netdelay", netDelay);
-    }
-
-    if (netSpeed != null) {
-      commandLine.addParameters("-netspeed", netSpeed);
-    }
-
-    commandLine.addParameters("-avd", avdName);
+    addParameters(info, commandLine);
 
     EmulatorRunner runner = new EmulatorRunner(project, "AVD: " + avdName, commandLine, info);
     final ProcessHandler processHandler;
@@ -411,6 +412,24 @@ public class AvdManagerConnection {
     });
 
     return EmulatorConnectionListener.getDeviceForEmulator(project, info.getName(), processHandler, 5, TimeUnit.MINUTES);
+  }
+
+  /**
+   * Adds necessary parameters to {@code commandLine}.
+   */
+  protected void addParameters(@NotNull AvdInfo info, GeneralCommandLine commandLine) {
+    Map<String, String> properties = info.getProperties();
+    String netDelay = properties.get(AvdWizardUtils.AVD_INI_NETWORK_LATENCY);
+    String netSpeed = properties.get(AvdWizardUtils.AVD_INI_NETWORK_SPEED);
+    if (netDelay != null) {
+      commandLine.addParameters("-netdelay", netDelay);
+    }
+
+    if (netSpeed != null) {
+      commandLine.addParameters("-netspeed", netSpeed);
+    }
+
+    commandLine.addParameters("-avd", info.getName());
   }
 
   /**
