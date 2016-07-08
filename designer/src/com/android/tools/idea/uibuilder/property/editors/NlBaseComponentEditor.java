@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
@@ -27,6 +28,18 @@ import javax.swing.*;
 public abstract class NlBaseComponentEditor implements NlComponentEditor, BrowsePanel.Context {
   protected static final JBColor DEFAULT_VALUE_TEXT_COLOR = new JBColor(Gray._128, Gray._128);
   protected static final JBColor CHANGED_VALUE_TEXT_COLOR = JBColor.BLUE;
+
+  /** Horizontal gap between editor control and {@link BrowsePanel} */
+  protected static final int HORIZONTAL_COMPONENT_GAP = SystemInfo.isMac ? 0 : 2;
+
+  /** Vertical spacing between editors in inspector */
+  protected static final int VERTICAL_SPACING = 2;
+
+  /** Horizontal padding inside the edit control */
+  protected static final int HORIZONTAL_PADDING = 7;
+
+  /** Vertical padding inside the edit control */
+  protected static final int VERTICAL_PADDING = 2;
 
   private final NlEditingListener myListener;
 
