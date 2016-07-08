@@ -99,23 +99,26 @@ public class ManifestEditorTest {
     mergedManifestFixture.requireText(
       "Manifest Sources \n" +
       "\n" +
-      "main manifest (this file)\n" +
+      "Flavoredapp main manifest (this file)\n" +
+      "\n" +
+      "myaarlibrary manifest\n" +
       "\n" +
       "play-services-base:7.3.0 manifest\n" +
       " Other Manifest Files (Included in merge, but did not contribute any elements)\n" +
-      "debug manifest, flavor1 manifest, support-v13:22.1.1 manifest, support-v4:22.1.1\n" +
-      "manifest, play-services-ads:7.3.0 manifest, play-services-analytics:7.3.0\n" +
-      "manifest, play-services-appindexing:7.3.0 manifest,\n" +
-      "play-services-appinvite:7.3.0 manifest, play-services-appstate:7.3.0 manifest,\n" +
-      "play-services-cast:7.3.0 manifest, play-services-drive:7.3.0 manifest,\n" +
-      "play-services-fitness:7.3.0 manifest, play-services-games:7.3.0 manifest,\n" +
-      "play-services-gcm:7.3.0 manifest, play-services-identity:7.3.0 manifest,\n" +
-      "play-services-location:7.3.0 manifest, play-services-maps:7.3.0 manifest,\n" +
-      "play-services-nearby:7.3.0 manifest, play-services-panorama:7.3.0 manifest,\n" +
-      "play-services-plus:7.3.0 manifest, play-services-safetynet:7.3.0 manifest,\n" +
-      "play-services-wallet:7.3.0 manifest, play-services-wearable:7.3.0 manifest,\n" +
-      "play-services:7.3.0 manifest  Merging Log Value provided by Gradle Added from\n" +
-      "the main manifest (this file), line 1 Value provided by Gradle\n", true);
+      "locallib manifest, Flavoredapp debug manifest, Flavoredapp flavor1 manifest,\n" +
+      "support-v13:22.1.1 manifest, support-v4:22.1.1 manifest, play-services-ads:7.3.0\n" +
+      "manifest, play-services-analytics:7.3.0 manifest,\n" +
+      "play-services-appindexing:7.3.0 manifest, play-services-appinvite:7.3.0\n" +
+      "manifest, play-services-appstate:7.3.0 manifest, play-services-cast:7.3.0\n" +
+      "manifest, play-services-drive:7.3.0 manifest, play-services-fitness:7.3.0\n" +
+      "manifest, play-services-games:7.3.0 manifest, play-services-gcm:7.3.0 manifest,\n" +
+      "play-services-identity:7.3.0 manifest, play-services-location:7.3.0 manifest,\n" +
+      "play-services-maps:7.3.0 manifest, play-services-nearby:7.3.0 manifest,\n" +
+      "play-services-panorama:7.3.0 manifest, play-services-plus:7.3.0 manifest,\n" +
+      "play-services-safetynet:7.3.0 manifest, play-services-wallet:7.3.0 manifest,\n" +
+      "play-services-wearable:7.3.0 manifest, play-services:7.3.0 manifest  Merging Log\n" +
+      "Value provided by Gradle Added from the Flavoredapp main manifest (this file),\n" +
+      "line 1 Value provided by Gradle\n", true);
 
 
     editor.open("src/debug/AndroidManifest.xml");
