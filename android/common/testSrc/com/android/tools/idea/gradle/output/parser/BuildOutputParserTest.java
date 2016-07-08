@@ -2453,6 +2453,13 @@ public class BuildOutputParserTest {
     assertEquals(Message.Kind.SIMPLE, message.getKind());
   }
 
+  @Test
+  public void ignoringUnrecognizedText() {
+    String output = " **--- HELLO WORLD ---**";
+    List<Message> Messages = parser.parseGradleOutput(output, true);
+    assertEquals(0, Messages.size());
+  }
+
   private static final String WINDOWS_PATH_DRIVE_LETTER = "C:";
   private static final String WINDOWS_PATH_UNDER_UNIX = new File(WINDOWS_PATH_DRIVE_LETTER).getAbsolutePath();
   private static final int WINDOWS_PATH_UNIX_PREFIX_LENGTH = WINDOWS_PATH_UNDER_UNIX.length() - WINDOWS_PATH_DRIVE_LETTER.length();
