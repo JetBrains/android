@@ -98,7 +98,7 @@ public class WrapArchiveWizardPath implements WizardPath {
       boolean move = myWizardState.getBoolean(KEY_MOVE_ARCHIVE);
       Module[] modules = (Module[])myWizardState.get(KEY_MODULES_FOR_DEPENDENCY_UPDATE);
       if (modules == null) {
-        modules = new Module[0];
+        modules = Module.EMPTY_ARRAY;
       }
       String gradlePath = makeAbsolute(path);
       GradleSettingsFile settingsFile = GradleSettingsFile.get(myProject);

@@ -41,7 +41,7 @@ public class AndroidProjectTemplatesFactory extends ProjectTemplatesFactory {
   public static final String LIBRARY_MODULE = "Library Module";
   public static final String TEST_MODULE = "Test Module";
 
-  public static final ProjectTemplate[] EMPTY_PROJECT_TEMPLATES = new ProjectTemplate[]{};
+  public static final ProjectTemplate[] EMPTY_PROJECT_TEMPLATES = ProjectTemplate.EMPTY_ARRAY;
 
   @NotNull
   @Override
