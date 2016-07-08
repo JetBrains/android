@@ -337,6 +337,15 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
         }
       }
     }.execute();
+
+    if (SdkConstants.VIEW_MERGE.equals(componentName) &&
+        SdkConstants.TOOLS_URI.equals(getNamespace()) &&
+        SdkConstants.ATTR_PARENT_TAG.equals(getName())) {
+      // Special case: When the tools:parentTag is updated on a <merge> tag, the set of attributes for
+      // the <merge> tag may change e.g. if the value is set to "LinearLayout" the <merge> tag will
+      // then have all attributes from a <LinearLayout>. Force an update of all properties:
+      getModel().getSelectionModel().updateListeners();
+    }
   }
 
   @NotNull

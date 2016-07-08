@@ -251,13 +251,7 @@ public class AttributeProcessingUtil {
 
   @Nullable
   private static PsiClass getSuperclass(@NotNull final PsiClass c) {
-    return ApplicationManager.getApplication().runReadAction(new Computable<PsiClass>() {
-      @Override
-      @Nullable
-      public PsiClass compute() {
-        return c.isValid() ? c.getSuperClass() : null;
-      }
-    });
+    return ApplicationManager.getApplication().runReadAction((Computable<PsiClass>)() -> c.isValid() ? c.getSuperClass() : null);
   }
 
   /**
@@ -397,37 +391,60 @@ public class AttributeProcessingUtil {
     }
 
     String tagName = tag.getName();
-    if (tagName.equals("view")) {
-      // In Android layout XMLs, one can write, e.g.
-      //   <view class="LinearLayout" />
-      //
-      // instead of
-      //   <LinearLayout />
-      //
-      // In this case code here treats <view> tag as a special case, in which it adds all the attributes
-      // from all available styleables that have the same simple names as found descendants of View class.
-      //
-      // See LayoutInflater#createViewFromTag in Android framework for inflating code
+    switch (tagName) {
+      case VIEW_TAG:
+        // In Android layout XMLs, one can write, e.g.
+        //   <view class="LinearLayout" />
+        //
+        // instead of
+        //   <LinearLayout />
+        //
+        // In this case code here treats <view> tag as a special case, in which it adds all the attributes
+        // from all available styleables that have the same simple names as found descendants of View class.
+        //
+        // See LayoutInflater#createViewFromTag in Android framework for inflating code
 
-      for (PsiClass aClass : map.values()) {
-        final String name = aClass.getName();
-        if (name == null) {
-          continue;
+        for (PsiClass aClass : map.values()) {
+          final String name = aClass.getName();
+          if (name == null) {
+            continue;
+          }
+          registerAttributes(facet, element, name, callback, skipAttrNames);
         }
-        registerAttributes(facet, element, name, callback, skipAttrNames);
-      }
+        break;
+
+      case VIEW_MERGE:
+        if (tag.getParentTag() == null) {
+          registerToolsAttribute(ATTR_PARENT_TAG, callback);
+        }
+        registerAttributesForClassAndSuperclasses(facet, element, map.get(VIEW_MERGE), callback, skipAttrNames);
+
+        String parentTagName = tag.getAttributeValue(ATTR_PARENT_TAG, TOOLS_URI);
+        if (parentTagName != null) {
+          registerAttributesForClassAndSuperclasses(facet, element, map.get(parentTagName), callback, skipAttrNames);
+        }
+        break;
+
+      default:
+        PsiClass c = map.get(tagName);
+        registerAttributesForClassAndSuperclasses(facet, element, c, callback, skipAttrNames);
+        break;
     }
-    else {
-      PsiClass c = map.get(tagName);
-      registerAttributesForClassAndSuperclasses(facet, element, c, callback, skipAttrNames);
+
+    if (tagName.equals(VIEW_MERGE)) {
+      // A <merge> does not have layout attributes.
+      // Instead the children of the merge tag are considered the top elements.
+      return;
     }
 
     XmlTag parentTag = tag.getParentTag();
-
     if (parentTag != null) {
-      final String parentTagName = parentTag.getName();
+      String parentTagName = parentTag.getName();
 
-      if (!VIEW_MERGE.equals(parentTagName)) {
+      if (VIEW_MERGE.equals(parentTagName)) {
+        parentTagName = parentTag.getAttributeValue(ATTR_PARENT_TAG, TOOLS_URI);
+      }
+      if (parentTagName != null) {
         PsiClass c = map.get(parentTagName);
         while (c != null) {
           registerAttributesFromSuffixedStyleables(facet, element, c, callback, skipAttrNames);
@@ -436,6 +453,8 @@ public class AttributeProcessingUtil {
         return;
       }
     }
+
+    // We don't know what the parent is: include all layout attributes from all layout classes
     for (PsiClass c : map.values()) {
       registerAttributesFromSuffixedStyleables(facet, element, c, callback, skipAttrNames);
     }
