@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.mockup;
 
-import com.android.tools.idea.uibuilder.mockup.colorextractor.ColorExtractor;
-import com.android.tools.idea.uibuilder.mockup.colorextractor.ExtractedColor;
 import com.android.tools.idea.uibuilder.mockup.tools.ColorExtractorTool;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
@@ -30,15 +28,12 @@ import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.ui.popup.IconButton;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.Collection;
-import java.util.List;
 
 /**
  * Build and display the Mockup Editor dialog
@@ -51,8 +46,6 @@ public class MockupEditorPopup {
   private final ScreenView myScreenView;
   private final Mockup myMockup;
 
-  private boolean isExtractingColor;
-  private Collection<ExtractedColor> myExtractedColors;
   NlModel myModel;
 
   // Form generated components (Do not removed if referenced in the form)
@@ -65,16 +58,16 @@ public class MockupEditorPopup {
   private JButton myEditCroppingButton;
   private JButton myMatchWidgetButton;
   private JButton myMatchDeviceButton;
-  private JButton myExtractButton;
-  private JButton myExportButton;
-  private JProgressBar myProgressBar1;
   private JPanel myToolPanel;
+  private JButton mySwitchNext;
+  private JPanel myMainPanel;
 
   public MockupEditorPopup(ScreenView screenView, Mockup mockup, NlModel model) {
     myScreenView = screenView;
     myModel = model;
     myMockup = mockup;
 
+    createUIComponents();
     initFileChooserText();
     initFileChooserActionListener();
     initSlider();
@@ -83,41 +76,13 @@ public class MockupEditorPopup {
     initEditCroppingButton();
     initMatchWidgetButton();
     initMatchDeviceButton();
-    initColorsComponents();
-  }
 
-  private void initColorsComponents() {
-    myExtractButton.addActionListener(e -> {
-      if(myExtractedColors != null) {
-        myToolPanel.removeAll();
-        myToolPanel.add(new ColorExtractorTool(myExtractedColors).getToolPanel());
-        myToolPanel.revalidate();
-        return;
-      }
-
-      if (!isExtractingColor) {
-        ColorExtractor colorExtractor = new ColorExtractor(myMockup);
-        isExtractingColor = true;
-
-        colorExtractor.run(new ColorExtractor.ColorExtractorCallback() {
-          @Override
-          public void result(Collection<ExtractedColor> rgbColors) {
-            myProgressBar1.setValue(100);
-            myExportButton.setEnabled(true);
-            isExtractingColor = false;
-            myExtractedColors = rgbColors;
-            myToolPanel.add(new ColorExtractorTool(rgbColors).getToolPanel());
-            myToolPanel.revalidate();
-          }
-
-          @Override
-          public void progress(int progress) {
-            myProgressBar1.setValue(progress);
-          }
-        });
-      }
-    });
-
+    myMainPanel.add(myInteractionPanel);
+    myToolPanel.setLayout(new BorderLayout());
+    ColorExtractorTool colorExtractorTool = new ColorExtractorTool(mockup);
+    myMainPanel.add(colorExtractorTool.getMainPanel());
+    myToolPanel.add(colorExtractorTool.getToolPanel());
+    mySwitchNext.addActionListener(e -> ((CardLayout) myMainPanel.getLayout()).next(myMainPanel));
   }
 
   private void initMatchDeviceButton() {
@@ -202,9 +167,6 @@ public class MockupEditorPopup {
 
   /**
    * Create a popup showing the tools to edit the mockup of the selected component
-   *
-   * @param designSurface
-   * @param nlModel
    */
   public static void create(ScreenView screenView, @Nullable NlComponent component) {
     // Close any pop-up already opened
@@ -232,7 +194,6 @@ public class MockupEditorPopup {
     jFrame.setComponent(mockupEditorPopup.myContentPane);
     jFrame.setSize(minSize);
 
-
     Point point = new Point(
       (int)Math.round(rootPane.getX() + (rootPane.getWidth()) / 2 - minSize.getWidth() / 2),
       (int)Math.round(rootPane.getY() + (rootPane.getHeight()) / 2 - minSize.getHeight() / 2));
@@ -240,31 +201,6 @@ public class MockupEditorPopup {
     jFrame.setLocation(point);
     jFrame.getFrame().setSize(minSize);
     jFrame.show();
-
-    //JBPopup builder = JBPopupFactory.getInstance()
-    //  .createComponentPopupBuilder(mockupEditorPopup.myContentPane, mockupEditorPopup.myContentPane)
-    //  .setTitle(TITLE)
-    //  .setResizable(true)
-    //  .setMovable(true)
-    //  .setMinSize(minSize)
-    //  .setRequestFocus(true)
-    //  .setCancelOnClickOutside(false)
-    //  .setLocateWithinScreenBounds(true)
-    //  .setShowShadow(true)
-    //  .setCancelOnWindowDeactivation(false)
-    //  .setCancelButton(CANCEL_BUTTON)
-    //  .createPopup();
-    //
-    //// Center the popup in the design surface
-    //RelativePoint point = new RelativePoint(
-    //  designSurface,
-    //  new Point(
-    //    (int)Math.round(designSurface.getWidth() / 2 - minSize.getWidth() / 2),
-    //    (int)Math.round(designSurface.getHeight() / 2 - minSize.getHeight() / 2))
-    //);
-    //builder.show(point);
-    //
-    //POPUP_INSTANCE = builder;
   }
 
   private void createUIComponents() {

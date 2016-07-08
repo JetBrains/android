@@ -27,6 +27,8 @@ public interface MockupTool {
    */
   JComponent getToolPanel();
 
+  JComponent getMainPanel();
+
   /**
    * @return The name of the tool
    */
