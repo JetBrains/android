@@ -229,6 +229,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
       " Gradle Scripts\n" +
       "  build.gradle (Module: " + modules[0].getName() + ")\n" +
       "  gradle-wrapper.properties (Gradle Version)\n" +
+      "  local.properties (SDK Location)\n" +
       " " + modules[0].getName() + " (Android)\n" +
       "  java\n" +
       "   foo (main)\n" +
@@ -281,6 +282,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
       " Gradle Scripts\n" +
       "  build.gradle (Project: " + modules[0].getName() + ")\n" +
       "  gradle-wrapper.properties (Gradle Version)\n" +
+      "  local.properties (SDK Location)\n" +
       " " + modules[0].getName() + "\n" +
       "  .idea\n" +
       "  AndroidManifest.xml\n" +
@@ -290,27 +292,13 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
       "    gradle-wrapper.jar\n" +
       "    gradle-wrapper.properties\n" +
       "  gradlew\n" +
-      "  gradlew.bat\n";
+      "  gradlew.bat\n" +
+      "  local.properties\n";
     int numLines = expected.split("\n").length;
 
-    Object rootNode = structure.getRootElement();
-    ProjectViewTestUtil.checkGetParentConsistency(structure, rootNode);
-    Comparator<AbstractTreeNode> comparator = PlatformTestUtil.createComparator(printInfo);
-
-    // Android Studio now bundles a local maven repo. Our gradle builds pass this via an init script. It turns out that this drops
-    // in an additional gradle file into the project view. This gradle file is named asLocalRepo???.gradle. Since we can't predict
-    // the exact name, we just trim it out from the actual output.
-    String actual = PlatformTestUtil.print(structure, rootNode, 0, comparator, numLines + 1, ' ', printInfo).toString();
-    List<String> filtered = Lists.newArrayList();
-    for (String s : Splitter.on('\n').split(actual)) {
-      if (!s.contains("asLocalRepo")) {
-        filtered.add(s);
-      }
-    }
-
-    actual = Joiner.on('\n').join(filtered);
-
-    assertEquals(expected, actual);
+    ProjectViewTestUtil
+      .assertStructureEqual(structure, expected, numLines, PlatformTestUtil.createComparator(printInfo), structure.getRootElement(),
+                            printInfo);
   }
 
   @Nullable
