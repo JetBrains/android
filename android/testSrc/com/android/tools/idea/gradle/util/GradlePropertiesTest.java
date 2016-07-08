@@ -17,10 +17,8 @@ package com.android.tools.idea.gradle.util;
 
 import com.intellij.testFramework.IdeaTestCase;
 import com.intellij.util.net.HttpConfigurable;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.util.List;
 
 /**
  * Tests for {@link GradleProperties}.
@@ -72,7 +70,7 @@ public class GradlePropertiesTest extends IdeaTestCase {
     ideSettings.PROXY_HOST = host;
     ideSettings.PROXY_PORT = port;
     ideSettings.PROXY_AUTHENTICATION = true;
-    ideSettings.PROXY_LOGIN = user;
+    ideSettings.setProxyLogin(user);
     ideSettings.setPlainProxyPassword(password);
 
     ProxySettings ideProxySettings = new ProxySettings(ideSettings);
