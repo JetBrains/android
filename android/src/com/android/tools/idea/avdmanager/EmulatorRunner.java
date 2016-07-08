@@ -17,8 +17,11 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.ISystemImage;
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.tools.analytics.CommonMetricsData;
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.run.ExternalToolRunner;
-import com.android.tools.idea.stats.UsageTracker;
+import com.google.wireless.android.sdk.stats.AndroidStudioStats;
+import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.ui.ConsoleView;
@@ -39,17 +42,18 @@ public class EmulatorRunner extends ExternalToolRunner {
     ISystemImage image = avdInfo == null ? null : avdInfo.getSystemImage();
 
     String description = image == null ? null : image.toString();
-    UsageTracker.getInstance().trackEvent(
-      UsageTracker.CATEGORY_DEPLOYMENT, UsageTracker.ACTION_DEPLOYMENT_EMULATOR, description, null);
+
+    AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder()
+      .setCategory(AndroidStudioEvent.EventCategory.DEPLOYMENT)
+      .setKind(AndroidStudioEvent.EventKind.DEPLOYMENT_TO_EMULATOR);
 
     if (avdInfo != null) {
-      UsageTracker.getInstance().trackEvent(
-        UsageTracker.CATEGORY_AVDINFO, UsageTracker.ACTION_AVDINFO_ABI, AvdInfo.getPrettyAbiType(avdInfo), null);
-
-      String version = image == null ? "unknown" : image.getAndroidVersion().toString();
-      UsageTracker.getInstance().trackEvent(
-        UsageTracker.CATEGORY_AVDINFO, UsageTracker.ACTION_AVDINFO_TARGET_VERSION, version, null);
+      event.setDeviceInfo(AndroidStudioStats.DeviceInfo.newBuilder()
+        .setCpuAbi(CommonMetricsData.applicationBinaryInterfaceFromString(avdInfo.getAbiType()))
+        .setBuildApiLevelFull(Integer.toString(image.getAndroidVersion().getApiLevel())));
     }
+
+    UsageTracker.getInstance().log(event);
   }
 
   @NotNull

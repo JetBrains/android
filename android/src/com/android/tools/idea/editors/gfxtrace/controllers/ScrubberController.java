@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.editors.gfxtrace.controllers;
 
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
-import com.android.tools.idea.editors.gfxtrace.GfxTraceUtil;
 import com.android.tools.idea.editors.gfxtrace.models.AtomStream;
 import com.android.tools.idea.editors.gfxtrace.service.Context;
 import com.android.tools.idea.editors.gfxtrace.service.RenderSettings;
@@ -27,9 +27,12 @@ import com.android.tools.idea.editors.gfxtrace.service.atom.Range;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.android.tools.idea.editors.gfxtrace.widgets.CellList;
 import com.android.tools.idea.editors.gfxtrace.widgets.ImageCellList;
-import com.android.tools.idea.stats.UsageTracker;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
+import com.google.wireless.android.sdk.stats.AndroidStudioStats;
+import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventCategory;
+import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventKind;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
@@ -94,8 +97,11 @@ public class ScrubberController extends ImageCellController<ScrubberController.D
 
   @Override
   public void selected(@NotNull Data cell) {
-    GfxTraceUtil.trackEvent(UsageTracker.ACTION_GFX_TRACE_COMMAND_SELECTED, "Scrubber", null);
-
+    UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                   .setCategory(EventCategory.GPU_PROFILER)
+                                   .setKind(EventKind.GFX_TRACE_COMMAND_SELECTED)
+                                   .setGfxTracingDetails(AndroidStudioStats.GfxTracingDetails.newBuilder()
+                                                         .setTracePath("Scrubber")));
     myEditor.getAtomStream().selectAtoms(cell.range, this);
   }
 

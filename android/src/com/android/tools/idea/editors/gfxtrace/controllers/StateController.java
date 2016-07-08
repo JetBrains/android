@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.editors.gfxtrace.controllers;
 
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
-import com.android.tools.idea.editors.gfxtrace.GfxTraceUtil;
 import com.android.tools.idea.editors.gfxtrace.actions.ViewTextAction;
 import com.android.tools.idea.editors.gfxtrace.models.GpuState;
 import com.android.tools.idea.editors.gfxtrace.renderers.Render;
@@ -28,7 +28,6 @@ import com.android.tools.idea.editors.gfxtrace.service.path.Path;
 import com.android.tools.idea.editors.gfxtrace.service.snippets.CanFollow;
 import com.android.tools.idea.editors.gfxtrace.service.snippets.KindredSnippets;
 import com.android.tools.idea.editors.gfxtrace.service.snippets.SnippetObject;
-import com.android.tools.idea.stats.UsageTracker;
 import com.android.tools.rpclib.schema.*;
 import com.android.tools.rpclib.schema.Map;
 import com.google.common.base.Objects;
@@ -36,6 +35,9 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
+import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventCategory;
+import com.google.wireless.android.sdk.stats.AndroidStudioStats.GfxTracingDetails;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.SimpleColoredComponent;
@@ -59,7 +61,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.*;
 import java.util.List;
-import java.util.stream.Stream;
 
 public class StateController extends TreeController implements GpuState.Listener {
   public static JComponent createUI(@NotNull GfxTraceEditor editor) {
@@ -119,7 +120,11 @@ public class StateController extends TreeController implements GpuState.Listener
           Path path = ((Node)treePath.getLastPathComponent()).getFollowPath();
           if (path != null && path != Path.EMPTY) {
 
-            GfxTraceUtil.trackEvent(UsageTracker.ACTION_GFX_TRACE_LINK_CLICKED, path.toString(), null);
+            UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                           .setCategory(EventCategory.GPU_PROFILER)
+                                           .setKind(AndroidStudioEvent.EventKind.GFX_TRACE_LINK_CLICKED)
+                                           .setGfxTracingDetails(GfxTracingDetails.newBuilder()
+                                                                 .setTracePath(path.toString())));
 
             myEditor.activatePath(path, StateController.this);
           }

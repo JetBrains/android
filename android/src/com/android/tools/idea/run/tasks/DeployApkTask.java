@@ -16,15 +16,15 @@
 package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.fd.client.InstantRunClient;
 import com.android.tools.idea.fd.DeployType;
 import com.android.tools.idea.fd.InstantRunContext;
 import com.android.tools.idea.fd.InstantRunStatsService;
 import com.android.tools.idea.run.*;
 import com.android.tools.idea.run.util.LaunchStatus;
-import com.android.tools.idea.stats.UsageTracker;
-import com.google.common.base.Charsets;
-import com.google.common.hash.Hashing;
+import com.android.tools.idea.stats.AndroidStudioUsageTracker;
+import com.google.wireless.android.sdk.stats.AndroidStudioStats;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -101,43 +101,13 @@ public class DeployApkTask implements LaunchTask {
     patchCache.setInstalledManifestResourcesHash(device, context.getApplicationId(), context.getManifestResourcesHash());
   }
 
-  private static int ourInstallationCount = 0;
-
   private static void trackInstallation(@NotNull IDevice device) {
-    if (!UsageTracker.getInstance().canTrack()) {
+    if (!UsageTracker.getInstance().getAnalyticsSettings().hasOptedIn()) {
       return;
     }
-
-    // only track every 20th installation (just to reduce the load on the server)
-    ourInstallationCount = (ourInstallationCount + 1) % 20;
-    if (ourInstallationCount != 0) {
-      return;
-    }
-
-    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_DEPLOYMENT, UsageTracker.ACTION_DEPLOYMENT_APK, null, null);
-
-    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_DEVICE_INFO, UsageTracker.DEVICE_INFO_SERIAL_HASH,
-                                          Hashing.md5().hashString(device.getSerialNumber(), Charsets.UTF_8).toString(), null);
-    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_DEVICE_INFO, UsageTracker.DEVICE_INFO_BUILD_TAGS,
-                                          device.getProperty(IDevice.PROP_BUILD_TAGS), null);
-    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_DEVICE_INFO, UsageTracker.DEVICE_INFO_BUILD_TYPE,
-                                          device.getProperty(IDevice.PROP_BUILD_TYPE), null);
-    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_DEVICE_INFO, UsageTracker.DEVICE_INFO_BUILD_VERSION_RELEASE,
-                                          device.getProperty(IDevice.PROP_BUILD_VERSION), null);
-    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_DEVICE_INFO, UsageTracker.DEVICE_INFO_BUILD_API_LEVEL,
-                                          device.getProperty(IDevice.PROP_BUILD_API_LEVEL), null);
-    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_DEVICE_INFO, UsageTracker.DEVICE_INFO_CPU_ABI,
-                                          device.getProperty(IDevice.PROP_DEVICE_CPU_ABI), null);
-
-    String manufacturer = device.getProperty(IDevice.PROP_DEVICE_MANUFACTURER);
-    String model = device.getProperty(IDevice.PROP_DEVICE_MODEL);
-    String manufacturerModel = manufacturer + "-" + model;
-
-    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_DEVICE_INFO, UsageTracker.DEVICE_INFO_MANUFACTURER,
-                                          manufacturer, null);
-    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_DEVICE_INFO, UsageTracker.DEVICE_INFO_MODEL,
-                                          model, null);
-    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_DEVICE_INFO, UsageTracker.DEVICE_INFO_MANUFACTURER_MODEL,
-                                          manufacturerModel, null);
+    UsageTracker.getInstance().log(AndroidStudioStats.AndroidStudioEvent.newBuilder()
+       .setCategory(AndroidStudioStats.AndroidStudioEvent.EventCategory.DEPLOYMENT)
+       .setKind(AndroidStudioStats.AndroidStudioEvent.EventKind.DEPLOYMENT_APK)
+       .setDeviceInfo(AndroidStudioUsageTracker.deviceToDeviceInfo(device)));
   }
 }

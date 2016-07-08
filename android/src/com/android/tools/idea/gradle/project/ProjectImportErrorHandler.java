@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.service.notification.errors.FailedToParseSdkErrorHandler;
-import com.android.tools.idea.stats.UsageTracker;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.GradleSyncFailure;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.model.LocationAwareExternalSystemException;
 import com.intellij.openapi.util.Pair;
@@ -37,9 +39,7 @@ import java.util.regex.Pattern;
 import static com.android.SdkConstants.FN_LOCAL_PROPERTIES;
 import static com.android.SdkConstants.GRADLE_MINIMUM_VERSION;
 import static com.android.tools.idea.gradle.service.notification.errors.MissingAndroidSdkErrorHandler.FIX_SDK_DIR_PROPERTY;
-import static com.android.tools.idea.stats.UsageTracker.*;
 import static com.intellij.openapi.util.text.StringUtil.*;
-import static com.intellij.util.ExceptionUtil.getRootCause;
 
 /**
  * Provides better error messages for android projects import failures.
@@ -68,7 +68,10 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
     if (error instanceof ExternalSystemException) {
       // This is already a user-friendly error.
       //noinspection ThrowableResultOfMethodCallIgnored
-      trackSyncError(error);
+      UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                       .setCategory(AndroidStudioEvent.EventCategory.GRADLE_SYNC)
+                                       .setKind(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE)
+                                       .setGradleSyncFailure(GradleSyncFailure.UNKNOWN_GRADLE_FAILURE));
 
       return (ExternalSystemException)error;
     }
@@ -77,7 +80,10 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
     Throwable rootCause = rootCauseAndLocation.getFirst();
 
     if (isOldGradleVersion(rootCause)) {
-      trackSyncError(ACTION_GRADLE_SYNC_UNSUPPORTED_GRADLE_VERSION);
+      UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                       .setCategory(AndroidStudioEvent.EventCategory.GRADLE_SYNC)
+                                       .setKind(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE)
+                                       .setGradleSyncFailure(GradleSyncFailure.UNSUPPORTED_GRADLE_VERSION));
 
       String msg = "The project is using an unsupported version of Gradle.\n" + FIX_GRADLE_VERSION;
       // Location of build.gradle is useless for this error. Omitting it.
@@ -87,7 +93,12 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
     String rootCauseText = rootCause.toString();
     if (startsWith(rootCauseText, "org.gradle.api.internal.MissingMethodException")) {
       String method = parseMissingMethod(rootCauseText);
-      trackSyncError(ACTION_GRADLE_SYNC_DSL_METHOD_NOT_FOUND, method);
+      UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                       .setCategory(AndroidStudioEvent.EventCategory.GRADLE_SYNC)
+                                       .setKind(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE)
+                                        .setGradleSyncFailure(GradleSyncFailure.DSL_METHOD_NOT_FOUND)
+                                       .setGradleMissingSignature(method));
+
       return createUserFriendlyError(GRADLE_DSL_METHOD_NOT_FOUND_ERROR_PREFIX + ": '" + method + "'", rootCauseAndLocation.getSecond());
     }
 
@@ -107,7 +118,10 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
     if (rootCause instanceof SocketException) {
       String message = rootCause.getMessage();
       if (message != null && message.contains("Permission denied: connect")) {
-        trackSyncError(ACTION_GRADLE_SYNC_CONNECTION_DENIED);
+        UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                         .setCategory(AndroidStudioEvent.EventCategory.GRADLE_SYNC)
+                                         .setKind(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE)
+                                         .setGradleSyncFailure(GradleSyncFailure.CONNECTION_DENIED));
 
         // Location of build.gradle is useless for this error. Omitting it.
         return createUserFriendlyError(CONNECTION_PERMISSION_DENIED_PREFIX, null);
@@ -115,7 +129,11 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
     }
 
     if (rootCause instanceof UnknownHostException) {
-      trackSyncError(ACTION_GRADLE_SYNC_UNKNOWN_HOST);
+      UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                       .setCategory(AndroidStudioEvent.EventCategory.GRADLE_SYNC)
+                                       .setKind(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE)
+                                       .setGradleSyncFailure(GradleSyncFailure.UNKNOWN_HOST));
+
       String msg = String.format("Unknown host '%1$s'. You may need to adjust the proxy settings in Gradle.", rootCause.getMessage());
       return createUserFriendlyError(msg, null);
     }
@@ -126,13 +144,19 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
       String msg = rootCause.getMessage();
       if (msg != null) {
         if (msg.startsWith("failed to find target android-")) {
-          trackSyncError(ACTION_GRADLE_SYNC_MISSING_ANDROID_PLATFORM);
+          UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                           .setCategory(AndroidStudioEvent.EventCategory.GRADLE_SYNC)
+                                           .setKind(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE)
+                                           .setGradleSyncFailure(GradleSyncFailure.MISSING_ANDROID_PLATFORM));
 
           // Location of build.gradle is useless for this error. Omitting it.
           return createUserFriendlyError(msg, null);
         }
         if (msg.startsWith("failed to find Build Tools")) {
-          trackSyncError(ACTION_GRADLE_SYNC_MISSING_BUILD_TOOLS);
+          UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                           .setCategory(AndroidStudioEvent.EventCategory.GRADLE_SYNC)
+                                           .setKind(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE)
+                                           .setGradleSyncFailure(GradleSyncFailure.MISSING_BUILD_TOOLS));
 
           // Location of build.gradle is useless for this error. Omitting it.
           return createUserFriendlyError(msg, null);
@@ -145,7 +169,10 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
 
       // With this condition we cover 2 similar messages about the same problem.
       if (msg != null && msg.contains("Could not find") && msg.contains("com.android.support:")) {
-        trackSyncError(ACTION_GRADLE_SYNC_MISSING_ANDROID_SUPPORT_REPO);
+        UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                         .setCategory(AndroidStudioEvent.EventCategory.GRADLE_SYNC)
+                                         .setKind(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE)
+                                         .setGradleSyncFailure(GradleSyncFailure.MISSING_ANDROID_SUPPORT_REPO));
 
         // We keep the original error message and we append a hint about how to fix the missing dependency.
         String newMsg = msg + EMPTY_LINE + INSTALL_ANDROID_SUPPORT_REPO;
@@ -154,7 +181,10 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
       }
 
       if (msg != null && msg.contains(FailedToParseSdkErrorHandler.FAILED_TO_PARSE_SDK_ERROR)) {
-        trackSyncError(ACTION_GRADLE_SYNC_FAILED_TO_PARSE_SDK);
+        UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                         .setCategory(AndroidStudioEvent.EventCategory.GRADLE_SYNC)
+                                         .setKind(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE)
+                                         .setGradleSyncFailure(GradleSyncFailure.FAILED_TO_PARSE_SDK));
 
         String newMsg = msg + EMPTY_LINE + "The Android SDK may be missing the directory 'add-ons'.";
         // Location of build.gradle is useless for this error. Omitting it.
@@ -162,7 +192,10 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
       }
 
       if (msg != null && (msg.equals(SDK_DIR_PROPERTY_MISSING) || SDK_NOT_FOUND_PATTERN.matcher(msg).matches())) {
-        trackSyncError(ACTION_GRADLE_SYNC_SDK_NOT_FOUND);
+        UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                         .setCategory(AndroidStudioEvent.EventCategory.GRADLE_SYNC)
+                                         .setKind(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE)
+                                         .setGradleSyncFailure(GradleSyncFailure.SDK_NOT_FOUND));
 
         String newMsg = msg;
         File buildProperties = new File(projectPath, FN_LOCAL_PROPERTIES);
@@ -174,7 +207,10 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
     }
 
     if (rootCause instanceof OutOfMemoryError) {
-      trackSyncError(ACTION_GRADLE_SYNC_OUT_OF_MEMORY);
+      UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                       .setCategory(AndroidStudioEvent.EventCategory.GRADLE_SYNC)
+                                       .setKind(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE)
+                                       .setGradleSyncFailure(GradleSyncFailure.OUT_OF_MEMORY));
 
       // The OutOfMemoryError happens in the Gradle daemon process.
       String originalMessage = rootCause.getMessage();
@@ -189,7 +225,11 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
     if (rootCause instanceof NoSuchMethodError) {
       String methodName = rootCause.getMessage();
 
-      trackSyncError(ACTION_GRADLE_SYNC_METHOD_NOT_FOUND, methodName);
+      UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                       .setCategory(AndroidStudioEvent.EventCategory.GRADLE_SYNC)
+                                       .setKind(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE)
+                                      .setGradleSyncFailure(GradleSyncFailure.METHOD_NOT_FOUND)
+                                       .setGradleMissingSignature(methodName));
 
       String msg = String.format("Unable to find method '%1$s'.", methodName);
       // Location of build.gradle is useless for this error. Omitting it.
@@ -199,7 +239,11 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
     if (rootCause instanceof ClassNotFoundException) {
       String className = rootCause.getMessage();
 
-      trackSyncError(ACTION_GRADLE_SYNC_CLASS_NOT_FOUND, className);
+      UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                       .setCategory(AndroidStudioEvent.EventCategory.GRADLE_SYNC)
+                                       .setKind(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE)
+                                       .setGradleSyncFailure(GradleSyncFailure.CLASS_NOT_FOUND)
+                                       .setGradleMissingSignature(className));
 
       Matcher matcher = CLASS_NOT_FOUND_PATTERN.matcher(className);
       if (matcher.matches()) {
@@ -238,23 +282,6 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
       }
     }
     return false;
-  }
-
-  static void trackSyncError(@NotNull String errorType) {
-    trackSyncError(errorType, null);
-  }
-
-  static void trackSyncError(@NotNull Throwable error) {
-    //noinspection ThrowableResultOfMethodCallIgnored
-    Throwable rootCause = getRootCause(error);
-    trackSyncError(ACTION_GRADLE_SYNC_FAILURE_UNKNOWN, rootCause.getClass().getName());
-  }
-
-  /**
-   * Do NOT include any information that can identify the user in "extraInfo".
-   */
-  static void trackSyncError(@NotNull String errorType, @Nullable String extraInfo) {
-    UsageTracker.getInstance().trackEvent(CATEGORY_GRADLE_SYNC_FAILURE, errorType, extraInfo, null);
   }
 
   // The default implementation in IDEA only retrieves the location in build.gradle files. This implementation also handle location in

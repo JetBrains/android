@@ -16,11 +16,12 @@
 package com.android.tools.idea.gradle.structure.editors;
 
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.stats.UsageTracker;
+import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.google.common.collect.ImmutableList;
+import com.google.wireless.android.sdk.stats.AndroidStudioStats;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleConfigurationEditor;
@@ -43,8 +44,6 @@ import java.util.List;
 import static com.android.tools.idea.gradle.project.ProjectStructureUsageTracker.getApplicationId;
 import static com.android.tools.idea.gradle.util.GradleUtil.isUsingExperimentalPlugin;
 import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
-import static com.android.tools.idea.stats.UsageTracker.ACTION_PROJECT_STRUCTURE_DIALOG_TOP_TAB_CLICK;
-import static com.android.tools.idea.stats.UsageTracker.ACTION_PROJECT_STRUCTURE_DIALOG_TOP_TAB_SAVE;
 import static javax.swing.SwingConstants.TOP;
 
 /**
@@ -128,7 +127,10 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
 
         String appId = getApplicationId(myProject);
         if (appId != null) {
-          UsageTracker.getInstance().trackPSDEvent(ACTION_PROJECT_STRUCTURE_DIALOG_TOP_TAB_CLICK, tabName, null);
+            UsageTracker.getInstance().log(AndroidStudioStats.AndroidStudioEvent.newBuilder()
+                                           .setCategory(AndroidStudioStats.AndroidStudioEvent.EventCategory.PROJECT_STRUCTURE_DIALOG)
+                                           .setKind(AndroidStudioStats.AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_TOP_TAB_CLICK)
+                                           .setProjectId(AndroidStudioUsageTracker.anonymizeUtf8(appId)));
         }
       });
 
@@ -159,7 +161,10 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
     String appId = getApplicationId(myProject);
     for (ModuleConfigurationEditor editor : myEditors) {
       if (appId != null) {
-        UsageTracker.getInstance().trackPSDEvent(appId, ACTION_PROJECT_STRUCTURE_DIALOG_TOP_TAB_SAVE, editor.getDisplayName());
+        UsageTracker.getInstance().log(AndroidStudioStats.AndroidStudioEvent.newBuilder()
+                                       .setCategory(AndroidStudioStats.AndroidStudioEvent.EventCategory.PROJECT_STRUCTURE_DIALOG)
+                                       .setKind(AndroidStudioStats.AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_TOP_TAB_SAVE)
+                                       .setProjectId(AndroidStudioUsageTracker.anonymizeUtf8(appId)));
       }
       editor.saveData();
       editor.apply();
