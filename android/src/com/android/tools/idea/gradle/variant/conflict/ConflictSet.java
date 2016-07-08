@@ -39,7 +39,6 @@ import java.util.Map;
 
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.VARIANT_SELECTION_CONFLICTS;
 import static com.android.tools.idea.gradle.util.GradleUtil.getDirectLibraryDependencies;
-import static com.android.tools.idea.gradle.util.Projects.getAndroidModel;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.solveSelectionConflict;
 
 /**
@@ -161,9 +160,9 @@ public class ConflictSet {
     String groupName = VARIANT_SELECTION_CONFLICTS;
     messages.removeMessages(groupName);
 
-    for (final Conflict conflict : mySelectionConflicts) {
+    for (Conflict conflict : mySelectionConflicts) {
       // Creates the "Select in 'Build Variants' window" hyperlink.
-      final Module source = conflict.getSource();
+      Module source = conflict.getSource();
       String hyperlinkText = String.format("Select '%1$s' in \"Build Variants\" window", source.getName());
       NotificationHyperlink selectInBuildVariantsWindowHyperlink =
         new NotificationHyperlink("select.conflict.in.variants.window", hyperlinkText) {
@@ -185,7 +184,7 @@ public class ConflictSet {
         }
       };
 
-      Message msg = new Message(groupName, Message.Type.ERROR, conflict.toString());
+      Message msg = new Message(groupName, Message.Type.WARNING, conflict.toString());
       messages.add(msg, selectInBuildVariantsWindowHyperlink, quickFixHyperlink);
     }
 
