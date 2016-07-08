@@ -24,7 +24,6 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.ide.ui.laf.darcula.ui.DarculaComboBoxUI;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.ComboBox;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
@@ -33,6 +32,9 @@ import com.intellij.psi.impl.source.PsiMethodImpl;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.ui.ColoredListCellRenderer;
+import com.intellij.ui.JBColor;
+import com.intellij.util.ui.JBUI;
+import com.sun.java.swing.plaf.windows.WindowsComboBoxUI;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
@@ -41,6 +43,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.plaf.ComboBoxUI;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -68,16 +71,16 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
 
   public static NlTableCellEditor createForTable() {
     NlTableCellEditor cellEditor = new NlTableCellEditor();
-    cellEditor.init(new NlEnumEditor(cellEditor, cellEditor, true, true));
+    cellEditor.init(new NlEnumEditor(cellEditor, cellEditor, false, true));
     return cellEditor;
   }
 
   public static NlEnumEditor createForInspector(@NotNull NlEditingListener listener) {
-    return new NlEnumEditor(listener, null, false, false);
+    return new NlEnumEditor(listener, null, true, false);
   }
 
   public static NlEnumEditor createForInspectorWithBrowseButton(@NotNull NlEditingListener listener) {
-    return new NlEnumEditor(listener, null, false, true);
+    return new NlEnumEditor(listener, null, true, true);
   }
 
   /**
@@ -117,19 +120,14 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
 
   private NlEnumEditor(@NotNull NlEditingListener listener,
                        @Nullable BrowsePanel.Context context,
-                       boolean useDarculaUI,
+                       boolean includeBorder,
                        boolean includeBrowseButton) {
     super(listener);
     myAddedValueIndex = -1; // nothing added
-    myPanel = new JPanel(new BorderLayout(SystemInfo.isMac ? 0 : 2, 0));
+    myPanel = new JPanel(new BorderLayout(HORIZONTAL_COMPONENT_GAP, 0));
 
     //noinspection unchecked
-    myCombo = new ComboBox(SMALL_WIDTH);
-    if (useDarculaUI) {
-      // Some LAF will draw a beveled border which does not look good in the table grid.
-      // Avoid that by explicit use of the Darcula UI for combo boxes when used as a cell editor in the table.
-      myCombo.setUI(new DarculaComboBoxUI(myCombo));
-    }
+    myCombo = new CustomComboBox(includeBorder ? myPanel : null);
     myCombo.setEditable(true);
     myPanel.add(myCombo, BorderLayout.CENTER);
 
@@ -359,33 +357,6 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
     return accumulator.getValues().toArray(new ValueWithDisplayString[0]);
   }
 
-  private static class StyleAccumulator {
-    private final List<ValueWithDisplayString> myValues = new ArrayList<>();
-    private StyleResourceValue myPreviousStyle;
-
-    public void append(@NotNull StyleResourceValue style) {
-      if (myPreviousStyle != null && (myPreviousStyle.isFramework() != style.isFramework() ||
-                                      myPreviousStyle.isUserDefined() != style.isUserDefined())) {
-        myValues.add(ValueWithDisplayString.SEPARATOR);
-      }
-      myPreviousStyle = style;
-      myValues.add(ValueWithDisplayString.createStyleValue(style.getName(), getStylePrefix(style), null));
-    }
-
-    @NotNull
-    public List<ValueWithDisplayString> getValues() {
-      return myValues;
-    }
-
-    @NotNull
-    private static String getStylePrefix(@NotNull StyleResourceValue style) {
-      if (style.isFramework()) {
-        return ANDROID_STYLE_RESOURCE_PREFIX;
-      }
-      return STYLE_RESOURCE_PREFIX;
-    }
-  }
-
   private static ValueWithDisplayString[] createOnClickValues(@NotNull NlProperty property) {
     Module module = property.getModel().getModule();
     Configuration configuration = property.getModel().getConfiguration();
@@ -433,6 +404,87 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
     return IdAnalyzer.findIdsForProperty(property).stream()
       .map(id -> new ValueWithDisplayString(id, ID_PREFIX + id))
       .toArray(ValueWithDisplayString[]::new);
+  }
+
+  private static class CustomComboBox extends ComboBox {
+    private final JPanel myBorderPanel;
+    private boolean myUseDarculaUI;
+
+    public CustomComboBox(@Nullable JPanel borderPanel) {
+      super(SMALL_WIDTH);
+      myBorderPanel = borderPanel;
+      setBorders();
+    }
+
+    private void setBorders() {
+      int horizontalSpacing = myUseDarculaUI ? 0 : 1;
+      if (myBorderPanel != null) {
+        myBorderPanel.setBorder(BorderFactory.createEmptyBorder(VERTICAL_SPACING, horizontalSpacing, VERTICAL_SPACING, 0));
+      }
+      setBorder(myUseDarculaUI && myBorderPanel != null ? null : BorderFactory.createEmptyBorder(1, 4, 1, 4));
+    }
+
+    @Override
+    public void setUI(ComboBoxUI ui) {
+      myUseDarculaUI = !(ui instanceof WindowsComboBoxUI);
+      if (myUseDarculaUI) {
+        // There are multiple reasons for hardcoding the ComboBoxUI here:
+        // 1) Some LAF will draw a beveled border which does not look good in the table grid.
+        // 2) In the inspector we would like the reference editor and the combo boxes to have a similar width.
+        //    This is very hard unless you can control the UI.
+        // Note: forcing the Darcula UI does not imply dark colors.
+        ui = new CustomDarculaComboBoxUI(this);
+      }
+      super.setUI(ui);
+      setBorders();
+    }
+  }
+
+  private static class CustomDarculaComboBoxUI extends DarculaComboBoxUI {
+    
+    public CustomDarculaComboBoxUI(@NotNull JComboBox comboBox) {
+      super(comboBox);
+    }
+
+    @Override
+    protected Insets getInsets() {
+      // Minimize the vertical padding used in the UI
+      return JBUI.insets(VERTICAL_PADDING, HORIZONTAL_PADDING, VERTICAL_PADDING, 4).asUIResource();
+    }
+
+    @Override
+    @NotNull
+    protected Color getArrowButtonFillColor(@NotNull Color defaultColor) {
+      // Use a lighter gray for the IntelliJ LAF. Darcula remains what is was.
+      return JBColor.LIGHT_GRAY;
+    }
+  }
+
+  private static class StyleAccumulator {
+    private final List<ValueWithDisplayString> myValues = new ArrayList<>();
+    private StyleResourceValue myPreviousStyle;
+
+    public void append(@NotNull StyleResourceValue style) {
+      if (myPreviousStyle != null && (myPreviousStyle.isFramework() != style.isFramework() ||
+                                      myPreviousStyle.isUserDefined() != style.isUserDefined())) {
+        myValues.add(ValueWithDisplayString.SEPARATOR);
+      }
+      myPreviousStyle = style;
+      myValues.add(ValueWithDisplayString.createStyleValue(style.getName(), getStylePrefix(style), null));
+    }
+
+    @NotNull
+    public List<ValueWithDisplayString> getValues() {
+      return myValues;
+    }
+
+    @NotNull
+    private static String getStylePrefix(@NotNull StyleResourceValue style) {
+      if (style.isFramework()) {
+        return ANDROID_STYLE_RESOURCE_PREFIX;
+      }
+      return STYLE_RESOURCE_PREFIX;
+    }
   }
 
   private class EnumRenderer extends ColoredListCellRenderer<ValueWithDisplayString> {

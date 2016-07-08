@@ -49,7 +49,7 @@ import static com.intellij.uiDesigner.core.GridConstraints.*;
 
 public class InspectorPanel extends JPanel {
   private static final List<String> PREFERRED_PROPERTY_NAMES = ImmutableList.of(ATTR_TEXT, ATTR_SRC, ATTR_ID);
-  private static final int HORIZONTAL_SPACING = 4;
+  private static final int HORIZONTAL_SPACING = 6;
 
   private final List<InspectorProvider> myProviders;
   private final NlDesignProperties myDesignProperties;
