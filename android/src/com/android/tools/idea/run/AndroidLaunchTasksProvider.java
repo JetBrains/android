@@ -19,10 +19,6 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.fd.InstantRunBuildAnalyzer;
 import com.android.tools.idea.fd.InstantRunManager;
-import com.android.tools.idea.fd.InstantRunSettings;
-import com.android.tools.idea.fd.InstantRunUtils;
-import com.android.tools.idea.fd.gradle.InstantRunGradleSupport;
-import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.editor.AndroidDebuggerState;
 import com.android.tools.idea.run.tasks.*;
@@ -99,9 +95,6 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     if (!myLaunchOptions.isDebug() && myLaunchOptions.isOpenLogcatAutomatically()) {
       launchTasks.add(new ShowLogcatTask(myProject, packageName));
     }
-    if (SetFirebaseLogTagsTask.projectUsesFirebase(myFacet)) {
-      launchTasks.add(new SetFirebaseLogTagsTask());
-    }
 
     if (myRunConfig.getProfilerState().GAPID_ENABLED && GapidTraceTask.checkIfOkToTrace(myProject, myLaunchOptions)) {
       launchTasks.add(new GapidTraceTask(myRunConfig, packageName));
@@ -109,6 +102,12 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
 
     if (myInstantRunBuildAnalyzer != null) {
       launchTasks.add(myInstantRunBuildAnalyzer.getNotificationTask());
+    }
+
+    for (AndroidLaunchTaskContributor taskContributor : AndroidLaunchTaskContributor.EP_NAME.getExtensions()) {
+      if (taskContributor.inContext(myFacet.getModule())) {
+        launchTasks.add(taskContributor.getTask());
+      }
     }
 
     return launchTasks;
