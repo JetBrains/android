@@ -15,19 +15,27 @@
  */
 package com.android.tools.idea.uibuilder.mockup.colorextractor;
 
+import java.util.Locale;
+import java.util.Random;
+import java.util.Set;
+
 /**
  * Contains some information about a color extracted by {@link ColorExtractor}.
  *
  * Comparable by number of occurrences
  */
-public class ExtractedColor implements Comparable {
+public class ExtractedColor implements Comparable<ExtractedColor> {
 
   private final int myColor;
   private final int myOccurrence;
+  private final Set<Integer> myNeighborColor;
+  private double[] myLAB;
 
-  public ExtractedColor(int color, int occurrence) {
+  public ExtractedColor(int color, double[] lab, int occurrence, Set<Integer> neighborColor) {
     myColor = color;
     myOccurrence = occurrence;
+    myLAB = lab;
+    myNeighborColor = neighborColor;
   }
 
   public int getColor() {
@@ -38,11 +46,21 @@ public class ExtractedColor implements Comparable {
     return myOccurrence;
   }
 
+  public double[] getLAB() {
+    return myLAB;
+  }
+
+  public Set<Integer> getNeighborColor() {
+    return myNeighborColor;
+  }
+
   @Override
-  public int compareTo(Object o) {
-    if (!(o instanceof ExtractedColor)) {
-      throw new IllegalArgumentException("o must be of type" + ExtractedColor.class.getName());
-    }
-    return myOccurrence - ((ExtractedColor)o).getOccurrence();
+  public String toString() {
+    return String.format(Locale.US, "#%05X", myColor);
+  }
+
+  @Override
+  public int compareTo(ExtractedColor o) {
+    return myOccurrence - o.getOccurrence();
   }
 }
