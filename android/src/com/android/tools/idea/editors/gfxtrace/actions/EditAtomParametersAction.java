@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.editors.gfxtrace.actions;
 
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
-import com.android.tools.idea.editors.gfxtrace.GfxTraceUtil;
 import com.android.tools.idea.editors.gfxtrace.UiCallback;
 import com.android.tools.idea.editors.gfxtrace.controllers.AtomController;
 import com.android.tools.idea.editors.gfxtrace.renderers.Render;
@@ -24,13 +24,16 @@ import com.android.tools.idea.editors.gfxtrace.renderers.RenderUtils;
 import com.android.tools.idea.editors.gfxtrace.service.path.Path;
 import com.android.tools.idea.editors.gfxtrace.service.snippets.Labels;
 import com.android.tools.idea.editors.gfxtrace.service.snippets.SnippetObject;
-import com.android.tools.idea.stats.UsageTracker;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
 import com.android.tools.rpclib.schema.*;
 import com.android.tools.swing.util.FloatFilter;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.wireless.android.sdk.stats.AndroidStudioStats;
+import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventCategory;
+import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventKind;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.UndoConfirmationPolicy;
 import com.intellij.openapi.command.undo.DocumentReference;
@@ -89,7 +92,11 @@ public class EditAtomParametersAction extends AbstractAction {
 
       final Path oldPath = myGfxTraceEditor.getAtomStream().getPath().index(myNode.index);
 
-      GfxTraceUtil.trackEvent(UsageTracker.ACTION_GFX_TRACE_PARAMETER_EDITED, oldPath.toString(), null);
+      UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                     .setCategory(EventCategory.GPU_PROFILER)
+                                     .setKind(EventKind.GFX_TRACE_PARAMETER_EDITED)
+                                     .setGfxTracingDetails(AndroidStudioStats.GfxTracingDetails.newBuilder()
+                                                           .setTracePath(oldPath.toString())));
 
       Rpc.listen(myGfxTraceEditor.getClient().set(oldPath, newAtom), LOG, new UiCallback<Path, Path>() {
         @Override

@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure;
 
 import com.android.ide.common.repository.GradleCoordinate;
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.actions.AndroidNewModuleAction;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
@@ -27,7 +28,7 @@ import com.android.tools.idea.gradle.structure.editors.AndroidProjectConfigurabl
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ModuleTypeComparator;
 import com.android.tools.idea.gradle.util.Projects;
-import com.android.tools.idea.stats.UsageTracker;
+import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.android.tools.idea.structure.services.DeveloperService;
 import com.android.tools.idea.structure.services.DeveloperServices;
 import com.android.tools.idea.structure.services.ServiceCategory;
@@ -35,6 +36,9 @@ import com.android.tools.idea.structure.services.view.ServiceCategoryConfigurabl
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventCategory;
+import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventKind;
 import com.intellij.CommonBundle;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
@@ -88,7 +92,6 @@ import java.util.*;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.project.ProjectStructureUsageTracker.getApplicationId;
-import static com.android.tools.idea.stats.UsageTracker.*;
 
 /**
  * Contents of the "Project Structure" dialog, for Gradle-based Android projects, in Android Studio.
@@ -214,7 +217,11 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
   private boolean doShowDialog(@Nullable Runnable advanceInit) {
     String appId = getApplicationId(myProject);
     if (appId != null) {
-      UsageTracker.getInstance().trackPSDEvent(appId, ACTION_PROJECT_STRUCTURE_DIALOG_OPEN, null);
+
+      UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                     .setCategory(EventCategory.PROJECT_STRUCTURE_DIALOG)
+                                     .setKind(EventKind.PROJECT_STRUCTURE_DIALOG_OPEN)
+                                     .setProjectId(AndroidStudioUsageTracker.anonymizeUtf8(appId)));
     }
     return ShowSettingsUtil.getInstance().editConfigurable(myProject, this, advanceInit);
   }
@@ -303,7 +310,10 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
   public void apply() throws ConfigurationException {
     String appId = getApplicationId(myProject);
     if (appId != null) {
-      UsageTracker.getInstance().trackPSDEvent(appId, ACTION_PROJECT_STRUCTURE_DIALOG_SAVE, null);
+      UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                     .setCategory(EventCategory.PROJECT_STRUCTURE_DIALOG)
+                                     .setKind(EventKind.PROJECT_STRUCTURE_DIALOG_SAVE)
+                                     .setProjectId(AndroidStudioUsageTracker.anonymizeUtf8(appId)));
     }
 
     validateState();
@@ -315,7 +325,10 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
     for (Configurable configurable: myConfigurables) {
       if (configurable.isModified()) {
         if (appId != null) {
-          UsageTracker.getInstance().trackPSDEvent(appId, ACTION_PROJECT_STRUCTURE_DIALOG_LEFT_NAV_SAVE, configurable.getDisplayName());
+          UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                         .setCategory(EventCategory.PROJECT_STRUCTURE_DIALOG)
+                                         .setKind(EventKind.PROJECT_STRUCTURE_DIALOG_LEFT_NAV_SAVE)
+                                         .setProjectId(AndroidStudioUsageTracker.anonymizeUtf8(appId)));
         }
         dataChanged = true;
         configurable.apply();
@@ -476,7 +489,10 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
   private void selectConfigurable(@NotNull Configurable configurable) {
     String appId = getApplicationId(myProject);
     if (appId != null) {
-      UsageTracker.getInstance().trackPSDEvent(appId, ACTION_PROJECT_STRUCTURE_DIALOG_LEFT_NAV_CLICK, configurable.getDisplayName());
+      UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                     .setCategory(EventCategory.PROJECT_STRUCTURE_DIALOG)
+                                     .setKind(EventKind.PROJECT_STRUCTURE_DIALOG_LEFT_NAV_CLICK)
+                                     .setProjectId(AndroidStudioUsageTracker.anonymizeUtf8(appId)));
     }
     JComponent content = configurable.createComponent();
     assert content != null;

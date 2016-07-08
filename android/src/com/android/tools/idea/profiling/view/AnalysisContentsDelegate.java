@@ -16,10 +16,13 @@
 package com.android.tools.idea.profiling.view;
 
 import com.android.annotations.NonNull;
-import com.android.tools.idea.stats.UsageTracker;
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.perflib.analyzer.AnalysisReport;
 import com.android.tools.perflib.analyzer.AnalysisResultEntry;
 import com.android.tools.perflib.analyzer.AnalyzerTask;
+import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventCategory;
+import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventKind;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
@@ -206,7 +209,9 @@ public abstract class AnalysisContentsDelegate extends ColoredTreeCellRenderer i
   public void performAnalysis() {
     myCanRunAnalysis = false;
 
-    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_PROFILING, UsageTracker.ACTION_PROFILING_ANALYSIS_RUN, null, null);
+    UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                   .setCategory(EventCategory.PROFILING)
+                                   .setKind(EventKind.PROFILING_ANALYSIS_RUN));
 
     final DefaultTreeModel model = (DefaultTreeModel)myResultsTree.getModel();
     final DefaultMutableTreeNode root = (DefaultMutableTreeNode)model.getRoot();

@@ -16,12 +16,13 @@
 package com.android.tools.idea.gradle;
 
 import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.startup.AndroidStudioInitializer;
-import com.android.tools.idea.stats.UsageTracker;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.google.common.collect.Lists;
+import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.ServiceManager;
@@ -45,7 +46,6 @@ import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.messages.Topic;
 import net.jcip.annotations.GuardedBy;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.service.settings.GradleConfigurable;
 import org.jetbrains.plugins.gradle.settings.GradleRunnerConfigurable;
 
@@ -56,7 +56,6 @@ import java.util.List;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
-import static com.android.tools.idea.stats.UsageTracker.*;
 import static com.intellij.openapi.options.Configurable.PROJECT_CONFIGURABLE;
 import static com.intellij.openapi.ui.MessageType.ERROR;
 import static com.intellij.openapi.ui.MessageType.INFO;
@@ -131,7 +130,10 @@ public class GradleSyncState {
     syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncSkipped(myProject));
 
     enableNotifications();
-    trackSyncEvent(ACTION_GRADLE_SYNC_SKIPPED);
+
+    UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+      .setCategory(AndroidStudioEvent.EventCategory.GRADLE_SYNC)
+      .setKind(AndroidStudioEvent.EventKind.GRADLE_SYNC_SKIPPED));
   }
 
   /**
@@ -159,8 +161,9 @@ public class GradleSyncState {
     }
     syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncStarted(myProject));
 
-    trackSyncEvent(ACTION_GRADLE_SYNC_STARTED);
-
+    UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                     .setCategory(AndroidStudioEvent.EventCategory.GRADLE_SYNC)
+                                     .setKind(AndroidStudioEvent.EventKind.GRADLE_SYNC_STARTED));
     return true;
   }
 
@@ -176,7 +179,9 @@ public class GradleSyncState {
     syncFinished();
     syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncFailed(myProject, message));
 
-    trackSyncEvent(ACTION_GRADLE_SYNC_FAILED);
+    UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                     .setCategory(AndroidStudioEvent.EventCategory.GRADLE_SYNC)
+                                     .setKind(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE));
   }
 
   public void syncEnded() {
@@ -193,19 +198,15 @@ public class GradleSyncState {
     syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncSucceeded(myProject));
 
     GradleVersion gradleVersion = getGradleVersion(myProject);
+    String gradleVersionString = "";
     if (gradleVersion != null) {
-      trackSyncEvent(ACTION_GRADLE_VERSION, gradleVersion.toString());
+      gradleVersionString = gradleVersion.toString();
     }
 
-    trackSyncEvent(ACTION_GRADLE_SYNC_ENDED);
-  }
-
-  private static void trackSyncEvent(@NotNull String event) {
-    trackSyncEvent(event, null);
-  }
-
-  private static void trackSyncEvent(@NotNull String event, @Nullable String extraInfo) {
-    UsageTracker.getInstance().trackEvent(CATEGORY_GRADLE, event, extraInfo, null);
+    UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+        .setCategory(AndroidStudioEvent.EventCategory.GRADLE_SYNC)
+        .setKind(AndroidStudioEvent.EventKind.GRADLE_SYNC_ENDED)
+        .setGradleVersion(gradleVersionString));
   }
 
   private void addInfoToEventLog(@NotNull String message) {
