@@ -28,6 +28,7 @@ import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.idea.ui.ASGallery;
 import com.android.tools.idea.ui.properties.*;
 import com.android.tools.idea.ui.properties.adapters.OptionalToValuePropertyAdapter;
+import com.android.tools.idea.ui.properties.core.ObservableBool;
 import com.android.tools.idea.ui.properties.expressions.string.StringExpression;
 import com.android.tools.idea.ui.properties.swing.SelectedItemProperty;
 import com.android.tools.idea.ui.properties.swing.SelectedProperty;
@@ -291,6 +292,12 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       myBuiltInSdCardStorage.setEnabled(true);
       myExternalSdCard.setEnabled(false);
     }
+  }
+
+  @NotNull
+  @Override
+  protected ObservableBool canGoForward() {
+    return myValidatorPanel.hasErrors().not();
   }
 
   /**
