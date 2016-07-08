@@ -43,7 +43,7 @@ public class NlConstants {
 
   public static final int RESIZING_CORNER_SIZE = 32;
   public static final int RESIZING_HOVERING_SIZE = 48;
-  public static final int RESIZING_CUE_EXTRA_PADDING = 100;
+  public static final int RESIZING_CUE_EXTRA_PADDING = 40;
 
   public static final JBColor RULER_BG = new JBColor(Color.WHITE, ColorUtil.brighter(UIUtil.getListBackground(), 1));
   public static final JBColor BOUNDS_RECT_COLOR = new JBColor(0xbdbdbd, UIUtil.getListForeground().getRGB());
