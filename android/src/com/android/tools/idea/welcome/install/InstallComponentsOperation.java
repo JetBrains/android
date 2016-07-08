@@ -16,7 +16,7 @@
 package com.android.tools.idea.welcome.install;
 
 import com.android.repository.api.RemotePackage;
-import com.android.tools.idea.npw.ImportUIUtil;
+import com.android.tools.idea.npw.importing.ImportUIUtil;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.google.common.collect.Lists;
 import com.intellij.execution.ui.ConsoleViewContentType;

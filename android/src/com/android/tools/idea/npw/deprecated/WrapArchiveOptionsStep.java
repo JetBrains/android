@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.npw;
+package com.android.tools.idea.npw.deprecated;
 
 import com.android.tools.idea.gradle.GradleModel;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.npw.AsyncValidator;
 import com.android.tools.idea.wizard.dynamic.AndroidStudioWizardStep;
 import com.android.tools.idea.wizard.template.TemplateWizardState;
 import com.google.common.base.Splitter;
@@ -51,6 +52,7 @@ import java.util.Set;
 /**
  * Step for selecting archive to import and specifying Gradle subproject name.
  */
+@Deprecated
 public final class WrapArchiveOptionsStep extends ModuleWizardStep implements AndroidStudioWizardStep {
   private static final Set<String> SUPPORTED_EXTENSIONS = ImmutableSet.of("jar", "aar");
   @Nullable private final Project myProject;

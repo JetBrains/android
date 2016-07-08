@@ -13,11 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.npw;
+package com.android.tools.idea.npw.deprecated;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.project.ModuleImporter;
 import com.android.tools.idea.gradle.project.ModuleToImport;
+import com.android.tools.idea.npw.AsyncValidator;
+import com.android.tools.idea.npw.NewModuleWizardState;
+import com.android.tools.idea.npw.importing.ImportUIUtil;
+import com.android.tools.idea.npw.importing.ModuleImportSettings;
+import com.android.tools.idea.npw.importing.ModulesTable;
 import com.android.tools.idea.wizard.dynamic.AndroidStudioWizardStep;
 import com.android.tools.idea.wizard.template.TemplateWizardStep;
 import com.google.common.base.Joiner;
@@ -69,6 +74,7 @@ import static com.intellij.openapi.ui.MessageType.WARNING;
 /**
  * Wizard page for selecting source location for module import.
  */
+@Deprecated
 public class ImportSourceLocationStep extends ModuleWizardStep implements AndroidStudioWizardStep {
   private static final int VALIDATION_STATUS_DISPLAY_DELAY = 50; //ms
   private final Logger LOG = Logger.getInstance(ImportSourceLocationStep.class);
@@ -222,7 +228,7 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
     Object validationDetails = result.myDetails;
     PageStatus status = result.myStatus;
     Map<String, VirtualFile> selectedModules = Collections.emptyMap();
-    if (!MessageType.ERROR.equals(status.severity)) {
+    if (!ERROR.equals(status.severity)) {
       final Collection<ModuleToImport> modules = myModulesPanel.getSelectedModules();
       if (modules.isEmpty()) {
         status = PageStatus.NO_MODULES_SELECTED;
