@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.compiler;
 
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
+import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.GradleBuilds;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -27,6 +28,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.KeyValue;
+import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
@@ -37,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.android.tools.idea.AndroidTestCaseHelper.getJdkPath;
+import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.intellij.ide.impl.NewProjectUtil.applyJdkToProject;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.executeProjectChangeAction;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
@@ -80,7 +83,9 @@ public class AndroidGradleBuildProcessParametersProviderTest extends IdeaTestCas
     expect(settings.getGradleHome()).andReturn("~/gradle-1.6");
     expect(settings.isVerboseProcessing()).andReturn(true);
     expect(settings.getServiceDirectory()).andReturn("~./gradle");
-    expect(settings.getDaemonVmOptions()).andReturn("-Xmx2048m -XX:MaxPermSize=512m");
+    if (!isAndroidStudio()) {
+      expect(settings.getDaemonVmOptions()).andReturn("-Xmx2048m -XX:MaxPermSize=512m");
+    }
 
     replay(settings);
 
@@ -95,12 +100,19 @@ public class AndroidGradleBuildProcessParametersProviderTest extends IdeaTestCas
     assertEquals("~" + File.separatorChar + "gradle-1.6", jvmArgs.get("-Dcom.android.studio.gradle.home.path"));
     assertEquals("true", jvmArgs.get("-Dcom.android.studio.gradle.use.verbose.logging"));
     assertEquals("~." + File.separatorChar + "gradle", jvmArgs.get("-Dcom.android.studio.gradle.service.dir.path"));
-    assertEquals("-Xmx2048m", jvmArgs.get("-Dcom.android.studio.gradle.daemon.jvm.option.0"));
-    assertEquals("-XX:MaxPermSize=512m", jvmArgs.get("-Dcom.android.studio.gradle.daemon.jvm.option.1"));
-    String javaHomeDirPath = myJdk.getHomePath();
-    assertNotNull(javaHomeDirPath);
-    javaHomeDirPath = toSystemDependentName(javaHomeDirPath);
-    assertEquals(javaHomeDirPath, jvmArgs.get("-Dcom.android.studio.gradle.java.home.path"));
+
+    if (isAndroidStudio()) {
+      String javaPath = FileUtilRt.toSystemDependentName(EmbeddedDistributionPaths.getEmbeddedJdkPath().getAbsolutePath());
+      assertEquals(javaPath, jvmArgs.get("-Dcom.android.studio.gradle.java.home.path"));
+    }
+    else {
+      assertEquals("-Xmx2048m", jvmArgs.get("-Dcom.android.studio.gradle.daemon.jvm.option.0"));
+      assertEquals("-XX:MaxPermSize=512m", jvmArgs.get("-Dcom.android.studio.gradle.daemon.jvm.option.1"));
+      String javaHomeDirPath = myJdk.getHomePath();
+      assertNotNull(javaHomeDirPath);
+      javaHomeDirPath = toSystemDependentName(javaHomeDirPath);
+      assertEquals(javaHomeDirPath, jvmArgs.get("-Dcom.android.studio.gradlgit e.java.home.path"));
+    }
   }
 
   public void testPopulateHttpProxyProperties() {
