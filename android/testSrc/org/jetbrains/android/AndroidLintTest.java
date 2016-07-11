@@ -41,6 +41,7 @@ public class AndroidLintTest extends AndroidTestCase {
   public void setUp() throws Exception {
     super.setUp();
     AndroidLintInspectionBase.invalidateInspectionShortName2IssueMap();
+    myFixture.allowTreeAccessForAllFiles();
   }
 
   @Override
