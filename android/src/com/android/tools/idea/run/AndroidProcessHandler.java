@@ -105,8 +105,6 @@ public class AndroidProcessHandler extends DefaultDebugProcessHandler implements
     notifyTextAvailable("Connected to process " + client.getClientData().getPid() + " on device " + device.getName() + "\n",
                         ProcessOutputTypes.STDOUT);
 
-    assert !myLogListeners.containsKey(device);
-
     AndroidLogcatService.LogLineListener logListener = new ApplicationLogListener(myApplicationId, client.getClientData().getPid()) {
       private final String SIMPLE_FORMAT = AndroidLogcatFormatter.createCustomFormat(false, false, false, true);
 
@@ -225,7 +223,12 @@ public class AndroidProcessHandler extends DefaultDebugProcessHandler implements
   }
 
   private void stopMonitoring(@NotNull IDevice device) {
-    assert myDevices.contains(device.getSerialNumber());
+    if (!myDevices.contains(device.getSerialNumber())) {
+      // TODO: normally this shouldn't happen as we check before each call of stopMonitoring,
+      //       seems like there is a thread issues and it should be fixed
+      return;
+    }
+
     myDevices.remove(device.getSerialNumber());
 
     //  This shouldn't usually happen but occasionally does due to threading issues
