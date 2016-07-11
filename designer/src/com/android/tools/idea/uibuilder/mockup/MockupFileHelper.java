@@ -21,6 +21,7 @@ import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.MockupLayer;
 import com.android.tools.pixelprobe.Image;
 import com.android.tools.pixelprobe.PixelProbe;
+import com.android.tools.pixelprobe.decoder.Decoder;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
@@ -67,7 +68,7 @@ public class MockupFileHelper {
     }
 
     try (FileInputStream in = new FileInputStream(file)) {
-      image = PixelProbe.probe(in);
+      image = PixelProbe.probe(in, Decoder.Options.LAYER_METADATA_ONLY);
       IMAGE_CACHE.put(path, image);
     }
     catch (IOException e) {
