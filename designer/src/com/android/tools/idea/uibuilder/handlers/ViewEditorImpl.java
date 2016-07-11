@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import com.android.assetstudiolib.AssetStudio;
+import com.android.assetstudiolib.GraphicGenerator;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.resources.ResourceType;
 import com.android.sdklib.AndroidVersion;
@@ -32,8 +34,13 @@ import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Maps;
+import com.google.common.io.ByteStreams;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Condition;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -44,11 +51,16 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
+
+import static com.android.SdkConstants.DOT_XML;
+import static com.android.SdkConstants.DRAWABLE_FOLDER;
 
 /**
  * Implementation of the {@link ViewEditor} abstraction presented
@@ -94,6 +106,52 @@ public class ViewEditorImpl extends ViewEditor {
   @Override
   public NlModel getModel() {
     return myScreen.getModel();
+  }
+
+  @Override
+  public boolean moduleContainsResource(@NotNull ResourceType type, @NotNull String name) {
+    return myScreen.getModel().getFacet().getModuleResources(true).hasResourceItem(type, name);
+  }
+
+  @Override
+  public void copyVectorAssetToMainModuleSourceSet(@NotNull String asset) {
+    Project project = myScreen.getModel().getProject();
+    String message = "Do you want to copy vector asset " + asset + " to your main module source set?";
+
+    if (Messages.showYesNoDialog(project, message, "Copy Vector Asset", Messages.getQuestionIcon()) == Messages.NO) {
+      return;
+    }
+
+    try (InputStream in = GraphicGenerator.class.getClassLoader().getResourceAsStream(AssetStudio.getPathForBasename(asset))) {
+      VirtualFile drawableDirectory = getDrawableDirectory();
+
+      if (drawableDirectory == null) {
+        return;
+      }
+
+      drawableDirectory.createChildData(this, asset + DOT_XML).setBinaryContent(ByteStreams.toByteArray(in));
+    }
+    catch (IOException exception) {
+      Logger.getInstance(ViewEditorImpl.class).warn(exception);
+    }
+  }
+
+  @Nullable
+  private VirtualFile getDrawableDirectory() throws IOException {
+    VirtualFile resourceDirectory = myScreen.getModel().getFacet().getPrimaryResourceDir();
+
+    if (resourceDirectory == null) {
+      Logger.getInstance(ViewEditorImpl.class).warn("resourceDirectory is null");
+      return null;
+    }
+
+    VirtualFile drawableDirectory = resourceDirectory.findChild(DRAWABLE_FOLDER);
+
+    if (drawableDirectory == null) {
+      return resourceDirectory.createChildDirectory(this, DRAWABLE_FOLDER);
+    }
+
+    return drawableDirectory;
   }
 
   @Override
