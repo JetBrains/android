@@ -165,20 +165,6 @@ public class Template {
     return new Template(new File(getTemplateRootFolder(), category + File.separator + name));
   }
 
-
-  @NotNull
-  public static Map<String, Object> createParameterMap(@NotNull Map<String, Object> args) {
-    final Map<String, Object> paramMap = FreemarkerUtils.createParameterMap(args);
-
-    // Root folder of the templates
-    // TODO: This doesn't look like it's used anywhere. Confirm...?
-    if (ApplicationManager.getApplication() != null && getTemplateRootFolder() != null) {
-      paramMap.put("templateRoot", getTemplateRootFolder().getAbsolutePath());
-    }
-
-    return paramMap;
-  }
-
   /**
    * Iterate through parameters and ensure the given map has the correct for each
    * parameter.
