@@ -36,6 +36,7 @@ import com.android.tools.idea.monitor.ui.BaseSegment;
 import com.android.tools.idea.monitor.ui.ProfilerEventListener;
 import com.android.tools.idea.monitor.ui.TimeAxisSegment;
 import com.android.tools.idea.monitor.ui.cpu.view.CpuProfilerUiManager;
+import com.android.tools.idea.monitor.ui.energy.view.EnergyProfilerUiManager;
 import com.android.tools.idea.monitor.ui.events.view.EventProfilerUiManager;
 import com.android.tools.idea.monitor.ui.memory.view.MemoryProfilerUiManager;
 import com.android.tools.idea.monitor.ui.network.view.NetworkProfilerUiManager;
@@ -64,6 +65,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
+
+import static com.android.tools.idea.startup.AndroidStudioInitializer.ENABLE_ENERGY_PROFILER;
 
 public class AndroidMonitorToolWindow implements Disposable {
 
@@ -451,6 +454,10 @@ public class AndroidMonitorToolWindow implements Disposable {
     myProfilerManagers.put(BaseProfilerUiManager.ProfilerType.CPU,
                            new CpuProfilerUiManager(myTimeViewRange, myTimeSelectionRange, myChoreographer, myDataStore, myEventDispatcher,
                                                     mySelectedDeviceProfilerService, myDeviceContext, myProject));
+    if (System.getProperty(ENABLE_ENERGY_PROFILER) != null ) {
+      myProfilerManagers.put(BaseProfilerUiManager.ProfilerType.ENERGY,
+                             new EnergyProfilerUiManager(myTimeViewRange, myChoreographer, myDataStore, myEventDispatcher));
+    }
     for (BaseProfilerUiManager manager : myProfilerManagers.values()) {
       manager.startMonitoring(mySelectedClient.getClientData().getPid());
     }
