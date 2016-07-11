@@ -63,6 +63,7 @@ public class NlPaletteModelTest extends PaletteTestCase {
     assertSmallProgressBarItem(iterator.next());
     assertHorizontalProgressBarItem(iterator.next());
     assertSeekBar(iterator.next());
+    assertDiscreteSeekBar(iterator.next());
     assertQuickContactBadge(iterator.next());
     assertRatingBar(iterator.next());
     assertSwitch(iterator.next());

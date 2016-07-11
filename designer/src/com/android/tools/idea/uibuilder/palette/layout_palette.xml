@@ -75,6 +75,19 @@
       </xml>
     </item>
     <item tag="SeekBar"/>
+    <item tag="SeekBar"
+          id="DiscreteSeekBar"
+          title="SeekBar (Discrete)">
+      <xml reuse="preview,drag-preview">
+        <![CDATA[
+            <SeekBar
+              style="@android:style/Widget.Material.SeekBar.Discrete"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+            />
+          ]]>
+      </xml>
+    </item>
     <item tag="QuickContactBadge"/>
     <item tag="RatingBar" scale="0.4"/>
     <item tag="Switch"/>
