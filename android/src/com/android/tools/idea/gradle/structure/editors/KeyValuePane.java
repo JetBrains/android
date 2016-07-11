@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.BuildFileKeyType;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
+import com.google.api.client.util.Sets;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.base.Splitter;
@@ -45,7 +46,6 @@ import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -57,10 +57,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 import static com.android.sdklib.AndroidTargetHash.getAddonHashString;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.getTargetLabel;
@@ -109,8 +107,17 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
     if (sdkHandler != null) {
       ProgressIndicator logger = new StudioLoggerProgressIndicator(getClass());
       RepositoryPackages packages = sdkHandler.getSdkManager(logger).getPackages();
+      Set<String> buildToolKeys = Sets.newHashSet();
       for (LocalPackage p : packages.getLocalPackagesForPrefix(SdkConstants.FD_BUILD_TOOLS)) {
-        buildToolsMapBuilder.put(p.getVersion().toString(), p.getVersion().toString());
+        String key = p.getVersion().toString();
+        // It's possible to end up with multiple build tools with the same key; for example
+        // "build-tools;24.0.0-preview" and "build-tools;24.0.0-rc4" - these both have the
+        // version name 24.0.0 rc4.  Prevent an exception in this scenario where the PSD
+        // can't be opened because a bi-map can't be constructed.
+        if (!buildToolKeys.contains(key)) {
+          buildToolsMapBuilder.put(key, key);
+          buildToolKeys.add(key);
+        }
       }
 
       for (IAndroidTarget target : sdkHandler.getAndroidTargetManager(logger).getTargets(logger)) {
