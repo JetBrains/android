@@ -20,8 +20,10 @@ public interface AndroidLaunchTaskContributor {
   boolean isApplicable(@NotNull Module module);
 
   /**
-   * Returns the appropriate launch task. Note that this will not be called if {@code inContext} returns false.
+   * Returns the appropriate launch task. Note that this will not be called if {@code isApplicable} returns false.
+   * @param applicationId Identifier of the application triggering this task. May be used to determine if the application has ended and
+   *                      some portion of your task needs to be cleaned up.
    */
   @NotNull
-  LaunchTask getTask();
+  LaunchTask getTask(@NotNull String applicationId);
 }
