@@ -24,12 +24,6 @@ public class AndroidAddStringResourceActionTest extends AndroidTestCase {
   }
 
   @Override
-  protected void runTest() throws Throwable {
-    // IGNORE ALL TESTS
-    // http://b.android.com/217034
-  }
-
-  @Override
   public void setUp() throws Exception {
     super.setUp();
     TemplateManagerImpl.setTemplateTesting(getProject(), getTestRootDisposable());
