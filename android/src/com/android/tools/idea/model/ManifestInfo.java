@@ -21,6 +21,7 @@ import com.android.manifmerger.*;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.GradleSyncState;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.utils.ILogger;
 import com.android.utils.NullLogger;
 import com.android.utils.Pair;
@@ -359,12 +360,15 @@ final class ManifestInfo {
     @NotNull
     private static List<VirtualFile> getLibManifests(@NotNull AndroidFacet facet) {
       List<VirtualFile> libraryManifests = new ArrayList<>();
+
+      List<AndroidFacet> dependencies = AndroidUtils.getAllAndroidDependencies(facet.getModule(), true);
+
       AndroidGradleModel androidGradleModel = AndroidGradleModel.get(facet);
       if (androidGradleModel != null) {
         Collection<AndroidLibrary> libraries = androidGradleModel.getSelectedMainCompileDependencies().getLibraries();
         Set<File> set = new HashSet<>();
         for (AndroidLibrary dependency : libraries) {
-          addAarManifests(dependency, set);
+          addAarManifests(dependency, set, dependencies);
         }
         for (File file : set) {
           VirtualFile libraryManifest = VfsUtil.findFileByIoFile(file, false);
@@ -377,7 +381,6 @@ final class ManifestInfo {
         }
       }
 
-      List<AndroidFacet> dependencies = AndroidUtils.getAllAndroidDependencies(facet.getModule(), true);
       for (AndroidFacet dependency : dependencies) {
         // we will NOT actually be reading from this file, as we will need to recursively get the info from the modules MergedManifest
         VirtualFile vFile = dependency.getMainIdeaSourceProvider().getManifestFile();
@@ -391,12 +394,23 @@ final class ManifestInfo {
       return libraryManifests;
     }
 
-    private static void addAarManifests(@NotNull AndroidLibrary lib, @NotNull Set<File> result) {
-      // we check getProject == null to make sure we don't add a lib that's already a module dependancy
-      if (lib.getProject() == null && !result.contains(lib.getManifest())) {
+    private static void addAarManifests(@NotNull AndroidLibrary lib, @NotNull Set<File> result, @NotNull List<AndroidFacet> moduleDeps) {
+      String projectName = lib.getProject();
+      if (projectName != null) {
+        // The model ends up with AndroidLibrary references both to normal, source modules,
+        // as well as AAR dependency wrappers. We don't want to add an AAR reference for
+        // normal libraries (so we find these and just return below), but we *do* want to
+        // include AAR wrappers.
+        for (AndroidFacet f : moduleDeps) {
+          if (projectName.equals(GradleUtil.getGradlePath(f.getModule()))) {
+            return;
+          }
+        }
+      }
+      if (!result.contains(lib.getManifest())) {
         result.add(lib.getManifest());
         for (AndroidLibrary dependency : lib.getLibraryDependencies()) {
-          addAarManifests(dependency, result);
+          addAarManifests(dependency, result, moduleDeps);
         }
       }
     }
