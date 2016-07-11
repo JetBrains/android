@@ -53,7 +53,7 @@ public class GradlePreSyncTest extends GuiTestCase {
     ideSettings.PROXY_HOST = host;
     ideSettings.PROXY_PORT = port;
     ideSettings.PROXY_AUTHENTICATION = true;
-    ideSettings.PROXY_LOGIN = "test";
+    ideSettings.setProxyLogin("test");
     ideSettings.setPlainProxyPassword("testPass");
 
     ProxySettings ideProxySettings = new ProxySettings(ideSettings);
