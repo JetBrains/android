@@ -42,8 +42,9 @@ import java.util.List;
 
 /**
  * This class can be used for line charts with a left axis or with both left and right.
- * In former case rightAxisFormatter should be passed to {@link #BaseLineChartSegment(String, Range, BaseAxisFormatter, BaseAxisFormatter)}
- * as null value, indicating that the chart has a left axis only.
+ * In former case rightAxisFormatter should be passed as null value during construction, indicating that the chart has a left axis only. In
+ * doing so, attempting to add a right axis line afterwards will result in an IllegalComponentStateException.
+ * When rightAxisFormatter is provided, the right axis will not be shown until at least one right axis line is added to this chart segment.
  */
 public abstract class BaseLineChartSegment extends BaseSegment {
 
@@ -78,7 +79,7 @@ public abstract class BaseLineChartSegment extends BaseSegment {
   @NotNull
   private final BaseAxisFormatter mLeftAxisFormatter;
 
-  @NotNull
+  @Nullable
   private final BaseAxisFormatter mRightAxisFormatter;
 
   private GridComponent mGrid;
@@ -100,6 +101,7 @@ public abstract class BaseLineChartSegment extends BaseSegment {
   private Point mMousePressedPosition;
 
   /**
+   *
    * @param rightAxisFormatter if it is null, chart will have a left axis only
    * @param leftAxisRange if it is null, a default range is going to be used
    * @param rightAxisRange if it is null, a default range is going to be used
@@ -109,7 +111,7 @@ public abstract class BaseLineChartSegment extends BaseSegment {
                               @NotNull SeriesDataStore dataStore,
                               @NotNull BaseAxisFormatter leftAxisFormatterSimple,
                               @NotNull BaseAxisFormatter leftAxisFormatter,
-                              @NotNull BaseAxisFormatter rightAxisFormatter,
+                              @Nullable BaseAxisFormatter rightAxisFormatter,
                               @Nullable Range leftAxisRange,
                               @Nullable Range rightAxisRange,
                               @NotNull EventDispatcher<ProfilerEventListener> dispatcher) {
@@ -130,7 +132,7 @@ public abstract class BaseLineChartSegment extends BaseSegment {
                               @NotNull SeriesDataStore dataStore,
                               @NotNull BaseAxisFormatter leftAxisFormatterSimple,
                               @NotNull BaseAxisFormatter leftAxisFormatter,
-                              @NotNull BaseAxisFormatter rightAxisFormatter,
+                              @Nullable BaseAxisFormatter rightAxisFormatter,
                               @NotNull EventDispatcher<ProfilerEventListener> dispatcher) {
     this(name, xRange, dataStore, leftAxisFormatterSimple, leftAxisFormatter, rightAxisFormatter, null, null, dispatcher);
   }
@@ -146,10 +148,13 @@ public abstract class BaseLineChartSegment extends BaseSegment {
     mLeftAxis.setClampToMajorTicks(true);
 
     // right axis
-    mRightAxis = new AxisComponent(mRightAxisRange, mRightAxisRange, "",
-                                   AxisComponent.AxisOrientation.RIGHT, 0, 0, true,
-                                   mRightAxisFormatter);
-    mRightAxis.setParentAxis(mLeftAxis);
+    if (mRightAxisFormatter != null) {
+      mRightAxis = new AxisComponent(mRightAxisRange, mRightAxisRange, "",
+                                     AxisComponent.AxisOrientation.RIGHT, 0, 0, true,
+                                     mRightAxisFormatter);
+      mRightAxis.setParentAxis(mLeftAxis);
+      mRightAxis.setVisible(false);
+    }
 
     mLineChart = new LineChart();
     mGrid = new GridComponent();
@@ -163,7 +168,9 @@ public abstract class BaseLineChartSegment extends BaseSegment {
     // The comment on each line highlights why the component needs to be in that position.
     animatables.add(mLineChart); // Set y's interpolation values.
     animatables.add(mLeftAxis);  // Read left y range and update its max to the next major tick.
-    animatables.add(mRightAxis); // Read right y range and update its max by syncing to the left axis' major tick spacing.
+    if (mRightAxis != null) {
+      animatables.add(mRightAxis); // Read right y range and update its max by syncing to the left axis' major tick spacing.
+    }
     animatables.add(mLeftAxisRange); // Interpolate left y range.
     animatables.add(mRightAxisRange); // Interpolate right y range.
     animatables.add(mLegendComponent);
@@ -202,8 +209,10 @@ public abstract class BaseLineChartSegment extends BaseSegment {
 
   @Override
   protected void setRightContent(@NotNull JPanel panel) {
-    panel.add(mRightAxis, BorderLayout.CENTER);
-    setRightSpacerVisible(true);
+    if (mRightAxisFormatter != null) {
+      panel.add(mRightAxis, BorderLayout.CENTER);
+      setRightSpacerVisible(true);
+    }
   }
 
   private void initializeListeners() {
@@ -344,8 +353,12 @@ public abstract class BaseLineChartSegment extends BaseSegment {
    * Adds a line to {@link #mLineChart} that is associated with the right axis.
    */
   protected void addRightAxisLine(SeriesDataType type, String label, LineConfig lineConfig) {
+    if (mRightAxisFormatter == null) {
+      throw new IllegalComponentStateException("Right axis formatter is not defined, cannot add right axis line.");
+    }
     mLineChart.addLine(new RangedContinuousSeries(label, mXRange, mRightAxisRange, new DataStoreSeries(mSeriesDataStore, type),
                                                   TimeAxisFormatter.DEFAULT, mRightAxisFormatter), lineConfig);
+    mRightAxis.setVisible(true);
   }
 
   /**

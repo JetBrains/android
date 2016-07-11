@@ -44,7 +44,8 @@ public abstract class BaseProfilerUiManager {
     NETWORK,
     MEMORY,
     CPU,
-    GPU
+    GPU,
+    ENERGY
   }
 
   protected static final int DEFAULT_MONITOR_MIN_HEIGHT = JBUI.scale(0);
