@@ -190,6 +190,31 @@ public abstract class PaletteTestCase extends AndroidTestCase {
   }
 
   @Language("XML")
+  private static final String DISCRETE_SEEKBAR_XML =
+    "<SeekBar\n" +
+    "  style=\"@android:style/Widget.Material.SeekBar.Discrete\"\n" +
+    "  android:layout_width=\"wrap_content\"\n" +
+    "  android:layout_height=\"wrap_content\"\n" +
+    "/>\n";
+
+  @Language("XML")
+  private static final String DISCRETE_SEEKBAR_PREVIEW_XML =
+    "<SeekBar\n" +
+    "  android:id=\"@+id/DiscreteSeekBar\"\n" +
+    "  style=\"@android:style/Widget.Material.SeekBar.Discrete\"\n" +
+    "  android:layout_width=\"wrap_content\"\n" +
+    "  android:layout_height=\"wrap_content\"\n" +
+    "/>\n";
+
+  public void assertDiscreteSeekBar(@NotNull Palette.BaseItem item) {
+    checkItem(item, "SeekBar", "SeekBar (Discrete)", AndroidIcons.Views.SeekBar, DISCRETE_SEEKBAR_XML, DISCRETE_SEEKBAR_PREVIEW_XML,
+              DISCRETE_SEEKBAR_XML, IN_PLATFORM, 1.0);
+    NlComponent component = createMockComponent("SeekBar");
+    Mockito.when(component.getAttribute(null, TAG_STYLE)).thenReturn(ANDROID_STYLE_RESOURCE_PREFIX + "Widget.Material.SeekBar.Discrete");
+    checkComponent(component, "SeekBar", AndroidIcons.Views.SeekBar);
+  }
+
+  @Language("XML")
   private static final String QUICK_CONTACT_BADGE_XML =
     "<QuickContactBadge\n" +
     "    android:src=\"@android:drawable/btn_star\"\n" +
