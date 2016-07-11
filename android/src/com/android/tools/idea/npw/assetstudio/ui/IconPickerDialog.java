@@ -30,10 +30,10 @@ import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.net.URL;
 import java.util.ArrayList;
@@ -41,11 +41,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 
+import static com.android.assetstudiolib.AssetStudio.MATERIAL_DESIGN_ICONS_PATH;
+
 /**
  * Generate a dialog to pick a pre-configured material icon in vector format.
  */
 public final class IconPickerDialog extends DialogWrapper {
-  private static final String MATERIAL_DESIGN_ICONS_PATH = "images/material_design_icons/";
   private static final String DEFAULT_ICON_NAME = "action/ic_android_black_24dp.xml";
 
   // Note that "All" is a virtual category. All icons are marked with a specific category, but
@@ -103,28 +104,6 @@ public final class IconPickerDialog extends DialogWrapper {
     }
   };
   private final JBTable myIconTable = new JBTable(myModel);
-  private final JBScrollPane myTablePane = new JBScrollPane(myIconTable);
-  private final DefaultTableCellRenderer myTableRenderer = new DefaultTableCellRenderer() {
-    @Override
-    public void setValue(Object value) {
-      VdIcon icon = (VdIcon)value;
-      setText("");
-      setToolTipText(icon != null ? icon.getName() : null);
-      setIcon(icon);
-    }
-
-    @Override
-    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-      if (table.getValueAt(row, column) == null) {
-        Component cell = super.getTableCellRendererComponent(table, value, false, false, row, column);
-        cell.setFocusable(false);
-        return cell;
-      }
-      else {
-        return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-      }
-    }
-  };
 
   private JPanel myContentPanel;
   private JPanel myCategoriesPanel;
@@ -150,13 +129,40 @@ public final class IconPickerDialog extends DialogWrapper {
     // provide a lighter color for better contrast.
     Color iconBackgroundColor = UIUtil.isUnderDarcula() ? DARCULA_ICON_BACKGROUND : UIUtil.getListBackground();
 
+    TableCellRenderer tableRenderer = new DefaultTableCellRenderer() {
+      @Override
+      public void setValue(Object value) {
+        VdIcon icon = (VdIcon)value;
+        setText("");
+        setToolTipText(icon != null ? icon.getName() : null);
+        setIcon(icon);
+      }
+
+      @Override
+      public Component getTableCellRendererComponent(JTable table,
+                                                     Object value,
+                                                     boolean isSelected,
+                                                     boolean hasFocus,
+                                                     int row,
+                                                     int column) {
+        if (table.getValueAt(row, column) == null) {
+          Component cell = super.getTableCellRendererComponent(table, value, false, false, row, column);
+          cell.setFocusable(false);
+          return cell;
+        }
+        else {
+          return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+        }
+      }
+    };
+
     // For the main content area, display a grid if icons
     myIconTable.setBackground(iconBackgroundColor);
-    myIconTable.setDefaultRenderer(VdIcon.class, myTableRenderer);
+    myIconTable.setDefaultRenderer(VdIcon.class, tableRenderer);
     myIconTable.setRowHeight(ICON_ROW_HEIGHT);
     myIconTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     myIconTable.setCellSelectionEnabled(true);
-    myIconsPanel.add(myTablePane);
+    myIconsPanel.add(new JBScrollPane(myIconTable));
 
     // Add license info at the bottom.
     myLicenseLabel.setHyperlinkText("These icons are available under the ", "CC-BY license", "");
@@ -168,34 +174,29 @@ public final class IconPickerDialog extends DialogWrapper {
     myIconTable.setGridColor(iconBackgroundColor);
     myIconTable.setIntercellSpacing(new Dimension(0, 0));
     myIconTable.setRowMargin(0);
-    ListSelectionListener listener = new ListSelectionListener() {
-      @Override
-      public void valueChanged(ListSelectionEvent e) {
-        if (e.getValueIsAdjusting()) {
-          return;
-        }
-        int row = myIconTable.getSelectedRow();
-        int col = myIconTable.getSelectedColumn();
-        VdIcon icon = (VdIcon)myModel.getValueAt(row, col);
-        mySelectedIcon = icon;
-        setOKActionEnabled(icon != null);
+
+    ListSelectionListener listener = e -> {
+      if (e.getValueIsAdjusting()) {
+        return;
       }
+      int row = myIconTable.getSelectedRow();
+      int col = myIconTable.getSelectedColumn();
+      VdIcon icon = (VdIcon)myModel.getValueAt(row, col);
+      mySelectedIcon = icon;
+      setOKActionEnabled(icon != null);
     };
+
     selModel.addListSelectionListener(listener);
     ListSelectionModel colSelModel = myIconTable.getColumnModel().getSelectionModel();
 
     colSelModel.addListSelectionListener(listener);
 
     // Setup the picking interaction for the category list.
-    categoryList.addListSelectionListener(new ListSelectionListener() {
-
-      @Override
-      public void valueChanged(ListSelectionEvent e) {
-        if (e.getValueIsAdjusting()) {
-          return;
-        }
-        updateIconList((String)categoryList.getSelectedValue());
+    categoryList.addListSelectionListener(e -> {
+      if (e.getValueIsAdjusting()) {
+        return;
       }
+      updateIconList((String)categoryList.getSelectedValue());
     });
     categoryList.setSelectedIndex(0);
 
@@ -234,8 +235,8 @@ public final class IconPickerDialog extends DialogWrapper {
       String categoryName = ICON_CATEGORIES[i];
       String categoryNameLowerCase = categoryName.toLowerCase(Locale.ENGLISH);
       String fullDirName = MATERIAL_DESIGN_ICONS_PATH + categoryNameLowerCase + '/';
-      for (Iterator<String> iter = GraphicGenerator.getResourcesNames(fullDirName, SdkConstants.DOT_XML); iter.hasNext(); ) {
-        final String iconName = iter.next();
+      for (Iterator<String> iterator = GraphicGenerator.getResourcesNames(fullDirName, SdkConstants.DOT_XML); iterator.hasNext(); ) {
+        final String iconName = iterator.next();
         URL url = GraphicGenerator.class.getClassLoader().getResource(fullDirName + iconName);
         VdIcon icon = new VdIcon(url);
         myCategoryIcons.put(categoryName, icon);
