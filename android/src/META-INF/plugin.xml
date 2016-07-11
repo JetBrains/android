@@ -1168,6 +1168,10 @@
     <fileEditorProvider implementation="com.android.tools.idea.editors.layeredimage.LayeredImageEditorProvider" />
   </extensions>
 
+  <extensions defaultExtensionNs="com.intellij">
+    <consoleFilterProvider implementation="com.android.tools.idea.gradle.filters.GradleConsoleReRunFilterProvider"/>
+  </extensions>
+
   <project-components>
     <component>
       <implementation-class>com.android.tools.idea.editors.layeredimage.LayersManager</implementation-class>

@@ -78,6 +78,8 @@ public class GradleInvoker {
   @NotNull private final Collection<BeforeGradleInvocationTask> myBeforeTasks = Sets.newLinkedHashSet();
   @NotNull private final Collection<AfterGradleInvocationTask> myAfterTasks = Sets.newLinkedHashSet();
   @NotNull private final Map<ExternalSystemTaskId, CancellationTokenSource> myCancellationMap = Maps.newConcurrentMap();
+  @NotNull private final List<String> myTempGradleOptions = Lists.newArrayList();
+  @NotNull private final List<String> myLastBuildTasks = Lists.newArrayList();
 
   public static GradleInvoker getInstance(@NotNull Project project) {
     return ServiceManager.getService(project, GradleInvoker.class);
@@ -170,6 +172,26 @@ public class GradleInvoker {
     executeTasks(tasks);
   }
 
+  /**
+   * Execute the last run set of gradle tasks, with the specified gradle options
+   * prepended before the tasks to run.
+   */
+  public void rebuildWithTempOptions(@NotNull List<String> options) {
+    myTempGradleOptions.addAll(options);
+    try {
+      if (myLastBuildTasks.isEmpty()) {
+        rebuild();
+      } else {
+        List<String> tasksFromLastBuild = Lists.newArrayList();
+        tasksFromLastBuild.addAll(myLastBuildTasks);
+        executeTasks(tasksFromLastBuild);
+      }
+    } finally {
+      // Don't reuse them on the next rebuild.
+      myTempGradleOptions.clear();
+    }
+  }
+
   private void setProjectBuildMode(@NotNull BuildMode buildMode) {
     BuildSettings.getInstance(myProject).setBuildMode(buildMode);
   }
@@ -222,7 +244,7 @@ public class GradleInvoker {
   }
 
   public void executeTasks(@NotNull List<String> gradleTasks) {
-    executeTasks(gradleTasks, Collections.emptyList());
+    executeTasks(gradleTasks, myTempGradleOptions);
   }
 
   public void executeTasks(@NotNull List<String> tasks, @Nullable BuildMode buildMode, @NotNull List<String> commandLineArguments) {
@@ -280,6 +302,10 @@ public class GradleInvoker {
                            @Nullable File buildFilePath,
                            boolean waitForCompletion,
                            boolean useEmbeddedGradle) {
+    // Remember the current build's tasks, in case they want to re-run it with transient gradle options.
+    myLastBuildTasks.clear();
+    myLastBuildTasks.addAll(gradleTasks);
+
     LOG.info("About to execute Gradle tasks: " + gradleTasks);
     if (gradleTasks.isEmpty()) {
       return;
@@ -295,9 +321,12 @@ public class GradleInvoker {
         return;
       }
     }
-
+    // Make a defensive copy of the args, so that if the caller messes with them it won't affect this execution context.
+    // Happens when we are re-running the last build with additional temp arguments (e.g. "--stacktrace").
+    List<String> copiedCmdLineArgs = Lists.newArrayList();
+    copiedCmdLineArgs.addAll(commandLineArguments);
     GradleTaskExecutionContext context =
-      new GradleTaskExecutionContext(this, myProject, gradleTasks, jvmArguments, commandLineArguments, myCancellationMap, taskId,
+      new GradleTaskExecutionContext(this, myProject, gradleTasks, jvmArguments, copiedCmdLineArgs, myCancellationMap, taskId,
                                      taskListener, buildFilePath, useEmbeddedGradle);
     GradleTasksExecutor executor = new GradleTasksExecutor(context);
 
