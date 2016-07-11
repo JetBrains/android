@@ -25,6 +25,7 @@ import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.ContainerFixture;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.fixture.JTabbedPaneFixture;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.swing.*;
@@ -35,27 +36,29 @@ public class ProjectStructureDialogFixture implements ContainerFixture<JDialog> 
   private final IdeFrameFixture myIdeFrameFixture;
   private final Robot myRobot;
 
-  ProjectStructureDialogFixture(JDialog dialog, IdeFrameFixture ideFrameFixture) {
+  ProjectStructureDialogFixture(@Nonnull JDialog dialog, @NotNull IdeFrameFixture ideFrameFixture) {
     myDialog = dialog;
     myIdeFrameFixture = ideFrameFixture;
     myRobot = ideFrameFixture.robot();
   }
 
-  public static ProjectStructureDialogFixture find(IdeFrameFixture ideFrameFixture) {
+  @NotNull
+  public static ProjectStructureDialogFixture find(@NotNull IdeFrameFixture ideFrameFixture) {
     JDialog dialog = GuiTests.waitUntilShowing(ideFrameFixture.robot(), Matchers.byTitle(JDialog.class, "Project Structure"));
     return new ProjectStructureDialogFixture(dialog, ideFrameFixture);
   }
 
+  @NotNull
   public FlavorsTabFixture selectFlavorsTab() {
-    JTabbedPane tabbedPane = myRobot.finder().findByType(myDialog, JTabbedPane.class);
-    new JTabbedPaneFixture(myRobot, tabbedPane).selectTab("Flavors");
+    selectTab("Flavors");
     return new FlavorsTabFixture(myDialog, myIdeFrameFixture);
   }
 
   private static final JListCellReader CONFIGURATION_CELL_READER = (jList, index) ->
     ((Configurable)jList.getModel().getElementAt(index)).getDisplayName();
 
-  public ProjectStructureDialogFixture selectConfigurable(String item) {
+  @NotNull
+  public ProjectStructureDialogFixture selectConfigurable(@NotNull String item) {
     JBList list = myRobot.finder().findByType(myDialog, JBList.class);
     JListFixture jListFixture = new JListFixture(robot(), list);
     jListFixture.replaceCellReader(CONFIGURATION_CELL_READER);
@@ -63,6 +66,7 @@ public class ProjectStructureDialogFixture implements ContainerFixture<JDialog> 
     return this;
   }
 
+  @NotNull
   public IdeFrameFixture clickOk() {
     GuiTests.findAndClickOkButton(this);
     Wait.seconds(5).expecting("dialog to disappear").until(() -> !target().isShowing());
@@ -79,5 +83,16 @@ public class ProjectStructureDialogFixture implements ContainerFixture<JDialog> 
   @Override
   public Robot robot() {
     return myRobot;
+  }
+
+  @NotNull
+  public BuildTypesTabFixture selectBuildTypesTab() {
+    selectTab("Build Types");
+    return new BuildTypesTabFixture(myDialog, myIdeFrameFixture);
+  }
+
+  private void selectTab(@NotNull String tabName) {
+    JTabbedPane tabbedPane = myRobot.finder().findByType(myDialog, JTabbedPane.class);
+    new JTabbedPaneFixture(myRobot, tabbedPane).selectTab(tabName);
   }
 }
