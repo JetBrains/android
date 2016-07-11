@@ -29,6 +29,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import java.util.Collections;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
@@ -254,6 +255,7 @@ public final class GroupDragHandlerTest {
 
   @NotNull
   private static DragHandler newGroupDragHandler(@NotNull NlComponent group) {
-    return new GroupDragHandler(Mockito.mock(ViewEditor.class), new ViewGroupHandler(), group, Collections.emptyList(), DragType.CREATE);
+    List<NlComponent> items = Collections.singletonList(Mockito.mock(NlComponent.class));
+    return new GroupDragHandler(Mockito.mock(ViewEditor.class), new ViewGroupHandler(), group, items, DragType.CREATE);
   }
 }
