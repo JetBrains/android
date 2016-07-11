@@ -36,6 +36,12 @@ public class GradleImplicitPropertyUsageProvider extends ImplicitPropertyUsagePr
       return true;
     }
 
+    if (Comparing.equal(file.getName(), "gradle.properties", SystemInfo.isFileSystemCaseSensitive)) {
+      // Ignore all properties in the gradle.properties; we don't have a complete set of what's used
+      // and we don't want to suggest to the user that these are unused
+      return true;
+    }
+
     // The android gradle plugin reads sdk.dir, ndk.dir and android.dir from local.properties
     if (Comparing.equal(file.getName(), FN_LOCAL_PROPERTIES, SystemInfo.isFileSystemCaseSensitive)) {
       String name = property.getName();
