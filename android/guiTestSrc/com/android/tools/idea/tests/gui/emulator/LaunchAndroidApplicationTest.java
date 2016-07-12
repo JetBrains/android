@@ -38,9 +38,9 @@ public class LaunchAndroidApplicationTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   private static final String APP_NAME = "app";
-  private static final String PROCESS_NAME = "com.android.simple.application";
+  private static final String PROCESS_NAME = "simple.application";
   private static final Pattern LOCAL_PATH_OUTPUT = Pattern.compile(
-    ".*adb shell am start .*com.android.simple.application.+Connected to process.*", Pattern.DOTALL);
+    ".*adb shell am start .*simple.application.+Connected to process.*", Pattern.DOTALL);
   private static final String AVD_NAME = "device under test";
 
   @Before
