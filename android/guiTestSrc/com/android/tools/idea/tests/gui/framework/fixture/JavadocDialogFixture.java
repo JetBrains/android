@@ -21,6 +21,7 @@ import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.ContainerFixture;
+import org.fest.swing.fixture.JCheckBoxFixture;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -75,5 +76,19 @@ public class JavadocDialogFixture implements ContainerFixture<JDialog> {
   @Override
   public Robot robot() {
     return myRobot;
+  }
+
+  public JavadocDialogFixture setOpenDocumentationInBrowser(boolean open) {
+    JCheckBox checkBox = GuiTests.waitUntilShowing(myRobot, myDialog, new GenericTypeMatcher<JCheckBox>(JCheckBox.class) {
+      @Override
+      protected boolean isMatching(@NotNull JCheckBox component) {
+        return "Open generated documentation in browser".equals(component.getText());
+      }
+    });
+    JCheckBoxFixture checkBoxFixture = new JCheckBoxFixture(myRobot, checkBox);
+    if (checkBox.isSelected() != open) {
+      checkBoxFixture.click();
+    }
+    return this;
   }
 }

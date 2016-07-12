@@ -58,6 +58,7 @@ public class GenerateJavadocTest {
     guiTest.importSimpleApplication()
       .openFromMenu(JavadocDialogFixture::find, "Tools", "Generate JavaDoc...")
       .enterOutputDirectory(javadocDirectory())
+      .setOpenDocumentationInBrowser(false) // Do not open the browser after closing this dialog
       .clickOk()
       .waitForExecutionToFinish();
     assertAbout(file()).that(new File(javadocDirectory(), "index.html")).isFile();
