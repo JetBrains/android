@@ -52,7 +52,7 @@ public class AttributesTransaction implements NlAttributesHolder {
    * After calling commit (this will indicate if the transaction was successful
    */
   private boolean isSuccessful = false;
-  @NotNull private WeakReference<View> myCachedView = new WeakReference<>(null);
+  @NotNull private WeakReference<ViewInfo> myCachedViewInfo = new WeakReference<>(null);
 
   public AttributesTransaction(@NotNull NlComponent thisComponent) {
     myComponent = thisComponent;
@@ -116,32 +116,29 @@ public class AttributesTransaction implements NlAttributesHolder {
         myPendingAttributes.put(key, attribute);
       }
 
-      ViewInfo viewInfo = myComponent.viewInfo;
-      if (viewInfo != null) {
-        View cachedView = myCachedView.get();
-        if (cachedView == viewInfo.getViewObject()) {
-          // We still have the same view info so we can just apply the delta (the passed attribute)
-          if (modified && cachedView != null) {
-            if (applyAttributeToView(attribute, viewInfo, myModel)) {
-              triggerViewRelayout(cachedView);
-            }
+      ViewInfo cachedViewInfo = myCachedViewInfo.get();
+      if (cachedViewInfo == myComponent.viewInfo) {
+        // We still have the same view info so we can just apply the delta (the passed attribute)
+        if (modified && cachedViewInfo != null) {
+          if (applyAttributeToView(attribute, cachedViewInfo, myModel)) {
+            triggerViewRelayout((View)cachedViewInfo.getViewObject());
           }
         }
-        else {
-          // The view object has changed so we need to re-apply all the attributes
-          cachedView = (View)viewInfo.getViewObject();
-          myCachedView = new WeakReference<>(cachedView);
+      }
+      else {
+        // The view object has changed so we need to re-apply all the attributes
+        cachedViewInfo = myComponent.viewInfo;
+        myCachedViewInfo = new WeakReference<>(cachedViewInfo);
 
-          if (cachedView != null) {
-            for (PendingAttribute pendingAttribute : myPendingAttributes.values()) {
-              // If the value is null, means that the attribute was reset to the default value. In that case, since this is a new view object
-              // we do not need to propagate that change.
-              if (pendingAttribute.value != null) {
-                applyAttributeToView(pendingAttribute, viewInfo, myModel);
-              }
+        if (cachedViewInfo != null) {
+          for (PendingAttribute pendingAttribute : myPendingAttributes.values()) {
+            // If the value is null, means that the attribute was reset to the default value. In that case, since this is a new view object
+            // we do not need to propagate that change.
+            if (pendingAttribute.value != null) {
+              applyAttributeToView(pendingAttribute, cachedViewInfo, myModel);
             }
-            triggerViewRelayout(cachedView);
           }
+          triggerViewRelayout((View)cachedViewInfo.getViewObject());
         }
       }
     }
