@@ -38,6 +38,7 @@ import static com.android.tools.idea.gradle.util.GradleUtil.getDependencies;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.roots.DependencyScope.TEST;
 import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
@@ -247,7 +248,11 @@ public abstract class Dependency {
         ModuleDependency mainDependency = null;
 
         String gradleProjectPath = library.getProject();
-        if (isNotEmpty(gradleProjectPath)) {
+        MavenCoordinates coordinates = library.getResolvedCoordinates();
+        String classifier = coordinates.getClassifier();
+        // If there is a classifier, set up the dependency as a 'library' dependency.
+        // See https://code.google.com/p/android/issues/detail?id=215490
+        if (isNotEmpty(gradleProjectPath) && isEmpty(classifier)) {
           // This is a module.
           mainDependency = new ModuleDependency(gradleProjectPath, scope);
           dependencies.add(mainDependency);
