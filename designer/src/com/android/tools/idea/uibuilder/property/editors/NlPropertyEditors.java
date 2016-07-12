@@ -19,6 +19,7 @@ import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.ptable.PTableCellEditor;
 import com.android.tools.idea.uibuilder.property.ptable.PTableCellEditorProvider;
 import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
+import com.intellij.ide.ui.LafManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
@@ -41,6 +42,7 @@ public class NlPropertyEditors implements PTableCellEditorProvider {
 
   public NlPropertyEditors(@NotNull Project project) {
     myProject = project;
+    LafManager.getInstance().addLafManagerListener(source -> resetCachedEditors());
   }
 
   @NotNull
@@ -72,6 +74,13 @@ public class NlPropertyEditors implements PTableCellEditorProvider {
       default:
         return NlReferenceEditor.createForInspectorWithBrowseButton(property.getModel().getProject(), DEFAULT_LISTENER);
     }
+  }
+
+  private void resetCachedEditors() {
+    myBooleanEditor = null;
+    myFlagEditor = null;
+    myComboEditor = null;
+    myDefaultEditor = null;
   }
 
   @NotNull

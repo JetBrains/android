@@ -23,6 +23,7 @@ import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.*;
 import com.google.common.collect.ImmutableList;
+import com.intellij.ide.ui.LafManager;
 import com.intellij.openapi.project.Project;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
@@ -51,6 +52,10 @@ public class TextInspectorProvider implements InspectorProvider {
     ATTR_TEXT_COLOR);
 
   private TextInspectorComponent myComponent;
+
+  public TextInspectorProvider() {
+    LafManager.getInstance().addLafManagerListener(source -> myComponent = null);
+  }
 
   @Override
   public boolean isApplicable(@NotNull List<NlComponent> components,
