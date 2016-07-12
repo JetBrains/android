@@ -7,16 +7,21 @@ absname() {
   echo "$(cd $1 && pwd)"
 }
 
-PROTOC=${PROTOC:-protoc}
-
 SCRIPT_DIR=$(absname "$(dirname "${BASH_SOURCE[0]}")")
 JAVA_BASE=$(absname "$SCRIPT_DIR/../../../../../..")
-TOOLS_ROOT=$(absname "$JAVA_BASE/../../../..")
-GPU_BASE=$(absname "$TOOLS_ROOT/gpu/src/android.googlesource.com/platform/tools/gpu")
+REPO_ROOT=$(absname "$JAVA_BASE/../../../../..")
+GPU_BASE=$(absname "$REPO_ROOT/tools/gpu/src/android.googlesource.com/platform/tools/gpu")
+MAVEN_ROOT=$(absname "$REPO_ROOT/prebuilts/tools/common/m2/repository")
+HOST_OS=$(uname | tr A-Z a-z | sed -e "s/darwin/osx/g")
 
-if [ ! -x $TOOLS_ROOT/gpu/bin/codergen ]
+PROTO_VERSION=${PROTO_VERSION:-3.0.0-beta-2}
+PROTOC=${PROTOC:-$MAVEN_ROOT/com/google/protobuf/protoc/$PROTO_VERSION/protoc-$PROTO_VERSION-$HOST_OS-x86_64.exe}
+
+CODERGEN=${CODERGEN:-${GAPID_OUT:-${BUILDS:-~/gapid}}/release/bin/codergen}
+
+if [ ! -x $CODERGEN ]
 then
-  echo "Build codergen in $TOOLS_ROOT/gpu/bin from $GPU_BASE first."
+  echo "Build codergen in $CODERGEN from $GPU_BASE first."
   exit 1
 fi
 
@@ -38,6 +43,6 @@ $PROTOC --proto_path $GPU_BASE --java_out $JAVA_BASE $GPU_BASE/gapid/vertex/vert
 # And now run codergen for the serializers
 echo "Running codergen..."
 pushd $GPU_BASE >/dev/null
-$TOOLS_ROOT/gpu/bin/codergen --java $TOOLS_ROOT ./...
+$CODERGEN --java $TOOLS_ROOT ./...
 popd >/dev/null
 echo "All done"
