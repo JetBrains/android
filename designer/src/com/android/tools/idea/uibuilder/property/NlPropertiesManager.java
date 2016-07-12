@@ -71,7 +71,7 @@ public class NlPropertiesManager implements DesignSurfaceListener, ModelListener
   @NotNull
   public AnAction[] getActions() {
     return new AnAction[]{
-      new ShowExpertProperties(myPropertiesPanel)
+      new ViewAllPropertiesAction(myPropertiesPanel)
     };
   }
 

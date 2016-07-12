@@ -21,17 +21,19 @@ import com.intellij.openapi.actionSystem.ToggleAction;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 
-public class ShowExpertProperties extends ToggleAction {
+public class ViewAllPropertiesAction extends ToggleAction {
+  public static final String VIEW_ALL_PROPERTIES = "View all properties";
+  public static final String VIEW_FEWER_PROPERTIES = "View fewer properties";
   private final Model myModel;
 
   public interface Model {
-    boolean isShowingExpertProperties();
-    void setShowExpertProperties(boolean en);
+    boolean isAllPropertiesPanelVisible();
+    void setAllPropertiesPanelVisible(boolean viewAllProperties);
   }
 
-  public ShowExpertProperties(@NotNull Model model) {
+  public ViewAllPropertiesAction(@NotNull Model model) {
     Presentation presentation = getTemplatePresentation();
-    String text = "Show expert properties";
+    String text = VIEW_ALL_PROPERTIES;
     presentation.setText(text);
     presentation.setDescription(text);
     presentation.setIcon(AndroidIcons.NeleIcons.ToggleProperties);
@@ -41,12 +43,12 @@ public class ShowExpertProperties extends ToggleAction {
 
   @Override
   public boolean isSelected(AnActionEvent e) {
-    return myModel.isShowingExpertProperties();
+    return myModel.isAllPropertiesPanelVisible();
   }
 
   @Override
   public void setSelected(AnActionEvent e, boolean state) {
-    myModel.setShowExpertProperties(state);
+    myModel.setAllPropertiesPanelVisible(state);
   }
 
   @Override
