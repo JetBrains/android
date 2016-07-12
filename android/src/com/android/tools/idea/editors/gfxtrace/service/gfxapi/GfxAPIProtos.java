@@ -198,6 +198,22 @@ public final class GfxAPIProtos {
      * </pre>
      */
     Cubemap(4, 4),
+    /**
+     * <code>Shader = 5;</code>
+     *
+     * <pre>
+     * Shader represents the Shader resource type
+     * </pre>
+     */
+    Shader(5, 5),
+    /**
+     * <code>Program = 6;</code>
+     *
+     * <pre>
+     * Program represents the Program resource type
+     * </pre>
+     */
+    Program(6, 6),
     UNRECOGNIZED(-1, -1),
     ;
 
@@ -241,6 +257,22 @@ public final class GfxAPIProtos {
      * </pre>
      */
     public static final int Cubemap_VALUE = 4;
+    /**
+     * <code>Shader = 5;</code>
+     *
+     * <pre>
+     * Shader represents the Shader resource type
+     * </pre>
+     */
+    public static final int Shader_VALUE = 5;
+    /**
+     * <code>Program = 6;</code>
+     *
+     * <pre>
+     * Program represents the Program resource type
+     * </pre>
+     */
+    public static final int Program_VALUE = 6;
 
 
     public final int getNumber() {
@@ -258,6 +290,8 @@ public final class GfxAPIProtos {
         case 2: return Texture2D;
         case 3: return Texture3D;
         case 4: return Cubemap;
+        case 5: return Shader;
+        case 6: return Program;
         default: return null;
       }
     }
@@ -417,6 +451,134 @@ public final class GfxAPIProtos {
     // @@protoc_insertion_point(enum_scope:gfxapi.FramebufferAttachment)
   }
 
+  /**
+   * Protobuf enum {@code gfxapi.ShaderType}
+   */
+  public enum ShaderType
+      implements com.google.protobuf.ProtocolMessageEnum {
+    /**
+     * <code>Vertex = 0;</code>
+     */
+    Vertex(0, 0),
+    /**
+     * <code>Geometry = 1;</code>
+     */
+    Geometry(1, 1),
+    /**
+     * <code>TessControl = 2;</code>
+     */
+    TessControl(2, 2),
+    /**
+     * <code>TessEvaluation = 3;</code>
+     */
+    TessEvaluation(3, 3),
+    /**
+     * <code>Fragment = 4;</code>
+     */
+    Fragment(4, 4),
+    /**
+     * <code>Compute = 5;</code>
+     */
+    Compute(5, 5),
+    UNRECOGNIZED(-1, -1),
+    ;
+
+    /**
+     * <code>Vertex = 0;</code>
+     */
+    public static final int Vertex_VALUE = 0;
+    /**
+     * <code>Geometry = 1;</code>
+     */
+    public static final int Geometry_VALUE = 1;
+    /**
+     * <code>TessControl = 2;</code>
+     */
+    public static final int TessControl_VALUE = 2;
+    /**
+     * <code>TessEvaluation = 3;</code>
+     */
+    public static final int TessEvaluation_VALUE = 3;
+    /**
+     * <code>Fragment = 4;</code>
+     */
+    public static final int Fragment_VALUE = 4;
+    /**
+     * <code>Compute = 5;</code>
+     */
+    public static final int Compute_VALUE = 5;
+
+
+    public final int getNumber() {
+      if (index == -1) {
+        throw new java.lang.IllegalArgumentException(
+            "Can't get the number of an unknown enum value.");
+      }
+      return value;
+    }
+
+    public static ShaderType valueOf(int value) {
+      switch (value) {
+        case 0: return Vertex;
+        case 1: return Geometry;
+        case 2: return TessControl;
+        case 3: return TessEvaluation;
+        case 4: return Fragment;
+        case 5: return Compute;
+        default: return null;
+      }
+    }
+
+    public static com.google.protobuf.Internal.EnumLiteMap<ShaderType>
+        internalGetValueMap() {
+      return internalValueMap;
+    }
+    private static final com.google.protobuf.Internal.EnumLiteMap<
+        ShaderType> internalValueMap =
+          new com.google.protobuf.Internal.EnumLiteMap<ShaderType>() {
+            public ShaderType findValueByNumber(int number) {
+              return ShaderType.valueOf(number);
+            }
+          };
+
+    public final com.google.protobuf.Descriptors.EnumValueDescriptor
+        getValueDescriptor() {
+      return getDescriptor().getValues().get(index);
+    }
+    public final com.google.protobuf.Descriptors.EnumDescriptor
+        getDescriptorForType() {
+      return getDescriptor();
+    }
+    public static final com.google.protobuf.Descriptors.EnumDescriptor
+        getDescriptor() {
+      return com.android.tools.idea.editors.gfxtrace.service.gfxapi.GfxAPIProtos.getDescriptor().getEnumTypes().get(3);
+    }
+
+    private static final ShaderType[] VALUES = values();
+
+    public static ShaderType valueOf(
+        com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
+      if (desc.getType() != getDescriptor()) {
+        throw new java.lang.IllegalArgumentException(
+          "EnumValueDescriptor is not for this type.");
+      }
+      if (desc.getIndex() == -1) {
+        return UNRECOGNIZED;
+      }
+      return VALUES[desc.getIndex()];
+    }
+
+    private final int index;
+    private final int value;
+
+    private ShaderType(int index, int value) {
+      this.index = index;
+      this.value = value;
+    }
+
+    // @@protoc_insertion_point(enum_scope:gfxapi.ShaderType)
+  }
+
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -429,13 +591,16 @@ public final class GfxAPIProtos {
       "\n\031gapid/gfxapi/gfxapi.proto\022\006gfxapi*v\n\rD" +
       "rawPrimitive\022\n\n\006Points\020\000\022\t\n\005Lines\020\001\022\r\n\tL" +
       "ineStrip\020\002\022\014\n\010LineLoop\020\003\022\r\n\tTriangles\020\004\022" +
-      "\021\n\rTriangleStrip\020\005\022\017\n\013TriangleFan\020\006*U\n\014R" +
+      "\021\n\rTriangleStrip\020\005\022\017\n\013TriangleFan\020\006*n\n\014R" +
       "esourceType\022\013\n\007Unknown\020\000\022\r\n\tTexture1D\020\001\022" +
       "\r\n\tTexture2D\020\002\022\r\n\tTexture3D\020\003\022\013\n\007Cubemap" +
-      "\020\004*:\n\025FramebufferAttachment\022\t\n\005Color\020\000\022\t" +
-      "\n\005Depth\020\001\022\013\n\007Stencil\020\002BF\n6com.android.to" +
-      "ols.idea.editors.gfxtrace.service.gfxapi" +
-      "B\014GfxAPIProtosb\006proto3"
+      "\020\004\022\n\n\006Shader\020\005\022\013\n\007Program\020\006*:\n\025Framebuff" +
+      "erAttachment\022\t\n\005Color\020\000\022\t\n\005Depth\020\001\022\013\n\007St" +
+      "encil\020\002*f\n\nShaderType\022\n\n\006Vertex\020\000\022\014\n\010Geo" +
+      "metry\020\001\022\017\n\013TessControl\020\002\022\022\n\016TessEvaluati",
+      "on\020\003\022\014\n\010Fragment\020\004\022\013\n\007Compute\020\005BF\n6com.a" +
+      "ndroid.tools.idea.editors.gfxtrace.servi" +
+      "ce.gfxapiB\014GfxAPIProtosb\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
