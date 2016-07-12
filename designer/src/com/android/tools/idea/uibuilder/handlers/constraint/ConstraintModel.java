@@ -96,6 +96,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
   private static final WeakHashMap<NlModel, ConstraintModel> ourModelCache = new WeakHashMap<>();
 
   private SaveXMLTimer mySaveXmlTimer = new SaveXMLTimer();
+  private RequestRenderTimer myRequestRenderTimer = new RequestRenderTimer();
 
   //////////////////////////////////////////////////////////////////////////////
   // Utilities
@@ -248,11 +249,6 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
     else {
       mySaveXmlTimer.cancel();
     }
-  }
-
-  public void updateXML() {
-    ConstraintUtilities.saveModelToXML(myNlModel, false);
-    ConstraintUtilities.renderModel(this);
   }
 
   //////////////////////////////////////////////////////////////////////////////
@@ -454,8 +450,8 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
   public void requestRender() {
     ourLock.lock();
     if (myAllowsUpdate) {
-      ConstraintUtilities.renderModel(this);
-    }
+      myRequestRenderTimer.reset();
+    };
     ourLock.unlock();
   }
 
@@ -506,6 +502,27 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
         }
         saveToXML(true);
       }
+    }
+  }
+
+  /**
+   * Timer class managing the request render behaviour
+   * We don't want to queue rendering continuously.
+   */
+  class RequestRenderTimer implements ActionListener {
+    Timer mTimer = new Timer(400, this); // 400ms delay before render
+
+    public RequestRenderTimer() {
+      mTimer.setRepeats(false);
+    }
+
+    public void reset() {
+      mTimer.restart();
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      renderInLayoutLib();
     }
   }
 
@@ -891,10 +908,25 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
                            + "(" + selection.getModifiedWidgets().size()
                            + " elements modified)");
       }
-      ConstraintUtilities.saveModelToXML(myNlModel, true);
+      ConstraintUtilities.saveModelToXML(myNlModel);
       selection.clearModifiedWidgets();
       requestRender();
     }
+  }
+
+  /**
+   * Render the model in layoutlib
+   */
+  private void renderInLayoutLib() {
+    ourLock.lock();
+    if (DEBUG) {
+      System.out.println("### Model rendered to layoutlib -> "
+                         + myModificationCount + " vs "
+                         + myNlModel.getResourceVersion());
+    }
+    ourLock.unlock();
+
+    ConstraintUtilities.renderModel(this);
   }
 
   public void setNeedsAnimateConstraints(int type) {
