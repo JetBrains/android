@@ -117,12 +117,9 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
     myFile = file;
     myLoadingPanel.setLoadingText("Initializing GFX Trace System");
 
-
-    // TODO: add GFX_TRACE_OPEN to proto
     UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
                                    .setCategory(EventCategory.GPU_PROFILER)
-                                   .setKind(EventKind.GFX_TRACE_TRACE_STARTED));
-                                   //.setKind(EventKind.GFX_TRACE_OPEN)
+                                   .setKind(EventKind.GFX_TRACE_OPEN));
 
     addPathListener(myAtomStream);
     addPathListener(myState);
