@@ -52,10 +52,8 @@ import java.util.function.Consumer;
 public class GfxTraceCaptureAction extends ToggleAction {
 
   private static final String BUTTON_TEXT = "Launch";
-  private static final String NOTIFICATION_LAUNCH_REQUIRES_ROOT_TITLE = "Rooted device required";
-  private static final String NOTIFICATION_LAUNCH_REQUIRES_ROOT_CONTENT =
-    "The device needs to be rooted in order to launch an application for GPU tracing.<br/>" +
-    "To trace your own application on a non-rooted device, enable tracing in the run configuration.";
+  private static final String NOTIFICATION_LAUNCH_NOT_ROOTED_TITLE = "Device is not rooted";
+  private static final String NOTIFICATION_LAUNCH_NOT_ROOTED_CONTENT = "Only debuggable APKs can be traced.";
 
   private static final int ROOT_CHECK_RETRY_INTERVAL_MS = 250;
   private static final int ROOT_CHECK_ATTEMPTS = 15;
@@ -131,19 +129,18 @@ public class GfxTraceCaptureAction extends ToggleAction {
     });
   }
 
-  private void rootingFailed() {
-    // Failed to restart adb as root.
-    // Display message and abort.
-    ApplicationManager.getApplication().invokeLater(() -> {
-      Notifications.Bus.notify(
-        new Notification(GfxTraceEditor.NOTIFICATION_GROUP, NOTIFICATION_LAUNCH_REQUIRES_ROOT_TITLE,
-                                         NOTIFICATION_LAUNCH_REQUIRES_ROOT_CONTENT, NotificationType.ERROR));
-    });
-    onStop();
-  }
-
   void start(@NotNull final Container window, @NotNull final IDevice device) {
-    ensureRoot(device, (rootedDevice) -> showLauncher(window, rootedDevice, getSelectedRunConfiguration(myView)), this::rootingFailed);
+    ensureRoot(
+      device,
+      (rootedDevice) -> showLauncher(window, rootedDevice, getSelectedRunConfiguration(myView)),
+      () -> {
+        ApplicationManager.getApplication().invokeLater(() -> {
+          Notifications.Bus.notify(
+            new Notification(GfxTraceEditor.NOTIFICATION_GROUP, NOTIFICATION_LAUNCH_NOT_ROOTED_TITLE,
+                             NOTIFICATION_LAUNCH_NOT_ROOTED_CONTENT, NotificationType.WARNING));
+        });
+        showLauncher(window, device, getSelectedRunConfiguration(myView));
+      });
   }
 
   private void showLauncher(final Component owner, final IDevice device, final RunConfiguration runConfig) {
