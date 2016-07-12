@@ -15,17 +15,18 @@
  */
 package com.android.tools.idea.uibuilder.handlers.ui;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import com.android.ide.common.rendering.api.SessionParams;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.intellij.ide.highlighter.XmlFileType;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
+import com.intellij.openapi.application.RuntimeInterruptedException;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
@@ -36,6 +37,8 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -44,6 +47,7 @@ import java.awt.image.BufferedImage;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Future;
 
 import static com.android.SdkConstants.*;
 
@@ -176,6 +180,8 @@ public class AppBarConfigurationDialog extends JDialog {
   private JPanel myPreviewPanel;
   private JBLabel myCollapsedPreview;
   private JBLabel myExpandedPreview;
+  private Future<?> myCollapsedPreviewFuture;
+  private Future<?> myExpandedPreviewFuture;
   private JBLabel myExpandedLabel;
   private JBLabel myCollapsedLabel;
   private JCheckBox myParallax;
@@ -264,7 +270,9 @@ public class AppBarConfigurationDialog extends JDialog {
     Rectangle screen = getGraphicsConfiguration().getBounds();
     setLocation(screen.x + (screen.width - size.width) / 2, screen.y + (screen.height - size.height) / 2);
     updateControls();
+    myButtonOK.requestFocus();
     generatePreviews();
+
     setVisible(true);
     if (myWasAccepted) {
       Project project = file.getProject();
@@ -300,12 +308,24 @@ public class AppBarConfigurationDialog extends JDialog {
   }
 
   private void generatePreviews() {
-    myCollapsedImage = generatePreview(true);
-    myExpandedImage = generatePreview(false);
-    updatePreviewImages();
+    PsiFile expandedFile = generateXml(false);
+    PsiFile collapsedFile = generateXml(true);
+    myExpandedPreviewFuture = cancel(myExpandedPreviewFuture);
+    myCollapsedPreviewFuture = cancel(myCollapsedPreviewFuture);
+    Application application = ApplicationManager.getApplication();
+    myExpandedPreviewFuture = application.executeOnPooledThread(() -> updateExpandedImage(expandedFile));
+    myCollapsedPreviewFuture = application.executeOnPooledThread(() -> updateCollapsedImage(collapsedFile));
   }
 
-  private BufferedImage generatePreview(boolean collapsed) {
+  @Nullable
+  private static Future<?> cancel(@Nullable Future<?> future) {
+    if (future != null) {
+      future.cancel(true);
+    }
+    return null;
+  }
+
+  private PsiFile generateXml(boolean collapsed) {
     StringBuilder text = new StringBuilder(DUMMY_REPETITION * DUMMY_TEXT.length());
     for (int i = 0; i < DUMMY_REPETITION; i++) {
       text.append(DUMMY_TEXT);
@@ -314,38 +334,17 @@ public class AppBarConfigurationDialog extends JDialog {
 
     Map<String, String> namespaces = getNameSpaces(null, collapsed);
     String xml = getXml(content, collapsed, namespaces);
-    BufferedImage image = renderImage(xml, myEditor.getConfiguration());
-    if (image != null && (image.getHeight() < MIN_HEIGHT || image.getWidth() < MIN_WIDTH)) {
-      image = null;
-    }
-    return image;
+    Project project = myEditor.getModel().getProject();
+    return PsiFileFactory.getInstance(project).createFileFromText(PREVIEW_PLACEHOLDER_FILE, XmlFileType.INSTANCE, xml);
   }
 
   private void updatePreviewImages() {
-    if (myExpandedImage == null || myCollapsedImage == null) {
-      myPreview.setText(RENDER_ERROR);
+    if (myCollapsedImage != null) {
+      updatePreviewImage(myCollapsedImage, myCollapsedPreview);
     }
-    else {
-      myPreview.setText(PREVIEW_HEADER);
+    if (myExpandedImage != null) {
+      updatePreviewImage(myExpandedImage, myExpandedPreview);
     }
-    updatePreviewImage(myCollapsedImage, myCollapsedPreview);
-    updatePreviewImage(myExpandedImage, myExpandedPreview);
-  }
-
-  private void updatePreviewImage(BufferedImage image, JBLabel view) {
-    if (image == null) {
-      view.setIcon(null);
-      return;
-    }
-    double width = myPreviewPanel.getWidth() / 2;
-    double height =
-      myPreviewPanel.getHeight() - myPreview.getHeight() - Math.max(myExpandedLabel.getHeight(), myCollapsedLabel.getHeight());
-    if (width < MIN_WIDTH || height < MIN_HEIGHT) {
-      view.setIcon(null);
-    }
-    double scale = Math.min(width / image.getWidth(), height / image.getHeight()) * FUDGE_FACTOR;
-    image = ImageUtils.scale(image, scale, scale);
-    view.setIcon(new ImageIcon(image));
   }
 
   private void applyChanges(@NotNull XmlFile file) {
@@ -541,26 +540,77 @@ public class AppBarConfigurationDialog extends JDialog {
     return content.getText();
   }
 
-  private static BufferedImage renderImage(@NotNull String xml, @NotNull Configuration configuration) {
-    AndroidFacet facet = AndroidFacet.getInstance(configuration.getModule());
-    if (facet == null) {
+  private void updateCollapsedImage(@NotNull PsiFile collapsedXmlFile) {
+    BufferedImage image = updateImage(collapsedXmlFile, myCollapsedPreview);
+    if (image != null) {
+      myCollapsedImage = image;
+    }
+  }
+
+  private void updateExpandedImage(@NotNull PsiFile expandedXmlFile) {
+    BufferedImage image = updateImage(expandedXmlFile, myExpandedPreview);
+    if (image != null) {
+      myExpandedImage = image;
+    }
+  }
+
+  @Nullable
+  private BufferedImage updateImage(@NotNull PsiFile xmlFile, @NotNull JBLabel preview) {
+    BufferedImage image = null;
+    try {
+      image = renderImage(xmlFile);
+      if (image == null) {
+        return null;
+      }
+    }
+    catch (RuntimeInterruptedException ex) {
+      // Will happen if several rendering calls are stacked.
       return null;
     }
-    Project project = configuration.getModule().getProject();
-    PsiFile file = PsiFileFactory.getInstance(project).createFileFromText(PREVIEW_PLACEHOLDER_FILE, XmlFileType.INSTANCE, xml);
+    catch (RuntimeException ex) {
+      getLogger().error(ex);
+    }
+    BufferedImage finalImage = image;
+    ApplicationManager.getApplication().invokeLater(() -> updatePreviewImage(finalImage, preview));
+    return image;
+  }
+
+  private BufferedImage renderImage(@NotNull PsiFile xmlFile) {
+    AndroidFacet facet = myEditor.getModel().getFacet();
     RenderService renderService = RenderService.get(facet);
     RenderLogger logger = renderService.createLogger();
-    final RenderTask task = renderService.createTask(file, configuration, logger, null);
+    final RenderTask task = renderService.createTask(xmlFile, myEditor.getConfiguration(), logger, null);
     RenderResult result = null;
     if (task != null) {
       task.setRenderingMode(SessionParams.RenderingMode.NORMAL);
       task.setFolderType(ResourceFolderType.LAYOUT);
+      //noinspection deprecation
       result = task.render();
       task.dispose();
     }
-    if (result == null) {
-      return null;
+    BufferedImage image = result != null ? result.getRenderedImage() : null;
+    return image != null && image.getHeight() >= MIN_HEIGHT && image.getWidth() >= MIN_WIDTH ? image : null;
+  }
+
+  private void updatePreviewImage(@Nullable BufferedImage image, @NotNull JBLabel view) {
+    if (image == null) {
+      view.setIcon(null);
+      myPreview.setText(RENDER_ERROR);
+      return;
     }
-    return result.getRenderedImage();
+    double width = myPreviewPanel.getWidth() / 2.0;
+    double height =
+      myPreviewPanel.getHeight() - myPreview.getHeight() - Math.max(myExpandedLabel.getHeight(), myCollapsedLabel.getHeight());
+    if (width < MIN_WIDTH || height < MIN_HEIGHT) {
+      view.setIcon(null);
+    }
+    double scale = Math.min(width / image.getWidth(), height / image.getHeight()) * FUDGE_FACTOR;
+    image = ImageUtils.scale(image, scale, scale);
+    view.setIcon(new ImageIcon(image));
+    myPreview.setText(PREVIEW_HEADER);
+  }
+
+  private static Logger getLogger() {
+    return Logger.getInstance(AppBarConfigurationDialog.class);
   }
 }
