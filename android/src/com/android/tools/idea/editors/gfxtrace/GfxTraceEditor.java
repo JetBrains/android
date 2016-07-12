@@ -23,6 +23,7 @@ import com.android.tools.idea.editors.gfxtrace.gapi.GapisFeatures;
 import com.android.tools.idea.editors.gfxtrace.gapi.GapisProcess;
 import com.android.tools.idea.editors.gfxtrace.models.AtomStream;
 import com.android.tools.idea.editors.gfxtrace.models.GpuState;
+import com.android.tools.idea.editors.gfxtrace.models.ReportStream;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceClientCache;
 import com.android.tools.idea.editors.gfxtrace.service.atom.AtomMetadata;
@@ -103,6 +104,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   @NotNull private final ListeningExecutorService myExecutor = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
   @NotNull private final AtomStream myAtomStream = new AtomStream(this);
   @NotNull private final GpuState myState = new GpuState(this);
+  @NotNull private final ReportStream myReportStream = new ReportStream(this);
   @NotNull private final VirtualFile myFile;
   @NotNull private final JComponent myMainUi;
   @NotNull private final List<PathListener> myPathListeners = new ArrayList<PathListener>();
@@ -123,6 +125,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
 
     addPathListener(myAtomStream);
     addPathListener(myState);
+    addPathListener(myReportStream);
 
     // we need to create the UI before we call connect, as the UI will listen to events that happen during connection.
     myMainUi = MainController.createUI(this);
@@ -465,6 +468,11 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   @NotNull
   public GpuState getGpuState() {
     return myState;
+  }
+
+  @NotNull
+  public ReportStream getReportStream() {
+    return myReportStream;
   }
 
   @NotNull
