@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.actions;
 
+import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.SdkMavenRepository;
 import com.android.repository.api.LocalPackage;
@@ -97,7 +98,7 @@ public class UpgradeConstraintLayoutFix implements AndroidLintQuickFix {
       // recent installed version in the SDK area when a newer one is available:
       // make sure we use the latest
       if (ConstraintLayoutDetector.LATEST_KNOWN_VERSION.compareTo(version) > 0) {
-        version = ConstraintLayoutDetector.LATEST_KNOWN_VERSION_STRING;
+        version = SdkConstants.LATEST_CONSTRAINT_LAYOUT_VERSION;
       }
 
       gc = GradleCoordinate.parseCoordinateString(CONSTRAINT_LAYOUT_LIB_ARTIFACT + ':' + version);
