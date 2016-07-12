@@ -25,13 +25,16 @@ import com.android.tools.idea.uibuilder.property.ptable.PTableModel;
 import com.android.util.PropertiesMap;
 import com.google.common.collect.Table;
 import com.intellij.openapi.project.Project;
+import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBCardLayout;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.util.ui.UIUtil;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.event.HyperlinkEvent;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -40,11 +43,12 @@ import java.util.Map;
 
 import static com.android.SdkConstants.TOOLS_URI;
 
-public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Model {
+public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction.Model {
   private static final String CARD_ADVANCED = "table";
   private static final String CARD_DEFAULT = "default";
 
   private final PTable myTable;
+  private final JPanel myTablePanel;
   private final PTableModel myModel;
   private final InspectorPanel myInspectorPanel;
 
@@ -52,7 +56,7 @@ public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Mo
 
   private List<NlComponent> myComponents;
   private List<NlPropertyItem> myProperties;
-  private boolean myShowAdvancedProperties;
+  private boolean myAllPropertiesPanelVisible;
 
   public NlPropertiesPanel(@NotNull Project project) {
     super(new BorderLayout());
@@ -66,7 +70,15 @@ public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Mo
     myTable = new PTable(myModel);
     myTable.setEditorProvider(new NlPropertyEditors(project));
     myTable.getEmptyText().setText("No selected component");
-    myInspectorPanel = new InspectorPanel(project);
+    JComponent fewerPropertiesLink = createViewAllPropertiesLinkPanel(false);
+    fewerPropertiesLink.setBorder(BorderFactory.createEmptyBorder(8, 4, 2, 0));
+    myTablePanel = new JPanel(new BorderLayout());
+    myTablePanel.setVisible(false);
+    myTablePanel.setBackground(myTable.getBackground());
+    myTablePanel.add(myTable, BorderLayout.NORTH);
+    myTablePanel.add(fewerPropertiesLink, BorderLayout.SOUTH);
+
+    myInspectorPanel = new InspectorPanel(project, createViewAllPropertiesLinkPanel(true));
 
     myCardPanel = new JPanel(new JBCardLayout());
 
@@ -75,7 +87,7 @@ public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Mo
     myCardPanel.add(CARD_DEFAULT, ScrollPaneFactory.createScrollPane(myInspectorPanel,
                                                                      ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                                                                      ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER));
-    myCardPanel.add(CARD_ADVANCED, ScrollPaneFactory.createScrollPane(myTable));
+    myCardPanel.add(CARD_ADVANCED, ScrollPaneFactory.createScrollPane(myTablePanel));
     myComponents = Collections.emptyList();
     myProperties = Collections.emptyList();
   }
@@ -101,6 +113,7 @@ public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Mo
 
     updateDefaultProperties(propertiesManager);
     myInspectorPanel.setComponent(components, properties, propertiesManager);
+    myTablePanel.setVisible(!groupedProperties.isEmpty());
   }
 
   @NotNull
@@ -153,21 +166,43 @@ public class NlPropertiesPanel extends JPanel implements ShowExpertProperties.Mo
     return defaultValues.get(property.getName());
   }
 
-  @Override
-  public boolean isShowingExpertProperties() {
-    return myShowAdvancedProperties;
+  @NotNull
+  private JComponent createViewAllPropertiesLinkPanel(boolean viewAllProperties) {
+    HyperlinkLabel textLink = new HyperlinkLabel();
+    textLink.setHyperlinkText(viewAllProperties ? ViewAllPropertiesAction.VIEW_ALL_PROPERTIES : ViewAllPropertiesAction.VIEW_FEWER_PROPERTIES);
+    textLink.addHyperlinkListener(event -> setAllPropertiesPanelVisible(event, viewAllProperties));
+    HyperlinkLabel iconLink = new HyperlinkLabel();
+    iconLink.setIcon(AndroidIcons.NeleIcons.ToggleProperties);
+    iconLink.setUseIconAsLink(true);
+    iconLink.addHyperlinkListener(event -> setAllPropertiesPanelVisible(event, viewAllProperties));
+    JPanel linkPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+    linkPanel.setOpaque(false);
+    linkPanel.add(textLink);
+    linkPanel.add(iconLink);
+    return linkPanel;
+  }
+
+  private void setAllPropertiesPanelVisible(@NotNull HyperlinkEvent event, boolean viewAllProperties) {
+    if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+      setAllPropertiesPanelVisible(viewAllProperties);
+    }
   }
 
   @Override
-  public void setShowExpertProperties(boolean en) {
-    myShowAdvancedProperties = en;
+  public boolean isAllPropertiesPanelVisible() {
+    return myAllPropertiesPanelVisible;
+  }
+
+  @Override
+  public void setAllPropertiesPanelVisible(boolean viewAllProperties) {
+    myAllPropertiesPanelVisible = viewAllProperties;
     JBCardLayout cardLayout = (JBCardLayout)myCardPanel.getLayout();
-    String name = en ? CARD_ADVANCED : CARD_DEFAULT;
+    String name = viewAllProperties ? CARD_ADVANCED : CARD_DEFAULT;
     cardLayout.swipe(myCardPanel, name, JBCardLayout.SwipeDirection.AUTO);
   }
 
   public void activatePreferredEditor(boolean afterload) {
-    if (!isShowingExpertProperties()) {
+    if (!isAllPropertiesPanelVisible()) {
       myInspectorPanel.activatePreferredEditor(afterload);
       return;
     }
