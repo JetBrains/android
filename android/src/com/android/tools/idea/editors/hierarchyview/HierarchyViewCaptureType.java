@@ -44,7 +44,6 @@ public class HierarchyViewCaptureType extends FileCaptureType {
 
   @Override
   public ProfilerCaptureType getCaptureType() {
-    // TODO: add HierarchyView to proto
-    return ProfilerCaptureType.UNKNOWN_PROFILER_CAPTURE_TYPE;
+    return ProfilerCaptureType.HIERARCHY_VIEW;
   }
 }
