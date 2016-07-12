@@ -57,6 +57,7 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
     myRoot = root;
 
     mySplitter = new JBSplitter(true, "android.apk.viewer", 0.62f);
+    mySplitter.setName("apkViwerContainer");
 
     myApkViewPanel = new ApkViewPanel(new ApkParser(baseFile, root));
     myApkViewPanel.setListener(this);
