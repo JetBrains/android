@@ -78,11 +78,12 @@ public class ConstraintInteraction extends Interaction {
   @Override
   public void update(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiers) {
     super.update(x, y, modifiers);
-    DrawConstraintModel model = ConstraintModel.getDrawConstraintModel(myScreenView);
-    model.updateModifiers(modifiers);
+    DrawConstraintModel drawModel = ConstraintModel.getDrawConstraintModel(myScreenView);
+    drawModel.updateModifiers(modifiers);
     int androidX = Coordinates.getAndroidX(myScreenView, x);
     int androidY = Coordinates.getAndroidY(myScreenView, y);
-    model.mouseDragged(androidX, androidY);
+    drawModel.mouseDragged(androidX, androidY);
+    ConstraintModel.getConstraintModel(myScreenView.getModel()).updateXML();
   }
 
   /**
