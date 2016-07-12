@@ -187,6 +187,13 @@ public class DefaultActivityLocator extends ActivityLocator {
     public abstract boolean hasAction(@NotNull String name);
     public abstract boolean isEnabled();
 
+    /**
+     * @return the value of android:exported attribute for the activity, null if not specified.
+     * Note that when the attribute is not explicitly set, it is considered exported if it has an intent filter.
+     */
+    @Nullable
+    public abstract Boolean getExported();
+
     @Nullable
     public abstract String getQualifiedName();
 
@@ -252,6 +259,17 @@ public class DefaultActivityLocator extends ActivityLocator {
 
     @Nullable
     @Override
+    public Boolean getExported() {
+      AndroidAttributeValue<String> exported = myActivity.getExported();
+      if (exported == null || exported.getValue() == null || exported.getValue().isEmpty()) {
+        return null;
+      }
+
+      return Boolean.valueOf(exported.getValue());
+    }
+
+    @Nullable
+    @Override
     public String getQualifiedName() {
       return ActivityLocatorUtils.getQualifiedName(myActivity);
     }
@@ -291,6 +309,17 @@ public class DefaultActivityLocator extends ActivityLocator {
       AndroidAttributeValue<String> enabled = myAlias.getEnabled();
       return enabled == null || enabled.getValue() == null // true if not specified
              || Boolean.valueOf(enabled.getValue());
+    }
+
+    @Nullable
+    @Override
+    public Boolean getExported() {
+      AndroidAttributeValue<String> exported = myAlias.getExported();
+      if (exported == null || exported.getValue() == null || exported.getValue().isEmpty()) {
+        return null;
+      }
+
+      return Boolean.valueOf(exported.getValue());
     }
 
     @Nullable
@@ -344,6 +373,13 @@ public class DefaultActivityLocator extends ActivityLocator {
       String enabledAttr = myActivity.getAttributeNS(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ENABLED);
       return StringUtil.isEmpty(enabledAttr) // true if not specified
              || Boolean.valueOf(enabledAttr);
+    }
+
+    @Nullable
+    @Override
+    public Boolean getExported() {
+      String exportedAttr = myActivity.getAttributeNS(SdkConstants.ANDROID_URI, SdkConstants.ATTR_EXPORTED);
+      return StringUtil.isEmpty(exportedAttr) ? null : Boolean.valueOf(exportedAttr);
     }
 
     @Nullable
