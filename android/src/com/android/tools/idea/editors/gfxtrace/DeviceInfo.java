@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.editors.gfxtrace;
 
-import com.android.ddmlib.CollectingOutputReceiver;
-import com.android.ddmlib.IDevice;
-import com.android.ddmlib.InstallException;
+import com.android.ddmlib.*;
 import com.android.tools.idea.editors.gfxtrace.gapi.GapiPaths;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
@@ -207,14 +205,11 @@ public class DeviceInfo {
     private static final String PKGINFO_PACKAGE = "com.google.android.pkginfo";
     private static final String PKGINFO_SERVICE = "PkgInfoService";
     private static final String PKGINFO_ACTION = "com.google.android.pkginfo.action.SEND_PKG_INFO";
-    private static final String ADB_COMMAND = "am startservice -n " +
-                                              PKGINFO_PACKAGE + "/." + PKGINFO_SERVICE +
-                                              " -a " + PKGINFO_ACTION;
+    private static final String EXTRA_ONLY_DEBUG = "com.google.android.pkginfo.extra.ONLY_DEBUG";
     private static final int READ_SOCKET_MAX_RETRIES = 30;
     private static final int READ_SOCKET_DELAY_MS = 1000;
 
     @NotNull private static final Logger LOG = Logger.getInstance(PkgInfoProvider.class);
-
 
     public final IDevice myDevice;
 
@@ -311,10 +306,21 @@ public class DeviceInfo {
         throw new RuntimeException("Timeout waiting for package info");
       }
 
+      private String getAdbCommand() {
+        String extraArg = " ";
+        try {
+          extraArg = " --ez " + EXTRA_ONLY_DEBUG + " " + !myDevice.isRoot();
+        } catch (Exception ex) {
+          // ignore.
+        }
+        return "am startservice -n " + PKGINFO_PACKAGE + "/." + PKGINFO_SERVICE + extraArg + " -a " + PKGINFO_ACTION;
+      }
+
       private void sendIntent() throws Exception {
         CountDownLatch latch = new CountDownLatch(1);
         CollectingOutputReceiver receiver = new CollectingOutputReceiver(latch);
-        myDevice.executeShellCommand(ADB_COMMAND, receiver);
+        String adbCommand = getAdbCommand();
+        myDevice.executeShellCommand(adbCommand, receiver);
         latch.await(LATCH_TIMEOUT_MS, TimeUnit.MILLISECONDS);
       }
     }
@@ -362,6 +368,7 @@ public class DeviceInfo {
       public int Icon;
       public String ABI;
       public ActivityInfo[] Activities;
+      public boolean Debuggable;
 
       public Package get(Icon icons[]) {
         Icon icon = null;
