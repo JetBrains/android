@@ -612,6 +612,11 @@ public class NlComponent implements NlAttributesHolder {
    */
   @Override
   public void setAttribute(@Nullable String namespace, @NotNull String attribute, @Nullable String value) {
+    if (!myTag.isValid()) {
+      // This could happen when trying to set an attribute in a component that has been already deleted
+      return;
+    }
+
     String prefix = null;
     if (namespace != null && !ANDROID_URI.equals(namespace)) {
       prefix = AndroidResourceUtil.ensureNamespaceImported((XmlFile)myTag.getContainingFile(), namespace, null);
