@@ -93,6 +93,7 @@ public class MainController extends Controller {
     myGeoTab = addTab(myLayoutUi, GeometryController.createUI(editor), "Geometry", PlaceInGrid.center);
     myStateTab = addTab(myLayoutUi, StateController.createUI(editor), "GPU State", PlaceInGrid.center);
     myMemoryTab = addTab(myLayoutUi, MemoryController.createUI(editor), "Memory", PlaceInGrid.center);
+    addTab(myLayoutUi, ReportController.createUI(editor), "Report", PlaceInGrid.right);
 
     splitter.setLastComponent(myLayoutUi.getComponent());
 

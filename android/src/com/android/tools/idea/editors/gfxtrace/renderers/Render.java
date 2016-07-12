@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.gfxtrace.renderers;
 
 import com.android.tools.idea.editors.gfxtrace.controllers.AtomController;
+import com.android.tools.idea.editors.gfxtrace.controllers.ReportController;
 import com.android.tools.idea.editors.gfxtrace.controllers.StateController;
 import com.android.tools.idea.editors.gfxtrace.service.atom.Atom;
 import com.android.tools.idea.editors.gfxtrace.service.atom.DynamicAtom;
@@ -29,8 +30,10 @@ import com.android.tools.idea.editors.gfxtrace.service.snippets.Labels;
 import com.android.tools.idea.editors.gfxtrace.service.snippets.SnippetObject;
 import com.android.tools.rpclib.binary.BinaryObject;
 import com.android.tools.rpclib.schema.*;
-import com.android.tools.rpclib.schema.Map;
-import com.google.common.collect.*;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterators;
+import com.google.common.collect.Multimap;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredTreeCellRenderer;
@@ -40,7 +43,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public final class Render {
@@ -156,6 +162,33 @@ public final class Render {
       else {
         component.append("null");
       }
+    }
+  }
+
+  public static void render(@NotNull ReportController.Node node,
+                            @NotNull SimpleColoredComponent component) {
+    if (node.isLeaf()) {
+      // Treats as a simple string
+      render(node.getUserObject(), component, SimpleTextAttributes.REGULAR_ATTRIBUTES, NO_TAG);
+    }
+    else {
+      render(node.getAtomId(), component, SimpleTextAttributes.REGULAR_ATTRIBUTES, NO_TAG);
+      render(": ", component, SimpleTextAttributes.REGULAR_ATTRIBUTES, NO_TAG);
+      switch (node.getSeverity()) {
+        case Emergency:
+        case Alert:
+        case Critical:
+        case Error:
+        case Warning:
+          render(node.getSeverity().name(), component, SimpleTextAttributes.ERROR_ATTRIBUTES, NO_TAG);
+          break;
+        case Notice:
+        case Info:
+        case Debug:
+          render(node.getSeverity().name(), component, SimpleTextAttributes.REGULAR_ATTRIBUTES, NO_TAG);
+          break;
+      }
+      render(" - " + node.getMessagePreview(), component, SimpleTextAttributes.REGULAR_ATTRIBUTES, NO_TAG);
     }
   }
 

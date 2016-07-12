@@ -71,6 +71,14 @@ public final class CapturePath extends Path {
     return (capture == null) ? null : capture.resourceBundles();
   }
 
+  public ReportPath report() {
+    return new ReportPath().setCapture(this);
+  }
+
+  public static ReportPath report(CapturePath capture) {
+    return (capture == null) ? null : capture.report();
+  }
+
   //<<<Start:Java.ClassBody:1>>>
   private BinaryID myID;
 
