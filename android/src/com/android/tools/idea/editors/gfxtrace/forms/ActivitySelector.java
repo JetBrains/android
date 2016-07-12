@@ -26,6 +26,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.util.ui.JBUI;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -143,7 +144,7 @@ public class ActivitySelector extends JDialog {
       }
     }, EdtExecutor.INSTANCE);
 
-    myTree.setRowHeight(20);
+    myTree.setRowHeight(JBUI.scale(20));
     myTree.setCellRenderer(new ColoredTreeCellRenderer() {
       @Override
       public void customizeCellRenderer(@NotNull JTree tree,
