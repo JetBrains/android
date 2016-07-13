@@ -687,16 +687,6 @@ public final class GuiTests {
     return sb.toString();
   }
 
-  @NotNull
-  public static <T extends Component> GenericTypeMatcher<T> matcherForType(Class<T> type) {
-    return new GenericTypeMatcher<T>(type) {
-      @Override
-      protected boolean isMatching(@NotNull T component) {
-        return true;
-      }
-    };
-  }
-
   private static class MyProjectManagerListener extends ProjectManagerAdapter {
     boolean myActive;
     boolean myNotified;

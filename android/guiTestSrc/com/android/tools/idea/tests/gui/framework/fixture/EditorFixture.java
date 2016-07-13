@@ -28,6 +28,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.layout.NlEditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.layout.NlPreviewFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemePreviewFixture;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.editor.NlEditor;
 import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
 import com.android.tools.idea.uibuilder.editor.NlPreviewManager;
@@ -426,7 +427,7 @@ public class EditorFixture {
 
   @NotNull
   public EditorFixture checkNoNotification() {
-    checkState(robot.finder().findAll(GuiTests.matcherForType(EditorNotificationPanel.class)).isEmpty());
+    checkState(robot.finder().findAll(Matchers.byType(EditorNotificationPanel.class)).isEmpty());
     return this;
   }
 
@@ -619,7 +620,7 @@ public class EditorFixture {
    */
   @NotNull
   public ThemeEditorFixture getThemeEditor() {
-    return new ThemeEditorFixture(robot, GuiTests.waitUntilFound(robot, GuiTests.matcherForType(ThemeEditorComponent.class)));
+    return new ThemeEditorFixture(robot, GuiTests.waitUntilFound(robot, Matchers.byType(ThemeEditorComponent.class)));
   }
 
   @NotNull

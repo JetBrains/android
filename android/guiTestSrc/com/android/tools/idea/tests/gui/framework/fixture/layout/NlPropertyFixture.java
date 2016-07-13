@@ -15,17 +15,15 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.layout;
 
+import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.designer.propertyTable.editors.TextEditor;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
-import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.driver.ComponentDriver;
-import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
-
-import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
 
 /**
  * Fixture for an individual property in the property inspector
@@ -44,22 +42,12 @@ public class NlPropertyFixture {
     //  TextEditor
     //  BrowsePanel
     //    ActionButton
-    ActionButton button = waitUntilFound(myRobot, myValuePanel, new GenericTypeMatcher<ActionButton>(ActionButton.class) {
-      @Override
-      protected boolean isMatching(@NotNull ActionButton list) {
-        return true;
-      }
-    });
+    ActionButton button = GuiTests.waitUntilFound(myRobot, myValuePanel, Matchers.byType(ActionButton.class));
     new ComponentDriver(myRobot).click(button);
   }
 
   public String getValue() {
-    JTextComponent editor = waitUntilFound(myRobot, myValuePanel, new GenericTypeMatcher<JTextComponent>(JTextComponent.class) {
-      @Override
-      protected boolean isMatching(@NotNull JTextComponent textComponent) {
-        return true;
-      }
-    });
+    JTextComponent editor = GuiTests.waitUntilFound(myRobot, myValuePanel, Matchers.byType(JTextComponent.class));
     return editor.getText();
   }
 }

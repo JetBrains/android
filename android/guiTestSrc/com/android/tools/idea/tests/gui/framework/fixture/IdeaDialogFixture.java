@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.Wait;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Ref;
 import org.fest.reflect.exception.ReflectionError;
@@ -67,7 +68,7 @@ public abstract class IdeaDialogFixture<T extends DialogWrapper> extends Compone
 
   @NotNull
   public static <T extends DialogWrapper> DialogAndWrapper<T> find(@NotNull Robot robot, @NotNull final Class<T> clz) {
-    return find(robot, clz, GuiTests.matcherForType(JDialog.class));
+    return find(robot, clz, Matchers.byType(JDialog.class));
   }
 
   @NotNull
