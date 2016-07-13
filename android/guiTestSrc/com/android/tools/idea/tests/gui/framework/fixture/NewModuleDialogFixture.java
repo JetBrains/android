@@ -19,6 +19,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.Wait;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.ui.ASGallery;
+import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JLabelMatcher;
 import org.fest.swing.fixture.ContainerFixture;
@@ -53,7 +54,21 @@ public class NewModuleDialogFixture implements ContainerFixture<JDialog> {
 
   @NotNull
   public NewModuleDialogFixture setModuleName(String name) {
-    new JTextComponentFixture(robot(), robot().finder().findByName(target(), "ModuleName", JTextField.class)).selectAll().enterText(name);
+    new JTextComponentFixture(robot(), robot().finder().findByName(target(), "ModuleName", JTextField.class)).deleteText().enterText(name);
+    return this;
+  }
+
+  @NotNull
+  public NewModuleDialogFixture setFileName(String name) {
+    TextFieldWithBrowseButton panel = robot().finder().findByLabel(target(), "File name:", TextFieldWithBrowseButton.class);
+    new JTextComponentFixture(robot(), robot().finder().findByType(panel, JTextField.class)).deleteText().enterText(name);
+    return this;
+  }
+
+  @NotNull
+  public NewModuleDialogFixture setSubprojectName(String name) {
+    new JTextComponentFixture(robot(), robot().finder().findByLabel(target(), "Subproject name:", JTextField.class))
+      .deleteText().enterText(name);
     return this;
   }
 

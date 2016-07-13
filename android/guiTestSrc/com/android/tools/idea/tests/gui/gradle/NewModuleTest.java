@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
-import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.NewModuleDialogFixture;
+import com.intellij.lang.annotation.HighlightSeverity;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -68,6 +66,32 @@ public class NewModuleTest {
     assertThat(gradleFileContents).doesNotContain("testCompile");
     assertAbout(file()).that(new File(guiTest.getProjectPath(), "somelibrary/src/main")).isDirectory();
     assertAbout(file()).that(new File(guiTest.getProjectPath(), "somelibrary/src/test")).doesNotExist();
+  }
+
+  @Test
+  public void createNewModuleFromJar() throws Exception {
+    String jarFile = GuiTests.getTestDataDir() + "/LocalJarsAsModules/localJarAsModule/local.jar";
+
+    guiTest.importSimpleApplication()
+      .openFromMenu(NewModuleDialogFixture::find, "File", "New", "New Module...")
+      .chooseModuleType("Import .JAR/.AAR Package")
+      .clickNextToStep("") // Legacy code, doesn't have a step title
+      .setFileName(jarFile)
+      .setSubprojectName("localJarLib")
+      .clickFinish()
+      .waitForGradleProjectSyncToFinish()
+      .getEditor()
+      .open("app/build.gradle")
+      .moveBetween("dependencies {", "")
+      .enterText("\ncompile project(':localJarLib')")
+      .getIdeFrame()
+      .requestProjectSync()
+      .waitForGradleProjectSyncToFinish()
+      .getEditor()
+      .open("app/src/main/java/google/simpleapplication/MyActivity.java")
+      .moveBetween("setContentView(R.layout.activity_my);", "")
+      .enterText("\nnew com.example.android.multiproject.person.Person(\"Me\");\n")
+      .waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 0);
   }
 
   /**
