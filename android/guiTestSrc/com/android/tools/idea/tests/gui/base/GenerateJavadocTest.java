@@ -47,8 +47,9 @@ public class GenerateJavadocTest {
    *   Steps:
    *   1. Import a simple app.
    *   2. Click on Tools > Generate JavaDoc
-   *   3. Keep the default selection and select an output directory.
-   *   4. Click OK.
+   *   3. Enter an output directory.
+   *   4. Deselect “Open generated documentation in browser”.
+   *   5. Click OK.
    *   Verify:
    *   JavaDoc files are generated in the selected output directory.
    *   </pre>
@@ -58,7 +59,7 @@ public class GenerateJavadocTest {
     guiTest.importSimpleApplication()
       .openFromMenu(JavadocDialogFixture::find, "Tools", "Generate JavaDoc...")
       .enterOutputDirectory(javadocDirectory())
-      .setOpenDocumentationInBrowser(false) // Do not open the browser after closing this dialog
+      .deselectOpenInBrowser()
       .clickOk()
       .waitForExecutionToFinish();
     assertAbout(file()).that(new File(javadocDirectory(), "index.html")).isFile();
