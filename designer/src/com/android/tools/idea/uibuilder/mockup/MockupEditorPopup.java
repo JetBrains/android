@@ -31,6 +31,7 @@ import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.awt.RelativePoint;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -180,23 +181,10 @@ public class MockupEditorPopup {
    * @param designSurface
    * @param nlModel
    */
-  public static void create(DesignSurface designSurface, NlModel nlModel) {
+  public static void create(ScreenView screenView, @Nullable NlComponent component) {
     // Close any pop-up already opened
     if (POPUP_INSTANCE != null) {
       POPUP_INSTANCE.cancel();
-    }
-
-    // Get the selected component if it exist or get the root component
-    List<NlComponent> selection = nlModel.getSelectionModel().getSelection();
-    NlComponent component = null;
-    if (selection.isEmpty()) {
-      selection = nlModel.getComponents();
-      if (!selection.isEmpty()) {
-        component = selection.get(0).getRoot();
-      }
-    }
-    else {
-      component = selection.get(0);
     }
 
     // Do not show the popup if nothing is selected
@@ -208,7 +196,7 @@ public class MockupEditorPopup {
       return;
     }
 
-    final ScreenView screenView = new ScreenView(designSurface, ScreenView.ScreenViewType.BLUEPRINT, nlModel);
+    final DesignSurface designSurface = screenView.getSurface();
     final MockupEditorPopup mockupEditorPopup = new MockupEditorPopup(screenView, mockup, component.getModel());
     final Dimension minSize = new Dimension((int)Math.round(designSurface.getWidth() * RELATIVE_SIZE_TO_SOURCE),
                                             (int)Math.round(designSurface.getHeight() * RELATIVE_SIZE_TO_SOURCE));
