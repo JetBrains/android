@@ -41,6 +41,7 @@ import static com.android.builder.model.AndroidProject.FD_GENERATED;
 import static com.android.tools.idea.gradle.AndroidGradleModel.getTestArtifacts;
 import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntry;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGeneratedSourceFolders;
 import static com.intellij.openapi.util.io.FileUtil.isAncestor;
 import static org.jetbrains.jps.model.java.JavaResourceRootType.RESOURCE;
 import static org.jetbrains.jps.model.java.JavaResourceRootType.TEST_RESOURCE;
@@ -143,7 +144,7 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
     GradleVersion modelVersion = androidModel.getModelVersion();
     if (artifact instanceof AndroidArtifact || (modelVersion != null && modelVersion.compareIgnoringQualifiers("1.2") >= 0)) {
       // getGeneratedSourceFolders used to be in AndroidArtifact only.
-      Collection<File> generatedSourceFolders = artifact.getGeneratedSourceFolders();
+      Collection<File> generatedSourceFolders = getGeneratedSourceFolders(artifact);
 
       //noinspection ConstantConditions - this returned null in 1.2
       if (generatedSourceFolders != null) {
