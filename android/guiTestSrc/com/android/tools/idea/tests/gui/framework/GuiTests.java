@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.framework;
 
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.diagnostic.AbstractMessage;
@@ -490,13 +491,13 @@ public final class GuiTests {
 
   public static void findAndClickButton(@NotNull ContainerFixture<? extends Container> container, @NotNull String text) {
     Robot robot = container.robot();
-    JButton button = findButton(container, text, robot);
+    JButton button = robot.finder().find(container.target(), Matchers.byText(JButton.class, text));
     robot.click(button);
   }
 
   public static void findAndClickButtonWhenEnabled(@NotNull ContainerFixture<? extends Container> container, @NotNull String text) {
     Robot robot = container.robot();
-    JButton button = findButton(container, text, robot);
+    JButton button = robot.finder().find(container.target(), Matchers.byText(JButton.class, text));
     Wait.minutes(2).expecting("button " + text + " to be enabled")
       .until(() -> button.isEnabled() && button.isVisible() && button.isShowing());
     robot.click(button);
@@ -511,20 +512,6 @@ public final class GuiTests {
     robot.releaseMouse(LEFT_BUTTON);
     robot.pressMouse(LEFT_BUTTON);
     robot.releaseMouse(LEFT_BUTTON);
-  }
-
-  @NotNull
-  private static JButton findButton(@NotNull ContainerFixture<? extends Container> container, @NotNull String text, Robot robot) {
-    return robot.finder().find(container.target(), new GenericTypeMatcher<JButton>(JButton.class) {
-      @Override
-      protected boolean isMatching(@NotNull JButton button) {
-        String buttonText = button.getText();
-        if (buttonText != null) {
-          return buttonText.trim().equals(text) && button.isShowing();
-        }
-        return false;
-      }
-    });
   }
 
   /**

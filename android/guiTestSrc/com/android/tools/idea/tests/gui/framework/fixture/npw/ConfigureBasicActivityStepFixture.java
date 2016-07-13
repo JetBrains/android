@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.npw;
 
-
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.AbstractWizardStepFixture;
-import org.fest.swing.core.GenericTypeMatcher;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import org.fest.swing.core.Robot;
+import org.fest.swing.fixture.JCheckBoxFixture;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -57,13 +57,15 @@ public class ConfigureBasicActivityStepFixture extends AbstractWizardStepFixture
 
   @NotNull
   public ConfigureBasicActivityStepFixture selectLauncherActivity() {
-    findCheckBoxWithLabel("Launcher Activity").select();
+    JCheckBox checkBox = robot().finder().find(target(), Matchers.byText(JCheckBox.class, "Launcher Activity"));
+    new JCheckBoxFixture(robot(), checkBox).select();
     return this;
   }
 
   @NotNull
   public ConfigureBasicActivityStepFixture selectUseFragment() {
-    findCheckBoxWithLabel("Use a Fragment").select();
+    JCheckBox checkBox = robot().finder().find(target(), Matchers.byText(JCheckBox.class, "Use a Fragment"));
+    new JCheckBoxFixture(robot(), checkBox).select();
     return this;
   }
 
@@ -85,13 +87,7 @@ public class ConfigureBasicActivityStepFixture extends AbstractWizardStepFixture
     JTextComponent textField = findTextFieldWithLabel(activityField.getLabelText());
     robot().rightClick(textField);
 
-    JMenuItem popup = GuiTests.waitUntilShowing(robot(), null, new GenericTypeMatcher<JMenuItem>(JMenuItem.class) {
-      @Override
-      protected boolean isMatching(@NotNull JMenuItem menuItem) {
-        return "Restore default value".equals(menuItem.getText());
-      }
-    });
-
+    JMenuItem popup = GuiTests.waitUntilShowing(robot(), null, Matchers.byText(JMenuItem.class, "Restore default value"));
     robot().click(popup);
 
     return this;

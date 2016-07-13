@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.tests.gui.framework.Wait;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
@@ -68,12 +69,7 @@ class MenuFixture {
     for (int i = 0; i < segmentCount; i++) {
       final String segment = path[i];
       assertNotNull(root);
-      JMenuItem found = myRobot.finder().find(root, new GenericTypeMatcher<JMenuItem>(JMenuItem.class) {
-        @Override
-        protected boolean isMatching(@NotNull JMenuItem menuItem) {
-          return segment.equals(menuItem.getText());
-        }
-      });
+      JMenuItem found = myRobot.finder().find(root, Matchers.byText(JMenuItem.class, segment));
       if (root instanceof JPopupMenu) {
         previouslyFoundPopups.add((JPopupMenu)root);
       }

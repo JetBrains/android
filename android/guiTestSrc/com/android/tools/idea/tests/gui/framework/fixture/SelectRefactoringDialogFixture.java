@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Ref;
 import org.fest.swing.core.GenericTypeMatcher;
@@ -49,15 +50,8 @@ public class SelectRefactoringDialogFixture extends IdeaDialogFixture<DialogWrap
   }
 
   public void selectRenameModule() {
-    JRadioButton renameModuleCheckbox = robot().finder().find(target(), new GenericTypeMatcher<JRadioButton>(JRadioButton.class) {
-      @Override
-      protected boolean isMatching(@NotNull JRadioButton checkBox) {
-        return "Rename module".equals(checkBox.getText());
-      }
-    });
-
-    JRadioButtonFixture renameModuleRadioButton = new JRadioButtonFixture(robot(), renameModuleCheckbox);
-    renameModuleRadioButton.select();
+    JRadioButton renameModuleRadioButton = robot().finder().find(target(), Matchers.byText(JRadioButton.class, "Rename module"));
+    new JRadioButtonFixture(robot(), renameModuleRadioButton).select();
   }
 
   public void clickOk() {

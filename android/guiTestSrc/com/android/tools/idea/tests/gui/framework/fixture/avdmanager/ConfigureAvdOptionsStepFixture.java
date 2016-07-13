@@ -16,7 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture.avdmanager;
 
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.AbstractWizardStepFixture;
-import org.fest.swing.core.GenericTypeMatcher;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
@@ -38,12 +38,7 @@ public class ConfigureAvdOptionsStepFixture extends AbstractWizardStepFixture<Co
   @NotNull
   public ConfigureAvdOptionsStepFixture showAdvancedSettings() {
     try {
-      JButton showAdvancedSettingsButton = robot().finder().find(target(), new GenericTypeMatcher<JButton>(JButton.class) {
-        @Override
-        protected boolean isMatching(@NotNull JButton component) {
-          return "Show Advanced Settings".equals(component.getText());
-        }
-      });
+      JButton showAdvancedSettingsButton = robot().finder().find(target(), Matchers.byText(JButton.class, "Show Advanced Settings"));
       robot().click(showAdvancedSettingsButton);
     } catch (ComponentLookupException e) {
       throw new RuntimeException("Show Advanced Settings called when advanced settings are already shown.", e);

@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.gradle.project.ProxySettingsDialog;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Ref;
 import org.fest.swing.core.GenericTypeMatcher;
@@ -27,7 +28,6 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
-import static org.junit.Assert.assertNotNull;
 
 public class ProxySettingsDialogFixture extends IdeaDialogFixture<DialogWrapper> {
   @NotNull
@@ -57,26 +57,12 @@ public class ProxySettingsDialogFixture extends IdeaDialogFixture<DialogWrapper>
   }
 
   public void enableHttpsProxy() {
-    JCheckBox checkBox = robot().finder().find(this.target(), new GenericTypeMatcher<JCheckBox>(JCheckBox.class) {
-      @Override
-      protected boolean isMatching(@NotNull JCheckBox checkBox) {
-        return "Enable HTTPS Proxy".equals(checkBox.getText());
-      }
-    });
-
-    JCheckBoxFixture checkBoxFixture = new JCheckBoxFixture(robot(), checkBox);
-    checkBoxFixture.select();
+    JCheckBox checkBox = robot().finder().find(target(), Matchers.byText(JCheckBox.class, "Enable HTTPS Proxy"));
+    new JCheckBoxFixture(robot(), checkBox).select();
   }
 
   public void setDoNotShowThisDialog(boolean selected) {
-    JCheckBox checkBox = robot().finder().find(new GenericTypeMatcher<JCheckBox>(JCheckBox.class) {
-      @Override
-      protected boolean isMatching(@NotNull JCheckBox c) {
-        return c.isVisible() && c.isShowing() && "Do not show this dialog in the future".equals(c.getText());
-      }
-    });
-    assertNotNull(checkBox);
-    JCheckBoxFixture checkBoxFixture = new JCheckBoxFixture(robot(), checkBox);
-    checkBoxFixture.setSelected(selected);
+    JCheckBox checkBox = robot().finder().find(Matchers.byText(JCheckBox.class, "Do not show this dialog in the future"));
+    new JCheckBoxFixture(robot(), checkBox).setSelected(selected);
   }
 }

@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.tests.gui.framework.Wait;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
 import com.intellij.ui.JBListWithHintProvider;
 import com.intellij.ui.popup.PopupFactoryImpl;
@@ -61,12 +62,7 @@ public class ComboBoxActionFixture {
   }
 
   public static ComboBoxActionFixture findComboBoxByText(@NotNull Robot robot, @NotNull Container root, @NotNull final String text) {
-    JButton comboBoxButton = robot.finder().find(root, new GenericTypeMatcher<JButton>(JButton.class) {
-      @Override
-      protected boolean isMatching(@NotNull JButton component) {
-        return ourComboBoxButtonClass.isInstance(component) && component.getText().equals(text);
-      }
-    });
+    JButton comboBoxButton = robot.finder().find(root, Matchers.byText(JButton.class, text));
     return new ComboBoxActionFixture(robot, comboBoxButton);
   }
 

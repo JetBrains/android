@@ -18,10 +18,8 @@ package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
 import com.android.tools.idea.tests.gui.framework.Wait;
 import com.android.tools.idea.tests.gui.framework.fixture.JComponentFixture;
 import com.intellij.ui.components.JBLabel;
-import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JTextComponentMatcher;
-import org.fest.swing.fixture.JCheckBoxFixture;
 import org.fest.swing.fixture.JComboBoxFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.jetbrains.annotations.NotNull;
@@ -32,17 +30,6 @@ import javax.swing.text.JTextComponent;
 public abstract class AbstractWizardStepFixture<S> extends JComponentFixture<S, JRootPane> {
   protected AbstractWizardStepFixture(@NotNull Class<S> selfType, @NotNull Robot robot, @NotNull JRootPane target) {
     super(selfType, robot, target);
-  }
-
-  @NotNull
-  protected JCheckBoxFixture findCheckBoxWithLabel(@NotNull final String label) {
-    JCheckBox checkBox = robot().finder().find(target(), new GenericTypeMatcher<JCheckBox>(JCheckBox.class) {
-      @Override
-      protected boolean isMatching(@NotNull JCheckBox component) {
-        return label.equals(component.getText());
-      }
-    });
-    return new JCheckBoxFixture(robot(), checkBox);
   }
 
   @NotNull
