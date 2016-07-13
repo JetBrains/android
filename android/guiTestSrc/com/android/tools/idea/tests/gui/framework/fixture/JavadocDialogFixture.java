@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.Wait;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
@@ -60,6 +61,13 @@ public class JavadocDialogFixture implements ContainerFixture<JDialog> {
   }
 
   @NotNull
+  public JavadocDialogFixture deselectOpenInBrowser() {
+    JCheckBox browserCheckBox = robot().finder().find(Matchers.byText(JCheckBox.class, "Open generated documentation in browser"));
+    new JCheckBoxFixture(robot(), browserCheckBox).deselect();
+    return this;
+  }
+
+  @NotNull
   public ExecutionToolWindowFixture.ContentFixture clickOk() {
     GuiTests.findAndClickOkButton(this);
     Wait.seconds(5).expecting("dialog to disappear").until(() -> !target().isShowing());
@@ -76,19 +84,5 @@ public class JavadocDialogFixture implements ContainerFixture<JDialog> {
   @Override
   public Robot robot() {
     return myRobot;
-  }
-
-  public JavadocDialogFixture setOpenDocumentationInBrowser(boolean open) {
-    JCheckBox checkBox = GuiTests.waitUntilShowing(myRobot, myDialog, new GenericTypeMatcher<JCheckBox>(JCheckBox.class) {
-      @Override
-      protected boolean isMatching(@NotNull JCheckBox component) {
-        return "Open generated documentation in browser".equals(component.getText());
-      }
-    });
-    JCheckBoxFixture checkBoxFixture = new JCheckBoxFixture(myRobot, checkBox);
-    if (checkBox.isSelected() != open) {
-      checkBoxFixture.click();
-    }
-    return this;
   }
 }
