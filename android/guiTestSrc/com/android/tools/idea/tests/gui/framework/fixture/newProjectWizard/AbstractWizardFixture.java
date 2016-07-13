@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
 
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
@@ -72,16 +73,7 @@ public abstract class AbstractWizardFixture<S> extends ComponentFixture<S, JDial
 
   @NotNull
   public JButtonFixture findWizardButton(@NotNull final String text) {
-    JButton button = robot().finder().find(target(), new GenericTypeMatcher<JButton>(JButton.class) {
-      @Override
-      protected boolean isMatching(@NotNull JButton button) {
-        String buttonText = button.getText();
-        if (buttonText != null) {
-          return buttonText.trim().equals(text) && button.isShowing();
-        }
-        return false;
-      }
-    });
+    JButton button = robot().finder().find(target(), Matchers.byText(JButton.class, text));
     return new JButtonFixture(robot(), button);
   }
 

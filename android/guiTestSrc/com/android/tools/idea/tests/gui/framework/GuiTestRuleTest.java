@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.framework;
 
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
 import com.intellij.util.ui.UIUtil;
 import org.fest.swing.core.GenericTypeMatcher;
@@ -98,13 +99,7 @@ public class GuiTestRuleTest {
         return "Click a button".equals(dialog.getTitle());
       }
     });
-    JButton yesButton = waitUntilShowing(guiTest.robot(), dialog, new GenericTypeMatcher<JButton>(JButton.class) {
-      @Override
-      protected boolean isMatching(@NotNull JButton button) {
-        String buttonText = button.getText();
-        return buttonText != null && buttonText.trim().equals("Yes");
-      }
-    });
+    JButton yesButton = guiTest.robot().finder().find(dialog, Matchers.byText(JButton.class, "Yes"));
     guiTest.robot().click(yesButton);
   }
 }

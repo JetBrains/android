@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.framework.fixture.layout;
 
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
@@ -117,12 +118,7 @@ public class NlComponentFixture {
     rightClick();
 
     Robot robot = myRobot;
-    JMenuItem found = robot.finder().find(myIdeFrame.target(), new GenericTypeMatcher<JMenuItem>(JMenuItem.class) {
-      @Override
-      protected boolean isMatching(@NotNull JMenuItem menuItem) {
-        return actionLabel.equals(menuItem.getText());
-      }
-    });
+    JMenuItem found = robot.finder().find(myIdeFrame.target(), Matchers.byText(JMenuItem.class, actionLabel));
     new ComponentDriver(robot).click(found);
     robot.waitForIdle();
   }
