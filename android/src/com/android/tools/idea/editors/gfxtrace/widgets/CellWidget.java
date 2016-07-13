@@ -114,7 +114,12 @@ public abstract class CellWidget<T extends CellWidget.Data, C extends JComponent
     myData = data;
   }
 
-  public abstract int getSelectedItem();
+  public abstract int getSelectedIndex();
+
+  public T getSelectedItem() {
+    int index = getSelectedIndex();
+    return (index < 0 || index >= myData.size()) ? null : myData.get(index);
+  }
 
   public void selectItem(int index, boolean fireEvents) {
     boolean previousValue = myFireSelectionEvents.getAndSet(fireEvents);

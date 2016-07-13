@@ -42,12 +42,14 @@ public abstract class CellComboBox<T extends CellWidget.Data> extends CellWidget
     myComponent.setMaximumRowCount(5);
     JList list = myComponent.getPopup().getList();
     Dimension initialSize = myRenderer.getInitialCellSize();
-    list.setFixedCellHeight(initialSize.height);
-    list.setFixedCellWidth(initialSize.width);
+    if (initialSize != null) {
+      list.setFixedCellHeight(initialSize.height);
+      list.setFixedCellWidth(initialSize.width);
+    }
   }
 
   @Override
-  public int getSelectedItem() {
+  public int getSelectedIndex() {
     return myComponent.getSelectedIndex();
   }
 
