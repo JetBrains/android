@@ -18,10 +18,8 @@ package com.android.tools.idea.run.activity;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.model.MergedManifest;
 import com.intellij.execution.JavaExecutionUtil;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Computable;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -33,8 +31,6 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
-
-import java.util.List;
 
 public class SpecificActivityLocator extends ActivityLocator {
   @NotNull
@@ -88,8 +84,13 @@ public class SpecificActivityLocator extends ActivityLocator {
       }
     }
 
-    if (!ActivityLocatorUtils.containsLauncherIntent(DefaultActivityLocator.ActivityWrapper.get(element))) {
-      throw new ActivityLocatorException(AndroidBundle.message("activity.not.launchable.error", AndroidUtils.LAUNCH_ACTION_NAME));
+    DefaultActivityLocator.ActivityWrapper activity = DefaultActivityLocator.ActivityWrapper.get(element);
+    Boolean exported = activity.getExported();
+
+    // if the activity is not explicitly exported, and it doesn't have an intent filter, then it cannot be launched
+    if (!Boolean.TRUE.equals(exported) &&
+        !ActivityLocatorUtils.containsLauncherIntent(activity)) {
+      throw new ActivityLocatorException(AndroidBundle.message("specific.activity.not.launchable.error", AndroidUtils.LAUNCH_ACTION_NAME));
     }
   }
 

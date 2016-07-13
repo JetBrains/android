@@ -47,6 +47,10 @@ public interface Activity extends ApplicationComponent {
   @Convert(AndroidBooleanValueConverter.class)
   AndroidAttributeValue<String> getEnabled();
 
+  @Attribute("exported")
+  @Convert(AndroidBooleanValueConverter.class)
+  AndroidAttributeValue<String> getExported();
+
   List<IntentFilter> getIntentFilters();
 
   IntentFilter addIntentFilter();
