@@ -19,6 +19,7 @@ import org.fest.swing.core.GenericTypeMatcher;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.awt.*;
 
 /** Utility methods for {@link org.fest.swing.core.ComponentMatcher matchers}. */
 public final class Matchers {
@@ -30,6 +31,16 @@ public final class Matchers {
       @Override
       protected boolean isMatching(@NotNull T component) {
         return text.equals(component.getText());
+      }
+    };
+  }
+
+  @NotNull
+  public static <T extends Dialog> GenericTypeMatcher<T> byTitle(Class<T> dialogType, @NotNull String title) {
+    return new GenericTypeMatcher<T>(dialogType) {
+      @Override
+      protected boolean isMatching(@NotNull T dialog) {
+        return title.equals(dialog.getTitle());
       }
     };
   }

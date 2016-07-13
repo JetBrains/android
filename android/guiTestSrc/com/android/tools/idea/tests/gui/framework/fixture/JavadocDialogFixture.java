@@ -19,7 +19,6 @@ import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.Wait;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
-import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.ContainerFixture;
 import org.fest.swing.fixture.JCheckBoxFixture;
@@ -30,16 +29,9 @@ import javax.swing.*;
 public class JavadocDialogFixture implements ContainerFixture<JDialog> {
 
   public static JavadocDialogFixture find(IdeFrameFixture ideFrameFixture) {
-    JDialog dialog = GuiTests.waitUntilShowing(ideFrameFixture.robot(), MATCHER);
+    JDialog dialog = GuiTests.waitUntilShowing(ideFrameFixture.robot(), Matchers.byTitle(JDialog.class, "Specify Generate JavaDoc Scope"));
     return new JavadocDialogFixture(ideFrameFixture, dialog);
   }
-
-  private static final GenericTypeMatcher<JDialog> MATCHER = new GenericTypeMatcher<JDialog>(JDialog.class) {
-    @Override
-    protected boolean isMatching(@NotNull JDialog dialog) {
-      return "Specify Generate JavaDoc Scope".equals(dialog.getTitle());
-    }
-  };
 
   private final IdeFrameFixture myIdeFrameFixture;
   private final JDialog myDialog;

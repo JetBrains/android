@@ -25,13 +25,13 @@ import com.android.tools.idea.tests.gui.framework.fixture.FileChooserDialogFixtu
 import com.android.tools.idea.tests.gui.framework.fixture.IdeaDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeaDialogFixture.DialogAndWrapper;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.fixture.JTableFixture;
 import org.jetbrains.annotations.NotNull;
@@ -132,12 +132,8 @@ public class ModulesToImportDialogTest {
 
     JDialog dialog = myDialogAndWrapper.dialog;
     findByText("Save Selection As", guiTest.robot(), dialog).click();
-    FileChooserDialogFixture fileChooser = FileChooserDialogFixture.findDialog(guiTest.robot(), new GenericTypeMatcher<JDialog>(JDialog.class) {
-      @Override
-      protected boolean isMatching(@NotNull JDialog dialog) {
-        return "Save Module Selection".equals(dialog.getTitle());
-      }
-    });
+    FileChooserDialogFixture fileChooser =
+      FileChooserDialogFixture.findDialog(guiTest.robot(), Matchers.byTitle(JDialog.class, "Save Module Selection"));
     fileChooser.select(targetFile).clickOk();
 
     // "Confirm save" dialog will pop up because the file already exists, we click on Yes to continue.
@@ -147,12 +143,7 @@ public class ModulesToImportDialogTest {
     // Load selection from disk
     findByText("Select All", guiTest.robot(), dialog).click();
     findByText("Load Selection from File", guiTest.robot(), dialog).click();
-    fileChooser = FileChooserDialogFixture.findDialog(guiTest.robot(), new GenericTypeMatcher<JDialog>(JDialog.class) {
-      @Override
-      protected boolean isMatching(@NotNull JDialog dialog) {
-        return "Load Module Selection".equals(dialog.getTitle());
-      }
-    });
+    fileChooser = FileChooserDialogFixture.findDialog(guiTest.robot(), Matchers.byTitle(JDialog.class, "Load Module Selection"));
     fileChooser.select(targetFile).clickOk();
 
     selectedModules = wrapper.getSelectedModules();
@@ -190,11 +181,7 @@ public class ModulesToImportDialogTest {
         dialog.show();
       });
 
-    return IdeaDialogFixture.find(guiTest.robot(), ModulesToImportDialog.class, new GenericTypeMatcher<JDialog>(JDialog.class) {
-      @Override
-      protected boolean isMatching(@NotNull JDialog dialog) {
-        return "Select Modules to Include in Project Subset".equals(dialog.getTitle());
-      }
-    });
+    return IdeaDialogFixture.find(
+      guiTest.robot(), ModulesToImportDialog.class, Matchers.byTitle(JDialog.class, "Select Modules to Include in Project Subset"));
   }
 }

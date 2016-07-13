@@ -17,15 +17,14 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.Wait;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.ui.components.JBList;
 import org.fest.swing.cell.JListCellReader;
-import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.ContainerFixture;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.fixture.JTabbedPaneFixture;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.swing.*;
@@ -42,15 +41,8 @@ public class ProjectStructureDialogFixture implements ContainerFixture<JDialog> 
     myRobot = ideFrameFixture.robot();
   }
 
-  private static final GenericTypeMatcher<JDialog> MATCHER = new GenericTypeMatcher<JDialog>(JDialog.class) {
-    @Override
-    protected boolean isMatching(@NotNull JDialog dialog) {
-      return "Project Structure".equals(dialog.getTitle());
-    }
-  };
-
   public static ProjectStructureDialogFixture find(IdeFrameFixture ideFrameFixture) {
-    JDialog dialog = GuiTests.waitUntilShowing(ideFrameFixture.robot(), MATCHER);
+    JDialog dialog = GuiTests.waitUntilShowing(ideFrameFixture.robot(), Matchers.byTitle(JDialog.class, "Project Structure"));
     return new ProjectStructureDialogFixture(dialog, ideFrameFixture);
   }
 
