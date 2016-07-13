@@ -22,13 +22,15 @@ import com.android.tools.idea.uibuilder.graphics.NlConstants;
 import com.android.tools.idea.uibuilder.model.ModelListener;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.surface.*;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
+import com.android.tools.idea.uibuilder.surface.PanZoomListener;
+import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.sherpa.drawing.BlueprintColorSet;
 import com.android.tools.sherpa.drawing.ColorSet;
-import com.intellij.openapi.ui.popup.JBPopup;
-import com.intellij.openapi.ui.popup.JBPopupFactory;
-import com.intellij.openapi.ui.popup.JBPopupListener;
-import com.intellij.openapi.ui.popup.LightweightWindowEvent;
+import com.intellij.icons.AllIcons;
+import com.intellij.openapi.ui.popup.*;
+import com.intellij.ui.AncestorListenerAdapter;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.awt.RelativePoint;
@@ -37,6 +39,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.event.AncestorEvent;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.List;
@@ -49,10 +52,11 @@ import static com.android.tools.idea.uibuilder.surface.DesignSurface.ScreenMode.
  * The panel can be collapsed and expanded. The default state is collapsed
  */
 public class WidgetNavigatorPanel extends JPanel
-  implements DesignSurfaceListener, PanZoomListener, ModelListener, JBPopupListener, ComponentListener {
+  implements DesignSurfaceListener, PanZoomListener, ModelListener, JBPopupListener {
 
   public static final String TITLE = "Pan and Zoom";
   public static final String HINT = "(Scroll to Zoom)";
+  private static final IconButton CANCEL_BUTTON = new IconButton("Close", AllIcons.Actions.Close, AllIcons.Actions.CloseHovered);
   private static final int SCREEN_SPACE = NlConstants.SCREEN_DELTA;
   private static final Dimension PREFERRED_SIZE = new Dimension(250, 216);
 
@@ -62,8 +66,8 @@ public class WidgetNavigatorPanel extends JPanel
   private static final JBColor NORMAL_SCREEN_VIEW_COLOR = new JBColor(Gray._255, Gray._240);
   private static final Color BLUEPRINT_SCREEN_VIEW_COLOR = BLUEPRINT_COLOR_SET.getBackground();
   private static final Color COMPONENT_STROKE_COLOR = BLUEPRINT_COLOR_SET.getFrames();
-
   private static final Color BACKGROUND_COLOR = BLUEPRINT_COLOR_SET.getBackground();
+
   private final ColorSet myColorSet;
   private MiniMap myMiniMap;
 
@@ -82,12 +86,14 @@ public class WidgetNavigatorPanel extends JPanel
   private int myYScreenNumber;
   private int myXScreenNumber;
   private int myScaledScreenSpace;
+  private AncestorListenerAdapter myAncestorListener;
 
   public WidgetNavigatorPanel(@NotNull DesignSurface surface) {
     super(new BorderLayout());
     myDesignSurfaceOffset = new Point();
     mySecondScreenOffset = new Point();
     myMiniMap = new MiniMap();
+    myAncestorListener = new MyAncestorListenerAdapter();
     myColorSet = BLUEPRINT_COLOR_SET;
     setPreferredSize(PREFERRED_SIZE);
     setSurface(surface);
@@ -162,7 +168,19 @@ public class WidgetNavigatorPanel extends JPanel
     if (model != null) {
       model.addListener(this);
     }
+
+    // The model change can be triggered by a change of editor, in this case, we want to keep
+    // the popup opened but we have to change the content, so we try to find the current selection
+    // in the model or at least the component of the current model.
     computeOffsets(surface.getCurrentScreenView());
+    if (model != null) {
+      List<NlComponent> selection = model.getSelectionModel().getSelection();
+      if (selection.isEmpty()) {
+        selection = model.getComponents();
+      }
+      updateComponents(selection);
+    }
+    configureUI();
     myMiniMap.repaint();
   }
 
@@ -232,31 +250,17 @@ public class WidgetNavigatorPanel extends JPanel
     }
   }
 
-  /* Implements ComponentListener */
-  @Override
-  public void componentResized(ComponentEvent e) {
-    // If either the width or the height of the DesignSurface is negative,
-    // that means that the DesignSurface is not shown, so we hide the dialog
-    // and no need to continue to paint.
-    // Since we do not receive any event to tell us that the DesignSurface is not
-    // shown, this the only way to check it.
-    if (myContainerPopup != null) {
-      if (e.getComponent().getWidth() <= 0 || e.getComponent().getHeight() <= 0) {
+  /**
+   * JPanel where the miniature are drown
+   */
+  private class MyAncestorListenerAdapter extends AncestorListenerAdapter {
+    @Override
+    public void ancestorRemoved(AncestorEvent event) {
+      super.ancestorRemoved(event);
+      if (myContainerPopup != null) {
         myContainerPopup.cancel();
       }
     }
-  }
-
-  @Override
-  public void componentMoved(ComponentEvent e) {
-  }
-
-  @Override
-  public void componentShown(ComponentEvent e) {
-  }
-
-  @Override
-  public void componentHidden(ComponentEvent e) {
   }
 
   /**
@@ -274,7 +278,7 @@ public class WidgetNavigatorPanel extends JPanel
     if (myDesignSurface != null) {
       myDesignSurface.removeListener(this);
       myDesignSurface.removePanZoomListener(this);
-      myDesignSurface.removeComponentListener(this);
+      myDesignSurface.removeAncestorListener(myAncestorListener);
       final ScreenView currentScreenView = myDesignSurface.getCurrentScreenView();
       if (currentScreenView != null) {
         currentScreenView.getModel().removeListener(this);
@@ -287,7 +291,7 @@ public class WidgetNavigatorPanel extends JPanel
     }
     myDesignSurface.addListener(this);
     myDesignSurface.addPanZoomListener(this);
-    myDesignSurface.addComponentListener(this);
+    myDesignSurface.addAncestorListener(myAncestorListener);
 
     final ScreenView currentScreenView = myDesignSurface.getCurrentScreenView();
     if (currentScreenView != null) {
@@ -330,7 +334,6 @@ public class WidgetNavigatorPanel extends JPanel
    * Handle all mouse interaction onto the Minimap
    */
   private class MouseInteractionListener implements MouseListener, MouseMotionListener, MouseWheelListener {
-
     private final Point myMouseOrigin = new Point(0, 0);
     private final Point mySurfaceOrigin = new Point(0, 0);
     private double myNewXOffset;
@@ -419,13 +422,13 @@ public class WidgetNavigatorPanel extends JPanel
       }
 
       final int wheelRotation = e.getWheelRotation();
-      if (wheelRotation < 0 && myDesignSurface.getScale() <= 2.) {
-        for (int i = 0; i > wheelRotation; i--) {
+      if (wheelRotation < 0) {
+        for (int i = 0; i > wheelRotation && myDesignSurface.getScale() <= 2.; i--) {
           myDesignSurface.zoomIn();
         }
       }
-      else if (wheelRotation > 0 && myDesignSurface.getScale() > 0.1) {
-        for (int i = 0; i < wheelRotation; i++) {
+      else if (wheelRotation > 0) {
+        for (int i = 0; i < wheelRotation && myDesignSurface.getScale() > 0.1; i++) {
           myDesignSurface.zoomOut();
         }
       }
@@ -484,9 +487,6 @@ public class WidgetNavigatorPanel extends JPanel
     myCenterOffset = (int)Math.round((PREFERRED_SIZE.getWidth() - myXScreenNumber * myDeviceSize.getWidth() * myDeviceScale) / 2);
   }
 
-  /**
-   * JPanel where the miniature are drown
-   */
   private class MiniMap extends JPanel {
 
     @Override
@@ -634,10 +634,10 @@ public class WidgetNavigatorPanel extends JPanel
       // Darken the non visible parts
       gc.setColor(OVERLAY_COLOR);
 
-      //left
+      // Left
       gc.fillRect(0, 0, x, getHeight());
 
-      //Top
+      // Top
       gc.fillRect(x, 0, width, y);
 
       // Right
@@ -656,22 +656,22 @@ public class WidgetNavigatorPanel extends JPanel
 
   public static JBPopup createPopup(DesignSurface surface) {
 
-    JComponent myPanel = new WidgetNavigatorPanel(surface);
-    final Dimension minSize = new Dimension(myPanel.getSize());
-    JBPopup builder = JBPopupFactory.getInstance().createComponentPopupBuilder(myPanel, myPanel)
+    WidgetNavigatorPanel navigatorPanel = new WidgetNavigatorPanel(surface);
+    final Dimension minSize = new Dimension(navigatorPanel.getSize());
+    JBPopup builder = JBPopupFactory.getInstance().createComponentPopupBuilder(navigatorPanel, navigatorPanel)
       .setTitle(TITLE)
       .setMinSize(minSize)
       .setResizable(false)
       .setMovable(true)
       .setRequestFocus(true)
-      .setCouldPin(jbPopup -> true)
       .setLocateWithinScreenBounds(true)
+      .setCancelButton(CANCEL_BUTTON)
       .setShowBorder(true)
       .setShowShadow(true)
       .setCancelOnClickOutside(false)
       .setCancelOnWindowDeactivation(false)
-      .setCancelOnOtherWindowOpen(false)
-      .addListener((JBPopupListener)myPanel)
+      .setCancelOnOtherWindowOpen(true)
+      .addListener(navigatorPanel)
       .createPopup();
 
     final int x = surface.getWidth() - PREFERRED_SIZE.width - surface.getScrollPane().getVerticalScrollBar().getWidth();
