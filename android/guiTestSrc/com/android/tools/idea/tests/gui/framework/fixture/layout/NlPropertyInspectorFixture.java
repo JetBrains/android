@@ -19,6 +19,7 @@ import com.android.annotations.Nullable;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.editor.NlEditor;
 import com.android.tools.idea.uibuilder.property.NlPropertiesPanel;
 import com.google.common.truth.Truth;
@@ -49,12 +50,7 @@ public class NlPropertyInspectorFixture extends ComponentFixture<NlPropertyInspe
   }
 
   public static NlPropertiesPanel create(@NotNull Robot robot) {
-    return waitUntilFound(robot, null, new GenericTypeMatcher<NlPropertiesPanel>(NlPropertiesPanel.class) {
-      @Override
-      protected boolean isMatching(@NotNull NlPropertiesPanel list) {
-        return true;
-      }
-    });
+    return GuiTests.waitUntilFound(robot, null, Matchers.byType(NlPropertiesPanel.class));
   }
 
   @Nullable

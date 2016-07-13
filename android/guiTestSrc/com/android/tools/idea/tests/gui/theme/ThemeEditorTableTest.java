@@ -20,6 +20,7 @@ import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.*;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.fixture.*;
@@ -360,7 +361,7 @@ public class ThemeEditorTableTest {
 
     popupMenu.menuItemWithPath("Show documentation").click();
 
-    JWindow docWindow = GuiTests.waitUntilShowing(guiTest.robot(), GuiTests.matcherForType(JWindow.class));
+    JWindow docWindow = GuiTests.waitUntilShowing(guiTest.robot(), Matchers.byType(JWindow.class));
 
     JEditorPane docComp = guiTest.robot().finder().findByType(docWindow, JEditorPane.class);
     JTextComponentFixture quickDoc = new JTextComponentFixture(guiTest.robot(), docComp);

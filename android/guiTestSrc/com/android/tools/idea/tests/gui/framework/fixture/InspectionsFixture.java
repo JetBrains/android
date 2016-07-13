@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.collect.Lists;
 import com.intellij.codeInspection.ui.InspectionTree;
 import com.intellij.codeInspection.ui.InspectionTreeNode;
@@ -25,7 +26,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 import static org.fest.swing.edt.GuiActionRunner.execute;
@@ -37,7 +37,7 @@ public class InspectionsFixture extends ToolWindowFixture {
 
   @NotNull
   static InspectionsFixture find(IdeFrameFixture ideFrameFixture) {
-    InspectionTree tree = GuiTests.waitUntilFound(ideFrameFixture.robot(), GuiTests.matcherForType(InspectionTree.class));
+    InspectionTree tree = GuiTests.waitUntilFound(ideFrameFixture.robot(), Matchers.byType(InspectionTree.class));
     return new InspectionsFixture(ideFrameFixture, tree);
   }
 

@@ -44,4 +44,14 @@ public final class Matchers {
       }
     };
   }
+
+  @NotNull
+  public static <T extends Component> GenericTypeMatcher<T> byType(Class<T> componentType) {
+    return new GenericTypeMatcher<T>(componentType) {
+      @Override
+      protected boolean isMatching(@NotNull T component) {
+        return true;
+      }
+    };
+  }
 }

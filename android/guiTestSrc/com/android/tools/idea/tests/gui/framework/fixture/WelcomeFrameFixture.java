@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.wm.impl.welcomeScreen.FlatWelcomeFrame;
 import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
@@ -24,7 +25,7 @@ public class WelcomeFrameFixture extends ComponentFixture<WelcomeFrameFixture, F
 
   @NotNull
   public static WelcomeFrameFixture find(@NotNull Robot robot) {
-    return new WelcomeFrameFixture(robot, GuiTests.waitUntilShowing(robot, GuiTests.matcherForType(FlatWelcomeFrame.class)));
+    return new WelcomeFrameFixture(robot, GuiTests.waitUntilShowing(robot, Matchers.byType(FlatWelcomeFrame.class)));
   }
 
   @NotNull
