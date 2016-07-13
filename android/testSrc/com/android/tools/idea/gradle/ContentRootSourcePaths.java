@@ -33,6 +33,8 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.*;
 
+import static com.android.tools.idea.gradle.util.GradleUtil.getGeneratedSourceFolders;
+
 /**
  * Verifies that the source paths of a {@link ContentRootData} are correct.
  */
@@ -86,7 +88,7 @@ public class ContentRootSourcePaths {
 
   private void addGeneratedDirPaths(@NotNull AndroidArtifactStub androidArtifact, boolean isTest) {
     ExternalSystemSourceType sourceType = isTest ? ExternalSystemSourceType.TEST_GENERATED : ExternalSystemSourceType.SOURCE_GENERATED;
-    addSourceDirPaths(sourceType, androidArtifact.getGeneratedSourceFolders());
+    addSourceDirPaths(sourceType, getGeneratedSourceFolders(androidArtifact));
 
     sourceType = isTest ? ExternalSystemSourceType.TEST_RESOURCE : ExternalSystemSourceType.RESOURCE;
     addSourceDirPaths(sourceType, androidArtifact.getGeneratedResourceFolders());

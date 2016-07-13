@@ -52,6 +52,7 @@ import java.util.concurrent.CountDownLatch;
 import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.gradle.AndroidProjectKeys.ANDROID_MODEL;
 import static com.android.tools.idea.gradle.util.GradleUtil.getDependencies;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGeneratedSourceFolders;
 import static com.android.tools.idea.gradle.util.ProxyUtil.reproxy;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.find;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
@@ -854,8 +855,9 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
 
   private static boolean containsSourceFile(@NotNull BaseArtifact artifact, @NotNull File file) {
     if (artifact instanceof AndroidArtifact) {
-      AndroidArtifact android = (AndroidArtifact)artifact;
-      if (containsFile(android.getGeneratedSourceFolders(), file) || containsFile(android.getGeneratedResourceFolders(), file)) {
+      AndroidArtifact androidArtifact = (AndroidArtifact)artifact;
+      if (containsFile(getGeneratedSourceFolders(androidArtifact), file) ||
+          containsFile(androidArtifact.getGeneratedResourceFolders(), file)) {
         return true;
       }
     }

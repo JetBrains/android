@@ -41,6 +41,7 @@ import java.util.Set;
 import static com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST;
 import static com.android.builder.model.AndroidProject.ARTIFACT_UNIT_TEST;
 import static com.android.tools.idea.gradle.util.FilePaths.getJarFromJarUrl;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGeneratedSourceFolders;
 import static com.android.tools.idea.gradle.util.Projects.lastGradleSyncFailed;
 import static com.android.utils.FileUtils.toSystemDependentPath;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
@@ -293,7 +294,7 @@ public final class TestArtifactSearchScopes implements Disposable {
         if (excludeArtifact != null) {
           excludedRoots.add(excludeArtifact.getClassesFolder());
 
-          for (File file : excludeArtifact.getGeneratedSourceFolders()) {
+          for (File file : getGeneratedSourceFolders(excludeArtifact)) {
             excludedRoots.add(file);
           }
 
@@ -307,7 +308,7 @@ public final class TestArtifactSearchScopes implements Disposable {
         if (includeArtifact != null) {
           excludedRoots.remove(includeArtifact.getClassesFolder());
 
-          for (File file : includeArtifact.getGeneratedSourceFolders()) {
+          for (File file : getGeneratedSourceFolders(includeArtifact)) {
             excludedRoots.remove(file);
           }
 
