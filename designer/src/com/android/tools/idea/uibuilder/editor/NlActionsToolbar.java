@@ -34,7 +34,6 @@ import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
-import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -150,7 +149,7 @@ public class NlActionsToolbar implements DesignSurfaceListener, ModelListener {
     group.addSeparator();
     ConfigurationMenuAction configAction = new ConfigurationMenuAction(surface);
     group.add(configAction);
-    group.add(new MockupEditAction(surface));
+    group.add(new MockupToggleAction(surface));
 
     return group;
   }

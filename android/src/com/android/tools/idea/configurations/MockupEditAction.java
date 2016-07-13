@@ -15,99 +15,56 @@
  */
 package com.android.tools.idea.configurations;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.mockup.MockupEditorPopup;
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Presentation;
-import icons.AndroidIcons;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
+import java.util.List;
 
 /**
- * Menu to control the Mockup Layer
+ * Shows the popup for editing the mockup of the selected component
  */
-public class MockupEditAction extends FlatComboAction {
-  private final DesignSurface mySurface;
-  private AnAction myMainAction;
+public class MockupEditAction extends AnAction {
 
-  private final static String TOGGLE_ACTION_TITLE =  "Show/Hide Mockup";
-  private final static String EDIT_ACTION_TITLE =  "Edit Mockup";
+  private final static String EDIT_ACTION_TITLE = "Edit Mockup";
+  private final static String ADD_ACTION_TITLE = "Add Mockup";
+  private final ScreenView myCurrentScreenView;
 
-  public MockupEditAction(@Nullable DesignSurface surface) {
-    Presentation presentation = getTemplatePresentation();
-    presentation.setIcon(getDesignIcon(surface != null && surface.isMockupVisible()));
-    myMainAction = new ToggleShowMockupAction();
-    presentation.setDescription(myMainAction.getTemplatePresentation().getText());
-    mySurface = surface;
-  }
+  public MockupEditAction(DesignSurface surface) {
+    super(ADD_ACTION_TITLE);
 
-  private static Icon getDesignIcon(boolean active) {
-    return active ? AndroidIcons.NeleIcons.DesignPropertyEnabled
-                  : AndroidIcons.NeleIcons.DesignProperty;
-  }
+    myCurrentScreenView = surface.getCurrentScreenView();
+    if(myCurrentScreenView != null) {
 
-  @Override
-  public void update(AnActionEvent event) {
-    event.getPresentation().setIcon(getDesignIcon(mySurface != null && mySurface.isMockupVisible()));
-  }
+      List<NlComponent> selection = myCurrentScreenView.getSelectionModel().getSelection();
+      if(!selection.isEmpty()) {
+        NlComponent nlComponent = selection.get(0);
+        Presentation presentation = getTemplatePresentation();
 
-  @NotNull
-  @Override
-  protected DefaultActionGroup createPopupActionGroup() {
-    DefaultActionGroup group = new DefaultActionGroup(null, true);
-    group.add(myMainAction);
-    if(mySurface != null && mySurface.getCurrentScreenView() != null ) {
-      group.add(new DisplayMockupEditorAction(mySurface.getCurrentScreenView().getModel()));
-    }
-    return group;
-  }
-
-  @Override
-  protected boolean handleIconClicked() {
-    myMainAction.actionPerformed(null);
-    return true;
-  }
-
-  /**
-   * Action to display or hide the MockupLayer
-   */
-  private class ToggleShowMockupAction extends AnAction {
-
-    public ToggleShowMockupAction() {
-      super(TOGGLE_ACTION_TITLE, null, getDesignIcon(mySurface != null && mySurface.isMockupVisible()));
-    }
-
-    @Override
-    public void actionPerformed(@Nullable  AnActionEvent e) {
-      final boolean mockupVisible = MockupEditAction.this.mySurface != null && !MockupEditAction.this.mySurface.isMockupVisible();
-      getTemplatePresentation().setIcon(getDesignIcon(mockupVisible));
-      if (MockupEditAction.this.mySurface != null) {
-        MockupEditAction.this.mySurface.setMockupVisible(!MockupEditAction.this.mySurface.isMockupVisible());
-        MockupEditAction.this.mySurface.repaint();
+        // If the selected component already has a mockup attribute, display the Edit text
+        // else display the add text
+        if(nlComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_MOCKUP) != null) {
+          presentation.setText(EDIT_ACTION_TITLE);
+        } else {
+          presentation.setText(ADD_ACTION_TITLE);
+        }
       }
     }
   }
 
-  /**
-   * Shows the popup for editing the mockup of the selected component
-   */
-  private class DisplayMockupEditorAction extends AnAction {
-
-    @NotNull NlModel myModel;
-
-    public DisplayMockupEditorAction(@NotNull NlModel model) {
-      super(EDIT_ACTION_TITLE, null, AndroidIcons.NeleIcons.DesignPropertyEnabled);
-      myModel = model;
-    }
-
-    @Override
-    public void actionPerformed(AnActionEvent e) {
-      MockupEditorPopup.create(mySurface, myModel);
+  @Override
+  public void actionPerformed(AnActionEvent e) {
+    if(myCurrentScreenView != null) {
+      List<NlComponent> selection = myCurrentScreenView.getSelectionModel().getSelection();
+      if(!selection.isEmpty()) {
+        NlComponent nlComponent = selection.get(0);
+        MockupEditorPopup.create(myCurrentScreenView, nlComponent);
+      }
     }
   }
 }
