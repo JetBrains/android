@@ -35,6 +35,7 @@ import java.awt.*;
 import java.io.File;
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 import static com.android.tools.idea.gradle.project.ChooseGradleHomeDialog.VALIDATION_MESSAGE_CLIENT_PROPERTY;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
@@ -116,13 +117,7 @@ public class ChooseGradleHomeDialogFixture extends ComponentFixture<ChooseGradle
         }
         JPanel errorTextPanel = getFirstItem(errorTextPanels);
         assertNotNull(errorTextPanel);
-        Collection<JLabel> labels = finder.findAll(errorTextPanel, new GenericTypeMatcher<JLabel>(JLabel.class) {
-          @Override
-          protected boolean isMatching(@NotNull JLabel label) {
-            String text = label.getText();
-            return text != null && text.contains(errorText);
-          }
-        });
+        Collection<JLabel> labels = finder.findAll(errorTextPanel, JLabelMatcher.withText(Pattern.compile(".*" + errorText + ".*")));
         return labels.size() == 1;
       });
 
