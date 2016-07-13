@@ -21,12 +21,13 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.junit.After;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
 
@@ -35,8 +36,9 @@ import static com.android.tools.idea.gradle.util.PropertiesUtil.getProperties;
 import static com.google.common.io.Files.createTempDir;
 import static com.google.common.io.Files.write;
 import static com.intellij.openapi.util.io.FileUtil.*;
-import static org.mockito.Mockito.*;
+import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 /**
  * Tests for {@link GradleUtil}.
@@ -51,9 +53,28 @@ public class GradleUtilTest {
     }
   }
 
-  @Ignore("Enable when BaseArtifact#getCompileDependencies is submitted")
   @Test
-  public void testSupportsDependencyGraph() {
+  public void getGeneratedSources() {
+    Collection<File> folders = Lists.newArrayList(new File(""));
+    BaseArtifact baseArtifact = mock(BaseArtifact.class);
+    when(baseArtifact.getGeneratedSourceFolders()).thenReturn(folders);
+
+    Collection<File> actual = GradleUtil.getGeneratedSourceFolders(baseArtifact);
+    assertThat(actual).isSameAs(folders);
+  }
+
+
+  @Test
+  public void getGeneratedSourcesWithOldModel() {
+    BaseArtifact baseArtifact = mock(BaseArtifact.class);
+    when(baseArtifact.getGeneratedSourceFolders()).thenThrow(new UnsupportedMethodException(""));
+
+    Collection<File> actual = GradleUtil.getGeneratedSourceFolders(baseArtifact);
+    assertThat(actual).isEmpty();
+  }
+
+  @Test
+  public void supportsDependencyGraph() {
     assertTrue(GradleUtil.androidModelSupportsDependencyGraph(GradleVersion.parse("2.2.0-dev")));
     assertTrue(GradleUtil.androidModelSupportsDependencyGraph(GradleVersion.parse("2.2.0")));
     assertTrue(GradleUtil.androidModelSupportsDependencyGraph(GradleVersion.parse("2.2.1")));
@@ -62,9 +83,8 @@ public class GradleUtilTest {
     assertTrue(GradleUtil.androidModelSupportsDependencyGraph(GradleVersion.parse("3.0.0")));
   }
 
-  @Ignore("Enable when BaseArtifact#getCompileDependencies is submitted")
   @Test
-  public void testSupportsDependencyGraphWithTextVersion() {
+  public void supportsDependencyGraphWithTextVersion() {
     assertFalse(GradleUtil.androidModelSupportsDependencyGraph("abc."));
     assertTrue(GradleUtil.androidModelSupportsDependencyGraph("2.2.0-dev"));
     assertTrue(GradleUtil.androidModelSupportsDependencyGraph("2.2.0"));
@@ -74,9 +94,8 @@ public class GradleUtilTest {
     assertTrue(GradleUtil.androidModelSupportsDependencyGraph("3.0.0"));
   }
 
-  @Ignore("Enable when BaseArtifact#getCompileDependencies is submitted")
   @Test
-  public void testGetDependenciesWithModelThatSupportsDependencyGraph() {
+  public void getDependenciesWithModelThatSupportsDependencyGraph() {
     BaseArtifact artifact = mock(BaseArtifact.class);
     Dependencies dependencies = mock(Dependencies.class);
 
@@ -89,7 +108,7 @@ public class GradleUtilTest {
   }
 
   @Test
-  public void testGetDependenciesWithModelThatDoesNotSupportDependencyGraph() {
+  public void getDependenciesWithModelThatDoesNotSupportDependencyGraph() {
     BaseArtifact artifact = mock(BaseArtifact.class);
     Dependencies dependencies = mock(Dependencies.class);
 
@@ -102,17 +121,17 @@ public class GradleUtilTest {
   }
 
   @Test
-  public void testGetGradleInvocationJvmArgWithNullBuildMode() {
+  public void getGradleInvocationJvmArgWithNullBuildMode() {
     assertNull(GradleUtil.getGradleInvocationJvmArg(null));
   }
 
   @Test
-  public void testGetGradleInvocationJvmArgWithAssembleTranslateBuildMode() {
+  public void getGradleInvocationJvmArgWithAssembleTranslateBuildMode() {
     assertEquals("-DenableTranslation=true", GradleUtil.getGradleInvocationJvmArg(BuildMode.ASSEMBLE_TRANSLATE));
   }
 
   @Test
-  public void testGetGradleWrapperPropertiesFilePath() throws IOException {
+  public void getGradleWrapperPropertiesFilePath() throws IOException {
     myTempDir = createTempDir();
     File wrapper = new File(myTempDir, FN_GRADLE_WRAPPER_PROPERTIES);
     createIfNotExists(wrapper);
@@ -124,7 +143,7 @@ public class GradleUtilTest {
   }
 
   @Test
-  public void testLeaveGradleWrapperAloneBin() throws IOException {
+  public void leaveGradleWrapperAloneBin() throws IOException {
     // Ensure that if we already have the right version, we don't replace a -bin.zip with a -all.zip
     myTempDir = createTempDir();
     File wrapper = new File(myTempDir, FN_GRADLE_WRAPPER_PROPERTIES);
@@ -142,7 +161,7 @@ public class GradleUtilTest {
   }
 
   @Test
-  public void testLeaveGradleWrapperAloneAll() throws IOException {
+  public void leaveGradleWrapperAloneAll() throws IOException {
     // Ensure that if we already have the right version, we don't replace a -all.zip with a -bin.zip
     myTempDir = createTempDir();
     File wrapper = new File(myTempDir, FN_GRADLE_WRAPPER_PROPERTIES);
@@ -160,7 +179,7 @@ public class GradleUtilTest {
   }
 
   @Test
-  public void testReplaceGradleWrapper() throws IOException {
+  public void replaceGradleWrapper() throws IOException {
     // Test that when we replace to a new version we use -all.zip
     myTempDir = createTempDir();
     File wrapper = new File(myTempDir, FN_GRADLE_WRAPPER_PROPERTIES);
@@ -178,7 +197,7 @@ public class GradleUtilTest {
   }
 
   @Test
-  public void testUpdateGradleDistributionUrl() {
+  public void updateGradleDistributionUrl() {
     myTempDir = createTempDir();
     File wrapperPath = GradleUtil.getGradleWrapperPropertiesFilePath(myTempDir);
 
@@ -190,26 +209,26 @@ public class GradleUtilTest {
   }
 
   @Test
-  public void testGetPathSegments() {
+  public void getPathSegments() {
     List<String> pathSegments = GradleUtil.getPathSegments("foo:bar:baz");
     assertEquals(Lists.newArrayList("foo", "bar", "baz"), pathSegments);
   }
 
   @Test
-  public void testGetPathSegmentsWithEmptyString() {
+  public void getPathSegmentsWithEmptyString() {
     List<String> pathSegments = GradleUtil.getPathSegments("");
     assertEquals(0, pathSegments.size());
   }
 
   @Test
-  public void testGetGradleBuildFilePath() {
+  public void getGradleBuildFilePath() {
     myTempDir = createTempDir();
     File buildFilePath = GradleUtil.getGradleBuildFilePath(myTempDir);
     assertEquals(new File(myTempDir, FN_BUILD_GRADLE), buildFilePath);
   }
 
   @Test
-  public void testGetGradleVersionFromJarUsingGradleLibraryJar() {
+  public void getGradleVersionFromJarUsingGradleLibraryJar() {
     File jarFile = new File("gradle-core-2.0.jar");
     GradleVersion gradleVersion = GradleUtil.getGradleVersionFromJar(jarFile);
     assertNotNull(gradleVersion);
@@ -217,7 +236,7 @@ public class GradleUtilTest {
   }
 
   @Test
-  public void testRc() {
+  public void rc() {
     // Regression test for https://code.google.com/p/android/issues/detail?id=179838
     File jarFile = new File("gradle-messaging-2.5-rc-1.jar");
     GradleVersion gradleVersion = GradleUtil.getGradleVersionFromJar(jarFile);
@@ -226,7 +245,7 @@ public class GradleUtilTest {
   }
 
   @Test
-  public void testNightly() {
+  public void nightly() {
     File jarFile = new File("gradle-messaging-2.10-20151029230024+0000.jar");
     GradleVersion gradleVersion = GradleUtil.getGradleVersionFromJar(jarFile);
     assertNotNull(gradleVersion);
@@ -234,14 +253,14 @@ public class GradleUtilTest {
   }
 
   @Test
-  public void testGetGradleVersionFromJarUsingNonGradleLibraryJar() {
+  public void getGradleVersionFromJarUsingNonGradleLibraryJar() {
     File jarFile = new File("ant-1.9.3.jar");
     GradleVersion gradleVersion = GradleUtil.getGradleVersionFromJar(jarFile);
     assertNull(gradleVersion);
   }
 
   @Test
-  public void testAddInitScriptCommandLineOption() throws IOException {
+  public void addInitScriptCommandLineOption() throws IOException {
     List<String> cmdOptions = Lists.newArrayList();
 
     String contents = "The contents of the init script file";
@@ -257,7 +276,7 @@ public class GradleUtilTest {
   }
 
   @Test
-  public void testGetGradleWrapperVersionWithUrl() {
+  public void getGradleWrapperVersionWithUrl() {
     // Tries both http and https, bin and all. Also versions 2.2.1, 2.2 and 1.12
     String url = "https://services.gradle.org/distributions/gradle-2.2.1-all.zip";
     String version = GradleUtil.getGradleWrapperVersionOnlyIfComingForGradleDotOrg(url);
@@ -314,7 +333,7 @@ public class GradleUtilTest {
   }
 
   @Test
-  public void testHasLayoutRenderingIssue() {
+  public void hasLayoutRenderingIssue() {
     AndroidProjectStub model = new AndroidProjectStub("app");
 
     model.setModelVersion("1.1.0");

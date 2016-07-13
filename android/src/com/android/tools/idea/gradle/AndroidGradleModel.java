@@ -19,6 +19,7 @@ import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.ClassJarProvider;
 import com.google.common.annotations.VisibleForTesting;
@@ -812,8 +813,9 @@ public class AndroidGradleModel implements AndroidModel, Serializable {
 
   private static boolean containsSourceFile(@NotNull BaseArtifact artifact, @NotNull File file) {
     if (artifact instanceof AndroidArtifact) {
-      AndroidArtifact android = (AndroidArtifact)artifact;
-      if (containsFile(android.getGeneratedSourceFolders(), file) || containsFile(android.getGeneratedResourceFolders(), file)) {
+      AndroidArtifact androidArtifact = (AndroidArtifact)artifact;
+      if (containsFile(getGeneratedSourceFolders(androidArtifact), file) ||
+          containsFile(androidArtifact.getGeneratedResourceFolders(), file)) {
         return true;
       }
     }
