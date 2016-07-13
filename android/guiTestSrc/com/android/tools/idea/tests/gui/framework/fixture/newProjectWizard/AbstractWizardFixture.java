@@ -19,6 +19,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
+import org.fest.swing.core.matcher.JLabelMatcher;
 import org.fest.swing.fixture.ContainerFixture;
 import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.fixture.JLabelFixture;
@@ -42,12 +43,7 @@ public abstract class AbstractWizardFixture<S> extends ComponentFixture<S, JDial
   @NotNull
   protected JRootPane findStepWithTitle(@NotNull final String title) {
     JRootPane rootPane = target().getRootPane();
-    waitUntilShowing(robot(), rootPane, new GenericTypeMatcher<JLabel>(JLabel.class) {
-      @Override
-      protected boolean isMatching(@NotNull JLabel label) {
-        return title.equals(label.getText());
-      }
-    });
+    waitUntilShowing(robot(), rootPane, JLabelMatcher.withText(title));
     return rootPane;
   }
 

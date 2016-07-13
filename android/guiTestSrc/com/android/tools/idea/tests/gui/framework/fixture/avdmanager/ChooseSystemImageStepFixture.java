@@ -17,8 +17,8 @@ package com.android.tools.idea.tests.gui.framework.fixture.avdmanager;
 
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.AbstractWizardStepFixture;
 import com.intellij.ui.table.TableView;
-import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
+import org.fest.swing.core.matcher.JLabelMatcher;
 import org.fest.swing.fixture.JTableCellFixture;
 import org.fest.swing.fixture.JTableFixture;
 import org.jetbrains.annotations.NotNull;
@@ -49,12 +49,7 @@ public class ChooseSystemImageStepFixture extends AbstractWizardStepFixture<Choo
 
   @NotNull
   public ChooseSystemImageStepFixture selectTab(@NotNull final String tabName) {
-    Component tabLabel = robot().finder().find(target(), new GenericTypeMatcher<JLabel>(JLabel.class) {
-      @Override
-      protected boolean isMatching(@NotNull JLabel component) {
-        return tabName.equals(component.getText());
-      }
-    });
+    Component tabLabel = robot().finder().find(target(), JLabelMatcher.withText(tabName));
     robot().click(tabLabel);
 
     return this;
