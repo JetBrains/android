@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.tests.gui.framework.Wait;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.fileChooser.ex.FileChooserDialogImpl;
 import com.intellij.openapi.fileChooser.ex.FileSystemTreeImpl;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -36,12 +37,7 @@ import static org.junit.Assert.assertNotNull;
 public class FileChooserDialogFixture extends IdeaDialogFixture<FileChooserDialogImpl> {
   @NotNull
   public static FileChooserDialogFixture findOpenProjectDialog(@NotNull Robot robot) {
-    return findDialog(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
-      @Override
-      protected boolean isMatching(@NotNull JDialog dialog) {
-        return "Open File or Project".equals(dialog.getTitle());
-      }
-    });
+    return findDialog(robot, Matchers.byTitle(JDialog.class, "Open File or Project"));
   }
 
   @NotNull

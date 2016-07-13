@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurableGroup;
 import com.intellij.openapi.options.newEditor.SettingsDialog;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.treeStructure.CachingSimpleNode;
-import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -37,13 +37,8 @@ import static org.junit.Assert.assertNotNull;
 public class IdeSettingsDialogFixture extends IdeaDialogFixture<SettingsDialog> {
   @NotNull
   public static IdeSettingsDialogFixture find(@NotNull Robot robot) {
-    return new IdeSettingsDialogFixture(robot, find(robot, SettingsDialog.class, new GenericTypeMatcher<JDialog>(JDialog.class) {
-      @Override
-      protected boolean isMatching(@NotNull JDialog dialog) {
-        String expectedTitle = SystemInfo.isMac ? "Preferences" : "Settings";
-        return expectedTitle.equals(dialog.getTitle());
-      }
-    }));
+    String title = SystemInfo.isMac ? "Preferences" : "Settings";
+    return new IdeSettingsDialogFixture(robot, find(robot, SettingsDialog.class, Matchers.byTitle(JDialog.class, title)));
   }
 
   private IdeSettingsDialogFixture(@NotNull Robot robot, @NotNull DialogAndWrapper<SettingsDialog> dialogAndWrapper) {

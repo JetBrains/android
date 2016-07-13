@@ -17,8 +17,8 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.Wait;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.ui.DialogWrapper;
-import org.fest.swing.core.GenericTypeMatcher;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -27,12 +27,7 @@ public class InspectCodeDialogFixture extends IdeaDialogFixture<DialogWrapper> {
   @NotNull
   public static InspectCodeDialogFixture find(@NotNull IdeFrameFixture ideFrameFixture) {
     return new InspectCodeDialogFixture(
-      ideFrameFixture, find(ideFrameFixture.robot(), DialogWrapper.class, new GenericTypeMatcher<JDialog>(JDialog.class) {
-      @Override
-      protected boolean isMatching(@NotNull JDialog dialog) {
-        return "Specify Inspection Scope".equals(dialog.getTitle());
-      }
-    }));
+      ideFrameFixture, find(ideFrameFixture.robot(), DialogWrapper.class, Matchers.byTitle(JDialog.class, "Specify Inspection Scope")));
   }
 
   private final IdeFrameFixture myIdeFrameFixture;

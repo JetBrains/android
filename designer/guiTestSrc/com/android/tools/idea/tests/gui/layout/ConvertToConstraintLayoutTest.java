@@ -22,13 +22,12 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.NlEditorFixture;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.application.ApplicationManager;
-import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.finder.WindowFinder;
 import org.fest.swing.fixture.DialogFixture;
 import org.fest.swing.fixture.JButtonFixture;
 import org.intellij.lang.annotations.Language;
-import org.jetbrains.annotations.NotNull;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -63,12 +62,8 @@ public class ConvertToConstraintLayoutTest {
     button.invokeContextMenuAction("Convert AbsoluteLayout to ConstraintLayout");
 
     // Confirm dialog
-    DialogFixture quickFixDialog = WindowFinder.findDialog(new GenericTypeMatcher<Dialog>(Dialog.class) {
-      @Override
-      protected boolean isMatching(@NotNull Dialog dialog) {
-        return dialog.isShowing() && "Convert to ConstraintLayout".equals(dialog.getTitle());
-      }
-    }).withTimeout(TimeUnit.MINUTES.toMillis(2)).using(guiTest.robot());
+    DialogFixture quickFixDialog = WindowFinder.findDialog(Matchers.byTitle(Dialog.class, "Convert to ConstraintLayout"))
+      .withTimeout(TimeUnit.MINUTES.toMillis(2)).using(guiTest.robot());
 
     // Press OK
     JButtonFixture finish = quickFixDialog.button(withText("OK"));
@@ -213,12 +208,8 @@ public class ConvertToConstraintLayoutTest {
     button.invokeContextMenuAction("Convert LinearLayout to ConstraintLayout");
 
     // Confirm dialog
-    DialogFixture quickFixDialog = WindowFinder.findDialog(new GenericTypeMatcher<Dialog>(Dialog.class) {
-      @Override
-      protected boolean isMatching(@NotNull Dialog dialog) {
-        return dialog.isShowing() && "Convert to ConstraintLayout".equals(dialog.getTitle());
-      }
-    }).withTimeout(TimeUnit.MINUTES.toMillis(2)).using(guiTest.robot());
+    DialogFixture quickFixDialog = WindowFinder.findDialog(Matchers.byTitle(Dialog.class, "Convert to ConstraintLayout"))
+      .withTimeout(TimeUnit.MINUTES.toMillis(2)).using(guiTest.robot());
 
     // Press OK
     JButtonFixture finish = quickFixDialog.button(withText("OK"));

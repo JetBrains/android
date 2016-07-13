@@ -20,8 +20,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
 import com.intellij.util.ui.UIUtil;
-import org.fest.swing.core.GenericTypeMatcher;
-import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -93,12 +91,7 @@ public class GuiTestRuleTest {
         dialog.setVisible(true);
       });
 
-    JDialog dialog = waitUntilShowing(guiTest.robot(), new GenericTypeMatcher<JDialog>(JDialog.class) {
-      @Override
-      protected boolean isMatching(@NotNull JDialog dialog) {
-        return "Click a button".equals(dialog.getTitle());
-      }
-    });
+    JDialog dialog = waitUntilShowing(guiTest.robot(), Matchers.byTitle(JDialog.class, "Click a button"));
     JButton yesButton = guiTest.robot().finder().find(dialog, Matchers.byText(JButton.class, "Yes"));
     guiTest.robot().click(yesButton);
   }

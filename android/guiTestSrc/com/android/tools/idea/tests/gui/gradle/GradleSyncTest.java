@@ -36,6 +36,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixt
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.HyperlinkFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.ChooseGradleHomeDialogFixture;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.collect.Lists;
 import com.intellij.ide.projectView.TreeStructureProvider;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
@@ -64,7 +65,6 @@ import com.intellij.pom.java.LanguageLevel;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.net.HttpConfigurable;
 import org.fest.reflect.reference.TypeRef;
-import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.DialogFixture;
@@ -305,12 +305,8 @@ public class GradleSyncTest {
     hyperlink.clickAndContinue();
 
     // TODO implement a proper "SDK Quick Fix wizard" fixture that wraps a SdkQuickfixWizard
-    DialogFixture quickFixDialog = findDialog(new GenericTypeMatcher<Dialog>(Dialog.class) {
-      @Override
-      protected boolean isMatching(@NotNull Dialog dialog) {
-        return "Install Missing Components".equals(dialog.getTitle());
-      }
-    }).withTimeout(TimeUnit.MINUTES.toMillis(2)).using(guiTest.robot());
+    DialogFixture quickFixDialog = findDialog(Matchers.byTitle(Dialog.class, "Install Missing Components"))
+      .withTimeout(TimeUnit.MINUTES.toMillis(2)).using(guiTest.robot());
 
     JButtonFixture finish = quickFixDialog.button(withText("Finish"));
 

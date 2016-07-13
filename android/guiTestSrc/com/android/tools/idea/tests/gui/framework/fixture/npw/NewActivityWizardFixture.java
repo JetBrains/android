@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.npw;
 
-
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.AbstractWizardFixture;
-import org.fest.swing.core.GenericTypeMatcher;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,12 +31,7 @@ public class NewActivityWizardFixture extends AbstractWizardFixture<NewActivityW
 
   @NotNull
   public static NewActivityWizardFixture find(@NotNull Robot robot) {
-    JDialog dialog = GuiTests.waitUntilShowing(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
-      @Override
-      protected boolean isMatching(@NotNull JDialog dialog) {
-        return "New Android Activity".equals(dialog.getTitle());
-      }
-    });
+    JDialog dialog = GuiTests.waitUntilShowing(robot, Matchers.byTitle(JDialog.class, "New Android Activity"));
     return new NewActivityWizardFixture(robot, dialog);
   }
 

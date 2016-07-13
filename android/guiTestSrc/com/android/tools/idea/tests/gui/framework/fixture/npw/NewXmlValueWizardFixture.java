@@ -16,7 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture.npw;
 
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.AbstractWizardFixture;
-import org.fest.swing.core.GenericTypeMatcher;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.jetbrains.annotations.NotNull;
@@ -26,12 +26,7 @@ import javax.swing.*;
 public class NewXmlValueWizardFixture extends AbstractWizardFixture<NewXmlValueWizardFixture> {
   @NotNull
   public static NewXmlValueWizardFixture find(@NotNull Robot robot) {
-    JDialog dialog = robot.finder().find(new GenericTypeMatcher<JDialog>(JDialog.class) {
-      @Override
-      protected boolean isMatching(@NotNull JDialog dialog) {
-        return "New Android Component".equals(dialog.getTitle()) && dialog.isShowing();
-      }
-    });
+    JDialog dialog = robot.finder().find(Matchers.byTitle(JDialog.class, "New Android Component"));
     return new NewXmlValueWizardFixture(robot, dialog);
   }
 
