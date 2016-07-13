@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.tests.gui.emulator;
 
+import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdEditWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.MockAvdManagerConnection;
 import com.intellij.debugger.engine.evaluation.EvaluateException;
 import org.fest.swing.util.PatternTextMatcher;
 import org.junit.*;
@@ -38,13 +40,14 @@ public class LaunchAndroidApplicationTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   private static final String APP_NAME = "app";
-  private static final String PROCESS_NAME = "simple.application";
+  private static final String PROCESS_NAME = "google.simpleapplication";
   private static final Pattern LOCAL_PATH_OUTPUT = Pattern.compile(
-    ".*adb shell am start .*simple.application.+Connected to process.*", Pattern.DOTALL);
+    ".*adb shell am start .*google\\.simpleapplication.+Connected to process.*", Pattern.DOTALL);
   private static final String AVD_NAME = "device under test";
 
   @Before
   public void setUp() throws Exception {
+    MockAvdManagerConnection.inject();
     AvdManagerDialogFixture avdManagerDialog = guiTest.importSimpleApplication().invokeAvdManager();
     AvdEditWizardFixture avdEditWizard = avdManagerDialog.createNew();
 
@@ -65,22 +68,26 @@ public class LaunchAndroidApplicationTest {
 
   @After
   public void tearDown() throws Exception {
+    // Close a no-window emulator by calling 'adb emu kill'
+    // because default stopAVD implementation (i.e., 'kill pid') cannot close a no-window emulator.
+    ((MockAvdManagerConnection)AvdManagerConnection.getDefaultAvdManagerConnection()).stopRunningAvd();
+
     guiTest.ideFrame().invokeAvdManager().deleteAvd(AVD_NAME).close();
   }
 
-  @Ignore
   @Test
   public void testRunOnEmulator() throws IOException, ClassNotFoundException {
-    guiTest.ideFrame().runApp(APP_NAME)
+    IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
+
+    ideFrameFixture
+      .runApp(APP_NAME)
       .selectDevice(AVD_NAME)
       .clickOk();
 
     // Make sure the right app is being used. This also serves as the sync point for the package to get uploaded to the device/emulator.
-    guiTest.ideFrame().getRunToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(LOCAL_PATH_OUTPUT), 120);
+    ideFrameFixture.getRunToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(LOCAL_PATH_OUTPUT), 120);
 
-    guiTest.ideFrame().getAndroidToolWindow().selectDevicesTab().selectProcess(PROCESS_NAME).clickTerminateApplication();
-
-    guiTest.ideFrame().invokeAvdManager().stopAvd(AVD_NAME).close();
+    ideFrameFixture.getAndroidToolWindow().selectDevicesTab().selectProcess(PROCESS_NAME).clickTerminateApplication();
   }
 
   @Ignore("failed in http://go/aj/job/studio-ui-test/389 and from IDEA")
