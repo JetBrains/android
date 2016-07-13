@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.navigator.nodes;
 
-import com.android.SdkConstants;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.lang.proguard.ProguardFileType;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -30,7 +28,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
-import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFile;
@@ -45,10 +42,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static com.android.SdkConstants.*;
+import static com.android.tools.idea.gradle.util.GradleUtil.*;
+import static com.intellij.openapi.util.io.FileUtilRt.toSystemIndependentName;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+
 public class AndroidBuildScriptsGroupNode extends ProjectViewNode<List<PsiDirectory>> {
   public AndroidBuildScriptsGroupNode(@NotNull Project project, @NotNull ViewSettings viewSettings) {
     // TODO: Should this class really be parametrized on List<PsiDirectory>?
-    super(project, Collections.<PsiDirectory>emptyList(), viewSettings);
+    super(project, Collections.emptyList(), viewSettings);
   }
 
   @Override
@@ -56,8 +58,8 @@ public class AndroidBuildScriptsGroupNode extends ProjectViewNode<List<PsiDirect
     return getBuildScriptsWithQualifiers().containsKey(file);
   }
 
-  @NotNull
   @Override
+  @NotNull
   public Collection<? extends AbstractTreeNode> getChildren() {
     Map<VirtualFile, String> scripts = getBuildScriptsWithQualifiers();
     List<PsiFileNode> children = Lists.newArrayListWithExpectedSize(scripts.size());
@@ -69,33 +71,49 @@ public class AndroidBuildScriptsGroupNode extends ProjectViewNode<List<PsiDirect
     return children;
   }
 
+  @NotNull
   private Map<VirtualFile, String> getBuildScriptsWithQualifiers() {
     Map<VirtualFile, String> buildScripts = Maps.newHashMap();
 
-    for (Module m : ModuleManager.getInstance(myProject).getModules()) {
-      String moduleName = getPrefixForModule(m) + m.getName();
-      buildScripts.put(GradleUtil.getGradleBuildFile(m), moduleName);
+    for (Module module : ModuleManager.getInstance(myProject).getModules()) {
+      String moduleName = getPrefixForModule(module) + module.getName();
+      VirtualFile gradleBuildFile = getGradleBuildFile(module);
+      if (gradleBuildFile != null) {
+        buildScripts.put(gradleBuildFile, moduleName);
+      }
 
       // include all .gradle and ProGuard files from each module
-      for (VirtualFile f : findAllGradleScriptsInModule(m)) {
-        if (f.getFileType() == ProguardFileType.INSTANCE) {
-          buildScripts.put(f, String.format("ProGuard Rules for %1$s", m.getName()));
-        } else {
-          buildScripts.put(f, moduleName);
+      for (VirtualFile file : findAllGradleScriptsInModule(module)) {
+        if (file.getFileType() == ProguardFileType.INSTANCE) {
+          buildScripts.put(file, String.format("ProGuard Rules for %1$s", module.getName()));
+        }
+        else {
+          buildScripts.put(file, moduleName);
         }
       }
     }
 
     VirtualFile baseDir = myProject.getBaseDir();
-    buildScripts.put(baseDir.findChild(SdkConstants.FN_SETTINGS_GRADLE), "Project Settings");
-    buildScripts.put(baseDir.findChild(SdkConstants.FN_GRADLE_PROPERTIES), "Project Properties");
-    buildScripts.put(baseDir.findFileByRelativePath(GradleUtil.GRADLEW_PROPERTIES_PATH.replace(File.separatorChar, '/')), "Gradle Version");
-    buildScripts.put(baseDir.findChild(SdkConstants.FN_LOCAL_PROPERTIES), "SDK Location");
+    if (baseDir != null) {
+      // Should not happen, but we have reports that there is a NPE in this area.
+      findChildAndAddToMapIfFound(FN_SETTINGS_GRADLE, baseDir, "Project Settings", buildScripts);
+      findChildAndAddToMapIfFound(FN_GRADLE_PROPERTIES, baseDir, "Project Properties", buildScripts);
+
+      VirtualFile child = baseDir.findFileByRelativePath(toSystemIndependentName(GRADLEW_PROPERTIES_PATH));
+      if (child != null) {
+        buildScripts.put(child, "Gradle Version");
+      }
+
+      findChildAndAddToMapIfFound(FN_LOCAL_PROPERTIES, baseDir, "SDK Location", buildScripts);
+    }
 
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
-      File userSettingsFile = GradleUtil.getGradleUserSettingsFile();
+      File userSettingsFile = getGradleUserSettingsFile();
       if (userSettingsFile != null) {
-        buildScripts.put(VfsUtil.findFileByIoFile(userSettingsFile, false), "Global Properties");
+        VirtualFile file = findFileByIoFile(userSettingsFile, false);
+        if (file != null) {
+          buildScripts.put(file, "Global Properties");
+        }
       }
     }
 
@@ -103,26 +121,38 @@ public class AndroidBuildScriptsGroupNode extends ProjectViewNode<List<PsiDirect
     return buildScripts;
   }
 
-  private static String getPrefixForModule(Module m) {
-    return GradleUtil.isRootModuleWithNoSources(m) ? AndroidBuildScriptNode.PROJECT_PREFIX : AndroidBuildScriptNode.MODULE_PREFIX;
+  private static void findChildAndAddToMapIfFound(@NotNull String childName,
+                                                  @NotNull VirtualFile parent,
+                                                  @NotNull String value,
+                                                  @NotNull Map<VirtualFile, String> map) {
+    VirtualFile child = parent.findChild(childName);
+    if (child != null) {
+      map.put(child, value);
+    }
+  }
+
+  private static String getPrefixForModule(@NotNull Module m) {
+    return isRootModuleWithNoSources(m) ? AndroidBuildScriptNode.PROJECT_PREFIX : AndroidBuildScriptNode.MODULE_PREFIX;
   }
 
   @NotNull
   private static List<VirtualFile> findAllGradleScriptsInModule(@NotNull Module m) {
     File moduleDir = new File(m.getModuleFilePath()).getParentFile();
-    VirtualFile dir = VfsUtil.findFileByIoFile(moduleDir, false);
+    VirtualFile dir = findFileByIoFile(moduleDir, false);
     if (dir == null || dir.getChildren() == null) {
       return Collections.emptyList();
     }
 
     List<VirtualFile> files = Lists.newArrayList();
     for (VirtualFile child : dir.getChildren()) {
-      if (!child.isValid() || child.isDirectory() || !child.getName().endsWith(SdkConstants.EXT_GRADLE) &&
-          // Consider proguard rule files as a type of build script (contains build-time configuration
-          // for release builds)
-          child.getFileType() != ProguardFileType.INSTANCE) {
+      // @formatter:off
+      if (!child.isValid() || child.isDirectory() || !child.getName().endsWith(EXT_GRADLE) &&
+           // Consider proguard rule files as a type of build script (contains build-time configuration
+           // for release builds)
+           child.getFileType() != ProguardFileType.INSTANCE) {
         continue;
       }
+      // @formatter:on
 
       // TODO: When a project is imported via unit tests, there is a ijinitXXXX.gradle file created somehow, exclude that.
       if (ApplicationManager.getApplication().isUnitTestMode() &&
@@ -153,7 +183,7 @@ public class AndroidBuildScriptsGroupNode extends ProjectViewNode<List<PsiDirect
   }
 
   @Override
-  protected void update(PresentationData presentation) {
+  protected void update(@NotNull PresentationData presentation) {
     presentation.setPresentableText("Gradle Scripts");
     presentation.setIcon(GradleIcons.Gradle);
   }
