@@ -74,10 +74,7 @@ import org.jetbrains.plugins.gradle.util.GradleConstants;
 import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -148,6 +145,17 @@ public final class GradleUtil {
   private static final Pattern GRADLE_DISTRIBUTION_URL_PATTERN = Pattern.compile(".*-([^-]+)-([^.]+).zip");
 
   private GradleUtil() {
+  }
+
+  @NotNull
+  public static Collection<File> getGeneratedSourceFolders(@NotNull BaseArtifact artifact) {
+    try {
+      return artifact.getGeneratedSourceFolders();
+    }
+    catch (UnsupportedMethodException e) {
+      // Model older than 1.2.
+    }
+    return Collections.emptyList();
   }
 
   @NotNull
