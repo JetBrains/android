@@ -205,7 +205,7 @@ public class TexturesController extends ImagePanelController {
           addTextures(cells, bundle);
         }
 
-        int selectedIndex = myList.getSelectedItem();
+        int selectedIndex = myList.getSelectedIndex();
         myList.setData(cells);
         if (!resourcesChanged && selectedIndex >= 0 && selectedIndex < cells.size()) {
           myList.selectItem(selectedIndex, false);
