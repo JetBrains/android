@@ -691,6 +691,12 @@ public class AndroidLintTest extends AndroidTestCase {
     doGlobalInspectionTest(new AndroidLintInspectionToolProvider.AndroidLintNewApiInspection(), testDir, new AnalysisScope(getProject()));
   }
 
+  public void testImpliedTouchscreenHardware() throws Exception {
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintImpliedTouchscreenHardwareInspection(),
+                  "Add uses-feature tag",
+                  "AndroidManifest.xml", "xml");
+  }
+
   public void testApiInlined() throws Exception {
     createManifest();
     myFixture.copyFileToProject(getGlobalTestDir() + "/MyActivity.java", "src/p1/p2/MyActivity.java");
