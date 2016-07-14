@@ -51,7 +51,7 @@ public class GradleUtilTest {
     }
   }
 
-  @Ignore("Enable when BaseArtifact#getCompileDependencies is submitted")
+  @Ignore("Enable when dependency graph is enabled")
   @Test
   public void testSupportsDependencyGraph() {
     assertTrue(GradleUtil.androidModelSupportsDependencyGraph(GradleVersion.parse("2.2.0-dev")));
@@ -62,7 +62,7 @@ public class GradleUtilTest {
     assertTrue(GradleUtil.androidModelSupportsDependencyGraph(GradleVersion.parse("3.0.0")));
   }
 
-  @Ignore("Enable when BaseArtifact#getCompileDependencies is submitted")
+  @Ignore("Enable when dependency graph is enabled")
   @Test
   public void testSupportsDependencyGraphWithTextVersion() {
     assertFalse(GradleUtil.androidModelSupportsDependencyGraph("abc."));
@@ -74,7 +74,7 @@ public class GradleUtilTest {
     assertTrue(GradleUtil.androidModelSupportsDependencyGraph("3.0.0"));
   }
 
-  @Ignore("Enable when BaseArtifact#getCompileDependencies is submitted")
+  @Ignore("Enable when dependency graph is enabled")
   @Test
   public void testGetDependenciesWithModelThatSupportsDependencyGraph() {
     BaseArtifact artifact = mock(BaseArtifact.class);

@@ -82,7 +82,7 @@ public class GradleModelFeaturesTest {
     GradleModelFeatures features = new GradleModelFeatures(version);
     assertTrue(features.isIssueReportingSupported());
     assertTrue(features.isShadersSupported());
-    assertTrue(features.isDependencyGraphSupported());
+    //assertTrue(features.isDependencyGraphSupported());
     assertTrue(features.isTestedTargetVariantsSupported());
     assertTrue(features.isProductFlavorVersionSuffixSupported());
     assertTrue(features.isExternalBuildSupported());
