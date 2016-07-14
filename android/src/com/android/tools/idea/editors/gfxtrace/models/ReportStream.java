@@ -27,6 +27,7 @@ import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.diagnostic.Logger;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
@@ -75,6 +76,11 @@ public class ReportStream implements PathListener {
 
   public Report getReport() {
     return myReport;
+  }
+
+  @Nullable("path has not been updated yet")
+  public ReportPath getPath() {
+    return myReportPath.getPath();
   }
 
   public boolean isLoaded() {

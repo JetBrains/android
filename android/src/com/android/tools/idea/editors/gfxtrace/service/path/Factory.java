@@ -41,6 +41,7 @@ public final class Factory {
     MeshPathOptions.register();
     MeshPath.register();
     ReportPath.register();
+    ReportItemPath.register();
     ResourcePath.register();
     ResourceBundlesPath.register();
     ResourcesPath.register();

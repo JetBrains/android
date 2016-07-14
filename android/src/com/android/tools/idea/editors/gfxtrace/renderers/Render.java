@@ -53,6 +53,7 @@ public final class Render {
 
   public static final int NO_TAG = -1;
   public static final int STATE_VALUE_TAG = 0;
+  public static final int REPORT_ITEM_ATOM_ID_TAG = 0;
 
   @NotNull private static final Logger LOG = Logger.getInstance(Render.class);
   // object rendering functions
@@ -172,7 +173,7 @@ public final class Render {
       render(node.getUserObject(), component, SimpleTextAttributes.REGULAR_ATTRIBUTES, NO_TAG);
     }
     else {
-      render(node.getAtomId(), component, SimpleTextAttributes.REGULAR_ATTRIBUTES, NO_TAG);
+      render(node.getAtomId(), component, SimpleTextAttributes.LINK_ATTRIBUTES, REPORT_ITEM_ATOM_ID_TAG);
       render(": ", component, SimpleTextAttributes.REGULAR_ATTRIBUTES, NO_TAG);
       switch (node.getSeverity()) {
         case Emergency:
@@ -668,10 +669,18 @@ public final class Render {
    * See {@link #render(DynamicAtom, SimpleColoredComponent, SimpleTextAttributes, int)}
    */
   public static int getNodeFieldIndex(@NotNull JTree tree, @NotNull Object node, int x, boolean expanded) {
+    return getFieldIndex(tree, node, x, expanded, 2);
+  }
+
+  public static int getReportNodeFieldIndex(@NotNull JTree tree, @NotNull Object node, int x, boolean expanded) {
+    return getFieldIndex(tree, node, x, expanded, 0);
+  }
+
+  private static int getFieldIndex(@NotNull JTree tree, @NotNull Object node, int x, boolean expanded, int minIndex) {
     ColoredTreeCellRenderer renderer = (ColoredTreeCellRenderer)tree.getCellRenderer();
-    // setup the renderer to have the Node we have selected as its value
+    // Setup the renderer to have the Node we have selected as its value
     renderer.getTreeCellRendererComponent(tree, node, false, expanded, false, 0, false);
-    for (int index = renderer.findFragmentAt(x); index >= 2; index--) {
+    for (int index = renderer.findFragmentAt(x); index >= minIndex; index--) {
       Object tag = renderer.getFragmentTag(index);
       if (tag != null && tag instanceof Integer) {
         return (Integer)tag;

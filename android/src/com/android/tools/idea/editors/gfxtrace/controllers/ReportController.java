@@ -15,26 +15,38 @@
  */
 package com.android.tools.idea.editors.gfxtrace.controllers;
 
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.models.ReportStream;
 import com.android.tools.idea.editors.gfxtrace.renderers.Render;
 import com.android.tools.idea.editors.gfxtrace.service.ReportItem;
 import com.android.tools.idea.editors.gfxtrace.service.log.LogProtos;
+import com.android.tools.idea.editors.gfxtrace.service.path.Path;
+import com.android.tools.idea.editors.gfxtrace.service.path.ReportItemPath;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.wireless.android.sdk.stats.AndroidStudioStats;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.tree.*;
-import java.util.Arrays;
+import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 // TODO: Check if there's a need of TreeController (probably some kind of ListController will satisfy this entity).
 public class ReportController extends TreeController implements ReportStream.Listener {
   public static JComponent createUI(@NotNull GfxTraceEditor editor) {
     return new ReportController(editor).myPanel;
   }
+
+  private static final @NotNull Logger LOG = Logger.getInstance(ReportController.class);
 
   private interface Renderable {
     void render(@NotNull SimpleColoredComponent component, @NotNull SimpleTextAttributes attributes);
@@ -43,18 +55,25 @@ public class ReportController extends TreeController implements ReportStream.Lis
   public static class Node extends DefaultMutableTreeNode implements Renderable {
     private static final int PREVIEW_LENGTH = 80;
 
-    public static Node createInstance(ReportItem item) {
-      Node node = new Node(item);
+    public final int index;
+    private @Nullable("not made server request yet") Path followPath;
+    // True by default and is false when GAPIS doesn't support ReportItemPath
+    private boolean followable = true;
+
+    public static Node createInstance(ReportItem item, int index) {
+      Node node = new Node(item, index);
       node.add(new Node(item.getMessage().toString()));
       return node;
     }
 
-    private Node(ReportItem item) {
+    private Node(ReportItem item, int index) {
       super(item);
+      this.index = index;
     }
 
     private Node(String message) {
       super(message, false);
+      this.index = -1;
     }
 
     @Override
@@ -77,6 +96,23 @@ public class ReportController extends TreeController implements ReportStream.Lis
     public String getMessagePreview() {
       return getMessage().substring(0, Math.min(getMessage().length(), PREVIEW_LENGTH));
     }
+
+    @Nullable("if we have not made a server request yet")
+    public Path getFollowPath() {
+      return followPath;
+    }
+
+    public void setFollowPath(@NotNull Path followPath) {
+      this.followPath = followPath;
+    }
+
+    public boolean isFollowable() {
+      return followable;
+    }
+
+    public void setFollowable(boolean followable) {
+      this.followable = followable;
+    }
   }
 
   private ReportController(@NotNull GfxTraceEditor editor) {
@@ -84,6 +120,80 @@ public class ReportController extends TreeController implements ReportStream.Lis
     myEditor.getReportStream().addListener(this);
 
     myScrollPane.setBorder(new EmptyBorder(0, 0, 0, 0));
+
+    MouseAdapter mouseAdapter = new MouseAdapter() {
+      @Override
+      public void mouseMoved(MouseEvent event) {
+        TreePath treePath = getFollowAt(event.getX(), event.getY());
+        Path followPath = null;
+        if (treePath != null) {
+          final Node node = (Node)treePath.getLastPathComponent();
+          followPath = node.getFollowPath();
+          if (followPath == null) {
+            // set empty path so we do not make any more calls to the server for this path
+            node.setFollowPath(Path.EMPTY);
+            if (myEditor.getFeatures().hasReportItems()) {
+              Path path = getReportItemPath(treePath);
+              Futures.addCallback(myEditor.getClient().follow(path), new FutureCallback<Path>() {
+                @Override
+                public void onSuccess(Path result) {
+                  node.setFollowPath(result);
+                }
+
+                @Override
+                public void onFailure(Throwable t) {
+                  LOG.warn("Error for path " + path, t);
+                }
+              });
+            }
+            else {
+              node.setFollowable(false);
+            }
+          }
+        }
+
+        hoverHand(myTree, myEditor.getReportStream().getPath(), followPath);
+      }
+
+      @Override
+      public void mouseExited(MouseEvent event) {
+        hoverHand(myTree, myEditor.getReportStream().getPath(), null);
+      }
+
+      @Override
+      public void mouseClicked(MouseEvent event) {
+        TreePath treePath = getFollowAt(event.getX(), event.getY());
+        if (treePath != null) {
+          Path path = ((Node)treePath.getLastPathComponent()).getFollowPath();
+          if (path != null && path != Path.EMPTY) {
+            UsageTracker.getInstance().log(AndroidStudioStats.AndroidStudioEvent.newBuilder()
+                                             .setCategory(AndroidStudioStats.AndroidStudioEvent.EventCategory.GPU_PROFILER)
+                                             .setKind(AndroidStudioStats.AndroidStudioEvent.EventKind.GFX_TRACE_LINK_CLICKED)
+                                             .setGfxTracingDetails(AndroidStudioStats.GfxTracingDetails.newBuilder()
+                                                                     .setTracePath(path.toString())));
+            myEditor.activatePath(path, ReportController.this);
+          }
+          else if (myEditor.getFeatures().hasReportItems()) {
+            // this can happen if the server takes too long to respond, or responds with a error
+            LOG.warn("mouseClicked(), but we don't have a path");
+          }
+          else {
+            LOG.warn("mouseClicked(), but ReportItemPath are not supported in GAPIS");
+
+          }
+        }
+      }
+    };
+
+    myTree.addMouseListener(mouseAdapter);
+    myTree.addMouseMotionListener(mouseAdapter);
+  }
+
+  private @NotNull Path getReportItemPath(@NotNull TreePath treePath) {
+    ReportItemPath path = new ReportItemPath();
+    path.setReport(myEditor.getReportStream().getPath());
+    path.setIndex(((Node)treePath.getLastPathComponent()).index);
+    return path;
   }
 
   @Override
@@ -161,11 +271,31 @@ public class ReportController extends TreeController implements ReportStream.Lis
 
   private void updateTree(ReportStream reportStream) {
     final DefaultMutableTreeNode root = new DefaultMutableTreeNode("Report", true);
-    Arrays.stream(reportStream.getReport().getItems()).map(Node::createInstance).forEach(root::add);
+    int index = 0;
+    for (ReportItem item : reportStream.getReport().getItems()) {
+      root.add(Node.createInstance(item, index++));
+    }
     setRoot(root);
   }
 
   private void setRoot(DefaultMutableTreeNode root) {
     setModel(new DefaultTreeModel(root));
+  }
+
+  @Nullable("nothing to follow at this location")
+  private TreePath getFollowAt(int mouseX, int mouseY) {
+    TreePath treePath = myTree.getPathForLocation(mouseX, mouseY);
+    if (treePath == null) {
+      return null;
+    }
+    Node node = (Node)treePath.getLastPathComponent();
+    // Leaf is currently just a message
+    if (node.isLeaf()) {
+      return null;
+    }
+    Rectangle bounds = myTree.getPathBounds(treePath);
+    assert bounds != null; // can't be null, as our path is valid
+    int tag = Render.getReportNodeFieldIndex(myTree, node, mouseX - bounds.x, myTree.isExpanded(treePath));
+    return (tag == Render.REPORT_ITEM_ATOM_ID_TAG) ? treePath : null;
   }
 }
