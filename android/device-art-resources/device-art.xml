@@ -15,6 +15,11 @@
 -->
 <devices>
 
+  <device id="pixel_c" name="Pixel C">
+    <orientation name="port" size="2307,2971" screenPos="259,181" screenSize="1800,2560" shadow="port_shadow.png" back="port_back.png" lights="port_fore.png"/>
+    <orientation name="land" size="3096,2215" screenPos="269,188" screenSize="2560,1800" shadow="land_shadow.png" back="land_back.png" lights="land_fore.png"/>
+  </device>
+
   <device id="nexus_5x" name="Nexus 5X">
     <orientation name="port" size="1370,2446" screenPos="147,233" screenSize="1080,1920" shadow="port_shadow.png" back="port_back.png" lights="port_fore.png"/>
     <orientation name="land" size="2497,1234" screenPos="278,63" screenSize="1920,1080" shadow="land_shadow.png" back="land_back.png" lights="land_fore.png"/>
@@ -44,7 +49,7 @@
   </device>
 
   <device id="nexus_9" name="Nexus 9">
-    <orientation name="port" size="1978,2631" screenPos="219,264" screenSize="1536,2048" shadow="port_shadow.png" back="port_back.png" lights="port_fore.png" />
+    <orientation name="port" size="1978,2631" screenPos="219,264" screenSize="1536,2048" shadow="port_shadow.png" back="port_back.png" lights="port_fore.png"/>
     <orientation name="land" size="2854,1785" screenPos="401,100" screenSize="2048,1536" shadow="land_shadow.png" back="land_back.png" lights="land_fore.png"/>
   </device>
 

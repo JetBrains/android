@@ -364,69 +364,72 @@ public class DeviceArtPainterTest extends TestCase {
       if (layoutFile.exists() && !spec.getId().startsWith("tv_")) { // no crop data in tv (and lack of portrait fails below)
         String layout = Files.toString(layoutFile, Charsets.UTF_8);
         final Rectangle portraitCrop = spec.getCrop(ScreenOrientation.PORTRAIT);
-        assertNotNull("No crop data found; did you run this test on an already processed device-art.xml?", portraitCrop);
-        final Rectangle landscapeCrop = spec.getCrop(ScreenOrientation.LANDSCAPE);
-        layout = replace(layout, new String[]{"layouts {", "portrait {", "width "}, new Function<Integer, Integer>() {
-          @Override
-          public Integer apply(@Nullable Integer input) {
-            return portraitCrop.width;
-          }
-        });
-        layout = replace(layout, new String[]{"layouts {", "portrait {", "height "}, new Function<Integer, Integer>() {
-          @Override
-          public Integer apply(@Nullable Integer input) {
-            return portraitCrop.height;
-          }
-        });
-        layout = replace(layout, new String[]{"layouts {", "portrait {", "part2 {", "x "}, new Function<Integer, Integer>() {
-          @Override
-          public Integer apply(@Nullable Integer input) {
-            //noinspection ConstantConditions
-            return input - portraitCrop.x;
-          }
-        });
-        layout = replace(layout, new String[]{"layouts {", "portrait {", "part2 {", "y "}, new Function<Integer, Integer>() {
-          @Override
-          public Integer apply(@Nullable Integer input) {
-            //noinspection ConstantConditions
-            return input - portraitCrop.y;
-          }
-        });
+        if (portraitCrop != null) {
+          final Rectangle landscapeCrop = spec.getCrop(ScreenOrientation.LANDSCAPE);
+          layout = replace(layout, new String[]{"layouts {", "portrait {", "width "}, new Function<Integer, Integer>() {
+            @Override
+            public Integer apply(@Nullable Integer input) {
+              return portraitCrop.width;
+            }
+          });
+          layout = replace(layout, new String[]{"layouts {", "portrait {", "height "}, new Function<Integer, Integer>() {
+            @Override
+            public Integer apply(@Nullable Integer input) {
+              return portraitCrop.height;
+            }
+          });
+          layout = replace(layout, new String[]{"layouts {", "portrait {", "part2 {", "x "}, new Function<Integer, Integer>() {
+            @Override
+            public Integer apply(@Nullable Integer input) {
+              //noinspection ConstantConditions
+              return input - portraitCrop.x;
+            }
+          });
+          layout = replace(layout, new String[]{"layouts {", "portrait {", "part2 {", "y "}, new Function<Integer, Integer>() {
+            @Override
+            public Integer apply(@Nullable Integer input) {
+              //noinspection ConstantConditions
+              return input - portraitCrop.y;
+            }
+          });
 
-        // landscape
-        layout = replace(layout, new String[]{"layouts {", "landscape {", "width "}, new Function<Integer, Integer>() {
-          @Override
-          public Integer apply(@Nullable Integer input) {
-            return landscapeCrop.width;
-          }
-        });
-        layout = replace(layout, new String[]{"layouts {", "landscape {", "height "}, new Function<Integer, Integer>() {
-          @Override
-          public Integer apply(@Nullable Integer input) {
-            return landscapeCrop.height;
-          }
-        });
-        layout = replace(layout, new String[]{"layouts {", "landscape {", "part2 {", "x "}, new Function<Integer, Integer>() {
-          @Override
-          public Integer apply(@Nullable Integer input) {
-            //noinspection ConstantConditions
-            return input - landscapeCrop.x;
-          }
-        });
-        layout = replace(layout, new String[]{"layouts {", "landscape {", "part2 {", "y "}, new Function<Integer, Integer>() {
-          @Override
-          public Integer apply(@Nullable Integer input) {
-            //noinspection ConstantConditions
-            return input - landscapeCrop.y;
-          }
-        });
+          // landscape
+          layout = replace(layout, new String[]{"layouts {", "landscape {", "width "}, new Function<Integer, Integer>() {
+            @Override
+            public Integer apply(@Nullable Integer input) {
+              return landscapeCrop.width;
+            }
+          });
+          layout = replace(layout, new String[]{"layouts {", "landscape {", "height "}, new Function<Integer, Integer>() {
+            @Override
+            public Integer apply(@Nullable Integer input) {
+              return landscapeCrop.height;
+            }
+          });
+          layout = replace(layout, new String[]{"layouts {", "landscape {", "part2 {", "x "}, new Function<Integer, Integer>() {
+            @Override
+            public Integer apply(@Nullable Integer input) {
+              //noinspection ConstantConditions
+              return input - landscapeCrop.x;
+            }
+          });
+          layout = replace(layout, new String[]{"layouts {", "landscape {", "part2 {", "y "}, new Function<Integer, Integer>() {
+            @Override
+            public Integer apply(@Nullable Integer input) {
+              //noinspection ConstantConditions
+              return input - landscapeCrop.y;
+            }
+          });
 
-        File outputLayoutFile = new File(destDir, spec.getId() + File.separator + SdkConstants.FN_SKIN_LAYOUT);
-        if (!outputLayoutFile.getParentFile().exists()) {
-          boolean mkdirs = outputLayoutFile.getParentFile().mkdirs();
-          assertTrue(mkdirs);
+          File outputLayoutFile = new File(destDir, spec.getId() + File.separator + SdkConstants.FN_SKIN_LAYOUT);
+          if (!outputLayoutFile.getParentFile().exists()) {
+            boolean mkdirs = outputLayoutFile.getParentFile().mkdirs();
+            assertTrue(mkdirs);
+          }
+          Files.write(layout, outputLayoutFile, Charsets.UTF_8);
+        } else {
+          // No crop data found; this device frame has already been cropped
         }
-        Files.write(layout, outputLayoutFile, Charsets.UTF_8);
       }
 
       sb.append("  </device>\n\n");
