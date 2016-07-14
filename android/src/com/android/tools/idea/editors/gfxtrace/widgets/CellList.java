@@ -34,7 +34,7 @@ import java.util.List;
  */
 public abstract class CellList<T extends CellWidget.Data> extends CellWidget<T, JBScrollPane> {
   public enum Orientation {
-    HORIZONTAL(JList.HORIZONTAL_WRAP), VERTICAL(JList.VERTICAL_WRAP);
+    HORIZONTAL(JList.HORIZONTAL_WRAP), VERTICAL(JList.VERTICAL);
 
     public final int listWrap;
 
@@ -69,15 +69,19 @@ public abstract class CellList<T extends CellWidget.Data> extends CellWidget<T, 
 
     myList.setCellRenderer(myRenderer);
     Dimension cellSize = myRenderer.getInitialCellSize();
-    myList.setFixedCellWidth(cellSize.width);
-    myList.setFixedCellHeight(cellSize.height);
+    if (cellSize != null) {
+      myList.setFixedCellWidth(cellSize.width);
+      myList.setFixedCellHeight(cellSize.height);
+    }
   }
 
   private static JBScrollPane createComponent(Orientation orientation, String emptyText) {
     JBList list = new JBList();
     list.setLayoutOrientation(orientation.listWrap);
     list.setExpandableItemsEnabled(false); // Turn this off, since the "preview" will cause all the thumbnails to be loaded.
-    list.setVisibleRowCount(1);
+    if (orientation == Orientation.HORIZONTAL) {
+      list.setVisibleRowCount(1);
+    }
     list.getEmptyText().setText(emptyText);
 
     JBScrollPane scrollPane = orientation.createScrollPane();
@@ -105,7 +109,7 @@ public abstract class CellList<T extends CellWidget.Data> extends CellWidget<T, 
   }
 
   @Override
-  public int getSelectedItem() {
+  public int getSelectedIndex() {
     return myList.getSelectedIndex();
   }
 
@@ -126,7 +130,12 @@ public abstract class CellList<T extends CellWidget.Data> extends CellWidget<T, 
 
   @Override
   protected void setSelectedIndex(JBScrollPane component, int index) {
-    myList.setSelectedIndex(index);
-    myList.scrollRectToVisible(myList.getCellBounds(index, index));
+    if (index < 0) {
+      myList.clearSelection();
+    }
+    else {
+      myList.setSelectedIndex(index);
+      myList.scrollRectToVisible(myList.getCellBounds(index, index));
+    }
   }
 }
