@@ -19,6 +19,7 @@ import com.android.tools.idea.editors.gfxtrace.widgets.CellWidget;
 import com.android.tools.idea.editors.gfxtrace.widgets.Repaintable;
 import com.android.tools.idea.editors.gfxtrace.widgets.Repaintables;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -66,7 +67,7 @@ public abstract class CellRenderer<T extends CellWidget.Data> implements ListCel
 
   protected abstract Component getRendererComponent(@NotNull JList list, @NotNull T cell);
 
-  public abstract Dimension getInitialCellSize();
+  public abstract @Nullable Dimension getInitialCellSize();
 
   public interface CellLoader<T extends CellWidget.Data> {
     void loadCell(T cell, Runnable onLoad);
