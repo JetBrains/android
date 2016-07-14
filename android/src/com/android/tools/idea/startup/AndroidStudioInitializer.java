@@ -121,11 +121,9 @@ public class AndroidStudioInitializer implements Runnable {
 
     /*
      * sets up collection of Android Studio specific analytics.
-     * Delayed by 1 minute, not to add to load time of Android Studio.
      */
     private void setupAnalytics() {
-        ScheduledExecutorService scheduler = JobScheduler.getScheduler();
-        scheduler.schedule(() -> AndroidStudioUsageTracker.setup(scheduler), 1, TimeUnit.MINUTES);
+        AndroidStudioUsageTracker.setup(JobScheduler.getScheduler());
     }
 
   private void setUpExperimentalFeatures() {
