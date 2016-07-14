@@ -220,14 +220,14 @@ public abstract class AnalysisContentsDelegate extends ColoredTreeCellRenderer i
 
     Set<AnalysisReport.Listener> singletonListener = Collections.<AnalysisReport.Listener>singleton(new AnalysisReport.Listener() {
       @Override
-      public void onResultsAdded(@NonNull final List<AnalysisResultEntry> entries) {
+      public void onResultsAdded(@NonNull final List<AnalysisResultEntry<?>> entries) {
         UIUtil.invokeLaterIfNeeded(new Runnable() {
           @Override
           public void run() {
             boolean rootChanged = false;
             Set<DefaultMutableTreeNode> changedCategories = new HashSet<DefaultMutableTreeNode>();
 
-            for (AnalysisResultEntry entry : entries) {
+            for (AnalysisResultEntry<?> entry : entries) {
               String category = entry.getCategory();
               DefaultMutableTreeNode categoryNode;
               if (!myCategoryNodes.containsKey(category)) {
@@ -274,5 +274,5 @@ public abstract class AnalysisContentsDelegate extends ColoredTreeCellRenderer i
   }
 
   @Nullable
-  public abstract DefaultMutableTreeNode getNodeForEntry(int index, @NotNull AnalysisResultEntry entry);
+  public abstract DefaultMutableTreeNode getNodeForEntry(int index, @NotNull AnalysisResultEntry<?> entry);
 }
