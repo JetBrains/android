@@ -25,13 +25,13 @@ import com.android.tools.idea.uibuilder.property.renderer.NlDefaultRenderer;
 import com.google.common.collect.ImmutableList;
 import com.intellij.codeInsight.completion.PrefixMatcher;
 import com.intellij.codeInsight.completion.impl.CamelHumpMatcher;
+import com.intellij.ide.ui.laf.darcula.ui.DarculaEditorTextFieldBorder;
 import com.intellij.openapi.command.undo.UndoConstants;
 import com.intellij.openapi.editor.HighlighterColors;
 import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.editor.ex.util.EmptyEditorHighlighter;
 import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.TextFieldWithAutoCompletion;
 import com.intellij.ui.TextFieldWithAutoCompletionListProvider;
@@ -44,6 +44,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.plaf.InsetsUIResource;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.Collections;
@@ -51,8 +52,6 @@ import java.util.EnumSet;
 import java.util.Objects;
 
 public class NlReferenceEditor extends NlBaseComponentEditor implements NlComponentEditor {
-  private static final int HORIZONTAL_SPACING = 4;
-  private static final int VERTICAL_SPACING = 2;
   private static final int MIN_TEXT_WIDTH = 50;
 
   private final boolean myIncludeBrowseButton;
@@ -72,25 +71,26 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
 
   public static NlTableCellEditor createForTable(@NotNull Project project) {
     NlTableCellEditor cellEditor = new NlTableCellEditor();
-    cellEditor.init(new NlReferenceEditor(project, cellEditor, cellEditor, true));
+    cellEditor.init(new NlReferenceEditor(project, cellEditor, cellEditor, false, true));
     return cellEditor;
   }
 
   public static NlReferenceEditor createForInspector(@NotNull Project project, @NotNull NlEditingListener listener) {
-    return new NlReferenceEditor(project, listener, null, false);
+    return new NlReferenceEditor(project, listener, null, true, false);
   }
 
   public static NlReferenceEditor createForInspectorWithBrowseButton(@NotNull Project project, @NotNull NlEditingListener listener) {
-    return new NlReferenceEditor(project, listener, null, true);
+    return new NlReferenceEditor(project, listener, null, true, true);
   }
 
   private NlReferenceEditor(@NotNull Project project,
                             @NotNull NlEditingListener listener,
                             @Nullable BrowsePanel.Context context,
+                            boolean includeBorder,
                             boolean includeBrowseButton) {
     super(listener);
     myIncludeBrowseButton = includeBrowseButton;
-    myPanel = new JPanel(new BorderLayout(SystemInfo.isMac ? 0 : 2, 0));
+    myPanel = new JPanel(new BorderLayout(HORIZONTAL_COMPONENT_GAP, 0));
 
     myIconLabel = new JBLabel();
     myPanel.add(myIconLabel, BorderLayout.LINE_START);
@@ -110,8 +110,9 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
 
     myCompletionProvider = new CompletionProvider();
     myTextFieldWithAutoCompletion = new TextEditor(project, myCompletionProvider);
-    myTextFieldWithAutoCompletion.setBorder(
-      BorderFactory.createEmptyBorder(VERTICAL_SPACING, HORIZONTAL_SPACING, VERTICAL_SPACING, HORIZONTAL_SPACING));
+    if (includeBorder) {
+      myTextFieldWithAutoCompletion.setBorder(BorderFactory.createEmptyBorder(VERTICAL_SPACING, 0, VERTICAL_SPACING, 0));
+    }
     myBrowsePanel = createBrowsePanel(context);
     myPanel.add(myTextFieldWithAutoCompletion, BorderLayout.CENTER);
     myPanel.add(myBrowsePanel, BorderLayout.LINE_END);
@@ -208,8 +209,7 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
 
   private void updateSliderVisibility() {
     if (myPropertyHasSlider) {
-      int widthForEditor =
-        myPanel.getWidth() - 2 * HORIZONTAL_SPACING - mySlider.getPreferredSize().width - myBrowsePanel.getPreferredSize().width;
+      int widthForEditor = myPanel.getWidth() - mySlider.getPreferredSize().width - myBrowsePanel.getPreferredSize().width;
       mySlider.setVisible(widthForEditor >= MIN_TEXT_WIDTH);
     }
   }
@@ -353,6 +353,15 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
       editor.getColorsScheme().setAttributes(HighlighterColors.TEXT, myTextAttributes);
       editor.setHighlighter(new EmptyEditorHighlighter(myTextAttributes));
       editor.getDocument().putUserData(UndoConstants.DONT_RECORD_UNDO, true);
+      editor.setBorder(new DarculaEditorTextFieldBorder() {
+        @Override
+        public Insets getBorderInsets(Component c) {
+          return new InsetsUIResource(VERTICAL_SPACING + VERTICAL_PADDING,
+                                      HORIZONTAL_PADDING,
+                                      VERTICAL_SPACING + VERTICAL_PADDING,
+                                      HORIZONTAL_PADDING);
+        }
+      });
     }
 
     public void setTextColor(@NotNull Color color) {
