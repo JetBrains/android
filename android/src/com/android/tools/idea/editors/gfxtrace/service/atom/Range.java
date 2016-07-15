@@ -50,6 +50,13 @@ public final class Range implements BinaryObject {
     return rangeIndex >= 0;
   }
 
+  public static boolean overlaps(Range[] list, Range range) {
+    int rangeIndex = Arrays.binarySearch(list, null, (x, ignored) ->
+      (range.getEnd() <= x.myStart) ? 1 :
+      (range.getStart() >= x.myEnd) ? -1 : 0);
+    return rangeIndex >= 0;
+  }
+
   /** @return whether this range has any overlap with the given range */
   public boolean overlaps(Range range) {
     return myStart < range.getEnd() && range.getStart() < myEnd;

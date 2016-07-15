@@ -17,37 +17,16 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.atom;
 
-import com.android.tools.idea.editors.gfxtrace.controllers.AtomController;
-import com.android.tools.idea.editors.gfxtrace.service.Context;
 import com.android.tools.rpclib.binary.*;
 import com.android.tools.rpclib.schema.*;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.tree.DefaultMutableTreeNode;
 import java.io.IOException;
 import java.util.Arrays;
 
 public final class AtomGroup implements BinaryObject {
   public boolean isValid() {
     return myRange.isValid();
-  }
-
-  public void addChildren(@NotNull DefaultMutableTreeNode parent, @NotNull AtomList atoms, @NotNull Context context) {
-    long next = myRange.getStart();
-    for (AtomGroup subGroup : mySubGroups) {
-      // add any atoms that come before the group
-      atoms.addAtoms(parent, next, subGroup.getRange().getStart(), context);
-      // and add the group itself
-      DefaultMutableTreeNode subNode = new DefaultMutableTreeNode(
-        new AtomController.Group(subGroup, atoms.get(subGroup.getRange().getLast()), subGroup.getRange().getLast()), true);
-      subGroup.addChildren(subNode, atoms, context);
-      if (subNode.getChildCount() != 0) {
-        parent.add(subNode);
-      }
-      next = subGroup.getRange().getEnd();
-    }
-    // Add all the trailing atoms
-    atoms.addAtoms(parent, next, myRange.getEnd(), context);
   }
 
   @Override
@@ -57,7 +36,6 @@ public final class AtomGroup implements BinaryObject {
     AtomGroup atomGroup = (AtomGroup)o;
     if (myName != null ? !myName.equals(atomGroup.myName) : atomGroup.myName != null) return false;
     if (myRange != null ? !myRange.equals(atomGroup.myRange) : atomGroup.myRange != null) return false;
-    if (!Arrays.equals(mySubGroups, atomGroup.mySubGroups)) return false;
     return true;
   }
 
@@ -65,7 +43,6 @@ public final class AtomGroup implements BinaryObject {
   public int hashCode() {
     int result = myName != null ? myName.hashCode() : 0;
     result = 31 * result + (myRange != null ? myRange.hashCode() : 0);
-    result = 31 * result + Arrays.hashCode(mySubGroups);
     return result;
   }
 
