@@ -15,12 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.handlers.menu;
 
-import com.android.tools.idea.uibuilder.api.XmlBuilder;
-import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
-import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -28,25 +25,6 @@ import java.util.List;
 import static com.android.SdkConstants.*;
 
 public final class ItemHandler extends MenuHandlerBase {
-  @Language("XML")
-  @NotNull
-  @Override
-  public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {
-    switch (xmlType) {
-      case COMPONENT_CREATION:
-        return new XmlBuilder()
-          .startTag(tagName)
-          .androidAttribute(ATTR_TITLE, "Item")
-          .endTag(tagName)
-          .toString();
-      case PREVIEW_ON_PALETTE:
-      case DRAG_PREVIEW:
-        return NO_PREVIEW;
-      default:
-        throw new AssertionError(xmlType);
-    }
-  }
-
   @Override
   public boolean acceptsChild(@NotNull NlComponent parent, @NotNull NlComponent newChild) {
     return newChild.getTagName().equals(TAG_MENU);
