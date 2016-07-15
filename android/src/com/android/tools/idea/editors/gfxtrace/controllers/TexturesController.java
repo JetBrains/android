@@ -33,7 +33,7 @@ import com.android.tools.idea.editors.gfxtrace.widgets.ImageCellList;
 import com.android.tools.rpclib.futures.SingleInFlight;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
-import com.google.api.client.util.Lists;
+import com.google.common.collect.Lists;
 import com.google.wireless.android.sdk.stats.AndroidStudioStats;
 import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventCategory;
