@@ -22,6 +22,7 @@ import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.openapi.ui.popup.JBPopup;
 import icons.AndroidIcons;
 
+import java.lang.ref.WeakReference;
 import java.util.Locale;
 
 /**
@@ -30,11 +31,11 @@ import java.util.Locale;
 public class TogglePanningDialogAction extends ToggleAction {
 
   private final DesignSurface mySurface;
-  JBPopup myPopup;
+  WeakReference<JBPopup> myPopupReference;
 
   public TogglePanningDialogAction(DesignSurface surface) {
     mySurface = surface;
-    String title = String.format(Locale.US, "%s %s",WidgetNavigatorPanel.TITLE, WidgetNavigatorPanel.HINT);
+    String title = String.format(Locale.US, "%s %s", WidgetNavigatorPanel.TITLE, WidgetNavigatorPanel.HINT);
     getTemplatePresentation().setIcon(AndroidIcons.NeleIcons.Pan);
     getTemplatePresentation().setDescription(title);
     getTemplatePresentation().setText(title);
@@ -42,17 +43,24 @@ public class TogglePanningDialogAction extends ToggleAction {
 
   @Override
   public boolean isSelected(AnActionEvent e) {
-    return myPopup != null && myPopup.isVisible();
+    if (myPopupReference == null) {
+      return false;
+    }
+    JBPopup popup = myPopupReference.get();
+    return popup != null && popup.isVisible();
   }
 
   @Override
   public void setSelected(AnActionEvent e, boolean state) {
-    if(state) {
-      myPopup = WidgetNavigatorPanel.createPopup(mySurface);
-    } else {
-      if (myPopup != null) {
-        myPopup.cancel();
-        myPopup = null;
+    if (state) {
+      myPopupReference = new WeakReference<>(WidgetNavigatorPanel.createPopup(mySurface));
+    }
+    else {
+      if (myPopupReference != null) {
+        JBPopup popup = myPopupReference.get();
+        if (popup != null) {
+          popup.cancel();
+        }
       }
     }
   }
