@@ -21,9 +21,11 @@ import android.support.constraint.solver.widgets.ConstraintWidget;
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.api.actions.*;
+import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.Interaction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.sherpa.drawing.WidgetDraw;
@@ -35,6 +37,8 @@ import com.android.tools.sherpa.structure.WidgetsScene;
 import com.google.common.collect.Lists;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.ui.popup.JBPopupFactory;
+import com.intellij.ui.awt.RelativePoint;
 import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
 import org.intellij.lang.annotations.JdkConstants.InputEventMask;
@@ -54,9 +58,13 @@ import static com.android.SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT;
  */
 public class ConstraintLayoutHandler extends ViewGroupHandler {
   private static final String PREFERENCE_KEY_PREFIX = "ConstraintLayoutPreference";
-  /** Preference key (used with {@link PropertiesComponent}) for auto connect mode */
+  /**
+   * Preference key (used with {@link PropertiesComponent}) for auto connect mode
+   */
   public static final String AUTO_CONNECT_PREF_KEY = PREFERENCE_KEY_PREFIX + "AutoConnect";
-  /** Preference key (used with {@link PropertiesComponent}) for show all constraints mode */
+  /**
+   * Preference key (used with {@link PropertiesComponent}) for show all constraints mode
+   */
   public static final String SHOW_CONSTRAINTS_PREF_KEY = PREFERENCE_KEY_PREFIX + "ShowAllConstraints";
 
   private boolean myShowAllConstraints = true;
@@ -156,16 +164,16 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
         new AlignAction(Scout.Arrange.ExpandVertically,
                         AndroidIcons.SherpaIcons.VerticalExpand,
                         "Expand vertically")),
-        Lists.newArrayList(new ViewActionSeparator()),
+      Lists.newArrayList(new ViewActionSeparator()),
 
-        Lists.newArrayList(
-          new AlignAction(Scout.Arrange.DistributeHorizontally,
-                          AndroidIcons.SherpaIcons.HorizontalDistribute, AndroidIcons.SherpaIcons.HorizontalDistributeB,
-                          "Distribute group horizontally"),
-          new AlignAction(Scout.Arrange.DistributeVertically,
-                          AndroidIcons.SherpaIcons.verticallyDistribute, AndroidIcons.SherpaIcons.verticallyDistribute,
-                          "Distribute group vertically")
-        )
+      Lists.newArrayList(
+        new AlignAction(Scout.Arrange.DistributeHorizontally,
+                        AndroidIcons.SherpaIcons.HorizontalDistribute, AndroidIcons.SherpaIcons.HorizontalDistributeB,
+                        "Distribute group horizontally"),
+        new AlignAction(Scout.Arrange.DistributeVertically,
+                        AndroidIcons.SherpaIcons.verticallyDistribute, AndroidIcons.SherpaIcons.verticallyDistribute,
+                        "Distribute group vertically")
+      )
     )));
 
     actions.add(new NestedViewActionMenu("Alignment", AndroidIcons.SherpaIcons.LeftAlignedB, Lists.newArrayList(
@@ -471,7 +479,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                                    @NotNull List<NlComponent> selectedChildren,
                                    @InputEventMask int modifiers,
                                    boolean selected) {
-      presentation.setIcon(ConstraintModel.isAutoConnect() ? AndroidIcons.SherpaIcons.AutoConnect : AndroidIcons.SherpaIcons.AutoConnectOff);
+      presentation
+        .setIcon(ConstraintModel.isAutoConnect() ? AndroidIcons.SherpaIcons.AutoConnect : AndroidIcons.SherpaIcons.AutoConnectOff);
     }
 
     @Override
@@ -610,22 +619,22 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
   }
 
   static class ControlIcon implements Icon {
-    Icon mIcon;
-    boolean mHighlight;
+    Icon myIcon;
+    boolean myHighlight;
 
     ControlIcon(Icon icon) {
-      mIcon = icon;
+      myIcon = icon;
     }
 
     public void setHighlight(boolean mHighlight) {
-      this.mHighlight = mHighlight;
+      this.myHighlight = mHighlight;
     }
 
     @Override
     public void paintIcon(Component c, Graphics g, int x, int y) {
 
-      mIcon.paintIcon(c, g, x, y);
-      if (mHighlight) {
+      myIcon.paintIcon(c, g, x, y);
+      if (myHighlight) {
         g.setColor(new Color(0x03a9f4));
         g.fillRect(x, y + getIconHeight() - 2, getIconWidth(), 2);
       }
@@ -633,12 +642,12 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
 
     @Override
     public int getIconWidth() {
-      return mIcon.getIconWidth();
+      return myIcon.getIconWidth();
     }
 
     @Override
     public int getIconHeight() {
-      return mIcon.getIconHeight();
+      return myIcon.getIconHeight();
     }
   }
 
@@ -773,43 +782,48 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
   }
 
   private static class MarginSelector extends DirectViewAction {
-    String[] mMargins = {"0", "8", "16"};
-    int[] mMarginsNumber = {0, 8, 16};
-    int mCurrentMargin = 1;
+    ConstraintModel myModel;
+    MarginPopup myMarginPopup = new MarginPopup();
+    private int myMarginIconValue;
+    private Icon myMarginIcon;
 
-    private final Icon myAlignIcon = new Icon() {
-      @Override
-      public void paintIcon(Component c, Graphics g, int x, int y) {
-        g.setFont(g.getFont().deriveFont(Font.BOLD, 12));
-        String m = mMargins[mCurrentMargin];
-        FontMetrics metrics = g.getFontMetrics();
-        int strWidth = metrics.stringWidth(m);
-
-        int stringY = (getIconHeight() - metrics.getHeight()) / 2 + metrics.getAscent();
-        g.drawString(m, x + (getIconWidth() - strWidth) / 2, y + stringY);
-      }
-
-      @Override
-      public int getIconWidth() {
-        return 16;
-      }
-
-      @Override
-      public int getIconHeight() {
-        return 16;
-      }
-    };
-
-    MarginSelector() {
-      super(null, "Click to change default margin");
-      int m = Scout.getMargin();
-      for (int i = 0; i < mMarginsNumber.length; i++) {
-        if (m == mMarginsNumber[i]) {
-          mCurrentMargin = i;
-        }
-      }
+    public MarginSelector() {
+      myMarginPopup.setActionListener((e) -> setMargin());
     }
 
+    public void setMargin() {
+      Scout.setMargin(myMarginPopup.getValue());
+      MouseInteraction.setMargin(myMarginPopup.getValue());
+    }
+
+    private void updateIcon() {
+      final int margin = myMarginPopup.getValue();
+      if (myMarginIconValue != margin) {
+        myMarginIconValue = margin;
+        myMarginIcon = new Icon() {
+          @Override
+          public void paintIcon(Component c, Graphics g, int x, int y) {
+            g.setFont(g.getFont().deriveFont(Font.BOLD, 12));
+            String m = Integer.toString(margin);
+            FontMetrics metrics = g.getFontMetrics();
+            int strWidth = metrics.stringWidth(m);
+
+            int stringY = (getIconHeight() - metrics.getHeight()) / 2 + metrics.getAscent();
+            g.drawString(m, x + (getIconWidth() - strWidth) / 2, y + stringY);
+          }
+
+          @Override
+          public int getIconWidth() {
+            return 16;
+          }
+
+          @Override
+          public int getIconHeight() {
+            return 16;
+          }
+        };
+      }
+    }
     @Override
     public void perform(@NotNull ViewEditor editor,
                         @NotNull ViewHandler handler,
@@ -820,9 +834,11 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       if (model == null) {
         return;
       }
-      mCurrentMargin = (mCurrentMargin + 1) % mMargins.length;
-      Scout.setMargin(mMarginsNumber[mCurrentMargin]);
-      MouseInteraction.setMargin(mMarginsNumber[mCurrentMargin]);
+      DesignSurface surface = ((ViewEditorImpl)editor).getScreenView().getSurface();
+      RelativePoint relativePoint = new RelativePoint(surface, new Point(0, 0));
+      JBPopupFactory.getInstance().createComponentPopupBuilder(myMarginPopup, myMarginPopup.getTextField())
+        .setRequestFocus(true)
+        .createPopup().show(relativePoint);
     }
 
     @Override
@@ -832,11 +848,11 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                                    @NotNull NlComponent component,
                                    @NotNull List<NlComponent> selectedChildren,
                                    @InputEventMask int modifiers) {
-      if (myAlignIcon instanceof ControlIcon) {
-        ((ControlIcon)myAlignIcon).setHighlight(ConstraintModel.isAutoConnect() || (InputEvent.CTRL_MASK & modifiers) != 0);
+      updateIcon();
+      if (myMarginIcon instanceof ControlIcon) {
+        ((ControlIcon)myMarginIcon).setHighlight(ConstraintModel.isAutoConnect() || (InputEvent.CTRL_MASK & modifiers) != 0);
       }
-
-      presentation.setIcon(myAlignIcon);
+      presentation.setIcon(myMarginIcon);
     }
   }
 
