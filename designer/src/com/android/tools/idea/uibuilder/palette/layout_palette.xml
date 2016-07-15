@@ -81,7 +81,7 @@
     <item tag="Space"/>
   </group>
 
-  <group name="Text Fields">
+  <group name="Text Fields (EditText)">
     <item tag="EditText" title="Plain Text">
       <xml reuse="drag-preview">
         <![CDATA[
