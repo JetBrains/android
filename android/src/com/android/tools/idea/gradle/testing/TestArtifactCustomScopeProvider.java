@@ -73,18 +73,8 @@ public class TestArtifactCustomScopeProvider extends CustomScopesProviderEx {
         }
         @Override
         public boolean contains(@Nullable VirtualFile file, @NotNull Project project, @Nullable NamedScopesHolder holder) {
-          if (file == null) {
-            return false;
-          }
-          Module module = FileIndexFacade.getInstance(project).getModuleForFile(file);
-          if (module == null) {
-            return false;
-          }
-          TestArtifactSearchScopes scopes = TestArtifactSearchScopes.get(module);
-          if (scopes == null) {
-            return false;
-          }
-          return scopes.isAndroidTestSource(file);
+          TestArtifactSearchScopes scopes = getTestArtifactSearchScopes(file, project);
+          return scopes != null && scopes.isAndroidTestSource(file);
         }
       });
     }
@@ -92,8 +82,7 @@ public class TestArtifactCustomScopeProvider extends CustomScopesProviderEx {
 
   @Colored(color = "e7fadb", darkVariant = "2A3B2C")
   public static class UnitTestsScope extends NamedScope {
-    // Use same name as {@code TestsScope} to override it.
-    public static final String NAME = IdeBundle.message("predefined.scope.tests.name");
+    public static final String NAME = "Android Unit Tests";
     public UnitTestsScope() {
       super(NAME, new AbstractPackageSet("test:*..*") {
         @Override
@@ -102,20 +91,21 @@ public class TestArtifactCustomScopeProvider extends CustomScopesProviderEx {
         }
         @Override
         public boolean contains(@Nullable VirtualFile file, @NotNull Project project, @Nullable NamedScopesHolder holder) {
-          if (file == null) {
-            return false;
-          }
-          Module module = FileIndexFacade.getInstance(project).getModuleForFile(file);
-          if (module == null) {
-            return false;
-          }
-          TestArtifactSearchScopes scopes = TestArtifactSearchScopes.get(module);
-          if (scopes == null) {
-            return ProjectRootManager.getInstance(project).getFileIndex().isInTestSourceContent(file);
-          }
-          return scopes.isUnitTestSource(file);
+          TestArtifactSearchScopes scopes = getTestArtifactSearchScopes(file, project);
+          return scopes != null && scopes.isUnitTestSource(file);
         }
       });
     }
+  }
+
+  private static @Nullable TestArtifactSearchScopes getTestArtifactSearchScopes(@Nullable VirtualFile file, @NotNull Project project) {
+    if (file == null) {
+      return null;
+    }
+    Module module = FileIndexFacade.getInstance(project).getModuleForFile(file);
+    if (module == null) {
+      return null;
+    }
+    return TestArtifactSearchScopes.get(module);
   }
 }
