@@ -2,6 +2,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           package="p1.p2">
     <application android:icon="@drawable/icon">
-        <receiver android:name="com.example.DummyReceiver"/>
+        <receiver android:name="com.example.DummyReceiver" />
     </application>
 </manifest>

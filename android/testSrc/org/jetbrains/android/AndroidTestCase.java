@@ -35,6 +35,8 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.codeStyle.CodeStyleSchemes;
+import com.intellij.psi.codeStyle.CodeStyleSettings;
+import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
 import com.intellij.testFramework.InspectionTestUtil;
 import com.intellij.testFramework.ThreadTracker;
 import com.intellij.testFramework.builders.JavaModuleFixtureBuilder;
@@ -48,6 +50,7 @@ import com.intellij.util.ArrayUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.formatter.AndroidXmlCodeStyleSettings;
+import org.jetbrains.android.formatter.AndroidXmlPredefinedCodeStyle;
 import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -64,6 +67,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
 
   private boolean myCreateManifest;
   protected AndroidFacet myFacet;
+  protected CodeStyleSettings mySettings;
 
   private List<String> myAllowedRoots = new ArrayList<>();
   private boolean myUseCustomSettings;
@@ -146,6 +150,9 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     ArrayList<String> allowedRoots = new ArrayList<>();
     collectAllowedRoots(allowedRoots);
     registerAllowedRoots(allowedRoots, myTestRootDisposable);
+    mySettings = CodeStyleSettingsManager.getSettings(getProject()).clone();
+    CodeStyleSettingsManager.getInstance(getProject()).setTemporarySettings(mySettings);
+    new AndroidXmlPredefinedCodeStyle().apply(mySettings);
     myUseCustomSettings = getAndroidCodeStyleSettings().USE_CUSTOM_SETTINGS;
     getAndroidCodeStyleSettings().USE_CUSTOM_SETTINGS = true;
 
@@ -264,6 +271,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
   @Override
   protected void tearDown() throws Exception {
     try {
+      CodeStyleSettingsManager.getInstance(getProject()).dropTemporarySettings();
       StudioEmbeddedRenderTarget.setDisableEmbeddedTarget(false);
       myModule = null;
       myAdditionalModules = null;

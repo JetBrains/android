@@ -1,3 +1,2 @@
-<FrameLayout
-        tools:context=""
-        xmlns:tools="http://schemas.android.com/tools"/>
+<FrameLayout tools:context=""
+    xmlns:tools="http://schemas.android.com/tools" />
