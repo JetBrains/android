@@ -60,12 +60,12 @@ public class BuildTypesTest {
       .selectBuildTypesTab()
       .setName("newBuildType")
       .setDebuggable("true")
-      .setVersionNameSuffix("sufix")
+      .setVersionNameSuffix("suffix")
       .clickOk()
       .waitForGradleProjectSyncToFinish()
       .getEditor()
       .open("/app/build.gradle")
       .getCurrentFileContents();
-    assertThat(gradleFileContents).containsMatch("newBuildType \\{\\n[\\s]*debuggable true\\n[\\s]*versionNameSuffix 'sufix'\\n[\\s]*\\}");
+    assertThat(gradleFileContents).containsMatch("newBuildType \\{\\n[\\s]*debuggable true\\n[\\s]*versionNameSuffix 'suffix'\\n[\\s]*\\}");
   }
 }
