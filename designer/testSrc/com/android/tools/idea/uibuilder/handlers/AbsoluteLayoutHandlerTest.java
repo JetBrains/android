@@ -83,11 +83,11 @@ public class AbsoluteLayoutHandlerTest extends LayoutTestCase {
       .expectWidth("100dp")
       .expectHeight("100dp")
       .expectXml("<TextView\n" +
-                 "            android:id=\"@id/myText\"\n" +
-                 "            android:layout_width=\"100dp\"\n" +
-                 "            android:layout_height=\"100dp\"\n" +
-                 "            android:layout_x=\"120dp\"\n" +
-                 "            android:layout_y=\"130dp\"/>");
+                 "        android:id=\"@id/myText\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"100dp\"\n" +
+                 "        android:layout_x=\"120dp\"\n" +
+                 "        android:layout_y=\"130dp\" />");
   }
 
   public void testDragToLayout() throws Exception {
@@ -116,16 +116,16 @@ public class AbsoluteLayoutHandlerTest extends LayoutTestCase {
       .release()
       .primary()
       .parent().expectXml("<AbsoluteLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                          "                xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
-                          "                android:layout_width=\"match_parent\"\n" +
-                          "                android:layout_height=\"match_parent\">\n" +
+                          "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
+                          "    android:layout_width=\"match_parent\"\n" +
+                          "    android:layout_height=\"match_parent\">\n" +
                           "\n" +
                           "    <TextView\n" +
-                          "            android:id=\"@id/myText\"\n" +
-                          "            android:layout_width=\"100dp\"\n" +
-                          "            android:layout_height=\"100dp\"\n" +
-                          "            android:layout_x=\"150dp\"\n" +
-                          "            android:layout_y=\"400dp\"/>\n" +
+                          "        android:id=\"@id/myText\"\n" +
+                          "        android:layout_width=\"100dp\"\n" +
+                          "        android:layout_height=\"100dp\"\n" +
+                          "        android:layout_x=\"150dp\"\n" +
+                          "        android:layout_y=\"400dp\" />\n" +
                           "</AbsoluteLayout>");
   }
 
@@ -183,11 +183,11 @@ public class AbsoluteLayoutHandlerTest extends LayoutTestCase {
                  "    android:layout_weight=\"1\">\n" +
                  "\n" +
                  "      <TextView\n" +
-                 "              android:id=\"@id/myText\"\n" +
-                 "              android:layout_width=\"1000px\"\n" +
-                 "              android:layout_height=\"150px\"\n" +
-                 "              android:layout_x=\"50dp\"\n" +
-                 "              android:layout_y=\"550dp\"/>\n" +
+                 "        android:id=\"@id/myText\"\n" +
+                 "        android:layout_width=\"1000px\"\n" +
+                 "        android:layout_height=\"150px\"\n" +
+                 "          android:layout_x=\"50dp\"\n" +
+                 "          android:layout_y=\"550dp\" />\n" +
                  "  </AbsoluteLayout>\n" +
                  "</LinearLayout>");
   }
@@ -221,16 +221,16 @@ public class AbsoluteLayoutHandlerTest extends LayoutTestCase {
       }
     });
     assertEquals("<AbsoluteLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                 "                xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
-                 "                android:layout_width=\"match_parent\"\n" +
-                 "                android:layout_height=\"match_parent\">\n" +
+                 "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
+                 "    android:layout_width=\"match_parent\"\n" +
+                 "    android:layout_height=\"match_parent\">\n" +
                  "\n" +
                  "    <TextView\n" +
-                 "            android:id=\"@id/myText\"\n" +
-                 "            android:layout_width=\"100dp\"\n" +
-                 "            android:layout_height=\"100dp\"\n" +
-                 "            android:layout_x=\"100dp\"\n" +
-                 "            android:layout_y=\"100dp\"/>\n" +
+                 "        android:id=\"@id/myText\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"100dp\"\n" +
+                 "        android:layout_x=\"100dp\"\n" +
+                 "        android:layout_y=\"100dp\" />\n" +
                  "</AbsoluteLayout>\n", model.getFile().getText());
     return model;
   }

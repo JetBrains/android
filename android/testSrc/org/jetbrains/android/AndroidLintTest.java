@@ -49,18 +49,6 @@ public class AndroidLintTest extends AndroidTestCase {
     super.setUp();
     AndroidLintInspectionBase.invalidateInspectionShortName2IssueMap();
     myFixture.allowTreeAccessForAllFiles();
-    CodeStyleSettings settings = CodeStyleSettingsManager.getSettings(getProject()).clone();
-    new AndroidXmlPredefinedCodeStyle().apply(settings);
-    CodeStyleSettingsManager.getInstance(getProject()).setTemporarySettings(settings);
-  }
-
-  @Override
-  public void tearDown() throws Exception {
-    try {
-      CodeStyleSettingsManager.getInstance(getProject()).dropTemporarySettings();
-    } finally {
-      super.tearDown();
-    }
   }
 
   @Override
