@@ -32,7 +32,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 
-import static com.android.SdkConstants.*;
+import static com.android.SdkConstants.VALUE_N_DP;
 import static com.android.resources.Density.DEFAULT_DENSITY;
 
 /**
@@ -105,10 +105,6 @@ public abstract class ViewEditor {
    */
   @NotNull
   public abstract NlModel getModel();
-
-  public abstract boolean moduleContainsResource(@NotNull ResourceType type, @NotNull String name);
-
-  public abstract void copyVectorAssetToMainModuleSourceSet(@NotNull String asset);
 
   /**
    * Returns true if the current module depends on the specified library.
