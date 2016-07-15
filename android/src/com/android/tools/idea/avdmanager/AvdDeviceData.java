@@ -99,8 +99,8 @@ public final class AvdDeviceData {
 
       Dimension dimension = getSkinDimension(myCustomSkinFile.getValueOrNull());
       return dimension == null ||
-             (dimension.getWidth() >= myScreenResolutionWidth.get() &&
-              dimension.getHeight() >= myScreenResolutionHeight.get());
+             (dimension.getWidth() >= myScreenResolutionWidth.get() && dimension.getHeight() >= myScreenResolutionHeight.get()) ||
+             (dimension.getHeight() >= myScreenResolutionWidth.get() && dimension.getWidth() >= myScreenResolutionHeight.get());
     }
   };
 
