@@ -38,7 +38,7 @@ public class NlPaletteModelTest extends PaletteTestCase {
     Palette palette = model.getPalette(NlLayoutType.LAYOUT);
     Iterator<Palette.BaseItem> iterator = palette.getItems().iterator();
     Palette.Group widgets = assertIsGroup(iterator.next(), "Widgets");
-    Palette.Group textFields = assertIsGroup(iterator.next(), "Text Fields");
+    Palette.Group textFields = assertIsGroup(iterator.next(), "Text Fields (EditText)");
     Palette.Group layouts = assertIsGroup(iterator.next(), "Layouts");
     Palette.Group containers = assertIsGroup(iterator.next(), "Containers");
     Palette.Group images = assertIsGroup(iterator.next(), "Images & Media");
