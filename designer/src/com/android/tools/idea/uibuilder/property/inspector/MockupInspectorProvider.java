@@ -28,7 +28,6 @@ public class MockupInspectorProvider implements InspectorProvider {
   private static final Set<String> MOCKUP_PROPERTIES = ImmutableSet.of(ATTR_MOCKUP);
   private MockupInspectorComponent myInspector;
 
-
   @Override
   public boolean isApplicable(@NotNull List<NlComponent> components,
                               @NotNull Map<String, NlProperty> properties,
@@ -55,7 +54,6 @@ public class MockupInspectorProvider implements InspectorProvider {
    */
   private static class MockupInspectorComponent implements InspectorComponent {
 
-
     public static final String TITLE = "View Mockup";
     private final NlReferenceEditor myMockupPathEditor;
 
@@ -64,14 +62,12 @@ public class MockupInspectorProvider implements InspectorProvider {
     public MockupInspectorComponent(@NotNull NlPropertiesManager propertiesManager) {
       Project project = propertiesManager.getProject();
       myMockupPathEditor = NlReferenceEditor.createForInspectorWithBrowseButton(project, DEFAULT_LISTENER);
-
     }
 
     @Override
     public void updateProperties(@NotNull List<NlComponent> components,
                                  @NotNull Map<String, NlProperty> properties,
                                  @NotNull NlPropertiesManager propertiesManager) {
-
       myMockupPath = properties.get(ATTR_MOCKUP);
     }
 

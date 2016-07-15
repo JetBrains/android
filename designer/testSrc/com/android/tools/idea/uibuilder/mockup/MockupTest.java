@@ -222,7 +222,7 @@ public class MockupTest extends MockupBaseTest {
     assertNotNull(mockup);
     assertEquals(new Rectangle(10, 10, 120, 50), mockup.getBounds());
 
-    final Rectangle swingBounds = mockup.getSwingBounds(screenView);
+    final Rectangle swingBounds = mockup.getScreenBounds(screenView);
     assertEquals(Coordinates.getSwingXDip(screenView, 10), swingBounds.x, 2.);
     assertEquals(Coordinates.getSwingXDip(screenView, 10), swingBounds.y, 2.);
     assertEquals(Coordinates.getSwingDimensionDip(screenView, 110), swingBounds.width, 2.);
@@ -241,7 +241,7 @@ public class MockupTest extends MockupBaseTest {
                                                               Coordinates.getSwingDimension(screenView, 1000),
                                                               // See createModel for the 1000 value
                                                               Coordinates.getSwingDimension(screenView, 1000));
-    final Rectangle destinationRectangle = mockup.getSwingBounds(screenView);
+    final Rectangle destinationRectangle = mockup.getScreenBounds(screenView);
     assertEquals(componentSwingCoordinates, destinationRectangle);
   }
 
@@ -255,7 +255,7 @@ public class MockupTest extends MockupBaseTest {
     when(mockSurface.getScale()).thenReturn(1.0);
     final ScreenView screenView = new ScreenView(mockSurface, ScreenView.ScreenViewType.BLUEPRINT, model);
     final Dimension size = screenView.getPreferredSize();
-    final Rectangle destinationRectangle = mockup.getSwingBounds(screenView);
+    final Rectangle destinationRectangle = mockup.getScreenBounds(screenView);
     assertEquals(new Rectangle(0, 0, size.width, size.height), destinationRectangle);
   }
 }
