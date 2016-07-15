@@ -663,7 +663,7 @@ public class DeviceArtPainter {
     private static File getThumbnailCacheDir() {
       final String path = ourSystemPath != null ? ourSystemPath : (ourSystemPath = PathUtil.getCanonicalPath(PathManager.getSystemPath()));
       //noinspection HardCodedStringLiteral
-      return new File(path, "android-devices" + File.separator + "v3");
+      return new File(path, "android-devices" + File.separator + "v4");
     }
 
     @NotNull
