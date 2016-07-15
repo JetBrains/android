@@ -43,6 +43,6 @@ $PROTOC --proto_path $GPU_BASE --java_out $JAVA_BASE $GPU_BASE/gapid/vertex/vert
 # And now run codergen for the serializers
 echo "Running codergen..."
 pushd $GPU_BASE >/dev/null
-$CODERGEN --java $TOOLS_ROOT ./...
+$CODERGEN --java $REPO_ROOT/tools ./...
 popd >/dev/null
 echo "All done"
