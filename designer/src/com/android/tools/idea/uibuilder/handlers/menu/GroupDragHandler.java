@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.handlers.menu;
 
-import com.android.resources.ResourceType;
 import com.android.tools.idea.uibuilder.api.DragHandler;
 import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
@@ -43,8 +42,6 @@ import static com.android.SdkConstants.*;
  * contain items.
  */
 final class GroupDragHandler extends DragHandler {
-  private static final String SEARCH_ICON = "ic_search_black_24dp";
-
   private final NlComponent myGroup;
   private final List<NlComponent> myItems;
 
@@ -62,7 +59,6 @@ final class GroupDragHandler extends DragHandler {
                    @NotNull List<NlComponent> items,
                    @NotNull DragType type) {
     super(editor, handler, group, items, type);
-    assert !items.isEmpty();
 
     myGroup = group;
     myItems = items;
@@ -121,22 +117,8 @@ final class GroupDragHandler extends DragHandler {
 
   @Override
   public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers) {
-    possiblyCopySearchIconToMainModuleSourceSet();
     updateOrderInCategoryAttributes();
     updateShowAsActionAttribute();
-  }
-
-  private void possiblyCopySearchIconToMainModuleSourceSet() {
-    // TODO Handle more than one item
-    if (!(DRAWABLE_PREFIX + SEARCH_ICON).equals(myItems.get(0).getAndroidAttribute(ATTR_ICON))) {
-      return;
-    }
-
-    if (editor.moduleContainsResource(ResourceType.DRAWABLE, SEARCH_ICON)) {
-      return;
-    }
-
-    editor.copyVectorAssetToMainModuleSourceSet(SEARCH_ICON);
   }
 
   private void updateOrderInCategoryAttributes() {
