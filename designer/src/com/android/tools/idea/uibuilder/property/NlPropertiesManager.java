@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
+import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.editor.NlPropertiesWindowManager;
 import com.android.tools.idea.uibuilder.model.ModelListener;
 import com.android.tools.idea.uibuilder.model.NlComponent;
@@ -279,7 +280,12 @@ public class NlPropertiesManager implements DesignSurfaceListener, ModelListener
     if (!NlPropertiesWindowManager.get(myProject).isActivePropertiesManager(this)) {
       return false;
     }
-    return myPropertiesPanel.activatePreferredEditor(myLoading);
+    ViewHandler handler = component.getViewHandler();
+    String propertyName = handler != null ? handler.getPreferredProperty() : null;
+    if (propertyName == null) {
+      return false;
+    }
+    return myPropertiesPanel.activatePreferredEditor(propertyName, myLoading);
   }
 
   @Override

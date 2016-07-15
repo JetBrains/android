@@ -46,6 +46,12 @@ public class ImageViewHandler extends ViewHandler {
 
   @Override
   @NotNull
+  public String getPreferredProperty() {
+    return ATTR_SRC;
+  }
+
+  @Override
+  @NotNull
   @Language("XML")
   public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {
     return new XmlBuilder()

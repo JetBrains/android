@@ -221,11 +221,11 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
     cardLayout.swipe(myCardPanel, name, JBCardLayout.SwipeDirection.AUTO, next::requestFocus);
   }
 
-  public boolean activatePreferredEditor(boolean afterload) {
+  public boolean activatePreferredEditor(@NotNull String propertyName, boolean afterload) {
     if (isAllPropertiesPanelVisible()) {
       setAllPropertiesPanelVisible(false);
     }
-    return myInspectorPanel.activatePreferredEditor(afterload);
+    return myInspectorPanel.activatePreferredEditor(propertyName, afterload);
   }
 
   private void scrollIntoView(@NotNull PropertyChangeEvent event) {
