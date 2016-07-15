@@ -67,4 +67,10 @@ public class TextViewHandler extends ViewHandler {
     }
     return super.getPreviewScale(tagName);
   }
+
+  @Override
+  @NotNull
+  public String getPreferredProperty() {
+    return ATTR_TEXT;
+  }
 }

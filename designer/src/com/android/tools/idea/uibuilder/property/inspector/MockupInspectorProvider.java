@@ -5,10 +5,10 @@ import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
 import com.android.tools.idea.uibuilder.property.editors.NlReferenceEditor;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
@@ -88,15 +88,10 @@ public class MockupInspectorProvider implements InspectorProvider {
       myMockupPathEditor.setProperty(myMockupPath);
     }
 
-    @Nullable
     @Override
-    public NlComponentEditor getEditorForProperty(@NotNull String propertyName) {
-      switch (propertyName) {
-        case ATTR_MOCKUP:
-          return myMockupPathEditor;
-        default:
-          return null;
-      }
+    @NotNull
+    public List<NlComponentEditor> getEditors() {
+      return ImmutableList.of(myMockupPathEditor);
     }
   }
 }

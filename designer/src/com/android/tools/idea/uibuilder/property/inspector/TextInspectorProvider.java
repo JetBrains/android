@@ -218,15 +218,19 @@ public class TextInspectorProvider implements InspectorProvider {
       myColorEditor.setProperty(myColor);
     }
 
-    @Nullable
     @Override
-    public NlComponentEditor getEditorForProperty(@NotNull String propertyName) {
-      switch (propertyName) {
-        case ATTR_TEXT:
-          return myTextEditor;
-        default:
-          return null;
-      }
+    @NotNull
+    public List<NlComponentEditor> getEditors() {
+      return ImmutableList.of(
+        myTextEditor,
+        myDesignTextEditor,
+        myDescriptionEditor,
+        myStyleEditor,
+        myFontFamilyEditor,
+        myTypefaceEditor,
+        myFontSizeEditor,
+        mySpacingEditor,
+        myColorEditor);
     }
 
     private NlEditingListener createEnumStyleListener() {
