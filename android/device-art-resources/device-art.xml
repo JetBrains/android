@@ -69,8 +69,8 @@
   </device>
 
   <device id="nexus_7_2013" name="Nexus 7">
-    <orientation name="port" size="1064,1714" screenPos="130,201" screenSize="800,1280" shadow="port_shadow.png" back="port_back.png" lights="port_fore.png"/>
-    <orientation name="land" size="1848,986" screenPos="282,80" screenSize="1280,800" shadow="land_shadow.png" back="land_back.png" lights="land_fore.png"/>
+    <orientation name="port" size="1596,2571" screenPos="195,301" screenSize="1200,1920" shadow="port_shadow.png" back="port_back.png" lights="port_fore.png"/>
+    <orientation name="land" size="2772,1479" screenPos="423,120" screenSize="1920,1200" shadow="land_shadow.png" back="land_back.png" lights="land_fore.png"/>
   </device>
 
   <device id="nexus_7" name="Nexus 7 (2012)">
@@ -79,8 +79,8 @@
   </device>
 
   <device id="nexus_10" name="Nexus 10">
-    <orientation name="port" size="1165,1568" screenPos="183,133" screenSize="800,1280" shadow="port_shadow.png" back="port_back.png" lights="port_fore.png"/>
-    <orientation name="land" size="1670,1088" screenPos="194,133" screenSize="1280,800" shadow="land_shadow.png" back="land_back.png" lights="land_fore.png"/>
+    <orientation name="port" size="2330,3136" screenPos="366,266" screenSize="1600,2560" shadow="port_shadow.png" back="port_back.png" lights="port_fore.png"/>
+    <orientation name="land" size="3340,2176" screenPos="388,266" screenSize="2560,1600" shadow="land_shadow.png" back="land_back.png" lights="land_fore.png"/>
   </device>
 
   <device id="xoom" name="Motorola XOOM">
