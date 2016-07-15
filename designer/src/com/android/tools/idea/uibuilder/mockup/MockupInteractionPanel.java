@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.mockup;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
 import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.ModelListener;
@@ -22,6 +23,8 @@ import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.pixelprobe.Guide;
+import com.intellij.openapi.application.Result;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBPanel;
 import org.jetbrains.annotations.NotNull;
@@ -144,7 +147,10 @@ public class MockupInteractionPanel extends JBPanel implements ModelListener, Mo
     myScreenViewSize = new Dimension();
     myScreenViewConvertedBounds = new Rectangle();
     myImageSize = new Dimension();
+
     myImageToMockupBounds = new CoordinateConverter();
+    myImageToMockupBounds.setFixedRatio(false);
+
     myCroppedSelection = new Rectangle();
 
     myScreenViewToPanel = new CoordinateConverter();
@@ -199,6 +205,7 @@ public class MockupInteractionPanel extends JBPanel implements ModelListener, Mo
   private void updateConvertersAndDimension() {
     myScreenView.getSize(myScreenViewSize);
     myScreenViewToPanel.setDimensions(getSize(), myScreenViewSize, ADJUST_SCALE);
+    myScreenViewToPanel.setSourcePosition(myScreenView.getX(), myScreenView.getY());
     myScreenViewConvertedBounds.setSize(myScreenViewToPanel.dX(myScreenViewSize.getWidth()),
                                         myScreenViewToPanel.dY(myScreenViewSize.getHeight()));
     myScreenViewConvertedBounds.setLocation(myScreenViewToPanel.x(0), myScreenViewToPanel.y(0));
@@ -206,7 +213,7 @@ public class MockupInteractionPanel extends JBPanel implements ModelListener, Mo
     myImageToPanel.setDimensions(getSize(), myImageSize, ADJUST_SCALE);
     myImageToPanel.setCenterInDestination();
 
-    final Rectangle bounds = myMockup.getSwingBounds(myScreenView);
+    final Rectangle bounds = myMockup.getScreenBounds(myScreenView);
     Rectangle mockupSwingBounds = new Rectangle(
       myScreenViewToPanel.x(bounds.x),
       myScreenViewToPanel.y(bounds.y),
@@ -295,7 +302,7 @@ public class MockupInteractionPanel extends JBPanel implements ModelListener, Mo
     }
 
     Rectangle dest;
-    dest = myMockup.getSwingBounds(myScreenView);
+    dest = myMockup.getScreenBounds(myScreenView);
     dest.x = myScreenViewToPanel.x(dest.x);
     dest.y = myScreenViewToPanel.y(dest.y);
     dest.width = myScreenViewToPanel.dX(dest.width);
@@ -366,8 +373,8 @@ public class MockupInteractionPanel extends JBPanel implements ModelListener, Mo
   private void paintScreenView(@NotNull Graphics2D g) {
     g.setColor(NlConstants.BLUEPRINT_BG_COLOR);
     g.fillRect(
-      myScreenViewToPanel.x(0),
-      myScreenViewToPanel.y(0),
+      myScreenViewToPanel.x(myScreenView.getX()),
+      myScreenViewToPanel.y(myScreenView.getY()),
       myScreenViewToPanel.dX(myScreenViewSize.width),
       myScreenViewToPanel.dY(myScreenViewSize.height)
     );
@@ -456,39 +463,123 @@ public class MockupInteractionPanel extends JBPanel implements ModelListener, Mo
    * @return the newly created list.
    */
   @NotNull
-  public List<MockupGuide> getSelectedGuidelines() {
+  public void exportSelectedGuidelines() {
 
-    final List<MockupGuide> mockupGuides = new ArrayList<>(mySelectedGuidelines.size());
-    final Rectangle mockupPosition = myMockupDrawDestination;
-    final CoordinateConverter mockupToScreenView = new CoordinateConverter();
-    mockupToScreenView.setDimensions(myScreenView.getSize(), mockupPosition.getSize());
-    mockupToScreenView.setSourcePosition(mockupPosition.x, mockupPosition.y);
+      NlComponent constraintLayout = getParentConstraintLayout();
+      if (constraintLayout == null) {
+        return; // TODO Display keylines directly on the DesignSurface
+      }
 
-    for (int i = 0; i < mySelectedGuidelines.size(); i++) {
-      final Guide guide = mySelectedGuidelines.get(i);
-      if (guide.getOrientation().equals(Guide.Orientation.HORIZONTAL)) {
-        final int mockupCoordinate = myImageToMockupBounds.y(guide.getPosition());
-        final int screenViewPosition = mockupToScreenView.y(mockupCoordinate);
-        final int androidDpPosition = Coordinates.getAndroidYDip(myScreenView, screenViewPosition);
-        mockupGuides.add(new MockupGuide(androidDpPosition, MockupGuide.Orientation.HORIZONTAL));
+      final List<MockupGuide> mockupGuides = new ArrayList<>(mySelectedGuidelines.size());
+      for (int i = 0; i < mySelectedGuidelines.size(); i++) {
+        final Guide guide = mySelectedGuidelines.get(i);
+        mockupGuides.add(getMockupGuide(constraintLayout, guide));
       }
-      else {
-        final int mockupCoordinate = myImageToMockupBounds.x(guide.getPosition());
-        final int screenViewPosition = mockupToScreenView.x(mockupCoordinate);
-        final int androidDpPosition = Coordinates.getAndroidXDip(myScreenView, screenViewPosition);
-        mockupGuides.add(new MockupGuide(androidDpPosition, MockupGuide.Orientation.VERTICAL));
-      }
-    }
-    return mockupGuides;
+
+      writeGuidesToFile(constraintLayout, mockupGuides);
   }
 
+  private void writeGuidesToFile(final NlComponent constraintLayout, final List<MockupGuide> mockupGuides) {
+    final NlModel model = constraintLayout.getModel();
+    final WriteCommandAction action = new WriteCommandAction(model.getProject(), "Create Guidelines", model.getFile()) {
+      @Override
+      protected void run(@NotNull Result result) throws Throwable {
+
+        // Create all corresponding NlComponent Guidelines from the selected guidelines list
+        for (int i = 0; i < mockupGuides.size(); i++) {
+          mockupGuides.get(i).createConstraintGuideline(myScreenView, model, constraintLayout);
+        }
+      }
+
+    };
+    action.execute();
+  }
+
+  /**
+   * Construct a MockupGuide given the given Guide.
+   *
+   * The MockupGuide will have the correct coordinates in DP relative to the ConstraintLayout.
+   *
+   * @param constraintLayout The constraintLayout that will hold the guidelines.
+   *                         Used to compute the relative position of the guideline to it.
+   * @param guide            The Guide extracted from the designer file.
+   * @return A new MockupGuide with the same Orientation as guide and with the position in dip
+   * relative to constraint layout
+   */
+  @NotNull
+  private MockupGuide getMockupGuide(NlComponent constraintLayout, Guide guide) {
+    final int containerSize;                 // Height or width of the Mockup container (or Screen if the mockup is full screen)
+    final int inMockupPos;                   // Position of the guide relative the mockup in PX
+    final int inConstrainLayoutPos;          // Position of the guide relative to the constrain layout in PX
+    final MockupGuide exportableGuideline;   // The MockupGuidline that will be returned
+
+    if (guide.getOrientation().equals(Guide.Orientation.HORIZONTAL)) {
+      if (myMockup.isFullScreen()) {
+        containerSize = (int)Math.round(myScreenView.getSize().getHeight() / myScreenView.getScale());
+        inMockupPos = (int)Math.round((guide.getPosition() / myImageSize.getHeight()) * containerSize);
+        inConstrainLayoutPos = inMockupPos - constraintLayout.y;
+      }
+      else {
+        containerSize = myMockup.getComponent().h;
+        inMockupPos = (int)Math.round((guide.getPosition() / myImageSize.getHeight()) * containerSize);
+        inConstrainLayoutPos = inMockupPos + myMockup.getComponent().y - constraintLayout.y;
+      }
+      final int androidDpPosition = Coordinates.pxToDp(myScreenView, inConstrainLayoutPos);
+      exportableGuideline = new MockupGuide(androidDpPosition, MockupGuide.Orientation.HORIZONTAL);
+    }
+    else {
+      // Find the position relative to the constraintLayout even if the mockup is full screen
+      if (myMockup.isFullScreen()) {
+        containerSize = (int)Math.round(myScreenView.getSize().getWidth() / myScreenView.getScale());
+        inMockupPos = (int)Math.round((guide.getPosition() / myImageSize.getWidth()) * containerSize);
+        inConstrainLayoutPos = inMockupPos - constraintLayout.x;
+      }
+      else {
+        containerSize = myMockup.getComponent().w;
+        inMockupPos = (int)Math.round((guide.getPosition() / myImageSize.getWidth()) * containerSize);
+        inConstrainLayoutPos = inMockupPos + myMockup.getComponent().x - constraintLayout.x;
+      }
+      final int androidDpPosition = Coordinates.pxToDp(myScreenView, inConstrainLayoutPos);
+      exportableGuideline = new MockupGuide(androidDpPosition, MockupGuide.Orientation.VERTICAL);
+    }
+    return exportableGuideline;
+  }
+
+  /**
+   * Find the closest parent of myMockup which is a constraint layout
+   *
+   * @return the closest parent of myMockup which is a constraint layout
+   * or {@link Mockup#getComponent()} if myComponent is already a ConstraintLayout
+   * Returns null if neither myMockup or none of its parent is a ConstraintLayout
+   */
+  @Nullable
+  private NlComponent getParentConstraintLayout() {
+    NlComponent currentLayout = myMockup.getComponent();
+    while (currentLayout != null && !currentLayout.getTagName().equals(SdkConstants.CONSTRAINT_LAYOUT)
+           && !currentLayout.isRoot()) {
+      currentLayout = currentLayout.getParent();
+    }
+    if (currentLayout == null
+        || !currentLayout.getTagName().equals(SdkConstants.CONSTRAINT_LAYOUT)) {
+      return null;
+    }
+    return currentLayout;
+  }
+
+  /**
+   * @return true if the user wants to resize the cropped area
+   */
   public boolean isEditCropping() {
     return myEditCropping;
   }
 
+  /**
+   * Set EditCropping to activate the edition of the cropped area.
+   *
+   * @param editCropping true to activate the selection of the cropped area
+   */
   public void setEditCropping(boolean editCropping) {
     if (editCropping != myEditCropping) {
-      myEditCropping = editCropping;
       myEditCropping = editCropping;
       repaint();
       if (myEditCropping) {
@@ -503,6 +594,9 @@ public class MockupInteractionPanel extends JBPanel implements ModelListener, Mo
     }
   }
 
+  /**
+   * Set myCroppedSelection to the values of {@link Mockup#getCropping()} converted in this panel coordinates
+   */
   private void updateCroppedSelection() {
     final Rectangle cropping = myMockup.getCropping();
     myCroppedSelection.setBounds(
