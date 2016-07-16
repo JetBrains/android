@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.mockup.tools;
 
 import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.mockup.colorextractor.ColorExtractor;
+import com.android.tools.idea.uibuilder.mockup.colorextractor.DBSCANColorExtractor;
 import com.android.tools.idea.uibuilder.mockup.colorextractor.ExtractedColor;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.ui.Gray;
@@ -77,7 +78,7 @@ public class ColorExtractorTool implements MockupTool, ColorPanel.ColorHoveredLi
       }
 
       if (!myIsExtractingColor) {
-        ColorExtractor colorExtractor = new ColorExtractor(myMockup);
+        ColorExtractor colorExtractor = new DBSCANColorExtractor(myMockup);
         myIsExtractingColor = true;
 
         colorExtractor.run(new ColorExtractor.ColorExtractorCallback() {

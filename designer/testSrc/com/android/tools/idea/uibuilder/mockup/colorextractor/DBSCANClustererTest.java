@@ -36,7 +36,7 @@ public class DBSCANClustererTest {
     new double[]{4., 3., 3.}, //         | 2 | 3
     new double[]{4., 4., 4.}, //         | 2 | 4
     new double[]{4., 5., 4.}, //         | N | 4
-    new double[]{10., 10., 10.} //      | N | 5
+    new double[]{10., 10., 10.} //       | N | 5
   };
 
 
