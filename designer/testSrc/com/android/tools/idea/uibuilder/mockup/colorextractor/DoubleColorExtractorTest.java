@@ -22,7 +22,7 @@ import java.awt.image.BufferedImage;
 import java.util.HashMap;
 import java.util.List;
 
-public class ColorExtractorTest extends TestCase {
+public class DoubleColorExtractorTest extends TestCase {
 
   public void testGetLABPixels() throws Exception {
 
@@ -35,7 +35,7 @@ public class ColorExtractorTest extends TestCase {
 
     HashMap<Integer, Integer> labToRgb = new HashMap<>();
     HashMap<Integer, double[]> rgbToLab = new HashMap<>();
-    List<double[]> labPixels = ColorExtractor.getLABPixels(bufferedImage, labToRgb, rgbToLab, null);
+    List<double[]> labPixels = DoublesColorExtractor.getLABPixels(bufferedImage, labToRgb, rgbToLab, null);
     float[] floats = Colors.getLabColorSpace().fromRGB(new float[]{0xDD / 255f, 0xDD / 255f, 0xDD / 255f});
     double[] pixel = labPixels.get(0);
     assertEquals(floats[0], pixel[0], 1);

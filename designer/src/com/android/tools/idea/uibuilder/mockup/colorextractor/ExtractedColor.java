@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.mockup.colorextractor;
 
+import org.jetbrains.annotations.Nullable;
+
+import java.util.HashSet;
 import java.util.Locale;
-import java.util.Random;
 import java.util.Set;
 
 /**
@@ -29,13 +31,17 @@ public class ExtractedColor implements Comparable<ExtractedColor> {
   private final int myColor;
   private final int myOccurrence;
   private final Set<Integer> myNeighborColor;
-  private double[] myLAB;
-
-  public ExtractedColor(int color, double[] lab, int occurrence, Set<Integer> neighborColor) {
+  /**
+   * Represent a color extracted by a {@link ColorExtractor}.
+   *
+   * @param color         the rgb value of the color
+   * @param occurrence    number of time this color or any close color appeared in the image this color has been extracted from
+   * @param neighborColor Colors that were considered are almost the same as color in the image
+   */
+  public ExtractedColor(int color, int occurrence, @Nullable Set<Integer> neighborColor) {
     myColor = color;
     myOccurrence = occurrence;
-    myLAB = lab;
-    myNeighborColor = neighborColor;
+    myNeighborColor = neighborColor != null ? neighborColor : new HashSet<>(0);
   }
 
   public int getColor() {
@@ -46,14 +52,14 @@ public class ExtractedColor implements Comparable<ExtractedColor> {
     return myOccurrence;
   }
 
-  public double[] getLAB() {
-    return myLAB;
-  }
 
   public Set<Integer> getNeighborColor() {
     return myNeighborColor;
   }
 
+  /**
+   * @return the color Hexadecimal code
+   */
   @Override
   public String toString() {
     return String.format(Locale.US, "#%05X", myColor);
@@ -62,5 +68,22 @@ public class ExtractedColor implements Comparable<ExtractedColor> {
   @Override
   public int compareTo(ExtractedColor o) {
     return myOccurrence - o.getOccurrence();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    ExtractedColor that = (ExtractedColor)o;
+
+    if (myColor != that.myColor) return false;
+
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    return myColor;
   }
 }

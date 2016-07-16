@@ -31,7 +31,7 @@ import java.util.List;
  * http://www2.cs.uh.edu/~ceick/7363/Papers/dbscan.pdf
  */
 @SuppressWarnings("ForLoopReplaceableByForEach")
-public class DBSCANClusterer {
+public class DBSCANClusterer implements Clusterer{
 
   private int myVisited = 0;
 
@@ -47,12 +47,6 @@ public class DBSCANClusterer {
   private List<List<double[]>> myClusters = new ArrayList<>();
 
   private PointType[] myPointTypes;
-
-
-  public interface ProgressListener {
-    void progress(float progress);
-  }
-
   ProgressListener listener;
 
   /**
@@ -78,6 +72,7 @@ public class DBSCANClusterer {
     this.listener = listener;
   }
 
+  @Override
   public List<List<double[]>> cluster(double[][] input) {
     List<double[]> cluster = new ArrayList<>();
     myPointTypes = new PointType[input.length];
