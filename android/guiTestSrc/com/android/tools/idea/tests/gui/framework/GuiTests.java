@@ -17,7 +17,6 @@ package com.android.tools.idea.tests.gui.framework;
 
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.diagnostic.AbstractMessage;
@@ -30,7 +29,6 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectManagerAdapter;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.IdeFrame;
@@ -491,13 +489,13 @@ public final class GuiTests {
 
   public static void findAndClickButton(@NotNull ContainerFixture<? extends Container> container, @NotNull String text) {
     Robot robot = container.robot();
-    JButton button = robot.finder().find(container.target(), Matchers.byText(JButton.class, text));
+    JButton button = findButton(container, text, robot);
     robot.click(button);
   }
 
   public static void findAndClickButtonWhenEnabled(@NotNull ContainerFixture<? extends Container> container, @NotNull String text) {
     Robot robot = container.robot();
-    JButton button = robot.finder().find(container.target(), Matchers.byText(JButton.class, text));
+    JButton button = findButton(container, text, robot);
     Wait.minutes(2).expecting("button " + text + " to be enabled")
       .until(() -> button.isEnabled() && button.isVisible() && button.isShowing());
     robot.click(button);
@@ -506,12 +504,29 @@ public final class GuiTests {
   /**
    * Fest API bug work-around - Double click on FEST moves the mouse between clicks (to the same location), and that fails on Mac.
    */
-  public static void doubleClick(Robot robot, Point clickLocation) {
+  public static void doubleClick(@NotNull Robot robot, @NotNull Point clickLocation) {
     robot.moveMouse(clickLocation);
     robot.pressMouse(LEFT_BUTTON);
     robot.releaseMouse(LEFT_BUTTON);
     robot.pressMouse(LEFT_BUTTON);
     robot.releaseMouse(LEFT_BUTTON);
+  }
+
+  // This method works around the issue where button text on Mac have extra spaces. For example, " Yes" instead of "Yes". Because of that
+  // we trim the text of the button before comparing it with the given text.
+  // TODO investigate why this happens.
+  @NotNull
+  private static JButton findButton(@NotNull ContainerFixture<? extends Container> container, @NotNull String text, @NotNull Robot robot) {
+    return robot.finder().find(container.target(), new GenericTypeMatcher<JButton>(JButton.class) {
+      @Override
+      protected boolean isMatching(@NotNull JButton button) {
+        String buttonText = button.getText();
+        if (buttonText != null) {
+          return buttonText.trim().equals(text) && button.isShowing();
+        }
+        return false;
+      }
+    });
   }
 
   /**
