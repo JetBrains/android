@@ -150,7 +150,10 @@ public final class GradleUtil {
   @NotNull
   public static Collection<File> getGeneratedSourceFolders(@NotNull BaseArtifact artifact) {
     try {
-      return artifact.getGeneratedSourceFolders();
+      Collection<File> folders = artifact.getGeneratedSourceFolders();
+      // JavaArtifactImpl#getGeneratedSourceFolders returns null even though BaseArtifact#getGeneratedSourceFolders is marked as @NonNull.
+      // See https://code.google.com/p/android/issues/detail?id=216236
+      return folders != null ? folders : Collections.emptyList();
     }
     catch (UnsupportedMethodException e) {
       // Model older than 1.2.
