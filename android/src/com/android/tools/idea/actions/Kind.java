@@ -21,17 +21,23 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 
 enum Kind {
-  ANNOTATION("Annotation", PlatformIcons.ANNOTATION_TYPE_ICON),
+  ANNOTATION("Annotation", PlatformIcons.ANNOTATION_TYPE_ICON, "AnnotationType"),
   CLASS("Class", PlatformIcons.CLASS_ICON),
   ENUM("Enum", PlatformIcons.ENUM_ICON),
   INTERFACE("Interface", PlatformIcons.INTERFACE_ICON);
 
   private final String myName;
   private final Icon myIcon;
+  private final String myTemplateName;
 
   Kind(String name, Icon icon) {
+    this(name, icon, name);
+  }
+
+  Kind(String name, Icon icon, String templateName) {
     myName = name;
     myIcon = icon;
+    myTemplateName = "AS" + templateName;
   }
 
   String getName() {
@@ -43,7 +49,7 @@ enum Kind {
   }
 
   String getTemplateName() {
-    return "AS" + myName;
+    return myTemplateName;
   }
 
   @Nullable
