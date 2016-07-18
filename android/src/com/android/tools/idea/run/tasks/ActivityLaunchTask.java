@@ -55,7 +55,9 @@ public abstract class ActivityLaunchTask implements LaunchTask {
 
     final String activityPath = AndroidActivityLauncher.getLauncherActivityPath(myApplicationId, activityName);
     String command = AndroidActivityLauncher.getStartActivityCommand(activityPath, myStartActivityFlagsProvider.getFlags(device));
-    return ShellCommandLauncher.execute(command, device, launchStatus, printer, 5, TimeUnit.SECONDS);
+
+    // The timeout is quite large to accomodate ARM emulators.
+    return ShellCommandLauncher.execute(command, device, launchStatus, printer, 15, TimeUnit.SECONDS);
   }
 
   @Nullable
