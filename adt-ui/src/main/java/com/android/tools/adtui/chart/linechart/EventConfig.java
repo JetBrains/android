@@ -32,84 +32,98 @@ public class EventConfig {
    * The line color that marks the beginning and end of the event.
    */
   @NotNull
-  private Color mColor;
+  private Color myColor;
 
   /**
    * The label that this event should render
    */
   @NotNull
-  private final JLabel mLabel;
+  private final JLabel myLabel;
 
   /**
    * If true, the area that the event spans over will be grey'ed out.
    */
-  private boolean mIsBlocking;
+  private boolean myIsBlocking;
 
   /**
    * Whether the event region should be filled instead of showing only start/end markers
    */
-  private boolean mIsFilled;
+  private boolean myIsFilled;
 
+  @NotNull
+  private Stroke myStroke;
 
   public EventConfig(@NotNull Color color) {
-    mColor = color;
-    mLabel = new JBLabel();
+    myColor = color;
+    myLabel = new JBLabel();
+    myStroke = new BasicStroke(1); // Default
 
     updateLabelBounds();
   }
 
   @NotNull
   public EventConfig setFilled(boolean isFilled) {
-    mIsFilled = isFilled;
+    myIsFilled = isFilled;
     return this;
   }
 
   public boolean isFilled() {
-    return mIsFilled;
+    return myIsFilled;
   }
 
   @NotNull
   public EventConfig setBlocking(boolean isBlocking) {
-    mIsBlocking = isBlocking;
+    myIsBlocking = isBlocking;
     return this;
   }
 
   public boolean isBlocking() {
-    return mIsBlocking;
+    return myIsBlocking;
   }
 
   @NotNull
   public EventConfig setColor(@NotNull Color color) {
-    mColor = color;
+    myColor = color;
     return this;
   }
 
   @NotNull
   public Color getColor() {
-    return mColor;
+    return myColor;
   }
 
   @NotNull
   public EventConfig setText(@NotNull String text) {
-    mLabel.setText(text);
+    myLabel.setText(text);
     updateLabelBounds();
     return this;
   }
 
   @NotNull
   public EventConfig setIcon(@Nullable Icon icon) {
-    mLabel.setIcon(icon);
+    myLabel.setIcon(icon);
     updateLabelBounds();
     return this;
   }
 
   @NotNull
   public JLabel getLabel() {
-    return mLabel;
+    return myLabel;
   }
 
   private void updateLabelBounds() {
-    Dimension size = mLabel.getPreferredSize();
-    mLabel.setBounds(0, 0, size.width, size.height);
+    Dimension size = myLabel.getPreferredSize();
+    myLabel.setBounds(0, 0, size.width, size.height);
+  }
+
+  @NotNull
+  public EventConfig setStroke(@NotNull Stroke stroke) {
+    myStroke = stroke;
+    return this;
+  }
+
+  @NotNull
+  public Stroke getStroke() {
+    return myStroke;
   }
 }

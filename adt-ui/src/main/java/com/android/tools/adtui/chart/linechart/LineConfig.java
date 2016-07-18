@@ -43,7 +43,7 @@ public class LineConfig {
   /**
    * Whether the series should be represented by dashed lines.
    */
-  private boolean mIsDashed = false;
+  private boolean myIsDashed = false;
 
   /**
    * Whether the series should be represented by a stepped chart.
@@ -51,63 +51,67 @@ public class LineConfig {
    * Otherwise, a line is drawn from (x0, y0) to (x1, y0) and another one is drawn from (x1, y0)
    * to (x1, y1).
    */
-  private boolean mIsStepped = false;
+  private boolean myIsStepped = false;
 
   /**
    * Whether the series should be represented by a filled chart, instead of only lines.
    */
-  private boolean mIsFilled = false;
+  private boolean myIsFilled = false;
 
   /**
    * Whether the series should stack with other series instead of being independent.
    */
-  private boolean mIsStacked = false;
+  private boolean myIsStacked = false;
+
+  @NotNull
+  private Stroke myStroke;
 
   @NotNull
   private Color mColor;
 
   public LineConfig(@NotNull Color color) {
     mColor = color;
+    myStroke = new BasicStroke(1); // Default
   }
 
   @NotNull
   public LineConfig setDashed(boolean isDashed) {
-    mIsDashed = isDashed;
+    myIsDashed = isDashed;
     return this;
   }
 
   public boolean isDashed() {
-    return mIsDashed;
+    return myIsDashed;
   }
 
   @NotNull
   public LineConfig setStepped(boolean isStepped) {
-    mIsStepped = isStepped;
+    myIsStepped = isStepped;
     return this;
   }
 
   public boolean isStepped() {
-    return mIsStepped;
+    return myIsStepped;
   }
 
   @NotNull
   public LineConfig setFilled(boolean isFilled) {
-    mIsFilled = isFilled;
+    myIsFilled = isFilled;
     return this;
   }
 
   public boolean isFilled() {
-    return mIsFilled;
+    return myIsFilled;
   }
 
   @NotNull
   public LineConfig setStacked(boolean isStacked) {
-    mIsStacked = isStacked;
+    myIsStacked = isStacked;
     return this;
   }
 
   public boolean isStacked() {
-    return mIsStacked;
+    return myIsStacked;
   }
 
   @NotNull
@@ -119,5 +123,16 @@ public class LineConfig {
   public LineConfig setColor(@NotNull Color color) {
     mColor = color;
     return this;
+  }
+
+  @NotNull
+  public LineConfig setStroke(@NotNull Stroke stroke) {
+    myStroke = stroke;
+    return this;
+  }
+
+  @NotNull
+  public Stroke getStroke() {
+    return myStroke;
   }
 }
