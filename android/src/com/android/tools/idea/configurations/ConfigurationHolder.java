@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.configurations;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -28,11 +27,4 @@ public interface ConfigurationHolder {
    */
   @Nullable
   Configuration getConfiguration();
-
-  /**
-   * Sets the given configuration to be used for rendering
-   *
-   * @param configuration the configuration to use
-   */
-  void setConfiguration(@NotNull Configuration configuration);
 }
