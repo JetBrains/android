@@ -26,6 +26,7 @@ import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.model.Insets;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.google.common.collect.ImmutableList;
 import com.intellij.psi.xml.XmlTag;
 import icons.AndroidDesignerIcons;
 import icons.AndroidIcons;
@@ -35,7 +36,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.InputEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -66,6 +66,12 @@ public class LinearLayoutHandler extends ViewGroupHandler {
       return super.getIcon(component);
     }
     return isVertical(component) ? AndroidIcons.Views.VerticalLinearLayout : AndroidIcons.Views.LinearLayout;
+  }
+
+  @Override
+  @NotNull
+  public List<String> getInspectorProperties() {
+    return ImmutableList.of(ATTR_ORIENTATION);
   }
 
   @Override
