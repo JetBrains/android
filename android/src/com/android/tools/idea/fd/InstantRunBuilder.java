@@ -116,11 +116,12 @@ public class InstantRunBuilder implements BeforeRunBuilder {
 
   @NotNull
   private BuildSelection getBuildSelection() {
-    if (myRunContext.isCleanRerun()) {
-      return new BuildSelection(BuildMode.CLEAN, BuildCause.USER_REQUESTED_CLEAN_BUILD);
+    BuildCause buildCause = needsCleanBuild(myDevice);
+    if (buildCause != null) {
+      return new BuildSelection(BuildMode.CLEAN, buildCause);
     }
 
-    BuildCause buildCause = needsFullBuild(myDevice);
+    buildCause = needsFullBuild(myDevice);
     if (buildCause != null) {
       return new BuildSelection(BuildMode.FULL, buildCause);
     }
@@ -134,9 +135,14 @@ public class InstantRunBuilder implements BeforeRunBuilder {
   }
 
   @Nullable
-  private BuildCause needsFullBuild(@Nullable IDevice device) {
+  @Contract("null -> !null")
+  private BuildCause needsCleanBuild(@Nullable IDevice device) {
     if (device == null) {
       return BuildCause.NO_DEVICE;
+    }
+
+    if (myRunContext.isCleanRerun()) {
+      return BuildCause.USER_REQUESTED_CLEAN_BUILD;
     }
 
     // We assume that the deployment happens to the default user, and in here, we check whether it is still installed for the default user
@@ -155,6 +161,11 @@ public class InstantRunBuilder implements BeforeRunBuilder {
       }
     }
 
+    return null;
+  }
+
+  @Nullable
+  private BuildCause needsFullBuild(@NotNull IDevice device) {
     AndroidVersion deviceVersion = device.getVersion();
     if (!InstantRunManager.isInstantRunCapableDeviceVersion(deviceVersion)) {
       return BuildCause.API_TOO_LOW_FOR_INSTANT_RUN;
