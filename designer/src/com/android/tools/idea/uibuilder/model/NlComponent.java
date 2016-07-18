@@ -25,8 +25,6 @@ import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
-import com.google.common.base.Objects;
-import com.google.common.base.Objects.ToStringHelper;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.intellij.lang.LanguageNamesValidation;
@@ -74,19 +72,15 @@ public class NlComponent implements NlAttributesHolder {
   @AndroidCoordinate public int y;
   @AndroidCoordinate public int w;
   @AndroidCoordinate public int h;
-
-  /**
-   * True if this component's bounds were computed by NlModel.
-   */
-  private boolean myBoundsComputed;
-
   private NlComponent myParent;
   @NotNull private final NlModel myModel;
   @NotNull private XmlTag myTag;
   @NotNull private String myTagName; // for non-read lock access elsewhere
   @Nullable private TagSnapshot mySnapshot;
 
-  /** Current open attributes transaction or null if none is open */
+  /**
+   * Current open attributes transaction or null if none is open
+   */
   @Nullable AttributesTransaction myCurrentTransaction;
 
   public NlComponent(@NotNull NlModel model, @NotNull XmlTag tag) {
@@ -124,10 +118,6 @@ public class NlComponent implements NlAttributesHolder {
     this.y = y;
     this.w = w;
     this.h = h;
-  }
-
-  void setBoundsComputed(boolean boundsComputed) {
-    myBoundsComputed = boundsComputed;
   }
 
   public void addChild(@NotNull NlComponent component) {
@@ -269,7 +259,7 @@ public class NlComponent implements NlAttributesHolder {
       }
     }
 
-    return (!myBoundsComputed && x <= px && y <= py && x + w >= px && y + h >= py) ? this : null;
+    return (x <= px && y <= py && x + w >= px && y + h >= py) ? this : null;
   }
 
   public boolean containsX(@AndroidCoordinate int x) {
@@ -601,10 +591,7 @@ public class NlComponent implements NlAttributesHolder {
 
   @Override
   public String toString() {
-    ToStringHelper helper = Objects.toStringHelper(this).omitNullValues()
-      .add("tag", "<" + myTag.getName() + ">")
-      .add("bounds", "[" + x + "," + y + ":" + w + "x" + h);
-    return helper.toString();
+    return String.format("<%s> (%s, %s) %s × %s", myTagName, x, y, w, h);
   }
 
   /**
