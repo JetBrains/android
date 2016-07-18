@@ -282,10 +282,5 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
     public Configuration getConfiguration() {
       return mySurface.getConfiguration();
     }
-
-    @Override
-    public void setConfiguration(@NotNull Configuration configuration) {
-      mySurface.setConfiguration(configuration);
-    }
   }
 }
