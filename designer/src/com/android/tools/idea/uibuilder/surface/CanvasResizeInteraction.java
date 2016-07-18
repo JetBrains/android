@@ -352,16 +352,14 @@ public class CanvasResizeInteraction extends Interaction {
 
     if (canceled || androidX < 0 || androidY < 0) {
       Configuration configuration = screenView.getConfiguration();
-      configuration.startBulkEditing();
-      configuration.setDevice(myOriginalDevice, false);
-      configuration.setDeviceState(myOriginalDeviceState);
-      configuration.finishBulkEditing();
+      configuration.setEffectiveDevice(myOriginalDevice, myOriginalDeviceState);
     }
     else {
       int snapThreshold = Coordinates.getAndroidDimension(screenView, MAX_MATCH_DISTANCE);
       Device deviceToSnap = snapToDevice(androidX, androidY, snapThreshold);
       if (deviceToSnap != null) {
-        myDesignSurface.getConfiguration().setDevice(deviceToSnap, true);
+        State deviceState = deviceToSnap.getState(androidX < androidY ? "Portrait" : "Landscape");
+        myDesignSurface.getConfiguration().setEffectiveDevice(deviceToSnap, deviceState);
       }
       else {
         screenView.getModel().overrideConfigurationScreenSize(androidX, androidY);
