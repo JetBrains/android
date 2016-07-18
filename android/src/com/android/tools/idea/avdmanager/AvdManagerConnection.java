@@ -293,11 +293,11 @@ public class AvdManagerConnection {
   /**
    * Delete the given AVD if it exists.
    */
-  public void deleteAvd(@NotNull AvdInfo info) {
+  public boolean deleteAvd(@NotNull AvdInfo info) {
     if (!initIfNecessary()) {
-      return;
+      return false;
     }
-    myAvdManager.deleteAvd(info, SDK_LOG);
+    return myAvdManager.deleteAvd(info, SDK_LOG);
   }
 
   public boolean isAvdRunning(@NotNull AvdInfo info) {
@@ -675,11 +675,10 @@ public class AvdManagerConnection {
   public boolean updateDeviceChanged(@NotNull AvdInfo avdInfo) {
     if (initIfNecessary()) {
       try {
-        myAvdManager.updateDeviceChanged(avdInfo, SDK_LOG);
-        return true;
+        return myAvdManager.updateDeviceChanged(avdInfo, SDK_LOG) != null;
       }
       catch (IOException e) {
-        IJ_LOG.error("Could not update AVD Device " + avdInfo.getName(), e);
+        IJ_LOG.warn("Could not update AVD Device " + avdInfo.getName(), e);
       }
     }
     return false;

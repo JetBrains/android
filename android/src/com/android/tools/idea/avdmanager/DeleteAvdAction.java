@@ -51,7 +51,10 @@ public class DeleteAvdAction extends AvdUiAction {
                                           "Do you really want to delete AVD " + info.getName() + "?", "Confirm Deletion",
                                           AllIcons.General.QuestionDialog);
     if (result == Messages.YES) {
-      connection.deleteAvd(info);
+      if (!connection.deleteAvd(info)) {
+        Messages.showErrorDialog(myAvdInfoProvider.getComponent(),
+                                 "An error occurred while deleting the AVD. See idea.log for details.", "Error Deleting AVD");
+      }
       refreshAvds();
     }
   }

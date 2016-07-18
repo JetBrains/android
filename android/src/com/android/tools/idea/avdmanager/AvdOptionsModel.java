@@ -677,6 +677,10 @@ public final class AvdOptionsModel extends WizardModel {
     AvdManagerConnection connection = AvdManagerConnection.getDefaultAvdManagerConnection();
     myCreatedAvd = connection.createOrUpdateAvd(
       myAvdInfo, avdName, device, systemImage, mySelectedAvdOrientation.get(), isCircular, sdCard, skinFile, hardwareProperties, false);
+    if (myCreatedAvd == null) {
+      ApplicationManager.getApplication().invokeAndWait(() -> Messages.showErrorDialog(
+        (Project)null, "An error occurred while creating the AVD. See idea.log for details.", "Error Creating AVD"), ModalityState.any());
+    }
   }
 
   @NotNull
