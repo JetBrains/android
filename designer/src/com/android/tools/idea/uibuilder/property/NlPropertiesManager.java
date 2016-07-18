@@ -23,6 +23,7 @@ import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.util.PropertiesMap;
+import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Table;
 import com.intellij.designer.LightToolWindowContent;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -166,12 +167,11 @@ public class NlPropertiesManager implements DesignSurfaceListener, ModelListener
   }
 
   private void setSelectedComponents(@NotNull List<NlComponent> components, @Nullable Runnable postUpdateRunnable) {
-    assert !components.isEmpty();
-
     // Obtaining the properties, especially the first time around on a big project
     // can take close to a second, so we do it on a separate thread..
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
-      Table<String, String, NlPropertyItem> properties = NlProperties.getInstance().getProperties(components);
+      Table<String, String, NlPropertyItem> properties = !components.isEmpty() ? NlProperties.getInstance().getProperties(components) :
+                                                         ImmutableTable.of();
 
       UIUtil.invokeLaterIfNeeded(() -> {
         if (myProject.isDisposed()) {
@@ -251,11 +251,7 @@ public class NlPropertiesManager implements DesignSurfaceListener, ModelListener
       return;
     }
 
-    if (newSelection.isEmpty()) {
-      return;
-    }
-
-    if (myFirstLoad) {
+    if (!newSelection.isEmpty() && myFirstLoad) {
       myFirstLoad = false;
       myLoadingPanel.startLoading();
     }
