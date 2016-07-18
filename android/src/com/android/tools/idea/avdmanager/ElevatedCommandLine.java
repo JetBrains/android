@@ -70,12 +70,14 @@ public class ElevatedCommandLine extends GeneralCommandLine {
     // directory.
     // Note: This was needed for the Haxm silent_install.bat.
     String exeName = new File(getExePath()).getName();
-    File wrapper = FileUtil.createTempFile(getWorkDirectory(), FileUtil.getNameWithoutExtension(exeName) + "_wrapper", ".bat", true);
+    File wrapper = FileUtil.createTempFile(FileUtil.getNameWithoutExtension(exeName) + "_wrapper", ".bat", true);
+    String exePath = new File(getExePath()).getParent();
+    File logFile = FileUtil.createTempFile("haxm_install_log", ".txt");
     FileUtil.writeToFile(wrapper, String.format(
       "@echo off\n" +
       "setlocal enableextensions\n\n" +
-      "cd /d \"%%~dp0\"\n\n" +
-      "%1$s %%*", exeName));
+      "cd /d \"%1$s\"\n\n" +
+      "%2$s -log %3$s %%*", exePath, exeName, logFile));
     setExePath(wrapper.getPath());
 
     // Setup capturing of stdout and stderr in files.
