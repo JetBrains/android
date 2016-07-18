@@ -38,7 +38,7 @@ public class InstantRunNotificationProvider {
 
   private static final Map<BuildCause, String> ourNotificationsByCause = new ImmutableMap.Builder<BuildCause, String>()
     .put(BuildCause.USER_REQUESTED_CLEAN_BUILD, AndroidBundle.message("instant.run.notification.cleanbuild.on.user.request"))
-    .put(BuildCause.MISMATCHING_TIMESTAMPS, AndroidBundle.message("instant.run.notification.fullbuild.mismatching.timestamps"))
+    .put(BuildCause.MISMATCHING_TIMESTAMPS, AndroidBundle.message("instant.run.notification.cleanbuild.mismatching.timestamps"))
     .put(BuildCause.API_TOO_LOW_FOR_INSTANT_RUN, AndroidBundle.message("instant.run.notification.fullbuild.api.less.than.15"))
     .put(BuildCause.MANIFEST_RESOURCE_CHANGED, AndroidBundle.message("instant.run.notification.fullbuild.manifestresourcechanged"))
     .put(BuildCause.FREEZE_SWAP_REQUIRES_API21, AndroidBundle.message("instant.run.notification.fullbuild.api.less.than.21"))
