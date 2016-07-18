@@ -133,6 +133,32 @@ public class ProxyUtilTest extends TestCase {
     assertFalse(isValidProxyObject(reproxy)); // Removed method should result in validity check failure
   }
 
+  public void testReproxyUnsupportedMethods() throws NoSuchMethodException {
+    MyInterface reproxyA = reproxy(MyInterface.class, myProxy);
+    assertNotNull(reproxyA);
+    MyInterface reproxyB = reproxy(MyInterface.class, myProxy);
+    assertNotNull(reproxyB);
+
+    UnsupportedMethodException expected = null;
+    try {
+      reproxyA.doesNotExist();
+      fail("Reproxy method should throw.");
+    }
+    catch (UnsupportedMethodException e) {
+      // Expected.
+      expected = e;
+    }
+
+    try {
+      reproxyB.doesNotExist();
+      fail("Reproxy method should throw.");
+    }
+    catch (UnsupportedMethodException e) {
+      // For reproxied objects, the UnsupportedMethodExceptions should be the same.
+      assertEquals(expected, e);
+    }
+  }
+
   private static MyInterface createProxyInstance(boolean recurse) {
     final MyInterfaceImpl delegate = new MyInterfaceImpl(recurse);
     return (MyInterface)Proxy.newProxyInstance(MyInterface.class.getClassLoader(), new Class[]{MyInterface.class}, (o, method, objects) -> {
