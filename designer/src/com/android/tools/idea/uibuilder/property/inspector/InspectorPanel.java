@@ -99,44 +99,46 @@ public class InspectorPanel extends JPanel {
     myInspector.removeAll();
     myRow = 0;
 
-    Map<String, NlProperty> propertiesByName = Maps.newHashMapWithExpectedSize(properties.size());
-    for (NlProperty property : properties.row(ANDROID_URI).values()) {
-      propertiesByName.put(property.getName(), property);
-    }
-    for (NlProperty property : properties.row(AUTO_URI).values()) {
-      propertiesByName.put(property.getName(), property);
-    }
-    for (NlProperty property : properties.row("").values()) {
-      propertiesByName.put(property.getName(), property);
-    }
-    // Add access to known design properties
-    for (NlProperty property : myDesignProperties.getKnownProperties(components)) {
-      propertiesByName.putIfAbsent(property.getName(), property);
-    }
+    if (!components.isEmpty()) {
+      Map<String, NlProperty> propertiesByName = Maps.newHashMapWithExpectedSize(properties.size());
+      for (NlProperty property : properties.row(ANDROID_URI).values()) {
+        propertiesByName.put(property.getName(), property);
+      }
+      for (NlProperty property : properties.row(AUTO_URI).values()) {
+        propertiesByName.put(property.getName(), property);
+      }
+      for (NlProperty property : properties.row("").values()) {
+        propertiesByName.put(property.getName(), property);
+      }
+      // Add access to known design properties
+      for (NlProperty property : myDesignProperties.getKnownProperties(components)) {
+        propertiesByName.putIfAbsent(property.getName(), property);
+      }
 
-    List<InspectorComponent> inspectors = createInspectorComponents(components, propertiesManager, propertiesByName, myProviders);
-    myInspectors = inspectors;
+      List<InspectorComponent> inspectors = createInspectorComponents(components, propertiesManager, propertiesByName, myProviders);
+      myInspectors = inspectors;
 
-    int rows = 0;
-    for (InspectorComponent inspector : inspectors) {
-      rows += inspector.getMaxNumberOfRows();
-    }
-    rows += inspectors.size(); // 1 row for each divider (including 1 after the last property)
-    rows += 2; // 1 Line with a link to all properties + 1 row with a spacer on the bottom
+      int rows = 0;
+      for (InspectorComponent inspector : inspectors) {
+        rows += inspector.getMaxNumberOfRows();
+      }
+      rows += inspectors.size(); // 1 row for each divider (including 1 after the last property)
+      rows += 2; // 1 Line with a link to all properties + 1 row with a spacer on the bottom
 
-    myInspector.setLayout(createLayoutManager(rows, 2));
-    for (InspectorComponent inspector : inspectors) {
+      myInspector.setLayout(createLayoutManager(rows, 2));
+      for (InspectorComponent inspector : inspectors) {
+        addSeparator();
+        inspector.attachToInspector(this);
+      }
+
+      endGroup();
       addSeparator();
-      inspector.attachToInspector(this);
+      addLineComponent(myAllPropertiesLink, myRow++);
+
+      // Add a vertical spacer
+      myInspector.add(new Spacer(), new GridConstraints(myRow++, 0, 1, 2, ANCHOR_CENTER, FILL_HORIZONTAL, SIZEPOLICY_CAN_GROW,
+                                                        SIZEPOLICY_CAN_GROW | SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
     }
-
-    endGroup();
-    addSeparator();
-    addLineComponent(myAllPropertiesLink, myRow++);
-
-    // Add a vertical spacer
-    myInspector.add(new Spacer(), new GridConstraints(myRow++, 0, 1, 2, ANCHOR_CENTER, FILL_HORIZONTAL, SIZEPOLICY_CAN_GROW,
-                                                      SIZEPOLICY_CAN_GROW | SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
 
     // These are both important to render the controls correctly the first time:
     ApplicationManager.getApplication().invokeLater(() -> {
