@@ -66,22 +66,22 @@ public class LineChart extends AnimatedComponent {
    * The keys insertion order is preserved.
    */
   @NotNull
-  private final Map<RangedContinuousSeries, LineConfig> mLinesConfig = new LinkedHashMap<>();
+  private final Map<RangedContinuousSeries, LineConfig> myLinesConfig = new LinkedHashMap<>();
 
   @NotNull
-  private final Map<RangedSeries<DurationData>, EventConfig> mEventsConfig = new HashMap<>();
+  private final Map<RangedSeries<DurationData>, EventConfig> myEventsConfig = new HashMap<>();
 
   @NotNull
-  private final ArrayList<Path2D.Float> mLinePaths;
+  private final ArrayList<Path2D.Float> myLinePaths;
 
   @NotNull
-  private final ArrayList<Point2D.Float> mMarkerPositions;
+  private final ArrayList<Point2D.Float> myMarkerPositions;
 
   /**
    * Stores the regions that each event series need to render.
    */
   @NotNull
-  private final Map<RangedSeries<DurationData>, List<Rectangle2D.Float>> mEventsPathCache = new HashMap<>();
+  private final Map<RangedSeries<DurationData>, List<Rectangle2D.Float>> myEventsPathCache = new HashMap<>();
 
   /**
    * The color of the next line to be inserted, if not specified, is picked from {@code COLORS}
@@ -89,27 +89,20 @@ public class LineChart extends AnimatedComponent {
    */
   private int mNextLineColorIndex;
 
-  private String mName;
-
   @NotNull
   private final TLongHashSet mMarkedData;
 
   public LineChart() {
-    mLinePaths = new ArrayList<>();
-    mMarkerPositions = new ArrayList<>();
+    myLinePaths = new ArrayList<>();
+    myMarkerPositions = new ArrayList<>();
     mMarkedData = new TLongHashSet();
-  }
-
-  public LineChart(@NotNull String name) {
-    this();
-    mName = name;
   }
 
   /**
    * Initialize a {@code LineChart} with a list of lines.
    */
-  public LineChart(@NotNull String name, @NotNull List<RangedContinuousSeries> data) {
-    this(name);
+  public LineChart(@NotNull List<RangedContinuousSeries> data) {
+    this();
     addLines(data);
   }
 
@@ -120,7 +113,7 @@ public class LineChart extends AnimatedComponent {
    * @param config configuration of the line to be inserted
    */
   public void addLine(@NotNull RangedContinuousSeries series, @NotNull LineConfig config) {
-    mLinesConfig.put(series, config);
+    myLinesConfig.put(series, config);
   }
 
   /**
@@ -129,7 +122,7 @@ public class LineChart extends AnimatedComponent {
    * @param series series data of the line to be inserted
    */
   public void addLine(@NotNull RangedContinuousSeries series) {
-    mLinesConfig.put(series, new LineConfig(LineConfig.COLORS[mNextLineColorIndex++]));
+    myLinesConfig.put(series, new LineConfig(LineConfig.COLORS[mNextLineColorIndex++]));
     mNextLineColorIndex %= LineConfig.COLORS.length;
   }
 
@@ -141,32 +134,32 @@ public class LineChart extends AnimatedComponent {
   }
 
   public void addEvent(@NotNull RangedSeries<DurationData> series, @NotNull EventConfig config) {
-    mEventsConfig.put(series, config);
+    myEventsConfig.put(series, config);
   }
 
   @NotNull
   public LineConfig getLineConfig(RangedContinuousSeries rangedContinuousSeries) {
-    return mLinesConfig.get(rangedContinuousSeries);
+    return myLinesConfig.get(rangedContinuousSeries);
   }
 
   /**
    * Removes all existing lines in the line chart.
    */
   public void clearConfigs() {
-    mLinesConfig.clear();
-    mEventsConfig.clear();
+    myLinesConfig.clear();
+    myEventsConfig.clear();
   }
 
   @NotNull
   public List<RangedContinuousSeries> getRangedContinuousSeries() {
-    return new ArrayList<>(mLinesConfig.keySet());
+    return new ArrayList<>(myLinesConfig.keySet());
   }
 
   @Override
   protected void updateData() {
     Map<Range, Double> max = new HashMap<>();
     // TODO Handle stacked configs
-    for (RangedContinuousSeries ranged : mLinesConfig.keySet()) {
+    for (RangedContinuousSeries ranged : myLinesConfig.keySet()) {
       Range range = ranged.getYRange();
       double yMax = Double.MIN_VALUE;
 
@@ -209,22 +202,22 @@ public class LineChart extends AnimatedComponent {
     List<Point2D.Float> lastStackedPath = null;
 
     // Clear the previous markers.
-    mMarkerPositions.clear();
+    myMarkerPositions.clear();
 
-    for (RangedContinuousSeries ranged : mLinesConfig.keySet()) {
+    for (RangedContinuousSeries ranged : myLinesConfig.keySet()) {
       // Stores the y coordinates of the current series in case it's used as a stacked series
       final TDoubleArrayList currentSeriesY = new TDoubleArrayList();
       // Store the current path points in case they are used later to close a stacked line
       // polygon area
       final List<Point2D.Float> currentPath = new ArrayList<>();
-      final LineConfig config = mLinesConfig.get(ranged);
+      final LineConfig config = myLinesConfig.get(ranged);
       Path2D.Float path;
-      if (p == mLinePaths.size()) {
+      if (p == myLinePaths.size()) {
         path = new Path2D.Float();
-        mLinePaths.add(path);
+        myLinePaths.add(path);
       }
       else {
-        path = mLinePaths.get(p);
+        path = myLinePaths.get(p);
         path.reset();
       }
 
@@ -295,7 +288,7 @@ public class LineChart extends AnimatedComponent {
         if (mMarkedData.contains(currX)) {
           // Cache the point as a percentage that will be used to place the markers in draw()
           Point2D.Float point = new Point2D.Float((float)xd, adjustedYd);
-          mMarkerPositions.add(point);
+          myMarkerPositions.add(point);
         }
 
         prevX = currX;
@@ -327,22 +320,22 @@ public class LineChart extends AnimatedComponent {
       addDebugInfo("Range[%d] Max: %.2f", p, xMax);
       p++;
     }
-    mLinePaths.subList(p, mLinePaths.size()).clear();
+    myLinePaths.subList(p, myLinePaths.size()).clear();
     mMarkedData.clear();
 
 
     // First remove any path caches that do not have the corresponding RangedSeries anymore.
-    mEventsPathCache.keySet().removeIf(e -> !mEventsConfig.containsKey(e));
+    myEventsPathCache.keySet().removeIf(e -> !myEventsConfig.containsKey(e));
 
     // Generate the rectangle regions for the events.
-    // Note that we try to reuse any rectangles already created inside the mEventsPathCache as much as possible
+    // Note that we try to reuse any rectangles already created inside the myEventsPathCache as much as possible
     // So we only create new one when we run out and remove any unused ones at the end.
-    for (RangedSeries<DurationData> ranged : mEventsConfig.keySet()) {
-      List<Rectangle2D.Float> rectangleCache = mEventsPathCache.get(ranged);
+    for (RangedSeries<DurationData> ranged : myEventsConfig.keySet()) {
+      List<Rectangle2D.Float> rectangleCache = myEventsPathCache.get(ranged);
       if (rectangleCache == null) {
         // Generate a new cache for the RangedSeries if one does not exist already. (e.g. newly added series)
         rectangleCache = new ArrayList<>();
-        mEventsPathCache.put(ranged, rectangleCache);
+        myEventsPathCache.put(ranged, rectangleCache);
       }
 
       double xMin = ranged.getXRange().getMin();
@@ -376,7 +369,7 @@ public class LineChart extends AnimatedComponent {
 
   @Override
   protected void draw(Graphics2D g2d) {
-    if (mLinePaths.size() != mLinesConfig.size() || mEventsConfig.size() != mEventsPathCache.size()) {
+    if (myLinePaths.size() != myLinesConfig.size() || myEventsConfig.size() != myEventsPathCache.size()) {
       // Early return if the cached paths have not been sync'd with the configs.
       // e.g. updateData/postAnimate has not been invoked before this draw call.
       return;
@@ -388,7 +381,7 @@ public class LineChart extends AnimatedComponent {
 
     // Cache the transformed line paths for reuse below.
     List<Shape> transformedShapes = new ArrayList<>();
-    mLinePaths.forEach(path -> transformedShapes.add(scale.createTransformedShape(path)));
+    myLinePaths.forEach(path -> transformedShapes.add(scale.createTransformedShape(path)));
 
     // 1st pass - draw all the lines in the background.
     drawLines(g2d, transformedShapes, false);
@@ -397,10 +390,10 @@ public class LineChart extends AnimatedComponent {
     //            and render the lines in those regions in grayscale.
     //            TODO support multiple blocking events by intersection their regions.
     Rectangle2D clipRect = new Rectangle2D.Float();
-    for (RangedSeries<DurationData> eventSeries : mEventsPathCache.keySet()) {
-      EventConfig config = mEventsConfig.get(eventSeries);
+    for (RangedSeries<DurationData> eventSeries : myEventsPathCache.keySet()) {
+      EventConfig config = myEventsConfig.get(eventSeries);
       if (config.isBlocking()) {
-        for (Rectangle2D.Float rect : mEventsPathCache.get(eventSeries)) {
+        for (Rectangle2D.Float rect : myEventsPathCache.get(eventSeries)) {
           double scaledXStart = rect.x * dim.width;
           double scaledXDuration = rect.width * dim.width;
           clipRect.setRect(scaledXStart, 0, scaledXDuration, dim.height);
@@ -412,6 +405,7 @@ public class LineChart extends AnimatedComponent {
           // Set clip region and redraw the lines in grayscale.
           g2d.setClip(clipRect);
           g2d.setColor(ColorUtil.withAlpha(config.getColor(), ALPHA_VALUE));
+          g2d.setStroke(config.getStroke());
           drawLines(g2d, transformedShapes, true);
           g2d.setClip(null);
         }
@@ -421,14 +415,15 @@ public class LineChart extends AnimatedComponent {
     // 3rd pass - draw the event start/end lines and their labels
     //            TODO handle overlapping events
     Line2D eventLine = new Line2D.Float();
-    for (RangedSeries<DurationData> eventSeries : mEventsPathCache.keySet()) {
-      List<Rectangle2D.Float> rectList = mEventsPathCache.get(eventSeries);
-      EventConfig config = mEventsConfig.get(eventSeries);
+    for (RangedSeries<DurationData> eventSeries : myEventsPathCache.keySet()) {
+      List<Rectangle2D.Float> rectList = myEventsPathCache.get(eventSeries);
+      EventConfig config = myEventsConfig.get(eventSeries);
 
       for (Rectangle2D.Float rect : rectList) {
         double scaledXStart = rect.x * dim.width;
         double scaledXDuration = rect.width * dim.width;
 
+        g2d.setStroke(config.getStroke());
         // Draw the start/end lines, represented by the rectangles created during postAnimate.
         Shape scaledRect = scale.createTransformedShape(rect);
         if (config.isFilled()) {
@@ -455,7 +450,7 @@ public class LineChart extends AnimatedComponent {
 
     // Draw a circle marker around each data marker position.
     g2d.setColor(AdtUiUtils.DEFAULT_FONT_COLOR);
-    for (Point2D.Float point : mMarkerPositions) {
+    for (Point2D.Float point : myMarkerPositions) {
       float x = point.x * dim.width - MARKER_RADIUS_PX;
       float y = point.y * dim.height - MARKER_RADIUS_PX;
       float diameter = MARKER_RADIUS_PX * 2;
@@ -466,8 +461,8 @@ public class LineChart extends AnimatedComponent {
 
   private void drawLines(Graphics2D g2d, List<Shape> transformedShapes, boolean grayScale) {
     int i = 0;
-    for (RangedContinuousSeries ranged : mLinesConfig.keySet()) {
-      LineConfig config = mLinesConfig.get(ranged);
+    for (RangedContinuousSeries ranged : myLinesConfig.keySet()) {
+      LineConfig config = myLinesConfig.get(ranged);
       Color lineColor = config.getColor();
       if (grayScale) {
         int gray = (lineColor.getBlue() + lineColor.getRed() + lineColor.getGreen()) / 3;
@@ -475,6 +470,7 @@ public class LineChart extends AnimatedComponent {
       } else {
         g2d.setColor(lineColor);
       }
+      g2d.setStroke(config.getStroke());
 
       if (config.isFilled()) {
         // If the chart is filled, we want to set some transparency in its color
