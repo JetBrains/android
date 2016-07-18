@@ -24,6 +24,7 @@ import com.android.sdklib.devices.State;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.avdmanager.AvdScreenData;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.configurations.ConfigurationMatcher;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.res.ProjectResourceRepository;
@@ -38,6 +39,7 @@ import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.lint.LintAnnotationsModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.idea.uibuilder.surface.ZoomType;
 import com.android.util.PropertiesMap;
 import com.android.utils.XmlUtils;
 import com.google.common.collect.*;
@@ -109,6 +111,15 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   @NotNull private final ProjectResourceRepository myProjectResourceRepository;
   private final XmlFile myFile;
   private final ReentrantReadWriteLock myRenderResultLock = new ReentrantReadWriteLock();
+  private final ConfigurationListener myConfigurationListener = new ConfigurationListener() {
+    @Override
+    public boolean changed(int flags) {
+      if ((flags & (CFG_DEVICE | CFG_DEVICE_STATE)) != 0 && !mySurface.isCanvasResizing()) {
+        mySurface.zoom(ZoomType.FIT_INTO);
+      }
+      return true;
+    }
+  };
   @GuardedBy("myRenderResultLock")
   private RenderResult myRenderResult;
   private Configuration myConfiguration;
@@ -159,6 +170,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     if (!myActive) {
       myActive = true;
 
+      myConfiguration.addListener(myConfigurationListener);
       ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myFile.getProject());
       ResourceVersion version = manager.addListener(this, myFacet, myFile, myConfiguration);
 
@@ -183,6 +195,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myFile.getProject());
       manager.removeListener(this, myFacet, myFile, myConfiguration);
       myConfigurationModificationCount = myConfiguration.getModificationCount();
+      myConfiguration.removeListener(myConfigurationListener);
       myActive = false;
     }
   }
@@ -708,16 +721,10 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       AndroidFacet facet = AndroidFacet.getInstance(myConfiguration.getModule());
       assert facet != null;
       Configuration configuration = facet.getConfigurationManager().getConfiguration(better);
-      configuration.startBulkEditing();
-      configuration.setDevice(device, false);
-      configuration.setDeviceState(newState);
-      configuration.finishBulkEditing();
+      configuration.setEffectiveDevice(device, newState);
     }
     else {
-      myConfiguration.startBulkEditing();
-      myConfiguration.setDevice(device, false);
-      myConfiguration.setDeviceState(newState);
-      myConfiguration.finishBulkEditing();
+      myConfiguration.setEffectiveDevice(device, newState);
     }
   }
 
