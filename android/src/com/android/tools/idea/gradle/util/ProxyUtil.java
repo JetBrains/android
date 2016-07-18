@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.util;
 
 import com.android.annotations.VisibleForTesting;
 import com.google.common.collect.*;
+import com.intellij.util.containers.ContainerUtil;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -37,6 +38,8 @@ public final class ProxyUtil {
    */
   @SuppressWarnings("unchecked") private static final Set<Class<?>> SUPPORTED_TYPES =
     ImmutableSet.of(File.class, Boolean.class, String.class, Integer.class, Collection.class, Set.class, List.class, Map.class);
+
+  private static final Map<String, InvocationErrorValue> THROWABLE_CACHE = ContainerUtil.createConcurrentSoftValueMap();
 
   private ProxyUtil() {
   }
@@ -135,7 +138,12 @@ public final class ProxyUtil {
           try {
             value = m.invoke(object);
           } catch (InvocationTargetException e) {
-            value = new InvocationErrorValue(e.getCause());
+            Throwable cause = e.getCause();
+            value = THROWABLE_CACHE.get(cause.getMessage());
+            if (value == null) {
+              value = new InvocationErrorValue(cause);
+              THROWABLE_CACHE.put(cause.getMessage(), (InvocationErrorValue) value);
+            }
           }
           values.put(m.toGenericString(), reproxy(m.getGenericReturnType(), value));
         }
