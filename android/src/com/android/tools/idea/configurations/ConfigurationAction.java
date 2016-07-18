@@ -101,7 +101,6 @@ abstract class ConfigurationAction extends AnAction implements ConfigurationList
       }
 
       updateConfiguration(configuration, true /*commit*/);
-      myRenderContext.setConfiguration(clone); // update the render with the new configuration
     }
   }
 
