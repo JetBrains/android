@@ -35,7 +35,7 @@
                patches="https://dl.google.com/android/studio/patches/"/>
 
   <help file="ideahelp.jar" root="idea"/>
-  <documentation url="http://tools.android.com/welcome-to-android-studio"/>
+  <documentation url="http://developer.android.com/r/studio-ui/menu-start.html"/>
   <feedback eap-url="https://code.google.com/p/android/issues/entry?template=Android Studio bug&amp;comment=Build: $VERSION, __BUILD_NUMBER__, __BUILD_DATE__, $DESCR &#10;&#10;IMPORTANT: Please read http://tools.android.com/filing-bugs carefully and supply all required information.&amp;status=New"
         release-url="https://code.google.com/p/android/issues/entry?template=Android Studio bug&amp;comment=Build: $VERSION, __BUILD_NUMBER__, __BUILD_DATE__, $DESCR &#10;&#10;IMPORTANT: Please read http://tools.android.com/filing-bugs carefully and supply all required information.&amp;status=New"/>
   <whatsnew url="http://tools.android.com/recent"/>
