@@ -37,6 +37,7 @@ public class SwitchHandler extends ButtonHandler {
       ATTR_TRACK_TINT,
       ATTR_TEXT_ON,
       ATTR_TEXT_OFF,
+      ATTR_CHECKED,
       ATTR_SHOW_TEXT,
       ATTR_SPLIT_TRACK);
   }
