@@ -16,13 +16,11 @@
 package com.android.tools.idea.uibuilder.surface;
 
 import com.android.sdklib.devices.Device;
-import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.ddms.screenshot.DeviceArtPainter;
 import com.android.tools.idea.rendering.RenderErrorPanel;
 import com.android.tools.idea.rendering.RenderResult;
-import com.android.tools.idea.rendering.RenderedImage;
 import com.android.tools.idea.uibuilder.editor.NlActionManager;
 import com.android.tools.idea.uibuilder.editor.NlEditorPanel;
 import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
@@ -63,7 +61,6 @@ import javax.swing.*;
 import javax.swing.plaf.ScrollBarUI;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.geom.Ellipse2D;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -651,13 +648,13 @@ public class DesignSurface extends JPanel implements Disposable {
         }
 
         // Fit to zoom
-        int availableWidth = myScrollPane.getWidth();
-        int availableHeight = myScrollPane.getHeight();
+        int availableWidth = myScrollPane.getWidth() - myScrollPane.getVerticalScrollBar().getWidth();
+        int availableHeight = myScrollPane.getHeight() - myScrollPane.getHorizontalScrollBar().getHeight();
         Dimension preferredSize = myScreenView.getPreferredSize();
         int requiredWidth = preferredSize.width;
         int requiredHeight = preferredSize.height;
-        availableWidth -= 2 * DEFAULT_SCREEN_OFFSET_X + RESIZING_CUE_EXTRA_PADDING;
-        availableHeight -= 2 * DEFAULT_SCREEN_OFFSET_Y + RESIZING_CUE_EXTRA_PADDING;
+        availableWidth -= 2 * DEFAULT_SCREEN_OFFSET_X + RULER_SIZE_PX;
+        availableHeight -= 2 * DEFAULT_SCREEN_OFFSET_Y + RULER_SIZE_PX;
 
         if (myScreenMode == ScreenMode.BOTH) {
           if (isVerticalScreenConfig(availableWidth, availableHeight, preferredSize)) {
