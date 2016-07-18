@@ -562,12 +562,4 @@ public class AndroidThemePreviewPanel extends Box implements ConfigurationHolder
   public Configuration getConfiguration() {
     return myContext.getConfiguration();
   }
-
-  @Override
-  public void setConfiguration(@NotNull Configuration configuration) {
-    // This might be called when the user is forcing a configuration on the current view
-    if (myContext != null) {
-      myContext.setConfiguration(configuration);
-    }
-  }
 }
