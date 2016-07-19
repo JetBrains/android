@@ -30,7 +30,6 @@ import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
-import com.intellij.openapi.externalSystem.service.project.ExternalProjectRefreshCallback;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.options.ConfigurationException;
@@ -40,6 +39,7 @@ import com.intellij.util.PathUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
@@ -80,8 +80,9 @@ public class GradleProjectImporterTest extends IdeaTestCase {
     GradleProjectImporter.ImporterDelegate delegate = new GradleProjectImporter.ImporterDelegate() {
       @Override
       void importProject(@NotNull Project project,
-                         @NotNull ExternalProjectRefreshCallback callback,
-                         @NotNull final ProgressExecutionMode progressTaskMode) throws ConfigurationException {
+                         @NotNull ProjectSetUpTask callback,
+                         @NotNull ProgressExecutionMode executionMode,
+                         @Nullable GradleSyncListener listener) throws ConfigurationException {
         assertNotNull(project);
         assertEquals(myProjectName, project.getName());
         callback.onSuccess(myCachedProject);
@@ -102,6 +103,7 @@ public class GradleProjectImporterTest extends IdeaTestCase {
       }
     }
     finally {
+      //noinspection ThrowFromFinallyBlock
       super.tearDown();
     }
   }
