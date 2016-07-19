@@ -143,7 +143,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
 
     ArrayList<String> allowedRoots = new ArrayList<String>();
     collectAllowedRoots(allowedRoots);
-    registerAllowedRoots(allowedRoots, myTestRootDisposable);
+    registerAllowedRoots(allowedRoots, getTestRootDisposable());
     myUseCustomSettings = getAndroidCodeStyleSettings().USE_CUSTOM_SETTINGS;
     getAndroidCodeStyleSettings().USE_CUSTOM_SETTINGS = true;
 
