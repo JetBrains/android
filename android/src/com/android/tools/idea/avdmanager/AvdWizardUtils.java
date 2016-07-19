@@ -233,6 +233,16 @@ public class AvdWizardUtils {
       File resourceDir = DeviceArtDescriptor.getBundledDescriptorsFolder();
       if (resourceDir != null) {
         File resourcePath = new File(resourceDir, path.getPath());
+        if (!fop.exists(resourcePath)) {
+          String name = resourcePath.getName();
+          // Unfortunately these have a different name than that included in the system images, so remap if necessary.
+          if (name.equals("AndroidWearSquare")) {
+            resourcePath = new File(resourcePath.getParent(), "wear_square");
+          }
+          if (name.equals("AndroidWearRound")) {
+            resourcePath = new File(resourcePath.getParent(), "wear_round");
+          }
+        }
         if (fop.exists(resourcePath)) {
           if (dest != null) {
             try {
