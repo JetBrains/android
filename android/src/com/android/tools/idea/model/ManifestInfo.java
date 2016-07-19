@@ -180,7 +180,6 @@ final class ManifestInfo {
         if (!libManifests.isEmpty()) {
           Module fileModule = ModuleUtilCore.findModuleForFile(vFile, project);
           if (fileModule != null && !module.equals(fileModule)) {
-            assert libManifests.contains(vFile); // if it's a different module, it must be one of the lib manifests
             MergedManifest manifest = MergedManifest.get(fileModule);
             Document document = manifest.getDocument();
             if (document != null) { // normally the case, but can fail on merge fail
@@ -374,21 +373,15 @@ final class ManifestInfo {
           VirtualFile libraryManifest = VfsUtil.findFileByIoFile(file, false);
           if (libraryManifest != null) { // some sort of user error, they don't have a manifest for a lib
             libraryManifests.add(libraryManifest);
-          }
-          else {
-            Logger.getInstance(ManifestInfo.class).warn("Manifest not found: " + file);
-          }
+          } // else the file is specified in the model, but not actually available yet, such as exploded AAR manifests
         }
       }
 
       for (AndroidFacet dependency : dependencies) {
         // we will NOT actually be reading from this file, as we will need to recursively get the info from the modules MergedManifest
         VirtualFile vFile = dependency.getMainIdeaSourceProvider().getManifestFile();
-        if (vFile != null) { // user error
+        if (vFile != null) {
           libraryManifests.add(vFile);
-        }
-        else {
-          Logger.getInstance(ManifestInfo.class).warn("Manifest not found for Module " + dependency.getName());
         }
       }
       return libraryManifests;
