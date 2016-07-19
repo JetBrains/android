@@ -39,6 +39,7 @@ import com.android.tools.rpclib.schema.ConstantSet;
 import com.android.tools.rpclib.schema.Dynamic;
 import com.android.tools.rpclib.schema.Entity;
 import com.android.tools.rpclib.schema.Message;
+import com.google.common.base.Strings;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -182,7 +183,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
                                          .setCategory(EventCategory.GPU_PROFILER)
                                          .setKind(EventKind.GFX_TRACE_INIT_ERROR)
                                          .setGfxTracingDetails(AndroidStudioStats.GfxTracingDetails.newBuilder()
-                                                               .setErrorMessage(e.getMessage())));
+                                                               .setErrorMessage(Strings.nullToEmpty(e.getMessage()))));
           setLoadingErrorTextOnEdt(e.getLocalizedMessage(), null);
 
           if (e instanceof GapisInitInputException) {

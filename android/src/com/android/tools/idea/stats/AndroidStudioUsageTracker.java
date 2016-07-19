@@ -20,6 +20,7 @@ import com.android.tools.analytics.Anonymizer;
 import com.android.tools.analytics.CommonMetricsData;
 import com.android.tools.analytics.UsageTracker;
 import com.android.utils.ILogger;
+import com.google.common.base.Strings;
 import com.google.wireless.android.sdk.stats.AndroidStudioStats;
 import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioStats.ProductDetails;
@@ -83,12 +84,12 @@ public class AndroidStudioUsageTracker {
   public static AndroidStudioStats.DeviceInfo deviceToDeviceInfo(@NotNull IDevice device) {
     return AndroidStudioStats.DeviceInfo.newBuilder()
       .setAnonymizedSerialNumber(anonymizeUtf8(device.getSerialNumber()))
-      .setBuildTags(device.getProperty(IDevice.PROP_BUILD_TAGS))
-      .setBuildType(device.getProperty(IDevice.PROP_BUILD_TYPE))
-      .setBuildVersionRelease(device.getProperty(IDevice.PROP_BUILD_VERSION))
-      .setBuildApiLevelFull(device.getProperty(IDevice.PROP_BUILD_API_LEVEL))
+      .setBuildTags(Strings.nullToEmpty(device.getProperty(IDevice.PROP_BUILD_TAGS)))
+      .setBuildType(Strings.nullToEmpty(device.getProperty(IDevice.PROP_BUILD_TYPE)))
+      .setBuildVersionRelease(Strings.nullToEmpty(device.getProperty(IDevice.PROP_BUILD_VERSION)))
+      .setBuildApiLevelFull(Strings.nullToEmpty(device.getProperty(IDevice.PROP_BUILD_API_LEVEL)))
       .setCpuAbi(CommonMetricsData.applicationBinaryInterfaceFromString(device.getProperty(IDevice.PROP_DEVICE_CPU_ABI)))
-      .setManufacturer(device.getProperty(IDevice.PROP_DEVICE_MANUFACTURER))
-      .setModel(device.getProperty(IDevice.PROP_DEVICE_MODEL)).build();
+      .setManufacturer(Strings.nullToEmpty(device.getProperty(IDevice.PROP_DEVICE_MANUFACTURER)))
+      .setModel(Strings.nullToEmpty(device.getProperty(IDevice.PROP_DEVICE_MODEL))).build();
   }
 }
