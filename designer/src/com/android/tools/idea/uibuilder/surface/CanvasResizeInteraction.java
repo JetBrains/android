@@ -149,10 +149,13 @@ public class CanvasResizeInteraction extends Interaction {
       return;
     }
 
-    screenView.getModel().overrideConfigurationScreenSize(Coordinates.getAndroidX(screenView, x),
-                                                          Coordinates.getAndroidY(screenView, y));
-    if (isPreviewSurface) {
-      updateUnavailableLayer(screenView);
+    int androidX = Coordinates.getAndroidX(screenView, x);
+    int androidY = Coordinates.getAndroidY(screenView, y);
+    if (androidX > 0 && androidY > 0) {
+      screenView.getModel().overrideConfigurationScreenSize(androidX, androidY);
+      if (isPreviewSurface) {
+        updateUnavailableLayer(screenView);
+      }
     }
   }
 
@@ -344,14 +347,14 @@ public class CanvasResizeInteraction extends Interaction {
       }
     });
 
-    if (canceled) {
+    int androidX = Coordinates.getAndroidX(screenView, x);
+    int androidY = Coordinates.getAndroidY(screenView, y);
+
+    if (canceled || androidX < 0 || androidY < 0) {
       Configuration configuration = screenView.getConfiguration();
       configuration.setEffectiveDevice(myOriginalDevice, myOriginalDeviceState);
     }
     else {
-      int androidX = Coordinates.getAndroidX(screenView, x);
-      int androidY = Coordinates.getAndroidY(screenView, y);
-
       Device deviceToSnap = snapToDevice(androidX, androidY);
       if (deviceToSnap != null) {
         State deviceState = deviceToSnap.getState(androidX < androidY ? "Portrait" : "Landscape");
