@@ -72,15 +72,9 @@ public class NewModuleTest {
 
   /**
    * Verifies addition of new application module to application.
-   * <p>
-   * This is run to qualify releases. Please involve the test team in substantial changes.
-   * </p>
-   * <p>
-   * TR ID: C14578813
-   * </p>
-   * <p>
+   * <p>This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>TR ID: C14578813
    * <pre>
-   *   This is run to qualify releases. Please involve the test team in substantial changes.
    *   Test Steps
    *   1. File -> new module
    *   2. Select Phone & Tablet module
@@ -89,7 +83,6 @@ public class NewModuleTest {
    *   Verification
    *   a new folder matching the module name should have been created.
    * </pre>
-   * </p>
    */
   @Test
   public void createNewAppModuleWithDefaults() throws Exception {
@@ -107,15 +100,9 @@ public class NewModuleTest {
 
   /**
    * Verifies addition of new library module to application.
-   * <p>
-   * This is run to qualify releases. Please involve the test team in substantial changes.
-   * </p>
-   * <p>
-   * TR ID: C14578813
-   * </p>
-   * <p>
+   * <p>This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>TR ID: C14578813
    * <pre>
-   *   This is run to qualify releases. Please involve the test team in substantial changes.
    *   Test Steps
    *   Create a new project
    *   1. File > New Module
@@ -124,7 +111,6 @@ public class NewModuleTest {
    *   Verification
    *   a new folder matching the module name should have been created
    * </pre>
-   * </p>
    */
   @Test
   public void createNewLibraryModuleWithDefaults() throws Exception {
