@@ -18,17 +18,18 @@ package com.android.tools.idea.uibuilder.property.editors;
 import com.android.tools.idea.uibuilder.property.NlFlagPropertyItem;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.ui.laf.darcula.ui.DarculaTextFieldUI;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.ui.DialogWrapper;
-import com.intellij.openapi.ui.FixedSizeButton;
-import com.intellij.ui.UIBundle;
-import com.intellij.ui.components.JBCheckBox;
+import com.intellij.ui.Gray;
+import com.intellij.ui.JBColor;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.plaf.TextUI;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -42,8 +43,6 @@ import static com.android.tools.idea.uibuilder.property.editors.NlEditingListene
  * a popup with a list of choices.
  */
 public class NlFlagsEditor extends NlBaseComponentEditor implements NlComponentEditor {
-  private static final int HORIZONTAL_SPACING = 2;
-
   private final JPanel myPanel;
   private final JTextField myValue;
   private NlFlagPropertyItem myProperty;
@@ -59,13 +58,11 @@ public class NlFlagsEditor extends NlBaseComponentEditor implements NlComponentE
                                            action.getTemplatePresentation().clone(),
                                            ActionPlaces.UNKNOWN,
                                            ActionToolbar.NAVBAR_MINIMUM_BUTTON_SIZE);
-    myValue = new JTextField();
+    myValue = new CustomTextField();
     myValue.setEditable(false);
-    JPanel panel = new JPanel(new BorderLayout());
-    panel.setBorder(BorderFactory.createEmptyBorder(0, HORIZONTAL_SPACING, 0, HORIZONTAL_SPACING));
-    panel.add(myValue, BorderLayout.CENTER);
-    myPanel = new JPanel(new BorderLayout());
-    myPanel.add(panel, BorderLayout.CENTER);
+    myPanel = new JPanel(new BorderLayout(HORIZONTAL_COMPONENT_GAP, 0));
+    myPanel.setBorder(BorderFactory.createEmptyBorder(VERTICAL_SPACING, 1, VERTICAL_SPACING, 0));
+    myPanel.add(myValue, BorderLayout.CENTER);
     myPanel.add(button, BorderLayout.LINE_END);
     myValue.addActionListener(event -> displayFlagEditor());
     myValue.addMouseListener(new MouseAdapter() {
@@ -123,6 +120,7 @@ public class NlFlagsEditor extends NlBaseComponentEditor implements NlComponentE
 
   private void displayFlagEditor() {
     FlagsDialog dialog = new FlagsDialog(myProperty);
+    dialog.setResizable(false);
     dialog.setInitialLocationCallback(() -> {
       Point location = new Point(0, 0);
       SwingUtilities.convertPointToScreen(location, myPanel);
@@ -170,6 +168,25 @@ public class NlFlagsEditor extends NlBaseComponentEditor implements NlComponentE
         panel.add(editor.getComponent());
       }
       return panel;
+    }
+  }
+
+  private static class CustomTextField extends JTextField {
+    private static final JBColor BORDER_COLOR = new JBColor(Gray._150, Gray._100);
+
+    public CustomTextField() {
+      setBorder(BorderFactory.createCompoundBorder(
+        BorderFactory.createLineBorder(BORDER_COLOR, 1),
+        BorderFactory.createEmptyBorder(VERTICAL_PADDING, HORIZONTAL_PADDING - 2, VERTICAL_PADDING, 0)));
+    }
+
+    @Override
+    public void setUI(TextUI ui) {
+      // We always want the Darcula UI.
+      // This allows us to show a consistent UI between all the editors.
+      // In this case we get consistent spacing with ComboBox and the text editor.
+      // Note: forcing the Darcula UI does not imply dark colors.
+      super.setUI(new DarculaTextFieldUI(this));
     }
   }
 }
