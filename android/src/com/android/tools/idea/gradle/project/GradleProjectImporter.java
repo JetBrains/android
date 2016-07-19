@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.facet.NativeAndroidGradleFacet;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.invoker.GradleTasksExecutor;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
+import com.android.tools.idea.gradle.project.sync.GradleSync;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.annotations.VisibleForTesting;
@@ -38,7 +39,6 @@ import com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
-import com.intellij.openapi.externalSystem.service.project.ExternalProjectRefreshCallback;
 import com.intellij.openapi.externalSystem.util.ExternalSystemBundle;
 import com.intellij.openapi.fileChooser.impl.FileChooserUtil;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -538,7 +538,7 @@ public class GradleProjectImporter {
 
     PostProjectSetupTasksExecutor.getInstance(project).setGenerateSourcesAfterSync(options.generateSourcesOnSuccess, options.cleanProject);
     ProjectSetUpTask setUpTask = new ProjectSetUpTask(project, newProject, options.importingExistingProject, false, listener);
-    myDelegate.importProject(project, setUpTask, progressExecutionMode);
+    myDelegate.importProject(project, setUpTask, progressExecutionMode, listener);
   }
 
   private static boolean forceSyncWithCachedModel() {
@@ -625,12 +625,19 @@ public class GradleProjectImporter {
   // Makes it possible to mock invocations to the Gradle Tooling API.
   static class ImporterDelegate {
     void importProject(@NotNull Project project,
-                       @NotNull ExternalProjectRefreshCallback callback,
-                       @NotNull ProgressExecutionMode progressExecutionMode) throws ConfigurationException {
+                       @NotNull ProjectSetUpTask callback,
+                       @NotNull ProgressExecutionMode executionMode,
+                       @Nullable GradleSyncListener listener)
+      throws ConfigurationException {
       try {
         String externalProjectPath = getBaseDirPath(project).getPath();
-        refreshProject(project, GRADLE_SYSTEM_ID, externalProjectPath, callback, false /* resolve dependencies */,
-                       progressExecutionMode, true /* always report import errors */);
+        if (GradleExperimentalSettings.getInstance().USE_NEW_GRADLE_SYNC) {
+          GradleSync.getInstance(project).sync(executionMode, listener);
+        }
+        else {
+          refreshProject(project, GRADLE_SYSTEM_ID, externalProjectPath, callback, false /* resolve dependencies */,
+                         executionMode, true /* always report import errors */);
+        }
       }
       catch (RuntimeException e) {
         String externalSystemName = GRADLE_SYSTEM_ID.getReadableName();

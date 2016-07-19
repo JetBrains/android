@@ -32,6 +32,7 @@ import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.gradle.project.ChooseGradleHomeDialog;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.templates.TemplateManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CharMatcher;
@@ -522,6 +523,23 @@ public final class GradleUtil {
   private static String getGradleDistributionUrl(@NotNull String gradleVersion, boolean binOnly) {
     String suffix = binOnly ? "bin" : "all";
     return String.format("https://services.gradle.org/distributions/gradle-%1$s-" + suffix + ".zip", gradleVersion);
+  }
+
+  @Nullable
+  public static GradleExecutionSettings getOrCreateGradleExecutionSettings(@NotNull Project project, boolean useEmbeddedGradle) {
+    GradleExecutionSettings executionSettings = getGradleExecutionSettings(project);
+    if (isAndroidStudio() && useEmbeddedGradle) {
+      if (executionSettings == null) {
+        File gradlePath = findEmbeddedGradleDistributionPath();
+        assert gradlePath != null && gradlePath.isDirectory();
+        executionSettings = new GradleExecutionSettings(gradlePath.getPath(), null, LOCAL, null, false);
+        File jdkPath = IdeSdks.getJdkPath();
+        if (jdkPath != null) {
+          executionSettings.setJavaHome(jdkPath.getPath());
+        }
+      }
+    }
+    return executionSettings;
   }
 
   @Nullable
