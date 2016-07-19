@@ -113,7 +113,7 @@ public class LineChartVisualTest extends VisualTest {
 
     final AtomicInteger variance = new AtomicInteger(10);
     final AtomicInteger delay = new AtomicInteger(100);
-    Thread mUpdateDataThread = new Thread() {
+    Thread updateDataThread = new Thread() {
       @Override
       public void run() {
         super.run();
@@ -137,7 +137,7 @@ public class LineChartVisualTest extends VisualTest {
       }
     };
 
-    mUpdateDataThread.start();
+    updateDataThread.start();
     controls.add(VisualTest.createVariableSlider("Delay", 10, 5000, new VisualTests.Value() {
       @Override
       public void set(int v) {
@@ -158,6 +158,24 @@ public class LineChartVisualTest extends VisualTest {
       @Override
       public int get() {
         return variance.get();
+      }
+    }));
+    controls.add(VisualTest.createVariableSlider("Line width", 1, 10, new VisualTests.Value() {
+      @Override
+      public void set(int v) {
+        Stroke stroke = new BasicStroke(v);
+        for (int i = 0; i < mRangedData.size(); i += 2) {
+          RangedContinuousSeries series = mRangedData.get(i);
+          mLineChart.getLineConfig(series).setStroke(stroke);
+        }
+      }
+
+      @Override
+      public int get() {
+        // Returns the stroke width of the first line, in case there is one, or a default (1) value
+        RangedContinuousSeries firstSeries = mRangedData.get(0);
+        Stroke firstLineStroke = mLineChart.getLineConfig(firstSeries).getStroke();
+        return firstLineStroke instanceof BasicStroke ? (int) ((BasicStroke) firstLineStroke).getLineWidth() : 1;
       }
     }));
     controls.add(VisualTest.createCheckbox("Shift xRange Min", itemEvent ->
