@@ -1334,6 +1334,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                     PsiResourceFile resourceFile = (PsiResourceFile)resFile;
                     resourceFile.addItems(ids);
                     myGeneration = ourModificationCounter.incrementAndGet();
+                    invalidateItemCaches(ResourceType.ID);
                   }
                 }
                 return;
