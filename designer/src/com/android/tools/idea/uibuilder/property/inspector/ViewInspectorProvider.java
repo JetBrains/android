@@ -23,6 +23,8 @@ import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.intellij.ide.ui.LafManager;
+import com.intellij.ide.ui.LafManagerListener;
 import com.intellij.openapi.project.Project;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
@@ -41,6 +43,7 @@ public class ViewInspectorProvider implements InspectorProvider {
   public ViewInspectorProvider(@NotNull Project project) {
     myViewHandlerManager = ViewHandlerManager.get(project);
     myInspectors = new HashMap<>();
+    LafManager.getInstance().addLafManagerListener(source -> myInspectors.clear());
   }
 
   @Override
