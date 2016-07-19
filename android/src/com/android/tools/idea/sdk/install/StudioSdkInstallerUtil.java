@@ -33,7 +33,7 @@ public final class StudioSdkInstallerUtil {
   @NotNull
   public static InstallerFactory createInstallerFactory(@NotNull RepoPackage p, @NotNull AndroidSdkHandler sdkHandler) {
     InstallerFactory factory = null;
-    if (Boolean.getBoolean("sdk.patches") && PatchInstallerFactory.canHandlePackage(p, sdkHandler)) {
+    if (!Boolean.getBoolean("sdk.patches.disable") && PatchInstallerFactory.canHandlePackage(p, sdkHandler)) {
       factory = new PatchInstallerFactory();
     }
     if (factory == null) {
