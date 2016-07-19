@@ -40,7 +40,7 @@ import java.util.*;
  */
 public class ToolComponentsPanel {
   private static final Set<String> MULTI_VERSION_PREFIXES =
-    ImmutableSet.of(SdkConstants.FD_BUILD_TOOLS, SdkConstants.FD_LLDB, SdkConstants.FD_CMAKE, PatchInstallerUtil.PATCHER_PATH_PREFIX);
+    ImmutableSet.of(SdkConstants.FD_BUILD_TOOLS, SdkConstants.FD_LLDB, SdkConstants.FD_CMAKE);
 
   private TreeTableView myToolsSummaryTable;
   private JCheckBox myToolsDetailsCheckbox;
@@ -163,6 +163,10 @@ public class ToolComponentsPanel {
       boolean found = false;
       if (lastSegmentIndex > 0) {
         prefix = prefix.substring(0, lastSegmentIndex);
+        if (prefix.equals(PatchInstallerUtil.PATCHER_PATH_PREFIX)) {
+          // We don't want to show the patcher in the UI
+          continue;
+        }
         if (MULTI_VERSION_PREFIXES.contains(prefix) || p.getRepresentative().getTypeDetails() instanceof DetailsTypes.MavenType) {
           myMultiVersionPackages.put(prefix, p);
           found = true;
