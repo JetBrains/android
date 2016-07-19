@@ -275,9 +275,17 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     assertStandardLayout(item, FRAME_LAYOUT, IN_PLATFORM);
   }
 
+  @Language("XML")
+  private static final String HORIZONTAL_LINEAR_LAYOUT_XML =
+    "<LinearLayout\n" +
+    "  android:orientation=\"horizontal\"\n" +
+    "  android:layout_width=\"match_parent\"\n" +
+    "  android:layout_height=\"match_parent\">\n" +
+    "</LinearLayout>\n";
+
   public void assertLinearLayoutItem(@NotNull Palette.BaseItem item) {
-    checkItem(item, LINEAR_LAYOUT, "LinearLayout (horizontal)", AndroidIcons.Views.LinearLayout,
-              STANDARD_LAYOUT.getXml(LINEAR_LAYOUT, XmlType.COMPONENT_CREATION), NO_PREVIEW, NO_PREVIEW, IN_PLATFORM, NO_SCALE);
+    checkItem(item, LINEAR_LAYOUT, "LinearLayout (horizontal)", AndroidIcons.Views.LinearLayout, HORIZONTAL_LINEAR_LAYOUT_XML,
+              NO_PREVIEW, NO_PREVIEW, IN_PLATFORM, NO_SCALE);
     checkComponent(createMockComponent(LINEAR_LAYOUT), "LinearLayout (horizontal)", AndroidIcons.Views.LinearLayout);
   }
 
