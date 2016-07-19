@@ -234,6 +234,7 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
         for (ArtifactDependencyModel dependency : dependenciesModel.artifacts(COMPILE)) {
           String notation = dependency.compactNotation().value();
           if (notation.startsWith(SdkConstants.APPCOMPAT_LIB_ARTIFACT) ||
+              notation.startsWith(SdkConstants.SUPPORT_LIB_ARTIFACT) ||
               notation.startsWith(SdkConstants.ANNOTATIONS_LIB_ARTIFACT)) {
             dependencyFound = true;
             break;
@@ -386,6 +387,7 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
         GradleBuildModel buildModel = GradleBuildModel.get(module);
         if (buildModel != null) {
           buildModel.dependencies().addArtifact(COMPILE, libraryCoordinate);
+          buildModel.applyChanges();
         }
       });
     }
