@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.structure.services;
 
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.ui.properties.core.IntValueProperty;
 import com.android.tools.idea.ui.properties.core.StringValueProperty;
 import com.google.common.io.Files;
 import com.google.common.io.Resources;
@@ -27,6 +29,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.xml.sax.SAXException;
@@ -38,6 +41,9 @@ import java.net.URL;
 import java.util.concurrent.Callable;
 
 import static com.android.tools.idea.structure.services.BuildSystemOperationsLookup.getBuildSystemOperations;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API_STRING;
+import static com.android.tools.idea.templates.TemplateMetadata.getBuildApiString;
 
 /**
  * A class used by plugins to expose their service resources to Android Studio.
@@ -98,6 +104,14 @@ public abstract class DeveloperServiceCreator {
 
     if (packageName != null) {
       context.putValue("packageName", new StringValueProperty(packageName));
+    }
+
+    AndroidPlatform platform = AndroidPlatform.getInstance(module);
+    if (platform != null) {
+      // Add the compileSdkVersion (or buildApiVersion) such that compatible dependencies are chosen
+      AndroidVersion version = platform.getApiVersion();
+      context.putValue(ATTR_BUILD_API, new IntValueProperty(version.getFeatureLevel()));
+      context.putValue(ATTR_BUILD_API_STRING, new StringValueProperty(getBuildApiString(version)));
     }
 
     return context;
