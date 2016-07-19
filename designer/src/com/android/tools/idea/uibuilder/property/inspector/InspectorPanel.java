@@ -68,6 +68,7 @@ public class InspectorPanel extends JPanel {
   public InspectorPanel(@NotNull Project project, @NotNull JComponent allPropertiesLink) {
     super(new BorderLayout());
     myAllPropertiesLink = allPropertiesLink;
+    myAllPropertiesLink.setBorder(BorderFactory.createEmptyBorder(5, 0, 10, 0));
     myProviders = createProviders(project);
     myDesignProperties = new NlDesignProperties();
     myExpandedIcon = (Icon)UIManager.get("Tree.expandedIcon");
@@ -132,11 +133,12 @@ public class InspectorPanel extends JPanel {
 
       endGroup();
       addSeparator();
-      addLineComponent(myAllPropertiesLink, myRow++);
 
       // Add a vertical spacer
       myInspector.add(new Spacer(), new GridConstraints(myRow++, 0, 1, 2, ANCHOR_CENTER, FILL_HORIZONTAL, SIZEPOLICY_CAN_GROW,
                                                         SIZEPOLICY_CAN_GROW | SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+      // Add link to all properties table
+      addLineComponent(myAllPropertiesLink, myRow++);
     }
 
     // These are both important to render the controls correctly the first time:
