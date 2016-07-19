@@ -25,6 +25,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.ide.ui.LafManager;
 import com.intellij.ide.ui.LafManagerListener;
+import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.project.Project;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
@@ -35,15 +36,19 @@ import java.util.*;
 
 import static com.android.SdkConstants.*;
 
-public class ViewInspectorProvider implements InspectorProvider {
+public class ViewInspectorProvider implements InspectorProvider, ProjectComponent, LafManagerListener {
   private static final Set<String> TAG_EXCEPTIONS = ImmutableSet.of(TEXT_VIEW, PROGRESS_BAR);
   private final ViewHandlerManager myViewHandlerManager;
   private final Map<String, InspectorComponent> myInspectors;
 
-  public ViewInspectorProvider(@NotNull Project project) {
+  @NotNull
+  public static ViewInspectorProvider getInstance(@NotNull Project project) {
+    return project.getComponent(ViewInspectorProvider.class);
+  }
+
+  private ViewInspectorProvider(@NotNull Project project) {
     myViewHandlerManager = ViewHandlerManager.get(project);
     myInspectors = new HashMap<>();
-    LafManager.getInstance().addLafManagerListener(source -> myInspectors.clear());
   }
 
   @Override
@@ -176,5 +181,34 @@ public class ViewInspectorProvider implements InspectorProvider {
         }
       }
     }
+  }
+
+  @Override
+  public void projectOpened() {
+  }
+
+  @Override
+  public void projectClosed() {
+  }
+
+  @Override
+  public void initComponent() {
+    LafManager.getInstance().addLafManagerListener(this);
+  }
+
+  @Override
+  public void disposeComponent() {
+    LafManager.getInstance().removeLafManagerListener(this);
+  }
+
+  @Override
+  public void lookAndFeelChanged(LafManager source) {
+    myInspectors.clear();
+  }
+
+  @NotNull
+  @Override
+  public String getComponentName() {
+    return ViewInspectorProvider.class.getSimpleName();
   }
 }

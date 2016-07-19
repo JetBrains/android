@@ -1162,6 +1162,14 @@
       <skipForDefaultProject/>
       <headless-implementation-class/>
     </component>
+    <component>
+      <implementation-class>com.android.tools.idea.uibuilder.property.editors.NlPropertyEditors</implementation-class>
+      <skipForDefaultProject/>
+    </component>
+    <component>
+      <implementation-class>com.android.tools.idea.uibuilder.property.inspector.ViewInspectorProvider</implementation-class>
+      <skipForDefaultProject/>
+    </component>
   </project-components>
 
   <!-- Layered images viewers -->
