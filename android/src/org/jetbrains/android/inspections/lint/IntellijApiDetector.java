@@ -613,6 +613,76 @@ public class IntellijApiDetector extends ApiDetector {
     }
 
     @Override
+    public void visitForeachStatement(PsiForeachStatement statement) {
+      super.visitForeachStatement(statement);
+
+      // The for each method will implicitly call iterator() on the
+      // Iterable that is used in the for each loop; make sure that
+      // the API level for that
+      if (!myCheckAccess) {
+        return;
+      }
+
+      PsiExpression value = statement.getIteratedValue();
+      if (value == null) {
+        return;
+      }
+
+      PsiType type = value.getType();
+      if (type instanceof PsiClassType) {
+        String expressionOwner = IntellijLintUtils.getInternalName((PsiClassType)type);
+        if (expressionOwner != null) {
+          int api = mApiDatabase.getClassVersion(expressionOwner);
+          if (api == -1) {
+            return;
+          }
+          int minSdk = getMinSdk(myContext);
+          if (api <= minSdk) {
+            return;
+          }
+          if (mySeenTargetApi) {
+            int target = getTargetApi(statement, myFile);
+            if (target != -1) {
+              if (api <= target) {
+                return;
+              }
+            }
+          }
+          if (mySeenSuppress && IntellijLintUtils.isSuppressed(statement, myFile, UNSUPPORTED)) {
+            return;
+          }
+
+          if (isWithinVersionCheckConditional(statement, api)) {
+            return;
+          }
+          if (isPrecededByVersionCheckExit(statement, api)) {
+            return;
+          }
+
+          Location location = IntellijLintUtils.getLocation(myContext.file, value);
+          String message = String.format("The type of the for loop iterated value is %1$s, which requires API level %2$d" +
+                                         " (current min is %3$d)", type.getCanonicalText(), api, minSdk);
+
+          // Add specific check ConcurrentHashMap#keySet and add workaround text.
+          // This was an unfortunate incompatible API change in Open JDK 8, which is
+          // not an issue for the Android SDK but is relevant if you're using a
+          // Java library.
+          if (value instanceof PsiMethodCallExpression) {
+            PsiMethodCallExpression valueCall = (PsiMethodCallExpression)value;
+            if ("keySet".equals(valueCall.getMethodExpression().getReferenceName())) {
+              PsiMethod keySet = valueCall.resolveMethod();
+              if (keySet != null && keySet.getContainingClass() != null &&
+                "java.util.concurrent.ConcurrentHashMap".equals(keySet.getContainingClass().getQualifiedName())) {
+                message += "; to work around this, add an explicit cast to (Map) before the `keySet` call.";
+              }
+            }
+          }
+          myContext.report(UNSUPPORTED, location, message);
+        }
+      }
+    }
+
+    @Override
     public void visitCallExpression(PsiCallExpression expression) {
       super.visitCallExpression(expression);
 
