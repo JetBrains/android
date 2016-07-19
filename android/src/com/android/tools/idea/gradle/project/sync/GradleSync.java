@@ -18,23 +18,34 @@ package com.android.tools.idea.gradle.project.sync;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.project.GradleProjectSyncData;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
 import com.intellij.openapi.externalSystem.util.ExternalSystemBundle;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.Function;
+import org.gradle.tooling.BuildActionExecuter;
 import org.gradle.tooling.ProjectConnection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 
+import java.util.Collections;
+import java.util.List;
+
+import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.GradleUtil.getOrCreateGradleExecutionSettings;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
+import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.RESOLVE_PROJECT;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
+import static org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper.prepare;
 
 public class GradleSync {
   @NotNull private final Project myProject;
@@ -87,13 +98,34 @@ public class GradleSync {
       return;
     }
 
-    GradleExecutionSettings executionSettings = getOrCreateGradleExecutionSettings(myProject, false);
-    Function<ProjectConnection, Void> syncFunction = projectConnection -> {
+    GradleExecutionSettings executionSettings = getOrCreateGradleExecutionSettings(myProject, useEmbeddedGradle());
+
+    Function<ProjectConnection, Void> syncFunction = connection -> {
+      List<Class<?>> modelTypes = Lists.newArrayList();
+      BuildActionExecuter<SyncAction.ProjectModels> executor = connection.action(new SyncAction(modelTypes));
+
+      ExternalSystemTaskNotificationListener listener = new ExternalSystemTaskNotificationListenerAdapter() {
+        // TODO: implement
+      };
+      List<String> commandLineArgs = new CommandLineArgs(myProject).get();
+
+      prepare(executor, createId(), executionSettings, listener, Collections.emptyList() /* JVM args */, commandLineArgs, connection);
+
       // TODO perform sync here.
       return null;
     };
 
     myHelper.execute(getBaseDirPath(myProject).getPath(), executionSettings, syncFunction);
+  }
+
+  @NotNull
+  private ExternalSystemTaskId createId() {
+    return ExternalSystemTaskId.create(GRADLE_SYSTEM_ID, RESOLVE_PROJECT, myProject);
+  }
+
+  private static boolean useEmbeddedGradle() {
+    // Do not use the Gradle distribution embedded in Android Studio, but the one set in the project's preference ("local" or "wrapper.")
+    return false;
   }
 
   // Made 'public' to avoid duplication with ProjectSetUpTask#onFailure.
