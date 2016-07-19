@@ -154,72 +154,72 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       Lists.newArrayList(
         new AlignAction(Scout.Arrange.HorizontalPack,
                         AndroidIcons.SherpaIcons.PackSelectionHorizontally,
-                        "Pack selection horizontally"),
+                        "Pack Horizontally"),
         new AlignAction(Scout.Arrange.VerticalPack,
                         AndroidIcons.SherpaIcons.PackSelectionVertically,
-                        "Pack selection vertically"),
+                        "Pack Vertically"),
         new AlignAction(Scout.Arrange.ExpandHorizontally,
                         AndroidIcons.SherpaIcons.HorizontalExpand,
-                        "Expand horizontally"),
+                        "Expand Horizontally"),
         new AlignAction(Scout.Arrange.ExpandVertically,
                         AndroidIcons.SherpaIcons.VerticalExpand,
-                        "Expand vertically")),
+                        "Expand Vertically")),
       Lists.newArrayList(new ViewActionSeparator()),
 
       Lists.newArrayList(
         new AlignAction(Scout.Arrange.DistributeHorizontally,
                         AndroidIcons.SherpaIcons.HorizontalDistribute, AndroidIcons.SherpaIcons.HorizontalDistributeB,
-                        "Distribute group horizontally"),
+                        "Distribute Horizontally"),
         new AlignAction(Scout.Arrange.DistributeVertically,
                         AndroidIcons.SherpaIcons.verticallyDistribute, AndroidIcons.SherpaIcons.verticallyDistribute,
-                        "Distribute group vertically")
+                        "Distribute Vertically")
       )
     )));
 
-    actions.add(new NestedViewActionMenu("Alignment", AndroidIcons.SherpaIcons.LeftAlignedB, Lists.newArrayList(
+    actions.add(new NestedViewActionMenu("Align", AndroidIcons.SherpaIcons.LeftAlignedB, Lists.newArrayList(
       Lists.newArrayList(
         new AlignAction(Scout.Arrange.AlignHorizontallyLeft,
                         AndroidIcons.SherpaIcons.LeftAligned, AndroidIcons.SherpaIcons.LeftAlignedB,
-                        "Align group horizontally on the left"),
+                        "Align Left Edges"),
         new AlignAction(Scout.Arrange.AlignHorizontallyCenter,
                         AndroidIcons.SherpaIcons.CenterAligned, AndroidIcons.SherpaIcons.CenterAlignedB,
-                        "Align group horizontally in the middle"),
+                        "Align Horizontal Centers"),
         new AlignAction(Scout.Arrange.AlignHorizontallyRight,
                         AndroidIcons.SherpaIcons.RightAligned, AndroidIcons.SherpaIcons.RightAlignedB,
-                        "Align group horizontally on the right")
+                        "Align Right Edges")
       ),
       Lists.newArrayList(
         new AlignAction(Scout.Arrange.AlignVerticallyTop,
                         AndroidIcons.SherpaIcons.TopAlign, AndroidIcons.SherpaIcons.TopAlignB,
-                        "Align group vertically to the top"),
+                        "Align Top Edges"),
         new AlignAction(Scout.Arrange.AlignVerticallyMiddle,
                         AndroidIcons.SherpaIcons.MiddleAlign, AndroidIcons.SherpaIcons.MiddleAlignB,
-                        "Align group vertically to the middle"),
+                        "Align Vertical Centers"),
         new AlignAction(Scout.Arrange.AlignVerticallyBottom,
                         AndroidIcons.SherpaIcons.BottomAlign, AndroidIcons.SherpaIcons.BottomAlignB,
-                        "Align group vertically to the bottom"),
+                        "Align Bottom Edges"),
         new AlignAction(Scout.Arrange.AlignBaseline,
                         AndroidIcons.SherpaIcons.BaselineAlign, AndroidIcons.SherpaIcons.BaselineAlignB,
-                        "Align group on the baseline")
+                        "Align Baselines")
       ),
       Lists.newArrayList(new ViewActionSeparator()),
       Lists.newArrayList(
         new AlignAction(Scout.Arrange.CenterHorizontally,
                         AndroidIcons.SherpaIcons.HorizontalCenter,
                         AndroidIcons.SherpaIcons.HorizontalCenterB,
-                        "Center the widget horizontally"),
+                        "Center Horizontally"),
         new AlignAction(Scout.Arrange.CenterVertically,
                         AndroidIcons.SherpaIcons.VerticalCenter,
                         AndroidIcons.SherpaIcons.VerticalCenterB,
-                        "Center the widget vertically"),
+                        "Center Vertically"),
         new AlignAction(Scout.Arrange.CenterHorizontallyInParent,
                         AndroidIcons.SherpaIcons.HorizontalCenterParent,
                         AndroidIcons.SherpaIcons.HorizontalCenterParentB,
-                        "Center the widget horizontally in parent"),
+                        "Center Horizontally in Parent"),
         new AlignAction(Scout.Arrange.CenterVerticallyInParent,
                         AndroidIcons.SherpaIcons.VerticalCenterParent,
                         AndroidIcons.SherpaIcons.VerticalCenterParent,
-                        "Center the widget vertically in parent")
+                        "Center Vertically in Parent")
       )
     )));
 
@@ -242,82 +242,82 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     String str;
     ViewAction action;
 
-    str = "Pack selection horizontally";
+    str = "Pack Horizontally";
     actions.add(action = new AlignAction(Scout.Arrange.HorizontalPack,
                                          AndroidIcons.SherpaIcons.PackSelectionHorizontally, str));
     myPopupActions.add(action);
 
-    str = "Pack selection vertically";
+    str = "Pack Vertically";
     actions.add(action = new AlignAction(Scout.Arrange.VerticalPack,
                                          AndroidIcons.SherpaIcons.PackSelectionVertically, str));
     myPopupActions.add(action);
 
-    str = "Expand horizontally";
+    str = "Expand Horizontally";
     actions.add(action = new AlignAction(Scout.Arrange.ExpandHorizontally,
                                          AndroidIcons.SherpaIcons.HorizontalExpand, str));
     myPopupActions.add(action);
 
-    str = "Expand vertically";
+    str = "Expand Vertically";
     actions.add(action = new AlignAction(Scout.Arrange.ExpandVertically,
                                          AndroidIcons.SherpaIcons.VerticalExpand, str));
     myPopupActions.add(action);
 
     actions.add((new ViewActionSeparator()));
 
-    str = "Align group horizontally on the left";
+    str = "Align Left Edges";
     actions.add(action = new AlignAction(Scout.Arrange.AlignHorizontallyLeft,
                                          AndroidIcons.SherpaIcons.LeftAligned, AndroidIcons.SherpaIcons.LeftAlignedB, str));
     myPopupActions.add(action);
 
-    str = "Align group horizontally in the middle";
+    str = "Align Horizontal Centers";
     actions.add(action = new AlignAction(Scout.Arrange.AlignHorizontallyCenter,
                                          AndroidIcons.SherpaIcons.CenterAligned, AndroidIcons.SherpaIcons.CenterAlignedB, str));
     myPopupActions.add(action);
 
-    str = "Align group horizontally on the right";
+    str = "Align Right Edges";
     actions.add(action = new AlignAction(Scout.Arrange.AlignHorizontallyRight,
                                          AndroidIcons.SherpaIcons.RightAligned, AndroidIcons.SherpaIcons.RightAlignedB, str));
     myPopupActions.add(action);
 
-    str = "Align group vertically to the top";
+    str = "Align Top Edges";
     actions.add(action = new AlignAction(Scout.Arrange.AlignVerticallyTop,
                                          AndroidIcons.SherpaIcons.TopAlign, AndroidIcons.SherpaIcons.TopAlignB, str));
     myPopupActions.add(action);
 
-    str = "Align group vertically to the middle";
+    str = "Align Vertical Centers";
     actions.add(action = new AlignAction(Scout.Arrange.AlignVerticallyMiddle,
                                          AndroidIcons.SherpaIcons.MiddleAlign, AndroidIcons.SherpaIcons.MiddleAlignB, str));
     myPopupActions.add(action);
 
-    str = "Align group vertically to the bottom";
+    str = "Align Bottom Edges";
     actions.add(action = new AlignAction(Scout.Arrange.AlignVerticallyBottom,
                                          AndroidIcons.SherpaIcons.BottomAlign, AndroidIcons.SherpaIcons.BottomAlignB, str));
     myPopupActions.add(action);
 
-    str = "Align group on the baseline";
+    str = "Align Baselines";
     actions.add(action = new AlignAction(Scout.Arrange.AlignBaseline,
                                          AndroidIcons.SherpaIcons.BaselineAlign, AndroidIcons.SherpaIcons.BottomAlignB, str));
     myPopupActions.add(action);
 
     actions.add((new ViewActionSeparator()));
 
-    str = "Center the widget horizontally";
+    str = "Center Horizontally";
     actions.add(action = new AlignAction(Scout.Arrange.CenterHorizontally,
                                          AndroidIcons.SherpaIcons.HorizontalCenter, AndroidIcons.SherpaIcons.HorizontalCenterB, str));
     myPopupActions.add(action);
 
-    str = "Center the widget vertically";
+    str = "Center Vertically";
     actions.add(action = new AlignAction(Scout.Arrange.CenterVertically,
                                          AndroidIcons.SherpaIcons.VerticalCenter, AndroidIcons.SherpaIcons.VerticalCenterB, str));
     myPopupActions.add(action);
 
-    str = "Center the widget horizontally in parent";
+    str = "Center Horizontally in Parent";
     actions.add(action = new AlignAction(Scout.Arrange.CenterHorizontallyInParent,
                                          AndroidIcons.SherpaIcons.HorizontalCenterParent, AndroidIcons.SherpaIcons.HorizontalCenterParentB,
                                          str));
     myPopupActions.add(action);
 
-    str = "Center the widget vertically in parent";
+    str = "Center Vertically in Parent";
     actions.add(action = new AlignAction(Scout.Arrange.CenterVerticallyInParent,
                                          AndroidIcons.SherpaIcons.VerticalCenterParent, AndroidIcons.SherpaIcons.VerticalCenterParentB,
                                          str));
@@ -446,7 +446,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
 
   private static class ToggleAutoConnectAction extends ToggleViewAction implements Enableable {
     public ToggleAutoConnectAction() {
-      super(AndroidIcons.SherpaIcons.AutoConnectOff, AndroidIcons.SherpaIcons.AutoConnect, "Turn on Autoconnect", "Turn off Autoconnect");
+      super(AndroidIcons.SherpaIcons.AutoConnectOff, AndroidIcons.SherpaIcons.AutoConnect, "Turn On Autoconnect", "Turn Off Autoconnect");
     }
 
     @Override
@@ -513,7 +513,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                                    @NotNull List<NlComponent> selectedChildren,
                                    @InputEventMask int modifiers) {
       presentation.setIcon(AndroidIcons.SherpaIcons.DeleteConstraint);
-      presentation.setLabel("Clear all constraints");
+      presentation.setLabel("Clear All Constraints");
     }
   }
 
@@ -577,14 +577,14 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                                    @NotNull List<NlComponent> selectedChildren,
                                    @InputEventMask int modifiers) {
       presentation.setIcon(AndroidIcons.SherpaIcons.Inference);
-      presentation.setLabel("Infer constraints");
+      presentation.setLabel("Infer Constraints");
     }
   }
 
   private class ToggleConstraintModeAction extends ToggleViewAction {
     public ToggleConstraintModeAction() {
-      super(AndroidIcons.SherpaIcons.Unhide, AndroidIcons.SherpaIcons.Hide, "Show constraints",
-            "Show No constraints");
+      super(AndroidIcons.SherpaIcons.Unhide, AndroidIcons.SherpaIcons.Hide, "Show Constraints",
+            "Hide Constraints");
       myShowAllConstraints = PropertiesComponent.getInstance().getBoolean(SHOW_CONSTRAINTS_PREF_KEY);
     }
 
@@ -782,12 +782,12 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
   }
 
   private static class MarginSelector extends DirectViewAction {
-    ConstraintModel myModel;
     MarginPopup myMarginPopup = new MarginPopup();
     private int myMarginIconValue;
     private Icon myMarginIcon;
 
     public MarginSelector() {
+      setLabel("Default Margins"); // tooltip
       myMarginPopup.setActionListener((e) -> setMargin());
     }
 
