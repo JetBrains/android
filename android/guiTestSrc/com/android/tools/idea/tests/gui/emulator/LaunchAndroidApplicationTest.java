@@ -75,6 +75,7 @@ public class LaunchAndroidApplicationTest {
     guiTest.ideFrame().invokeAvdManager().deleteAvd(AVD_NAME).close();
   }
 
+  @Ignore("http://b.android.com/216396")
   @Test
   public void testRunOnEmulator() throws IOException, ClassNotFoundException {
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
