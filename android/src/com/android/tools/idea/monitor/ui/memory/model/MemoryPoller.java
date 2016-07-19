@@ -150,7 +150,7 @@ public class MemoryPoller extends Poller {
   }
 
   @Override
-  protected void asyncInit() {
+  protected void asyncInit() throws StatusRuntimeException {
     MemoryConfig config = MemoryConfig.newBuilder().setAppId(myAppId).addOptions(
       MemoryConfig.Option.newBuilder().setFeature(MemoryFeature.MEMORY_LEVELS).setEnabled(true)
         .build()
@@ -160,7 +160,7 @@ public class MemoryPoller extends Poller {
   }
 
   @Override
-  protected void asyncShutdown() {
+  protected void asyncShutdown() throws StatusRuntimeException {
     MemoryConfig config = MemoryConfig.newBuilder().setAppId(myAppId).addOptions(
       MemoryConfig.Option.newBuilder().setFeature(MemoryFeature.MEMORY_LEVELS).setEnabled(false)
         .build()
@@ -169,67 +169,61 @@ public class MemoryPoller extends Poller {
   }
 
   @Override
-  protected void poll() {
-    MemoryData result;
-    try {
-      MemoryRequest request =
-        MemoryRequest.newBuilder().setAppId(myAppId).setStartTime(myStartTimestampNs).setEndTime(Long.MAX_VALUE)
-          .build();
-      result = myService.getMemoryService().getData(request);
+  protected void poll() throws StatusRuntimeException {
+    MemoryRequest request = MemoryRequest.newBuilder()
+      .setAppId(myAppId)
+      .setStartTime(myStartTimestampNs)
+      .setEndTime(Long.MAX_VALUE)
+      .build();
+    MemoryData result = myService.getMemoryService().getData(request);
 
-      myDataCache.appendMemorySamples(result.getMemSamplesList());
-      myDataCache.appendVmStatsSamples(result.getVmStatsSamplesList());
+    myDataCache.appendMemorySamples(result.getMemSamplesList());
+    myDataCache.appendVmStatsSamples(result.getVmStatsSamplesList());
 
-      List<MemoryData.HeapDumpSample> pendingPulls = new ArrayList<>();
-      for (int i = 0; i < result.getHeapDumpSamplesCount(); i++) {
-        MemoryData.HeapDumpSample sample = result.getHeapDumpSamples(i);
-        if (myHasPendingHeapDumpSample) {
-          // Note - if there is an existing pending heap dump, the first sample from the response should represent the same sample
-          assert i == 0 && sample.getEndTime() != UNFINISHED_HEAP_DUMP_TIMESTAMP;
+    List<MemoryData.HeapDumpSample> pendingPulls = new ArrayList<>();
+    for (int i = 0; i < result.getHeapDumpSamplesCount(); i++) {
+      MemoryData.HeapDumpSample sample = result.getHeapDumpSamples(i);
+      if (myHasPendingHeapDumpSample) {
+        // Note - if there is an existing pending heap dump, the first sample from the response should represent the same sample
+        assert i == 0 && sample.getEndTime() != UNFINISHED_HEAP_DUMP_TIMESTAMP;
 
-          MemoryData.HeapDumpSample previousLastSample = myDataCache.swapLastHeapDumpSample(sample);
-          assert previousLastSample.getFilePath().equals(sample.getFilePath());
-          myHasPendingHeapDumpSample = false;
-          pendingPulls.add(sample);
+        MemoryData.HeapDumpSample previousLastSample = myDataCache.swapLastHeapDumpSample(sample);
+        assert previousLastSample.getFilePath().equals(sample.getFilePath());
+        myHasPendingHeapDumpSample = false;
+        pendingPulls.add(sample);
+      }
+      else {
+        myDataCache.appendHeapDumpSample(sample);
+
+        if (sample.getEndTime() == UNFINISHED_HEAP_DUMP_TIMESTAMP) {
+          // Note - there should be at most one unfinished heap dump request at a time. e.g. the final sample from the response.
+          assert i == result.getHeapDumpSamplesCount() - 1;
+          myHasPendingHeapDumpSample = true;
         }
         else {
-          myDataCache.appendHeapDumpSample(sample);
-
-          if (sample.getEndTime() == UNFINISHED_HEAP_DUMP_TIMESTAMP) {
-            // Note - there should be at most one unfinished heap dump request at a time. e.g. the final sample from the response.
-            assert i == result.getHeapDumpSamplesCount() - 1;
-            myHasPendingHeapDumpSample = true;
-          }
-          else {
-            pendingPulls.add(sample);
-          }
+          pendingPulls.add(sample);
         }
       }
+    }
 
-      if (!pendingPulls.isEmpty()) {
-        ApplicationManager.getApplication().executeOnPooledThread(() -> {
-          try {
-            assert myLogcatHeapDumpFinishedLatch != null;
-            //noinspection ConstantConditions
-            myLogcatHeapDumpFinishedLatch.await(1, TimeUnit.MINUTES); // TODO Change this to heartbeat-based.
-            for (MemoryData.HeapDumpSample sample : pendingPulls) {
-              File heapDumpFile = pullHeapDumpFile(sample);
-              if (heapDumpFile != null) {
-                myDataCache.addPulledHeapDumpFile(sample, heapDumpFile);
-              }
+    if (!pendingPulls.isEmpty()) {
+      ApplicationManager.getApplication().executeOnPooledThread(() -> {
+        try {
+          assert myLogcatHeapDumpFinishedLatch != null;
+          //noinspection ConstantConditions
+          myLogcatHeapDumpFinishedLatch.await(1, TimeUnit.MINUTES); // TODO Change this to heartbeat-based.
+          for (MemoryData.HeapDumpSample sample : pendingPulls) {
+            File heapDumpFile = pullHeapDumpFile(sample);
+            if (heapDumpFile != null) {
+              myDataCache.addPulledHeapDumpFile(sample, heapDumpFile);
             }
           }
-          catch (InterruptedException ignored) {}
-          finally {
-            myLogcatHeapDumpFinishedLatch = null;
-          }
-        });
-      }
-    }
-    catch (StatusRuntimeException e) {
-      LOG.info("Server most likely unreachable.");
-      cancel(true);
-      return;
+        }
+        catch (InterruptedException ignored) {}
+        finally {
+          myLogcatHeapDumpFinishedLatch = null;
+        }
+      });
     }
 
     if (result.getEndTimestamp() > myStartTimestampNs) {

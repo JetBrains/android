@@ -406,6 +406,9 @@ public class AndroidMonitorToolWindow implements Disposable {
       @Override
       public void profilerServerDisconnected() {
         LOG.info("Attempt to communicate with Device Profiler Service failed. Disconnecting...");
+        // TODO Right now this callback can be called from many pollers which in-turn would
+        // call disconnectFromDevice() all at once, which is potentially not thread safe.
+        // We should add some logic to guard against this case.
         disconnectFromDevice();
       }
     });

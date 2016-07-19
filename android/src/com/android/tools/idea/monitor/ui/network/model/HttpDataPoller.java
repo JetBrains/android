@@ -61,13 +61,17 @@ public class HttpDataPoller extends Poller {
   }
 
   @Override
-  protected void asyncInit() {
+  protected void asyncInit() throws StatusRuntimeException {
     myNetworkService = myService.getNetworkService();
     myDataRequestStartTimeNs = Long.MIN_VALUE;
   }
 
   @Override
-  protected void poll() {
+  protected void asyncShutdown() throws StatusRuntimeException {
+  }
+
+  @Override
+  protected void poll() throws StatusRuntimeException {
     NetworkProfiler.HttpRangeRequest request = NetworkProfiler.HttpRangeRequest.newBuilder()
       .setAppId(myPid).setStartTimestamp(myDataRequestStartTimeNs).setEndTimestamp(Long.MAX_VALUE).build();
     NetworkProfiler.HttpRangeResponse response;
@@ -100,10 +104,6 @@ public class HttpDataPoller extends Poller {
         myDataRequestStartTimeNs = Math.max(myDataRequestStartTimeNs, connection.getEndTimestamp() + 1);
       }
     }
-  }
-
-  @Override
-  protected void asyncShutdown() {
   }
 
   private void getHttpRequest(HttpData data) {
