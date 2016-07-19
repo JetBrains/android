@@ -51,6 +51,7 @@ public class InspectorPanel extends JPanel {
   private static final List<String> PREFERRED_PROPERTY_NAMES = ImmutableList.of(ATTR_TEXT, ATTR_SRC, ATTR_ID);
   private static final int HORIZONTAL_SPACING = 6;
 
+  private final JComponent myAllPropertiesLink;
   private final List<InspectorProvider> myProviders;
   private final NlDesignProperties myDesignProperties;
   private final Font myBoldLabelFont = UIUtil.getLabelFont().deriveFont(Font.BOLD);
@@ -64,8 +65,9 @@ public class InspectorPanel extends JPanel {
   private int myRow;
   private boolean myActivateEditorAfterLoad;
 
-  public InspectorPanel(@NotNull Project project) {
+  public InspectorPanel(@NotNull Project project, @NotNull JComponent allPropertiesLink) {
     super(new BorderLayout());
+    myAllPropertiesLink = allPropertiesLink;
     myProviders = createProviders(project);
     myDesignProperties = new NlDesignProperties();
     myExpandedIcon = (Icon)UIManager.get("Tree.expandedIcon");
@@ -118,21 +120,22 @@ public class InspectorPanel extends JPanel {
     for (InspectorComponent inspector : inspectors) {
       rows += inspector.getMaxNumberOfRows();
     }
-    rows += inspectors.size(); // 1 row for each divider + 1 row with a spacer on the bottom
+    rows += inspectors.size(); // 1 row for each divider (including 1 after the last property)
+    rows += 2; // 1 Line with a link to all properties + 1 row with a spacer on the bottom
 
-    if (rows > 0) {
-      myInspector.setLayout(createLayoutManager(rows, 2));
-      for (InspectorComponent inspector : inspectors) {
-        addSeparator();
-        inspector.attachToInspector(this);
-      }
-
-      endGroup();
-
-      // Add a vertical spacer
-      myInspector.add(new Spacer(), new GridConstraints(myRow++, 0, 1, 2, ANCHOR_CENTER, FILL_HORIZONTAL, SIZEPOLICY_CAN_GROW,
-                                                        SIZEPOLICY_CAN_GROW | SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+    myInspector.setLayout(createLayoutManager(rows, 2));
+    for (InspectorComponent inspector : inspectors) {
+      addSeparator();
+      inspector.attachToInspector(this);
     }
+
+    endGroup();
+    addSeparator();
+    addLineComponent(myAllPropertiesLink, myRow++);
+
+    // Add a vertical spacer
+    myInspector.add(new Spacer(), new GridConstraints(myRow++, 0, 1, 2, ANCHOR_CENTER, FILL_HORIZONTAL, SIZEPOLICY_CAN_GROW,
+                                                      SIZEPOLICY_CAN_GROW | SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
 
     // These are both important to render the controls correctly the first time:
     ApplicationManager.getApplication().invokeLater(() -> {
