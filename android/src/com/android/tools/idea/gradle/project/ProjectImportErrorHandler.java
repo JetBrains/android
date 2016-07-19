@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.service.notification.errors.FailedToParseSdkErrorHandler;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Strings;
 import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.GradleSyncFailure;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
@@ -223,7 +224,7 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
     }
 
     if (rootCause instanceof NoSuchMethodError) {
-      String methodName = rootCause.getMessage();
+      String methodName = Strings.nullToEmpty(rootCause.getMessage());
 
       UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
                                        .setCategory(AndroidStudioEvent.EventCategory.GRADLE_SYNC)
@@ -237,7 +238,7 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
     }
 
     if (rootCause instanceof ClassNotFoundException) {
-      String className = rootCause.getMessage();
+      String className = Strings.nullToEmpty(rootCause.getMessage());
 
       UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
                                        .setCategory(AndroidStudioEvent.EventCategory.GRADLE_SYNC)

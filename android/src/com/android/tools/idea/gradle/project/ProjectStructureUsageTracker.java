@@ -110,6 +110,9 @@ public class ProjectStructureUsageTracker {
       String appId = AndroidStudioUsageTracker.anonymizeUtf8(model.getApplicationId());
       AndroidProject androidProject = model.getAndroidProject();
       GradleVersion gradleVersion = getGradleVersion(myProject);
+      if (gradleVersion == null) {
+        gradleVersion = new GradleVersion(0,0,0);
+      }
 
       GradleModule gradleModule = GradleModule.newBuilder()
         .setTotalModuleCount(modules.length)
