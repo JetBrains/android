@@ -1039,7 +1039,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
                                    @NotNull NlComponent component,
                                    @NotNull List<NlComponent> selectedChildren,
                                    @InputEventMask int modifiers) {
-      presentation.setVisible(selectedChildren.size() > 1);
+      presentation.setVisible(!selectedChildren.isEmpty());
     }
   }
 
@@ -1062,7 +1062,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
                                    @NotNull NlComponent component,
                                    @NotNull List<NlComponent> selectedChildren,
                                    @InputEventMask int modifiers) {
-      presentation.setVisible(selectedChildren.size() > 1);
+      presentation.setVisible(!selectedChildren.isEmpty());
     }
   }
 
