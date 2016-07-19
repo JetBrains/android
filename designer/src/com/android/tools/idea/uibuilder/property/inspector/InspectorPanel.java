@@ -79,7 +79,7 @@ public class InspectorPanel extends JPanel {
 
   private static List<InspectorProvider> createProviders(@NotNull Project project) {
     return ImmutableList.of(new IdInspectorProvider(),
-                            new ViewInspectorProvider(project),
+                            ViewInspectorProvider.getInstance(project),
                             new ProgressBarInspectorProvider(),
                             new TextInspectorProvider(),
                             new MockupInspectorProvider()
