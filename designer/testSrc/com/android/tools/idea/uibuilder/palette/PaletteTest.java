@@ -54,7 +54,17 @@ public class PaletteTest extends PaletteTestCase {
     "  <group name=\"Widgets\">\n" +
     "    <item tag=\"TextView\"/>\n" +
     "    <item tag=\"LinearLayout\" " +
-    "          title=\"LinearLayout (horizontal)\"/>\n" +
+    "          title=\"LinearLayout (horizontal)\">\n" +
+    "      <xml>\n" +
+    "        <![CDATA[\n" +
+    "            <LinearLayout\n" +
+    "              android:orientation=\"horizontal\"\n" +
+    "              android:layout_width=\"match_parent\"\n" +
+    "              android:layout_height=\"match_parent\">\n" +
+    "            </LinearLayout>\n" +
+    "          ]]>\n" +
+    "      </xml>\n" +
+    "    </item>\n" +
     "    <item tag=\"ProgressBar\"\n" +
     "          id=\"LargeProgressBar\"\n" +
     "          title=\"ProgressBar (Large)\">\n" +

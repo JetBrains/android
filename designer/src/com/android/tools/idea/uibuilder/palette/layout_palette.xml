@@ -380,7 +380,17 @@
     <item tag="FrameLayout"/>
     <item tag="LinearLayout"
           title="LinearLayout (horizontal)"
-          icon="AndroidIcons.Views.LinearLayout"/>
+          icon="AndroidIcons.Views.LinearLayout">
+      <xml>
+        <![CDATA[
+            <LinearLayout
+              android:orientation="horizontal"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+            </LinearLayout>
+          ]]>
+      </xml>
+    </item>
     <item tag="LinearLayout"
           title="LinearLayout (vertical)"
           icon="AndroidIcons.Views.VerticalLinearLayout">
