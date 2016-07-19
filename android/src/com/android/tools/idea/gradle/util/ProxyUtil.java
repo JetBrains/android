@@ -137,7 +137,7 @@ public final class ProxyUtil {
           } catch (InvocationTargetException e) {
             value = new InvocationErrorValue(e.getCause());
           }
-          values.put(m.toGenericString(), reproxy(m.getGenericReturnType(), value));
+          values.put(m.toGenericString().intern(), reproxy(m.getGenericReturnType(), value));
         }
       }
       catch (IllegalAccessException e) {
