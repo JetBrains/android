@@ -444,6 +444,12 @@ public class AttributeProcessingUtil {
       if (VIEW_MERGE.equals(parentTagName)) {
         parentTagName = parentTag.getAttributeValue(ATTR_PARENT_TAG, TOOLS_URI);
       }
+
+      if (TAG_LAYOUT.equals(parentTagName)) {
+        // Data binding: ensure that the children of the <layout> tag
+        // pick up layout params from ViewGroup (layout_width and layout_height)
+        parentTagName = VIEW_GROUP;
+      }
       if (parentTagName != null) {
         PsiClass c = map.get(parentTagName);
         while (c != null) {
