@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.property.inspector;
 
-import com.android.assetstudiolib.AndroidVectorIcons;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.PreferenceUtils;
 import com.android.tools.idea.uibuilder.property.NlFlagPropertyItem;
@@ -133,14 +132,14 @@ public class TextInspectorProvider implements InspectorProvider {
       myTypefaceEditor = NlEnumEditor.createForInspector(DEFAULT_LISTENER);
       myFontSizeEditor = NlEnumEditor.createForInspector(DEFAULT_LISTENER);
       mySpacingEditor = NlEnumEditor.createForInspector(DEFAULT_LISTENER);
-      myBoldEditor = new NlBooleanIconEditor(AndroidVectorIcons.EditorIcons.Bold);
-      myItalicsEditor = new NlBooleanIconEditor(AndroidVectorIcons.EditorIcons.Italic);
-      myAllCapsEditor = new NlBooleanIconEditor(AndroidVectorIcons.EditorIcons.AllCaps);
-      myStartEditor = new NlBooleanIconEditor(AndroidVectorIcons.EditorIcons.AlignLeft, TextAlignment.VIEW_START);
-      myLeftEditor = new NlBooleanIconEditor(AndroidVectorIcons.EditorIcons.AlignLeft, TextAlignment.TEXT_START);
-      myCenterEditor = new NlBooleanIconEditor(AndroidVectorIcons.EditorIcons.AlignCenter, TextAlignment.CENTER);
-      myRightEditor = new NlBooleanIconEditor(AndroidVectorIcons.EditorIcons.AlignRight, TextAlignment.TEXT_END);
-      myEndEditor = new NlBooleanIconEditor(AndroidVectorIcons.EditorIcons.AlignRight, TextAlignment.VIEW_END);
+      myBoldEditor = new NlBooleanIconEditor(AndroidIcons.NeleIcons.TextStyleBold, "Bold");
+      myItalicsEditor = new NlBooleanIconEditor(AndroidIcons.NeleIcons.TextStyleItalics, "Italics");
+      myAllCapsEditor = new NlBooleanIconEditor(AndroidIcons.NeleIcons.TextAllCaps, "All Caps");
+      myStartEditor = new NlBooleanIconEditor(AndroidIcons.NeleIcons.TextAlignViewStart, "Align Start of View", TextAlignment.VIEW_START);
+      myLeftEditor = new NlBooleanIconEditor(AndroidIcons.NeleIcons.TextAlignTextStart, "Align Start of Text", TextAlignment.TEXT_START);
+      myCenterEditor = new NlBooleanIconEditor(AndroidIcons.NeleIcons.TextAlignCentered, "Align Center", TextAlignment.CENTER);
+      myRightEditor = new NlBooleanIconEditor(AndroidIcons.NeleIcons.TextAlignTextEnd, "Align End of Text", TextAlignment.TEXT_END);
+      myEndEditor = new NlBooleanIconEditor(AndroidIcons.NeleIcons.TextAlignViewEnd, "Align End of View", TextAlignment.VIEW_END);
       myColorEditor = NlReferenceEditor.createForInspectorWithBrowseButton(propertiesManager.getProject(), DEFAULT_LISTENER);
 
       myTextStylePanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
