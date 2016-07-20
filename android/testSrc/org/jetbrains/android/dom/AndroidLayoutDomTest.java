@@ -159,6 +159,13 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
                           "tools_designtime_completion_background_after.xml");
   }
 
+  // Code completion in views inside a <layout> tag need to pick up default layout params
+  public void testDataBindingLayoutPAramCompletion() throws Throwable {
+    // Regression test for https://code.google.com/p/android/issues/detail?id=212690
+    toTestFirstCompletion("data_binding_completion.xml",
+                          "data_binding_completion_after.xml");
+  }
+
   // fontFamily attribute values are autocompleted
   public void testFontFamilyCompletion() throws Throwable {
     doTestCompletionVariants("text_view_font_family.xml", "monospace", "serif-monospace");
