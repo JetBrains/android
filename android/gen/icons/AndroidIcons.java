@@ -199,6 +199,17 @@ public class AndroidIcons {
 
     public static final Icon ToggleProperties = load("/icons/nele/toggle_props.png"); // 16x16
     public static final Icon DesignProperty = load("/icons/nele/design-property.png");  // 12x12
+    public static final Icon DesignPropertyEnabled = load("/icons/nele/design-property-enabled.png");  // 12x12
+
+    public static final Icon TextStyleBold = load("/icons/nele/text/text-style-bold.png"); // 16x16
+    public static final Icon TextStyleItalics = load("/icons/nele/text/text-style-italics.png"); // 16x16
+    public static final Icon TextAllCaps = load("/icons/nele/text/text-all-caps.png"); // 16x16
+
+    public static final Icon TextAlignTextStart = load("/icons/nele/text/text-align-text-start.png"); // 16x16
+    public static final Icon TextAlignViewStart = load("/icons/nele/text/text-align-view-start.png"); // 16x16
+    public static final Icon TextAlignCentered = load("/icons/nele/text/text-align-centered.png"); // 16x16
+    public static final Icon TextAlignViewEnd = load("/icons/nele/text/text-align-view-end.png"); // 16x16
+    public static final Icon TextAlignTextEnd = load("/icons/nele/text/text-align-text-end.png"); // 16x16
   }
 
   public static class LintNotification {
