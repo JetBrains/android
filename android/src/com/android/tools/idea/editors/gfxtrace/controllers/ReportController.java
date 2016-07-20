@@ -39,6 +39,7 @@ import javax.swing.tree.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.Enumeration;
 
 // TODO: Check if there's a need of TreeController (probably some kind of ListController will satisfy this entity).
 public class ReportController extends TreeController implements ReportStream.Listener {
@@ -267,6 +268,36 @@ public class ReportController extends TreeController implements ReportStream.Lis
     else {
       myLoadingPanel.showLoadingError("Failed to load report");
     }
+  }
+
+  @Override
+  public void onReportItemSelected(ReportItem reportItem) {
+    DefaultMutableTreeNode root = (DefaultMutableTreeNode)myTree.getModel().getRoot();
+    updateSelection(root, new TreePath(root), reportItem.getAtom());
+  }
+
+  private void updateSelection(DefaultMutableTreeNode root, TreePath path, long atomId) {
+    // TODO: If server provides report items sorted by atom id, replace linear for binary search.
+    for (Enumeration it = root.children(); it.hasMoreElements(); ) {
+      DefaultMutableTreeNode child = (DefaultMutableTreeNode)it.nextElement();
+      Object object = child.getUserObject();
+      if (object instanceof ReportItem && atomId == (((ReportItem)object).getAtom())) {
+        updateSelection(path.pathByAddingChild(child));
+        return;
+      }
+    }
+  }
+
+  private void updateSelection(TreePath path) {
+    myTree.expandPath(path);
+    myTree.setSelectionPath(path);
+
+    int row = myTree.getRowForPath(path);
+    if (row >= myTree.getRowCount()) {
+      row = myTree.getRowCount() - 1;
+    }
+    myTree.scrollPathToVisible(myTree.getPathForRow(row));
+    myTree.scrollPathToVisible(path);
   }
 
   private void updateTree(ReportStream reportStream) {
