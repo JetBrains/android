@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.layout;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.ApiVersion;
 import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.tests.gui.GuiSanityTestSuite;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.Wait;
@@ -38,6 +39,7 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
@@ -67,6 +69,7 @@ public class NewProjectTest {
    *   Successfully created new project with name containing a space.
    *   </pre>
    */
+  @Category(GuiSanityTestSuite.class)
   @Test
   public void createNewProjectNameWithSpace() {
     EditorFixture editor = newProject("Test Application").withMinSdk("23").create()
@@ -77,6 +80,7 @@ public class NewProjectTest {
   }
 
   @Ignore("http://wpie20.hot.corp.google.com:8200/builders/ubuntu-studio-master-dev-uitests/builds/28/")
+  @Category(GuiSanityTestSuite.class)
   @Test
   public void testCreateNewMobileProject() {
     newProject("Test Application").create();

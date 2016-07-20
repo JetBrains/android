@@ -29,6 +29,7 @@ import com.android.tools.idea.gradle.projectView.AndroidTreeStructureProvider;
 import com.android.tools.idea.gradle.util.GradleProperties;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.tests.gui.GuiSanityTestSuite;
 import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
@@ -77,6 +78,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import org.junit.*;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import java.awt.*;
@@ -1573,6 +1575,7 @@ public class GradleSyncTest {
    *   Project syncs and minSdk version is updated.
    *   </pre>
    */
+  @Category(GuiSanityTestSuite.class)
   @Test
   public void modifyMinSdkAndSync() throws Exception {
     IdeFrameFixture ideFrame = guiTest.importSimpleApplication();
