@@ -60,8 +60,8 @@ public class NlGravityEditor extends NlBaseComponentEditor implements NlComponen
   public NlGravityEditor() {
     super(DEFAULT_LISTENER);
     myPanel = new JPanel(new GridBagLayout());
-    myHorizontalClipButton = new NlBooleanIconEditor(AndroidVectorIcons.LayoutEditorIcons.Clip);
-    myVerticalClipButton = new NlBooleanIconEditor(AndroidVectorIcons.LayoutEditorIcons.Clip);
+    myHorizontalClipButton = new NlBooleanIconEditor(AndroidVectorIcons.LayoutEditorIcons.Clip, "Clip Horizontally");
+    myVerticalClipButton = new NlBooleanIconEditor(AndroidVectorIcons.LayoutEditorIcons.Clip, "Clip Vertically");
     //noinspection unchecked
     myHorizontalGravity = new ComboBox(getHorizontalModel(), SMALL_WIDTH);
     //noinspection unchecked
