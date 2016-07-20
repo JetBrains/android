@@ -19,6 +19,8 @@ import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.UiErrorCallback;
 import com.android.tools.idea.editors.gfxtrace.service.ErrDataUnavailable;
 import com.android.tools.idea.editors.gfxtrace.service.Report;
+import com.android.tools.idea.editors.gfxtrace.service.ReportItem;
+import com.android.tools.idea.editors.gfxtrace.service.log.LogProtos;
 import com.android.tools.idea.editors.gfxtrace.service.path.CapturePath;
 import com.android.tools.idea.editors.gfxtrace.service.path.PathListener;
 import com.android.tools.idea.editors.gfxtrace.service.path.PathStore;
@@ -30,6 +32,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 public class ReportStream implements PathListener {
@@ -54,7 +57,9 @@ public class ReportStream implements PathListener {
         @Override
         protected ResultOrError<Report, String> onRpcThread(Rpc.Result<Object> result) throws RpcException, ExecutionException {
           try {
-            return success((Report)result.get());
+            Report report = (Report)result.get();
+            report.buildMap();
+            return success(report);
           }
           catch (ErrDataUnavailable e) {
             return error(e.getMessage());
@@ -72,6 +77,21 @@ public class ReportStream implements PathListener {
         }
       });
     }
+  }
+
+  /**
+   * Computes the most critical severity level among multiple reports
+   */
+  public LogProtos.Severity maxSeverity(List<Integer> reportItemIndices) {
+    LogProtos.Severity maxSeverity = LogProtos.Severity.Debug;
+    for (int i = 0; i < reportItemIndices.size() && maxSeverity != LogProtos.Severity.Emergency; ++i) {
+      ReportItem item = myReport.getItems()[reportItemIndices.get(i)];
+      LogProtos.Severity itemSeverity = item.getSeverity();
+      if (maxSeverity.compareTo(itemSeverity) > 0) {
+        maxSeverity = itemSeverity;
+      }
+    }
+    return maxSeverity;
   }
 
   public Report getReport() {
