@@ -643,6 +643,69 @@ public class RenderErrorPanelTest extends AndroidTestCase {
                      "</body></html>", html);
   }
 
+  public void testRefreshOnInstantiationFailure() throws Exception {
+    final String path = FileUtil.toSystemDependentName("/foo/bar/baz.png");
+    LogOperation operation = new LogOperation() {
+      @Override
+      public void addErrors(@NotNull RenderLogger logger, @NotNull RenderResult render) {
+        Throwable throwable = createExceptionFromDesc(
+          "java.lang.ArithmeticException: / by zero\n" +
+          "\tat com.example.myapplication.MyButton.<init>(MyButton.java:14)\n" +
+          "\tat sun.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)\n" +
+          "\tat sun.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:62)\n" +
+          "\tat sun.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)\n" +
+          /* Removed to avoid including source links in the annotated output
+          "\tat java.lang.reflect.Constructor.newInstance(Constructor.java:423)\n" +
+          */
+          "\tat org.jetbrains.android.uipreview.ViewLoader.createNewInstance(ViewLoader.java:465)\n" +
+          "\tat org.jetbrains.android.uipreview.ViewLoader.loadClass(ViewLoader.java:172)\n" +
+          "\tat org.jetbrains.android.uipreview.ViewLoader.loadView(ViewLoader.java:105)\n" +
+          "\tat com.android.tools.idea.rendering.LayoutlibCallbackImpl.loadView(LayoutlibCallbackImpl.java:186)\n" +
+          "\tat android.view.BridgeInflater.loadCustomView(BridgeInflater.java:312)\n" +
+          "\tat android.view.BridgeInflater.createViewFromTag(BridgeInflater.java:233)\n" +
+          /* Removed to avoid including source links in the annotated output
+          "\tat android.view.LayoutInflater.createViewFromTag(LayoutInflater.java:727)\n" +
+          "\tat android.view.LayoutInflater.inflate(LayoutInflater.java:495)\n" +
+          "\tat android.view.LayoutInflater.inflate(LayoutInflater.java:397)\n" +
+          */
+          "\tat com.android.layoutlib.bridge.impl.RenderSessionImpl.inflate(RenderSessionImpl.java:324)\n" +
+          "\tat com.android.layoutlib.bridge.Bridge.createSession(Bridge.java:429)\n" +
+          "\tat com.android.ide.common.rendering.LayoutLibrary.createSession(LayoutLibrary.java:389)\n" +
+          "\tat com.android.tools.idea.rendering.RenderTask$2.compute(RenderTask.java:548)\n" +
+          "\tat com.android.tools.idea.rendering.RenderTask$2.compute(RenderTask.java:533)\n" +
+          "\tat com.intellij.openapi.application.impl.ApplicationImpl.runReadAction(ApplicationImpl.java:966)\n" +
+          "\tat com.android.tools.idea.rendering.RenderTask.createRenderSession(RenderTask.java:533)\n" +
+          "\tat com.android.tools.idea.rendering.RenderTask.lambda$inflate$1(RenderTask.java:659)\n" +
+          "\tat java.util.concurrent.FutureTask.run(FutureTask.java:266)\n" +
+          "\tat java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142)\n" +
+          "\tat java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617)\n" +
+          "\tat java.lang.Thread.run(Thread.java:745)\n");
+        logger.addBrokenClass("com.example.myapplication.MyButton", throwable);
+      }
+    };
+
+    String html = getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation);
+    assertHtmlEquals("<html><body><A HREF=\"action:close\"></A>&nbsp;<font style=\"fon" +
+                     "t-weight:bold; color:#005555;\">Rendering Problems</font><BR/>" +
+                     "The following classes could not be instantiated:<DL><DD>-&NBS" +
+                     "P;com.example.myapplication.MyButton (<A HREF=\"openClass:com." +
+                     "example.myapplication.MyButton\">Open Class</A>, <A HREF=\"runn" +
+                     "able:0\">Show Exception</A>, <A HREF=\"refreshRender\">Clear Cac" +
+                     "he</A>)</DL>Tip: Use <A HREF=\"http://developer.android.com/re" +
+                     "ference/android/view/View.html#isInEditMode()\">View.isInEditM" +
+                     "ode()</A> in your custom views to skip code or show sample da" +
+                     "ta when shown in the IDE.<BR/><BR/>If this is an unexpected e" +
+                     "rror you can also try to <A HREF=\"action:build\">build the pro" +
+                     "ject</A>, then manually <A HREF=\"refreshRender\">refresh the l" +
+                     "ayout</A>.<BR/><BR/><font style=\"font-weight:bold; color:#005" +
+                     "555;\">Exception Details</font><BR/>java.lang.ArithmeticExcept" +
+                     "ion: / by zero<BR/>&nbsp;&nbsp;at com.example.myapplication.M" +
+                     "yButton.&lt;init>(<A HREF=\"open:com.example.myapplication.MyB" +
+                     "utton#<init>;MyButton.java:14\">MyButton.java:14</A>)<BR/><A H" +
+                     "REF=\"runnable:1\">Copy stack to clipboard</A><BR/><BR/></body>" +
+                     "</html>", html);
+  }
+
   // Image paths will include full resource urls which depends on the test environment
   private static String stripImages(@NotNull String html) {
     while (true) {
