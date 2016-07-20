@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.avdmanager;
 
+import com.android.tools.idea.tests.gui.GuiSanityTestSuite;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdEditWizardFixture;
@@ -24,6 +25,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ConfigureAv
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 @RunWith(GuiTestRunner.class)
@@ -32,6 +34,7 @@ public class AvdListDialogTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   @Ignore("http://wpie20.hot.corp.google.com:8200/builders/ubuntu-studio-master-dev-uitests/builds/28/")
+  @Category(GuiSanityTestSuite.class)
   @Test
   public void testCreateAvd() throws Exception {
     guiTest.importSimpleApplication();

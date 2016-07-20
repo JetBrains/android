@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.emulator;
 
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
+import com.android.tools.idea.tests.gui.GuiSanityTestSuite;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
@@ -26,6 +27,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.MockAvdMana
 import com.intellij.debugger.engine.evaluation.EvaluateException;
 import org.fest.swing.util.PatternTextMatcher;
 import org.junit.*;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
@@ -76,6 +78,7 @@ public class LaunchAndroidApplicationTest {
   }
 
   @Ignore("http://b.android.com/216396")
+  @Category(GuiSanityTestSuite.class)
   @Test
   public void testRunOnEmulator() throws IOException, ClassNotFoundException {
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
