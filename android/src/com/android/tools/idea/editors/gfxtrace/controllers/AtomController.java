@@ -95,6 +95,19 @@ public class AtomController extends TreeController implements AtomStream.Listene
   }
 
   public static class Node implements Renderable {
+    public static final int REPORT_ICON_WIDTH = AllIcons.General.Error.getIconWidth();
+    public static final int REPORT_ICON_HEIGHT = AllIcons.General.Error.getIconHeight();
+    public static final int REPORT_BALLOON_ANIMATION_CYCLES = 100;
+
+    // TODO: Replace for instance method in (abstract?) superclass when implement this behaviour in Group
+    public static int getBalloonX(int x) {
+      return x + REPORT_ICON_WIDTH / 2;
+    }
+
+    public static int getBalloonY(int y) {
+      return y + REPORT_ICON_HEIGHT;
+    }
+
     public final long index;
     public final Atom atom;
     public int hoveredParameter = -1;
@@ -116,6 +129,14 @@ public class AtomController extends TreeController implements AtomStream.Listene
       synchronized (followPaths) {
         return parameter >= 0 && parameter < followPaths.length && followPaths[parameter] != null ? followPaths[parameter] : Path.EMPTY;
       }
+    }
+
+    /**
+     * @param x Relative x in terms of tree cell component
+     * @param y Relative y in terms of tree cell component
+     */
+    public boolean isInsideReportIcon(ReportStream reportStream, final int x, final int y) {
+      return reportStream.hasReportItems(index) && x < REPORT_ICON_WIDTH && y < REPORT_ICON_HEIGHT;
     }
 
     @NotNull
@@ -456,15 +477,18 @@ public class AtomController extends TreeController implements AtomStream.Listene
           setHoveringGroup(null, 0, 0);
 
           // Check if hovering an atom parameter.
-          int index = -1;
           if (userObject instanceof Node) {
-            index = Render.getNodeFieldIndex(myTree, node, x, false);
-          }
-          if (index >= 0) {
-            setHoveringNode((Node)userObject, index);
-          }
-          else {
-            setHoveringNode(null, 0);
+            Node atomNode = (Node)userObject;
+            int index = Render.getNodeFieldIndex(myTree, node, x, false);
+            if (index >= 0) {
+              setHoveringNode(atomNode, index);
+            }
+            else if (atomNode.isInsideReportIcon(myEditor.getReportStream(), x, y)) {
+              setHoveringNode(atomNode, myEditor.getReportStream().getReportItemPath(atomNode.index), bounds);
+            }
+            else {
+              setHoveringNode(null, 0);
+            }
           }
         }
       }
@@ -493,29 +517,72 @@ public class AtomController extends TreeController implements AtomStream.Listene
         }
       }
 
-      private void setHoveringNode(@Nullable Node node, int index) {
-        if (node != lastHoverNode && lastHoverNode != null) {
+      private void onNewHoverNode(@Nullable Node node, boolean cancelPopup) {
+        if (lastHoverNode != null) {
+          // Clear hovered parameter for another node
           lastHoverNode.hoveredParameter = -1;
         }
+        lastScheduledFuture.cancel(cancelPopup);
         lastHoverNode = node;
+      }
 
-        Path followPath = Path.EMPTY;
-        if (node != null) {
-          node.computeFollowPath(myEditor.getClient(), myEditor.getAtomStream().getPath(), index, new Runnable() {
-            @Override
-            public void run() {
-              myTree.repaint();
-            }
-          });
-          followPath = node.getFollowPath(index);
+      /**
+       * Sets hovering when of x and y inside report icon
+       */
+      private void setHoveringNode(@Nullable Node node, @NotNull ReportItemPath followPath, @NotNull Rectangle bounds) {
+        final int x = Node.getBalloonX(bounds.x);
+        final int y = Node.getBalloonY(bounds.y);
+        // Check if we've met this node
+        if (node != lastHoverNode) {
+          onNewHoverNode(node, true);
+          if (node != null) {
+            lastScheduledFuture = scheduler.schedule(() -> hover(node, followPath, x, y),
+                                                     PREVIEW_HOVER_DELAY_MS, TimeUnit.MILLISECONDS);
+          }
         }
-
-        if (followPath != Path.EMPTY) {
-          node.hoveredParameter = index;
+        if (node == null && lastShownBalloon != null) {
+          lastShownBalloon.hide();
+          lastShownBalloon = null;
         }
 
         hoverHand(myTree, myEditor.getAtomStream().getPath(), followPath);
+      }
+
+      /**
+       * Sets hovering when cursor points to atom field
+       */
+      private void setHoveringNode(@Nullable Node node, int index) {
+        PathStore<Path> followPathStore = new PathStore<>();
+        // Check if we've met this node
+        if (node != lastHoverNode) {
+          onNewHoverNode(node, false);
+        }
+
+        if (node != null) {
+          onAtomFieldHover(node, index, followPathStore);
+        }
+
+        hoverHand(myTree, myEditor.getAtomStream().getPath(), followPathStore.getPath());
         myTree.repaint();
+      }
+
+      private void onAtomFieldHover(@NotNull final Node node, int index, final PathStore<Path> pathStore) {
+        final Path followPath = node.getFollowPath(index);
+        if (followPath == Path.EMPTY) {
+          node.hoveredParameter = -1;
+          node.computeFollowPath(myEditor.getClient(), myEditor.getAtomStream().getPath(), index, () -> {
+            myTree.repaint();
+            final Path freshFollowPath = node.getFollowPath(index);
+            if (freshFollowPath != null && freshFollowPath != Path.EMPTY) {
+              pathStore.update(freshFollowPath);
+              node.hoveredParameter = index;
+            }
+          });
+        }
+        else {
+          pathStore.update(followPath);
+          node.hoveredParameter = index;
+        }
       }
 
       private void hover(final Group group, final int x, final int y) {
@@ -543,14 +610,47 @@ public class AtomController extends TreeController implements AtomStream.Listene
         });
       }
 
+      private void hover(final Node node, ReportItemPath reportItemPath, final int x, final int y) {
+        ApplicationManager.getApplication().invokeLater(() -> {
+          if (node == lastHoverNode) {
+            if (lastShownBalloon != null) {
+              lastShownBalloon.hide();
+            }
+            SimpleColoredComponent component = new SimpleColoredComponent();
+            component.setOpaque(false);
+
+            Report report = myEditor.getReportStream().getReport();
+            ReportItem reportItem = report.getItems()[(int)reportItemPath.getIndex()];
+            component.append(reportItem.getMessage().toString());
+            lastShownBalloon = JBPopupFactory.getInstance().createBalloonBuilder(component)
+              .setAnimationCycle(Node.REPORT_BALLOON_ANIMATION_CYCLES).createBalloon();
+            lastShownBalloon.show(new RelativePoint(myTree, new Point(x, y)), Balloon.Position.below);
+          }
+        });
+      }
+
       @Override
       public void mouseClicked(MouseEvent event) {
         Object object = getDataObjectAt(myTree.getPathForLocation(event.getX(), event.getY()));
         if (object instanceof Node) {
           Node node = (Node)object;
           // The user was hovering over a parameter, fire off the path activation event on click.
+          Path path = null;
           if (node.hoveredParameter >= 0) {
-            Path path = node.getFollowPath(node.hoveredParameter);
+            path = node.getFollowPath(node.hoveredParameter);
+          }
+          else {
+            TreePath treePath = myTree.getClosestPathForLocation(event.getX(), event.getY());
+            if (treePath != null) {
+              Rectangle bounds = myTree.getPathBounds(treePath);
+              if (node.isInsideReportIcon(myEditor.getReportStream(),
+                                          event.getX() - bounds.x, event.getY() - bounds.y)) {
+                path = myEditor.getReportStream().getReportItemPath(node.index);
+              }
+            }
+          }
+
+          if (path != null) {
             UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
                                            .setCategory(EventCategory.GPU_PROFILER)
                                            .setKind(EventKind.GFX_TRACE_LINK_CLICKED)
@@ -853,6 +953,10 @@ public class AtomController extends TreeController implements AtomStream.Listene
   @Override
   public void onReportLoadingSuccess(ReportStream reportStream) {
     myTree.repaint();
+  }
+
+  @Override
+  public void onReportItemSelected(ReportItem reportItem) {
   }
 
   @Nullable("if this path can not be found in this tree")

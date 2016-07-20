@@ -24,6 +24,7 @@ import com.android.tools.idea.editors.gfxtrace.service.log.LogProtos;
 import com.android.tools.idea.editors.gfxtrace.service.path.CapturePath;
 import com.android.tools.idea.editors.gfxtrace.service.path.PathListener;
 import com.android.tools.idea.editors.gfxtrace.service.path.PathStore;
+import com.android.tools.idea.editors.gfxtrace.service.path.ReportItemPath;
 import com.android.tools.idea.editors.gfxtrace.service.path.ReportPath;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
@@ -40,6 +41,7 @@ public class ReportStream implements PathListener {
 
   private final GfxTraceEditor myEditor;
   private final PathStore<ReportPath> myReportPath = new PathStore<>();
+  private final PathStore<ReportItemPath> myReportItemPath = new PathStore<>();
   private Report myReport;
 
   private final Listeners myListeners = new Listeners();
@@ -77,6 +79,10 @@ public class ReportStream implements PathListener {
         }
       });
     }
+
+    if (myReportItemPath.updateIfNotNull(event.findReportItemPath()) && myReport != null) {
+      myListeners.onReportItemSelected(myReport.getItems()[(int)myReportItemPath.getPath().getIndex()]);
+    }
   }
 
   /**
@@ -92,6 +98,32 @@ public class ReportStream implements PathListener {
       }
     }
     return maxSeverity;
+  }
+
+  public ReportItemPath getReportItemPath(long atomId) {
+    return buildReportItemPath(myReport.getForAtom(atomId));
+  }
+
+  public ReportItemPath getReportItemPath(long atomGroupStartId, long atomGroupLastId) {
+    return buildReportItemPath(myReport.getForAtoms(atomGroupStartId, atomGroupLastId));
+  }
+
+  /**
+   * As for now builds single path for the first item for given atom / group
+   */
+  private ReportItemPath buildReportItemPath(@Nullable List<Integer> reportItemIndices) {
+    if (reportItemIndices != null && !reportItemIndices.isEmpty()) {
+      ReportItemPath path = new ReportItemPath();
+      path.setIndex(reportItemIndices.get(0));
+      path.setReport(myReportPath.getPath());
+      return path;
+    }
+    return null;
+  }
+
+  public boolean hasReportItems(long atomId) {
+    List<Integer> reportItemIndices = myReport.getForAtom(atomId);
+    return reportItemIndices != null && !reportItemIndices.isEmpty();
   }
 
   public Report getReport() {
@@ -131,6 +163,8 @@ public class ReportStream implements PathListener {
     void onReportLoadingFailure(ReportStream reportStream, String errorMessage);
 
     void onReportLoadingSuccess(ReportStream reportStream);
+
+    void onReportItemSelected(ReportItem reportItem);
   }
 
   private static class Listeners extends ArrayList<Listener> implements Listener {
@@ -152,6 +186,13 @@ public class ReportStream implements PathListener {
     public void onReportLoadingSuccess(ReportStream reportStream) {
       for (Listener listener : toArray(new Listener[size()])) {
         listener.onReportLoadingSuccess(reportStream);
+      }
+    }
+
+    @Override
+    public void onReportItemSelected(ReportItem reportItem) {
+      for (Listener listener : toArray(new Listener[size()])) {
+        listener.onReportItemSelected(reportItem);
       }
     }
   }
