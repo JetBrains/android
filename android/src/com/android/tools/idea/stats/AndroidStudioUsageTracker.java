@@ -24,7 +24,9 @@ import com.google.common.base.Strings;
 import com.google.wireless.android.sdk.stats.AndroidStudioStats;
 import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioStats.ProductDetails;
+import com.google.wireless.android.sdk.stats.AndroidStudioStats.ProductDetails.SoftwareLifeCycleChannel;
 import com.intellij.openapi.application.ApplicationInfo;
+import com.intellij.openapi.updateSettings.impl.UpdateSettings;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -41,8 +43,8 @@ public class AndroidStudioUsageTracker {
 
   public static void setup(ScheduledExecutorService scheduler) {
     // Send initial report immediately, daily from then on.
-    scheduler.scheduleWithFixedDelay(
-      AndroidStudioUsageTracker::runDailyReports, 0, 1, TimeUnit.DAYS);
+    scheduler.scheduleWithFixedDelay(AndroidStudioUsageTracker::runDailyReports, 0, 1, TimeUnit.DAYS);
+
   }
 
   private static void runDailyReports() {
@@ -58,7 +60,10 @@ public class AndroidStudioUsageTracker {
             .setProduct(ProductDetails.ProductKind.STUDIO)
             .setBuild(application.getBuild().asStringWithAllDetails())
             .setVersion(application.getStrictVersion())
-            .setOsArchitecture(CommonMetricsData.getOsArchitecture())));
+            .setOsArchitecture(CommonMetricsData.getOsArchitecture())
+          .setChannel(lifecycleChannelFromUpdateSettings())
+        )
+    );
   }
 
   /**
@@ -76,7 +81,6 @@ public class AndroidStudioUsageTracker {
     }
   }
 
-
   /**
    * Creates a {@link AndroidStudioStats.DeviceInfo} from a {@link IDevice} instance.
    */
@@ -91,5 +95,18 @@ public class AndroidStudioUsageTracker {
       .setCpuAbi(CommonMetricsData.applicationBinaryInterfaceFromString(device.getProperty(IDevice.PROP_DEVICE_CPU_ABI)))
       .setManufacturer(Strings.nullToEmpty(device.getProperty(IDevice.PROP_DEVICE_MANUFACTURER)))
       .setModel(Strings.nullToEmpty(device.getProperty(IDevice.PROP_DEVICE_MODEL))).build();
+  }
+
+  /**
+   * Reads the channel selected by the user from UpdateSettings and converts it into a {@link SoftwareLifeCycleChannel} value.
+   */
+  private static SoftwareLifeCycleChannel lifecycleChannelFromUpdateSettings() {
+    switch (UpdateSettings.getInstance().getSelectedChannelStatus()) {
+      case EAP: return SoftwareLifeCycleChannel.CANARY;
+      case MILESTONE: return SoftwareLifeCycleChannel.DEV;
+      case BETA: return SoftwareLifeCycleChannel.BETA;
+      case RELEASE: return SoftwareLifeCycleChannel.STABLE;
+      default: return SoftwareLifeCycleChannel.UNKNOWN_LIFE_CYCLE_CHANNEL;
+    }
   }
 }
