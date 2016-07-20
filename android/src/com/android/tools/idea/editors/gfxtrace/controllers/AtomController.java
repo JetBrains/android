@@ -21,6 +21,7 @@ import com.android.tools.idea.editors.gfxtrace.UiCallback;
 import com.android.tools.idea.editors.gfxtrace.UiErrorCallback;
 import com.android.tools.idea.editors.gfxtrace.actions.EditAtomParametersAction;
 import com.android.tools.idea.editors.gfxtrace.models.AtomStream;
+import com.android.tools.idea.editors.gfxtrace.models.ReportStream;
 import com.android.tools.idea.editors.gfxtrace.renderers.Render;
 import com.android.tools.idea.editors.gfxtrace.service.*;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.WireframeMode;
@@ -29,6 +30,7 @@ import com.android.tools.idea.editors.gfxtrace.service.atom.AtomGroup;
 import com.android.tools.idea.editors.gfxtrace.service.atom.Observation;
 import com.android.tools.idea.editors.gfxtrace.service.atom.Range;
 import com.android.tools.idea.editors.gfxtrace.service.image.FetchedImage;
+import com.android.tools.idea.editors.gfxtrace.service.log.LogProtos;
 import com.android.tools.idea.editors.gfxtrace.service.memory.MemoryProtos.PoolNames;
 import com.android.tools.idea.editors.gfxtrace.service.path.*;
 import com.android.tools.idea.editors.gfxtrace.widgets.LoadableIcon;
@@ -44,11 +46,13 @@ import com.google.wireless.android.sdk.stats.AndroidStudioStats;
 import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventCategory;
 import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventKind;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.popup.Balloon;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.ui.ColoredTreeCellRenderer;
+import com.intellij.ui.RowIcon;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.awt.RelativePoint;
@@ -78,7 +82,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
-public class AtomController extends TreeController implements AtomStream.Listener {
+public class AtomController extends TreeController implements AtomStream.Listener, ReportStream.Listener {
   public static JComponent createUI(GfxTraceEditor editor) {
     return new AtomController(editor).myPanel;
   }
@@ -322,6 +326,8 @@ public class AtomController extends TreeController implements AtomStream.Listene
   private AtomController(@NotNull GfxTraceEditor editor) {
     super(editor, GfxTraceEditor.LOADING_CAPTURE);
     myEditor.getAtomStream().addListener(this);
+    // Listen to ReportStream updates in order to show report information in atom tree
+    myEditor.getReportStream().addListener(this);
 
     myPanel.add(mySearchField, BorderLayout.NORTH);
     myScrollPane.setBorder(new EmptyBorder(0, 0, 0, 0));
@@ -583,14 +589,87 @@ public class AtomController extends TreeController implements AtomStream.Listene
           assert false;
         }
         Object userObject = ((DefaultMutableTreeNode)value).getUserObject();
-        DevicePath device = myRenderDevice.getPath();
-        AtomsPath atoms = myEditor.getAtomStream().getPath();
+        LoadableIcon loadableIcon = customizeFramePreviewRendering(
+          tree, userObject, myRenderDevice.getPath(), myEditor.getAtomStream().getPath());
+        Icon reportIcon = customizeReportInfoRendering(userObject);
+        if (loadableIcon != null || reportIcon != null) {
+          setupRowIcon(loadableIcon, reportIcon);
+        }
+      }
+
+      /**
+       * Deals with RowIcon initialization and sets it in the renderer
+       */
+      private void setupRowIcon(LoadableIcon loadableIcon, Icon reportIcon) {
+        int count = ((loadableIcon == null) ? 0 : 1) + ((reportIcon == null) ? 0 : 1);
+        RowIcon rowIcon = new RowIcon(count);
+
+        int position = 0;
+        if (loadableIcon != null) {
+          rowIcon.setIcon(loadableIcon, position++);
+        }
+        if (reportIcon != null) {
+          rowIcon.setIcon(reportIcon, position);
+        }
+        setIcon(rowIcon);
+      }
+
+      /**
+       * Decides if we need to display LoadableIcon and sets it up in case we need
+       */
+      private LoadableIcon customizeFramePreviewRendering(
+        @NotNull JTree tree, @NotNull Object userObject, DevicePath device, AtomsPath atoms) {
         if (userObject instanceof Group && device != null && atoms != null) {
           Group group = (Group)userObject;
           if (shouldShowPreview(group)) {
-            setIcon(group.getThumbnail(myEditor.getClient(), device, atoms).withRepaintComponent(tree));
+            return group.getThumbnail(myEditor.getClient(), device, atoms).withRepaintComponent(tree);
           }
         }
+        return null;
+      }
+
+      /**
+       * Decides if we need to display report info icon and which icon to display
+       */
+      private Icon customizeReportInfoRendering(@NotNull Object userObject) {
+        ReportStream reportStream = myEditor.getReportStream();
+        // Check whether there's report to show
+        if (reportStream.getReport() != null) {
+          List<Integer> reportItemIndices = null;
+          if (userObject instanceof Node) {
+            Node atomNode = (Node)userObject;
+            reportItemIndices = reportStream.getReport().getForAtom(atomNode.index);
+          }
+          else if (userObject instanceof Group) {
+            Group atomsGroup = (Group)userObject;
+            Range groupRange = atomsGroup.group.getRange();
+            reportItemIndices = reportStream.getReport()
+              .getForAtoms(groupRange.getStart(), groupRange.getLast());
+          }
+          // If there's at least one report item associated - just return an icon for the most severe
+          if (reportItemIndices != null && !reportItemIndices.isEmpty()) {
+            return getReportIcon(reportStream.maxSeverity(reportItemIndices));
+          }
+        }
+        return null;
+      }
+
+      @NotNull
+      private Icon getReportIcon(@NotNull LogProtos.Severity severity) {
+        switch (severity) {
+          case Emergency:
+          case Alert:
+          case Critical:
+          case Error:
+            return AllIcons.General.Error;
+          case Warning:
+            return AllIcons.General.Warning;
+          case Notice:
+          case Info:
+          case Debug:
+            return AllIcons.General.Information;
+        }
+        return null;
       }
     };
   }
@@ -760,6 +839,20 @@ public class AtomController extends TreeController implements AtomStream.Listene
     } else {
       myLoadingPanel.showLoadingError("Failed to load GPU commands");
     }
+  }
+
+
+  @Override
+  public void onReportLoadingStart(ReportStream reportStream) {
+  }
+
+  @Override
+  public void onReportLoadingFailure(ReportStream reportStream, String errorMessage) {
+  }
+
+  @Override
+  public void onReportLoadingSuccess(ReportStream reportStream) {
+    myTree.repaint();
   }
 
   @Nullable("if this path can not be found in this tree")
