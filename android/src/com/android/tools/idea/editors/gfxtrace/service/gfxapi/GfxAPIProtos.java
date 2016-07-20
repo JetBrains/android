@@ -6,7 +6,7 @@ package com.android.tools.idea.editors.gfxtrace.service.gfxapi;
 public final class GfxAPIProtos {
   private GfxAPIProtos() {}
   public static void registerAllExtensions(
-      com.google.protobuf.ExtensionRegistry registry) {
+      com.google.protobuf3jarjar.ExtensionRegistry registry) {
   }
   /**
    * Protobuf enum {@code gfxapi.DrawPrimitive}
@@ -16,7 +16,7 @@ public final class GfxAPIProtos {
    * </pre>
    */
   public enum DrawPrimitive
-      implements com.google.protobuf.ProtocolMessageEnum {
+      implements com.google.protobuf3jarjar.ProtocolMessageEnum {
     /**
      * <code>Points = 0;</code>
      */
@@ -99,27 +99,27 @@ public final class GfxAPIProtos {
       }
     }
 
-    public static com.google.protobuf.Internal.EnumLiteMap<DrawPrimitive>
+    public static com.google.protobuf3jarjar.Internal.EnumLiteMap<DrawPrimitive>
         internalGetValueMap() {
       return internalValueMap;
     }
-    private static final com.google.protobuf.Internal.EnumLiteMap<
+    private static final com.google.protobuf3jarjar.Internal.EnumLiteMap<
         DrawPrimitive> internalValueMap =
-          new com.google.protobuf.Internal.EnumLiteMap<DrawPrimitive>() {
+          new com.google.protobuf3jarjar.Internal.EnumLiteMap<DrawPrimitive>() {
             public DrawPrimitive findValueByNumber(int number) {
               return DrawPrimitive.valueOf(number);
             }
           };
 
-    public final com.google.protobuf.Descriptors.EnumValueDescriptor
+    public final com.google.protobuf3jarjar.Descriptors.EnumValueDescriptor
         getValueDescriptor() {
       return getDescriptor().getValues().get(index);
     }
-    public final com.google.protobuf.Descriptors.EnumDescriptor
+    public final com.google.protobuf3jarjar.Descriptors.EnumDescriptor
         getDescriptorForType() {
       return getDescriptor();
     }
-    public static final com.google.protobuf.Descriptors.EnumDescriptor
+    public static final com.google.protobuf3jarjar.Descriptors.EnumDescriptor
         getDescriptor() {
       return com.android.tools.idea.editors.gfxtrace.service.gfxapi.GfxAPIProtos.getDescriptor().getEnumTypes().get(0);
     }
@@ -127,7 +127,7 @@ public final class GfxAPIProtos {
     private static final DrawPrimitive[] VALUES = values();
 
     public static DrawPrimitive valueOf(
-        com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
+        com.google.protobuf3jarjar.Descriptors.EnumValueDescriptor desc) {
       if (desc.getType() != getDescriptor()) {
         throw new java.lang.IllegalArgumentException(
           "EnumValueDescriptor is not for this type.");
@@ -157,7 +157,7 @@ public final class GfxAPIProtos {
    * </pre>
    */
   public enum ResourceType
-      implements com.google.protobuf.ProtocolMessageEnum {
+      implements com.google.protobuf3jarjar.ProtocolMessageEnum {
     /**
      * <code>Unknown = 0;</code>
      *
@@ -296,27 +296,27 @@ public final class GfxAPIProtos {
       }
     }
 
-    public static com.google.protobuf.Internal.EnumLiteMap<ResourceType>
+    public static com.google.protobuf3jarjar.Internal.EnumLiteMap<ResourceType>
         internalGetValueMap() {
       return internalValueMap;
     }
-    private static final com.google.protobuf.Internal.EnumLiteMap<
+    private static final com.google.protobuf3jarjar.Internal.EnumLiteMap<
         ResourceType> internalValueMap =
-          new com.google.protobuf.Internal.EnumLiteMap<ResourceType>() {
+          new com.google.protobuf3jarjar.Internal.EnumLiteMap<ResourceType>() {
             public ResourceType findValueByNumber(int number) {
               return ResourceType.valueOf(number);
             }
           };
 
-    public final com.google.protobuf.Descriptors.EnumValueDescriptor
+    public final com.google.protobuf3jarjar.Descriptors.EnumValueDescriptor
         getValueDescriptor() {
       return getDescriptor().getValues().get(index);
     }
-    public final com.google.protobuf.Descriptors.EnumDescriptor
+    public final com.google.protobuf3jarjar.Descriptors.EnumDescriptor
         getDescriptorForType() {
       return getDescriptor();
     }
-    public static final com.google.protobuf.Descriptors.EnumDescriptor
+    public static final com.google.protobuf3jarjar.Descriptors.EnumDescriptor
         getDescriptor() {
       return com.android.tools.idea.editors.gfxtrace.service.gfxapi.GfxAPIProtos.getDescriptor().getEnumTypes().get(1);
     }
@@ -324,7 +324,7 @@ public final class GfxAPIProtos {
     private static final ResourceType[] VALUES = values();
 
     public static ResourceType valueOf(
-        com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
+        com.google.protobuf3jarjar.Descriptors.EnumValueDescriptor desc) {
       if (desc.getType() != getDescriptor()) {
         throw new java.lang.IllegalArgumentException(
           "EnumValueDescriptor is not for this type.");
@@ -354,7 +354,7 @@ public final class GfxAPIProtos {
    * </pre>
    */
   public enum FramebufferAttachment
-      implements com.google.protobuf.ProtocolMessageEnum {
+      implements com.google.protobuf3jarjar.ProtocolMessageEnum {
     /**
      * <code>Color = 0;</code>
      */
@@ -401,27 +401,27 @@ public final class GfxAPIProtos {
       }
     }
 
-    public static com.google.protobuf.Internal.EnumLiteMap<FramebufferAttachment>
+    public static com.google.protobuf3jarjar.Internal.EnumLiteMap<FramebufferAttachment>
         internalGetValueMap() {
       return internalValueMap;
     }
-    private static final com.google.protobuf.Internal.EnumLiteMap<
+    private static final com.google.protobuf3jarjar.Internal.EnumLiteMap<
         FramebufferAttachment> internalValueMap =
-          new com.google.protobuf.Internal.EnumLiteMap<FramebufferAttachment>() {
+          new com.google.protobuf3jarjar.Internal.EnumLiteMap<FramebufferAttachment>() {
             public FramebufferAttachment findValueByNumber(int number) {
               return FramebufferAttachment.valueOf(number);
             }
           };
 
-    public final com.google.protobuf.Descriptors.EnumValueDescriptor
+    public final com.google.protobuf3jarjar.Descriptors.EnumValueDescriptor
         getValueDescriptor() {
       return getDescriptor().getValues().get(index);
     }
-    public final com.google.protobuf.Descriptors.EnumDescriptor
+    public final com.google.protobuf3jarjar.Descriptors.EnumDescriptor
         getDescriptorForType() {
       return getDescriptor();
     }
-    public static final com.google.protobuf.Descriptors.EnumDescriptor
+    public static final com.google.protobuf3jarjar.Descriptors.EnumDescriptor
         getDescriptor() {
       return com.android.tools.idea.editors.gfxtrace.service.gfxapi.GfxAPIProtos.getDescriptor().getEnumTypes().get(2);
     }
@@ -429,7 +429,7 @@ public final class GfxAPIProtos {
     private static final FramebufferAttachment[] VALUES = values();
 
     public static FramebufferAttachment valueOf(
-        com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
+        com.google.protobuf3jarjar.Descriptors.EnumValueDescriptor desc) {
       if (desc.getType() != getDescriptor()) {
         throw new java.lang.IllegalArgumentException(
           "EnumValueDescriptor is not for this type.");
@@ -455,7 +455,7 @@ public final class GfxAPIProtos {
    * Protobuf enum {@code gfxapi.ShaderType}
    */
   public enum ShaderType
-      implements com.google.protobuf.ProtocolMessageEnum {
+      implements com.google.protobuf3jarjar.ProtocolMessageEnum {
     /**
      * <code>Vertex = 0;</code>
      */
@@ -529,27 +529,27 @@ public final class GfxAPIProtos {
       }
     }
 
-    public static com.google.protobuf.Internal.EnumLiteMap<ShaderType>
+    public static com.google.protobuf3jarjar.Internal.EnumLiteMap<ShaderType>
         internalGetValueMap() {
       return internalValueMap;
     }
-    private static final com.google.protobuf.Internal.EnumLiteMap<
+    private static final com.google.protobuf3jarjar.Internal.EnumLiteMap<
         ShaderType> internalValueMap =
-          new com.google.protobuf.Internal.EnumLiteMap<ShaderType>() {
+          new com.google.protobuf3jarjar.Internal.EnumLiteMap<ShaderType>() {
             public ShaderType findValueByNumber(int number) {
               return ShaderType.valueOf(number);
             }
           };
 
-    public final com.google.protobuf.Descriptors.EnumValueDescriptor
+    public final com.google.protobuf3jarjar.Descriptors.EnumValueDescriptor
         getValueDescriptor() {
       return getDescriptor().getValues().get(index);
     }
-    public final com.google.protobuf.Descriptors.EnumDescriptor
+    public final com.google.protobuf3jarjar.Descriptors.EnumDescriptor
         getDescriptorForType() {
       return getDescriptor();
     }
-    public static final com.google.protobuf.Descriptors.EnumDescriptor
+    public static final com.google.protobuf3jarjar.Descriptors.EnumDescriptor
         getDescriptor() {
       return com.android.tools.idea.editors.gfxtrace.service.gfxapi.GfxAPIProtos.getDescriptor().getEnumTypes().get(3);
     }
@@ -557,7 +557,7 @@ public final class GfxAPIProtos {
     private static final ShaderType[] VALUES = values();
 
     public static ShaderType valueOf(
-        com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
+        com.google.protobuf3jarjar.Descriptors.EnumValueDescriptor desc) {
       if (desc.getType() != getDescriptor()) {
         throw new java.lang.IllegalArgumentException(
           "EnumValueDescriptor is not for this type.");
@@ -580,11 +580,11 @@ public final class GfxAPIProtos {
   }
 
 
-  public static com.google.protobuf.Descriptors.FileDescriptor
+  public static com.google.protobuf3jarjar.Descriptors.FileDescriptor
       getDescriptor() {
     return descriptor;
   }
-  private static com.google.protobuf.Descriptors.FileDescriptor
+  private static com.google.protobuf3jarjar.Descriptors.FileDescriptor
       descriptor;
   static {
     java.lang.String[] descriptorData = {
@@ -602,17 +602,17 @@ public final class GfxAPIProtos {
       "ndroid.tools.idea.editors.gfxtrace.servi" +
       "ce.gfxapiB\014GfxAPIProtosb\006proto3"
     };
-    com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
-        new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
-          public com.google.protobuf.ExtensionRegistry assignDescriptors(
-              com.google.protobuf.Descriptors.FileDescriptor root) {
+    com.google.protobuf3jarjar.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
+        new com.google.protobuf3jarjar.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
+          public com.google.protobuf3jarjar.ExtensionRegistry assignDescriptors(
+              com.google.protobuf3jarjar.Descriptors.FileDescriptor root) {
             descriptor = root;
             return null;
           }
         };
-    com.google.protobuf.Descriptors.FileDescriptor
+    com.google.protobuf3jarjar.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
-        new com.google.protobuf.Descriptors.FileDescriptor[] {
+        new com.google.protobuf3jarjar.Descriptors.FileDescriptor[] {
         }, assigner);
   }
 

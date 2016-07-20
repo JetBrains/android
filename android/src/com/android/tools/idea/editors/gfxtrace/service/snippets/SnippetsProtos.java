@@ -6,7 +6,7 @@ package com.android.tools.idea.editors.gfxtrace.service.snippets;
 public final class SnippetsProtos {
   private SnippetsProtos() {}
   public static void registerAllExtensions(
-      com.google.protobuf.ExtensionRegistry registry) {
+      com.google.protobuf3jarjar.ExtensionRegistry registry) {
   }
   /**
    * Protobuf enum {@code snippets.ObservationType}
@@ -16,7 +16,7 @@ public final class SnippetsProtos {
    * </pre>
    */
   public enum ObservationType
-      implements com.google.protobuf.ProtocolMessageEnum {
+      implements com.google.protobuf3jarjar.ProtocolMessageEnum {
     /**
      * <code>Read = 0;</code>
      */
@@ -54,27 +54,27 @@ public final class SnippetsProtos {
       }
     }
 
-    public static com.google.protobuf.Internal.EnumLiteMap<ObservationType>
+    public static com.google.protobuf3jarjar.Internal.EnumLiteMap<ObservationType>
         internalGetValueMap() {
       return internalValueMap;
     }
-    private static final com.google.protobuf.Internal.EnumLiteMap<
+    private static final com.google.protobuf3jarjar.Internal.EnumLiteMap<
         ObservationType> internalValueMap =
-          new com.google.protobuf.Internal.EnumLiteMap<ObservationType>() {
+          new com.google.protobuf3jarjar.Internal.EnumLiteMap<ObservationType>() {
             public ObservationType findValueByNumber(int number) {
               return ObservationType.valueOf(number);
             }
           };
 
-    public final com.google.protobuf.Descriptors.EnumValueDescriptor
+    public final com.google.protobuf3jarjar.Descriptors.EnumValueDescriptor
         getValueDescriptor() {
       return getDescriptor().getValues().get(index);
     }
-    public final com.google.protobuf.Descriptors.EnumDescriptor
+    public final com.google.protobuf3jarjar.Descriptors.EnumDescriptor
         getDescriptorForType() {
       return getDescriptor();
     }
-    public static final com.google.protobuf.Descriptors.EnumDescriptor
+    public static final com.google.protobuf3jarjar.Descriptors.EnumDescriptor
         getDescriptor() {
       return com.android.tools.idea.editors.gfxtrace.service.snippets.SnippetsProtos.getDescriptor().getEnumTypes().get(0);
     }
@@ -82,7 +82,7 @@ public final class SnippetsProtos {
     private static final ObservationType[] VALUES = values();
 
     public static ObservationType valueOf(
-        com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
+        com.google.protobuf3jarjar.Descriptors.EnumValueDescriptor desc) {
       if (desc.getType() != getDescriptor()) {
         throw new java.lang.IllegalArgumentException(
           "EnumValueDescriptor is not for this type.");
@@ -112,7 +112,7 @@ public final class SnippetsProtos {
    * </pre>
    */
   public enum PartKind
-      implements com.google.protobuf.ProtocolMessageEnum {
+      implements com.google.protobuf3jarjar.ProtocolMessageEnum {
     /**
      * <code>Key = 0;</code>
      *
@@ -183,27 +183,27 @@ public final class SnippetsProtos {
       }
     }
 
-    public static com.google.protobuf.Internal.EnumLiteMap<PartKind>
+    public static com.google.protobuf3jarjar.Internal.EnumLiteMap<PartKind>
         internalGetValueMap() {
       return internalValueMap;
     }
-    private static final com.google.protobuf.Internal.EnumLiteMap<
+    private static final com.google.protobuf3jarjar.Internal.EnumLiteMap<
         PartKind> internalValueMap =
-          new com.google.protobuf.Internal.EnumLiteMap<PartKind>() {
+          new com.google.protobuf3jarjar.Internal.EnumLiteMap<PartKind>() {
             public PartKind findValueByNumber(int number) {
               return PartKind.valueOf(number);
             }
           };
 
-    public final com.google.protobuf.Descriptors.EnumValueDescriptor
+    public final com.google.protobuf3jarjar.Descriptors.EnumValueDescriptor
         getValueDescriptor() {
       return getDescriptor().getValues().get(index);
     }
-    public final com.google.protobuf.Descriptors.EnumDescriptor
+    public final com.google.protobuf3jarjar.Descriptors.EnumDescriptor
         getDescriptorForType() {
       return getDescriptor();
     }
-    public static final com.google.protobuf.Descriptors.EnumDescriptor
+    public static final com.google.protobuf3jarjar.Descriptors.EnumDescriptor
         getDescriptor() {
       return com.android.tools.idea.editors.gfxtrace.service.snippets.SnippetsProtos.getDescriptor().getEnumTypes().get(1);
     }
@@ -211,7 +211,7 @@ public final class SnippetsProtos {
     private static final PartKind[] VALUES = values();
 
     public static PartKind valueOf(
-        com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
+        com.google.protobuf3jarjar.Descriptors.EnumValueDescriptor desc) {
       if (desc.getType() != getDescriptor()) {
         throw new java.lang.IllegalArgumentException(
           "EnumValueDescriptor is not for this type.");
@@ -237,7 +237,7 @@ public final class SnippetsProtos {
    * Protobuf enum {@code snippets.SymbolCategory}
    */
   public enum SymbolCategory
-      implements com.google.protobuf.ProtocolMessageEnum {
+      implements com.google.protobuf3jarjar.ProtocolMessageEnum {
     /**
      * <code>Global = 0;</code>
      */
@@ -284,27 +284,27 @@ public final class SnippetsProtos {
       }
     }
 
-    public static com.google.protobuf.Internal.EnumLiteMap<SymbolCategory>
+    public static com.google.protobuf3jarjar.Internal.EnumLiteMap<SymbolCategory>
         internalGetValueMap() {
       return internalValueMap;
     }
-    private static final com.google.protobuf.Internal.EnumLiteMap<
+    private static final com.google.protobuf3jarjar.Internal.EnumLiteMap<
         SymbolCategory> internalValueMap =
-          new com.google.protobuf.Internal.EnumLiteMap<SymbolCategory>() {
+          new com.google.protobuf3jarjar.Internal.EnumLiteMap<SymbolCategory>() {
             public SymbolCategory findValueByNumber(int number) {
               return SymbolCategory.valueOf(number);
             }
           };
 
-    public final com.google.protobuf.Descriptors.EnumValueDescriptor
+    public final com.google.protobuf3jarjar.Descriptors.EnumValueDescriptor
         getValueDescriptor() {
       return getDescriptor().getValues().get(index);
     }
-    public final com.google.protobuf.Descriptors.EnumDescriptor
+    public final com.google.protobuf3jarjar.Descriptors.EnumDescriptor
         getDescriptorForType() {
       return getDescriptor();
     }
-    public static final com.google.protobuf.Descriptors.EnumDescriptor
+    public static final com.google.protobuf3jarjar.Descriptors.EnumDescriptor
         getDescriptor() {
       return com.android.tools.idea.editors.gfxtrace.service.snippets.SnippetsProtos.getDescriptor().getEnumTypes().get(2);
     }
@@ -312,7 +312,7 @@ public final class SnippetsProtos {
     private static final SymbolCategory[] VALUES = values();
 
     public static SymbolCategory valueOf(
-        com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
+        com.google.protobuf3jarjar.Descriptors.EnumValueDescriptor desc) {
       if (desc.getType() != getDescriptor()) {
         throw new java.lang.IllegalArgumentException(
           "EnumValueDescriptor is not for this type.");
@@ -335,11 +335,11 @@ public final class SnippetsProtos {
   }
 
 
-  public static com.google.protobuf.Descriptors.FileDescriptor
+  public static com.google.protobuf3jarjar.Descriptors.FileDescriptor
       getDescriptor() {
     return descriptor;
   }
-  private static com.google.protobuf.Descriptors.FileDescriptor
+  private static com.google.protobuf3jarjar.Descriptors.FileDescriptor
       descriptor;
   static {
     java.lang.String[] descriptorData = {
@@ -351,17 +351,17 @@ public final class SnippetsProtos {
       "dea.editors.gfxtrace.service.snippetsB\016S" +
       "nippetsProtosb\006proto3"
     };
-    com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
-        new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
-          public com.google.protobuf.ExtensionRegistry assignDescriptors(
-              com.google.protobuf.Descriptors.FileDescriptor root) {
+    com.google.protobuf3jarjar.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
+        new com.google.protobuf3jarjar.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
+          public com.google.protobuf3jarjar.ExtensionRegistry assignDescriptors(
+              com.google.protobuf3jarjar.Descriptors.FileDescriptor root) {
             descriptor = root;
             return null;
           }
         };
-    com.google.protobuf.Descriptors.FileDescriptor
+    com.google.protobuf3jarjar.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
-        new com.google.protobuf.Descriptors.FileDescriptor[] {
+        new com.google.protobuf3jarjar.Descriptors.FileDescriptor[] {
         }, assigner);
   }
 
