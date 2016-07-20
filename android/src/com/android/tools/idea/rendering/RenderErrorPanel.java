@@ -720,8 +720,12 @@ public class RenderErrorPanel extends JPanel {
       builder.endList();
 
       builder.addIcon(HtmlBuilderHelper.getTipIconPath());
-      builder.addLink("Tip: Use ", "View.isInEditMode()", " in your custom views to skip code or show sample data when shown in the IDE",
+      builder.addLink("Tip: Use ", "View.isInEditMode()", " in your custom views to skip code or show sample data when shown in the IDE.",
                       "http://developer.android.com/reference/android/view/View.html#isInEditMode()");
+      builder.newline().newline();
+      builder.add("If this is an unexpected error you can also try to ");
+      builder.addLink("", "build the project", ", then ", myLinkManager.createCompileModuleUrl());
+      builder.addLink("manually ", "refresh the layout", ".", myLinkManager.createRefreshRenderUrl());
 
       if (firstThrowable != null) {
         builder.newline().newline();
