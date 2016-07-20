@@ -6,7 +6,7 @@ package com.android.tools.idea.editors.gfxtrace.service.memory;
 public final class MemoryProtos {
   private MemoryProtos() {}
   public static void registerAllExtensions(
-      com.google.protobuf.ExtensionRegistry registry) {
+      com.google.protobuf3jarjar.ExtensionRegistry registry) {
   }
   /**
    * Protobuf enum {@code memory.PoolNames}
@@ -16,7 +16,7 @@ public final class MemoryProtos {
    * </pre>
    */
   public enum PoolNames
-      implements com.google.protobuf.ProtocolMessageEnum {
+      implements com.google.protobuf3jarjar.ProtocolMessageEnum {
     /**
      * <code>Application = 0;</code>
      *
@@ -55,27 +55,27 @@ public final class MemoryProtos {
       }
     }
 
-    public static com.google.protobuf.Internal.EnumLiteMap<PoolNames>
+    public static com.google.protobuf3jarjar.Internal.EnumLiteMap<PoolNames>
         internalGetValueMap() {
       return internalValueMap;
     }
-    private static final com.google.protobuf.Internal.EnumLiteMap<
+    private static final com.google.protobuf3jarjar.Internal.EnumLiteMap<
         PoolNames> internalValueMap =
-          new com.google.protobuf.Internal.EnumLiteMap<PoolNames>() {
+          new com.google.protobuf3jarjar.Internal.EnumLiteMap<PoolNames>() {
             public PoolNames findValueByNumber(int number) {
               return PoolNames.valueOf(number);
             }
           };
 
-    public final com.google.protobuf.Descriptors.EnumValueDescriptor
+    public final com.google.protobuf3jarjar.Descriptors.EnumValueDescriptor
         getValueDescriptor() {
       return getDescriptor().getValues().get(index);
     }
-    public final com.google.protobuf.Descriptors.EnumDescriptor
+    public final com.google.protobuf3jarjar.Descriptors.EnumDescriptor
         getDescriptorForType() {
       return getDescriptor();
     }
-    public static final com.google.protobuf.Descriptors.EnumDescriptor
+    public static final com.google.protobuf3jarjar.Descriptors.EnumDescriptor
         getDescriptor() {
       return com.android.tools.idea.editors.gfxtrace.service.memory.MemoryProtos.getDescriptor().getEnumTypes().get(0);
     }
@@ -83,7 +83,7 @@ public final class MemoryProtos {
     private static final PoolNames[] VALUES = values();
 
     public static PoolNames valueOf(
-        com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
+        com.google.protobuf3jarjar.Descriptors.EnumValueDescriptor desc) {
       if (desc.getType() != getDescriptor()) {
         throw new java.lang.IllegalArgumentException(
           "EnumValueDescriptor is not for this type.");
@@ -106,11 +106,11 @@ public final class MemoryProtos {
   }
 
 
-  public static com.google.protobuf.Descriptors.FileDescriptor
+  public static com.google.protobuf3jarjar.Descriptors.FileDescriptor
       getDescriptor() {
     return descriptor;
   }
-  private static com.google.protobuf.Descriptors.FileDescriptor
+  private static com.google.protobuf3jarjar.Descriptors.FileDescriptor
       descriptor;
   static {
     java.lang.String[] descriptorData = {
@@ -119,17 +119,17 @@ public final class MemoryProtos {
       ".tools.idea.editors.gfxtrace.service.mem" +
       "oryB\014MemoryProtosb\006proto3"
     };
-    com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
-        new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
-          public com.google.protobuf.ExtensionRegistry assignDescriptors(
-              com.google.protobuf.Descriptors.FileDescriptor root) {
+    com.google.protobuf3jarjar.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
+        new com.google.protobuf3jarjar.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
+          public com.google.protobuf3jarjar.ExtensionRegistry assignDescriptors(
+              com.google.protobuf3jarjar.Descriptors.FileDescriptor root) {
             descriptor = root;
             return null;
           }
         };
-    com.google.protobuf.Descriptors.FileDescriptor
+    com.google.protobuf3jarjar.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
-        new com.google.protobuf.Descriptors.FileDescriptor[] {
+        new com.google.protobuf3jarjar.Descriptors.FileDescriptor[] {
         }, assigner);
   }
 

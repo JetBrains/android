@@ -6,7 +6,7 @@ package com.android.tools.idea.editors.gfxtrace.service;
 public final class ServiceProtos {
   private ServiceProtos() {}
   public static void registerAllExtensions(
-      com.google.protobuf.ExtensionRegistry registry) {
+      com.google.protobuf3jarjar.ExtensionRegistry registry) {
   }
   /**
    * Protobuf enum {@code service.WireframeMode}
@@ -17,7 +17,7 @@ public final class ServiceProtos {
    * </pre>
    */
   public enum WireframeMode
-      implements com.google.protobuf.ProtocolMessageEnum {
+      implements com.google.protobuf3jarjar.ProtocolMessageEnum {
     /**
      * <code>None = 0;</code>
      *
@@ -90,27 +90,27 @@ public final class ServiceProtos {
       }
     }
 
-    public static com.google.protobuf.Internal.EnumLiteMap<WireframeMode>
+    public static com.google.protobuf3jarjar.Internal.EnumLiteMap<WireframeMode>
         internalGetValueMap() {
       return internalValueMap;
     }
-    private static final com.google.protobuf.Internal.EnumLiteMap<
+    private static final com.google.protobuf3jarjar.Internal.EnumLiteMap<
         WireframeMode> internalValueMap =
-          new com.google.protobuf.Internal.EnumLiteMap<WireframeMode>() {
+          new com.google.protobuf3jarjar.Internal.EnumLiteMap<WireframeMode>() {
             public WireframeMode findValueByNumber(int number) {
               return WireframeMode.valueOf(number);
             }
           };
 
-    public final com.google.protobuf.Descriptors.EnumValueDescriptor
+    public final com.google.protobuf3jarjar.Descriptors.EnumValueDescriptor
         getValueDescriptor() {
       return getDescriptor().getValues().get(index);
     }
-    public final com.google.protobuf.Descriptors.EnumDescriptor
+    public final com.google.protobuf3jarjar.Descriptors.EnumDescriptor
         getDescriptorForType() {
       return getDescriptor();
     }
-    public static final com.google.protobuf.Descriptors.EnumDescriptor
+    public static final com.google.protobuf3jarjar.Descriptors.EnumDescriptor
         getDescriptor() {
       return com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.getDescriptor().getEnumTypes().get(0);
     }
@@ -118,7 +118,7 @@ public final class ServiceProtos {
     private static final WireframeMode[] VALUES = values();
 
     public static WireframeMode valueOf(
-        com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
+        com.google.protobuf3jarjar.Descriptors.EnumValueDescriptor desc) {
       if (desc.getType() != getDescriptor()) {
         throw new java.lang.IllegalArgumentException(
           "EnumValueDescriptor is not for this type.");
@@ -140,33 +140,965 @@ public final class ServiceProtos {
     // @@protoc_insertion_point(enum_scope:service.WireframeMode)
   }
 
+  public interface RequestOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:service.Request)
+      com.google.protobuf3jarjar.MessageOrBuilder {
 
-  public static com.google.protobuf.Descriptors.FileDescriptor
+    /**
+     * <code>optional string token = 1;</code>
+     */
+    java.lang.String getToken();
+    /**
+     * <code>optional string token = 1;</code>
+     */
+    com.google.protobuf3jarjar.ByteString
+        getTokenBytes();
+
+    /**
+     * <code>optional bytes request = 2;</code>
+     */
+    com.google.protobuf3jarjar.ByteString getRequest();
+  }
+  /**
+   * Protobuf type {@code service.Request}
+   */
+  public  static final class Request extends
+      com.google.protobuf3jarjar.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:service.Request)
+      RequestOrBuilder {
+    // Use Request.newBuilder() to construct.
+    private Request(com.google.protobuf3jarjar.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private Request() {
+      token_ = "";
+      request_ = com.google.protobuf3jarjar.ByteString.EMPTY;
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf3jarjar.UnknownFieldSet
+    getUnknownFields() {
+      return com.google.protobuf3jarjar.UnknownFieldSet.getDefaultInstance();
+    }
+    private Request(
+        com.google.protobuf3jarjar.CodedInputStream input,
+        com.google.protobuf3jarjar.ExtensionRegistryLite extensionRegistry) {
+      this();
+      int mutable_bitField0_ = 0;
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!input.skipField(tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 10: {
+              java.lang.String s = input.readStringRequireUtf8();
+
+              token_ = s;
+              break;
+            }
+            case 18: {
+
+              request_ = input.readBytes();
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf3jarjar.InvalidProtocolBufferException e) {
+        throw new RuntimeException(e.setUnfinishedMessage(this));
+      } catch (java.io.IOException e) {
+        throw new RuntimeException(
+            new com.google.protobuf3jarjar.InvalidProtocolBufferException(
+                e.getMessage()).setUnfinishedMessage(this));
+      } finally {
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf3jarjar.Descriptors.Descriptor
+        getDescriptor() {
+      return com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.internal_static_service_Request_descriptor;
+    }
+
+    protected com.google.protobuf3jarjar.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.internal_static_service_Request_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request.class, com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request.Builder.class);
+    }
+
+    public static final int TOKEN_FIELD_NUMBER = 1;
+    private volatile java.lang.Object token_;
+    /**
+     * <code>optional string token = 1;</code>
+     */
+    public java.lang.String getToken() {
+      java.lang.Object ref = token_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf3jarjar.ByteString bs = 
+            (com.google.protobuf3jarjar.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        token_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>optional string token = 1;</code>
+     */
+    public com.google.protobuf3jarjar.ByteString
+        getTokenBytes() {
+      java.lang.Object ref = token_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf3jarjar.ByteString b = 
+            com.google.protobuf3jarjar.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        token_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf3jarjar.ByteString) ref;
+      }
+    }
+
+    public static final int REQUEST_FIELD_NUMBER = 2;
+    private com.google.protobuf3jarjar.ByteString request_;
+    /**
+     * <code>optional bytes request = 2;</code>
+     */
+    public com.google.protobuf3jarjar.ByteString getRequest() {
+      return request_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf3jarjar.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!getTokenBytes().isEmpty()) {
+        com.google.protobuf3jarjar.GeneratedMessage.writeString(output, 1, token_);
+      }
+      if (!request_.isEmpty()) {
+        output.writeBytes(2, request_);
+      }
+    }
+
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!getTokenBytes().isEmpty()) {
+        size += com.google.protobuf3jarjar.GeneratedMessage.computeStringSize(1, token_);
+      }
+      if (!request_.isEmpty()) {
+        size += com.google.protobuf3jarjar.CodedOutputStream
+          .computeBytesSize(2, request_);
+      }
+      memoizedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    public static com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request parseFrom(
+        com.google.protobuf3jarjar.ByteString data)
+        throws com.google.protobuf3jarjar.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request parseFrom(
+        com.google.protobuf3jarjar.ByteString data,
+        com.google.protobuf3jarjar.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf3jarjar.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request parseFrom(byte[] data)
+        throws com.google.protobuf3jarjar.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request parseFrom(
+        byte[] data,
+        com.google.protobuf3jarjar.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf3jarjar.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf3jarjar.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf3jarjar.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request parseFrom(
+        com.google.protobuf3jarjar.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request parseFrom(
+        com.google.protobuf3jarjar.CodedInputStream input,
+        com.google.protobuf3jarjar.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf3jarjar.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code service.Request}
+     */
+    public static final class Builder extends
+        com.google.protobuf3jarjar.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:service.Request)
+        com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.RequestOrBuilder {
+      public static final com.google.protobuf3jarjar.Descriptors.Descriptor
+          getDescriptor() {
+        return com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.internal_static_service_Request_descriptor;
+      }
+
+      protected com.google.protobuf3jarjar.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.internal_static_service_Request_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request.class, com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request.Builder.class);
+      }
+
+      // Construct using com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf3jarjar.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf3jarjar.GeneratedMessage.alwaysUseFieldBuilders) {
+        }
+      }
+      public Builder clear() {
+        super.clear();
+        token_ = "";
+
+        request_ = com.google.protobuf3jarjar.ByteString.EMPTY;
+
+        return this;
+      }
+
+      public com.google.protobuf3jarjar.Descriptors.Descriptor
+          getDescriptorForType() {
+        return com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.internal_static_service_Request_descriptor;
+      }
+
+      public com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request getDefaultInstanceForType() {
+        return com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request.getDefaultInstance();
+      }
+
+      public com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request build() {
+        com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request buildPartial() {
+        com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request result = new com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request(this);
+        result.token_ = token_;
+        result.request_ = request_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf3jarjar.Message other) {
+        if (other instanceof com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request) {
+          return mergeFrom((com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request other) {
+        if (other == com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request.getDefaultInstance()) return this;
+        if (!other.getToken().isEmpty()) {
+          token_ = other.token_;
+          onChanged();
+        }
+        if (other.getRequest() != com.google.protobuf3jarjar.ByteString.EMPTY) {
+          setRequest(other.getRequest());
+        }
+        onChanged();
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf3jarjar.CodedInputStream input,
+          com.google.protobuf3jarjar.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf3jarjar.InvalidProtocolBufferException e) {
+          parsedMessage = (com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+
+      private java.lang.Object token_ = "";
+      /**
+       * <code>optional string token = 1;</code>
+       */
+      public java.lang.String getToken() {
+        java.lang.Object ref = token_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf3jarjar.ByteString bs =
+              (com.google.protobuf3jarjar.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          token_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>optional string token = 1;</code>
+       */
+      public com.google.protobuf3jarjar.ByteString
+          getTokenBytes() {
+        java.lang.Object ref = token_;
+        if (ref instanceof String) {
+          com.google.protobuf3jarjar.ByteString b = 
+              com.google.protobuf3jarjar.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          token_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf3jarjar.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string token = 1;</code>
+       */
+      public Builder setToken(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  
+        token_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string token = 1;</code>
+       */
+      public Builder clearToken() {
+        
+        token_ = getDefaultInstance().getToken();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string token = 1;</code>
+       */
+      public Builder setTokenBytes(
+          com.google.protobuf3jarjar.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  checkByteStringIsUtf8(value);
+        
+        token_ = value;
+        onChanged();
+        return this;
+      }
+
+      private com.google.protobuf3jarjar.ByteString request_ = com.google.protobuf3jarjar.ByteString.EMPTY;
+      /**
+       * <code>optional bytes request = 2;</code>
+       */
+      public com.google.protobuf3jarjar.ByteString getRequest() {
+        return request_;
+      }
+      /**
+       * <code>optional bytes request = 2;</code>
+       */
+      public Builder setRequest(com.google.protobuf3jarjar.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  
+        request_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional bytes request = 2;</code>
+       */
+      public Builder clearRequest() {
+        
+        request_ = getDefaultInstance().getRequest();
+        onChanged();
+        return this;
+      }
+      public final Builder setUnknownFields(
+          final com.google.protobuf3jarjar.UnknownFieldSet unknownFields) {
+        return this;
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf3jarjar.UnknownFieldSet unknownFields) {
+        return this;
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:service.Request)
+    }
+
+    // @@protoc_insertion_point(class_scope:service.Request)
+    private static final com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request();
+    }
+
+    public static com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf3jarjar.Parser<Request>
+        PARSER = new com.google.protobuf3jarjar.AbstractParser<Request>() {
+      public Request parsePartialFrom(
+          com.google.protobuf3jarjar.CodedInputStream input,
+          com.google.protobuf3jarjar.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf3jarjar.InvalidProtocolBufferException {
+        try {
+          return new Request(input, extensionRegistry);
+        } catch (RuntimeException e) {
+          if (e.getCause() instanceof
+              com.google.protobuf3jarjar.InvalidProtocolBufferException) {
+            throw (com.google.protobuf3jarjar.InvalidProtocolBufferException)
+                e.getCause();
+          }
+          throw e;
+        }
+      }
+    };
+
+    public static com.google.protobuf3jarjar.Parser<Request> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf3jarjar.Parser<Request> getParserForType() {
+      return PARSER;
+    }
+
+    public com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Request getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface ResponseOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:service.Response)
+      com.google.protobuf3jarjar.MessageOrBuilder {
+
+    /**
+     * <code>optional bytes response = 1;</code>
+     */
+    com.google.protobuf3jarjar.ByteString getResponse();
+  }
+  /**
+   * Protobuf type {@code service.Response}
+   */
+  public  static final class Response extends
+      com.google.protobuf3jarjar.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:service.Response)
+      ResponseOrBuilder {
+    // Use Response.newBuilder() to construct.
+    private Response(com.google.protobuf3jarjar.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private Response() {
+      response_ = com.google.protobuf3jarjar.ByteString.EMPTY;
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf3jarjar.UnknownFieldSet
+    getUnknownFields() {
+      return com.google.protobuf3jarjar.UnknownFieldSet.getDefaultInstance();
+    }
+    private Response(
+        com.google.protobuf3jarjar.CodedInputStream input,
+        com.google.protobuf3jarjar.ExtensionRegistryLite extensionRegistry) {
+      this();
+      int mutable_bitField0_ = 0;
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!input.skipField(tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 10: {
+
+              response_ = input.readBytes();
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf3jarjar.InvalidProtocolBufferException e) {
+        throw new RuntimeException(e.setUnfinishedMessage(this));
+      } catch (java.io.IOException e) {
+        throw new RuntimeException(
+            new com.google.protobuf3jarjar.InvalidProtocolBufferException(
+                e.getMessage()).setUnfinishedMessage(this));
+      } finally {
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf3jarjar.Descriptors.Descriptor
+        getDescriptor() {
+      return com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.internal_static_service_Response_descriptor;
+    }
+
+    protected com.google.protobuf3jarjar.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.internal_static_service_Response_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response.class, com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response.Builder.class);
+    }
+
+    public static final int RESPONSE_FIELD_NUMBER = 1;
+    private com.google.protobuf3jarjar.ByteString response_;
+    /**
+     * <code>optional bytes response = 1;</code>
+     */
+    public com.google.protobuf3jarjar.ByteString getResponse() {
+      return response_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf3jarjar.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!response_.isEmpty()) {
+        output.writeBytes(1, response_);
+      }
+    }
+
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!response_.isEmpty()) {
+        size += com.google.protobuf3jarjar.CodedOutputStream
+          .computeBytesSize(1, response_);
+      }
+      memoizedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    public static com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response parseFrom(
+        com.google.protobuf3jarjar.ByteString data)
+        throws com.google.protobuf3jarjar.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response parseFrom(
+        com.google.protobuf3jarjar.ByteString data,
+        com.google.protobuf3jarjar.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf3jarjar.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response parseFrom(byte[] data)
+        throws com.google.protobuf3jarjar.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response parseFrom(
+        byte[] data,
+        com.google.protobuf3jarjar.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf3jarjar.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf3jarjar.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf3jarjar.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response parseFrom(
+        com.google.protobuf3jarjar.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response parseFrom(
+        com.google.protobuf3jarjar.CodedInputStream input,
+        com.google.protobuf3jarjar.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf3jarjar.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code service.Response}
+     */
+    public static final class Builder extends
+        com.google.protobuf3jarjar.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:service.Response)
+        com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.ResponseOrBuilder {
+      public static final com.google.protobuf3jarjar.Descriptors.Descriptor
+          getDescriptor() {
+        return com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.internal_static_service_Response_descriptor;
+      }
+
+      protected com.google.protobuf3jarjar.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.internal_static_service_Response_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response.class, com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response.Builder.class);
+      }
+
+      // Construct using com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf3jarjar.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf3jarjar.GeneratedMessage.alwaysUseFieldBuilders) {
+        }
+      }
+      public Builder clear() {
+        super.clear();
+        response_ = com.google.protobuf3jarjar.ByteString.EMPTY;
+
+        return this;
+      }
+
+      public com.google.protobuf3jarjar.Descriptors.Descriptor
+          getDescriptorForType() {
+        return com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.internal_static_service_Response_descriptor;
+      }
+
+      public com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response getDefaultInstanceForType() {
+        return com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response.getDefaultInstance();
+      }
+
+      public com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response build() {
+        com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response buildPartial() {
+        com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response result = new com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response(this);
+        result.response_ = response_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf3jarjar.Message other) {
+        if (other instanceof com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response) {
+          return mergeFrom((com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response other) {
+        if (other == com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response.getDefaultInstance()) return this;
+        if (other.getResponse() != com.google.protobuf3jarjar.ByteString.EMPTY) {
+          setResponse(other.getResponse());
+        }
+        onChanged();
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf3jarjar.CodedInputStream input,
+          com.google.protobuf3jarjar.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf3jarjar.InvalidProtocolBufferException e) {
+          parsedMessage = (com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+
+      private com.google.protobuf3jarjar.ByteString response_ = com.google.protobuf3jarjar.ByteString.EMPTY;
+      /**
+       * <code>optional bytes response = 1;</code>
+       */
+      public com.google.protobuf3jarjar.ByteString getResponse() {
+        return response_;
+      }
+      /**
+       * <code>optional bytes response = 1;</code>
+       */
+      public Builder setResponse(com.google.protobuf3jarjar.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  
+        response_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional bytes response = 1;</code>
+       */
+      public Builder clearResponse() {
+        
+        response_ = getDefaultInstance().getResponse();
+        onChanged();
+        return this;
+      }
+      public final Builder setUnknownFields(
+          final com.google.protobuf3jarjar.UnknownFieldSet unknownFields) {
+        return this;
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf3jarjar.UnknownFieldSet unknownFields) {
+        return this;
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:service.Response)
+    }
+
+    // @@protoc_insertion_point(class_scope:service.Response)
+    private static final com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response();
+    }
+
+    public static com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf3jarjar.Parser<Response>
+        PARSER = new com.google.protobuf3jarjar.AbstractParser<Response>() {
+      public Response parsePartialFrom(
+          com.google.protobuf3jarjar.CodedInputStream input,
+          com.google.protobuf3jarjar.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf3jarjar.InvalidProtocolBufferException {
+        try {
+          return new Response(input, extensionRegistry);
+        } catch (RuntimeException e) {
+          if (e.getCause() instanceof
+              com.google.protobuf3jarjar.InvalidProtocolBufferException) {
+            throw (com.google.protobuf3jarjar.InvalidProtocolBufferException)
+                e.getCause();
+          }
+          throw e;
+        }
+      }
+    };
+
+    public static com.google.protobuf3jarjar.Parser<Response> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf3jarjar.Parser<Response> getParserForType() {
+      return PARSER;
+    }
+
+    public com.android.tools.idea.editors.gfxtrace.service.ServiceProtos.Response getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  private static com.google.protobuf3jarjar.Descriptors.Descriptor
+    internal_static_service_Request_descriptor;
+  private static
+    com.google.protobuf3jarjar.GeneratedMessage.FieldAccessorTable
+      internal_static_service_Request_fieldAccessorTable;
+  private static com.google.protobuf3jarjar.Descriptors.Descriptor
+    internal_static_service_Response_descriptor;
+  private static
+    com.google.protobuf3jarjar.GeneratedMessage.FieldAccessorTable
+      internal_static_service_Response_fieldAccessorTable;
+
+  public static com.google.protobuf3jarjar.Descriptors.FileDescriptor
       getDescriptor() {
     return descriptor;
   }
-  private static com.google.protobuf.Descriptors.FileDescriptor
+  private static com.google.protobuf3jarjar.Descriptors.FileDescriptor
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\033gapid/service/service.proto\022\007service*/" +
-      "\n\rWireframeMode\022\010\n\004None\020\000\022\013\n\007Overlay\020\001\022\007" +
-      "\n\003All\020\002B@\n/com.android.tools.idea.editor" +
-      "s.gfxtrace.serviceB\rServiceProtosb\006proto" +
-      "3"
+      "\n\033gapid/service/service.proto\022\007service\")" +
+      "\n\007Request\022\r\n\005token\030\001 \001(\t\022\017\n\007request\030\002 \001(" +
+      "\014\"\034\n\010Response\022\020\n\010response\030\001 \001(\014*/\n\rWiref" +
+      "rameMode\022\010\n\004None\020\000\022\013\n\007Overlay\020\001\022\007\n\003All\020\002" +
+      "2\207\006\n\005Gapid\022,\n\003Get\022\020.service.Request\032\021.se" +
+      "rvice.Response\"\000\022,\n\003Set\022\020.service.Reques" +
+      "t\032\021.service.Response\"\000\022/\n\006Follow\022\020.servi" +
+      "ce.Request\032\021.service.Response\"\000\0222\n\tGetSc" +
+      "hema\022\020.service.Request\032\021.service.Respons" +
+      "e\"\000\022A\n\030GetAvailableStringTables\022\020.servic",
+      "e.Request\032\021.service.Response\"\000\0227\n\016GetStr" +
+      "ingTable\022\020.service.Request\032\021.service.Res" +
+      "ponse\"\000\0224\n\013GetFeatures\022\020.service.Request" +
+      "\032\021.service.Response\"\000\0226\n\rImportCapture\022\020" +
+      ".service.Request\032\021.service.Response\"\000\0224\n" +
+      "\013LoadCapture\022\020.service.Request\032\021.service" +
+      ".Response\"\000\0224\n\013GetCaptures\022\020.service.Req" +
+      "uest\032\021.service.Response\"\000\0223\n\nGetDevices\022" +
+      "\020.service.Request\032\021.service.Response\"\000\022<" +
+      "\n\023GetFramebufferColor\022\020.service.Request\032",
+      "\021.service.Response\"\000\022<\n\023GetFramebufferDe" +
+      "pth\022\020.service.Request\032\021.service.Response" +
+      "\"\000\0226\n\rGetTimingInfo\022\020.service.Request\032\021." +
+      "service.Response\"\000B@\n/com.android.tools." +
+      "idea.editors.gfxtrace.serviceB\rServicePr" +
+      "otosb\006proto3"
     };
-    com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
-        new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
-          public com.google.protobuf.ExtensionRegistry assignDescriptors(
-              com.google.protobuf.Descriptors.FileDescriptor root) {
+    com.google.protobuf3jarjar.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
+        new com.google.protobuf3jarjar.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
+          public com.google.protobuf3jarjar.ExtensionRegistry assignDescriptors(
+              com.google.protobuf3jarjar.Descriptors.FileDescriptor root) {
             descriptor = root;
             return null;
           }
         };
-    com.google.protobuf.Descriptors.FileDescriptor
+    com.google.protobuf3jarjar.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
-        new com.google.protobuf.Descriptors.FileDescriptor[] {
+        new com.google.protobuf3jarjar.Descriptors.FileDescriptor[] {
         }, assigner);
+    internal_static_service_Request_descriptor =
+      getDescriptor().getMessageTypes().get(0);
+    internal_static_service_Request_fieldAccessorTable = new
+      com.google.protobuf3jarjar.GeneratedMessage.FieldAccessorTable(
+        internal_static_service_Request_descriptor,
+        new java.lang.String[] { "Token", "Request", });
+    internal_static_service_Response_descriptor =
+      getDescriptor().getMessageTypes().get(1);
+    internal_static_service_Response_fieldAccessorTable = new
+      com.google.protobuf3jarjar.GeneratedMessage.FieldAccessorTable(
+        internal_static_service_Response_descriptor,
+        new java.lang.String[] { "Response", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)

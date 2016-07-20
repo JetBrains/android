@@ -6,7 +6,7 @@ package com.android.tools.idea.editors.gfxtrace.service.log;
 public final class LogProtos {
   private LogProtos() {}
   public static void registerAllExtensions(
-      com.google.protobuf.ExtensionRegistry registry) {
+      com.google.protobuf3jarjar.ExtensionRegistry registry) {
   }
   /**
    * Protobuf enum {@code log.Severity}
@@ -17,7 +17,7 @@ public final class LogProtos {
    * </pre>
    */
   public enum Severity
-      implements com.google.protobuf.ProtocolMessageEnum {
+      implements com.google.protobuf3jarjar.ProtocolMessageEnum {
     /**
      * <code>Emergency = 0;</code>
      *
@@ -173,27 +173,27 @@ public final class LogProtos {
       }
     }
 
-    public static com.google.protobuf.Internal.EnumLiteMap<Severity>
+    public static com.google.protobuf3jarjar.Internal.EnumLiteMap<Severity>
         internalGetValueMap() {
       return internalValueMap;
     }
-    private static final com.google.protobuf.Internal.EnumLiteMap<
+    private static final com.google.protobuf3jarjar.Internal.EnumLiteMap<
         Severity> internalValueMap =
-          new com.google.protobuf.Internal.EnumLiteMap<Severity>() {
+          new com.google.protobuf3jarjar.Internal.EnumLiteMap<Severity>() {
             public Severity findValueByNumber(int number) {
               return Severity.valueOf(number);
             }
           };
 
-    public final com.google.protobuf.Descriptors.EnumValueDescriptor
+    public final com.google.protobuf3jarjar.Descriptors.EnumValueDescriptor
         getValueDescriptor() {
       return getDescriptor().getValues().get(index);
     }
-    public final com.google.protobuf.Descriptors.EnumDescriptor
+    public final com.google.protobuf3jarjar.Descriptors.EnumDescriptor
         getDescriptorForType() {
       return getDescriptor();
     }
-    public static final com.google.protobuf.Descriptors.EnumDescriptor
+    public static final com.google.protobuf3jarjar.Descriptors.EnumDescriptor
         getDescriptor() {
       return com.android.tools.idea.editors.gfxtrace.service.log.LogProtos.getDescriptor().getEnumTypes().get(0);
     }
@@ -201,7 +201,7 @@ public final class LogProtos {
     private static final Severity[] VALUES = values();
 
     public static Severity valueOf(
-        com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
+        com.google.protobuf3jarjar.Descriptors.EnumValueDescriptor desc) {
       if (desc.getType() != getDescriptor()) {
         throw new java.lang.IllegalArgumentException(
           "EnumValueDescriptor is not for this type.");
@@ -224,11 +224,11 @@ public final class LogProtos {
   }
 
 
-  public static com.google.protobuf.Descriptors.FileDescriptor
+  public static com.google.protobuf3jarjar.Descriptors.FileDescriptor
       getDescriptor() {
     return descriptor;
   }
-  private static com.google.protobuf.Descriptors.FileDescriptor
+  private static com.google.protobuf3jarjar.Descriptors.FileDescriptor
       descriptor;
   static {
     java.lang.String[] descriptorData = {
@@ -239,17 +239,17 @@ public final class LogProtos {
       ".idea.editors.gfxtrace.service.logB\tLogP" +
       "rotosb\006proto3"
     };
-    com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
-        new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
-          public com.google.protobuf.ExtensionRegistry assignDescriptors(
-              com.google.protobuf.Descriptors.FileDescriptor root) {
+    com.google.protobuf3jarjar.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
+        new com.google.protobuf3jarjar.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
+          public com.google.protobuf3jarjar.ExtensionRegistry assignDescriptors(
+              com.google.protobuf3jarjar.Descriptors.FileDescriptor root) {
             descriptor = root;
             return null;
           }
         };
-    com.google.protobuf.Descriptors.FileDescriptor
+    com.google.protobuf3jarjar.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
-        new com.google.protobuf.Descriptors.FileDescriptor[] {
+        new com.google.protobuf3jarjar.Descriptors.FileDescriptor[] {
         }, assigner);
   }
 
