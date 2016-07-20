@@ -145,7 +145,7 @@ public final class ProxyUtil {
               THROWABLE_CACHE.put(cause.getMessage(), (InvocationErrorValue) value);
             }
           }
-          values.put(m.toGenericString(), reproxy(m.getGenericReturnType(), value));
+          values.put(m.toGenericString().intern(), reproxy(m.getGenericReturnType(), value));
         }
       }
       catch (IllegalAccessException e) {
