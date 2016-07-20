@@ -38,7 +38,7 @@ import java.awt.image.BufferedImage;
 import java.util.concurrent.ExecutionException;
 
 public abstract class ImageCellController<T extends ImageCellList.Data> extends Controller
-    implements CellList.SelectionListener<T>, CellRenderer.CellLoader<T> {
+    implements CellWidget.SelectionListener<T>, CellRenderer.CellLoader<T> {
   @NotNull private static final Logger LOG = Logger.getInstance(ImageCellController.class);
   @NotNull protected CellWidget<T, ?> myList;
 
