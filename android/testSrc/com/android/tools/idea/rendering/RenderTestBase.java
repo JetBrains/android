@@ -17,6 +17,7 @@ package com.android.tools.idea.rendering;
 
 import com.android.ide.common.rendering.api.Result;
 import com.android.sdklib.devices.Device;
+import com.android.tools.adtui.imagediff.ImageDiffUtil;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -159,7 +160,7 @@ public abstract class RenderTestBase extends AndroidTestCase {
 
     if (fromFile.exists()) {
       BufferedImage goldenImage = ImageIO.read(fromFile);
-      assertImageSimilar(relativePath, goldenImage, image, MAX_PERCENT_DIFFERENT);
+      ImageDiffUtil.assertImageSimilar(relativePath, goldenImage, image, MAX_PERCENT_DIFFERENT);
     } else {
       File dir = fromFile.getParentFile();
       assertNotNull(dir);
@@ -170,114 +171,6 @@ public abstract class RenderTestBase extends AndroidTestCase {
       ImageIO.write(image, "PNG", fromFile);
       fail("File did not exist, created " + fromFile);
     }
-  }
-
-  public static void assertImageSimilar(String imageName, BufferedImage goldenImage,
-                                  BufferedImage image, double maxPercentDifferent) throws IOException {
-    assertEquals("Only TYPE_INT_ARGB image types are supported",  TYPE_INT_ARGB, image.getType());
-
-    if (goldenImage.getType() != TYPE_INT_ARGB) {
-      @SuppressWarnings("UndesirableClassUsage") // Don't want Retina images in unit tests
-      BufferedImage temp = new BufferedImage(goldenImage.getWidth(), goldenImage.getHeight(),
-                                             TYPE_INT_ARGB);
-      temp.getGraphics().drawImage(goldenImage, 0, 0, null);
-      goldenImage = temp;
-    }
-    assertEquals(TYPE_INT_ARGB, goldenImage.getType());
-
-    int imageWidth = Math.min(goldenImage.getWidth(), image.getWidth());
-    int imageHeight = Math.min(goldenImage.getHeight(), image.getHeight());
-
-    // Blur the images to account for the scenarios where there are pixel
-    // differences
-    // in where a sharp edge occurs
-    // goldenImage = blur(goldenImage, 6);
-    // image = blur(image, 6);
-
-    int width = 3 * imageWidth;
-    @SuppressWarnings("UnnecessaryLocalVariable")
-    int height = imageHeight; // makes code more readable
-    @SuppressWarnings("UndesirableClassUsage") // Don't want Retina images in unit tests
-    BufferedImage deltaImage = new BufferedImage(width, height, TYPE_INT_ARGB);
-    Graphics g = deltaImage.getGraphics();
-
-    // Compute delta map
-    long delta = 0;
-    for (int y = 0; y < imageHeight; y++) {
-      for (int x = 0; x < imageWidth; x++) {
-        int goldenRgb = goldenImage.getRGB(x, y);
-        int rgb = image.getRGB(x, y);
-        if (goldenRgb == rgb) {
-          deltaImage.setRGB(imageWidth + x, y, 0x00808080);
-          continue;
-        }
-
-        // If the pixels have no opacity, don't delta colors at all
-        if (((goldenRgb & 0xFF000000) == 0) && (rgb & 0xFF000000) == 0) {
-          deltaImage.setRGB(imageWidth + x, y, 0x00808080);
-          continue;
-        }
-
-        int deltaR = ((rgb & 0xFF0000) >>> 16) - ((goldenRgb & 0xFF0000) >>> 16);
-        int newR = 128 + deltaR & 0xFF;
-        int deltaG = ((rgb & 0x00FF00) >>> 8) - ((goldenRgb & 0x00FF00) >>> 8);
-        int newG = 128 + deltaG & 0xFF;
-        int deltaB = (rgb & 0x0000FF) - (goldenRgb & 0x0000FF);
-        int newB = 128 + deltaB & 0xFF;
-
-        int avgAlpha = ((((goldenRgb & 0xFF000000) >>> 24)
-                         + ((rgb & 0xFF000000) >>> 24)) / 2) << 24;
-
-        int newRGB = avgAlpha | newR << 16 | newG << 8 | newB;
-        deltaImage.setRGB(imageWidth + x, y, newRGB);
-
-        delta += Math.abs(deltaR);
-        delta += Math.abs(deltaG);
-        delta += Math.abs(deltaB);
-      }
-    }
-
-    // 3 different colors, 256 color levels
-    long total = imageHeight * imageWidth * 3L * 256L;
-    float percentDifference = (float) (delta * 100 / (double) total);
-
-    String error = null;
-    if (percentDifference > maxPercentDifferent) {
-      error = String.format("Images differ (by %.1f%%)", percentDifference);
-    } else if (Math.abs(goldenImage.getWidth() - image.getWidth()) >= 2) {
-      error = "Widths differ too much for " + imageName + ": " + goldenImage.getWidth() + "x" + goldenImage.getHeight() +
-              "vs" + image.getWidth() + "x" + image.getHeight();
-    } else if (Math.abs(goldenImage.getHeight() - image.getHeight()) >= 2) {
-      error = "Heights differ too much for " + imageName + ": " + goldenImage.getWidth() + "x" + goldenImage.getHeight() +
-              "vs" + image.getWidth() + "x" + image.getHeight();
-    }
-
-    assertEquals(TYPE_INT_ARGB, image.getType());
-    if (error != null) {
-      // Expected on the left
-      // Golden on the right
-      g.drawImage(goldenImage, 0, 0, null);
-      g.drawImage(image, 2 * imageWidth, 0, null);
-
-      // Labels
-      if (imageWidth > 80) {
-        g.setColor(Color.RED);
-        g.drawString("Expected", 10, 20);
-        g.drawString("Actual", 2 * imageWidth + 10, 20);
-      }
-
-      File output = new File(getTempDir(), "delta-"+ imageName.replace(separatorChar, '_'));
-      if (output.exists()) {
-        boolean deleted = output.delete();
-        assertTrue(deleted);
-      }
-      ImageIO.write(deltaImage, "PNG", output);
-      error += " - see details in " + output.getPath();
-      System.out.println(error);
-      fail(error);
-    }
-
-    g.dispose();
   }
 
   @NotNull
