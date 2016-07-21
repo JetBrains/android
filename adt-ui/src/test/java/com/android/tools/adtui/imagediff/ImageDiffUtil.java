@@ -16,8 +16,8 @@
 
 package com.android.tools.adtui.imagediff;
 
-import com.android.tools.idea.rendering.RenderTestBase;
 import com.intellij.util.ui.UIUtil;
+import junit.framework.Assert;
 import org.jetbrains.annotations.NotNull;
 
 import javax.imageio.ImageIO;
@@ -25,6 +25,9 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+
+import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
+import static java.io.File.separatorChar;
 
 /**
  * Utility methods to be used by the tests of {@link com.android.tools.adtui.imagediff} package.
@@ -69,7 +72,7 @@ public final class ImageDiffUtil {
       actualImage = convertToARGB(ImageIO.read(expectedImgFile));
       expectedImage = convertToARGB(ImageIO.read(getImageFileFromComponent(generatedComponent)));
 
-      RenderTestBase.assertImageSimilar(expectedImageFilename, actualImage, expectedImage, IMAGE_DIFF_PERCENT_THRESHOLD);
+      assertImageSimilar(expectedImageFilename, actualImage, expectedImage, IMAGE_DIFF_PERCENT_THRESHOLD);
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -114,7 +117,7 @@ public final class ImageDiffUtil {
 
   /**
    * Converts a BufferedImage type to {@link BufferedImage.TYPE_INT_ARGB},
-   * which is the only type accepted by {@link RenderTestBase#assertImageSimilar}.
+   * which is the only type accepted by {@link ImageDiffUtil#assertImageSimilar}.
    */
   private static BufferedImage convertToARGB(@NotNull BufferedImage inputImg) {
     if (inputImg.getType() == BufferedImage.TYPE_INT_ARGB) {
@@ -125,5 +128,123 @@ public final class ImageDiffUtil {
     g2d.drawImage(inputImg, 0, 0, null);
     g2d.dispose();
     return outputImg;
+  }
+
+  public static void assertImageSimilar(String imageName, BufferedImage goldenImage,
+                                  BufferedImage image, double maxPercentDifferent) throws IOException {
+    Assert.assertEquals("Only TYPE_INT_ARGB image types are supported", TYPE_INT_ARGB, image.getType());
+
+    if (goldenImage.getType() != TYPE_INT_ARGB) {
+      @SuppressWarnings("UndesirableClassUsage") // Don't want Retina images in unit tests
+      BufferedImage temp = new BufferedImage(goldenImage.getWidth(), goldenImage.getHeight(),
+                                             TYPE_INT_ARGB);
+      temp.getGraphics().drawImage(goldenImage, 0, 0, null);
+      goldenImage = temp;
+    }
+    Assert.assertEquals(TYPE_INT_ARGB, goldenImage.getType());
+
+    int imageWidth = Math.min(goldenImage.getWidth(), image.getWidth());
+    int imageHeight = Math.min(goldenImage.getHeight(), image.getHeight());
+
+    // Blur the images to account for the scenarios where there are pixel
+    // differences
+    // in where a sharp edge occurs
+    // goldenImage = blur(goldenImage, 6);
+    // image = blur(image, 6);
+
+    int width = 3 * imageWidth;
+    @SuppressWarnings("UnnecessaryLocalVariable")
+    int height = imageHeight; // makes code more readable
+    @SuppressWarnings("UndesirableClassUsage") // Don't want Retina images in unit tests
+    BufferedImage deltaImage = new BufferedImage(width, height, TYPE_INT_ARGB);
+    Graphics g = deltaImage.getGraphics();
+
+    // Compute delta map
+    long delta = 0;
+    for (int y = 0; y < imageHeight; y++) {
+      for (int x = 0; x < imageWidth; x++) {
+        int goldenRgb = goldenImage.getRGB(x, y);
+        int rgb = image.getRGB(x, y);
+        if (goldenRgb == rgb) {
+          deltaImage.setRGB(imageWidth + x, y, 0x00808080);
+          continue;
+        }
+
+        // If the pixels have no opacity, don't delta colors at all
+        if (((goldenRgb & 0xFF000000) == 0) && (rgb & 0xFF000000) == 0) {
+          deltaImage.setRGB(imageWidth + x, y, 0x00808080);
+          continue;
+        }
+
+        int deltaR = ((rgb & 0xFF0000) >>> 16) - ((goldenRgb & 0xFF0000) >>> 16);
+        int newR = 128 + deltaR & 0xFF;
+        int deltaG = ((rgb & 0x00FF00) >>> 8) - ((goldenRgb & 0x00FF00) >>> 8);
+        int newG = 128 + deltaG & 0xFF;
+        int deltaB = (rgb & 0x0000FF) - (goldenRgb & 0x0000FF);
+        int newB = 128 + deltaB & 0xFF;
+
+        int avgAlpha = ((((goldenRgb & 0xFF000000) >>> 24)
+                         + ((rgb & 0xFF000000) >>> 24)) / 2) << 24;
+
+        int newRGB = avgAlpha | newR << 16 | newG << 8 | newB;
+        deltaImage.setRGB(imageWidth + x, y, newRGB);
+
+        delta += Math.abs(deltaR);
+        delta += Math.abs(deltaG);
+        delta += Math.abs(deltaB);
+      }
+    }
+
+    // 3 different colors, 256 color levels
+    long total = imageHeight * imageWidth * 3L * 256L;
+    float percentDifference = (float) (delta * 100 / (double) total);
+
+    String error = null;
+    if (percentDifference > maxPercentDifferent) {
+      error = String.format("Images differ (by %.1f%%)", percentDifference);
+    } else if (Math.abs(goldenImage.getWidth() - image.getWidth()) >= 2) {
+      error = "Widths differ too much for " + imageName + ": " + goldenImage.getWidth() + "x" + goldenImage.getHeight() +
+              "vs" + image.getWidth() + "x" + image.getHeight();
+    } else if (Math.abs(goldenImage.getHeight() - image.getHeight()) >= 2) {
+      error = "Heights differ too much for " + imageName + ": " + goldenImage.getWidth() + "x" + goldenImage.getHeight() +
+              "vs" + image.getWidth() + "x" + image.getHeight();
+    }
+
+    Assert.assertEquals(TYPE_INT_ARGB, image.getType());
+    if (error != null) {
+      // Expected on the left
+      // Golden on the right
+      g.drawImage(goldenImage, 0, 0, null);
+      g.drawImage(image, 2 * imageWidth, 0, null);
+
+      // Labels
+      if (imageWidth > 80) {
+        g.setColor(Color.RED);
+        g.drawString("Expected", 10, 20);
+        g.drawString("Actual", 2 * imageWidth + 10, 20);
+      }
+
+      File output = new File(getTempDir(), "delta-" + imageName.replace(separatorChar, '_'));
+      if (output.exists()) {
+        boolean deleted = output.delete();
+        Assert.assertTrue(deleted);
+      }
+      ImageIO.write(deltaImage, "PNG", output);
+      error += " - see details in " + output.getPath();
+      System.out.println(error);
+      Assert.fail(error);
+    }
+
+    g.dispose();
+  }
+
+  @NotNull
+  // TODO move this function to a common location for all our tests
+  public static File getTempDir() {
+    if (System.getProperty("os.name").equals("Mac OS X")) {
+      return new File("/tmp"); //$NON-NLS-1$
+    }
+
+    return new File(System.getProperty("java.io.tmpdir")); //$NON-NLS-1$
   }
 }
