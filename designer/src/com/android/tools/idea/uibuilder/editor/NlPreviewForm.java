@@ -102,6 +102,11 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
       @Override
       public void modelChanged(@NotNull DesignSurface surface, @Nullable NlModel model) {
       }
+
+      @Override
+      public boolean activatePreferredEditor(@NotNull DesignSurface surface, @NotNull NlComponent component) {
+        return false;
+      }
     });
 
     myRenderingQueue.setRestartTimerOnAdd(true);

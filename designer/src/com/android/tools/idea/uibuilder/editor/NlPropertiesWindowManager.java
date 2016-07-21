@@ -66,6 +66,25 @@ public class NlPropertiesWindowManager extends NlAbstractWindowManager {
     }
   }
 
+  /**
+   * Return true if the specified {@link NlPropertiesManager} is the active properties manager for this editor.
+   * There are only 2 possible instances: the floating tool window represented by {@link #myPropertiesManager}
+   * or a {@link LightToolWindow} that are docked with the editor.
+   * This is a hacky solution...
+   */
+  public boolean isActivePropertiesManager(@NotNull NlPropertiesManager propertiesManager) {
+    if (propertiesManager == myPropertiesManager) {
+      // This is the floating tool window properties manager.
+      // It is active if the design surface is currently set see {@link #updateToolWindow}.
+      return propertiesManager.getDesignSurface() != null;
+    }
+    else {
+      // This is the {@link LightToolWindow} properties manager.
+      // It is active if the floating tool window is not active or doesn't exist.
+      return myPropertiesManager == null || myPropertiesManager.getDesignSurface() == null;
+    }
+  }
+
   @Override
   protected ToolWindowAnchor getAnchor() {
     return ToolWindowAnchor.RIGHT;
@@ -99,12 +118,6 @@ public class NlPropertiesWindowManager extends NlAbstractWindowManager {
                                properties.getConfigurationPanel(), properties.getConfigurationPanel(),
                                designer.getContentSplitter(), anchor, this, myProject, propertiesComponent,
                                getVisibilityKeyName(designer), 320, properties.getActions());
-  }
-
-  public void activatePreferredEditor() {
-    if (myPropertiesManager != null) {
-      myPropertiesManager.activatePreferredEditor();
-    }
   }
 
   @Override
