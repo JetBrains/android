@@ -13,5 +13,6 @@
     <orderEntry type="library" scope="TEST" name="JUnit3" level="project" />
     <orderEntry type="module" module-name="platform-api" />
     <orderEntry type="module" module-name="platform-impl" />
+    <orderEntry type="module" module-name="android" scope="TEST" />
   </component>
 </module>
