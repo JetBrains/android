@@ -28,9 +28,12 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static com.intellij.idea.IdeaApplication.IDEA_IS_INTERNAL_PROPERTY;
 
@@ -63,7 +66,9 @@ public final class GapiPaths {
   @NotNull private static final String INTERCEPTOR_LIBRARY_NAME = "libinterceptor.so";
   @NotNull private static final String PKG_INFO_NAME = "pkginfo.apk";
   @NotNull private static final String EXE_EXTENSION;
-  @NotNull private static final String SDK_PATH = "gapid";
+  @NotNull private static final String USER_HOME_GAPID_ROOT = "gapid";
+  @NotNull private static final String GAPID_PKG_SUBDIR = "pkg";
+  @NotNull private static final String GAPID_ROOT_ENV_VAR = "GAPID";
   @NotNull private static final String OS_ANDROID = "android";
 
   static {
@@ -217,26 +222,28 @@ public final class GapiPaths {
     return myGapisPath.exists();
   }
 
+  private static File pathJoin(String... components) {
+    File f = null;
+    for (String s : components) {
+      f = f == null ? new File(s) : new File(f, s);
+    }
+    return f;
+  }
+
   private static void findTools() {
     synchronized (myPathLock) {
       if (myGapisPath != null && myGapisPath.exists()) {
         return;
       }
-      if (Boolean.getBoolean(IDEA_IS_INTERNAL_PROPERTY)) {
-        // Check the system GOPATH for the binaries
-        String gopath = System.getenv("GOPATH");
-        if (gopath != null && gopath.length() > 0) {
-          if (checkForTools(new File(gopath, "bin"))) {
-            return;
-          }
-        }
-      }
-      // check for an installed sdk directory
-      if (checkForTools(getSdkPath())) {
-        return;
-      }
-      // Fall back to the homedir/gapid and if that fails, leave it in a failing state
-      checkForTools(new File(new File(SystemProperties.getUserHome()), SDK_PATH));
+      ImmutableList.<Supplier<File>>of(
+        () -> {
+          String gapidRoot = System.getenv(GAPID_ROOT_ENV_VAR);
+          return gapidRoot != null && gapidRoot.length() > 0 ? new File(gapidRoot) : null;
+        },
+        () -> pathJoin(SystemProperties.getUserHome(), USER_HOME_GAPID_ROOT),
+        () -> pathJoin(SystemProperties.getUserHome(), USER_HOME_GAPID_ROOT, GAPID_PKG_SUBDIR),
+        GapiPaths::getSdkPath
+      ).stream().filter(p -> checkForTools(p.get())).findFirst();
     }
   }
 }
