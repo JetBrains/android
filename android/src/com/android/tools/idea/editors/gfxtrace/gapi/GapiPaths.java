@@ -18,6 +18,7 @@ package com.android.tools.idea.editors.gfxtrace.gapi;
 import com.android.repository.api.LocalPackage;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
+import com.android.utils.FileUtils;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.util.SystemInfo;
@@ -51,12 +52,6 @@ public final class GapiPaths {
     .put("amd64", "x86_64")
     .build();
 
-  private static final Map<String, String> ABI_TARGET = ImmutableMap.<String, String>builder()
-    .put("armeabi-v7a", "android-armv7a")
-    .put("arm64-v8a", "android-armv8a")
-    .put("x86", "android-x86")
-    .build();
-
   @NotNull private static final String HOST_OS;
   @NotNull private static final String HOST_ARCH;
   @NotNull private static final String GAPIS_EXECUTABLE_NAME;
@@ -85,43 +80,42 @@ public final class GapiPaths {
       HOST_OS = SystemInfo.OS_NAME;
       EXE_EXTENSION = "";
     }
-    HOST_ARCH = remap(ARCH_REMAP, SystemInfo.OS_ARCH);
+    HOST_ARCH = ARCH_REMAP.getOrDefault(SystemInfo.OS_ARCH, SystemInfo.OS_ARCH);
     GAPIS_EXECUTABLE_NAME = "gapis" + EXE_EXTENSION;
     GAPIR_EXECUTABLE_NAME = "gapir" + EXE_EXTENSION;
   }
 
-  @NotNull private static final Object myPathLock = new Object();
   private static File myBaseDir;
   private static File myGapisPath;
   private static File myGapirPath;
   private static File myStringsPath;
   private static File myPkgInfoPath;
 
-  public static boolean isValid() {
+  public static synchronized boolean isValid() {
     findTools();
     return myGapisPath.exists();
   }
 
   @NotNull
-  public static File base() {
+  public static synchronized File base() {
     findTools();
     return myBaseDir;
   }
 
   @NotNull
-  public static File gapis() {
+  public static synchronized File gapis() {
     findTools();
     return myGapisPath;
   }
 
   @NotNull
-  public static File gapir() {
+  public static synchronized File gapir() {
     findTools();
     return myGapirPath;
   }
 
   @NotNull
-  public static File strings() {
+  public static synchronized File strings() {
     findTools();
     return myStringsPath;
   }
@@ -129,13 +123,7 @@ public final class GapiPaths {
   @NotNull
   private static File findLibrary(@NotNull String libraryName, @NotNull String abi) throws IOException {
     findTools();
-    String remappedAbi = remap(ABI_REMAP, abi);
-    File lib = findPath(OS_ANDROID, remappedAbi, libraryName);
-    if (lib.exists()) {
-      return lib;
-    }
-    remappedAbi = remap(ABI_TARGET, remappedAbi);
-    lib = findPath(OS_ANDROID, remappedAbi, libraryName);
+    File lib = FileUtils.join(myBaseDir, OS_ANDROID, ABI_REMAP.getOrDefault(abi, abi), libraryName);
     if (lib.exists()) {
       return lib;
     }
@@ -143,17 +131,17 @@ public final class GapiPaths {
   }
 
   @NotNull
-  public static File findTraceLibrary(@NotNull String abi) throws IOException {
+  public static synchronized File findTraceLibrary(@NotNull String abi) throws IOException {
     return findLibrary(GAPII_LIBRARY_NAME, abi);
   }
 
   @NotNull
-  public static File findInterceptorLibrary(@NotNull String abi) throws IOException {
+  public static synchronized File findInterceptorLibrary(@NotNull String abi) throws IOException {
     return findLibrary(INTERCEPTOR_LIBRARY_NAME, abi);
   }
 
   @NotNull
-  public static File findPkgInfoApk() {
+  public static synchronized File findPkgInfoApk() {
     findTools();
     return myPkgInfoPath;
   }
@@ -164,40 +152,13 @@ public final class GapiPaths {
   public static Collection<String> getMissingSdkComponents() {
     // If we have found a valid install, ...
     if (isValid()) {
-      LocalPackage gapi = GapiPaths.getLocalPackage();
+      LocalPackage gapi = getLocalPackage();
       // ... and if the installed package is compatible, we don't need a new install.
       if (gapi == null || REQUIRED_GAPI_VERSION.isCompatible(gapi.getVersion())) {
         return Collections.emptyList();
       }
     }
     return ImmutableList.of(REQUIRED_GAPI_VERSION.getSdkPackagePath());
-  }
-
-  @NotNull
-  private static File findPath(@NotNull String os, String abi, @NotNull String binary) {
-    File test;
-    File osDir = new File(myBaseDir, os);
-    if (abi != null) {
-      // base/os/abi/name
-      test = new File(new File(osDir, abi), binary);
-      if (test.exists()) return test;
-      // base/abi/name
-      test = new File(new File(myBaseDir, abi), binary);
-      if (test.exists()) return test;
-    }
-    // base/os/name
-    test = new File(osDir, binary);
-    if (test.exists()) return test;
-    // base/name
-    return new File(myBaseDir, binary);
-  }
-
-  private static String remap(Map<String, String> map, String key) {
-    String value = map.get(key);
-    if (value == null) {
-      value = key;
-    }
-    return value;
   }
 
   @Nullable("gapi is not installed")
@@ -215,10 +176,10 @@ public final class GapiPaths {
   private static boolean checkForTools(File dir) {
     if (dir == null) { return false; }
     myBaseDir = dir;
-    myGapisPath = findPath(HOST_OS, HOST_ARCH, GAPIS_EXECUTABLE_NAME);
-    myGapirPath = findPath(HOST_OS, HOST_ARCH, GAPIR_EXECUTABLE_NAME);
-    myPkgInfoPath = findPath(OS_ANDROID, null, PKG_INFO_NAME);
-    myStringsPath = new File(myBaseDir, STRINGS_DIR_NAME);
+    myGapisPath = FileUtils.join(dir, HOST_OS, HOST_ARCH, GAPIS_EXECUTABLE_NAME);
+    myGapirPath = FileUtils.join(dir, HOST_OS, HOST_ARCH, GAPIR_EXECUTABLE_NAME);
+    myPkgInfoPath = FileUtils.join(dir, OS_ANDROID, PKG_INFO_NAME);
+    myStringsPath = new File(dir, STRINGS_DIR_NAME);
     return myGapisPath.exists();
   }
 
@@ -231,19 +192,17 @@ public final class GapiPaths {
   }
 
   private static void findTools() {
-    synchronized (myPathLock) {
-      if (myGapisPath != null && myGapisPath.exists()) {
-        return;
-      }
-      ImmutableList.<Supplier<File>>of(
-        () -> {
-          String gapidRoot = System.getenv(GAPID_ROOT_ENV_VAR);
-          return gapidRoot != null && gapidRoot.length() > 0 ? new File(gapidRoot) : null;
-        },
-        () -> pathJoin(SystemProperties.getUserHome(), USER_HOME_GAPID_ROOT),
-        () -> pathJoin(SystemProperties.getUserHome(), USER_HOME_GAPID_ROOT, GAPID_PKG_SUBDIR),
-        GapiPaths::getSdkPath
-      ).stream().filter(p -> checkForTools(p.get())).findFirst();
+    if (myGapisPath != null && myGapisPath.exists()) {
+      return;
     }
+    ImmutableList.<Supplier<File>>of(
+      () -> {
+        String gapidRoot = System.getenv(GAPID_ROOT_ENV_VAR);
+        return gapidRoot != null && gapidRoot.length() > 0 ? new File(gapidRoot) : null;
+      },
+      () -> pathJoin(SystemProperties.getUserHome(), USER_HOME_GAPID_ROOT),
+      () -> pathJoin(SystemProperties.getUserHome(), USER_HOME_GAPID_ROOT, GAPID_PKG_SUBDIR),
+      GapiPaths::getSdkPath
+    ).stream().filter(p -> checkForTools(p.get())).findFirst();
   }
 }
