@@ -85,7 +85,7 @@ public final class VectorIconButton extends JButton implements AssetComponent<Ve
       myXmlAsset.path().set(iconFile);
       // Our icons are always square, so although parse() expects width, we can pass in height
       int h = getHeight() - getInsets().top - getInsets().bottom;
-      VectorAsset.ParseResult result = myXmlAsset.parse(h);
+      VectorAsset.ParseResult result = myXmlAsset.parse(h, false);
       setIcon(new ImageIcon(result.getImage()));
       myIcon = selectedIcon;
     }

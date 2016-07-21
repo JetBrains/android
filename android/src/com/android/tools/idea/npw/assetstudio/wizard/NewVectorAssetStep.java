@@ -294,7 +294,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
 
         @Override
         protected Void doInBackground() throws Exception {
-          myParseResult = myActiveAsset.get().parse(myImagePreview.getWidth());
+          myParseResult = myActiveAsset.get().parse(myImagePreview.getWidth(), true);
           return null;
         }
 
