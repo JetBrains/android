@@ -48,7 +48,12 @@ public class NativeAndroidModuleNode extends ProjectViewModuleNode {
     NativeAndroidProject nativeAndroidProject = nativeAndroidModel.getNativeAndroidProject();
 
     Collection<String> fileExtensions = Sets.newHashSet();
-    fileExtensions.add("h"); // add header files extension explicitly as the model only return the extensions of source file
+    // add header files extension explicitly as the model only return the extensions of source file
+    fileExtensions.add("h");
+    fileExtensions.add("hpp");
+    fileExtensions.add("hh");
+    fileExtensions.add("h++");
+    fileExtensions.add("hxx");
     fileExtensions.addAll(nativeAndroidProject.getFileExtensions().keySet());
 
     NativeAndroidGradleModel.NativeVariant variant = nativeAndroidModel.getSelectedVariant();
