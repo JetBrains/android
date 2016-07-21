@@ -81,9 +81,11 @@
       <xml reuse="preview,drag-preview">
         <![CDATA[
             <SeekBar
-              style="@android:style/Widget.Material.SeekBar.Discrete"
+              style="@style/Widget.AppCompat.SeekBar.Discrete"
               android:layout_width="wrap_content"
               android:layout_height="wrap_content"
+              android:max="10"
+              android:progress="3"
             />
           ]]>
       </xml>
