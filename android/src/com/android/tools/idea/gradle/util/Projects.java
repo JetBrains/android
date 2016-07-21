@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.util;
 
 import com.android.builder.model.AndroidProject;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
@@ -26,6 +27,7 @@ import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.project.PostProjectSetupTasksExecutor;
 import com.android.tools.idea.gradle.project.subset.ProjectSubset;
 import com.android.tools.idea.model.AndroidModel;
+import com.google.api.client.util.Maps;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.ide.DataManager;
@@ -62,6 +64,7 @@ import javax.swing.*;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.*;
@@ -92,6 +95,7 @@ public final class Projects {
   private static final Key<Collection<Module>> MODULES_TO_DISPOSE_POST_SYNC = Key.create("project.modules.to.dispose.post.sync");
   private static final Key<Boolean> SYNC_REQUESTED_DURING_BUILD = Key.create("project.sync.requested.during.build");
   private static final Key<Boolean> SKIP_SYNC_ISSUE_REPORTING = Key.create("project.sync.skip.sync.issue.reporting");
+  private static final Key<Map<String, GradleVersion>> PLUGIN_VERSIONS_BY_MODULE = Key.create("project.plugin.versions.by.module");
 
   private Projects() {
   }
@@ -577,5 +581,28 @@ public final class Projects {
   private static boolean getBoolean(@NotNull Project project, @NotNull Key<Boolean> key) {
     Boolean val = project.getUserData(key);
     return val != null && val.booleanValue();
+  }
+
+  public static void storePluginVersionsPerModule(@NotNull Project project) {
+    Map<String, GradleVersion> pluginVersionsPerModule = Maps.newHashMap();
+    for (Module module : ModuleManager.getInstance(project).getModules()) {
+      AndroidGradleModel model = AndroidGradleModel.get(module);
+      if (model != null) {
+        AndroidGradleFacet facet = AndroidGradleFacet.getInstance(module);
+        if (facet != null) {
+          GradleVersion modelVersion = model.getModelVersion();
+          if (modelVersion != null) {
+            pluginVersionsPerModule.put(facet.getConfiguration().GRADLE_PROJECT_PATH, modelVersion);
+          }
+        }
+      }
+    }
+
+    project.putUserData(PLUGIN_VERSIONS_BY_MODULE, pluginVersionsPerModule);
+  }
+
+  @Nullable
+  public static Map<String, GradleVersion> getPluginVersionsPerModule(@NotNull Project project) {
+    return project.getUserData(PLUGIN_VERSIONS_BY_MODULE);
   }
 }
