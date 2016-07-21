@@ -893,6 +893,17 @@ public class DesignSurface extends JPanel implements Disposable {
     }
   }
 
+  void notifyActivateComponent(@NotNull NlComponent component) {
+    if (myListeners != null) {
+      List<DesignSurfaceListener> listeners = Lists.newArrayList(myListeners);
+      for (DesignSurfaceListener listener : listeners) {
+        if (listener.activatePreferredEditor(this, component)) {
+          break;
+        }
+      }
+    }
+  }
+
   public void addListener(@NotNull DesignSurfaceListener listener) {
     if (myListeners == null) {
       myListeners = Lists.newArrayList();
