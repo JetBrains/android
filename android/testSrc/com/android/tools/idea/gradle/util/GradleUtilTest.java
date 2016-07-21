@@ -112,6 +112,7 @@ public class GradleUtilTest {
     verify(artifact).getCompileDependencies();
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void getDependenciesWithModelThatDoesNotSupportDependencyGraph() {
     BaseArtifact artifact = mock(BaseArtifact.class);
@@ -243,7 +244,7 @@ public class GradleUtilTest {
   @Test
   public void rc() {
     // Regression test for https://code.google.com/p/android/issues/detail?id=179838
-    File jarFile = new File("gradle-messaging-2.5-rc-1.jar");
+    File jarFile = new File("gradle-core-2.5-rc-1.jar");
     GradleVersion gradleVersion = GradleUtil.getGradleVersionFromJar(jarFile);
     assertNotNull(gradleVersion);
     assertEquals(GradleVersion.parse("2.5"), gradleVersion);
@@ -251,7 +252,7 @@ public class GradleUtilTest {
 
   @Test
   public void nightly() {
-    File jarFile = new File("gradle-messaging-2.10-20151029230024+0000.jar");
+    File jarFile = new File("gradle-core-2.10-20151029230024+0000.jar");
     GradleVersion gradleVersion = GradleUtil.getGradleVersionFromJar(jarFile);
     assertNotNull(gradleVersion);
     assertEquals(GradleVersion.parse("2.10"), gradleVersion);
