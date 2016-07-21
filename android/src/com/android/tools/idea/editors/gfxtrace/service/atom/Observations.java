@@ -93,6 +93,8 @@ public final class Observations implements BinaryObject {
     //<<<Start:Java.KlassBody:2>>>
     INSTANCE;
 
+    private static final Observation[] Observation_EMPTY = {};
+
     @Override @NotNull
     public Entity entity() { return ENTITY; }
 
@@ -115,12 +117,18 @@ public final class Observations implements BinaryObject {
     @Override
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
       Observations o = (Observations)obj;
-      o.myReads = new Observation[d.uint32()];
+      {
+        int len = d.uint32();
+        o.myReads = len != 0 ? new Observation[len] : Observation_EMPTY;
+      }
       for (int i = 0; i <o.myReads.length; i++) {
         o.myReads[i] = new Observation();
         d.value(o.myReads[i]);
       }
-      o.myWrites = new Observation[d.uint32()];
+      {
+        int len = d.uint32();
+        o.myWrites = len != 0 ? new Observation[len] : Observation_EMPTY;
+      }
       for (int i = 0; i <o.myWrites.length; i++) {
         o.myWrites[i] = new Observation();
         d.value(o.myWrites[i]);
