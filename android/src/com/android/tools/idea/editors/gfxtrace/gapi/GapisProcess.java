@@ -33,12 +33,14 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import static com.android.tools.idea.editors.gfxtrace.gapi.Version.*;
+import static com.android.tools.idea.startup.AndroidStudioInitializer.ENABLE_EXPERIMENTAL_PROFILING;
 
 public final class GapisProcess extends ChildProcess {
+  private static final boolean GRPC_ENABLED = System.getProperty("gapid.enable.grpc") != null;
+
   @NotNull private static final Logger LOG = Logger.getInstance(GapisProcess.class);
   private static final Object myInstanceLock = new Object();
   private static GapisProcess myInstance;
-  private static final GapisConnection NOT_CONNECTED = new GapisConnection(null, null);
 
   private static final int SERVER_LAUNCH_TIMEOUT_MS = 10000;
   private static final String SERVER_HOST = "localhost";
@@ -110,6 +112,10 @@ public final class GapisProcess extends ChildProcess {
       args.add(GapirProcess.getAuthToken());
     }
 
+    if (GRPC_ENABLED && myVersion.isAtLeast(VERSION_3_2)) {
+      args.add("--grpc");
+    }
+
     pb.command(args);
     return true;
   }
@@ -144,13 +150,19 @@ public final class GapisProcess extends ChildProcess {
 
   private GapisConnection doConnect() {
     if (myPortF == null) {
-      return NOT_CONNECTED;
+      return GapisConnection.NOT_CONNECTED;
     }
     try {
       int port = myPortF.get(SERVER_LAUNCH_TIMEOUT_MS, TimeUnit.MILLISECONDS);
-      GapisConnection connection = new GapisConnection(this, new Socket(SERVER_HOST, port));
+      GapisConnection connection;
+      if (GRPC_ENABLED && myVersion.isAtLeast(VERSION_3_2)) {
+        connection = new GapisConnection.GRpcGapisConnection(this, SERVER_HOST, port);
+      }
+      else {
+        connection = new GapisConnection.RpcGapisConnection(this, new Socket(SERVER_HOST, port));
+      }
       if (myAuthToken != null) {
-        connection.sendAuth(myAuthToken);
+        connection.setAuth(myAuthToken);
       }
       LOG.info("Established a new client connection to " + port);
       synchronized (myConnections) {
@@ -173,7 +185,7 @@ public final class GapisProcess extends ChildProcess {
     catch (TimeoutException e) {
       LOG.warn("Timed out waiting for gapis: " + e);
     }
-    return NOT_CONNECTED;
+    return GapisConnection.NOT_CONNECTED;
   }
 
   public void onClose(GapisConnection gapisConnection) {
