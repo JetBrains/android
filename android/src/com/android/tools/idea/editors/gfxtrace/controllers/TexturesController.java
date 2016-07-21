@@ -20,6 +20,7 @@ import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
 import com.android.tools.idea.editors.gfxtrace.UiErrorCallback;
 import com.android.tools.idea.editors.gfxtrace.actions.AtomComboAction;
 import com.android.tools.idea.editors.gfxtrace.models.AtomStream;
+import com.android.tools.idea.editors.gfxtrace.models.ResourceCollection;
 import com.android.tools.idea.editors.gfxtrace.renderers.ImageCellRenderer;
 import com.android.tools.idea.editors.gfxtrace.service.*;
 import com.android.tools.idea.editors.gfxtrace.service.gfxapi.Cubemap;
@@ -33,7 +34,6 @@ import com.android.tools.idea.editors.gfxtrace.widgets.ImageCellList;
 import com.android.tools.rpclib.futures.SingleInFlight;
 import com.android.tools.rpclib.rpccore.Rpc;
 import com.android.tools.rpclib.rpccore.RpcException;
-import com.google.common.collect.Lists;
 import com.google.wireless.android.sdk.stats.AndroidStudioStats;
 import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEvent.EventCategory;
@@ -101,7 +101,8 @@ public class TexturesController extends ImagePanelController {
   public void notifyPath(PathEvent event) {
   }
 
-  private abstract static class DropDownController extends ImageCellController<DropDownController.Data> implements AtomStream.Listener {
+  private abstract static class DropDownController extends ImageCellController<DropDownController.Data>
+    implements ResourceCollection.Listener, AtomStream.Listener {
     private static final Dimension CONTROL_SIZE = JBUI.size(100, 50);
     private static final Dimension REQUEST_SIZE = JBUI.size(100, 100);
 
@@ -135,8 +136,8 @@ public class TexturesController extends ImagePanelController {
 
     private DropDownController(@NotNull final GfxTraceEditor editor) {
       super(editor);
+      editor.getResourceCollection().addListener(this);
       editor.getAtomStream().addListener(this);
-
       usingComboBoxWidget(CONTROL_SIZE);
       ImageCellRenderer<?> renderer = (ImageCellRenderer<?>)myList.getRenderer();
       renderer.setLayout(ImageCellRenderer.Layout.LEFT_TO_RIGHT);
@@ -248,79 +249,16 @@ public class TexturesController extends ImagePanelController {
 
     @Override
     public void notifyPath(PathEvent event) {
-      CapturePath capturePath = event.findCapturePath();
-      if (capturePath == null) {
-        return;
-      }
-      if (myResourcesPath.updateIfNotNull(CapturePath.resourceBundles(capturePath))) {
-        if (myEditor.getFeatures().hasResourceBundles()) {
-          Rpc.listen(myEditor.getClient().get(myResourcesPath.getPath()), LOG, new UiErrorCallback<ResourceBundles, ResourceBundles, String>() {
-            @Override
-            protected ResultOrError<ResourceBundles, String> onRpcThread(Rpc.Result<ResourceBundles> result)
-                throws RpcException, ExecutionException {
-              try {
-                return success(result.get());
-              }
-              catch (ErrDataUnavailable e) {
-                return error(e.getMessage());
-              }
-            }
+    }
 
-            @Override
-            protected void onUiThreadSuccess(ResourceBundles result) {
-              myResources = result;
-              update(true);
-            }
+    @Override
+    public void onResourceLoadingStart(ResourceCollection atoms) {
+    }
 
-            @Override
-            protected void onUiThreadError(String error) {
-              myResources = null;
-              update(true);
-            }
-          });
-        }
-        else {
-          // Use deprecated ResourcesPath and build the bundles from the result.
-          ResourcesPath path = myResourcesPath.getPath().asResourcesPath();
-          Rpc.listen(myEditor.getClient().get(path), LOG, new UiErrorCallback<Resources, ResourceBundles, String>() {
-            @Override
-            protected ResultOrError<ResourceBundles, String> onRpcThread(Rpc.Result<Resources> result) throws RpcException, ExecutionException {
-              try {
-                Resources res = result.get();
-                List<ResourceBundle> bundles = Lists.newArrayList();
-                if (res.getTextures1D().length != 0) {
-                  bundles.add(new ResourceBundle().setType(GfxAPIProtos.ResourceType.Texture1D).setResources(res.getTextures1D()));
-                }
-                if (res.getTextures2D().length != 0) {
-                  bundles.add(new ResourceBundle().setType(GfxAPIProtos.ResourceType.Texture2D).setResources(res.getTextures2D()));
-                }
-                if (res.getTextures3D().length != 0) {
-                  bundles.add(new ResourceBundle().setType(GfxAPIProtos.ResourceType.Texture3D).setResources(res.getTextures3D()));
-                }
-                if (res.getCubemaps().length != 0) {
-                  bundles.add(new ResourceBundle().setType(GfxAPIProtos.ResourceType.Cubemap).setResources(res.getCubemaps()));
-                }
-                return success(new ResourceBundles().setBundles(bundles.toArray(new ResourceBundle[bundles.size()])));
-              }
-              catch (ErrDataUnavailable e) {
-                return error(e.getMessage());
-              }
-            }
-
-            @Override
-            protected void onUiThreadSuccess(ResourceBundles result) {
-              myResources = result;
-              update(true);
-            }
-
-            @Override
-            protected void onUiThreadError(String error) {
-              myResources = null;
-              update(true);
-            }
-          });
-        }
-      }
+    @Override
+    public void onResourceLoadingComplete(ResourceCollection resources) {
+      myResources = resources.getResourceBundles();
+      update(true);
     }
 
     @Override
