@@ -237,6 +237,11 @@ public class NlActionsToolbar implements DesignSurfaceListener, ModelListener {
     }
   }
 
+  @Override
+  public boolean activatePreferredEditor(@NotNull DesignSurface surface, @NotNull NlComponent component) {
+    return false;
+  }
+
   // ---- Implements ModelListener ----
 
   @Override
