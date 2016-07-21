@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
+import com.android.builder.model.AndroidProject;
+import com.android.builder.model.NativeAndroidProject;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.project.GradleProjectSyncData;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
@@ -29,11 +31,14 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemBundle;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.ActionCallback;
 import com.intellij.util.Function;
 import org.gradle.tooling.BuildActionExecuter;
+import org.gradle.tooling.CancellationTokenSource;
 import org.gradle.tooling.ProjectConnection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.model.ModuleExtendedModel;
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 
@@ -44,7 +49,9 @@ import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.GradleUtil.getOrCreateGradleExecutionSettings;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.RESOLVE_PROJECT;
+import static com.intellij.openapi.util.ActionCallback.REJECTED;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
+import static org.gradle.tooling.GradleConnector.newCancellationTokenSource;
 import static org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper.prepare;
 
 public class GradleSync {
@@ -86,22 +93,34 @@ public class GradleSync {
   }
 
   private void sync(@NotNull ProgressIndicator indicator, @Nullable GradleSyncListener syncListener) {
+    ActionCallback callback = sync();
+    callback.doWhenDone(() -> {
+      assert callback instanceof SyncCallback;
+      SyncAction.ProjectModels models = ((SyncCallback)callback).getModels();
+      setUpProject(models);
+    });
+  }
+
+  @NotNull
+  private ActionCallback sync() {
     if (myProject.isDisposed()) {
-      return;
+      return REJECTED;
     }
 
     // TODO: Handle sync cancellation.
     // TODO: Show Gradle output.
 
-    if (GradleSyncState.getInstance(myProject).isSyncInProgress()) {
-      handleSyncFailure("Another 'Gradle Sync' task is currently running", syncListener);
-      return;
-    }
-
     GradleExecutionSettings executionSettings = getOrCreateGradleExecutionSettings(myProject, useEmbeddedGradle());
 
+    SyncCallback callback = new SyncCallback();
+
     Function<ProjectConnection, Void> syncFunction = connection -> {
-      List<Class<?>> modelTypes = Lists.newArrayList();
+      //noinspection deprecation
+      List<Class<?>> modelTypes = Lists.newArrayList(
+        AndroidProject.class, // Android Java
+        NativeAndroidProject.class, // Android Native
+        ModuleExtendedModel.class // Java libraries. TODO: contribute the Java model back to Gradle.
+      );
       BuildActionExecuter<SyncAction.ProjectModels> executor = connection.action(new SyncAction(modelTypes));
 
       ExternalSystemTaskNotificationListener listener = new ExternalSystemTaskNotificationListenerAdapter() {
@@ -109,13 +128,26 @@ public class GradleSync {
       };
       List<String> commandLineArgs = new CommandLineArgs(myProject).get();
 
+      // We try to avoid passing JVM arguments, to share Gradle daemons between Gradle sync and Gradle build.
+      // If JVM arguments from Gradle sync are different than the ones from Gradle build, Gradle won't reuse daemons. This is bad because
+      // daemons are expensive (memory-wise) and slow to start.
       prepare(executor, createId(), executionSettings, listener, Collections.emptyList() /* JVM args */, commandLineArgs, connection);
 
-      // TODO perform sync here.
+      CancellationTokenSource cancellationTokenSource = newCancellationTokenSource();
+      executor.withCancellationToken(cancellationTokenSource.token());
+
+      SyncAction.ProjectModels models = executor.run();
+      callback.setDone(models);
+
       return null;
     };
 
     myHelper.execute(getBaseDirPath(myProject).getPath(), executionSettings, syncFunction);
+    return callback;
+  }
+
+  private void setUpProject(@Nullable SyncAction.ProjectModels models) {
+
   }
 
   @NotNull
@@ -142,6 +174,20 @@ public class GradleSync {
 
     if (syncListener != null) {
       syncListener.syncFailed(myProject, newMessage);
+    }
+  }
+
+  private static class SyncCallback extends ActionCallback {
+    @Nullable private SyncAction.ProjectModels myModels;
+
+    @Nullable
+    SyncAction.ProjectModels getModels() {
+      return myModels;
+    }
+
+    void setDone(@Nullable SyncAction.ProjectModels models) {
+      myModels = models;
+      setDone();
     }
   }
 }
