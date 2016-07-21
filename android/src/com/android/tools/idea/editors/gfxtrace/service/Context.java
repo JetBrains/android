@@ -156,10 +156,8 @@ public class Context implements BinaryObject {
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
       Context o = (Context)obj;
       o.myID = new ContextID(d);
-
       o.myName = d.string();
       o.myApi = new ApiID(d);
-
       o.myRanges = new Range[d.uint32()];
       for (int i = 0; i <o.myRanges.length; i++) {
         o.myRanges[i] = new Range();

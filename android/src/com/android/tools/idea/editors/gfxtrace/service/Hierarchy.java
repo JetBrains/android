@@ -102,7 +102,6 @@ public final class Hierarchy implements BinaryObject {
       Hierarchy o = (Hierarchy)obj;
       o.myName = d.string();
       o.myContext = new ContextID(d);
-
       o.myRoot = new AtomGroup();
       d.value(o.myRoot);
     }

@@ -89,7 +89,6 @@ public final class Resource implements BinaryObject {
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
       Resource o = (Resource)obj;
       o.myID = new BinaryID(d);
-
       o.myData = new byte[d.uint32()];
       d.read(o.myData, o.myData.length);
 

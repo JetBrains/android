@@ -104,11 +104,9 @@ public final class Capture implements BinaryObject {
       Capture o = (Capture)obj;
       o.myName = d.string();
       o.myAtoms = new AtomsID(d);
-
       o.myApis = new ApiID[d.uint32()];
       for (int i = 0; i <o.myApis.length; i++) {
         o.myApis[i] = new ApiID(d);
-
       }
     }
     //<<<End:Java.KlassBody:2>>>

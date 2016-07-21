@@ -104,7 +104,6 @@ public final class ResourcePath extends Path {
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
       ResourcePath o = (ResourcePath)obj;
       o.myID = new ResourceID(d);
-
       o.myAfter = (AtomPath)d.object();
     }
     //<<<End:Java.KlassBody:2>>>

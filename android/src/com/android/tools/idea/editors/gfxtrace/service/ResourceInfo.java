@@ -112,7 +112,6 @@ public final class ResourceInfo implements BinaryObject {
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
       ResourceInfo o = (ResourceInfo)obj;
       o.myID = new ResourceID(d);
-
       o.myName = d.string();
       o.myAccesses = new long[d.uint32()];
       for (int i = 0; i <o.myAccesses.length; i++) {

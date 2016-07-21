@@ -113,7 +113,6 @@ public final class Observation implements BinaryObject {
       o.myRange = new MemoryRange();
       d.value(o.myRange);
       o.myID = new BinaryID(d);
-
     }
     //<<<End:Java.KlassBody:2>>>
   }

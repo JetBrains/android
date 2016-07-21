@@ -130,7 +130,6 @@ public final class CapturePath extends Path {
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
       CapturePath o = (CapturePath)obj;
       o.myID = new BinaryID(d);
-
     }
     //<<<End:Java.KlassBody:2>>>
   }

@@ -216,7 +216,6 @@ public final class AtomMetadata implements BinaryObject {
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
       AtomMetadata o = (AtomMetadata)obj;
       o.myAPI = new ApiID(d);
-
       o.myDisplayName = d.string();
       o.myEndOfFrame = d.bool();
       o.myDrawCall = d.bool();
