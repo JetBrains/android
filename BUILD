@@ -14,7 +14,7 @@ java_library(
   srcs = glob([
       "android/sherpa-ui/src/**/*.java",
     ]),
-  resource_strip_prefix="tools/adt/idea/sherpa-ui.resources",
+  resource_strip_prefix = "tools/adt/idea/sherpa-ui.resources",
   resources = [
       "//tools/adt/idea:sherpa-ui.res",
     ],
@@ -22,6 +22,7 @@ java_library(
       "@local_jdk//:langtools-neverlink",
       "//tools/sherpa:sherpa-solver",
     ],
+  javacopts = ["-extra_checks:off"],
   visibility = ["//visibility:public"],
 )
 
@@ -46,7 +47,7 @@ java_library(
   srcs = glob([
       "layoutlib/src/**/*.java",
     ]),
-  resource_strip_prefix="tools/adt/idea/layoutlib.resources",
+  resource_strip_prefix = "tools/adt/idea/layoutlib.resources",
   resources = [
       "//tools/adt/idea:layoutlib.res",
     ],
@@ -103,6 +104,7 @@ java_library(
           "//tools/idea:analysis-api",
               "//tools/idea:editor-ui-api",
     ],
+  javacopts = ["-extra_checks:off"],
   visibility = ["//visibility:public"],
 )
 
@@ -111,7 +113,7 @@ java_library(
   srcs = glob([
       "adt-ui/src/main/java/**/*.java",
     ]),
-  resource_strip_prefix="tools/adt/idea/adt-ui.resources",
+  resource_strip_prefix = "tools/adt/idea/adt-ui.resources",
   resources = [
       "//tools/adt/idea:adt-ui.res",
     ],
@@ -177,6 +179,7 @@ java_library(
           "//tools/idea:java-runtime",
           "//tools/idea:lib/groovy-all-2.4.6",
     ],
+  javacopts = ["-extra_checks:off"],
   visibility = ["//visibility:public"],
 )
 
@@ -207,7 +210,6 @@ fileset(
   deps = [
       "@local_jdk//:langtools-neverlink",
     ],
-   visibility = ["//visibility:public"],
 )
 
 java_import(
@@ -223,7 +225,7 @@ java_library(
   srcs = glob([
       "android/common/src/**/*.java",
     ]),
-  resource_strip_prefix="tools/adt/idea/android-common.resources",
+  resource_strip_prefix = "tools/adt/idea/android-common.resources",
   resources = [
       "//tools/adt/idea:android-common.res",
     ],
@@ -272,6 +274,7 @@ java_library(
       "//tools/base/lint:lint-checks",
       "//tools/base/ninepatch:ninepatch",
     ],
+  javacopts = ["-extra_checks:off"],
   visibility = ["//visibility:public"],
 )
 
@@ -296,6 +299,22 @@ java_import(
   jars = [
       "android/lib/antlr4-runtime-4.5.3.jar",
     ],
+  visibility = ["//visibility:public"],
+)
+
+java_test(
+  name = "adt-ui_tests",
+  srcs = glob([
+    ]),
+  runtime_deps = [
+      ":adt-ui_testlib",
+      "//tools/base/bazel:test_runner",
+    ],
+  jvm_flags = [
+      "-Dtest.suite.jar=adt-ui_testlib.jar",
+    ],
+  test_class = "com.android.tools.BazelTestSuite",
+  javacopts = ["-extra_checks:off"],
   visibility = ["//visibility:public"],
 )
 
@@ -344,7 +363,6 @@ fileset(
   deps = [
       "@local_jdk//:langtools-neverlink",
     ],
-   visibility = ["//visibility:public"],
 )
 
 java_library(
@@ -355,7 +373,7 @@ java_library(
       "android/gen/**/*.java",
       "designer/src/**/*.java",
     ]),
-  resource_strip_prefix="tools/adt/idea/android.resources",
+  resource_strip_prefix = "tools/adt/idea/android.resources",
   resources = [
       "//tools/adt/idea:android.res",
     ],
@@ -558,6 +576,7 @@ java_library(
       "//tools/analytics-library:analytics-protos",
       "//tools/analytics-library:analytics-shared",
     ],
+  javacopts = ["-extra_checks:off"],
   visibility = ["//visibility:public"],
 )
 
@@ -606,7 +625,6 @@ fileset(
   deps = [
       "@local_jdk//:langtools-neverlink",
     ],
-   visibility = ["//visibility:public"],
 )
 
 java_import(
@@ -890,6 +908,7 @@ java_library(
       "//tools/analytics-library:analytics-shared",
       "//tools/analytics-library:analytics-shared_testlib",
     ],
+  javacopts = ["-extra_checks:off"],
   visibility = ["//visibility:public"],
 )
 
@@ -960,6 +979,7 @@ java_library(
           "//tools/base/sdklib:sdklib_testlib",
               "//tools/base/repository:repository_testlib",
     ],
+  javacopts = ["-extra_checks:off"],
   visibility = ["//visibility:public"],
 )
 
@@ -1014,7 +1034,6 @@ fileset(
   deps = [
       "@local_jdk//:langtools-neverlink",
     ],
-   visibility = ["//visibility:public"],
 )
 
 java_import(
@@ -1038,7 +1057,7 @@ java_library(
   srcs = glob([
       "android/rt/src/**/*.java",
     ]),
-  resource_strip_prefix="tools/adt/idea/android-rt.resources",
+  resource_strip_prefix = "tools/adt/idea/android-rt.resources",
   resources = [
       "//tools/adt/idea:android-rt.res",
     ],
@@ -1048,6 +1067,7 @@ java_library(
           "//tools/idea:annotations-common",
       "//tools/idea:util-rt",
     ],
+  javacopts = ["-extra_checks:off"],
   visibility = ["//visibility:public"],
 )
 
@@ -1121,6 +1141,7 @@ java_library(
       "//tools/idea:MM_RegExpSupport_testlib",
           "//tools/idea:lang-api_testlib",
     ],
+  javacopts = ["-extra_checks:off"],
   visibility = ["//visibility:public"],
 )
 
@@ -1143,7 +1164,6 @@ fileset(
   deps = [
       "@local_jdk//:langtools-neverlink",
     ],
-   visibility = ["//visibility:public"],
 )
 
 java_import(
@@ -1173,7 +1193,22 @@ fileset(
   deps = [
       "@local_jdk//:langtools-neverlink",
     ],
-   visibility = ["//visibility:public"],
+)
+
+java_test(
+  name = "android_tests",
+  srcs = glob([
+    ]),
+  runtime_deps = [
+      ":android_testlib",
+      "//tools/base/bazel:test_runner",
+    ],
+  jvm_flags = [
+      "-Dtest.suite.jar=android_testlib.jar",
+    ],
+  test_class = "com.android.tools.BazelTestSuite",
+  javacopts = ["-extra_checks:off"],
+  visibility = ["//visibility:public"],
 )
 
 java_import(
@@ -1189,5 +1224,21 @@ java_import(
   jars = [
       "android/lib/jogl-all-natives-macosx-universal.jar",
     ],
+  visibility = ["//visibility:public"],
+)
+
+java_test(
+  name = "android-common_tests",
+  srcs = glob([
+    ]),
+  runtime_deps = [
+      ":android-common_testlib",
+      "//tools/base/bazel:test_runner",
+    ],
+  jvm_flags = [
+      "-Dtest.suite.jar=android-common_testlib.jar",
+    ],
+  test_class = "com.android.tools.BazelTestSuite",
+  javacopts = ["-extra_checks:off"],
   visibility = ["//visibility:public"],
 )
