@@ -105,7 +105,6 @@ public final class ContextPath  extends Path {
       ContextPath o = (ContextPath)obj;
       o.myContexts = (ContextsPath)d.object();
       o.myID = new ContextID(d);
-
     }
     //<<<End:Java.KlassBody:2>>>
   }

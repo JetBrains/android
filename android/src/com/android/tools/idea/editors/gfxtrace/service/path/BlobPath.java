@@ -85,7 +85,6 @@ public final class BlobPath extends Path {
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
       BlobPath o = (BlobPath)obj;
       o.myID = new BinaryID(d);
-
     }
     //<<<End:Java.KlassBody:2>>>
   }

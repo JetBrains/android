@@ -86,7 +86,6 @@ public final class VertexStreamDataPath extends Path {
     public void decode(@NotNull Decoder d, BinaryObject obj) throws IOException {
       VertexStreamDataPath o = (VertexStreamDataPath)obj;
       o.myID = new BinaryID(d);
-
     }
     //<<<End:Java.KlassBody:2>>>
   }
