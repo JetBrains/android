@@ -170,8 +170,7 @@ public final class Render {
   public static void render(@NotNull ReportController.Node node,
                             @NotNull SimpleColoredComponent component) {
     if (node.isLeaf()) {
-      // Treats as a simple string
-      render(node.getUserObject(), component, SimpleTextAttributes.REGULAR_ATTRIBUTES, NO_TAG);
+      render(node.getMessage(), component, SimpleTextAttributes.REGULAR_ATTRIBUTES, NO_TAG);
     }
     else {
       render(node.getAtomId(), component, SimpleTextAttributes.LINK_ATTRIBUTES, REPORT_ITEM_ATOM_ID_TAG);
