@@ -192,18 +192,22 @@ public abstract class PaletteTestCase extends AndroidTestCase {
   @Language("XML")
   private static final String DISCRETE_SEEKBAR_XML =
     "<SeekBar\n" +
-    "  style=\"@android:style/Widget.Material.SeekBar.Discrete\"\n" +
+    "  style=\"@style/Widget.AppCompat.SeekBar.Discrete\"\n" +
     "  android:layout_width=\"wrap_content\"\n" +
     "  android:layout_height=\"wrap_content\"\n" +
+    "  android:max=\"10\"\n" +
+    "  android:progress=\"3\"\n" +
     "/>\n";
 
   @Language("XML")
   private static final String DISCRETE_SEEKBAR_PREVIEW_XML =
     "<SeekBar\n" +
     "  android:id=\"@+id/DiscreteSeekBar\"\n" +
-    "  style=\"@android:style/Widget.Material.SeekBar.Discrete\"\n" +
+    "  style=\"@style/Widget.AppCompat.SeekBar.Discrete\"\n" +
     "  android:layout_width=\"wrap_content\"\n" +
     "  android:layout_height=\"wrap_content\"\n" +
+    "  android:max=\"10\"\n" +
+    "  android:progress=\"3\"\n" +
     "/>\n";
 
   public void assertDiscreteSeekBar(@NotNull Palette.BaseItem item) {
