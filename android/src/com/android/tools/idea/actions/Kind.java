@@ -37,7 +37,7 @@ enum Kind {
   Kind(String name, Icon icon, String templateName) {
     myName = name;
     myIcon = icon;
-    myTemplateName = "AS" + templateName;
+    myTemplateName = templateName;
   }
 
   String getName() {

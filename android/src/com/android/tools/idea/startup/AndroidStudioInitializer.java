@@ -22,6 +22,8 @@ import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.concurrency.JobScheduler;
+import com.intellij.ide.fileTemplates.FileTemplate;
+import com.intellij.ide.fileTemplates.FileTemplateManager;
 import com.intellij.lang.injection.MultiHostInjector;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.ex.ApplicationManagerEx;
@@ -119,12 +121,12 @@ public class AndroidStudioInitializer implements Runnable {
      */
   }
 
-    /*
-     * sets up collection of Android Studio specific analytics.
-     */
-    private void setupAnalytics() {
-        AndroidStudioUsageTracker.setup(JobScheduler.getScheduler());
-    }
+  /*
+   * sets up collection of Android Studio specific analytics.
+   */
+  private void setupAnalytics() {
+    AndroidStudioUsageTracker.setup(JobScheduler.getScheduler());
+  }
 
   private void setUpExperimentalFeatures() {
     if (System.getProperty(ENABLE_EXPERIMENTAL_PROFILING) != null) {
@@ -136,7 +138,8 @@ public class AndroidStudioInitializer implements Runnable {
               @Override
               public void run() {
                 ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(project);
-                ToolWindow toolWindow = toolWindowManager.registerToolWindow(AndroidMonitorToolWindowFactory.ID, false, ToolWindowAnchor.BOTTOM);
+                ToolWindow toolWindow =
+                  toolWindowManager.registerToolWindow(AndroidMonitorToolWindowFactory.ID, false, ToolWindowAnchor.BOTTOM);
                 toolWindow.setIcon(AndroidIcons.AndroidToolWindow);
                 new AndroidMonitorToolWindowFactory().createToolWindowContent(project, toolWindow);
                 toolWindow.show(null);
@@ -268,5 +271,14 @@ public class AndroidStudioInitializer implements Runnable {
 
   private static void setUpNewProjectActions() {
     replaceAction("NewClass", new CreateClassAction());
+
+    // Update the text for the file creation templates.
+    FileTemplateManager fileTemplateManager = FileTemplateManager.getDefaultInstance();
+    fileTemplateManager.getTemplate("Singleton").setText(fileTemplateManager.getJ2eeTemplate("Singleton").getText());
+    for (String templateName : new String[]{"Class", "Interface", "Enum", "AnnotationType"}) {
+      FileTemplate template = fileTemplateManager.getInternalTemplate(templateName);
+      template.setText(fileTemplateManager.getJ2eeTemplate(templateName).getText());
+    }
   }
+
 }
