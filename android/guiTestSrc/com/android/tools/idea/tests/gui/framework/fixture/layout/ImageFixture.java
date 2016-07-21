@@ -24,7 +24,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
-import static com.android.tools.idea.rendering.RenderTestBase.assertImageSimilar;
+import static com.android.tools.adtui.imagediff.ImageDiffUtil.assertImageSimilar;
 import static com.android.tools.idea.rendering.RenderTestBase.getTempDir;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.RELATIVE_DATA_PATH;
