@@ -232,6 +232,26 @@ public class PostProjectSetupTasksExecutor {
     }
 
     if (myGenerateSourcesAfterSync) {
+      if (!myCleanProjectAfterSync) {
+        // Figure out if the plugin version changed. If it did, force a clean.
+        // See: https://code.google.com/p/android/issues/detail?id=216616
+        Map<String, GradleVersion> previousPluginVersionsPerModule = getPluginVersionsPerModule(myProject);
+        storePluginVersionsPerModule(myProject);
+        if (previousPluginVersionsPerModule != null && !previousPluginVersionsPerModule.isEmpty()) {
+
+          Map<String, GradleVersion> currentPluginVersionsPerModule = getPluginVersionsPerModule(myProject);
+          assert currentPluginVersionsPerModule != null;
+
+          for (Map.Entry<String, GradleVersion> entry : currentPluginVersionsPerModule.entrySet()) {
+            String modulePath = entry.getKey();
+            GradleVersion previous = previousPluginVersionsPerModule.get(modulePath);
+            if (previous == null || entry.getValue().compareTo(previous) != 0) {
+              myCleanProjectAfterSync = true;
+              break;
+            }
+          }
+        }
+      }
       GradleProjectBuilder.getInstance(myProject).generateSourcesOnly(myCleanProjectAfterSync);
     }
 
