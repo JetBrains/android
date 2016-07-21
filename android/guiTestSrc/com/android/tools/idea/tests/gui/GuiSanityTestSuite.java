@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui;
 
+import com.android.tools.idea.tests.gui.apiintegration.DeveloperServicesTest;
 import com.android.tools.idea.tests.gui.avdmanager.AvdListDialogTest;
 import com.android.tools.idea.tests.gui.emulator.LaunchAndroidApplicationTest;
 import com.android.tools.idea.tests.gui.gradle.BuildTypesTest;
@@ -40,6 +41,7 @@ import org.junit.runners.Suite;
   NewModuleTest.class,
   FlavorsTest.class,
   BuildTypesTest.class,
+  DeveloperServicesTest.class,
 })
 public class GuiSanityTestSuite {
 }
