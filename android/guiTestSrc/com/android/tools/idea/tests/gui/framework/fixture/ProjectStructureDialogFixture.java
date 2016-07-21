@@ -22,13 +22,17 @@ import com.intellij.openapi.options.Configurable;
 import com.intellij.ui.components.JBList;
 import org.fest.swing.cell.JListCellReader;
 import org.fest.swing.core.Robot;
-import org.fest.swing.fixture.ContainerFixture;
-import org.fest.swing.fixture.JListFixture;
-import org.fest.swing.fixture.JTabbedPaneFixture;
+import org.fest.swing.core.matcher.DialogMatcher;
+import org.fest.swing.fixture.*;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.swing.*;
+import java.util.concurrent.TimeUnit;
+
+import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickButtonWhenEnabled;
+import static org.fest.swing.core.matcher.DialogMatcher.withTitle;
+import static org.fest.swing.finder.WindowFinder.findDialog;
 
 public class ProjectStructureDialogFixture implements ContainerFixture<JDialog> {
 
@@ -70,7 +74,22 @@ public class ProjectStructureDialogFixture implements ContainerFixture<JDialog> 
   public IdeFrameFixture clickOk() {
     GuiTests.findAndClickOkButton(this);
     Wait.seconds(5).expecting("dialog to disappear").until(() -> !target().isShowing());
+    GuiTests.waitForBackgroundTasks(robot());  // Changing the project structure can cause a Gradle build and Studio re-indexing.
     return myIdeFrameFixture;
+  }
+
+  @NotNull
+  public ProjectStructureDialogFixture setServiceEnabled(String item, boolean checked) {
+    selectConfigurable(item);
+    JCheckBoxFixture checkBoxFixture =
+      new JCheckBoxFixture(robot(), robot().finder().findByName(myDialog, "enableService", JCheckBox.class));
+    checkBoxFixture.setSelected(checked);
+    if (!checked) {
+      DialogMatcher matcher = withTitle("Confirm Uninstall Service").andShowing();
+      DialogFixture dialogFixture = findDialog(matcher).withTimeout(TimeUnit.MINUTES.toMillis(2)).using(robot()).requireModal();
+      findAndClickButtonWhenEnabled(dialogFixture, "Yes");
+    }
+    return this;
   }
 
   @Nonnull
