@@ -24,6 +24,7 @@ import com.android.tools.idea.editors.gfxtrace.gapi.GapisProcess;
 import com.android.tools.idea.editors.gfxtrace.models.AtomStream;
 import com.android.tools.idea.editors.gfxtrace.models.GpuState;
 import com.android.tools.idea.editors.gfxtrace.models.ReportStream;
+import com.android.tools.idea.editors.gfxtrace.models.ResourceCollection;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceClient;
 import com.android.tools.idea.editors.gfxtrace.service.ServiceClientCache;
 import com.android.tools.idea.editors.gfxtrace.service.atom.AtomMetadata;
@@ -104,6 +105,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   @NotNull private final LoadablePanel myLoadingPanel = new LoadablePanel(myView);
   @NotNull private final ListeningExecutorService myExecutor = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
   @NotNull private final AtomStream myAtomStream = new AtomStream(this);
+  @NotNull private final ResourceCollection myResourceCollection = new ResourceCollection(this);
   @NotNull private final GpuState myState = new GpuState(this);
   @NotNull private final ReportStream myReportStream = new ReportStream(this);
   @NotNull private final VirtualFile myFile;
@@ -125,6 +127,7 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
                                    .setKind(EventKind.GFX_TRACE_OPEN));
 
     addPathListener(myAtomStream);
+    addPathListener(myResourceCollection);
     addPathListener(myState);
     addPathListener(myReportStream);
 
@@ -464,6 +467,11 @@ public class GfxTraceEditor extends UserDataHolderBase implements FileEditor {
   @NotNull
   public AtomStream getAtomStream() {
     return myAtomStream;
+  }
+
+  @NotNull
+  public ResourceCollection getResourceCollection() {
+    return myResourceCollection;
   }
 
   @NotNull
