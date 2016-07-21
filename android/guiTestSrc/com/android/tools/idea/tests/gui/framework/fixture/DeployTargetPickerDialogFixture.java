@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.tests.gui.framework.Wait;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.ui.AnimatedIcon;
 import org.fest.swing.cell.JListCellReader;
@@ -28,6 +29,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
@@ -70,6 +72,8 @@ public class DeployTargetPickerDialogFixture extends ComponentFixture<DeployTarg
     JBList deviceList = robot().finder().findByType(target(), JBList.class);
     JListFixture jListFixture = new JListFixture(robot(), deviceList);
     jListFixture.replaceCellReader(DEVICE_PICKER_CELL_READER);
+    Wait.seconds(5).expecting(String.format("Deployment Target list to contain %s", text))
+      .until(() -> Arrays.asList(jListFixture.contents()).contains(text));
     jListFixture.selectItem(text);
     return this;
   }
