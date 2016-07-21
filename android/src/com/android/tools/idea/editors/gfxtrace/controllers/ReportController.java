@@ -28,21 +28,35 @@ import com.android.tools.idea.editors.gfxtrace.service.path.ReportItemPath;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.wireless.android.sdk.stats.AndroidStudioStats;
+import com.intellij.ide.util.treeView.AbstractTreeStructure;
+import com.intellij.ide.util.treeView.NodeDescriptor;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.ui.ComboBox;
+import com.intellij.openapi.util.ActionCallback;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.ExpandableItemsHandler;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.ui.speedSearch.ElementFilter;
+import com.intellij.ui.treeStructure.Tree;
+import com.intellij.ui.treeStructure.filtered.FilteringTreeBuilder;
+import com.intellij.ui.treeStructure.filtered.FilteringTreeStructure;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.plaf.basic.BasicTreeUI;
 import javax.swing.tree.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Enumeration;
+import java.util.List;
 
 // TODO: Check if there's a need of TreeController (probably some kind of ListController will satisfy this entity).
 public class ReportController extends TreeController implements ReportStream.Listener {
@@ -52,31 +66,84 @@ public class ReportController extends TreeController implements ReportStream.Lis
 
   private static final @NotNull Logger LOG = Logger.getInstance(ReportController.class);
 
-  private interface Renderable {
-    void render(@NotNull SimpleColoredComponent component, @NotNull SimpleTextAttributes attributes);
+  // Wrapper needed for FilteringTreeStructure since it has final filter.
+  public static class ElementFilterWrapper implements ElementFilter<Renderable> {
+    private ElementFilter<Renderable> myFilter;
+
+    public void setFilter(ElementFilter<Renderable> filter) {
+      myFilter = filter;
+    }
+
+    @Override
+    public boolean shouldBeShowing(Renderable value) {
+      return myFilter.shouldBeShowing(value);
+    }
   }
 
-  public static class Node extends DefaultMutableTreeNode implements Renderable {
+  public abstract static class Renderable extends NodeDescriptor {
+
+    @NotNull protected final List<Renderable> myChildren;
+
+    public Renderable(@Nullable Renderable parent) {
+      super(null, parent);
+      myChildren = new ArrayList<>();
+    }
+
+    public void addChild(ReportController.Renderable child) {
+      myChildren.add(child);
+    }
+
+    @Override
+    public boolean update() {
+      return false;
+    }
+
+    @Override
+    public Renderable getElement() {
+      return this;
+    }
+
+    @Nullable
+    @Override
+    public Renderable getParentDescriptor() {
+      return (Renderable)super.getParentDescriptor();
+    }
+
+    public abstract void render(@NotNull SimpleColoredComponent component, @NotNull SimpleTextAttributes attributes);
+  }
+
+  // Node to be used as a representation for report item and its message.
+  public static class Node extends Renderable {
     private static final int PREVIEW_LENGTH = 80;
 
     public final int index;
+
+    private final @Nullable("instance represents ReportItem message") ReportItem myReportItem;
+    private final @Nullable("instance represents ReportItem") String myMessage;
+
     private @Nullable("not made server request yet") Path followPath;
     // True by default and is false when GAPIS doesn't support ReportItemPath
     private boolean followable = true;
 
-    public static Node createInstance(ReportItem item, int index) {
-      Node node = new Node(item, index);
-      node.add(new Node(item.getMessage().toString()));
+    public static Node createInstance(@NotNull Renderable parent,
+                                      @NotNull ReportItem item,
+                                      int index) {
+      Node node = new Node(parent, item, index);
+      node.addChild(new Node(node, item.getMessage().toString()));
       return node;
     }
 
-    private Node(ReportItem item, int index) {
-      super(item);
+    private Node(@NotNull Renderable parent, @NotNull ReportItem item, int index) {
+      super(parent);
+      this.myReportItem = item;
+      this.myMessage = null;
       this.index = index;
     }
 
-    private Node(String message) {
-      super(message, false);
+    private Node(@NotNull Renderable parent, @NotNull String message) {
+      super(parent);
+      this.myReportItem = null;
+      this.myMessage = message;
       this.index = -1;
     }
 
@@ -85,19 +152,33 @@ public class ReportController extends TreeController implements ReportStream.Lis
       Render.render(this, component);
     }
 
+    public boolean containsReportItem() {
+      return myReportItem != null;
+    }
+
+    public boolean isAtLeast(LogProtos.Severity severity) {
+      // LogProtos.Severity enum increases from Emergency to Debug
+      return severity.compareTo(getSeverity()) >= 0;
+    }
+
+    public boolean isParentAtLeast(LogProtos.Severity severity) {
+      if (!(getParentDescriptor() instanceof Node)) {
+        return false;
+      }
+      Node node = (Node)getParentDescriptor();
+      return node.containsReportItem() && node.isAtLeast(severity);
+    }
+
     public LogProtos.Severity getSeverity() {
-      return ((ReportItem) userObject).getSeverity();
+      return myReportItem.getSeverity();
     }
 
     public long getAtomId() {
-      return ((ReportItem) userObject).getAtom();
+      return myReportItem.getAtom();
     }
 
     public String getMessage() {
-      if (userObject instanceof ReportItem) {
-        return ((ReportItem)userObject).getMessage().toString();
-      }
-      return (String)userObject;
+      return (myMessage == null) ? myReportItem.getMessage().toString() : myMessage;
     }
 
     public String getMessagePreview() {
@@ -124,6 +205,10 @@ public class ReportController extends TreeController implements ReportStream.Lis
     public void setFollowable(boolean followable) {
       this.followable = followable;
     }
+
+    public boolean isLeaf() {
+      return myChildren.size() == 0;
+    }
   }
 
   /**
@@ -131,6 +216,33 @@ public class ReportController extends TreeController implements ReportStream.Lis
    * See: {@link com.intellij.xdebugger.impl.ui.tree.XDebuggerTreeRenderer}.
    */
   public static class NodeCellRenderer extends ColoredTreeCellRenderer {
+    private static Method myGetRowXMethod = null;
+
+    /**
+     * Workaround to get access to protected method from BasicTreeUI.
+     * See: {@link com.intellij.xdebugger.impl.ui.tree.XDebuggerTreeRenderer#getRowX(BasicTreeUI, int, int)}.
+     */
+    private static int getRowX(BasicTreeUI ui, int row, int depth) {
+      if (myGetRowXMethod == null) {
+        try {
+          myGetRowXMethod = BasicTreeUI.class.getDeclaredMethod("getRowX", int.class, int.class);
+          myGetRowXMethod.setAccessible(true);
+        }
+        catch (NoSuchMethodException e) {
+          LOG.error(e);
+        }
+      }
+      if (myGetRowXMethod != null) {
+        try {
+          return (Integer)myGetRowXMethod.invoke(ui, row, depth);
+        }
+        catch (Exception e) {
+          LOG.error(e);
+        }
+      }
+      return 0;
+    }
+
     private final RightCellRenderer myRightComponent = new RightCellRenderer();
     private int myRightComponentOffset;
     private boolean myRightComponentShow;
@@ -152,22 +264,29 @@ public class ReportController extends TreeController implements ReportStream.Lis
                                       boolean hasFocus) {
       myRightComponentShow = false;
       myRightComponent.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
-      if (value instanceof Renderable) {
-        Renderable renderable = (Renderable)value;
-        // Append main content to `this`
-        renderable.render(this, SimpleTextAttributes.REGULAR_ATTRIBUTES);
-        if (renderable instanceof Node && ((Node)renderable).isLeaf()) {
-          final Rectangle treeVisibleRect = tree.getVisibleRect();
-          final int rowOffset = tree.getRowBounds(row).x;
-          if (super.getPreferredSize().width + rowOffset > treeVisibleRect.x + treeVisibleRect.width) {
-            myRightComponent.append("…View", SimpleTextAttributes.GRAY_ATTRIBUTES, Render.REPORT_MESSAGE_VIEW_TAG);
-            myRightComponentShow = true;
-            myRightComponentOffset = treeVisibleRect.x + treeVisibleRect.width - myRightComponent.getPreferredSize().width - rowOffset;
+      if (value instanceof DefaultMutableTreeNode) {
+        final Renderable renderable = ReportTreeBuilder.getRenderable(value);
+        if (renderable != null) {
+          // Append main content to `this`
+          renderable.render(this, SimpleTextAttributes.REGULAR_ATTRIBUTES);
+          if (renderable instanceof Node && ((Node)renderable).isLeaf()) {
+            final Rectangle treeVisibleRect = tree.getVisibleRect();
+            // Check if our row is valid
+            final TreePath treePath = tree.getPathForRow(row);
+            // Use the hack instead of tree.getRowBounds(), since latter causes stack overflow sometimes
+            int rowOffset = treePath != null ? getRowX((BasicTreeUI)tree.getUI(), row, treePath.getPathCount() - 1) : 0;
+            if (super.getPreferredSize().width + rowOffset > treeVisibleRect.x + treeVisibleRect.width) {
+              myRightComponent.append("…View", SimpleTextAttributes.GRAY_ATTRIBUTES, Render.REPORT_MESSAGE_VIEW_TAG);
+              myRightComponentShow = true;
+              myRightComponentOffset =
+                treeVisibleRect.x + treeVisibleRect.width - myRightComponent.getPreferredSize().width - rowOffset;
+            }
           }
         }
-      }
-      else if (value instanceof DefaultMutableTreeNode) {
-        // Root of the report, no need to render.
+        // May be "loading..."
+        else if (((DefaultMutableTreeNode)value).getUserObject() instanceof String) {
+          append(String.valueOf(((DefaultMutableTreeNode)value).getUserObject()));
+        }
       }
       else {
         assert false : value;
@@ -264,11 +383,105 @@ public class ReportController extends TreeController implements ReportStream.Lis
     }
   }
 
+  private static class ReportTreeStructure extends AbstractTreeStructure {
+    @NotNull final Renderable myRoot;
+
+    public ReportTreeStructure(@NotNull Renderable root) {
+      myRoot = root;
+    }
+
+    @Override
+    public Object getRootElement() {
+      return myRoot;
+    }
+
+    @Override
+    public Object[] getChildElements(Object element) {
+      return ((Renderable)element).myChildren.toArray();
+    }
+
+    @Nullable
+    @Override
+    public Object getParentElement(Object element) {
+      return ((NodeDescriptor)element).getParentDescriptor();
+    }
+
+    @NotNull
+    @Override
+    public NodeDescriptor createDescriptor(Object element, NodeDescriptor parentDescriptor) {
+      return (NodeDescriptor)element;
+    }
+
+    @Override
+    public void commit() {
+    }
+
+    @Override
+    public boolean hasSomethingToCommit() {
+      return false;
+    }
+  }
+
+  // Extends FilteringTreeBuilder in order to remove auto expand behaviour
+  private static class ReportTreeBuilder extends FilteringTreeBuilder {
+    /**
+     * Tries to get underlying Renderable from a tree node assuming it's an
+     * instance of DefaultMutableTreeNode and getting delegate from FilteringNode.
+     */
+    @Nullable("unexpected tree structure")
+    public static Renderable getRenderable(@NotNull Object treeNode) {
+      if (!(treeNode instanceof DefaultMutableTreeNode)) {
+        return null;
+      }
+      final Object userObject = ((DefaultMutableTreeNode)treeNode).getUserObject();
+      if (!(userObject instanceof FilteringTreeStructure.FilteringNode)) {
+        return null;
+      }
+      Object delegate = ((FilteringTreeStructure.FilteringNode)userObject).getDelegate();
+      return delegate instanceof Renderable ? (Renderable)delegate : null;
+    }
+
+    public ReportTreeBuilder(Tree tree,
+                             ElementFilter filter,
+                             AbstractTreeStructure structure,
+                             @Nullable Comparator<NodeDescriptor> comparator) {
+      super(tree, filter, structure, comparator);
+    }
+
+    @Override
+    public boolean isAutoExpandNode(NodeDescriptor nodeDescriptor) {
+      return false;
+    }
+  }
+
+  private final JComboBox mySeverityLevelCombo;
+  @Nullable private ReportTreeBuilder myTreeBuilder;
+  @NotNull private final ElementFilterWrapper myFilter;
+
   private ReportController(@NotNull GfxTraceEditor editor) {
     super(editor, GfxTraceEditor.LOADING_CAPTURE);
     myEditor.getReportStream().addListener(this);
 
     myScrollPane.setBorder(new EmptyBorder(0, 0, 0, 0));
+
+    mySeverityLevelCombo = new ComboBox(new String[]{
+      LogProtos.Severity.Emergency.name(),
+      LogProtos.Severity.Alert.name(),
+      LogProtos.Severity.Critical.name(),
+      LogProtos.Severity.Error.name(),
+      LogProtos.Severity.Warning.name(),
+      LogProtos.Severity.Notice.name(),
+      LogProtos.Severity.Info.name(),
+      LogProtos.Severity.Debug.name()
+    });
+
+    mySeverityLevelCombo.setSelectedIndex(mySeverityLevelCombo.getItemCount() - 1);
+    mySeverityLevelCombo.addActionListener(
+      actionEvent -> {
+        LogProtos.Severity severity = LogProtos.Severity.valueOf((String)mySeverityLevelCombo.getSelectedItem());
+        applySeverityFilter(severity);
+      });
+    myPanel.add(mySeverityLevelCombo, BorderLayout.NORTH);
 
     MouseAdapter mouseAdapter = new MouseAdapter() {
       @Override
@@ -277,15 +490,18 @@ public class ReportController extends TreeController implements ReportStream.Lis
         if (treePath == null) {
           return;
         }
-        final Object currentComponent = treePath.getLastPathComponent();
+        final Renderable renderable = ReportTreeBuilder.getRenderable(treePath.getLastPathComponent());
+        if (renderable == null) {
+          return;
+        }
         PathStore<Path> followPath = new PathStore<>();
         switch (getComponentTag(treePath, event.getX())) {
           case Render.REPORT_ITEM_ATOM_ID_TAG:
-            onReportItemNodeHover((Node)currentComponent, followPath);
+            onReportItemNodeHover((Node)renderable, followPath);
             break;
           case Render.REPORT_MESSAGE_VIEW_TAG:
             // Put stub data to path store in order to show hand hovering.
-            followPath.update(getReportItemPath((Node)((Node)currentComponent).getParent()));
+            followPath.update(getReportItemPath((Node)renderable.getParentDescriptor()));
             break;
           default:
         }
@@ -303,13 +519,18 @@ public class ReportController extends TreeController implements ReportStream.Lis
         if (treePath == null) {
           return;
         }
-        final Object currentComponent = treePath.getLastPathComponent();
+        final Renderable renderable = ReportTreeBuilder.getRenderable(treePath.getLastPathComponent());
+        if (renderable == null) {
+          return;
+        }
         switch (getComponentTag(treePath, event.getX())) {
           case Render.REPORT_ITEM_ATOM_ID_TAG:
-            onReportItemNodeClick((Node)currentComponent);
+            // Here and further we assume that renderable is instance of Node
+            // since otherwise we wouldn't get such a tag (only if constants clash).
+            onReportItemNodeClick((Node)renderable);
             break;
           case Render.REPORT_MESSAGE_VIEW_TAG:
-            onLeafNodeClick((Node)currentComponent);
+            onLeafNodeClick((Node)renderable);
             break;
           default:
         }
@@ -361,13 +582,12 @@ public class ReportController extends TreeController implements ReportStream.Lis
         }
         else {
           LOG.warn("mouseClicked(), but ReportItemPath are not supported in GAPIS");
-
         }
       }
 
       private void onLeafNodeClick(@NotNull Node node) {
         ViewTextAction.MyDialog dialog = new ViewTextAction.MyDialog(myEditor.getProject());
-        Node parent = (Node)node.getParent();
+        Node parent = (Node)node.getParentDescriptor();
         dialog.setTitle(String.format("Message for %d: %s", parent.getAtomId(), parent.getSeverity()));
         dialog.setText(node.getMessage());
         dialog.show();
@@ -376,6 +596,8 @@ public class ReportController extends TreeController implements ReportStream.Lis
 
     myTree.addMouseListener(mouseAdapter);
     myTree.addMouseMotionListener(mouseAdapter);
+    myFilter = new ElementFilterWrapper();
+    myFilter.setFilter(input -> true);
   }
 
   private @NotNull Path getReportItemPath(@NotNull Node node) {
@@ -431,7 +653,7 @@ public class ReportController extends TreeController implements ReportStream.Lis
   public void onReportLoadingSuccess(ReportStream reportStream) {
     if (reportStream.isLoaded()) {
       myLoadingPanel.stopLoading();
-      updateTree(reportStream);
+      buildTree(reportStream);
     }
     else {
       myLoadingPanel.showLoadingError("Failed to load report");
@@ -446,12 +668,19 @@ public class ReportController extends TreeController implements ReportStream.Lis
 
   private void updateSelection(DefaultMutableTreeNode root, TreePath path, long atomId) {
     // TODO: If server provides report items sorted by atom id, replace linear for binary search.
+    // TODO: UPD: It does. Do replace.
     for (Enumeration it = root.children(); it.hasMoreElements(); ) {
       DefaultMutableTreeNode child = (DefaultMutableTreeNode)it.nextElement();
       Object object = child.getUserObject();
-      if (object instanceof ReportItem && atomId == (((ReportItem)object).getAtom())) {
-        updateSelection(path.pathByAddingChild(child));
-        return;
+      if (object instanceof FilteringTreeStructure.FilteringNode) {
+        Object delegate = ((FilteringTreeStructure.FilteringNode)object).getDelegate();
+        if (delegate instanceof Node) {
+          Node node = (Node)delegate;
+          if (!node.isLeaf() && node.getAtomId() == atomId) {
+            updateSelection(path.pathByAddingChild(child));
+            return;
+          }
+        }
       }
     }
   }
@@ -468,29 +697,56 @@ public class ReportController extends TreeController implements ReportStream.Lis
     myTree.scrollPathToVisible(path);
   }
 
-  private void updateTree(ReportStream reportStream) {
-    final DefaultMutableTreeNode root = new DefaultMutableTreeNode("Report", true);
+  private void buildTree(ReportStream reportStream) {
+    final Renderable root = new Renderable(null) {
+      @Override
+      public void render(@NotNull SimpleColoredComponent component, @NotNull SimpleTextAttributes attributes) {
+      }
+    };
     int index = 0;
     for (ReportItem item : reportStream.getReport().getItems()) {
-      root.add(Node.createInstance(item, index++));
+      root.addChild(Node.createInstance(root, item, index++));
     }
-    setRoot(root);
+    myTreeBuilder = new ReportTreeBuilder(myTree, myFilter, new ReportTreeStructure(root), null);
+    Disposer.register(myEditor, myTreeBuilder);
+    final ActionCallback updateCallback = myTreeBuilder.queueUpdate();
+    // Filter could have been changed before tree was built.
+    updateCallback.doWhenDone(() -> myTreeBuilder.refilter());
   }
 
-  private void setRoot(DefaultMutableTreeNode root) {
-    setModel(new DefaultTreeModel(root));
+  private void applySeverityFilter(@NotNull final LogProtos.Severity severity) {
+    myFilter.setFilter(input -> {
+      if (!(input instanceof Node)) {
+        return true;
+      }
+      Node node = (Node)input;
+      // ReportItem has proper severity level
+      return ((node.containsReportItem() && node.isAtLeast(severity)) ||
+              // Parent ReportItem has proper severity level
+              (!node.containsReportItem() && node.isParentAtLeast(severity)));
+    });
+    if (myTreeBuilder != null) {
+      myTreeBuilder.refilter();
+    }
   }
 
   private int getComponentTag(@NotNull TreePath treePath, int mouseX) {
-    Node node = (Node)treePath.getLastPathComponent();
+    Object lastPathComponent = treePath.getLastPathComponent();
+    if (!(lastPathComponent instanceof DefaultMutableTreeNode)) {
+      return Render.NO_TAG;
+    }
+    Renderable renderable = ReportTreeBuilder.getRenderable(lastPathComponent);
+    if (renderable == null || !(renderable instanceof Node)) {
+      return Render.NO_TAG;
+    }
     Rectangle bounds = myTree.getPathBounds(treePath);
     assert bounds != null; // can't be null, as our path is valid
     NodeCellRenderer renderer = (NodeCellRenderer)myTree.getCellRenderer();
     if (renderer == null) {
       return Render.NO_TAG;
     }
-    renderer.getTreeCellRendererComponent(myTree, node, myTree.isPathSelected(treePath), myTree.isExpanded(treePath),
-                                          node.isLeaf(), myTree.getRowForPath(treePath), myTree.hasFocus());
+    renderer.getTreeCellRendererComponent(myTree, lastPathComponent, myTree.isPathSelected(treePath), myTree.isExpanded(treePath),
+                                          ((Node)renderable).isLeaf(), myTree.getRowForPath(treePath), myTree.hasFocus());
     return Render.getReportNodeFieldIndex(renderer, mouseX - bounds.x);
   }
 }
