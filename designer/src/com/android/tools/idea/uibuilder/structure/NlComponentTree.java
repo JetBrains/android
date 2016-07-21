@@ -382,6 +382,11 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     }
   }
 
+  @Override
+  public boolean activatePreferredEditor(@NotNull DesignSurface surface, @NotNull NlComponent component) {
+    return false;
+  }
+
   private class StructurePaneMouseListener extends MouseAdapter {
     @Override
     public void mouseClicked(MouseEvent e) {
