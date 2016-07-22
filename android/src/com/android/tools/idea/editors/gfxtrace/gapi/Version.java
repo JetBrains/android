@@ -35,6 +35,7 @@ public class Version {
   public static final Version VERSION_1 = new Version(1, 0, null);
   public static final Version VERSION_2 = new Version(2, 0, null);
   public static final Version VERSION_3 = new Version(3, 0, null);
+  public static final Version VERSION_3_2 = new Version(3, 2, null);
 
   public final int major;
   public final int minor;
