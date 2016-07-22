@@ -46,7 +46,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.plaf.ComboBoxUI;
-import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.FocusAdapter;
@@ -146,14 +145,6 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
       @Override
       public void focusGained(FocusEvent e) {
         myCombo.getEditor().selectAll();
-      }
-
-      @Override
-      public void focusLost(FocusEvent e) {
-        ComboBoxEditor editor = myCombo.getEditor();
-        if (editor instanceof JTextComponent) {
-          ((JTextComponent)editor).select(Integer.MAX_VALUE, Integer.MAX_VALUE);
-        }
       }
     });
     //noinspection unchecked
@@ -319,10 +310,21 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
     return value.getValue();
   }
 
+  /**
+   * Get the component to display this editor
+   */
   @Override
   @NotNull
   public JComponent getComponent() {
     return myPanel;
+  }
+
+  /**
+   * Get the component of this editor that will have the focus.
+   */
+  @NotNull
+  public Component getKeySource() {
+    return myCombo.getEditor().getEditorComponent();
   }
 
   private void enter() {

@@ -37,17 +37,16 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 import static com.android.SdkConstants.*;
 import static com.intellij.uiDesigner.core.GridConstraints.*;
 
-public class InspectorPanel extends JPanel {
+public class InspectorPanel extends JPanel implements KeyEventDispatcher {
   private static final List<String> PREFERRED_PROPERTY_NAMES = ImmutableList.of(ATTR_TEXT, ATTR_SRC, ATTR_ID);
   private static final int HORIZONTAL_SPACING = 6;
 
@@ -58,6 +57,7 @@ public class InspectorPanel extends JPanel {
   private final JPanel myInspector;
   private List<InspectorComponent> myInspectors = Collections.emptyList();
   private ExpandableGroup myGroup;
+  private Map<Component, ExpandableGroup> mySource2GroupMap = new HashMap<>(4);
   private GridConstraints myConstraints = new GridConstraints();
   private int myRow;
   private boolean myActivateEditorAfterLoad;
@@ -71,6 +71,38 @@ public class InspectorPanel extends JPanel {
     myInspector = new GridInspectorPanel();
     myInspector.setBorder(BorderFactory.createEmptyBorder(0, HORIZONTAL_SPACING, 0, HORIZONTAL_SPACING));
     add(myInspector, BorderLayout.CENTER);
+  }
+
+  @Override
+  public void addNotify() {
+    super.addNotify();
+    KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(this);
+  }
+
+  @Override
+  public void removeNotify() {
+    super.removeNotify();
+    KeyboardFocusManager.getCurrentKeyboardFocusManager().removeKeyEventDispatcher(this);
+  }
+
+  @Override
+  public boolean dispatchKeyEvent(KeyEvent event) {
+    // Intercept TAB keys here and expand any group that is currently collapsed if the TAB key is pressed from that group.
+    // In that way the user can get to all fields from the keyboard.
+    // Note that the arrow keys and '+' and '-' are usually used for something else (so they cannot be used to open/close the group).
+    if (event.getKeyCode() == '\t' &&
+        event.getModifiers() == 0 &&
+        event.getID() == KeyEvent.KEY_PRESSED &&
+        event.getSource() instanceof Component) {
+      Component source = (Component)event.getSource();
+      ExpandableGroup group = mySource2GroupMap.get(source);
+      if (group != null && !group.isExpanded()) {
+        group.setExpanded(true);
+        ApplicationManager.getApplication().invokeLater(source::transferFocus);
+        return true;
+      }
+    }
+    return false;
   }
 
   private static List<InspectorProvider> createProviders(@NotNull Project project) {
@@ -93,6 +125,7 @@ public class InspectorPanel extends JPanel {
                            @NotNull NlPropertiesManager propertiesManager) {
     myInspector.setLayout(null);
     myInspector.removeAll();
+    mySource2GroupMap.clear();
     myRow = 0;
 
     if (!components.isEmpty()) {
@@ -211,13 +244,22 @@ public class InspectorPanel extends JPanel {
     }
   }
 
+  /**
+   * Add a component that also serves as a group node in the inspector.
+   * @param labelText the label for the component
+   * @param tooltip the tooltip for the attribute being edited by the component
+   * @param component the editor component
+   * @param keySource the component that will have focus for this component
+   * @return a JLabel for the label of the component
+   */
   public JLabel addExpandableComponent(@NotNull String labelText,
                                        @Nullable String tooltip,
-                                       @NotNull Component component) {
+                                       @NotNull Component component,
+                                       @NotNull Component keySource) {
     JLabel label = createLabel(labelText, tooltip, component);
     addLabelComponent(label, myRow);
     addValueComponent(component, myRow++);
-    startGroup(label);
+    startGroup(label, keySource);
     return label;
   }
 
@@ -273,9 +315,10 @@ public class InspectorPanel extends JPanel {
     panel.add(component, myConstraints);
   }
 
-  private void startGroup(@NotNull JLabel label) {
+  private void startGroup(@NotNull JLabel label, @NotNull Component keySource) {
     assert myGroup == null;
     myGroup = new ExpandableGroup(label);
+    mySource2GroupMap.put(keySource, myGroup);
   }
 
   private void endGroup() {

@@ -187,7 +187,7 @@ public class TextInspectorProvider implements InspectorProvider {
       designText.setIcon(AndroidIcons.NeleIcons.DesignProperty);
       inspector.addComponent(ATTR_CONTENT_DESCRIPTION, myDescription.getTooltipText(), myDescriptionEditor.getComponent());
 
-      inspector.addExpandableComponent(ATTR_TEXT_APPEARANCE, myStyle.getTooltipText(), myStyleEditor.getComponent());
+      inspector.addExpandableComponent(ATTR_TEXT_APPEARANCE, myStyle.getTooltipText(), myStyleEditor.getComponent(), myStyleEditor.getKeySource());
       inspector.addComponent(ATTR_FONT_FAMILY, myFontFamily.getTooltipText(), myFontFamilyEditor.getComponent());
       inspector.addComponent(ATTR_TYPEFACE, myTypeface.getTooltipText(), myTypefaceEditor.getComponent());
       inspector.addComponent(ATTR_TEXT_SIZE, myFontSize.getTooltipText(), myFontSizeEditor.getComponent());
