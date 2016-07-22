@@ -34,8 +34,7 @@ public class EnergySegment extends BaseLineChartSegment {
 
   private static final Color ENERGY_TOTAL_COLOR = new JBColor(new Color(200, 200, 200), new Color(200, 200, 200));
   private static final Color ENERGY_SCREEN_COLOR = new JBColor(new Color(200, 200, 100), new Color(200, 200, 100));
-  private static final Color ENERGY_CPU_SYSTEM_COLOR = new JBColor(new Color(200, 50, 50), new Color(200, 50, 50));
-  private static final Color ENERGY_CPU_USER_COLOR = new JBColor(new Color(250, 50, 50), new Color(250, 50, 50));
+  private static final Color ENERGY_CPU_COLOR = new JBColor(new Color(200, 50, 100), new Color(200, 50, 100));
   private static final Color ENERGY_SENSORS_COLOR = new JBColor(new Color(200, 100, 0), new Color(200, 100, 0));
   private static final Color ENERGY_CELL_NETWORK_COLOR = new JBColor(new Color(100, 200, 150), new Color(100, 200, 150));
   private static final Color ENERGY_WIFI_NETWORK_COLOR = new JBColor(new Color(100, 150, 200), new Color(100, 150, 200));
@@ -56,8 +55,7 @@ public class EnergySegment extends BaseLineChartSegment {
 
     if (isExpanded) {
       addEnergyLevelLine(SeriesDataType.ENERGY_SCREEN, ENERGY_SCREEN_COLOR);
-      addEnergyLevelLine(SeriesDataType.ENERGY_CPU_SYSTEM, ENERGY_CPU_SYSTEM_COLOR);
-      addEnergyLevelLine(SeriesDataType.ENERGY_CPU_USER, ENERGY_CPU_USER_COLOR);
+      addEnergyLevelLine(SeriesDataType.ENERGY_CPU, ENERGY_CPU_COLOR);
       addEnergyLevelLine(SeriesDataType.ENERGY_SENSORS, ENERGY_SENSORS_COLOR);
       addEnergyLevelLine(SeriesDataType.ENERGY_CELL_NETWORK, ENERGY_CELL_NETWORK_COLOR);
       addEnergyLevelLine(SeriesDataType.ENERGY_WIFI_NETWORK, ENERGY_WIFI_NETWORK_COLOR);
