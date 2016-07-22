@@ -17,9 +17,6 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.gfxapi;
 
-import com.android.tools.idea.editors.gfxtrace.service.gfxapi.GfxAPIProtos.ShaderType;
-import com.android.tools.idea.editors.gfxtrace.service.path.ResourceID;
-import com.intellij.util.containers.hash.LinkedHashMap;
 import org.jetbrains.annotations.NotNull;
 
 import com.android.tools.rpclib.binary.*;

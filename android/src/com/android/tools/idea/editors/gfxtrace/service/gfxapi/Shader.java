@@ -17,7 +17,6 @@
  */
 package com.android.tools.idea.editors.gfxtrace.service.gfxapi;
 
-import com.android.tools.idea.editors.gfxtrace.service.gfxapi.GfxAPIProtos.ShaderType;
 import org.jetbrains.annotations.NotNull;
 
 import com.android.tools.rpclib.binary.*;
