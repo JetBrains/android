@@ -26,10 +26,19 @@ import com.google.wireless.android.sdk.stats.AndroidStudioStats.AndroidStudioEve
 import com.google.wireless.android.sdk.stats.AndroidStudioStats.ProductDetails;
 import com.google.wireless.android.sdk.stats.AndroidStudioStats.ProductDetails.SoftwareLifeCycleChannel;
 import com.intellij.openapi.application.ApplicationInfo;
+import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.application.ex.ApplicationInfoEx;
 import com.intellij.openapi.updateSettings.impl.UpdateSettings;
+import com.sun.management.OperatingSystemMXBean;
 import org.jetbrains.annotations.NotNull;
 
+import javax.management.MXBean;
+import java.awt.*;
+import java.io.File;
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -44,14 +53,14 @@ public class AndroidStudioUsageTracker {
   public static void setup(ScheduledExecutorService scheduler) {
     // Send initial report immediately, daily from then on.
     scheduler.scheduleWithFixedDelay(AndroidStudioUsageTracker::runDailyReports, 0, 1, TimeUnit.DAYS);
-
+    // Send initial report immediately, hourly from then on.
+    scheduler.scheduleWithFixedDelay(AndroidStudioUsageTracker::runHourlyReports, 0, 1, TimeUnit.HOURS);
   }
 
   private static void runDailyReports() {
-    UsageTracker tracker =
-      UsageTracker.getInstance();
     ApplicationInfo application = ApplicationInfo.getInstance();
-    tracker.log(
+
+    UsageTracker.getInstance().log(
       AndroidStudioEvent.newBuilder()
         .setCategory(AndroidStudioEvent.EventCategory.PING)
         .setKind(AndroidStudioEvent.EventKind.STUDIO_PING)
@@ -61,9 +70,16 @@ public class AndroidStudioUsageTracker {
             .setBuild(application.getBuild().asStringWithAllDetails())
             .setVersion(application.getStrictVersion())
             .setOsArchitecture(CommonMetricsData.getOsArchitecture())
-          .setChannel(lifecycleChannelFromUpdateSettings())
-        )
-    );
+          .setChannel(lifecycleChannelFromUpdateSettings()))
+        .setMachineDetails(CommonMetricsData.getMachineDetails(new File(PathManager.getHomePath())))
+        .setJvmDetails(CommonMetricsData.getJvmDetails()));
+  }
+
+  private static void runHourlyReports() {
+    UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                     .setCategory(AndroidStudioEvent.EventCategory.SYSTEM)
+                                     .setKind(AndroidStudioEvent.EventKind.STUDIO_PROCESS_STATS)
+                                     .setJavaProcessStats(CommonMetricsData.getJavaProcessStats()));
   }
 
   /**
