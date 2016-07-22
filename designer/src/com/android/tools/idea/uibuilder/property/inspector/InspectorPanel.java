@@ -55,12 +55,9 @@ public class InspectorPanel extends JPanel {
   private final List<InspectorProvider> myProviders;
   private final NlDesignProperties myDesignProperties;
   private final Font myBoldLabelFont = UIUtil.getLabelFont().deriveFont(Font.BOLD);
-  private final Icon myExpandedIcon;
-  private final Icon myCollapsedIcon;
   private final JPanel myInspector;
   private List<InspectorComponent> myInspectors = Collections.emptyList();
-  private List<Component> myGroup;
-  private boolean myGroupInitiallyOpen;
+  private ExpandableGroup myGroup;
   private GridConstraints myConstraints = new GridConstraints();
   private int myRow;
   private boolean myActivateEditorAfterLoad;
@@ -71,8 +68,6 @@ public class InspectorPanel extends JPanel {
     myAllPropertiesLink.setBorder(BorderFactory.createEmptyBorder(5, 0, 10, 0));
     myProviders = createProviders(project);
     myDesignProperties = new NlDesignProperties();
-    myExpandedIcon = (Icon)UIManager.get("Tree.expandedIcon");
-    myCollapsedIcon = (Icon)UIManager.get("Tree.collapsedIcon");
     myInspector = new GridInspectorPanel();
     myInspector.setBorder(BorderFactory.createEmptyBorder(0, HORIZONTAL_SPACING, 0, HORIZONTAL_SPACING));
     add(myInspector, BorderLayout.CENTER);
@@ -264,8 +259,7 @@ public class InspectorPanel extends JPanel {
   private void addComponent(@NotNull Component component, int row, int column, int columnSpan, int anchor, int fill) {
     addToGridPanel(myInspector, component, row, column, columnSpan, anchor, fill);
     if (myGroup != null) {
-      myGroup.add(component);
-      component.setVisible(myGroupInitiallyOpen);
+      myGroup.addComponent(component);
     }
   }
 
@@ -281,26 +275,48 @@ public class InspectorPanel extends JPanel {
 
   private void startGroup(@NotNull JLabel label) {
     assert myGroup == null;
-    List<Component> group = new ArrayList<>();
-    String savedKey = "inspector.open." + label.getText();
-    myGroupInitiallyOpen = PropertiesComponent.getInstance().getBoolean(savedKey);
-
-    label.setIcon(myGroupInitiallyOpen ? myExpandedIcon : myCollapsedIcon);
-    label.addMouseListener(new MouseAdapter() {
-      @Override
-      public void mouseClicked(MouseEvent event) {
-        boolean wasExpanded = label.getIcon() == myExpandedIcon;
-        label.setIcon(wasExpanded ? myCollapsedIcon : myExpandedIcon);
-        group.stream().forEach(component -> component.setVisible(!wasExpanded));
-        PropertiesComponent.getInstance().setValue(savedKey, !wasExpanded);
-      }
-    });
-
-    myGroup = group;
+    myGroup = new ExpandableGroup(label);
   }
 
   private void endGroup() {
     myGroup = null;
+  }
+
+  private static class ExpandableGroup {
+    private static final String KEY_PREFIX = "inspector.open.";
+    private static final Icon EXPANDED_ICON = (Icon)UIManager.get("Tree.expandedIcon");
+    private static final Icon COLLAPSED_ICON = (Icon)UIManager.get("Tree.collapsedIcon");
+    private final JLabel myLabel;
+    private final List<Component> myComponents;
+    private final boolean myInitiallyExpanded;
+
+    public ExpandableGroup(@NotNull JLabel label) {
+      myLabel = label;
+      myComponents = new ArrayList<>(10);
+      myInitiallyExpanded = PropertiesComponent.getInstance().getBoolean(KEY_PREFIX + label.getText());
+      label.setIcon(myInitiallyExpanded ? EXPANDED_ICON : COLLAPSED_ICON);
+      label.addMouseListener(new MouseAdapter() {
+        @Override
+        public void mouseClicked(MouseEvent event) {
+          setExpanded(!isExpanded());
+        }
+      });
+    }
+
+    public void addComponent(@NotNull Component component) {
+      myComponents.add(component);
+      component.setVisible(myInitiallyExpanded);
+    }
+
+    public boolean isExpanded() {
+      return myLabel.getIcon() == EXPANDED_ICON;
+    }
+
+    public void setExpanded(boolean expanded) {
+      myLabel.setIcon(expanded ? EXPANDED_ICON : COLLAPSED_ICON);
+      myComponents.forEach(component -> component.setVisible(expanded));
+      PropertiesComponent.getInstance().setValue(KEY_PREFIX + myLabel.getText(), expanded);
+    }
   }
 
   /**
