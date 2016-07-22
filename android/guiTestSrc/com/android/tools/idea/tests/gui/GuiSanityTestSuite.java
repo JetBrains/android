@@ -32,16 +32,16 @@ import org.junit.runners.Suite;
 @RunWith(Categories.class)
 @Categories.IncludeCategory(GuiSanityTestSuite.class)
 @Suite.SuiteClasses({
-  NewProjectTest.class,
-  NewActivityTest.class,
   AvdListDialogTest.class,
-  LaunchAndroidApplicationTest.class,
-  NlEditorTest.class,
-  GradleSyncTest.class,
-  NewModuleTest.class,
-  FlavorsTest.class,
   BuildTypesTest.class,
   DeveloperServicesTest.class,
+  FlavorsTest.class,
+  GradleSyncTest.class,
+  LaunchAndroidApplicationTest.class,
+  NewActivityTest.class,
+  NewModuleTest.class,
+  NewProjectTest.class,
+  NlEditorTest.class,
 })
 public class GuiSanityTestSuite {
 }
