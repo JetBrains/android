@@ -76,9 +76,11 @@ import java.util.List;
 import java.util.Set;
 
 import static com.android.builder.model.SyncIssue.TYPE_EXTERNAL_NATIVE_BUILD_COMBINED_CONFIGURATION;
+import static com.android.builder.model.SyncIssue.TYPE_GRADLE_TOO_OLD;
 import static com.android.builder.model.SyncIssue.TYPE_UNRESOLVED_DEPENDENCY;
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.*;
 import static com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler.updateNotification;
+import static com.android.tools.idea.gradle.service.notification.errors.UnsupportedGradleVersionErrorHandler.getQuickFixHyperlinks;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.Projects.*;
 import static com.google.common.base.Verify.verifyNotNull;
@@ -149,10 +151,13 @@ public class ProjectSyncMessages {
         case TYPE_EXTERNAL_NATIVE_BUILD_COMBINED_CONFIGURATION:
           reportExternalNativeBuildIssues(syncIssue, module.getProject());
           break;
+        case TYPE_GRADLE_TOO_OLD:
+          reportOldGradleVersion(syncIssue);
+          break;
         default:
           String group = UNHANDLED_SYNC_ISSUE_TYPE;
           String text = syncIssue.getMessage();
-          Message.Type severity = syncIssue.getSeverity() == SyncIssue.SEVERITY_ERROR ? Message.Type.ERROR : Message.Type.WARNING;
+          Message.Type severity = getSeverityType(syncIssue);
 
           Message msg;
           if (buildFile != null) {
@@ -162,8 +167,7 @@ public class ProjectSyncMessages {
             msg = new Message(group, severity, NonNavigatable.INSTANCE, text);
           }
 
-          List<NotificationHyperlink> hyperlinks = getHyperlinks(myProject, text);
-          add(msg, hyperlinks.toArray(new NotificationHyperlink[hyperlinks.size()]));
+          add(msg, getHyperlinks(myProject, text));
       }
     }
 
@@ -172,11 +176,24 @@ public class ProjectSyncMessages {
     }
   }
 
+  private void reportOldGradleVersion(@NotNull SyncIssue syncIssue) {
+    String group = UNHANDLED_SYNC_ISSUE_TYPE;
+    String text = syncIssue.getMessage();
+    Message.Type severity = getSeverityType(syncIssue);
+    String gradleVersion = syncIssue.getData();
+    add(new Message(group, severity, NonNavigatable.INSTANCE, text), getQuickFixHyperlinks(myProject, gradleVersion));
+  }
+
+  @NotNull
+  private static Message.Type getSeverityType(@NotNull SyncIssue syncIssue) {
+    return syncIssue.getSeverity() == SyncIssue.SEVERITY_ERROR ? Message.Type.ERROR : Message.Type.WARNING;
+  }
+
   @NotNull
   private static List<NotificationHyperlink> getHyperlinks(@NotNull Project project, @NotNull String message) {
     String version = UnsupportedGradleVersionErrorHandler.getSupportedGradleVersion(message);
     if (isNotEmpty(version)) {
-      return UnsupportedGradleVersionErrorHandler.getQuickFixHyperlinks(project, version);
+      return getQuickFixHyperlinks(project, version);
     }
     return Collections.emptyList();
   }
@@ -434,8 +451,7 @@ public class ProjectSyncMessages {
     }
 
     // Add a message with the SyncIssue summery.
-    Message.Type severity = syncIssue.getSeverity() == SyncIssue.SEVERITY_ERROR ? Message.Type.ERROR : Message.Type.WARNING;
-    add(new Message(group, severity, NonNavigatable.INSTANCE, syncIssue.getMessage()));
+    add(new Message(group, getSeverityType(syncIssue), NonNavigatable.INSTANCE, syncIssue.getMessage()));
   }
 
   private static Message.Type translateMessageKind(@NotNull com.android.ide.common.blame.Message.Kind kind) {
@@ -449,6 +465,10 @@ public class ProjectSyncMessages {
       default:
         return Message.Type.INFO;
     }
+  }
+
+  private void add(@NotNull final Message message, @NotNull List<NotificationHyperlink> hyperlinks) {
+    add(message, hyperlinks.toArray(new NotificationHyperlink[hyperlinks.size()]));
   }
 
   public void add(@NotNull final Message message, @NotNull NotificationHyperlink... hyperlinks) {
