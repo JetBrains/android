@@ -202,7 +202,12 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
     assert state != null;
 
     final StartActivityFlagsProvider startActivityFlagsProvider = new DefaultStartActivityFlagsProvider(
-      getAndroidDebugger(), getAndroidDebuggerState(), getProfilerState(), getProject(), waitForDebugger, ACTIVITY_EXTRA_FLAGS);
+      getAndroidDebuggerContext().getAndroidDebugger(),
+      getAndroidDebuggerContext().getAndroidDebuggerState(),
+      getProfilerState(),
+      getProject(),
+      waitForDebugger,
+      ACTIVITY_EXTRA_FLAGS);
 
     try {
       return state.getLaunchTask(applicationIdProvider.getPackageName(), facet, startActivityFlagsProvider, getProfilerState());
