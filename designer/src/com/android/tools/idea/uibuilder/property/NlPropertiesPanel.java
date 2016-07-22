@@ -201,15 +201,10 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
     cardLayout.swipe(myCardPanel, name, JBCardLayout.SwipeDirection.AUTO);
   }
 
-  public void activatePreferredEditor(boolean afterload) {
-    if (!isAllPropertiesPanelVisible()) {
-      myInspectorPanel.activatePreferredEditor(afterload);
-      return;
+  public boolean activatePreferredEditor(boolean afterload) {
+    if (isAllPropertiesPanelVisible()) {
+      setAllPropertiesPanelVisible(false);
     }
-    activatePreferredEditor();
-  }
-
-  private void activatePreferredEditor() {
-    // TODO: find the cell in the table for the preferred property and activate the editor
+    return myInspectorPanel.activatePreferredEditor(afterload);
   }
 }

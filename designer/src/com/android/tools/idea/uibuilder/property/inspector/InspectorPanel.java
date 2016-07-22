@@ -178,13 +178,14 @@ public class InspectorPanel extends JPanel {
     return inspectors;
   }
 
-  public void activatePreferredEditor(boolean activateAfterLoading) {
+  public boolean activatePreferredEditor(boolean activateAfterLoading) {
     if (activateAfterLoading) {
       myActivateEditorAfterLoad = true;
     }
     else {
       activatePreferredEditor();
     }
+    return true;
   }
 
   private void activatePreferredEditor() {
