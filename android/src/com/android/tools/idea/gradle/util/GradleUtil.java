@@ -134,7 +134,7 @@ public final class GradleUtil {
 
   private static final Logger LOG = Logger.getInstance(GradleUtil.class);
 
-  private static final Pattern GRADLE_JAR_NAME_PATTERN = Pattern.compile("gradle-([^-]*)-(.*)\\.jar");
+  private static final Pattern GRADLE_JAR_NAME_PATTERN = Pattern.compile("gradle-core-(.*)\\.jar");
 
   /**
    * Finds characters that shouldn't be used in the Gradle path.
@@ -692,7 +692,7 @@ public final class GradleUtil {
     Matcher matcher = GRADLE_JAR_NAME_PATTERN.matcher(fileName);
     if (matcher.matches()) {
       // Obtain the version of Gradle from a library name (e.g. "gradle-core-2.0.jar")
-      String version = matcher.group(2);
+      String version = matcher.group(1);
       return GradleVersion.tryParse(removeTimestampFromGradleVersion(version));
     }
     return null;
