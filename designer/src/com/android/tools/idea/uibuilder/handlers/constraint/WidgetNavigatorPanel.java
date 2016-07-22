@@ -184,6 +184,11 @@ public class WidgetNavigatorPanel extends JPanel
     myMiniMap.repaint();
   }
 
+  @Override
+  public boolean activatePreferredEditor(@NotNull DesignSurface surface, @NotNull NlComponent component) {
+    return false;
+  }
+
   /* implements ModelListener */
 
   /**

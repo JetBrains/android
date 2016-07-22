@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
+import com.android.tools.idea.uibuilder.editor.NlPropertiesWindowManager;
 import com.android.tools.idea.uibuilder.model.ModelListener;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
@@ -25,6 +26,7 @@ import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.util.PropertiesMap;
 import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Table;
+import com.intellij.designer.LightToolWindow;
 import com.intellij.designer.LightToolWindowContent;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.application.ApplicationManager;
@@ -234,10 +236,6 @@ public class NlPropertiesManager implements DesignSurfaceListener, ModelListener
     // TODO: refresh all custom inspectors
   }
 
-  public void activatePreferredEditor() {
-    myPropertiesPanel.activatePreferredEditor(myLoading);
-  }
-
   // ---- Implements DesignSurfaceListener ----
 
   @Override
@@ -275,6 +273,14 @@ public class NlPropertiesManager implements DesignSurfaceListener, ModelListener
 
   @Override
   public void modelChanged(@NotNull DesignSurface surface, @Nullable NlModel model) {
+  }
+
+  @Override
+  public boolean activatePreferredEditor(@NotNull DesignSurface surface, @NotNull NlComponent component) {
+    if (!NlPropertiesWindowManager.get(myProject).isActivePropertiesManager(this)) {
+      return false;
+    }
+    return myPropertiesPanel.activatePreferredEditor(myLoading);
   }
 
   @Override

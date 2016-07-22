@@ -34,4 +34,7 @@ public interface DesignSurfaceListener {
 
   /** The current model changed */
   void modelChanged(@NotNull DesignSurface surface, @Nullable NlModel model);
+
+  /** Ask the tools to activate an editor for the component specified, return true if such an editor is found */
+  boolean activatePreferredEditor(@NotNull DesignSurface surface, @NotNull NlComponent component);
 }
