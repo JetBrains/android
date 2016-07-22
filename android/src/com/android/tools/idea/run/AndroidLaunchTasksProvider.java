@@ -20,6 +20,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.fd.InstantRunBuildAnalyzer;
 import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.run.editor.AndroidDebugger;
+import com.android.tools.idea.run.editor.AndroidDebuggerContext;
 import com.android.tools.idea.run.editor.AndroidDebuggerState;
 import com.android.tools.idea.run.tasks.*;
 import com.android.tools.idea.run.util.LaunchStatus;
@@ -157,14 +158,15 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
         .warn("Unable to obtain test package name, will not connect debugger if tests don't instantiate main application");
     }
 
-    AndroidDebugger debugger = myRunConfig.getAndroidDebugger();
+    AndroidDebuggerContext androidDebuggerContext = myRunConfig.getAndroidDebuggerContext();
+    AndroidDebugger debugger = androidDebuggerContext.getAndroidDebugger();
     if (debugger == null) {
       logger.warn("Unable to determine debugger to use for this launch");
       return null;
     }
     logger.info("Using debugger: " + debugger.getId());
 
-    AndroidDebuggerState androidDebuggerState = myRunConfig.getAndroidDebuggerState();
+    AndroidDebuggerState androidDebuggerState = androidDebuggerContext.getAndroidDebuggerState();
     if (androidDebuggerState != null) {
       //noinspection unchecked
       return debugger.getConnectDebuggerTask(myEnv, version, packageIds, myFacet, androidDebuggerState, myRunConfig.getType().getId());
