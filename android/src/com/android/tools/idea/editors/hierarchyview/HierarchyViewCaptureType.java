@@ -26,10 +26,8 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 public class HierarchyViewCaptureType extends FileCaptureType {
-  private static final String EXTENSION = ".li";
-
   protected HierarchyViewCaptureType() {
-    super("Layout Inspector Snapshot", AndroidIcons.Ddms.HierarchyView, EXTENSION);
+    super("Layout Inspector Snapshot", AndroidIcons.Ddms.HierarchyView, LayoutInspectorFileType.DOT_EXT_LAYOUT_INSPECTOR);
   }
 
   @NotNull
