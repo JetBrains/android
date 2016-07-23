@@ -181,9 +181,9 @@
       <action internal="true" id="Android.TerminateAdbAction" class="com.android.tools.idea.ddms.adb.TerminateAdbAction" />
       <add-to-group group-id="Internal"/>
     </group>
-    <!--<action id="Android.RunHierarchyViewer" class="org.jetbrains.android.actions.AndroidRunHierarchyViewerAction">
+    <action id="Android.RunLayoutInspector" class="org.jetbrains.android.actions.AndroidRunLayoutInspectorAction">
       <add-to-group group-id="AndroidToolsGroup" anchor="last"/>
-    </action>-->
+    </action>
     <action id="Android.GenerateSignedApk" class="org.jetbrains.android.actions.GenerateSignedApkAction">
       <add-to-group group-id="BuildMenu" anchor="last"/>
     </action>
