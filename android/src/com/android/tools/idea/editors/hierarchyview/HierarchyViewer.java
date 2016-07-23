@@ -37,6 +37,7 @@ import javax.swing.*;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreePath;
+import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.util.List;
@@ -98,8 +99,17 @@ public class HierarchyViewer
     myContentSplitter.setInnerComponent(myPreview);
     myContentSplitter.setLastComponent(lastComponent);
 
-    myContentSplitter.setFirstSize(propertiesComponent.getInt(FIRST_COMPONENT_WIDTH, DEFAULT_WIDTH));
-    myContentSplitter.setLastSize(propertiesComponent.getInt(LAST_COMPONENT_WIDTH, DEFAULT_WIDTH));
+    // make sure the two side panels never show up with 0 width
+    int minWidth = 20;
+    setMinimumWidth(firstComponent, minWidth);
+    setMinimumWidth(lastComponent, minWidth);
+    myContentSplitter.setHonorComponentsMinimumSize(true);
+
+    int width = Math.max(propertiesComponent.getInt(FIRST_COMPONENT_WIDTH, DEFAULT_WIDTH), minWidth);
+    myContentSplitter.setFirstSize(width);
+
+    width = Math.max(propertiesComponent.getInt(LAST_COMPONENT_WIDTH, DEFAULT_WIDTH), minWidth);
+    myContentSplitter.setLastSize(width);
 
     // listen to size changes and update the saved sizes
     ComponentAdapter resizeListener = new ComponentAdapter() {
@@ -134,6 +144,12 @@ public class HierarchyViewer
     myNodeVisibleMenuItem.addActionListener(new ShowHidePreviewActionListener());
     myNodePopup.add(myNodeVisibleMenuItem);
     myNodeTree.addMouseListener(new NodeRightClickAdapter());
+  }
+
+  private static void setMinimumWidth(@NotNull JComponent component, int minWidth) {
+    Dimension minimumSize = component.getMinimumSize();
+    minimumSize.width = Math.max(minimumSize.width, minWidth);
+    component.setMinimumSize(minimumSize);
   }
 
   public JComponent getRootComponent() {
