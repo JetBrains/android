@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.matcher;
 
+import com.intellij.BundleBase;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,7 +31,8 @@ public final class Matchers {
     return new GenericTypeMatcher<T>(abstractButtonType) {
       @Override
       protected boolean isMatching(@NotNull T component) {
-        return text.equals(component.getText());
+        // Appearance of MNEMONIC can be platform-dependent, so be careful modifying this.
+        return text.equals(component.getText().replaceAll(Character.toString(BundleBase.MNEMONIC), ""));
       }
     };
   }
