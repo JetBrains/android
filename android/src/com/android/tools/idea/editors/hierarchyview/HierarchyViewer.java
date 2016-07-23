@@ -143,8 +143,10 @@ public class HierarchyViewer
   @Override
   public void valueChanged(TreeSelectionEvent e) {
     ViewNode selection = (ViewNode)myNodeTree.getLastSelectedPathComponent();
-    myTableModel.setNode(selection);
-    myPreview.setSelectedNode(selection);
+    if (selection != null) {
+      myTableModel.setNode(selection);
+      myPreview.setSelectedNode(selection);
+    }
   }
 
   @Override
@@ -165,15 +167,13 @@ public class HierarchyViewer
   }
 
   @Override
-  public void onNodeSelected(ViewNode node) {
-    if (node != null) {
-      TreePath path = getPath(node);
-      myNodeTree.scrollPathToVisible(path);
-      myNodeTree.setSelectionPath(path);
-    }
+  public void onNodeSelected(@NotNull ViewNode node) {
+    TreePath path = getPath(node);
+    myNodeTree.scrollPathToVisible(path);
+    myNodeTree.setSelectionPath(path);
   }
 
-  private TreePath getPath(ViewNode node) {
+  private static TreePath getPath(@NotNull ViewNode node) {
     List<Object> nodes = Lists.newArrayList();
     do {
       nodes.add(0, node);
