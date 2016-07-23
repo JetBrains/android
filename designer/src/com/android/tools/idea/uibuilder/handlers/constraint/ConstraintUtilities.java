@@ -854,7 +854,15 @@ public class ConstraintUtilities {
     }
     else if (layout_width != null && layout_width.equalsIgnoreCase(SdkConstants.VALUE_MATCH_PARENT)) {
       widget.setWrapWidth(widget.getWidth());
-      widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.ANY);
+      if (isWidgetInsideConstraintLayout(widget)) {
+        if (widget.getAnchor(ConstraintAnchor.Type.LEFT).isConnected()
+            && widget.getAnchor(ConstraintAnchor.Type.RIGHT).isConnected()) {
+          widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.ANY);
+        }
+        else {
+          widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.FIXED);
+        }
+      }
     }
     else {
       widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.FIXED);
@@ -869,7 +877,15 @@ public class ConstraintUtilities {
     }
     else if (layout_height != null && layout_height.equalsIgnoreCase(SdkConstants.VALUE_MATCH_PARENT)) {
       widget.setWrapHeight(widget.getHeight());
-      widget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.ANY);
+      if (isWidgetInsideConstraintLayout(widget)) {
+        if ((widget.getAnchor(ConstraintAnchor.Type.TOP).isConnected()
+             && widget.getAnchor(ConstraintAnchor.Type.BOTTOM).isConnected())) {
+          widget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.ANY);
+        }
+        else {
+          widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.FIXED);
+        }
+      }
     }
     else {
       widget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.FIXED);
@@ -1086,7 +1102,7 @@ public class ConstraintUtilities {
     WidgetCompanion companion = (WidgetCompanion)widget.getCompanionWidget();
     NlComponent component = (NlComponent)companion.getWidgetModel();
     boolean isDroppedWidget = (model.getDragDropWidget() == widget);
-    boolean isInsideConstraintLayout = widget.isInsideConstraintLayout();
+    boolean isInsideConstraintLayout = isWidgetInsideConstraintLayout(widget);
     if (!isDroppedWidget && (widget.isRoot() || widget.isRootContainer() || !isInsideConstraintLayout)) {
       return;
     }
@@ -1108,6 +1124,18 @@ public class ConstraintUtilities {
       commitGuideline(attributes, (Guideline)widget);
     }
     attributes.commit();
+  }
+
+  /**
+   * Returns true if the widget is a direct child of a ConstraintLayout
+   * @return
+   */
+  private static boolean isWidgetInsideConstraintLayout(@NotNull ConstraintWidget widget) {
+    ConstraintWidget parent = widget.getParent();
+    if (parent == null) {
+      return false;
+    }
+    return parent instanceof ConstraintWidgetContainer;
   }
 
   /**
