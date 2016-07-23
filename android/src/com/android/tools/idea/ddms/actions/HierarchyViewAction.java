@@ -49,7 +49,7 @@ public class HierarchyViewAction extends AbstractClientAction {
     new GetClientWindowsTask(myProject, client).queue();
   }
 
-  private static final class GetClientWindowsTask extends Task.Backgroundable {
+  public static final class GetClientWindowsTask extends Task.Backgroundable {
     private final Client myClient;
     private List<ClientWindow> myWindows;
 

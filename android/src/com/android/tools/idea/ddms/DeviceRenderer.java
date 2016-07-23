@@ -38,12 +38,11 @@ public class DeviceRenderer {
   private DeviceRenderer() {
   }
 
-  @VisibleForTesting
-  static void renderDeviceName(IDevice d, ColoredTextContainer component) {
+  public static void renderDeviceName(@NotNull IDevice d, @NotNull ColoredTextContainer component) {
     renderDeviceName(d, component, null);
   }
 
-  static void renderDeviceName(IDevice d, ColoredTextContainer component, AvdManager avdManager) {
+  static void renderDeviceName(@NotNull IDevice d, @NotNull ColoredTextContainer component, @Nullable AvdManager avdManager) {
     component.setIcon(d.isEmulator() ? AndroidIcons.Ddms.Emulator2 : AndroidIcons.Ddms.RealDevice);
 
     String name;
