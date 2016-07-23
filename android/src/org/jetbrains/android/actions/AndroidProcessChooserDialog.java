@@ -98,10 +98,13 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
     myUpdatesQueue =
       new MergingUpdateQueue("AndroidProcessChooserDialogUpdatingQueue", 500, true, MergingUpdateQueue.ANY_COMPONENT, getDisposable());
 
-    final String showAllProcessesStr = PropertiesComponent.getInstance(project).getValue(SHOW_ALL_PROCESSES_PROPERTY);
-    final boolean showAllProcesses = Boolean.parseBoolean(showAllProcessesStr);
-    myShowAllProcessesCheckBox.setSelected(showAllProcesses);
+    final PropertiesComponent properties = PropertiesComponent.getInstance(myProject);
+    myLastSelectedProcess = properties.getValue(DEBUGGABLE_PROCESS_PROPERTY);
+    myLastSelectedDevice = properties.getValue(DEBUGGABLE_DEVICE_PROPERTY);
 
+    final boolean showAllProcesses = Boolean.parseBoolean(properties.getValue(SHOW_ALL_PROCESSES_PROPERTY));
+
+    myShowAllProcessesCheckBox.setSelected(showAllProcesses);
     doUpdateTree(showAllProcesses);
 
     myClientChangeListener = (client, changeMask) -> updateTree();
@@ -177,10 +180,6 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
         }
       }
     });
-
-    final PropertiesComponent properties = PropertiesComponent.getInstance(myProject);
-    myLastSelectedProcess = properties.getValue(DEBUGGABLE_PROCESS_PROPERTY);
-    myLastSelectedDevice = properties.getValue(DEBUGGABLE_DEVICE_PROPERTY);
 
     init();
   }
