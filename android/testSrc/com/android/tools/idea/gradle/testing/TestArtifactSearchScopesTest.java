@@ -90,8 +90,8 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
     FileRootSearchScope androidTestExcludeScope = scopes.getAndroidTestExcludeScope();
     assertAcceptLibrary(androidTestExcludeScope, junit, true);
     assertAcceptLibrary(androidTestExcludeScope, gson, false);
-    assertAcceptLibrary(androidTestExcludeScope, guava, false);
-    assertAcceptLibrary(androidTestExcludeScope, hamcrest, false);
+    assertAcceptLibrary(androidTestExcludeScope, guava, true);
+    assertAcceptLibrary(androidTestExcludeScope, hamcrest, true);
   }
 
   public void testNotExcludeLibrariesInMainArtifact() throws Exception {
