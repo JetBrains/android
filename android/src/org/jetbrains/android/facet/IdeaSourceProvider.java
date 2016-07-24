@@ -23,10 +23,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.annotations.NotNull;
@@ -40,6 +37,11 @@ import java.util.Set;
 import java.util.function.Function;
 
 import static com.android.SdkConstants.ANDROID_MANIFEST_XML;
+import static com.intellij.openapi.util.io.FileUtil.filesEqual;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import static org.jetbrains.android.facet.AndroidRootUtil.*;
 
 /**
  * Like {@link SourceProvider}, but for IntelliJ, which means it provides
@@ -66,12 +68,12 @@ public abstract class IdeaSourceProvider {
   }
 
   @NotNull
-  public static IdeaSourceProvider create(@NotNull final NativeAndroidGradleFacet facet) {
+  public static IdeaSourceProvider create(@NotNull NativeAndroidGradleFacet facet) {
     return new Native(facet);
   }
 
   @NotNull
-  public static IdeaSourceProvider create(@NotNull final AndroidFacet facet) {
+  public static IdeaSourceProvider create(@NotNull AndroidFacet facet) {
     return new Legacy(facet);
   }
 
@@ -128,9 +130,9 @@ public abstract class IdeaSourceProvider {
     @Override
     public VirtualFile getManifestFile() {
       File manifestFile = myProvider.getManifestFile();
-      if (myManifestFile == null || !FileUtil.filesEqual(manifestFile, myManifestIoFile)) {
+      if (myManifestFile == null || !filesEqual(manifestFile, myManifestIoFile)) {
         myManifestIoFile = manifestFile;
-        myManifestFile = VfsUtil.findFileByIoFile(manifestFile, false);
+        myManifestFile = findFileByIoFile(manifestFile, false);
       }
 
       return myManifestFile;
@@ -358,7 +360,7 @@ public abstract class IdeaSourceProvider {
     @Override
     public VirtualFile getManifestFile() {
       Module module = myFacet.getModule();
-      VirtualFile file = AndroidRootUtil.getFileByRelativeModulePath(module, myFacet.getProperties().MANIFEST_FILE_RELATIVE_PATH, true);
+      VirtualFile file = getFileByRelativeModulePath(module, myFacet.getProperties().MANIFEST_FILE_RELATIVE_PATH, true);
       if (file != null) {
         return file;
       }
@@ -393,7 +395,7 @@ public abstract class IdeaSourceProvider {
     @NotNull
     @Override
     public Collection<VirtualFile> getAidlDirectories() {
-      final VirtualFile dir = AndroidRootUtil.getAidlGenDir(myFacet);
+      VirtualFile dir = getAidlGenDir(myFacet);
       assert dir != null;
       return Collections.singleton(dir);
     }
@@ -401,7 +403,7 @@ public abstract class IdeaSourceProvider {
     @NotNull
     @Override
     public Collection<VirtualFile> getRenderscriptDirectories() {
-      final VirtualFile dir = AndroidRootUtil.getRenderscriptGenDir(myFacet);
+      VirtualFile dir = getRenderscriptGenDir(myFacet);
       assert dir != null;
       return Collections.singleton(dir);
     }
@@ -422,7 +424,7 @@ public abstract class IdeaSourceProvider {
     @Override
     public Collection<VirtualFile> getResDirectories() {
       String resRelPath = myFacet.getProperties().RES_FOLDER_RELATIVE_PATH;
-      final VirtualFile dir =  AndroidRootUtil.getFileByRelativeModulePath(myFacet.getModule(), resRelPath, true);
+      VirtualFile dir =  getFileByRelativeModulePath(myFacet.getModule(), resRelPath, true);
       if (dir != null) {
         return Collections.singleton(dir);
       } else {
@@ -433,7 +435,7 @@ public abstract class IdeaSourceProvider {
     @NotNull
     @Override
     public Collection<VirtualFile> getAssetsDirectories() {
-      final VirtualFile dir = AndroidRootUtil.getAssetsDir(myFacet);
+      VirtualFile dir = getAssetsDir(myFacet);
       assert dir != null;
       return Collections.singleton(dir);
     }
@@ -506,7 +508,7 @@ public abstract class IdeaSourceProvider {
   }
 
   @NotNull
-  public static Collection<File> getAllSourceFolders(@NotNull  SourceProvider provider) {
+  public static Collection<File> getAllSourceFolders(@NotNull SourceProvider provider) {
     List<File> srcDirectories = Lists.newArrayList();
     srcDirectories.addAll(provider.getJavaDirectories());
     srcDirectories.addAll(provider.getResDirectories());
@@ -533,7 +535,7 @@ public abstract class IdeaSourceProvider {
         continue;
       }
 
-      if (VfsUtilCore.isAncestor(container, file, false /* allow them to be the same */)) {
+      if (isAncestor(container, file, false /* allow them to be the same */)) {
         return true;
       }
 
@@ -545,7 +547,6 @@ public abstract class IdeaSourceProvider {
     return false;
   }
 
-
   /**
    * Returns true if this SourceProvider has one or more source folders contained by (or equal to)
    * the given folder.
@@ -553,7 +554,7 @@ public abstract class IdeaSourceProvider {
   public static boolean isContainedBy(@NotNull SourceProvider provider, @NotNull File targetFolder) {
     Collection<File> srcDirectories = getAllSourceFolders(provider);
     for (File container : srcDirectories) {
-      if (FileUtil.isAncestor(targetFolder, container, false)) {
+      if (isAncestor(targetFolder, container, false)) {
         return true;
       }
 
@@ -561,7 +562,7 @@ public abstract class IdeaSourceProvider {
         continue;
       }
 
-      if (VfsUtilCore.isAncestor(targetFolder, container, false /* allow them to be the same */)) {
+      if (isAncestor(targetFolder, container, false /* allow them to be the same */)) {
         return true;
       }
     }
@@ -573,14 +574,14 @@ public abstract class IdeaSourceProvider {
    */
   public static boolean containsFile(@NotNull SourceProvider provider, @NotNull File file) {
     Collection<File> srcDirectories = getAllSourceFolders(provider);
-    if (FileUtil.filesEqual(provider.getManifestFile(), file)) {
+    if (filesEqual(provider.getManifestFile(), file)) {
       return true;
     }
 
     for (File container : srcDirectories) {
       // Check the flavor root directories
       File parent = container.getParentFile();
-      if (parent != null && parent.isDirectory() && FileUtil.filesEqual(parent, file)) {
+      if (parent != null && parent.isDirectory() && filesEqual(parent, file)) {
         return true;
       }
 
@@ -589,7 +590,7 @@ public abstract class IdeaSourceProvider {
         continue;
       }
 
-      if (VfsUtilCore.isAncestor(container, file, false /* allow them to be the same */)) {
+      if (isAncestor(container, file, false /* allow them to be the same */)) {
         return true;
       }
     }
@@ -608,7 +609,7 @@ public abstract class IdeaSourceProvider {
         continue;
       }
 
-      if (VfsUtilCore.isAncestor(targetFolder, container, false /* allow them to be the same */)) {
+      if (isAncestor(targetFolder, container, false /* allow them to be the same */)) {
         return true;
       }
     }
@@ -713,7 +714,7 @@ public abstract class IdeaSourceProvider {
                                                                @Nullable SourceProvider defaultSourceProvider) {
     List<SourceProvider> sourceProviderList = Lists.newArrayList();
     if (targetFolder != null) {
-      File targetIoFolder = VfsUtilCore.virtualToIoFile(targetFolder);
+      File targetIoFolder = virtualToIoFile(targetFolder);
       // Add source providers that contain the file (if any) and any that have files under the given folder
       for (SourceProvider provider : getAllSourceProviders(facet)) {
         if (containsFile(provider, targetIoFolder) || isContainedBy(provider, targetIoFolder)) {
