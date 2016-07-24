@@ -28,6 +28,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
+import org.jetbrains.android.actions.AndroidEnableAdbServiceAction;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -147,6 +148,13 @@ public class EmulatorConnectionListener {
       if (bootComplete == null) {
         Logger.getInstance(EmulatorConnectionListener.class).warn("Emulator not ready yet, dev.bootcomplete = null");
         return false;
+      }
+
+      // Ideally, we'd also check if some known processes have come online, but this is not a strict requirement, and we skip that check
+      // if adb integration is turned off
+      if (!AndroidEnableAdbServiceAction.isAdbServiceEnabled()) {
+        Logger.getInstance(EmulatorConnectionListener.class).warn("ADB Integration is turned off, we cannot check the number of clients.");
+        return true;
       }
 
       // Emulators may be reported as online, but may not have services running yet. Attempting to install at this time
