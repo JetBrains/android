@@ -54,7 +54,12 @@ public class AndroidTypedIntegerRenderer extends NodeRendererImpl {
 
   @Override
   public boolean isApplicable(Type type) {
-    return type != null && type instanceof IntegerType;
+    if (!(type instanceof IntegerType)) {
+      return false;
+    }
+
+    // only supported on Android VMs, https://youtrack.jetbrains.com/issue/IDEA-157010
+    return type.virtualMachine().name().startsWith("Dalvik");
   }
 
   @Override
