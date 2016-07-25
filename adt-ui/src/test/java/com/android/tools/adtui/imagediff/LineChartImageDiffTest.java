@@ -18,12 +18,11 @@ package com.android.tools.adtui.imagediff;
 import com.android.tools.adtui.Animatable;
 import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.Range;
+import com.android.tools.adtui.chart.linechart.EventConfig;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.model.DefaultDataSeries;
-import com.android.tools.adtui.model.RangedContinuousSeries;
-import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.adtui.model.*;
 import com.intellij.util.containers.ImmutableList;
 import org.junit.After;
 import org.junit.Before;
@@ -52,6 +51,16 @@ public class LineChartImageDiffTest {
   private static final int LINE_CHART_INITIAL_VALUE = 20;
 
   /**
+   * The amount of time deltas (determined by {@link #TIME_DELTA_US}) an event will last.
+   */
+  private static final int EVENT_DURATION_MULTIPLIER = 8;
+
+  /**
+   * The amount of time deltas (determined by {@link #TIME_DELTA_US}) that will pass before an event start.
+   */
+  private static final int EVENT_START_MULTIPLIER = 5;
+
+  /**
    * Array of integers used to represent the delta between the current and the new values of the line chart.
    */
   private static final int[] VARIANCE_ARRAY = {5, 4, -4, 7, -6, 1, 5, -4, 7, 5, 3, -10, -8};
@@ -66,61 +75,139 @@ public class LineChartImageDiffTest {
 
   private Range myXRange;
 
-  protected JPanel myContentPane;
+  private JPanel myContentPane;
 
-  protected Choreographer myChoreographer;
+  private Choreographer myChoreographer;
+
+  private List<Animatable> myComponents;
 
   @Before
   public void setUp() {
     myLineChart = new LineChart();
+    myLineChart.setBorder(BorderFactory.createLineBorder(AdtUiUtils.DEFAULT_BORDER_COLOR));
     myData = new ArrayList<>();
+    myComponents = new ArrayList<>();
 
     // TODO: consider moving the lines below to the base class if other components use something similar
     myCurrentTimeUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
     myXRange = new Range(myCurrentTimeUs, myCurrentTimeUs + TOTAL_VALUES * TIME_DELTA_US);
     myContentPane = new JPanel(new BorderLayout());
-    myContentPane.setPreferredSize(ImageDiffUtil.TEST_IMAGE_DIMENSION);
 
     // We don't need to set a proper FPS to the choreographer, as we're interested in the final image only, not the animation.
     myChoreographer = new Choreographer(-1, myContentPane);
     myChoreographer.setUpdate(false);
+
+    myContentPane.add(myLineChart, BorderLayout.CENTER);
+    myComponents.add(myLineChart);
+    myComponents.add(myXRange);
   }
 
   @Test
   public void testStackedLineChart() {
-    // Load target image file
-    String targetFilename = "stacked_line_chart_target.png";
+    doTestLineChart("stacked_line_chart_baseline.png", () -> {
+      // Create a filled, stacked line chart and register the components to the choreographer
+      addLine(0.0, 100.0, "Left Series", new LineConfig(Color.BLUE).setFilled(true).setStacked(true));
+      addLine(0.0, 200.0, "Right Series", new LineConfig(Color.RED).setFilled(true).setStacked(true));
+    });
+  }
 
-    // Create stacked line chart component
-    List<Animatable> components = new ArrayList<>();
-    components.add(myLineChart);
-    components.add(myXRange);
+  @Test
+  public void testSimpleLineChart() {
+    // TODO: investigate if there's a need for having a different image for each OS
+    doTestLineChart("simple_line_chart_baseline.png", () -> {
+      // Create a simple line chart and register the components to the choreographer. Add thick lines to generate relevant images.
+      addLine(0.0, 50.0, "Left Series", new LineConfig(Color.BLUE).setStroke(new BasicStroke(25)));
+      addLine(0.0, 200.0, "Right Series", new LineConfig(Color.RED).setStroke(new BasicStroke(25)));
+    });
+  }
 
-    addStackedLine(0.0, 100.0, components, "Left Series", Color.BLUE);
-    addStackedLine(0.0, 200.0, components, "Right Series", Color.RED);
+  @Test
+  public void testSteppedLineChart() {
+    doTestLineChart("stepped_line_chart_baseline.png", () -> {
+      // Create a stepped line chart and register the components to the choreographer. Add thick lines to generate relevant images.
+      addLine(0.0, 50.0, "First Series", new LineConfig(Color.BLUE).setStroke(new BasicStroke(10)).setStepped(true));
+      addLine(0.0, 100.0, "Second Series", new LineConfig(Color.RED).setStroke(new BasicStroke(10)).setStepped(true));
+      addLine(0.0, 200.0, "Third Series", new LineConfig(Color.GREEN).setStroke(new BasicStroke(10)).setStepped(true));
+    });
+  }
 
-    myLineChart.setBorder(BorderFactory.createLineBorder(AdtUiUtils.DEFAULT_BORDER_COLOR));
-    myContentPane.add(myLineChart, BorderLayout.CENTER);
-    myChoreographer.register(components);
+  @Test
+  public void testSimpleEventLineChart() {
+    doTestLineChart("simple_event_line_chart_baseline.png", () -> {
+      // Create a simple line chart and register the components to the choreographer. Add thick lines to generate relevant images.
+      addLine(0.0, 50.0, "Left Series", new LineConfig(Color.BLUE).setStroke(new BasicStroke(25)));
+      addLine(0.0, 200.0, "Right Series", new LineConfig(Color.RED).setStroke(new BasicStroke(25)));
+
+      // Add a simple event to the line chart
+      addEvent(Color.BLACK, false, false);
+    });
+  }
+
+  @Test
+  public void testBlockingEventLineChart() {
+    doTestLineChart("blocking_event_line_chart_baseline.png", () -> {
+      // Create a simple line chart and register the components to the choreographer. Add thick lines to generate relevant images.
+      addLine(0.0, 50.0, "Left Series", new LineConfig(Color.BLUE).setStroke(new BasicStroke(25)));
+      addLine(0.0, 200.0, "Right Series", new LineConfig(Color.RED).setStroke(new BasicStroke(25)));
+
+      // Add a blocking event to the line chart
+      addEvent(Color.BLACK, false, true);
+    });
+  }
+
+  @Test
+  public void testFilledEventLineChart() {
+    doTestLineChart("filled_event_line_chart_baseline.png", () -> {
+      // Create a simple line chart and register the components to the choreographer. Add thick lines to generate relevant images.
+      addLine(0.0, 50.0, "Left Series", new LineConfig(Color.BLUE).setStroke(new BasicStroke(25)));
+      addLine(0.0, 200.0, "Right Series", new LineConfig(Color.RED).setStroke(new BasicStroke(25)));
+
+      // Add a filled event to the line chart
+      addEvent(Color.GREEN, true, false);
+    });
+  }
+
+  /**
+   * Test that generated main component is similar enough to baseline image.
+   *
+   * @param baselineFilename filename of baseline image
+   * @param lineChartGenerator code to generate the line chart corresponding to the test
+   */
+  private void doTestLineChart(String baselineFilename, Runnable lineChartGenerator) {
+    // Generate the line chart corresponding to the current test
+    lineChartGenerator.run();
+
+    // Register the chart components in the choreographer
+    myChoreographer.register(myComponents);
 
     // Add data to line chart
     generateTestData();
 
-    // Compare expected with image generated from main component
-    ImageDiffUtil.assertImagesSimilar(targetFilename, myContentPane);
+    // Compare baseline image with the one generated from main component
+    ImageDiffUtil.assertImagesSimilar(baselineFilename, myContentPane);
   }
 
-  private void addLine(double rangeMin, double rangeMax, List<Animatable> components, String seriesLabel, LineConfig lineConfig) {
+  private void addEvent(Color eventColor, boolean isFilledEvent, boolean isBlockingEvent) {
+    DefaultDataSeries<DurationData> eventData = new DefaultDataSeries<>();
+    RangedSeries<DurationData> eventSeries = new RangedSeries<>(myXRange, eventData);
+    EventConfig eventConfig = new EventConfig(eventColor).setText("Test Event").setIcon(UIManager.getIcon("Menu.arrowIcon"));
+    eventConfig.setFilled(isFilledEvent).setBlocking(isBlockingEvent);
+    myLineChart.addEvent(eventSeries, eventConfig);
+
+    // Set event duration and start time. Add it to eventData afterwards.
+    long eventDuration = EVENT_DURATION_MULTIPLIER * TIME_DELTA_US;
+    long eventStart = myCurrentTimeUs + EVENT_START_MULTIPLIER * TIME_DELTA_US;
+    DurationData newEvent = new DurationData(eventDuration);
+    eventData.add(eventStart, newEvent);
+  }
+
+  private void addLine(double rangeMin, double rangeMax, String seriesLabel, LineConfig lineConfig) {
     Range yRange = new Range(rangeMin, rangeMax);
-    components.add(yRange);
+    myComponents.add(yRange);
     DefaultDataSeries<Long> series = new DefaultDataSeries<>();
     RangedContinuousSeries rangedSeries = new RangedContinuousSeries(seriesLabel, myXRange, yRange, series);
     myData.add(series);
     myLineChart.addLine(rangedSeries, lineConfig);
-  }
-
-  private void addStackedLine(double rangeMin, double rangeMax, List<Animatable> components, String seriesLabel, Color lineColor) {
-    addLine(rangeMin, rangeMax, components, seriesLabel, new LineConfig(lineColor).setFilled(true).setStacked(true));
   }
 
   private void generateTestData() {
@@ -146,5 +233,6 @@ public class LineChartImageDiffTest {
     myXRange = null;
     myContentPane = null;
     myChoreographer = null;
+    myComponents = null;
   }
 }
