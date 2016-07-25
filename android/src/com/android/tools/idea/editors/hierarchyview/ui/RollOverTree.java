@@ -90,7 +90,9 @@ public class RollOverTree extends Tree {
   private void repaint(@Nullable TreePath path) {
     if (path != null) {
       Rectangle r = getPathBounds(path);
-      repaint(0, r.y, getWidth(), r.height);
+      if (r != null) {
+        repaint(0, r.y, getWidth(), r.height);
+      }
     }
   }
 
@@ -99,7 +101,9 @@ public class RollOverTree extends Tree {
     if (mHoverPath != null && !mHoverPath.equals(getSelectionPath())) {
       g.setColor(UIUtil.AQUA_SEPARATOR_BACKGROUND_COLOR);
       Rectangle r = getPathBounds(mHoverPath);
-      g.fillRect(0, r.y, getWidth(), r.height);
+      if (r != null) {
+        g.fillRect(0, r.y, getWidth(), r.height);
+      }
     }
     super.paintComponent(g);
   }

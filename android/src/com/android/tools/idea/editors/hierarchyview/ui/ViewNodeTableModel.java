@@ -19,6 +19,7 @@ import com.android.tools.idea.editors.hierarchyview.model.ViewNode;
 import com.android.tools.idea.editors.hierarchyview.model.ViewProperty;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
@@ -32,7 +33,7 @@ public class ViewNodeTableModel implements TableModel {
 
   private final List<ViewProperty> mEntries = Lists.newArrayList();
 
-  public void setNode(ViewNode node) {
+  public void setNode(@NotNull ViewNode node) {
     // Go through the properties, filtering the favorites properties first
     mEntries.clear();
     mEntries.addAll(node.properties);
