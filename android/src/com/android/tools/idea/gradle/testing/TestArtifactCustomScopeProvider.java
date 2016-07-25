@@ -16,17 +16,16 @@
 package com.android.tools.idea.gradle.testing;
 
 import com.google.common.collect.ImmutableList;
-import com.intellij.ide.IdeBundle;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.FileIndexFacade;
-import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.search.scope.packageSet.AbstractPackageSet;
 import com.intellij.psi.search.scope.packageSet.CustomScopesProviderEx;
 import com.intellij.psi.search.scope.packageSet.NamedScope;
 import com.intellij.psi.search.scope.packageSet.NamedScopesHolder;
 import com.intellij.ui.Colored;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -64,7 +63,7 @@ public class TestArtifactCustomScopeProvider extends CustomScopesProviderEx {
 
   @Colored(color = "ffffe4", darkVariant = "494539")
   public static class AndroidTestsScope extends NamedScope {
-    public static final String NAME = "Android Instrumentation Tests";
+    public static final String NAME = AndroidBundle.message("android.test.run.configuration.type.name");
     public AndroidTestsScope() {
       super(NAME, new AbstractPackageSet("test:*..*") {
         @Override
@@ -82,7 +81,7 @@ public class TestArtifactCustomScopeProvider extends CustomScopesProviderEx {
 
   @Colored(color = "e7fadb", darkVariant = "2A3B2C")
   public static class UnitTestsScope extends NamedScope {
-    public static final String NAME = "Android Unit Tests";
+    public static final String NAME = "Android Local Unit Tests";
     public UnitTestsScope() {
       super(NAME, new AbstractPackageSet("test:*..*") {
         @Override
