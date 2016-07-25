@@ -159,14 +159,8 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
     final String keyStorePasswordKey = makePasswordKey(KEY_STORE_PASSWORD_KEY, keyStoreLocation, null);
     final String keyPasswordKey = makePasswordKey(KEY_PASSWORD_KEY, keyStoreLocation, keyAlias);
 
-    if (rememberPasswords) {
-      passwordSafe.setPassword(KeystoreStep.class, keyStorePasswordKey, new String(keyStorePassword));
-      passwordSafe.setPassword(KeystoreStep.class, keyPasswordKey, new String(keyPassword));
-    }
-    else {
-      passwordSafe.removePassword(project, KeystoreStep.class, keyStorePasswordKey);
-      passwordSafe.removePassword(project, KeystoreStep.class, keyPasswordKey);
-    }
+    passwordSafe.setPassword(KeystoreStep.class, keyStorePasswordKey, rememberPasswords ? new String(keyStorePassword) : null);
+    passwordSafe.setPassword(KeystoreStep.class, keyPasswordKey, rememberPasswords ? new String(keyPassword) : null);
   }
 
   private KeyStore loadKeyStore(File keystoreFile) throws CommitStepException {
