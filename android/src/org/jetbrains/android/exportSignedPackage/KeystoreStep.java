@@ -18,7 +18,6 @@ package org.jetbrains.android.exportSignedPackage;
 
 import com.intellij.ide.passwordSafe.PasswordSafe;
 import com.intellij.ide.wizard.CommitStepException;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.ui.components.JBCheckBox;
@@ -43,8 +42,6 @@ import java.util.Arrays;
  * @author Eugene.Kudelevsky
  */
 class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSettingsForm {
-  private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.exportSignedPackage.KeystoreStep");
-
   private static final String KEY_STORE_PASSWORD_KEY = "KEY_STORE_PASSWORD";
   private static final String KEY_PASSWORD_KEY = "KEY_PASSWORD";
 
@@ -72,12 +69,12 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
 
     if (settings.REMEMBER_PASSWORDS) {
       final PasswordSafe passwordSafe = PasswordSafe.getInstance();
-      String password = passwordSafe.getPassword(project, KeystoreStep.class, makePasswordKey(
+      String password = passwordSafe.getPassword(KeystoreStep.class, makePasswordKey(
         KEY_STORE_PASSWORD_KEY, settings.KEY_STORE_PATH, null));
       if (password != null) {
         myKeyStorePasswordField.setText(password);
       }
-      password = passwordSafe.getPassword(project, KeystoreStep.class, makePasswordKey(
+      password = passwordSafe.getPassword(KeystoreStep.class, makePasswordKey(
         KEY_PASSWORD_KEY, settings.KEY_STORE_PATH, settings.KEY_ALIAS));
       if (password != null) {
         myKeyPasswordField.setText(password);
@@ -163,8 +160,8 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
     final String keyPasswordKey = makePasswordKey(KEY_PASSWORD_KEY, keyStoreLocation, keyAlias);
 
     if (rememberPasswords) {
-      passwordSafe.storePassword(project, KeystoreStep.class, keyStorePasswordKey, new String(keyStorePassword));
-      passwordSafe.storePassword(project, KeystoreStep.class, keyPasswordKey, new String(keyPassword));
+      passwordSafe.setPassword(KeystoreStep.class, keyStorePasswordKey, new String(keyStorePassword));
+      passwordSafe.setPassword(KeystoreStep.class, keyPasswordKey, new String(keyPassword));
     }
     else {
       passwordSafe.removePassword(project, KeystoreStep.class, keyStorePasswordKey);
