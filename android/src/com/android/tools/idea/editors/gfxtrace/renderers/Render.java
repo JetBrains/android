@@ -268,7 +268,7 @@ public final class Render {
       SimpleTextAttributes attr = paramAttributes(highlightedParameter, resultIndex, paramValue, attributes);
       component.append("->", attr, resultIndex);
       Field field = atom.getFieldInfo(resultIndex);
-      render(paramValue, field.getType(), component, attr, NO_TAG);
+      render(paramValue, field.getType(), component, attr, resultIndex);
     }
   }
 
