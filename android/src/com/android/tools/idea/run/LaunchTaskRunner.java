@@ -96,7 +96,15 @@ public class LaunchTaskRunner extends Task.Backgroundable {
         return;
       }
 
-      List<LaunchTask> launchTasks = myLaunchTasksProvider.getTasks(device, launchStatus, consolePrinter);
+      List<LaunchTask> launchTasks = null;
+      try {
+        launchTasks = myLaunchTasksProvider.getTasks(device, launchStatus, consolePrinter);
+      }
+      catch (com.intellij.execution.ExecutionException e) {
+        launchStatus.terminateLaunch(e.getMessage());
+        return;
+      }
+
       int totalDuration = listenableDeviceFutures.size() * getTotalDuration(launchTasks, debugSessionTask);
       int elapsed = 0;
 
