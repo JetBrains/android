@@ -16,8 +16,10 @@
 package com.android.tools.idea.uibuilder.handlers;
 
 import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.google.common.collect.ImmutableList;
+import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -25,6 +27,19 @@ import java.util.List;
 import static com.android.SdkConstants.*;
 
 public class TabItemHandler extends ViewHandler {
+
+  @Override
+  @Language("XML")
+  @NotNull
+  public String getXml(@NotNull String tagName, @NotNull XmlType xmlType) {
+    switch (xmlType) {
+      case PREVIEW_ON_PALETTE:
+      case DRAG_PREVIEW:
+        return NO_PREVIEW;
+      default:
+        return super.getXml(tagName, xmlType);
+    }
+  }
 
   @Override
   @NotNull
