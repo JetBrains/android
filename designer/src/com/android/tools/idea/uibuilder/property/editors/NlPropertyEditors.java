@@ -20,6 +20,8 @@ import com.android.tools.idea.uibuilder.property.ptable.PTableCellEditor;
 import com.android.tools.idea.uibuilder.property.ptable.PTableCellEditorProvider;
 import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
 import com.intellij.ide.ui.LafManager;
+import com.intellij.ide.ui.LafManagerListener;
+import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
@@ -31,7 +33,7 @@ import java.util.Set;
 import static com.android.SdkConstants.ATTR_STYLE;
 import static com.android.tools.idea.uibuilder.property.editors.NlEditingListener.DEFAULT_LISTENER;
 
-public class NlPropertyEditors implements PTableCellEditorProvider {
+public class NlPropertyEditors implements PTableCellEditorProvider, ProjectComponent, LafManagerListener {
   private Project myProject;
   private NlTableCellEditor myBooleanEditor;
   private NlTableCellEditor myFlagEditor;
@@ -40,9 +42,13 @@ public class NlPropertyEditors implements PTableCellEditorProvider {
 
   public enum EditorType {DEFAULT, BOOLEAN, FLAG, COMBO, COMBO_WITH_BROWSE}
 
-  public NlPropertyEditors(@NotNull Project project) {
+  @NotNull
+  public static NlPropertyEditors getInstance(@NotNull Project project) {
+    return project.getComponent(NlPropertyEditors.class);
+  }
+
+  private NlPropertyEditors(@NotNull Project project) {
     myProject = project;
-    LafManager.getInstance().addLafManagerListener(source -> resetCachedEditors());
   }
 
   @NotNull
@@ -155,5 +161,34 @@ public class NlPropertyEditors implements PTableCellEditorProvider {
     }
 
     return myDefaultEditor;
+  }
+
+  @Override
+  public void projectOpened() {
+  }
+
+  @Override
+  public void projectClosed() {
+  }
+
+  @Override
+  public void initComponent() {
+    LafManager.getInstance().addLafManagerListener(this);
+  }
+
+  @Override
+  public void disposeComponent() {
+    LafManager.getInstance().removeLafManagerListener(this);
+  }
+
+  @Override
+  public void lookAndFeelChanged(LafManager source) {
+    resetCachedEditors();
+  }
+
+  @NotNull
+  @Override
+  public String getComponentName() {
+    return NlPropertyEditors.class.getSimpleName();
   }
 }

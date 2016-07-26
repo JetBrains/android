@@ -65,7 +65,7 @@ public class NlPropertiesManager implements DesignSurfaceListener, ModelListener
   public NlPropertiesManager(@NotNull Project project, @Nullable DesignSurface designSurface) {
     myProject = project;
     myLoadingPanel = new JBLoadingPanel(new BorderLayout(), project, 20);
-    myEditors = new NlPropertyEditors(project);
+    myEditors = NlPropertyEditors.getInstance(project);
     myPropertiesPanel = new NlPropertiesPanel(project);
     myLoadingPanel.add(myPropertiesPanel);
     setDesignSurface(designSurface);
@@ -104,8 +104,8 @@ public class NlPropertiesManager implements DesignSurfaceListener, ModelListener
 
   private void notifyDesignSurfaceChanged(@Nullable DesignSurface surface) {
     if (mySurfaceChangedListeners == null || mySurfaceChangedListeners.isEmpty()) return;
-    for (int i = 0; i < mySurfaceChangedListeners.size(); i++) {
-      mySurfaceChangedListeners.get(i).surfaceChanged(surface);
+    for (DesignSurfaceChangedListener mySurfaceChangedListener : mySurfaceChangedListeners) {
+      mySurfaceChangedListener.surfaceChanged(surface);
     }
   }
 
