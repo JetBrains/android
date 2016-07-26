@@ -323,6 +323,30 @@ public class AtomController extends TreeController implements AtomStream.Listene
     public void render(@NotNull SimpleColoredComponent component, @NotNull SimpleTextAttributes attributes) {
       Render.render(this, component, attributes);
     }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      Memory memory = (Memory)o;
+      if (index != memory.index) return false;
+      if (isRead != memory.isRead) return false;
+      if (!observation.equals(memory.observation)) return false;
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      int result = (int)(index ^ (index >>> 32));
+      result = 31 * result + observation.hashCode();
+      result = 31 * result + (isRead ? 1 : 0);
+      return result;
+    }
+
+    @Override
+    public String toString() {
+      return "Memory{index=" + index + ", isRead=" + isRead + ", observation=" + observation + '}';
+    }
   }
 
   @NotNull private RegexFilterComponent mySearchField = new RegexFilterComponent(AtomController.class.getName(), 10);
@@ -823,7 +847,8 @@ public class AtomController extends TreeController implements AtomStream.Listene
         // if onAtomLoadingComplete has not happened yet, we dont want to load anything.
         return;
       }
-
+      // we are switching context, we don't want to try and preserve the selected (it would cause loads of selection changing events)
+      myTree.setSelectionPath(null);
       updateTree(atoms);
     }
   }
