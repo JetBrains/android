@@ -351,7 +351,8 @@ public class WidgetConstraintPanel extends JPanel {
       mConstraintModel.getSelection().addModifiedWidget(mWidget);
     }
     mWidgetModified = true;
-    mWidgetSaveTimer.restart();
+    // TODO: clean up save model
+    mConstraintModel.saveToXML(true);
   }
 
   private void saveWidget() {
