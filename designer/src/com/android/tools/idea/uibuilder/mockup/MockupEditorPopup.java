@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.mockup;
 
+import com.android.tools.idea.uibuilder.mockup.tools.ColorExtractorTool;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
@@ -22,12 +23,11 @@ import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
+import com.intellij.openapi.ui.FrameWrapper;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.ui.popup.IconButton;
 import com.intellij.openapi.ui.popup.JBPopup;
-import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.ui.awt.RelativePoint;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -45,6 +45,7 @@ public class MockupEditorPopup {
   private static JBPopup POPUP_INSTANCE = null;
   private final ScreenView myScreenView;
   private final Mockup myMockup;
+
   NlModel myModel;
 
   // Form generated components (Do not removed if referenced in the form)
@@ -57,12 +58,16 @@ public class MockupEditorPopup {
   private JButton myEditCroppingButton;
   private JButton myMatchWidgetButton;
   private JButton myMatchDeviceButton;
+  private JPanel myToolPanel;
+  private JButton mySwitchNext;
+  private JPanel myMainPanel;
 
   public MockupEditorPopup(ScreenView screenView, Mockup mockup, NlModel model) {
     myScreenView = screenView;
     myModel = model;
     myMockup = mockup;
 
+    createUIComponents();
     initFileChooserText();
     initFileChooserActionListener();
     initSlider();
@@ -71,12 +76,20 @@ public class MockupEditorPopup {
     initEditCroppingButton();
     initMatchWidgetButton();
     initMatchDeviceButton();
+
+    myMainPanel.add(myInteractionPanel);
+    myToolPanel.setLayout(new BorderLayout());
+    ColorExtractorTool colorExtractorTool = new ColorExtractorTool(mockup);
+    myMainPanel.add(colorExtractorTool.getMainPanel());
+    myToolPanel.add(colorExtractorTool.getToolPanel());
+    mySwitchNext.addActionListener(e -> ((CardLayout) myMainPanel.getLayout()).next(myMainPanel));
   }
 
   private void initMatchDeviceButton() {
-    if(!myMockup.getComponent().isRoot()) {
+    if (!myMockup.getComponent().isRoot()) {
       myMatchDeviceButton.getParent().remove(myMatchDeviceButton);
-    } else {
+    }
+    else {
       myMatchDeviceButton.addActionListener(e -> {
         myMockup.clearCrop();
         MockupFileHelper.writePositionToXML(myMockup);
@@ -154,9 +167,6 @@ public class MockupEditorPopup {
 
   /**
    * Create a popup showing the tools to edit the mockup of the selected component
-   *
-   * @param designSurface
-   * @param nlModel
    */
   public static void create(ScreenView screenView, @Nullable NlComponent component) {
     // Close any pop-up already opened
@@ -175,33 +185,22 @@ public class MockupEditorPopup {
 
     final DesignSurface designSurface = screenView.getSurface();
     final MockupEditorPopup mockupEditorPopup = new MockupEditorPopup(screenView, mockup, component.getModel());
-    final Dimension minSize = new Dimension((int)Math.round(designSurface.getWidth() * RELATIVE_SIZE_TO_SOURCE),
-                                            (int)Math.round(designSurface.getHeight() * RELATIVE_SIZE_TO_SOURCE));
+    Component rootPane = SwingUtilities.getRoot(designSurface);
+    final Dimension minSize = new Dimension((int)Math.round(rootPane.getWidth() * RELATIVE_SIZE_TO_SOURCE),
+                                            (int)Math.round(rootPane.getHeight() * RELATIVE_SIZE_TO_SOURCE));
 
-    JBPopup builder = JBPopupFactory.getInstance()
-      .createComponentPopupBuilder(mockupEditorPopup.myContentPane, mockupEditorPopup.myContentPane)
-      .setTitle(TITLE)
-      .setResizable(true)
-      .setMovable(true)
-      .setMinSize(minSize)
-      .setRequestFocus(true)
-      .setCancelOnClickOutside(false)
-      .setLocateWithinScreenBounds(true)
-      .setShowShadow(true)
-      .setCancelOnWindowDeactivation(false)
-      .setCancelButton(CANCEL_BUTTON)
-      .createPopup();
+    FrameWrapper jFrame = new FrameWrapper(designSurface.getProject());
+    jFrame.setTitle(TITLE);
+    jFrame.setComponent(mockupEditorPopup.myContentPane);
+    jFrame.setSize(minSize);
 
-    // Center the popup in the design surface
-    RelativePoint point = new RelativePoint(
-      designSurface,
-      new Point(
-        (int)Math.round(designSurface.getWidth() / 2 - minSize.getWidth() / 2),
-        (int)Math.round(designSurface.getHeight() / 2 - minSize.getHeight() / 2))
-    );
-    builder.show(point);
+    Point point = new Point(
+      (int)Math.round(rootPane.getX() + (rootPane.getWidth()) / 2 - minSize.getWidth() / 2),
+      (int)Math.round(rootPane.getY() + (rootPane.getHeight()) / 2 - minSize.getHeight() / 2));
 
-    POPUP_INSTANCE = builder;
+    jFrame.setLocation(point);
+    jFrame.getFrame().setSize(minSize);
+    jFrame.show();
   }
 
   private void createUIComponents() {
