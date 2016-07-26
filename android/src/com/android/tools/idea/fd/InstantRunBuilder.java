@@ -26,7 +26,6 @@ import com.android.tools.fd.client.InstantRunClient;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.run.BeforeRunBuilder;
 import com.android.tools.idea.gradle.run.GradleTaskRunner;
-import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.run.AndroidRunConfigContext;
 import com.android.tools.idea.run.InstalledApkCache;
 import com.android.tools.idea.run.InstalledPatchCache;
@@ -208,8 +207,6 @@ public class InstantRunBuilder implements BeforeRunBuilder {
     if (myInstantRunContext.usesMultipleProcesses()) {
       return BuildCause.APP_USES_MULTIPLE_PROCESSES;
     }
-
-    // TODO: we also need to assert that the same process handler is still alive
 
     return null;
   }
