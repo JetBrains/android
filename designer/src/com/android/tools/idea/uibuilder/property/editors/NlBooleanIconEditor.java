@@ -16,47 +16,45 @@
 package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.SdkConstants;
-import com.android.ide.common.vectordrawable.VdIcon;
 import com.android.tools.idea.uibuilder.property.NlProperty;
-import com.intellij.ui.JBColor;
+import com.intellij.ide.DataManager;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.actionSystem.ex.ActionUtil;
+import com.intellij.openapi.actionSystem.impl.ActionButton;
+import com.intellij.ui.ToggleActionButton;
+import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
 
+import static com.intellij.openapi.actionSystem.ActionToolbar.NAVBAR_MINIMUM_BUTTON_SIZE;
+
 /**
  * Editor for editing a boolean property displays as an icon with selection on/off.
  */
 public class NlBooleanIconEditor {
-  private static final JBColor ON_BACKGROUND = new JBColor(0xD0D0D0, 0xA0A0A0);
-  private static final JBColor OFF_BACKGROUND = new JBColor(0xF0F0F0, 0x404040);
+  private static final String INSPECTOR_PLACE = "Inspector Place";
 
-  private final Icon myOnIcon;
-  private final Icon myOffIcon;
-  private final JButton myButton;
-  private final String myTrueValue;
-  private final String myFalseValue;
-  private NlProperty myProperty;
+  private final BooleanAction myAction;
+  private final ActionButton myButton;
+  private final Presentation myPresentation;
 
-  public NlBooleanIconEditor(@NotNull VdIcon icon) {
-    this(icon, SdkConstants.VALUE_TRUE, SdkConstants.VALUE_FALSE);
+  public NlBooleanIconEditor(@NotNull Icon icon, @NotNull String description) {
+    this(icon, description, SdkConstants.VALUE_TRUE, SdkConstants.VALUE_FALSE);
   }
 
-  public NlBooleanIconEditor(@NotNull VdIcon icon, @NotNull String singleValue) {
-    this(icon, singleValue, null);
+  public NlBooleanIconEditor(@NotNull Icon icon, @NotNull String description, @NotNull String singleValue) {
+    this(icon, description, singleValue, null);
   }
 
-  public NlBooleanIconEditor(@NotNull VdIcon icon, @NotNull String trueValue, @Nullable String falseValue) {
-    myOnIcon = new VdIcon(icon, ON_BACKGROUND);
-    myOffIcon = new VdIcon(icon, OFF_BACKGROUND);
-    myTrueValue = trueValue;
-    myFalseValue = falseValue;
-    myButton = new JButton();
-    myButton.setBorder(BorderFactory.createEmptyBorder());
-    myButton.setMargin(new Insets(0, 0, 0, 0));
-    myButton.setContentAreaFilled(false);
-    myButton.addActionListener(event -> toggle());
+  public NlBooleanIconEditor(@NotNull Icon icon, @NotNull String description, @NotNull String trueValue, @Nullable String falseValue) {
+    myAction = new BooleanAction(icon, description, trueValue, falseValue);
+    myPresentation = myAction.getTemplatePresentation().clone();
+    myButton = new ActionButton(myAction, myPresentation, INSPECTOR_PLACE, NAVBAR_MINIMUM_BUTTON_SIZE);
   }
 
   public Component getComponent() {
@@ -64,25 +62,51 @@ public class NlBooleanIconEditor {
   }
 
   public void setProperty(@NotNull NlProperty property) {
-    myProperty = property;
-    String value = property.getValue();
-    updateDisplayValue(value != null && value.equalsIgnoreCase(myTrueValue));
+    myAction.setProperty(property);
+    updateDescription(property);
+
+    // This will update the selected state of the ActionButton:
+    AnActionEvent event = new AnActionEvent(null, DataManager.getInstance().getDataContext(myButton), INSPECTOR_PLACE, myPresentation,
+                                            ActionManager.getInstance(), 0);
+    ActionUtil.performDumbAwareUpdate(myAction, event, false);
+    myButton.updateIcon();  }
+
+  private void updateDescription(@NotNull NlProperty property) {
+    AttributeDefinition definition = property.getDefinition();
+    if (definition != null) {
+      String description = definition.getValueDoc(myAction.myTrueValue);
+      if (description != null) {
+        // TODO: Add a getter of the presentation instance in ActionButton. Then we can get rid of myPresentation.
+        myPresentation.setDescription(description);
+        myPresentation.setText(description);
+      }
+    }
   }
 
-  private void updateDisplayValue(boolean on) {
-    if (on) {
-      myButton.setIcon(myOnIcon);
-    }
-    else {
-      myButton.setIcon(myOffIcon);
-    }
-  }
+  private static class BooleanAction extends ToggleActionButton {
+    private final String myTrueValue;
+    private final String myFalseValue;
+    private NlProperty myProperty;
 
-  private void toggle() {
-    boolean newValue = myButton.getIcon() != myOnIcon;
-    if (myProperty != null) {
-      myProperty.setValue(newValue ? myTrueValue : myFalseValue);
-      updateDisplayValue(newValue);
+    public BooleanAction(@NotNull Icon icon, @Nullable String description, @NotNull String trueValue, @Nullable String falseValue) {
+      super(description, icon);
+      getTemplatePresentation().setIcon(icon);
+      myTrueValue = trueValue;
+      myFalseValue = falseValue;
+    }
+
+    public void setProperty(@NotNull NlProperty property) {
+      myProperty = property;
+    }
+
+    @Override
+    public boolean isSelected(AnActionEvent event) {
+      return myProperty != null && myTrueValue.equals(myProperty.getResolvedValue());
+    }
+
+    @Override
+    public void setSelected(AnActionEvent event, boolean selected) {
+      myProperty.setValue(selected ? myTrueValue : myFalseValue);
     }
   }
 }
