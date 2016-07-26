@@ -16,21 +16,19 @@
 package com.android.tools.idea.fd;
 
 import com.android.tools.fd.client.InstantRunArtifact;
-import com.android.tools.fd.client.InstantRunArtifactType;
 import com.android.tools.fd.client.InstantRunBuildInfo;
 import com.android.tools.idea.run.ApkInfo;
-import com.android.tools.idea.run.ApkInstaller;
 import com.android.tools.idea.run.LaunchOptions;
 import com.android.tools.idea.run.tasks.*;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.intellij.execution.ExecutionException;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.SmartList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -82,7 +80,7 @@ public class InstantRunBuildAnalyzer {
    * Returns the list of deploy tasks that will update the instant run state on the device.
    */
   @NotNull
-  public List<LaunchTask> getDeployTasks(@Nullable LaunchOptions launchOptions) {
+  public List<LaunchTask> getDeployTasks(@Nullable LaunchOptions launchOptions) throws ExecutionException {
     LaunchTask updateStateTask = new UpdateInstantRunStateTask(myContext);
 
     DeployType deployType = getDeployType();
@@ -99,7 +97,7 @@ public class InstantRunBuildAnalyzer {
         return ImmutableList.of(new DexDeployTask(myProject, myContext), updateStateTask);
       case FULLAPK:
         Preconditions.checkNotNull(launchOptions); // launchOptions can be null only under NO_CHANGES or HOTSWAP scenarios
-        DeployApkTask deployApkTask = new DeployApkTask(myProject, launchOptions, getApks(myBuildInfo, myContext.getApplicationId()), true);
+        DeployApkTask deployApkTask = new DeployApkTask(myProject, launchOptions, getApks(myBuildInfo, myContext), true);
         return ImmutableList.of(deployApkTask, updateStateTask);
       case LEGACY:
       default:
@@ -142,12 +140,26 @@ public class InstantRunBuildAnalyzer {
     return DeployType.FULLAPK;
   }
 
-  private static Collection<ApkInfo> getApks(@NotNull InstantRunBuildInfo buildInfo, @NotNull String applicationId) {
+  private static Collection<ApkInfo> getApks(@NotNull InstantRunBuildInfo buildInfo, @NotNull InstantRunContext context)
+    throws ExecutionException {
     List<ApkInfo> apks = new SmartList<>();
 
     for (InstantRunArtifact artifact : buildInfo.getArtifacts()) {
-      assert artifact.type == MAIN;
-      apks.add(new ApkInfo(artifact.file, applicationId));
+      if (artifact.type != MAIN) {
+        String msg = "Expected to only find apks, but got : " + artifact.type + "\n";
+        BuildSelection buildSelection = context.getBuildSelection();
+        assert buildSelection != null : "Build must have completed before apks are obtained";
+        if (buildSelection.mode == BuildMode.HOT) {
+          msg += "Could not use hot-swap artifacts when there is no existing session.";
+        }
+        else {
+          msg += "Unexpected artifacts for build mode: " + buildSelection.mode;
+        }
+        InstantRunManager.LOG.error(msg);
+        throw new ExecutionException(msg);
+      }
+
+      apks.add(new ApkInfo(artifact.file, context.getApplicationId()));
     }
 
     return apks;
