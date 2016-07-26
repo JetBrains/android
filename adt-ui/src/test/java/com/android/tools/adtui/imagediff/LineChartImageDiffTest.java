@@ -15,8 +15,6 @@
  */
 package com.android.tools.adtui.imagediff;
 
-import com.android.tools.adtui.Animatable;
-import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.Range;
 import com.android.tools.adtui.chart.linechart.EventConfig;
 import com.android.tools.adtui.chart.linechart.LineChart;
@@ -31,21 +29,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
-public class LineChartImageDiffTest {
-
-  /**
-   * Total number of values added to the line chart.
-   * TODO: consider moving these to the base class if other components use something similar
-   */
-  private static final int TOTAL_VALUES = 50;
-
-  /**
-   * Simulated time delta, in microseconds, between each value added to the line chart.
-   * TODO: consider moving these to the base class if other components use something similar
-   */
-  private static final long TIME_DELTA_US = TimeUnit.MILLISECONDS.toMicros(50);
+public class LineChartImageDiffTest extends BaseImageDiffTest {
 
   private static final int LINE_CHART_INITIAL_VALUE = 20;
 
@@ -70,35 +55,13 @@ public class LineChartImageDiffTest {
 
   private List<DefaultDataSeries<Long>> myData;
 
-  private long myCurrentTimeUs;
-
-  private Range myXRange;
-
-  private JPanel myContentPane;
-
-  private Choreographer myChoreographer;
-
-  private List<Animatable> myComponents;
-
   @Before
   public void setUp() {
     myLineChart = new LineChart();
     myLineChart.setBorder(BorderFactory.createLineBorder(AdtUiUtils.DEFAULT_BORDER_COLOR));
     myData = new ArrayList<>();
-    myComponents = new ArrayList<>();
-
-    // TODO: consider moving the lines below to the base class if other components use something similar
-    myCurrentTimeUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
-    myXRange = new Range(myCurrentTimeUs, myCurrentTimeUs + TOTAL_VALUES * TIME_DELTA_US);
-    myContentPane = new JPanel(new BorderLayout());
-
-    // We don't need to set a proper FPS to the choreographer, as we're interested in the final image only, not the animation.
-    myChoreographer = new Choreographer(-1, myContentPane);
-    myChoreographer.setUpdate(false);
-
     myContentPane.add(myLineChart, BorderLayout.CENTER);
     myComponents.add(myLineChart);
-    myComponents.add(myXRange);
   }
 
   @Test
