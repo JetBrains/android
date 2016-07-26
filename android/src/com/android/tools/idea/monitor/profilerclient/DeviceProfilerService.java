@@ -45,6 +45,7 @@ public class DeviceProfilerService {
   @NotNull private final CpuServiceGrpc.CpuServiceBlockingStub myCpuService;
   @NotNull private final NetworkServiceGrpc.NetworkServiceBlockingStub myNetworkService;
   @NotNull private final EventServiceGrpc.EventServiceBlockingStub myEventService;
+  @NotNull private final EnergyServiceGrpc.EnergyServiceBlockingStub myEnergyService;
   private final int myPort;
 
   private DeviceProfilerService(@NotNull IDevice device, int port) {
@@ -62,6 +63,7 @@ public class DeviceProfilerService {
     myCpuService = CpuServiceGrpc.newBlockingStub(myChannel);
     myNetworkService = NetworkServiceGrpc.newBlockingStub(myChannel);
     myEventService = EventServiceGrpc.newBlockingStub(myChannel);
+    myEnergyService = EnergyServiceGrpc.newBlockingStub(myChannel);
     Disposer.register(ApplicationManager.getApplication(), () -> {
       if (!myUserKeys.isEmpty()) {
         for (Object userKey : myUserKeys) {
@@ -128,6 +130,11 @@ public class DeviceProfilerService {
   @NotNull
   public EventServiceGrpc.EventServiceBlockingStub getEventService() {
     return myEventService;
+  }
+
+  @NotNull
+  public EnergyServiceGrpc.EnergyServiceBlockingStub getEnergyService() {
+    return myEnergyService;
   }
 
   @NotNull
