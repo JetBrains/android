@@ -58,7 +58,8 @@ public enum SeriesDataType {
 
   ENERGY_TOTAL, //long
   ENERGY_SCREEN, //long
-  ENERGY_CPU, //long
+  ENERGY_CPU_SYSTEM, //long
+  ENERGY_CPU_USER, //long
   ENERGY_SENSORS, //long
   ENERGY_CELL_NETWORK, //long
   ENERGY_WIFI_NETWORK, //long
