@@ -83,6 +83,7 @@ public class NlEditorPanel extends JPanel implements DesignerEditorPanelFacade, 
     myContentSplitter.setDividerWidth(0);
     myContentSplitter.setDividerMouseZoneSize(Registry.intValue("ide.splitter.mouseZone"));
     myContentSplitter.setInnerComponent(contentPanel);
+    myContentSplitter.setHonorComponentsMinimumSize(true);
     add(myContentSplitter, BorderLayout.CENTER);
   }
 
