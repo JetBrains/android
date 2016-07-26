@@ -19,6 +19,7 @@ import com.google.common.collect.Lists;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.GradleTask;
+import org.gradle.tooling.model.ProjectIdentifier;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -95,4 +96,7 @@ public class GradleProjectStub implements GradleProject {
   public File getProjectDirectory() {
     return null;
   }
+
+  @Override
+  public ProjectIdentifier getProjectIdentifier() { throw new UnsupportedOperationException(); }
 }
