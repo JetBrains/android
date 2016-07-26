@@ -79,6 +79,11 @@ public class SyncAction implements BuildAction<SyncAction.ProjectModels>, Serial
     }
 
     @NotNull
+    public IdeaProject getProject() {
+      return myProject;
+    }
+
+    @NotNull
     private static String createMapKey(@NotNull IdeaModule module) {
       return module.getGradleProject().getPath();
     }
