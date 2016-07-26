@@ -45,7 +45,7 @@ public class ReportController extends TreeController implements ReportStream.Lis
 
     public static Node createInstance(ReportItem item) {
       Node node = new Node(item);
-      node.add(new Node(item.getMessage()));
+      node.add(new Node(item.getMessage().toString()));
       return node;
     }
 
@@ -71,7 +71,7 @@ public class ReportController extends TreeController implements ReportStream.Lis
     }
 
     public String getMessage() {
-      return ((ReportItem) userObject).getMessage();
+      return ((ReportItem) userObject).getMessage().toString();
     }
 
     public String getMessagePreview() {
