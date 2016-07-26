@@ -412,6 +412,8 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
    * Schedule an XML save
    */
   public void requestSaveToXML() {
+    // TODO: clean up save model
+    // saveToXML(true);
     updateXml(); // Send changes to the XML without committing them
     mySaveXmlTimer.reset();
   }
