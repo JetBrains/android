@@ -36,6 +36,8 @@ public final class AtomGroup implements BinaryObject {
     AtomGroup atomGroup = (AtomGroup)o;
     if (myName != null ? !myName.equals(atomGroup.myName) : atomGroup.myName != null) return false;
     if (myRange != null ? !myRange.equals(atomGroup.myRange) : atomGroup.myRange != null) return false;
+    // the roots of different hierarchies are all the same with only the subgroups being different.
+    if (!Arrays.equals(mySubGroups, atomGroup.mySubGroups)) return false;
     return true;
   }
 
@@ -43,6 +45,8 @@ public final class AtomGroup implements BinaryObject {
   public int hashCode() {
     int result = myName != null ? myName.hashCode() : 0;
     result = 31 * result + (myRange != null ? myRange.hashCode() : 0);
+    // we don't want to hash each element in the array as that takes way too long.
+    result = 31 * result + mySubGroups.length;
     return result;
   }
 
