@@ -17,7 +17,6 @@ package com.android.tools.idea.npw.deprecated;
 
 import com.android.tools.idea.npw.*;
 import com.android.tools.idea.ui.LabelWithEditLink;
-import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithHeaderAndDescription;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.intellij.ide.util.PropertiesComponent;
@@ -69,15 +68,15 @@ public class ConfigureAndroidModuleStepDynamic extends DynamicWizardStepWithHead
     mySdkControls.init(template.getFormFactor(), template.getMetadata().getMinSdk(), null, null, null);
     mySdkControls.registerWith(this);
 
-    register(WizardConstants.APPLICATION_NAME_KEY, myAppName);
-    register(WizardConstants.PACKAGE_NAME_KEY, myPackageName);
-    registerValueDeriver(WizardConstants.PACKAGE_NAME_KEY, PACKAGE_NAME_DERIVER);
+    register(APPLICATION_NAME_KEY, myAppName);
+    register(PACKAGE_NAME_KEY, myPackageName);
+    registerValueDeriver(PACKAGE_NAME_KEY, PACKAGE_NAME_DERIVER);
 
     if (StringUtil.isEmptyOrSpaces(myState.get(APPLICATION_NAME_KEY))) {
-      String name = myState.getNotNull(WizardConstants.IS_LIBRARY_KEY, false) ? "My Library" : "My Application";
-      myState.put(WizardConstants.APPLICATION_NAME_KEY, name);
+      String name = myState.getNotNull(IS_LIBRARY_KEY, false) ? "My Library" : "My Application";
+      myState.put(APPLICATION_NAME_KEY, name);
       String savedCompanyDomain = PropertiesComponent.getInstance().getValue(SAVED_COMPANY_DOMAIN);
-      myState.put(WizardConstants.COMPANY_DOMAIN_KEY, savedCompanyDomain);
+      myState.put(COMPANY_DOMAIN_KEY, savedCompanyDomain);
     }
     super.init();
   }
@@ -191,7 +190,7 @@ public class ConfigureAndroidModuleStepDynamic extends DynamicWizardStepWithHead
     }
   };
 
-  protected boolean validateAppName() {
+  private boolean validateAppName() {
     String appName = myState.get(APPLICATION_NAME_KEY);
     if (appName == null || appName.isEmpty()) {
       setErrorHtml("Please enter an application name (shown in launcher), or a descriptive name for your library");
@@ -202,8 +201,8 @@ public class ConfigureAndroidModuleStepDynamic extends DynamicWizardStepWithHead
     return true;
   }
 
-  protected boolean validatePackageName() {
-    String packageName = myState.get(WizardConstants.PACKAGE_NAME_KEY);
+  private boolean validatePackageName() {
+    String packageName = myState.get(PACKAGE_NAME_KEY);
     if (packageName == null) {
       setErrorHtml("Please enter a package name (This package uniquely identifies your application or library)");
       return false;
