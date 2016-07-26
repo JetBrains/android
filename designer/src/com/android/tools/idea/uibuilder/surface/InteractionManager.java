@@ -371,22 +371,19 @@ public class InteractionManager {
     @Override
     public void mouseClicked(@NotNull MouseEvent event) {
       if (event.getClickCount() == 2 && event.getButton() == MouseEvent.BUTTON1) {
-        if (mySurface.isPreviewSurface()) {
-          // Warp to the text editor and show the corresponding XML for the
-          // double-clicked widget
-          int x = event.getX();
-          int y = event.getY();
-          ScreenView screenView = mySurface.getScreenView(x, y);
-          if (screenView != null) {
-            NlComponent component = Coordinates.findComponent(screenView, x, y);
-            if (component != null) {
-              PsiNavigateUtil.navigate(component.getTag());
-            }
+        NlComponent component = getComponentAt(event.getX(), event.getY());
+        if (component != null) {
+          if (mySurface.isPreviewSurface()) {
+            // Warp to the text editor and show the corresponding XML for the
+            // double-clicked widget
+            PsiNavigateUtil.navigate(component.getTag());
           }
-        }
-        else {
-          NlPropertiesWindowManager propertiesManager = NlPropertiesWindowManager.get(mySurface.getProject());
-          propertiesManager.activatePreferredEditor();
+          else {
+            // Notify that the user is interested in a component.
+            // A properties manager may move the focus to the most important attribute of the component.
+            // Such as the text attribute of a TextView
+            mySurface.notifyActivateComponent(component);
+          }
         }
       }
       else if (event.isPopupTrigger()) {
@@ -546,6 +543,15 @@ public class InteractionManager {
       else {
         selectionModel.setSelection(Collections.singletonList(component));
       }
+    }
+
+    @Nullable
+    private NlComponent getComponentAt(@SwingCoordinate int x, @SwingCoordinate int y) {
+      ScreenView screenView = mySurface.getScreenView(x, y);
+      if (screenView == null) {
+        return null;
+      }
+      return Coordinates.findComponent(screenView, x, y);
     }
 
     @Override
