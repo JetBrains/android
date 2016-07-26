@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.menu;
 import com.android.tools.idea.uibuilder.api.DragHandler;
 import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
+import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
@@ -29,13 +30,11 @@ import static com.android.SdkConstants.*;
 
 public final class GroupHandler extends MenuHandlerBase {
   @Override
-  @NotNull
-  public List<String> getInspectorProperties() {
-    return ImmutableList.of(
-      ATTR_ID,
-      ATTR_CHECKABLE_BEHAVIOR,
-      ATTR_VISIBLE,
-      ATTR_ENABLED);
+  public boolean acceptsChild(@NotNull NlComponent parent,
+                              @NotNull NlComponent newChild,
+                              @AndroidCoordinate int x,
+                              @AndroidCoordinate int y) {
+    return new ActionBar(parent).contains(x, y);
   }
 
   @Nullable
@@ -45,5 +44,15 @@ public final class GroupHandler extends MenuHandlerBase {
                                        @NotNull List<NlComponent> items,
                                        @NotNull DragType type) {
     return new GroupDragHandler(editor, this, group, items, type);
+  }
+
+  @NotNull
+  @Override
+  public List<String> getInspectorProperties() {
+    return ImmutableList.of(
+      ATTR_ID,
+      ATTR_CHECKABLE_BEHAVIOR,
+      ATTR_VISIBLE,
+      ATTR_ENABLED);
   }
 }

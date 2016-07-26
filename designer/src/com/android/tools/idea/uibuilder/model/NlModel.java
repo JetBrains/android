@@ -359,7 +359,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       try {
         myRenderResult = result;
         updateHierarchy(result);
-      } finally {
+      }
+      finally {
         myRenderResultLock.writeLock().unlock();
       }
 
@@ -515,7 +516,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
           if (!inflated) {
             updateHierarchy(myRenderResult);
           }
-        } finally {
+        }
+        finally {
           myRenderResultLock.writeLock().unlock();
         }
       }
@@ -606,7 +608,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     myRenderResultLock.readLock().lock();
     try {
       return myRenderResult;
-    } finally {
+    }
+    finally {
       myRenderResultLock.readLock().unlock();
     }
   }
@@ -619,7 +622,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
         return Collections.emptyMap();
       }
       return myRenderResult.getDefaultProperties();
-    } finally {
+    }
+    finally {
       myRenderResultLock.readLock().unlock();
     }
   }
@@ -864,7 +868,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
           }
 
           root.setBounds(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
-          root.setBoundsComputed(true);
         }
       }
     }
@@ -1056,12 +1059,12 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
               assert false : t;
             }
             seenTags.add(t);
-            NlComponent registeredCOmponent = myTagToComponentMap.get(t);
-            if (registeredCOmponent != null) {
-              if (seen.contains(registeredCOmponent)) {
-                assert false : registeredCOmponent;
+            NlComponent registeredComponent = myTagToComponentMap.get(t);
+            if (registeredComponent != null) {
+              if (seen.contains(registeredComponent)) {
+                assert false : registeredComponent;
               }
-              seen.add(registeredCOmponent);
+              seen.add(registeredComponent);
             }
           }
         }
