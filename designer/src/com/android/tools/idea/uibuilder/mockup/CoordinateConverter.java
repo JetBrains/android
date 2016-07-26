@@ -80,34 +80,34 @@ class CoordinateConverter {
   }
 
   public int x(double x) {
-    return (int)Math.ceil((x - mySourceOrigin.x) * myXTransformScale + myDestinationOrigin.x);
+    return (int)Math.round((x - mySourceOrigin.x) * myXTransformScale + myDestinationOrigin.x);
   }
 
   public int inverseX(double x) {
-    return (int)Math.ceil((x - myDestinationOrigin.x) / myXTransformScale + mySourceOrigin.x);
+    return (int)Math.round((x - myDestinationOrigin.x) / myXTransformScale + mySourceOrigin.x);
   }
 
   public int y(double y) {
-    return (int)Math.ceil((y - mySourceOrigin.y) * myYTransformScale + myDestinationOrigin.y);
+    return (int)Math.round((y - mySourceOrigin.y) * myYTransformScale + myDestinationOrigin.y);
   }
 
   public int inverseY(double y) {
-    return (int)Math.ceil((y - myDestinationOrigin.y) / myYTransformScale + mySourceOrigin.y);
+    return (int)Math.round((y - myDestinationOrigin.y) / myYTransformScale + mySourceOrigin.y);
   }
 
   public int dX(double dim) {
-    return (int)Math.ceil(dim * myXTransformScale);
+    return (int)Math.round(dim * myXTransformScale);
   }
 
   public int inverseDX(double dim) {
-    return (int)Math.ceil(dim / myXTransformScale);
+    return (int)Math.round(dim / myXTransformScale);
   }
 
   public int dY(double dim) {
-    return (int)Math.ceil(dim * myYTransformScale);
+    return (int)Math.round(dim * myYTransformScale);
   }
 
   public int inverseDY(double dim) {
-    return (int)Math.ceil(dim / myYTransformScale);
+    return (int)Math.round(dim / myYTransformScale);
   }
 }

@@ -176,7 +176,7 @@ public class MockupInteractionPanel extends JBPanel implements ModelListener, Mo
   public void paint(Graphics g) {
     // Initialization
     super.paint(g);
-    final Graphics2D g2d = (Graphics2D)g;
+    final Graphics2D g2d = (Graphics2D)g.create();
     Color color = g.getColor();
 
     updateConvertersAndDimension();
@@ -196,6 +196,7 @@ public class MockupInteractionPanel extends JBPanel implements ModelListener, Mo
       }
     }
     g.setColor(color);
+    g.dispose();
   }
 
   /**

@@ -207,6 +207,7 @@ public class ColorExtractorTool implements MockupTool, ColorPanel.ColorHoveredLi
       //drawChessboard(g2D);
       g2D.fillRect(0,0,myImage.getWidth(), myImage.getHeight());
       g2D.drawImage(mySelectedColorImage != null ? mySelectedColorImage : myImage, 0, 0, null);
+      g2D.dispose();
     }
 
     private void drawChessboard(Graphics2D g2D) {

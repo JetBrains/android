@@ -30,9 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * Created by caen on 7/15/16.
- */
+
 @SuppressWarnings("UseJBColor")
 public class ColorPanel {
   public static final JBColor BACKGROUND = new JBColor(JBColor.background().darker(), JBColor.background().brighter());
