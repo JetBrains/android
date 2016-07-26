@@ -68,7 +68,7 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
     myModel = new PTableModel();
 
     myTable = new PTable(myModel);
-    myTable.setEditorProvider(new NlPropertyEditors(project));
+    myTable.setEditorProvider(NlPropertyEditors.getInstance(project));
     myTable.getEmptyText().setText("No selected component");
     JComponent fewerPropertiesLink = createViewAllPropertiesLinkPanel(false);
     fewerPropertiesLink.setBorder(BorderFactory.createEmptyBorder(8, 4, 2, 0));
