@@ -15,15 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.handlers.menu;
 
-import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.rendering.api.ViewType;
 import com.android.tools.idea.uibuilder.api.DragHandler;
 import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
-import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -203,7 +200,7 @@ public final class GroupDragHandlerTest {
 
   @NotNull
   private static NlComponent newMenu(int x, int y, int width, int height) {
-    NlComponent menu = newNlComponent("menu");
+    NlComponent menu = TestFactory.newNlComponent("menu");
     menu.setBounds(x, y, width, height);
 
     return menu;
@@ -212,8 +209,8 @@ public final class GroupDragHandlerTest {
   @NotNull
   @SuppressWarnings("SameParameterValue")
   private static NlComponent newActionBarItem(int x, int y, int width, int height) {
-    NlComponent item = newNlComponent("item");
-    item.viewInfo = newViewInfo(ViewType.ACTION_BAR_MENU);
+    NlComponent item = TestFactory.newNlComponent("item");
+    item.viewInfo = TestFactory.mockViewInfo(ViewType.ACTION_BAR_MENU);
     item.setBounds(x, y, width, height);
 
     return item;
@@ -222,8 +219,8 @@ public final class GroupDragHandlerTest {
   @NotNull
   @SuppressWarnings("SameParameterValue")
   private static NlComponent newOverflowItem(int x, int y, int width, int height) {
-    NlComponent item = newNlComponent("item");
-    item.viewInfo = newViewInfo(ViewType.ACTION_BAR_OVERFLOW_MENU);
+    NlComponent item = TestFactory.newNlComponent("item");
+    item.viewInfo = TestFactory.mockViewInfo(ViewType.ACTION_BAR_OVERFLOW_MENU);
     item.setBounds(x, y, width, height);
 
     return item;
@@ -231,26 +228,10 @@ public final class GroupDragHandlerTest {
 
   @NotNull
   private static NlComponent newGroup(int x, int y, int width, int height) {
-    NlComponent group = newNlComponent("group");
+    NlComponent group = TestFactory.newNlComponent("group");
     group.setBounds(x, y, width, height);
 
     return group;
-  }
-
-  @NotNull
-  private static NlComponent newNlComponent(@NotNull String tagName) {
-    XmlTag tag = Mockito.mock(XmlTag.class);
-    Mockito.when(tag.getName()).thenReturn(tagName);
-
-    return new NlComponent(Mockito.mock(NlModel.class), tag);
-  }
-
-  @NotNull
-  private static ViewInfo newViewInfo(@NotNull ViewType viewType) {
-    ViewInfo view = Mockito.mock(ViewInfo.class);
-    Mockito.when(view.getViewType()).thenReturn(viewType);
-
-    return view;
   }
 
   @NotNull
