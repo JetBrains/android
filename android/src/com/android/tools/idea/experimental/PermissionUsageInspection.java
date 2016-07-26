@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.experimental.codeanalysis.analysisclients;
+package com.android.tools.idea.experimental;
 
+import com.android.tools.idea.experimental.actions.PermissionUsageQuickFix;
 import com.android.tools.idea.experimental.codeanalysis.PsiCFGScene;
 import com.android.tools.idea.experimental.codeanalysis.callgraph.Callgraph;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.PsiCFGClass;
@@ -26,58 +27,115 @@ import com.android.tools.idea.experimental.codeanalysis.datastructs.stmt.AssignS
 import com.android.tools.idea.experimental.codeanalysis.datastructs.stmt.Stmt;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.value.Value;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.intellij.codeInsight.template.JavaCodeContextType;
-import com.intellij.codeInspection.InspectionManager;
-import com.intellij.codeInspection.ProblemHighlightType;
-import com.intellij.codeInspection.ProblemsHolder;
+import com.intellij.analysis.AnalysisScope;
+import com.intellij.codeInspection.*;
+import com.intellij.codeInspection.reference.RefEntity;
+import com.intellij.codeInspection.reference.RefMethod;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
 /**
- * An experimental clients to test
- * the potential of the Call graph
- * and CFG
- * Created by haowei on 7/19/16.
+ * Created by haowei on 7/25/16.
  */
-public class LocationPermissionExperimentClient extends AnalysisClientBase {
+public class PermissionUsageInspection extends GlobalInspectionTool {
+
 
   private static final String LOCATION_MANAGER_CLASS_NAME = "android.location.LocationManager";
   private static final String GOOGLE_MAPS_API_CLASS = "com.google.android.maps.MyLocationOverlay";
+
+  private static final String PROBLEM_DESC = "Permission not checked for statement :";
 
   private PsiCFGClass LocationManagerCFGClass;
   private PsiCFGClass GoogleMapsAPIClass;
 
   private List<PsiCFGMethod> targetMethodList;
   private Project mProject;
-
+  private PsiCFGScene mScene;
   private Callgraph mCG;
 
-  //private List<PsiCFGMethod> longestCallStack;
   private List<PsiCFGMethod> longestMethodStack;
   private List<GraphNode> longestNodeStack;
 
   private List<Pair<PsiCFGMethod, PsiElement>> invocationSiteCollection;
 
+  private Map<PsiMethod, PsiElement> taggedMethodsWithElement;
 
 
-
-  public LocationPermissionExperimentClient(PsiCFGScene scene) {
-    super(scene);
-    targetMethodList = Lists.newArrayList();
-    mProject = scene.getProject();
-    mCG = mScene.getCallGraph();
-    LocationManagerCFGClass = null;
-    GoogleMapsAPIClass = null;
-    invocationSiteCollection = Lists.newArrayList();
+  @Override
+  public boolean isGraphNeeded() {
+    //TODO: Reference resolve is not necessary. However, it is not known if
+    //the output would stay the same if Reference Graph is not created.
+    return true;
   }
 
   @Override
+  public void runInspection(@NotNull AnalysisScope scope, @NotNull InspectionManager manager,
+                            @NotNull GlobalInspectionContext globalContext,
+                            @NotNull ProblemDescriptionsProcessor problemDescriptionsProcessor) {
+
+    mProject = globalContext.getProject();
+    CodeAnalysisMain analysisMain = CodeAnalysisMain.getInstance(mProject);
+    analysisMain.analyze(scope);
+    mScene = PsiCFGScene.getInstance(mProject);
+    mCG = mScene.getCallGraph();
+
+    targetMethodList = Lists.newArrayList();
+    LocationManagerCFGClass = null;
+    GoogleMapsAPIClass = null;
+    invocationSiteCollection = Lists.newArrayList();
+    taggedMethodsWithElement = Maps.newHashMap();
+
+    runAnalysis();
+
+    super.runInspection(scope, manager, globalContext, problemDescriptionsProcessor);
+
+  }
+
+  @Nullable
+  @Override
+  public CommonProblemDescriptor[] checkElement(@NotNull RefEntity refEntity, @NotNull AnalysisScope scope,
+                                                @NotNull InspectionManager manager,
+                                                @NotNull GlobalInspectionContext globalContext) {
+
+    if (refEntity instanceof RefMethod) {
+      PsiModifierListOwner methodRefRAW = ((RefMethod)refEntity).getElement();
+      if (methodRefRAW != null && (methodRefRAW instanceof PsiMethod)) {
+        PsiMethod methodRef = (PsiMethod) methodRefRAW;
+        return checkPsiMethod(methodRef, manager);
+      } else {
+        System.out.println("RefMethod for " + refEntity.getName() + " Not resolved to PsiMethod");
+      }
+    }
+    return null;
+  }
+
+  private CommonProblemDescriptor[] checkPsiMethod(PsiMethod method, InspectionManager manager) {
+    if (!taggedMethodsWithElement.containsKey(method)) {
+      return null;
+    }
+
+    List<CommonProblemDescriptor> retList = Lists.newArrayList();
+    PsiElement invocationStmt = taggedMethodsWithElement.get(method);
+    ProblemDescriptor desc = manager.createProblemDescriptor(invocationStmt,
+                                    PROBLEM_DESC,
+                                    true,
+                                    ProblemHighlightType.GENERIC_ERROR_OR_WARNING ,
+                                    false,
+                                    new PermissionUsageQuickFix(invocationStmt));
+    retList.add(desc);
+    return retList.toArray(CommonProblemDescriptor.EMPTY_ARRAY);
+  }
+
+
+
   public void runAnalysis() {
     getTargetMethodsList();
 
@@ -87,10 +145,9 @@ public class LocationPermissionExperimentClient extends AnalysisClientBase {
     }
 
     for (PsiCFGMethod currentTarget : targetMethodList) {
-      //System.out.println("TargetMethod : " + currentTarget.getName());
       resolveInitialCaller(currentTarget);
     }
-    outputInvocationSiteInfos();
+    //outputInvocationSiteInfos();
     tagTheResult();
   }
 
@@ -123,16 +180,13 @@ public class LocationPermissionExperimentClient extends AnalysisClientBase {
 
     System.out.println("Target API: " + method.getDeclaringClass().getQualifiedClassName()
                        + "." + method.getName());
-    //for (PsiCFGMethod currentMethod : longestCallStack) {
-    //  System.out.println(currentMethod.getDeclaringClass().getQualifiedClassName()
-    //                     + "." + currentMethod.getName());
-    //}
+
     for (int i = 0; i < longestMethodStack.size(); i++) {
       GraphNode currentNode = longestNodeStack.get(i);
       PsiCFGMethod currentMethod = longestMethodStack.get(i);
-        System.out.println(currentMethod.getDeclaringClass().getQualifiedClassName()
-                           + "." + currentMethod.getName() + ":"
-                           + (currentNode == null ? "NULL" : currentNode.getStatements()[0].getSimpleName()));
+      System.out.println(currentMethod.getDeclaringClass().getQualifiedClassName()
+                         + "." + currentMethod.getName() + ":"
+                         + (currentNode == null ? "NULL" : currentNode.getStatements()[0].getSimpleName()));
     }
     PsiCFGMethod topMethod = longestMethodStack.get(longestMethodStack.size() - 1);
     GraphNode topNode = longestNodeStack.get(longestNodeStack.size() - 1);
@@ -183,20 +237,6 @@ public class LocationPermissionExperimentClient extends AnalysisClientBase {
         longestMethodStack = Lists.newArrayList(methodStack);
       }
     }
-
-    //if (mCG.calleeMethodToCallerGraphNodeMap.containsKey(target)) {
-    //  Collection<PsiCFGMethod> callers = mCG.calleeMethodToCallerMethodReturnMap.get(target);
-    //  for (PsiCFGMethod nextTarget : callers) {
-    //    dfsFindCallChain(callStack, nextTarget);
-    //  }
-    //}
-    //else {
-    //  //Top
-    //  if (longestCallStack.size() < callStack.size()) {
-    //    longestCallStack = Lists.newArrayList(callStack);
-    //  }
-    //  return;
-    //}
   }
 
   private void getTargetMethodsListFromPsiClass(@NotNull PsiClass clazz) {
@@ -237,7 +277,7 @@ public class LocationPermissionExperimentClient extends AnalysisClientBase {
     if (googleMapsClass != null) {
       getTargetMethodsListFromPsiClass(googleMapsClass);
     }
-    
+
   }
 
   //TODO: Add annotaction check
@@ -246,21 +286,22 @@ public class LocationPermissionExperimentClient extends AnalysisClientBase {
   }
 
   private void tagTheResult() {
-    InspectionManager iManager = InspectionManager.getInstance(mProject);
+    //InspectionManager iManager = InspectionManager.getInstance(mProject);
     for (Pair<PsiCFGMethod, PsiElement> invocationSite : invocationSiteCollection) {
       PsiElement element = invocationSite.getSecond();
       if (element instanceof PsiMethodCallExpression) {
-        PsiMethodCallExpression methodCall = (PsiMethodCallExpression) element;
-        PsiFile containingFile = methodCall.getContainingFile();
-        if (containingFile != null) {
-          System.out.println("FileName: " + containingFile.getName());
-          ProblemsHolder holder = new ProblemsHolder(iManager, containingFile, false);
-
-          holder.registerProblem(element, "Permission", ProblemHighlightType.ERROR, null);
+        PsiElement methodRefRAW = invocationSite.getFirst().getPsiRef();
+        if (methodRefRAW != null && (methodRefRAW instanceof PsiMethod)) {
+          PsiMethod methodRef = (PsiMethod) methodRefRAW;
+          taggedMethodsWithElement.put(methodRef, element);
         }
       }
     }
 
+    for (PsiMethod method : taggedMethodsWithElement.keySet()) {
+      System.out.println(String.format("method: %s, element: %s\n",
+                                       method.getName(),
+                                       taggedMethodsWithElement.get(method).getText()));
+    }
   }
-
 }
