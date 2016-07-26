@@ -95,8 +95,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
   private final boolean myAndroidTests;
 
-  public String DEBUGGER_TYPE;
-  private final Map<String, AndroidDebuggerState> myAndroidDebuggerStates = Maps.newHashMap();
+  private final AndroidDebuggerContext myAndroidDebuggerContext = new AndroidDebuggerContext(AndroidJavaDebugger.ID);
 
   public AndroidRunConfigurationBase(final Project project, final ConfigurationFactory factory, boolean androidTests) {
     super(new JavaRunConfigurationModule(project, false), factory);
@@ -110,10 +109,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       builder.put(provider.getId(), provider.createState());
     }
     myDeployTargetStates = builder.build();
-    DEBUGGER_TYPE = getDefaultAndroidDebuggerType();
-    for (AndroidDebugger androidDebugger : getAndroidDebuggers()) {
-      myAndroidDebuggerStates.put(androidDebugger.getId(), androidDebugger.createState());
-    }
   }
 
   @Override
@@ -176,7 +171,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     errors.addAll(getApkProvider(facet, getApplicationIdProvider(facet)).validate());
 
     errors.addAll(checkConfiguration(facet));
-    AndroidDebuggerState androidDebuggerState = getAndroidDebuggerState(DEBUGGER_TYPE);
+    AndroidDebuggerState androidDebuggerState = myAndroidDebuggerContext.getAndroidDebuggerState();
     if (androidDebuggerState != null) {
       errors.addAll(androidDebuggerState.validate(facet, executor));
     }
@@ -672,12 +667,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       DefaultJDOMExternalizer.readExternal(state, element);
     }
 
-    for (Map.Entry<String, AndroidDebuggerState> entry : myAndroidDebuggerStates.entrySet()) {
-      Element optionElement = element.getChild(entry.getKey());
-      if (optionElement != null) {
-        entry.getValue().readExternal(optionElement);
-      }
-    }
+    myAndroidDebuggerContext.readExternal(element);
 
     Element profilersElement = element.getChild(PROFILERS_ELEMENT_NAME);
     if (profilersElement != null) {
@@ -695,11 +685,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       DefaultJDOMExternalizer.writeExternal(state, element);
     }
 
-    for (Map.Entry<String, AndroidDebuggerState> entry : myAndroidDebuggerStates.entrySet()) {
-      Element optionElement = new Element(entry.getKey());
-      element.addContent(optionElement);
-      entry.getValue().writeExternal(optionElement);
-    }
+    myAndroidDebuggerContext.writeExternal(element);
 
     Element profilersElement = new Element(PROFILERS_ELEMENT_NAME);
     element.addContent(profilersElement);
@@ -707,7 +693,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   }
 
   public boolean isNativeLaunch() {
-    AndroidDebugger<?> androidDebugger = getAndroidDebugger();
+    AndroidDebugger<?> androidDebugger = myAndroidDebuggerContext.getAndroidDebugger();
     if (androidDebugger == null) {
       return false;
     }
@@ -715,40 +701,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   }
 
   @NotNull
-  protected String getDefaultAndroidDebuggerType() {
-    for (AndroidDebugger androidDebugger : getAndroidDebuggers()) {
-      if (androidDebugger.shouldBeDefault()) {
-        return androidDebugger.getId();
-      }
-    }
-
-    return AndroidJavaDebugger.ID;
-  }
-
-  @NotNull
-  public List<AndroidDebugger> getAndroidDebuggers() {
-    return Lists.newArrayList(AndroidDebugger.EP_NAME.getExtensions());
-  }
-
-  @Nullable
-  public AndroidDebugger getAndroidDebugger() {
-    for (AndroidDebugger androidDebugger : getAndroidDebuggers()) {
-      if (androidDebugger.getId().equals(DEBUGGER_TYPE)) {
-        return androidDebugger;
-      }
-    }
-    return null;
-  }
-
-  @Nullable
-  public <T extends AndroidDebuggerState> T getAndroidDebuggerState(@NotNull String androidDebuggerId) {
-    AndroidDebuggerState state = myAndroidDebuggerStates.get(androidDebuggerId);
-    return (state != null) ? (T)state : null;
-  }
-
-  @Nullable
-  public <T extends AndroidDebuggerState> T getAndroidDebuggerState() {
-    return getAndroidDebuggerState(DEBUGGER_TYPE);
+  public AndroidDebuggerContext getAndroidDebuggerContext() {
+    return myAndroidDebuggerContext;
   }
 
   /**
