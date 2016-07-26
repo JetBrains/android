@@ -17,8 +17,8 @@ package com.android.tools.idea.run.editor;
 
 import com.android.ddmlib.Client;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.tasks.DebugConnectorTask;
+import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;
@@ -44,7 +44,7 @@ public interface AndroidDebugger<S extends AndroidDebuggerState> {
   S createState();
 
   @NotNull
-  AndroidDebuggerConfigurable<S> createConfigurable(@NotNull AndroidRunConfigurationBase runConfiguration);
+  AndroidDebuggerConfigurable<S> createConfigurable(@NotNull RunConfiguration runConfiguration);
 
   @NotNull
   DebugConnectorTask getConnectDebuggerTask(@NotNull ExecutionEnvironment env,

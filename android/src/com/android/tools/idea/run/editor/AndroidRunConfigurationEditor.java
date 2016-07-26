@@ -132,8 +132,9 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     };
     mySkipNoOpApkInstallation.addActionListener(actionListener);
 
-    if (config.getAndroidDebuggers().size() > 1) {
-      myAndroidDebuggerPanel = new AndroidDebuggerPanel(config);
+    AndroidDebuggerContext androidDebuggerContext = config.getAndroidDebuggerContext();
+    if (androidDebuggerContext.getAndroidDebuggers().size() > 1) {
+      myAndroidDebuggerPanel = new AndroidDebuggerPanel(config, androidDebuggerContext);
       myTabbedPane.add("Debugger", myAndroidDebuggerPanel.getComponent());
     }
 
@@ -178,7 +179,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     myConfigurationSpecificEditor.resetFrom(configuration);
 
     if (myAndroidDebuggerPanel != null) {
-      myAndroidDebuggerPanel.resetFrom(configuration);
+      myAndroidDebuggerPanel.resetFrom(configuration.getAndroidDebuggerContext());
     }
     myAndroidProfilersPanel.resetFrom(configuration.getProfilerState());
   }
@@ -201,7 +202,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     myConfigurationSpecificEditor.applyTo(configuration);
 
     if (myAndroidDebuggerPanel != null) {
-      myAndroidDebuggerPanel.applyTo(configuration);
+      myAndroidDebuggerPanel.applyTo(configuration.getAndroidDebuggerContext());
     }
     myAndroidProfilersPanel.applyTo(configuration.getProfilerState());
   }
