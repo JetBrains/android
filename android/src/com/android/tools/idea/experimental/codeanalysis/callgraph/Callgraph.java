@@ -16,6 +16,8 @@
 package com.android.tools.idea.experimental.codeanalysis.callgraph;
 
 import com.android.tools.idea.experimental.codeanalysis.datastructs.PsiCFGMethod;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.Graph;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.MethodGraph;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.GraphNode;
 import com.google.common.base.Supplier;
 import com.google.common.collect.Maps;
@@ -58,6 +60,18 @@ public class Callgraph {
 
   public PsiCFGMethod[] findCalleeForMethod(PsiCFGMethod method) {
     return PsiCFGMethod.EMPTY_ARRAY;
+  }
+
+  public PsiCFGMethod getNodesParentMethod(GraphNode node) {
+    Graph parentGraph = node.getParentGraph();
+    while (parentGraph != null && (!(parentGraph instanceof MethodGraph))) {
+      parentGraph = parentGraph.getParentGraph();
+    }
+    if (parentGraph == null) {
+      return null;
+    } else {
+      return ((MethodGraph)parentGraph).getPsiCFGMethod();
+    }
   }
 
   public GraphNode[] findCallerForMethod(PsiCFGMethod method) {

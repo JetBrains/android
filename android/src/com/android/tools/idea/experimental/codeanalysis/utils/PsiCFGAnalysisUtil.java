@@ -164,8 +164,8 @@ public class PsiCFGAnalysisUtil {
    * Run analysis on CFG and Call Graph
    */
   public void performStage6() {
-    AnalysisClientBase analysis = new LocationPermissionExperimentClient(mScene);
-    analysis.runAnalysis();
+    //AnalysisClientBase analysis = new LocationPermissionExperimentClient(mScene);
+    //analysis.runAnalysis();
   }
 
   /**
