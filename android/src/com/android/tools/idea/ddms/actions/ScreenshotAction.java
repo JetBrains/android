@@ -21,6 +21,7 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.ddms.screenshot.ScreenshotTask;
 import com.android.tools.idea.ddms.screenshot.ScreenshotViewer;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
@@ -76,6 +77,7 @@ public class ScreenshotAction extends AbstractDeviceAction {
           });
         }
         catch (Exception e) {
+          Logger.getInstance(ScreenshotAction.class).warn("Error while displaying screenshot viewer: ", e);
           Messages.showErrorDialog(project,
                                    AndroidBundle.message("android.ddms.screenshot.generic.error", e),
                                    AndroidBundle.message("android.ddms.actions.screenshot"));
