@@ -1919,6 +1919,18 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintInvalidPermissionInspection extends AndroidLintInspectionBase {
+    public AndroidLintInvalidPermissionInspection() {
+      super(AndroidBundle.message("android.lint.inspections.invalid.permission"), ManifestPermissionAttributeDetector.ISSUE);
+    }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
+      return new AndroidLintQuickFix[]{new RemoveAttributeQuickFix()};
+    }
+  }
+
   public static class AndroidLintInvalidResourceFolderInspection extends AndroidLintInspectionBase {
     public AndroidLintInvalidResourceFolderInspection() {
       super(AndroidBundle.message("android.lint.inspections.invalid.resource.folder"), LocaleFolderDetector.INVALID_FOLDER);
