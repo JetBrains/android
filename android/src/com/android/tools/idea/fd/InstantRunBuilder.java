@@ -45,7 +45,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import static com.android.builder.model.AndroidProject.OPTIONAL_COMPILATION_STEPS;
+import static com.android.builder.model.AndroidProject.PROPERTY_OPTIONAL_COMPILATION_STEPS;
 
 public class InstantRunBuilder implements BeforeRunBuilder {
   private static final Logger LOG = Logger.getInstance(InstantRunBuilder.class);
@@ -227,7 +227,7 @@ public class InstantRunBuilder implements BeforeRunBuilder {
 
     StringBuilder sb = new StringBuilder(50);
     sb.append("-P");
-    sb.append(OPTIONAL_COMPILATION_STEPS);
+    sb.append(PROPERTY_OPTIONAL_COMPILATION_STEPS);
     sb.append("=");
     sb.append(OptionalCompilationStep.INSTANT_DEV.name());
 
