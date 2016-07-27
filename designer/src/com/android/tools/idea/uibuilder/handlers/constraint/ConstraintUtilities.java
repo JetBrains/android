@@ -1131,6 +1131,18 @@ public class ConstraintUtilities {
   }
 
   /**
+   * Returns true if the widget is a direct child of a ConstraintLayout
+   * @return
+   */
+  private static boolean isWidgetInsideConstraintLayout(@NotNull ConstraintWidget widget) {
+    ConstraintWidget parent = widget.getParent();
+    if (parent == null) {
+      return false;
+    }
+    return parent instanceof ConstraintWidgetContainer;
+  }
+
+  /**
    * Utility function to commit to the NlModel the current state of the given widget
    *
    * @param model  the constraintmodel we are working with
@@ -1142,18 +1154,6 @@ public class ConstraintUtilities {
     if (transaction != null) {
       transaction.commit();
     }
-  }
-
-  /**
-   * Returns true if the widget is a direct child of a ConstraintLayout
-   * @return
-   */
-  private static boolean isWidgetInsideConstraintLayout(@NotNull ConstraintWidget widget) {
-    ConstraintWidget parent = widget.getParent();
-    if (parent == null) {
-      return false;
-    }
-    return parent instanceof ConstraintWidgetContainer;
   }
 
   /**
