@@ -1575,6 +1575,7 @@ public class DesignSurface extends JPanel implements Disposable {
 
   public void setMockupVisible(boolean mockupVisible) {
     myMockupVisible = mockupVisible;
+    repaint();
   }
 
   public boolean isMockupVisible() {
