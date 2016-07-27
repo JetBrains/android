@@ -28,7 +28,6 @@ import com.android.tools.sherpa.drawing.decorator.TextWidget;
 import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
 import com.android.tools.sherpa.interaction.WidgetInteractionTargets;
 import com.android.tools.sherpa.structure.WidgetCompanion;
-import com.android.tools.sherpa.structure.WidgetProperties;
 import com.android.tools.sherpa.structure.WidgetsScene;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
@@ -66,27 +65,6 @@ public class ConstraintUtilities {
         }
         case BOTTOM: {
           return SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM;
-        }
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Return the corresponding RTL margin attribute for the given anchor
-   *
-   * @param anchor the anchor we want to use
-   * @return the margin attribute
-   */
-  @Nullable
-  static String getConnectionRtlAttributeMargin(@Nullable ConstraintAnchor anchor) {
-    if (anchor != null) {
-      switch (anchor.getType()) {
-        case LEFT: {
-          return SdkConstants.ATTR_LAYOUT_MARGIN_START;
-        }
-        case RIGHT: {
-          return SdkConstants.ATTR_LAYOUT_MARGIN_END;
         }
       }
     }
@@ -212,7 +190,7 @@ public class ConstraintUtilities {
   /**
    * Reset potential attributes related to the given anchor type
    *
-   * @param attributes the attributes we work on
+   * @param attributes  the attributes we work on
    * @param anchorType the anchor type
    */
   public static void resetAnchor(@NotNull AttributesTransaction attributes, @NotNull ConstraintAnchor.Type anchorType) {
@@ -266,10 +244,10 @@ public class ConstraintUtilities {
   /**
    * Set the position of the attributes
    *
-   * @param widget     the constraint widget we work on
+   * @param widget    the constraint widget we work on
    * @param attributes the associated attributes we work on
-   * @param x          x position (in Dp)
-   * @param y          y position (in Dp)
+   * @param x         x position (in Dp)
+   * @param y         y position (in Dp)
    */
   public static void setEditorPosition(@Nullable ConstraintWidget widget, @NotNull AttributesTransaction attributes,
                                        @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
@@ -277,15 +255,13 @@ public class ConstraintUtilities {
     String attributeY = SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y;
     if (widget != null && hasHorizontalConstraints(widget)) {
       attributes.setAttribute(SdkConstants.TOOLS_URI, attributeX, null);
-    }
-    else {
+    } else {
       String sX = String.format(SdkConstants.VALUE_N_DP, x);
       attributes.setAttribute(SdkConstants.TOOLS_URI, attributeX, sX);
     }
     if (widget != null && hasVerticalConstraints(widget)) {
       attributes.setAttribute(SdkConstants.TOOLS_URI, attributeY, null);
-    }
-    else {
+    } else {
       String sY = String.format(SdkConstants.VALUE_N_DP, y);
       attributes.setAttribute(SdkConstants.TOOLS_URI, attributeY, sY);
     }
@@ -293,7 +269,6 @@ public class ConstraintUtilities {
 
   /**
    * Clear all editor absolute positions
-   *
    * @param attributes
    */
   public static void clearEditorPosition(@NotNull AttributesTransaction attributes) {
@@ -330,18 +305,15 @@ public class ConstraintUtilities {
    * Update the attributes given a new anchor
    *
    * @param attributes the attributes we work on
-   * @param anchor     the anchor we want to update from
+   * @param anchor    the anchor we want to update from
    */
   static void setConnection(@NotNull AttributesTransaction attributes, @NotNull ConstraintAnchor anchor) {
     resetAnchor(attributes, anchor.getType());
 
     String attribute = getConnectionAttribute(anchor, anchor.getTarget());
     String marginAttribute = getConnectionAttributeMargin(anchor);
-    String marginAttributeRtl = getConnectionRtlAttributeMargin(anchor);
 
     if (anchor.isConnected() && attribute != null) {
-      ConstraintWidget owner = anchor.getOwner();
-      WidgetCompanion ownerCompanion = (WidgetCompanion)owner.getCompanionWidget();
       ConstraintWidget target = anchor.getTarget().getOwner();
       WidgetCompanion companion = (WidgetCompanion)target.getCompanionWidget();
       NlComponent targetComponent = (NlComponent)companion.getWidgetModel();
@@ -349,59 +321,29 @@ public class ConstraintUtilities {
 
       attributes.setAttribute(SdkConstants.SHERPA_URI, attribute, targetId);
 
-      String margin = ownerCompanion.getWidgetProperties().getMarginValue(anchor);
-      String marginRtl = ownerCompanion.getWidgetProperties().getMarginRtlValue(anchor);
-      String marginValue = null;
+      if (marginAttribute != null && anchor.getMargin() > 0) {
+        NlModel model = targetComponent.getModel();
+        String margin = String.format(SdkConstants.VALUE_N_DP, anchor.getMargin());
 
-      if (anchor.getMargin() > 0) {
-        marginValue = String.format(SdkConstants.VALUE_N_DP, anchor.getMargin());
-      }
-
-      // if not a reference we need to update it to the new values
-
-      if (margin != null && !ownerCompanion.getWidgetProperties().isMarginReference(anchor)) {
-        margin = marginValue;
-      }
-      if (marginRtl != null && !ownerCompanion.getWidgetProperties().isMarginRtlReference(anchor)) {
-        marginRtl = marginValue;
-      }
-
-      NlModel model = targetComponent.getModel();
-      if (supportsStartEnd(model)) { // If we need to set RTL attributes
-        if (marginRtl == null) {
-          if (margin != null) {
-            marginRtl = margin;
+        if (isRtlMargin(marginAttribute) && supportsStartEnd(model)) {
+          if (requiresRightLeft(model)) {
+            attributes.setAttribute(SdkConstants.NS_RESOURCES, marginAttribute, margin);
           }
-          else {
-            marginRtl = marginValue;
-          }
+          TextDirection direction = TextDirection.fromConfiguration(model.getConfiguration());
+          String rtlAttribute = getRtlMarginAttribute(marginAttribute, direction);
+          attributes.setAttribute(SdkConstants.NS_RESOURCES, rtlAttribute, margin);
+        } else {
+          attributes.setAttribute(SdkConstants.NS_RESOURCES, marginAttribute, margin);
         }
-        if (requiresRightLeft(model)) { // If in addition to RTL attribute we need right/left...
-          if (margin == null) {
-            margin = marginRtl;
-          }
-        }
-      }
-      else if (margin == null) {
-        margin = marginValue;
-      }
-
-      if (marginAttribute != null && margin != null) {
-        attributes.setAttribute(SdkConstants.NS_RESOURCES, marginAttribute, margin);
-      }
-
-      if (marginAttributeRtl != null && marginRtl != null) {
-        attributes.setAttribute(SdkConstants.NS_RESOURCES, marginAttributeRtl, marginRtl);
       }
 
       String attributeCreator = getConnectionAttributeCreator(anchor);
       if (anchor.getConnectionCreator() != 0) {
         attributes.setAttribute(SdkConstants.TOOLS_URI,
-                                attributeCreator, String.valueOf(anchor.getConnectionCreator()));
-      }
-      else {
+                               attributeCreator, String.valueOf(anchor.getConnectionCreator()));
+      } else {
         attributes.setAttribute(SdkConstants.TOOLS_URI,
-                                attributeCreator, null);
+                               attributeCreator, null);
       }
     }
   }
@@ -424,8 +366,7 @@ public class ConstraintUtilities {
   static String getRtlMarginAttribute(String attribute, TextDirection direction) {
     if (SdkConstants.ATTR_LAYOUT_MARGIN_LEFT.equals(attribute)) {
       return direction.getAttrMarginLeft();
-    }
-    else if (SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT.equals(attribute)) {
+    } else if (SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT.equals(attribute)) {
       return direction.getAttrMarginRight();
     }
     return direction.getAttrMarginLeft();
@@ -435,7 +376,7 @@ public class ConstraintUtilities {
    * Update the attributes given a new dimension
    *
    * @param attributes the attributes we work on
-   * @param widget     the widget we use as a model
+   * @param widget    the widget we use as a model
    */
   public static void setDimension(@NotNull AttributesTransaction attributes, @NotNull ConstraintWidget widget) {
     String width;
@@ -452,8 +393,8 @@ public class ConstraintUtilities {
         width = String.format(SdkConstants.VALUE_N_DP, widget.getWidth());
     }
     attributes.setAttribute(SdkConstants.ANDROID_URI,
-                            SdkConstants.ATTR_LAYOUT_WIDTH,
-                            width);
+                           SdkConstants.ATTR_LAYOUT_WIDTH,
+                           width);
     String height;
     switch (widget.getVerticalDimensionBehaviour()) {
       case ANY: {
@@ -468,21 +409,21 @@ public class ConstraintUtilities {
         height = String.format(SdkConstants.VALUE_N_DP, widget.getHeight());
     }
     attributes.setAttribute(SdkConstants.ANDROID_URI,
-                            SdkConstants.ATTR_LAYOUT_HEIGHT,
-                            height);
+                           SdkConstants.ATTR_LAYOUT_HEIGHT,
+                           height);
   }
 
   /**
    * Update the attributes horizontal bias
    *
    * @param attributes the attributes we work on
-   * @param widget     the widget we use as a model
+   * @param widget    the widget we use as a model
    */
   static void setHorizontalBias(@NotNull AttributesTransaction attributes, @NotNull ConstraintWidget widget) {
     float bias = widget.getHorizontalBiasPercent();
     if (bias != 0.5f) {
       attributes.setAttribute(SdkConstants.SHERPA_URI,
-                              SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, String.valueOf(bias));
+                             SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, String.valueOf(bias));
     }
   }
 
@@ -667,8 +608,7 @@ public class ConstraintUtilities {
     if (margin == null) {
       if (attr == SdkConstants.ATTR_LAYOUT_MARGIN_START) {
         margin = attributes.getAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT);
-      }
-      else if (attr == SdkConstants.ATTR_LAYOUT_MARGIN_END) {
+      } else if (attr == SdkConstants.ATTR_LAYOUT_MARGIN_END) {
         margin = attributes.getAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT);
       }
     }
@@ -762,8 +702,7 @@ public class ConstraintUtilities {
         if (constraintA == constraintB && constraintA == ConstraintAnchor.Type.BASELINE) {
           widgetSrc.getAnchor(constraintA).connect(widget.getAnchor(constraintB), 0,
                                                    ConstraintAnchor.Strength.STRONG, connectionCreator, true);
-        }
-        else {
+        } else {
           widgetSrc.connect(constraintA, widget, constraintB, 0, ConstraintAnchor.Strength.STRONG, connectionCreator);
         }
       }
@@ -822,7 +761,26 @@ public class ConstraintUtilities {
     }
 
     AttributesTransaction attributes = component.startAttributeTransaction();
-
+    // We only want to update if it's a deep update or if our component's parent ISN'T a ConstraintLayout
+    // If our parent is a ConstraintLayout (or we are), it is authoritative, so no need to update anything but a deep update...
+    boolean update = deepUpdate
+                     || (!(widget.getParent() instanceof ConstraintWidgetContainer)
+                          && !(widget instanceof ConstraintWidgetContainer));
+    if (!update) {
+      WidgetContainer parent = (WidgetContainer)widget.getParent();
+      if (parent != null && !(parent instanceof ConstraintWidgetContainer)) {
+        widget.setDimension(constraintModel.pxToDp(component.w),
+                               constraintModel.pxToDp(component.h));
+        int x = constraintModel.pxToDp(component.x) - parent.getDrawX();
+        int y = constraintModel.pxToDp(component.y) - parent.getDrawY();
+        if (widget.getX() != x || widget.getY() != y) {
+          widget.setOrigin(x, y);
+          widget.forceUpdateDrawPosition();
+        }
+      }
+      widget.setBaselineDistance(constraintModel.pxToDp(component.getBaseline()));
+      return;
+    }
     if (!(widget instanceof Guideline)) {
       widget.setVisibility(component.getAndroidViewVisibility());
     }
@@ -895,7 +853,7 @@ public class ConstraintUtilities {
       widget.setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.FIXED);
     }
     String layout_height = attributes.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_HEIGHT);
-    if (component.h == 0 || getLayoutDimensionDpValue(component, layout_height) == 0) {
+    if (component.h == 0 ||  getLayoutDimensionDpValue(component, layout_height) == 0) {
       widget.setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.ANY);
     }
     else if (layout_height != null && layout_height.equalsIgnoreCase(SdkConstants.VALUE_WRAP_CONTENT)) {
@@ -929,8 +887,7 @@ public class ConstraintUtilities {
       if (!(parentContainer instanceof ConstraintWidgetContainer)) {
         x = constraintModel.pxToDp(component.x - component.getParent().x);
         y = constraintModel.pxToDp(component.y - component.getParent().y);
-      }
-      else {
+      } else {
         x -= parentContainer.getDrawX();
         y -= parentContainer.getDrawY();
       }
@@ -956,13 +913,6 @@ public class ConstraintUtilities {
     String bottom2 = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF);
     String baseline = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF);
     String centerY = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_CENTER_Y_TO_CENTER_Y_OF);
-
-    WidgetCompanion companion = (WidgetCompanion)widget.getCompanionWidget();
-    companion.getWidgetProperties().clear();
-    setMarginType(ConstraintAnchor.Type.LEFT, component, widget);
-    setMarginType(ConstraintAnchor.Type.RIGHT, component, widget);
-    setMarginType(ConstraintAnchor.Type.TOP, component, widget);
-    setMarginType(ConstraintAnchor.Type.BOTTOM, component, widget);
 
     setTarget(model, scene, left1, widget, ConstraintAnchor.Type.LEFT, ConstraintAnchor.Type.LEFT);
     setStartMargin(left1, component, widget);
@@ -1000,6 +950,7 @@ public class ConstraintUtilities {
     }
 
     // Update text decorator
+    WidgetCompanion companion = (WidgetCompanion)widget.getCompanionWidget();
     WidgetDecorator decorator = companion.getWidgetDecorator(WidgetDecorator.BLUEPRINT_STYLE);
     if (decorator != null && decorator instanceof TextWidget) {
       TextWidget textWidget = (TextWidget)decorator;
@@ -1030,50 +981,6 @@ public class ConstraintUtilities {
   }
 
   /**
-   * Set the type of margin (if it contains a literal value or a dimens reference)
-   *
-   * @param attribute
-   * @param type
-   * @param component
-   * @param widget
-   */
-  private static void setMarginType(ConstraintAnchor.Type type, NlComponent component, ConstraintWidget widget) {
-    String margin = null;
-    String marginRtl = null;
-    switch (type) {
-      case LEFT: {
-        margin = component.getAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT);
-        marginRtl = component.getAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_START);
-      }
-      break;
-      case RIGHT: {
-        margin = component.getAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT);
-        marginRtl = component.getAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_END);
-      }
-      break;
-      case TOP: {
-        margin = component.getAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_TOP);
-      }
-      break;
-      case BOTTOM: {
-        margin = component.getAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM);
-      }
-      break;
-    }
-    if (margin == null && marginRtl == null) {
-      return;
-    }
-    ConstraintAnchor anchor = widget.getAnchor(type);
-    WidgetCompanion companion = (WidgetCompanion)widget.getCompanionWidget();
-    if (margin != null) {
-      companion.getWidgetProperties().setMarginReference(anchor, margin);
-    }
-    if (marginRtl != null) {
-      companion.getWidgetProperties().setMarginRtlReference(anchor, marginRtl);
-    }
-  }
-
-  /**
    * Update the given guideline with the attributes set in the NlComponent
    *
    * @param component the component we get the attributes from
@@ -1088,8 +995,7 @@ public class ConstraintUtilities {
       int value = 0;
       try {
         value = Integer.parseInt(relativePercent);
-      }
-      catch (NumberFormatException e) {
+      } catch (NumberFormatException e) {
         // ignore
       }
       guideline.setGuidePercent(value);
@@ -1166,7 +1072,7 @@ public class ConstraintUtilities {
    * Utility function to commit to the NlModel the current state of all widgets
    *
    * @param nlModel
-   * @param commit  if false, the changes are only reflected in memory not saved to the XML file.
+   * @param commit if false, the changes are only reflected in memory not saved to the XML file.
    */
   static void saveModelToXML(@NotNull NlModel nlModel, boolean commit) {
     ConstraintModel model = ConstraintModel.getConstraintModel(nlModel);
@@ -1208,8 +1114,7 @@ public class ConstraintUtilities {
     AttributesTransaction attributes = component.startAttributeTransaction();
     if (isInsideConstraintLayout || isDroppedWidget) {
       setEditorPosition(widget, attributes, widget.getX(), widget.getY());
-    }
-    else {
+    } else {
       clearEditorPosition(attributes);
     }
 
@@ -1241,7 +1146,6 @@ public class ConstraintUtilities {
 
   /**
    * Returns true if the widget is a direct child of a ConstraintLayout
-   *
    * @return
    */
   private static boolean isWidgetInsideConstraintLayout(@NotNull ConstraintWidget widget) {
@@ -1277,7 +1181,7 @@ public class ConstraintUtilities {
     AndroidVersion compileSdkVersion = getCompileSdkVersion(model);
     return (compileSdkVersion == null ||
             compileSdkVersion.isGreaterOrEqualThan(RtlSupportProcessor.RTL_TARGET_SDK_START)
-            && getTargetSdkVersion(model).isGreaterOrEqualThan(RtlSupportProcessor.RTL_TARGET_SDK_START));
+                && getTargetSdkVersion(model).isGreaterOrEqualThan(RtlSupportProcessor.RTL_TARGET_SDK_START));
   }
 
   static boolean requiresRightLeft(@NotNull NlModel model) {

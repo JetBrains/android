@@ -350,8 +350,6 @@ public class WidgetConstraintPanel extends JPanel {
       mConstraintModel.getSelection().addModifiedWidget(mWidget);
     }
     mWidgetModified = true;
-    // TODO: clean up save model
-    // mConstraintModel.saveToXML(true);
     mConstraintModel.getDrawConstraintModels().forEach(DrawConstraintModel::repaint);
     saveWidget();
   }
