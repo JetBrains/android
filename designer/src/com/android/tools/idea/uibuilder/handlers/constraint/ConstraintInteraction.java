@@ -17,16 +17,11 @@ package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.SelectionModel;
 import com.android.tools.idea.uibuilder.model.SwingCoordinate;
 import com.android.tools.idea.uibuilder.surface.Interaction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.android.tools.sherpa.structure.Selection;
-import com.android.tools.sherpa.structure.WidgetCompanion;
 import org.intellij.lang.annotations.JdkConstants.InputEventMask;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.ArrayList;
 
 /**
  * Implements a mouse interaction started on a ConstraintLayout view group handler
@@ -78,11 +73,12 @@ public class ConstraintInteraction extends Interaction {
   @Override
   public void update(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiers) {
     super.update(x, y, modifiers);
-    DrawConstraintModel model = ConstraintModel.getDrawConstraintModel(myScreenView);
-    model.updateModifiers(modifiers);
+    DrawConstraintModel drawModel = ConstraintModel.getDrawConstraintModel(myScreenView);
+    drawModel.updateModifiers(modifiers);
     int androidX = Coordinates.getAndroidX(myScreenView, x);
     int androidY = Coordinates.getAndroidY(myScreenView, y);
-    model.mouseDragged(androidX, androidY);
+    drawModel.mouseDragged(androidX, androidY);
+    ConstraintModel.getConstraintModel(myScreenView.getModel()).updateXml();
   }
 
   /**
@@ -96,18 +92,20 @@ public class ConstraintInteraction extends Interaction {
   @Override
   public void end(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiers, boolean canceled) {
     super.end(x, y, modifiers, canceled);
+    ConstraintModel model = ConstraintModel.getConstraintModel(myScreenView.getModel());
     if (canceled) {
-      ConstraintModel model = ConstraintModel.getConstraintModel(myScreenView.getModel());
-      model.allowsUpdate(true);
+      model.rollbackXml();
       return;
     }
 
     final int ax = Coordinates.getAndroidX(myScreenView, x);
     final int ay = Coordinates.getAndroidY(myScreenView, y);
 
-    DrawConstraintModel model = ConstraintModel.getDrawConstraintModel(myScreenView);
-    model.updateModifiers(modifiers);
-    model.mouseReleased(ax, ay);
+    model.saveToXML(false);
+    DrawConstraintModel drawConstraintModel = ConstraintModel.getDrawConstraintModel(myScreenView);
+    drawConstraintModel.updateModifiers(modifiers);
+    drawConstraintModel.mouseReleased(ax, ay);
+
 
     myScreenView.getSurface().repaint();
   }
