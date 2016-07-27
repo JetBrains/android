@@ -65,12 +65,16 @@ public class ChooseGradleHomeDialog extends DialogWrapper {
   }
 
   public ChooseGradleHomeDialog(@Nullable String minimumGradleVersion) {
+    this("Import Gradle Project", minimumGradleVersion);
+  }
+
+  public ChooseGradleHomeDialog(@NotNull String title, @Nullable String minimumGradleVersion) {
     super(null);
     myMinimumGradleVersion = minimumGradleVersion;
     myInstallationManager = ServiceManager.getService(GradleInstallationManager.class);
     init();
     initValidation();
-    setTitle("Import Gradle Project");
+    setTitle(title);
 
     FileChooserDescriptor fileChooserDescriptor = getGradleHomeFileChooserDescriptor();
     myGradleHomePathField.addBrowseFolderListener("", GradleBundle.message("gradle.settings.text.home.path"), null, fileChooserDescriptor,

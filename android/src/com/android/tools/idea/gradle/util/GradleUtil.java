@@ -30,6 +30,7 @@ import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyMo
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
+import com.android.tools.idea.gradle.project.ChooseGradleHomeDialog;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.templates.TemplateManager;
 import com.google.common.annotations.VisibleForTesting;
@@ -103,6 +104,8 @@ import static com.intellij.notification.NotificationType.WARNING;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getExecutionSettings;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getSettings;
+import static com.intellij.openapi.ui.Messages.getQuestionIcon;
+import static com.intellij.openapi.ui.Messages.showOkCancelDialog;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isEmptyOrSpaces;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -146,6 +149,58 @@ public final class GradleUtil {
   private static final Pattern GRADLE_DISTRIBUTION_URL_PATTERN = Pattern.compile(".*-([^-]+)-([^.]+).zip");
 
   private GradleUtil() {
+  }
+
+  public static boolean updateGradleVersion(@NotNull Project project, @NotNull GradleVersion gradleVersion) throws IOException {
+    // The project is using a version of Gradle with security issue. Prompt user to upgrade.
+    GradleProjectSettings gradleSettings = getGradleProjectSettings(project);
+    if (gradleSettings != null) {
+      DistributionType distributionType = gradleSettings.getDistributionType();
+
+      if (distributionType == DEFAULT_WRAPPED) {
+        File wrapperPropertiesFile = findWrapperPropertiesFile(project);
+        if (wrapperPropertiesFile != null) {
+          return updateGradleDistributionUrl(gradleVersion.toString(), wrapperPropertiesFile);
+        }
+      }
+      else if (distributionType == LOCAL) {
+        String title = "Update Gradle Version";
+
+        String msg = "Would you like the project to use the Gradle wrapper?\n" +
+                     "(The wrapper will automatically download version " + gradleVersion.toString() + ").\n\n" +
+                     "Click 'OK' to use the Gradle wrapper, or 'Cancel' to manually set the path of a local Gradle distribution.";
+        int answer = showOkCancelDialog(project, msg, title, getQuestionIcon());
+        if (answer == Messages.OK) {
+          // Create wrapper.
+          return createGradleWrapper(project, gradleVersion.toString(), gradleSettings);
+        }
+        ChooseGradleHomeDialog dialog = new ChooseGradleHomeDialog(title, gradleVersion.toString());
+        if (dialog.showAndGet()) {
+          String enteredGradleHomePath = dialog.getEnteredGradleHomePath();
+          gradleSettings.setGradleHome(enteredGradleHomePath);
+          gradleSettings.setDistributionType(LOCAL);
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  public static boolean createGradleWrapper(@NotNull Project project,
+                                            @NotNull String gradleVersion,
+                                            @NotNull GradleProjectSettings gradleSettings) throws IOException {
+    File projectDirPath = getBaseDirPath(project);
+
+    // attempt to delete the whole gradle wrapper folder.
+    File gradleDirPath = new File(projectDirPath, FD_GRADLE);
+    if (!delete(gradleDirPath)) {
+      // deletion failed. Let sync continue.
+      return false;
+    }
+
+    createGradleWrapper(projectDirPath, gradleVersion);
+    gradleSettings.setDistributionType(DEFAULT_WRAPPED);
+    return true;
   }
 
   @NotNull
@@ -194,7 +249,7 @@ public final class GradleUtil {
                         "to the project's gradle.properties file?\n\n" +
                         "(Any existing JVM arguments in the gradle.properties file will be overwritten.)", jvmArgs);
 
-        int result = Messages.showYesNoDialog(project, msg, "Gradle Settings", Messages.getQuestionIcon());
+        int result = Messages.showYesNoDialog(project, msg, "Gradle Settings", getQuestionIcon());
         if (result == Messages.YES) {
           try {
             GradleProperties gradleProperties = new GradleProperties(project);
@@ -1314,8 +1369,25 @@ public final class GradleUtil {
   }
 
   /**
-   * Updates the Android Gradle Experimental plugin version, and optionally the Gradle version of a given project. This method notifies the
-   * user if the version update failed.
+   * Updates the Android Gradle plugin version, and optionally the Gradle version of a given project. This method notifies the user if
+   * the version update failed.
+   *
+   * @param project                 the given project.
+   * @param pluginVersion           the Android Gradle plugin version to update to.
+   * @param gradleVersion           the Gradle version to update to.
+   * @param invalidateSyncOnFailure indicates if the last project sync should be invalidated if the version update fails.
+   * @return {@code true} if the plugin version was updated successfully; {@code false} otherwise.
+   */
+  public static boolean updateGradlePluginVersionAndNotifyFailure(@NotNull Project project,
+                                                                  @NotNull GradleVersion pluginVersion,
+                                                                  @Nullable String gradleVersion,
+                                                                  boolean invalidateSyncOnFailure) {
+    return updateGradlePluginVersionAndNotifyFailure(project, pluginVersion, gradleVersion, false, invalidateSyncOnFailure);
+  }
+
+  /**
+   * Updates the Android Gradle 'experimental' plugin version, and optionally the Gradle version of a given project. This method notifies
+   * the user if the version update failed.
    *
    * @param project                 the given project.
    * @param pluginVersion           the Android Gradle Experimental plugin version to update to.
@@ -1330,8 +1402,34 @@ public final class GradleUtil {
     return updateGradlePluginVersionAndNotifyFailure(project, pluginVersion, gradleVersion, true, invalidateSyncOnFailure);
   }
 
+  /**
+   * Updates the Android Gradle 'experimental' plugin version, and optionally the Gradle version of a given project. This method notifies
+   * the user if the version update failed.
+   *
+   * @param project                 the given project.
+   * @param pluginVersion           the Android Gradle Experimental plugin version to update to.
+   * @param gradleVersion           the Gradle version to update to.
+   * @param invalidateSyncOnFailure indicates if the last project sync should be invalidated if the version update fails.
+   * @return {@code true} if the plugin version was updated successfully; {@code false} otherwise.
+   */
+  public static boolean updateGradleExperimentalPluginVersionAndNotifyFailure(@NotNull Project project,
+                                                                              @NotNull GradleVersion pluginVersion,
+                                                                              @Nullable String gradleVersion,
+                                                                              boolean invalidateSyncOnFailure) {
+    return updateGradlePluginVersionAndNotifyFailure(project, pluginVersion, gradleVersion, true, invalidateSyncOnFailure);
+  }
+
   private static boolean updateGradlePluginVersionAndNotifyFailure(@NotNull Project project,
                                                                    @NotNull String pluginVersion,
+                                                                   @Nullable String gradleVersion,
+                                                                   boolean usingExperimentalPlugin,
+                                                                   boolean invalidateSyncOnFailure) {
+    return updateGradlePluginVersionAndNotifyFailure(project, GradleVersion.parse(pluginVersion), gradleVersion, usingExperimentalPlugin,
+                                                     invalidateSyncOnFailure);
+  }
+
+  private static boolean updateGradlePluginVersionAndNotifyFailure(@NotNull Project project,
+                                                                   @NotNull GradleVersion pluginVersion,
                                                                    @Nullable String gradleVersion,
                                                                    boolean usingExperimentalPlugin,
                                                                    boolean invalidateSyncOnFailure) {
@@ -1381,12 +1479,18 @@ public final class GradleUtil {
     return updateGradlePluginVersion(project, pluginVersion, gradleVersion, false);
   }
 
+  public static boolean updateGradlePluginVersion(@NotNull Project project,
+                                                   @NotNull String pluginVersion,
+                                                   @Nullable String gradleVersion,
+                                                   boolean usingExperimentalPlugin) {
+    return updateGradlePluginVersion(project, GradleVersion.parse(pluginVersion), gradleVersion, usingExperimentalPlugin);
+  }
+
   private static boolean updateGradlePluginVersion(@NotNull Project project,
-                                                  @NotNull String pluginVersion,
-                                                  @Nullable String gradleVersion,
-                                                  boolean usingExperimentalPlugin) {
+                                                   @NotNull GradleVersion pluginVersion,
+                                                   @Nullable String gradleVersion,
+                                                   boolean usingExperimentalPlugin) {
     List<GradleBuildModel> modelsToUpdate = Lists.newArrayList();
-    GradleVersion parsedPluginVersion = GradleVersion.parse(pluginVersion);
     Ref<Boolean> alreadyInCorrectVersion = new Ref<>(false);
 
     processBuildModelsRecursively(project, buildModel -> {
@@ -1394,11 +1498,11 @@ public final class GradleUtil {
       for (ArtifactDependencyModel dependency : dependencies.artifacts(CLASSPATH)) {
         if (isAndroidPlugin(dependency, usingExperimentalPlugin)) {
           String versionValue = dependency.version().value();
-          if (versionValue != null && parsedPluginVersion.compareTo(versionValue) == 0) {
+          if (versionValue != null && pluginVersion.compareTo(versionValue) == 0) {
             alreadyInCorrectVersion.set(true);
           }
           else {
-            dependency.setVersion(parsedPluginVersion.toString());
+            dependency.setVersion(pluginVersion.toString());
             modelsToUpdate.add(buildModel);
           }
           break;
