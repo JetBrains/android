@@ -227,6 +227,13 @@ public class AndroidLintTest extends AndroidTestCase {
                   "/res/layout/layout.xml", "xml");
   }
 
+  public void testInvalidPermission() throws Exception {
+    deleteManifest();
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintInvalidPermissionInspection(),
+                  AndroidBundle.message("android.lint.fix.remove.attribute"),
+                  "AndroidManifest.xml", "xml");
+  }
+
   public void testUselessLeaf() throws Exception {
     doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintUselessLeafInspection(),
                   AndroidBundle.message("android.lint.fix.remove.unnecessary.view"),
