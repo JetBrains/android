@@ -244,8 +244,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
     myAllowsUpdate = value;
     ourLock.unlock();
     if (value) {
-      // TODO: clean up save model
-      saveToXML(true);
+      mySaveXmlTimer.reset();
     }
     else {
       mySaveXmlTimer.cancel();
@@ -442,8 +441,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
    * Schedule an XML save
    */
   public void requestSaveToXML() {
-    // TODO: clean up save model
-    saveToXML(true);
+    mySaveXmlTimer.reset();
   }
 
   /**
