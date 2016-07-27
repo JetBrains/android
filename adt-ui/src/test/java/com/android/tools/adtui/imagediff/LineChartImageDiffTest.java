@@ -190,7 +190,7 @@ public class LineChartImageDiffTest {
   private void addEvent(Color eventColor, boolean isFilledEvent, boolean isBlockingEvent) {
     DefaultDataSeries<DurationData> eventData = new DefaultDataSeries<>();
     RangedSeries<DurationData> eventSeries = new RangedSeries<>(myXRange, eventData);
-    EventConfig eventConfig = new EventConfig(eventColor).setText("Test Event").setIcon(UIManager.getIcon("Menu.arrowIcon"));
+    EventConfig eventConfig = new EventConfig(eventColor).setText("Test Event").setIcon(UIManager.getIcon("Tree.leafIcon"));
     eventConfig.setFilled(isFilledEvent).setBlocking(isBlockingEvent);
     myLineChart.addEvent(eventSeries, eventConfig);
 
