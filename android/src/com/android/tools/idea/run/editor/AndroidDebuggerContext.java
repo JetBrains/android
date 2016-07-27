@@ -34,11 +34,11 @@ public class AndroidDebuggerContext implements JDOMExternalizable {
   private final String myDefaultDebuggerType;
 
   public AndroidDebuggerContext(@NotNull String defaultDebuggerType) {
+    myDefaultDebuggerType = defaultDebuggerType;
     DEBUGGER_TYPE = getDefaultAndroidDebuggerType();
     for (AndroidDebugger androidDebugger : getAndroidDebuggers()) {
       myAndroidDebuggerStates.put(androidDebugger.getId(), androidDebugger.createState());
     }
-    myDefaultDebuggerType = defaultDebuggerType;
   }
 
   @Override
