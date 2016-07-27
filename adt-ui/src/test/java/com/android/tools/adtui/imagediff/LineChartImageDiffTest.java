@@ -24,7 +24,6 @@ import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.*;
 import com.intellij.util.containers.ImmutableList;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -224,15 +223,5 @@ public class LineChartImageDiffTest {
       myCurrentTimeUs += TIME_DELTA_US;
     }
     myChoreographer.step();
-  }
-
-  @After
-  public void tearDown() {
-    myLineChart = null;
-    myData = null;
-    myXRange = null;
-    myContentPane = null;
-    myChoreographer = null;
-    myComponents = null;
   }
 }
