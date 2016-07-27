@@ -98,6 +98,11 @@ public class NativeArtifactStub implements NativeArtifact {
     return "";
   }
 
+  @Override
+  public String getTargetName() {
+    return "?";
+  }
+
   public void addExportedHeaders(@NotNull String dirPath) {
     File directory = myFileStructure.createProjectDir(dirPath);
     myExportedHeaders.add(directory);
