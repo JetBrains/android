@@ -27,37 +27,38 @@ import java.util.Collection;
 import static org.junit.Assert.*;
 
 /**
- * Tests for {@link PostProjectSetupTasksExecutor}.
+ * Tests for {@link PostProjectSetupTasksExecutor#isForcedPluginVersionUpgradeNecessary(AndroidGradleModelVersions)}.
  */
 @RunWith(Parameterized.class)
-public class PostProjectSetupTasksExecutorTest {
+public class IsForcedPluginVersionUpgradeNecessaryTest {
   @Parameterized.Parameters
   public static Collection<Object[]> data() {
-    return Arrays.asList(new Object[][] {
-      { "2.0.0-alpha9", "2.0.0-alpha9", false },
-      { "2.0.0-alpha9", "2.0.0-alpha10", true },
-      { "2.0.0-alpha9", "2.0.0-beta1", true },
-      { "2.0.0-alpha9", "2.0.0", true },
-      { "2.0.0", "2.0.1", false },
-      { "2.0.0", "3.0.0", false },
-      { "1.5.0-beta1", "2.0.0-alpha10", true },
-      { "1.5.0", "2.0.0-alpha10", false },
+    return Arrays.asList(new Object[][]{
+      {"2.0.0-alpha9", "2.0.0-alpha9", false},
+      {"2.0.0-alpha9", "2.0.0-alpha10", true},
+      {"2.0.0-alpha9", "2.0.0-beta1", true},
+      {"2.0.0-alpha9", "2.0.0", true},
+      {"2.0.0", "2.0.1", false},
+      {"2.0.0", "3.0.0", false},
+      {"1.5.0-beta1", "2.0.0-alpha10", true},
+      {"1.5.0", "2.0.0-alpha10", false},
     });
   }
 
   @NotNull private final GradleVersion myCurrent;
-  @NotNull private final String myLatest;
+  @NotNull private final GradleVersion myLatest;
 
   private final boolean myForceUpgrade;
 
-  public PostProjectSetupTasksExecutorTest(@NotNull String current, @NotNull String latest, boolean forceUpgrade) {
+  public IsForcedPluginVersionUpgradeNecessaryTest(@NotNull String current, @NotNull String latest, boolean forceUpgrade) {
     myCurrent = GradleVersion.parse(current);
-    myLatest = latest;
+    myLatest = GradleVersion.parse(latest);
     myForceUpgrade = forceUpgrade;
   }
 
   @Test
   public void testIsPluginVersionUpgradeNecessary() {
-    assertEquals(myForceUpgrade, PostProjectSetupTasksExecutor.isForcedPluginVersionUpgradeNecessary(myCurrent, myLatest));
+    AndroidGradleModelVersions modelVersions = new AndroidGradleModelVersions(myCurrent, myLatest, false);
+    assertEquals(myForceUpgrade, PostProjectSetupTasksExecutor.isForcedPluginVersionUpgradeNecessary(modelVersions));
   }
 }
