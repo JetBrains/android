@@ -754,6 +754,116 @@ public class BuildOutputParserTest {
   }
 
   @Test
+  public void buildCommandFailed() {
+    String output =
+      ":app:externalNativeBuildDebug\n" +
+      "  building /foo/bar/libtest.so\n" +
+      ":app:externalNativeBuildDebug FAILED\n" +
+      "\n" +
+      "FAILURE: Build failed with an exception.\n" +
+      "\n" +
+      "* What went wrong:\n" +
+      "Execution failed for task ':app:externalNativeBuildDebug'.\n" +
+      "> Build command failed.\n" +
+      "  Error while executing '/foo/bar/cmake' with arguments {--build /foo/bar --target test}\n" +
+      "  [1/2] Building CXX object test.cpp.o\n" +
+      "  FAILED: /foo/bar/clang++ /foo/bar/test.cpp\n" +
+      "  /foo/bar/test.cpp:8:5: error: use of undeclared identifier 'foo'; did you mean 'for'?\n" +
+      "      foo;\n" +
+      "      ^~~\n" +
+      "      for\n" +
+      "  /foo/bar/test.cpp:8:8: error: expected '(' after 'for'\n" +
+      "      foo;\n" +
+      "         ^\n" +
+      "  /foo/bar/test.cpp:9:15: error: expected expression\n" +
+      "      int bar = ;\n" +
+      "                ^\n" +
+      "  /foo/bar/test.cpp:10:5: error: use of undeclared identifier 'baz'; did you mean 'bar'?\n" +
+      "      baz\n" +
+      "      ^~~\n" +
+      "      bar\n" +
+      "  /foo/bar/test.cpp:9:9: note: 'bar' declared here\n" +
+      "      int bar = ;\n" +
+      "          ^\n" +
+      "  /foo/bar/test.cpp:10:8: error: expected ';' after expression\n" +
+      "      baz\n" +
+      "         ^\n" +
+      "         ;\n" +
+      "  /foo/bar/test.cpp:7:5: warning: expression result unused [-Wunused-value]\n" +
+      "      0;\n" +
+      "      ^\n" +
+      "  /foo/bar/test.cpp:10:5: warning: expression result unused [-Wunused-value]\n" +
+      "      baz\n" +
+      "      ^~~\n" +
+      "  2 warnings and 5 errors generated.\n" +
+      "  ninja: build stopped: subcommand failed.\n" +
+      "\n" +
+      "\n" +
+      "* Try:\n" +
+      "Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output.\n" +
+      "\n" +
+      "BUILD FAILED\n" +
+      "\n" +
+      "Total time: 0.504 secs\n";
+    assertEquals("0: Simple::app:externalNativeBuildDebug\n" +
+                 "1: Simple:  building /foo/bar/libtest.so\n" +
+                 "2: Simple::app:externalNativeBuildDebug FAILED\n" +
+                 "3: Error:error: use of undeclared identifier 'foo'; did you mean 'for'?\n" +
+                 "\t/foo/bar/test.cpp:8:5\n" +
+                 "4: Error:error: expected '(' after 'for'\n" +
+                 "\t/foo/bar/test.cpp:8:8\n" +
+                 "5: Error:error: expected expression\n" +
+                 "\t/foo/bar/test.cpp:9:15\n" +
+                 "6: Error:error: use of undeclared identifier 'baz'; did you mean 'bar'?\n" +
+                 "\t/foo/bar/test.cpp:10:5\n" +
+                 "7: Info:note: 'bar' declared here\n" +
+                 "\t/foo/bar/test.cpp:9:9\n" +
+                 "8: Error:error: expected ';' after expression\n" +
+                 "\t/foo/bar/test.cpp:10:8\n" +
+                 "9: Warning:warning: expression result unused [-Wunused-value]\n" +
+                 "\t/foo/bar/test.cpp:7:5\n" +
+                 "10: Warning:warning: expression result unused [-Wunused-value]\n" +
+                 "\t/foo/bar/test.cpp:10:5\n" +
+                 "11: Info:BUILD FAILED\n" +
+                 "12: Info:Total time: 0.504 secs\n",
+                 toString(parser.parseGradleOutput(output)));
+    output =
+      ":app:externalNativeBuildDebug\n" +
+      "  building C:\\foo\\bar\\libtest.so\n" +
+      ":app:externalNativeBuildDebug FAILED\n" +
+      "\n" +
+      "FAILURE: Build failed with an exception.\n" +
+      "\n" +
+      "* What went wrong:\n" +
+      "Execution failed for task ':app:externalNativeBuildDebug'.\n" +
+      "> Build command failed.\n" +
+      "  Error while executing 'C:\\foo\\bar\\cmake.exe' with arguments {--build C:\\foo\\bar --target test}\n" +
+      "  [1/2] Building CXX object test.cpp.o\n" +
+      "  FAILED: C:\\foo\\bar\\clang++.exe C:\\foo\\bar\\test.cpp\n" +
+      "  C:\\foo\\bar\\test.cpp:2:10: fatal error: 'garbage' file not found\n" +
+      "  #include \"garbage\"\n" +
+      "           ^\n" +
+      "  1 error generated.\n" +
+      "  ninja: build stopped: subcommand failed.\n" +
+      "\n" +
+      "\n" +
+      "* Try:\n" +
+      "Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output.\n" +
+      "\n" +
+      "BUILD FAILED\n" +
+      "\n" +
+      "Total time: 6.675 secs\n";
+    assertEquals("0: Simple::app:externalNativeBuildDebug\n" +
+                 "1: Simple:  building C:\\foo\\bar\\libtest.so\n" +
+                 "2: Simple::app:externalNativeBuildDebug FAILED\n" +
+                 "3: Error:fatal error: 'garbage' file not found\n" +
+                 "\tC:\\foo\\bar\\test.cpp:2:10\n" +
+                 "4: Info:BUILD FAILED\n" +
+                 "5: Info:Total time: 6.675 secs\n",
+                 toString(parser.parseGradleOutput(output)));
+  }
+
+  @Test
   public void unexpectedOutput() throws Exception {
     // To reproduce, create a source file with two duplicate string item definitions
     createTempXmlFile();
