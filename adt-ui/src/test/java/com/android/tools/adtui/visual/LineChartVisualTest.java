@@ -95,7 +95,7 @@ public class LineChartVisualTest extends VisualTest {
 
     mEventData = new DefaultDataSeries<>();
     mEventSeries = new RangedSeries<>(xRange, mEventData);
-    mEventConfig = new EventConfig(Color.BLACK).setText("Test").setIcon(UIManager.getIcon("Menu.arrowIcon"));
+    mEventConfig = new EventConfig(Color.BLACK).setText("Test").setIcon(UIManager.getIcon("Tree.leafIcon"));
     mLineChart.addEvent(mEventSeries, mEventConfig);
 
     return componentsList;
