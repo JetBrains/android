@@ -16,8 +16,8 @@
 package com.android.tools.idea.configurations;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.uibuilder.mockup.MockupEditor;
 import com.android.tools.idea.uibuilder.mockup.MockupEditorPopup;
+import com.android.tools.idea.uibuilder.mockup.tools.MockupEditor;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
@@ -25,6 +25,7 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 
+import java.awt.event.ActionEvent;
 import java.util.List;
 
 /**
@@ -40,31 +41,46 @@ public class MockupEditAction extends AnAction {
     super(ADD_ACTION_TITLE);
 
     myCurrentScreenView = surface.getCurrentScreenView();
-    if(myCurrentScreenView != null) {
-
+    if (myCurrentScreenView != null) {
       List<NlComponent> selection = myCurrentScreenView.getSelectionModel().getSelection();
-      if(!selection.isEmpty()) {
+      if (selection.isEmpty()) {
+        selection = myCurrentScreenView.getModel().getComponents();
+      }
+      if (!selection.isEmpty()) {
         NlComponent nlComponent = selection.get(0);
         Presentation presentation = getTemplatePresentation();
 
         // If the selected component already has a mockup attribute, display the Edit text
         // else display the add text
-        if(nlComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_MOCKUP) != null) {
+        if (nlComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_MOCKUP) != null) {
           presentation.setText(EDIT_ACTION_TITLE);
-        } else {
+        }
+        else {
           presentation.setText(ADD_ACTION_TITLE);
         }
+      }
+      else {
+        getTemplatePresentation().setEnabled(false);
       }
     }
   }
 
+
   @Override
   public void actionPerformed(AnActionEvent e) {
-    if(myCurrentScreenView != null) {
+    if (myCurrentScreenView != null) {
       List<NlComponent> selection = myCurrentScreenView.getSelectionModel().getSelection();
-      if(!selection.isEmpty()) {
+      if(selection.isEmpty()) {
+        selection = myCurrentScreenView.getModel().getComponents();
+      }
+      if (!selection.isEmpty()) {
         NlComponent nlComponent = selection.get(0);
-        MockupEditor.create(myCurrentScreenView, nlComponent);
+        if ((e.getModifiers() & ActionEvent.SHIFT_MASK) == ActionEvent.SHIFT_MASK) {
+          MockupEditorPopup.create(myCurrentScreenView, nlComponent);
+        }
+        else {
+          MockupEditor.create(myCurrentScreenView, nlComponent);
+        }
       }
     }
   }
