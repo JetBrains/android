@@ -102,6 +102,11 @@ public class ProductFlavorStub implements ProductFlavor {
   }
 
   @Override
+  public Boolean getRenderscriptSupportModeBlasEnabled() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public Boolean getRenderscriptNdkModeEnabled() {
     throw new UnsupportedOperationException();
   }
