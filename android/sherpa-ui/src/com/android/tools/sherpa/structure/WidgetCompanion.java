@@ -30,7 +30,6 @@ public class WidgetCompanion {
     Object mWidgetModel;
     Object mWidgetTag;
     WidgetInteractionTargets mWidgetInteractionTargets;
-    WidgetProperties mWidgetProperties = new WidgetProperties();
 
     public static WidgetCompanion create(ConstraintWidget widget) {
         WidgetCompanion companion = new WidgetCompanion();
@@ -67,8 +66,6 @@ public class WidgetCompanion {
     public void setWidgetInteractionTargets(WidgetInteractionTargets widgetInteractionTargets) {
         mWidgetInteractionTargets = widgetInteractionTargets;
     }
-
-    public WidgetProperties getWidgetProperties() { return mWidgetProperties; }
 
     public Object getWidgetModel() {
         return mWidgetModel;
