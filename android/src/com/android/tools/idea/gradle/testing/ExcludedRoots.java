@@ -28,6 +28,7 @@ import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.SourceFolder;
 import com.intellij.util.containers.HashSet;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -187,9 +188,19 @@ class ExcludedRoots {
       }
     }
     for (JavaLibrary library : dependencies.getJavaLibraries()) {
-      if (isEmpty(library.getProject())) {
+      if (isEmpty(getProject(library))) {
         myExcludedRoots.add(library.getJarFile());
       }
+    }
+  }
+
+  @Nullable
+  private static String getProject(@NotNull JavaLibrary library) {
+    try {
+      return library.getProject();
+    }
+    catch (UnsupportedMethodException e) {
+      return null;
     }
   }
 
