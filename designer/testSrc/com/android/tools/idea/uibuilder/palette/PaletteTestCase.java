@@ -575,7 +575,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
   }
 
   public void assertTabItem(@NotNull Palette.BaseItem item) {
-    assertStandardView(item, TAB_ITEM, DESIGN_LIB_ARTIFACT, 1.0);
+    assertNoPreviewView(item, TAB_ITEM, DESIGN_LIB_ARTIFACT);
   }
 
   public void assertNestedScrollViewItem(@NotNull Palette.BaseItem item) {
