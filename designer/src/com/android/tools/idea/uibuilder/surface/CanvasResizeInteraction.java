@@ -355,7 +355,8 @@ public class CanvasResizeInteraction extends Interaction {
       configuration.setEffectiveDevice(myOriginalDevice, myOriginalDeviceState);
     }
     else {
-      Device deviceToSnap = snapToDevice(androidX, androidY);
+      int snapThreshold = Coordinates.getAndroidDimension(screenView, MAX_MATCH_DISTANCE);
+      Device deviceToSnap = snapToDevice(androidX, androidY, snapThreshold);
       if (deviceToSnap != null) {
         State deviceState = deviceToSnap.getState(androidX < androidY ? "Portrait" : "Landscape");
         myDesignSurface.getConfiguration().setEffectiveDevice(deviceToSnap, deviceState);
@@ -371,10 +372,10 @@ public class CanvasResizeInteraction extends Interaction {
    * If there is no such device, returns null.
    */
   @Nullable("null if no device is close enough to snap to")
-  private Device snapToDevice(@AndroidCoordinate int x, @AndroidCoordinate int y) {
+  private Device snapToDevice(@AndroidCoordinate int x, @AndroidCoordinate int y, int threshold) {
     for (Point p : myAndroidCoordinatesToDeviceMap.keySet()) {
-      if ((Math.abs(x - p.x) < MAX_MATCH_DISTANCE && Math.abs(y - p.y) < MAX_MATCH_DISTANCE)
-          || (Math.abs(y - p.x) < MAX_MATCH_DISTANCE && Math.abs(x - p.y) < MAX_MATCH_DISTANCE)) {
+      if ((Math.abs(x - p.x) < threshold && Math.abs(y - p.y) < threshold)
+          || (Math.abs(y - p.x) < threshold && Math.abs(x - p.y) < threshold)) {
         return myAndroidCoordinatesToDeviceMap.get(p);
       }
     }
