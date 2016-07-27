@@ -795,6 +795,8 @@ public class AtomController extends TreeController implements AtomStream.Listene
     @Override
     @NotNull
     public Object[] getChildElements(Object element) {
+      assert ((Renderable)element).getParentDescriptor() != null || myRoot.equals(element) : element;
+
       if (element instanceof Group) {
         Group group = (Group)element;
         return group.getChildren(myAtoms, myContext).toArray();
