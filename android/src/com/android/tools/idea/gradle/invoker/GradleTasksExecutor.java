@@ -413,7 +413,15 @@ public class GradleTasksExecutor extends Task.Backgroundable {
 
     List<Message> buildMessages = Lists.newArrayList();
     collectMessages(gradleOutput, buildMessages).doWhenDone(() -> {
-      if (myErrorCount == 0 && buildError != null && !hasCause(buildError, BuildCancelledException.class)) {
+      boolean hasError = false;
+      for (Message message : buildMessages) {
+        if (message.getKind() == Message.Kind.ERROR) {
+          hasError = true;
+          break;
+        }
+      }
+
+      if (!hasError && myErrorCount == 0 && buildError != null && !hasCause(buildError, BuildCancelledException.class)) {
         // Gradle throws BuildCancelledException when we cancel task execution. We don't want to force showing 'Messages' tool
         // window for that situation though.
         addBuildExceptionAsMessage(buildError, output.getStdErr(), buildMessages);
