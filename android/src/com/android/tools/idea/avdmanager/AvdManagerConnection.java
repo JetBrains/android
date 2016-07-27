@@ -403,7 +403,7 @@ public class AvdManagerConnection {
       }
 
       processHandler.removeProcessListener(collector);
-      final String message = collector.getText();
+      String message = limitErrorMessage(collector.getText());
 
       if (message.toLowerCase(Locale.ROOT).contains("error") || processHandler.isProcessTerminated() && !message.trim().isEmpty()) {
         ApplicationManager.getApplication().invokeLater(
@@ -412,6 +412,17 @@ public class AvdManagerConnection {
     });
 
     return EmulatorConnectionListener.getDeviceForEmulator(project, info.getName(), processHandler, 5, TimeUnit.MINUTES);
+  }
+
+  /**
+   * Limit the error message retrieved from the emulator to the smaller of 1K characters or 30 lines.
+   */
+  private static String limitErrorMessage(@NotNull String message) {
+    int offset = StringUtil.lineColToOffset(message, 30, 0);
+    if (offset < 0) {
+      offset = message.length();
+    }
+    return message.substring(0, Math.min(offset, 1024));
   }
 
   /**
