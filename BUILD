@@ -71,7 +71,7 @@ java_library(
               "//tools/adt/idea:android/lib/commons-compress-1.8.1",
               "//tools/idea:lib/gson-2.5",
               "//tools/base/repository:repository",
-          "//prebuilts/tools/common/builder-model:builder-model-2.2.0-dev",
+          "//prebuilts/tools/common/builder-model:builder-model-2.2.0-alpha6",
       "//tools/idea:annotations",
           "//tools/idea:annotations-common",
       "//tools/adt/idea:android-common",
@@ -253,7 +253,7 @@ java_library(
           "//prebuilts/tools/common/m2:repository/org/ow2/asm/asm-analysis/5.0.3/asm-analysis-5.0.3",
           "//prebuilts/tools/common/m2:repository/org/ow2/asm/asm-tree/5.0.3/asm-tree-5.0.3",
           "//prebuilts/tools/common/m2:repository/com/android/tools/external/lombok/lombok-ast/0.2.3/lombok-ast-0.2.3",
-          "//prebuilts/tools/common/builder-model:builder-model-2.2.0-dev",
+          "//prebuilts/tools/common/builder-model:builder-model-2.2.0-alpha6",
           "//tools/base/sdk-common:sdk-common",
               "//tools/base/sdklib:sdklib",
                   "//tools/idea:lib/httpcore-4.4.1",
@@ -307,12 +307,12 @@ java_test(
     ]),
   runtime_deps = [
       ":adt-ui_testlib",
-      "//tools/base/bazel:test_runner",
+      "//tools/base/testutils:testutils",
     ],
   jvm_flags = [
       "-Dtest.suite.jar=adt-ui_testlib.jar",
     ],
-  test_class = "com.android.tools.BazelTestSuite",
+  test_class = "com.android.testutils.JarTestSuite",
   javacopts = ["-extra_checks:off"],
   visibility = ["//visibility:public"],
 )
@@ -323,6 +323,27 @@ java_import(
       "android/lib/jogl-all-natives-windows-amd64.jar",
     ],
   visibility = ["//visibility:public"],
+)
+
+fileset(
+  name = "adt-ui_testlib.res",
+  srcs = glob([
+      "adt-ui/src/test/java/**/*",
+    ],
+    exclude = [
+      "**/* *",
+      "**/*.java",
+      "**/*.kt",
+      "**/*.groovy",
+      "**/*$*",
+      "**/.DS_Store",
+    ]),
+  mappings = {
+      "adt-ui/src/test/java": "adt-ui_testlib.resources",
+    },
+  deps = [
+      "@local_jdk//:langtools-neverlink",
+    ],
 )
 
 java_import(
@@ -481,7 +502,7 @@ java_library(
               "//prebuilts/tools/common/m2:repository/org/ow2/asm/asm-analysis/5.0.3/asm-analysis-5.0.3",
               "//prebuilts/tools/common/m2:repository/org/ow2/asm/asm-tree/5.0.3/asm-tree-5.0.3",
               "//prebuilts/tools/common/m2:repository/com/android/tools/external/lombok/lombok-ast/0.2.3/lombok-ast-0.2.3",
-              "//prebuilts/tools/common/builder-model:builder-model-2.2.0-dev",
+              "//prebuilts/tools/common/builder-model:builder-model-2.2.0-alpha6",
               "//tools/base/sdk-common:sdk-common",
                   "//tools/base/sdklib:sdklib",
                       "//tools/idea:lib/httpcore-4.4.1",
@@ -674,6 +695,10 @@ java_library(
       "designer/testSrc/**/*.java",
       "designer/guiTestSrc/**/*.java",
     ]),
+  resource_strip_prefix = "tools/adt/idea/android_testlib.resources",
+  resources = [
+      "//tools/adt/idea:android_testlib.res",
+    ],
   deps = [
       "@local_jdk//:langtools-neverlink",
       "//tools/adt/idea:android",
@@ -693,7 +718,7 @@ java_library(
                   "//prebuilts/tools/common/m2:repository/org/ow2/asm/asm-analysis/5.0.3/asm-analysis-5.0.3",
                   "//prebuilts/tools/common/m2:repository/org/ow2/asm/asm-tree/5.0.3/asm-tree-5.0.3",
                   "//prebuilts/tools/common/m2:repository/com/android/tools/external/lombok/lombok-ast/0.2.3/lombok-ast-0.2.3",
-                  "//prebuilts/tools/common/builder-model:builder-model-2.2.0-dev",
+                  "//prebuilts/tools/common/builder-model:builder-model-2.2.0-alpha6",
                   "//tools/base/sdk-common:sdk-common",
                       "//tools/base/sdklib:sdklib",
                           "//tools/idea:lib/httpcore-4.4.1",
@@ -924,6 +949,10 @@ java_library(
   srcs = glob([
       "android/common/testSrc/**/*.java",
     ]),
+  resource_strip_prefix = "tools/adt/idea/android-common_testlib.resources",
+  resources = [
+      "//tools/adt/idea:android-common_testlib.res",
+    ],
   deps = [
       "@local_jdk//:langtools-neverlink",
       "//tools/adt/idea:android-common",
@@ -942,7 +971,7 @@ java_library(
               "//prebuilts/tools/common/m2:repository/org/ow2/asm/asm-analysis/5.0.3/asm-analysis-5.0.3",
               "//prebuilts/tools/common/m2:repository/org/ow2/asm/asm-tree/5.0.3/asm-tree-5.0.3",
               "//prebuilts/tools/common/m2:repository/com/android/tools/external/lombok/lombok-ast/0.2.3/lombok-ast-0.2.3",
-              "//prebuilts/tools/common/builder-model:builder-model-2.2.0-dev",
+              "//prebuilts/tools/common/builder-model:builder-model-2.2.0-alpha6",
               "//tools/base/sdk-common:sdk-common",
                   "//tools/base/sdklib:sdklib",
                       "//tools/idea:lib/httpcore-4.4.1",
@@ -1075,6 +1104,10 @@ java_library(
   srcs = glob([
       "adt-ui/src/test/java/**/*.java",
     ]),
+  resource_strip_prefix = "tools/adt/idea/adt-ui_testlib.resources",
+  resources = [
+      "//tools/adt/idea:adt-ui_testlib.res",
+    ],
   deps = [
       "@local_jdk//:langtools-neverlink",
       "//tools/adt/idea:adt-ui",
@@ -1173,6 +1206,33 @@ java_import(
 )
 
 fileset(
+  name = "android_testlib.res",
+  srcs = glob([
+      "android/testSrc/**/*",
+      "android/guiTestSrc/**/*",
+      "designer/testSrc/**/*",
+      "designer/guiTestSrc/**/*",
+    ],
+    exclude = [
+      "**/* *",
+      "**/*.java",
+      "**/*.kt",
+      "**/*.groovy",
+      "**/*$*",
+      "**/.DS_Store",
+    ]),
+  mappings = {
+      "designer/guiTestSrc": "android_testlib.resources",
+      "designer/testSrc": "android_testlib.resources",
+      "android/guiTestSrc": "android_testlib.resources",
+      "android/testSrc": "android_testlib.resources",
+    },
+  deps = [
+      "@local_jdk//:langtools-neverlink",
+    ],
+)
+
+fileset(
   name = "android-rt.res",
   srcs = glob([
       "android/rt/src/**/*",
@@ -1193,18 +1253,39 @@ fileset(
     ],
 )
 
+fileset(
+  name = "android-common_testlib.res",
+  srcs = glob([
+      "android/common/testSrc/**/*",
+    ],
+    exclude = [
+      "**/* *",
+      "**/*.java",
+      "**/*.kt",
+      "**/*.groovy",
+      "**/*$*",
+      "**/.DS_Store",
+    ]),
+  mappings = {
+      "android/common/testSrc": "android-common_testlib.resources",
+    },
+  deps = [
+      "@local_jdk//:langtools-neverlink",
+    ],
+)
+
 java_test(
   name = "android_tests",
   srcs = glob([
     ]),
   runtime_deps = [
       ":android_testlib",
-      "//tools/base/bazel:test_runner",
+      "//tools/base/testutils:testutils",
     ],
   jvm_flags = [
       "-Dtest.suite.jar=android_testlib.jar",
     ],
-  test_class = "com.android.tools.BazelTestSuite",
+  test_class = "com.android.testutils.JarTestSuite",
   javacopts = ["-extra_checks:off"],
   visibility = ["//visibility:public"],
 )
@@ -1231,12 +1312,12 @@ java_test(
     ]),
   runtime_deps = [
       ":android-common_testlib",
-      "//tools/base/bazel:test_runner",
+      "//tools/base/testutils:testutils",
     ],
   jvm_flags = [
       "-Dtest.suite.jar=android-common_testlib.jar",
     ],
-  test_class = "com.android.tools.BazelTestSuite",
+  test_class = "com.android.testutils.JarTestSuite",
   javacopts = ["-extra_checks:off"],
   visibility = ["//visibility:public"],
 )
