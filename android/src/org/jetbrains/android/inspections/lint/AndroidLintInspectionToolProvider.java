@@ -1670,6 +1670,16 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintImpliedTouchscreenHardwareInspection extends AndroidLintInspectionBase {
+    public AndroidLintImpliedTouchscreenHardwareInspection() {
+      super(AndroidBundle.message("android.lint.inspections.implied.touchscreen.hardware"), AndroidTvDetector.IMPLIED_TOUCHSCREEN_HARDWARE);
+    }
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
+      return new AndroidLintQuickFix[]{new AddUsesFeatureQuickFix(AndroidTvDetector.HARDWARE_FEATURE_TOUCHSCREEN)};
+    }
+  }
 
   public static class AndroidLintIncludeLayoutParamInspection extends AndroidLintInspectionBase {
     public AndroidLintIncludeLayoutParamInspection() {
@@ -2279,21 +2289,9 @@ public class AndroidLintInspectionToolProvider {
     @NotNull
     @Override
     public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
-      return new AndroidLintQuickFix[]{new DefaultLintQuickFix("Add uses-feature tag") {
-        @Override
-        public void apply(@NotNull PsiElement startElement,
-                          @NotNull PsiElement endElement,
-                          @NotNull AndroidQuickfixContexts.Context context) {
-          XmlTag parent = PsiTreeUtil.getParentOfType(startElement, XmlTag.class, false);
-          if (parent != null) {
-            XmlTag usesFeatureTag = parent.createChildTag(NODE_USES_FEATURE, null, null, false);
-            usesFeatureTag = parent.addSubTag(usesFeatureTag, true);
-            usesFeatureTag.setAttribute(ATTR_NAME, ANDROID_URI, AndroidTvDetector.SOFTWARE_FEATURE_LEANBACK);
-            usesFeatureTag.setAttribute(ATTRIBUTE_REQUIRED, ANDROID_URI, String.valueOf(false));
-          }
-        }
-      }};
+      return new AndroidLintQuickFix[]{new AddUsesFeatureQuickFix(AndroidTvDetector.SOFTWARE_FEATURE_LEANBACK)};
     }
+
   }
 
   public static class AndroidLintMissingTvBannerInspection extends AndroidLintInspectionBase {
@@ -2323,24 +2321,7 @@ public class AndroidLintInspectionToolProvider {
     public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
       final String hardwareFeatureName = AndroidTvDetector.getHardwareFeature(message, RAW);
       if (hardwareFeatureName != null) {
-        return new AndroidLintQuickFix[] {
-          new DefaultLintQuickFix("Add uses-feature tag") {
-            @Override
-            public void apply(@NotNull PsiElement startElement, @NotNull PsiElement endElement,
-                              @NotNull AndroidQuickfixContexts.Context context) {
-              XmlTag usesPermissionTag = PsiTreeUtil.getParentOfType(startElement, XmlTag.class, false);
-              if (startElement.textMatches(NODE_USES_PERMISSION) && usesPermissionTag != null) {
-                XmlTag parent = (XmlTag)usesPermissionTag.getParent();
-                if (parent != null) {
-                  XmlTag usesFeatureTag = parent.createChildTag(NODE_USES_FEATURE, null, null, false);
-                  usesFeatureTag = parent.addSubTag(usesFeatureTag, true);
-                  usesFeatureTag.setAttribute(ATTR_NAME, ANDROID_URI, hardwareFeatureName);
-                  usesFeatureTag.setAttribute(ATTRIBUTE_REQUIRED, ANDROID_URI, String.valueOf(false));
-                }
-              }
-            }
-          }
-        };
+        return new AndroidLintQuickFix[]{new AddUsesFeatureQuickFix(hardwareFeatureName)};
       } else {
         return AndroidLintQuickFix.EMPTY_ARRAY;
       }
@@ -2388,4 +2369,5 @@ public class AndroidLintInspectionToolProvider {
       return AndroidLintQuickFix.EMPTY_ARRAY;
     }
   }
+
 }
