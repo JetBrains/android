@@ -295,7 +295,9 @@ public class NlComponent implements NlAttributesHolder {
    */
   @Nullable
   public String getId() {
-    return stripId(getAttribute(ANDROID_URI, ATTR_ID));
+    String id = myCurrentTransaction != null ? myCurrentTransaction.getAndroidAttribute(ATTR_ID) : getAndroidAttribute(ATTR_ID);
+
+    return stripId(id);
   }
 
   @Nullable
@@ -389,7 +391,11 @@ public class NlComponent implements NlAttributesHolder {
     }
 
     String newId = idValue + (index == 0 ? "" : Integer.toString(index));
-    component.setAttribute(ANDROID_URI, ATTR_ID, NEW_ID_PREFIX + newId);
+
+    // If the component has an open transaction, assign the id in that transaction
+    NlAttributesHolder attributes = component.myCurrentTransaction != null ? component.myCurrentTransaction : component;
+    attributes.setAttribute(ANDROID_URI, ATTR_ID, NEW_ID_PREFIX + newId);
+
     component.myModel.getPendingIds().add(newId); // TODO clear the pending ids
     return newId;
   }
