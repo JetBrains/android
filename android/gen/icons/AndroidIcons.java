@@ -491,4 +491,8 @@ public class AndroidIcons {
     public static final Icon DoubleTap = load("/icons/profiler/double_tap.png"); //19x21
     public static final Icon Rotation = load("/icons/nele/rotate.png"); //16x16
   }
+
+  public static class Mockup {
+    public static final Icon Crop = load("/icons/mockup/crop.png"); // 18x18
+  }
 }
