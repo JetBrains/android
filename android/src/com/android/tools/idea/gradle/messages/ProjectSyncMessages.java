@@ -75,9 +75,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import static com.android.builder.model.SyncIssue.TYPE_EXTERNAL_NATIVE_BUILD_COMBINED_CONFIGURATION;
-import static com.android.builder.model.SyncIssue.TYPE_GRADLE_TOO_OLD;
-import static com.android.builder.model.SyncIssue.TYPE_UNRESOLVED_DEPENDENCY;
+import static com.android.builder.model.SyncIssue.*;
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.*;
 import static com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler.updateNotification;
 import static com.android.tools.idea.gradle.service.notification.errors.UnsupportedGradleVersionErrorHandler.getQuickFixHyperlinks;
@@ -148,7 +146,7 @@ public class ProjectSyncMessages {
         case TYPE_UNRESOLVED_DEPENDENCY:
           reportUnresolvedDependency(verifyNotNull(syncIssue.getData()), module, buildFile);
           break;
-        case TYPE_EXTERNAL_NATIVE_BUILD_COMBINED_CONFIGURATION:
+        case TYPE_EXTERNAL_NATIVE_BUILD_PROCESS_EXCEPTION:
           reportExternalNativeBuildIssues(syncIssue, module.getProject());
           break;
         case TYPE_GRADLE_TOO_OLD:
@@ -400,7 +398,7 @@ public class ProjectSyncMessages {
   }
 
   private void reportExternalNativeBuildIssues(@NotNull SyncIssue syncIssue, @NotNull Project project) {
-    assert syncIssue.getType() == TYPE_EXTERNAL_NATIVE_BUILD_COMBINED_CONFIGURATION;
+    assert syncIssue.getType() == TYPE_EXTERNAL_NATIVE_BUILD_PROCESS_EXCEPTION;
 
     String group = EXTERNAL_NATIVE_BUILD_ISSUES;
 
