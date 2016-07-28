@@ -579,6 +579,325 @@ public final class GfxAPIProtos {
     // @@protoc_insertion_point(enum_scope:gfxapi.ShaderType)
   }
 
+  /**
+   * Protobuf enum {@code gfxapi.UniformFormat}
+   */
+  public enum UniformFormat
+      implements com.google.protobuf3jarjar.ProtocolMessageEnum {
+    /**
+     * <code>Scalar = 0;</code>
+     */
+    Scalar(0, 0),
+    /**
+     * <code>Vec2 = 1;</code>
+     */
+    Vec2(1, 1),
+    /**
+     * <code>Vec3 = 2;</code>
+     */
+    Vec3(2, 2),
+    /**
+     * <code>Vec4 = 3;</code>
+     */
+    Vec4(3, 3),
+    /**
+     * <code>Mat2 = 4;</code>
+     */
+    Mat2(4, 4),
+    /**
+     * <code>Mat3 = 5;</code>
+     */
+    Mat3(5, 5),
+    /**
+     * <code>Mat4 = 6;</code>
+     */
+    Mat4(6, 6),
+    /**
+     * <code>Mat2x3 = 7;</code>
+     */
+    Mat2x3(7, 7),
+    /**
+     * <code>Mat2x4 = 8;</code>
+     */
+    Mat2x4(8, 8),
+    /**
+     * <code>Mat3x2 = 9;</code>
+     */
+    Mat3x2(9, 9),
+    /**
+     * <code>Mat3x4 = 10;</code>
+     */
+    Mat3x4(10, 10),
+    /**
+     * <code>Mat4x2 = 11;</code>
+     */
+    Mat4x2(11, 11),
+    /**
+     * <code>Mat4x3 = 12;</code>
+     */
+    Mat4x3(12, 12),
+    /**
+     * <code>Sampler = 13;</code>
+     */
+    Sampler(13, 13),
+    UNRECOGNIZED(-1, -1),
+    ;
+
+    /**
+     * <code>Scalar = 0;</code>
+     */
+    public static final int Scalar_VALUE = 0;
+    /**
+     * <code>Vec2 = 1;</code>
+     */
+    public static final int Vec2_VALUE = 1;
+    /**
+     * <code>Vec3 = 2;</code>
+     */
+    public static final int Vec3_VALUE = 2;
+    /**
+     * <code>Vec4 = 3;</code>
+     */
+    public static final int Vec4_VALUE = 3;
+    /**
+     * <code>Mat2 = 4;</code>
+     */
+    public static final int Mat2_VALUE = 4;
+    /**
+     * <code>Mat3 = 5;</code>
+     */
+    public static final int Mat3_VALUE = 5;
+    /**
+     * <code>Mat4 = 6;</code>
+     */
+    public static final int Mat4_VALUE = 6;
+    /**
+     * <code>Mat2x3 = 7;</code>
+     */
+    public static final int Mat2x3_VALUE = 7;
+    /**
+     * <code>Mat2x4 = 8;</code>
+     */
+    public static final int Mat2x4_VALUE = 8;
+    /**
+     * <code>Mat3x2 = 9;</code>
+     */
+    public static final int Mat3x2_VALUE = 9;
+    /**
+     * <code>Mat3x4 = 10;</code>
+     */
+    public static final int Mat3x4_VALUE = 10;
+    /**
+     * <code>Mat4x2 = 11;</code>
+     */
+    public static final int Mat4x2_VALUE = 11;
+    /**
+     * <code>Mat4x3 = 12;</code>
+     */
+    public static final int Mat4x3_VALUE = 12;
+    /**
+     * <code>Sampler = 13;</code>
+     */
+    public static final int Sampler_VALUE = 13;
+
+
+    public final int getNumber() {
+      if (index == -1) {
+        throw new java.lang.IllegalArgumentException(
+            "Can't get the number of an unknown enum value.");
+      }
+      return value;
+    }
+
+    public static UniformFormat valueOf(int value) {
+      switch (value) {
+        case 0: return Scalar;
+        case 1: return Vec2;
+        case 2: return Vec3;
+        case 3: return Vec4;
+        case 4: return Mat2;
+        case 5: return Mat3;
+        case 6: return Mat4;
+        case 7: return Mat2x3;
+        case 8: return Mat2x4;
+        case 9: return Mat3x2;
+        case 10: return Mat3x4;
+        case 11: return Mat4x2;
+        case 12: return Mat4x3;
+        case 13: return Sampler;
+        default: return null;
+      }
+    }
+
+    public static com.google.protobuf3jarjar.Internal.EnumLiteMap<UniformFormat>
+        internalGetValueMap() {
+      return internalValueMap;
+    }
+    private static final com.google.protobuf3jarjar.Internal.EnumLiteMap<
+        UniformFormat> internalValueMap =
+          new com.google.protobuf3jarjar.Internal.EnumLiteMap<UniformFormat>() {
+            public UniformFormat findValueByNumber(int number) {
+              return UniformFormat.valueOf(number);
+            }
+          };
+
+    public final com.google.protobuf3jarjar.Descriptors.EnumValueDescriptor
+        getValueDescriptor() {
+      return getDescriptor().getValues().get(index);
+    }
+    public final com.google.protobuf3jarjar.Descriptors.EnumDescriptor
+        getDescriptorForType() {
+      return getDescriptor();
+    }
+    public static final com.google.protobuf3jarjar.Descriptors.EnumDescriptor
+        getDescriptor() {
+      return com.android.tools.idea.editors.gfxtrace.service.gfxapi.GfxAPIProtos.getDescriptor().getEnumTypes().get(4);
+    }
+
+    private static final UniformFormat[] VALUES = values();
+
+    public static UniformFormat valueOf(
+        com.google.protobuf3jarjar.Descriptors.EnumValueDescriptor desc) {
+      if (desc.getType() != getDescriptor()) {
+        throw new java.lang.IllegalArgumentException(
+          "EnumValueDescriptor is not for this type.");
+      }
+      if (desc.getIndex() == -1) {
+        return UNRECOGNIZED;
+      }
+      return VALUES[desc.getIndex()];
+    }
+
+    private final int index;
+    private final int value;
+
+    private UniformFormat(int index, int value) {
+      this.index = index;
+      this.value = value;
+    }
+
+    // @@protoc_insertion_point(enum_scope:gfxapi.UniformFormat)
+  }
+
+  /**
+   * Protobuf enum {@code gfxapi.UniformType}
+   */
+  public enum UniformType
+      implements com.google.protobuf3jarjar.ProtocolMessageEnum {
+    /**
+     * <code>Int32 = 0;</code>
+     */
+    Int32(0, 0),
+    /**
+     * <code>Uint32 = 1;</code>
+     */
+    Uint32(1, 1),
+    /**
+     * <code>Bool = 2;</code>
+     */
+    Bool(2, 2),
+    /**
+     * <code>Float = 3;</code>
+     */
+    Float(3, 3),
+    /**
+     * <code>Double = 4;</code>
+     */
+    Double(4, 4),
+    UNRECOGNIZED(-1, -1),
+    ;
+
+    /**
+     * <code>Int32 = 0;</code>
+     */
+    public static final int Int32_VALUE = 0;
+    /**
+     * <code>Uint32 = 1;</code>
+     */
+    public static final int Uint32_VALUE = 1;
+    /**
+     * <code>Bool = 2;</code>
+     */
+    public static final int Bool_VALUE = 2;
+    /**
+     * <code>Float = 3;</code>
+     */
+    public static final int Float_VALUE = 3;
+    /**
+     * <code>Double = 4;</code>
+     */
+    public static final int Double_VALUE = 4;
+
+
+    public final int getNumber() {
+      if (index == -1) {
+        throw new java.lang.IllegalArgumentException(
+            "Can't get the number of an unknown enum value.");
+      }
+      return value;
+    }
+
+    public static UniformType valueOf(int value) {
+      switch (value) {
+        case 0: return Int32;
+        case 1: return Uint32;
+        case 2: return Bool;
+        case 3: return Float;
+        case 4: return Double;
+        default: return null;
+      }
+    }
+
+    public static com.google.protobuf3jarjar.Internal.EnumLiteMap<UniformType>
+        internalGetValueMap() {
+      return internalValueMap;
+    }
+    private static final com.google.protobuf3jarjar.Internal.EnumLiteMap<
+        UniformType> internalValueMap =
+          new com.google.protobuf3jarjar.Internal.EnumLiteMap<UniformType>() {
+            public UniformType findValueByNumber(int number) {
+              return UniformType.valueOf(number);
+            }
+          };
+
+    public final com.google.protobuf3jarjar.Descriptors.EnumValueDescriptor
+        getValueDescriptor() {
+      return getDescriptor().getValues().get(index);
+    }
+    public final com.google.protobuf3jarjar.Descriptors.EnumDescriptor
+        getDescriptorForType() {
+      return getDescriptor();
+    }
+    public static final com.google.protobuf3jarjar.Descriptors.EnumDescriptor
+        getDescriptor() {
+      return com.android.tools.idea.editors.gfxtrace.service.gfxapi.GfxAPIProtos.getDescriptor().getEnumTypes().get(5);
+    }
+
+    private static final UniformType[] VALUES = values();
+
+    public static UniformType valueOf(
+        com.google.protobuf3jarjar.Descriptors.EnumValueDescriptor desc) {
+      if (desc.getType() != getDescriptor()) {
+        throw new java.lang.IllegalArgumentException(
+          "EnumValueDescriptor is not for this type.");
+      }
+      if (desc.getIndex() == -1) {
+        return UNRECOGNIZED;
+      }
+      return VALUES[desc.getIndex()];
+    }
+
+    private final int index;
+    private final int value;
+
+    private UniformType(int index, int value) {
+      this.index = index;
+      this.value = value;
+    }
+
+    // @@protoc_insertion_point(enum_scope:gfxapi.UniformType)
+  }
+
 
   public static com.google.protobuf3jarjar.Descriptors.FileDescriptor
       getDescriptor() {
@@ -598,9 +917,15 @@ public final class GfxAPIProtos {
       "erAttachment\022\t\n\005Color\020\000\022\t\n\005Depth\020\001\022\013\n\007St" +
       "encil\020\002*f\n\nShaderType\022\n\n\006Vertex\020\000\022\014\n\010Geo" +
       "metry\020\001\022\017\n\013TessControl\020\002\022\022\n\016TessEvaluati",
-      "on\020\003\022\014\n\010Fragment\020\004\022\013\n\007Compute\020\005BF\n6com.a" +
-      "ndroid.tools.idea.editors.gfxtrace.servi" +
-      "ce.gfxapiB\014GfxAPIProtosb\006proto3"
+      "on\020\003\022\014\n\010Fragment\020\004\022\013\n\007Compute\020\005*\254\001\n\rUnif" +
+      "ormFormat\022\n\n\006Scalar\020\000\022\010\n\004Vec2\020\001\022\010\n\004Vec3\020" +
+      "\002\022\010\n\004Vec4\020\003\022\010\n\004Mat2\020\004\022\010\n\004Mat3\020\005\022\010\n\004Mat4\020" +
+      "\006\022\n\n\006Mat2x3\020\007\022\n\n\006Mat2x4\020\010\022\n\n\006Mat3x2\020\t\022\n\n" +
+      "\006Mat3x4\020\n\022\n\n\006Mat4x2\020\013\022\n\n\006Mat4x3\020\014\022\013\n\007Sam" +
+      "pler\020\r*E\n\013UniformType\022\t\n\005Int32\020\000\022\n\n\006Uint" +
+      "32\020\001\022\010\n\004Bool\020\002\022\t\n\005Float\020\003\022\n\n\006Double\020\004BF\n" +
+      "6com.android.tools.idea.editors.gfxtrace" +
+      ".service.gfxapiB\014GfxAPIProtosb\006proto3"
     };
     com.google.protobuf3jarjar.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf3jarjar.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {

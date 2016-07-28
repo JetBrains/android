@@ -29,6 +29,7 @@ import java.util.LinkedHashMap;
 public final class Program implements BinaryObject {
   //<<<Start:Java.ClassBody:1>>>
   private LinkedHashMap<ShaderType, ResourceID> myShaders;
+  private Uniform[] myUniforms;
 
   // Constructs a default-initialized {@link Program}.
   public Program() {}
@@ -43,6 +44,15 @@ public final class Program implements BinaryObject {
     return this;
   }
 
+  public Uniform[] getUniforms() {
+    return myUniforms;
+  }
+
+  public Program setUniforms(Uniform[] v) {
+    myUniforms = v;
+    return this;
+  }
+
   @Override @NotNull
   public BinaryClass klass() { return Klass.INSTANCE; }
 
@@ -52,6 +62,7 @@ public final class Program implements BinaryObject {
   static {
     ENTITY.setFields(new Field[]{
       new Field("Shaders", new Map("ShaderTypeMap", new Primitive("ShaderType", Method.Int32), new Array("path.ResourceID", new Primitive("byte", Method.Uint8), 20))),
+      new Field("Uniforms", new Slice("", new Struct(Uniform.Klass.INSTANCE.entity()))),
     });
     Namespace.register(Klass.INSTANCE);
   }
@@ -76,6 +87,10 @@ public final class Program implements BinaryObject {
         entry.getValue().write(e);
 
       }
+      e.uint32(o.myUniforms.length);
+      for (int i = 0; i < o.myUniforms.length; i++) {
+        e.value(o.myUniforms[i]);
+      }
     }
 
     @Override
@@ -87,6 +102,11 @@ public final class Program implements BinaryObject {
         ShaderType key = ShaderType.valueOf(d.int32());
         ResourceID value = new ResourceID(d);
         o.myShaders.put(key, value);
+      }
+      o.myUniforms = new Uniform[d.uint32()];
+      for (int i = 0; i <o.myUniforms.length; i++) {
+        o.myUniforms[i] = new Uniform();
+        d.value(o.myUniforms[i]);
       }
     }
     //<<<End:Java.KlassBody:2>>>
