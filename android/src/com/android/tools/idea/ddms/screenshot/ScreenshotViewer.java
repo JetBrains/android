@@ -107,7 +107,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     mySourceImageRef.set(image);
     myDisplayedImageRef.set(image);
 
-    myBackingVirtualFile = LocalFileSystem.getInstance().findFileByIoFile(backingFile);
+    myBackingVirtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(backingFile);
     assert myBackingVirtualFile != null;
 
     myRefreshButton.setIcon(AllIcons.Actions.Refresh);
