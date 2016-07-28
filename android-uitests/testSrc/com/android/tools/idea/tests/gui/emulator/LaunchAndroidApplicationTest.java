@@ -19,6 +19,7 @@ import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.tests.gui.GuiSanityTestSuite;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdEditWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
@@ -114,5 +115,26 @@ public class LaunchAndroidApplicationTest {
     ideFrameFixture.getAndroidToolWindow().selectDevicesTab()
                                        .selectProcess(PROCESS_NAME)
                                        .clickTerminateApplication();
+  }
+
+  // TODO: Test to be removed once TOGGLE_LINE_BREAKPOINT is used in a more complete test
+  @Test
+  public void testDebugOnEmulatorWithBreakpoint() throws IOException, ClassNotFoundException, EvaluateException {
+    IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
+
+    ideFrameFixture
+      .getEditor()
+      .open("app/src/main/java/google/simpleapplication/MyActivity.java")
+      .moveBetween("super.", "onCreate")
+      .invokeAction(EditorFixture.EditorAction.TOGGLE_LINE_BREAKPOINT);
+
+    ideFrameFixture
+      .debugApp(APP_NAME)
+      .selectDevice(AVD_NAME)
+      .clickOk();
+
+    ideFrameFixture
+      .getDebugToolWindow()
+      .pressResumeProgram();
   }
 }
