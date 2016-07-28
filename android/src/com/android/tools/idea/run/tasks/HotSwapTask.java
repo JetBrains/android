@@ -77,7 +77,7 @@ public class HotSwapTask implements LaunchTask {
       return terminateLaunch(launchStatus, "Error installing hot swap patches: " + e);
     }
 
-    InstantRunStatsService.get(myProject).notifyDeployType(DeployType.HOTSWAP);
+    InstantRunStatsService.get(myProject).notifyDeployType(DeployType.HOTSWAP, myInstantRunContext.getBuildSelection().why);
     return true;
   }
 
