@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
 
+import com.android.tools.idea.tests.gui.framework.Wait;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
@@ -57,12 +58,14 @@ public abstract class AbstractWizardFixture<S> extends ComponentFixture<S, JDial
   @NotNull
   public S clickFinish() {
     findAndClickButton(this, "Finish");
+    Wait.seconds(5).expecting("dialog to disappear").until(() -> !target().isShowing());
     return myself();
   }
 
   @NotNull
   public S clickCancel() {
     findAndClickCancelButton(this);
+    Wait.seconds(5).expecting("dialog to disappear").until(() -> !target().isShowing());
     return myself();
   }
 

@@ -26,7 +26,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.function.Function;
 
 public class MockAvdManagerConnection extends AvdManagerConnection {
   @Nullable private final AndroidSdkHandler mySdkHandler;
@@ -52,16 +51,29 @@ public class MockAvdManagerConnection extends AvdManagerConnection {
     return new File(mySdkHandler.getLocation(), FileUtil.join(SdkConstants.OS_SDK_PLATFORM_TOOLS_FOLDER, SdkConstants.FN_ADB));
   }
 
+  @NotNull
+  private File getAndroidBinary() {
+    assert mySdkHandler != null;
+    return new File(mySdkHandler.getLocation(), FileUtil.join(SdkConstants.FD_TOOLS, SdkConstants.androidCmdName()));
+  }
+
   public void stopRunningAvd() {
-    String command;
-    command = getAdbBinary().getPath() + " emu kill";
+    String command = getAdbBinary().getPath() + " emu kill";
     try {
       Process p = Runtime.getRuntime().exec(command);
       p.waitFor();
-    } catch (IOException e) {
-      e.printStackTrace();
-    } catch (InterruptedException e) {
-      e.printStackTrace();
+    } catch (IOException | InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public void deleteAvd(@NotNull String name) {
+    String command = getAndroidBinary().getPath() + " delete avd -n " + name.replace(' ', '_');
+    try {
+      Process p = Runtime.getRuntime().exec(command);
+      p.waitFor();
+    } catch (IOException | InterruptedException e) {
+      throw new RuntimeException(e);
     }
   }
 }
