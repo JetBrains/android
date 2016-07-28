@@ -54,10 +54,12 @@ import static com.android.tools.idea.templates.TemplateMetadata.*;
 public class NewModuleWizardState extends TemplateWizardState {
   private static final Logger LOG = Logger.getInstance(NewModuleWizardState.class);
 
-  public static final String ATTR_CREATE_ACTIVITY = "createActivity";
+  /*
+   * @deprecated Use {@link TemplateMetadata.ATTR_CREATE_ACTIVITY} instead.
+   */
+  @Deprecated
+  public static final String ATTR_CREATE_ACTIVITY = TemplateMetadata.ATTR_CREATE_ACTIVITY;
   public static final String ATTR_PROJECT_LOCATION = "projectLocation";
-  public static final String APP_NAME = "app";
-  public static final String LIB_NAME = "lib";
   public static final String MODULE_IMPORT_NAME = "Import Existing Project";
   public static final String ARCHIVE_IMPORT_NAME = "Import .JAR or .AAR Package";
   /**

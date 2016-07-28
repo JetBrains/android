@@ -18,7 +18,6 @@ package com.android.tools.idea.npw.template;
 import com.android.builder.model.SourceProvider;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.npw.FormFactorUtils;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.npw.project.AndroidProjectPaths;
@@ -647,7 +646,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
     // We're really interested in the directory name on disk, not the module name. These will be different if you give a module the same
     // name as its containing project.
     String moduleName = new File(module.getModuleFilePath()).getParentFile().getName();
-    templateValues.put(FormFactorUtils.ATTR_MODULE_NAME, moduleName);
+    templateValues.put(ATTR_MODULE_NAME, moduleName);
   }
 
   /**
