@@ -24,6 +24,7 @@ public final class Factory {
     Cubemap.register();
     IndexBuffer.register();
     Mesh.register();
+    Uniform.register();
     Program.register();
     Shader.register();
     Texture2D.register();
