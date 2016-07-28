@@ -71,6 +71,7 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
     mValues = new ArrayList<>();
     mSeriesList = new ArrayList<>();
     mRenderMode = RenderMode.BAR;
+    setFont(AdtUiUtils.DEFAULT_FONT);
   }
 
   public void setRenderMode(RenderMode mode) {
@@ -181,7 +182,7 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
   @Override
   protected void draw(Graphics2D g2d) {
     Dimension dim = getSize();
-    g2d.setFont(AdtUiUtils.DEFAULT_FONT);
+    g2d.setFont(getFont());
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
     assert mRectangles.size() == mValues.size();
