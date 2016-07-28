@@ -67,29 +67,22 @@ public class EventDataPoller extends Poller {
   }
 
   @Override
-  protected void asyncInit() {
+  protected void asyncInit() throws StatusRuntimeException {
     myEventService = myService.getEventService();
     myDataRequestStartTimestampNs = Long.MIN_VALUE;
   }
 
   @Override
-  protected void asyncShutdown() {
+  protected void asyncShutdown() throws StatusRuntimeException {
   }
 
   @Override
-  protected void poll() {
+  protected void poll() throws StatusRuntimeException {
     EventProfiler.EventDataRequest.Builder dataRequestBuilder = EventProfiler.EventDataRequest.newBuilder()
       .setAppId(myPid)
       .setStartTimestamp(myDataRequestStartTimestampNs)
       .setEndTimestamp(Long.MAX_VALUE);
-    EventProfiler.EventDataResponse response;
-    try {
-      response = myEventService.getData(dataRequestBuilder.build());
-    }
-    catch (StatusRuntimeException e) {
-      cancel(true);
-      return;
-    }
+    EventProfiler.EventDataResponse response = myEventService.getData(dataRequestBuilder.build());
 
     for (EventProfiler.EventProfilerData data : response.getDataList()) {
       myDataRequestStartTimestampNs = data.getBasicInfo().getEndTimestamp();

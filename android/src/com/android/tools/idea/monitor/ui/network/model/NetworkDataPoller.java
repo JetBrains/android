@@ -69,17 +69,27 @@ public class NetworkDataPoller extends Poller {
     myDataStore.registerAdapter(SeriesDataType.NETWORK_TYPE, new DataAdapterImpl<>(myNetworkTypeTimeData, myNetworkTypeData));
   }
 
-  private void requestData(NetworkProfiler.NetworkDataRequest.Type dataType) {
-    NetworkProfiler.NetworkDataRequest.Builder requestBuilder = NetworkProfiler.NetworkDataRequest.newBuilder();
-    requestBuilder.setAppId(myPid).setType(dataType).setStartTimestamp(myLatestTimestampNs).setEndTimestamp(Long.MAX_VALUE);
-    NetworkProfiler.NetworkDataResponse response;
-    try {
-      response = myNetworkService.getData(requestBuilder.build());
-    }
-    catch (StatusRuntimeException e) {
-      cancel(true);
-      return;
-    }
+  @Override
+  protected void asyncInit() throws StatusRuntimeException {
+    myNetworkService = myService.getNetworkService();
+    NetworkProfiler.NetworkStartRequest.Builder requestBuilder = NetworkProfiler.NetworkStartRequest.newBuilder().setAppId(myPid);
+    myNetworkService.startMonitoringApp(requestBuilder.build());
+  }
+
+  @Override
+  protected void asyncShutdown() throws StatusRuntimeException {
+    myNetworkService.stopMonitoringApp(NetworkProfiler.NetworkStopRequest.newBuilder().setAppId(myPid).build());
+  }
+
+  @Override
+  protected void poll() throws StatusRuntimeException {
+    NetworkProfiler.NetworkDataRequest request = NetworkProfiler.NetworkDataRequest.newBuilder()
+      .setAppId(myPid)
+      .setType(NetworkProfiler.NetworkDataRequest.Type.ALL)
+      .setStartTimestamp(myLatestTimestampNs)
+      .setEndTimestamp(Long.MAX_VALUE)
+      .build();
+    NetworkProfiler.NetworkDataResponse response = myNetworkService.getData(request);
 
     for (NetworkProfiler.NetworkProfilerData data : response.getDataList()) {
       // Timestamp in ui/studio represented in microseconds and pulled from a device in nanoseconds
@@ -139,22 +149,5 @@ public class NetworkDataPoller extends Poller {
 
       myLatestTimestampNs = Math.max(myLatestTimestampNs, timestampNs + 1);
     }
-  }
-
-  @Override
-  protected void asyncInit() {
-    myNetworkService = myService.getNetworkService();
-    NetworkProfiler.NetworkStartRequest.Builder requestBuilder = NetworkProfiler.NetworkStartRequest.newBuilder().setAppId(myPid);
-    myNetworkService.startMonitoringApp(requestBuilder.build());
-  }
-
-  @Override
-  protected void poll() {
-    requestData(NetworkProfiler.NetworkDataRequest.Type.ALL);
-  }
-
-  @Override
-  protected void asyncShutdown() {
-    myNetworkService.stopMonitoringApp(NetworkProfiler.NetworkStopRequest.newBuilder().setAppId(myPid).build());
   }
 }
