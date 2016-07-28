@@ -19,7 +19,6 @@ import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.npw.*;
 import com.android.tools.idea.templates.*;
 import com.android.tools.idea.templates.recipe.RenderingContext;
-import com.android.tools.idea.wizard.*;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardPath;
 import com.android.tools.idea.wizard.template.TemplateWizard;
 import com.google.common.collect.ImmutableMap;
@@ -70,9 +69,9 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
   private static final String RELATIVE_SRC_ROOT = FileUtil.join(TemplateWizard.MAIN_FLAVOR_SOURCE_PATH, TemplateWizard.JAVA_SOURCE_PATH);
   private static final String RELATIVE_TEST_ROOT = FileUtil.join(TemplateWizard.TEST_SOURCE_PATH, TemplateWizard.JAVA_SOURCE_PATH);
 
-  private FormFactor myFormFactor;
-  private File myTemplateFile;
-  private Disposable myDisposable;
+  private final FormFactor myFormFactor;
+  private final File myTemplateFile;
+  private final Disposable myDisposable;
   private final Key<Boolean> myIsIncludedKey;
   private final Key<String> myModuleNameKey;
   private TemplateParameterStep2 myParameterStep;
@@ -91,12 +90,7 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
       NewFormFactorModulePath path = new NewFormFactorModulePath(FormFactor.get(metadata.getFormFactor()), templateFile, disposable);
       toReturn.add(path);
     }
-    Collections.sort(toReturn, new Comparator<NewFormFactorModulePath>() {
-      @Override
-      public int compare(NewFormFactorModulePath p1, NewFormFactorModulePath p2) {
-        return p1.myFormFactor.compareTo(p2.myFormFactor);
-      }
-    });
+    Collections.sort(toReturn, (p1, p2) -> p1.myFormFactor.compareTo(p2.myFormFactor));
     return toReturn;
   }
 
@@ -112,7 +106,7 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
 
   @Override
   protected void init() {
-    myState.put(WizardConstants.IS_LIBRARY_KEY, false);
+    myState.put(IS_LIBRARY_KEY, false);
     myState.put(SRC_DIR_KEY, calculateSrcDir());
     myState.put(RES_DIR_KEY, "src/main/res");
     myState.put(AIDL_DIR_KEY, "src/main/aidl");
@@ -128,7 +122,7 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
       packageName = "";
     }
     Map<String, Object> presetsMap = ImmutableMap
-      .of(PACKAGE_NAME_KEY.name, packageName, TemplateMetadata.ATTR_IS_LAUNCHER, true, TemplateMetadata.ATTR_PARENT_ACTIVITY_CLASS, "");
+      .of(PACKAGE_NAME_KEY.name, packageName, ATTR_IS_LAUNCHER, true, ATTR_PARENT_ACTIVITY_CLASS, "");
     myParameterStep = new TemplateParameterStep2(myFormFactor, presetsMap, myDisposable, PACKAGE_NAME_KEY, new SourceProvider[0], AddAndroidActivityPath.CUSTOMIZE_ACTIVITY_TITLE);
     addStep(myParameterStep);
   }
@@ -155,24 +149,14 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
   @NotNull
   private String calculateSrcDir() {
     String packageSegment = myState.get(PACKAGE_NAME_KEY);
-    if (packageSegment == null) {
-      packageSegment = "";
-    }
-    else {
-      packageSegment = packageSegment.replace('.', File.separatorChar);
-    }
+    packageSegment = (packageSegment == null)?  "" : packageSegment.replace('.', File.separatorChar);
     return FileUtil.join(RELATIVE_SRC_ROOT, packageSegment);
   }
 
   @NotNull
   private String calculateTestDir() {
     String packageSegment = myState.get(PACKAGE_NAME_KEY);
-    if (packageSegment == null) {
-      packageSegment = "";
-    }
-    else {
-      packageSegment = packageSegment.replace('.', File.separatorChar);
-    }
+    packageSegment = (packageSegment == null) ? "" : packageSegment.replace('.', File.separatorChar);
     return FileUtil.join(RELATIVE_TEST_ROOT, packageSegment);
   }
 
@@ -255,8 +239,7 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
 
   @Override
   public boolean isPathVisible() {
-    Boolean included = myState.get(myIsIncludedKey);
-    return included == null ? false : included;
+    return Boolean.TRUE.equals(myState.get(myIsIncludedKey));
   }
 
   @Override
@@ -275,72 +258,70 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
       progress.setText(String.format("Initializing module (%1$s)", myFormFactor));
     }
     String projectLocation = myState.get(PROJECT_LOCATION_KEY);
-    if (projectLocation != null) {
-      File projectRoot = new File(projectLocation);
-
-      String moduleName = myState.get(myModuleNameKey);
-      assert moduleName != null;
-
-      File moduleRoot = new File(projectRoot, moduleName);
-      try {
-        checkedCreateDirectoryIfMissing(moduleRoot);
-      }
-      catch (IOException e) {
-        LOG.error(e);
-        return false;
-      }
-
-      Template template = Template.createFromPath(myTemplateFile);
-      Map<String, Object> templateState = FormFactorUtils.scrubFormFactorPrefixes(myFormFactor, myState.flatten());
-      // @formatter:off
-      RenderingContext context = RenderingContext.Builder.newContext(template, myWizard.getProject())
-        .withCommandName("New Module")
-        .withDryRun(dryRun)
-        .withShowErrors(true)
-        .withOutputRoot(projectRoot)
-        .withModuleRoot(moduleRoot)
-        .withParams(templateState)
-        .withGradleSync(myGradleSyncIfNecessary)
-        .intoTargetFiles(myState.get(WizardConstants.TARGET_FILES_KEY))
-        .intoOpenFiles(myState.get(FILES_TO_OPEN_KEY))
-        .intoDependencies(myState.get(DEPENDENCIES_KEY))
-        .build();
-      // @formatter:on
-      if (!template.render(context)) {
-        return false;
-      }
-
-      TemplateEntry templateEntry = myState.get(KEY_SELECTED_TEMPLATE);
-      if (templateEntry == null) {
-        return true;
-      }
-      Template activityTemplate = templateEntry.getTemplate();
-      for (Parameter parameter : templateEntry.getMetadata().getParameters()) {
-        templateState.put(parameter.id, myState.get(myParameterStep.getParameterKey(parameter)));
-      }
-      // @formatter:off
-      RenderingContext activityContext = RenderingContext.Builder.newContext(activityTemplate, myWizard.getProject())
-        .withCommandName("New Module")
-        .withDryRun(dryRun)
-        .withShowErrors(true)
-        .withOutputRoot(projectRoot)
-        .withModuleRoot(moduleRoot)
-        .withParams(templateState)
-        .withGradleSync(myGradleSyncIfNecessary)
-        .intoTargetFiles(myState.get(WizardConstants.TARGET_FILES_KEY))
-        .intoOpenFiles(myState.get(FILES_TO_OPEN_KEY))
-        .intoDependencies(myState.get(DEPENDENCIES_KEY))
-        .build();
-      // @formatter:on
-      if (!activityTemplate.render(activityContext)) {
-        return false;
-      }
-
-      return true;
-    }
-    else {
+    if (projectLocation == null) {
       return false;
     }
+
+    String moduleName = myState.get(myModuleNameKey);
+    assert moduleName != null;
+
+    File projectRoot = new File(projectLocation);
+    File moduleRoot = new File(projectRoot, moduleName);
+    try {
+      checkedCreateDirectoryIfMissing(moduleRoot);
+    }
+    catch (IOException e) {
+      LOG.error(e);
+      return false;
+    }
+
+    Template template = Template.createFromPath(myTemplateFile);
+    Map<String, Object> templateState = FormFactorUtils.scrubFormFactorPrefixes(myFormFactor, myState.flatten());
+    // @formatter:off
+    RenderingContext context = RenderingContext.Builder.newContext(template, myWizard.getProject())
+      .withCommandName("New Module")
+      .withDryRun(dryRun)
+      .withShowErrors(true)
+      .withOutputRoot(projectRoot)
+      .withModuleRoot(moduleRoot)
+      .withParams(templateState)
+      .withGradleSync(myGradleSyncIfNecessary)
+      .intoTargetFiles(myState.get(TARGET_FILES_KEY))
+      .intoOpenFiles(myState.get(FILES_TO_OPEN_KEY))
+      .intoDependencies(myState.get(DEPENDENCIES_KEY))
+      .build();
+    // @formatter:on
+    if (!template.render(context)) {
+      return false;
+    }
+
+    TemplateEntry templateEntry = myState.get(KEY_SELECTED_TEMPLATE);
+    if (templateEntry == null) {
+      return true;
+    }
+    Template activityTemplate = templateEntry.getTemplate();
+    for (Parameter parameter : templateEntry.getMetadata().getParameters()) {
+      templateState.put(parameter.id, myState.get(myParameterStep.getParameterKey(parameter)));
+    }
+    // @formatter:off
+    RenderingContext activityContext = RenderingContext.Builder.newContext(activityTemplate, myWizard.getProject())
+      .withCommandName("New Module")
+      .withDryRun(dryRun)
+      .withShowErrors(true)
+      .withOutputRoot(projectRoot)
+      .withModuleRoot(moduleRoot)
+      .withParams(templateState)
+      .withGradleSync(myGradleSyncIfNecessary)
+      .intoTargetFiles(myState.get(TARGET_FILES_KEY))
+      .intoOpenFiles(myState.get(FILES_TO_OPEN_KEY))
+      .intoDependencies(myState.get(DEPENDENCIES_KEY))
+      .build();
+    // @formatter:on
+    if (!activityTemplate.render(activityContext)) {
+      return false;
+    }
+
+    return true;
   }
 
   // TODO: Used to be protected, try to keep protected / private when code is converted over to the new system
